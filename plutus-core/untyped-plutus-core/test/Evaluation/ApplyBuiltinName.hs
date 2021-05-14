@@ -8,6 +8,8 @@ module Evaluation.ApplyBuiltinName
     ( test_applyDefaultBuiltin
     ) where
 
+
+import           PlutusCore                              (defaultBuiltinCostModel)
 import           UntypedPlutusCore
 
 import           PlutusCore.Builtins

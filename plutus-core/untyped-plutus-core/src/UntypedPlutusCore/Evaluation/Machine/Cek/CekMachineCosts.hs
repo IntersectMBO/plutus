@@ -22,6 +22,7 @@ cekMachineCostsPrefix :: Text.Text
 cekMachineCostsPrefix = "cek"
 
 -- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.
+
 data CekMachineCosts =
     CekMachineCosts {
       cekStartupCost :: ExBudget  -- General overhead
@@ -36,7 +37,7 @@ data CekMachineCosts =
     -- There's no entry for Error since we'll be exiting anyway; also, what would
     -- happen if calling 'Error' caused the budget to be exceeded?
     }
-    deriving (Show, Generic, Lift)
+    deriving (Eq, Show, Generic, Lift)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekMachineCosts
 
 -- Charge a unit CPU cost for AST nodes: this allows us to count the number of

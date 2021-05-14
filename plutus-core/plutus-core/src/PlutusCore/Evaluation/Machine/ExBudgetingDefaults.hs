@@ -2,7 +2,18 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module PlutusCore.Evaluation.Machine.ExBudgetingDefaults where
+module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+    ( defaultBuiltinsRuntime
+    , defaultCekCostModel
+    , defaultCekCostModelParams
+    , defaultCekMachineCosts
+    , defaultCekParameters
+    , unitCekMachineCosts
+    , unitCekParameters
+    , defaultBuiltinCostModel
+    )
+
+where
 
 import           Data.Aeson.THReader
 

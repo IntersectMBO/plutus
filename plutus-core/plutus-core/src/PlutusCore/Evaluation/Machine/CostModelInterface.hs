@@ -103,7 +103,7 @@ applyParams cm params = case toJSON cm of
             Error _   -> Nothing
     _ -> Nothing
 
-
+-- | Parameters for a machine step model and a builtin evaluation model bundled together.
 data SplitCostModelParams =
     SplitCostModelParams {
       machineParams :: CostModelParams
@@ -118,28 +118,31 @@ splitParams prefix params =
         builtinparams = Map.filterWithKey (\k _ -> not $ Text.isPrefixOf prefix k) params
     in SplitCostModelParams machineparams builtinparams
 
+-- | Given a CostModel, produce a single map containing the parameters from both components
 extractCostModelParams :: ToJSON machinecosts => CostModel machinecosts -> Maybe CostModelParams
-extractCostModelParams cm =
-    case ( extractParams (machineCostModel cm)
-         , extractParams (builtinCostModel cm) )
-    of (Just machineParams, Just builtinParams) -> Just $ Map.union machineParams builtinParams
+extractCostModelParams model =
+    case ( extractParams (machineCostModel model)
+         , extractParams (builtinCostModel model) )
+    of (Just machineparams, Just builtinparams) -> Just $ Map.union machineparams builtinparams
        _                                        -> Nothing
 
+-- | Given a set of cost model parameters, split it into two parts according to some
+-- prefix and use those parts to update the components of a cost model.
 applySplitCostModelParams
     :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
     => Text.Text
     -> CostModel evaluatorcosts
     -> CostModelParams
     -> Maybe (CostModel evaluatorcosts)
-applySplitCostModelParams prefix cm params =
-    case splitParams prefix params
-    of SplitCostModelParams machineparams builtinparams ->
-           case ( applyParams (machineCostModel cm) machineparams
-                , applyParams (builtinCostModel cm) builtinparams )
-           of
-             (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
-             _                                     -> Nothing
+applySplitCostModelParams prefix model params =
+    let p = splitParams prefix params
+    in case ( applyParams (machineCostModel model) (machineParams p)
+            , applyParams (builtinCostModel model) (builtinParams p) )
+       of
+         (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
+         _                                     -> Nothing
 
+-- | Update a CostModel for the CEK machine with a given set of parameters,
 applyCostModelParams
     :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
     => CostModel evaluatorcosts

@@ -307,8 +307,10 @@ test-suite plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
+        CostModelInterface.Spec
     default-language: Haskell2010
     build-depends:
+        aeson -any,
         base -any,
         bytestring -any,
         filepath -any,
