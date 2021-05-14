@@ -286,6 +286,21 @@ library
         unordered-containers -any,
         witherable -any
 
+test-suite satint-test
+  import: lang
+  type:              exitcode-stdio-1.0
+  main-is:           TestSatInt.hs
+  ghc-options:       -Wall
+  build-depends:     base >=4.9 && <5,
+                     test-framework,
+                     test-framework-hunit,
+                     test-framework-quickcheck2,
+                     HUnit,
+                     QuickCheck,
+                     plutus-core
+  default-language:  Haskell2010
+  hs-source-dirs:    plutus-core/satint-test
+
 test-suite plutus-core-test
     import: lang
     type: exitcode-stdio-1.0
@@ -320,6 +335,7 @@ test-suite plutus-core-test
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
+        tasty-hunit -any,
         tasty-hunit -any,
         text -any,
         transformers -any
