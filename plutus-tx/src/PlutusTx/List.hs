@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.List (map, filter, listToMaybe, uniqueElement, findIndices, findIndex, foldr, reverse, zip, (++), (!!)) where
+module PlutusTx.List (map, filter, listToMaybe, uniqueElement, findIndices, findIndex, foldr, reverse, zip, (++), (!!), head) where
 
 import qualified PlutusTx.Builtins as Builtins
-import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, length, map, null, reverse,
-                                    zip, (!!), (&&), (++), (||))
+import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
+                                    reverse, zip, (!!), (&&), (++), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -103,3 +103,9 @@ zip :: [a] -> [b] -> [(a,b)]
 zip []     _bs    = []
 zip _as    []     = []
 zip (a:as) (b:bs) = (a,b) : zip as bs
+
+{-# INLINABLE head #-}
+-- | Plutus Tx version of 'Data.List.head'.
+head :: [a] -> a
+head []      = Builtins.error ()
+head (x : _) = x
