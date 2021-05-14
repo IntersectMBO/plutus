@@ -15,20 +15,18 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
-import qualified Plutus.Benchmark.Clausify                         as Clausify
-import qualified Plutus.Benchmark.Knights                          as Knights
-import           Plutus.Benchmark.Prime                            (Result (Composite, Prime))
-import qualified Plutus.Benchmark.Prime                            as Prime
-import qualified Plutus.Benchmark.Queens                           as Queens
+import qualified Plutus.Benchmark.Clausify                as Clausify
+import qualified Plutus.Benchmark.Knights                 as Knights
+import           Plutus.Benchmark.Prime                   (Result (Composite, Prime))
+import qualified Plutus.Benchmark.Prime                   as Prime
+import qualified Plutus.Benchmark.Queens                  as Queens
 
-import qualified PlutusCore                                        as PLC
+import qualified PlutusCore                               as PLC
 import           PlutusCore.Builtins
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
-import           PlutusCore.Universe                               (DefaultUni)
-import qualified PlutusTx                                          as Tx
-import qualified UntypedPlutusCore                                 as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC (EvaluationResult (..),
-                                                                            unsafeEvaluateCekNoEmit)
+import           PlutusCore.Universe                      (DefaultUni)
+import qualified PlutusTx                                 as Tx
+import qualified UntypedPlutusCore                        as UPLC
+import           UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..), unsafeEvaluateCekNoEmit)
 
 ---------------- Evaluation ----------------
 
@@ -38,7 +36,7 @@ type Term' = UPLC.Term PLC.Name DefaultUni DefaultFun ()
 runCek :: Term -> EvaluationResult Term'
 runCek t = case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> UPLC.unsafeEvaluateCekNoEmit defaultCekParameters t'
+    Right t' -> UPLC.unsafeEvaluateCekNoEmit UPLC.defaultCekParameters t'
 
 termOfHaskellValue :: Tx.Lift DefaultUni a => a -> Term
 termOfHaskellValue v =
@@ -49,7 +47,7 @@ runCekWithErrMsg :: Term -> String -> IO Term'
 runCekWithErrMsg term errMsg =
     case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm term of
         Left e -> assertFailure (show e)
-        Right t -> case UPLC.unsafeEvaluateCekNoEmit defaultCekParameters t of
+        Right t -> case UPLC.unsafeEvaluateCekNoEmit UPLC.defaultCekParameters t of
           EvaluationFailure        -> assertFailure errMsg
           EvaluationSuccess result -> pure result
 

@@ -9,7 +9,7 @@ module Evaluation.DynamicBuiltins.MakeRead
 
 import           PlutusCore
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel, defaultBuiltinsRuntime)
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc                                  hiding (error)

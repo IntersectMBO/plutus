@@ -4,24 +4,23 @@
 
 module Main where
 
-import           Paths_plutus_benchmark                            (getDataFileName)
+import           Paths_plutus_benchmark                   (getDataFileName)
 
 
-import qualified PlutusCore                                        as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
-import qualified PlutusCore.Pretty                                 as PP
+import qualified PlutusCore                               as PLC
+import qualified PlutusCore.Pretty                        as PP
 
-import qualified UntypedPlutusCore                                 as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
+import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Criterion.Main
-import           Criterion.Types                                   (Config (..))
+import           Criterion.Types                          (Config (..))
 
 import           Control.Monad
-import           Control.Monad.Trans.Except                        (runExceptT)
-import qualified Data.ByteString.Lazy                              as BSL
+import           Control.Monad.Trans.Except               (runExceptT)
+import qualified Data.ByteString.Lazy                     as BSL
 import           System.FilePath
-import           Text.Printf                                       (printf)
+import           Text.Printf                              (printf)
 
 {-- | This set of benchmarks is based on validations occurring in the tests in
   plutus-use-cases.  Those tests are run on the blockchain simulator, and a
@@ -42,7 +41,7 @@ loadPlcSource file = do
      Right p                    -> return $ () <$ p
 
 benchCek :: Term () -> Benchmarkable
-benchCek program = nf (UPLC.unsafeEvaluateCek defaultCekParameters) program
+benchCek program = nf (UPLC.unsafeEvaluateCek UPLC.defaultCekParameters) program
 
 
 plcSuffix :: String

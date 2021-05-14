@@ -4,24 +4,23 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import           PlutusCore                                        as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import           PlutusCore                               as PLC
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
-import           UntypedPlutusCore                                 as UPLC
+import           UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Criterion.Main
-import qualified Criterion.Types                                   as C
-import qualified Data.ByteString                                   as BS
+import qualified Criterion.Types                          as C
+import qualified Data.ByteString                          as BS
 import           Data.Functor
-import qualified Hedgehog                                          as HH
-import qualified Hedgehog.Internal.Gen                             as HH
-import qualified Hedgehog.Internal.Tree                            as HH
-import qualified Hedgehog.Range                                    as HH.Range
+import qualified Hedgehog                                 as HH
+import qualified Hedgehog.Internal.Gen                    as HH
+import qualified Hedgehog.Internal.Tree                   as HH
+import qualified Hedgehog.Range                           as HH.Range
 import           System.Directory
 import           System.FilePath
-import           System.Random                                     (StdGen, getStdGen, randomR)
+import           System.Random                            (StdGen, getStdGen, randomR)
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 

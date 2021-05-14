@@ -72,8 +72,8 @@ import           Control.Monad.Writer
 import           Data.Bifunctor
 import           Data.ByteString.Short
 import           Data.Either
-import           Data.Maybe                                        (isJust)
-import qualified Data.Text                                         as Text
+import           Data.Maybe                                       (isJust)
+import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import qualified Flat
@@ -84,23 +84,22 @@ import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.DCert
 import           Plutus.V1.Ledger.Interval
-import           Plutus.V1.Ledger.Scripts                          hiding (Script)
-import qualified Plutus.V1.Ledger.Scripts                          as Scripts
+import           Plutus.V1.Ledger.Scripts                         hiding (Script)
+import qualified Plutus.V1.Ledger.Scripts                         as Scripts
 import           Plutus.V1.Ledger.Slot
-import qualified PlutusCore                                        as PLC
-import qualified PlutusCore.DeBruijn                               as PLC
-import           PlutusCore.Evaluation.Machine.CostModelInterface  (CostModelData, applyCostModelData)
-import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..))
-import qualified PlutusCore.Evaluation.Machine.ExBudget            as PLC
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCostModel, defaultCekCostModelData)
-import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
+import qualified PlutusCore                                       as PLC
+import qualified PlutusCore.DeBruijn                              as PLC
+import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelData, applyCostModelData)
+import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
+import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
+import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
-import qualified PlutusCore.MkPlc                                  as PLC
+import qualified PlutusCore.MkPlc                                 as PLC
 import           PlutusCore.Pretty
-import           PlutusTx                                          (Data (..), IsData (..))
-import qualified PlutusTx.Lift                                     as PlutusTx
-import qualified UntypedPlutusCore                                 as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
+import           PlutusTx                                         (Data (..), IsData (..))
+import qualified PlutusTx.Lift                                    as PlutusTx
+import qualified UntypedPlutusCore                                as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 
 plutusScriptEnvelopeType :: Text.Text
 plutusScriptEnvelopeType = "PlutusV1Script"
@@ -127,7 +126,7 @@ validateScript :: Script -> Bool
 validateScript = isRight . Flat.unflat @Scripts.Script . fromShort
 
 validateCostModelData :: CostModelData -> Bool
-validateCostModelData = isJust . applyCostModelData defaultCekCostModel
+validateCostModelData = isJust . applyCostModelData UPLC.defaultCekCostModel
 
 data VerboseMode = Verbose | Quiet
     deriving (Eq)
@@ -179,7 +178,7 @@ evaluateScriptRestricting
     -> (LogOutput, Either EvaluationError ())
 evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyCostModelData defaultCekCostModel cmdata of
+    model <- case applyCostModelData UPLC.defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
@@ -203,7 +202,7 @@ evaluateScriptCounting
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyCostModelData defaultCekCostModel cmdata of
+    model <- case applyCostModelData UPLC.defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 

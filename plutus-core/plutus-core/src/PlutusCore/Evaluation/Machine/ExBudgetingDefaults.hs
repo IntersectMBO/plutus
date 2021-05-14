@@ -15,8 +15,8 @@ import           PlutusCore.Evaluation.Machine.ExBudget                   ()
 import           PlutusCore.Evaluation.Machine.ExMemory                   ()
 import           PlutusCore.Evaluation.Machine.MachineParameters
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (unitCekMachineCosts)
+import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 
 -- | The default cost model for built-in functions.

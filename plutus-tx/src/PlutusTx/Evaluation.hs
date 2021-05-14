@@ -15,13 +15,12 @@ module PlutusTx.Evaluation
 where
 
 import           PlutusCore.Builtins
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import           PlutusCore.Name
 import           PlutusCore.Universe
 
 import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.Machine.Cek          hiding (evaluateCek, unsafeEvaluateCek)
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as Cek
+import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek

@@ -10,14 +10,13 @@ import           Control.Exception
 import           Control.Monad.Except
 import           Criterion.Main
 
-import qualified Plutus.Benchmark.Clausify                         as Clausify
-import qualified Plutus.Benchmark.Knights                          as Knights
-import qualified Plutus.Benchmark.Prime                            as Prime
-import qualified Plutus.Benchmark.Queens                           as Queens
+import qualified Plutus.Benchmark.Clausify                as Clausify
+import qualified Plutus.Benchmark.Knights                 as Knights
+import qualified Plutus.Benchmark.Prime                   as Prime
+import qualified Plutus.Benchmark.Queens                  as Queens
 
-import qualified PlutusCore                                        as PLC
+import qualified PlutusCore                               as PLC
 import           PlutusCore.Builtins
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import           PlutusCore.Universe
 
 import           UntypedPlutusCore

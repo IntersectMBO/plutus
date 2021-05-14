@@ -35,6 +35,13 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , unsafeEvaluateCekNoEmit
     , readKnownCek
     , enormousBudget
+    -- Re-exports from ExBudgetingDefaults
+    , defaultBuiltinCostModel
+    , defaultBuiltinsRuntime
+    , defaultCekCostModel
+    , defaultCekMachineCosts
+    , defaultCekParameters
+    , unitCekParameters
     )
 where
 
@@ -46,6 +53,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Machine.MachineParameters
