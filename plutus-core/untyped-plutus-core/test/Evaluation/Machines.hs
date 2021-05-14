@@ -58,8 +58,8 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCekNoEmit defaultCekParameters
-        , testMachine "HOAS" $ evaluateHoas defaultBuiltinsRuntime
+        [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
+        , testMachine "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
         ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -83,7 +83,7 @@ testBudget runtime name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit (MachineParameters defaultCekMachineCosts runtime) Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -130,10 +130,10 @@ test_budget
     = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
-        [ folder defaultBuiltinsRuntime examples
-        , folder defaultBuiltinsRuntime bunchOfFibs
+        [ folder Plc.defaultBuiltinsRuntime examples
+        , folder Plc.defaultBuiltinsRuntime bunchOfFibs
         , folder (toBuiltinsRuntime ()) bunchOfIdNats
-        , folder defaultBuiltinsRuntime bunchOfIfThenElseNats
+        , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where
     folder runtime =
@@ -147,7 +147,7 @@ testTallying name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defaultCekParameters Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =

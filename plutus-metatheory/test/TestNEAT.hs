@@ -6,7 +6,6 @@ import           Data.Either
 import           Data.List
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinsRuntime)
 import           PlutusCore.Generators.NEAT.Spec
 import           PlutusCore.Generators.NEAT.Term
 import           PlutusCore.Lexer
@@ -14,16 +13,15 @@ import           PlutusCore.Normalize
 import           PlutusCore.Pretty
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import qualified UntypedPlutusCore                                 as U
+import qualified UntypedPlutusCore                as U
 
-import           MAlonzo.Code.Main                                 (checkKindAgda, checkTypeAgda, inferKindAgda,
-                                                                    inferTypeAgda, normalizeTypeAgda,
-                                                                    normalizeTypeTermAgda, runCKAgda, runTCEKAgda,
-                                                                    runTCKAgda, runTLAgda, runUAgda)
-import           MAlonzo.Code.Scoped                               (deBruijnifyK, unDeBruijnifyK)
+import           MAlonzo.Code.Main                (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
+                                                   normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda, runTCEKAgda,
+                                                   runTCKAgda, runTLAgda, runUAgda)
+import           MAlonzo.Code.Scoped              (deBruijnifyK, unDeBruijnifyK)
 
 import           PlutusCore.DeBruijn
-import           Raw                                               hiding (TypeError, tynames)
+import           Raw                              hiding (TypeError, tynames)
 
 import           Debug.Trace
 

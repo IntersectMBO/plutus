@@ -840,7 +840,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                                Silent    -> ()
                                Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
                     TypedProgram prog <- getProgram TypedPLC ifmt inp
-                    let evaluate = Ck.evaluateCkNoEmit Cek.defaultBuiltinsRuntime
+                    let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
                         term = void . PLC.toTerm $ prog
                         !_ = rnf term
                         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -857,8 +857,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                   let term = void . UPLC.toTerm $ prog
                       !_ = rnf term
                       cekparams = case cekModel of
-                                Default -> Cek.defaultCekParameters  -- AST nodes are charged according to the default cost model
-                                Unit    -> Cek.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
+                                Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
+                                Unit    -> PLC.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
                                                                      -- type is encountered.  This is useful for calibrating the budgeting code.
                   case budgetMode of
                     Silent -> do

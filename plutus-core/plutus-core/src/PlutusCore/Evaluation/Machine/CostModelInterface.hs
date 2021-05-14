@@ -2,9 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.Evaluation.Machine.CostModelInterface
-    ( CostModelData
-    , extractCostModelData
-    , applyCostModelData
+    ( CostModelParams
+    , extractCostModelParams
+    , applyCostModelParams
     )
 where
 
@@ -65,12 +65,12 @@ obtain parameters for the overall model
 -}
 
 -- See Note [Cost model parameters]
-type ModelData = Map.Map Text.Text Integer
+type ModelParams = Map.Map Text.Text Integer
 
 -- See Note [Cost model parameters]
 -- | Extract the model parameters from a model.
-extractData :: ToJSON a => a -> Maybe ModelData
-extractData cm = case toJSON cm of
+extractParams :: ToJSON a => a -> Maybe ModelParams
+extractParams cm = case toJSON cm of
     Object o ->
         let
             flattened = flattenObject "-" o
@@ -84,8 +84,8 @@ extractData cm = case toJSON cm of
 
 -- See Note [Cost model parameters]
 -- | Update a model by overwriting the parameters with the given ones.
-applyData :: (FromJSON a, ToJSON a) => a -> ModelData -> Maybe a
-applyData cm params = case toJSON cm of
+applyParams :: (FromJSON a, ToJSON a) => a -> ModelParams -> Maybe a
+applyParams cm params = case toJSON cm of
     Object o ->
         let
             hashmapified = HM.fromList $ Map.toList params
@@ -101,26 +101,26 @@ applyData cm params = case toJSON cm of
 
 
 -- | Parameters for a model with components for both machine costs and builtin costs
-data CostModelData = CostModelData {
-      machineCostModelData :: ModelData
-    , builtinCostModelData :: ModelData
+data CostModelParams = CostModelParams {
+      machineCostModelParams :: ModelParams  -- Not to be confused with MachineParameters, which is used during script evaluation.
+    , builtinCostModelParams :: ModelParams
     }
 
-extractCostModelData :: ToJSON machinecosts => CostModel machinecosts -> Maybe (CostModelData)
-extractCostModelData cm =
-    case ( extractData (machineCostModel cm)
-         , extractData (builtinCostModel cm) )
-    of (Just machineData, Just builtinData) -> Just $ CostModelData machineData builtinData
-       _                                    -> Nothing
+extractCostModelParams :: ToJSON machinecosts => CostModel machinecosts -> Maybe (CostModelParams)
+extractCostModelParams cm =
+    case ( extractParams (machineCostModel cm)
+         , extractParams (builtinCostModel cm) )
+    of (Just machineParams, Just builtinParams) -> Just $ CostModelParams machineParams builtinParams
+       _                                        -> Nothing
 
-applyCostModelData
-    :: (FromJSON machinecosts, ToJSON machinecosts)
-    => CostModel machinecosts
-    -> CostModelData
-    -> Maybe (CostModel machinecosts)
-applyCostModelData cm cmdata =
-    case ( applyData (machineCostModel cm) (machineCostModelData cmdata)
-         , applyData (builtinCostModel cm) (builtinCostModelData cmdata) )
+applyCostModelParams
+    :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
+    => CostModel evaluatorcosts
+    -> CostModelParams
+    -> Maybe (CostModel evaluatorcosts)
+applyCostModelParams cm cmdata =
+    case ( applyParams (machineCostModel cm) (machineCostModelParams cmdata)
+         , applyParams (builtinCostModel cm) (builtinCostModelParams cmdata) )
     of
       (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
       _                                     -> Nothing

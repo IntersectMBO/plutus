@@ -6,14 +6,15 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults where
 
 import           Data.Aeson.THReader
 
-import           PlutusCore
 import           PlutusCore.Constant
 
+import           PlutusCore.Builtins
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.CostModelInterface
 import           PlutusCore.Evaluation.Machine.ExBudget                   ()
 import           PlutusCore.Evaluation.Machine.ExMemory                   ()
 import           PlutusCore.Evaluation.Machine.MachineParameters
+import           PlutusCore.Universe
 
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
@@ -41,8 +42,8 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 --- defaultCekMachineCosts is CekMachineCosts
 
 -- | The default cost model data.
-defaultCekCostModelData :: Maybe CostModelData
-defaultCekCostModelData = extractCostModelData defaultCekCostModel
+defaultCekCostModelParams :: Maybe CostModelParams
+defaultCekCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 defaultCekParameters = toMachineParameters defaultCekCostModel

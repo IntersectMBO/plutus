@@ -12,7 +12,6 @@ import           UntypedPlutusCore
 
 import           PlutusCore.Builtins
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Generators
 import           PlutusCore.Universe

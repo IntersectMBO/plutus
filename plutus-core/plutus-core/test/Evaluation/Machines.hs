@@ -8,7 +8,6 @@ where
 
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinsRuntime)
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.Generators.Test

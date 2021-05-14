@@ -9,9 +9,9 @@ module Plutus.V1.Ledger.Api (
     -- * Validating scripts
     , validateScript
     -- * Cost model
-    , validateCostModelData
-    , defaultCekCostModelData
-    , CostModelData
+    , validateCostModelParams
+    , defaultCekCostModelParams
+    , CostModelParams
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -87,9 +87,9 @@ import           Plutus.V1.Ledger.Interval
 import           Plutus.V1.Ledger.Scripts                         hiding (Script)
 import qualified Plutus.V1.Ledger.Scripts                         as Scripts
 import           Plutus.V1.Ledger.Slot
-import qualified PlutusCore                                       as PLC
+import           PlutusCore                                       as PLC
 import qualified PlutusCore.DeBruijn                              as PLC
-import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelData, applyCostModelData)
+import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
 import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
@@ -125,8 +125,8 @@ anything, we're just going to create new versions.
 validateScript :: Script -> Bool
 validateScript = isRight . Flat.unflat @Scripts.Script . fromShort
 
-validateCostModelData :: CostModelData -> Bool
-validateCostModelData = isJust . applyCostModelData UPLC.defaultCekCostModel
+validateCostModelParams :: CostModelParams -> Bool
+validateCostModelParams = isJust . applyCostModelParams PLC.defaultCekCostModel
 
 data VerboseMode = Verbose | Quiet
     deriving (Eq)
@@ -170,15 +170,15 @@ mkTermToEvaluate bs args = do
 -- 'UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode' which should be large
 -- enough to evaluate any sensible program.
 evaluateScriptRestricting
-    :: VerboseMode   -- ^ Whether to produce log output
-    -> CostModelData -- ^ The cost model to use
-    -> ExBudget      -- ^ The resource budget which must not be exceeded during evaluation
-    -> Script        -- ^ The script to evaluate
-    -> [Data]        -- ^ The arguments to the script
+    :: VerboseMode     -- ^ Whether to produce log output
+    -> CostModelParams -- ^ The cost model to use
+    -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
+    -> Script          -- ^ The script to evaluate
+    -> [Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
 evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyCostModelData UPLC.defaultCekCostModel cmdata of
+    model <- case applyCostModelParams PLC.defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
@@ -195,14 +195,14 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully.
 evaluateScriptCounting
-    :: VerboseMode   -- ^ Whether to produce log output
-    -> CostModelData -- ^ The cost model to use
-    -> Script        -- ^ The script to evaluate
-    -> [Data]        -- ^ The arguments to the script
+    :: VerboseMode     -- ^ Whether to produce log output
+    -> CostModelParams -- ^ The cost model to use
+    -> Script          -- ^ The script to evaluate
+    -> [Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyCostModelData UPLC.defaultCekCostModel cmdata of
+    model <- case applyCostModelParams PLC.defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 

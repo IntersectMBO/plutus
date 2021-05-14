@@ -9,18 +9,17 @@ module Evaluation.DynamicBuiltins.MakeRead
 
 import           PlutusCore
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel, defaultBuiltinsRuntime)
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc                                  hiding (error)
+import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Pretty
 import           PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Hedgehog                                          hiding (Size, Var)
-import qualified Hedgehog.Gen                                      as Gen
-import qualified Hedgehog.Range                                    as Range
+import           Hedgehog                                hiding (Size, Var)
+import qualified Hedgehog.Gen                            as Gen
+import qualified Hedgehog.Range                          as Range
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog

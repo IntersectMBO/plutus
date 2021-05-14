@@ -23,12 +23,12 @@ import           PlutusPrelude
 import           PlutusCore.Generators.Internal.TypedBuiltinGen
 import           PlutusCore.Generators.Internal.Utils
 
+import           PlutusCore                                     (defaultBuiltinsRuntime)
 import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
 import           PlutusCore.Error
 import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Name
 import           PlutusCore.Normalize
