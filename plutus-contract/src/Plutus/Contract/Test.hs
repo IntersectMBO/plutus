@@ -68,6 +68,7 @@ module Plutus.Contract.Test(
     ) where
 
 import           Control.Applicative                   (liftA2)
+import           Control.Arrow                         ((>>>))
 import           Control.Foldl                         (FoldM)
 import qualified Control.Foldl                         as L
 import           Control.Lens                          (at, makeLenses, preview, to, (&), (.~), (^.))
@@ -80,6 +81,7 @@ import           Control.Monad.Freer.Writer            (Writer (..), tell)
 import           Control.Monad.IO.Class                (MonadIO (liftIO))
 import           Data.Default                          (Default (..))
 import           Data.Foldable                         (fold, toList, traverse_)
+import qualified Data.Map                              as M
 import           Data.Maybe                            (fromJust, mapMaybe)
 import           Data.Proxy                            (Proxy (..))
 import           Data.String                           (IsString (..))
@@ -337,15 +339,28 @@ valueAtAddress address check =
             tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <+> pretty vl)
         pure result
 
-dataAtAddress :: FromData a => Address -> (a -> Bool) -> TracePredicate
+
+-- | Get a datum of a given type 'd' out of a Transaction Output.
+getTxOutDatum ::
+  forall d.
+  (FromData d) =>
+  Ledger.TxOutRef ->
+  Ledger.TxOutTx ->
+  Maybe d
+getTxOutDatum _ (Ledger.TxOutTx _ (Ledger.TxOut _ _ Nothing)) = Nothing
+getTxOutDatum _ (Ledger.TxOutTx tx' (Ledger.TxOut _ _ (Just datumHash))) =
+    Ledger.lookupDatum tx' datumHash >>= (Ledger.getDatum >>> fromBuiltinData @d)
+
+dataAtAddress :: forall d . FromData d => Address -> ([d] -> Bool) -> TracePredicate
 dataAtAddress address check =
     flip postMapM (L.generalize $ Folds.utxoAtAddress address) $ \utxo -> do
-        let isSingletonWith p xs = length xs == 1 && all p xs
-        let result = isSingletonWith (isSingletonWith (maybe False check . fromBuiltinData . Ledger.getDatum) . Ledger.txData . Ledger.txOutTxTx) utxo
-        unless result $ do
-            tell @(Doc Void) ("Data at address" <+> pretty address <+> "was"
-                <+> foldMap (foldMap pretty . Ledger.txData . Ledger.txOutTxTx) utxo)
-        pure result
+      let
+        datums = mapMaybe (uncurry $ getTxOutDatum @d) $ M.toList utxo
+        result = check datums
+      unless result $ do
+          tell @(Doc Void) ("Data at address" <+> pretty address <+> "was"
+              <+> foldMap (foldMap pretty . Ledger.txData . Ledger.txOutTxTx) utxo)
+      pure result
 
 waitingForSlot
     :: forall w s e a.
