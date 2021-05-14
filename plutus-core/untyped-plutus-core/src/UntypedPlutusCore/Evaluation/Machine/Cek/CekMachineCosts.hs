@@ -1,15 +1,25 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
     ( CekMachineCosts(..)
+    , cekMachineCostsPrefix
     , unitCekMachineCosts
     )
 where
 
 import           PlutusCore.Evaluation.Machine.ExBudget
 
+import qualified Data.Text                              as Text
 import           Deriving.Aeson
 import           Language.Haskell.TH.Syntax             (Lift)
+
+
+-- | The prefix of the field names in the CekMachineCosts type, used for
+-- extracting the CekMachineCosts component of the ledger's cost model
+-- parameters. See Note [Cost model parameters] in CostModelInterface.
+cekMachineCostsPrefix :: Text.Text
+cekMachineCostsPrefix = "cek"
 
 -- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.
 data CekMachineCosts =

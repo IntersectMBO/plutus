@@ -10,7 +10,7 @@ where
 
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel           ()
 import           PlutusCore.Evaluation.Machine.MachineParameters          (CostModel (..))
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts ()
+import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (cekMachineCostsPrefix)
 
 import           Data.Aeson
 import           Data.Aeson.Flatten
@@ -60,16 +60,20 @@ Ugly JSON stuff and failure possibilities where there probably shouldn't be any.
 5. The overall cost model now includes two components: a model for the internal
 costs of the evaluator and a model for built-in evaluation costs.  We just
 re-use the technique mentioned above to extract parameters for the evaluator
-costs, packing these together with the parameters for the builtin cost model to
-obtain parameters for the overall model
+costs, merging these with the parameters for the builtin cost model to obtain
+parameters for the overall model.  To recover cost model components we assume
+that every field in the cost model for the evaluator begins with a prefix (eg
+"cek") which is does not occur as a prefix of any built-in function, and use
+that to split the map of parameters into two maps.
+
 -}
 
 -- See Note [Cost model parameters]
-type ModelParams = Map.Map Text.Text Integer
+type CostModelParams = Map.Map Text.Text Integer
 
 -- See Note [Cost model parameters]
 -- | Extract the model parameters from a model.
-extractParams :: ToJSON a => a -> Maybe ModelParams
+extractParams :: ToJSON a => a -> Maybe CostModelParams
 extractParams cm = case toJSON cm of
     Object o ->
         let
@@ -84,7 +88,7 @@ extractParams cm = case toJSON cm of
 
 -- See Note [Cost model parameters]
 -- | Update a model by overwriting the parameters with the given ones.
-applyParams :: (FromJSON a, ToJSON a) => a -> ModelParams -> Maybe a
+applyParams :: (FromJSON a, ToJSON a) => a -> CostModelParams -> Maybe a
 applyParams cm params = case toJSON cm of
     Object o ->
         let
@@ -100,27 +104,45 @@ applyParams cm params = case toJSON cm of
     _ -> Nothing
 
 
--- | Parameters for a model with components for both machine costs and builtin costs
-data CostModelParams = CostModelParams {
-      machineCostModelParams :: ModelParams  -- Not to be confused with MachineParameters, which is used during script evaluation.
-    , builtinCostModelParams :: ModelParams
+data SplitCostModelParams =
+    SplitCostModelParams {
+      machineParams :: CostModelParams
+    , builtinParams :: CostModelParams
     }
 
-extractCostModelParams :: ToJSON machinecosts => CostModel machinecosts -> Maybe (CostModelParams)
+-- | Split a CostModelParams object into two subobjects according to some prefix:
+-- see item 5 of Note [Cost model parameters].
+splitParams :: Text.Text -> CostModelParams -> SplitCostModelParams
+splitParams prefix params =
+    let machineparams = Map.filterWithKey (\k _ ->       Text.isPrefixOf prefix k) params
+        builtinparams = Map.filterWithKey (\k _ -> not $ Text.isPrefixOf prefix k) params
+    in SplitCostModelParams machineparams builtinparams
+
+extractCostModelParams :: ToJSON machinecosts => CostModel machinecosts -> Maybe CostModelParams
 extractCostModelParams cm =
     case ( extractParams (machineCostModel cm)
          , extractParams (builtinCostModel cm) )
-    of (Just machineParams, Just builtinParams) -> Just $ CostModelParams machineParams builtinParams
+    of (Just machineParams, Just builtinParams) -> Just $ Map.union machineParams builtinParams
        _                                        -> Nothing
+
+applySplitCostModelParams
+    :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
+    => Text.Text
+    -> CostModel evaluatorcosts
+    -> CostModelParams
+    -> Maybe (CostModel evaluatorcosts)
+applySplitCostModelParams prefix cm params =
+    case splitParams prefix params
+    of SplitCostModelParams machineparams builtinparams ->
+           case ( applyParams (machineCostModel cm) machineparams
+                , applyParams (builtinCostModel cm) builtinparams )
+           of
+             (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
+             _                                     -> Nothing
 
 applyCostModelParams
     :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
     => CostModel evaluatorcosts
     -> CostModelParams
     -> Maybe (CostModel evaluatorcosts)
-applyCostModelParams cm cmdata =
-    case ( applyParams (machineCostModel cm) (machineCostModelParams cmdata)
-         , applyParams (builtinCostModel cm) (builtinCostModelParams cmdata) )
-    of
-      (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
-      _                                     -> Nothing
+applyCostModelParams = applySplitCostModelParams cekMachineCostsPrefix
