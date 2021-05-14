@@ -28,7 +28,7 @@ import           Data.Foldable                    (toList)
 import           GHC.Generics                     (Generic)
 
 import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
-import           Plutus.Contract.Checkpoint       (CheckpointStore)
+import           Plutus.Contract.Checkpoint       (CheckpointKey, CheckpointStore)
 import           Plutus.Contract.Resumable
 import           Plutus.Contract.Schema           (Event (..), Handlers (..))
 import           Plutus.Contract.Types            hiding (lastLogs, logs, observableState)
@@ -64,7 +64,7 @@ data State e = State
 -- | A request sent to a contract instance. It contains the previous 'State' of
 --   the instance, and a 'Response' to one of the requests of the instance.
 data ContractRequest s = ContractRequest
-    { oldState :: State s
+    { oldState :: State (CheckpointKey, s)
     , event    :: Response s
     }
     deriving stock (Generic, Eq, Show, Functor, Foldable, Traversable)
@@ -75,7 +75,7 @@ data ContractRequest s = ContractRequest
 --   the list of endpoints that can be called, logs produced by the contract,
 --   possibly an error message, and the accumulated observable state.
 data ContractResponse w e s h = ContractResponse
-    { newState        :: State s -- ^ Serialised state of the contract (internal)
+    { newState        :: State (CheckpointKey, s) -- ^ Serialised state of the contract (internal)
     , hooks           :: [Request h] -- ^ Open requests that can be handled
     , logs            :: [LogMessage Value] -- ^ Logs produced by the contract
     , lastLogs        :: [LogMessage Value] -- ^ Logs produced in the last step
@@ -87,7 +87,7 @@ data ContractResponse w e s h = ContractResponse
 
 instance Bifunctor (ContractResponse w e) where
     bimap f g c@ContractResponse{newState} =
-        fmap g c{ newState = fmap f newState }
+        fmap g c{ newState = fmap (fmap f) newState }
 
 mapE :: forall e f w s h. (e -> f) -> ContractResponse w e s h -> ContractResponse w f s h
 mapE f c@ContractResponse{err} = c{err = fmap f err}
@@ -104,7 +104,7 @@ insertAndUpdateContract ::
     -> ContractRequest (Event s) -- ^  The 'ContractRequest' value with the previous state and the new event.
     -> ContractResponse w e (Event s) (Handlers s)
 insertAndUpdateContract (Contract con) ContractRequest{oldState=State record checkpoints, event} =
-    mkResponse $ insertAndUpdate con checkpoints record event
+    mkResponse $ shrinkResumableResult $ insertAndUpdate con checkpoints record event
 
 mkResponse :: forall w e s h a.
     ResumableResult w e s h a

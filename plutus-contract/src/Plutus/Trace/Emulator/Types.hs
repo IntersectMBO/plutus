@@ -270,8 +270,8 @@ toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_r
 data ContractInstanceState w s e a =
     ContractInstanceState
         { instContractState   :: ResumableResult w e (Event s) (Handlers s) a
-        , instEvents          :: Seq (Response (Event s))
-        , instHandlersHistory :: Seq [State.Request (Handlers s)]
+        , instEvents          :: Seq (Response (Event s)) -- ^ Events received by the contract instance. (Used for debugging purposes)
+        , instHandlersHistory :: Seq [State.Request (Handlers s)] -- ^ Requests issued by the contract instance (Used for debugging purposes)
         }
         deriving stock Generic
 

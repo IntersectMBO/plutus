@@ -28,7 +28,7 @@ import qualified Ledger.Constraints                     as Constraints
 import qualified Ledger.Crypto                          as Crypto
 import           Plutus.Contract                        as Con
 import           Plutus.Contract.Test
-import           Plutus.Contract.Types                  (ResumableResult (..))
+import           Plutus.Contract.Types                  (ResumableResult (..), responses)
 import           Plutus.Contract.Util                   (loopM)
 import qualified Plutus.Trace                           as Trace
 import           Plutus.Trace.Emulator                  (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
@@ -183,7 +183,10 @@ tests =
             (void $ activateContract w1 (void errorContract) tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 10 >> callEndpoint @"3" hdl 11)
 
         , run 1 "loop checkpoint"
-            (assertDone loopCheckpointContract tag (\i -> i == 4) "should finish")
+            (assertDone loopCheckpointContract tag (\i -> i == 4) "should finish"
+            .&&. assertResumableResult loopCheckpointContract tag DoShrink (null . view responses) "should collect garbage"
+            .&&. assertResumableResult loopCheckpointContract tag DontShrink ((==) 4 . length . view responses) "should keep everything"
+            )
             $ do
                 hdl <- activateContract w1 loopCheckpointContract tag
                 forM [1..4] (\_ -> callEndpoint @"1" hdl 1)

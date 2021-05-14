@@ -14,6 +14,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TupleSections          #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
 module Plutus.Contract.Types(
@@ -48,6 +49,7 @@ module Plutus.Contract.Types(
     , logs
     , checkpointStore
     , observableState
+    , shrinkResumableResult
     -- * Run with continuations
     , SuspendedContract(..)
     , resumableResult
@@ -73,6 +75,9 @@ import qualified Control.Monad.Freer.Writer        as W
 import           Data.Aeson                        (Value)
 import qualified Data.Aeson                        as Aeson
 import           Data.Foldable                     (foldl')
+import           Data.IntervalMap.Interval         (Interval (OpenInterval))
+import qualified Data.IntervalSet                  as IS
+import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
 import           Data.Sequence                     (Seq)
 import           Data.Void                         (Void)
@@ -81,8 +86,9 @@ import           GHC.Generics                      (Generic)
 import           Plutus.Contract.Schema            (Event (..), Handlers (..))
 
 import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Checkpoint (..), CheckpointError (..),
-                                                    CheckpointKey, CheckpointLogMsg, CheckpointStore, handleCheckpoint,
-                                                    jsonCheckpoint, jsonCheckpointLoop)
+                                                    CheckpointKey, CheckpointLogMsg, CheckpointStore,
+                                                    completedIntervals, handleCheckpoint, jsonCheckpoint,
+                                                    jsonCheckpointLoop)
 import           Plutus.Contract.Resumable         hiding (responses, select)
 import qualified Plutus.Contract.Resumable         as Resumable
 
@@ -239,7 +245,7 @@ type SuspendedContractEffects w e i =
 -- | The result of running a 'Resumable'
 data ResumableResult w e i o a =
     ResumableResult
-        { _responses       :: Responses i -- The record with the resumable's execution history
+        { _responses       :: Responses (CheckpointKey, i) -- The record with the resumable's execution history
         , _requests        :: Requests o -- Handlers that the 'Resumable' has registered
         , _finalState      :: Either e (Maybe a) -- Error or final state of the 'Resumable' (if it has finished)
         , _logs            :: Seq (LogMessage Value) -- All log messages that have been produced by this instance.
@@ -247,10 +253,20 @@ data ResumableResult w e i o a =
         , _checkpointStore :: CheckpointStore
         , _observableState :: w -- ^ Accumulated, observable state of the contract
         }
-        deriving stock Generic
+        deriving stock (Generic, Show)
         deriving anyclass (Aeson.ToJSON, Aeson.FromJSON)
 
 makeLenses ''ResumableResult
+
+-- | Shrink the 'ResumableResult' by deleting everything that's not needed to restore the
+--   state of the contract instance.
+shrinkResumableResult :: ResumableResult w e i o a -> ResumableResult w e i o a
+shrinkResumableResult rs =
+  let comp = rs ^. checkpointStore . to completedIntervals
+      isCovered :: CheckpointKey -> Bool
+      isCovered k = IS.member (OpenInterval k k) comp
+  in rs & logs .~ mempty
+        & over (responses . _Responses) (Map.filter (not . isCovered . fst))
 
 data SuspendedContract w e i o a =
   SuspendedContract
@@ -356,7 +372,7 @@ runStep ::
   -> Maybe (SuspendedContract w e (Event s) (Handlers s) a)
 runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState, _logs=oldLogs}} event =
   Just
-    $ set (resumableResult . responses) (insertResponse event _responses)
+    $ set (resumableResult . responses) (insertResponse (fmap (_checkpointKey,) event) _responses)
     $ mkResult _observableState oldLogs
     $ runSuspContractEffects
         _checkpointKey
@@ -369,8 +385,8 @@ insertAndUpdate ::
   Monoid w
   => Eff (ContractEffs w s e) a
   -> CheckpointStore
-  -> Responses (Event s)
+  -> Responses (CheckpointKey, Event s)
   -> Response (Event s)
   -> ResumableResult w e (Event s) (Handlers s) a
 insertAndUpdate action store record newResponse =
-  runWithRecord action store (insertResponse newResponse record)
+  runWithRecord action store (insertResponse newResponse $ fmap snd record)

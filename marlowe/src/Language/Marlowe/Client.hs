@@ -147,9 +147,9 @@ marloweFollowContract = do
     params <- endpoint @"follow"
     slot <- currentSlot
     logDebug @String "Getting contract history"
-    follow 0 slot params
+    checkpointLoop follow (0, slot, params)
   where
-    follow ifrom ito params = do
+    follow (ifrom, ito, params) = do
         let client@StateMachineClient{scInstance} = mkMarloweClient params
         let inst = validatorInstance scInstance
         let address = Scripts.scriptAddress inst
@@ -169,10 +169,10 @@ marloweFollowContract = do
         case res of
             Finished -> do
                 logDebug @String ("Contract finished " <> show params)
-                pure () -- close the contract
+                pure $ Left () -- close the contract
             InProgress ->
                 let next = succ ito in
-                follow next next params
+                pure $ Right (next, next, params)
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
         let inst = validatorInstance scInstance
@@ -643,7 +643,7 @@ marloweCompanionContract = contracts
         utxo <- utxoAt ownAddress
         let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
         forM_ txOuts notifyOnNewContractRoles
-        cont ownAddress
+        checkpointLoop (fmap Right <$> cont) ownAddress
     cont ownAddress = do
         txns <- nextTransactionsAt ownAddress
         let txOuts = txns >>= eitherTx (const []) txOutputs

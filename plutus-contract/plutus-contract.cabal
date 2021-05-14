@@ -138,7 +138,8 @@ library
         random -any,
         unordered-containers -any,
         foldl -any,
-        streaming -any
+        streaming -any,
+        IntervalMap -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:

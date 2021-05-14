@@ -247,7 +247,7 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (Rep
             traverse_ logStep (responses record)
             drainLog
                 where
-                    logStep response = logInfo @(LM.AppMsg ContractExe) $ LM.ContractHistoryItem contractInstanceId response
+                    logStep response = logInfo @(LM.AppMsg ContractExe) $ LM.ContractHistoryItem contractInstanceId (snd <$> response)
 
 toPABMsg :: Trace m (LM.AppMsg ContractExe) -> Trace m (LM.PABLogMsg ContractExe)
 toPABMsg = LM.convertLog LM.PABMsg

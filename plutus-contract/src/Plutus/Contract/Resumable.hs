@@ -66,6 +66,7 @@ module Plutus.Contract.Resumable(
     , Responses(..)
     , insertResponse
     , responses
+    , _Responses
     -- * Handling the 'Resumable' effect with continuations
     , handleResumable
     , suspendNonDet
@@ -75,6 +76,7 @@ module Plutus.Contract.Resumable(
     ) where
 
 import           Control.Applicative
+import           Control.Lens                  (Iso', iso)
 import           Data.Aeson                    (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import           Data.Map                      (Map)
 import qualified Data.Map                      as Map
@@ -185,6 +187,9 @@ newtype Responses i = Responses { unResponses :: Map (IterationID, RequestID) i 
     deriving newtype (Eq, Ord, Show, Semigroup, Monoid)
     deriving anyclass (ToJSON, FromJSON)
     deriving stock (Generic, Functor, Foldable, Traversable)
+
+_Responses :: forall i. Iso' (Responses i) (Map (IterationID, RequestID) i)
+_Responses = iso unResponses Responses
 
 -- | A list of all responses ordered by iteration and request ID
 responses :: Responses i -> [Response i]
