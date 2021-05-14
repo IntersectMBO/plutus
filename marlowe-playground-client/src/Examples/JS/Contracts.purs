@@ -201,7 +201,7 @@ zeroCouponBond =
 
     const contract: Contract =
         transfer(initialExchange, investor, issuer, discountedPrice,
-            transfer(maturityExchangeTimeout, issuer, investor, notional,
+            transfer(maturityExchangeTimeout, issuer, investor, notionalPrice,
                 Close))
 
     return contract;
