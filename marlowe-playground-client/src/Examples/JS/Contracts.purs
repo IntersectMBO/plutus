@@ -184,7 +184,7 @@ zeroCouponBond :: String
 zeroCouponBond =
   """
     const discountedPrice: Value = ConstantParam("Discounted price");
-    const notional: Value = ConstantParam("Notional");
+    const notionalPrice: Value = ConstantParam("Notional price");
 
     const investor: Party = Role("Investor");
     const issuer: Party = Role("Issuer");
