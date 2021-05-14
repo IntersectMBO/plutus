@@ -3,14 +3,15 @@ module Marlowe.Execution where
 import Prelude
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromInt)
-import Data.Lens (Lens', Traversal', _Just, traversed, view)
+import Data.Lens (Lens', Traversal', _Just, traversed, view, (^.))
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe')
+import Data.Maybe (Maybe(..), fromMaybe, fromMaybe')
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (AccountId, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
+import Data.Tuple.Nested ((/\))
+import Marlowe.Semantics (AccountId, Accounts, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
 
 -- This represents a previous step in the execution. The state property corresponds to the state before the
 -- txInput was applied and it's saved as an early optimization to calculate the balances at each step.
@@ -264,3 +265,19 @@ extractNamedActions _ { mPendingTimeouts: Just { contract: Close } } = [ CloseCo
 extractNamedActions currentSlot { mPendingTimeouts: Just { contract, state } } = extractActionsFromContract currentSlot state contract
 
 extractNamedActions currentSlot { current: { state, contract } } = extractActionsFromContract currentSlot state contract
+
+-- This function expands the balances inside the Semantic.State to all participants and tokens, using zero if the participant
+-- does not have balance for that token.
+expandBalances :: Array Party -> Array Token -> State -> Accounts
+expandBalances participants tokens state =
+  let
+    stateAccounts = state ^. _accounts
+  in
+    Map.fromFoldable do
+      party <- participants
+      tokens
+        <#> \token ->
+            let
+              key = party /\ token
+            in
+              key /\ (fromMaybe zero $ Map.lookup key stateAccounts)

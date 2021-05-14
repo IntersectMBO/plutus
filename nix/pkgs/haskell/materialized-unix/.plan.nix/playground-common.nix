@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [ "test/oAuthToken1.json" ];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -89,7 +89,6 @@
           ];
         buildable = true;
         modules = [
-          "Git/TH"
           "Auth"
           "Auth/Types"
           "Control/Monad/Except/Extras"
@@ -97,7 +96,6 @@
           "Control/Monad/Trace"
           "Control/Monad/Web"
           "Gist"
-          "Git"
           "Language/Haskell/Interpreter"
           "PSGenerator/Common"
           "Playground/API"

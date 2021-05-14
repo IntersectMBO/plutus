@@ -15,6 +15,7 @@ import           Data.Map                  (Map)
 import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow)
 import           GHC.Generics
 import           Ledger
+import           Ledger.Credential         (Credential (..))
 
 data TxKey =
     TxKey
@@ -61,10 +62,10 @@ data BeneficialOwner
     deriving anyclass (FromJSON, ToJSON, FromJSONKey, ToJSONKey)
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
-toBeneficialOwner TxOut {txOutAddress} =
-    case txOutAddress of
-        PubKeyAddress pkh -> OwnedByPubKey pkh
-        ScriptAddress vh  -> OwnedByScript vh
+toBeneficialOwner TxOut {txOutAddress=Address{addressCredential}} =
+    case addressCredential of
+        PubKeyCredential pkh -> OwnedByPubKey pkh
+        ScriptCredential vh  -> OwnedByScript vh
 
 data AnnotatedTx =
     AnnotatedTx

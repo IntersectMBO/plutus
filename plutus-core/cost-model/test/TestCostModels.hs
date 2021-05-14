@@ -135,20 +135,20 @@ propertyR prop = withTests 20 $ property $ unsafeHoist unsafeRunRegion prop
 -- runs both models with a bunch of ExMemory combinations and compares the
 -- outputs.
 testPredictOne :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelOneArgument))
-  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictOne haskellModelFun modelFun = propertyR $ do
   modelR <- lift $ costModelsR
   modelH <- lift $ haskellModelFun $ modelFun modelR
   let
-    predictR :: MonadR m => Integer -> m Integer
+    predictR :: MonadR m => CostingInteger -> m CostingInteger
     predictR x =
       let
-        xD = fromInteger x :: Double
+        xD = fromIntegral x :: Double
         model = modelFun modelR
       in
         (\t -> toCostUnit (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs))[[1]]|]
-    predictH :: Integer -> Integer
+    predictH :: CostingInteger -> CostingInteger
     predictH x = coerce $ _exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
     sizeGen = do
       x <- Gen.integral (Range.exponential 0 5000)
@@ -159,21 +159,21 @@ testPredictOne haskellModelFun modelFun = propertyR $ do
   byR === predictH x
 
 testPredictTwo :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArguments))
-  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictTwo haskellModelFun modelFun = propertyR $ do
   modelR <- lift $ costModelsR
   modelH <- lift $ haskellModelFun $ modelFun modelR
   let
-    predictR :: MonadR m => Integer -> Integer -> m Integer
+    predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y =
       let
-        xD = fromInteger x :: Double
-        yD = fromInteger y :: Double
+        xD = fromIntegral x :: Double
+        yD = fromIntegral y :: Double
         model = modelFun modelR
       in
         (\t -> toCostUnit (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
-    predictH :: Integer -> Integer -> Integer
+    predictH :: CostingInteger -> CostingInteger -> CostingInteger
     predictH x y = coerce $ _exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
     sizeGen = do
       y <- Gen.integral (Range.exponential 0 5000)
@@ -185,22 +185,22 @@ testPredictTwo haskellModelFun modelFun = propertyR $ do
   byR === predictH x y
 
 testPredictThree :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelThreeArguments))
-  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredictThree haskellModelFun modelFun = propertyR $ do
   modelR <- lift $ costModelsR
   modelH <- lift $ haskellModelFun $ modelFun modelR
   let
-    predictR :: MonadR m => Integer -> Integer -> Integer -> m Integer
+    predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y _z =
       let
-        xD = fromInteger x :: Double
-        yD = fromInteger y :: Double
+        xD = fromIntegral x :: Double
+        yD = fromIntegral y :: Double
         -- zD = fromInteger z :: Double
         model = modelFun modelR
       in
         (\t -> toCostUnit (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
-    predictH :: Integer -> Integer -> Integer -> Integer
+    predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ _exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = do
       y <- Gen.integral (Range.exponential 0 5000)

@@ -21,36 +21,37 @@ module Plutus.PAB.Effects.Contract.ContractExe(
     , ContractExeLogMsg(..)
     ) where
 
-import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras           (StructuredLog (..), Tagged (..), mkObjectStr)
-import           Control.Monad.Freer                     (Eff, LastMember, Member, sendM, type (~>))
-import           Control.Monad.Freer.Error               (Error, throwError)
-import           Control.Monad.Freer.Extras.Log          (LogMsg, logDebug)
-import           Control.Monad.IO.Class                  (MonadIO (..))
-import           Data.Aeson                              (FromJSON (..), ToJSON (..), Value)
-import qualified Data.Aeson                              as JSON
-import qualified Data.Aeson.Encode.Pretty                as JSON
-import qualified Data.ByteString.Lazy.Char8              as BSL8
-import qualified Data.HashMap.Strict                     as HM
-import           Data.String                             (IsString (..))
-import           Data.Text                               (Text)
-import qualified Data.Text                               as Text
-import           Data.Text.Prettyprint.Doc               (Pretty, hang, pretty, viaShow, vsep, (<+>))
-import           GHC.Generics                            (Generic)
-import           Plutus.Contract.Resumable               (Response)
-import           Plutus.Contract.State                   (ContractRequest (..))
-import           Plutus.PAB.Effects.Contract             (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Events.Contract              (ContractPABRequest)
-import qualified Plutus.PAB.Events.Contract              as Events.Contract
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import qualified Plutus.PAB.Events.ContractInstanceState as ContractInstanceState
-import           Plutus.PAB.Types                        (PABError (ContractCommandError))
-import           System.Exit                             (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process                          (readProcessWithExitCode)
+import           Cardano.BM.Data.Tracer.Extras                    (StructuredLog (..))
+import           Control.Monad.Freer                              (Eff, LastMember, Member, send, sendM, type (~>))
+import           Control.Monad.Freer.Error                        (Error, throwError)
+import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
+import           Control.Monad.IO.Class                           (MonadIO (..))
+import           Data.Aeson                                       (FromJSON (..), ToJSON (..), Value)
+import qualified Data.Aeson                                       as JSON
+import qualified Data.Aeson.Encode.Pretty                         as JSON
+import qualified Data.ByteString.Lazy.Char8                       as BSL8
+import           Data.Foldable                                    (traverse_)
+import qualified Data.HashMap.Strict                              as HM
+import qualified Data.Text                                        as Text
+import           Data.Text.Prettyprint.Doc                        (Pretty, pretty, (<+>))
+import           GHC.Generics                                     (Generic)
+import           Plutus.Contract.Resumable                        (Response)
+import           Plutus.Contract.State                            (ContractRequest (..), ContractResponse)
+import qualified Plutus.Contract.State                            as ContractState
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog))
+import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
+import           Plutus.PAB.Events.Contract                       (ContractHandlerRequest (..),
+                                                                   ContractHandlersResponse (..), ContractInstanceId,
+                                                                   ContractPABRequest)
+import qualified Plutus.PAB.Events.Contract                       as Events.Contract
+import           Plutus.PAB.Monitoring.PABLogMsg                  (ContractExeLogMsg (..), PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                                 (PABError (ContractCommandError))
+import           System.Exit                                      (ExitCode (ExitFailure, ExitSuccess))
+import           System.Process                                   (readProcessWithExitCode)
 
 instance PABContract ContractExe where
     type ContractDef ContractExe = ContractExe
-    type State ContractExe = PartiallyDecodedResponse ContractPABRequest
+    type State ContractExe = ContractResponse Value Value Value ContractPABRequest
 
     serialisableState _ = id
 
@@ -72,6 +73,7 @@ instance Pretty ContractExe where
 handleContractEffectContractExe ::
     forall m effs.
        ( Member (LogMsg ContractExeLogMsg) effs
+       , Member (LogMsg (PABMultiAgentMsg ContractExe)) effs
        , Member (Error PABError) effs
        , LastMember m effs
        , MonadIO m)
@@ -79,15 +81,19 @@ handleContractEffectContractExe ::
     ~> Eff effs
 handleContractEffectContractExe =
     \case
-        InitialState (ContractExe contractPath) -> do
+        InitialState i (ContractExe contractPath) -> do
             logDebug $ InitContractMsg contractPath
-            liftProcess $ readProcessWithExitCode contractPath ["init"] ""
-        UpdateContract (ContractExe contractPath) (oldState :: PartiallyDecodedResponse ContractPABRequest) (input :: Response Events.Contract.ContractResponse) -> do
+            result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["init"] ""
+            logNewMessages i result
+            pure result
+        UpdateContract i (ContractExe contractPath) (oldState :: ContractResponse Value Value Value ContractPABRequest) (input :: Response Events.Contract.ContractPABResponse) -> do
             let req :: ContractRequest Value
-                req = ContractRequest{oldState = ContractInstanceState.newState oldState, event = toJSON <$> input}
+                req = ContractRequest{oldState = ContractState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
                 pl = BSL8.unpack (JSON.encodePretty req)
             logDebug $ UpdateContractMsg contractPath req
-            liftProcess $ readProcessWithExitCode contractPath ["update"] pl
+            result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
+            logNewMessages i result
+            pure result
         ExportSchema (ContractExe contractPath) -> do
             logDebug $ ExportSignatureMsg contractPath
             liftProcess $
@@ -104,71 +110,16 @@ liftProcess process = do
             logDebug $ ProcessExitFailure stderr
             throwError $ ContractCommandError code (Text.pack stderr)
         ExitSuccess -> do
-            logDebug $ ContractResponse stdout
+            logDebug $ AContractResponse stdout
             case JSON.eitherDecode (BSL8.pack stdout) of
                 Right value -> pure value
                 Left err    -> throwError $ ContractCommandError 0 (Text.pack err)
 
-data ContractExeLogMsg =
-    InvokeContractMsg
-    | InitContractMsg FilePath
-    | UpdateContractMsg FilePath (ContractRequest Value)
-    | ExportSignatureMsg FilePath
-    | ProcessExitFailure String
-    | ContractResponse String
-    | Migrating
-    | InvokingEndpoint String Value
-    | EndpointInvocationResponse [Text]
-    | ContractExePABError PABError
-    deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty ContractExeLogMsg where
-    pretty = \case
-        InvokeContractMsg -> "InvokeContract"
-        InitContractMsg fp -> fromString fp <+> "init"
-        UpdateContractMsg fp vl ->
-            let pl = BSL8.unpack (JSON.encodePretty vl) in
-            fromString fp
-            <+> "update"
-            <+> fromString pl
-        ExportSignatureMsg fp -> fromString fp <+> "export-signature"
-        ProcessExitFailure err -> "ExitFailure" <+> pretty err
-        ContractResponse str -> pretty str
-        Migrating -> "Migrating"
-        InvokingEndpoint s v ->
-            "Invoking:" <+> pretty s <+> "/" <+> viaShow v
-        EndpointInvocationResponse v ->
-            hang 2 $ vsep ("Invocation response:" : fmap pretty v)
-        ContractExePABError e ->
-            "PAB error:" <+> pretty e
-
-instance ToObject ContractExeLogMsg where
-    toObject v = \case
-        InvokeContractMsg -> mkObjectStr "invoking contract" ()
-        InitContractMsg fp ->
-            mkObjectStr "Initialising contract" (Tagged @"file_path" fp)
-        UpdateContractMsg fp rq ->
-            let f =  Tagged @"file_path" fp in
-            mkObjectStr "updating contract" $ case v of
-                MaximalVerbosity -> Left (f, rq)
-                _                -> Right f
-        ExportSignatureMsg fp ->
-            mkObjectStr "exporting signature" (Tagged @"file_path" fp)
-        ProcessExitFailure f ->
-            mkObjectStr "process exit failure" (Tagged @"error" f)
-        ContractResponse r ->
-            mkObjectStr "received contract response" $
-                case v of
-                    MaximalVerbosity -> Left (Tagged @"response" r)
-                    _                -> Right ()
-        Migrating -> mkObjectStr "migrating database" ()
-        InvokingEndpoint ep vl ->
-            mkObjectStr "Invoking endpoint" $
-                case v of
-                    MinimalVerbosity -> Left (Tagged @"endpoint" ep)
-                    _                -> Right (Tagged @"endpoint" ep, Tagged @"argument" vl)
-        EndpointInvocationResponse lns ->
-            mkObjectStr "endpoint invocation response"  (Tagged @"reponse" lns)
-        ContractExePABError err ->
-            mkObjectStr "contract executable error" (Tagged @"error" err)
+logNewMessages ::
+    forall effs.
+    Member (LogMsg (PABMultiAgentMsg ContractExe)) effs
+    => ContractInstanceId
+    -> ContractResponse Value Value Value ContractPABRequest
+    -> Eff effs ()
+logNewMessages i ContractState.ContractResponse{ContractState.lastLogs} =
+    traverse_ (send @(LogMsg (PABMultiAgentMsg ContractExe)) . LMessage . fmap (ContractInstanceLog . ContractLog i)) lastLogs

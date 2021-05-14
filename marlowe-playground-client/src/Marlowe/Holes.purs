@@ -194,7 +194,7 @@ getMarloweConstructors TokenType = Map.singleton "Token" $ ArgumentArray [ Defau
 
 getMarloweConstructors PartyType =
   Map.fromFoldable
-    [ (Tuple "PK" $ ArgumentArray [ DefaultString "pubKey" ])
+    [ (Tuple "PK" $ ArgumentArray [ DefaultString "0000000000000000000000000000000000000000000000000000000000000000" ])
     , (Tuple "Role" $ ArgumentArray [ DefaultString "token" ])
     ]
 

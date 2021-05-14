@@ -38,7 +38,6 @@ common lang
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
-    -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin -any
@@ -79,7 +78,6 @@ library
     Language.Marlowe.Pretty
     Language.Marlowe.Analysis.FSSemantics
   other-modules:
-  build-tool-depends: unlit:unlit -any
 
 test-suite marlowe-test
     import: lang
@@ -125,3 +123,43 @@ executable marlowe-app
     plutus-pab -any,
     plutus-contract -any,
     marlowe
+
+-- | The Marlowe Companion app, an executable that can be run in the PAB
+executable marlowe-companion-app
+  import: lang
+  main-is: Main.hs
+  hs-source-dirs: companion
+  build-depends:
+    base >= 4.9 && < 5,
+    plutus-pab -any,
+    plutus-contract -any,
+    marlowe
+
+executable marlowe-follow-app
+  import: lang
+  main-is: Main.hs
+  hs-source-dirs: follow
+  build-depends:
+    base >= 4.9 && < 5,
+    plutus-pab -any,
+    plutus-contract -any,
+    marlowe
+
+-- | The PAB Specialised to the marlowe contract(s)
+executable marlowe-pab
+  import: lang
+  main-is: Main.hs
+  hs-source-dirs: pab
+  ghc-options:
+    -threaded
+  build-depends:
+    base >= 4.9 && < 5,
+    plutus-pab -any,
+    plutus-contract -any,
+    marlowe,
+    aeson -any,
+    freer-simple -any,
+    prettyprinter -any,
+    freer-extras -any,
+    plutus-ledger -any,
+    plutus-tx -any

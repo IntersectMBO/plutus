@@ -1,7 +1,11 @@
 "use strict";
 
 module.exports = {
-  purge: [],
+  purge: [
+    "src/**/*.purs",
+    "web-common/**/*.purs",
+    "web-common-marlowe/**/*.purs",
+  ],
   darkMode: false, // or 'media' or 'class'
   theme: {
     colors: {
@@ -11,14 +15,14 @@ module.exports = {
       lightgray: "#eeeeee",
       gray: "#dfdfdf",
       green: "#00a551",
+      lightgreen: "#00e872",
       darkgray: "#b7b7b7",
       overlay: "rgba(10,10,10,0.4)",
       white: "#ffffff",
       purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
-      purple: "#4c41e5",
-      red: "#de4c51",
+      red: "#e04b4c",
     },
     fontSize: {
       xs: "12px",
@@ -26,9 +30,13 @@ module.exports = {
       base: "16px",
       lg: "18px",
       xl: "24px",
+      /* this value was requested for some icons in the contract home */
+      "28px": "28px",
       "2xl": "34px",
       "3xl": "46px",
+      "4xl": "64px",
       "big-icon": "100px",
+      "medium-icon": "80px",
     },
     scale: {
       77: ".77",
@@ -49,11 +57,35 @@ module.exports = {
       deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
     },
     extend: {
+      animation: {
+        "from-below": "from-below 250ms ease-out 1",
+        "to-bottom": "to-bottom 250ms ease-out 1",
+      },
+      backgroundImage: theme => ({
+        "link-highlight": "url('/static/images/link-highlight.svg')",
+      }),
+      keyframes: {
+        "from-below": {
+          "0%": { transform: "translateY(20px)", opacity: 0 },
+          "100%": { transform: "translateY(0px)", opacity: 1 },
+        },
+        "to-bottom": {
+          "0%": { transform: "translateY(0px)", opacity: 1 },
+          "100%": { transform: "translateY(20px)", opacity: 0 },
+        },
+      },
       gridTemplateRows: {
         main: "auto minmax(0, 1fr) auto",
         "contract-setup": "auto auto minmax(0, 1fr)",
       },
+      gridTemplateColumns: {
+        "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",
+        "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
+      },
       spacing: {
+        "22": "5.5rem",
+        "160": "40rem",
+        "256": "64rem",
         "5pc": "5%",
       },
       width: {
@@ -61,6 +93,9 @@ module.exports = {
         md: "640px",
         lg: "768px",
         "contract-card": "264px",
+        /* This width is used by a padding element in both sides of the carousel and is enough
+           to push the first and last card to the center */
+        "carousel-padding-element": "calc(50% - 264px / 2)",
       },
       height: {
         "contract-card": "467px",
@@ -73,18 +108,21 @@ module.exports = {
         sm: "375px",
         md: "640px",
         lg: "768px",
+        "90p": "90%",
       },
       minWidth: {
         button: "120px",
+        "90p": "90%",
+        sm: "375px",
       },
     },
   },
   variants: {
     extend: {
       // note 'disabled' goes last so that it takes priority
-      backgroundColor: ["hover", "disabled"],
+      backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
-      boxShadow: ["hover", "disabled"],
+      boxShadow: ["hover", "disabled", "active"],
       cursor: ["hover", "disabled"],
       // This causes an error
       // spacing: ['first', 'last'],
@@ -108,9 +146,9 @@ module.exports = {
     backgroundImage: true,
     gradientColorStops: true,
     backgroundOpacity: false,
-    backgroundPosition: false,
-    backgroundRepeat: false,
-    backgroundSize: false,
+    backgroundPosition: true,
+    backgroundRepeat: true,
+    backgroundSize: true,
     borderCollapse: false,
     borderColor: true,
     borderOpacity: false,
@@ -171,10 +209,10 @@ module.exports = {
     tableLayout: false,
     textAlign: true,
     textOpacity: false,
-    textOverflow: false,
+    textOverflow: true,
     fontStyle: false,
     textTransform: true,
-    textDecoration: false,
+    textDecoration: true,
     fontSmoothing: false,
     fontVariantNumeric: false,
     letterSpacing: false,
@@ -200,13 +238,13 @@ module.exports = {
     transform: true,
     transformOrigin: true,
     scale: true,
-    rotate: false,
+    rotate: true,
     translate: true,
     skew: false,
     transitionProperty: true,
-    transitionTimingFunction: false,
+    transitionTimingFunction: true,
     transitionDuration: true,
     transitionDelay: false,
-    animation: false,
+    animation: true,
   },
 };

@@ -41,6 +41,7 @@ library
     import: lang
     exposed-modules:
         Cardano.BM.Data.Tracer.Extras
+        Cardano.Chain
         Cardano.ChainIndex.API
         Cardano.ChainIndex.ChainIndex
         Cardano.ChainIndex.Client
@@ -88,6 +89,7 @@ library
         Plutus.PAB.Effects.ContractRuntime
         Plutus.PAB.Effects.ContractTest.AtomicSwap
         Plutus.PAB.Effects.ContractTest.PayToWallet
+        Plutus.PAB.Effects.ContractTest.Uniswap
         Plutus.PAB.Effects.EventLog
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Effects.TimeEffect
@@ -107,6 +109,7 @@ library
         Plutus.PAB.Events.ContractInstanceState
         Plutus.PAB.ParseStringifiedJSON
         Plutus.PAB.Simulator
+        Plutus.PAB.Timeout
         Plutus.PAB.Types
     other-modules:
         Servant.Extra
@@ -193,7 +196,9 @@ library
         iohk-monitoring -any,
         lobemo-backend-ekg -any,
         exceptions -any,
-        data-default -any
+        data-default -any,
+        time-units -any,
+        time -any
 
 executable plutus-pab
     main-is: Main.hs
@@ -241,6 +246,28 @@ executable plutus-pab
         contra-tracer -any,
         lobemo-backend-ekg -any
 
+executable plutus-uniswap
+    main-is: Main.hs
+    hs-source-dirs:  uniswap
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        aeson -any,
+        containers -any,
+        freer-extras -any,
+        freer-simple -any,
+        plutus-contract -any,
+        plutus-ledger -any,
+        plutus-pab,
+        plutus-use-cases -any,
+        prettyprinter -any,
+        text -any
+
+
 executable plutus-game
     main-is: Main.hs
     hs-source-dirs: game-contract
@@ -252,7 +279,8 @@ executable plutus-game
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        text -any
 
 executable plutus-currency
     main-is: Main.hs
@@ -333,7 +361,8 @@ test-suite plutus-pab-test
         text -any,
         transformers -any,
         prettyprinter -any,
-        row-types -any
+        row-types -any,
+        plutus-tx -any
 
 executable prism-credential-manager
     import: lang
@@ -405,4 +434,5 @@ executable tx-inject
         stm -any,
         text -any,
         time-units -any,
-        yaml -any
+        yaml -any,
+        data-default -any

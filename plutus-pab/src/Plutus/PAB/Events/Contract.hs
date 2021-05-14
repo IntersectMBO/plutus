@@ -14,7 +14,7 @@ module Plutus.PAB.Events.Contract(
   , ContractPABRequest(..)
   , ContractHandlersResponse(..)
   , ContractHandlerRequest(..)
-  , ContractResponse(..)
+  , ContractPABResponse(..)
   -- * Prisms
   -- ** ContractRequest
   , _AwaitSlotRequest
@@ -22,7 +22,7 @@ module Plutus.PAB.Events.Contract(
   , _UserEndpointRequest
   , _OwnPubkeyRequest
   , _UtxoAtRequest
-  , _NextTxAtRequest
+  , _AddressChangedAtRequest
   , _WriteTxRequest
   , _OwnInstanceIdRequest
   , _SendNotificationRequest
@@ -32,7 +32,7 @@ module Plutus.PAB.Events.Contract(
   , _UserEndpointResponse
   , _OwnPubkeyResponse
   , _UtxoAtResponse
-  , _NextTxAtResponse
+  , _AddressChangedAtResponse
   , _WriteTxResponse
   , _OwnInstanceResponse
   , _NotificationResponse
@@ -56,7 +56,7 @@ import qualified Plutus.Contract.Effects.Instance         as Instance
 import qualified Plutus.Contract.Effects.Notify           as Notify
 import qualified Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import qualified Plutus.Contract.Effects.UtxoAt           as UtxoAt
-import qualified Plutus.Contract.Effects.WatchAddress     as NextTxAt
+import qualified Plutus.Contract.Effects.WatchAddress     as AddressChangedAt
 import qualified Plutus.Contract.Effects.WriteTx          as W
 import qualified Plutus.Contract.Effects.WriteTx          as WriteTx
 import           Plutus.Contract.Resumable                (IterationID)
@@ -112,7 +112,7 @@ data ContractPABRequest =
   | UserEndpointRequest ActiveEndpoint -- ^ Expose a named endpoint to the user.
   | OwnPubkeyRequest OwnPubKeyRequest -- ^ Request a public key. It is expected that the wallet treats any outputs locked by this public key as part of its own funds.
   | UtxoAtRequest Address -- ^ Get the unspent transaction outputs at the address.
-  | NextTxAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.
+  | AddressChangedAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.
   | WriteTxRequest UnbalancedTx -- ^ Submit an unbalanced transaction to the PAB.
   | OwnInstanceIdRequest OwnIdRequest -- ^ Request the ID of the contract instance.
   | SendNotificationRequest Notification -- ^ Send a notification to another contract instance
@@ -131,7 +131,7 @@ instance FromJSON ContractHandlerRequest where
             "tx-confirmation" -> AwaitTxConfirmedRequest <$> v .: "value"
             "own-pubkey"      -> OwnPubkeyRequest <$> v .: "value"
             "utxo-at"         -> UtxoAtRequest <$> v.: "value"
-            "address"         -> NextTxAtRequest <$> v .: "value"
+            "address"         -> AddressChangedAtRequest <$> v .: "value"
             "tx"              -> WriteTxRequest <$> v .: "value"
             "own-instance-id" -> OwnInstanceIdRequest <$> v .: "value"
             "notify-instance" -> SendNotificationRequest <$> v .: "value"
@@ -144,46 +144,46 @@ instance Pretty ContractPABRequest where
         UserEndpointRequest t     -> "UserEndpoint:" <+> pretty t
         OwnPubkeyRequest r        -> "OwnPubKey:" <+> pretty r
         UtxoAtRequest a           -> "UtxoAt:" <+> pretty a
-        NextTxAtRequest a         -> "NextTxAt:" <+> pretty a
+        AddressChangedAtRequest a -> "AddressChangedAt:" <+> pretty a
         WriteTxRequest u          -> "WriteTx:" <+> pretty u
         OwnInstanceIdRequest r    -> "OwnInstanceId:" <+> pretty r
         SendNotificationRequest n -> "Notification:" <+> pretty n
 
-data ContractResponse =
+data ContractPABResponse =
   AwaitSlotResponse Slot
   | AwaitTxConfirmedResponse TxConfirmed
   | UserEndpointResponse EndpointDescription (EndpointValue Value)
   | OwnPubkeyResponse PubKey
   | UtxoAtResponse UtxoAtAddress
-  | NextTxAtResponse AddressChangeResponse
+  | AddressChangedAtResponse AddressChangeResponse
   | WriteTxResponse W.WriteTxResponse
   | OwnInstanceResponse ContractInstanceId
   | NotificationResponse (Maybe NotificationError)
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-instance Pretty ContractResponse where
+instance Pretty ContractPABResponse where
     pretty = \case
-        AwaitSlotResponse s        -> "AwaitSlot:" <+> pretty s
-        UserEndpointResponse n r   -> "UserEndpoint:" <+> pretty n <+> pretty r
-        OwnPubkeyResponse pk       -> "OwnPubKey:" <+> pretty pk
-        UtxoAtResponse utxo        -> "UtxoAt:" <+> pretty utxo
-        NextTxAtResponse rsp       -> "NextTxAt:" <+> pretty rsp
-        WriteTxResponse w          -> "WriteTx:" <+> pretty w
-        AwaitTxConfirmedResponse w -> "AwaitTxConfirmed:" <+> pretty w
-        OwnInstanceResponse r      -> "OwnInstance:" <+> pretty r
-        NotificationResponse r     -> "Notification:" <+> pretty r
+        AwaitSlotResponse s          -> "AwaitSlot:" <+> pretty s
+        UserEndpointResponse n r     -> "UserEndpoint:" <+> pretty n <+> pretty r
+        OwnPubkeyResponse pk         -> "OwnPubKey:" <+> pretty pk
+        UtxoAtResponse utxo          -> "UtxoAt:" <+> pretty utxo
+        AddressChangedAtResponse rsp -> "AddressChangedAt:" <+> pretty rsp
+        WriteTxResponse w            -> "WriteTx:" <+> pretty w
+        AwaitTxConfirmedResponse w   -> "AwaitTxConfirmed:" <+> pretty w
+        OwnInstanceResponse r        -> "OwnInstance:" <+> pretty r
+        NotificationResponse r       -> "Notification:" <+> pretty r
 
 -- | 'ContractResponse' with a 'ToJSON' instance that is compatible with
 --   the 'FromJSON' instance of 'Plutus.Contract.Schema.Event'.
-newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractResponse }
+newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractPABResponse }
 
 instance ToJSON ContractHandlersResponse where
     toJSON (ContractHandlersResponse c) = case c of
         AwaitSlotResponse s  -> toJSON $ AwaitSlot.event @AwaitSlot.AwaitSlot s
         OwnPubkeyResponse pk -> toJSON $ OwnPubKey.event @OwnPubKey.OwnPubKey pk
         UtxoAtResponse utxo  -> toJSON $ UtxoAt.event @UtxoAt.UtxoAt utxo
-        NextTxAtResponse rsp -> toJSON $ NextTxAt.event @NextTxAt.WatchAddress rsp
+        AddressChangedAtResponse rsp -> toJSON $ AddressChangedAt.event @AddressChangedAt.WatchAddress rsp
         WriteTxResponse rsp -> toJSON $ WriteTx.event @WriteTx.WriteTx rsp
         AwaitTxConfirmedResponse (TxConfirmed rsp) -> toJSON $ AwaitTxConfirmed.event @AwaitTxConfirmed.TxConfirmation rsp
         OwnInstanceResponse r -> toJSON $ Instance.event @Instance.OwnId r
@@ -191,4 +191,4 @@ instance ToJSON ContractHandlersResponse where
         UserEndpointResponse (EndpointDescription n) r -> object ["tag" .= n, "value" .= r]
 
 makePrisms ''ContractPABRequest
-makePrisms ''ContractResponse
+makePrisms ''ContractPABResponse

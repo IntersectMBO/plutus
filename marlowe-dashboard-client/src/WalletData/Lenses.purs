@@ -1,25 +1,40 @@
 module WalletData.Lenses
-  ( _nickname
-  , _contractId
-  , _balance
+  ( _walletNickname
+  , _companionAppId
+  , _walletInfo
+  , _assets
+  , _wallet
   , _pubKey
+  , _pubKeyHash
   ) where
 
+import Prelude
 import Data.Lens (Lens')
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
+import Marlowe.PAB (PlutusAppId)
 import Marlowe.Semantics (Assets, PubKey)
-import WalletData.Types (Nickname, WalletDetails)
+import WalletData.Types (PubKeyHash, Wallet, WalletDetails, WalletInfo, WalletNickname)
 
-_nickname :: Lens' WalletDetails Nickname
-_nickname = prop (SProxy :: SProxy "nickname")
+_walletNickname :: Lens' WalletDetails WalletNickname
+_walletNickname = prop (SProxy :: SProxy "walletNickname")
 
-_pubKey :: Lens' WalletDetails PubKey
-_pubKey = prop (SProxy :: SProxy "pubKey")
+_companionAppId :: Lens' WalletDetails PlutusAppId
+_companionAppId = prop (SProxy :: SProxy "companionAppId")
 
-_contractId :: forall r. Lens' { contractId :: String | r } String
-_contractId = prop (SProxy :: SProxy "contractId")
+_walletInfo :: Lens' WalletDetails WalletInfo
+_walletInfo = prop (SProxy :: SProxy "walletInfo")
 
-_balance :: Lens' WalletDetails (Maybe (Array Assets))
-_balance = prop (SProxy :: SProxy "balance")
+_assets :: Lens' WalletDetails Assets
+_assets = prop (SProxy :: SProxy "assets")
+
+------------------------------------------------------------
+_wallet :: Lens' WalletInfo Wallet
+_wallet = _Newtype <<< prop (SProxy :: SProxy "wallet")
+
+_pubKey :: Lens' WalletInfo PubKey
+_pubKey = _Newtype <<< prop (SProxy :: SProxy "pubKey")
+
+_pubKeyHash :: Lens' WalletInfo PubKeyHash
+_pubKeyHash = _Newtype <<< prop (SProxy :: SProxy "pubKeyHash")

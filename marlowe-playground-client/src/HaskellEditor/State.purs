@@ -1,8 +1,6 @@
 module HaskellEditor.State
   ( handleAction
   , editorGetValue
-  -- TODO: This should probably be exposed by an action
-  , editorResize
   , editorSetTheme
   ) where
 
@@ -15,22 +13,23 @@ import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, use)
+import Data.Lens (assign, modifying, over, set, use)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Examples.Haskell.Contracts (example) as HE
-import Halogen (HalogenM, liftEffect, query)
+import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
+import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, _metadataHintInfo)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (postRunghc)
 import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
+import Marlowe.Extended.Metadata (MetadataHintInfo, getMetadataHintInfo)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
@@ -87,8 +86,14 @@ handleAction Compile = do
           let
             mContract :: Maybe Contract
             mContract = (fromTerm <=< hush <<< parseContract) interpretedResult.result
+
+            metadataHints :: MetadataHintInfo
+            metadataHints = maybe mempty getMetadataHintInfo mContract
           in
-            for_ mContract $ (modifying (_analysisState <<< _templateContent)) <<< updateTemplateContent <<< getPlaceholderIds
+            for_ mContract \contract ->
+              modify_
+                $ over (_analysisState <<< _templateContent) (updateTemplateContent $ getPlaceholderIds contract)
+                <<< set _metadataHintInfo metadataHints
         _ -> pure unit
       let
         markers = case result of
@@ -100,15 +105,17 @@ handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction SendResultToSimulator = pure unit
 
-handleAction (InitHaskellProject contents) = do
+handleAction (InitHaskellProject metadataHints contents) = do
   editorSetValue contents
+  assign _metadataHintInfo metadataHints
   liftEffect $ SessionStorage.setItem haskellBufferLocalStorageKey contents
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
+
+handleAction (MetadataAction _) = pure unit
 
 handleAction AnalyseContract = analyze (WarningAnalysis Loading) $ analyseContract
 
@@ -148,9 +155,6 @@ runAjax action = RemoteData.fromEither <$> runExceptT action
 
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorSetTheme = void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _haskellEditorSlot unit (Monaco.Resize unit)
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)

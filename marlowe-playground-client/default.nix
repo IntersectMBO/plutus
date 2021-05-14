@@ -1,6 +1,6 @@
-{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonMarlowe, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
+{ pkgs, gitignore-nix, haskell, webCommon, webCommonMarlowe, webCommonPlayground, buildPursPackage, buildNodeModules, filterNpm }:
 let
-  playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
+  playground-exe = haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
   build-playground-exe = "$(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server)";
 

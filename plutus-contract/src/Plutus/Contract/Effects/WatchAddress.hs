@@ -31,16 +31,17 @@ import           Data.Row
 import           Ledger                            (Address, Slot, Value)
 import           Ledger.AddressMap                 (AddressMap, UtxoMap)
 import qualified Ledger.AddressMap                 as AM
+import qualified Ledger.Interval                   as Interval
 import           Ledger.Tx                         (Tx, txOutTxOut, txOutValue)
 import qualified Ledger.Value                      as V
-
 import           Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot, currentSlot)
 import           Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
 import           Plutus.Contract.Request           (ContractRow, requestMaybe)
 import           Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
 import           Plutus.Contract.Types             (AsContractError, Contract)
 import           Plutus.Contract.Util              (loopM)
-import           Wallet.Types                      (AddressChangeRequest (..), AddressChangeResponse (..))
+import           Wallet.Types                      (AddressChangeRequest (..), AddressChangeResponse (..), slotRange,
+                                                    targetSlot)
 
 type AddressSymbol = "address"
 
@@ -57,15 +58,17 @@ addressChangeRequest ::
     forall w s e.
     ( HasWatchAddress s
     , AsContractError e
+    , HasAwaitSlot s
     )
     => AddressChangeRequest
     -> Contract w s e AddressChangeResponse
-addressChangeRequest rq =
+addressChangeRequest rq = do
     let check :: AddressChangeResponse -> Maybe AddressChangeResponse
-        check r@AddressChangeResponse{acrAddress, acrSlot}
-                | acrAddress == acreqAddress rq && acrSlot >= acreqSlot rq = Just r
+        check r@AddressChangeResponse{acrAddress, acrSlotRange}
+                | acrAddress == acreqAddress rq && acrSlotRange == slotRange rq = Just r
                 | otherwise = Nothing
-    in requestMaybe @w @AddressSymbol @_ @_ @s rq check
+    _ <- awaitSlot (targetSlot rq)
+    requestMaybe @w @AddressSymbol @_ @_ @s rq check
 
 -- | Call 'addresssChangeRequest' for the address in each slot, until at least one
 --   transaction is returned that modifies the address.
@@ -80,7 +83,12 @@ nextTransactionsAt ::
 nextTransactionsAt addr = do
     initial <- currentSlot
     let go sl = do
-            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
+                { acreqSlotRangeFrom = sl
+                , acreqSlotRangeTo = sl
+                , acreqAddress = addr
+                }
+
             if null txns
                 then go (succ sl)
                 else pure txns
@@ -147,7 +155,7 @@ events
     -> Tx
     -> Map Address (Event s)
 events sl utxo tx =
-    let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlot=sl,acrTxns=[tx]}
+    let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlotRange=Interval.singleton sl,acrTxns=[tx]}
     in Map.fromSet
         (Event . IsJust (Label @AddressSymbol) . mkEvent)
         (AM.addressesTouched utxo tx)

@@ -42,7 +42,9 @@ library
         Plutus.V1.Ledger.Api
         Plutus.V1.Ledger.Bytes
         Plutus.V1.Ledger.Contexts
+        Plutus.V1.Ledger.Credential
         Plutus.V1.Ledger.Crypto
+        Plutus.V1.Ledger.DCert
         Plutus.V1.Ledger.Examples
         Plutus.V1.Ledger.Interval
         Plutus.V1.Ledger.Orphans
@@ -61,6 +63,7 @@ library
         cardano-crypto -any,
         flat -any,
         hashable -any,
+        hedgehog -any,
         plutus-core -any,
         memory -any,
         mtl -any,
@@ -75,3 +78,18 @@ library
         newtype-generics -any,
         tagged -any,
         lens -any
+
+test-suite plutus-ledger-api-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    other-modules:
+        Spec.Interval
+    build-depends:
+        base >=4.9 && <5,
+        plutus-ledger-api -any,
+        hedgehog -any,
+        tasty -any,
+        tasty-hedgehog -any,
+        tasty-hunit -any

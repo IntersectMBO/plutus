@@ -2,14 +2,17 @@
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 {-# LANGUAGE StrictData           #-}
 
 module PlutusCore.Evaluation.Machine.ExBudgeting
-    ( CostModel
-    , CostModelBase(..)
+    ( BuiltinCostModel
+    , BuiltinCostModelBase(..)
     , CostingFun(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
@@ -26,7 +29,11 @@ module PlutusCore.Evaluation.Machine.ExBudgeting
     , runCostingFunTwoArguments
     , runCostingFunThreeArguments
     , toCostUnit
+    , fromCostUnit
     , Hashable
+    , BuiltinCostModelParams
+    , extractBuiltinCostModelParams
+    , applyModelParams
     )
 where
 
@@ -36,13 +43,19 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Barbies
+import           Data.Aeson
+import           Data.Aeson.Flatten
 import           Data.Default.Class
+import qualified Data.HashMap.Strict                    as HM
 import           Data.Hashable
 import qualified Data.Kind                              as Kind
+import qualified Data.Map                               as Map
+import qualified Data.Scientific                        as S
+import qualified Data.Text                              as Text
 import           Deriving.Aeson
-import           Language.Haskell.TH.Syntax             hiding (Name)
+import           Language.Haskell.TH.Syntax             hiding (Name, newName)
 
-type CostModel = CostModelBase CostingFun
+type BuiltinCostModel = BuiltinCostModelBase CostingFun
 
 
 {- | Convert a cost prediction to an integer.  The coefficients in the cost models
@@ -55,14 +68,38 @@ type CostModel = CostModelBase CostingFun
    Note also that it's important to perform the same adjustments on the R output
    in TestCostModel.hs so that Haskell and R results agree (which is why
    `toCostUnit` is exported).
+   TODO: this also scales memory costs, which we perhaps don't need to do.  Does
+   that cost us anything?
 -}
 
-toCostUnit :: Double -> Integer
-toCostUnit x = ceiling (10000 * x)
+{- Note [Time units]. What units are times measured in?  The Criterion output
+   produces times in seconds, and these are usually very small, typically of the
+   order of 10^-6.  In models.R, the get.bench.data funtion multiplies
+   everything by 10^6 after reading it in, so it (and the models it outputs)
+   deal with times in microseconds.  So for example the model for "addInteger"
+   may have an intercept of 0.249487779229322 and a slope of
+   1.87065741871939e-3.  This means that it's taking a basic time of 249ns plus
+   another 1.87ns for every word in the input (in fact, for the maximum of the
+   number of words in the input).  This is still very small, so here we're
+   scaling up by another 10^6, to get times in picoseconds.  For the addInteger
+   example we'll now have an intercept of 249000ps plus another 1870 for each
+   word in the input. -}
 
--- | The main model which contains all data required to predict the cost of builtin functions. See Note [Creation of the Cost Model] for how this is generated. Calibrated for the CeK machine.
-data CostModelBase f =
-    CostModel
+
+costMultiplier :: Double
+costMultiplier = 1000 * 1000
+
+toCostUnit :: Double -> CostingInteger
+toCostUnit x = ceiling (costMultiplier * x)
+
+fromCostUnit :: CostingInteger -> CostingInteger
+fromCostUnit x = x `div` (floor costMultiplier)
+
+-- | The main model which contains all data required to predict the cost of
+-- builtin functions. See Note [Creation of the Cost Model] for how this is
+-- generated. Calibrated for the CEK machine.
+data BuiltinCostModelBase f =
+    BuiltinCostModelBase
     { paramAddInteger           :: f ModelTwoArguments
     , paramSubtractInteger      :: f ModelTwoArguments
     , paramMultiplyInteger      :: f ModelTwoArguments
@@ -88,17 +125,92 @@ data CostModelBase f =
     }
     deriving (Generic, FunctorB, TraversableB, ConstraintsB)
 
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance ToJSON (CostModelBase CostingFun)
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance FromJSON (CostModelBase CostingFun)
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+             (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+             (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
 
-type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f = (constraint (f ModelOneArgument), constraint (f ModelTwoArguments), constraint (f ModelThreeArguments))
+{- Note [Cost model parameters]
+We want to expose to the ledger some notion of the "cost model
+parameters". Intuitively, these should be all the numbers that appear in the
+cost model.
+
+However, there are quite a few quirks to deal with.
+
+1. BuiltinCostModel is stuctured
+
+That is, it's a complex data structure and the numbers in question are often
+nested inside it.  To deal with this quickly, we take the ugly approach of
+operating on the JSON representation of the model.  We flatten this down into a
+simple key-value mapping (see 'flattenObject' and 'unflattenObject'), and then
+look only at the numbers.
+
+2. We use floats, not integers
+
+We'd really prefer to expose integers as our parameters - they're just better
+behaved, and really we'd like to use integers internally too for determinism
+reasons. So we pretend that we have integers by scaling up all our numbers by
+1000*1000 and taking the integral floor, at some loss of precision.
+
+Once we use integers internally this will be simpler.
+
+3. BuiltinCostModel includes the *type* of the model, which isn't a parameter
+
+We can just strip the out, but in particular this means that the parameters are
+not enough to *construct* a model.  So we punt and say that you can *update* a
+model by giving the parameters. So you can take the default model and then
+overwrite the parameters, which seems okay.
+
+This is also implemented in a horrible JSON-y way.
+
+4. The implementation is not nice
+
+Ugly JSON stuff and failure possibilities where there probably shouldn't be any.
+-}
+
+-- See Note [Cost model parameters]
+type BuiltinCostModelParams = Map.Map Text.Text Integer
+
+-- See Note [Cost model parameters]
+-- | Extract the model parameters from a model.
+extractBuiltinCostModelParams :: BuiltinCostModel -> Maybe BuiltinCostModelParams
+extractBuiltinCostModelParams cm = case toJSON cm of
+    Object o ->
+        let
+            flattened = flattenObject "-" o
+            toScaledInteger :: S.Scientific -> Integer
+            toScaledInteger n = floor (n*1000*1000)
+            scaledNumbers = HM.mapMaybe (\case { Number n -> Just $ toScaledInteger n; _ -> Nothing }) flattened
+            mapified = Map.fromList $ HM.toList scaledNumbers
+        in Just mapified
+    _ -> Nothing
+
+-- See Note [Cost model parameters]
+-- | Update a model by overwriting the parameters with the given ones.
+applyModelParams :: BuiltinCostModel -> BuiltinCostModelParams -> Maybe BuiltinCostModel
+applyModelParams cm params = case toJSON cm of
+    Object o ->
+        let
+            hashmapified = HM.fromList $ Map.toList params
+            scaledNumbers = fmap (\n -> Number $ fromIntegral n / (1000*1000)) hashmapified
+            flattened = flattenObject "-" o
+            -- this is where the overwriting happens, this is left-biased
+            merged = HM.union scaledNumbers flattened
+            unflattened = unflattenObject "-" merged
+        in case fromJSON (Object unflattened) of
+            Success a -> Just a
+            Error _   -> Nothing
+    _ -> Nothing
+
+type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
+    (constraint (f ModelOneArgument), constraint (f ModelTwoArguments), constraint (f ModelThreeArguments))
 
 -- HLS doesn't like the AllBF from Barbies.
-deriving instance AllArgumentModels NFData f => NFData (CostModelBase f)
-deriving instance AllArgumentModels Default f => Default (CostModelBase f)
-deriving instance AllArgumentModels Lift f => Lift (CostModelBase f)
-deriving instance AllArgumentModels Show f => Show (CostModelBase f)
-deriving instance AllArgumentModels Eq f => Eq (CostModelBase f)
+deriving instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
 
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
 
@@ -117,17 +229,17 @@ data ModelOneArgument =
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelOneArgument", CamelToSnake)] ModelOneArgument
 instance Default ModelOneArgument where
-    def = ModelOneArgumentConstantCost 1.0
+    def = ModelOneArgumentConstantCost 0.0
 
 runCostingFunOneArgument :: CostingFun ModelOneArgument -> ExMemory -> ExBudget
 runCostingFunOneArgument
     (CostingFun cpu mem) mem1 =
-        ExBudget (ExCPU (runOneArgumentModel cpu mem1)) (ExMemory (runOneArgumentModel mem mem1))
+        ExBudget (ExCPU $ runOneArgumentModel cpu mem1) (ExMemory $ runOneArgumentModel mem mem1)
 
-runOneArgumentModel :: ModelOneArgument -> ExMemory -> Integer
+runOneArgumentModel :: ModelOneArgument -> ExMemory -> CostingInteger
 runOneArgumentModel (ModelOneArgumentConstantCost c) _ = toCostUnit c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope _)) (ExMemory s) =
-    toCostUnit $ (fromInteger s) * slope + intercept
+    toCostUnit $ (fromIntegral s) * slope + intercept
 
 -- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
@@ -207,39 +319,39 @@ data ModelTwoArguments =
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
 
 instance Default ModelTwoArguments where
-    def = ModelTwoArgumentsConstantCost 1.0
+    def = ModelTwoArgumentsConstantCost 0.0
 
 runCostingFunTwoArguments :: CostingFun ModelTwoArguments -> ExMemory -> ExMemory -> ExBudget
 runCostingFunTwoArguments (CostingFun cpu mem) mem1 mem2 =
     ExBudget (ExCPU (runTwoArgumentModel cpu mem1 mem2)) (ExMemory (runTwoArgumentModel mem mem1 mem2))
 
-runTwoArgumentModel :: ModelTwoArguments -> ExMemory -> ExMemory -> Integer
+runTwoArgumentModel :: ModelTwoArguments -> ExMemory -> ExMemory -> CostingInteger
 runTwoArgumentModel
     (ModelTwoArgumentsConstantCost c) _ _ = toCostUnit c
 runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
-        toCostUnit $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
+        toCostUnit $ (fromIntegral (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 runTwoArgumentModel
     (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) (ExMemory size1) (ExMemory size2) =
-        toCostUnit $ (max minSize (fromInteger (size1 - size2))) * slope + intercept
+        toCostUnit $ (max minSize (fromIntegral (size1 - size2))) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
-        toCostUnit $ (fromInteger (size1 * size2)) * slope + intercept
+        toCostUnit $ (fromIntegral (size1 * size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) (ExMemory size1) (ExMemory size2) =
-        toCostUnit $ (fromInteger (min size1 size2)) * slope + intercept
+        toCostUnit $ (fromIntegral (min size1 size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) (ExMemory size1) (ExMemory size2) =
-        toCostUnit $ (fromInteger (max size1 size2)) * slope + intercept
+        toCostUnit $ (fromIntegral (max size1 size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsSplitConstMulti (ModelSplitConst intercept slope)) (ExMemory size1) (ExMemory size2) =
-        toCostUnit $ (if (size1 > size2) then (fromInteger size1) * (fromInteger size2) else 0) * slope + intercept
+        toCostUnit $ (if (size1 > size2) then (fromIntegral size1) * (fromIntegral size2) else 0) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationX)) (ExMemory size1) (ExMemory _) =
-        toCostUnit $ (fromInteger size1) * slope + intercept
+        toCostUnit $ (fromIntegral size1) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationY)) (ExMemory _) (ExMemory size2) =
-        toCostUnit $ (fromInteger size2) * slope + intercept
+        toCostUnit $ (fromIntegral size2) * slope + intercept
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost Double
@@ -249,12 +361,12 @@ data ModelThreeArguments =
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelThreeArguments", CamelToSnake)] ModelThreeArguments
 
 instance Default ModelThreeArguments where
-    def = ModelThreeArgumentsConstantCost 1.0
+    def = ModelThreeArgumentsConstantCost 0.0
 
-runThreeArgumentModel :: ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> Integer
+runThreeArgumentModel :: ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> CostingInteger
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) _ _ _ = toCostUnit c
 runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) (ExMemory size3) =
-    toCostUnit $ (fromInteger (size1 + size2 + size3)) * slope + intercept
+    toCostUnit $ (fromIntegral (size1 + size2 + size3)) * slope + intercept
 
 runCostingFunThreeArguments :: CostingFun ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> ExBudget
 runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =

@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -119,4 +119,4 @@
           ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/29; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/28; }

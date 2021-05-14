@@ -21,7 +21,7 @@ import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 data Action
   = Init
   | HandleBlocklyMessage Blockly.Message
-  | InitBlocklyProject String
+  | InitBlocklyProject Boolean String
   | SendToSimulator
   | ViewAsMarlowe
   | Save
@@ -40,7 +40,7 @@ defaultEvent s = (A.defaultEvent $ "BlocklyEditor." <> s) { category = Just "Blo
 instance blocklyActionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
   toEvent (HandleBlocklyMessage _) = Just $ defaultEvent "HandleBlocklyMessage"
-  toEvent (InitBlocklyProject _) = Just $ defaultEvent "InitBlocklyProject"
+  toEvent (InitBlocklyProject _ _) = Just $ defaultEvent "InitBlocklyProject"
   toEvent SendToSimulator = Just $ defaultEvent "SendToSimulator"
   toEvent ViewAsMarlowe = Just $ defaultEvent "ViewAsMarlowe"
   toEvent Save = Just $ defaultEvent "Save"

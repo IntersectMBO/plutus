@@ -36,7 +36,7 @@ import           Prelude                  (Semigroup (..))
 import           GHC.Generics             (Generic)
 import           Ledger                   (Address, PubKeyHash (..), Slot (..), Validator)
 import           Ledger.Constraints       (TxConstraints, mustBeSignedBy, mustPayToTheScript, mustValidateIn)
-import           Ledger.Contexts          (TxInfo (..), ValidatorCtx (..))
+import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
 import qualified Ledger.Contexts          as Validation
 import qualified Ledger.Interval          as Interval
 import qualified Ledger.Slot              as Slot
@@ -128,8 +128,8 @@ remainingFrom t@VestingTranche{vestingTrancheAmount} range =
     vestingTrancheAmount - availableFrom t range
 
 {-# INLINABLE validate #-}
-validate :: VestingParams -> () -> () -> ValidatorCtx -> Bool
-validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx@ValidatorCtx{valCtxTxInfo=txInfo@TxInfo{txInfoValidRange}} =
+validate :: VestingParams -> () -> () -> ScriptContext -> Bool
+validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx@ScriptContext{scriptContextTxInfo=txInfo@TxInfo{txInfoValidRange}} =
     let
         remainingActual  = Validation.valueLockedBy txInfo (Validation.ownHash ctx)
 

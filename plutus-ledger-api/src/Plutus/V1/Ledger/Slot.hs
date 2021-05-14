@@ -24,7 +24,7 @@ import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import           Data.Hashable             (Hashable)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
 import           GHC.Generics              (Generic)
 import qualified Prelude                   as Haskell
 
@@ -48,6 +48,9 @@ makeLift ''Slot
 
 instance Pretty Slot where
     pretty (Slot i) = "Slot" <+> pretty i
+
+instance Pretty (Interval Slot) where
+    pretty (Interval l h) = pretty l <+> comma <+> pretty h
 
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot

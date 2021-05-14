@@ -27,6 +27,7 @@ import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Lazy.Char8      as LBS
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
+import           Ledger.Crypto                   (pubKeyHash)
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.PAB.Simulator            (Simulation)
 import qualified Plutus.PAB.Simulator            as Simulator
@@ -34,6 +35,7 @@ import           Servant                         (Application, Handler (Handler)
                                                   hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
 
+import           Cardano.Wallet.Types            (WalletInfo (..))
 import           Control.Monad.Freer.Extras.Log  (logInfo)
 import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
 import qualified Plutus.PAB.Core                 as Core
@@ -44,7 +46,6 @@ import           Plutus.PAB.Webserver.API        (API, NewAPI, WSAPI, WalletProx
 import           Plutus.PAB.Webserver.Handler    (handlerNew, handlerOld, walletProxy, walletProxyClientEnv)
 import qualified Plutus.PAB.Webserver.WebSocket  as WS
 import qualified Servant
-import           Wallet.Emulator.Wallet          (Wallet)
 
 asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
 asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
@@ -64,7 +65,7 @@ app ::
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     ) =>
     Maybe FilePath
-    -> Either ClientEnv (PABAction t env Wallet) -- ^ wallet client (if wallet proxy is enabled)
+    -> Either ClientEnv (PABAction t env WalletInfo) -- ^ wallet client (if wallet proxy is enabled)
     -> PABRunner t env
     -> Application
 app fp walletClient pabRunner = do
@@ -108,7 +109,7 @@ startServer ::
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
     => WebserverConfig -- ^ Optional file path for static assets
-    -> Either ClientEnv (PABAction t env Wallet)
+    -> Either ClientEnv (PABAction t env WalletInfo)
     -> Availability
     -> PABAction t env (MVar (), PABAction t env ())
 startServer WebserverConfig{baseUrl, staticDir} walletClient availability =
@@ -125,7 +126,7 @@ startServer' ::
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
     => Int -- ^ Port
-    -> Either ClientEnv (PABAction t env Wallet) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
+    -> Either ClientEnv (PABAction t env WalletInfo) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
     -> Maybe FilePath -- ^ Optional file path for static assets
     -> Availability
     -> PABAction t env (MVar (), PABAction t env ())
@@ -162,4 +163,7 @@ startServerDebug ::
     => Simulation t (Simulation t ())
 startServerDebug = do
     tk <- newToken
-    snd <$> startServer' 8080 (Right Simulator.addWallet) Nothing tk
+    let mkWalletInfo = do
+            (wllt, pk) <- Simulator.addWallet
+            pure $ WalletInfo{wiWallet = wllt, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}
+    snd <$> startServer' 8080 (Right mkWalletInfo) Nothing tk

@@ -14,7 +14,7 @@
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 -- | A guessing game that
 --
 --   * Uses a state machine to keep track of the current secret word
@@ -43,6 +43,7 @@ import qualified Ledger.Typed.Scripts         as Scripts
 import qualified Ledger.Value                 as V
 import qualified PlutusTx                     as PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..), check)
+import           Schema                       (ToArgument, ToSchema)
 
 import qualified Data.ByteString.Char8        as C
 
@@ -73,7 +74,7 @@ data LockArgs =
         , lockArgsValue  :: Value
         -- ^ Value that is locked by the contract initially
         } deriving stock (Show, Generic)
-          deriving anyclass (ToJSON, FromJSON)
+          deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | Arguments for the @"guess"@ endpoint
 data GuessArgs =
@@ -85,7 +86,7 @@ data GuessArgs =
         , guessArgsValueTakenOut :: Value
         -- ^ How much to extract from the contract
         } deriving stock (Show, Generic)
-          deriving anyclass (ToJSON, FromJSON)
+          deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | The schema of the contract. It consists of the usual
 --   'BlockchainActions' plus the two endpoints @"lock"@
@@ -165,33 +166,29 @@ transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, 
              )
     _ -> Nothing
 
+type GameStateMachine = SM.StateMachine GameState GameInput
+
 {-# INLINABLE machine #-}
-machine :: SM.StateMachine GameState GameInput
-machine = SM.mkStateMachine transition isFinal where
+machine :: GameStateMachine
+machine = SM.mkStateMachine Nothing transition isFinal where
     isFinal _ = False
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: Scripts.ValidatorType (SM.StateMachine GameState GameInput)
+mkValidator :: Scripts.ValidatorType GameStateMachine
 mkValidator = SM.mkValidator machine
 
-scriptInstance :: Scripts.ScriptInstance (SM.StateMachine GameState GameInput)
-scriptInstance = Scripts.validator @(SM.StateMachine GameState GameInput)
+scriptInstance :: Scripts.ScriptInstance GameStateMachine
+scriptInstance = Scripts.validator @GameStateMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @GameState @GameInput
+        wrap = Scripts.wrapValidator
 
 monetaryPolicy :: Scripts.MonetaryPolicy
 monetaryPolicy = Scripts.monetaryPolicy scriptInstance
 
--- | The 'SM.StateMachineInstance' of the game state machine contract. It uses
---   the functions in 'PlutusTx.StateMachine' to generate a validator
---   script based on the functions 'step' and 'check' we defined above.
-machineInstance :: SM.StateMachineInstance GameState GameInput
-machineInstance = SM.StateMachineInstance machine scriptInstance
-
 client :: SM.StateMachineClient GameState GameInput
-client = SM.mkStateMachineClient machineInstance
+client = SM.mkStateMachineClient $ SM.StateMachineInstance machine scriptInstance
 
 -- | The @"guess"@ endpoint.
 guess :: Contract () GameStateMachineSchema GameError ()

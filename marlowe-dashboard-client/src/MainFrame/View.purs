@@ -1,28 +1,28 @@
 module MainFrame.View where
 
 import Prelude hiding (div)
+import Css (classNames)
 import Data.Either (Either(..))
 import Data.Lens (view)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
-import MainFrame.Lenses (_newWalletContractId, _newWalletNickname, _remoteDataPubKey, _templates, _subState, _wallets)
+import Halogen.HTML (div)
+import MainFrame.Lenses (_currentSlot, _subState, _toast)
 import MainFrame.Types (Action(..), ChildSlots, State)
 import Pickup.View (renderPickupState)
 import Play.View (renderPlayState)
+import Toast.View (renderToast)
 
 render :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
 render state =
   let
-    wallets = view _wallets state
+    currentSlot = view _currentSlot state
 
-    newWalletNickname = view _newWalletNickname state
-
-    newWalletContractId = view _newWalletContractId state
-
-    remoteDataPubKey = view _remoteDataPubKey state
-
-    templates = view _templates state
+    toast = view _toast state
   in
-    case view _subState state of
-      Left pickupState -> PickupAction <$> renderPickupState wallets newWalletNickname newWalletContractId remoteDataPubKey pickupState
-      Right playState -> PlayAction <$> renderPlayState wallets newWalletNickname newWalletContractId remoteDataPubKey templates playState
+    div [ classNames [ "h-full" ] ]
+      [ case view _subState state of
+          Left pickupState -> PickupAction <$> renderPickupState pickupState
+          Right playState -> PlayAction <$> renderPlayState currentSlot playState
+      , ToastAction <$> renderToast toast
+      ]

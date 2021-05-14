@@ -4,7 +4,6 @@ module Spec.Marlowe.Actus
 where
 
 import           Data.Aeson                                       (decode, encode)
-import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
 import           Data.Validation                                  (Validation (..))
 import           Language.Marlowe.ACTUS.Analysis
@@ -20,6 +19,9 @@ tests = testGroup "Actus"
     [ testCase "PAM static schedule" pamProjected
     , testCase "PAM static contract" pamStatic
     , testCase "PAM fixed schedule contract" pamFs
+    , testCase "NAM static schedule" namProjected
+    , testCase "NAM static contract" namStatic
+    , testCase "NAM fixed schedule contract" namFs
     ]
 
 contractTerms :: ContractTerms
@@ -27,10 +29,10 @@ contractTerms = ContractTerms {
           contractId = "0"
         , contractType = Just PAM
         , ct_IED = fromGregorian 2020 10 20 -- Initial Exchange Date
-        , ct_SD = fromGregorian 2007 10 22 -- start date
+        , ct_SD = fromGregorian 2007 10 22 -- status date
         , ct_MD = Just $ fromGregorian 2025 10 22 -- maturity date
         , ct_TD = Nothing  -- termination date
-        , ct_PRNXT = Nothing -- Next principal redemption date (N/A for PAM)
+        , ct_PRNXT = Nothing -- Next principal redemption payment (N/A for PAM)
         , ct_PRD = Nothing -- purchase date
         , ct_CNTRL = CR_BUY
         , ct_PDIED = -100.0 -- Discount At IED
@@ -92,6 +94,26 @@ contractTerms = ContractTerms {
         , collateralAmount = 10000
     }
 
+namContractTerms :: ContractTerms
+namContractTerms =
+  contractTerms{
+    contractType = Just NAM,
+    ct_SD = fromGregorian 2015 1 1,
+    ct_CNTRL = CR_RPA,
+    ct_IPANX = Just $ fromGregorian 2016 1 2,
+    ct_IPCL = Just $ Cycle 1 P_Y ShortStub,
+    ct_IPNR = Just 0.05,
+    ct_IPCB = Just IPCB_NT,
+    ct_IED = fromGregorian 2015 1 2,
+    ct_PRANX = Just $ fromGregorian 2016 1 2,
+    ct_PRCL = Just $ Cycle 1 P_Y ShortStub,
+    ct_PRNXT = Just 200.0,
+    ct_RRCL = Just $ Cycle 1 P_Y ShortStub,
+    ct_RRSP = 0.02,
+    ct_FER = 0.0,
+    collateralAmount = 0
+    }
+
 pamProjected :: IO ()
 pamProjected = do
     let cfs = genProjectedCashflows contractTerms
@@ -100,21 +122,40 @@ pamProjected = do
 
 pamStatic :: IO ()
 pamStatic = case genStaticContract contractTerms of
-  Failure _ -> assertFailure "Terms validation should not fail"
+  Failure _        -> assertFailure "Terms validation should not fail"
   Success contract ->
     do
+      print (pretty contract)
       assertBool "Cashflows should not be Close" $ contract /= Close
 
 pamFs :: IO ()
 pamFs = do
     let jsonTermsStr = encode contractTerms
-    writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
     case genFsContract contractTerms of
       Failure _ -> assertFailure "Terms validation should not fail"
-      Success contract -> do
-        writeFile "PamFs.marlowe" $ show $ pretty contract
+      Success contract ->
         assertBool "Cashflows should not be Close" $ contract /= Close
 
+namProjected :: IO ()
+namProjected = do
+    let cfs = genProjectedCashflows namContractTerms
+    let cfsEmpty = null cfs
+    assertBool "Cashflows should not be empty" (not cfsEmpty)
 
+namStatic :: IO ()
+namStatic = case genStaticContract namContractTerms of
+  Failure _ -> assertFailure "Terms validation should not fail"
+  Success contract ->
+      assertBool "Cashflows should not be Close" $ contract /= Close
+
+namFs :: IO ()
+namFs = do
+    let jsonTermsStr = encode namContractTerms
+    let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
+    assertBool "JSON terms there and back" $ not $ null jsonTerms'
+    case genFsContract namContractTerms of
+      Failure _ -> assertFailure "Terms validation should not fail"
+      Success contract ->
+        assertBool "Cashflows should not be Close" $ contract /= Close

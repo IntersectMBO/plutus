@@ -7,15 +7,21 @@ import Control.Monad.State (get)
 import Data.Bifunctor (bimap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', Traversal', preview, set, view)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (over)
 import Data.Tuple (Tuple(..))
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Halogen (ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, getHTMLElementRef)
+import Halogen.HTML (IProp)
+import Halogen.HTML.Core (Prop)
+import Halogen.HTML.Core as Core
 import Halogen.Query (HalogenM)
 import Halogen.Query.HalogenM (HalogenAp(..), mapAction)
 import Halogen.Query.HalogenM (imapState) as Halogen
+import Halogen.Query.Input (Input)
+import Halogen.Query.Input as Input
+import Unsafe.Coerce (unsafeCoerce)
 import Web.HTML.HTMLElement (HTMLElement)
 
 -- | This is a version of imapState that uses a lens.
@@ -98,3 +104,11 @@ scrollIntoView :: forall surface action slots output m. MonadEffect m => RefLabe
 scrollIntoView ref = do
   mElement <- getHTMLElementRef ref
   for_ mElement (liftEffect <<< runEffectFn1 scrollIntoView_)
+
+-- This HTML property dispatch lifecycle actions when the element is added or removed to the DOM
+lifeCycleEvent :: forall r action. { onInit :: Maybe action, onFinilize :: Maybe action } -> IProp r action
+lifeCycleEvent handlers = (unsafeCoerce :: Prop (Input action) -> IProp r action) $ Core.ref onLifecycleEvent
+  where
+  onLifecycleEvent (Just _) = Input.Action <$> handlers.onInit
+
+  onLifecycleEvent Nothing = Input.Action <$> handlers.onFinilize

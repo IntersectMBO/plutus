@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -52,6 +52,7 @@
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
+          (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
@@ -60,11 +61,12 @@
           "Plutus/Contracts/TokenAccount"
           "Plutus/Contracts/Crowdfunding"
           "Plutus/Contracts/Currency"
-          "Plutus/Contracts/Escrow"
-          "Plutus/Contracts/Future"
-          "Plutus/Contracts/Game"
-          "Plutus/Contracts/GameStateMachine"
           "Plutus/Contracts/ErrorHandling"
+          "Plutus/Contracts/Escrow"
+          "Plutus/Contracts/SimpleEscrow"
+          "Plutus/Contracts/Future"
+          "Plutus/Contracts/GameStateMachine"
+          "Plutus/Contracts/Governance"
           "Plutus/Contracts/MultiSig"
           "Plutus/Contracts/MultiSigStateMachine"
           "Plutus/Contracts/PingPong"
@@ -79,6 +81,11 @@
           "Plutus/Contracts/RPC"
           "Plutus/Contracts/Stablecoin"
           "Plutus/Contracts/Swap"
+          "Plutus/Contracts/Uniswap"
+          "Plutus/Contracts/Uniswap/OnChain"
+          "Plutus/Contracts/Uniswap/OffChain"
+          "Plutus/Contracts/Uniswap/Pool"
+          "Plutus/Contracts/Uniswap/Types"
           "Plutus/Contracts/Vesting"
           ];
         hsSourceDirs = [ "src" ];
@@ -125,10 +132,10 @@
             "Spec/Currency"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
-            "Spec/Game"
             "Spec/GameStateMachine"
-            "Spec/Lib"
+            "Spec/Governance"
             "Spec/MultiSig"
             "Spec/MultiSigStateMachine"
             "Spec/PingPong"
@@ -181,14 +188,12 @@
             "Spec/Auction"
             "Spec/Crowdfunding"
             "Spec/Currency"
-            "Spec/DynamicLogic/Registry"
-            "Spec/DynamicLogic/RegistryModel"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
-            "Spec/Game"
             "Spec/GameStateMachine"
-            "Spec/Lib"
+            "Spec/Governance"
             "Spec/MultiSig"
             "Spec/MultiSigStateMachine"
             "Spec/PingPong"

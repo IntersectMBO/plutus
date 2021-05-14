@@ -29,6 +29,7 @@ module Plutus.PAB.Core.ContractInstance(
     , callEndpointOnInstance
     ) where
 
+import           Control.Applicative                              (Alternative (..))
 import           Control.Arrow                                    ((>>>))
 import           Control.Concurrent                               (forkIO)
 import           Control.Concurrent.STM                           (STM)
@@ -39,16 +40,19 @@ import           Control.Monad.Freer.Error                        (Error)
 import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
+import           Data.Aeson                                       (Value)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
 import           Plutus.Contract.Effects.AwaitSlot                (WaitingForSlot (..))
 import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
+import           Plutus.Contract.State                            (ContractResponse (..))
 import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                    maybeToHandler, tryHandler', wrapHandler)
-import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..), processInstanceRequests,
-                                                                   processNextTxAtRequests, processNotificationEffects,
+import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..),
+                                                                   processAddressChangedAtRequests,
+                                                                   processInstanceRequests, processNotificationEffects,
                                                                    processOwnPubkeyRequests, processTxConfirmedRequests,
                                                                    processUtxoAtRequests, processWriteTxRequests)
 
@@ -57,7 +61,7 @@ import           Wallet.Effects                                   (ChainIndexEff
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 
 import           Plutus.Contract                                  (AddressChangeRequest (..))
-import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done), BlockchainEnv (..),
+import           Plutus.PAB.Core.ContractInstance.STM             (Activity (Done, Stopped), BlockchainEnv (..),
                                                                    InstanceState (..), InstancesState,
                                                                    callEndpointOnInstance, emptyInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance.STM             as InstanceState
@@ -65,9 +69,8 @@ import           Plutus.PAB.Effects.Contract                      (ContractEffec
 import qualified Plutus.PAB.Effects.Contract                      as Contract
 import           Plutus.PAB.Effects.UUID                          (UUIDEffect, uuidNextRandom)
 import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..), ContractPABRequest (..),
-                                                                   ContractResponse (..))
+                                                                   ContractPABResponse (..))
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
-import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse (..))
 import           Plutus.PAB.Types                                 (PABError (..))
 import           Plutus.PAB.Webserver.Types                       (ContractActivationArgs (..))
 
@@ -90,7 +93,7 @@ activateContractSTM ::
 activateContractSTM runAppBackend a@ContractActivationArgs{caID, caWallet} = do
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
     logDebug @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
-    initialState <- Contract.initialState @t caID
+    initialState <- Contract.initialState @t activeContractInstanceId caID
     Contract.putState @t a activeContractInstanceId initialState
     s <- startSTMInstanceThread @t @m runAppBackend a activeContractInstanceId
     ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
@@ -101,16 +104,16 @@ processAwaitSlotRequestsSTM ::
     forall effs.
     ( Member (Reader BlockchainEnv) effs
     )
-    => RequestHandler effs ContractPABRequest (STM ContractResponse)
+    => RequestHandler effs ContractPABRequest (STM ContractPABResponse)
 processAwaitSlotRequestsSTM =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
-    >>> (RequestHandler $ \targetSlot -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot <$> ask)
+    >>> (RequestHandler $ \targetSlot_ -> fmap AwaitSlotResponse . InstanceState.awaitSlot targetSlot_ <$> ask)
 
 processTxConfirmedRequestsSTM ::
     forall effs.
     ( Member (Reader BlockchainEnv) effs
     )
-    => RequestHandler effs ContractPABRequest (STM ContractResponse)
+    => RequestHandler effs ContractPABRequest (STM ContractPABResponse)
 processTxConfirmedRequestsSTM =
     maybeToHandler (extract Events.Contract._AwaitTxConfirmedRequest)
     >>> RequestHandler handler
@@ -123,7 +126,7 @@ processEndpointRequestsSTM ::
     forall effs.
     ( Member (Reader InstanceState) effs
     )
-    => RequestHandler effs (Request ContractPABRequest) (Response (STM ContractResponse))
+    => RequestHandler effs (Request ContractPABRequest) (Response (STM ContractPABResponse))
 processEndpointRequestsSTM =
     maybeToHandler (traverse (extract Events.Contract._UserEndpointRequest))
     >>> (RequestHandler $ \q@Request{rqID, itID, rqRequest} -> fmap (Response rqID itID) (fmap (UserEndpointResponse (aeDescription rqRequest)) . InstanceState.awaitEndpointResponse q <$> ask))
@@ -141,7 +144,7 @@ stmRequestHandler ::
     , Member (Reader BlockchainEnv) effs
     , Member (Reader InstanceState) effs
     )
-    => RequestHandler effs (Request ContractPABRequest) (STM (Response ContractResponse))
+    => RequestHandler effs (Request ContractPABRequest) (STM (Response ContractPABResponse))
 stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <> blockingRequests) where
 
     -- requests that can be handled by 'WalletEffect', 'ChainIndexEffect', etc.
@@ -150,9 +153,9 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> processUtxoAtRequests @effs
         <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
-        <> processNextTxAtRequests @effs
         <> processInstanceRequests @effs
         <> processNotificationEffects @effs
+        <> processAddressChangedAtRequests @effs
 
     -- requests that wait for changes to happen
     blockingRequests =
@@ -213,18 +216,25 @@ stmInstanceLoop ::
     -> Eff effs ()
 stmInstanceLoop def instanceId = do
     (currentState :: Contract.State t) <- Contract.getState @t instanceId
+    InstanceState{issStop} <- ask
     let resp = serialisableState (Proxy @t) currentState
     updateState resp
     case Contract.requests @t currentState of
         [] -> do
-            let PartiallyDecodedResponse{err} = resp
+            let ContractResponse{err} = resp
             ask >>= liftIO . STM.atomically . InstanceState.setActivity (Done err)
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
-            event <- liftIO $ STM.atomically response
-            (newState :: Contract.State t) <- Contract.updateContract @t (caID def) currentState event
-            Contract.putState @t def instanceId newState
-            stmInstanceLoop @t def instanceId
+            let rsp' = Right <$> response
+                stop = Left <$> STM.takeTMVar issStop
+            event <- liftIO $ STM.atomically (stop <|> rsp')
+            case event of
+                Left () -> do
+                    ask >>= liftIO . STM.atomically . InstanceState.setActivity Stopped
+                Right event' -> do
+                    (newState :: Contract.State t) <- Contract.updateContract @t instanceId (caID def) currentState event'
+                    Contract.putState @t def instanceId newState
+                    stmInstanceLoop @t def instanceId
 
 -- | Update the TVars in the 'InstanceState' with data from the list
 --   of requests.
@@ -234,9 +244,9 @@ updateState ::
     , MonadIO m
     , Member (Reader InstanceState) effs
     )
-    => PartiallyDecodedResponse ContractPABRequest
+    => ContractResponse Value Value Value ContractPABRequest
     -> Eff effs ()
-updateState PartiallyDecodedResponse{observableState, hooks} = do
+updateState ContractResponse{observableState, hooks} = do
     state <- ask
     liftIO $ STM.atomically $ do
         InstanceState.clearEndpoints state
@@ -244,7 +254,7 @@ updateState PartiallyDecodedResponse{observableState, hooks} = do
             case rqRequest r of
                 AwaitTxConfirmedRequest txid -> InstanceState.addTransaction txid state
                 UtxoAtRequest addr -> InstanceState.addAddress addr state
-                NextTxAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
+                AddressChangedAtRequest AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
                 UserEndpointRequest endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
                 _ -> pure ()
         InstanceState.setObservableState observableState state
@@ -267,7 +277,7 @@ respondToRequestsSTM ::
     )
     => ContractInstanceId
     -> Contract.State t
-    -> Eff effs (STM (Response ContractResponse))
+    -> Eff effs (STM (Response ContractPABResponse))
 respondToRequestsSTM instanceId currentState = do
     let rqs = Contract.requests @t currentState
     logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId rqs

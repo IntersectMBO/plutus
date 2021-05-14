@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
@@ -12,7 +13,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Cli (runCliCommand) where
+module Cli (ConfigCommandArgs(..), runConfigCommand, runNoConfigCommand) where
 
 -----------------------------------------------------------------------------------------------------------------------
 -- Command interpretation
@@ -44,7 +45,7 @@ The 'MonadLogger' and 'MonadUnliftIO' constraints propagate up to the top level
 via 'Plutus.PAB.Effects.EventLog.handleEventLogSql'. Both instances are
 provided by 'Plutus.PAB.Monitoring.MonadLoggerBridge.TraceLoggerT', which translates
 'MonadLogger' calls to 'Tracer' calls. This is why the base monad of the
-effects stack in 'runCliCommand' is 'TraceLoggerT IO' instead of just 'IO'.
+effects stack in 'runConfigCommand' is 'TraceLoggerT IO' instead of just 'IO'.
 
 We have to use 'natTracer' in some places to turn 'Trace IO a' into
 'Trace (TraceLoggerT IO) a'.
@@ -76,167 +77,48 @@ import           Data.Foldable                            (traverse_)
 import qualified Data.Map                                 as Map
 import           Data.Proxy                               (Proxy (..))
 import qualified Data.Set                                 as Set
+import qualified Data.Text                                as Text
 import           Data.Text.Prettyprint.Doc                (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text    (renderStrict)
 import           Data.Time.Units                          (Second)
 import qualified Plutus.PAB.Effects.Contract              as Contract
+import           Plutus.PAB.Effects.EventLog              (EventLogBackend (..))
 
 import           Cardano.Node.Types                       (MockServerConfig (..))
 import qualified PSGenerator
 import           Plutus.Contract.Resumable                (responses)
 import           Plutus.Contract.State                    (State (..))
+import qualified Plutus.Contract.State                    as State
 import           Plutus.Contracts.Currency                (SimpleMPS (..))
 import qualified Plutus.PAB.App                           as App
 import qualified Plutus.PAB.Core                          as Core
 import qualified Plutus.PAB.Db.Eventful                   as Eventful
 import           Plutus.PAB.Effects.Contract.ContractExe  (ContractExe)
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (Currency))
-import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
 import qualified Plutus.PAB.Monitoring.Monitoring         as LM
 import qualified Plutus.PAB.Simulator                     as Simulator
-import           Plutus.PAB.Types                         (Config (..), chainIndexConfig, metadataServerConfig,
-                                                           nodeServerConfig, requestProcessingConfig,
-                                                           walletServerConfig)
+import           Plutus.PAB.Types                         (Config (..), DbConfig (..), chainIndexConfig,
+                                                           metadataServerConfig, nodeServerConfig, walletServerConfig)
 import qualified Plutus.PAB.Webserver.Server              as PABServer
 import           Plutus.PAB.Webserver.Types               (ContractActivationArgs (..))
 import           Wallet.Emulator.Wallet                   (Wallet (..))
 
--- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
---
-runCliCommand ::
+runNoConfigCommand ::
     Trace IO (LM.AppMsg ContractExe)  -- ^ PAB Tracer logging instance
-    -> Configuration -- ^ Monitoring configuration
-    -> Config        -- ^ PAB Configuration
-    -> Availability  -- ^ Token for signaling service availability
-    -> Command
+    -> NoConfigCommand
     -> IO ()
+runNoConfigCommand trace = \case
 
--- Run database migration
-runCliCommand t _ Config{dbConfig} _ Migrate =
-    App.migrate (LM.convertLog LM.PABMsg t) dbConfig
+    -- Run database migration
+    Migrate{dbPath} ->
+        let conf = DbConfig{dbConfigPoolSize=10, dbConfigFile=Text.pack dbPath} in
+        App.migrate (LM.convertLog LM.PABMsg trace) conf
 
--- Run mock wallet service
-runCliCommand trace _ Config {..} serviceAvailability MockWallet =
-    liftIO $ WalletServer.main
-        (toWalletLog trace)
-        walletServerConfig
-        (mscSocketPath nodeServerConfig)
-        (ChainIndex.ciBaseUrl chainIndexConfig)
-        serviceAvailability
+    -- Generate PureScript bridge code
+    PSGenerator {outputDir} -> PSGenerator.generate outputDir
 
--- Run mock node server
-runCliCommand trace _ Config {nodeServerConfig} serviceAvailability MockNode =
-    liftIO $ NodeServer.main
-        (toMockNodeServerLog trace)
-        nodeServerConfig
-        serviceAvailability
-
--- Run mock metadata server
-runCliCommand trace _ Config {metadataServerConfig} serviceAvailability Metadata =
-    liftIO $ Metadata.main
-        (toMetaDataLog trace)
-        metadataServerConfig
-        serviceAvailability
-
--- Run PAB webserver
-runCliCommand trace _ config@Config{pabWebserverConfig} serviceAvailability PABWebserver =
-        fmap (either (error . show) id)
-        $ App.runApp (toPABMsg trace) config
-        $ do
-            App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
-            (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) serviceAvailability
-            liftIO $ takeMVar mvar
-
--- Fork a list of commands
-runCliCommand trace logConfig config serviceAvailability (ForkCommands commands) =
-    void $ do
-        threads <- traverse forkCommand commands
-        putStrLn "Started all commands."
-        waitAny threads
-  where
-    forkCommand ::  Command -> IO (Async ())
-    forkCommand subcommand = do
-      putStrLn $ "Starting: " <> show subcommand
-      asyncId <- async . void . runCliCommand trace logConfig config serviceAvailability $ subcommand
-      putStrLn $ "Started: " <> show subcommand
-      starting serviceAvailability
-      pure asyncId
-
--- Run the chain-index service
-runCliCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability ChainIndex =
-    ChainIndex.main
-        (toChainIndexLog t)
-        chainIndexConfig
-        (mscSocketPath nodeServerConfig)
-        serviceAvailability
-
--- Install a contract
-runCliCommand t _ Config{dbConfig} _ (InstallContract contractExe) = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
-    fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
-        $ Contract.addDefinition @ContractExe contractExe
-
--- Get the state of a contract
-runCliCommand t _ Config{dbConfig} _ (ContractState contractInstanceId) = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
-    fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
-        $ interpret (LM.handleLogMsgTrace t)
-        $ do
-            s <- Contract.getState @ContractExe contractInstanceId
-            let outputState = Contract.serialisableState (Proxy @ContractExe) s
-            logInfo @(LM.AppMsg ContractExe) $ LM.PABMsg $ LM.SCoreMsg $ LM.FoundContract $ Just outputState
-            drainLog
-
--- Get all installed contracts
-runCliCommand t _ Config{dbConfig} _ ReportInstalledContracts = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
-    fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
-        $ interpret (LM.handleLogMsgTrace t)
-        $ do
-            installedContracts <- Contract.getDefinitions @ContractExe
-            traverse_ (logInfo @(LM.AppMsg ContractExe) . LM.InstalledContract . render . pretty) installedContracts
-            drainLog
-                where
-                    render = renderStrict . layoutPretty defaultLayoutOptions
-
--- Get all active contracts
-runCliCommand t _ Config{dbConfig} _ ReportActiveContracts = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
-    fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
-        $ interpret (LM.handleLogMsgTrace t)
-        $ do
-            logInfo @(LM.AppMsg ContractExe) LM.ActiveContractsMsg
-            instancesById <- Contract.getActiveContracts @ContractExe
-            let idsByDefinition = Map.fromListWith (<>) $ fmap (\(inst, ContractActivationArgs{caID}) -> (caID, Set.singleton inst)) $ Map.toList instancesById
-            traverse_ (\(e, s) -> logInfo @(LM.AppMsg ContractExe) $ LM.ContractInstances e (Set.toList s)) $ Map.toAscList idsByDefinition
-            drainLog
-
--- Get history of a specific contract
-runCliCommand t _ Config{dbConfig} _ (ReportContractHistory contractInstanceId) = do
-    connection <- App.dbConnect (LM.convertLog LM.PABMsg t) dbConfig
-    fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) t)
-        $ interpret (LM.handleLogMsgTrace t)
-        $ do
-            logInfo @(LM.AppMsg ContractExe) LM.ContractHistoryMsg
-            s <- Contract.getState @ContractExe contractInstanceId
-            let PartiallyDecodedResponse{newState=State{record}} = Contract.serialisableState (Proxy @ContractExe) s
-            traverse_ logStep (responses record)
-            drainLog
-                where
-                    logStep response = logInfo @(LM.AppMsg ContractExe) $ LM.ContractHistoryItem contractInstanceId response
-
--- Generate PureScript bridge code
-runCliCommand _ _ _ _ PSGenerator {_outputDir} =
-    PSGenerator.generate _outputDir
-
--- Start the simulation web server & activate a contract.
-runCliCommand _ _ _ _ StartSimulatorWebServer = do
-    void $ Simulator.runSimulation $ do
+    -- Start the simulation web server & activate a contract.
+    StartSimulatorWebServer -> void $ Simulator.runSimulation $ do
         instanceId <- Simulator.activateContract (Wallet 1) Currency
         shutdown <- PABServer.startServerDebug
         _ <- liftIO getLine
@@ -248,12 +130,143 @@ runCliCommand _ _ _ _ StartSimulatorWebServer = do
         _ <- liftIO getLine
         shutdown
 
+    -- Get default logging configuration
+    WriteDefaultConfig{outputFile} -> LM.defaultConfig >>= flip CM.exportConfiguration outputFile
 
--- Get default logging configuration
-runCliCommand _ _ _ _ WriteDefaultConfig{_outputFile} =
-    LM.defaultConfig >>= flip CM.exportConfiguration _outputFile
+data ConfigCommandArgs =
+    ConfigCommandArgs
+        { ccaTrace           :: Trace IO (LM.AppMsg ContractExe)  -- ^ PAB Tracer logging instance
+        , ccaLoggingConfig   :: Configuration -- ^ Monitoring configuration
+        , ccaPABConfig       :: Config        -- ^ PAB Configuration
+        , ccaAvailability    :: Availability  -- ^ Token for signaling service availability
+        , ccaEventfulBackend :: App.EventfulBackend -- ^ Whether to use the sqlite or the in-memory backend
+        }
 
-toPABMsg :: Trace m (LM.AppMsg ContractExe) -> Trace m LM.PABLogMsg
+-- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
+--
+runConfigCommand ::
+    ConfigCommandArgs
+    -> ConfigCommand
+    -> IO ()
+
+-- Run mock wallet service
+runConfigCommand ConfigCommandArgs{ccaTrace,ccaPABConfig=Config {nodeServerConfig, chainIndexConfig, walletServerConfig},ccaAvailability} MockWallet =
+    liftIO $ WalletServer.main
+        (toWalletLog ccaTrace)
+        walletServerConfig
+        (mscSocketPath nodeServerConfig)
+        (mscSlotConfig nodeServerConfig)
+        (ChainIndex.ciBaseUrl chainIndexConfig)
+        ccaAvailability
+
+-- Run mock node server
+runConfigCommand ConfigCommandArgs{ccaTrace,ccaPABConfig= Config {nodeServerConfig},ccaAvailability} MockNode =
+    liftIO $ NodeServer.main
+        (toMockNodeServerLog ccaTrace)
+        nodeServerConfig
+        ccaAvailability
+
+-- Run mock metadata server
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {metadataServerConfig}, ccaAvailability} Metadata =
+    liftIO $ Metadata.main
+        (toMetaDataLog ccaTrace)
+        metadataServerConfig
+        ccaAvailability
+
+-- Run PAB webserver
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=config@Config{pabWebserverConfig}, ccaAvailability, ccaEventfulBackend} PABWebserver =
+        fmap (either (error . show) id)
+        $ App.runApp ccaEventfulBackend (toPABMsg ccaTrace) config
+        $ do
+            App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
+            (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) ccaAvailability
+            liftIO $ takeMVar mvar
+
+-- Fork a list of commands
+runConfigCommand c@ConfigCommandArgs{ccaAvailability} (ForkCommands commands) =
+    void $ do
+        threads <- traverse forkCommand commands
+        putStrLn "Started all commands."
+        waitAny threads
+  where
+    forkCommand :: ConfigCommand -> IO (Async ())
+    forkCommand subcommand = do
+      putStrLn $ "Starting: " <> show subcommand
+      asyncId <- async . void . runConfigCommand c $ subcommand
+      putStrLn $ "Started: " <> show subcommand
+      starting ccaAvailability
+      pure asyncId
+
+-- Run the chain-index service
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config {nodeServerConfig, chainIndexConfig}, ccaAvailability} ChainIndex =
+    ChainIndex.main
+        (toChainIndexLog ccaTrace)
+        chainIndexConfig
+        (mscSocketPath nodeServerConfig)
+        (mscSlotConfig nodeServerConfig)
+        ccaAvailability
+
+-- Install a contract
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (InstallContract contractExe) = do
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    fmap (either (error . show) id)
+        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Contract.addDefinition @ContractExe contractExe
+
+-- Get the state of a contract
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ContractState contractInstanceId) = do
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    fmap (either (error . show) id)
+        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ interpret (LM.handleLogMsgTrace ccaTrace)
+        $ do
+            s <- Contract.getState @ContractExe contractInstanceId
+            let outputState = Contract.serialisableState (Proxy @ContractExe) s
+            logInfo @(LM.AppMsg ContractExe) $ LM.PABMsg $ LM.SCoreMsg $ LM.FoundContract $ Just outputState
+            drainLog
+
+-- Get all installed contracts
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} ReportInstalledContracts = do
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    fmap (either (error . show) id)
+        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ interpret (LM.handleLogMsgTrace ccaTrace)
+        $ do
+            installedContracts <- Contract.getDefinitions @ContractExe
+            traverse_ (logInfo @(LM.AppMsg ContractExe) . LM.InstalledContract . render . pretty) installedContracts
+            drainLog
+                where
+                    render = renderStrict . layoutPretty defaultLayoutOptions
+
+-- Get all active contracts
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} ReportActiveContracts = do
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    fmap (either (error . show) id)
+        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ interpret (LM.handleLogMsgTrace ccaTrace)
+        $ do
+            logInfo @(LM.AppMsg ContractExe) LM.ActiveContractsMsg
+            instancesById <- Contract.getActiveContracts @ContractExe
+            let idsByDefinition = Map.fromListWith (<>) $ fmap (\(inst, ContractActivationArgs{caID}) -> (caID, Set.singleton inst)) $ Map.toList instancesById
+            traverse_ (\(e, s) -> logInfo @(LM.AppMsg ContractExe) $ LM.ContractInstances e (Set.toList s)) $ Map.toAscList idsByDefinition
+            drainLog
+
+-- Get history of a specific contract
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ReportContractHistory contractInstanceId) = do
+    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    fmap (either (error . show) id)
+        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ interpret (LM.handleLogMsgTrace ccaTrace)
+        $ do
+            logInfo @(LM.AppMsg ContractExe) LM.ContractHistoryMsg
+            s <- Contract.getState @ContractExe contractInstanceId
+            let State.ContractResponse{State.newState=State{record}} = Contract.serialisableState (Proxy @ContractExe) s
+            traverse_ logStep (responses record)
+            drainLog
+                where
+                    logStep response = logInfo @(LM.AppMsg ContractExe) $ LM.ContractHistoryItem contractInstanceId response
+
+toPABMsg :: Trace m (LM.AppMsg ContractExe) -> Trace m (LM.PABLogMsg ContractExe)
 toPABMsg = LM.convertLog LM.PABMsg
 
 toChainIndexLog :: Trace m (LM.AppMsg ContractExe) -> Trace m LM.ChainIndexServerMsg

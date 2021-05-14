@@ -2,8 +2,10 @@ module Main
     ( main
     ) where
 
-import           Plutus.Contracts.Game  (game)
-import           Plutus.PAB.ContractCLI (commandLineApp)
+import           Data.Bifunctor                    (first)
+import qualified Data.Text                         as T
+import           Plutus.Contracts.GameStateMachine (contract)
+import           Plutus.PAB.ContractCLI            (commandLineApp)
 
 main :: IO ()
-main = commandLineApp game
+main = commandLineApp $ first (T.pack . show) contract

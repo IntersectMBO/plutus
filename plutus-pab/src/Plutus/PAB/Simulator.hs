@@ -18,6 +18,7 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 -}
 module Plutus.PAB.Simulator(
     Simulation
+    , SimulatorState
     , runSimulation
     -- * Run with user-defined contracts
     , SimulatorContractHandler
@@ -27,6 +28,7 @@ module Plutus.PAB.Simulator(
     , mkSimulatorHandlers
     , addWallet
     -- * Simulator actions
+    -- ** Logging
     , logString
     , logPretty
     -- ** Agent actions
@@ -34,6 +36,9 @@ module Plutus.PAB.Simulator(
     , activateContract
     , callEndpointOnInstance
     , handleAgentThread
+    , Activity(..)
+    , stopInstance
+    , instanceActivity
     -- ** Control actions
     , makeBlock
     -- * Querying the state
@@ -42,6 +47,7 @@ module Plutus.PAB.Simulator(
     , waitForState
     , activeEndpoints
     , waitForEndpoint
+    , waitForTxConfirmed
     , currentSlot
     , waitUntilSlot
     , waitNSlots
@@ -50,7 +56,10 @@ module Plutus.PAB.Simulator(
     , waitUntilFinished
     , valueAt
     , valueAtSTM
+    , walletFees
     , blockchain
+    , currentBalances
+    , logBalances
     -- ** Transaction counts
     , TxCounts(..)
     , txCounts
@@ -64,7 +73,7 @@ import           Control.Concurrent.STM                         (STM, TQueue, TV
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Lens                                   (_Just, at, makeLenses, makeLensesFor, preview, set,
                                                                  view, (&), (.~), (^.))
-import           Control.Monad                                  (forever, void, when)
+import           Control.Monad                                  (forM_, forever, void, when)
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
 import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
@@ -77,10 +86,9 @@ import           Control.Monad.Freer.Writer                     (Writer (..), ru
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import qualified Data.Aeson                                     as JSON
 import           Data.Default                                   (Default (..))
-import           Data.Foldable                                  (traverse_)
+import           Data.Foldable                                  (fold, traverse_)
 import           Data.Map                                       (Map)
 import qualified Data.Map                                       as Map
-import           Data.Semigroup                                 (Max (..))
 import           Data.Set                                       (Set)
 import           Data.Text                                      (Text)
 import qualified Data.Text                                      as Text
@@ -88,13 +96,15 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
+import           Ledger                                         (Address (..), Tx, TxId, TxOut (..), txFee, txId)
+import           Ledger.Crypto                                  (PubKey, pubKeyHash)
 import qualified Ledger.Index                                   as UtxoIndex
-import           Ledger.Tx                                      (Address, Tx, TxOut (..))
-import           Ledger.Value                                   (Value)
+import           Ledger.Value                                   (Value, flattenValue)
+import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM           (BlockchainEnv, InstancesState, OpenEndpoint)
+import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv (..), OpenEndpoint)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
@@ -110,7 +120,7 @@ import           Wallet.Effects                                 (ChainIndexEffec
                                                                  WalletEffect)
 import qualified Wallet.Effects                                 as WalletEffects
 import qualified Wallet.Emulator                                as Emulator
-import           Wallet.Emulator.Chain                          (ChainControlEffect, ChainState)
+import           Wallet.Emulator.Chain                          (ChainControlEffect, ChainState (..))
 import qualified Wallet.Emulator.Chain                          as Chain
 import qualified Wallet.Emulator.ChainIndex                     as ChainIndex
 import           Wallet.Emulator.MultiAgent                     (EmulatorEvent' (..), _singleton)
@@ -131,7 +141,8 @@ makeLensesFor [("_contractState", "contractState")] ''SimulatorContractInstanceS
 
 data AgentState t =
     AgentState
-        { _walletState :: Wallet.WalletState
+        { _walletState   :: Wallet.WalletState
+        , _submittedFees :: Map TxId Value
         }
 
 makeLenses ''AgentState
@@ -139,7 +150,8 @@ makeLenses ''AgentState
 initialAgentState :: forall t. Wallet -> AgentState t
 initialAgentState wallet =
     AgentState
-        { _walletState = Wallet.emptyWalletState wallet
+        { _walletState   = Wallet.emptyWalletState wallet
+        , _submittedFees = mempty
         }
 
 data SimulatorState t =
@@ -156,7 +168,7 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
     let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState def
-        initialWallets = Map.fromList $ fmap (\w -> (w, AgentState $ Wallet.emptyWalletState w)) $ Wallet <$> [1..10]
+        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) $ Wallet <$> [1..10]
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
@@ -170,6 +182,7 @@ initialState = do
 type SimulatorContractHandler t =
     forall effs.
         ( Member (Error PABError) effs
+        , Member (LogMsg (PABMultiAgentMsg t)) effs
         )
         => Eff (Contract.ContractEffect t ': effs)
         ~> Eff effs
@@ -211,7 +224,6 @@ mkSimulatorHandlers definitions handleContractEffect =
                 $ handleDelayEffect
                 $ interpret (Core.handleUserEnvReader @t @(SimulatorState t))
                 $ interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
-                $ interpret (Core.handleInstancesStateReader @t @(SimulatorState t))
                 $ advanceClock @t
             Core.waitUntilSlot 1
         , onShutdown = do
@@ -222,7 +234,7 @@ mkSimulatorHandlers definitions handleContractEffect =
 -- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
 --   out-of-process services such as wallet backend, node, etc.)
 simulatorHandlers :: EffectHandlers (Builtin TestContracts) (SimulatorState (Builtin TestContracts))
-simulatorHandlers = mkSimulatorHandlers @(Builtin TestContracts) [Game, Currency, AtomicSwap] handler where
+simulatorHandlers = mkSimulatorHandlers @(Builtin TestContracts) [GameStateMachine, Currency, AtomicSwap] handler where
     handler :: SimulatorContractHandler (Builtin TestContracts)
     handler = interpret handleContractTest
 
@@ -262,7 +274,10 @@ handleServicesSimulator wallet =
         . interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), Reader BlockchainEnv, LogMsg _] (handleChainEffect @t)
-        . reinterpret handleNodeClient
+
+        . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+        . reinterpret2 (handleNodeClient @t wallet)
+
         . makeTimedChainIndexEvent wallet
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), LogMsg _] (handleChainIndexEffect @t)
@@ -318,13 +333,13 @@ activateContract = Core.activateContract
 
 -- | Call a named endpoint on a contract instance
 callEndpointOnInstance :: forall a t. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation t (Maybe NotificationError)
-callEndpointOnInstance = Core.callEndpointOnInstance
+callEndpointOnInstance = Core.callEndpointOnInstance'
 
 -- | Log some output to the console
 logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
 logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
 
--- | Pretty-prin a value to the console
+-- | Pretty-print a value to the console
 logPretty :: forall a t effs. (Pretty a, Member (LogMsg (PABMultiAgentMsg t)) effs) => a -> Eff effs ()
 logPretty = logInfo @(PABMultiAgentMsg t) . UserLog . render
 
@@ -333,7 +348,6 @@ makeBlock ::
     forall t effs.
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
-    , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
@@ -355,7 +369,7 @@ makeBlock = do
         $ makeTimedChainEvent
         $ interpret (handleChainIndexControlEffect @t)
         $ interpret (handleChainControl @t)
-        $ Chain.processBlock
+        $ Chain.processBlock >> Chain.modifySlot succ
 
 -- | Get the current state of the contract instance.
 instanceState :: forall t. Wallet -> ContractInstanceId -> Simulation t (Contract.State t)
@@ -382,6 +396,10 @@ finalResult = Core.finalResult
 waitUntilFinished :: forall t. ContractInstanceId -> Simulation t (Maybe JSON.Value)
 waitUntilFinished = Core.waitUntilFinished
 
+-- | Wait until the transaction has been confirmed on the blockchain.
+waitForTxConfirmed :: forall t. TxId -> Simulation t TxConfirmed
+waitForTxConfirmed = Core.waitForTxConfirmed
+
 -- | Wait until the endpoint becomes active.
 waitForEndpoint :: forall t. ContractInstanceId -> String -> Simulation t ()
 waitForEndpoint = Core.waitForEndpoint
@@ -403,7 +421,7 @@ runSimulation :: Simulation (Builtin TestContracts) a -> IO (Either PABError a)
 runSimulation = runSimulationWith @(Builtin TestContracts) simulatorHandlers
 
 runSimulationWith :: SimulatorEffectHandlers t -> Simulation t a -> IO (Either PABError a)
-runSimulationWith handlers = Core.runPAB handlers
+runSimulationWith handlers = Core.runPAB def handlers
 
 -- | Handle a 'LogMsg' effect in terms of a "larger" 'State' effect from which we have a setter.
 logIntoTQueue ::
@@ -424,7 +442,6 @@ handleChainControl ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
     , Member (Reader BlockchainEnv) effs
-    , Member (Reader InstancesState) effs
     , Member (LogMsg Chain.ChainEvent) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
@@ -433,21 +450,16 @@ handleChainControl ::
 handleChainControl = \case
     Chain.ProcessBlock -> do
         blockchainEnv <- ask @BlockchainEnv
-        instancesState <- ask @InstancesState
-        (txns, slot) <- runChainEffects @t @_ $ do
-                txns <- Chain.processBlock
-                sl <- Chain.getCurrentSlot
-                pure (txns, sl)
-        runChainIndexEffects @t $ do
-            ChainIndex.chainIndexNotify $ BlockValidated txns
-            ChainIndex.chainIndexNotify $ SlotChanged slot
+        (txns, slot) <- runChainEffects @t @_ ((,) <$> Chain.processBlock <*> Chain.getCurrentSlot)
+        runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
 
-        void $ liftIO $ STM.atomically $ do
-            cenv <- BlockchainEnv.getClientEnv instancesState
-            BlockchainEnv.updateInterestingAddresses blockchainEnv cenv
-            BlockchainEnv.processBlock blockchainEnv txns slot
+        void $ liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv txns slot
 
         pure txns
+    Chain.ModifySlot f -> do
+        slot <- runChainEffects @t @_ (Chain.modifySlot f)
+        runChainIndexEffects @t (ChainIndex.chainIndexNotify $ SlotChanged slot)
+        pure slot
 
 runChainEffects ::
     forall t a effs.
@@ -502,13 +514,27 @@ runChainIndexEffects action = do
 
 -- | Handle the 'NodeClientEffect' using the 'SimulatorState'.
 handleNodeClient ::
-    forall effs.
-    ( Member Chain.ChainEffect effs
+    forall t effs.
+    ( LastMember IO effs
+    , Member Chain.ChainEffect effs
+    , Member (Reader (SimulatorState t)) effs
     )
-    => NodeClientEffect
+    => Wallet
+    -> NodeClientEffect
     ~> Eff effs
-handleNodeClient = \case
-    PublishTx tx  -> Chain.queueTx tx
+handleNodeClient wallet = \case
+    PublishTx tx  -> do
+        Chain.queueTx tx
+        SimulatorState{_agentStates} <- ask @(SimulatorState t)
+        liftIO $ STM.atomically $ do
+            mp <- STM.readTVar _agentStates
+            case Map.lookup wallet mp of
+                Nothing -> do
+                    let newState = initialAgentState wallet & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
+                Just s' -> do
+                    let newState = s' & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    STM.writeTVar _agentStates (Map.insert wallet newState mp)
     GetClientSlot -> Chain.getCurrentSlot
 
 -- | Handle the 'Chain.ChainEffect' using the 'SimulatorState'.
@@ -537,7 +563,7 @@ handleChainIndexEffect = runChainIndexEffects @t . \case
     WatchedAddresses          -> WalletEffects.watchedAddresses
     ConfirmedBlocks           -> WalletEffects.confirmedBlocks
     TransactionConfirmed txid -> WalletEffects.transactionConfirmed txid
-    NextTx r                  -> WalletEffects.nextTx r
+    AddressChanged r          -> WalletEffects.addressChanged r
 
 handleChainIndexControlEffect ::
     forall t effs.
@@ -565,7 +591,6 @@ advanceClock ::
     forall t effs.
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
-    , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
@@ -595,9 +620,11 @@ handleContractStore = \case
         case result of
             Just s  -> pure s
             Nothing -> throwError (ContractInstanceNotFound instanceId)
-    Contract.ActiveContracts -> do
+    Contract.GetActiveContracts -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
+    Contract.PutStartInstance{} -> pure ()
+    Contract.PutStopInstance{} -> pure ()
 
 render :: forall a. Pretty a => a -> Text
 render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty
@@ -644,6 +671,21 @@ valueAt address = do
     stm <- valueAtSTM address
     liftIO $ STM.atomically stm
 
+-- | The fees paid by the wallet.
+walletFees :: forall t. Wallet -> Simulation t Value
+walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
+    where
+        succeededFees :: Map TxId Value -> [[Tx]] -> Value
+        succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . txId
+        walletSubmittedFees = do
+            SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
+            result <- liftIO $ STM.atomically $ do
+                mp <- STM.readTVar _agentStates
+                pure $ Map.lookup wallet mp
+            case result of
+                Nothing -> throwError $ WalletNotFound wallet
+                Just s  -> pure (_submittedFees s)
+
 -- | The entire chain (newest transactions first)
 blockchain :: forall t. Simulation t [[Tx]]
 blockchain = do
@@ -658,15 +700,41 @@ handleAgentThread ::
     -> Simulation t a
 handleAgentThread = Core.handleAgentThread
 
+-- | Stop the instance.
+stopInstance :: forall t. ContractInstanceId -> Simulation t ()
+stopInstance = Core.stopInstance
+
+-- | The 'Activity' state of the instance
+instanceActivity :: forall t. ContractInstanceId -> Simulation t Activity
+instanceActivity = Core.instanceActivity
+
 -- | Create a new wallet with a random key and add it to the list of simulated wallets
-addWallet :: forall t. Simulation t Wallet
+addWallet :: forall t. Simulation t (Wallet, PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
-    (_, privateKey) <- MockWallet.newKeyPair
+    (publicKey, privateKey) <- MockWallet.newKeyPair
     liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
-        let newWalletId = maybe 0 (succ . getMax) $ foldMap (Just . Max . getWallet) $ Map.keysSet currentWallets
-            newWallet = Wallet newWalletId
-            newWallets = currentWallets & at newWallet .~ Just (AgentState $ Wallet.emptyWalletStateFromPrivateKey privateKey)
+        let newWallet = MockWallet.pubKeyHashWallet (pubKeyHash publicKey)
+            newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
         STM.writeTVar _agentStates newWallets
-        pure newWallet
+        pure (newWallet, publicKey)
+
+-- | Retrieve the balances of all the entities in the simulator.
+currentBalances :: forall t. Simulation t (Map.Map Wallet.Entity Value)
+currentBalances = do
+  SimulatorState{_chainState, _agentStates} <- Core.askUserEnv @t @(SimulatorState t)
+  liftIO $ STM.atomically $ do
+    currentWallets <- STM.readTVar _agentStates
+    chainState <- STM.readTVar _chainState
+    return $ Wallet.balances chainState (_walletState <$> currentWallets)
+
+-- | Write the 'balances' out to the log.
+logBalances :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs
+            => Map.Map Wallet.Entity Value
+            -> Eff effs ()
+logBalances bs = do
+    forM_ (Map.toList bs) $ \(e, v) -> do
+        logString @t $ show e <> ": "
+        forM_ (flattenValue v) $ \(cs, tn, a) ->
+            logString @t $ "    {" <> show cs <> ", " <> show tn <> "}: " <> show a

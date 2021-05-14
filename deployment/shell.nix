@@ -1,83 +1,40 @@
-{ pkgs ? (import ./.. { }).pkgs }:
+{ pkgs ? (import ./.. { }).pkgs
+, rev ? "dev"
+}:
 let
-  inherit (pkgs) writeShellScriptBin lib mkShell stdenv;
-  inherit (pkgs) awscli pass terraform morph jq;
+  inherit (pkgs) writeShellScriptBin lib mkShell stdenv writeText;
+  inherit (pkgs) awscli terraform morph jq;
+  inherit (pkgs.gitAndTools) hub;
 
-  # { user -> { name, id } }
-  keys = import ./keys.nix;
-
-  # The set of all gpg keys that can be used by pass
-  # To add a new user, put their key in ./deployment/keys and add the key filename and id here.
-  # You can cheat the id by putting an empty value and then running `$(nix-build -A deployment.importKeys)`
-  # and then finding the key id with `gpg --list-keys` and updating this set.
-  envs = import ./envs.nix { inherit keys; };
-
-  # importKeys : create a shell-script that imports all specified keys
-  # - k: keys to import
-  importKeys = ks:
-    let
-      nameToFile = name: ./. + "/keys/${name}";
-      keyFiles = lib.mapAttrsToList (name: value: nameToFile value.name) ks;
-      lines = map (k: "gpg --import ${k}") keyFiles;
-    in
-    writeShellScriptBin "import-gpg-keys" (lib.concatStringsSep "\n" lines);
-
-  # initPass: This will change an environment's pass entry to work with specific people's keys
-  # i.e. If you want to enable a new developer to deploy to a specific environment you
-  # need to add them to the list of keys for the environment and then re-encrypt with
-  # this script.
-  initPass = env: keys:
-    let
-      ids = map (k: k.id) (builtins.attrValues keys);
-    in
-    writeShellScriptBin "init-keys-${env}" ''
-      ${pass}/bin/pass init -p ${env} ${lib.concatStringsSep " " ids}
-    '';
-
-
-  # keyInitShell: convenience shell for simply importing all existing keys
-  # ```
-  # $ nix-shell -A importKeys
-  # ```
-  keyInitShell = mkShell {
-    shellHook = ''
-      ${importKeys keys}/bin/import-gpg-keys
-      exit 0
-    '';
-  };
+  # All environments and the region they are in
+  envs = import ./envs.nix;
 
   # mkDeploymentShell : Provide a deployment shell for a specific environment
   # The shell expects to be executed from within the `deployment` directory and will
   # not work when invoked from elsewhere.
   mkDeploymentShell =
-    { env        # environment to work on
-    , region     # region to deploy to
-    , keys       # keys lookup map
+    { env         # environment to work on
+    , region      # region to deploy to
+    , rev ? "dev" # git revision being deployed
     }:
     let
-      # importKeys: crate environment specific key-import script
-      importEnvKeys = importKeys keys;
-
-      # initEnvPass: crate 'pass' initialization script for this environment
-      initEnvPass = initPass env keys;
-
-
       # setupEnvSecrets : Set environment variables with secrets from pass
       # - env: Environment to setup
       setupEnvSecrets = env: ''
-        # Set the password store
-        export PASSWORD_STORE_DIR="$(pwd)/../secrets"
-
-        # Set up environment we want to work on
         export DEPLOYMENT_ENV="${env}"
 
-        # Set up secrets for the environment
-        export TF_VAR_marlowe_github_client_id=$(${pass}/bin/pass ${env}/marlowe/githubClientId)
-        export TF_VAR_marlowe_github_client_secret=$(${pass}/bin/pass ${env}/marlowe/githubClientSecret)
-        export TF_VAR_marlowe_jwt_signature=$(${pass}/bin/pass ${env}/marlowe/jwtSignature)
-        export TF_VAR_plutus_github_client_id=$(${pass}/bin/pass ${env}/plutus/githubClientId)
-        export TF_VAR_plutus_github_client_secret=$(${pass}/bin/pass ${env}/plutus/githubClientSecret)
-        export TF_VAR_plutus_jwt_signature=$(${pass}/bin/pass ${env}/plutus/jwtSignature)
+        SECRETS=$(${awscli}/bin/aws secretsmanager get-secret-value --secret env/${env} --query SecretString --output text --region ${region})
+        export TF_VAR_marlowe_github_client_id=$(echo $SECRETS | ${jq}/bin/jq --raw-output .marlowe.githubClientId)
+        export TF_VAR_marlowe_github_client_secret=$(echo $SECRETS | ${jq}/bin/jq --raw-output .marlowe.githubClientSecret)
+        export TF_VAR_marlowe_jwt_signature=$(echo $SECRETS | ${jq}/bin/jq --raw-output .marlowe.jwtSignature)
+        export TF_VAR_plutus_github_client_id=$(echo $SECRETS | ${jq}/bin/jq --raw-output .plutus.githubClientId)
+        export TF_VAR_plutus_github_client_secret=$(echo $SECRETS | ${jq}/bin/jq --raw-output .plutus.githubClientSecret)
+        export TF_VAR_plutus_jwt_signature=$(echo $SECRETS | ${jq}/bin/jq --raw-output .plutus.jwtSignature)
+
+        # In order to avoid problems with API rate-limiting when using `wait-github-status`
+        # we can specify an OAUTH application id and secret
+        export GITHUB_API_USER=$TF_VAR_plutus_github_client_id
+        export GITHUB_API_PW=$TF_VAR_plutus_github_client_secret
       '';
 
       # setupTerraform : Switch to `env` workspace (create it if neccessary)
@@ -114,6 +71,64 @@ let
         ${terraform}/bin/terraform destroy ./terraform
       '';
 
+      # wait-github-status: wait until the current commit has been processed by hydra
+      # - checks the github status in a loop with 60s breaks until it is is "success"
+      #
+      # NOTE: this script depends on the GITHUB_API_USER and GITHUB_API_PW variables
+      # that are set above in `setupEnvSecrets` to avoid rate limiting problems.
+      waitGitHubStatus = writeShellScriptBin "wait-github-status" ''
+        set -eou pipefail
+
+        if [ -z $GITHUB_API_USER ] || [ -z $GITHUB_API_PW ]; then
+          echo "[wait-github-status]: GITHUB_API_USER and GITHUB_API_PW must be set! Exiting."
+          exit 1
+        fi
+
+        echo "[wait-github-status]: waiting for commit to get processed by hydra"
+        GIT_COMMIT=$(git rev-parse HEAD)
+        GITHUB_API_URL=https://api.github.com/repos/input-output-hk/plutus/commits/"$GIT_COMMIT"/status
+
+        fetchCommitStatus() {
+            # Request the status from the GitHub API and build an object:
+            # { <context>, <status> }
+            # Note: the "buildkite/plutus" state gets filtered out otherwise we
+            # will be stuck in an infinite loop waiting for our own success.
+            curl --silent\
+             -u "$GITHUB_API_USER:$GITHUB_API_PW" \
+             -H "Accept: application/vnd.github.v3+json" \
+             "$GITHUB_API_URL" \
+                | ${jq}/bin/jq -c '.statuses | map(select(.context != "buildkite/plutus")) | map ({(.context): (.state)}) | add'
+        }
+
+        while true; do
+            GH_STATUS_MAP=$(fetchCommitStatus)
+
+            # If any of the tests are in a failed state we can abort
+            if echo "$GH_STATUS_MAP" | ${jq}/bin/jq -c "values | .[]" | grep "failure\|error\|action_required\|cancelled\|timed_out" ; then
+                echo "[wait-github-status]: github reported a failure. Exiting"
+                exit 1
+            fi
+
+            # Check if all statuses have already been reported. If
+            # not we need to keep on waiting - hydra isn't ready.
+            ALL_CHECKS_PRESENT=$(echo "$GH_STATUS_MAP" | ${jq}/bin/jq 'has("ci/hydra-eval") and has("ci/hydra:Cardano:plutus:required") and has("ci/hydra-build:required")')
+            if ! [ "$ALL_CHECKS_PRESENT" = "true" ] ; then
+                echo "[wait-github-status]: waiting for all statuses to get reported ..."
+                sleep 60
+                continue
+            fi
+
+            # All relevant statuses have been reported and none of them are in a failed state.
+            # If all of them are "success" we are done. If not we have to keep on waiting.
+            # NOTE: A status is one of the failures captured above, "pending" or "success".
+            ALL_CHECKS_SUCCESS=$(echo "$GH_STATUS_MAP" | ${jq}/bin/jq  '[.[]] | all(. == "success")')
+            if [ "$ALL_CHECKS_SUCCESS" = "true" ] ; then
+                echo "[wait-github-status]: all statuses have been reported as successful"
+                exit 0
+            fi
+        done
+      '';
+
       # deploy-nix: wrapper around executing `morph deploy`
       # - Checks if `machines.json` is present - aborts if not
       # - Checks if terraform is up to date - aborts if not
@@ -121,9 +136,18 @@ let
       deployNix = writeShellScriptBin "deploy-nix" ''
         set -eou pipefail
 
+
         # In order to ensure a consistent state we verify that terraform
         # reports it has nothing to do before we even attempt to deploy
         # any nix configuration.
+
+        # The local files (ssh configuration and dns/ip information on ec2
+        # instances) is part of the state so we have to create these before
+        # we check if the state is up to date
+        echo "[deploy-nix]: Creating terraform bridge files"
+        rm -rf ./plutus_playground.$DEPLOYMENT_ENV.conf
+        rm -rf ./machines.json
+        ${terraform}/bin/terraform apply -auto-approve -target=local_file.ssh_config -target=local_file.machines ./terraform/
 
         echo "[deploy-nix]: Checking if terraform state is up to date"
         if ! ${terraform}/bin/terraform plan --detailed-exitcode -compact-warnings ./terraform >/dev/null ; then
@@ -139,42 +163,33 @@ let
           echo "[deploy-nix]: machines.json is not present. Aborting."
           exit 1
         fi
+
         echo "[deploy-nix]: copying machines.json .."
-        cp ./machines.json ./morph
+        cat ./machines.json | jq --arg rev ${rev} '. + {rev: $rev}' > ./morph/machines.json
 
         if [ -z "$DEPLOYMENT_ENV" ]; then
           echo "[deploy-nix]: Error, 'DEPLOYMENT_ENV' is not set! Aborting."
           exit 1
         fi
 
-        # morph needs access to environment-specific secrets which
-        # are retrieved via `pass` and written to files in the morph directory.
+        # Create secrets files which are uploaded using morph secrets
+        # feature.
 
         echo "[deploy-nix]: Writing plutus secrets ..."
         plutus_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.plutusTld')
         cat > ./morph/secrets.plutus.$DEPLOYMENT_ENV.env <<EOL
-        export JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/plutus/jwtSignature)"
-        export GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/plutus/githubClientId)"
-        export GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/plutus/githubClientSecret)"
+        export JWT_SIGNATURE="$(echo $TF_VAR_plutus_jwt_signature)"
+        export GITHUB_CLIENT_ID="$(echo $TF_VAR_plutus_github_client_id)"
+        export GITHUB_CLIENT_SECRET="$(echo $TF_VAR_plutus_github_client_secret)"
         EOL
 
         echo "[deploy-nix]: Writing marlowe secrets ..."
         marlowe_tld=$(cat ./machines.json | ${jq}/bin/jq -r '.marloweTld')
         cat > ./morph/secrets.marlowe.$DEPLOYMENT_ENV.env <<EOL
-        JWT_SIGNATURE="$(pass $DEPLOYMENT_ENV/marlowe/jwtSignature)"
-        export GITHUB_CLIENT_ID="$(pass $DEPLOYMENT_ENV/marlowe/githubClientId)"
-        export GITHUB_CLIENT_SECRET="$(pass $DEPLOYMENT_ENV/marlowe/githubClientSecret)"
+        export JWT_SIGNATURE="$(echo $TF_VAR_marlowe_jwt_signature)"
+        export GITHUB_CLIENT_ID="$(echo $TF_VAR_marlowe_github_client_id)"
+        export GITHUB_CLIENT_SECRET="$(echo $TF_VAR_marlowe_github_client_secret)"
         EOL
-
-        # in order for morph to be able to access any of the machines
-        # at all we need to install an ssh configuration file.
-        # --------------------------------------------------------------
-        # NOTE: THIS WILL MODIFY FILES IN YOUR `~/.ssh/config` DIRECTORY
-        # --------------------------------------------------------------
-
-        echo "[deploy-nix]: Installing ssh configuration ..."
-        mkdir -p ~/.ssh/config.d
-        cp plutus_playground.$DEPLOYMENT_ENV.conf ~/.ssh/config.d/
 
         #
         # Note: there appears to be some timing issue with how morph executes
@@ -183,6 +198,8 @@ let
         # 2. health-checks only
         #
         echo "[deploy-nix]: Starting deployment ..."
+        export SSH_SKIP_HOST_KEY_CHECK=1
+        export SSH_CONFIG_FILE=./plutus_playground.$DEPLOYMENT_ENV.conf
         ${morph}/bin/morph deploy --skip-health-checks --upload-secrets ./morph/network.nix switch
         ${morph}/bin/morph check-health ./morph/network.nix
       '';
@@ -195,7 +212,7 @@ let
 
     in
     mkShell {
-      buildInputs = [ importEnvKeys initEnvPass terraform pass deployNix provisionInfra destroyInfra deploy ];
+      buildInputs = [ terraform deployNix provisionInfra destroyInfra deploy waitGitHubStatus ];
       shellHook = ''
         if ! ${awscli}/bin/aws sts get-caller-identity 2>/dev/null ; then
           echo "Error: Not logged in to aws. Aborting"
@@ -215,11 +232,6 @@ let
         echo -e "\t* destroy-infra:    destroy the infrastructure completely"
         echo -e "\t* deploy-nix:       deploy nix configuration to infrastructure"
         echo -e "\t* deploy:           provision infrastructure and deploy nix configuration"
-        echo ""
-        echo "Key handling"
-        echo ""
-        echo -e "\t* import-gpg-keys:  import all relevant gpg keys"
-        echo -e "\t* init-keys-${env}:   allow configured keys access to this environment"
         echo -e ""
         echo "Notes:"
         echo ""
@@ -233,7 +245,6 @@ in
 builtins.mapAttrs
   (env: cfg: mkDeploymentShell {
     region = cfg.region;
-    inherit env;
-    inherit keys;
+    inherit env rev;
   })
-  envs // { importKeys = keyInitShell; }
+  envs

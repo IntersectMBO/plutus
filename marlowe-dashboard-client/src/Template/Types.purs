@@ -4,29 +4,34 @@ module Template.Types
   ) where
 
 import Prelude
-import Analytics (class IsEvent, defaultEvent)
+import Analytics (class IsEvent, defaultEvent, toEvent)
 import Data.BigInteger (BigInteger)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import InputField.Types (Action, State) as InputField
 import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Semantics (TokenName)
+import Template.Validation (RoleError)
+import WalletData.Types (WalletLibrary)
 
 type State
   = { template :: ContractTemplate
     , contractNickname :: String
-    -- FIXME: We should add type aliases to these Strings
-    , roleWallets :: Map String String
+    , roleWalletInputs :: Map TokenName (InputField.State RoleError)
     , templateContent :: TemplateContent
     , slotContentStrings :: Map String String
     }
 
 data Action
   = SetTemplate ContractTemplate
-  | ToggleTemplateLibraryCard
-  | ToggleCreateWalletCard String
-  | ToggleSetupConfirmationCard
+  | OpenTemplateLibraryCard
+  | OpenCreateWalletCard TokenName
+  | OpenSetupConfirmationCard
+  | CloseSetupConfirmationCard
   | SetContractNickname String
-  | SetRoleWallet String String
+  | UpdateRoleWalletValidators WalletLibrary
+  | RoleWalletInputAction TokenName (InputField.Action RoleError)
   | SetSlotContent String String -- slot input comes from the HTML as a dateTimeString
   | SetValueContent String (Maybe BigInteger)
   | StartContract
@@ -35,11 +40,13 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent (SetTemplate _) = Just $ defaultEvent "SetTemplate"
-  toEvent ToggleTemplateLibraryCard = Nothing
-  toEvent (ToggleCreateWalletCard tokenName) = Nothing
-  toEvent ToggleSetupConfirmationCard = Nothing
+  toEvent OpenTemplateLibraryCard = Nothing
+  toEvent (OpenCreateWalletCard tokenName) = Nothing
+  toEvent OpenSetupConfirmationCard = Nothing
+  toEvent CloseSetupConfirmationCard = Nothing
   toEvent (SetContractNickname _) = Just $ defaultEvent "SetContractNickname"
-  toEvent (SetRoleWallet _ _) = Just $ defaultEvent "SetRoleWallet"
+  toEvent (UpdateRoleWalletValidators _) = Nothing
+  toEvent (RoleWalletInputAction _ inputFieldAction) = toEvent inputFieldAction
   toEvent (SetSlotContent _ _) = Just $ defaultEvent "SetSlotContent"
   toEvent (SetValueContent _ _) = Just $ defaultEvent "SetValueContent"
   toEvent StartContract = Just $ defaultEvent "StartContract"

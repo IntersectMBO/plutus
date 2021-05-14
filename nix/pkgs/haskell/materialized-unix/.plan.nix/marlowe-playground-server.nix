@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [ "README.md" ];
       extraTmpFiles = [];
@@ -43,6 +43,7 @@
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."file-embed" or (errorHandler.buildDepError "file-embed"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
           (hsPkgs."http-conduit" or (errorHandler.buildDepError "http-conduit"))
@@ -74,7 +75,21 @@
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           ];
         buildable = true;
-        modules = [ "Server" "API" "Marlowe/Contracts" "Marlowe/Config" ];
+        modules = [
+          "API"
+          "Marlowe/Config"
+          "Marlowe/Contracts"
+          "Marlowe/Mermaid"
+          "Server"
+          "ContractForDifferences"
+          "ContractForDifferencesWithOracle"
+          "CouponBondGuaranteed"
+          "Escrow"
+          "EscrowWithCollateral"
+          "Example"
+          "Swap"
+          "ZeroCouponBond"
+          ];
         hsSourceDirs = [ "src" "contracts" ];
         };
       exes = {
@@ -129,6 +144,7 @@
             "Swap"
             "Option"
             "ContractForDifferences"
+            "ContractForDifferencesWithOracle"
             ];
           hsSourceDirs = [ "app" "contracts" ];
           mainPath = [ "Main.hs" ];

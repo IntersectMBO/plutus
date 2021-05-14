@@ -19,45 +19,59 @@ module Plutus.PAB.Webserver.WebSocket
     , contractInstanceUpdates
     -- * Reports
     , getContractReport
+    -- * Streams
+    , STMStream
+    , readOne
+    , readN
+    , foldM
+    , unfold
+    -- ** Streams of PAB events
+    , walletFundsChange
+    , openEndpoints
+    , slotChange
+    , observableStateChange
     ) where
 
-import           Control.Applicative                    (Alternative (..), Applicative (..))
-import           Control.Concurrent.Async               (Async, async, waitAnyCancel)
-import           Control.Concurrent.STM                 (STM)
-import qualified Control.Concurrent.STM                 as STM
-import           Control.Exception                      (SomeException, handle)
-import           Control.Monad                          (forever, guard, void)
-import           Control.Monad.Freer.Error              (throwError)
-import           Control.Monad.IO.Class                 (liftIO)
-import           Data.Aeson                             (ToJSON)
-import qualified Data.Aeson                             as JSON
-import           Data.Bifunctor                         (Bifunctor (..))
-import           Data.Foldable                          (fold, traverse_)
-import qualified Data.Map                               as Map
-import           Data.Proxy                             (Proxy (..))
-import           Data.Set                               (Set)
-import qualified Data.Set                               as Set
-import           Data.Text                              (Text)
-import qualified Data.Text                              as Text
+import qualified Cardano.Wallet.Mock                     as Mock
+import           Control.Applicative                     (Alternative (..), Applicative (..))
+import           Control.Concurrent.Async                (Async, async, waitAnyCancel)
+import           Control.Concurrent.STM                  (STM)
+import qualified Control.Concurrent.STM                  as STM
+import           Control.Exception                       (SomeException, handle)
+import           Control.Monad                           (forever, guard, void)
+import           Control.Monad.Freer.Error               (throwError)
+import           Control.Monad.IO.Class                  (liftIO)
+import           Data.Aeson                              (ToJSON)
+import qualified Data.Aeson                              as JSON
+import           Data.Bifunctor                          (Bifunctor (..))
+import           Data.Foldable                           (fold, traverse_)
+import qualified Data.Map                                as Map
+import           Data.Proxy                              (Proxy (..))
+import           Data.Set                                (Set)
+import qualified Data.Set                                as Set
+import           Data.Text                               (Text)
+import qualified Data.Text                               as Text
 import qualified Ledger
-import           Ledger.Slot                            (Slot)
-import qualified Network.WebSockets                     as WS
-import           Network.WebSockets.Connection          (Connection, PendingConnection)
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import           Plutus.PAB.Core                        (PABAction)
-import qualified Plutus.PAB.Core                        as Core
-import           Plutus.PAB.Core.ContractInstance.STM   (BlockchainEnv, InstancesState, OpenEndpoint (..))
-import qualified Plutus.PAB.Core.ContractInstance.STM   as Instances
-import qualified Plutus.PAB.Effects.Contract            as Contract
-import           Plutus.PAB.Types                       (PABError (OtherError))
-import           Plutus.PAB.Webserver.API               ()
-import           Plutus.PAB.Webserver.Types             (CombinedWSStreamToClient (..), CombinedWSStreamToServer (..),
-                                                         ContractReport (..), ContractSignatureResponse (..),
-                                                         InstanceStatusToClient (..))
-import           Servant                                ((:<|>) ((:<|>)))
-import           Wallet.Emulator.Wallet                 (Wallet)
-import qualified Wallet.Emulator.Wallet                 as Wallet
-import           Wallet.Types                           (ContractInstanceId (..))
+import           Ledger.Slot                             (Slot)
+import qualified Network.WebSockets                      as WS
+import           Network.WebSockets.Connection           (Connection, PendingConnection)
+import           Numeric.Natural                         (Natural)
+import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..))
+import           Plutus.PAB.Core                         (PABAction)
+import qualified Plutus.PAB.Core                         as Core
+import           Plutus.PAB.Core.ContractInstance.STM    (BlockchainEnv, InstancesState, OpenEndpoint (..))
+import qualified Plutus.PAB.Core.ContractInstance.STM    as Instances
+import qualified Plutus.PAB.Effects.Contract             as Contract
+import           Plutus.PAB.Events.ContractInstanceState (fromResp)
+import           Plutus.PAB.Types                        (PABError (OtherError))
+import           Plutus.PAB.Webserver.API                ()
+import           Plutus.PAB.Webserver.Types              (CombinedWSStreamToClient (..), CombinedWSStreamToServer (..),
+                                                          ContractReport (..), ContractSignatureResponse (..),
+                                                          InstanceStatusToClient (..))
+import           Servant                                 ((:<|>) ((:<|>)))
+import           Wallet.Emulator.Wallet                  (Wallet (..))
+import qualified Wallet.Emulator.Wallet                  as Wallet
+import           Wallet.Types                            (ContractInstanceId (..))
 
 getContractReport :: forall t env. Contract.PABContract t => PABAction t env (ContractReport (Contract.ContractDef t))
 getContractReport = do
@@ -67,7 +81,7 @@ getContractReport = do
         traverse
             (\t -> ContractSignatureResponse t <$> Contract.exportSchema @t t)
             installedContracts
-    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, Contract.serialisableState (Proxy @t) s)) activeContractIDs
+    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, fromResp $ Contract.serialisableState (Proxy @t) s)) activeContractIDs
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 -- | An STM stream of 'a's (poor man's pull-based FRP)
@@ -172,9 +186,12 @@ slotChange :: BlockchainEnv -> (STMStream Slot)
 slotChange = unfold . Instances.currentSlot
 
 walletFundsChange :: Wallet -> BlockchainEnv -> STMStream Ledger.Value
+-- TODO: Change from 'Wallet' to 'Address' (see SCP-2208)
 walletFundsChange wallet blockchainEnv =
-    let addr = Wallet.walletAddress wallet in
-    unfold (Instances.valueAt addr blockchainEnv)
+    let addr = if Wallet.isEmulatorWallet wallet
+                then Wallet.walletAddress wallet
+                else Ledger.pubKeyHashAddress (Mock.walletPubKey wallet)
+    in unfold (Instances.valueAt addr blockchainEnv)
 
 observableStateChange :: ContractInstanceId -> InstancesState -> STMStream JSON.Value
 observableStateChange contractInstanceId instancesState =
@@ -200,16 +217,37 @@ instanceUpdates instanceId instancesState =
         , ContractFinished   <$> finalValue instanceId instancesState
         ]
 
+-- | Read the first event from the stream
+readOne :: STMStream a -> IO (a, Maybe (STMStream a))
+readOne STMStream{unSTMStream} = STM.atomically unSTMStream
+
+-- | Read a number of events from the stream. Blocks until all events
+--   have been received.
+readN :: Natural -> STMStream a -> IO [a]
+readN 0 _ = pure []
+readN k s = do
+    (a, s') <- readOne s
+    case s' of
+        Nothing   -> pure [a]
+        Just rest -> (:) a <$> readN (pred k) rest
+
+-- | Consume a stream. Blocks until the stream has terminated.
+foldM ::
+    STMStream a -- ^ The stream
+    -> (a -> IO ()) -- ^ Event handler
+    -> IO () -- ^ Handler for the end of the stream
+    -> IO ()
+foldM s handleEvent handleStop = do
+    (v, next) <- readOne s
+    handleEvent v
+    case next of
+        Nothing -> handleStop
+        Just s' -> foldM s' handleEvent handleStop
+
 -- | Send all updates from an 'STMStream' to a websocket until it finishes.
 streamToWebsocket :: forall t env a. ToJSON a => Connection -> STMStream a -> PABAction t env ()
-streamToWebsocket connection stream = do
-    let go STMStream{unSTMStream} = do
-            (event, next) <- liftIO $ STM.atomically unSTMStream
-            liftIO $ WS.sendTextData connection $ JSON.encode event
-            case next of
-                Nothing -> pure ()
-                Just n  -> go n
-    go stream
+streamToWebsocket connection stream = liftIO $
+    foldM stream (WS.sendTextData connection . JSON.encode) (pure ())
 
 -- | Handler for WSAPI
 wsHandler ::

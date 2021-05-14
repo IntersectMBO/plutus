@@ -27,6 +27,7 @@ import           Data.Time.Units.Extra             ()
 import           Servant                           (NoContent (NoContent))
 
 import           Cardano.BM.Data.Trace             (Trace)
+import           Cardano.Chain                     (handleChain, handleControlChain)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
 import qualified Cardano.Protocol.Socket.Client    as Client
@@ -87,7 +88,7 @@ runChainEffects trace clientHandler stateVar eff = do
 
             runRandomTx = subsume . runGenRandomTx
 
-            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
+            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret handleControlChain
 
             mergeState = interpret (handleZoomedState chainState)
 
@@ -128,21 +129,12 @@ transactionGenerator trace interval clientHandler stateVar =
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
 slotCoordinator ::
-    Second
- -> Server.ServerHandler
- -> IO a
-slotCoordinator slotLength serverHandler =
+    SlotConfig
+    -> Server.ServerHandler
+    -> IO a
+slotCoordinator sc@SlotConfig{scSlotLength} serverHandler = do
     forever $ do
         void $ Server.processBlock serverHandler
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
-
--- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
---   leak)
-blockReaper ::
-    BlockReaperConfig
- -> Server.ServerHandler
- -> IO ()
-blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler =
-    forever $ do
-        Server.trimTo serverHandler brcBlocksToKeep
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval
+        newSlot <- currentSlot sc
+        void $ Server.modifySlot (const newSlot) serverHandler
+        liftIO $ threadDelay $ fromIntegral $ toMicroseconds scSlotLength

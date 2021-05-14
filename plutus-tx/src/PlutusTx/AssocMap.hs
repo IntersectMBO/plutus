@@ -39,23 +39,38 @@ import           PlutusTx.Lift    (makeLift)
 import           PlutusTx.Prelude hiding (all, lookup, null, toList)
 import qualified PlutusTx.Prelude as P
 import           PlutusTx.These
+import qualified Prelude
 
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
-    deriving (Show)
-    deriving stock (Generic)
+    deriving stock (Generic, Prelude.Eq, Show)
     deriving newtype (Eq, Ord, IsData, NFData)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
     fmap f (Map mp) =
         let
-            go []           = []
-            go ((c, i):xs') = (c, f i) : go xs'
+            go []          = []
+            go ((c, i):xs) = (c, f i) : go xs
         in Map (go mp)
 
+instance Foldable (Map k) where
+    {-# INLINABLE foldMap #-}
+    foldMap f (Map mp) =
+        let
+            go []          = mempty
+            go ((_, i):xs) = f i <> go xs
+        in go mp
+
+instance Traversable (Map k) where
+    {-# INLINABLE traverse #-}
+    traverse f (Map mp) =
+        let
+            go []          = pure []
+            go ((c, i):xs) = (\i' xs' -> (c, i') : xs') <$> f i <*> go xs
+        in Map <$> go mp
 
 -- This is the "better" instance for Maps that various people
 -- have suggested, which merges conflicting entries with

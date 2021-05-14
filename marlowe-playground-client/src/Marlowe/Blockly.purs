@@ -3,9 +3,8 @@ module Marlowe.Blockly where
 import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
-import Blockly.Toolbox (Category(..), Toolbox(..), category, defaultCategoryFields, leaf, rename, separator)
-import Blockly.Toolbox as Toolbox
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), clearUndoStack, defaultBlockDefinition, getBlockById, initializeWorkspace, isWorkspaceEmpty, render, setGroup, typedArguments)
+import Blockly.Toolbox (Category, Toolbox(..), category, leaf, rename, separator)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
 import Control.Monad.Error.Extra (toMonadThrow)
@@ -398,12 +397,13 @@ toDefinition BoundsType =
         { type: show BoundsType
         , message0: "between %1 and %2"
         , args0:
-            [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-            , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Nothing }
+            [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
+            , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Just 1.0 }
             ]
         , colour: blockColour BoundsType
         , previousStatement: Just (show BoundsType)
         , nextStatement: Just (show BoundsType)
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -504,11 +504,12 @@ toDefinition blockType@(PartyType PKPartyType) =
         { type: show PKPartyType
         , message0: "Public Key %1"
         , args0:
-            [ Input { name: "pubkey", text: "pubkey", spellcheck: false }
+            [ Input { name: "pubkey", text: "0000000000000000000000000000000000000000000000000000000000000000", spellcheck: false }
             ]
         , colour: blockColour blockType
         , output: Just "party"
         , inputsInline: Just true
+        , extensions: [ "hash_validator" ]
         }
         defaultBlockDefinition
 
@@ -538,6 +539,7 @@ toDefinition blockType@(TokenType CustomTokenType) =
         , colour: blockColour blockType
         , output: Just "token"
         , inputsInline: Just true
+        , extensions: [ "hash_validator" ]
         }
         defaultBlockDefinition
 
@@ -608,10 +610,11 @@ toDefinition blockType@(ContractType WhenContractType) =
   BlockDefinition
     $ merge
         { type: show WhenContractType
-        , message0: "When %1 %2 after slot %3 %4 continue as %5 %6"
+        , message0: "When %1 %2 after %3 %4 %5 continue as %6 %7"
         , args0:
             [ DummyCentre
             , Statement { name: "case", check: "ActionType", align: Left }
+            , Dropdown { name: "timeout_type", options: [ Pair "slot number" "slot", Pair "slot parameter" "slot_param" ] }
             , Input { name: "timeout", text: "0", spellcheck: false }
             , DummyLeft
             , DummyLeft
@@ -620,6 +623,7 @@ toDefinition blockType@(ContractType WhenContractType) =
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
+        , extensions: [ "timeout_validator" ]
         }
         defaultBlockDefinition
 
@@ -840,11 +844,12 @@ toDefinition blockType@(ValueType ConstantValueType) =
         { type: show ConstantValueType
         , message0: "Constant %1"
         , args0:
-            [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+            [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
             ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -943,13 +948,14 @@ toDefinition blockType@(ValueType ScaleValueType) =
         { type: show ScaleValueType
         , message0: "(%1 / %2) * %3"
         , args0:
-            [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-            , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+            [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
+            , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Just 1.0 }
             , Value { name: "value", check: "value", align: Right }
             ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -1239,14 +1245,18 @@ instance blockToTermContract :: BlockToTerm Contract where
     contract2 <- singleStatementToTerm "contract2" b
     pure $ Term (If observation contract1 contract2) (BlockId id)
   blockToTerm b@({ type: "WhenContractType", id, children }) = do
-    timeoutField <- fieldAsString "timeout" b
+    timeoutType <- fieldAsString "timeout_type" b
     cases <- statementsToTerms "case" b
     let
       location = (BlockId id)
-
-      timeout = case BigInteger.fromString timeoutField of
-        Just slotNumber -> Term (Slot slotNumber) location
-        Nothing -> Term (SlotParam timeoutField) location
+    timeout <- case timeoutType of
+      "slot" -> do
+        slot <- fieldAsBigInteger "timeout" b
+        pure $ Term (Slot slot) location
+      "slot_param" -> do
+        slotParam <- fieldAsString "timeout" b
+        pure $ Term (SlotParam slotParam) location
+      _ -> throwError $ ErrorInChild b "timeout_type" (InvalidChildType "Timeout")
     contract <- singleStatementToTerm "contract" b
     pure $ Term (When cases timeout contract) location
   blockToTerm b@({ type: "LetContractType", id }) = do
@@ -1429,8 +1439,10 @@ instance blockToTermBound :: BlockToTerm Bound where
   blockToTerm block = throwError $ InvalidBlock block "Bound"
 
 ---------------------------------------------------------------------------------------------------
-buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
-buildBlocks newBlock bs contract = do
+buildBlocks :: Boolean -> NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
+buildBlocks shouldClearUndoStack newBlock bs contract = do
+  workspaceWasEmpty <- isWorkspaceEmpty bs.workspace
+  setGroup bs.blockly true -- We group the events together so that the are undone at the same time
   clearWorkspace bs.workspace
   initializeWorkspace bs.blockly bs.workspace
   -- Get or create rootBlock
@@ -1445,6 +1457,10 @@ buildBlocks newBlock bs contract = do
   for_ mInput \input -> do
     toBlockly newBlock bs.workspace input contract
     render bs.workspace
+  setGroup bs.blockly false
+  -- If `shouldClearUndoStack` is `true` or the workspace was empty (which means it is the first time we populate blockly)
+  -- we clean up the stack. This way we prevent UNDO from deleting every block (we cannot allow the CONTRACT block to be deleted)
+  if shouldClearUndoStack || workspaceWasEmpty then clearUndoStack bs.workspace else pure unit
 
 setField :: Block -> String -> String -> Effect Unit
 setField block name value = do
@@ -1608,6 +1624,11 @@ instance toBlocklyContract :: ToBlockly Contract where
     block <- newBlock workspace (show WhenContractType)
     connectToPrevious block input
     inputToBlockly newBlock workspace block "case" cases
+    setField block "timeout_type"
+      ( case timeout of
+          Term (SlotParam _) _ -> "slot_param"
+          _ -> "slot"
+      )
     setField block "timeout"
       ( case timeout of
           Term (Slot slotNum) _ -> show slotNum

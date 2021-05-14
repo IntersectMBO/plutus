@@ -1,7 +1,8 @@
-{ pkgs, config, lib, ... }:
+{ pkgs, config, lib, tfinfo, ... }:
 {
 
   imports = [
+    ./std.nix
     ../../../nix/modules/web-ghc.nix
   ];
 

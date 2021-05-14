@@ -32,7 +32,7 @@ import           Plutus.PAB.Instances      ()
 import           Servant.Client            (BaseUrl, ClientError)
 import           Wallet.API                (WalletAPIError)
 import           Wallet.Emulator.Wallet    (Wallet)
-import           Wallet.Types              (ContractInstanceId, NotificationError)
+import           Wallet.Types              (ContractInstanceId (..), NotificationError)
 
 data PABError
     = FileNotFound FilePath
@@ -49,7 +49,9 @@ data PABError
     | InvalidUUIDError  Text
     | OtherError Text -- ?
     | EndpointCallError NotificationError
+    | InstanceAlreadyStopped ContractInstanceId -- ^ Attempt to stop the instance failed because it was not running
     | WalletNotFound Wallet
+    | MissingConfigFileOption
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -69,7 +71,9 @@ instance Pretty PABError where
         InvalidUUIDError t         -> "Invalid UUID:" <+> pretty t
         OtherError t               -> "Other error:" <+> pretty t
         EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
+        InstanceAlreadyStopped i   -> "Instance already stopped:" <+> pretty i
         WalletNotFound w           -> "Wallet not found:" <+> pretty w
+        MissingConfigFileOption    -> "The --config-file option is required"
 
 data DbConfig =
     DbConfig
@@ -90,6 +94,7 @@ data Config =
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , requestProcessingConfig :: RequestProcessingConfig
+        , endpointTimeout         :: Maybe Second
         }
     deriving (Show, Eq, Generic, FromJSON)
 
@@ -108,15 +113,16 @@ data WebserverConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
+-- | The source of a PAB event, used for sharding of the event stream
 data Source
     = PABEventSource
+    | InstanceEventSource ContractInstanceId
     deriving (Show, Eq)
 
 toUUID :: Source -> UUID
-toUUID source =
-    UUID.sequenceIdToMockUUID $
-    case source of
-        PABEventSource -> 1
+toUUID = \case
+    InstanceEventSource (ContractInstanceId i) -> i
+    PABEventSource                             -> UUID.sequenceIdToMockUUID 1
 
 data ChainOverview =
     ChainOverview

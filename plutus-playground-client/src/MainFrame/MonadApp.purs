@@ -12,7 +12,7 @@ module MainFrame.MonadApp
   , getGistByGistId
   , postEvaluation
   , postGist
-  , patchGistByGistId
+  , postGistByGistId
   , postContract
   , resizeEditor
   , resizeBalancesChart
@@ -79,7 +79,7 @@ class
   getGistByGistId :: GistId -> m (WebData Gist)
   postEvaluation :: Evaluation -> m (WebData (Either PlaygroundError EvaluationResult))
   postGist :: NewGist -> m (WebData Gist)
-  patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
+  postGistByGistId :: NewGist -> GistId -> m (WebData Gist)
   postContract :: SourceCode -> m (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
   resizeEditor :: m Unit
   resizeBalancesChart :: m Unit
@@ -145,7 +145,7 @@ instance monadAppHalogenApp ::
   getGistByGistId gistId = runAjax $ Server.getGistsByGistId gistId
   postEvaluation evaluation = runAjax $ Server.postEvaluate evaluation
   postGist newGist = runAjax $ Server.postGists newGist
-  patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
+  postGistByGistId newGist gistId = runAjax $ Server.postGistsByGistId newGist gistId
   postContract source = runAjax $ Server.postContract source
   resizeEditor = wrap $ void $ H.query _editorSlot unit (Monaco.Resize unit)
   resizeBalancesChart = wrap $ void $ H.query _balancesChartSlot unit (Chartist.Resize unit)
@@ -171,7 +171,7 @@ instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
   getGistByGistId gistId = lift $ getGistByGistId gistId
   postEvaluation evaluation = lift $ postEvaluation evaluation
   postGist newGist = lift $ postGist newGist
-  patchGistByGistId newGist gistId = lift $ patchGistByGistId newGist gistId
+  postGistByGistId newGist gistId = lift $ postGistByGistId newGist gistId
   postContract source = lift $ postContract source
   resizeEditor = lift resizeEditor
   resizeBalancesChart = lift resizeBalancesChart

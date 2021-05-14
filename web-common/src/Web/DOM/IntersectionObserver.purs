@@ -42,20 +42,21 @@ type IntersectionObserverInitFields
     , threshold :: Number
     )
 
-foreign import intersectionObserver ::
+foreign import _intersectionObserver ::
+  forall r.
+  Record r ->
   (Array IntersectionObserverEntry -> IntersectionObserver -> Effect Unit) ->
   Effect IntersectionObserver
 
-foreign import _observe :: forall r. Element -> Record r -> IntersectionObserver -> Effect Unit
-
-observe ::
+intersectionObserver ::
   forall r rx.
   Union r rx IntersectionObserverInitFields =>
-  Element ->
   Record r ->
-  IntersectionObserver ->
-  Effect Unit
-observe = _observe
+  (Array IntersectionObserverEntry -> IntersectionObserver -> Effect Unit) ->
+  Effect IntersectionObserver
+intersectionObserver = _intersectionObserver
+
+foreign import observe :: Element -> IntersectionObserver -> Effect Unit
 
 foreign import unobserve :: Element -> IntersectionObserver -> Effect Unit
 

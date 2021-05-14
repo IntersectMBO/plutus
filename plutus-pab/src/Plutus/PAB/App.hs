@@ -20,6 +20,7 @@ module Plutus.PAB.App(
     App,
     runApp,
     AppEnv(..),
+    EventfulBackend(..),
     -- * App actions
     migrate,
     dbConnect
@@ -43,6 +44,7 @@ import qualified Control.Monad.Logger                           as MonadLogger
 import           Data.Coerce                                    (coerce)
 import           Database.Persist.Sqlite                        (createSqlitePoolFromInfo, mkSqliteConnectionInfo,
                                                                  runSqlPool)
+import qualified Eventful.Store.Memory                          as M
 import           Eventful.Store.Sqlite                          (defaultSqlEventStoreConfig, initializeSqliteEventStore)
 import           Network.HTTP.Client                            (managerModifyRequest, newManager,
                                                                  setRequestIgnoreStatus)
@@ -54,37 +56,38 @@ import           Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractDefinitionStore)
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
 import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe, handleContractEffectContractExe)
-import           Plutus.PAB.Effects.EventLog                    (Connection (..), handleEventLogSql)
+import           Plutus.PAB.Effects.EventLog                    (Connection (..), EventLogBackend (..), handleEventLog)
 import qualified Plutus.PAB.Effects.EventLog                    as EventLog
 import           Plutus.PAB.Events                              (PABEvent)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..))
 import           Plutus.PAB.Monitoring.Monitoring               (convertLog, handleLogMsgTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..))
+import           Plutus.PAB.Timeout                             (Timeout (..))
 import           Plutus.PAB.Types                               (Config (Config), DbConfig (..), PABError (..),
-                                                                 chainIndexConfig, dbConfig, nodeServerConfig,
-                                                                 walletServerConfig)
+                                                                 chainIndexConfig, dbConfig, endpointTimeout,
+                                                                 nodeServerConfig, walletServerConfig)
 import           Servant.Client                                 (ClientEnv, mkClientEnv)
 
 ------------------------------------------------------------
 data AppEnv =
     AppEnv
-        { dbConnection    :: Connection
+        { dbConnection    :: EventLogBackend (PABEvent ContractExe)
         , walletClientEnv :: ClientEnv
         , nodeClientEnv   :: ClientEnv
         , chainIndexEnv   :: ClientEnv
         , clientHandler   :: Client.ClientHandler
         , appConfig       :: Config
-        , appTrace        :: Trace IO PABLogMsg
+        , appTrace        :: Trace IO (PABLogMsg ContractExe)
         }
 
-appEffectHandlers :: Config -> Trace IO PABLogMsg -> EffectHandlers ContractExe AppEnv
-appEffectHandlers config trace =
+appEffectHandlers :: EventfulBackend -> Config -> Trace IO (PABLogMsg ContractExe) -> EffectHandlers ContractExe AppEnv
+appEffectHandlers eventfulBackend config trace =
     EffectHandlers
         { initialiseEnvironment = do
-            env <- liftIO $ mkEnv trace config
-            let Config{nodeServerConfig=MockServerConfig{mscSocketPath}} = config
+            env <- liftIO $ mkEnv eventfulBackend trace config
+            let Config{nodeServerConfig=MockServerConfig{mscSocketPath, mscSlotConfig}} = config
             instancesState <- liftIO $ STM.atomically $ Instances.emptyInstancesState
-            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath instancesState
+            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscSlotConfig
             pure (instancesState, blockchainEnv, env)
 
         , handleLogMessages =
@@ -93,20 +96,20 @@ appEffectHandlers config trace =
 
         , handleContractStoreEffect =
             interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . interpret (Core.handleMappedReader @AppEnv @Connection dbConnection)
-            . interpret (handleEventLogSql @_ @(PABEvent ContractExe) (convertLog SLoggerBridge trace))
-            . reinterpretN @'[_, Reader Connection, Reader AppEnv] handleContractStore
+            . interpret (Core.handleMappedReader @AppEnv dbConnection)
+            . interpret (handleEventLog @_ @(PABEvent ContractExe) (convertLog SLoggerBridge trace))
+            . reinterpretN @'[_, Reader (EventLogBackend (PABEvent ContractExe)), Reader AppEnv] handleContractStore
 
         , handleContractEffect =
             interpret (handleLogMsgTrace trace)
-            . reinterpret (mapLog SContractExeLogMsg)
+            . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SContractExeLogMsg)
             . reinterpret (handleContractEffectContractExe @IO)
 
         , handleContractDefinitionStoreEffect =
             interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . interpret (Core.handleMappedReader @AppEnv @Connection dbConnection)
-            . interpret (handleEventLogSql @_ @(PABEvent ContractExe) (convertLog SLoggerBridge trace))
-            . reinterpretN @'[_, Reader Connection, Reader AppEnv] handleContractDefinitionStore
+            . interpret (Core.handleMappedReader @AppEnv dbConnection)
+            . interpret (handleEventLog @_ @(PABEvent ContractExe) (convertLog SLoggerBridge trace))
+            . reinterpretN @'[_, Reader (EventLogBackend (PABEvent ContractExe)), Reader AppEnv] handleContractDefinitionStore
 
         , handleServicesEffects = \wallet ->
 
@@ -138,25 +141,31 @@ appEffectHandlers config trace =
 
 runApp ::
     forall a.
-    Trace IO PABLogMsg -- ^ Top-level tracer
+    EventfulBackend
+    -> Trace IO (PABLogMsg ContractExe) -- ^ Top-level tracer
     -> Config -- ^ Client configuration
     -> App a -- ^ Action
     -> IO (Either PABError a)
-runApp trace config = Core.runPAB (appEffectHandlers config trace)
+runApp eventfulBackend trace config@Config{endpointTimeout} = Core.runPAB (Timeout endpointTimeout) (appEffectHandlers eventfulBackend config trace)
 
 type App a = PABAction ContractExe AppEnv a
 
-mkEnv :: Trace IO PABLogMsg -> Config -> IO AppEnv
-mkEnv appTrace appConfig@Config { dbConfig
-             , nodeServerConfig
+data EventfulBackend = SqliteBackend | InMemoryBackend
+    deriving (Eq, Ord, Show)
+
+mkEnv :: EventfulBackend -> Trace IO (PABLogMsg ContractExe) -> Config -> IO AppEnv
+mkEnv eventfulBackend appTrace appConfig@Config { dbConfig
+             , nodeServerConfig =  MockServerConfig{mscBaseUrl, mscSocketPath, mscSlotConfig}
              , walletServerConfig
              , chainIndexConfig
              } = do
     walletClientEnv <- clientEnv (Wallet.baseUrl walletServerConfig)
-    nodeClientEnv <- clientEnv (mscBaseUrl nodeServerConfig)
+    nodeClientEnv <- clientEnv mscBaseUrl
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
-    dbConnection <-  dbConnect appTrace dbConfig
-    clientHandler <- liftIO $ Client.runClientNode (mscSocketPath nodeServerConfig) (\_ _ -> pure ())
+    dbConnection <- case eventfulBackend of
+        SqliteBackend   -> Sqlite <$> dbConnect appTrace dbConfig
+        InMemoryBackend -> InMemory <$> M.eventMapTVar
+    clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (\_ _ -> pure ())
     pure AppEnv {..}
   where
     clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure (coerce baseUrl)
@@ -166,7 +175,7 @@ mkEnv appTrace appConfig@Config { dbConfig
         tlsManagerSettings {managerModifyRequest = pure . setRequestIgnoreStatus}
 
 -- | Initialize/update the database to hold events.
-migrate :: Trace IO PABLogMsg -> DbConfig -> IO ()
+migrate :: Trace IO (PABLogMsg ContractExe) -> DbConfig -> IO ()
 migrate trace config = do
     Connection (sqlConfig, connectionPool) <- dbConnect trace config
     flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
@@ -177,7 +186,7 @@ migrate trace config = do
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool
 -- plus some configuration information.
-dbConnect :: Trace IO PABLogMsg -> DbConfig -> IO EventLog.Connection
+dbConnect :: Trace IO (PABLogMsg ContractExe) -> DbConfig -> IO EventLog.Connection
 dbConnect trace DbConfig {dbConfigFile, dbConfigPoolSize} =
     flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
         let connectionInfo = mkSqliteConnectionInfo dbConfigFile

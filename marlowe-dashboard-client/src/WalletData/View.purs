@@ -1,9 +1,10 @@
 module WalletData.View
-  ( newWalletCard
+  ( saveWalletCard
   , walletDetailsCard
   , putdownWalletCard
   , walletLibraryScreen
   , nicknamesDataList
+  , nicknamesDataListId
   ) where
 
 import Prelude hiding (div)
@@ -13,26 +14,50 @@ import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Map (isEmpty, toUnfoldable)
 import Data.Maybe (Maybe(..), isJust)
+import Data.Newtype (unwrap)
 import Data.String (null)
 import Data.Tuple (Tuple(..))
-import Halogen.HTML (HTML, button, datalist, div, div_, h2, h3, input, label, li, option, p, p_, text, ul_)
-import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), disabled, id_, placeholder, readOnly, type_, value)
-import Marlowe.Semantics (PubKey)
+import Data.UUID (toString) as UUID
+import Halogen.HTML (HTML, button, datalist, div, h2, h3, h4, input, label, li, option, p, p_, text, ul_)
+import Halogen.HTML.Events.Extra (onClick_)
+import Halogen.HTML.Properties (InputType(..), disabled, for, id_, readOnly, type_, value)
+import Humanize (humanizeValue)
+import InputField.Lenses (_value)
+import InputField.State (validate)
+import InputField.Types (State) as InputField
+import InputField.View (renderInput)
 import Material.Icons (Icon(..))
-import Network.RemoteData (RemoteData)
 import Play.Types (Action(..), Card(..))
-import Servant.PureScript.Ajax (AjaxError)
-import WalletData.Lenses (_contractId, _nickname)
-import WalletData.Types (Nickname, WalletDetails, WalletLibrary)
-import WalletData.Validation (contractIdError, nicknameError)
+import Types (WebData)
+import WalletData.Lenses (_assets, _companionAppId, _walletNickname)
+import WalletData.State (adaToken, getAda)
+import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary)
+import WalletData.Validation (WalletIdError, WalletNicknameError)
 
-newWalletCard :: forall p. WalletLibrary -> Nickname -> String -> RemoteData AjaxError PubKey -> Maybe String -> HTML p Action
-newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey mTokenName =
+saveWalletCard :: forall p. WalletLibrary -> InputField.State WalletNicknameError -> InputField.State WalletIdError -> WebData WalletInfo -> Maybe String -> HTML p Action
+saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName =
   let
-    mNicknameError = nicknameError newWalletNickname library
+    walletNickname = view _value walletNicknameInput
 
-    mContractIdError = contractIdError newWalletContractId remoteDataPubKey library
+    walletIdString = view _value walletIdInput
+
+    walletNicknameInputDisplayOptions =
+      { baseCss: Css.input
+      , additionalCss: mempty
+      , id_: "newWalletNickname"
+      , placeholder: "Nickname"
+      , readOnly: false
+      , datalistId: Nothing
+      }
+
+    walletIdInputDisplayOptions =
+      { baseCss: Css.input
+      , additionalCss: mempty
+      , id_: "newWalletId"
+      , placeholder: "Wallet ID"
+      , readOnly: false
+      , datalistId: Nothing
+      }
   in
     div
       [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
@@ -40,48 +65,34 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey mTo
           [ classNames [ "font-semibold", "mb-4" ] ]
           [ text $ "Create new contact" <> foldMap (\tokenName -> " for role " <> show tokenName) mTokenName ]
       , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletNickname) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletNickname) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletNickname) ]
-              [ text "Nickname" ]
-          , input
-              [ type_ InputText
-              , classNames $ Css.input $ isJust mNicknameError
-              , placeholder "Nickname"
-              , value newWalletNickname
-              , onValueInput_ SetNewWalletNickname
+              [ classNames $ Css.nestedLabel <> hideWhen (null walletNickname)
+              , for walletNicknameInputDisplayOptions.id_
               ]
-          , div
-              [ classNames Css.inputError ]
-              [ text $ foldMap show mNicknameError ]
+              [ text "Nickname" ]
+          , WalletNicknameInputAction <$> renderInput walletNicknameInput walletNicknameInputDisplayOptions
           ]
       , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null newWalletContractId) Css.hasNestedLabel) ]
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
           [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null newWalletContractId) ]
-              [ text "Wallet ID" ]
-          , input
-              [ type_ InputText
-              , classNames $ Css.input $ isJust mContractIdError
-              , placeholder "Wallet ID"
-              , value newWalletContractId
-              , onValueInput_ SetNewWalletContractId
+              [ classNames $ Css.nestedLabel <> hideWhen (null walletIdString)
+              , for walletIdInputDisplayOptions.id_
               ]
-          , div
-              [ classNames Css.inputError ]
-              [ text $ foldMap show mContractIdError ]
+              [ text "Wallet ID" ]
+          , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
           ]
       , div
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ $ SetCard Nothing
+              , onClick_ CloseCard
               ]
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , disabled $ isJust mNicknameError || isJust mContractIdError
-              , onClick_ $ AddNewWallet mTokenName
+              , disabled $ isJust (validate walletNicknameInput) || isJust (validate walletIdInput)
+              , onClick_ $ SaveNewWallet mTokenName
               ]
               [ text "Save" ]
           ]
@@ -90,14 +101,14 @@ newWalletCard library newWalletNickname newWalletContractId remoteDataPubKey mTo
 walletDetailsCard :: forall p a. WalletDetails -> HTML p a
 walletDetailsCard walletDetails =
   let
-    nickname = view _nickname walletDetails
+    walletNickname = view _walletNickname walletDetails
 
-    contractId = view _contractId walletDetails
+    companionAppId = view _companionAppId walletDetails
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
           [ classNames [ "font-semibold", "mb-4" ] ]
-          [ text $ "Wallet " <> nickname ]
+          [ text $ "Wallet " <> walletNickname ]
       , div
           [ classNames Css.hasNestedLabel ]
           [ label
@@ -106,7 +117,7 @@ walletDetailsCard walletDetails =
           , input
               [ type_ InputText
               , classNames $ Css.input false <> [ "mb-4" ]
-              , value contractId
+              , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]
           ]
@@ -115,14 +126,16 @@ walletDetailsCard walletDetails =
 putdownWalletCard :: forall p. WalletDetails -> HTML p Action
 putdownWalletCard walletDetails =
   let
-    nickname = view _nickname walletDetails
+    walletNickname = view _walletNickname walletDetails
 
-    contractId = view _contractId walletDetails
+    companionAppId = view _companionAppId walletDetails
+
+    assets = view _assets walletDetails
   in
     div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
       [ h3
-          [ classNames [ "font-semibold", "mb-4" ] ]
-          [ text $ "Wallet " <> nickname ]
+          [ classNames [ "font-semibold", "mb-4", "truncate", "w-11/12" ] ]
+          [ text $ "Wallet " <> walletNickname ]
       , div
           [ classNames Css.hasNestedLabel ]
           [ label
@@ -131,15 +144,24 @@ putdownWalletCard walletDetails =
           , input
               [ type_ InputText
               , classNames $ Css.input false <> [ "mb-4" ]
-              , value contractId
+              , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]
+          ]
+      , div
+          [ classNames [ "mb-4" ] ]
+          [ h4
+              [ classNames [ "font-semibold" ] ]
+              [ text "Balance:" ]
+          , p
+              [ classNames Css.funds ]
+              [ text $ humanizeValue adaToken $ getAda assets ]
           ]
       , div
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ $ SetCard Nothing
+              , onClick_ CloseCard
               ]
               [ text "Cancel" ]
           , button
@@ -164,27 +186,27 @@ walletLibraryScreen library =
           $ contactLi
           <$> toUnfoldable library
     , button
-        [ classNames $ Css.primaryButton <> Css.withIcon Add <> Css.fixedBottomRight
-        , onClick_ $ ToggleCard $ CreateWalletCard Nothing
+        [ classNames $ Css.primaryButton <> Css.withIcon NewContact <> Css.fixedBottomRight
+        , onClick_ $ OpenCard $ SaveWalletCard Nothing
         ]
         [ text "New contact" ]
     ]
   where
   contactLi (Tuple nickname walletDetails) =
-    let
-      contractId = view _contractId walletDetails
-    in
-      li
-        [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
-        , onClick_ $ ToggleCard $ ViewWalletCard walletDetails
-        ]
-        [ text nickname ]
+    li
+      [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
+      , onClick_ $ OpenCard $ ViewWalletCard walletDetails
+      ]
+      [ text nickname ]
 
 nicknamesDataList :: forall p a. WalletLibrary -> HTML p a
 nicknamesDataList library =
   datalist
-    [ id_ "walletNicknames" ]
+    [ id_ nicknamesDataListId ]
     $ walletOption
     <$> toUnfoldable library
   where
   walletOption (Tuple nickname _) = option [ value nickname ] []
+
+nicknamesDataListId :: String
+nicknamesDataListId = "walletNicknames"

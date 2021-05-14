@@ -1,10 +1,13 @@
 { makeTest
 , lib
+, docs
 , plutus-pab
 , plutus-playground
 , marlowe-playground
 , marlowe-dashboard
 , marlowe-app
+, marlowe-companion-app
+, marlowe-follow-app
 , web-ghc
 , vmCompileTests # when enabled the test tries to compile plutus/marlowe code on webghc
 }:
@@ -35,7 +38,11 @@ makeTest {
       services.pab = {
         enable = true;
         pab-package = plutus-pab.pab-exes.plutus-pab;
-        contracts = [ "${marlowe-app}/bin/marlowe-app" ];
+        contracts = [
+          "${marlowe-app}/bin/marlowe-app"
+          "${marlowe-companion-app}/bin/marlowe-companion-app"
+          "${marlowe-follow-app}/bin/marlowe-follow-app"
+        ];
         staticContent = marlowe-dashboard.client;
         dbFile = "/var/lib/pab/pab-core.db";
         defaultWallet = 1;
@@ -113,8 +120,8 @@ makeTest {
                   proxyPass = "http://plutus-playground";
                   proxyWebsockets = true;
                 };
-                "^~ /tutorial/" = {
-                  alias = "${plutus-playground.tutorial}/";
+                "^~ /doc/" = {
+                  alias = "${docs.site}/";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';
@@ -143,8 +150,8 @@ makeTest {
                     error_page 404 = @fallback;
                   '';
                 };
-                "^~ /tutorial/" = {
-                  alias = "${marlowe-playground.tutorial}/";
+                "^~ /doc/" = {
+                  alias = "${docs.site}/";
                   extraConfig = ''
                     error_page 404 = @fallback;
                   '';
@@ -224,9 +231,11 @@ makeTest {
     playgrounds.wait_for_open_port(8080)
     playgrounds.wait_for_open_port(9090)
     playgrounds.succeed("curl --silent http://plutus-playground:8080/ | grep  'plutus'")
-    playgrounds.succeed("curl --silent http://plutus-playground:8080/tutorial/ | grep 'The Plutus Platform'")
+    playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/ | grep 'The Plutus Platform'")
+    playgrounds.succeed("curl --silent http://plutus-playground:8080/doc/plutus/tutorials/ | grep 'Tutorials'")
     playgrounds.succeed("curl --silent http://marlowe-playground:9090/ | grep 'marlowe-playground'")
-    playgrounds.succeed("curl --silent http://marlowe-playground:9090/tutorial/ | grep 'Marlowe Tutorial'")
+    playgrounds.succeed("curl --silent http://marlowe-playground:9090/doc/ | grep 'The Plutus Platform'")
+    playgrounds.succeed("curl --silent http://marlowe-playground:9090/doc/marlowe/tutorials/ | grep 'Tutorials'")
 
     #
     # webghc asserts

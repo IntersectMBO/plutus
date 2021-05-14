@@ -57,7 +57,7 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCekNoEmit defBuiltinsRuntime
+        [ testMachine "CEK"  $ evaluateCekNoEmit defaultCekMachineCosts defBuiltinsRuntime
         , testMachine "HOAS" $ evaluateHoas defBuiltinsRuntime
         ]
 
@@ -73,7 +73,7 @@ test_memory =
         <> examples
 
 testBudget
-    :: (Ix fun, Show fun, Pretty fun, Hashable fun, ExMemoryUsage fun)
+    :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
     => BuiltinsRuntime fun (CekValue DefaultUni fun)
     -> TestName
     -> Term Name DefaultUni fun ()
@@ -82,7 +82,7 @@ testBudget runtime name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit runtime Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit defaultCekMachineCosts runtime Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -146,7 +146,7 @@ testTallying name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit defaultCekMachineCosts defBuiltinsRuntime Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =

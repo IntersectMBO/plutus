@@ -9,7 +9,6 @@ import qualified Ledger.Ada              as Ada
 import qualified Ledger.Typed.Scripts    as Scripts
 import           Plutus.Contract
 import           Plutus.Contract.Test
-import qualified Spec.Lib                as Lib
 
 import           Plutus.Contracts.Escrow
 import qualified Plutus.Trace.Emulator   as Trace
@@ -33,7 +32,7 @@ tests = testGroup "escrow"
       checkPredicate "can redeem"
         ( assertDone con (Trace.walletInstanceTag w3) (const True) "escrow redeem not done"
           .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-          .&&. walletFundsChange w2  (Ada.lovelaceValueOf 10)
+          .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10)
           .&&. walletFundsChange w3 mempty
         )
         redeemTrace
@@ -69,7 +68,7 @@ tests = testGroup "escrow"
           .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
         refundTrace
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 32000)
+    , HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (Scripts.validatorScript $ scriptInstance escrowParams) 32000
     ]
 
 w1, w2, w3 :: Wallet

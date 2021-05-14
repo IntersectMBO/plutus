@@ -31,10 +31,23 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "b3c99d7f13df89a9a918c835ecb7114098912962",
-        "sha256": "1i5vg92s6g9zh0i35dm4a6hax7mdsqxbw8w2x63j0y6w57msv70g",
+        "rev": "c63c196d3f72ed29840b0ac7605eeb4408c1bc6c",
+        "sha256": "0qnmqnvsvk94b7lrm788pdcwswjhzk6cfaawq4cnanalmg2976pw",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/b3c99d7f13df89a9a918c835ecb7114098912962.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/c63c196d3f72ed29840b0ac7605eeb4408c1bc6c.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "haskell-language-server": {
+        "branch": "master",
+        "builtin": false,
+        "description": "Successor of ghcide & haskell-ide-engine. One IDE to rule them all.",
+        "homepage": "",
+        "owner": "haskell",
+        "repo": "haskell-language-server",
+        "rev": "1.1.0",
+        "sha256": "0kviq3kinm3i0qm4r26rdnlkwbs1s3r1rqiqdry517rgkgnjpcp5",
+        "type": "tarball",
+        "url": "https://github.com/haskell/haskell-language-server/archive/1.1.0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
@@ -43,10 +56,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "99fdad764061f4166e4c0d1d8783bd039c7bb851",
-        "sha256": "10z6slbxr1386zyc5cn03s0vmlqvv2br56b51ndcd8x9kq107ck3",
+        "rev": "87084d65a476cc826a0e8c5d281d494254f5bc7a",
+        "sha256": "168vj5zswhxvvgp39ksr400gl2szih9sjbcdz2wsb7r7rnwp42xp",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/99fdad764061f4166e4c0d1d8783bd039c7bb851.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/87084d65a476cc826a0e8c5d281d494254f5bc7a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -121,10 +134,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "c7e3896e35ceea480a7484ec1709be7bdda8849d",
-        "sha256": "0xl9f6ydgk8gnn22f392p3zna0cishwj8id1vpy0p0s06wsbhfs5",
+        "rev": "09fb9e425111878b58223852e87ed85e8a189e0d",
+        "sha256": "0adfbgknb9xpgzmiwi4z5pnnw4n5gzjm2gxzria1vabyvqzxbn6s",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/c7e3896e35ceea480a7484ec1709be7bdda8849d.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/09fb9e425111878b58223852e87ed85e8a189e0d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "spago2nix": {
@@ -134,10 +147,10 @@
         "homepage": "",
         "owner": "justinwoo",
         "repo": "spago2nix",
-        "rev": "898798204fa8f53837bbcf71e30aeb425deb0906",
-        "sha256": "1igb1ldilj52f6vppsv58hxwzasd9vjcfsfhxsmk1jhs7cbnb1dq",
+        "rev": "a4622c3b27fca47e3276131a8ec4097a1d3c78a7",
+        "sha256": "1v7mpzqx9hwfk7xz1vyf3xf2ry7zb7658mh11r7d2avb311b1xw2",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/spago2nix/archive/898798204fa8f53837bbcf71e30aeb425deb0906.tar.gz",
+        "url": "https://github.com/justinwoo/spago2nix/archive/a4622c3b27fca47e3276131a8ec4097a1d3c78a7.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "sphinxcontrib-haddock": {

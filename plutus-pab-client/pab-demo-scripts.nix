@@ -46,7 +46,7 @@ let
     in
     runCommand "pab-setup" { } ''
       echo "Creating PAB database"
-      ${pab} --config=${cfg} migrate
+      ${pab} migrate ${conf.db-file}
       ${sqlite-interactive}/bin/sqlite3 ${conf.db-file} '.tables'
       mkdir $out
       cp ${conf.db-file}* $out/
@@ -117,8 +117,9 @@ let
   start-second-pab = runWithContracts (mkSetup secondary-config) "client-services";
 
 in
-runCommand "pab-demo-scripts" { } ''
+# Mysteriously broken on the Hydra mac builders, disable until/unless we figure it out
+lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (runCommand "pab-demo-scripts" { } ''
   mkdir -p $out/bin
   cp ${start-all-servers} $out/bin/pab-start-all-servers
   cp ${start-second-pab} $out/bin/pab-start-second-pab
-''
+'')

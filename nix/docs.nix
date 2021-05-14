@@ -57,8 +57,6 @@ pkgs.recurseIntoAttrs {
     unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
   };
 
-  plutus-contract = import ../plutus-contract/doc { inherit buildAsciiDoc; };
-  marlowe-tutorial = import ../marlowe/doc { inherit buildAsciiDoc; };
   plutus-core-spec = import ../plutus-core-spec { inherit buildLatexDoc; };
   multi-currency = import ../notes/multi-currency { inherit buildLatexDoc; };
   extended-utxo-spec = import ../extended-utxo-spec { inherit buildLatexDoc; };

@@ -53,7 +53,7 @@ import           Plutus.Contract.Schema               (Event (..), Handlers (..)
 import           Plutus.Contract.Trace                (handleBlockchainQueries)
 import           Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, tryHandler,
                                                        wrapHandler)
-import           Plutus.Contract.Types                (ResumableResult (..), logs, requests, resumableResult)
+import           Plutus.Contract.Types                (ResumableResult (..), lastLogs, requests, resumableResult)
 import           Plutus.Trace.Emulator.Types          (ContractConstraints, ContractHandle (..),
                                                        ContractInstanceLog (..), ContractInstanceMsg (..),
                                                        ContractInstanceState (..), ContractInstanceStateInternal (..),
@@ -347,5 +347,5 @@ logNewMessages :: forall w s e effs.
     )
     => Eff effs ()
 logNewMessages = do
-    newContractLogs <- gets @(ContractInstanceStateInternal w s e ()) (view (resumableResult . logs) . cisiSuspState)
+    newContractLogs <- gets @(ContractInstanceStateInternal w s e ()) (view (resumableResult . lastLogs) . cisiSuspState)
     traverse_ (send . LMessage . fmap ContractLog) newContractLogs

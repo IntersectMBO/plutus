@@ -38,10 +38,10 @@ common lang
 
 executable doc-doctests
     import: lang
-    hs-source-dirs: tutorials
+    hs-source-dirs: plutus/tutorials
     main-is: Main.hs
-    ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
-    build-tool-depends: unlit:unlit -any, doctest:doctest -any
+    ghc-options: -Wno-unused-imports
+    build-tool-depends: doctest:doctest -any
     other-modules:
       BasicPlutusTx
       BasicValidators

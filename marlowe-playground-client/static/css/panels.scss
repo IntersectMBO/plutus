@@ -209,7 +209,7 @@ button.minus-btn:hover {
   margin-top: 1rem;
 }
 
-.participants em {
+.participants > em {
   display: inline-block;
   margin-bottom: 0.5rem;
 }
@@ -263,7 +263,7 @@ button.minus-btn:hover {
   align-self: center;
 }
 
-.templates li {
+.templates > li {
   margin: 1.5rem 0;
 }
 
@@ -271,7 +271,7 @@ button.minus-btn:hover {
   margin: 0 0 1rem 0;
 }
 
-.templates em {
+.templates > em {
   display: inline-block;
 }
 

@@ -13,7 +13,7 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, modifying, use, view)
+import Data.Lens (assign, modifying, over, set, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
@@ -24,20 +24,21 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Env (Env)
 import Examples.JS.Contracts as JSE
-import Halogen (Component, HalogenM, gets, liftEffect, query)
+import Halogen (Component, HalogenM, gets, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (Message, Query, monacoComponent)
-import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _keybindings)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _keybindings, _metadataHintInfo)
 import Language.Javascript.Interpreter (InterpreterResult(..))
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
-import SessionStorage as SessionStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
+import Marlowe.Extended.Metadata (MetadataHintInfo, getMetadataHintInfo)
 import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
+import SessionStorage as SessionStorage
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), MultiStageAnalysisData(..), _analysisExecutionState, _analysisState, _templateContent)
@@ -125,27 +126,36 @@ handleAction Compile = do
           case res of
             Left err -> pure $ CompilationError err
             Right result -> do
-              modifying (_analysisState <<< _templateContent) $ updateTemplateContent $ getPlaceholderIds $ (unwrap result).result
+              let
+                contract :: Contract
+                contract = (unwrap result).result
+
+                metadataHints :: MetadataHintInfo
+                metadataHints = getMetadataHintInfo contract
+              modify_
+                $ over (_analysisState <<< _templateContent) (updateTemplateContent $ getPlaceholderIds contract)
+                <<< set _metadataHintInfo metadataHints
               pure $ CompiledSuccessfully result
   assign _compilationResult compilationResult
   case compilationResult of
     (CompilationError _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
     _ -> pure unit
-  editorResize
 
 handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction SendResultToSimulator = pure unit
 
-handleAction (InitJavascriptProject prunedContent) = do
+handleAction (InitJavascriptProject metadataHints prunedContent) = do
   editorSetValue prunedContent
+  assign _metadataHintInfo metadataHints
   liftEffect $ SessionStorage.setItem jsBufferLocalStorageKey prunedContent
 
 handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< typeToLens templateType) (Map.insert key value)
+
+handleAction (MetadataAction _) = pure unit
 
 handleAction AnalyseContract = analyze (WarningAnalysis Loading) $ analyseContract
 
@@ -172,9 +182,6 @@ analyze initialAnalysisState doAnalyze = do
   case compilationResult of
     CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
     _ -> pure unit
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)
 
 decorationHeader :: String
 decorationHeader =

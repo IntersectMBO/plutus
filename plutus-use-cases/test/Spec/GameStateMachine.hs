@@ -28,8 +28,6 @@ import           Test.Tasty                         hiding (after)
 import qualified Test.Tasty.HUnit                   as HUnit
 import           Test.Tasty.QuickCheck              (testProperty)
 
-import qualified Spec.Lib                           as Lib
-
 import qualified Ledger.Ada                         as Ada
 import qualified Ledger.Typed.Scripts               as Scripts
 import           Ledger.Value                       (Value, isZero)
@@ -218,7 +216,7 @@ prop_NoLockedFunds = forAllDL noLockedFunds prop_Game
 
 tests :: TestTree
 tests =
-    testGroup "state machine tests"
+    testGroup "game state machine tests"
     [ checkPredicate "run a successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
         .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
@@ -238,14 +236,13 @@ tests =
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         failTrace
 
-    , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
+    , goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
-    , HUnit.testCase "script size is reasonable"
-        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 49000)
+    , HUnit.testCaseSteps "script size is reasonable" $ \step ->
+        reasonable' step (Scripts.validatorScript G.scriptInstance) 49000
 
     , testProperty "can always get the funds out" $
         withMaxSuccess 10 prop_NoLockedFunds
-
     ]
 
 initialVal :: Value

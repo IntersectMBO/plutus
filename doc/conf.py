@@ -11,6 +11,15 @@ from os.path import abspath, join, dirname
 sys.path.insert(0, abspath(join(dirname(__file__))))
 sys.path.append(os.path.abspath('exts'))
 
+# -- Doc config values
+marlowe_playground_url = "https://alpha.marlowe.iohkdev.io/"
+plutus_playground_url = "https://alpha.plutus.iohkdev.io/"
+
+rst_epilog = """
+.. _Plutus Playground: {0}
+.. _Marlowe Playground: {1}
+""".format(plutus_playground_url, marlowe_playground_url)
+
 # -- RTD configuration ------------------------------------------------
 
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
@@ -22,7 +31,7 @@ if rtd_version not in ["stable", "latest"]:
 
 # -- Project information -----------------------------------------------------
 
-project = 'Plutus Platform'
+project = 'The Plutus Platform and Marlowe'
 copyright = '2020, IOHK'
 author = 'IOHK'
 
@@ -41,8 +50,17 @@ extensions = [
     'sphinx_markdown_tables',
     'sphinxemoji.sphinxemoji',
     "sphinx.ext.intersphinx",
+    'sphinxcontrib.plantuml',
+    'sphinxcontrib.bibtex',
     'hs_domain',
 ]
+
+bibtex_bibfiles = ['bibliography.bib']
+bibtex_default_style = 'plain'
+
+# Amazingly, RTD actually provide plantuml
+if on_rtd:
+    plantuml = 'java -Djava.awt.headless=true -jar /usr/share/plantuml/plantuml.jar'
 
 primary_domain = 'hs'
 
@@ -71,7 +89,10 @@ source_suffix = {
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['haddock'] # Otherwise it tries to pick up the README.md's in the Haddock doc!
+exclude_patterns = [
+    'haddock', # Otherwise it tries to pick up the README.md's in the Haddock doc!
+    'README.md'
+]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -88,7 +109,7 @@ html_theme_options = {
     'style_external_links': False,
     'style_nav_header_background': '#fcfcfc',
     # Toc options
-    'collapse_navigation': True,
+    'collapse_navigation': False,
     'sticky_navigation': True,
     'navigation_depth': 4,
     'includehidden': True,

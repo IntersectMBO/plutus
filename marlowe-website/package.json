@@ -1,0 +1,25 @@
+{
+  "name": "marlowe-website",
+  "version": "1.0.0",
+  "scripts": {
+    "webpack:server": "webpack serve --mode=development --open",
+    "start": "npm run webpack:server",
+    "build": "NODE_ENV=production webpack --mode=production"
+  },
+  "private": true,
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "autoprefixer": "^10.2.5",
+    "css-loader": "^5.2.4",
+    "cssnano": "^5.0.2",
+    "html-webpack-plugin": "^5.3.1",
+    "mini-css-extract-plugin": "^1.5.1",
+    "postcss": "^8.2.13",
+    "postcss-loader": "^5.2.0",
+    "prettier": "^2.2.1",
+    "tailwindcss": "^2.1.2",
+    "webpack": "^5.36.0",
+    "webpack-cli": "^4.6.0",
+    "webpack-dev-server": "^3.11.2"
+  }
+}

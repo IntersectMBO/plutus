@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [ "ChangeLog.md" ];
       extraTmpFiles = [];
@@ -47,4 +47,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/14; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/13; }

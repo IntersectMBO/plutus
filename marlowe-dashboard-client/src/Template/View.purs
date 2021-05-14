@@ -7,48 +7,51 @@ module Template.View
 import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
-import Data.Array (mapWithIndex)
+import Data.Array (filter, mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.Map (Map, lookup)
 import Data.Map (toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.Set (toUnfoldable) as Set
 import Data.String (null)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), for, id_, list, placeholder, readOnly, type_, value)
-import Marlowe.Extended (Contract, TemplateContent, _valueContent, contractTypeInitials)
+import Halogen.HTML.Properties (InputType(..), for, id_, placeholder, readOnly, type_, value)
+import Humanize (humanizeValue)
+import InputField.Types (inputErrorToString)
+import InputField.Types (State) as InputField
+import InputField.View (renderInput)
+import Marlowe.Extended (TemplateContent, _valueContent, contractTypeInitials)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.HasParties (getParties)
-import Marlowe.Semantics (Party(..), Slot)
+import Marlowe.Market (contractTemplates)
+import Marlowe.PAB (contractCreationFee)
+import Marlowe.Semantics (Assets, Slot, TokenName)
 import Material.Icons (Icon(..), icon_)
-import Template.Lenses (_contractName, _contractNickname, _extendedContract, _metaData, _roleWallets, _slotContentStrings, _template, _templateContent)
+import Template.Format (formatText)
+import Template.Lenses (_contractName, _contractNickname, _metaData, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
-import Template.Validation (roleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
-import WalletData.View (nicknamesDataList)
+import WalletData.View (nicknamesDataList, nicknamesDataListId)
 
 contractSetupScreen :: forall p. WalletLibrary -> Slot -> State -> HTML p Action
-contractSetupScreen wallets currentSlot state =
+contractSetupScreen walletLibrary currentSlot state =
   let
     metaData = view (_template <<< _metaData) state
 
     contractName = view (_contractName) metaData
 
-    extendedContract = view (_template <<< _extendedContract) state
-
     contractNickname = view _contractNickname state
 
-    roleWallets = view _roleWallets state
+    roleWalletInputs = view _roleWalletInputs state
 
     templateContent = view _templateContent state
 
     slotContentStrings = view _slotContentStrings state
 
-    termsAreAccessible = roleWalletsAreValid roleWallets wallets
+    termsAreAccessible = roleWalletsAreValid roleWalletInputs
 
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
   in
@@ -61,9 +64,9 @@ contractSetupScreen wallets currentSlot state =
           [ div -- and then this fills that height fully
               [ classNames [ "h-full", "overflow-y-auto" ] ]
               [ subHeader "top-0" true Roles "Roles" true
-              , roleInputs wallets extendedContract metaData roleWallets
+              , roleInputs walletLibrary metaData roleWalletInputs
               , subHeader "top-10" true Terms "Terms" termsAreAccessible
-              , parameterInputs wallets currentSlot metaData templateContent slotContentStrings roleWallets termsAreAccessible
+              , parameterInputs currentSlot metaData templateContent slotContentStrings termsAreAccessible
               , subHeader "top-20" false Pay "Review and pay" payIsAccessible
               , reviewAndPay payIsAccessible metaData
               ]
@@ -77,7 +80,7 @@ navigationBar contractName =
     [ a
         -- "-ml-1" makes the icon line up properly
         [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
-        , onClick_ ToggleTemplateLibraryCard
+        , onClick_ OpenTemplateLibraryCard
         ]
         [ icon_ Previous
         , span_
@@ -97,10 +100,21 @@ contractNicknameDisplay contractName contractNickname =
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames $ (Css.input $ null contractNickname) <> [ "bg-transparent", "font-semibold" ]
+                [ classNames
+                    -- TODO: Once we remove the readOnly, remove this filter. I tried adding "text-black" to the end of the array
+                    
+                    --       but the browser does not respect ordering and for some reason "text-darkgray was winning"
+                    
+                    $ filter (not <<< eq "text-darkgray")
+                    $ (Css.input $ null contractNickname)
+                    <> [ "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
+                -- TODO: We can allow users to provide custom contract nicknames when we are connecting to the
+                -- metadata server. For now, however, we have no way of sharing this information, so we just
+                -- make it readonly (it is set to equal the contract name initially).
+                , readOnly true
                 , onValueInput_ SetContractNickname
                 ]
             ]
@@ -123,78 +137,57 @@ subHeader topMargin border i title accessible =
         ]
     ]
 
-roleInputs :: forall p. WalletLibrary -> Contract -> MetaData -> Map String String -> HTML p Action
-roleInputs wallets extendedContract metaData roleWallets =
+-- We range over roleWalletInputs rather than all the parties in the contract. This excludes any `PK` parties.
+-- At the moment, this is a good thing: we don't have a design for them, and we only use a `PK` party in one
+-- special case, where it is read-only and would be confusing to show the user anyway. But if we ever need to
+-- use `PK` inputs properly (and make them editable) we will have to rethink this.
+roleInputs :: forall p. WalletLibrary -> MetaData -> Map TokenName (InputField.State RoleError) -> HTML p Action
+roleInputs walletLibrary metaData roleWalletInputs =
   subSection true true
     [ ul_
-        $ mapWithIndex partyInput
-        $ Set.toUnfoldable
-        $ getParties extendedContract
+        $ mapWithIndex roleInput
+        $ Map.toUnfoldable roleWalletInputs
     ]
   where
-  partyInput index (PK pubKey) =
-    li
-      [ classNames [ "mb-2", "last:mb-0" ] ]
-      [ label
-          [ classNames [ "block", "text-sm" ]
-          , for pubKey
-          ]
-          [ text $ "Party " <> (show $ index + 1) ]
-      , input
-          [ classNames $ Css.input false <> [ "shadow" ]
-          , id_ pubKey
-          , type_ InputText
-          , value pubKey
-          , readOnly true
-          ]
-      ]
-
-  partyInput index (Role tokenName) =
+  roleInput index (tokenName /\ roleWalletInput) =
     let
       description = fromMaybe "no description available" $ lookup tokenName metaData.roleDescriptions
-
-      assigned = fromMaybe "" $ lookup tokenName roleWallets
-
-      mRoleError = roleError assigned wallets
     in
       li
         [ classNames [ "mb-2", "last:mb-0" ] ]
         [ label
-            [ classNames [ "block", "text-sm" ]
+            [ classNames [ "block", "text-sm", "mb-2" ]
             , for tokenName
             ]
             [ span
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Role " <> (show $ index + 1) <> " (" <> tokenName <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , div
             [ classNames [ "relative" ] ]
-            [ input
-                [ classNames $ Css.input (isJust mRoleError) <> [ "shadow", "pr-9" ]
-                , id_ tokenName
-                , type_ InputText
-                , list "walletNicknames"
-                , onValueInput_ $ SetRoleWallet tokenName
-                , value assigned
-                ]
+            [ RoleWalletInputAction tokenName <$> renderInput roleWalletInput (roleWalletInputDisplayOptions tokenName)
             , button
                 [ classNames [ "absolute", "top-4", "right-4" ]
-                , onClick_ $ ToggleCreateWalletCard tokenName
+                , onClick_ $ OpenCreateWalletCard tokenName
                 ]
                 [ icon_ AddCircle ]
             ]
-        , div
-            [ classNames Css.inputError ]
-            $ case mRoleError of
-                Just roleError -> [ text $ show roleError ]
-                Nothing -> []
-        , nicknamesDataList wallets
+        , nicknamesDataList walletLibrary
         ]
 
-parameterInputs :: forall p. WalletLibrary -> Slot -> MetaData -> TemplateContent -> Map String String -> Map String String -> Boolean -> HTML p Action
-parameterInputs wallets currentSlot metaData templateContent slotContentStrings roleWallets accessible =
+  roleWalletInputDisplayOptions tokenName =
+    { baseCss: Css.inputCard
+    , additionalCss: [ "pr-9" ]
+    , id_: tokenName
+    , placeholder: "Choose any nickname"
+    , readOnly: false
+    , datalistId: Just nicknamesDataListId
+    }
+
+parameterInputs :: forall p. Slot -> MetaData -> TemplateContent -> Map String String -> Boolean -> HTML p Action
+parameterInputs currentSlot metaData templateContent slotContentStrings accessible =
   let
     valueContent = view _valueContent templateContent
   in
@@ -210,7 +203,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
     let
       description = fromMaybe "no description available" $ lookup key metaData.slotParameterDescriptions
 
-      mParameterError = slotError dateTimeString currentSlot
+      mParameterError = slotError currentSlot dateTimeString
     in
       li
         [ classNames [ "mb-4", "last:mb-0" ] ]
@@ -222,10 +215,10 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Timeout " <> (show $ index + 1) <> " (" <> key <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+            [ classNames $ Css.inputCard (isJust mParameterError)
             , id_ $ "slot-" <> key
             , type_ InputDatetimeLocal
             , onValueInput_ $ SetSlotContent key
@@ -234,7 +227,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
         , div
             [ classNames Css.inputError ]
             $ case mParameterError of
-                Just parameterError -> [ text $ show parameterError ]
+                Just parameterError -> [ text $ inputErrorToString parameterError ]
                 Nothing -> []
         ]
 
@@ -254,10 +247,10 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
                 [ classNames [ "font-bold" ] ]
                 [ text $ "Value " <> (show $ index + 1) <> " (" <> key <> ")*" ]
             , br_
-            , text description
+            , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.input (isJust mParameterError) <> [ "shadow" ]
+            [ classNames $ Css.inputCard (isJust mParameterError)
             , id_ $ "value-" <> key
             , type_ InputNumber
             , onValueInput_ $ SetValueContent key <<< BigInteger.fromString
@@ -266,7 +259,7 @@ parameterInputs wallets currentSlot metaData templateContent slotContentStrings 
         , div
             [ classNames Css.inputError ]
             $ case mParameterError of
-                Just parameterError -> [ text $ show parameterError ]
+                Just parameterError -> [ text $ inputErrorToString parameterError ]
                 Nothing -> []
         ]
 
@@ -275,12 +268,22 @@ reviewAndPay accessible metaData =
   subSection accessible false
     [ div
         [ classNames $ [ "mb-4", "bg-white", "p-4", "shadow", "rounded" ] ]
-        [ contractTitle metaData ]
+        [ contractTitle metaData
+        , hr [ classNames [ "my-4" ] ]
+        , div_
+            [ p
+                [ classNames [ "text-sm" ] ]
+                [ text "Fee to pay:" ]
+            , p
+                [ classNames Css.funds ]
+                [ text $ humanizeValue adaToken contractCreationFee ]
+            ]
+        ]
     , div
         [ classNames [ "flex", "justify-end", "mb-4" ] ]
         [ button
             [ classNames Css.primaryButton
-            , onClick_ $ ToggleSetupConfirmationCard
+            , onClick_ $ OpenSetupConfirmationCard
             ]
             [ text "Pay" ]
         ]
@@ -296,8 +299,8 @@ subSection accessible border content =
     ]
 
 ------------------------------------------------------------
-templateLibraryCard :: forall p. Array ContractTemplate -> HTML p Action
-templateLibraryCard templates =
+templateLibraryCard :: forall p. HTML p Action
+templateLibraryCard =
   div
     [ classNames [ "md:px-5pc", "p-4" ] ]
     [ h2
@@ -305,7 +308,7 @@ templateLibraryCard templates =
         [ text "Choose a contract template" ]
     , div
         [ classNames [ "grid", "gap-4", "md:grid-cols-2", "xl:grid-cols-3" ] ]
-        (templateBox <$> templates)
+        (templateBox <$> contractTemplates)
     ]
   where
   templateBox template =
@@ -320,43 +323,41 @@ templateLibraryCard templates =
               ]
               [ text "Setup" ]
           ]
-      , p_
-          [ text template.metaData.contractDescription ]
+      , p_ $ formatText template.metaData.contractDescription
       ]
 
+-- TODO: This helper is really similar to contractCard in ContractHome.View, see if it makes sense to factor a component out
 contractTitle :: forall p. MetaData -> HTML p Action
 contractTitle metaData =
   div
-    [ classNames [ "flex", "items-start", "leading-none", "mr-1" ] ]
+    [ classNames [ "flex", "items-start", "mr-1" ] ]
     [ span
-        [ classNames [ "text-2xl", "font-semibold", "mr-2" ] ]
+        [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ]
         [ text $ contractTypeInitials metaData.contractType ]
     , span
-        [ classNames [ "text-sm", "pt-1", "uppercase" ] ]
+        [ classNames [ "text-xs", "uppercase", "ml-2" ] ]
         [ text $ metaData.contractName ]
     ]
 
-contractSetupConfirmationCard :: forall p. HTML p Action
-contractSetupConfirmationCard =
+contractSetupConfirmationCard :: forall p. Assets -> HTML p Action
+contractSetupConfirmationCard assets =
   div_
     [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
         [ span_ [ text "Demo wallet balance:" ]
-        -- FIXME: remove placeholder with actual value
-        , span_ [ text "$223,456.78" ]
+        , span_ [ text $ humanizeValue adaToken $ getAda assets ]
         ]
     , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
         [ p
             [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
             [ text "Confirm payment of:" ]
-        -- FIXME: remove placeholder with actual value
         , p
             [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-            [ text "₳ 123.456" ]
+            [ text $ humanizeValue adaToken contractCreationFee ]
         , div
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
-                , onClick_ ToggleSetupConfirmationCard
+                , onClick_ CloseSetupConfirmationCard
                 ]
                 [ text "Cancel" ]
             , button

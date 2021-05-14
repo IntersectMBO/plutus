@@ -422,7 +422,7 @@ data MarloweParams = MarloweParams {
         rolePayoutValidatorHash :: ValidatorHash,
         rolesCurrency           :: CurrencySymbol
     }
-  deriving stock (Show,Generic)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (FromJSON,ToJSON)
 
 

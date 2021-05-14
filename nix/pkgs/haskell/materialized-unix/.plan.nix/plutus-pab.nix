@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -113,11 +113,13 @@
           (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           ];
         buildable = true;
         modules = [
           "Servant/Extra"
           "Cardano/BM/Data/Tracer/Extras"
+          "Cardano/Chain"
           "Cardano/ChainIndex/API"
           "Cardano/ChainIndex/ChainIndex"
           "Cardano/ChainIndex/Client"
@@ -165,6 +167,7 @@
           "Plutus/PAB/Effects/ContractRuntime"
           "Plutus/PAB/Effects/ContractTest/AtomicSwap"
           "Plutus/PAB/Effects/ContractTest/PayToWallet"
+          "Plutus/PAB/Effects/ContractTest/Uniswap"
           "Plutus/PAB/Effects/EventLog"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Effects/TimeEffect"
@@ -184,6 +187,7 @@
           "Plutus/PAB/Events/ContractInstanceState"
           "Plutus/PAB/ParseStringifiedJSON"
           "Plutus/PAB/Simulator"
+          "Plutus/PAB/Timeout"
           "Plutus/PAB/Types"
           ];
         hsSourceDirs = [ "src" ];
@@ -229,11 +233,30 @@
           hsSourceDirs = [ "app" ];
           mainPath = [ "Main.hs" ];
           };
+        "plutus-uniswap" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "uniswap" ];
+          mainPath = [ "Main.hs" ];
+          };
         "plutus-game" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           hsSourceDirs = [ "game-contract" ];
@@ -345,6 +368,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
+            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             ];
           buildable = true;
           hsSourceDirs = [ "tx-inject" ];
@@ -386,6 +410,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             ];
           buildable = true;
           modules = [

@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -38,6 +39,11 @@ module Cardano.Node.Types
     , MockServerConfig (..)
     , BlockReaperConfig (..)
 
+    -- ** Slot / timing
+    , SlotConfig(..)
+    , slotNumber
+    , currentSlot
+
     -- * newtype wrappers
     , NodeUrl (..)
     )
@@ -45,9 +51,12 @@ module Cardano.Node.Types
 
 import           Control.Lens                   (makeLenses, view)
 import           Control.Monad.Freer.TH         (makeEffect)
+import           Control.Monad.IO.Class         (MonadIO (..))
 import           Data.Aeson                     (FromJSON, ToJSON)
 import qualified Data.Map                       as Map
-import           Data.Text.Prettyprint.Doc      (Pretty (..), pretty, (<+>))
+import           Data.Text.Prettyprint.Doc      (Pretty (..), pretty, viaShow, (<+>))
+import           Data.Time.Clock                (UTCTime)
+import qualified Data.Time.Format.ISO8601       as F
 import           Data.Time.Units                (Second)
 import           Data.Time.Units.Extra          ()
 import           GHC.Generics                   (Generic)
@@ -56,19 +65,39 @@ import           Servant.Client                 (BaseUrl)
 
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
+import           Cardano.Chain                  (MockNodeServerChainState, fromEmulatorChainState)
 import qualified Cardano.Protocol.Socket.Client as Client
+import           Cardano.Protocol.Socket.Type   (SlotConfig (..), currentSlot, slotNumber)
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
 import           Control.Monad.Freer.Reader     (Reader)
 import           Control.Monad.Freer.State      (State)
 import qualified Plutus.Contract.Trace          as Trace
 import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as EM
-import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent, ChainState)
+import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent)
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
 import           Plutus.PAB.Arbitrary           ()
 
 -- Configuration ------------------------------------------------------------------------------------------------------
+
+{- Note [Slot numbers in mock node]
+
+The mock node has an internal clock that generates new slots in a regular
+interval. Slots are identified by consecutive integers. What should the
+initial slot number be? We can either set it to 0, so that the slot number
+is the number of intervals that have passed since the process was started.
+Or we can define an initial timestamp, so that the slot number is the number
+of intervals since that timestamp.
+
+The first option of counting from 0 is useful for integration tests where we
+want the test outcome to be independent of when the test was run. This approach
+is used in the PAB simulator.
+The second option, counting from a timestamp, is more realistic and it is
+useful for frontends that need to convert the slot number back to a timestamp.
+We use this approach for the "proper" pab executable.
+
+-}
 
 newtype NodeUrl = NodeUrl BaseUrl
     deriving (Show, Eq) via BaseUrl
@@ -78,8 +107,6 @@ data MockServerConfig =
     MockServerConfig
         { mscBaseUrl          :: BaseUrl
         -- ^ base url of the service
-        , mscSlotLength       :: Second
-        -- ^ Duration of one slot
         , mscRandomTxInterval :: Maybe Second
         -- ^ Time between two randomly generated transactions
         , mscBlockReaper      :: Maybe BlockReaperConfig
@@ -88,6 +115,10 @@ data MockServerConfig =
         -- ^ The wallets that receive money from the initial transaction.
         , mscSocketPath       :: FilePath
         -- ^ Path to the socket used to communicate with the server.
+        , mscKeptBlocks       :: Integer
+        -- ^ The number of blocks to keep for replaying to a newly connected clients
+        , mscSlotConfig       :: SlotConfig
+        -- ^ Beginning of slot 0.
         }
     deriving (Show, Eq, Generic, FromJSON)
 
@@ -105,7 +136,7 @@ data BlockReaperConfig =
 -- | Top-level logging data type for structural logging
 -- inside the Mock Node server.
 data MockServerLogMsg =
-    StartingSlotCoordination
+    StartingSlotCoordination UTCTime Second
     | NoRandomTxGeneration
     | StartingRandomTx
     | KeepingOldBlocks
@@ -123,7 +154,10 @@ instance Pretty MockServerLogMsg where
         KeepingOldBlocks          -> "Not starting block reaper thread (old blocks will be retained in-memory forever"
         RemovingOldBlocks         -> "Starting block reaper thread (old blocks will be removed)"
         StartingMockServer p      -> "Starting Mock Node Server on port " <+> pretty p
-        StartingSlotCoordination  -> "Starting slot coordination thread"
+        StartingSlotCoordination initialSlotTime slotLength  ->
+            "Starting slot coordination thread."
+            <+> "Initial slot time:" <+> pretty (F.iso8601Show initialSlotTime)
+            <+> "Slot length:" <+> viaShow slotLength
         ProcessingChainEvent e    -> "Processing chain event " <+> pretty e
         BlockOperation e          -> "Block operation " <+> pretty e
         CreatingRandomTransaction -> "Generating a random transaction"
@@ -135,7 +169,7 @@ instance ToObject MockServerLogMsg where
         KeepingOldBlocks          ->  mkObjectStr "Not starting block reaper thread (old blocks will be retained in-memory forever" ()
         RemovingOldBlocks         ->  mkObjectStr "Starting block reaper thread (old blocks will be removed)" ()
         StartingMockServer p      ->  mkObjectStr "Starting Mock Node Server on port " (Tagged @"port" p)
-        StartingSlotCoordination  ->  mkObjectStr "" ()
+        StartingSlotCoordination i l  -> mkObjectStr "Starting slot coordination thread" (Tagged @"initial-slot-time" (F.iso8601Show  i), Tagged @"slot-length" l)
         ProcessingChainEvent e    ->  mkObjectStr "Processing chain event" (Tagged @"event" e)
         BlockOperation e          ->  mkObjectStr "Block operation" (Tagged @"event" e)
         CreatingRandomTransaction ->  mkObjectStr "Creating random transaction" ()
@@ -155,7 +189,7 @@ instance Pretty BlockEvent where
 -- | Application State
 data AppState =
     AppState
-        { _chainState   :: ChainState -- ^ blockchain state
+        { _chainState   :: MockNodeServerChainState -- ^ blockchain state
         , _eventHistory :: [LogMessage MockServerLogMsg] -- ^ history of all log messages
         }
     deriving (Show)
@@ -164,17 +198,18 @@ makeLenses 'AppState
 
 -- | 'AppState' with an initial transaction that pays some Ada to
 --   the wallets.
-initialAppState :: [Wallet] -> AppState
-initialAppState wallets =
-    AppState
-        { _chainState = initialChainState (Trace.defaultDistFor wallets)
+initialAppState :: MonadIO m => [Wallet] -> m AppState
+initialAppState wallets = do
+    initialState <- initialChainState (Trace.defaultDistFor wallets)
+    pure $ AppState
+        { _chainState = initialState
         , _eventHistory = mempty
         }
 
 -- | 'ChainState' with initial values
-initialChainState :: Trace.InitialDistribution -> ChainState
+initialChainState :: MonadIO m => Trace.InitialDistribution -> m MockNodeServerChainState
 initialChainState =
-    view EM.chainState .
+    fromEmulatorChainState . view EM.chainState .
     MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
 
 -- Effects -------------------------------------------------------------------------------------------------------------
@@ -184,7 +219,7 @@ type NodeServerEffects m
         , LogMsg MockServerLogMsg
         , ChainControlEffect
         , ChainEffect
-        , State ChainState
+        , State MockNodeServerChainState
         , LogMsg MockServerLogMsg
         , Reader Client.ClientHandler
         , State AppState

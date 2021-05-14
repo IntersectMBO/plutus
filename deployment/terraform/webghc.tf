@@ -19,21 +19,6 @@ resource "aws_security_group" "webghc" {
     cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
-  # prometheus node exporter
-  ingress {
-    from_port   = local.node_exporter_port
-    to_port     = local.node_exporter_port
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
-  ingress {
-    from_port   = local.webghc_exporter_port
-    to_port     = local.webghc_exporter_port
-    protocol    = "TCP"
-    cidr_blocks = var.private_subnet_cidrs
-  }
-
   ## outgoing: all
   egress {
     from_port   = 0
@@ -85,34 +70,4 @@ resource "aws_route53_record" "webghc_internal_a" {
   name    = "webghc-a.${aws_route53_zone.plutus_private_zone.name}"
   ttl     = 300
   records = [aws_instance.webghc_a.private_ip]
-}
-
-resource "aws_instance" "webghc_b" {
-  ami = module.nixos_image.ami
-
-  instance_type = var.webghc_instance_type
-  subnet_id     = aws_subnet.private.*.id[1]
-  user_data     = data.template_file.webghc_user_data.rendered
-
-  vpc_security_group_ids = [
-    aws_security_group.webghc.id,
-  ]
-
-  root_block_device {
-    volume_size = "20"
-  }
-
-  tags = {
-    Name        = "${local.project}_${var.env}_webghc_b"
-    Project     = local.project
-    Environment = var.env
-  }
-}
-
-resource "aws_route53_record" "webghc_internal_b" {
-  zone_id = aws_route53_zone.plutus_private_zone.zone_id
-  type    = "A"
-  name    = "webghc-b.${aws_route53_zone.plutus_private_zone.name}"
-  ttl     = 300
-  records = [aws_instance.webghc_b.private_ip]
 }

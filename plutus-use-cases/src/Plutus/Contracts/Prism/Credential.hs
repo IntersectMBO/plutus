@@ -19,7 +19,7 @@ module Plutus.Contracts.Prism.Credential(
 import           Data.Aeson                    (FromJSON, ToJSON)
 import           Data.Hashable                 (Hashable)
 import           GHC.Generics                  (Generic)
-import           Ledger.Contexts               (PolicyCtx (..), txSignedBy)
+import           Ledger.Contexts               (ScriptContext (..), txSignedBy)
 import           Ledger.Crypto                 (PubKeyHash)
 import           Ledger.Scripts                (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
 import qualified Ledger.Typed.Scripts          as Scripts
@@ -50,8 +50,8 @@ data Credential =
 
 -- | The forging policy script validating the creation of credential tokens
 {-# INLINABLE validateForge #-}
-validateForge :: CredentialAuthority -> PolicyCtx -> Bool
-validateForge CredentialAuthority{unCredentialAuthority} PolicyCtx{policyCtxTxInfo=txinfo} =
+validateForge :: CredentialAuthority -> ScriptContext -> Bool
+validateForge CredentialAuthority{unCredentialAuthority} ScriptContext{scriptContextTxInfo=txinfo} =
     -- the credential authority is allwoed to forge or destroy any number of
     -- tokens, so we just need to check the signature
     txinfo `txSignedBy` unCredentialAuthority
@@ -76,7 +76,7 @@ tokens Credential{credAuthority, credName} n =
 tokenAccount :: Credential -> Account
 tokenAccount Credential{credAuthority, credName} =
     let sym = Value.mpsSymbol (monetaryPolicyHash $ policy credAuthority)
-    in Account (sym, credName)
+    in Account $ Value.assetClass sym credName
 
 PlutusTx.makeLift ''CredentialAuthority
 PlutusTx.unstableMakeIsData ''CredentialAuthority

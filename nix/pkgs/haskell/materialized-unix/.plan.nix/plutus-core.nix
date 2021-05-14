@@ -24,10 +24,11 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [
-        "cost-model/data/costModel.json"
+        "cost-model/data/builtinCostModel.json"
+        "cost-model/data/cekMachineCosts.json"
         "cost-model/data/benching.csv"
         "cost-model/data/*.R"
         ];
@@ -59,6 +60,7 @@
           (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
           (hsPkgs."dlist" or (errorHandler.buildDepError "dlist"))
+          (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
@@ -77,6 +79,7 @@
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
+          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
@@ -90,11 +93,12 @@
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           ];
         build-tools = [
-          (hsPkgs.buildPackages.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex")))
-          (hsPkgs.buildPackages.happy or (pkgs.buildPackages.happy or (errorHandler.buildToolDepError "happy")))
+          (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))
+          (hsPkgs.buildPackages.happy.components.exes.happy or (pkgs.buildPackages.happy or (errorHandler.buildToolDepError "happy:happy")))
           ];
         buildable = true;
         modules = [
@@ -168,6 +172,7 @@
           "UntypedPlutusCore/Core/Instance/Recursive"
           "UntypedPlutusCore/Core/Plated"
           "UntypedPlutusCore/Core/Type"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Mark"
@@ -175,6 +180,7 @@
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
           "UntypedPlutusCore/Transform/Simplify"
+          "Data/Aeson/Flatten"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "PlutusCore"
@@ -243,13 +249,14 @@
           "PlutusIR/Parser"
           "PlutusIR/MkPir"
           "PlutusIR/Purity"
-          "PlutusIR/Optimizer/DeadCode"
+          "PlutusIR/Transform/DeadCode"
           "PlutusIR/Transform/Substitute"
           "PlutusIR/Transform/ThunkRecursions"
           "PlutusIR/Transform/Rename"
           "PlutusIR/Transform/NonStrict"
           "PlutusIR/Transform/LetFloat"
           "PlutusIR/Transform/Inline"
+          "PlutusIR/Transform/Beta"
           "PlutusIR/TypeCheck"
           "UntypedPlutusCore"
           "UntypedPlutusCore/DeBruijn"
@@ -264,6 +271,7 @@
           "PlcTestUtils"
           "Crypto"
           "Data/Text/Prettyprint/Doc/Custom"
+          "Data/SatInt"
           ];
         hsSourceDirs = [
           "plutus-core/src"
@@ -352,13 +360,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [
-            "OptimizerSpec"
-            "TransformSpec"
-            "ParserSpec"
-            "TypeSpec"
-            "TestLib"
-            ];
+          modules = [ "TransformSpec" "ParserSpec" "TypeSpec" "TestLib" ];
           hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };

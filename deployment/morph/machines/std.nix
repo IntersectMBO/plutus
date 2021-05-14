@@ -1,7 +1,5 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, tfinfo, ... }:
 {
-
-  imports = [ <nixpkgs/nixos/modules/virtualisation/amazon-image.nix> ];
 
   ec2.hvm = true;
 

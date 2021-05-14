@@ -15,6 +15,7 @@ module PSGenerator
 
 import           Cardano.Metadata.Types                     (AnnotatedSignature, HashFunction, Property, PropertyKey,
                                                              Subject, SubjectProperties)
+import           Cardano.Wallet.Types                       (WalletInfo)
 import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (set, view, (&))
 import           Control.Monad                              (void)
@@ -44,10 +45,9 @@ import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.Contract.State                      (ContractRequest, State)
 import           Plutus.Contracts.Currency                  (SimpleMPS (..))
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
-import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, Game))
-import           Plutus.PAB.Events                          (PABEvent)
+import           Plutus.PAB.Effects.Contract.ContractTest   (TestContracts (Currency, GameStateMachine))
 import           Plutus.PAB.Events.Contract                 (ContractInstanceId (..), ContractPABRequest,
-                                                             ContractResponse)
+                                                             ContractPABResponse)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Simulator                       as Simulator
 import qualified Plutus.PAB.Webserver.API                   as API
@@ -111,7 +111,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractRequest A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABRequest)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
 
     -- Contract request / response types
@@ -143,12 +143,12 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))
 
     -- * Web API types
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PABEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractActivationArgs A))
-    , (genericShow <*> mkSumType) (Proxy @ContractInstanceClientState)
+    , (genericShow <*> mkSumType) (Proxy @(ContractInstanceClientState A))
     , (genericShow <*> mkSumType) (Proxy @InstanceStatusToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToClient)
     , (genericShow <*> mkSumType) (Proxy @CombinedWSStreamToServer)
+    , (genericShow <*> mkSumType) (Proxy @WalletInfo)
     ]
 
 mySettings :: Settings
@@ -166,7 +166,7 @@ writeTestData outputDir = do
         fmap (either (error . show) id) $ Simulator.runSimulation $ do
             currencyInstance1 <- Simulator.activateContract defaultWallet Currency
             void $ Simulator.activateContract defaultWallet Currency
-            void $ Simulator.activateContract defaultWallet Game
+            void $ Simulator.activateContract defaultWallet GameStateMachine
             void $ Simulator.waitForEndpoint currencyInstance1 "Create native token"
             void $ Simulator.callEndpointOnInstance currencyInstance1 "Create native token" SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
             void $ Simulator.waitUntilFinished currencyInstance1

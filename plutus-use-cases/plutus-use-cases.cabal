@@ -30,11 +30,12 @@ library
         Plutus.Contracts.TokenAccount
         Plutus.Contracts.Crowdfunding
         Plutus.Contracts.Currency
-        Plutus.Contracts.Escrow
-        Plutus.Contracts.Future
-        Plutus.Contracts.Game
-        Plutus.Contracts.GameStateMachine
         Plutus.Contracts.ErrorHandling
+        Plutus.Contracts.Escrow
+        Plutus.Contracts.SimpleEscrow
+        Plutus.Contracts.Future
+        Plutus.Contracts.GameStateMachine
+        Plutus.Contracts.Governance
         Plutus.Contracts.MultiSig
         Plutus.Contracts.MultiSigStateMachine
         Plutus.Contracts.PingPong
@@ -49,6 +50,11 @@ library
         Plutus.Contracts.RPC
         Plutus.Contracts.Stablecoin
         Plutus.Contracts.Swap
+        Plutus.Contracts.Uniswap
+        Plutus.Contracts.Uniswap.OnChain
+        Plutus.Contracts.Uniswap.OffChain
+        Plutus.Contracts.Uniswap.Pool
+        Plutus.Contracts.Uniswap.Types
         Plutus.Contracts.Vesting
     hs-source-dirs: src
     default-language: Haskell2010
@@ -80,7 +86,8 @@ library
         prettyprinter -any,
         hashable -any,
         freer-simple -any,
-        streaming -any
+        streaming -any,
+        semigroups -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -96,14 +103,12 @@ test-suite plutus-use-cases-test
         Spec.Auction
         Spec.Crowdfunding
         Spec.Currency
-        Spec.DynamicLogic.Registry
-        Spec.DynamicLogic.RegistryModel
         Spec.ErrorHandling
         Spec.Escrow
+        Spec.SimpleEscrow
         Spec.Future
-        Spec.Game
         Spec.GameStateMachine
-        Spec.Lib
+        Spec.Governance
         Spec.MultiSig
         Spec.MultiSigStateMachine
         Spec.PingPong
@@ -166,10 +171,10 @@ executable plutus-use-cases-scripts
         Spec.Currency
         Spec.ErrorHandling
         Spec.Escrow
+        Spec.SimpleEscrow
         Spec.Future
-        Spec.Game
         Spec.GameStateMachine
-        Spec.Lib
+        Spec.Governance
         Spec.MultiSig
         Spec.MultiSigStateMachine
         Spec.PingPong

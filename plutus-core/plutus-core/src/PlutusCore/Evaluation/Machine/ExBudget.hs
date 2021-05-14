@@ -1,8 +1,10 @@
+{-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 {-# LANGUAGE StrictData             #-}
 
@@ -77,7 +79,6 @@ module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
     , ToExMemory(..)
     , ExBudgetBuiltin(..)
-    , SpendBudget(..)
     , ExRestrictingBudget(..)
     , isNegativeBudget
     , minusExCPU
@@ -93,6 +94,8 @@ import           PlutusCore.Name
 
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
+import           Deriving.Aeson
+import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
 
 class ToExMemory term where
@@ -117,20 +120,11 @@ class ExBudgetBuiltin fun exBudgetCat where
 instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
 
--- This works nicely because @m@ contains @term@.
-class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term) =>
-            SpendBudget m fun exBudgetCat term | m -> fun exBudgetCat term where
-    -- | Spend the budget, which may mean different things depending on the monad:
-    --
-    -- 1. do nothing for an evaluator that does not care about costing
-    -- 2. count upwards to get the cost of a computation
-    -- 3. subtract from the current budget and fail if the budget goes below zero
-    spendBudget :: exBudgetCat -> ExBudget -> m ()
-
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
-    deriving stock (Eq, Show, Generic)
+    deriving stock (Eq, Show, Generic, Lift)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
     deriving anyclass (PrettyBy config, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget
 
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ fold
@@ -148,11 +142,11 @@ isNegativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0
 
 -- | @(-)@ on 'ExCPU'.
 minusExCPU :: ExCPU -> ExCPU -> ExCPU
-minusExCPU = coerce $ (-) @Integer
+minusExCPU = coerce $ (-) @CostingInteger
 
 -- | @(-)@ on 'ExMemory'.
 minusExMemory :: ExMemory -> ExMemory -> ExMemory
-minusExMemory = coerce $ (-) @Integer
+minusExMemory = coerce $ (-) @CostingInteger
 
 -- | Subtract an 'ExBudget' from an 'ExRestrictingBudget'.
 minusExBudget :: ExRestrictingBudget -> ExBudget -> ExRestrictingBudget

@@ -12,7 +12,6 @@ import           Common
 import           PlutusPrelude
 import           TestLib
 
-import           OptimizerSpec
 import           ParserSpec
 import           TransformSpec
 import           TypeSpec
@@ -38,7 +37,6 @@ tests = testGroup "plutus-ir" <$> sequence
     , recursion
     , serialization
     , errors
-    , optimizer
     , transform
     , types
     , typeErrors

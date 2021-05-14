@@ -3,14 +3,15 @@
 
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
-import           Data.Maybe                                             (fromJust, isJust, isNothing)
+import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (IPCB (IPCB_NTL), PREF (..), PYTP (..),
                                                                          SCEF (..), ScheduleConfig (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            ()
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
-                                                                         plusCycle, remove)
+                                                                         minusCycle, plusCycle, remove)
 
+-- Principal at Maturity
 _S = generateRecurrentScheduleWithCorrections
 shift = applyBDCWithCfg
 
@@ -137,3 +138,52 @@ _SCHED_RR_LAM = _SCHED_RR_PAM
 _SCHED_RRF_LAM = _SCHED_RRF_PAM
 
 _SCHED_SC_LAM = _SCHED_SC_PAM
+
+-- Negative Amortizer
+_SCHED_IED_NAM scfg _IED = _SCHED_IED_PAM scfg _IED
+
+_SCHED_PR_NAM scfg _PRCL _IED _PRANX _MD = _SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD
+
+_SCHED_MD_NAM scfg tmd = _SCHED_MD_PAM scfg tmd
+
+_SCHED_PP_NAM scfg _PREF _OPCL _IED _OPANX _MD = _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD
+
+_SCHED_PY_NAM scfg _PYTP _PREF _OPCL _IED _OPANX _MD = _SCHED_PY_PAM scfg _PYTP _PREF _OPCL _IED _OPANX _MD
+
+_SCHED_FP_NAM scfg _FER _FECL _IED _FEANX _MD = _SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD
+
+_SCHED_PRD_NAM scfg _PRD = _SCHED_PRD_PAM scfg _PRD
+
+_SCHED_TD_NAM scfg _TD = _SCHED_TD_PAM scfg _TD
+
+_SCHED_IP_NAM scfg _IED _PRCL _PRANX _IPCED _IPANX _IPCL _MD =
+    let maybeS  | isNothing _PRANX = Just $ _IED `plusCycle` fromJust _PRCL
+                | otherwise        = _PRANX
+
+        _T      = fromJust maybeS `minusCycle` fromJust _PRCL
+
+        r       | isJust _IPCED = _IPCED
+                | isJust _IPANX = _IPANX
+                | isJust _IPCL  = Just $ _IED `plusCycle` fromJust _IPCL
+                | otherwise     = Nothing
+
+        u       | isNothing _IPANX && isNothing _IPCL    = Nothing
+                | isJust _IPCED && fromJust _IPCED >= _T = Nothing
+                | otherwise                              = (\s -> _S s (fromJust _IPCL) _MD scfg) <$> r
+
+        v       = (\s -> _S s (fromJust _PRCL) _MD scfg) <$> maybeS
+
+        result  = Just ((fromMaybe [] u) ++ (fromMaybe [] v))
+    in
+        result
+
+
+_SCHED_IPCI_NAM scfg _IED _IPANX _IPCL _IPCED = _SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED
+
+_SCHED_IPCB_NAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD = _SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD
+
+_SCHED_RR_NAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD = _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD
+
+_SCHED_RRF_NAM scfg _IED _RRANX _RRCL _MD = _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD
+
+_SCHED_SC_NAM scfg _IED _SCEF _SCANX _SCCL _MD = _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD

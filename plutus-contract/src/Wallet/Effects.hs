@@ -33,7 +33,7 @@ module Wallet.Effects(
     , watchedAddresses
     , confirmedBlocks
     , transactionConfirmed
-    , nextTx
+    , addressChanged
     -- * Contract runtime
     , ContractRuntimeEffect(..)
     , sendNotification
@@ -70,7 +70,7 @@ data ChainIndexEffect r where
     ConfirmedBlocks :: ChainIndexEffect [[Tx]]
     -- TODO: In the future we should have degrees of confirmation
     TransactionConfirmed :: TxId -> ChainIndexEffect Bool
-    NextTx :: AddressChangeRequest -> ChainIndexEffect AddressChangeResponse
+    AddressChanged :: AddressChangeRequest -> ChainIndexEffect AddressChangeResponse
 makeEffect ''ChainIndexEffect
 
 {-| Interact with other contracts.

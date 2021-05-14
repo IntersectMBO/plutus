@@ -23,7 +23,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
     Left e   -> throw e
-    Right t' -> nf (unsafeEvaluateCek defBuiltinsRuntime) t'
+    Right t' -> nf (unsafeEvaluateCek defaultCekMachineCosts defBuiltinsRuntime) t'
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f
@@ -65,5 +65,5 @@ benchKnights depth sz = benchCek $ Knights.mkKnightsTerm depth sz
 main :: IO ()
 main = do
   let runners = (benchClausify, benchKnights, benchPrime, benchQueens)
-  config <- Common.getConfig 60.0  -- Run each benchmark for at least one minute
+  config <- Common.getConfig 60.0  -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
   defaultMainWith config $ Common.mkBenchMarks runners

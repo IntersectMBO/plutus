@@ -2,6 +2,7 @@ module Play.Types
   ( State
   , Screen(..)
   , Card(..)
+  , Input
   , Action(..)
   ) where
 
@@ -11,17 +12,23 @@ import Contract.Types (Action) as Contract
 import ContractHome.Types (Action, State) as ContractHome
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
+import InputField.Types (Action, State) as InputField
 import Marlowe.Execution (NamedAction)
-import Marlowe.Semantics (Slot)
+import Marlowe.Semantics (Slot, TokenName)
 import Template.Types (Action, State) as Template
-import WalletData.Types (Nickname, WalletDetails)
+import Types (WebData)
+import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary)
+import WalletData.Validation (WalletIdError, WalletNicknameError)
 
 type State
-  = { walletDetails :: WalletDetails
+  = { walletLibrary :: WalletLibrary
+    , walletDetails :: WalletDetails
     , menuOpen :: Boolean
     , screen :: Screen
-    , card :: Maybe Card
-    , currentSlot :: Slot
+    , cards :: Array Card
+    , walletNicknameInput :: InputField.State WalletNicknameError
+    , walletIdInput :: InputField.State WalletIdError
+    , remoteWalletInfo :: WebData WalletInfo
     , timezoneOffset :: Minutes
     , templateState :: Template.State
     , contractsState :: ContractHome.State
@@ -35,7 +42,7 @@ data Screen
 derive instance eqScreen :: Eq Screen
 
 data Card
-  = CreateWalletCard (Maybe String)
+  = SaveWalletCard (Maybe String)
   | ViewWalletCard WalletDetails
   | PutdownWalletCard
   | TemplateLibraryCard
@@ -45,32 +52,38 @@ data Card
 
 derive instance eqCard :: Eq Card
 
+type Input
+  = { currentSlot :: Slot
+    }
+
 data Action
   = PutdownWallet
-  | SetNewWalletNickname Nickname
-  | SetNewWalletContractId String
-  | AddNewWallet (Maybe String)
+  | WalletNicknameInputAction (InputField.Action WalletNicknameError)
+  | WalletIdInputAction (InputField.Action WalletIdError)
+  | SetRemoteWalletInfo (WebData WalletInfo)
+  | SaveNewWallet (Maybe TokenName)
   | ToggleMenu
   | SetScreen Screen
-  | SetCard (Maybe Card)
-  | ToggleCard Card
+  | OpenCard Card
+  | CloseCard
+  | AdvanceTimedoutSteps
   | TemplateAction Template.Action
-  | ContractAction Contract.Action
   | ContractHomeAction ContractHome.Action
-  | SetCurrentSlot Slot
+  | ContractAction Contract.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
-  toEvent (SetNewWalletNickname _) = Just $ defaultEvent "SetNewWalletNickname"
-  toEvent (SetNewWalletContractId _) = Just $ defaultEvent "SetNewWalletContractId"
-  toEvent (AddNewWallet _) = Just $ defaultEvent "AddNewWallet"
+  toEvent (WalletNicknameInputAction inputAction) = toEvent inputAction
+  toEvent (WalletIdInputAction inputAction) = toEvent inputAction
+  toEvent (SetRemoteWalletInfo _) = Nothing
+  toEvent (SaveNewWallet _) = Just $ defaultEvent "SaveNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
-  toEvent (SetCard _) = Just $ defaultEvent "SetCard"
-  toEvent (ToggleCard _) = Just $ defaultEvent "ToggleCard"
+  toEvent (OpenCard _) = Nothing
+  toEvent CloseCard = Nothing
+  toEvent AdvanceTimedoutSteps = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
-  toEvent (ContractAction contractAction) = toEvent contractAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction
-  toEvent (SetCurrentSlot _) = Nothing
+  toEvent (ContractAction contractAction) = toEvent contractAction

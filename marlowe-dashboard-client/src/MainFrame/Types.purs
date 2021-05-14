@@ -1,40 +1,38 @@
 module MainFrame.Types
   ( State
+  , WebSocketStatus(..)
   , ChildSlots
   , Query(..)
   , Msg(..)
   , Action(..)
-  , WebSocketStatus(..)
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Contract.Types (State) as Contract
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Marlowe.Extended.Template (ContractTemplate)
-import Marlowe.Semantics (PubKey)
-import Network.RemoteData (RemoteData)
+import Marlowe.PAB (PlutusAppId, CombinedWSStreamToServer)
+import Marlowe.Semantics (Slot)
 import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
-import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
-import Servant.PureScript.Ajax (AjaxError)
-import WalletData.Types (Nickname, WalletLibrary)
+import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
+--import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient, CombinedWSStreamToServer)
+import Toast.Types (Action, State) as Toast
+import WalletData.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
--- Apart from the wallet library (which you need in both cases), the app exists
--- in one of two distinct states: the "pickup" state for when you have no wallet,
--- and all you can do is pick one up or generate a new one; and the "play" state
--- for when you have picked up a wallet, and can do all of the things.
+-- The app exists in one of two main subStates: the "pickup" state for when you have
+-- no wallet, and all you can do is pick one up or generate a new one; and the "play"
+-- state for when you have picked up a wallet, and can do all of the things.
 type State
-  = { wallets :: WalletLibrary
-    , newWalletNickname :: Nickname
-    , newWalletContractId :: String
-    , remoteDataPubKey :: RemoteData AjaxError PubKey
-    , templates :: Array ContractTemplate
-    , webSocketStatus :: WebSocketStatus
+  = { webSocketStatus :: WebSocketStatus
+    , currentSlot :: Slot
     , subState :: Either Pickup.State Play.State
+    , toast :: Toast.State
     }
 
 data WebSocketStatus
@@ -56,25 +54,27 @@ type ChildSlots
 ------------------------------------------------------------
 data Query a
   = ReceiveWebSocketMessage (WS.FromSocket CombinedWSStreamToClient) a
+  | MainFrameActionQuery Action a
 
 data Msg
   = SendWebSocketMessage CombinedWSStreamToServer
+  | MainFrameActionMsg Action
 
 ------------------------------------------------------------
 data Action
   = Init
-  | SetNewWalletNickname Nickname
-  | SetNewWalletContractId String
-  | AddNewWallet
+  | EnterPickupState WalletLibrary WalletDetails (Map PlutusAppId Contract.State)
+  | EnterPlayState WalletLibrary WalletDetails
   | PickupAction Pickup.Action
   | PlayAction Play.Action
+  | ToastAction Toast.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (SetNewWalletNickname _) = Nothing
-  toEvent (SetNewWalletContractId _) = Nothing
-  toEvent AddNewWallet = Just $ defaultEvent "AddNewWallet"
+  toEvent (EnterPickupState _ _ _) = Just $ defaultEvent "EnterPickupState"
+  toEvent (EnterPlayState _ _) = Just $ defaultEvent "EnterPlayState"
   toEvent (PickupAction pickupAction) = toEvent pickupAction
   toEvent (PlayAction playAction) = toEvent playAction
+  toEvent (ToastAction toastAction) = toEvent toastAction

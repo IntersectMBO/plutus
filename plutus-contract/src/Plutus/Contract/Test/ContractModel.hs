@@ -81,7 +81,7 @@ module Plutus.Contract.Test.ContractModel
     --
     -- $quantify
     , DL.forAllQ
-    , module Plutus.Contract.Test.DynamicLogic.Quantify
+    , module Test.QuickCheck.DynamicLogic.Quantify
 
     -- * Properties
     --
@@ -110,33 +110,33 @@ module Plutus.Contract.Test.ContractModel
 
 import           Control.Lens
 import           Control.Monad.Cont
-import           Control.Monad.State                        (MonadState, State)
-import qualified Control.Monad.State                        as State
-import qualified Data.Aeson                                 as JSON
+import           Control.Monad.State                   (MonadState, State)
+import qualified Control.Monad.State                   as State
+import qualified Data.Aeson                            as JSON
 import           Data.Foldable
 import           Data.List
-import           Data.Map                                   (Map)
-import qualified Data.Map                                   as Map
-import           Data.Row                                   (Row)
+import           Data.Map                              (Map)
+import qualified Data.Map                              as Map
+import           Data.Row                              (Row)
 import           Data.Typeable
 
 import           Ledger.Slot
-import           Ledger.Value                               (Value)
-import           Plutus.Contract                            (Contract, HasBlockchainActions)
+import           Ledger.Value                          (Value)
+import           Plutus.Contract                       (Contract, HasBlockchainActions)
 import           Plutus.Contract.Test
-import qualified Plutus.Contract.Test.DynamicLogic.Monad    as DL
-import           Plutus.Contract.Test.DynamicLogic.Quantify (Quantifiable (..), Quantification, arbitraryQ, chooseQ,
-                                                             elementsQ, exactlyQ, frequencyQ, mapQ, oneofQ, whereQ)
-import           Plutus.Contract.Test.StateModel            hiding (Action, Actions, arbitraryAction, initialState,
-                                                             monitoring, nextState, perform, precondition, shrinkAction)
-import qualified Plutus.Contract.Test.StateModel            as StateModel
-import           Plutus.Trace.Emulator                      as Trace (ContractHandle, EmulatorTrace,
-                                                                      activateContractWallet, walletInstanceTag)
-import           PlutusTx.Monoid                            (inv)
+import           Plutus.Trace.Emulator                 as Trace (ContractHandle, EmulatorTrace, activateContractWallet,
+                                                                 walletInstanceTag)
+import           PlutusTx.Monoid                       (inv)
+import qualified Test.QuickCheck.DynamicLogic.Monad    as DL
+import           Test.QuickCheck.DynamicLogic.Quantify (Quantifiable (..), Quantification, arbitraryQ, chooseQ,
+                                                        elementsQ, exactlyQ, frequencyQ, mapQ, oneofQ, whereQ)
+import           Test.QuickCheck.StateModel            hiding (Action, Actions, arbitraryAction, initialState,
+                                                        monitoring, nextState, perform, precondition, shrinkAction)
+import qualified Test.QuickCheck.StateModel            as StateModel
 
-import           Test.QuickCheck                            hiding ((.&&.))
-import           Test.QuickCheck.Monadic                    as QC (PropertyM, monadic)
-import qualified Test.QuickCheck.Monadic                    as QC
+import           Test.QuickCheck                       hiding ((.&&.))
+import           Test.QuickCheck.Monadic               as QC (PropertyM, monadic)
+import qualified Test.QuickCheck.Monadic               as QC
 
 -- | Key-value map where keys and values have three indices that can vary between different elements
 --   of the map. Used to store `ContractHandle`s, which are indexed over observable state, schema,
@@ -1018,4 +1018,3 @@ checkNoCrashes = foldr (\ (ContractInstanceSpec _ w c) -> (assertOutcome c (wall
         notError Failed{}  = False
         notError Done{}    = True
         notError NotDone{} = True
-

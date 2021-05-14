@@ -18,7 +18,7 @@ import qualified Ledger.Bytes                             as LedgerBytes
 import           Ledger.Crypto                            (PubKey, PubKeyHash, Signature)
 import           Ledger.Interval                          (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Slot                              (Slot)
-import           Ledger.Tx                                (TxIn, TxInType, TxOutRef, TxOutType)
+import           Ledger.Tx                                (TxIn, TxInType, TxOutRef)
 import           Ledger.TxId                              (TxId)
 import           Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
@@ -54,10 +54,6 @@ instance Arbitrary WalletAPIError where
     shrink = genericShrink
 
 instance Arbitrary TxIn where
-    arbitrary = genericArbitrary
-    shrink = genericShrink
-
-instance Arbitrary TxOutType where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
@@ -143,7 +139,7 @@ instance (Arbitrary k, Arbitrary v) => Arbitrary (AssocMap.Map k v) where
     arbitrary = AssocMap.fromList <$> arbitrary
 
 instance Arbitrary AddressChangeRequest where
-    arbitrary =  AddressChangeRequest <$> arbitrary <*> arbitrary
+    arbitrary =  AddressChangeRequest <$> arbitrary <*> arbitrary <*> arbitrary
 
 instance Arbitrary ContractPABRequest where
     arbitrary =
@@ -152,13 +148,13 @@ instance Arbitrary ContractPABRequest where
             , AwaitTxConfirmedRequest <$> arbitrary
             , UserEndpointRequest <$> arbitrary
             , UtxoAtRequest <$> arbitrary
-            , NextTxAtRequest <$> arbitrary
+            , AddressChangedAtRequest <$> arbitrary
             , pure $ OwnPubkeyRequest WaitingForPubKey
             -- TODO This would need an Arbitrary Tx instance: WriteTxRequest <$> arbitrary
             ]
 
 instance Arbitrary Address where
-    arbitrary = oneof [PubKeyAddress <$> arbitrary, ScriptAddress <$> arbitrary]
+    arbitrary = oneof [Ledger.pubKeyAddress <$> arbitrary, Ledger.scriptAddress <$> arbitrary]
 
 instance Arbitrary ValidatorHash where
     arbitrary = ValidatorHash <$> arbitrary
@@ -183,13 +179,13 @@ instance Arbitrary WaitingForSlot where
 -- bad =
 --     [ WriteTxRequest <$> arbitrary
 --     , UtxoAtRequest <$> arbitrary
---     , NextTxAtRequest <$> arbitrary
+--     , AddressChangedAtRequest <$> arbitrary
 --     ]
 
 -- | Generate responses for mock requests. This function returns a
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
-genResponse :: ContractPABRequest -> Maybe (Gen ContractResponse)
+genResponse :: ContractPABRequest -> Maybe (Gen ContractPABResponse)
 genResponse (AwaitSlotRequest (WaitingForSlot slot))        = Just . pure . AwaitSlotResponse $ slot
 genResponse (AwaitTxConfirmedRequest txId) = Just . pure . AwaitTxConfirmedResponse . TxConfirmed $ txId
 genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary <*> (EndpointValue <$> arbitrary)

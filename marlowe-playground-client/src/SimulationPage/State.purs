@@ -1,6 +1,5 @@
 module SimulationPage.State
   ( handleAction
-  , editorResize
   , editorSetTheme
   , editorGetValue
   , getCurrentContract
@@ -28,7 +27,9 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.NonEmptyList.Extra (extendWith, tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
+import Data.String (splitAt)
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console (log)
@@ -152,7 +153,6 @@ handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction (ChangeHelpContext help) = do
   assign _helpContext help
@@ -161,6 +161,13 @@ handleAction (ChangeHelpContext help) = do
 handleAction (ShowRightPanel val) = assign _showRightPanel val
 
 handleAction EditSource = pure unit
+
+stripPair :: String -> Boolean /\ String
+stripPair pair = case splitAt 4 pair of
+  { before, after }
+    | before == "inv-" -> true /\ after
+    | before == "dir-" -> false /\ after
+  _ -> false /\ pair
 
 setOraclePrice ::
   forall m.
@@ -177,7 +184,9 @@ setOraclePrice = do
         Just acts -> do
           case Array.head (Map.toUnfoldable acts) of
             Just (Tuple (ChoiceInputId choiceId@(ChoiceId pair _)) _) -> do
-              price <- getPrice "kraken" pair
+              let
+                inverse /\ strippedPair = stripPair pair
+              price <- getPrice inverse "kraken" strippedPair
               handleAction (SetChoice choiceId price)
             _ -> pure unit
         Nothing -> pure unit
@@ -190,10 +199,11 @@ getPrice ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
+  Boolean ->
   String ->
   String ->
   HalogenM State Action ChildSlots Void m BigInteger
-getPrice exchange pair = do
+getPrice inverse exchange pair = do
   settings <- asks _.ajaxSettings
   result <- runAjax (runReaderT (Server.getApiOracleByExchangeByPair exchange pair) settings)
   calculatedPrice <-
@@ -215,8 +225,8 @@ getPrice exchange pair = do
           Right resp -> do
             let
               price = fromNumber resp.result.price
-            let
-              adjustedPrice = price * fromNumber 100000000.0
+
+              adjustedPrice = (if inverse then one / price else price) * fromNumber 100000000.0
             log $ "Got price: " <> show resp.result.price <> ", remaining calls: " <> show resp.allowance.remaining
             pure $ Decimal.toString (truncated adjustedPrice)
           Left err -> do
@@ -258,9 +268,6 @@ scrollHelpPanel =
 
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorSetTheme = void $ query _simulatorEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _simulatorEditorSlot unit (Monaco.Resize unit)
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _simulatorEditorSlot unit (Monaco.SetText contents unit)

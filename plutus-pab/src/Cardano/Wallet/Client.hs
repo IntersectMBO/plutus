@@ -9,13 +9,14 @@
 module Cardano.Wallet.Client where
 
 import           Cardano.Wallet.API         (API)
+import           Cardano.Wallet.Types       (WalletInfo (..))
 import           Control.Monad              (void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error  (Error, throwError)
 import           Control.Monad.Freer.Reader (Reader, ask)
 import           Control.Monad.IO.Class     (MonadIO (..))
 import           Data.Proxy                 (Proxy (Proxy))
-import           Ledger                     (PubKey, Value)
+import           Ledger                     (Value)
 import           Ledger.AddressMap          (UtxoMap)
 import           Ledger.Slot                (Slot)
 import           Ledger.Tx                  (Tx)
@@ -24,9 +25,9 @@ import           Servant.Client             (ClientEnv, ClientError, ClientM, cl
 import           Wallet.Effects             (Payment (..), WalletEffect (..))
 import           Wallet.Emulator.Wallet     (Wallet (..))
 
-createWallet :: ClientM Wallet
+createWallet :: ClientM WalletInfo
 submitTxn :: Wallet -> Tx -> ClientM ()
-ownPublicKey :: Wallet -> ClientM PubKey
+ownPublicKey :: Wallet -> ClientM WalletInfo
 updatePaymentWithChange :: Wallet -> (Value, Payment) -> ClientM Payment
 walletSlot :: Wallet -> ClientM Slot
 ownOutputs :: Wallet -> ClientM UtxoMap
@@ -68,7 +69,7 @@ handleWalletClient wallet event = do
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     case event of
         SubmitTxn t                    -> runClient (submitTxn wallet t)
-        OwnPubKey                      -> runClient (ownPublicKey wallet)
+        OwnPubKey                      -> wiPubKey <$> runClient (ownPublicKey wallet)
         UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange wallet (vl, pmt)
         WalletSlot                     -> runClient $ walletSlot wallet
         OwnOutputs                     -> runClient $ ownOutputs wallet
