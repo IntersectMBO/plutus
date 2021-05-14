@@ -42,8 +42,11 @@ flatten p@(If _ true false)
   = (p, true, Just "True?") : flatten true
   ++ (p, false, Just "False?") : flatten false
 flatten p@(When cases t c)
-  = (p, c, Just $ show $ "Timeout: t >= " ++ show t)
-  : concatMap (\(Case a c') -> (p, c', Just $ actionShow a) : flatten c') cases
+  =  concatMap (\(Case a c') -> (p, c', Just $ actionShow a) : flatten c') cases
+
+-- flatten p@(When cases t c)
+--   = (p, c, Just $ show $ "Timeout: t >= " ++ show t)
+--   : concatMap (\(Case a c') -> (p, c', Just $ actionShow a) : flatten c') cases
 
 
 -- | Escape a string for display in mermaid.  In mermaid everything needs to
@@ -57,7 +60,11 @@ escape s = "\"" ++ s' ++ "\""
 -- | A concise representation of an action for display on an edge.
 -- FIXME: Implement a nice version.
 actionShow :: Action -> String
-actionShow = escape . show
+actionShow = escape . showAction
+  where
+    showAction (Deposit accountId party tkn val) = show party ++ " deposits " ++ valueShow val ++ " lovelaces into " ++ show accountId ++ " account"
+    showAction (Choice (ChoiceId id party) bnd) = show party ++ " makes a choice in " ++ show id
+    showAction (Notify obs) = "Notify"
 
 
 -- | A concise representation of an Observation for display in a node.
@@ -75,10 +82,24 @@ contractShow = escape . repr
     repr (When _ _ _) = "When ..."
     repr (If o _ _ )  = observationShow o
     repr (Pay from to tok v _) =
-      "Pay from " ++ show from ++ " to " ++ show to ++ " " ++ show v ++ " of " ++ show tok
+      "Pay " ++  valueShow v  ++ " from " ++ show from ++ " to " ++ show to
     repr x = show x
 
-
+valueShow :: Value -> String
+valueShow (Constant n)          = show n
+valueShow (ConstantParam param) = "$" ++ param
+valueShow other                 = show other
+-- valueShow    AvailableMoney S.AccountId S.Token
+-- valueShow    NegValue Value
+-- valueShow    AddValue Value Value
+-- valueShow    SubValue Value Value
+-- valueShow    MulValue Value Value
+-- valueShow    Scale Rational Value
+-- valueShow    ChoiceValue S.ChoiceId
+-- valueShow    SlotIntervalStart
+-- valueShow    SlotIntervalEnd
+-- valueShow    UseValue S.ValueId
+-- valueShow    Cond Observation Value Value
 -- | Convert a 'Contract' into a string that can be printed and loaded into the
 -- mermaid live editor: <https://mermaid-js.github.io/mermaid-live-editor/>.
 toMermaid :: Contract -> String
@@ -90,7 +111,7 @@ toMermaid c = unlines . nub $ "graph TB" : map f (flatten c)
     brackets Close           = ("((", "))") -- Circle
     brackets (Pay _ _ _ _ _) = ("[", "]")   -- Square
     brackets (If  _ _ _)     = ("(", ")")   -- Round
-    brackets (When  _ _ _)   = ("(", ")")   -- Round
+    brackets (When  _ _ _)   = ("{", "}")   -- Round
     brackets (Let  _ _ _)    = ("[", "]")   -- Square
     brackets (Assert  _ _)   = (">", "]")   -- Flag
     f (a, b, mt) =
