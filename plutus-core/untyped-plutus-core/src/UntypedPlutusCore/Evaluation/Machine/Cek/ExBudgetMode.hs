@@ -18,6 +18,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     , tallying
     , restricting
     , restrictingEnormous
+    , defaultSlippageFraction
     )
 where
 
@@ -49,7 +50,7 @@ monoidalBudgeting
 monoidalBudgeting toCost = ExBudgetMode $ do
     costRef <- newSTRef mempty
     let spend key budgetToSpend = modifySTRef' costRef (<> toCost key budgetToSpend)
-    pure . ExBudgetInfo (CekBudgetSpender spend) $ readSTRef costRef
+    pure $ ExBudgetInfo (CekBudgetSpender spend) (readSTRef costRef)
 
 -- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
 newtype CountingSt = CountingSt ExBudget
@@ -104,6 +105,10 @@ newtype RestrictingSt = RestrictingSt ExRestrictingBudget
 instance Pretty RestrictingSt where
     pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line
 
+-- | The default amount of slippage to allow in a restricting budget
+defaultSlippageFraction :: Rational
+defaultSlippageFraction = 0.1
+
 -- | For execution, to avoid overruns.
 restricting :: forall uni fun . (PrettyUni uni fun) => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
 restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
@@ -136,7 +141,7 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
                 throwingWithCauseExc @(CekEvaluationException uni fun) _EvaluationError
                     (UserEvaluationError $ CekOutOfExError $ ExRestrictingBudget $ ExBudget cpuLeft' memLeft')
                     Nothing
-    pure . ExBudgetInfo (CekBudgetSpender spend) $ do
+    pure $ ExBudgetInfo (CekBudgetSpender spend) $ do
         finalExBudget <- ExBudget <$> readCpu <*> readMem
         pure . RestrictingSt $ ExRestrictingBudget finalExBudget
 

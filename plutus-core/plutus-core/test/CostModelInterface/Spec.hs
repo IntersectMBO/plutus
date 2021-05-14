@@ -22,17 +22,11 @@ type CekCostModel = CostModel CekMachineCosts
 randomCekCosts :: CekMachineCosts
 randomCekCosts =
     CekMachineCosts { cekStartupCost = ExBudget 2342 234321
-                    , cekVarCost     = ExBudget 12312 56545
-                    , cekConstCost   = ExBudget 23490290838 2323423
-                    , cekLamCost     = ExBudget 0 712127381
-                    , cekDelayCost   = ExBudget 999 7777
-                    , cekForceCost   = ExBudget 1028234 0
-                    , cekApplyCost   = ExBudget 324628348 8273
-                    , cekBuiltinCost = ExBudget 4 4
+                    , cekStepCost    = ExBudget 12312 56545
                     }
 
-cekVarCostCpuKey :: Text.Text
-cekVarCostCpuKey = "cek_var_cost-_ex_budget_cpu"  -- This is the result of flatten . camelToSnake
+cekStepCostCpuKey :: Text.Text
+cekStepCostCpuKey = "cek_step_cost-_ex_budget_cpu"  -- This is the result of flatten . camelToSnake
 
 randomCekCostModel :: CekCostModel
 randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel
@@ -91,8 +85,8 @@ testSelfUpdateWithMissingEntry :: CekCostModel -> IO ()
 testSelfUpdateWithMissingEntry model =
     do
       params <- extractParams model
-      assertBool "CekVarCost not found in params" (Map.member cekVarCostCpuKey params)
-      let params' = Map.delete cekVarCostCpuKey params
+      assertBool "CekStepCost not found in params" (Map.member cekStepCostCpuKey params)
+      let params' = Map.delete cekStepCostCpuKey params
       model' <- applyParams model params'
       model' @?= model
 
@@ -102,9 +96,9 @@ testOtherUpdateWithMissingEntry :: CekCostModel -> CekCostModel -> IO ()
 testOtherUpdateWithMissingEntry model1 model2 =
     do
       params2 <- extractParams model2
-      assertBool "CekVarCost not found in params" (Map.member cekVarCostCpuKey params2)
-      let params2' = Map.delete cekVarCostCpuKey params2
-      assertBool "CekVarCost still in params" (not (Map.member cekVarCostCpuKey params2'))
+      assertBool "CekStepCost not found in params" (Map.member cekStepCostCpuKey params2)
+      let params2' = Map.delete cekStepCostCpuKey params2
+      assertBool "CekStepCost still in params" (not (Map.member cekStepCostCpuKey params2'))
       assertBool "params are the same" (params2 /= params2')
       model1' <- applyParams model1 params2'
       assertBool "The updated model is the same as the other model" (model1' /= model2)
@@ -154,5 +148,3 @@ test_costModelInterface =
              , testCase "defaultCekCostModel <- randomCekCostModel"  $ testExtractAfterUpdate defaultCekCostModel randomCekCostModel
              ]
      ]
-
-

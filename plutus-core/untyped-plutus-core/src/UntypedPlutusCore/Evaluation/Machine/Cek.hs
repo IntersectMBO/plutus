@@ -25,6 +25,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , tallying
     , restricting
     , restrictingEnormous
+    , defaultSlippageFraction
     , extractEvaluationResult
     , runCek
     , runCekNoEmit
