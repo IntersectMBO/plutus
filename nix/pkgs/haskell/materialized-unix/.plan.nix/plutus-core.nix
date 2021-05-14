@@ -310,6 +310,7 @@
       tests = {
         "plutus-core-test" = {
           depends = [
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
@@ -341,6 +342,7 @@
             "Pretty/Readable"
             "Check/Spec"
             "TypeSynthesis/Spec"
+            "CostModelInterface/Spec"
             ];
           hsSourceDirs = [ "plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
