@@ -25,7 +25,7 @@ import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractD
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
 import           Plutus.PAB.Effects.Contract                    (ContractDefinitionStore, ContractStore)
 import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe)
-import           Plutus.PAB.Effects.EventLog                    (Connection, handleEventLogSql)
+import           Plutus.PAB.Effects.EventLog                    (EventLogBackend, handleEventLog)
 import           Plutus.PAB.Events                              (PABEvent)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge        (MonadLoggerMsg)
 import           Plutus.PAB.Types                               (PABError)
@@ -34,7 +34,7 @@ import           Plutus.PAB.Types                               (PABError)
 --   SQLite database.
 runEventfulStoreAction ::
     forall a.
-    Connection
+    EventLogBackend (PABEvent ContractExe)
     -> Trace IO MonadLoggerMsg
     -> Eff '[ContractDefinitionStore ContractExe, ContractStore ContractExe, DelayEffect, IO] a
     -> IO (Either PABError a)
@@ -42,7 +42,7 @@ runEventfulStoreAction connection trace =
     runM
     . runError
     . runReader connection
-    . interpret (handleEventLogSql @_ @(PABEvent ContractExe) trace)
+    . interpret (handleEventLog @_ @(PABEvent ContractExe) trace)
     . subsume @IO
     . handleDelayEffect
     . interpret handleContractStore

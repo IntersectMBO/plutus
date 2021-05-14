@@ -14,7 +14,7 @@ import Halogen.HTML.Properties (href, src)
 import Images (marloweRunNavLogo, marloweRunNavLogoDark)
 import Marlowe.Semantics (PubKey, Slot)
 import Material.Icons (Icon(..), icon_)
-import Play.Lenses (_cards, _contractsState, _menuOpen, _newWalletNickname, _newWalletCompanionAppIdString, _newWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
+import Play.Lenses (_cards, _contractsState, _menuOpen, _walletIdInput, _walletNicknameInput, _remoteWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Screen(..), State)
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
@@ -132,11 +132,11 @@ renderCard currentSlot state card =
 
     assets = view _assets currentWalletDetails
 
-    newWalletNickname = view _newWalletNickname state
+    walletNicknameInput = view _walletNicknameInput state
 
-    newWalletCompanionAppIdString = view _newWalletCompanionAppIdString state
+    walletIdInput = view _walletIdInput state
 
-    newWalletInfo = view _newWalletInfo state
+    remoteWalletInfo = view _remoteWalletInfo state
 
     mSelectedContractState = preview _selectedContract state
 
@@ -167,7 +167,7 @@ renderCard currentSlot state card =
           [ classNames cardClasses ]
           $ closeButton
           <> case card of
-              SaveWalletCard mTokenName -> [ saveWalletCard walletLibrary newWalletNickname newWalletCompanionAppIdString newWalletInfo mTokenName ]
+              SaveWalletCard mTokenName -> [ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName ]
               ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
               PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
               TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard ]

@@ -9,6 +9,7 @@ import           Data.Validation                                  (Validation (.
 import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
+import           Language.Marlowe.Pretty
 import           Language.Marlowe.Semantics
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -122,7 +123,10 @@ pamProjected = do
 pamStatic :: IO ()
 pamStatic = case genStaticContract contractTerms of
   Failure _        -> assertFailure "Terms validation should not fail"
-  Success contract -> assertBool "Cashflows should not be Close" $ contract /= Close
+  Success contract ->
+    do
+      print (pretty contract)
+      assertBool "Cashflows should not be Close" $ contract /= Close
 
 pamFs :: IO ()
 pamFs = do

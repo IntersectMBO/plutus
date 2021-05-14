@@ -33,6 +33,9 @@ import Env (Env)
 import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM, liftEffect, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
+import InputField.Lenses (_value)
+import InputField.State (handleAction, initialState) as InputField
+import InputField.Types (Action(..), State) as InputField
 import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
@@ -40,11 +43,11 @@ import Marlowe.PAB (PlutusAppId(..), History(..))
 import Marlowe.Semantics (Slot(..))
 import Marlowe.Semantics (State(..)) as Semantic
 import Network.RemoteData (RemoteData(..), fromEither)
-import Play.Lenses (_allContracts, _cards, _contractsState, _menuOpen, _newWalletCompanionAppIdString, _newWalletInfo, _newWalletNickname, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
+import Play.Lenses (_allContracts, _cards, _contractsState, _menuOpen, _walletIdInput, _walletNicknameInput, _remoteWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Input, Screen(..), State)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import StaticData (walletLibraryLocalStorageKey)
-import Template.Lenses (_extendedContract, _roleWallets, _template, _templateContent)
+import Template.Lenses (_extendedContract, _roleWalletInputs, _template, _templateContent)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
@@ -52,7 +55,7 @@ import Toast.Types (ajaxErrorToast, errorToast, successToast)
 import WalletData.Lenses (_pubKeyHash, _walletInfo)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletDetails, WalletLibrary)
-import WalletData.Validation (parsePlutusAppId)
+import WalletData.Validation (WalletIdError, WalletNicknameError, parsePlutusAppId, walletIdError, walletNicknameError)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -65,9 +68,9 @@ mkInitialState walletLibrary walletDetails contracts currentSlot timezoneOffset 
   , menuOpen: false
   , screen: ContractsScreen
   , cards: mempty
-  , newWalletNickname: mempty
-  , newWalletCompanionAppIdString: mempty
-  , newWalletInfo: NotAsked
+  , walletNicknameInput: InputField.initialState
+  , walletIdInput: InputField.initialState
+  , remoteWalletInfo: NotAsked
   , timezoneOffset
   , templateState: Template.dummyState
   , contractsState: ContractHome.mkInitialState walletDetails currentSlot contracts
@@ -88,43 +91,52 @@ handleAction _ PutdownWallet = do
   runningContracts <- use _allContracts
   callMainFrameAction $ MainFrame.EnterPickupState walletLibrary walletDetails runningContracts
 
-handleAction _ (SetNewWalletNickname walletNickname) = assign _newWalletNickname walletNickname
+handleAction _ (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 
-handleAction _ (SetNewWalletCompanionAppIdString companionAppIdString) = do
-  modify_
-    $ set _newWalletCompanionAppIdString companionAppIdString
-    <<< set _newWalletInfo NotAsked
-  -- if this is a valid contract ID ...
-  for_ (parsePlutusAppId companionAppIdString) \companionAppId -> do
-    assign _newWalletInfo Loading
-    -- .. lookup wallet info
-    ajaxWalletInfo <- lookupWalletInfo companionAppId
-    assign _newWalletInfo $ fromEither ajaxWalletInfo
+handleAction input (WalletIdInputAction inputFieldAction) = do
+  case inputFieldAction of
+    InputField.SetValue walletIdString -> do
+      -- note we handle the inputFieldAction _first_ so that the InputField value is set - otherwise the
+      -- validation feedback is wrong while the rest is happening
+      toWalletIdInput $ InputField.handleAction inputFieldAction
+      handleAction input $ SetRemoteWalletInfo NotAsked
+      -- if this is a valid contract ID ...
+      for_ (parsePlutusAppId walletIdString) \walletId -> do
+        handleAction input $ SetRemoteWalletInfo Loading
+        -- .. lookup wallet info
+        ajaxWalletInfo <- lookupWalletInfo walletId
+        handleAction input $ SetRemoteWalletInfo $ fromEither ajaxWalletInfo
+    _ -> toWalletIdInput $ InputField.handleAction inputFieldAction
+
+handleAction input (SetRemoteWalletInfo remoteWalletInfo) = do
+  assign _remoteWalletInfo remoteWalletInfo
+  walletLibrary <- use _walletLibrary
+  handleAction input $ WalletIdInputAction $ InputField.SetValidator $ walletIdError remoteWalletInfo walletLibrary
 
 handleAction input (SaveNewWallet mTokenName) = do
   oldWalletLibrary <- use _walletLibrary
-  newWalletNickname <- use _newWalletNickname
-  newWalletCompanionAppIdString <- use _newWalletCompanionAppIdString
-  newWalletInfo <- use _newWalletInfo
+  walletNickname <- use (_walletNicknameInput <<< _value)
+  walletIdString <- use (_walletIdInput <<< _value)
+  remoteWalletInfo <- use _remoteWalletInfo
   let
-    newWalletCompanionAppId = parsePlutusAppId newWalletCompanionAppIdString
-  case newWalletInfo, newWalletCompanionAppId of
-    Success walletInfo, Just companionAppId -> do
+    mWalletId = parsePlutusAppId walletIdString
+  case remoteWalletInfo, mWalletId of
+    Success walletInfo, Just walletId -> do
       handleAction input CloseCard
       let
         walletDetails =
-          { walletNickname: newWalletNickname
-          , companionAppId
+          { walletNickname
+          , companionAppId: walletId
           , walletInfo
           , assets: mempty
           }
-      modify_
-        $ over _walletLibrary (insert newWalletNickname walletDetails)
-        <<< set _newWalletNickname mempty
-        <<< set _newWalletCompanionAppIdString mempty
-        <<< set _newWalletInfo NotAsked
+      modifying _walletLibrary (insert walletNickname walletDetails)
       newWalletLibrary <- use _walletLibrary
       liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON newWalletLibrary
+      -- if a tokenName was also passed, we need to update the contract setup data
+      for_ mTokenName \tokenName -> do
+        handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators newWalletLibrary
+        handleAction input $ TemplateAction $ Template.RoleWalletInputAction tokenName $ InputField.SetValue walletNickname
     -- TODO: show error feedback to the user (just to be safe - but this should never happen, because
     -- the button to save a new wallet should be disabled in this case)
     _, _ -> pure unit
@@ -137,7 +149,15 @@ handleAction _ (SetScreen screen) =
     <<< set _cards mempty
     <<< set _screen screen
 
-handleAction _ (OpenCard card) =
+handleAction input (OpenCard card) = do
+  case card of
+    SaveWalletCard _ -> do
+      walletLibrary <- use _walletLibrary
+      assign _remoteWalletInfo NotAsked
+      handleAction input $ WalletNicknameInputAction InputField.Reset
+      handleAction input $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
+      handleAction input $ WalletIdInputAction $ InputField.SetValidator $ walletIdError NotAsked walletLibrary
+    _ -> pure unit
   modify_
     $ over _cards (flip snoc card)
     <<< set _menuOpen false
@@ -169,6 +189,8 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
   Template.SetTemplate template -> do
     mCurrentTemplate <- peruse (_templateState <<< _template)
     when (mCurrentTemplate /= Just template) $ assign _templateState $ Template.mkInitialState template
+    walletLibrary <- use _walletLibrary
+    handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators walletLibrary
     handleAction input $ SetScreen TemplateScreen
   Template.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
   Template.OpenCreateWalletCard tokenName -> handleAction input $ OpenCard $ SaveWalletCard $ Just tokenName
@@ -183,8 +205,10 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
         -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
         walletDetails <- use _walletDetails
         walletLibrary <- use _walletLibrary
-        roleWallets <- use (_templateState <<< _roleWallets)
+        roleWalletInputs <- use (_templateState <<< _roleWalletInputs)
         let
+          roleWallets = map (view _value) roleWalletInputs
+
           roles = mapMaybe (\walletNickname -> view (_walletInfo <<< _pubKeyHash) <$> lookup walletNickname walletLibrary) roleWallets
         ajaxCreateContract <- createContract walletDetails roles contract
         case ajaxCreateContract of
@@ -236,6 +260,20 @@ handleAction input@{ currentSlot } (ContractAction contractAction) = do
     _ -> toContract $ Contract.handleAction contractInput contractAction
 
 ------------------------------------------------------------
+toWalletNicknameInput ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM (InputField.State WalletNicknameError) (InputField.Action WalletNicknameError) slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toWalletNicknameInput = mapSubmodule _walletNicknameInput WalletNicknameInputAction
+
+toWalletIdInput ::
+  forall m msg slots.
+  Functor m =>
+  HalogenM (InputField.State WalletIdError) (InputField.Action WalletIdError) slots msg m Unit ->
+  HalogenM State Action slots msg m Unit
+toWalletIdInput = mapSubmodule _walletIdInput WalletIdInputAction
+
 toTemplate ::
   forall m msg slots.
   Functor m =>

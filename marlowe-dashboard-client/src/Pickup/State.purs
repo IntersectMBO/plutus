@@ -26,10 +26,10 @@ import LocalStorage (setItem, removeItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Pickup.Lenses (_card, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
+import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
 import Pickup.Types (Action(..), Card(..), State)
 import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
-import Toast.Types (ajaxErrorToast)
+import Toast.Types (ajaxErrorToast, errorToast)
 import WalletData.Lenses (_companionAppId, _walletNickname)
 import WalletData.Types (WalletLibrary)
 import WalletData.Validation (WalletIdError, WalletNicknameError, parsePlutusAppId, walletNicknameError)
@@ -65,8 +65,11 @@ handleAction ::
 handleAction (OpenCard card) = assign _card $ Just card
 
 handleAction CloseCard = do
-  assign _card Nothing
-  assign _remoteWalletDetails NotAsked
+  modify_
+    $ set _walletNicknameOrId mempty
+    <<< set _remoteWalletDetails NotAsked
+    <<< set _pickingUp false
+    <<< set _card Nothing
   handleAction $ WalletNicknameInputAction $ InputField.Reset
   handleAction $ WalletIdInputAction $ InputField.Reset
 
@@ -127,6 +130,7 @@ handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInpu
 handleAction (WalletIdInputAction inputFieldAction) = toWalletIdInput $ InputField.handleAction inputFieldAction
 
 handleAction (PickupWallet walletNickname) = do
+  assign _pickingUp true
   remoteWalletDetails <- use _remoteWalletDetails
   case remoteWalletDetails of
     Success walletDetails -> do
@@ -136,7 +140,11 @@ handleAction (PickupWallet walletNickname) = do
       walletLibrary <- use _walletLibrary
       liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON walletLibrary
       callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetailsWithNickname
-    _ -> pure unit -- this action should never be triggered in this case
+    _ -> do
+      -- this should never happen (the "Pickup Wallet" button should be disabled unless remoteWalletDetails is Success),
+      -- but let's add some sensible behaviour anyway just in case
+      handleAction CloseCard
+      addToast $ errorToast "Unable to pick up wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage =
   liftEffect do

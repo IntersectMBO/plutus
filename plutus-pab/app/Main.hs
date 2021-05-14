@@ -37,7 +37,7 @@ import           System.Exit                             (ExitCode (ExitFailure)
 
 main :: IO ()
 main = do
-    AppOpts { minLogLevel, logConfigPath, runEkgServer, cmd, configPath } <- parseOptions
+    AppOpts { minLogLevel, logConfigPath, runEkgServer, cmd, configPath, eventfulBackend } <- parseOptions
 
     -- Parse config files and initialize logging
     logConfig <- maybe defaultConfig loadConfig logConfigPath
@@ -57,7 +57,14 @@ main = do
                         Nothing -> pure $ Left MissingConfigFileOption
                         Just p -> do
                             config <- liftIO $ decodeFileThrow p
-                            Right <$> runConfigCommand (convertLog PrettyObject trace) logConfig config serviceAvailability command
+                            let args = ConfigCommandArgs
+                                        { ccaTrace = convertLog PrettyObject trace
+                                        , ccaLoggingConfig = logConfig
+                                        , ccaPABConfig = config
+                                        , ccaAvailability = serviceAvailability
+                                        , ccaEventfulBackend = eventfulBackend
+                                        }
+                            Right <$> runConfigCommand args command
                 WithoutConfig command -> Right <$> runNoConfigCommand (convertLog PrettyObject trace) command
     either handleError (const exitSuccess) result
 

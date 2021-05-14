@@ -287,7 +287,6 @@ mockCtx = ScriptContext
       , txInfoSignatories = []
       , txInfoId = TxId P.emptyByteString
       , txInfoData = []
-      , txInfoInputsFees = []
       , txInfoDCert = []
       , txInfoWdrl = []
       }
