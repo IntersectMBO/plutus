@@ -91,9 +91,6 @@ balanceWallet utx = do
     outputs <- ownOutputs
     balanceTx outputs pk utx
 
-splitInRef :: Tx.TxIn -> ([Tx.TxIn], [Tx.TxIn])
-splitInRef ref = if Tx.txInType ref == Tx.ConsumePublicKeyAddress then ([ref], []) else ([], [ref])
-
 lookupValue ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
@@ -127,9 +124,8 @@ balanceTx ::
     -- ^ The unbalanced transaction
     -> Eff effs Tx
 balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
-    let (pubKeyInputs, scriptInputs) = foldMap splitInRef (Tx.txInputs unBalancedTxTx)
-    pubKeyInputValues <- traverse lookupValue pubKeyInputs
-    scriptInputValues <- traverse lookupValue scriptInputs
+    pubKeyInputValues <- traverse lookupValue (unBalancedTxTx ^.. Tx.inputs . Tx.pubKeyTxIns)
+    scriptInputValues <- traverse lookupValue (unBalancedTxTx ^.. Tx.inputs . Tx.scriptTxIns)
     feesIn            <- traverse lookupValue (Set.toList $ Tx.txInputsFees unBalancedTxTx)
     let pubKeyInputValue = fold pubKeyInputValues
         left = L.txForge unBalancedTxTx <> pubKeyInputValue <> fold scriptInputValues
@@ -203,7 +199,7 @@ assignInputsFees ::
     -> Tx
     -> Eff effs Tx
 assignInputsFees fees tx = do
-    let (pubKeyInputs, _) = foldMap splitInRef (Tx.txInputs tx)
+    let pubKeyInputs = tx ^.. Tx.inputs . Tx.pubKeyTxIns
     pubKeyInputValues <- traverse (\ref -> (,) ref <$> lookupValue ref) pubKeyInputs
     (assigned, _) <- E.selectCoin pubKeyInputValues fees
     let

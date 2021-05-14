@@ -61,6 +61,8 @@ module Plutus.V1.Ledger.Tx(
     validRange,
     pubKeyTxIn,
     scriptTxIn,
+    pubKeyTxIns,
+    scriptTxIns,
     -- * Addresses
     Address
     ) where
@@ -330,6 +332,14 @@ pubKeyTxIn r = TxIn r ConsumePublicKeyAddress
 -- | A transaction input that spends a "pay to script" output, given witnesses.
 scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
 scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
+
+-- | Filter to get only the pubkey inputs.
+pubKeyTxIns :: Fold (Set.Set TxIn) TxIn
+pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == ConsumePublicKeyAddress))
+
+-- | Filter to get only the script inputs.
+scriptTxIns :: Fold (Set.Set TxIn) TxIn
+scriptTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t /= ConsumePublicKeyAddress))
 
 -- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
 data TxOut = TxOut {

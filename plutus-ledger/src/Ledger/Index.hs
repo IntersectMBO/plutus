@@ -38,7 +38,7 @@ import           Prelude                          hiding (lookup)
 
 import           Codec.Serialise                  (Serialise)
 import           Control.DeepSeq                  (NFData)
-import           Control.Lens                     (view, (^.))
+import           Control.Lens                     (toListOf, view, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (ExceptT, MonadError (..), runExcept, runExceptT)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
@@ -165,6 +165,7 @@ validateTransaction :: ValidationMonad m
     -> Tx
     -> m (Maybe ValidationErrorInPhase, UtxoIndex)
 validateTransaction h t = do
+    -- Phase 1 validation
     checkSlotRange h t
     checkValuePreserved t
     checkPositiveValues t
@@ -175,12 +176,15 @@ validateTransaction h t = do
     unless emptyUtxoSet (checkForgingAuthorised t)
     unless emptyUtxoSet (checkTransactionFee t)
 
-    checkValidInputs (view inputs) t
-    checkValidInputs (view inputsFees) t
+    checkValidInputs (toListOf (inputs . pubKeyTxIns)) t
+    checkValidInputs (Set.toList . view inputsFees) t
     checkNoInputOverlap t
 
     (do
+        -- Phase 2 validation
+        checkValidInputs (toListOf (inputs . scriptTxIns)) t
         unless emptyUtxoSet (checkForgingScripts t)
+
         idx <- ask
         pure (Nothing, insert t idx)
         )
@@ -199,7 +203,7 @@ checkSlotRange sl tx =
 
 -- | Check if the inputs of the transaction consume outputs that exist, and
 --   can be unlocked by the signatures or validator scripts of the inputs.
-checkValidInputs :: ValidationMonad m => (Tx -> Set.Set TxIn) -> Tx -> m ()
+checkValidInputs :: ValidationMonad m => (Tx -> [TxIn]) -> Tx -> m ()
 checkValidInputs getInputs tx = do
     let tid = txId tx
         sigs = tx ^. signatures
@@ -215,8 +219,8 @@ checkNoInputOverlap tx = do
     unless (Set.null overlap) $ throwError $ InputsOverlap overlap
 
 -- | Match each input of the transaction with the output that it spends.
-lkpOutputs :: ValidationMonad m => Set.Set TxIn -> m [(TxIn, TxOut)]
-lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList
+lkpOutputs :: ValidationMonad m => [TxIn] -> m [(TxIn, TxOut)]
+lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t))
 
 {- note [Forging of Ada]
 
