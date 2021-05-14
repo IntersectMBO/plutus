@@ -1045,10 +1045,17 @@ progress' M with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E)
 
 data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
-  step : ∀{B}(E : EC A B){L L' : ∅ ⊢ B}
-    → L —→⋆ L'
+  step :
+      (Value M → ⊥)
+    → ∀{B}(E : EC A B){L N : ∅ ⊢ B}
+    → L —→⋆ N
     → M ≡ E [ L ]ᴱ
+    → (∀{B'}(E' : EC A B'){L' N' : ∅ ⊢ B'} → L' —→⋆ N' → M ≡ E' [ L' ]ᴱ
+                → ∃ λ (p : B ≡ B')
+                    → substEq (EC A) p E ≡ E' × substEq (∅ ⊢_) p L ≡ L'
+                    × substEq (∅ ⊢_) p N ≡ N')
       -------------
+    
     → EProgress M
   done :
       Value M
@@ -1059,12 +1066,18 @@ data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       -------
     → EProgress M
 
+{-
 lemma51' : ∀{A}(M : ∅ ⊢ A) → EProgress M
 lemma51' M with lemma51 M
 ... | inj₁ V = done V
 ... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, p') = step E p p'
 ... | inj₂ (B ,, E ,, L ,, inj₂ e ,, p) = error E e p
-
+-}
+subst<>>∈ : ∀{b b' as as' az az'}
+  → az' <>> as' ∈ arity b'
+  → b ≡ b' → az ≡ az' → as ≡ as'
+  → az <>> as ∈ arity b
+subst<>>∈ p refl refl refl = p
 
 uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
 
@@ -1077,12 +1090,6 @@ uniqueBApp .(bubble p) (M ·⋆ A) (step⋆ p v) (step⋆ .p v')
 uniqueBApp .(bubble p) (M · M') (step p v w) (step .p v' w')
   with uniqueBApp p M v v' | uniqueVal M' w w'
 ... | refl | refl = refl
-
-subst<>>∈ : ∀{b b' as as' az az'}
-  → az' <>> as' ∈ arity b'
-  → b ≡ b' → az ≡ az' → as ≡ as'
-  → az <>> as ∈ arity b
-subst<>>∈ p refl refl refl = p
 
 uniqueBApp' : ∀{A b b' as as' az az'}(M : ∅ ⊢ A)(p : az <>> as ∈ arity b)(p' : az' <>> as' ∈ arity b')(v : BApp b p M)(v' : BApp b' p' M)
   → ∃ λ (r : b ≡ b') → ∃ λ (r' : az ≡ az') → ∃ λ (r'' : as ≡ as')
@@ -1105,4 +1112,41 @@ uniqueVal M (V-I⇒ b x y) (V-I⇒ b' x' y') with uniqueBApp' M x x' y y'
 ... | refl ,, refl ,, refl ,, refl = cong (V-I⇒ b x) (uniqueBApp x M y y')
 uniqueVal M (V-IΠ b x y) (V-IΠ b' x' y')  with uniqueBApp' M x x' y y'
 ... | refl ,, refl ,, refl ,, refl = cong (V-IΠ b x) (uniqueBApp x M y y')
+
+lemV· : ∀{A B}{M : ∅ ⊢ A ⇒ B}{M'} → ¬ (Value M) → ¬ (Value (M · M'))
+lemV· ¬VM (V-I⇒ b .(bubble p) (step p q VM')) = ⊥-elim (¬VM (V-I⇒ b p q))
+lemV· ¬VM (V-IΠ b .(bubble p) (step p q VM')) = ⊥-elim (¬VM (V-I⇒ b p q))
+
+subst-l· : ∀{A B C C'}(E : EC (A ⇒ B) C)(M' : ∅ ⊢ A)(p : C ≡ C')
+  → substEq (EC B) p (E l· M') ≡ substEq (EC (A ⇒ B)) p E l· M'
+subst-l· E B refl = refl
+
+
+lemma51! : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A)
+  → EProgress M
+lemma51! (ƛ M) = done (V-ƛ M)
+lemma51! (M · M') with lemma51! M
+... | step ¬VM E p q U = step
+  (lemV· ¬VM)
+  (E l· M')
+  p (cong (_· M') q)
+  λ { [] {.(ƛ _ · M')} (β-ƛ VM') refl → ⊥-elim (¬VM (V-ƛ _))
+    ; [] {.(M · M')} (β-sbuiltin b .M p bt .M' VM') refl →
+      ⊥-elim (¬VM (V-I⇒ b p bt))
+    ; (E' l· B) {L'} {N'} p' refl → let X ,, Y ,, Y' = U E' p' refl in
+      X ,, trans (subst-l· E M' (proj₁ (U E' p' refl))) (cong (_l· M') Y) ,, Y'
+    ; (VM ·r E') {L'} {N'} p' refl → ⊥-elim (¬VM VM)
+    ; (E' ·⋆ A) {L'} {N'} p' ()
+    ; (wrap E') {L'} {N'} p' ()
+    ; (unwrap E') {L'} {N'} p' ()
+    }
+... | done VM = {!!}
+... | error X Y Y' = {!!}
+lemma51! (Λ M) = done (V-Λ M)
+lemma51! (M ·⋆ A) = {!!}
+lemma51! (wrap A B M) = {!!}
+lemma51! (unwrap M) = {!!}
+lemma51! (con c) = done (V-con c)
+lemma51! (ibuiltin b) = done (ival b)
+lemma51! (error _) = {!!}
 
