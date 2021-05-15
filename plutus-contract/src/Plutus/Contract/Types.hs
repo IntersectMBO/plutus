@@ -293,7 +293,10 @@ runResumable events store action =
   let initial = Trace.trace "runResumable" $ suspend store action
       runStep' con rsp = fromMaybe con (runStep con rsp)
       result = foldl' runStep' initial events & view resumableResult
-  in  Trace.trace ("Responses: " <> (show $ fmap fst $ _responses result)) result
+  in
+    Trace.trace ("Responses: " <> (show $ fmap fst $ _responses result))
+    $ Trace.trace ("Store: " <> show (_checkpointStore result))
+    $ result
 
 runWithRecord ::
   forall w s e a.
@@ -380,12 +383,13 @@ runStep ::
   -> Response (Event s)
   -> Maybe (SuspendedContract w e (Event s) (Handlers s) a)
 runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState, _logs=oldLogs}} event =
-  Trace.trace ("Inserting event with " <> show _checkpointKey) $
+  let k' = _checkpointKey in -- fromMaybe _checkpointKey (maxKey _checkpointStore) in
+  Trace.trace ("Inserting event with " <> show k') $
   Just
     $ set (resumableResult . responses) (insertResponse (fmap (_checkpointKey,) event) _responses)
     $ mkResult _observableState oldLogs
     $ runSuspContractEffects
-        _checkpointKey
+        k'
         _checkpointStore
         $ ndcCont event
 runStep _ _ = Nothing
