@@ -72,7 +72,6 @@ library
         PlutusTx.IsData.TH
         PlutusTx.Lift.THUtils
         PlutusTx.Lift.Instances
-    build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -96,6 +95,7 @@ test-suite plutus-tx-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
+    build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,
         plutus-tx -any,
