@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StrictData        #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
     ( CekMachineCosts(..)
