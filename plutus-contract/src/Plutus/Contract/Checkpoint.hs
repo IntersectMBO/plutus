@@ -26,6 +26,7 @@ module Plutus.Contract.Checkpoint(
     , jsonCheckpointLoop
     , handleCheckpoint
     , completedIntervals
+    , maxKey
     ) where
 
 import           Control.Lens
@@ -35,7 +36,7 @@ import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logError)
 import           Control.Monad.Freer.State      (State, get, gets, modify, put)
 import           Data.Aeson                     (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value)
 import qualified Data.Aeson.Types               as JSON
-import           Data.IntervalMap.Interval      (Interval (OpenInterval))
+import           Data.IntervalMap.Interval      (Interval (ClosedInterval))
 import qualified Data.IntervalSet               as IS
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
@@ -89,7 +90,11 @@ _CheckpointStore = iso unCheckpointStore CheckpointStore
 --   checkpoint store.
 completedIntervals :: CheckpointStore -> IS.IntervalSet (Interval CheckpointKey)
 completedIntervals = IS.fromList . fmap (uncurry f) . Map.toList . unCheckpointStore where
-    f (from_ :: CheckpointKey) CheckpointStoreItem{csNewKey} = OpenInterval from_ csNewKey
+    f (from_ :: CheckpointKey) CheckpointStoreItem{csNewKey} = ClosedInterval from_ csNewKey
+
+-- | The maximum key that is present in the store
+maxKey :: CheckpointStore -> Maybe CheckpointKey
+maxKey = fmap fst . Map.lookupMax . unCheckpointStore
 
 data CheckpointStoreItem a =
     CheckpointStoreItem
@@ -273,5 +278,6 @@ jsonCheckpointLoop action initial = do
                 actionResult <- action a
                 k' <- allocateKey
                 store @_ k k' actionResult
+                doCheckpoint
                 go actionResult
     go current

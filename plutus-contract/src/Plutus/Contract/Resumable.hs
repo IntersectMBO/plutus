@@ -255,8 +255,8 @@ type ResumableEffs i o effs a =
     -- the 'State IterationID' effects of the branch that is
     -- selected will persist, so that the iteration ID is increased
     -- exactly once per branching level.
-     State IterationID
-     ': NonDet
+     NonDet
+     ': State IterationID
      ': State RequestID
      ': State (ReqMap i o effs a)
      ': State (Requests o)
@@ -303,7 +303,7 @@ runSuspInt ::
     forall i o a effs.
     Eff (ResumableEffs i o effs a) a
     -> Eff effs (Maybe (MultiRequestContStatus i o effs a))
-runSuspInt = go mempty where
+runSuspInt = go 1 where
     go currentIteration action = do
         let suspMap = ReqMap Map.empty -- start with a fresh map in every step to make sure that the old continuations are discarded
 
@@ -312,17 +312,19 @@ runSuspInt = go mempty where
         result <- runState @(Requests o) mempty
                     $ runState suspMap
                     $ evalState (RequestID 0)
+                    $ runState currentIteration
                     $ makeChoiceA @Maybe
-                    $ evalState currentIteration
                     $ action
         case  result of
-            ((Nothing, ReqMap mp), rqs) ->
+            (((Nothing, it), ReqMap mp), rqs) ->
                 let k Response{rspRqID, rspItID, rspResponse} = do
                         case Map.lookup (rspRqID, rspItID) mp of
                             Nothing -> pure Nothing
-                            Just k' -> go (succ currentIteration) (k' rspResponse)
+                            Just k' -> do
+                                let nextIteration = succ it
+                                go nextIteration (k' rspResponse)
                 in pure $ Just $ AContinuation $ MultiRequestContinuation { ndcCont = k, ndcRequests = rqs}
-            ((Just a, _), _) -> pure $ Just $ AResult a
+            (((Just a, _), _), _) -> pure $ Just $ AResult a
 
 -- | Given the status of a suspended computation, either
 --   return the result or record the request and store
@@ -386,14 +388,12 @@ nextRequestID s = do
     Requests{unRequests} <- get
     requestID <- get @RequestID
     iid <- get @IterationID
-    let niid = succ iid
-        nid  = succ requestID
+    let nid  = succ requestID
     put $ Requests
-            { unRequests = Request{rqRequest=s,rqID=nid,itID=niid} : unRequests
+            { unRequests = Request{rqRequest=s,rqID=nid,itID=iid} : unRequests
             }
-    put niid
     put nid
-    pure (niid, nid)
+    pure (iid, nid)
 
 clearRequests :: forall o effs. Member (State (Requests o)) effs => Eff effs ()
 clearRequests = modify @(Requests o) (\rq -> rq{unRequests = [] })

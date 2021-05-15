@@ -281,7 +281,7 @@ deriving anyclass instance  (V.Forall (Input s) JSON.FromJSON, V.Forall (Output 
 emptyInstanceState :: Monoid w => Contract w s e a -> ContractInstanceStateInternal w s e a
 emptyInstanceState (Contract c) =
     ContractInstanceStateInternal
-        { cisiSuspState = Contract.Types.suspend c
+        { cisiSuspState = Contract.Types.suspend mempty c
         , cisiEvents = mempty
         , cisiHandlersHistory = mempty
         }

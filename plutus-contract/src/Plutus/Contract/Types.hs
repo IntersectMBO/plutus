@@ -74,13 +74,15 @@ import           Control.Monad.Freer.Writer        (Writer)
 import qualified Control.Monad.Freer.Writer        as W
 import           Data.Aeson                        (Value)
 import qualified Data.Aeson                        as Aeson
+import           Data.Bifunctor                    (Bifunctor (..))
 import           Data.Foldable                     (foldl')
-import           Data.IntervalMap.Interval         (Interval (OpenInterval))
+import           Data.IntervalMap.Interval         (Interval (ClosedInterval))
 import qualified Data.IntervalSet                  as IS
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
 import           Data.Sequence                     (Seq)
 import           Data.Void                         (Void)
+import qualified Debug.Trace                       as Trace
 import           GHC.Generics                      (Generic)
 
 import           Plutus.Contract.Schema            (Event (..), Handlers (..))
@@ -88,7 +90,7 @@ import           Plutus.Contract.Schema            (Event (..), Handlers (..))
 import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Checkpoint (..), CheckpointError (..),
                                                     CheckpointKey, CheckpointLogMsg, CheckpointStore,
                                                     completedIntervals, handleCheckpoint, jsonCheckpoint,
-                                                    jsonCheckpointLoop)
+                                                    jsonCheckpointLoop, maxKey)
 import           Plutus.Contract.Resumable         hiding (responses, select)
 import qualified Plutus.Contract.Resumable         as Resumable
 
@@ -165,8 +167,10 @@ addEnvToCheckpoint = reinterpret @Checkpoint @Checkpoint @effs $ \case
       Right (Just (env, a)) -> do
         putContractEnv env
         pure (Right (Just a))
-      Left err -> pure (Left err)
-      Right Nothing -> pure (Right Nothing)
+      Left err -> do
+        pure (Left err)
+      Right Nothing -> do
+        pure (Right Nothing)
 
 -- | @Contract w s e a@ is a contract with schema 's', producing a value of
 --  type 'a' or an error 'e'. See note [Contract Schema].
@@ -264,7 +268,9 @@ shrinkResumableResult :: ResumableResult w e i o a -> ResumableResult w e i o a
 shrinkResumableResult rs =
   let comp = rs ^. checkpointStore . to completedIntervals
       isCovered :: CheckpointKey -> Bool
-      isCovered k = IS.member (OpenInterval k k) comp
+      isCovered k = IS.member (ClosedInterval k k) comp
+        -- let r =
+        -- in Trace.trace (show k <> " `isCovered` == " <> show r <> ": " <> show comp) r
   in rs & logs .~ mempty
         & over (responses . _Responses) (Map.filter (not . isCovered . fst))
 
@@ -284,9 +290,10 @@ runResumable ::
   -> Eff (ContractEffs w s e) a
   -> ResumableResult w e (Event s) (Handlers s) a
 runResumable events store action =
-  let initial = suspend action & resumableResult . checkpointStore .~ store
+  let initial = Trace.trace "runResumable" $ suspend store action
       runStep' con rsp = fromMaybe con (runStep con rsp)
-  in foldl' runStep' initial events & view resumableResult
+      result = foldl' runStep' initial events & view resumableResult
+  in  Trace.trace ("Responses: " <> (show $ fmap fst $ _responses result)) result
 
 runWithRecord ::
   forall w s e a.
@@ -354,13 +361,15 @@ runSuspContractEffects cpKey cpStore =
 suspend ::
   forall w s e a.
   Monoid w
-  => Eff (ContractEffs w s e) a -- ^ The contract
+  => CheckpointStore
+  -> Eff (ContractEffs w s e) a -- ^ The contract
   -> SuspendedContract w e (Event s) (Handlers s) a
-suspend action =
+suspend store action =
+  let initialKey = 0 in --fromMaybe 0 (maxKey store) in
   mkResult mempty mempty
     $ runSuspContractEffects @w @e @(Event s) @_
-      (0 :: CheckpointKey)
-      (mempty @CheckpointStore)
+      initialKey
+      store
       (handleContractEffs @w @s @e @(SuspendedContractEffects w e (Event s)) action)
 
 -- | Feed a 'Response' to a 'SuspendedContract'.
@@ -371,6 +380,7 @@ runStep ::
   -> Response (Event s)
   -> Maybe (SuspendedContract w e (Event s) (Handlers s) a)
 runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState, _logs=oldLogs}} event =
+  Trace.trace ("Inserting event with " <> show _checkpointKey) $
   Just
     $ set (resumableResult . responses) (insertResponse (fmap (_checkpointKey,) event) _responses)
     $ mkResult _observableState oldLogs
