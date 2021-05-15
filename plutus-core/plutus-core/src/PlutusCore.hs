@@ -119,19 +119,22 @@ module PlutusCore
     , defaultCekMachineCosts
     , defaultCekParameters
     , unitCekParameters
+    -- * CEK machine costs
+    , cekMachineCostsPrefix
+    , CekMachineCosts (..)
     ) where
 
 import           PlutusPrelude
 
 import           PlutusCore.Builtins
-import           PlutusCore.CBOR                                   ()
-import qualified PlutusCore.Check.Uniques                          as Uniques
+import           PlutusCore.CBOR                                          ()
+import qualified PlutusCore.Check.Uniques                                 as Uniques
 import           PlutusCore.Core
 import           PlutusCore.DeBruijn
 import           PlutusCore.Error
 import           PlutusCore.Evaluation.Machine.Ck
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           PlutusCore.Flat                                   ()
+import           PlutusCore.Flat                                          ()
 import           PlutusCore.Lexer
 import           PlutusCore.Lexer.Type
 import           PlutusCore.Name
@@ -141,12 +144,13 @@ import           PlutusCore.Pretty
 import           PlutusCore.Quote
 import           PlutusCore.Rename
 import           PlutusCore.Size
-import           PlutusCore.TypeCheck                              as TypeCheck
+import           PlutusCore.TypeCheck                                     as TypeCheck
 import           PlutusCore.Universe
+import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                              as BSL
-import qualified Data.Text                                         as T
+import qualified Data.ByteString.Lazy                                     as BSL
+import qualified Data.Text                                                as T
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.

@@ -8,8 +8,8 @@ module CostModelInterface.Spec (test_costModelInterface) where
 
 import           PlutusCore
 import           PlutusCore.Evaluation.Machine.CostModelInterface
+import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.MachineParameters
-import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 -- import           Data.Aeson
 import           Test.Tasty
@@ -17,8 +17,21 @@ import           Test.Tasty.HUnit
 
 type CekCostModel = CostModel CekMachineCosts
 
-unitCekCostModel :: CekCostModel
-unitCekCostModel = CostModel unitCekMachineCosts defaultBuiltinCostModel
+-- Just for testing
+randomCekCosts :: CekMachineCosts
+randomCekCosts =
+    CekMachineCosts { cekStartupCost = ExBudget 2342 234321
+                    , cekVarCost     = ExBudget 12312 56545
+                    , cekConstCost   = ExBudget 23490290838 2323423
+                    , cekLamCost     = ExBudget 0 712127381
+                    , cekDelayCost   = ExBudget 999 7777
+                    , cekForceCost   = ExBudget 1028234 0
+                    , cekApplyCost   = ExBudget 324628348 8273
+                    , cekBuiltinCost = ExBudget 4 4
+                    }
+
+randomCekCostModel :: CekCostModel
+randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel
 
 test_costModelInterface :: TestTree
 test_costModelInterface =
@@ -27,7 +40,7 @@ test_costModelInterface =
 test_extract :: TestTree
 test_extract = testGroup "extractCostModelParams works"
                [ testCase "defaultCekCostModel" $ mkExtractionTest defaultCekCostModel
-               , testCase "unitCekCostModel"    $ mkExtractionTest unitCekCostModel
+               , testCase "randomCekCostModel"    $ mkExtractionTest randomCekCostModel
                ]
 
 -- | Extract the params from a cost model and return them, failing if it doesn't work
@@ -67,7 +80,7 @@ mkUpdateTest model1 model2 = do
 test_apply :: TestTree
 test_apply = testGroup "applyCostModelParams works"
          [ testCase "defaultCekCostModel <- defaultCekCostModel" $ mkUpdateTest defaultCekCostModel defaultCekCostModel
-         , testCase "defaultCekCostModel <- unitCekCostModel"    $ mkUpdateTest defaultCekCostModel unitCekCostModel
-         , testCase "unitCekCostModel    <- unitCekCostModel"    $ mkUpdateTest unitCekCostModel    unitCekCostModel
-         , testCase "unitCekCostModel    <- defaultCekCostModel" $ mkUpdateTest unitCekCostModel    defaultCekCostModel
+         , testCase "defaultCekCostModel <- randomCekCostModel"  $ mkUpdateTest defaultCekCostModel randomCekCostModel
+         , testCase "randomCekCostModel  <- randomCekCostModel"  $ mkUpdateTest randomCekCostModel  randomCekCostModel
+         , testCase "randomCekCostModel  <- defaultCekCostModel" $ mkUpdateTest randomCekCostModel  defaultCekCostModel
          ]

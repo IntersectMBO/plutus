@@ -35,7 +35,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , unsafeEvaluateCekNoEmit
     , readKnownCek
     , enormousBudget
-    , unitCekMachineCosts
     )
 where
 
