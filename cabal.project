@@ -2,6 +2,7 @@
 index-state: 2021-04-13T00:00:00Z
 
 packages: doc
+          fake-pab
           freer-extras
           marlowe
           marlowe-actus

@@ -151,6 +151,7 @@
         "cryptonite".flags.support_pclmuldq = false;
         "cryptonite".flags.check_alignment = false;
         "cryptonite".flags.old_toolchain_inliner = false;
+        "postgresql-simple".revision = (((hackage."postgresql-simple")."0.6.4").revisions).default;
         "alex".revision = (((hackage."alex")."3.2.6").revisions).default;
         "alex".flags.small_base = true;
         "clock".revision = (((hackage."clock")."0.8.2").revisions).default;
@@ -302,6 +303,7 @@
         "vector".flags.boundschecks = true;
         "call-stack".revision = (((hackage."call-stack")."0.3.0").revisions).default;
         "primitive".revision = (((hackage."primitive")."0.7.1.0").revisions).default;
+        "cryptohash".revision = (((hackage."cryptohash")."0.11.9").revisions).default;
         "profunctors".revision = (((hackage."profunctors")."5.6").revisions).default;
         "safe".revision = (((hackage."safe")."0.3.19").revisions).default;
         "size-based".revision = (((hackage."size-based")."0.1.2.0").revisions).default;
@@ -453,6 +455,8 @@
         "parser-combinators".revision = (((hackage."parser-combinators")."1.3.0").revisions).default;
         "parser-combinators".flags.dev = false;
         "blaze-markup".revision = (((hackage."blaze-markup")."0.8.2.8").revisions).default;
+        "postgresql-libpq".revision = (((hackage."postgresql-libpq")."0.9.4.3").revisions).default;
+        "postgresql-libpq".flags.use-pkg-config = false;
         "eventful-core".revision = (((hackage."eventful-core")."0.2.0").revisions).default;
         "tasty-golden".revision = (((hackage."tasty-golden")."2.3.4").revisions).default;
         "tasty-golden".flags.build-example = false;
@@ -534,6 +538,7 @@
         "file-embed".revision = (((hackage."file-embed")."0.0.13.0").revisions).default;
         "operational".revision = (((hackage."operational")."0.2.3.5").revisions).default;
         "operational".flags.buildexamples = true;
+        "byteable".revision = (((hackage."byteable")."0.1.1").revisions).default;
         "foundation".revision = (((hackage."foundation")."0.0.25").revisions).default;
         "foundation".flags.minimal-deps = false;
         "foundation".flags.doctest = false;
@@ -727,6 +732,7 @@
         cardano-ledger = ./.plan.nix/cardano-ledger.nix;
         purescript-bridge = ./.plan.nix/purescript-bridge.nix;
         marlowe = ./.plan.nix/marlowe.nix;
+        fake-pab = ./.plan.nix/fake-pab.nix;
         ouroboros-network = ./.plan.nix/ouroboros-network.nix;
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         plutus-tx = ./.plan.nix/plutus-tx.nix;
@@ -842,6 +848,7 @@
           "marlowe" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
+          "fake-pab" = { flags = {}; };
           "ouroboros-network" = {
             flags = {
               "cddl" = lib.mkOverride 900 true;
