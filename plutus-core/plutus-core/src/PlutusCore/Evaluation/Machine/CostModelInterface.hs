@@ -74,7 +74,7 @@ that to split the map of parameters into two maps.
 -- we need a large scale factor to avoid truncating a significant number of
 -- digits.
 scaleFactor :: S.Scientific
-scaleFactor = read "1e20"
+scaleFactor = 1e20
 
 -- See Note [Cost model parameters]
 type CostModelParams = Map.Map Text.Text Integer
