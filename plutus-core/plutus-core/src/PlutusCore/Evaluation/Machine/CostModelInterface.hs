@@ -39,8 +39,9 @@ look only at the numbers.
 
 We'd really prefer to expose integers as our parameters - they're just better
 behaved, and really we'd like to use integers internally too for determinism
-reasons. So we pretend that we have integers by scaling up all our numbers by
-1000*1000 and taking the integral floor, at some loss of precision.
+reasons. So we pretend that we have integers by scaling up all our numbers by a
+large power of 10 (see scaleFactor below) and taking the integral floor, at some
+loss of precision.
 
 Once we use integers internally this will be simpler.
 
@@ -68,6 +69,13 @@ that to split the map of parameters into two maps.
 
 -}
 
+-- | See point 3 of Note [Cost model parameters]
+-- Some of the numbers in the cost model are of the order or 1e-7 or 1e-8, and
+-- we need a large scale factor to avoid truncating a significant number of
+-- digits.
+scaleFactor :: S.Scientific
+scaleFactor = read "1e20"
+
 -- See Note [Cost model parameters]
 type CostModelParams = Map.Map Text.Text Integer
 
@@ -79,7 +87,7 @@ extractParams cm = case toJSON cm of
         let
             flattened = flattenObject "-" o
             toScaledInteger :: S.Scientific -> Integer
-            toScaledInteger n = floor (n*10^20)
+            toScaledInteger n = floor (n*scaleFactor)
             scaledNumbers = HM.mapMaybe (\case { Number n -> Just $ toScaledInteger n; _ -> Nothing }) flattened
             mapified = Map.fromList $ HM.toList scaledNumbers
         in Just mapified
@@ -93,7 +101,7 @@ applyParams cm params = case toJSON cm of
     Object o ->
         let
             hashmapified = HM.fromList $ Map.toList params
-            scaledNumbers = fmap (\n -> Number $ fromIntegral n / 10^20) hashmapified
+            scaledNumbers = fmap (\n -> Number $ fromIntegral n / scaleFactor) hashmapified
             flattened = flattenObject "-" o
             -- this is where the overwriting happens, this is left-biased
             merged = HM.union scaledNumbers flattened
