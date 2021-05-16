@@ -73,8 +73,10 @@ testOverwrite model1 model2 = do
   updated <- applyParams model1 params
   updated @?= model2
 
--- Update a model with its own params with an extra entry: this is apparently OK,
--- although what happens to that entry when we convert back to a model?
+-- Update a model with its own params with an extra entry.  This is OK:
+-- 'fromJSON' will successfully decode anything that contains sufficient
+-- information to construct a result of the expected type, but extra stuff can
+-- be present as well.
 testSelfUpdateWithExtraEntry :: CekCostModel -> IO ()
 testSelfUpdateWithExtraEntry model =
     do
