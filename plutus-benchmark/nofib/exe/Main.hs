@@ -188,7 +188,7 @@ options = hsubparser
 ---------------- Evaluation ----------------
 
 evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateWithCek = unsafeEvaluateCekNoEmit defaultCekParameters
+evaluateWithCek = unsafeEvaluateCekNoEmit PLC.defaultCekParameters
 
 toDeBruijn :: UPLC.Program Name DefaultUni DefaultFun a -> IO (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun a)
 toDeBruijn prog = do
