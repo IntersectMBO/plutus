@@ -68,6 +68,17 @@ loopCheckpointContract = do
             then pure (Left $ newVal + k)
             else pure (Right newVal)
 
+foreverLoopContract :: Contract () Schema ContractError ()
+foreverLoopContract = do
+    k <- endpoint @"2" @Int
+    flip checkpointLoop (0 :: Int) $ \counter -> do
+        vl1 <- endpoint @"1" @Int
+        vl2 <- endpoint @"2" @Int
+        vl3 <- endpoint @"3" @Int
+        let newVal = vl1 + vl2 + vl3
+        logInfo @String (show newVal)
+        pure (Right newVal)
+
 initial :: _
 initial = State.initialiseContract loopCheckpointContract
 
@@ -83,5 +94,34 @@ call it i oldState =
 
 terminate = snd $ call 5 1 $ fst $ call 4 1 $ fst $ call 3 1 $ fst $ call 2 1 $ State.newState initial'
 
-
 nonTerminate = snd $ call 4 1 $ fst $ call 3 1 $ fst $ call 2 1 $ State.newState initial'
+
+initial2 :: _
+initial2 = State.initialiseContract foreverLoopContract
+
+upd2 :: _
+upd2 = State.insertAndUpdateContract foreverLoopContract
+
+call1 :: IterationID -> Int -> _
+call1 it i oldState =
+    upd2 State.ContractRequest{State.oldState, State.event = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"1" i}}
+
+call2 :: IterationID -> Int -> _
+call2 it i oldState =
+    upd2 State.ContractRequest{State.oldState, State.event = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"2" i}}
+
+call3 :: IterationID -> Int -> _
+call3 it i oldState =
+    upd2 State.ContractRequest{State.oldState, State.event = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"3" i}}
+
+-- 2, 1, 2, 3
+nonTerminate2 =
+    -- call1 5 2
+    call3 4 15 $
+        -- logs should have the result (15); OK
+        -- record should have 1 entry; OK
+        -- checkpoints should have 1 entry OK
+    State.newState $ call2 3 15 $
+    State.newState $ call1 2 15 $
+    State.newState $ call2 1 15 $
+    State.newState initial2

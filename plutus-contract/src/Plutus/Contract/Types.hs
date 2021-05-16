@@ -268,9 +268,9 @@ shrinkResumableResult :: ResumableResult w e i o a -> ResumableResult w e i o a
 shrinkResumableResult rs =
   let comp = rs ^. checkpointStore . to completedIntervals
       isCovered :: CheckpointKey -> Bool
-      isCovered k = IS.member (ClosedInterval k k) comp
-        -- let r =
-        -- in Trace.trace (show k <> " `isCovered` == " <> show r <> ": " <> show comp) r
+      isCovered k =
+        let r = not $ IS.null $ IS.containing comp k
+        in Trace.trace (show k <> " `isCovered` == " <> show r <> ": " <> show comp) r
   in rs & logs .~ mempty
         & over (responses . _Responses) (Map.filter (not . isCovered . fst))
 
@@ -326,7 +326,7 @@ mkResult oldW oldLogs (initialRes, cpKey, cpStore, w, newLogs) =
           ResumableResult
             { _responses = mempty
             , _requests =
-                let getRequests = \case { AContinuation MultiRequestContinuation{ndcRequests} -> Just ndcRequests; _ -> Nothing }
+                let getRequests = \case { AContinuation MultiRequestContinuation{ndcRequests} -> Just ndcRequests; _ -> Trace.trace "mkResult: no more requests" Nothing }
                 in either mempty ((fromMaybe mempty) . (>>= getRequests)) initialRes
             , _finalState =
                 let getResult = \case { AResult a -> Just a; _ -> Nothing } in
@@ -392,7 +392,7 @@ runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinu
         k'
         _checkpointStore
         $ ndcCont event
-runStep _ _ = Nothing
+runStep _ _ = Trace.trace "runStep: Nothing" Nothing
 
 insertAndUpdate ::
   forall w s e a.
