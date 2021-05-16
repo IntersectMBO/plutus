@@ -37,6 +37,7 @@ cekVarCostCpuKey = "cek_var_cost-_ex_budget_cpu"  -- flatten . camelToSnake
 randomCekCostModel :: CekCostModel
 randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel
 
+-- Tests
 
 -- | Extract the params from a cost model and return them, failing if it doesn't work
 extractParams :: CekCostModel -> IO CostModelParams
@@ -55,7 +56,7 @@ applyParams model params = do
 -- | Just check that extraction works.
 testExtraction :: CekCostModel -> IO ()
 testExtraction model = do
-  _extracted <- extractParams model  --We're not going to use this, but it may still fail.
+  _extracted <- extractParams model  -- We're not going to use this but it may still fail.
   pure ()
 
 -- Update a model with its own parameters and check that we get the same model back
@@ -80,7 +81,7 @@ testSelfUpdateWithExtraEntry model =
       params <- extractParams model
       let params' = Map.insert "XYZ" 123 params
       model' <- applyParams model params'
-      model @?= model'
+      model' @?= model
 
 -- Update a model with its own params with an entry deleted: this should
 -- be OK because the original member of the model will still be there.
@@ -91,7 +92,7 @@ testSelfUpdateWithMissingEntry model =
       assertBool "CekVarCost not found in params" (Map.member cekVarCostCpuKey params)
       let params' = Map.delete cekVarCostCpuKey params
       model' <- applyParams model params'
-      model @?= model'
+      model' @?= model
 
 -- Update a model with the params from another model with an entry
 -- deleted.  The result should be different from both of the original models.
@@ -115,7 +116,7 @@ testExtractAfterUpdate model1 model2 =
       params <- extractParams model2
       updated <- applyParams model1 params
       params' <- extractParams updated
-      params @?= params'
+      params' @?= params
 
 test_costModelInterface :: TestTree
 test_costModelInterface =

@@ -310,9 +310,9 @@ test-suite plutus-core-test
         CostModelInterface.Spec
     default-language: Haskell2010
     build-depends:
-        aeson -any,
         base -any,
         bytestring -any,
+        containers -any,
         filepath -any,
         flat -any,
         hedgehog -any,

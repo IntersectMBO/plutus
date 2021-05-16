@@ -79,7 +79,7 @@ extractParams cm = case toJSON cm of
         let
             flattened = flattenObject "-" o
             toScaledInteger :: S.Scientific -> Integer
-            toScaledInteger n = floor (n*1000*1000)
+            toScaledInteger n = floor (n*10^20)
             scaledNumbers = HM.mapMaybe (\case { Number n -> Just $ toScaledInteger n; _ -> Nothing }) flattened
             mapified = Map.fromList $ HM.toList scaledNumbers
         in Just mapified
@@ -93,7 +93,7 @@ applyParams cm params = case toJSON cm of
     Object o ->
         let
             hashmapified = HM.fromList $ Map.toList params
-            scaledNumbers = fmap (\n -> Number $ fromIntegral n / (1000*1000)) hashmapified
+            scaledNumbers = fmap (\n -> Number $ fromIntegral n / 10^20) hashmapified
             flattened = flattenObject "-" o
             -- this is where the overwriting happens, this is left-biased
             merged = HM.union scaledNumbers flattened
