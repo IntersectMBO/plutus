@@ -80,6 +80,7 @@
           "Ledger/Oracle"
           "Ledger/Orphans"
           "Ledger/Index"
+          "Ledger/TimeSlot"
           "Ledger/Tokens"
           "Ledger/Typed/Scripts"
           "Ledger/Typed/Scripts/Validators"

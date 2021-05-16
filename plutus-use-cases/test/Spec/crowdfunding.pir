@@ -2282,6 +2282,141 @@
           (termbind
             (strict)
             (vardecl
+              posixTimeRangeToSlotRange
+              (fun [Interval (con integer)] [Interval (con integer)])
+            )
+            (lam
+              ptr
+              [Interval (con integer)]
+              [
+                {
+                  [ { Interval_match (con integer) } ptr ]
+                  [Interval (con integer)]
+                }
+                (lam
+                  from
+                  [LowerBound (con integer)]
+                  (lam
+                    to
+                    [UpperBound (con integer)]
+                    [
+                      [
+                        { Interval (con integer) }
+                        [
+                          {
+                            [ { LowerBound_match (con integer) } from ]
+                            [LowerBound (con integer)]
+                          }
+                          (lam
+                            e
+                            [Extended (con integer)]
+                            (lam
+                              c
+                              Bool
+                              [
+                                [
+                                  { LowerBound (con integer) }
+                                  [
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [
+                                              { Extended_match (con integer) } e
+                                            ]
+                                            (fun Unit [Extended (con integer)])
+                                          }
+                                          (lam
+                                            a
+                                            (con integer)
+                                            (lam
+                                              thunk
+                                              Unit
+                                              [
+                                                { Finite (con integer) }
+                                                [
+                                                  [
+                                                    (builtin subtractInteger) a
+                                                  ]
+                                                  (con integer 1596059091)
+                                                ]
+                                              ]
+                                            )
+                                          )
+                                        ]
+                                        (lam thunk Unit { NegInf (con integer) }
+                                        )
+                                      ]
+                                      (lam thunk Unit { PosInf (con integer) })
+                                    ]
+                                    Unit
+                                  ]
+                                ]
+                                c
+                              ]
+                            )
+                          )
+                        ]
+                      ]
+                      [
+                        {
+                          [ { UpperBound_match (con integer) } to ]
+                          [UpperBound (con integer)]
+                        }
+                        (lam
+                          e
+                          [Extended (con integer)]
+                          (lam
+                            c
+                            Bool
+                            [
+                              [
+                                { UpperBound (con integer) }
+                                [
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ { Extended_match (con integer) } e ]
+                                          (fun Unit [Extended (con integer)])
+                                        }
+                                        (lam
+                                          a
+                                          (con integer)
+                                          (lam
+                                            thunk
+                                            Unit
+                                            [
+                                              { Finite (con integer) }
+                                              [
+                                                [ (builtin subtractInteger) a ]
+                                                (con integer 1596059091)
+                                              ]
+                                            ]
+                                          )
+                                        )
+                                      ]
+                                      (lam thunk Unit { NegInf (con integer) })
+                                    ]
+                                    (lam thunk Unit { PosInf (con integer) })
+                                  ]
+                                  Unit
+                                ]
+                              ]
+                              c
+                            ]
+                          )
+                        )
+                      ]
+                    ]
+                  )
+                )
+              ]
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl
               equalsByteString
               (fun (con bytestring) (fun (con bytestring) Bool))
             )
@@ -2722,7 +2857,14 @@
                                                   (lam
                                                     ds
                                                     [List [[Tuple2 (con bytestring)] Data]]
-                                                    (lam ds (con bytestring) ds)
+                                                    (lam
+                                                      ds
+                                                      (con bytestring)
+                                                      [
+                                                        posixTimeRangeToSlotRange
+                                                        ds
+                                                      ]
+                                                    )
                                                   )
                                                 )
                                               )
@@ -2858,7 +3000,12 @@
                                                       ds
                                                       [List [[Tuple2 (con bytestring)] Data]]
                                                       (lam
-                                                        ds (con bytestring) ds
+                                                        ds
+                                                        (con bytestring)
+                                                        [
+                                                          posixTimeRangeToSlotRange
+                                                          ds
+                                                        ]
                                                       )
                                                     )
                                                   )

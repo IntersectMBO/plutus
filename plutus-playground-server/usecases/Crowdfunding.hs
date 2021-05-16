@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE ExplicitNamespaces         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NamedFieldPuns             #-}
@@ -25,18 +24,19 @@ module Crowdfunding where
 import           Control.Applicative         (Applicative (pure))
 import           Control.Monad               (void)
 import           Ledger                      (PubKeyHash, ScriptContext (..), TxInfo (..), Validator, pubKeyHash, txId)
-import qualified Ledger                      as Ledger
+import qualified Ledger
 import qualified Ledger.Contexts             as V
 import qualified Ledger.Interval             as Interval
 import qualified Ledger.Scripts              as Scripts
 import           Ledger.Slot                 (Slot, SlotRange)
+import qualified Ledger.TimeSlot             as TimeSlot
 import qualified Ledger.Typed.Scripts        as Scripts
 import           Ledger.Value                (Value)
 import           Playground.Contract
 import           Plutus.Contract
 import qualified Plutus.Contract.Constraints as Constraints
 import qualified Plutus.Contract.Typed.Tx    as Typed
-import qualified PlutusTx                    as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude            hiding (Applicative (..), Semigroup (..))
 import           Prelude                     (Semigroup (..))
 import qualified Prelude                     as Haskell
@@ -111,14 +111,14 @@ scriptInstance = Scripts.validatorParam @Crowdfunding
 validRefund :: Campaign -> PubKeyHash -> TxInfo -> Bool
 validRefund campaign contributor txinfo =
     -- Check that the transaction falls in the refund range of the campaign
-    Interval.contains (refundRange campaign) (txInfoValidRange txinfo)
+    Interval.contains (TimeSlot.slotRangeToPOSIXTimeRange $ refundRange campaign) (txInfoValidRange txinfo)
     -- Check that the transaction is signed by the contributor
     && (txinfo `V.txSignedBy` contributor)
 
 validCollection :: Campaign -> TxInfo -> Bool
 validCollection campaign txinfo =
     -- Check that the transaction falls in the collection range of the campaign
-    (collectionRange campaign `Interval.contains` txInfoValidRange txinfo)
+    (TimeSlot.slotRangeToPOSIXTimeRange (collectionRange campaign) `Interval.contains` txInfoValidRange txinfo)
     -- Check that the transaction is signed by the campaign owner
     && (txinfo `V.txSignedBy` campaignOwner campaign)
 
