@@ -56,8 +56,8 @@ contractTerms = ContractTerms {
         , ct_OPCL = Nothing
         , ct_OPANX = Nothing
         -- Scaling:
-        , ct_SCIED = Just 0.0
-        , ct_SCEF = Just SE_000
+        , ct_SCIED = Nothing
+        , ct_SCEF = Nothing
         , ct_SCCL = Nothing
         , ct_SCANX = Nothing
         , ct_SCIXSD = 0.0
@@ -65,12 +65,12 @@ contractTerms = ContractTerms {
         , ct_RRCL = Nothing
         , ct_RRANX = Nothing
         , ct_RRNXT = Nothing
-        , ct_RRSP = Just 0.0
-        , ct_RRMLT = Just 0.0
-        , ct_RRPF = Just 0.0
-        , ct_RRPC = Just 0.0
-        , ct_RRLC = Just 0.0
-        , ct_RRLF = Just 0.0
+        , ct_RRSP = Nothing
+        , ct_RRMLT = Nothing
+        , ct_RRPF = Nothing
+        , ct_RRPC = Nothing
+        , ct_RRLC = Nothing
+        , ct_RRLF = Nothing
         -- Interest
         , ct_IPCED = Nothing
         , ct_IPCL  = Just $ Cycle 1 P_Y ShortStub
@@ -84,7 +84,7 @@ contractTerms = ContractTerms {
         , ct_IPCBCL = Nothing  -- Cycle of interest calculation base
         , ct_IPCBANX = Nothing   -- Anchor of interest calc base cycle
         -- Fee
-        , ct_FECL  = Nothing
+        , ct_FECL  = Just $ Cycle 1 P_Y ShortStub
         , ct_FEANX  = Nothing
         , ct_FEAC  = Nothing
         , ct_FEB = Just FEB_N
@@ -134,7 +134,10 @@ pamFs = do
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
     case genFsContract contractTerms of
-      Failure _ -> assertFailure "Terms validation should not fail"
+      Failure a ->
+        do
+        (print a)
+        assertFailure "Terms validation should not fail"
       Success contract ->
         assertBool "Cashflows should not be Close" $ contract /= Close
 

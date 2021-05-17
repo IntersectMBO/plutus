@@ -190,8 +190,8 @@ data ContractTerms = ContractTerms
   , ct_FECL          :: Maybe Cycle    -- Cycle Of Fee
   , ct_FEANX         :: Maybe Day      -- Cycle Anchor Date Of Fee
   , ct_FEAC          :: Maybe Double   -- Fee Accrued
-  , ct_FEB           :: Maybe FEB      -- Fee Basis TODO: check applicability
-  , ct_FER           :: Maybe Double   -- Fee Rate TODO: check applicability
+  , ct_FEB           :: Maybe FEB      -- Fee Basis
+  , ct_FER           :: Maybe Double   -- Fee Rate
 
   -- Interest
   , ct_IPANX         :: Maybe Day      -- Cycle Anchor Date Of Interest Payment
@@ -215,7 +215,7 @@ data ContractTerms = ContractTerms
   , ct_PPRD          :: Maybe Double   -- Price At Purchase Date
   , ct_TD            :: Maybe Day      -- Termination Date
   , ct_PTD           :: Maybe Double   -- Price At Termination Date
-  , ct_SCIED         :: Maybe Double   -- Scaling Index At Status Date TODO: check applicability
+  , ct_SCIED         :: Maybe Double   -- Scaling Index At Status Date
   , ct_SCANX         :: Maybe Day      -- Cycle Anchor Date Of Scaling Index
   , ct_SCCL          :: Maybe Cycle    -- Cycle Of Scaling Index
   , ct_SCEF          :: Maybe SCEF     -- Scaling Effect
@@ -224,21 +224,21 @@ data ContractTerms = ContractTerms
   -- Optionality
   , ct_OPCL          :: Maybe Cycle    -- Cycle Of Optionality
   , ct_OPANX         :: Maybe Day      -- Cycle Anchor Date Of Optionality
-  , ct_PYRT          :: Maybe Double   -- Penalty Rate TODO: check applicability
-  , ct_PYTP          :: Maybe PYTP     -- Penalty Type TODO: check applicability
-  , ct_PPEF          :: Maybe PPEF     -- Prepayment Effect TODO: check applicability
+  , ct_PYRT          :: Maybe Double   -- Penalty Rate
+  , ct_PYTP          :: Maybe PYTP     -- Penalty Type
+  , ct_PPEF          :: Maybe PPEF     -- Prepayment Effect
   , ct_cPYRT         :: Double
 
   -- Rate Reset
   , ct_RRCL          :: Maybe Cycle    -- Cycle Of Rate Reset
   , ct_RRANX         :: Maybe Day      -- Cycle Anchor Date Of Rate Reset
   , ct_RRNXT         :: Maybe Double   -- Next Reset Rate
-  , ct_RRSP          :: Maybe Double   -- Rate Spread TODO: check applicability
-  , ct_RRMLT         :: Maybe Double   -- Rate Multiplier TODO: check applicability
-  , ct_RRPF          :: Maybe Double   -- Period Floor TODO: check applicability
-  , ct_RRPC          :: Maybe Double   -- Period Cap TODO: check applicability
-  , ct_RRLC          :: Maybe Double   -- Life Cap TODO: check applicability
-  , ct_RRLF          :: Maybe Double   -- Life Floor TODO: check applicability
+  , ct_RRSP          :: Maybe Double   -- Rate Spread
+  , ct_RRMLT         :: Maybe Double   -- Rate Multiplier
+  , ct_RRPF          :: Maybe Double   -- Period Floor
+  , ct_RRPC          :: Maybe Double   -- Period Cap
+  , ct_RRLC          :: Maybe Double   -- Life Cap
+  , ct_RRLF          :: Maybe Double   -- Life Floor
 
   -- enable settlement currency
   , ct_CURS          :: Bool

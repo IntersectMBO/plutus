@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.INIT.StateInitialization where
 
-import           Data.Maybe                                                 (fromJust, fromMaybe)
+import           Data.Maybe                                                 (fromMaybe)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IP, PR))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (LAM, NAM, PAM), ContractTerms (..))

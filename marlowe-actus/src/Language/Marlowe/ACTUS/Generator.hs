@@ -25,7 +25,8 @@ import           Language.Marlowe.ACTUS.Analysis                          (genPr
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (AssertionContext (..), Assertions (..),
                                                                            ContractTerms (collateralAmount, constraints, ct_CURS, ct_SD),
-                                                                           TermValidationError (..))
+                                                                           TermValidationError (..),
+                                                                           setDefaultContractTermValues)
 import           Language.Marlowe.ACTUS.Definitions.Schedule              (CashFlow (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                     (constnt, dayToSlotNumber,
                                                                            toMarloweFixedPoint)
@@ -143,8 +144,9 @@ genStaticContract :: ContractTerms -> Validation [TermValidationError] Contract
 genStaticContract terms =
     case validateTerms terms of
         Failure errs -> Failure errs
-        Success t ->
+        Success _ ->
             let
+                t = setDefaultContractTermValues terms
                 cfs = genProjectedCashflows t
                 gen CashFlow {..}
                     | amount == 0.0 = id
@@ -182,24 +184,25 @@ genFsContract terms =
         Failure errs -> Failure errs
         Success _ ->
             let
+                terms' = setDefaultContractTermValues terms
                 postProcess cont =
-                    let ctr = constraints terms
-                        toAssert = genZeroRiskAssertions terms <$> (assertions =<< maybeToList ctr)
+                    let ctr = constraints terms'
+                        toAssert = genZeroRiskAssertions terms' <$> (assertions =<< maybeToList ctr)
                         compose = appEndo . mconcat . map Endo
                     in compose toAssert cont
 
                 payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
-                schedCfs = genProjectedCashflows terms
+                schedCfs = genProjectedCashflows terms'
                 schedEvents = cashEvent <$> schedCfs
                 schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
-                previousDates = ct_SD terms : (cashCalculationDay <$> schedCfs)
+                previousDates = ct_SD terms' : (cashCalculationDay <$> schedCfs)
                 cfsDirections = amount <$> schedCfs
-                ctx = context <$> constraints terms
+                ctx = context <$> constraints terms'
 
                 gen :: (CashFlow, Day, EventType, Slot, Double, Integer) -> Contract -> Contract
                 gen (cf, prevDate, ev, date, r, t) cont =
-                    inquiryFs ev terms ("_" ++ show t) date "oracle" ctx
-                    $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
+                    inquiryFs ev terms' ("_" ++ show t) date "oracle" ctx
+                    $ stateTransitionFs ev terms' t prevDate (cashCalculationDay cf)
                     $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
                     $ if isNothing pof then cont
                     else if  r > 0.0   then
@@ -220,8 +223,8 @@ genFsContract terms =
                             -- (Constant $ collateralAmount terms)
                             date
                             cont
-                    where pof = payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf)
+                    where pof = payoffFs ev terms' t (t - 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
-                withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms) (dayToSlotNumber $ ct_SD terms) cont
-            in Success . withCollateral $ inititializeStateFs terms scheduleAcc
+                withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms') (dayToSlotNumber $ ct_SD terms') cont
+            in Success . withCollateral $ inititializeStateFs terms' scheduleAcc
