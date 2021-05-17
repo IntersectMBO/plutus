@@ -20,6 +20,7 @@ module Plutus.Contract.Checkpoint(
     , CheckpointError(..)
     , AsCheckpointError(..)
     , CheckpointStore(..)
+    , CheckpointStoreItem(..)
     , CheckpointKey
     , CheckpointLogMsg(..)
     , jsonCheckpoint

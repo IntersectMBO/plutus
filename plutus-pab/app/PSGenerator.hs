@@ -30,7 +30,7 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Ledger.Constraints.OffChain                (UnbalancedTx)
 import qualified PSGenerator.Common
-import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore)
+import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
 import           Plutus.Contract.Effects.AwaitSlot          (WaitingForSlot)
 import           Plutus.Contract.Effects.AwaitTxConfirmed   (TxConfirmed)
 import           Plutus.Contract.Effects.ExposeEndpoint     (ActiveEndpoint, EndpointValue)
@@ -114,6 +114,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(State A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointStore)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(CheckpointStoreItem A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
