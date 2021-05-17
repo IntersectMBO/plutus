@@ -89,7 +89,7 @@ import           Prelude              as Prelude hiding (Applicative (..), Eq (.
                                                   Traversable (..), all, and, any, concat, concatMap, const, divMod,
                                                   either, elem, error, filter, fst, head, id, length, map, max, maybe,
                                                   min, not, notElem, null, or, quotRem, reverse, round, sequence, snd,
-                                                  zip, (!!), ($), (&&), (++), (<$>), (||))
+                                                  take, zip, (!!), ($), (&&), (++), (<$>), (||))
 import           Prelude              as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately
