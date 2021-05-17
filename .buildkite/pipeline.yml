@@ -1,8 +1,8 @@
 steps:
-  - label: 'deploy (staging) 🚀'
+  - label: 'deploy (alpha) 🚀'
     command:
       - "./.buildkite/deploy.sh alpha"
-    branches: "master"
+    branches: "alpha"
     concurrency: 1
     concurrency_group: "plutus-alpha-deploy"
     agents:
@@ -14,6 +14,15 @@ steps:
     branches: "production"
     concurrency: 1
     concurrency_group: "plutus-production-deploy"
+    agents:
+      system: x86_64-linux
+
+  - label: 'deploy (staging) 🚀'
+    command:
+      - "./.buildkite/deploy.sh staging"
+    branches: "master"
+    concurrency: 1
+    concurrency_group: "plutus-staging-deploy"
     agents:
       system: x86_64-linux
 

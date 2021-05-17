@@ -2,6 +2,8 @@
 
 <img align="left" src="https://badge.buildkite.com/d1e532e610e22c0e918b69938be8a644f615c9920e3d17cdaf.svg?branch=master"> staging environment deployment
 
+<img align="left" src="https://badge.buildkite.com/d1e532e610e22c0e918b69938be8a644f615c9920e3d17cdaf.svg?branch=alpha"> alpha environment deployment
+
 <img align="left" src="https://badge.buildkite.com/d1e532e610e22c0e918b69938be8a644f615c9920e3d17cdaf.svg?branch=production"> production environment deployment
 
 ## Overview
