@@ -37,6 +37,7 @@ import qualified Plutus.PAB.Simulator                as Simulator
 import           Plutus.PAB.Types                    (PABError (..))
 import qualified Plutus.PAB.Webserver.Server         as PAB.Server
 import qualified PlutusTx.AssocMap                   as AssocMap
+import           Text.Read                           (readMaybe)
 import           Wallet.Emulator.Types               (Wallet (..))
 
 main :: IO ()
@@ -93,7 +94,7 @@ data Marlowe =
     MarloweApp -- the main marlowe contract
     | WalletCompanion -- wallet companion contract
     | MarloweFollower -- follower contrat
-    deriving (Eq, Ord, Show, Generic)
+    deriving (Eq, Ord, Show, Read, Generic)
 
 instance ToJSON Marlowe where
     toJSON k = object ["tag" .= show k]
@@ -101,11 +102,9 @@ instance ToJSON Marlowe where
 instance FromJSON Marlowe where
     parseJSON = withObject "Marlowe" $ \m -> do
         (tg :: String) <- m .: "tag"
-        case tg of
-            "MarloweApp"      -> pure MarloweApp
-            "WalletCompanion" -> pure WalletCompanion
-            "MarloweFollower" -> pure MarloweFollower
-            tg'               -> prependFailure "parsing Marlowe failed, " (fail $ "unexpected tag " <> tg')
+        case readMaybe tg of
+            Just tg' -> pure tg'
+            _        -> prependFailure "parsing Marlowe failed, " (fail $ "unexpected tag " <> tg)
 
 instance Pretty Marlowe where
     pretty = viaShow
