@@ -26,7 +26,6 @@ import Data.Lens.Traversal (traversed)
 import Data.Map (Map, insert, lookup, mapMaybe)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes(..))
-import Data.Tuple.Nested (tuple3)
 import Data.UUID (emptyUUID, genUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
@@ -39,7 +38,7 @@ import InputField.Types (Action(..), State) as InputField
 import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.PAB (PlutusAppId(..), History(..))
+import Marlowe.PAB (ContractHistory(..), PlutusAppId(..))
 import Marlowe.Semantics (Slot(..))
 import Marlowe.Semantics (State(..)) as Semantic
 import Network.RemoteData (RemoteData(..), fromEither)
@@ -61,7 +60,7 @@ import WalletData.Validation (WalletIdError, WalletNicknameError, parsePlutusApp
 dummyState :: State
 dummyState = mkInitialState mempty defaultWalletDetails mempty (Slot zero) (Minutes zero)
 
-mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId History -> Slot -> Minutes -> State
+mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Slot -> Minutes -> State
 mkInitialState walletLibrary walletDetails contracts currentSlot timezoneOffset =
   { walletLibrary
   , walletDetails
@@ -234,7 +233,7 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
 
               marloweData = { marloweContract: contract, marloweState }
 
-              history = History $ tuple3 marloweParams marloweData mempty
+              history = History marloweParams marloweData mempty
 
               mContractState = Contract.mkInitialState walletDetails currentSlot contractInstanceId history
             for_ mContractState \contractState -> do

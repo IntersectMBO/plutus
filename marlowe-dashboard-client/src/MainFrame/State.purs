@@ -6,7 +6,6 @@ import Capability.Marlowe (class ManageMarlowe, followContract, getFollowerApps,
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_marloweParams)
 import Contract.State (mkInitialState, updateState) as Contract
-import ContractHome.State (dummyContracts)
 import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
@@ -201,17 +200,14 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       handleAction $ PickupAction Pickup.CloseCard
       addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
-      -- FIXME: we are currently including some dummy contracts for testing
-      let
-        testingFollowerApps = followerApps <> dummyContracts currentSlot
       subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
       subscribeToPlutusApp $ view _companionAppId walletDetails
       timezoneOffset <- liftEffect getTimezoneOffset
       let
         followerAppIds :: Array PlutusAppId
-        followerAppIds = Set.toUnfoldable $ keys testingFollowerApps
+        followerAppIds = Set.toUnfoldable $ keys followerApps
       for_ followerAppIds subscribeToPlutusApp
-      assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails testingFollowerApps currentSlot timezoneOffset
+      assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails followerApps currentSlot timezoneOffset
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
       -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
