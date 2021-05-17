@@ -9,7 +9,6 @@ import           Data.Validation                                  (Validation (.
 import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
-import           Language.Marlowe.Pretty
 import           Language.Marlowe.Semantics
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -40,7 +39,7 @@ contractTerms = ContractTerms {
         , ct_PPRD = Nothing-- Price At Purchase Date
         , ct_PTD = Nothing -- Price At Termination Date
         , ct_DCC = Just DCC_A_360 -- Date Count Convention
-        , ct_PPEF = Just PPEF_Y -- allow PP
+        , ct_PPEF = Just PPEF_A -- allow PP
         , ct_PRF = Just PRF_PF
         , scfg = ScheduleConfig {
             calendar = []
@@ -124,9 +123,7 @@ pamStatic :: IO ()
 pamStatic = case genStaticContract contractTerms of
   Failure _        -> assertFailure "Terms validation should not fail"
   Success contract ->
-    do
-      print (pretty contract)
-      assertBool "Cashflows should not be Close" $ contract /= Close
+    assertBool "Cashflows should not be Close" $ contract /= Close
 
 pamFs :: IO ()
 pamFs = do
@@ -134,9 +131,7 @@ pamFs = do
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
     case genFsContract contractTerms of
-      Failure a ->
-        do
-        (print a)
+      Failure _ ->
         assertFailure "Terms validation should not fail"
       Success contract ->
         assertBool "Cashflows should not be Close" $ contract /= Close
