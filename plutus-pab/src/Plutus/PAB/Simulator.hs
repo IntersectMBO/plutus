@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -97,6 +98,7 @@ import           Data.Text.Prettyprint.Doc                      (Pretty (pretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
 import           Ledger                                         (Address (..), Tx, TxId, TxOut (..), txFee, txId)
+import qualified Ledger.Ada                                     as Ada
 import           Ledger.Crypto                                  (PubKey, pubKeyHash)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
@@ -167,8 +169,10 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
-    let Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState def
-        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) $ Wallet <$> [1..10]
+    let wallets = Wallet <$> [1..10]
+        initialDistribution = Map.fromList $ fmap (\w -> (w, Ada.adaValueOf 100_000)) wallets
+        Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState (def & Emulator.initialChainState .~ Left initialDistribution)
+        initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) wallets
     STM.atomically $
         SimulatorState
             <$> STM.newTQueue
@@ -708,17 +712,21 @@ stopInstance = Core.stopInstance
 instanceActivity :: forall t. ContractInstanceId -> Simulation t Activity
 instanceActivity = Core.instanceActivity
 
--- | Create a new wallet with a random key and add it to the list of simulated wallets
+-- | Create a new wallet with a random key, give it some funds
+--   and add it to the list of simulated wallets.
 addWallet :: forall t. Simulation t (Wallet, PubKey)
 addWallet = do
     SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
     (publicKey, privateKey) <- MockWallet.newKeyPair
-    liftIO $ STM.atomically $ do
+    result <- liftIO $ STM.atomically $ do
         currentWallets <- STM.readTVar _agentStates
         let newWallet = MockWallet.pubKeyHashWallet (pubKeyHash publicKey)
             newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
         STM.writeTVar _agentStates newWallets
         pure (newWallet, publicKey)
+    _ <- handleAgentThread (Wallet 2) $ MockWallet.distributeNewWalletFunds publicKey
+    pure result
+
 
 -- | Retrieve the balances of all the entities in the simulator.
 currentBalances :: forall t. Simulation t (Map.Map Wallet.Entity Value)

@@ -14,6 +14,7 @@ module Cardano.Wallet.Mock
     , newKeyPair
     , walletPubKey
     , pubKeyHashWallet
+    , distributeNewWalletFunds
     ) where
 
 import           Cardano.BM.Data.Trace            (Trace)
@@ -84,8 +85,7 @@ integer2ByteString32 :: Integer -> BS.ByteString
 integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` l'), l' - 8)) (31*8)
 {-# INLINE integer2ByteString32 #-}
 
-
-distributeNewWalletFunds :: PubKey -> Eff '[WAPI.WalletEffect] Tx
+distributeNewWalletFunds :: forall effs. Member WAPI.WalletEffect effs => PubKey -> Eff effs Tx
 distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000)
 
 newKeyPair :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs (PubKey, PrivateKey)
@@ -141,7 +141,7 @@ handleMultiWallet = do
             -- works just fine with (Wallet 2)/privateKey2
             -- ¯\_(ツ)_/¯
             let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
-            _ <- evalState walletState $ interpret Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
+            _ <- evalState walletState $ interpret Wallet.handleWallet (distributeNewWalletFunds pubKey)
             WalletEffects.startWatching (pubKeyAddress pubKey)
             return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
 
