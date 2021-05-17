@@ -113,6 +113,7 @@ stage ::
        ( HasBlockchainActions s
        , ContractConstraints s
        , JSON.ToJSON w
+       , JSON.FromJSON w
        , Monoid w
        )
     => Contract w s Text a

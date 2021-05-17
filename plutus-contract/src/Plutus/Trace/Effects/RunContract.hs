@@ -87,9 +87,9 @@ walletInstanceTag (Wallet i) = fromString $ "Contract instance for wallet " <> s
 
 -- | Run a Plutus contract (client side)
 data RunContract r where
-    ActivateContract :: (ContractConstraints s, HasBlockchainActions s, Show e, JSON.FromJSON e, JSON.ToJSON e, JSON.ToJSON w, Monoid w) => Wallet -> Contract w s e a -> ContractInstanceTag -> RunContract (ContractHandle w s e)
+    ActivateContract :: (ContractConstraints s, HasBlockchainActions s, Show e, JSON.FromJSON e, JSON.ToJSON e, JSON.ToJSON w, Monoid w, JSON.FromJSON w) => Wallet -> Contract w s e a -> ContractInstanceTag -> RunContract (ContractHandle w s e)
     CallEndpointP :: forall l ep w s e. (ContractConstraints s, HasEndpoint l ep s) => Proxy l -> ContractHandle w s e -> ep -> RunContract ()
-    GetContractState :: forall w s e. (ContractConstraints s, JSON.FromJSON e, JSON.FromJSON w) => ContractHandle w s e -> RunContract (ContractInstanceState w s e ())
+    GetContractState :: forall w s e. (ContractConstraints s, JSON.FromJSON e, JSON.FromJSON w, JSON.ToJSON w) => ContractHandle w s e -> RunContract (ContractInstanceState w s e ())
 
 makeEffect ''RunContract
 
@@ -100,7 +100,7 @@ callEndpoint ::
 callEndpoint hdl v = callEndpointP (Proxy @l) hdl v
 
 -- | Like 'activateContract', but using 'walletInstanceTag' for the tag.
-activateContractWallet :: forall w s e effs. (HasBlockchainActions s, ContractConstraints s, Show e, JSON.ToJSON e, JSON.FromJSON e, JSON.ToJSON w, Member RunContract effs, Monoid w) => Wallet -> Contract w s e () -> Eff effs (ContractHandle w s e)
+activateContractWallet :: forall w s e effs. (HasBlockchainActions s, ContractConstraints s, Show e, JSON.ToJSON e, JSON.FromJSON e, JSON.ToJSON w, JSON.FromJSON w, Member RunContract effs, Monoid w) => Wallet -> Contract w s e () -> Eff effs (ContractHandle w s e)
 activateContractWallet w contract = activateContract w contract (walletInstanceTag w)
 
 -- | Handle the 'RunContract' effect by running each contract instance in an
@@ -167,6 +167,7 @@ handleActivate :: forall w s e effs effs2.
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
+    , JSON.FromJSON w
     , Monoid w
     )
     => Wallet
@@ -196,6 +197,7 @@ startContractThread ::
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
+    , JSON.FromJSON w
     , Monoid w
     )
     => Wallet
@@ -252,6 +254,7 @@ activeEndpoints :: forall w s e effs.
     , ContractConstraints s
     , JSON.FromJSON e
     , JSON.FromJSON w
+    , JSON.ToJSON w
     )
     => ContractHandle w s e
     -> Eff effs [ActiveEndpoint]
@@ -269,6 +272,7 @@ observableState :: forall w s e effs.
     , ContractConstraints s
     , JSON.FromJSON e
     , JSON.FromJSON w
+    , JSON.ToJSON w
     )
     => ContractHandle w s e -> Eff effs w
 observableState hdl = do

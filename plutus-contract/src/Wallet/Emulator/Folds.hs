@@ -120,6 +120,8 @@ instanceState ::
     ( ContractConstraints s
     , Member (Error EmulatorFoldErr) effs
     , Monoid w
+    , JSON.FromJSON w
+    , JSON.ToJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -144,6 +146,8 @@ instanceRequests ::
     ( ContractConstraints s
     , Member (Error EmulatorFoldErr) effs
     , Monoid w
+    , JSON.ToJSON w
+    , JSON.FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -158,6 +162,8 @@ instanceTransactions ::
     , HasWriteTx s
     , Member (Error EmulatorFoldErr) effs
     , Monoid w
+    , JSON.ToJSON w
+    , JSON.FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -171,6 +177,8 @@ instanceResponses ::
     ( ContractConstraints s
     , Member (Error EmulatorFoldErr) effs
     , Monoid w
+    , JSON.ToJSON w
+    , JSON.FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -183,6 +191,8 @@ instanceAccumState ::
     ( ContractConstraints s
     , Member (Error EmulatorFoldErr) effs
     , Monoid w
+    , JSON.ToJSON w
+    , JSON.FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -221,6 +231,8 @@ instanceOutcome ::
     ( ContractConstraints s
     , Member (Error EmulatorFoldErr) effs
     , Monoid w
+    , JSON.ToJSON w
+    , JSON.FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag

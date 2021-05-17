@@ -278,7 +278,7 @@ data ContractInstanceState w s e a =
 deriving anyclass instance  (V.Forall (Input s) JSON.ToJSON, V.Forall (Output s) JSON.ToJSON, JSON.ToJSON e, JSON.ToJSON a, JSON.ToJSON w) => JSON.ToJSON (ContractInstanceState w s e a)
 deriving anyclass instance  (V.Forall (Input s) JSON.FromJSON, V.Forall (Output s) JSON.FromJSON, JSON.FromJSON e, JSON.FromJSON a, V.AllUniqueLabels (Input s), V.AllUniqueLabels (Output s), JSON.FromJSON w) => JSON.FromJSON (ContractInstanceState w s e a)
 
-emptyInstanceState :: Monoid w => Contract w s e a -> ContractInstanceStateInternal w s e a
+emptyInstanceState :: (Monoid w, JSON.FromJSON w, JSON.ToJSON w) => Contract w s e a -> ContractInstanceStateInternal w s e a
 emptyInstanceState (Contract c) =
     ContractInstanceStateInternal
         { cisiSuspState = Contract.Types.suspend mempty c

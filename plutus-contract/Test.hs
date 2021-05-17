@@ -75,7 +75,7 @@ foreverLoopContract = do
         vl1 <- endpoint @"1" @Int
         vl2 <- endpoint @"2" @Int
         vl3 <- endpoint @"3" @Int
-        let newVal = vl1 + vl2 + vl3
+        let newVal = counter + vl1 + vl2 + vl3
         logInfo @String (show newVal)
         pure (Right newVal)
 
@@ -116,7 +116,16 @@ call3 it i oldState =
 
 -- 2, 1, 2, 3
 nonTerminate2 =
-    -- call1 5 2
+    call1 8 5 $ State.newState $
+    -- record should have 2 entries OK
+    call3 7 4 $ State.newState $
+    -- record should have 1 entry OK
+    -- logs should have the result (54)
+    -- checkpoints should have 1 entry OK
+    call2 6 3 $ State.newState $
+    -- record should have 3 entries OK
+    call1 5 2 $ State.newState $
+    -- record should have 2 entries OK
     call3 4 15 $
         -- logs should have the result (15); OK
         -- record should have 1 entry; OK

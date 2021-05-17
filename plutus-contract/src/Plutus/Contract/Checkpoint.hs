@@ -176,7 +176,7 @@ restore k = do
             pure $ Left (JSONDecodeError $ Text.pack err)
         Just (Right CheckpointStoreItem{csValue,csNewKey}) -> do
             logDebug $ LogFoundValueRestoringKey csNewKey
-            let nk = csNewKey
+            let nk = succ csNewKey
             put nk
             Trace.traceM $ "Restoring value for key: " <> show k <> "; setting new key to: " <> show nk
             pure (Right (Just csValue))

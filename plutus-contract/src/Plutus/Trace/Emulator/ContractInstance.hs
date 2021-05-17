@@ -119,6 +119,7 @@ contractThread :: forall w s e effs.
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
+    , JSON.FromJSON w
     , Monoid w
     )
     => ContractHandle w s e

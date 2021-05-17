@@ -99,7 +99,7 @@ mapW f c@ContractResponse{observableState} = c{observableState=f observableState
 --   feeding it a single new 'Response' event.
 insertAndUpdateContract ::
     forall w s e a.
-    Monoid w
+    (Monoid w, ToJSON w, FromJSON w)
     => Contract w s e a -- ^ The 'Contract' with schema @s@ error type @e@.
     -> ContractRequest (Event s) -- ^  The 'ContractRequest' value with the previous state and the new event.
     -> ContractResponse w e (Event s) (Handlers s)
@@ -122,7 +122,7 @@ mkResponse ResumableResult{_responses, _requests=Requests{unRequests},_checkpoin
 -- | The 'ContractResponse' with the initial state of the contract.
 initialiseContract ::
     forall w s e a.
-    Monoid w
+    (Monoid w, ToJSON w, FromJSON w)
     => Contract w s e a
     -> ContractResponse w e (Event s) (Handlers s)
 initialiseContract (Contract c) = mkResponse $ runResumable [] mempty c

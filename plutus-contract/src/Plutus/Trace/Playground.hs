@@ -98,6 +98,7 @@ handlePlaygroundTrace ::
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
+    , JSON.FromJSON w
     , Monoid w
     , Member MultiAgentEffect effs
     , Member (LogMsg EmulatorEvent') effs
@@ -124,6 +125,7 @@ runPlaygroundStream :: forall w s e effs a.
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
+    , JSON.FromJSON w
     , Monoid w
     )
     => EmulatorConfig
@@ -145,6 +147,7 @@ interpretPlaygroundTrace :: forall w s e effs a.
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
+    , JSON.FromJSON w
     , Monoid w
     )
     => Contract w s e () -- ^ The contract
