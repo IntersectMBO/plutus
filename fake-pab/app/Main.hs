@@ -1,4 +1,5 @@
 {-# LANGUAGE ApplicativeDo       #-}
+{-# LANGUAGE BlockArguments      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,6 +9,7 @@ module Main
   )
 where
 
+import           Control.Concurrent       (forkIO, killThread)
 import           Control.Monad.IO.Class   (MonadIO, liftIO)
 import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggingT)
 import qualified Data.Text                as Text
@@ -83,7 +85,10 @@ webserverCommandParser =
       pure Webserver {..}
 
 runCommand :: (MonadIO m, MonadLogger m) => Command -> m ()
-runCommand Webserver {..} = liftIO $ Webserver.run _connection_string _static settings
+runCommand Webserver {..} = liftIO
+  do minerId <- forkIO $ Webserver.miner _connection_string
+     Webserver.run _connection_string _static settings
+     killThread minerId
   where
     settings = setHost _host . setPort _port $ defaultSettings
 runCommand PSGenerator {..} = liftIO $ PSGenerator.generate _outputDir

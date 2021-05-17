@@ -11,6 +11,7 @@
 module Server where
 
 import           API                               (API, JSON_API, PLAIN_API, PrivateKey, PublicKey, RawHtml (..))
+import           Control.Concurrent                (threadDelay)
 import           Control.Exception                 (throwIO)
 import           Control.Monad.Except              (ExceptT)
 import           Control.Monad.IO.Class            (MonadIO, liftIO)
@@ -32,15 +33,19 @@ import           Data.Ratio                        (Ratio, denominator, numerato
 import           Data.String                       as S
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
-import           Database.PostgreSQL.Simple        (Connection, Only (..), SqlError, execute, query)
+import           Data.Time.Clock                   (diffUTCTime, getCurrentTime, nominalDiffTimeToSeconds)
+import           Database.PostgreSQL.Simple        (Connection, Only (..), SqlError, execute, query, query_)
 import           Database.PostgreSQL.Simple.Errors (ConstraintViolation (..), catchViolation)
 import           Database.PostgreSQL.Simple.SqlQQ  (sql)
 import           GHC.Generics                      (Generic)
+import           Language.Marlowe                  (Contract)
 import           Network.Wai.Middleware.Cors       (cors, corsRequestHeaders, simpleCorsResourcePolicy)
 import           Plutus.V1.Ledger.Value            (CurrencySymbol (..), TokenName (..))
 import           Servant                           (Application, Handler (Handler), Server, ServerError, hoistServer,
                                                     serve, serveDirectoryFileServer, throwError, (:<|>) ((:<|>)), (:>))
 
+data TransactionData = CreateContract PublicKey Contract
+--                   | TransferCurrency PublickKey CurrencySymbol TokenName PublicKey
 
 handlersJSON :: Pool Connection -> FilePath -> Server JSON_API
 handlersJSON conns staticPath = createWallet conns :<|>
@@ -109,3 +114,21 @@ initializeApplication conn staticPath = pure $ app conn staticPath
 
 testEndpoint :: Handler RawHtml
 testEndpoint = return $ RawHtml $ BSL.fromStrict "<html><head><title>Test page</title></head><body><h1>It works!</h1></body></html>"
+
+miner :: Connection -> IO ()
+miner conn =
+  do before <- getCurrentTime
+     -- Create slot placeholder
+     [Only result] <- query_ conn
+                        [sql| WITH new_slot AS (INSERT INTO slot DEFAULT VALUES
+                                                RETURNING slot_number)
+                              SELECT slot_number FROM new_slot
+                        |]
+     -- Validate slot
+     execute conn
+        [sql| UPDATE slot SET is_settled = true WHERE slot_number = ? |] [result :: Integer]
+
+     after <- getCurrentTime
+     threadDelay $ max 0 (round (1000000 - nominalDiffTimeToSeconds (diffUTCTime after before) * 1000000))
+     miner conn
+

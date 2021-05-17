@@ -38,3 +38,6 @@ run connStr staticPath settings = do
   initDB conn
   let server = Server.handlers
   Warp.runSettings settings (serve (Proxy @API) (server pool staticPath))
+
+miner :: String -> IO ()
+miner connStr = bracket (connectPostgreSQL $ BSU.fromString connStr) close Server.miner

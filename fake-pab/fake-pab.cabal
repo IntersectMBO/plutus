@@ -45,6 +45,7 @@ library
         servant-client-core -any,
         servant-server -any,
         text -any,
+        time -any,
         wai-app-static -any,
         wai-cors -any,
         websockets -any,
