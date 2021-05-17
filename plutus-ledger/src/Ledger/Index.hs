@@ -361,11 +361,9 @@ checkTransactionFee tx =
 -- | Create the data about the transaction which will be passed to a validator script.
 mkTxInfo :: ValidationMonad m => Tx -> m TxInfo
 mkTxInfo tx = do
-    txins <- traverse mkIn $ Set.toList $ view inputs tx
-    txinsFees <- traverse mkIn $ Set.toList $ view inputsFees tx
+    txins <- traverse mkIn $ Set.toList $ view inputs tx <> view inputsFees tx
     let ptx = TxInfo
             { txInfoInputs = txins
-            , txInfoInputsFees = txinsFees
             , txInfoOutputs = txOutputs tx
             , txInfoForge = txForge tx
             , txInfoFee = txFee tx

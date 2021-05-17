@@ -280,7 +280,6 @@ mockCtx :: ScriptContext
 mockCtx = ScriptContext
     { scriptContextTxInfo = TxInfo
       { txInfoInputs = []
-      , txInfoInputsFees = []
       , txInfoOutputs = []
       , txInfoFee = PlutusTx.zero
       , txInfoForge = PlutusTx.zero
