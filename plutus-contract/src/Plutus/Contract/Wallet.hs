@@ -149,7 +149,7 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
                 logDebug $ AddingInputsFor neg
                 addInputs utxo pk neg tx'
 
-    if remainingFees `Value.leq` Value.zero
+    if remainingFees `Value.leq` P.zero
     then do
         logDebug NoCollateralInputsAdded
         pure tx''
