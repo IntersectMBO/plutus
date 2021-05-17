@@ -103,10 +103,11 @@ data PYTP = PYTP_A -- absolute
           deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- PrepaymentEffect
--- TODO: add (from dictionary) and rename values
-data PPEF = PREF_N | PREF_Y
- deriving (Show, Eq, Ord, Generic)
- deriving anyclass (FromJSON, ToJSON)
+data PPEF = PPEF_N -- no prepayment
+          | PPEF_A -- prepayment allowed, prepayment results in reduction of PRNXT while MD remains
+          | PPEF_M -- prepayment allowed, prepayment results in reduction of MD while PRNXT remains
+          deriving (Show, Eq, Ord, Generic)
+          deriving anyclass (FromJSON, ToJSON)
 
 data CalendarType = NoCalendar
                   | MondayToFriday
@@ -289,7 +290,7 @@ setDefaultContractTermValues ct@ContractTerms{..} =
       ct_PYTP'  | isNothing ct_PYTP  = Just PYTP_O
                 | otherwise          = ct_PYTP
 
-      ct_PPEF'  | isNothing ct_PPEF  = Just PREF_N
+      ct_PPEF'  | isNothing ct_PPEF  = Just PPEF_N
                 | otherwise          = ct_PPEF
 
       ct_RRSP'  | isNothing ct_RRSP  = Just defaultRRSP

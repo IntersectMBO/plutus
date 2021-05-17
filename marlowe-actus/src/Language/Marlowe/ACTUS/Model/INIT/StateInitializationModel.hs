@@ -53,10 +53,10 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus
 
         tmd                                     = fromJust _MD
         nt
-                | _IED' > t0                     = 0.0
+                | _IED' > t0                    = 0.0
                 | otherwise                     = r _CNTRL * fromJust _NT
         ipnr
-                | _IED' > t0                     = 0.0
+                | _IED' > t0                    = 0.0
                 | otherwise                     = fromMaybe 0.0 _IPNR
         ipac
                 | isNothing _IPNR               = 0.0
@@ -65,18 +65,18 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus
         fac
                 | isNothing _FER                = 0.0
                 | isJust _FEAC                  = fromJust _FEAC
-                | fromJust _FEB == FEB_N                 = y _DCC' tfp_minus t0 _MD * nt * fromJust _FER
+                | fromJust _FEB == FEB_N        = y _DCC' tfp_minus t0 _MD * nt * fromJust _FER
                 | otherwise                     = (y _DCC' tfp_minus t0 _MD / y _DCC' tfp_minus tfp_plus _MD) * fromJust _FER
         feac
                 | isNothing _FER                = 0.0
                 | isJust _FEAC                  = fromJust _FEAC
-                | fromJust _FEB == FEB_N                 = y _DCC' tfp_minus t0 _MD * nt * fromJust _FER
+                | fromJust _FEB == FEB_N        = y _DCC' tfp_minus t0 _MD * nt * fromJust _FER
                 | otherwise                     = (y _DCC' tfp_minus t0 _MD / y _DCC' tfp_minus tfp_plus _MD) * fromJust _FER
         nsc
-                | scef_xNx _SCEF'                = _SCIXSD
+                | scef_xNx _SCEF'               = _SCIXSD
                 | otherwise                     = 1.0
         isc
-                | scef_Ixx _SCEF'                = _SCIXSD
+                | scef_Ixx _SCEF'               = _SCIXSD
                 | otherwise                     = 1.0
         prf                                     = _PRF'
         sd                                      = t0
@@ -162,7 +162,7 @@ _INIT_NAM t0 tminus tpr_minus tfp_minus tfp_plus
 
         -- IPCB
         ipcb
-                | t0 < _IED'                     = 0.0
+                | t0 < _IED'                    = 0.0
                 | fromJust _IPCB == IPCB_NT     = r _CNTRL * fromJust _NT
                 | otherwise                     = r _CNTRL * fromJust _IPCBA
     -- All is same as PAM except PRNXT and TMD, IPCB same as LAM

@@ -81,7 +81,7 @@ contractTermsGen = do
     eomc <- elements [EOMC_EOM, EOMC_SD]
     bdc <- elements [BDC_NULL, BDC_SCF, BDC_SCMF, BDC_CSF, BDC_CSMF, BDC_SCP, BDC_SCMP, BDC_CSP, BDC_CSMP]
     dcc <- elements [DCC_A_AISDA, DCC_A_360, DCC_A_365, DCC_E30_360ISDA, DCC_E30_360, DCC_B_252]
-    ppef <- elements [PREF_Y, PREF_N]
+    ppef <- elements [PPEF_N, PPEF_A, PPEF_M]
     cntrl <- elements [CR_BUY, CR_SEL]
 
     scef <- elements [SE_000, SE_0N0, SE_00M, SE_0NM, SE_I00, SE_IN0, SE_I0M, SE_INM]

@@ -25,8 +25,8 @@ _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD =
                 | otherwise                          = _OPANX
 
     in case _PREF of
-        PREF_N -> Nothing
-        PREF_Y -> (\s -> _S s (fromJust _OPCL) _MD scfg) <$> maybeS
+        PPEF_N -> Nothing
+        _      -> (\s -> _S s (fromJust _OPCL) _MD scfg) <$> maybeS
 
 _SCHED_PY_PAM scfg _PYTP _PREF _OPCL _IED _OPANX _MD =
     case _PYTP of
