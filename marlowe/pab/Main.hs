@@ -16,7 +16,8 @@ import           Control.Monad.Freer                 (Eff, Member, interpret, ty
 import           Control.Monad.Freer.Error           (Error)
 import           Control.Monad.Freer.Extras.Log      (LogMsg)
 import           Control.Monad.IO.Class              (MonadIO (..))
-import           Data.Aeson                          (FromJSON, ToJSON)
+import           Data.Aeson                          (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
+import           Data.Aeson.Types                    (prependFailure)
 import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
 import           GHC.Generics                        (Generic)
 import qualified Language.Marlowe.Client             as Marlowe
@@ -91,8 +92,20 @@ createArgs investor issuer = (tokenNames, zcb) where
 data Marlowe =
     MarloweApp -- the main marlowe contract
     | WalletCompanion -- wallet companion contract
+    | MarloweFollower -- follower contrat
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+
+instance ToJSON Marlowe where
+    toJSON k = object ["tag" .= show k]
+
+instance FromJSON Marlowe where
+    parseJSON = withObject "Marlowe" $ \m -> do
+        (tg :: String) <- m .: "tag"
+        case tg of
+            "MarloweApp"      -> pure MarloweApp
+            "WalletCompanion" -> pure WalletCompanion
+            "MarloweFollower" -> pure MarloweFollower
+            tg'               -> prependFailure "parsing Marlowe failed, " (fail $ "unexpected tag " <> tg')
 
 instance Pretty Marlowe where
     pretty = viaShow
@@ -107,6 +120,7 @@ handleMarloweContract = Builtin.handleBuiltin getSchema getContract where
     getContract = \case
         MarloweApp      -> SomeBuiltin Marlowe.marlowePlutusContract
         WalletCompanion -> SomeBuiltin Marlowe.marloweCompanionContract
+        MarloweFollower -> SomeBuiltin Marlowe.marloweFollowContract
 
 handlers :: SimulatorEffectHandlers (Builtin Marlowe)
 handlers =
