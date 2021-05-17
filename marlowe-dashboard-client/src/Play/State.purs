@@ -27,7 +27,7 @@ import Data.Map (Map, insert, lookup, mapMaybe)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes(..))
 import Data.Tuple.Nested (tuple3)
-import Data.UUID (genUUID)
+import Data.UUID (emptyUUID, genUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Foreign.Generic (encodeJSON)
@@ -124,9 +124,12 @@ handleAction input (SaveNewWallet mTokenName) = do
     Success walletInfo, Just walletId -> do
       handleAction input CloseCard
       let
+        -- note the empty properties are fine for saved wallets - these will be fetched if/when
+        -- this wallet is picked up
         walletDetails =
           { walletNickname
           , companionAppId: walletId
+          , marloweAppId: PlutusAppId emptyUUID
           , walletInfo
           , assets: mempty
           }

@@ -51,6 +51,8 @@ data PlutusApp
   | WalletCompanionApp
   | WalletFollowerApp
 
+derive instance eqPlutusApp :: Eq PlutusApp
+
 {-
 In order to activate instances of the Plutus "contracts" (or apps) in the PAB, we need to pass the path
 to the executable on the server. We get these paths from nix, which writes them to a `contracts.json` file.

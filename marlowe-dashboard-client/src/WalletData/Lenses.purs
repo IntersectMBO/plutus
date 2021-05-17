@@ -1,6 +1,7 @@
 module WalletData.Lenses
   ( _walletNickname
   , _companionAppId
+  , _marloweAppId
   , _walletInfo
   , _assets
   , _wallet
@@ -22,6 +23,9 @@ _walletNickname = prop (SProxy :: SProxy "walletNickname")
 
 _companionAppId :: Lens' WalletDetails PlutusAppId
 _companionAppId = prop (SProxy :: SProxy "companionAppId")
+
+_marloweAppId :: Lens' WalletDetails PlutusAppId
+_marloweAppId = prop (SProxy :: SProxy "marloweAppId")
 
 _walletInfo :: Lens' WalletDetails WalletInfo
 _walletInfo = prop (SProxy :: SProxy "walletInfo")
