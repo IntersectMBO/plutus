@@ -98,7 +98,7 @@ handleContractEffectContractExe =
             result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
             logNewMessages i result
             -- let newSize = fromIntegral $ BSL8.length $ JSON.encodePretty $ ContractState.newState result
-            when True $ do
+            when False $ do
                 let prefix = contractPath ^. filename
                     IterationID k = rspItID input
                     jsonToFile :: forall a. ToJSON a => String -> a -> Eff effs ()
