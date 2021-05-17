@@ -3,7 +3,6 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-{-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 module Main
   ( main,
   )
@@ -79,7 +78,7 @@ webserverCommandParser =
         strOption
           ( short 'c' <> long "connection-string" <> help "Connection string for PosgreSQL database"
               <> showDefault
-              <> value "."
+              <> value ""
           )
       pure Webserver {..}
 
@@ -96,5 +95,7 @@ main = do
       (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
       (info (helper <*> commandParser) idm)
   runStderrLoggingT $ do
-    logInfoN $ "Running: " <> Text.pack (show (options{_connection_string = "<sensitive info hidden>"}))
+    logInfoN $ "Running: " <> Text.pack (show (hideConnectionString options))
     runCommand options
+  where hideConnectionString (Webserver h p s _) = Webserver h p s "<sensitive info hidden>"
+        hideConnectionString ops                 = ops

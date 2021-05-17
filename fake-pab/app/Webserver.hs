@@ -19,7 +19,7 @@ import qualified Data.ByteString            as BS
 type DBConnectionString = BS.ByteString
 
 initDB :: DBConnectionString -> IO ()
-initDB connStr = bracket (connectPostgreSQL connStr) close $ \conn -> do
+initDB connStr = bracket (connectPostgreSQL connStr) close $ \_conn -> do
   -- execute_ conn "CREATE TABLE IF NOT EXISTS messages (msg text not null)"
   return ()
 

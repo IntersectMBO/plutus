@@ -10,7 +10,7 @@
 
 module Server where
 
-import           API                               (API, PrivateKey, PublicKey, RawHtml (..))
+import           API                               (API, JSON_API, PLAIN_API, PrivateKey, PublicKey, RawHtml (..))
 import           Control.Exception                 (throwIO)
 import           Control.Monad.Except              (ExceptT)
 import           Control.Monad.IO.Class            (MonadIO, liftIO)
@@ -24,22 +24,35 @@ import qualified Data.ByteString.Base16            as B16
 import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.ByteString.Lazy.UTF8         as BSLU
 import qualified Data.ByteString.UTF8              as BSU
+import           Data.Map                          (Map)
+import qualified Data.Map                          as Map
 import           Data.Pool                         (Pool, withResource)
 import           Data.Proxy                        (Proxy (Proxy))
+import           Data.Ratio                        (Ratio, denominator, numerator)
 import           Data.String                       as S
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
-import           Database.PostgreSQL.Simple        (Connection, Only (..), SqlError, execute)
+import           Database.PostgreSQL.Simple        (Connection, Only (..), SqlError, execute, query)
 import           Database.PostgreSQL.Simple.Errors (ConstraintViolation (..), catchViolation)
 import           Database.PostgreSQL.Simple.SqlQQ  (sql)
 import           GHC.Generics                      (Generic)
 import           Network.Wai.Middleware.Cors       (cors, corsRequestHeaders, simpleCorsResourcePolicy)
+import           Plutus.V1.Ledger.Value            (CurrencySymbol (..), TokenName (..))
 import           Servant                           (Application, Handler (Handler), Server, ServerError, hoistServer,
                                                     serve, serveDirectoryFileServer, throwError, (:<|>) ((:<|>)), (:>))
 
+
+handlersJSON :: Pool Connection -> FilePath -> Server JSON_API
+handlersJSON conns staticPath = createWallet conns :<|>
+                                listWalletFunds conns
+
+handlersPlain :: Pool Connection -> FilePath -> Server PLAIN_API
+handlersPlain conns staticPath = showResult . createWallet conns :<|>
+                                 showResult . listWalletFunds conns
+
 handlers :: Pool Connection -> FilePath -> Server API
-handlers conns staticPath = createWallet conns :<|>
-                            (showResult . createWallet conns) :<|>
+handlers conns staticPath = handlersJSON conns staticPath :<|>
+                            handlersPlain conns staticPath :<|>
                             testEndpoint :<|>
                             serveDirectoryFileServer staticPath
 
@@ -66,6 +79,23 @@ createWallet conns privateKey =
     catcher :: SqlError -> ConstraintViolation -> IO PublicKey
     catcher _ (UniqueViolation "wallet_pub_key_key") = pure publicKey
     catcher e _                                      = throwIO e
+
+
+-- Lists the amount a wallet has of each currency (of currencies it ever had some amount of)
+listWalletFunds :: Pool Connection -> PublicKey -> Handler (Map CurrencySymbol [(TokenName, Integer)])
+listWalletFunds conns publicKey =
+  liftIO . withResource conns $ \conn -> do
+      result <- query conn
+                  [sql| SELECT ca.currency_symbol, ca.token_name, SUM(amount) AS amount
+                        FROM wallet w INNER JOIN currency_amount ca
+                          ON w.money_container_id = ca.money_container_id
+                        WHERE w.pub_key = ?
+                        GROUP BY ca.currency_symbol, ca.token_name
+                  |] [publicKey]
+      pure $ Map.fromListWith (++) [(CurrencySymbol cs, [(TokenName tn, fromRatio am)]) | (cs, tn, am) <- result]
+
+fromRatio :: Ratio Integer -> Integer
+fromRatio am = numerator am `div` denominator am
 
 app :: Pool Connection -> FilePath -> Application
 app conn staticPath =
