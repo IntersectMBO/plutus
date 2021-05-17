@@ -47,13 +47,13 @@ import           Wallet.Effects                   (ownOutputs, ownPubKey, startW
 import           Wallet.Emulator.Wallet           (Wallet (..), emptyWalletState)
 import qualified Wallet.Emulator.Wallet           as Wallet
 
-app :: Trace IO WalletMsg -> Client.ClientHandler -> ClientEnv -> MVar Wallets -> Application
-app trace clientHandler chainIndexEnv mVarState =
+app :: Trace IO WalletMsg -> Client.TxSendHandle -> Client.ChainSyncHandle -> ClientEnv -> MVar Wallets -> Application
+app trace txSendHandle chainSyncHandle chainIndexEnv mVarState =
     let totalFunds w = fmap (foldMap (txOutValue . txOutTxOut)) (multiWallet (Wallet w) ownOutputs) in
     serve (Proxy @(API Integer)) $
     hoistServer
         (Proxy @(API Integer))
-        (processWalletEffects trace clientHandler chainIndexEnv mVarState) $
+        (processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState) $
             createWallet :<|>
             (\w tx -> multiWallet (Wallet w) (submitTxn tx) >>= const (pure NoContent)) :<|>
             (\w -> (\pk -> WalletInfo{wiWallet = Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}) <$> multiWallet (Wallet w) ownPubKey) :<|>
@@ -68,10 +68,11 @@ main trace WalletConfig { baseUrl, wallet } serverSocket slotConfig (ChainIndexU
     chainIndexEnv <- buildEnv chainUrl defaultManagerSettings
     let knownWallets = Map.fromList $ (\w -> (w, emptyWalletState w)) . Wallet.Wallet <$> [1..10]
     mVarState <- liftIO $ newMVar knownWallets
-    clientHandler <- liftIO $ Client.runClientNode serverSocket slotConfig (\_ _ -> pure ())
+    txSendHandle    <- liftIO $ Client.runTxSender   serverSocket
+    chainSyncHandle <- liftIO $ Client.runChainSync' serverSocket slotConfig
     runClient chainIndexEnv
     logInfo $ StartingWallet (Port servicePort)
-    liftIO $ Warp.runSettings warpSettings $ app trace clientHandler chainIndexEnv mVarState
+    liftIO $ Warp.runSettings warpSettings $ app trace txSendHandle chainSyncHandle  chainIndexEnv mVarState
     where
         servicePort = baseUrlPort (coerce baseUrl)
         warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop (available availability)

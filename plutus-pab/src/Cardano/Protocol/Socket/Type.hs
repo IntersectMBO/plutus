@@ -85,11 +85,26 @@ maximumMiniProtocolLimits =
 -- | Packs up an application from the mini protocols we use.
 -- This is used to build both a client and server application,
 -- depending on the mini protocols passed as arguments.
-nodeApplication
+clientApplication
+  :: RunMiniProtocol appType bytes m a b
+  -> OuroborosApplication appType addr bytes m a b
+clientApplication protocol =
+    OuroborosApplication $ \_connectionId _shouldStopSTM -> [
+      MiniProtocol {
+        miniProtocolNum = MiniProtocolNum 2,
+        miniProtocolLimits = maximumMiniProtocolLimits,
+        miniProtocolRun = protocol
+      }
+    ]
+
+-- | Packs up an application from the mini protocols we use.
+-- This is used to build both a client and server application,
+-- depending on the mini protocols passed as arguments.
+serverApplication
   :: RunMiniProtocol appType bytes m a b
   -> RunMiniProtocol appType bytes m a b
   -> OuroborosApplication appType addr bytes m a b
-nodeApplication chainSync txSubmission =
+serverApplication chainSync txSubmission =
     OuroborosApplication $ \_connectionId _shouldStopSTM -> [
       MiniProtocol {
         miniProtocolNum = MiniProtocolNum 2,

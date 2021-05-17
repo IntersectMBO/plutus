@@ -19,7 +19,6 @@ import           Control.Lens                   hiding (ix)
 import           Control.Monad                  (forever)
 import           Control.Monad.IO.Class         (liftIO)
 import           Control.RateLimit              (rateLimitExecution)
-import           Data.Default                   (Default (..))
 import qualified Data.Map                       as Map
 import           Data.Text                      (Text)
 import qualified Data.Text                      as T
@@ -37,7 +36,7 @@ import           Text.Pretty.Simple             (pPrint)
 
 import           Cardano.Node.RandomTx          (generateTx)
 import           Cardano.Node.Types             (MockServerConfig (..))
-import           Cardano.Protocol.Socket.Client (ClientHandler (..), queueTx, runClientNode)
+import           Cardano.Protocol.Socket.Client (TxSendHandle (..), queueTx, runTxSender)
 import           Ledger.Blockchain              (OnChainTx (..))
 import           Ledger.Index                   (UtxoIndex (..), insertBlock)
 import           Ledger.Tx                      (Tx (..))
@@ -61,10 +60,10 @@ data Stats = Stats
      required for execution
 -}
 data AppEnv = AppEnv
-  { clientHandler :: ClientHandler
-  , txQueue       :: TBQueue Tx
-  , stats         :: TVar Stats
-  , utxoIndex     :: UtxoIndex
+  { txSendHandle :: TxSendHandle
+  , txQueue      :: TBQueue Tx
+  , stats        :: TVar Stats
+  , utxoIndex    :: UtxoIndex
   }
 
 -- | This builds the default UTxO index, using 10 wallets.
@@ -94,10 +93,10 @@ runProducer AppEnv{txQueue, stats, utxoIndex} = do
 -- | Default consumer will take transactions from the queue and send them
 --   as REST requests to the PAB.
 consumer :: AppEnv -> IO ()
-consumer AppEnv {clientHandler, txQueue, stats} = do
+consumer AppEnv {txSendHandle, txQueue, stats} = do
   tx <- atomically $ readTBQueue txQueue
   atomically $ modifyTVar' stats incrementCount
-  _ <- queueTx clientHandler tx
+  _ <- queueTx txSendHandle tx
   pure ()
   where
     incrementCount :: Stats -> Stats
@@ -184,10 +183,10 @@ initializeInterruptHandler stats = do
   installHandler sigINT (const $ completeStats tid stats)
 
 -- | Build a client environment for servant.
-initializeClient :: Config -> IO ClientHandler
+initializeClient :: Config -> IO TxSendHandle
 initializeClient cfg = do
     let serverSocket = mscSocketPath $ nodeServerConfig cfg
-    runClientNode serverSocket def (\_ _ -> pure ())
+    runTxSender serverSocket
 
 main :: IO ()
 main = do

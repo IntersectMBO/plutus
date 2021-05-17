@@ -407,7 +407,7 @@ application ::
                          LBS.ByteString
                          IO Void ()
 application mvChainState =
-    nodeApplication chainSync txSubmission
+    serverApplication chainSync txSubmission
     where
         chainSync :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
         chainSync =
