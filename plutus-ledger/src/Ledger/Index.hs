@@ -14,6 +14,7 @@ module Ledger.Index(
     ValidationMonad,
     UtxoIndex(..),
     insert,
+    insertCollateral,
     insertBlock,
     initialise,
     Validation,
@@ -85,13 +86,13 @@ initialise = UtxoIndex . unspentOutputs
 insert :: Tx -> UtxoIndex -> UtxoIndex
 insert tx = UtxoIndex . updateUtxo tx . getIndex
 
--- | Update the index for the addition of only the fees of a failed transaction.
-insertFees :: Tx -> UtxoIndex -> UtxoIndex
-insertFees tx = UtxoIndex . updateUtxoFees tx . getIndex
+-- | Update the index for the addition of only the collateral inputs of a failed transaction.
+insertCollateral :: Tx -> UtxoIndex -> UtxoIndex
+insertCollateral tx = UtxoIndex . updateUtxoCollateral tx . getIndex
 
 -- | Update the index for the addition of a block.
 insertBlock :: Block -> UtxoIndex -> UtxoIndex
-insertBlock blck i = foldl' (flip (eitherTx insertFees insert)) i blck
+insertBlock blck i = foldl' (flip (eitherTx insertCollateral insert)) i blck
 
 -- | Find an unspent transaction output by the 'TxOutRef' that spends it.
 lookup :: MonadError ValidationError m => TxOutRef -> UtxoIndex -> m TxOut
@@ -129,8 +130,6 @@ data ValidationError =
     --   the currency's monetary policy.
     | TransactionFeeTooLow V.Value V.Value
     -- ^ The transaction fee is lower than the minimum acceptable fee.
-    | InputsOverlap (Set.Set TxIn)
-    -- ^ Inputs in 'txInputs' and 'txInputsFees' should not overlap.
     deriving (Eq, Show, Generic)
 
 instance FromJSON ValidationError
@@ -177,8 +176,7 @@ validateTransaction h t = do
     unless emptyUtxoSet (checkTransactionFee t)
 
     checkValidInputs (toListOf (inputs . pubKeyTxIns)) t
-    checkValidInputs (Set.toList . view inputsFees) t
-    checkNoInputOverlap t
+    checkValidInputs (Set.toList . view collateralInputs) t
 
     (do
         -- Phase 2 validation
@@ -188,11 +186,11 @@ validateTransaction h t = do
         idx <- ask
         pure (Nothing, insert t idx)
         )
-    `catchError` payFees
+    `catchError` payCollateral
     where
-        payFees e = do
+        payCollateral e = do
             idx <- ask
-            pure (Just (Phase2, e), insertFees t idx)
+            pure (Just (Phase2, e), insertCollateral t idx)
 
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()
@@ -211,12 +209,6 @@ checkValidInputs getInputs tx = do
     matches <- traverse (uncurry (matchInputOutput tid sigs)) outs
     vld     <- mkTxInfo tx
     traverse_ (checkMatch vld) matches
-
--- | Check if no inputs are used in both 'txInputs' and 'txInputsFees'.
-checkNoInputOverlap :: ValidationMonad m => Tx -> m ()
-checkNoInputOverlap tx = do
-    let overlap = Set.intersection (view inputs tx) (view inputsFees tx)
-    unless (Set.null overlap) $ throwError $ InputsOverlap overlap
 
 -- | Match each input of the transaction with the output that it spends.
 lkpOutputs :: ValidationMonad m => [TxIn] -> m [(TxIn, TxOut)]
@@ -326,7 +318,7 @@ checkMatch txinfo = \case
 -- | Check if the value produced by a transaction equals the value consumed by it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ view inputs t <> view inputsFees t))
+    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ view inputs t))
     let outVal = txFee t P.+ foldMap txOutValue (txOutputs t)
     if outVal == inVal
     then pure ()
@@ -361,7 +353,7 @@ checkTransactionFee tx =
 -- | Create the data about the transaction which will be passed to a validator script.
 mkTxInfo :: ValidationMonad m => Tx -> m TxInfo
 mkTxInfo tx = do
-    txins <- traverse mkIn $ Set.toList $ view inputs tx <> view inputsFees tx
+    txins <- traverse mkIn $ Set.toList $ view inputs tx
     let ptx = TxInfo
             { txInfoInputs = txins
             , txInfoOutputs = txOutputs tx

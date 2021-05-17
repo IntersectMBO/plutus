@@ -58,7 +58,7 @@ eitherTx ifInvalid _ (Invalid tx) = ifInvalid tx
 eitherTx _ ifValid (Valid tx)     = ifValid tx
 
 consumableInputs :: OnChainTx -> Set.Set TxIn
-consumableInputs = eitherTx (view inputsFees) (view inputs <> view inputsFees)
+consumableInputs = eitherTx (view collateralInputs) (view inputs)
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
 transaction :: Blockchain -> TxId -> Maybe OnChainTx
@@ -88,6 +88,6 @@ pubKeyTxo bc o = out bc o >>= txOutPubKey
 
 -- | The unspent transaction outputs of the ledger as a whole.
 unspentOutputs :: Blockchain -> Map TxOutRef TxOut
-unspentOutputs = foldr (eitherTx updateUtxoFees updateUtxo) Map.empty . join
+unspentOutputs = foldr (eitherTx updateUtxoCollateral updateUtxo) Map.empty . join
 
 makePrisms ''OnChainTx

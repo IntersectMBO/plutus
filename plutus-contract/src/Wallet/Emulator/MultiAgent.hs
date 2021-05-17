@@ -283,7 +283,7 @@ emulatorStateInitialDist :: Map PubKey Value -> EmulatorState
 emulatorStateInitialDist mp = emulatorStatePool [tx] where
     tx = Tx
             { txInputs = mempty
-            , txInputsFees = mempty
+            , txCollateral = mempty
             , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
             , txForge = foldMap snd $ Map.toList mp
             , txFee = mempty

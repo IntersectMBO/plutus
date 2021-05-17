@@ -17,13 +17,13 @@ module Plutus.V1.Ledger.Tx(
     -- * Transactions
     Tx(..),
     inputs,
-    inputsFees,
+    collateralInputs,
     outputs,
     txOutRefs,
     unspentOutputsTx,
     spentOutputs,
     updateUtxo,
-    updateUtxoFees,
+    updateUtxoCollateral,
     validValuesTx,
     forgeScripts,
     signatures,
@@ -121,9 +121,9 @@ especially because we only need one direction (to binary).
 -- | A transaction, including witnesses for its inputs.
 data Tx = Tx {
     txInputs       :: Set.Set TxIn,
-    -- ^ The inputs to this transaction NOT used to pay fees.
-    txInputsFees   :: Set.Set TxIn,
-    -- ^ The inputs to this transaction designated to pay fees.
+    -- ^ The inputs to this transaction.
+    txCollateral   :: Set.Set TxIn,
+    -- ^ The collateral inputs to cover the fees in case the transaction fails.
     txOutputs      :: [TxOut],
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
     txForge        :: !Value,
@@ -142,10 +142,10 @@ data Tx = Tx {
       deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 instance Pretty Tx where
-    pretty t@Tx{txInputs, txInputsFees, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
+    pretty t@Tx{txInputs, txCollateral, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
         let lines' =
                 [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList txInputs)))
-                , hang 2 (vsep ("inputs for fees:" : fmap pretty (Set.toList txInputsFees)))
+                , hang 2 (vsep ("collateral inputs:" : fmap pretty (Set.toList txCollateral)))
                 , hang 2 (vsep ("outputs:" : fmap pretty txOutputs))
                 , "forge:" <+> pretty txForge
                 , "fee:" <+> pretty txFee
@@ -160,7 +160,7 @@ instance Pretty Tx where
 instance Semigroup Tx where
     tx1 <> tx2 = Tx {
         txInputs = txInputs tx1 <> txInputs tx2,
-        txInputsFees = txInputsFees tx1 <> txInputsFees tx2,
+        txCollateral = txCollateral tx1 <> txCollateral tx2,
         txOutputs = txOutputs tx1 <> txOutputs tx2,
         txForge = txForge tx1 <> txForge tx2,
         txFee = txFee tx1 <> txFee tx2,
@@ -184,10 +184,10 @@ inputs = lens g s where
     s tx i = tx { txInputs = i }
 
 -- | The inputs of a transaction designated for fees.
-inputsFees :: Lens' Tx (Set.Set TxIn)
-inputsFees = lens g s where
-    g = txInputsFees
-    s tx i = tx { txInputsFees = i }
+collateralInputs :: Lens' Tx (Set.Set TxIn)
+collateralInputs = lens g s where
+    g = txCollateral
+    s tx i = tx { txCollateral = i }
 
 -- | The outputs of a transaction.
 outputs :: Lens' Tx [TxOut]
@@ -248,7 +248,7 @@ data TxStripped = TxStripped {
 
 strip :: Tx -> TxStripped
 strip Tx{..} = TxStripped i txOutputs txForge txFee where
-    i = Set.map txInRef (txInputs <> txInputsFees)
+    i = Set.map txInRef txInputs
 
 -- | Compute the id of a transaction.
 txId :: Tx -> TxId
@@ -420,17 +420,17 @@ unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
 
 -- | The transaction output references consumed by a transaction.
 spentOutputs :: Tx -> Set.Set TxOutRef
-spentOutputs tx = Set.map txInRef (txInputs tx <> txInputsFees tx)
+spentOutputs = Set.map txInRef . txInputs
 
 -- | Update a map of unspent transaction outputs and signatures based on the inputs
 --   and outputs of a transaction.
 updateUtxo :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
 updateUtxo tx unspent = (unspent `Map.withoutKeys` spentOutputs tx) `Map.union` unspentOutputsTx tx
 
--- | Update a map of unspent transaction outputs and signatures based on
---   only the fees of a transaction.
-updateUtxoFees :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
-updateUtxoFees tx unspent = unspent `Map.withoutKeys` (Set.map txInRef . txInputsFees $ tx)
+-- | Update a map of unspent transaction outputs and signatures
+--   for a failed transaction using its collateral inputs.
+updateUtxoCollateral :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
+updateUtxoCollateral tx unspent = unspent `Map.withoutKeys` (Set.map txInRef . txCollateral $ tx)
 
 -- | Sign the transaction with a 'PrivateKey' and add the signature to the
 --   transaction's list of signatures.

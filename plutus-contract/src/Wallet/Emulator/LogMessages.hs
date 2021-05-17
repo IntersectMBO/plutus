@@ -46,17 +46,17 @@ data TxBalanceMsg =
     | AddingPublicKeyOutputFor Value
     | NoInputsAdded
     | AddingInputsFor Value
-    | NoInputsAssignedToFees
-    | AssiningInputsToFeesFor Value
+    | NoCollateralInputsAdded
+    | AddingCollateralInputsFor Value
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty TxBalanceMsg where
     pretty = \case
-        BalancingUnbalancedTx utx   -> hang 2 $ vsep ["Balancing an unbalanced transaction:", pretty utx]
-        NoOutputsAdded              -> "No outputs added"
-        AddingPublicKeyOutputFor vl -> "Adding public key output for" <+> pretty vl
-        NoInputsAdded               -> "No inputs added"
-        AddingInputsFor vl          -> "Adding inputs for" <+> pretty vl
-        NoInputsAssignedToFees      -> "No inputs assigned to fees"
-        AssiningInputsToFeesFor vl  -> "Assigning inputs to fees for" <+> pretty vl
+        BalancingUnbalancedTx utx    -> hang 2 $ vsep ["Balancing an unbalanced transaction:", pretty utx]
+        NoOutputsAdded               -> "No outputs added"
+        AddingPublicKeyOutputFor vl  -> "Adding public key output for" <+> pretty vl
+        NoInputsAdded                -> "No inputs added"
+        AddingInputsFor vl           -> "Adding inputs for" <+> pretty vl
+        NoCollateralInputsAdded      -> "No collateral inputs added"
+        AddingCollateralInputsFor vl -> "Adding collateral inputs for" <+> pretty vl

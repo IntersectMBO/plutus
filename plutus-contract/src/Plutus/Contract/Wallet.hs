@@ -124,18 +124,14 @@ balanceTx ::
     -- ^ The unbalanced transaction
     -> Eff effs Tx
 balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
-    pubKeyInputValues <- traverse lookupValue (unBalancedTxTx ^.. Tx.inputs . Tx.pubKeyTxIns)
-    scriptInputValues <- traverse lookupValue (unBalancedTxTx ^.. Tx.inputs . Tx.scriptTxIns)
-    feesIn            <- traverse lookupValue (Set.toList $ Tx.txInputsFees unBalancedTxTx)
-    let pubKeyInputValue = fold pubKeyInputValues
-        left = L.txForge unBalancedTxTx <> pubKeyInputValue <> fold scriptInputValues
-        right = foldMap (view Tx.outValue) (unBalancedTxTx ^. Tx.outputs)
-        remainingFees = L.txFee unBalancedTxTx P.- fold feesIn
-        extraInput = if remainingFees `Value.leq` pubKeyInputValue then mempty else remainingFees
-        balance = left P.- right P.- remainingFees
-        (neg', pos') = Value.split balance
-        neg = neg' <> extraInput
-        pos = pos' <> extraInput
+    inputValues  <- traverse lookupValue (Set.toList $ Tx.txInputs unBalancedTxTx)
+    collateralIn <- traverse lookupValue (Set.toList $ Tx.txCollateral unBalancedTxTx)
+    let fees = L.txFee unBalancedTxTx
+        left = L.txForge unBalancedTxTx <> fold inputValues
+        right = fees <> foldMap (view Tx.outValue) (unBalancedTxTx ^. Tx.outputs)
+        remainingCollateral = fees P.- fold collateralIn -- TODO: add collateralPercent
+        balance = left P.- right
+        (neg, pos) = Value.split balance
 
     tx' <- if Value.isZero pos
            then do
@@ -153,13 +149,13 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
                 logDebug $ AddingInputsFor neg
                 addInputs utxo pk neg tx'
 
-    if Value.isZero remainingFees
+    if Value.isZero remainingCollateral
     then do
-        logDebug NoInputsAssignedToFees
+        logDebug NoCollateralInputsAdded
         pure tx''
     else do
-        logDebug $ AssiningInputsToFeesFor remainingFees
-        assignInputsFees remainingFees tx''
+        logDebug $ AddingCollateralInputsFor remainingCollateral
+        addCollateral utxo remainingCollateral tx''
 
 
 -- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
@@ -190,24 +186,20 @@ addOutputs :: PubKey -> Value -> Tx -> Tx
 addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
     pko = Tx.pubKeyTxOut vl pk
 
-assignInputsFees ::
-    ( Member WalletEffect effs
-    , Member (Error WalletAPIError) effs
-    , Member ChainIndexEffect effs
-    )
-    => Value
+addCollateral
+    :: Member (Error WalletAPIError) effs
+    => UtxoMap
+    -> Value
     -> Tx
     -> Eff effs Tx
-assignInputsFees fees tx = do
-    let pubKeyInputs = tx ^.. Tx.inputs . Tx.pubKeyTxIns
-    pubKeyInputValues <- traverse (\ref -> (,) ref <$> lookupValue ref) pubKeyInputs
-    (assigned, _) <- E.selectCoin pubKeyInputValues fees
-    let
-        toFees = Set.fromList (fst <$> assigned)
-        addTxFees = over Tx.inputsFees (Set.union toFees)
-        removeTxIns = over Tx.inputs (Set.\\ toFees)
+addCollateral mp vl tx = do
+    (spend, _) <- E.selectCoin (second (Tx.txOutValue . Tx.txOutTxOut) <$> Map.toList mp) vl
+    let addTxCollateral  =
+            let ins = Set.fromList (Tx.pubKeyTxIn . fst <$> spend)
+            in over Tx.collateralInputs (Set.union ins)
 
-    pure $ tx & addTxFees & removeTxIns
+    pure $ tx & addTxCollateral
+
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
