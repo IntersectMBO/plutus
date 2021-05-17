@@ -7,9 +7,9 @@ module Play.State
 import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, createContract, lookupWalletInfo)
+import Capability.Marlowe (class ManageMarlowe, createContract, followContract, lookupWalletInfo, subscribeToPlutusApp)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_selectedStep)
+import Contract.Lenses (_marloweParams, _selectedStep)
 import Contract.State (applyTimeout)
 import Contract.State (dummyState, handleAction, mkInitialState) as Contract
 import Contract.Types (Action(..), State) as Contract
@@ -17,15 +17,19 @@ import ContractHome.Lenses (_contracts)
 import ContractHome.State (handleAction, mkInitialState) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
-import Data.Array (init, snoc)
+import Data.Array (difference, init, snoc)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, filtered, modifying, over, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Traversal (traversed)
-import Data.Map (Map, insert, lookup, mapMaybe)
+import Data.List (toUnfoldable) as List
+import Data.Map (Map, insert, keys, lookup, mapMaybe, values)
 import Data.Maybe (Maybe(..))
+import Data.Set (toUnfoldable) as Set
 import Data.Time.Duration (Minutes(..))
+import Data.Traversable (for)
+import Data.Tuple.Nested ((/\))
 import Data.UUID (emptyUUID, genUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
@@ -50,7 +54,7 @@ import Template.Lenses (_extendedContract, _roleWalletInputs, _template, _templa
 import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
-import Toast.Types (ajaxErrorToast, errorToast, successToast)
+import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
 import WalletData.Lenses (_pubKeyHash, _walletInfo)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletDetails, WalletLibrary)
@@ -168,6 +172,22 @@ handleAction _ CloseCard = do
   cards <- use _cards
   for_ (init cards) \remainingCards ->
     assign _cards remainingCards
+
+handleAction _ (UpdateRunningContracts companionAppState) = do
+  walletDetails <- use _walletDetails
+  allContracts <- use _allContracts
+  let
+    allMarloweParams = Set.toUnfoldable $ keys companionAppState
+
+    existingMarloweParams = List.toUnfoldable $ map (view _marloweParams) (values allContracts)
+
+    newMarloweParams = difference allMarloweParams existingMarloweParams
+  void
+    $ for newMarloweParams \marloweParams -> do
+        ajaxFollowerContract <- followContract walletDetails marloweParams
+        case ajaxFollowerContract of
+          Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
+          Right (plutusAppId /\ history) -> subscribeToPlutusApp plutusAppId
 
 handleAction { currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
