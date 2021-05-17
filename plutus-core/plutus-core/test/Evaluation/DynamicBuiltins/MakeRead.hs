@@ -9,18 +9,17 @@ module Evaluation.DynamicBuiltins.MakeRead
 
 import           PlutusCore
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc                                  hiding (error)
+import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Pretty
 import           PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Hedgehog                                          hiding (Size, Var)
-import qualified Hedgehog.Gen                                      as Gen
-import qualified Hedgehog.Range                                    as Range
+import           Hedgehog                                hiding (Size, Var)
+import qualified Hedgehog.Gen                            as Gen
+import qualified Hedgehog.Range                          as Range
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
@@ -34,7 +33,7 @@ readMakeHetero
     => a -> EvaluationResult b
 readMakeHetero x = do
     xTerm <- makeKnownNoEmit @(Term TyName Name DefaultUni DefaultFun ()) x
-    case extractEvaluationResult <$> typecheckReadKnownCk defBuiltinsRuntime xTerm of
+    case extractEvaluationResult <$> typecheckReadKnownCk defaultBuiltinsRuntime xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res

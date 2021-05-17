@@ -43,11 +43,12 @@ library
         PlutusCore.Quote
         PlutusCore.MkPlc
         PlutusCore.Evaluation.Machine.Ck
+        PlutusCore.Evaluation.Machine.BuiltinCostModel
+        PlutusCore.Evaluation.Machine.CostModelInterface
         PlutusCore.Evaluation.Machine.ExBudget
-        PlutusCore.Evaluation.Machine.ExBudgeting
-        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.ExMemory
+        PlutusCore.Evaluation.Machine.MachineParameters
         PlutusCore.Evaluation.Result
         PlutusCore.Check.Value
         PlutusCore.Check.Normal
@@ -160,6 +161,7 @@ library
         PlutusCore.Core.Type
         PlutusCore.DeBruijn.Internal
         PlutusCore.Eq
+        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Examples.Data.InterList
         PlutusCore.Examples.Data.Shad
         PlutusCore.Examples.Data.TreeForest
@@ -305,10 +307,12 @@ test-suite plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
+        CostModelInterface.Spec
     default-language: Haskell2010
     build-depends:
         base -any,
         bytestring -any,
+        containers -any,
         filepath -any,
         flat -any,
         hedgehog -any,

@@ -120,6 +120,7 @@
           "PlutusCore/Core/Type"
           "PlutusCore/DeBruijn/Internal"
           "PlutusCore/Eq"
+          "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/Examples/Data/InterList"
           "PlutusCore/Examples/Data/Shad"
           "PlutusCore/Examples/Data/TreeForest"
@@ -187,11 +188,12 @@
           "PlutusCore/Quote"
           "PlutusCore/MkPlc"
           "PlutusCore/Evaluation/Machine/Ck"
+          "PlutusCore/Evaluation/Machine/BuiltinCostModel"
+          "PlutusCore/Evaluation/Machine/CostModelInterface"
           "PlutusCore/Evaluation/Machine/ExBudget"
-          "PlutusCore/Evaluation/Machine/ExBudgeting"
-          "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/Evaluation/Machine/Exception"
           "PlutusCore/Evaluation/Machine/ExMemory"
+          "PlutusCore/Evaluation/Machine/MachineParameters"
           "PlutusCore/Evaluation/Result"
           "PlutusCore/Check/Value"
           "PlutusCore/Check/Normal"
@@ -310,6 +312,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
@@ -339,6 +342,7 @@
             "Pretty/Readable"
             "Check/Spec"
             "TypeSynthesis/Spec"
+            "CostModelInterface/Spec"
             ];
           hsSourceDirs = [ "plutus-core/test" ];
           mainPath = [ "Spec.hs" ];

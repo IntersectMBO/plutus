@@ -13,6 +13,7 @@ import           PlutusCore.Generators.Interesting
 import           PlutusCore.Generators.Test
 import           PlutusCore.Pretty
 
+
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -29,5 +30,5 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup
     "machines"
-    [ testMachine "CK" $ evaluateCkNoEmit defBuiltinsRuntime
+    [ testMachine "CK" $ evaluateCkNoEmit defaultBuiltinsRuntime
     ]

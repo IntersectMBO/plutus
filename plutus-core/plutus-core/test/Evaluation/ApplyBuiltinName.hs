@@ -14,12 +14,11 @@ module Evaluation.ApplyBuiltinName
 
 import           PlutusCore
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Generators
 
 import           Control.Monad.Except
-import           Hedgehog                                          hiding (Var)
+import           Hedgehog                                hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

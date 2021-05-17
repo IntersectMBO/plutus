@@ -21,6 +21,7 @@ import qualified Plutus.Benchmark.Knights                 as Knights
 import qualified Plutus.Benchmark.LastPiece               as LastPiece
 import qualified Plutus.Benchmark.Prime                   as Prime
 import qualified Plutus.Benchmark.Queens                  as Queens
+
 import           PlutusCore                               (Name (..))
 import qualified PlutusCore                               as PLC
 import           PlutusCore.Builtins
@@ -187,7 +188,7 @@ options = hsubparser
 ---------------- Evaluation ----------------
 
 evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateWithCek = unsafeEvaluateCekNoEmit defaultCekMachineCosts defBuiltinsRuntime
+evaluateWithCek = unsafeEvaluateCekNoEmit PLC.defaultCekParameters
 
 toDeBruijn :: UPLC.Program Name DefaultUni DefaultFun a -> IO (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun a)
 toDeBruijn prog = do
