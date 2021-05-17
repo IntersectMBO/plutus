@@ -74,6 +74,7 @@ type ContractConstraints w schema error =
     , Forall (Input schema) FromJSON
     , ToJSON error
     , ToJSON w
+    , FromJSON w
     , AllUniqueLabels (Input schema)
     )
 

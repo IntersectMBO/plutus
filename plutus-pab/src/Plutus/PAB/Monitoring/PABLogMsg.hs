@@ -19,14 +19,15 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     AppMsg(..),
     CoreMsg(..),
     PABMultiAgentMsg(..),
-    ContractEffectMsg(..)
+    ContractEffectMsg(..),
+    RequestSize(..)
     ) where
 
 import           Data.Aeson                              (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                              as JSON
 import           Data.String                             (IsString (..))
 import           Data.Text                               (Text)
-import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, hang, viaShow, vsep, (<+>))
+import           Data.Text.Prettyprint.Doc               (Pretty (..), colon, hang, parens, viaShow, vsep, (<+>))
 import           GHC.Generics                            (Generic)
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
@@ -35,9 +36,7 @@ import           Cardano.ChainIndex.Types                (ChainIndexServerMsg)
 import           Cardano.Metadata.Types                  (MetadataLogMessage)
 import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
-import qualified Data.Aeson.Encode.Pretty                as JSON
 import           Data.Aeson.Text                         (encodeToLazyText)
-import qualified Data.ByteString.Lazy.Char8              as BSL8
 import qualified Data.Text                               as T
 import           Plutus.Contract.Resumable               (Response)
 import           Plutus.Contract.State                   (ContractRequest, ContractResponse)
@@ -251,10 +250,17 @@ instance Pretty ContractEffectMsg where
         SendContractRequest vl      -> "Request:" <+> pretty vl
         ReceiveContractResponse rsp -> "Response:" <+> pretty rsp
 
+newtype RequestSize = RequestSize Int
+    deriving stock (Show)
+    deriving newtype (ToJSON, FromJSON)
+
+instance Pretty RequestSize where
+    pretty (RequestSize i) = pretty i <+> "bytes"
+
 data ContractExeLogMsg =
     InvokeContractMsg
     | InitContractMsg FilePath
-    | UpdateContractMsg FilePath (ContractRequest JSON.Value)
+    | UpdateContractMsg FilePath RequestSize String
     | ExportSignatureMsg FilePath
     | ProcessExitFailure String
     | AContractResponse String
@@ -269,11 +275,7 @@ instance Pretty ContractExeLogMsg where
     pretty = \case
         InvokeContractMsg -> "InvokeContract"
         InitContractMsg fp -> fromString fp <+> "init"
-        UpdateContractMsg fp vl ->
-            let pl = BSL8.unpack (JSON.encodePretty vl) in
-            fromString fp
-            <+> "update"
-            <+> fromString pl
+        UpdateContractMsg fp vl _ -> "updating" <+> fromString fp <+> parens (pretty vl)
         ExportSignatureMsg fp -> fromString fp <+> "export-signature"
         ProcessExitFailure err -> "ExitFailure" <+> pretty err
         AContractResponse str -> pretty str
@@ -290,11 +292,11 @@ instance ToObject ContractExeLogMsg where
         InvokeContractMsg -> mkObjectStr "invoking contract" ()
         InitContractMsg fp ->
             mkObjectStr "Initialising contract" (Tagged @"file_path" fp)
-        UpdateContractMsg fp rq ->
-            let f =  Tagged @"file_path" fp in
-            mkObjectStr "updating contract" $ case v of
-                MaximalVerbosity -> Left (f, rq)
-                _                -> Right f
+        UpdateContractMsg fp (RequestSize rq) msg ->
+            let f = Tagged @"file_path" fp
+                g = Tagged @"request_size" rq
+                c = Tagged @"content" msg
+            in mkObjectStr "updating contract" (f, g, c)
         ExportSignatureMsg fp ->
             mkObjectStr "exporting signature" (Tagged @"file_path" fp)
         ProcessExitFailure f ->

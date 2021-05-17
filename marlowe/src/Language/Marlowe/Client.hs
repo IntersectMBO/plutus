@@ -643,24 +643,30 @@ marloweCompanionContract = contracts
         utxo <- utxoAt ownAddress
         let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
         forM_ txOuts notifyOnNewContractRoles
+        logWarn @String "marlowe-companion-app: starting checkpoint loop"
         checkpointLoop (fmap Right <$> cont) ownAddress
     cont ownAddress = do
+        logWarn @String "marlowe-companion-app: asking nextTransactionsAt"
         txns <- nextTransactionsAt ownAddress
+        logWarn @String "marlowe-companion-app: received nextTransactionsAt"
         let txOuts = txns >>= eitherTx (const []) txOutputs
         forM_ txOuts notifyOnNewContractRoles
-        cont ownAddress
-
+        pure ownAddress
 
 notifyOnNewContractRoles :: TxOut
     -> Contract CompanionState MarloweCompanionSchema MarloweError ()
 notifyOnNewContractRoles txout = do
     let curSymbols = filterRoles txout
     forM_ curSymbols $ \cs -> do
-        logInfo @String $ "Processing currency symbol: " <> show cs
+        logWarn @String $ "Processing currency symbol: " <> show cs
         contract <- findMarloweContractsOnChainByRoleCurrency cs
         case contract of
-            Just (params, md) -> tell $ CompanionState (Map.singleton params md)
-            Nothing           -> pure ()
+            Just (params, md) -> do
+                logWarn @String $ "Found on-chain state"
+                tell $ CompanionState (Map.singleton params md)
+            Nothing           -> do
+                logWarn @String $ "On-chain state not found!"
+                pure ()
 
 
 filterRoles :: TxOut -> [CurrencySymbol]

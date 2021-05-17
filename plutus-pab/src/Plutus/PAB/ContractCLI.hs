@@ -114,6 +114,7 @@ runCliCommand :: forall w s s2.
        , Forall (Input s) ToJSON
        , EndpointToSchema (s .\\ s2)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Proxy s2
@@ -134,6 +135,7 @@ runUpdate :: forall w s.
     , Forall (Output s) ToJSON
     , Forall (Input s) ToJSON
     , ToJSON w
+    , FromJSON w
     , Monoid w
     )
     => Contract w s Text ()
@@ -154,6 +156,7 @@ commandLineApp :: forall w s.
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ BlockchainActions)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Contract w s Text ()
@@ -169,12 +172,13 @@ commandLineApp' :: forall w s s2.
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ s2)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Proxy s2
     -> Contract w s Text ()
     -> IO ()
-commandLineApp' p schema = runPromptIO (contractCliApp  p schema)
+commandLineApp' p schema = runPromptIO (contractCliApp p schema)
 
 contractCliApp :: forall w s s2.
        ( AllUniqueLabels (Input s)
@@ -183,6 +187,7 @@ contractCliApp :: forall w s s2.
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ s2)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Proxy s2

@@ -231,6 +231,7 @@
         "optparse-applicative".revision = (((hackage."optparse-applicative")."0.16.1.0").revisions).default;
         "optparse-applicative".flags.process = true;
         "statistics-linreg".revision = (((hackage."statistics-linreg")."0.3").revisions).default;
+        "IntervalMap".revision = (((hackage."IntervalMap")."0.6.1.2").revisions).default;
         "network".revision = (((hackage."network")."3.1.2.1").revisions).default;
         "network".flags.devel = false;
         "word8".revision = (((hackage."word8")."0.1.3").revisions).default;

@@ -22,6 +22,8 @@ module Plutus.PAB.Effects.Contract.ContractExe(
     ) where
 
 import           Cardano.BM.Data.Tracer.Extras                    (StructuredLog (..))
+import           Control.Lens                                     ((^.))
+import           Control.Monad                                    (when)
 import           Control.Monad.Freer                              (Eff, LastMember, Member, send, sendM, type (~>))
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
@@ -35,18 +37,19 @@ import qualified Data.HashMap.Strict                              as HM
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc                        (Pretty, pretty, (<+>))
 import           GHC.Generics                                     (Generic)
-import           Plutus.Contract.Resumable                        (Response)
+import           Plutus.Contract.Resumable                        (IterationID (..), Response (rspItID))
 import           Plutus.Contract.State                            (ContractRequest (..), ContractResponse)
 import qualified Plutus.Contract.State                            as ContractState
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog))
 import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract                       (ContractHandlerRequest (..),
-                                                                   ContractHandlersResponse (..), ContractInstanceId,
-                                                                   ContractPABRequest)
+                                                                   ContractHandlersResponse (..),
+                                                                   ContractInstanceId (..), ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
 import           Plutus.PAB.Monitoring.PABLogMsg                  (ContractExeLogMsg (..), PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                 (PABError (ContractCommandError))
 import           System.Exit                                      (ExitCode (ExitFailure, ExitSuccess))
+import           System.FilePath.Lens                             (filename)
 import           System.Process                                   (readProcessWithExitCode)
 
 instance PABContract ContractExe where
@@ -89,10 +92,18 @@ handleContractEffectContractExe =
         UpdateContract i (ContractExe contractPath) (oldState :: ContractResponse Value Value Value ContractPABRequest) (input :: Response Events.Contract.ContractPABResponse) -> do
             let req :: ContractRequest Value
                 req = ContractRequest{oldState = ContractState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
-                pl = BSL8.unpack (JSON.encodePretty req)
-            logDebug $ UpdateContractMsg contractPath req
+                encodedRequest = JSON.encodePretty req
+                pl = BSL8.unpack encodedRequest
+                -- oldSize = fromIntegral $ BSL8.length $ JSON.encodePretty $ ContractState.newState oldState
             result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
             logNewMessages i result
+            -- let newSize = fromIntegral $ BSL8.length $ JSON.encodePretty $ ContractState.newState result
+            when True $ do
+                let prefix = contractPath ^. filename
+                    IterationID k = rspItID input
+                    jsonToFile :: forall a. ToJSON a => String -> a -> Eff effs ()
+                    jsonToFile p = liftIO . BSL8.writeFile (prefix <> "-" <> show k <> "-" <> p <> ".json") . JSON.encodePretty
+                jsonToFile "result-obs-state" $ ContractState.observableState result
             pure result
         ExportSchema (ContractExe contractPath) -> do
             logDebug $ ExportSignatureMsg contractPath
