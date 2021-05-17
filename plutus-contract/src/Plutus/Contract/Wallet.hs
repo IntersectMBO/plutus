@@ -78,7 +78,7 @@ be submitted to the network, the contract backend needs to
 -- | Balance an unbalanced transaction in a 'WalletEffects' context. See note
 --   [Submitting transactions from Plutus contracts].
 balanceWallet ::
-   ( Member WalletEffect effs
+    ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     , Member ChainIndexEffect effs
     , Member (LogMsg TxBalanceMsg) effs
@@ -107,7 +107,7 @@ lookupValue outputRef = do
             WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show outputRef)
 
 -- | Balance an unbalanced transaction by adding public key inputs
---   and outputs and by assigning enough inputs to fees.
+--   and outputs and by adding enough collateral inputs.
 balanceTx ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
@@ -124,12 +124,12 @@ balanceTx ::
     -- ^ The unbalanced transaction
     -> Eff effs Tx
 balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
-    inputValues  <- traverse lookupValue (Set.toList $ Tx.txInputs unBalancedTxTx)
-    collateralIn <- traverse lookupValue (Set.toList $ Tx.txCollateral unBalancedTxTx)
+    inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs unBalancedTxTx)
+    collateral  <- traverse lookupValue (Set.toList $ Tx.txCollateral unBalancedTxTx)
     let fees = L.txFee unBalancedTxTx
         left = L.txForge unBalancedTxTx <> fold inputValues
         right = fees <> foldMap (view Tx.outValue) (unBalancedTxTx ^. Tx.outputs)
-        remainingCollateral = fees P.- fold collateralIn -- TODO: add collateralPercent
+        remainingFees = fees P.- fold collateral -- TODO: add collateralPercent
         balance = left P.- right
         (neg, pos) = Value.split balance
 
@@ -149,13 +149,13 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
                 logDebug $ AddingInputsFor neg
                 addInputs utxo pk neg tx'
 
-    if Value.isZero remainingCollateral
+    if remainingFees `Value.leq` Value.zero
     then do
         logDebug NoCollateralInputsAdded
         pure tx''
     else do
-        logDebug $ AddingCollateralInputsFor remainingCollateral
-        addCollateral utxo remainingCollateral tx''
+        logDebug $ AddingCollateralInputsFor remainingFees
+        addCollateral utxo remainingFees tx''
 
 
 -- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
@@ -194,12 +194,10 @@ addCollateral
     -> Eff effs Tx
 addCollateral mp vl tx = do
     (spend, _) <- E.selectCoin (second (Tx.txOutValue . Tx.txOutTxOut) <$> Map.toList mp) vl
-    let addTxCollateral  =
+    let addTxCollateral =
             let ins = Set.fromList (Tx.pubKeyTxIn . fst <$> spend)
             in over Tx.collateralInputs (Set.union ins)
-
     pure $ tx & addTxCollateral
-
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.

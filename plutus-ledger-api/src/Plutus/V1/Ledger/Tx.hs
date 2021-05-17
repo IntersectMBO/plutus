@@ -123,7 +123,7 @@ data Tx = Tx {
     txInputs       :: Set.Set TxIn,
     -- ^ The inputs to this transaction.
     txCollateral   :: Set.Set TxIn,
-    -- ^ The collateral inputs to cover the fees in case the transaction fails.
+    -- ^ The collateral inputs to cover the fees in case validation of the transaction fails.
     txOutputs      :: [TxOut],
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
     txForge        :: !Value,
@@ -177,13 +177,13 @@ instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
     withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
--- | The inputs of a transaction not used for fees.
+-- | The inputs of a transaction.
 inputs :: Lens' Tx (Set.Set TxIn)
 inputs = lens g s where
     g = txInputs
     s tx i = tx { txInputs = i }
 
--- | The inputs of a transaction designated for fees.
+-- | The collateral inputs of a transaction for paying fees when validating the transaction fails.
 collateralInputs :: Lens' Tx (Set.Set TxIn)
 collateralInputs = lens g s where
     g = txCollateral

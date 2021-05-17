@@ -99,7 +99,7 @@ data ScriptPurpose
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
-    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs NOT used to pay fees
+    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
     , txInfoForge       :: Value -- ^ The 'Value' forged by this transaction.
@@ -258,7 +258,7 @@ signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) (TxInfo{txInfoId=TxId
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
-valueSpent TxInfo{txInfoInputs} = foldMap (txOutValue . txInInfoResolved) txInfoInputs
+valueSpent = foldMap (txOutValue . txInInfoResolved) . txInfoInputs
 
 {-# INLINABLE valueProduced #-}
 -- | Get the total value of outputs produced by this transaction.
@@ -276,13 +276,13 @@ ownCurrencySymbol _                                              = Builtins.erro
 --   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)
 spendsOutput :: TxInfo -> TxId -> Integer -> Bool
-spendsOutput TxInfo{txInfoInputs} h i =
+spendsOutput p h i =
     let spendsOutRef inp =
             let outRef = txInInfoOutRef inp
             in h == txOutRefId outRef
                 && i == txOutRefIdx outRef
 
-    in any spendsOutRef txInfoInputs
+    in any spendsOutRef (txInfoInputs p)
 
 makeLift ''TxInInfo
 makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
