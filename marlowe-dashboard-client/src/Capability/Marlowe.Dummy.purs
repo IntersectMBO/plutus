@@ -22,13 +22,14 @@ import Capability.Contract (class ManageContract)
 import Capability.Contract (activateContract, getContractInstanceObservableState, invokeEndpoint) as Contract
 import Capability.Wallet (class ManageWallet)
 import Capability.Websocket (class ManageWebsocket)
-import Control.Monad.Except (ExceptT(..), lift, mapExceptT, runExceptT, withExceptT)
+import Control.Monad.Except (ExceptT(..), lift, mapExceptT, runExcept, runExceptT, withExceptT)
 import Data.Bifunctor (lmap)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
 import Data.Int (floor)
 import Data.Lens (view)
-import Data.Map (Map, singleton)
+import Data.Map (Map, filter, findMin, singleton)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
@@ -37,13 +38,15 @@ import Effect.Class (liftEffect)
 import Effect.Random (random)
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM)
+import LocalStorage (getItem)
 import MainFrame.Types (Msg)
-import Marlowe.PAB (ContractHistory, PlutusAppId(..), PlutusApp(..), MarloweData, MarloweParams, plutusAppPath)
+import Marlowe.PAB (ContractHistory(..), PlutusAppId(..), PlutusApp(..), MarloweData, MarloweParams, plutusAppPath)
 import Marlowe.Semantics (Assets(..), Contract, TokenName, TransactionInput(..))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
+import StaticData (walletLibraryLocalStorageKey)
 import Types (AjaxResponse, DecodedAjaxResponse)
-import WalletData.Lenses (_wallet, _walletInfo)
-import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..))
+import WalletData.Lenses (_companionAppId, _wallet, _walletInfo)
+import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..), WalletLibrary)
 
 -- Until everything in the PAB is working as it should be, we can use this "dummy" version of the
 -- Marlowe capability. It is simpler and cleaner to do this once and for all here, than to track
@@ -92,14 +95,12 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
     pure $ Right walletDetails
   -- create a WalletFollowerApp to follow a Marlowe contract on the blockchain, and return its instance ID and initial state
   followContract walletDetails marloweParams = do
-    runExceptT do
-      let
-        wallet = view (_walletInfo <<< _wallet) walletDetails
-      followAppId <- withExceptT Left $ ExceptT $ Contract.activateContract (plutusAppPath ContractFollowerApp) wallet
-      void $ withExceptT Left $ ExceptT $ Contract.invokeEndpoint followAppId "follow" marloweParams
-      observableStateJson <- withExceptT Left $ ExceptT $ Contract.getContractInstanceObservableState followAppId
-      observableState <- mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
-      pure $ followAppId /\ observableState
+    uuid <- liftEffect genUUID
+    let
+      followAppId = PlutusAppId uuid
+
+      observableState = None
+    pure $ Right $ followAppId /\ observableState
   -- "create" a Marlowe contract on the blockchain
   createContract walletDetails roles contract = pure $ Right unit
   -- "apply-inputs" to a Marlowe contract on the blockchain
@@ -107,10 +108,26 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   -- "redeem" payments from a Marlowe contract on the blockchain
   redeem walletDetails marloweParams tokenName = pure $ Right unit
   -- get the WalletInfo of a wallet given the PlutusAppId of its WalletCompanionApp
-  lookupWalletInfo companionAppId = pure $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+  lookupWalletInfo companionAppId =
+    runExceptT do
+      walletDetails <- ExceptT $ lookupWalletDetails companionAppId
+      pure $ view _walletInfo walletDetails
   -- get the WalletDetails of a wallet given the PlutusAppId of its WalletCompanionApp
   -- note: this returns an empty walletNickname (because these are only saved locally)
-  lookupWalletDetails companionAppId = pure $ Left $ AjaxError { request: defaultRequest, description: NotFound }
+  lookupWalletDetails companionAppId = do
+    mWalletLibraryJson <- liftEffect $ getItem walletLibraryLocalStorageKey
+    let
+      walletLibrary :: WalletLibrary
+      walletLibrary = case mWalletLibraryJson of
+        Just json -> case runExcept $ decodeJSON json of
+          Right wallets -> wallets
+          Left _ -> mempty
+        Nothing -> mempty
+
+      mWalletDetails = findMin $ filter (\details -> view _companionAppId details == companionAppId) walletLibrary
+    case mWalletDetails of
+      Just { key, value } -> pure $ Right value
+      Nothing -> pure $ Left $ AjaxError { request: defaultRequest, description: NotFound }
   -- get the observable state of a wallet's WalletCompanionApp
   getRoleContracts walletDetails = pure $ Right $ mempty
   -- get all WalletFollowerApps for a given wallet
