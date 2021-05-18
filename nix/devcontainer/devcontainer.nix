@@ -39,7 +39,19 @@ let
   # See: https://github.com/NixOS/docker/issues/7
   nsswitch-conf = pkgs.writeTextFile {
     name = "nsswitch.conf";
-    text = "hosts: dns files";
+    text = ''
+      passwd:    files systemd
+      group:     files systemd
+      shadow:    files
+
+      hosts:     files dns myhostname
+      networks:  files
+
+      ethers:    files
+      services:  files
+      protocols: files
+      rpc:       files
+    '';
     destination = "/etc/nsswitch.conf";
   };
   # I think we should be able to use buildLayeredImage, but for some reason it
