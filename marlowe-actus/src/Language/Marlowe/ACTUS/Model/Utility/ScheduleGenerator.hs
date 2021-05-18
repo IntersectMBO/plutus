@@ -14,6 +14,7 @@ where
 import           Control.Arrow                                    ((>>>))
 import           Data.Function                                    ((&))
 import qualified Data.List                                        as L (init, last, notElem)
+import           Data.Maybe                                       (fromJust)
 import           Data.Time.Calendar                               (Day, addDays, addGregorianMonthsClip,
                                                                    addGregorianYearsClip, fromGregorian,
                                                                    gregorianMonthLength, toGregorian)
@@ -71,11 +72,11 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
 
 generateRecurrentScheduleWithCorrections
   :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
-generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig { eomc = Just eomc, bdc = Just bdc, .. }
+generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig {..}
   = generateRecurrentSchedule cycle anchorDate endDate &
       (endDateCorrection includeEndDay endDate >>>
-      (fmap $ applyEOMC anchorDate cycle eomc) >>>
-      (fmap $ applyBDC bdc calendar) >>>
+      (fmap $ applyEOMC anchorDate cycle (fromJust eomc)) >>>
+      (fmap $ applyBDC (fromJust bdc) calendar) >>>
       stubCorrection (stub cycle) endDate)
 
 plusCycle :: Day -> Cycle -> Day
