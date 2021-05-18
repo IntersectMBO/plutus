@@ -46,6 +46,7 @@ library
         PlutusCore.Evaluation.Machine.BuiltinCostModel
         PlutusCore.Evaluation.Machine.CostModelInterface
         PlutusCore.Evaluation.Machine.ExBudget
+        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.ExMemory
         PlutusCore.Evaluation.Machine.MachineParameters
@@ -161,7 +162,6 @@ library
         PlutusCore.Core.Type
         PlutusCore.DeBruijn.Internal
         PlutusCore.Eq
-        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Examples.Data.InterList
         PlutusCore.Examples.Data.Shad
         PlutusCore.Examples.Data.TreeForest

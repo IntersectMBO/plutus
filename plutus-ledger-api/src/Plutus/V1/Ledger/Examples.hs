@@ -2,15 +2,20 @@
 {-|
 This module contains example values to be used for testing. These should NOT be used in non-test code!
 -}
-module Plutus.V1.Ledger.Examples where
+module Plutus.V1.Ledger.Examples
+    ( alwaysSucceedingNAryFunction
+    , alwaysFailingNAryFunction
+    , defaultCostModelParams
+    ) where
 
 import           Data.ByteString.Short
 import qualified Flat
 import           Numeric.Natural
 import           Plutus.V1.Ledger.Api
-import qualified Plutus.V1.Ledger.Scripts as Scripts
-import qualified PlutusCore               as PLC
-import qualified UntypedPlutusCore        as UPLC
+import qualified Plutus.V1.Ledger.Scripts                          as Scripts
+import qualified PlutusCore                                        as PLC
+import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
+import qualified UntypedPlutusCore                                 as UPLC
 
 {- Note [Manually constructing scripts]
 The scripts we provide here are *manually* constructed Plutus Core. Why not use our great machinery for easily creating
