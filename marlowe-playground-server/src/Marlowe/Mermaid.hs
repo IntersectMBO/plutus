@@ -41,10 +41,11 @@ flatten p@(Assert _ c)    = (p, c, Nothing) : flatten c
 flatten p@(If _ trueContract falseContract)
   = (p, trueContract, Just "True") : flatten trueContract
   ++ (p, falseContract, Just "False") : flatten falseContract
+-- If we have no cases we always show the continuation
 flatten p@(When [] t c)
   =  (p, c, Just $ show $ "currentSlot >= " ++ timeoutShow t) : flatten c
--- If the timeout continuation is a Close contract, we omit that link (as it's the default)
--- Maybe later on we want to make this configurable.
+-- If we do have cases and the continuation is just a Close contract, we omit that link
+-- TODO: Maybe later on we want to make this configurable.
 flatten p@(When cases t Close)
   =  concatMap (\(Case a c') -> (p, c', Just $ actionShow a) : flatten c') cases
 flatten p@(When cases t c)
@@ -85,7 +86,7 @@ observationShow = escape . repr
     repr (ValueLT val1 val2)                  = valueShow val1 ++ " < " ++ valueShow val2
     repr (ValueLE val1 val2)                  = valueShow val1 ++ " <= " ++ valueShow val2
     repr (ValueEQ val1 val2)                  = valueShow val1 ++ " == " ++ valueShow val2
-    repr TrueObs                              ="true"
+    repr TrueObs                              = "true"
     repr FalseObs                             = "false"
 
 
@@ -113,10 +114,10 @@ valueShow (ChoiceValue (ChoiceId id party)) = show party ++ " choice on " ++ sho
 valueShow (Cond obs val1 val2) = "(" ++ observationShow obs ++ " ? " ++ valueShow val1 ++ " : " ++ valueShow val2 ++ ")"
 valueShow (UseValue (ValueId id)) = show id
 valueShow (Scale fraction val) = "(" ++ show fraction ++ " * " ++ valueShow val ++ ")"
-valueShow other                 = show other
--- valueShow    AvailableMoney S.AccountId S.Token
--- valueShow    SlotIntervalStart
--- valueShow    SlotIntervalEnd
+valueShow (AvailableMoney party _) = show party ++ "'s available money"
+valueShow SlotIntervalStart  = "slot interval start"
+valueShow SlotIntervalEnd  = "slot interval end"
+
 -- | Convert a 'Contract' into a string that can be printed and loaded into the
 -- mermaid live editor: <https://mermaid-js.github.io/mermaid-live-editor/>.
 toMermaid :: Contract -> String
@@ -125,12 +126,12 @@ toMermaid c = unlines . nub $ "graph TB" : map f (flatten c)
   -- particular nodes. Maybe this could be cleaned up in another way; it's
   -- perhaps a bit fragile given that it depends on the string representation.
   where
-    brackets Close           = ("((", "))") -- Circle
-    brackets (Pay _ _ _ _ _) = ("([", "])")   -- Subrutine shape
-    brackets (If  _ _ _)     = ("{", "}")   -- rhombus
-    brackets (When  _ _ _)   = ("{", "}")   -- rhombus
-    brackets (Let  _ _ _)    = ("[[", "]]")   -- Square
-    brackets (Assert  _ _)   = (">", "]")   -- Flag
+    brackets Close           = ("((", "))")   -- Circle
+    brackets (Pay _ _ _ _ _) = ("([", "])")   -- Stadium shape
+    brackets (If  _ _ _)     = ("{", "}")     -- Rhombus
+    brackets (When  _ _ _)   = ("{", "}")     -- Rhombus
+    brackets (Let  _ _ _)    = ("[[", "]]")   -- Subrutine shape
+    brackets (Assert  _ _)   = (">", "]")     -- Flag
     f (a, b, mt) =
       let node n =
             let (bl, br) = brackets n

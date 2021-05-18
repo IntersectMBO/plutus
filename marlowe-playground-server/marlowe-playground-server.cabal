@@ -135,11 +135,9 @@ executable marlowe-playground-server
         yaml -any,
         time -any
 
-executable marlowe-mermaid
-    main-is: TestMermaid.hs
+executable flow-chart-generator
+    main-is: FlowChartGenerator.hs
     other-modules:
-        Webserver
-        PSGenerator
         Types
         Escrow
         EscrowWithCollateral
@@ -157,39 +155,9 @@ executable marlowe-mermaid
     build-depends:
         aeson -any,
         base -any,
-        bytestring -any,
-        containers -any,
-        data-default-class -any,
-        directory -any,
-        filepath -any,
-        http-client -any,
-        http-client-tls -any,
-        http-types -any,
         playground-common -any,
-        lens -any,
         marlowe -any,
-        marlowe-playground-server -any,
-        marlowe-symbolic -any,
-        marlowe-actus -any,
-        monad-logger -any,
-        mtl -any,
-        plutus-ledger,
-        plutus-tx,
-        prometheus >=2,
-        purescript-bridge -any,
-        optparse-applicative -any,
-        servant-client -any,
-        servant-foreign -any,
-        servant-server -any,
-        servant-purescript -any,
-        text -any,
-        wai -any,
-        wai-cors -any,
-        wai-extra -any,
-        warp -any,
-        web-ghc -any,
-        yaml -any,
-        time -any
+        marlowe-playground-server -any
 
 test-suite marlowe-playground-server-test
     type: exitcode-stdio-1.0
