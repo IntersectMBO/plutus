@@ -59,7 +59,7 @@ contractTerms = ContractTerms {
         , ct_SCEF = Nothing
         , ct_SCCL = Nothing
         , ct_SCANX = Nothing
-        , ct_SCIXSD = 0.0
+        , ct_SCCDD = Nothing
         -- Rate Reset
         , ct_RRCL = Nothing
         , ct_RRANX = Nothing

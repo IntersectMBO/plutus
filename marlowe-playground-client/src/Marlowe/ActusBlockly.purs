@@ -946,7 +946,7 @@ actusContractToTerms raw = do
         , ct_SCEF: SE_000
         , ct_SCCL: Nothing
         , ct_SCANX: Nothing
-        , ct_SCIXSD: 0.0
+        , ct_SCCDD: 0.0
         , ct_RRCL: rateResetCycle
         , ct_RRANX: rateResetAnchor >>= identity
         , ct_RRNXT: Nothing

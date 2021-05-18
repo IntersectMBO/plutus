@@ -34,7 +34,7 @@ validateTerms t =
             _NN_I_1 [isJust $ ct_PRD t, isJust $ ct_PPRD t] t ["purchase date", "price at purchase date"] <*
             _NN_I_1 [isJust $ ct_TD t, isJust $ ct_PTD t] t ["termination date", "price at termination"] <*
             _NN ct_MD t "maturity date" <*
-            _NN_I_1 [isJust $ ct_SCEF t, isJust $ ct_SCIED t] t ["scaling effect", "scaling index at status date"] <*
+            _NN_I_1 [isJust $ ct_SCEF t, isJust $ ct_SCIED t, isJust $ ct_SCCDD t] t ["scaling effect", "scaling index at status date", "scaling index at contract deal date"] <*
             _X_I_1 [isJust $ ct_PYRT t, isJust $ ct_PYTP t] [isJust $ ct_PPEF t] t ["penalty rate", "penalty type"] ["prepayment effect"]
         LAM ->
             pure t <*
@@ -61,7 +61,7 @@ validateTerms t =
             _NN ct_PRCL t "principal redemption cycle" <*
             _X ct_MD t "maturity date" <*
             _X ct_PRNXT t "periodic payment amount" <*
-            _NN_I_1 [isJust $ ct_SCEF t, isJust $ ct_SCIED t] t ["scaling effect", "scaling index at status date"] <*
+            _NN_I_1 [isJust $ ct_SCEF t, isJust $ ct_SCIED t, isJust $ ct_SCCDD t] t ["scaling effect", "scaling index at status date", "scaling index at contract deal date"] <*
             _X_I_1 [isJust $ ct_PYRT t, isJust $ ct_PYTP t] [isJust $ ct_PPEF t] t ["penalty rate", "penalty type"] ["prepayment effect"]
         NAM ->
             pure t <*
@@ -90,5 +90,5 @@ validateTerms t =
             _NN ct_PRCL t "principal redemption cycle" <*
             _X ct_MD t "maturity date" <*
             _NN ct_PRNXT t "periodic payment amount" <*
-            _NN_I_1 [isJust $ ct_SCEF t, isJust $ ct_SCIED t] t ["scaling effect", "scaling index at status date"] <*
+            _NN_I_1 [isJust $ ct_SCEF t, isJust $ ct_SCIED t, isJust $ ct_SCCDD t] t ["scaling effect", "scaling index at status date", "scaling index at contract deal date"] <*
             _X_I_1 [isJust $ ct_PYRT t, isJust $ ct_PYTP t] [isJust $ ct_PPEF t] t ["penalty rate", "penalty type"] ["prepayment effect"]

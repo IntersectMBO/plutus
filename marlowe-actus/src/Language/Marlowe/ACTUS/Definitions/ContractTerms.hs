@@ -220,7 +220,7 @@ data ContractTerms = ContractTerms
   , ct_SCANX         :: Maybe Day      -- Cycle Anchor Date Of Scaling Index
   , ct_SCCL          :: Maybe Cycle    -- Cycle Of Scaling Index
   , ct_SCEF          :: Maybe SCEF     -- Scaling Effect
-  , ct_SCIXSD        :: Double         -- TODO: check what this term exactly stands for
+  , ct_SCCDD         :: Maybe Double   -- Scaling Index At Contract Deal Date
 
   -- Optionality
   , ct_OPCL          :: Maybe Cycle    -- Cycle Of Optionality

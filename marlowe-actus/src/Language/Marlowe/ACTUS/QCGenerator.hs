@@ -85,7 +85,7 @@ contractTermsGen = do
     cntrl <- elements [CR_BUY, CR_SEL]
 
     scef <- elements [SE_000, SE_0N0, SE_00M, SE_0NM, SE_I00, SE_IN0, SE_I0M, SE_INM]
-    scixsd <- oneOr scalingFactor
+    sccdd <- oneOr scalingFactor
     scied <- oneOr scalingFactor
 
     rrsp <- zeroOr percentage
@@ -164,7 +164,7 @@ contractTermsGen = do
         , ct_SCEF      = Just scef
         , ct_SCCL      = scalingCycle
         , ct_SCANX     = scalingAnchor
-        , ct_SCIXSD    = scixsd
+        , ct_SCCDD     = Just sccdd
         -- Rate Reset
         , ct_RRCL      = rateResetCycle
         , ct_RRANX     = rateResetAnchor

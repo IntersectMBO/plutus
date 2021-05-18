@@ -43,13 +43,14 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus
     , ct_NT     = _NT
     , ct_MD     = _MD
     , ct_SCEF   = _SCEF
-    , ct_SCIXSD = _SCIXSD
+    , ct_SCCDD = _SCCDD
   } =
     let
-        _IED'  = fromJust _IED
-        _DCC'  = fromJust _DCC
-        _PRF'  = fromJust _PRF
-        _SCEF' = fromJust _SCEF
+        _IED'   = fromJust _IED
+        _DCC'   = fromJust _DCC
+        _PRF'   = fromJust _PRF
+        _SCEF'  = fromJust _SCEF
+        _SCCDD' = fromJust _SCCDD
 
         tmd                                     = fromJust _MD
         nt
@@ -73,10 +74,10 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus
                 | fromJust _FEB == FEB_N        = y _DCC' tfp_minus t0 _MD * nt * fromJust _FER
                 | otherwise                     = (y _DCC' tfp_minus t0 _MD / y _DCC' tfp_minus tfp_plus _MD) * fromJust _FER
         nsc
-                | scef_xNx _SCEF'               = _SCIXSD
+                | scef_xNx _SCEF'               = _SCCDD'
                 | otherwise                     = 1.0
         isc
-                | scef_Ixx _SCEF'               = _SCIXSD
+                | scef_Ixx _SCEF'               = _SCCDD'
                 | otherwise                     = 1.0
         prf                                     = _PRF'
         sd                                      = t0
