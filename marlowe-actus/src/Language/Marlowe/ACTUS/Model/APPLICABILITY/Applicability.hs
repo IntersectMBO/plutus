@@ -27,20 +27,9 @@ validateTerms t =
             _X ct_PDIED t "premium discount at IED" <*
             _X_I_2 (ct_SCEF t) [isJust $ ct_SCANX t, isJust $ ct_SCCL t] t "scaling effect" ["cycle anchor date of scaling index", "cycle of scaling index"] <*
             _X_I_1 [isJust $ ct_RRCL t, isJust $ ct_RRANX t]
-              [ isJust $ ct_RRNXT t,
-                isJust $ ct_RRSP t,
-                isJust $ ct_RRMLT t,
-                isJust $ ct_RRPF t,
-                isJust $ ct_RRPC t,
-                isJust $ ct_RRLC t,
-                isJust $ ct_RRLF t] t ["cycle anchor date of rate reset", "cycle of rate reset"]
-              [ "next reset rate",
-                "rate spread",
-                "rate multiplier",
-                "period floor",
-                "period cap",
-                "life cap",
-                "life floor"] <*
+              (map (\x -> isJust $ x t) [ct_RRNXT, ct_RRSP, ct_RRMLT, ct_RRPF, ct_RRPC, ct_RRLC, ct_RRLF]) t
+              ["cycle anchor date of rate reset", "cycle of rate reset"]
+              [ "next reset rate", "rate spread", "rate multiplier", "period floor", "period cap", "life cap", "life floor"] <*
             _NN ct_NT t "notional principal" <*
             _NN_I_1 [isJust $ ct_PRD t, isJust $ ct_PPRD t] t ["purchase date", "price at purchase date"] <*
             _NN_I_1 [isJust $ ct_TD t, isJust $ ct_PTD t] t ["termination date", "price at termination"] <*
@@ -63,20 +52,9 @@ validateTerms t =
             _X ct_PDIED t "premium discount at IED" <*
             _NN_I_3 ct_IPCBA t "interest calculation base amount" <*
             _X_I_1 [isJust $ ct_RRCL t, isJust $ ct_RRANX t]
-              [ isJust $ ct_RRNXT t,
-                isJust $ ct_RRSP t,
-                isJust $ ct_RRMLT t,
-                isJust $ ct_RRPF t,
-                isJust $ ct_RRPC t,
-                isJust $ ct_RRLC t,
-                isJust $ ct_RRLF t] t ["cycle anchor date of rate reset", "cycle of rate reset"]
-              [ "next reset rate",
-                "rate spread",
-                "rate multiplier",
-                "period floor",
-                "period cap",
-                "life cap",
-                "life floor"] <*
+              (map (\x -> isJust $ x t) [ct_RRNXT, ct_RRSP, ct_RRMLT, ct_RRPF, ct_RRPC, ct_RRLC, ct_RRLF]) t
+              ["cycle anchor date of rate reset", "cycle of rate reset"]
+              [ "next reset rate", "rate spread", "rate multiplier", "period floor", "period cap", "life cap", "life floor"] <*
             _NN ct_NT t "notional principal" <*
             _NN_I_1 [isJust $ ct_PRD t, isJust $ ct_PPRD t] t ["purchase date", "price at purchase date"] <*
             _NN_I_1 [isJust $ ct_TD t, isJust $ ct_PTD t] t ["termination date", "price at termination"] <*
@@ -103,20 +81,9 @@ validateTerms t =
             _X ct_IPANX t "cycle anchor date of interest payment" <*
             _NN_I_3 ct_IPCBA t "interest calculation base amount" <*
             _X_I_1 [isJust $ ct_RRCL t, isJust $ ct_RRANX t]
-              [ isJust $ ct_RRNXT t,
-                isJust $ ct_RRSP t,
-                isJust $ ct_RRMLT t,
-                isJust $ ct_RRPF t,
-                isJust $ ct_RRPC t,
-                isJust $ ct_RRLC t,
-                isJust $ ct_RRLF t] t ["cycle anchor date of rate reset", "cycle of rate reset"]
-              [ "next reset rate",
-                "rate spread",
-                "rate multiplier",
-                "period floor",
-                "period cap",
-                "life cap",
-                "life floor"] <*
+              (map (\x -> isJust $ x t) [ct_RRNXT, ct_RRSP, ct_RRMLT, ct_RRPF, ct_RRPC, ct_RRLC, ct_RRLF]) t
+              ["cycle anchor date of rate reset", "cycle of rate reset"]
+              [ "next reset rate", "rate spread", "rate multiplier", "period floor", "period cap", "life cap", "life floor"] <*
             _NN ct_NT t "notional principal" <*
             _NN_I_1 [isJust $ ct_PRD t, isJust $ ct_PPRD t] t ["purchase date", "price at purchase date"] <*
             _NN_I_1 [isJust $ ct_TD t, isJust $ ct_PTD t] t ["termination date", "price at termination"] <*
