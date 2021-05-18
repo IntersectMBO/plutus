@@ -9,6 +9,7 @@ module Interpreter where
 import           Control.Monad.Catch          (MonadMask)
 import           Control.Monad.Error.Class    (MonadError)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
+import           Control.Monad.Web            (maxInterpretationTime)
 import qualified Control.Newtype.Generics     as Newtype
 import           Data.Text                    (Text)
 import qualified Data.Text.IO                 as Text
@@ -18,9 +19,6 @@ import           System.FilePath              ((</>))
 import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
 import           System.IO.Extras             (withFile)
 import           System.IO.Temp               (withSystemTempDirectory)
-
-maxInterpretationTime :: Second
-maxInterpretationTime = 80
 
 runscript ::
   ( Show t,

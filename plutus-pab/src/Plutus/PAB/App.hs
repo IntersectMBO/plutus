@@ -40,11 +40,15 @@ import           Control.Monad.Freer.Extras.Log                 (mapLog)
 import           Control.Monad.Freer.Reader                     (Reader)
 import           Control.Monad.IO.Class                         (MonadIO (..))
 import qualified Control.Monad.Logger                           as MonadLogger
+import           Control.Monad.Web                              (maxInterpretationTime)
+import           Data.Bits                                      (toIntegralSized)
 import           Data.Coerce                                    (coerce)
+import           Data.Time.Units                                (toMicroseconds)
 import           Database.Persist.Sqlite                        (createSqlitePoolFromInfo, mkSqliteConnectionInfo,
                                                                  runSqlPool)
 import           Eventful.Store.Sqlite                          (defaultSqlEventStoreConfig, initializeSqliteEventStore)
-import           Network.HTTP.Client                            (managerModifyRequest, newManager,
+import           Network.HTTP.Client                            (managerModifyRequest, managerResponseTimeout,
+                                                                 newManager, responseTimeoutMicro,
                                                                  setRequestIgnoreStatus)
 import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
 import           Plutus.PAB.Core                                (EffectHandlers (..), PABAction)
@@ -163,8 +167,12 @@ mkEnv appTrace appConfig@Config { dbConfig
     clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure (coerce baseUrl)
 
     mkManager =
-        newManager $
-        tlsManagerSettings {managerModifyRequest = pure . setRequestIgnoreStatus}
+        newManager $ tlsManagerSettings
+        { managerModifyRequest = pure . setRequestIgnoreStatus
+        , managerResponseTimeout = maybe
+          (managerResponseTimeout tlsManagerSettings)
+          responseTimeoutMicro . toIntegralSized
+          $ toMicroseconds maxInterpretationTime }
 
 -- | Initialize/update the database to hold events.
 migrate :: Trace IO PABLogMsg -> DbConfig -> IO ()

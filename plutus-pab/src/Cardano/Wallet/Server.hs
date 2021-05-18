@@ -30,13 +30,17 @@ import           Control.Monad.Freer.Error        (handleError)
 import           Control.Monad.Freer.Extras.Log   (logInfo)
 import           Control.Monad.Freer.Reader       (runReader)
 import           Control.Monad.IO.Class           (liftIO)
+import           Control.Monad.Web                (maxInterpretationTime)
+import           Data.Bits                        (toIntegralSized)
 import           Data.Coerce                      (coerce)
 import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
+import           Data.Time.Units                  (toMicroseconds)
 import           Ledger.Crypto                    (pubKeyHash)
 import           Ledger.Tx                        (TxOut (txOutValue), TxOutTx (txOutTxOut))
-import           Network.HTTP.Client              (defaultManagerSettings, newManager)
+import           Network.HTTP.Client              (defaultManagerSettings, managerResponseTimeout, newManager,
+                                                   responseTimeoutMicro)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
@@ -65,7 +69,11 @@ app trace clientHandler chainIndexEnv mVarState =
 
 main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> SlotConfig -> ChainIndexUrl -> Availability -> IO ()
 main trace WalletConfig { baseUrl, wallet } serverSocket slotConfig (ChainIndexUrl chainUrl) availability = LM.runLogEffects trace $ do
-    chainIndexEnv <- buildEnv chainUrl defaultManagerSettings
+    chainIndexEnv <- buildEnv chainUrl $ defaultManagerSettings
+      { managerResponseTimeout = maybe
+        (managerResponseTimeout defaultManagerSettings)
+        responseTimeoutMicro . toIntegralSized
+        $ toMicroseconds maxInterpretationTime }
     let knownWallets = Map.fromList $ (\w -> (w, emptyWalletState w)) . Wallet.Wallet <$> [1..10]
     mVarState <- liftIO $ newMVar knownWallets
     clientHandler <- liftIO $ Client.runClientNode serverSocket slotConfig (\_ _ -> pure ())

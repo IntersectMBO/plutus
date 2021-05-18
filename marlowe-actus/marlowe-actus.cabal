@@ -187,6 +187,8 @@ executable marlowe-actus-test-kit
       mtl,
       newtype-generics,
       template-haskell -any,
+      time-units,
+      playground-common,
       plutus-tx -any,
       plutus-contract -any,
       plutus-ledger,

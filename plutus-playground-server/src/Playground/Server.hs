@@ -18,15 +18,18 @@ import           Control.Monad.Except         (ExceptT, runExceptT, throwError)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import           Control.Monad.Logger         (LoggingT, runStderrLoggingT)
 import           Control.Monad.Reader         (ReaderT, runReaderT)
+import           Control.Monad.Web            (maxInterpretationTime)
 import           Data.Aeson                   (decodeFileStrict)
+import           Data.Bits                    (toIntegralSized)
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
-import           Data.Time.Units              (Second)
+import           Data.Time.Units              (toMicroseconds)
+
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult, SourceCode)
 import qualified Language.Haskell.Interpreter as Interpreter
-import           Network.HTTP.Client.Conduit  (defaultManagerSettings)
+import           Network.HTTP.Client.Conduit  (defaultManagerSettings, managerResponseTimeout, responseTimeoutMicro)
 import           Network.HTTP.Conduit         (newManager)
 import           Network.Wai.Middleware.Cors  (cors, simpleCorsResourcePolicy)
 import qualified Playground.Interpreter       as PI
@@ -45,9 +48,6 @@ type API
        :<|> "health" :> Get '[ JSON] ()
 
 type Web = "api" :> (API :<|> Auth.API)
-
-maxInterpretationTime :: Second
-maxInterpretationTime = 80
 
 compileSourceCode ::
        ClientEnv
@@ -111,7 +111,11 @@ initializeServerContext secrets = liftIO $ do
       let localhost = "http://localhost:8009"
       putStrLn $ "WEBGHC_URL not set, using " <> localhost
       parseBaseUrl localhost
-  manager <- newManager defaultManagerSettings
+  manager <- newManager $ defaultManagerSettings
+    { managerResponseTimeout = maybe
+      (managerResponseTimeout defaultManagerSettings)
+      responseTimeoutMicro . toIntegralSized
+      $ toMicroseconds maxInterpretationTime }
   let clientEnv = mkClientEnv manager webghcURL
   pure $ AppConfig authConfig clientEnv
 

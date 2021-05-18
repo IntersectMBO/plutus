@@ -23,6 +23,7 @@ import           Control.Monad.Except                       (MonadError, runExce
 import           Control.Monad.Except.Extras                (mapError)
 import qualified Control.Monad.Freer.Extras.Log             as Log
 import           Control.Monad.IO.Class                     (MonadIO)
+import           Control.Monad.Web                          (maxInterpretationTime)
 import qualified Crowdfunding
 import qualified CrowdfundingSimulations
 import           Data.Aeson                                 (ToJSON, toJSON)
@@ -34,7 +35,6 @@ import           Data.Monoid                                ()
 import           Data.Proxy                                 (Proxy (Proxy))
 import           Data.Text                                  (Text)
 import qualified Data.Text.Encoding                         as T (decodeUtf8, encodeUtf8)
-import           Data.Time.Units                            (Second)
 import qualified ErrorHandling
 import qualified ErrorHandlingSimulations
 import qualified Game
@@ -88,7 +88,6 @@ import           Wallet.Emulator.Notify                     (EmulatorNotifyLogMs
 import qualified Wallet.Emulator.Wallet                     as EM
 import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput,
                                                              SequenceId, TxKey)
-
 myBridge :: BridgePart
 myBridge =
     PSGenerator.Common.aesonBridge <|>
@@ -207,9 +206,6 @@ writeSimulation filename sourceCode simulation = do
     case result of
         Left err   -> fail $ "Error evaluating simulation: " <> show err
         Right json -> BSL.writeFile filename json
-
-maxInterpretationTime :: Second
-maxInterpretationTime = 80
 
 runSimulation ::
        (MonadMask m, MonadError PlaygroundError m, MonadIO m)
