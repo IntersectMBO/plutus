@@ -44,6 +44,8 @@ module Plutus.Contract.Test(
     , anyTx
     , assertEvents
     , walletFundsChange
+    , walletFundsExactChange
+    , walletPaidFees
     , waitingForSlot
     , walletWatchingAddress
     , valueAtAddress
@@ -226,8 +228,8 @@ checkPredicateGenOptions ::
     -> EmulatorTrace ()
     -> Property
 checkPredicateGenOptions options gm predicate action = property $ do
-    Mockchain{mockchainInitialBlock} <- forAll (Gen.genMockchain' gm)
-    let options' = options & emulatorConfig . initialChainState .~ Right mockchainInitialBlock
+    Mockchain{mockchainInitialTxPool} <- forAll (Gen.genMockchain' gm)
+    let options' = options & emulatorConfig . initialChainState .~ Right mockchainInitialTxPool
     checkPredicateInner options' predicate action Hedgehog.annotate Hedgehog.assert
 
 -- | A version of 'checkPredicate' with configurable 'CheckOptions'
@@ -362,7 +364,7 @@ valueAtAddress address check =
     flip postMapM (L.generalize $ Folds.valueAtAddress address) $ \vl -> do
         let result = check vl
         unless result $ do
-            tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <> pretty vl)
+            tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <+> pretty vl)
         pure result
 
 dataAtAddress :: IsData a => Address -> (a -> Bool) -> TracePredicate
@@ -514,23 +516,43 @@ assertOutcome contract inst p nm =
 
 -- | Check that the funds in the wallet have changed by the given amount, exluding fees.
 walletFundsChange :: Wallet -> Value -> TracePredicate
-walletFundsChange w dlt =
-    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue, fees) -> do
+walletFundsChange = walletFundsChangeImpl False
+
+-- | Check that the funds in the wallet have changed by the given amount, including fees.
+walletFundsExactChange :: Wallet -> Value -> TracePredicate
+walletFundsExactChange = walletFundsChangeImpl True
+
+walletFundsChangeImpl :: Bool -> Wallet -> Value -> TracePredicate
+walletFundsChangeImpl exact w dlt =
+    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue', fees) -> do
         dist <- ask @InitialDistribution
         let initialValue = fold (dist ^. at w)
-            result = initialValue P.+ dlt == finalValue P.+ fees
+            finalValue = finalValue' P.+ if exact then mempty else fees
+            result = initialValue P.+ dlt == finalValue
         unless result $ do
             tell @(Doc Void) $ vsep $
                 [ "Expected funds of" <+> pretty w <+> "to change by"
-                , " " <+> viaShow dlt
-                , "  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ] ++
-                if initialValue == finalValue P.+ fees
+                , " " <+> viaShow dlt] ++
+                (if exact then [] else ["  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ]) ++
+                if initialValue == finalValue
                 then ["but they did not change"]
-                else ["but they changed by", " " <+> viaShow (finalValue P.+ fees P.- initialValue)]
+                else ["but they changed by", " " <+> viaShow (finalValue P.- initialValue)]
+        pure result
+
+walletPaidFees :: Wallet -> Value -> TracePredicate
+walletPaidFees w val =
+    flip postMapM (L.generalize $ Folds.walletFees w) $ \fees -> do
+        let result = fees == val
+        unless result $ do
+            tell @(Doc Void) $ vsep $
+                [ "Expected" <+> pretty w <+> "to pay"
+                , " " <+> viaShow val
+                , "lovelace in fees, but they paid"
+                , " " <+> viaShow fees ]
         pure result
 
 -- | An assertion about the blockchain
-assertBlockchain :: ([[Tx]] -> Bool) -> TracePredicate
+assertBlockchain :: ([Ledger.Block] -> Bool) -> TracePredicate
 assertBlockchain predicate =
     flip postMapM (L.generalize Folds.blockchain) $ \chain -> do
         let passing = predicate chain
@@ -552,7 +574,7 @@ assertChainEvents predicate =
 --   transactions that failed meet the predicate.
 assertFailedTransaction :: (Tx -> ValidationError -> [ScriptValidationEvent] -> Bool) -> TracePredicate
 assertFailedTransaction predicate =
-    flip postMapM (L.generalize Folds.failedTransactions) $ \case
+    flip postMapM (L.generalize $ Folds.failedTransactions Nothing) $ \case
         [] -> do
             tell @(Doc Void) $ "No transactions failed to validate."
             pure False
@@ -561,7 +583,7 @@ assertFailedTransaction predicate =
 -- | Assert that no transaction failed to validate.
 assertNoFailedTransactions :: TracePredicate
 assertNoFailedTransactions =
-    flip postMapM (L.generalize Folds.failedTransactions) $ \case
+    flip postMapM (L.generalize $ Folds.failedTransactions Nothing) $ \case
         [] -> pure True
         xs -> do
             let prettyTxFail (i, _, err, _) = pretty i <> colon <+> pretty err

@@ -18,9 +18,10 @@ import           Language.PureScript.Bridge                (BridgePart, Language
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, PubKey,
-                                                            PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
-                                                            TxOut, TxOutRef, TxOutTx, UtxoIndex, Validator)
+import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, OnChainTx,
+                                                            PubKey, PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn,
+                                                            TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
+                                                            ValidationPhase, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError)
 import           Ledger.Credential                         (Credential, StakingCredential)
@@ -235,6 +236,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOut)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOutTx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutRef)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OnChainTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoIndex)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Value)
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
@@ -254,6 +256,7 @@ ledgerTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationPhase)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Datum)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DatumHash)

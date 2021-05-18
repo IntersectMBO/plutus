@@ -28,11 +28,11 @@ module Plutus.Contract.Effects.WatchAddress(
 import           Data.Map                          (Map)
 import qualified Data.Map                          as Map
 import           Data.Row
-import           Ledger                            (Address, Slot, Value)
+import           Ledger                            (Address, OnChainTx, Slot, Value)
 import           Ledger.AddressMap                 (AddressMap, UtxoMap)
 import qualified Ledger.AddressMap                 as AM
 import qualified Ledger.Interval                   as Interval
-import           Ledger.Tx                         (Tx, txOutTxOut, txOutValue)
+import           Ledger.Tx                         (txOutTxOut, txOutValue)
 import qualified Ledger.Value                      as V
 import           Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot, currentSlot)
 import           Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
@@ -79,7 +79,7 @@ nextTransactionsAt ::
     , HasAwaitSlot s
     )
     => Address
-    -> Contract w s e [Tx]
+    -> Contract w s e [OnChainTx]
 nextTransactionsAt addr = do
     initial <- currentSlot
     let go sl = do
@@ -152,7 +152,7 @@ events
        )
     => Slot
     -> AddressMap
-    -> Tx
+    -> OnChainTx
     -> Map Address (Event s)
 events sl utxo tx =
     let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlotRange=Interval.singleton sl,acrTxns=[tx]}
