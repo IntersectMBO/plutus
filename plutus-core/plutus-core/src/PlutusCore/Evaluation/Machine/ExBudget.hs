@@ -80,10 +80,6 @@ module PlutusCore.Evaluation.Machine.ExBudget
     , ToExMemory(..)
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
-    , isNegativeBudget
-    , minusExCPU
-    , minusExMemory
-    , minusExBudget
     )
 where
 
@@ -136,19 +132,3 @@ instance Pretty ExBudget where
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
     deriving newtype (Pretty, PrettyBy config, NFData)
-
-isNegativeBudget :: ExRestrictingBudget -> Bool
-isNegativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0
-
--- | @(-)@ on 'ExCPU'.
-minusExCPU :: ExCPU -> ExCPU -> ExCPU
-minusExCPU = coerce $ (-) @CostingInteger
-
--- | @(-)@ on 'ExMemory'.
-minusExMemory :: ExMemory -> ExMemory -> ExMemory
-minusExMemory = coerce $ (-) @CostingInteger
-
--- | Subtract an 'ExBudget' from an 'ExRestrictingBudget'.
-minusExBudget :: ExRestrictingBudget -> ExBudget -> ExRestrictingBudget
-ExRestrictingBudget (ExBudget cpuL memL) `minusExBudget` ExBudget cpuR memR =
-    ExRestrictingBudget $ ExBudget (cpuL `minusExCPU` cpuR) (memL `minusExMemory` memR)

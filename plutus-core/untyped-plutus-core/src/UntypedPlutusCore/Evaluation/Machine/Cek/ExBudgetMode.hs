@@ -113,8 +113,8 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
     let spend _ (ExBudget cpuToSpend memToSpend) = do
             cpuLeft <- readSTRef cpuRef
             memLeft <- readSTRef memRef
-            let cpuLeft' = cpuLeft `minusExCPU` cpuToSpend
-            let memLeft' = memLeft `minusExMemory` memToSpend
+            let cpuLeft' = cpuLeft - cpuToSpend
+            let memLeft' = memLeft - memToSpend
             -- Note that even if we throw an out-of-budget error, we still need to record
             -- what the final state was.
             writeSTRef cpuRef $! cpuLeft'
