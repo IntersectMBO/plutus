@@ -39,15 +39,16 @@ import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.HasParties (getParties)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
+import Marlowe.HasParties (getParties)
 import Marlowe.PAB (ContractHistory(..), PlutusAppId(..), MarloweParams)
-import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), Token(..), TransactionInput(..))
+import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..))
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import Toast.Types (successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
+import WalletData.State (adaToken)
 import WalletData.Types (WalletDetails)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
@@ -275,7 +276,7 @@ transactionsToStep { participants } { txInput, state } =
 
     -- TODO: When we add support for multiple tokens we should extract the possible tokens from the
     --       contract, store it in ContractState and pass them here.
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ Token "" "" ] state
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] state
 
     stepState =
       -- For the moment the only way to get an empty transaction is if there was a timeout,
@@ -295,7 +296,7 @@ timeoutToStep { participants, executionState } slot =
   let
     currentContractState = executionState ^. _currentState
 
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ Token "" "" ] currentContractState
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] currentContractState
   in
     { balances
     , state: TimeoutStep slot
