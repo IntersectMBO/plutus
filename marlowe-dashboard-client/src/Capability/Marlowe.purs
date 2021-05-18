@@ -67,10 +67,10 @@ class
   lookupWalletDetails :: PlutusAppId -> m (AjaxResponse WalletDetails)
   getRoleContracts :: WalletDetails -> m (DecodedAjaxResponse (Map MarloweParams MarloweData))
   getFollowerApps :: WalletDetails -> m (DecodedAjaxResponse (Map PlutusAppId ContractHistory))
-  subscribeToWallet :: Wallet -> m Unit
-  unsubscribeFromWallet :: Wallet -> m Unit
   subscribeToPlutusApp :: PlutusAppId -> m Unit
+  subscribeToWallet :: Wallet -> m Unit
   unsubscribeFromPlutusApp :: PlutusAppId -> m Unit
+  unsubscribeFromWallet :: Wallet -> m Unit
 
 instance monadMarloweAppM :: ManageMarlowe AppM where
   -- create a Wallet, together with a WalletCompanionApp and a MarloweApp, and return the WalletDetails

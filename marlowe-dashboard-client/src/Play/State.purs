@@ -7,7 +7,7 @@ module Play.State
 import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, createContract, followContract, lookupWalletInfo, subscribeToPlutusApp)
+import Capability.Marlowe.Dummy (class ManageMarlowe, createContract, followContract, lookupWalletInfo, subscribeToPlutusApp)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_marloweParams, _selectedStep)
 import Contract.State (applyTimeout)
