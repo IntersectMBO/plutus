@@ -12331,14 +12331,7 @@
                                                     (lam
                                                       ds
                                                       (all a (type) a)
-                                                      (let
-                                                        (nonrec)
-                                                        (typebind
-                                                          (tyvardecl e (type))
-                                                          Ordering
-                                                        )
-                                                        (error e)
-                                                      )
+                                                      (error Ordering)
                                                     )
                                                   )
                                                   [
