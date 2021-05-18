@@ -92,6 +92,7 @@ let
     plutus-pab.migrate
     plutus-pab.start-backend
     plutus-pab.start-all-servers
+    plutus-pab.start-all-servers-m
     purs
     purty
     spago

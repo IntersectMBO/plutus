@@ -29,7 +29,7 @@ let
     export WEBGHC_URL=http://localhost:8080
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab webserver
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab --config=plutus-pab.yaml webserver
   '';
 
   # For dev usage
@@ -38,7 +38,16 @@ let
     export WEBGHC_URL=http://localhost:8080
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab all-servers
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab --config=plutus-pab.yaml all-servers
+  '';
+
+  # For dev usage
+  start-all-servers-m = pkgs.writeShellScriptBin "plutus-pab-all-servers-m" ''
+    export FRONTEND_URL=https://localhost:8009
+    export WEBGHC_URL=http://localhost:8080
+    # There might be local modifications so only copy when missing
+    ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab --config=plutus-pab.yaml -m all-servers
   '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
@@ -77,5 +86,5 @@ let
 
 in
 {
-  inherit client demo-scripts server-invoker generated-purescript generate-purescript migrate start-backend start-all-servers mkConf pab-exes;
+  inherit client demo-scripts server-invoker generated-purescript generate-purescript migrate start-backend start-all-servers start-all-servers-m mkConf pab-exes;
 }
