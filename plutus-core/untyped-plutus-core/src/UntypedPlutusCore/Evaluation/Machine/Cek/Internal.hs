@@ -175,7 +175,7 @@ data CekValue uni fun =
       ExMemory
       fun
       (TermWithMem uni fun)
-      (BuiltinRuntime (CekValue uni fun))
+      !(BuiltinRuntime (CekValue uni fun))
     deriving (Show, Eq) -- Eq is just for tests.
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
@@ -315,7 +315,10 @@ But in our case this is okay, because:
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
     :: (PrettyUni uni fun)
-    => AReview (EvaluationError CekUserError (MachineError fun (Term Name uni fun ()))) t -> t -> CekValue uni fun -> CekM uni fun s x
+    => AReview (EvaluationError CekUserError (MachineError fun (Term Name uni fun ()))) t
+    -> t
+    -> CekValue uni fun
+    -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
 withErrorDischarging
@@ -469,47 +472,12 @@ evalBuiltinApp
     -> TermWithMem uni fun
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp _   fun _    (BuiltinRuntime (TypeSchemeResult _) x cost) = do
-    spendBudgetCek (BBuiltinApp fun) cost
-    flip unWithEmitterT emitCek $ makeKnown x
-evalBuiltinApp mem fun term runtime = pure $ VBuiltin mem fun term runtime
+evalBuiltinApp mem fun term runtime@(BuiltinRuntime sch x cost) = case sch of
+    TypeSchemeResult _ -> do
+        spendBudgetCek (BBuiltinApp fun) cost
+        flip unWithEmitterT emitCek $ makeKnown x
+    _ -> pure $ VBuiltin mem fun term runtime
 {-# INLINE evalBuiltinApp #-}
-
--- See Note [Builtin application evaluation].
--- | Either 'Apply' or 'Force' a (possibly partially applied) built-in function depending on
---
--- 1. what the builtin expects
--- 2. whether the 'Maybe' argument is a 'Just' or 'Nothing'
---
--- (the two answers must agree, otherwise we have an error) and invoke 'evalBuiltinApp'.
-evalFeedBuiltinApp
-    :: forall uni fun s. (PrettyUni uni fun, GivenCekReqs uni fun s)
-    => ExMemory
-    -> fun
-    -> TermWithMem uni fun
-    -> BuiltinRuntime (CekValue uni fun)
-    -> Maybe (CekValue uni fun)
-    -> CekM uni fun s (CekValue uni fun)
-evalFeedBuiltinApp mem fun term (BuiltinRuntime sch f exF) e =
-    case (sch, e) of
-        (TypeSchemeArrow _ schB, Just arg) -> do
-            x <- withErrorDischarging $ readKnown arg
-            let exF' = exF $ toExMemory arg
-            evalBuiltinApp
-                mem
-                fun
-                (Apply mem term $ dischargeCekValue arg)
-                (BuiltinRuntime schB (f x) exF')
-        (TypeSchemeAll  _ schK, Nothing) ->
-            evalBuiltinApp
-                mem
-                fun
-                (Force mem term)
-                (BuiltinRuntime (schK Proxy) f exF)
-        _ ->
-            -- TODO: fixme.
-            throwingWithCause _MachineError EmptyBuiltinArityMachineError Nothing
-{-# INLINE evalFeedBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
@@ -558,10 +526,10 @@ enterComputeCek costs = computeCek where
     -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-    computeCek ctx _ term@(Builtin ex bn) = do
+    computeCek ctx _ (Builtin ex bn) = do
         spendBudgetCek BBuiltin (cekBuiltinCost costs)
         meaning <- lookupBuiltin bn ?cekRuntime
-        returnCek ctx (VBuiltin ex bn term meaning)
+        returnCek ctx (VBuiltin ex bn (Builtin ex bn) meaning)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek _ _ (Error _) = do
         throwing_ _EvaluationFailure
@@ -616,8 +584,18 @@ enterComputeCek costs = computeCek where
     forceEvaluate
         :: Context uni fun -> CekValue uni fun -> CekM uni fun s (Term Name uni fun ())
     forceEvaluate ctx (VDelay _ body env) = computeCek ctx env body
-    forceEvaluate ctx (VBuiltin ex fun term runtime) =
-        evalFeedBuiltinApp ex fun term runtime Nothing >>= returnCek ctx
+    forceEvaluate ctx (VBuiltin ex fun term (BuiltinRuntime sch f exF)) = do
+        let term' = Force ex term
+        case sch of
+            TypeSchemeAll  _ schK -> do
+                let runtime' = BuiltinRuntime (schK Proxy) f exF
+                res <- evalBuiltinApp ex fun term' runtime'
+                returnCek ctx res
+            _ ->
+                throwingWithCause
+                    _MachineError
+                    BuiltinTermArgumentExpectedMachineError
+                    (Just $ void term')
     forceEvaluate _ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
@@ -633,8 +611,19 @@ enterComputeCek costs = computeCek where
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term Name uni fun ())
     applyEvaluate ctx (VLamAbs _ name body env) arg = computeCek ctx (extendEnv name arg env) body
-    applyEvaluate ctx (VBuiltin ex fun term runtime) arg =
-        evalFeedBuiltinApp ex fun term runtime (Just arg) >>= returnCek ctx
+    applyEvaluate ctx (VBuiltin ex fun term (BuiltinRuntime sch f exF)) arg = do
+        let term' = Apply ex term $ dischargeCekValue arg
+        case sch of
+            TypeSchemeArrow _ schB -> do
+                x <- withErrorDischarging $ readKnown arg
+                let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
+                res <- evalBuiltinApp ex fun term' runtime'
+                returnCek ctx res
+            _ ->
+                throwingWithCause
+                    _MachineError
+                    UnexpectedBuiltinTermArgumentMachineError
+                    (Just $ void term')
     applyEvaluate _ val _ =
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
