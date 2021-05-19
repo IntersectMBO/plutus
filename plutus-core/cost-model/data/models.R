@@ -19,7 +19,8 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 ## picoseconds) because then everything fits into integral values with little
 ## loss of precision.  This is safe because we're only using models which
 ## are linear in their inputs.
-toMilliseconds <- function(x) { x * 1e6 }
+
+seconds.to.milliseconds <- function(x) { x * 1e6 }
 
 ## Discard any datapoints whose execution time is greater than 1.5 times the
 ## interquartile range above the third quartile, as is done in boxplots.  In our
@@ -31,21 +32,28 @@ toMilliseconds <- function(x) { x * 1e6 }
 ## was generated. Currently the inputs for integer builtins are OK, but the
 ## inputs for bytestring builtins grow exponentially, so there's a big variation
 ## of scales in the results and there's a danger of throwing away sensible
-## results.  The bytestring buitlins seem to behave pretty regularly, so we still
-## get good models.  However, we're looking at a much narrower range of input sizes
-## for integers ("only" up to 31 words) and there outliers do cause problems.
+## results.  The bytestring buitlins seem to behave pretty regularly, so we
+## still get good models.  However, we're looking at a much narrower range of
+## input sizes for integers ("only" up to 31 words) and there outliers do cause
+## problems.  A warning will be issued by discard.upper.outliers if more than
+## 10% of the datapoints are discarded, which whould reduce the danger of using
+## the function on inappropriate data.
 #
 upper.outlier.cutoff <- function(v) {
-    q1 <- quantile(v,0.25)                
+    q1 <- quantile(v,0.25)
     q3 <- quantile(v,0.75)
     q3 + 1.5*(q3-q1)
 }
 
-discard.upper.outliers <- function(fr) {
+discard.upper.outliers <- function(fr,name) {
     cutoff <- upper.outlier.cutoff(fr$MeanUB)
-    filter(fr, MeanUB < cutoff)
-## TODO: print a warning if we're discarding a suspiciously large number of
-## datapoints.
+    new.fr <- filter(fr, MeanUB < cutoff)
+    nrows = nrow(fr)
+    new.nrows = nrow(new.fr)
+    if (new.nrows <= 0.9 * nrows) {
+        warning ("*** WARNING: ", nrows-new.nrows, " outliers have been discarded from ", nrows, " datapoints for ", name );
+    }
+    new.fr
 }
 
 
@@ -56,21 +64,21 @@ get.bench.data <- function(path) {
         header=TRUE,
         stringsAsFactors=FALSE
     )
-    
+
     benchname <- regex("([:alnum:]+)/ExMemory (\\d+)(?:/ExMemory (\\d+))?(?:/ExMemory (\\d+))?")
     ## We have benchmark names like "AddInteger/ExMemory 11/ExMemory 22".  This extracts the name
     ## and up to three numbers, returning "NA" for any that are missing.  If we ever have builtins
     ## with more than three arguments we'lll need to extend this and add names for the new arguments.
 
     numbercols = c("x_mem", "y_mem", "z_mem")
-    
+
     benchmark_name_to_numbers <- function(name) {
         a <- str_match(name, benchname)
         r <- as.data.frame(a[,-1]) # Discard the first column (which is the entire match)
         names(r) <- c("BuiltinName", numbercols)
         r
     }
-    
+
     numbers <- benchmark_name_to_numbers(dat$Name)
 
     mutated <- numbers %>%
@@ -78,12 +86,12 @@ get.bench.data <- function(path) {
                   mutate(across("BuiltinName", as.character))
 
     cbind(dat, mutated) %>%
-        mutate(across(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), toMilliseconds))
+        mutate(across(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), seconds.to.milliseconds))
 }
 
 discard.overhead <- function(frame, overhead) {
     mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x-overhead }))
-}  
+}
 
 adjustModel <- function (m, fname) {
     ## Given a linear model, check its coefficients and if any is negative then
@@ -107,7 +115,7 @@ adjustModel <- function (m, fname) {
     ## vector of coefficients?
     m
 }
-    
+
 modelFun <- function(path) {
     data <- get.bench.data(path)
 
@@ -136,36 +144,48 @@ modelFun <- function(path) {
         }
         return (r)
     }
-    
+
     one.arg.overhead    <- get.mean.time("Nop1")
     two.args.overhead   <- get.mean.time("Nop2")
     three.args.overhead <- get.mean.time("Nop3")
 
     ## filtered leaks from one model to the next, so make sure you don't mistype!
-    
+
     addIntegerModel <- {
-        filtered <- data %>% filter(BuiltinName == "AddInteger") %>% discard.upper.outliers() %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "AddInteger")  %>%
+            discard.upper.outliers("AddInteger") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmax(x_mem, y_mem), filtered)
         adjustModel (m, "AddInteger")
     }
-    
+
     subtractIntegerModel <- {
-        filtered <- data %>% filter(BuiltinName == "SubtractInteger") %>% discard.upper.outliers() %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "SubtractInteger")  %>%
+            discard.upper.outliers("SubtractInteger") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmax(x_mem , y_mem), filtered)
         adjustModel (m, "SubtractInteger")
     }
 
     multiplyIntegerModel <- {
-        filtered <- data %>% filter(BuiltinName == "MultiplyInteger") %>%
-            filter(x_mem != 0) %>% filter(y_mem != 0) %>% discard.upper.outliers() %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "MultiplyInteger")  %>%
+            filter(x_mem != 0) %>% filter(y_mem != 0) %>%
+            discard.upper.outliers("MultiplyInteger") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ I(x_mem + y_mem), filtered)
         adjustModel (m, "MultiplyInteger")
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
-  
+
     divideIntegerModel <- {
-        filtered <- data %>% filter(BuiltinName == "DivideInteger") %>%
-            filter(x_mem != 0) %>% filter(y_mem != 0) %>% discard.upper.outliers() %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "DivideInteger")    %>%
+            filter(x_mem != 0) %>% filter(y_mem != 0) %>%
+            discard.upper.outliers("DivideInteger")   %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ ifelse(x_mem > y_mem, I(x_mem * y_mem), 0) , filtered)
         adjustModel(m,"DivideInteger")
     }
@@ -176,40 +196,57 @@ modelFun <- function(path) {
     quotientIntegerModel  <- divideIntegerModel
     remainderIntegerModel <- divideIntegerModel
     modIntegerModel       <- divideIntegerModel
-    
+
     eqIntegerModel <- {
-        filtered <- data %>% filter(BuiltinName == "EqInteger") %>%
-            filter(x_mem == y_mem) %>% filter (x_mem != 0) %>% discard.upper.outliers() %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "EqInteger") %>%
+            filter(x_mem == y_mem) %>%
+            filter (x_mem != 0) %>%
+            discard.upper.outliers("EqInteger") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,"EqInteger")
     }
-    
+
     lessThanIntegerModel <- {
-        filtered <- data %>% filter(BuiltinName == "LessThanInteger") %>%
-            filter(x_mem == y_mem) %>% filter (x_mem != 0) %>% discard.upper.outliers() %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "LessThanInteger") %>%
+            filter(x_mem == y_mem) %>%
+            filter (x_mem != 0) %>%
+            discard.upper.outliers("LessThanInteger") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,"LessThanInteger")
     }
 
     greaterThanIntegerModel <- lessThanIntegerModel
-    
+
     lessThanEqIntegerModel <- {
-        filtered <- data %>% filter(BuiltinName == "LessThanEqInteger") %>%
-            filter(x_mem == y_mem) %>% filter (x_mem != 0) %>% discard.upper.outliers() %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "LessThanEqInteger") %>%
+            filter(x_mem == y_mem) %>%
+            filter (x_mem != 0) %>%
+            discard.upper.outliers("LessThanEqInteger") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,"LessThanEqInteger")
     }
 
     greaterThanEqIntegerModel <- lessThanEqIntegerModel
-    
+
     eqByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
-        filtered <- data %>% filter(BuiltinName == "EqByteString") %>% filter(x_mem == y_mem) %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "EqByteString") %>%
+            filter(x_mem == y_mem) %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,"EqByteString")
     }
-    
+
     ltByteStringModel <- {
-        filtered <- data %>% filter(BuiltinName == "LtByteString") %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "LtByteString") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,"LtByteString")
     }
@@ -217,44 +254,56 @@ modelFun <- function(path) {
     gtByteStringModel <- ltByteStringModel
 
     concatenateModel <- {
-        filtered <- data %>% filter(BuiltinName == "Concatenate") %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "Concatenate") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
         adjustModel(m,"Concatenate")
     }
     ## TODO: is this symmetrical in the arguments?  The data suggests so, but check the implementation.
 
     takeByteStringModel <- {
-        filtered <- data %>% filter(BuiltinName == "TakeByteString") %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "TakeByteString") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ 1, data=filtered)
         adjustModel(m,"TakeByteString")
     }
 
     dropByteStringModel <- {
-        filtered <- data %>% filter(BuiltinName == "DropByteString") %>% discard.overhead (two.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "DropByteString") %>%
+            discard.overhead (two.args.overhead)
         m <- lm(Mean ~ 1, data=filtered)
         adjustModel(m,"DropByteString")
     }
-    
+
     sHA2Model <- {
-        filtered <- data %>% filter(BuiltinName == "SHA2") %>% discard.overhead (one.arg.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "SHA2") %>%
+            discard.overhead (one.arg.overhead)
         m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,"SHA2")
     }
 
     sHA3Model <- {
-      filtered <- data %>% filter(BuiltinName == "SHA3") %>% discard.overhead (one.arg.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "SHA3") %>%
+            discard.overhead (one.arg.overhead)
       m <- lm(Mean ~ x_mem, data=filtered)
       adjustModel(m,"SHA3")
     }
 
     verifySignatureModel <- {
-        filtered <- data %>% filter(BuiltinName == "VerifySignature") %>% discard.overhead (three.args.overhead)
+        filtered <- data %>%
+            filter(BuiltinName == "VerifySignature") %>%
+            discard.overhead (three.args.overhead)
         m <- lm(Mean ~ 1, data=filtered)
         adjustModel(m,"VerifySignature")
     }
 
     ifThenElseModel <- 0
-    
+
     list(
         addIntegerModel            = addIntegerModel,
         eqIntegerModel             = eqIntegerModel,
@@ -279,5 +328,5 @@ modelFun <- function(path) {
         verifySignatureModel       = verifySignatureModel,
         ifThenElseModel            = ifThenElseModel
     )
-    
+
 }
