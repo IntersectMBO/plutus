@@ -93,10 +93,10 @@ balanceWallet utx = do
     pk <- ownPubKey
     outputs <- ownOutputs
 
-    utxWithFee <- validateTx outputs pk utx
+    utxWithFees <- validateTxAndAddFees outputs pk utx
 
-    logInfo $ BalancingUnbalancedTx utxWithFee
-    balanceTx outputs pk utxWithFee
+    logInfo $ BalancingUnbalancedTx utxWithFees
+    balanceTx outputs pk utxWithFees
 
 lookupValue ::
     ( Member WalletEffect effs
@@ -206,7 +206,7 @@ addCollateral mp vl tx = do
             in over Tx.collateralInputs (Set.union ins)
     pure $ tx & addTxCollateral
 
-validateTx ::
+validateTxAndAddFees ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     , Member ChainIndexEffect effs
@@ -216,7 +216,7 @@ validateTx ::
     -> PubKey
     -> UnbalancedTx
     -> Eff effs UnbalancedTx
-validateTx outputs pk utx = do
+validateTxAndAddFees outputs pk utx = do
     -- Balance and sign just for validation
     tx <- balanceTx outputs pk utx
     signedTx <- walletAddSignature tx
