@@ -13,12 +13,7 @@
         #
         # Obtain all niv sources extending it with the 'nixpkgs' flake input
         #
-        sources =
-          let
-            sourcesInfo = builtins.fromJSON (builtins.readFile ./nix/sources.json);
-            fetch = sourceInfo: builtins.fetchTarball { inherit (sourceInfo) url sha256; };
-          in
-          builtins.mapAttrs (name: info: fetch info) sourcesInfo // { inherit nixpkgs; };
+        sources = import ./nix/sources.nix { inherit system; };
 
         #
         # all packages from nix/default.nix
