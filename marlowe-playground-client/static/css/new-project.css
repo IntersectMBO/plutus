@@ -6,9 +6,9 @@
   .environment-selector-group {
     display: flex;
     justify-content: space-between;
-    // The negative margin is a way to remove the extra margin
-    // that the child view create. This is needed until
-    // the gap property is general available
+    /* The negative margin is a way to remove the extra margin
+       that the child view create. This is needed until
+       the gap property is general available */
     margin: 0 calc(-1 * var(--small-margin));
   }
   .environment-selector {
@@ -19,11 +19,11 @@
     &:active {
       background-color: var(--bg-darkest);
     }
-    // Vertically and horizontally align the contents of the "button"
+    /* Vertically and horizontally align the contents of the "button" */
     display: flex;
     justify-content: center;
     align-items: center;
-    // Align the logo and the tilte vertically
+    /* Align the logo and the tilte vertically */
     flex-direction: column;
 
     width: 160px;
@@ -42,8 +42,8 @@
   }
 }
 
-// This class is only being used by the Rename modal.
-// TODO: Delete with the issue SCP-1579
+ /* This class is only being used by the Rename modal.
+    TODO: Delete with the issue SCP-1579 */
 .project-name-input {
   font-weight: normal;
   font-size: 1.912em;

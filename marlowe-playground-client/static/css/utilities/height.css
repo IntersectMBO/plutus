@@ -15,7 +15,7 @@
   min-height: 100vh;
 }
 
-// .h-full is tailwind's name, .full-height is what we were using before
+ /* .h-full is tailwind's name, .full-height is what we were using before */
 .full-height, .h-full {
   height: 100%;
 }

@@ -1,19 +1,19 @@
-@import './utilities/font-size.scss';
-@import './utilities/font-weight.scss';
-@import './utilities/text-align.scss';
-@import './utilities/border-color.scss';
-@import './utilities/border-width.scss';
-@import './utilities/flex.scss';
-@import './utilities/grid.scss';
-@import './utilities/background-color.scss';
-@import './utilities/padding.scss';
-@import './utilities/display.scss';
-@import './utilities/text-color.scss';
-@import './utilities/margin.scss';
-@import './utilities/height.scss';
-@import './utilities/width.scss';
-@import './utilities/overflow.scss';
-@import './utilities/whitespace.scss';
+@import './utilities/font-size.css';
+@import './utilities/font-weight.css';
+@import './utilities/text-align.css';
+@import './utilities/border-color.css';
+@import './utilities/border-width.css';
+@import './utilities/flex.css';
+@import './utilities/grid.css';
+@import './utilities/background-color.css';
+@import './utilities/padding.css';
+@import './utilities/display.css';
+@import './utilities/text-color.css';
+@import './utilities/margin.css';
+@import './utilities/height.css';
+@import './utilities/width.css';
+@import './utilities/overflow.css';
+@import './utilities/whitespace.css';
 
 .outline {
   outline: 1px solid lime;
@@ -23,10 +23,10 @@
   display: inline;
 }
 
-// TODO: instead of having a no-margins utitities that resets the current defaults we should
-//       remove margin defaults in headers and other elements, and specify automatically.
-//       As a rule of thumb, each component should now how to render "itself" and parent components
-//       should know how to position it's children. So properties like margin should never be set globally.
+ /* TODO: instead of having a no-margins utitities that resets the current defaults we should
+          remove margin defaults in headers and other elements, and specify automatically.
+          As a rule of thumb, each component should now how to render "itself" and parent components
+          should know how to position it's children. So properties like margin should never be set globally. */
 .no-margins,
 .no-margins * {
   margin: 0;

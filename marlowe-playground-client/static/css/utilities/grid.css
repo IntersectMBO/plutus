@@ -1,0 +1,11 @@
+/*
+  The classes provided here were taken from several tailwind's modules.
+*/
+
+.grid-cols-description-location {
+  /* This property was thought for the error and warning tabs. It's a grid of two columns. */
+  /* The second one occupies all the space it needs (normally the header title) and the first */
+  /* one occupies the space remaining. */
+  grid-template-columns: 1fr max-content;
+}
+

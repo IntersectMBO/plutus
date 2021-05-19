@@ -12,7 +12,7 @@
   https://tailwindcss.com/docs/width
 */
 
-// w-full is Tailwinds way, full-width is what we had before
+ /* w-full is Tailwinds way, full-width is what we had before */
 .full-width,
 .w-full {
   width: 100%;
