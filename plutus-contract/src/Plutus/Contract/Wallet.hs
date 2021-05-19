@@ -16,11 +16,12 @@ module Plutus.Contract.Wallet(
     ) where
 
 import           Control.Lens
+import           Control.Monad                  ((>=>))
 import           Control.Monad.Freer            (Eff, Member)
-import           Control.Monad.Freer.Error      (Error)
+import           Control.Monad.Freer.Error      (Error, throwError)
 import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo)
 import           Data.Bifunctor                 (second)
-import           Data.Foldable                  (fold)
+import           Data.Foldable                  (fold, traverse_)
 import qualified Data.Map                       as Map
 import qualified Data.Set                       as Set
 import           Data.String                    (IsString (fromString))
@@ -28,6 +29,7 @@ import qualified Ledger                         as L
 import           Ledger.AddressMap              (UtxoMap)
 import qualified Ledger.AddressMap              as AM
 import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
+import qualified Ledger.Index                   as Index
 import           Ledger.Tx                      (Tx (..))
 import qualified Ledger.Tx                      as Tx
 import           Ledger.Value                   (Value)
@@ -89,6 +91,9 @@ balanceWallet utx = do
     logInfo $ BalancingUnbalancedTx utx
     pk <- ownPubKey
     outputs <- ownOutputs
+
+    validateTx outputs pk utx
+
     balanceTx outputs pk utx
 
 lookupValue ::
@@ -199,8 +204,32 @@ addCollateral mp vl tx = do
             in over Tx.collateralInputs (Set.union ins)
     pure $ tx & addTxCollateral
 
+validateTx ::
+    ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
+    , Member ChainIndexEffect effs
+    , Member (LogMsg TxBalanceMsg) effs
+    )
+    => UtxoMap
+    -> PubKey
+    -> UnbalancedTx
+    -> Eff effs ()
+validateTx outputs pk utx = do
+    -- Balance and sign just for validation
+    tx <- balanceTx outputs pk utx
+    signedTx <- walletAddSignature tx
+    let utxoIndex   = Index.UtxoIndex $ unBalancedTxUtxoIndex utx <> fmap Tx.txOutTxOut outputs
+        ((e, _), _) = Index.runValidation (Index.validateTransactionOffChain signedTx) utxoIndex
+    traverse_ (throwError . WAPI.ValidationError . snd) e
+
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: (Member WalletEffect effs, Member ChainIndexEffect effs, Member (LogMsg TxBalanceMsg) effs, Member (Error WalletAPIError) effs) => UnbalancedTx -> Eff effs Tx
-handleTx utx =
-    balanceWallet utx >>= WAPI.signTxAndSubmit
+handleTx ::
+    ( Member WalletEffect effs
+    , Member ChainIndexEffect effs
+    , Member (LogMsg TxBalanceMsg) effs
+    , Member (Error WalletAPIError) effs
+    )
+    => UnbalancedTx -> Eff effs Tx
+handleTx =
+    balanceWallet >=> WAPI.signTxAndSubmit

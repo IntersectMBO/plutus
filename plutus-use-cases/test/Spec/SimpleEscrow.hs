@@ -57,7 +57,7 @@ tests = testGroup "simple-escrow"
           void $ Trace.callEndpoint @"refund" hdl params
     , checkPredicate "only locking wallet can request refund"
         ( walletFundsChange w1 (Ada.lovelaceValueOf (-100))
-          .&&. walletFundsExactChange w2 (Ada.adaValueOf (-100))
+          .&&. walletFundsChange w2 mempty
         )
         $ do
           let params = mkEscrowParams (Ada.lovelaceValueOf 100) (Ada.lovelaceValueOf 1)

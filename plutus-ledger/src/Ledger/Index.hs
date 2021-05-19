@@ -29,6 +29,7 @@ module Ledger.Index(
     minFee,
     -- * Actual validation
     validateTransaction,
+    validateTransactionOffChain,
     -- * Script validation events
     ScriptType(..),
     ScriptValidationEvent(..)
@@ -166,6 +167,12 @@ validateTransaction :: ValidationMonad m
 validateTransaction h t = do
     -- Phase 1 validation
     checkSlotRange h t
+    validateTransactionOffChain t
+
+validateTransactionOffChain :: ValidationMonad m
+    => Tx
+    -> m (Maybe ValidationErrorInPhase, UtxoIndex)
+validateTransactionOffChain t = do
     checkValuePreserved t
     checkPositiveValues t
     checkFeeIsAda t
