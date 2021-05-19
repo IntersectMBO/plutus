@@ -1098,28 +1098,6 @@ progress' M with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, refl) = step (ruleEC E p refl refl)
 ... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E refl)
 
-data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
-  step :
-      (Value M → ⊥)
-    → ∀{B}(E : EC A B){L N : ∅ ⊢ B}
-    → L —→⋆ N
-    → M ≡ E [ L ]ᴱ
-    → (∀{B'}(E' : EC A B'){L' N' : ∅ ⊢ B'} → L' —→⋆ N' → M ≡ E' [ L' ]ᴱ
-                → ∃ λ (p : B ≡ B')
-                    → substEq (EC A) p E ≡ E' × substEq (∅ ⊢_) p L ≡ L'
-                    × substEq (∅ ⊢_) p N ≡ N')
-      -------------
-    
-    → EProgress M
-  done :
-      Value M
-      ----------
-    → EProgress M
-
-  error : ∀{B}(E : EC A B){L : ∅ ⊢ B} → Error L → M ≡ E [ L ]ᴱ
-      -------
-    → EProgress M
-
 subst<>>∈ : ∀{b b' as as' az az'}
   → az' <>> as' ∈ arity b'
   → b ≡ b' → az ≡ az' → as ≡ as'
@@ -1240,22 +1218,36 @@ proj· : ∀{A A' B}{t : ∅ ⊢ A ⇒ B}{t' : ∅ ⊢ A' ⇒ B}{u : ∅ ⊢ A}{
       × substEq (∅ ⊢_) p u ≡ u'
 proj· refl = refl ,, refl ,, refl
 
-notboth : ∀{A}{L N : ∅ ⊢ A} → VALUE L → L —→⋆ N → ⊥
-notboth VL (β-ƛ VN) = lemVβ VL
-notboth VL β-Λ = lemVβ⋆ VL
-notboth VL (β-wrap VN) = lemVunwrap VL
-notboth (V-I⇒ b₁ .(bubble p₁) refl (step p₁ x x₁)) (β-sbuiltin b t p bt u vu)
+valred : ∀{A}{L N : ∅ ⊢ A} → VALUE L → L —→⋆ N → ⊥
+valred VL (β-ƛ VN) = lemVβ VL
+valred VL β-Λ = lemVβ⋆ VL
+valred VL (β-wrap VN) = lemVunwrap VL
+valred (V-I⇒ b₁ .(bubble p₁) refl (step p₁ x x₁)) (β-sbuiltin b t p bt u vu)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
-notboth (V-IΠ b₁ .(bubble p₁) refl (step p₁ x x₁)) (β-sbuiltin b t p bt u vu)
+valred (V-IΠ b₁ .(bubble p₁) refl (step p₁ x x₁)) (β-sbuiltin b t p bt u vu)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
-notboth (V-I⇒ b₁ .(bubble p₁) q (step⋆ p₁ x)) (β-sbuiltin⋆ b t p bt A)
+valred (V-I⇒ b₁ .(bubble p₁) q (step⋆ p₁ x)) (β-sbuiltin⋆ b t p bt A)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
-notboth (V-IΠ b₁ .(bubble p₁) q (step⋆ p₁ x)) (β-sbuiltin⋆ b t p bt A)
+valred (V-IΠ b₁ .(bubble p₁) q (step⋆ p₁ x)) (β-sbuiltin⋆ b t p bt A)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
+
+
+bapperr : ∀{A}{L : ∅ ⊢ A}{b az as}{p : az <>> as ∈ arity b}
+  → Error L → BApp b p L → ⊥
+bapperr () base
+bapperr () (step p bs x)
+bapperr () (step⋆ p bs)
+
+valerr : ∀{A}{L : ∅ ⊢ A} → Error L → Value L → ⊥
+valerr E-error (V-I⇒ b p x) = bapperr E-error x
+valerr E-error (V-IΠ b p x) = bapperr E-error x
+
+errred : ∀{A}{L N : ∅ ⊢ A} → Error L → L —→⋆ N → ⊥
+errred E-error ()
 
 -- should replace this with something more general if something similar shows
 -- up again
@@ -1270,6 +1262,29 @@ BUILTIN-eq M p p' bv bv'
 ... | refl ,, refl ,, refl ,, refl
   with uniqueBApp p M bv bv'
 ... | refl = refl
+
+data EProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
+  step :
+      (Value M → ⊥)
+    → ∀{B}(E : EC A B){L N : ∅ ⊢ B}
+    → L —→⋆ N
+    → M ≡ E [ L ]ᴱ
+    → (∀{B'}(E' : EC A B'){L' N' : ∅ ⊢ B'} → L' —→⋆ N' → M ≡ E' [ L' ]ᴱ
+                → ∃ λ (p : B ≡ B')
+                    → substEq (EC A) p E ≡ E' × substEq (∅ ⊢_) p L ≡ L'
+                    × substEq (∅ ⊢_) p N ≡ N')
+      -------------
+    
+    → EProgress M
+  done :
+      Value M
+      ----------
+    → EProgress M
+
+  error : ∀{B}(E : EC A B){L : ∅ ⊢ B} → Error L → M ≡ E [ L ]ᴱ
+      -------
+    → EProgress M
+
 
 lemma51! : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A)
   → EProgress M
@@ -1298,7 +1313,7 @@ lemma51! (M · M') with lemma51! M
   (cong (M ·_) q)
   λ { [] (β-ƛ VM') refl → ⊥-elim (¬VM' VM') 
     ; [] (β-sbuiltin b .M p bt .M' VM') refl → ⊥-elim (¬VM' VM')
-    ; (E' l· M'') p' refl → ⊥-elim (notboth (lemVE _ _ (Value2VALUE VM)) p')
+    ; (E' l· M'') p' refl → ⊥-elim (valred (lemVE _ _ (Value2VALUE VM)) p')
     ; (VM'' ·r E') p' refl → let X ,, X'' ,, X''' = U E' p' refl in X ,, trans (subst-·r E M VM X) (trans (cong (VM ·r_) X'') (cong (_·r E') (uniqueVal M VM VM''))) ,, X'''
     }
 ... | error E e refl = error (VM ·r E) e refl
@@ -1309,19 +1324,19 @@ lemma51! (.(ƛ M) · M') | done (V-ƛ M)       | done VM' = step
   refl
   λ { [] (β-ƛ VM'') refl → refl ,, refl ,, refl ,, refl
     ; (E l· N) p q → let X ,, Y ,, Y' = proj· q in
-      ⊥-elim (notboth (lemVE _ E (substEq VALUE Y (substƛVAL X))) p)
+      ⊥-elim (valred (lemVE _ E (substEq VALUE Y (substƛVAL X))) p)
     ; (V ·r E) p refl →
-      ⊥-elim (notboth (lemVE _ E (Value2VALUE VM')) p)}
+      ⊥-elim (valred (lemVE _ E (Value2VALUE VM')) p)}
 lemma51! (M · M') | done (V-I⇒ b {as' = []}      p q) | done VM' = step
-  (λ V → notboth (Value2VALUE V) (β-sbuiltin b M p q M' VM'))
+  (λ V → valred (Value2VALUE V) (β-sbuiltin b M p q M' VM'))
   -- ^ is there a more direct way?
   []
   (β-sbuiltin b M p q M' VM')
   refl
   λ { [] (β-sbuiltin b .M p bt .M' vu) refl
       → refl ,, refl ,, refl ,, BUILTIN-eq _ _ (bubble p) (step _ q VM') (step p bt vu)
-    ; (E l· x) p' refl → ⊥-elim (notboth (lemBE _ E q) p')
-    ; (x ·r E) p' refl → ⊥-elim (notboth (lemVE _ E (Value2VALUE VM')) p')}
+    ; (E l· x) p' refl → ⊥-elim (valred (lemBE _ E q) p')
+    ; (x ·r E) p' refl → ⊥-elim (valred (lemVE _ E (Value2VALUE VM')) p')}
 lemma51! (M · M') | done (V-I⇒ b {as' = Term ∷ as'} p q) | done VM'
   with bappTermLem b (M · M') (bubble p) (BApp2BAPP (step p q VM'))
 ... | _ ,, _ ,, refl = done (V-I⇒ b (bubble p) (step p q VM'))
@@ -1335,7 +1350,8 @@ lemma51! (M ·⋆ A) with lemma51! M
   (E ·⋆ A)
   p
   refl
-  λ { E p q → {!E!}}
+  λ { E p q → {!U!}}
+  where 
 ... | done (V-Λ L) = step
   (λ V → lemVβ⋆ (Value2VALUE V))
   []
@@ -1343,7 +1359,7 @@ lemma51! (M ·⋆ A) with lemma51! M
   refl
   λ {E p q → {!E!}}
 lemma51! (M ·⋆ A) | done (V-IΠ b {as' = []} p x) = step
-  (λ V → notboth (Value2VALUE V) (β-sbuiltin⋆ b M p x A))
+  (λ V → valred (Value2VALUE V) (β-sbuiltin⋆ b M p x A))
   []
   (β-sbuiltin⋆ b M p x A)
   refl
@@ -1393,16 +1409,55 @@ determinism⋆ (β-sbuiltin b t p bt u vu) (β-sbuiltin b' .t p' bt' .u vu') =
 determinism⋆ (β-sbuiltin⋆ b t p bt A)   (β-sbuiltin⋆ b' .t p' bt' .A) =
   BUILTIN-eq _ (bubble p) (bubble p') (step⋆ p bt) (step⋆ p' bt') 
 
+data Redex {A : ∅ ⊢Nf⋆ *} : ∅ ⊢ A → Set where
+  β   : {L N : ∅ ⊢ A} → L —→⋆ N → Redex L
+  err : Redex (error A)
+
+data RProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
+  step :
+      (Value M → ⊥)
+    → ∀{B}(E : EC A B){L : ∅ ⊢ B}
+    → Redex L
+    → M ≡ E [ L ]ᴱ
+    → (∀{B'}
+      → (E' : EC A B')
+      → {L' : ∅ ⊢ B'}
+      → M ≡ E' [ L' ]ᴱ
+      → Redex L'
+      → ∃ λ (p : B ≡ B')
+      → substEq (EC A) p E ≡ E' × substEq (∅ ⊢_) p L ≡ L')
+      ----------------------------------------------------
+    → RProgress M
+  done :
+      Value M
+      -----------
+    → RProgress M
+
+postulate
+  rlemma51! : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → RProgress M
+
+notVAL : ∀{A}{L N N' : ∅ ⊢ A} → Value L → L —→ N' → ⊥
+notVAL V (ruleEC E p refl r) = valred (lemVE _ E (Value2VALUE V)) p
+notVAL V (ruleErr E refl)    =
+  valerr E-error (VALUE2Value (lemVE _ E (Value2VALUE V)))
+
 determinism : ∀{A}{L N N' : ∅ ⊢ A} → L —→ N → L —→ N' → N ≡ N'
-determinism {L = L} (ruleEC E p q r) (ruleEC E' p' q' r') with lemma51! L
-... | done VL =
-  ⊥-elim (notboth (lemVE _ E (Value2VALUE (substEq Value q VL))) p)
-... | error E'' p'' q'' = {!!}
-... | step x E'' p'' q'' U
-  with U E p q
-... | refl ,, refl ,, refl ,, refl
-  with U E' p' q'
-... | refl ,, refl ,, refl ,, refl = trans r (sym r')
-determinism (ruleEC E x x₁ x₂) (ruleErr E₁ refl) = {!!}
-determinism (ruleErr E refl) (ruleEC E₁ x x₁ x₂) = {!!}
-determinism (ruleErr E refl) (ruleErr E₁ x) = {!!}
+determinism {L = L} p q with rlemma51! L
+determinism {L = .(E [ _ ]ᴱ)} (ruleEC E p refl p') q | done VL =
+  ⊥-elim (valred (lemVE _ E (Value2VALUE VL)) p)
+determinism {L = L} (ruleErr E refl)      q | done VL =
+  ⊥-elim (valerr E-error (VALUE2Value (lemVE _ E (Value2VALUE VL))))
+determinism {L = L} (ruleEC E' p p' p'') q | step ¬VL E r r' U
+  with U E' p' (β p)
+determinism {L = L} (ruleEC E p p' p'') (ruleEC E' q q' q'') | step ¬VL E (β r) r' U | refl ,, refl ,, refl with U E' q' (β q)
+... | refl ,, refl ,, refl =
+  trans p'' (trans (cong (E [_]ᴱ) (determinism⋆ p q)) (sym q''))
+determinism {L = L} (ruleEC E p p' p'') (ruleErr E' q) | step ¬VL E (β r) r' U | refl ,, refl ,, refl with U E' q err
+determinism {L = L} (ruleEC .(substEq (EC _) refl E) p p' p'') (ruleErr .E q) | step ¬VL E (β ()) r' U | refl ,, refl ,, refl | refl ,, refl ,, refl
+determinism {L = L} (ruleErr E' p) q | step ¬VL E (β x) r' U
+  with U E' p err
+determinism {L = L} (ruleErr .E p) q | step ¬VL E (β ()) r' U | refl ,, refl ,, refl
+determinism {L = L} (ruleErr E' p) (ruleEC E'' q q' q'') | step ¬VL E err r' U with U E'' q' (β q)
+determinism {L = L} (ruleErr E' p) (ruleEC .E () q' q'') | step ¬VL E err r' U | refl ,, refl ,, refl
+determinism {L = L} (ruleErr E' p) (ruleErr E'' q) | step ¬VL E err r' U with U E' p err | U E'' q err
+... | refl ,, refl ,, refl | refl ,, refl ,, refl = refl
