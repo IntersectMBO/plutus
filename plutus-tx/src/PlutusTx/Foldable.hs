@@ -217,9 +217,9 @@ find p = getFirst . foldMap (\ x -> First (if p x then Just x else Nothing))
 (#.) _f = coerce
 {-# INLINE (#.) #-}
 
+-- | Plutus Tx version of 'Data.Foldable.mapM_'.
 {-# INLINABLE mapM_ #-}
 mapM_ :: (Foldable t, Monad m) => (a -> m b) -> t a -> m ()
 mapM_ f = foldr c (return ())
-  -- See Note [List fusion and continuations in 'c']
   where c x k = f x >> k
         {-# INLINE c #-}
