@@ -33,7 +33,7 @@ import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.JSON (parseJSON)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), ContractRole(..), ContractStatus(..), ContractTerms(..), ContractType(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PREF(..), PYTP(..), Period(..), SCEF(..), ScheduleConfig(..), Stub(..), IPCB(..))
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), CR(..), PRF(..), ContractTerms(..), CT(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PPEF(..), PYTP(..), Period(..), SCEF(..), ScheduleConfig(..), Stub(..), IPCB(..))
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
@@ -550,7 +550,7 @@ baseContractDefinition g block = do
 
 newtype ActusContract
   = ActusContract
-  { contractType :: Maybe ContractType
+  { contractType :: CT
   , startDate :: ActusValue
   , initialExchangeDate :: ActusValue
   , maturityDate :: ActusValue
@@ -631,7 +631,7 @@ parseFieldActusPeriodJson g block name = Either.hush result
       decoded = decode parsed :: F ActusPeriodType
     catch $ runExcept $ decoded
 
-parseActusContractType :: Block -> ContractType
+parseActusContractType :: Block -> CT
 parseActusContractType b = case getType b of
   "PaymentAtMaturity" -> PAM
   "LinearAmortizer" -> LAM
@@ -651,7 +651,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
     PAM ->
       Either.Right
         $ ActusContract
-            { contractType: Just $ parseActusContractType block
+            { contractType: parseActusContractType block
             , startDate: parseFieldActusValueJson g block "start_date"
             , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
             , maturityDate: parseFieldActusValueJson g block "maturity_date"
@@ -677,7 +677,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
     LAM ->
       Either.Right
         $ ActusContract
-            { contractType: Just $ parseActusContractType block
+            { contractType: parseActusContractType block
             , startDate: parseFieldActusValueJson g block "start_date"
             , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
             , maturityDate: parseFieldActusValueJson g block "maturity_date"
@@ -703,7 +703,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
     NAM ->
       Either.Right
         $ ActusContract
-            { contractType: Just $ parseActusContractType block
+            { contractType: parseActusContractType block
             , startDate: parseFieldActusValueJson g block "start_date"
             , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
             , maturityDate: parseFieldActusValueJson g block "maturity_date"
@@ -916,46 +916,46 @@ actusContractToTerms raw = do
     $ ContractTerms
         { contractId: "0"
         , contractType: contractType
-        , ct_IED: initialExchangeDate
+        , ct_IED: Just initialExchangeDate
         , ct_SD: startDate
         , ct_MD: maturityDate
         , ct_TD: terminationDate
         , ct_PRNXT: periodicPaymentAmount
         , ct_PRD: purchaseDate
         , ct_CNTRL: CR_ST
-        , ct_PDIED: premium
+        , ct_PDIED: Just premium
         , ct_NT: notional
         , ct_PPRD: purchasePrice
         , ct_PTD: terminationPrice
-        , ct_DCC: DCC_A_360
-        , ct_PREF: PREF_N
-        , ct_PRF: CS_PF
+        , ct_DCC: Just DCC_A_360
+        , ct_PPEF: Just PPEF_N
+        , ct_PRF: Just PRF_PF
         , scfg:
             ScheduleConfig
               { calendar: []
               , includeEndDay: true
-              , eomc: EOMC_EOM
-              , bdc: BDC_NULL
+              , eomc: Just EOMC_EOM
+              , bdc: Just BDC_NULL
               }
-        , ct_PYRT: 0.0
-        , ct_PYTP: PYTP_A
+        , ct_PYRT: Just 0.0
+        , ct_PYTP: Just PYTP_A
         , ct_cPYRT: 0.0
         , ct_OPCL: Nothing
         , ct_OPANX: Nothing
-        , ct_SCIED: 0.0
-        , ct_SCEF: SE_000
+        , ct_SCIED: Just 0.0
+        , ct_SCEF: Just SE_000
         , ct_SCCL: Nothing
         , ct_SCANX: Nothing
-        , ct_SCCDD: 0.0
+        , ct_SCCDD: Just 0.0
         , ct_RRCL: rateResetCycle
         , ct_RRANX: rateResetAnchor >>= identity
         , ct_RRNXT: Nothing
-        , ct_RRSP: 0.0
-        , ct_RRMLT: 1.0
-        , ct_RRPF: -1.0
-        , ct_RRPC: 1.0
-        , ct_RRLC: 1.0
-        , ct_RRLF: 0.0
+        , ct_RRSP: Just 0.0
+        , ct_RRMLT: Just 1.0
+        , ct_RRPF: Just $ -1.0
+        , ct_RRPC: Just 1.0
+        , ct_RRLC: Just 1.0
+        , ct_RRLF: Just 0.0
         , ct_IPCED: Nothing
         , ct_IPCL: interestRateCycle
         , ct_IPANX: interestRateAnchor >>= identity
@@ -970,12 +970,13 @@ actusContractToTerms raw = do
         , ct_FECL: Nothing
         , ct_FEANX: Nothing
         , ct_FEAC: Nothing
-        , ct_FEB: FEB_N
-        , ct_FER: 0.0
+        , ct_FEB: Just FEB_N
+        , ct_FER: Just 0.0
         , ct_CURS: false
         , constraints: constraint <$> assertionCtx
         -- Any collateral-related code is commented out, until implemented properly
         -- , collateralAmount: fromMaybe (BigInteger.fromInt 0) collateral
+        , collateralAmount: BigInteger.fromInt 0
         }
 
 aesonCompatibleOptions :: Options
