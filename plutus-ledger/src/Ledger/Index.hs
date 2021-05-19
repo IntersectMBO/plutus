@@ -167,6 +167,11 @@ validateTransaction :: ValidationMonad m
 validateTransaction h t = do
     -- Phase 1 validation
     checkSlotRange h t
+
+    -- see note [Forging of Ada]
+    emptyUtxoSet <- reader (Map.null . getIndex)
+    unless emptyUtxoSet (checkTransactionFee t)
+
     validateTransactionOffChain t
 
 validateTransactionOffChain :: ValidationMonad m
@@ -180,7 +185,6 @@ validateTransactionOffChain t = do
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
     unless emptyUtxoSet (checkForgingAuthorised t)
-    unless emptyUtxoSet (checkTransactionFee t)
 
     checkValidInputs (toListOf (inputs . pubKeyTxIns)) t
     checkValidInputs (Set.toList . view collateralInputs) t

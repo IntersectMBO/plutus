@@ -23,9 +23,11 @@ import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo)
 import           Data.Bifunctor                 (second)
 import           Data.Foldable                  (fold, traverse_)
 import qualified Data.Map                       as Map
+import           Data.Monoid                    (Sum (..))
 import qualified Data.Set                       as Set
 import           Data.String                    (IsString (fromString))
 import qualified Ledger                         as L
+import qualified Ledger.Ada                     as Ada
 import           Ledger.AddressMap              (UtxoMap)
 import qualified Ledger.AddressMap              as AM
 import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
@@ -88,13 +90,13 @@ balanceWallet ::
     => UnbalancedTx
     -> Eff effs Tx
 balanceWallet utx = do
-    logInfo $ BalancingUnbalancedTx utx
     pk <- ownPubKey
     outputs <- ownOutputs
 
-    validateTx outputs pk utx
+    utxWithFee <- validateTx outputs pk utx
 
-    balanceTx outputs pk utx
+    logInfo $ BalancingUnbalancedTx utxWithFee
+    balanceTx outputs pk utxWithFee
 
 lookupValue ::
     ( Member WalletEffect effs
@@ -213,14 +215,17 @@ validateTx ::
     => UtxoMap
     -> PubKey
     -> UnbalancedTx
-    -> Eff effs ()
+    -> Eff effs UnbalancedTx
 validateTx outputs pk utx = do
     -- Balance and sign just for validation
     tx <- balanceTx outputs pk utx
     signedTx <- walletAddSignature tx
-    let utxoIndex   = Index.UtxoIndex $ unBalancedTxUtxoIndex utx <> fmap Tx.txOutTxOut outputs
-        ((e, _), _) = Index.runValidation (Index.validateTransactionOffChain signedTx) utxoIndex
+    let utxoIndex        = Index.UtxoIndex $ unBalancedTxUtxoIndex utx <> fmap Tx.txOutTxOut outputs
+        ((e, _), events) = Index.runValidation (Index.validateTransactionOffChain signedTx) utxoIndex
     traverse_ (throwError . WAPI.ValidationError . snd) e
+    let scriptsSize = getSum $ foldMap (Sum . L.scriptSize . Index.sveScript) events
+        fee = Index.minFee tx <> Ada.lovelaceValueOf scriptsSize -- TODO: use protocol parameters
+    pure $ utx{ unBalancedTxTx = (unBalancedTxTx utx){ txFee = fee }}
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
