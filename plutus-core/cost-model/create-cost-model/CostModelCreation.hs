@@ -30,8 +30,11 @@ import           Foreign.R
 import           H.Prelude                                      (MonadR, Region, r)
 import           Language.R
 
+
+-- | Convert milliseconds represented as a float to picoseconds represented as a
+-- CostingInteger.  We round up to be sure we don't underestimate anything.
 msToPs :: Double -> CostingInteger
-msToPs = floor . (1e6 *)
+msToPs = ceiling . (1e6 *)
 
 {- See Note [Creation of the Cost Model]
 -}

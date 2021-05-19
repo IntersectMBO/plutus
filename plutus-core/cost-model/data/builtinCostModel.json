@@ -6,8 +6,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 492,
-                "intercept": 815976
+                "slope": 493,
+                "intercept": 815977
             },
             "type": "min_size"
         }
@@ -18,7 +18,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 5430343,
+            "arguments": 5430344,
             "type": "constant_cost"
         }
     },
@@ -28,7 +28,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3543575,
+            "arguments": 3543576,
             "type": "constant_cost"
         }
     },
@@ -39,8 +39,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 526,
-                "intercept": 816109
+                "slope": 527,
+                "intercept": 816110
             },
             "type": "min_size"
         }
@@ -52,8 +52,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 233,
-                "intercept": 943512
+                "slope": 234,
+                "intercept": 943513
             },
             "type": "min_size"
         }
@@ -75,8 +75,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 492,
-                "intercept": 815976
+                "slope": 493,
+                "intercept": 815977
             },
             "type": "min_size"
         }
@@ -91,8 +91,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 10953,
-                "intercept": 698522
+                "slope": 10954,
+                "intercept": 698523
             },
             "type": "added_sizes"
         }
@@ -104,8 +104,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 516,
-                "intercept": 814781
+                "slope": 517,
+                "intercept": 814782
             },
             "type": "min_size"
         }
@@ -121,8 +121,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 923605,
-                "model_split_const_slope": 491
+                "model_split_const_intercept": 923606,
+                "model_split_const_slope": 492
             },
             "type": "split_const_multi"
         }
@@ -137,8 +137,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 1127,
-                "intercept": 829081
+                "slope": 1128,
+                "intercept": 829082
             },
             "type": "max_size"
         }
@@ -149,7 +149,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3547088,
+            "arguments": 3547089,
             "type": "constant_cost"
         }
     },
@@ -160,8 +160,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 526,
-                "intercept": 816109
+                "slope": 527,
+                "intercept": 816110
             },
             "type": "min_size"
         }
@@ -173,8 +173,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 233,
-                "intercept": 943512
+                "slope": 234,
+                "intercept": 943513
             },
             "type": "min_size"
         }
@@ -190,8 +190,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 923605,
-                "model_split_const_slope": 491
+                "model_split_const_intercept": 923606,
+                "model_split_const_slope": 492
             },
             "type": "split_const_multi"
         }
@@ -206,8 +206,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 519,
-                "intercept": 1334474
+                "slope": 520,
+                "intercept": 1334475
             },
             "type": "added_sizes"
         }
@@ -223,8 +223,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 923605,
-                "model_split_const_slope": 491
+                "model_split_const_intercept": 923606,
+                "model_split_const_slope": 492
             },
             "type": "split_const_multi"
         }
@@ -239,8 +239,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 463,
-                "intercept": 896714
+                "slope": 464,
+                "intercept": 896715
             },
             "type": "max_size"
         }
@@ -252,8 +252,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 29093,
-                "intercept": 1697555,
+                "slope": 29094,
+                "intercept": 1697556,
                 "orientation": "x"
             },
             "type": "linear_cost"
@@ -266,8 +266,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 230,
-                "intercept": 964832
+                "slope": 231,
+                "intercept": 964833
             },
             "type": "min_size"
         }
@@ -283,8 +283,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 923605,
-                "model_split_const_slope": 491
+                "model_split_const_intercept": 923606,
+                "model_split_const_slope": 492
             },
             "type": "split_const_multi"
         }
@@ -296,8 +296,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 81351,
-                "intercept": 4081956,
+                "slope": 81352,
+                "intercept": 4081957,
                 "orientation": "x"
             },
             "type": "linear_cost"
