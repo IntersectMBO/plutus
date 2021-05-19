@@ -55,21 +55,21 @@ import           Data.Text                (Text)
 import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 
-import           Ledger                   (PubKeyHash, Slot, Validator, txId)
-import qualified Ledger                   as Ledger
+import           Ledger                   (PubKeyHash, Slot, SlotRange, Validator, txId)
+import qualified Ledger
 import qualified Ledger.Ada               as Ada
 import qualified Ledger.Constraints       as Constraints
 import           Ledger.Contexts          as V
 import qualified Ledger.Interval          as Interval
 import qualified Ledger.Scripts           as Scripts
-import           Ledger.Slot              (SlotRange)
+import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value)
 import           Plutus.Contract
 import qualified Plutus.Contract.Typed.Tx as Typed
 import           Plutus.Trace.Emulator    (ContractHandle, EmulatorTrace)
 import qualified Plutus.Trace.Emulator    as Trace
-import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), return, (<$>), (>>), (>>=))
 import           Prelude                  (Semigroup (..))
 import qualified Prelude                  as Haskell
@@ -121,11 +121,13 @@ mkCampaign ddl collectionDdl ownerWallet =
         }
 
 -- | The 'SlotRange' during which the funds can be collected
+{-# INLINABLE collectionRange #-}
 collectionRange :: Campaign -> SlotRange
 collectionRange cmp =
     Interval.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
 
 -- | The 'SlotRange' during which a refund may be claimed
+{-# INLINABLE refundRange #-}
 refundRange :: Campaign -> SlotRange
 refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
@@ -146,7 +148,7 @@ scriptInstance = Scripts.validatorParam @Crowdfunding
 validRefund :: Campaign -> PubKeyHash -> TxInfo -> Bool
 validRefund campaign contributor txinfo =
     -- Check that the transaction falls in the refund range of the campaign
-    Interval.contains (refundRange campaign) (txInfoValidRange txinfo)
+    Interval.contains (refundRange campaign) (TimeSlot.posixTimeRangeToSlotRange $ txInfoValidRange txinfo)
     -- Check that the transaction is signed by the contributor
     && (txinfo `V.txSignedBy` contributor)
 
@@ -154,7 +156,7 @@ validRefund campaign contributor txinfo =
 validCollection :: Campaign -> TxInfo -> Bool
 validCollection campaign txinfo =
     -- Check that the transaction falls in the collection range of the campaign
-    (collectionRange campaign `Interval.contains` txInfoValidRange txinfo)
+    (collectionRange campaign `Interval.contains` TimeSlot.posixTimeRangeToSlotRange (txInfoValidRange txinfo))
     -- Check that the transaction is signed by the campaign owner
     && (txinfo `V.txSignedBy` campaignOwner campaign)
 

@@ -45,7 +45,7 @@ import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import           GHC.Generics              (Generic)
 import qualified Prelude                   as Haskell
 
-import qualified PlutusTx                  as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
@@ -59,10 +59,18 @@ data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
+instance Functor Interval where
+  fmap f (Interval from to) = Interval (f <$> from) (f <$> to)
+
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Functor Extended where
+  fmap _ NegInf     = NegInf
+  fmap f (Finite a) = Finite (f a)
+  fmap _ PosInf     = PosInf
 
 instance Pretty a => Pretty (Extended a) where
     pretty NegInf     = pretty "-∞"
@@ -77,6 +85,9 @@ data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
+instance Functor UpperBound where
+  fmap f (UpperBound e c) = UpperBound (f <$> e) c
+
 instance Pretty a => Pretty (UpperBound a) where
     pretty (UpperBound PosInf _) = pretty "+∞)"
     pretty (UpperBound NegInf _) = pretty "-∞)"
@@ -87,6 +98,9 @@ instance Pretty a => Pretty (UpperBound a) where
 data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Functor LowerBound where
+  fmap f (LowerBound e c) = LowerBound (f <$> e) c
 
 instance Pretty a => Pretty (LowerBound a) where
     pretty (LowerBound PosInf _) = pretty "(+∞"

@@ -26,18 +26,18 @@ import           GHC.Generics             (Generic)
 
 import           Ledger                   (PubKeyHash, Slot, TxId, txId, txSignedBy, valuePaidTo)
 import qualified Ledger
--- import           Ledger.Constraints       (TxConstraints)
 import qualified Ledger.Constraints       as Constraints
 import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
 import           Ledger.Interval          (after, before)
 import qualified Ledger.Interval          as Interval
+import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value, geq)
 
 import           Plutus.Contract
 import qualified Plutus.Contract.Typed.Tx as Typed
-import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), check, foldMap)
 
 import           Prelude                  (Semigroup (..), foldMap)
@@ -110,7 +110,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
   case action of
     Redeem ->
           -- Can't redeem after the deadline
-      let notLapsed = deadline params `after` txInfoValidRange txInfo
+      let notLapsed = TimeSlot.slotToPOSIXTime (deadline params) `after` txInfoValidRange txInfo
           -- Payee has to have been paid
           paid      = valuePaidTo txInfo (payee params) `geq` expecting params
        in traceIfFalse "escrow-deadline-lapsed" notLapsed
@@ -119,7 +119,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
           -- Has to be the person that locked value requesting the refund
       let signed = txInfo `txSignedBy` payee params
           -- And we only refund after the deadline has passed
-          lapsed = deadline params `before` txInfoValidRange txInfo
+          lapsed = TimeSlot.slotToPOSIXTime (deadline params) `before` txInfoValidRange txInfo
        in traceIfFalse "escrow-not-signed" signed
           && traceIfFalse "refund-too-early" lapsed
 
