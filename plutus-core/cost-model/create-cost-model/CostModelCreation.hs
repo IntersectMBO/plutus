@@ -296,9 +296,7 @@ dropByteString cpuModelR = do
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 
 memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
-memoryUsageAsCostingInteger x =
-    let m = coerce $ memoryUsage x :: CostingInteger
-    in fromIntegral m
+memoryUsageAsCostingInteger x = coerce $ memoryUsage x
 
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA2 cpuModelR = do
