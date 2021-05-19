@@ -13,7 +13,7 @@ import Data.Array (foldr, intercalate)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NonEmptyArray
-import Data.BigInteger (BigInteger, fromInt, fromString)
+import Data.BigInteger (BigInteger, fromString)
 import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
@@ -33,7 +33,7 @@ import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, hum
 import Marlowe.Execution (NamedAction(..), _currentState, _mNextTimeout, expandBalances, getActionParticipant)
 import Marlowe.Extended (contractTypeName)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token(..), TransactionInput(..), getEncompassBound)
+import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token, TransactionInput(..), getEncompassBound)
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
 import WalletData.State (adaToken, getAda)
@@ -153,8 +153,8 @@ actionConfirmationCard assets state namedAction =
       _ -> [ transactionFeeItem false ]
 
     totalToPay = case namedAction of
-      MakeDeposit _ _ token amount -> text $ humanizeValue token amount
-      _ -> text $ humanizeValue (Token "" "") (fromInt 0)
+      MakeDeposit _ _ token amount -> text $ humanizeValue token $ amount + transactionFee
+      _ -> text $ humanizeValue adaToken transactionFee
   in
     div_
       [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
@@ -391,7 +391,7 @@ renderCurrentStep currentSlot state =
 
     currentState = state ^. (_executionState <<< _currentState)
 
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ Token "" "" ] currentState
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] currentState
 
     timeoutStr =
       maybe "timed out"

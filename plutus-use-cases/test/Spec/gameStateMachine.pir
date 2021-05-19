@@ -5363,126 +5363,79 @@
                                                                       [
                                                                         [
                                                                           {
-                                                                            [
-                                                                              {
-                                                                                Nil_match
-                                                                                TxInInfo
-                                                                              }
-                                                                              [
-                                                                                [
-                                                                                  [
-                                                                                    {
-                                                                                      {
-                                                                                        foldr
-                                                                                        TxInInfo
-                                                                                      }
-                                                                                      [List TxInInfo]
-                                                                                    }
-                                                                                    (lam
-                                                                                      e
-                                                                                      TxInInfo
-                                                                                      (lam
-                                                                                        xs
-                                                                                        [List TxInInfo]
-                                                                                        [
-                                                                                          {
-                                                                                            [
-                                                                                              TxInInfo_match
-                                                                                              e
-                                                                                            ]
-                                                                                            [List TxInInfo]
-                                                                                          }
-                                                                                          (lam
-                                                                                            ds
-                                                                                            TxOutRef
-                                                                                            (lam
-                                                                                              ds
-                                                                                              TxOut
-                                                                                              [
-                                                                                                [
-                                                                                                  [
-                                                                                                    {
-                                                                                                      [
-                                                                                                        Bool_match
-                                                                                                        [
-                                                                                                          [
-                                                                                                            fEqTxOutRef_c
-                                                                                                            ds
-                                                                                                          ]
-                                                                                                          txOutRef
-                                                                                                        ]
-                                                                                                      ]
-                                                                                                      (fun Unit [List TxInInfo])
-                                                                                                    }
-                                                                                                    (lam
-                                                                                                      thunk
-                                                                                                      Unit
-                                                                                                      [
-                                                                                                        [
-                                                                                                          {
-                                                                                                            Cons
-                                                                                                            TxInInfo
-                                                                                                          }
-                                                                                                          e
-                                                                                                        ]
-                                                                                                        xs
-                                                                                                      ]
-                                                                                                    )
-                                                                                                  ]
-                                                                                                  (lam
-                                                                                                    thunk
-                                                                                                    Unit
-                                                                                                    xs
-                                                                                                  )
-                                                                                                ]
-                                                                                                Unit
-                                                                                              ]
-                                                                                            )
-                                                                                          )
-                                                                                        ]
-                                                                                      )
-                                                                                    )
-                                                                                  ]
-                                                                                  {
-                                                                                    Nil
-                                                                                    TxInInfo
-                                                                                  }
-                                                                                ]
-                                                                                ds
-                                                                              ]
-                                                                            ]
-                                                                            (fun Unit [Maybe TxInInfo])
-                                                                          }
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
                                                                             {
-                                                                              Nothing
-                                                                              TxInInfo
+                                                                              fFoldableNil_cfoldMap
+                                                                              [(lam a (type) [Maybe a]) TxInInfo]
                                                                             }
-                                                                          )
+                                                                            TxInInfo
+                                                                          }
+                                                                          {
+                                                                            fMonoidFirst
+                                                                            TxInInfo
+                                                                          }
                                                                         ]
                                                                         (lam
                                                                           x
                                                                           TxInInfo
-                                                                          (lam
-                                                                            ds
-                                                                            [List TxInInfo]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
+                                                                          [
+                                                                            {
                                                                               [
-                                                                                {
-                                                                                  Just
-                                                                                  TxInInfo
-                                                                                }
+                                                                                TxInInfo_match
                                                                                 x
                                                                               ]
+                                                                              [Maybe TxInInfo]
+                                                                            }
+                                                                            (lam
+                                                                              ds
+                                                                              TxOutRef
+                                                                              (lam
+                                                                                ds
+                                                                                TxOut
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      {
+                                                                                        [
+                                                                                          Bool_match
+                                                                                          [
+                                                                                            [
+                                                                                              fEqTxOutRef_c
+                                                                                              ds
+                                                                                            ]
+                                                                                            txOutRef
+                                                                                          ]
+                                                                                        ]
+                                                                                        (fun Unit [Maybe TxInInfo])
+                                                                                      }
+                                                                                      (lam
+                                                                                        thunk
+                                                                                        Unit
+                                                                                        [
+                                                                                          {
+                                                                                            Just
+                                                                                            TxInInfo
+                                                                                          }
+                                                                                          x
+                                                                                        ]
+                                                                                      )
+                                                                                    ]
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      {
+                                                                                        Nothing
+                                                                                        TxInInfo
+                                                                                      }
+                                                                                    )
+                                                                                  ]
+                                                                                  Unit
+                                                                                ]
+                                                                              )
                                                                             )
-                                                                          )
+                                                                          ]
                                                                         )
                                                                       ]
-                                                                      Unit
+                                                                      ds
                                                                     ]
                                                                   )
                                                                 )
@@ -6546,7 +6499,7 @@
                             )
                             (termbind
                               (nonstrict)
-                              (vardecl fOrdSlot [Ord (con integer)])
+                              (vardecl fOrdPOSIXTime [Ord (con integer)])
                               [
                                 [
                                   [
@@ -6649,15 +6602,7 @@
                                             fail (fun (all a (type) a) Ordering)
                                           )
                                           (lam
-                                            ds
-                                            (all a (type) a)
-                                            (let
-                                              (nonrec)
-                                              (typebind
-                                                (tyvardecl e (type)) Ordering
-                                              )
-                                              (error e)
-                                            )
+                                            ds (all a (type) a) (error Ordering)
                                           )
                                         )
                                         [
@@ -8885,126 +8830,79 @@
                                                           [
                                                             [
                                                               {
-                                                                [
-                                                                  {
-                                                                    Nil_match
-                                                                    TxInInfo
-                                                                  }
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          {
-                                                                            foldr
-                                                                            TxInInfo
-                                                                          }
-                                                                          [List TxInInfo]
-                                                                        }
-                                                                        (lam
-                                                                          e
-                                                                          TxInInfo
-                                                                          (lam
-                                                                            xs
-                                                                            [List TxInInfo]
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  TxInInfo_match
-                                                                                  e
-                                                                                ]
-                                                                                [List TxInInfo]
-                                                                              }
-                                                                              (lam
-                                                                                ds
-                                                                                TxOutRef
-                                                                                (lam
-                                                                                  ds
-                                                                                  TxOut
-                                                                                  [
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          [
-                                                                                            Bool_match
-                                                                                            [
-                                                                                              [
-                                                                                                fEqTxOutRef_c
-                                                                                                ds
-                                                                                              ]
-                                                                                              outRef
-                                                                                            ]
-                                                                                          ]
-                                                                                          (fun Unit [List TxInInfo])
-                                                                                        }
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            [
-                                                                                              {
-                                                                                                Cons
-                                                                                                TxInInfo
-                                                                                              }
-                                                                                              e
-                                                                                            ]
-                                                                                            xs
-                                                                                          ]
-                                                                                        )
-                                                                                      ]
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        xs
-                                                                                      )
-                                                                                    ]
-                                                                                    Unit
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      ]
-                                                                      {
-                                                                        Nil
-                                                                        TxInInfo
-                                                                      }
-                                                                    ]
-                                                                    ds
-                                                                  ]
-                                                                ]
-                                                                (fun Unit [Maybe TxInInfo])
-                                                              }
-                                                              (lam
-                                                                thunk
-                                                                Unit
                                                                 {
-                                                                  Nothing
-                                                                  TxInInfo
+                                                                  fFoldableNil_cfoldMap
+                                                                  [(lam a (type) [Maybe a]) TxInInfo]
                                                                 }
-                                                              )
+                                                                TxInInfo
+                                                              }
+                                                              {
+                                                                fMonoidFirst
+                                                                TxInInfo
+                                                              }
                                                             ]
                                                             (lam
                                                               x
                                                               TxInInfo
-                                                              (lam
-                                                                ds
-                                                                [List TxInInfo]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
+                                                              [
+                                                                {
                                                                   [
-                                                                    {
-                                                                      Just
-                                                                      TxInInfo
-                                                                    }
+                                                                    TxInInfo_match
                                                                     x
                                                                   ]
+                                                                  [Maybe TxInInfo]
+                                                                }
+                                                                (lam
+                                                                  ds
+                                                                  TxOutRef
+                                                                  (lam
+                                                                    ds
+                                                                    TxOut
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          {
+                                                                            [
+                                                                              Bool_match
+                                                                              [
+                                                                                [
+                                                                                  fEqTxOutRef_c
+                                                                                  ds
+                                                                                ]
+                                                                                outRef
+                                                                              ]
+                                                                            ]
+                                                                            (fun Unit [Maybe TxInInfo])
+                                                                          }
+                                                                          (lam
+                                                                            thunk
+                                                                            Unit
+                                                                            [
+                                                                              {
+                                                                                Just
+                                                                                TxInInfo
+                                                                              }
+                                                                              x
+                                                                            ]
+                                                                          )
+                                                                        ]
+                                                                        (lam
+                                                                          thunk
+                                                                          Unit
+                                                                          {
+                                                                            Nothing
+                                                                            TxInInfo
+                                                                          }
+                                                                        )
+                                                                      ]
+                                                                      Unit
+                                                                    ]
+                                                                  )
                                                                 )
-                                                              )
+                                                              ]
                                                             )
                                                           ]
-                                                          Unit
+                                                          ds
                                                         ]
                                                       )
                                                     )
@@ -9018,6 +8916,201 @@
                                     )
                                   ]
                                 )
+                              )
+                            )
+                            (termbind
+                              (strict)
+                              (vardecl
+                                slotRangeToPOSIXTimeRange
+                                (fun [Interval (con integer)] [Interval (con integer)])
+                              )
+                              (lam
+                                sr
+                                [Interval (con integer)]
+                                [
+                                  {
+                                    [ { Interval_match (con integer) } sr ]
+                                    [Interval (con integer)]
+                                  }
+                                  (lam
+                                    from
+                                    [LowerBound (con integer)]
+                                    (lam
+                                      to
+                                      [UpperBound (con integer)]
+                                      [
+                                        [
+                                          { Interval (con integer) }
+                                          [
+                                            {
+                                              [
+                                                {
+                                                  LowerBound_match (con integer)
+                                                }
+                                                from
+                                              ]
+                                              [LowerBound (con integer)]
+                                            }
+                                            (lam
+                                              e
+                                              [Extended (con integer)]
+                                              (lam
+                                                c
+                                                Bool
+                                                [
+                                                  [
+                                                    { LowerBound (con integer) }
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            {
+                                                              [
+                                                                {
+                                                                  Extended_match
+                                                                  (con integer)
+                                                                }
+                                                                e
+                                                              ]
+                                                              (fun Unit [Extended (con integer)])
+                                                            }
+                                                            (lam
+                                                              a
+                                                              (con integer)
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                [
+                                                                  {
+                                                                    Finite
+                                                                    (con integer)
+                                                                  }
+                                                                  [
+                                                                    [
+                                                                      (builtin
+                                                                        addInteger
+                                                                      )
+                                                                      a
+                                                                    ]
+                                                                    (con
+                                                                      integer
+                                                                        1596059091
+                                                                    )
+                                                                  ]
+                                                                ]
+                                                              )
+                                                            )
+                                                          ]
+                                                          (lam
+                                                            thunk
+                                                            Unit
+                                                            {
+                                                              NegInf
+                                                              (con integer)
+                                                            }
+                                                          )
+                                                        ]
+                                                        (lam
+                                                          thunk
+                                                          Unit
+                                                          {
+                                                            PosInf (con integer)
+                                                          }
+                                                        )
+                                                      ]
+                                                      Unit
+                                                    ]
+                                                  ]
+                                                  c
+                                                ]
+                                              )
+                                            )
+                                          ]
+                                        ]
+                                        [
+                                          {
+                                            [
+                                              { UpperBound_match (con integer) }
+                                              to
+                                            ]
+                                            [UpperBound (con integer)]
+                                          }
+                                          (lam
+                                            e
+                                            [Extended (con integer)]
+                                            (lam
+                                              c
+                                              Bool
+                                              [
+                                                [
+                                                  { UpperBound (con integer) }
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          {
+                                                            [
+                                                              {
+                                                                Extended_match
+                                                                (con integer)
+                                                              }
+                                                              e
+                                                            ]
+                                                            (fun Unit [Extended (con integer)])
+                                                          }
+                                                          (lam
+                                                            a
+                                                            (con integer)
+                                                            (lam
+                                                              thunk
+                                                              Unit
+                                                              [
+                                                                {
+                                                                  Finite
+                                                                  (con integer)
+                                                                }
+                                                                [
+                                                                  [
+                                                                    (builtin
+                                                                      addInteger
+                                                                    )
+                                                                    a
+                                                                  ]
+                                                                  (con
+                                                                    integer
+                                                                      1596059091
+                                                                  )
+                                                                ]
+                                                              ]
+                                                            )
+                                                          )
+                                                        ]
+                                                        (lam
+                                                          thunk
+                                                          Unit
+                                                          {
+                                                            NegInf (con integer)
+                                                          }
+                                                        )
+                                                      ]
+                                                      (lam
+                                                        thunk
+                                                        Unit
+                                                        { PosInf (con integer) }
+                                                      )
+                                                    ]
+                                                    Unit
+                                                  ]
+                                                ]
+                                                c
+                                              ]
+                                            )
+                                          )
+                                        ]
+                                      ]
+                                    )
+                                  )
+                                ]
                               )
                             )
                             (termbind
@@ -11100,9 +11193,12 @@
                                                               contains
                                                               (con integer)
                                                             }
-                                                            fOrdSlot
+                                                            fOrdPOSIXTime
                                                           ]
-                                                          interval
+                                                          [
+                                                            slotRangeToPOSIXTimeRange
+                                                            interval
+                                                          ]
                                                         ]
                                                         [
                                                           {

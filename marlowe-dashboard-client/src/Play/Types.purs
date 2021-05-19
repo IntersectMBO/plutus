@@ -10,10 +10,12 @@ import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Contract.Types (Action) as Contract
 import ContractHome.Types (Action, State) as ContractHome
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
 import InputField.Types (Action, State) as InputField
 import Marlowe.Execution (NamedAction)
+import Marlowe.PAB (MarloweData, MarloweParams)
 import Marlowe.Semantics (Slot, TokenName)
 import Template.Types (Action, State) as Template
 import Types (WebData)
@@ -66,6 +68,7 @@ data Action
   | SetScreen Screen
   | OpenCard Card
   | CloseCard
+  | UpdateRunningContracts (Map MarloweParams MarloweData)
   | AdvanceTimedoutSteps
   | TemplateAction Template.Action
   | ContractHomeAction ContractHome.Action
@@ -83,6 +86,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
+  toEvent (UpdateRunningContracts _) = Nothing
   toEvent AdvanceTimedoutSteps = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction

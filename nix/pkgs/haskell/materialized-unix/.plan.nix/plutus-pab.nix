@@ -160,6 +160,7 @@
           "Plutus/PAB/Db/Eventful/ContractDefinitionStore"
           "Plutus/PAB/Db/Eventful/ContractStore"
           "Plutus/PAB/Db/Eventful/Query"
+          "Plutus/PAB/Db/Memory/ContractStore"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/Contract/ContractTest"
           "Plutus/PAB/Effects/Contract/Builtin"

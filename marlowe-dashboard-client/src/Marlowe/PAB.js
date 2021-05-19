@@ -6,4 +6,4 @@ exports.marloweAppPath_ = contracts.marlowe;
 
 exports.walletCompanionAppPath_ = contracts.walletCompanion;
 
-exports.walletFollowerAppPath_ = contracts.walletFollower;
+exports.contractFollowerAppPath_ = contracts.walletFollower;

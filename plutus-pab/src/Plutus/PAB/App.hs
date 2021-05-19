@@ -55,6 +55,8 @@ import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
 import           Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Db.Eventful.ContractDefinitionStore (handleContractDefinitionStore)
 import           Plutus.PAB.Db.Eventful.ContractStore           (handleContractStore)
+import           Plutus.PAB.Db.Memory.ContractStore             (InMemInstances, initialInMemInstances)
+import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
 import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe, handleContractEffectContractExe)
 import           Plutus.PAB.Effects.EventLog                    (Connection (..), EventLogBackend (..), handleEventLog)
 import qualified Plutus.PAB.Effects.EventLog                    as EventLog
@@ -71,13 +73,14 @@ import           Servant.Client                                 (ClientEnv, mkCl
 ------------------------------------------------------------
 data AppEnv =
     AppEnv
-        { dbConnection    :: EventLogBackend (PABEvent ContractExe)
-        , walletClientEnv :: ClientEnv
-        , nodeClientEnv   :: ClientEnv
-        , chainIndexEnv   :: ClientEnv
-        , clientHandler   :: Client.ClientHandler
-        , appConfig       :: Config
-        , appTrace        :: Trace IO (PABLogMsg ContractExe)
+        { dbConnection          :: EventLogBackend (PABEvent ContractExe)
+        , walletClientEnv       :: ClientEnv
+        , nodeClientEnv         :: ClientEnv
+        , chainIndexEnv         :: ClientEnv
+        , clientHandler         :: Client.ClientHandler
+        , appConfig             :: Config
+        , appTrace              :: Trace IO (PABLogMsg ContractExe)
+        , appInMemContractStore :: InMemInstances ContractExe
         }
 
 appEffectHandlers :: EventfulBackend -> Config -> Trace IO (PABLogMsg ContractExe) -> EffectHandlers ContractExe AppEnv
@@ -95,10 +98,16 @@ appEffectHandlers eventfulBackend config trace =
             . reinterpret (mapLog SMultiAgent)
 
         , handleContractStoreEffect =
-            interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . interpret (Core.handleMappedReader @AppEnv dbConnection)
-            . interpret (handleEventLog @_ @(PABEvent ContractExe) (convertLog SLoggerBridge trace))
-            . reinterpretN @'[_, Reader (EventLogBackend (PABEvent ContractExe)), Reader AppEnv] handleContractStore
+            case eventfulBackend of
+                InMemoryBackend ->
+                    interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
+                    . interpret (Core.handleMappedReader @AppEnv appInMemContractStore)
+                    . reinterpret2 InMem.handleContractStore
+                SqliteBackend ->
+                    interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
+                    . interpret (Core.handleMappedReader @AppEnv dbConnection)
+                    . interpret (handleEventLog @_ @(PABEvent ContractExe) (convertLog SLoggerBridge trace))
+                    . reinterpretN @'[_, Reader (EventLogBackend (PABEvent ContractExe)), Reader AppEnv] handleContractStore
 
         , handleContractEffect =
             interpret (handleLogMsgTrace trace)
@@ -166,6 +175,7 @@ mkEnv eventfulBackend appTrace appConfig@Config { dbConfig
         SqliteBackend   -> Sqlite <$> dbConnect appTrace dbConfig
         InMemoryBackend -> InMemory <$> M.eventMapTVar
     clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (\_ _ -> pure ())
+    appInMemContractStore <- liftIO initialInMemInstances
     pure AppEnv {..}
   where
     clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure (coerce baseUrl)
