@@ -26,6 +26,7 @@ type WalletNickname
 type WalletDetails
   = { walletNickname :: WalletNickname
     , companionAppId :: PlutusAppId
+    , marloweAppId :: PlutusAppId
     , walletInfo :: WalletInfo
     , assets :: Assets
     }
