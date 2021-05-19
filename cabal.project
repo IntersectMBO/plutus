@@ -113,7 +113,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/iohk-monitoring-framework
-  tag: a89c38ed5825ba17ca79fddb85651007753d699d
+  tag: 34abfb7f4f5610cabb45396e0496472446a0b2ca
   subdir:
     iohk-monitoring
     tracer-transformers
