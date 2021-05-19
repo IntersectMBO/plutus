@@ -30,6 +30,9 @@ import           Foreign.R
 import           H.Prelude                                      (MonadR, Region, r)
 import           Language.R
 
+msToPs :: Double -> CostingInteger
+msToPs = floor . (1e6 *)
+
 {- See Note [Creation of the Cost Model]
 -}
 
@@ -133,7 +136,7 @@ findInRaw s v = maybeToEither ("Couldn't find the term " <> s <> " in " <> show 
   Data.Vector.find (\e -> linearModelRawTerm e == s) v
 
 -- t = ax+c
-unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (Double, Double)
+unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger)
 unsafeReadModelFromR formula rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -141,13 +144,13 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (intercept, slope)
+        pure $ (msToPs intercept, msToPs slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
 
 -- t = ax+by+c
-unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (Double, Double, Double)
+unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger, CostingInteger)
 unsafeReadModelFromR2 formula1 formula2 rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -156,7 +159,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (intercept, slope1, slope2)
+        pure $ (msToPs intercept, msToPs slope1, msToPs slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -182,7 +185,7 @@ readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsaf
 readModelSplitConst :: MonadR m => (SomeSEXP (Region m)) -> m ModelSplitConst
 readModelSplitConst model = (pure . uncurry ModelSplitConst) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, I(x_mem * y_mem), 0)" model
 
-readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m Double
+readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
 readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(Intercept)" model
 
 readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
@@ -282,31 +285,31 @@ takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArg
 takeByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
   -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 2.0
+  let memModel = ModelTwoArgumentsConstantCost 20
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 
 dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 dropByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
   -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 2.0
+  let memModel = ModelTwoArgumentsConstantCost 2
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 
-memoryUsageAsDouble :: ExMemoryUsage a => a -> Double
-memoryUsageAsDouble x =
+memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
+memoryUsageAsCostingInteger x =
     let m = coerce $ memoryUsage x :: CostingInteger
     in fromIntegral m
 
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA2 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsDouble $ PlutusHash.sha2 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA3 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsDouble $ PlutusHash.sha3 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)

@@ -12,6 +12,15 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 ## require changes here to get sensible results.
 
 
+## At present, times in the becnhmarking data are typically of the order of
+## 10^(-6) seconds. We scale these up to milliseconds because the resulting
+## numbers are much easier to work with interactively.  For use in the Plutus
+## Core cost model we scale times up by a further factor of 10^6 (to
+## picoseconds) because then everything fits into integral values with little
+## loss of precision.  This is safe because we're only using models which
+## are linear in their inputs.
+toMilliseconds <- function(x) { x * 1e6 }
+
 ## Discard any datapoints whose execution time is greater than 1.5 times the
 ## interquartile range above the third quartile, as is done in boxplots.  In our
 ## benchmark results we occasionally get atypically large times which throw the
@@ -26,8 +35,6 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 ## get good models.  However, we're looking at a much narrower range of input sizes
 ## for integers ("only" up to 31 words) and there outliers do cause problems.
 #
-## TODO: print a warning if we're discarding a suspiciously large number of
-## datapoints.
 upper.outlier.cutoff <- function(v) {
     q1 <- quantile(v,0.25)                
     q3 <- quantile(v,0.75)
@@ -37,6 +44,8 @@ upper.outlier.cutoff <- function(v) {
 discard.upper.outliers <- function(fr) {
     cutoff <- upper.outlier.cutoff(fr$MeanUB)
     filter(fr, MeanUB < cutoff)
+## TODO: print a warning if we're discarding a suspiciously large number of
+## datapoints.
 }
 
 
@@ -69,7 +78,7 @@ get.bench.data <- function(path) {
                   mutate(across("BuiltinName", as.character))
 
     cbind(dat, mutated) %>%
-        mutate(across(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), function(x) { x * 1000 * 1000 }))
+        mutate(across(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), toMilliseconds))
 }
 
 discard.overhead <- function(frame, overhead) {

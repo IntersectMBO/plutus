@@ -12,6 +12,7 @@ module Data.SatInt (SatInt(..), fromSat, toSat) where
 import           Control.DeepSeq            (NFData)
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Bits
+import           Data.Csv
 import           GHC.Base
 import           GHC.Num
 import           GHC.Real
@@ -21,6 +22,7 @@ newtype SatInt = SI Int
     deriving newtype (NFData, Bits, FiniteBits)
     deriving Lift
     deriving (FromJSON, ToJSON) via Int
+    deriving FromField via Int  -- For reading cost model data from CSV input
 
 fromSat :: SatInt -> Int
 fromSat (SI x) = x
