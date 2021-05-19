@@ -18,7 +18,7 @@ import qualified Ledger.Bytes                             as LedgerBytes
 import           Ledger.Crypto                            (PubKey, PubKeyHash, Signature)
 import           Ledger.Interval                          (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Slot                              (Slot)
-import           Ledger.Tx                                (TxIn, TxInType, TxOutRef)
+import           Ledger.Tx                                (Tx, TxIn, TxInType, TxOut, TxOutRef)
 import           Ledger.TxId                              (TxId)
 import           Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
@@ -49,11 +49,31 @@ instance Arbitrary LedgerBytes where
 instance Arbitrary Ledger.MonetaryPolicy where
     arbitrary = pure acceptingMonetaryPolicy
 
+instance Arbitrary Ledger.MonetaryPolicyHash where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
+instance Arbitrary Ledger.ValidationError where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
+instance Arbitrary Ledger.ScriptError where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
 instance Arbitrary WalletAPIError where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
+instance Arbitrary Tx where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
 instance Arbitrary TxIn where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
+instance Arbitrary TxOut where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
