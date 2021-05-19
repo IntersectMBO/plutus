@@ -208,8 +208,8 @@ evalBuiltinApp
     -> EvalM unique name uni fun ann (Value unique name uni fun ann)
 -- Note the absence of 'evalValue'. Same logic as with the CEK machine applies:
 -- 'makeKnown' never returns a non-value term.
-evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) _ x _) = makeKnown x
-evalBuiltinApp ann getTerm runtime                                     =
+evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) x _) = makeKnown x
+evalBuiltinApp ann getTerm runtime =
     pure . HBuiltin ann $ BuiltinApp getTerm runtime
 
 -- See Note [Builtin application evaluation].
@@ -224,19 +224,19 @@ evalFeedBuiltinApp
     -> BuiltinApp unique name uni fun ann
     -> Maybe (Value unique name uni fun ann)
     -> EvalM unique name uni fun ann (Value unique name uni fun ann)
-evalFeedBuiltinApp ann (BuiltinApp getTerm (BuiltinRuntime sch ar f _)) e =
+evalFeedBuiltinApp ann (BuiltinApp getTerm (BuiltinRuntime sch f _)) e =
     case (sch, e) of
         (TypeSchemeArrow _ schB, Just arg) -> do
             x <- readKnown arg
             evalBuiltinApp
                 ann
                 (Apply ann <$> getTerm <*> fromValue arg)
-                (BuiltinRuntime schB ar (f x) noCosting)
+                (BuiltinRuntime schB (f x) noCosting)
         (TypeSchemeAll  _ schK, Nothing) ->
             evalBuiltinApp
                 ann
                 (Force ann <$> getTerm)
-                (BuiltinRuntime (schK Proxy) ar f noCosting)
+                (BuiltinRuntime (schK Proxy) f noCosting)
         _ ->
             throwingWithCause _InternalHoasError ArityHoasError Nothing
   where

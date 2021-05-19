@@ -14,8 +14,6 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 
-{-# LANGUAGE StrictData                #-}
-
 module PlutusCore.Constant.Meaning where
 
 import           PlutusPrelude
@@ -68,15 +66,13 @@ data BuiltinMeaning term cost =
 -- It contains info that is used during evaluation:
 --
 -- 1. the 'TypeScheme' of a builtin
--- 2. the 'Arity'
--- 3. the denotation
--- 4. the costing function
+-- 2. the denotation
+-- 3. the costing function
 data BuiltinRuntime term =
     forall args res. BuiltinRuntime
         (TypeScheme term args res)
-        Arity
-        ~(FoldArgs args res)
-        ~(FoldArgsEx args)
+        (FoldArgs args res)  -- Must be lazy
+        (FoldArgsEx args)    -- Must be lazy (for a different reason)
 
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.
 newtype BuiltinsRuntime fun term = BuiltinsRuntime
@@ -85,8 +81,7 @@ newtype BuiltinsRuntime fun term = BuiltinsRuntime
 
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning term cost -> BuiltinRuntime term
-toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
-    BuiltinRuntime sch (getArity sch) f (exF cost)
+toBuiltinRuntime cost (BuiltinMeaning sch f exF) = BuiltinRuntime sch f (exF cost)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
@@ -119,6 +114,7 @@ lookupBuiltin
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
     Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
     Just bri -> pure bri
+-- {-# INLINE lookupBuiltin #-}
 
 {- Note [Automatic derivation of type schemes]
 We use two type classes for automatic derivation of type schemes: 'KnownMonotype' and

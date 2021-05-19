@@ -266,8 +266,9 @@ stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
-    BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . ckEnvRuntime
-    stack <| VBuiltin bn arity arity [] []
+    pure $ Builtin () bn
+--     BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . ckEnvRuntime
+--     stack <| VBuiltin bn arity arity [] []
 stack |> Constant _ val          = stack <| VCon val
 _     |> Error{}                 =
     throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) Nothing
@@ -371,11 +372,11 @@ applyBuiltin
     -> [CkValue uni fun]
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyBuiltin stack bn args = do
-    let
-        dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
-    BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
-    result <- dischargeError $ applyTypeSchemed (\_ _ -> pure ()) bn sch f exF args
-    stack <| result
+    pure $ Builtin () bn
+    -- let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
+    -- BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
+    -- result <- dischargeError $ applyTypeSchemed (\_ _ -> pure ()) bn sch f exF args
+    -- stack <| result
 
 runCk
     :: Ix fun
