@@ -22,6 +22,10 @@
 @import './simulation.css';
 @import './save-as-modal.css';
 
+/* @tailwind base; */
+@tailwind components;
+@tailwind utilities;
+
 a:hover {
     cursor: pointer;
 }

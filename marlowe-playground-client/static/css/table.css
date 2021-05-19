@@ -45,7 +45,7 @@
 .RTable-empty-row {
   text-align: left;
   font-style: italic;
-  color: var(--text-color-inactive);
+  @apply text-gray-darkest;
 }
 
 .RTable-data-row {

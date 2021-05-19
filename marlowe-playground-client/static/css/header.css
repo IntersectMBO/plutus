@@ -51,7 +51,7 @@
 }
 
 .project-title .unsave-change-indicator {
-  color: var(--text-color-inactive);
+  @apply text-gray-darkest;
   margin-left: var(--very-small-margin);
 }
 

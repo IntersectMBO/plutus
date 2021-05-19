@@ -9,7 +9,7 @@ import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Classes (aHorizontal, active, bgDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, bgGrayDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, footer, h1, h2, header, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
@@ -36,7 +36,7 @@ render ::
 render state =
   div [ class_ (ClassName "site-wrap") ]
     ( [ header [ classes [ noMargins, flex, flexCol ] ]
-          [ div [ classes [ aHorizontal, fullWidth, bgDark, paddingX, smallPaddingY ] ]
+          [ div [ classes [ aHorizontal, fullWidth, bgGrayDark, paddingX, smallPaddingY ] ]
               [ div [ classes [ group, aHorizontal, ClassName "marlowe-title-group" ] ]
                   [ div [ class_ (ClassName "marlowe-logo"), onClick $ const $ Just $ ChangeView HomePage ] [ marloweIcon ]
                   , h2 [ classes [ paddingLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
@@ -69,7 +69,7 @@ render state =
           ]
       , modal state
       , globalLoadingOverlay
-      , footer [ classes [ flex, justifyBetween, paddingX, smallPaddingY, bgDark ] ]
+      , footer [ classes [ flex, justifyBetween, paddingX, smallPaddingY, bgGrayDark ] ]
           [ div [ classes [ flex ] ]
               [ a [ href "https://cardano.org/", target "_blank", class_ smallPaddingRight ] [ text "cardano.org" ]
               , vl
