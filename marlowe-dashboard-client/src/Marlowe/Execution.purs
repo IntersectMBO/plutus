@@ -140,7 +140,7 @@ timeoutState currentSlot { current, previous, mPendingTimeouts, mNextTimeout } =
       Contract ->
       { mNextTimeout :: Maybe Slot, mPendingTimeouts :: Maybe PendingTimeouts }
     advanceAllTimeouts mNextTimeout' newTimeouts state' contract'
-      | mNextTimeout' >= Just currentSlot =
+      | mNextTimeout' /= Nothing && mNextTimeout' < Just currentSlot =
         let
           { txOutState, txOutContract } = case reduceContractUntilQuiescent env state' contract' of
             -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give

@@ -521,7 +521,7 @@ renderPartyTasks state party actions =
 -- FIXME: This was added to allow anybody being able to do any actions for debug purposes...
 --        Remove once the PAB is connected
 debugMode :: Boolean
-debugMode = true
+debugMode = false
 
 -- The Party parameter represents who is taking the action
 renderAction :: forall p. State -> Party -> NamedAction -> HTML p Action
