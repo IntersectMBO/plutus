@@ -58,7 +58,7 @@ deriving anyclass instance ToSchema AssetClass
 -- | A single 'AssetClass'. Because we use three coins, we use a phantom type to track
 -- which one is which.
 newtype Coin a = Coin { unCoin :: AssetClass }
-  deriving stock   (Show, Generic)
+  deriving stock   (Prelude.Show, Generic)
   deriving newtype (ToJSON, FromJSON, ToSchema, Eq, Prelude.Eq, Prelude.Ord)
 PlutusTx.makeIsDataIndexed ''Coin [('Coin, 0)]
 PlutusTx.makeLift ''Coin
@@ -66,7 +66,7 @@ PlutusTx.makeLift ''Coin
 -- | Likewise for 'Integer'; the corresponding amount we have of the
 -- particular 'Coin'.
 newtype Amount a = Amount { unAmount :: Integer }
-  deriving stock   (Show, Generic)
+  deriving stock   (Prelude.Show, Generic)
   deriving newtype (ToJSON, FromJSON, ToSchema, Eq, Ord, PrintfArg)
   deriving newtype (Prelude.Eq, Prelude.Ord, Prelude.Num)
   deriving newtype (AdditiveGroup, AdditiveMonoid, AdditiveSemigroup, MultiplicativeSemigroup)
@@ -95,7 +95,7 @@ mkCoin c = Coin . assetClass c
 
 newtype Uniswap = Uniswap
     { usCoin :: Coin U
-    } deriving stock    (Show, Generic)
+    } deriving stock    (Prelude.Show, Generic)
       deriving anyclass (ToJSON, FromJSON, ToSchema)
       deriving newtype  (Prelude.Eq, Prelude.Ord)
 PlutusTx.makeIsDataIndexed ''Uniswap [('Uniswap, 0)]
@@ -105,7 +105,7 @@ data LiquidityPool = LiquidityPool
     { lpCoinA :: Coin A
     , lpCoinB :: Coin B
     }
-    deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+    deriving (Prelude.Show, Generic, ToJSON, FromJSON, ToSchema)
 PlutusTx.makeIsDataIndexed ''LiquidityPool [('LiquidityPool, 0)]
 PlutusTx.makeLift ''LiquidityPool
 
@@ -116,7 +116,7 @@ instance Eq LiquidityPool where
              (unCoin (lpCoinA x) == unCoin (lpCoinB y) && unCoin (lpCoinB x) == unCoin (lpCoinA y))
 
 data UniswapAction = Create LiquidityPool | Close | Swap | Remove | Add
-    deriving Show
+    deriving Prelude.Show
 PlutusTx.makeIsDataIndexed ''UniswapAction [ ('Create , 0)
                                            , ('Close,   1)
                                            , ('Swap,    2)
@@ -128,7 +128,7 @@ PlutusTx.makeLift ''UniswapAction
 data UniswapDatum =
       Factory [LiquidityPool]
     | Pool LiquidityPool (Amount Liquidity)
-    deriving stock (Show)
+    deriving stock (Prelude.Show)
 PlutusTx.makeIsDataIndexed ''UniswapDatum [ ('Factory, 0)
                                           , ('Pool,    1)
                                           ]

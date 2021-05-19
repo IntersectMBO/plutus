@@ -107,7 +107,7 @@ type CrowdfundingSchema =
 newtype Contribution = Contribution
         { contribValue :: Value
         -- ^ how much to contribute
-        } deriving stock (Haskell.Eq, Show, Generic)
+        } deriving stock (Haskell.Eq, Haskell.Show, Generic)
           deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | Construct a 'Campaign' value from the campaign parameters,
@@ -202,7 +202,7 @@ theCampaign = Campaign
 contribute :: Campaign -> Contract () CrowdfundingSchema ContractError ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
-    logInfo @Text $ "Contributing " <> Text.pack (show contribValue)
+    logInfo @Text $ "Contributing " <> Text.pack (Haskell.show contribValue)
     contributor <- ownPubKey
     let inst = scriptInstance cmp
         tx = Constraints.mustPayToTheScript (pubKeyHash contributor) contribValue

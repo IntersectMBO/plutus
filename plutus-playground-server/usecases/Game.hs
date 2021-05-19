@@ -63,12 +63,12 @@ gameInstance = Scripts.validator @Game
 
 -- create a data script for the guessing game by hashing the string
 -- and lifting the hash to its on-chain representation
-hashString :: String -> HashedString
+hashString :: Prelude.String -> HashedString
 hashString = HashedString . sha2_256 . C.pack
 
 -- create a redeemer script for the guessing game by lifting the
 -- string to its on-chain representation
-clearString :: String -> ClearString
+clearString :: Prelude.String -> ClearString
 clearString = ClearString . C.pack
 
 -- | The validation function (Datum -> Redeemer -> ScriptContext -> Bool)
@@ -85,7 +85,7 @@ gameAddress = Ledger.scriptAddress gameValidator
 
 -- | Parameters for the "lock" endpoint
 data LockParams = LockParams
-    { secretWord :: String
+    { secretWord :: Prelude.String
     , amount     :: Value
     }
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
@@ -93,7 +93,7 @@ data LockParams = LockParams
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
-    { guessWord :: String
+    { guessWord :: Prelude.String
     }
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)

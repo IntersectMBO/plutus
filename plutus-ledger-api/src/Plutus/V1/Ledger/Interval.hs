@@ -56,12 +56,12 @@ import           PlutusTx.Prelude
 --
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 instance Pretty a => Pretty (Extended a) where
@@ -74,7 +74,7 @@ type Closure = Bool
 
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 instance Pretty a => Pretty (UpperBound a) where
@@ -85,7 +85,7 @@ instance Pretty a => Pretty (UpperBound a) where
 
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
 
 instance Pretty a => Pretty (LowerBound a) where

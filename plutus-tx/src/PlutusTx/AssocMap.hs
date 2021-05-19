@@ -36,16 +36,16 @@ import           Control.DeepSeq  (NFData)
 import           GHC.Generics     (Generic)
 import           PlutusTx.IsData
 import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude hiding (all, lookup, null, toList)
+import           PlutusTx.Prelude hiding (all, null, toList)
 import qualified PlutusTx.Prelude as P
 import           PlutusTx.These
 import qualified Prelude
 
-{-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
+{-# ANN module ("HLint: ignore Use newtype instead of data"::Prelude.String) #-}
 
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
-    deriving stock (Generic, Prelude.Eq, Show)
+    deriving stock (Generic, Prelude.Eq, Prelude.Show)
     deriving newtype (Eq, Ord, IsData, NFData)
 
 instance Functor (Map k) where

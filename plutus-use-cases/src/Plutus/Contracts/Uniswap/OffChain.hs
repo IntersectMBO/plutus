@@ -45,7 +45,7 @@ import           Plutus.Contracts.Uniswap.Pool
 import           Plutus.Contracts.Uniswap.Types
 import qualified PlutusTx
 import           PlutusTx.Prelude                 hiding (Semigroup (..), unless)
-import           Prelude                          (Semigroup (..))
+import           Prelude                          (Int, Semigroup (..), String, div, dropWhile, flip, show, (^))
 import           Text.Printf                      (printf)
 
 data Uniswapping

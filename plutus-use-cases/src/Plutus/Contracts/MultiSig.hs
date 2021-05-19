@@ -35,7 +35,7 @@ import qualified Plutus.Contract.Typed.Tx as Tx
 import qualified PlutusTx                 as PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), foldMap)
 
-import           Prelude                  (Semigroup (..), foldMap)
+import           Prelude                  (Semigroup (..), Show, foldMap)
 
 type MultiSigSchema =
     BlockchainActions

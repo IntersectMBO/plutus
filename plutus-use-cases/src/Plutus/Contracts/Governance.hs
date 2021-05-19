@@ -66,14 +66,14 @@ data Proposal = Proposal
     , votingDeadline :: Slot
     -- ^ The slot when voting ends and the votes are tallied.
     }
-    deriving stock (Show, Generic)
+    deriving stock (Prelude.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data Voting = Voting
     { proposal :: Proposal
     , votes    :: AssocMap.Map TokenName Bool
     }
-    deriving stock (Show, Generic)
+    deriving stock (Prelude.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data GovState = GovState
@@ -81,7 +81,7 @@ data GovState = GovState
     , mph    :: MonetaryPolicyHash
     , voting :: Maybe Voting
     }
-    deriving stock (Show, Generic)
+    deriving stock (Prelude.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data GovInput
@@ -89,7 +89,7 @@ data GovInput
     | ProposeChange Proposal
     | AddVote TokenName Bool
     | FinishVoting
-    deriving stock (Show, Generic)
+    deriving stock (Prelude.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | The endpoints of governance contracts are
@@ -114,7 +114,7 @@ data Params = Params
 data GovError =
     GovContractError ContractError
     | GovStateMachineError SM.SMContractError
-    deriving stock (Prelude.Eq, Show, Generic)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''GovError
@@ -149,7 +149,7 @@ client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine param
 
 -- | Generate a voting token name by tagging on a number after the base token name.
 mkTokenName :: TokenName -> Integer -> TokenName
-mkTokenName base ix = fromString (Value.toString base ++ show ix)
+mkTokenName base ix = fromString (Value.toString base ++ Prelude.show ix)
 
 {-# INLINABLE votingValue #-}
 votingValue :: MonetaryPolicyHash -> TokenName -> Value.Value
@@ -203,7 +203,7 @@ contract params = forever $ mapError (review _GovError) endpoints where
         bsLaw <- endpoint @"new-law"
         let mph = Scripts.monetaryPolicyHash (scriptInstance params)
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
-        let tokens = zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
+        let tokens = Prelude.zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
         SM.runStep theClient $ ForgeTokens tokens
 
 -- | The contract for proposing changes to a law.

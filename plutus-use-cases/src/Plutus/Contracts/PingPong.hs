@@ -47,7 +47,7 @@ import qualified Plutus.Contract.StateMachine as SM
 import qualified Prelude                      as Haskell
 
 data PingPongState = Pinged | Ponged | Stopped
-    deriving stock (Haskell.Eq, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq PingPongState where
@@ -56,7 +56,7 @@ instance Eq PingPongState where
     _ == _           = False
 
 data Input = Ping | Pong | Stop
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 type PingPongSchema =
@@ -71,7 +71,7 @@ data PingPongError =
     PingPongContractError ContractError
     | PingPongSMError SM.SMContractError
     | StoppedUnexpectedly
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''PingPongError
@@ -153,12 +153,12 @@ combined :: Contract (Last PingPongState) PingPongSchema PingPongError ()
 combined = forever (void initialise `select` ping `select` pong `select` runStop `select` wait) where
     wait = do
         _ <- endpoint @"wait"
-        logInfo @String "runWaitForUpdate"
+        logInfo @Haskell.String "runWaitForUpdate"
         newState <- runWaitForUpdate
         case newState of
-            Nothing -> logWarn @String "runWaitForUpdate: Nothing"
+            Nothing -> logWarn @Haskell.String "runWaitForUpdate: Nothing"
             Just (TypedScriptTxOut{tyTxOutData=s}, _) -> do
-                logInfo $ "new state: " <> show s
+                logInfo $ "new state: " <> Haskell.show s
                 tell (Last $ Just s)
 
 PlutusTx.unstableMakeIsData ''PingPongState

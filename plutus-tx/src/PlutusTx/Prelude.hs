@@ -16,8 +16,14 @@ module PlutusTx.Prelude (
     module Lattice,
     module Foldable,
     module Traversable,
+    -- * Monad
+    (>>=),
+    (>>),
+    return,
     -- * Standard functions
     ($),
+    (.),
+    otherwise,
     -- * String and tracing functions
     trace,
     traceIfTrue,
@@ -60,7 +66,8 @@ module PlutusTx.Prelude (
     round,
     divMod,
     quotRem,
-    module Prelude
+    -- * Integer numbers
+    Integer
     ) where
 
 import           Data.String          (IsString (..))

@@ -58,7 +58,7 @@ import           Prelude                 (Semigroup (..))
 import qualified Prelude
 import           Schema                  (ToSchema)
 
-{-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
+{-# ANN module ("HLint: ignore Use uncurry" :: Prelude.String) #-}
 
 -- | A currency that can be created exactly once
 data OneShotCurrency = OneShotCurrency
@@ -139,7 +139,7 @@ currencySymbol = scriptCurrencySymbol . curPolicy
 data CurrencyError =
     CurPubKeyError PubKeyError
     | CurContractError ContractError
-    deriving stock (Prelude.Eq, Show, Generic)
+    deriving stock (Prelude.Eq, Prelude.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''CurrencyError

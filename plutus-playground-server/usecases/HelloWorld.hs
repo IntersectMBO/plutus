@@ -8,11 +8,11 @@ module HelloWorld where
 import qualified Data.Text           as T
 import           Playground.Contract
 import           Plutus.Contract     hiding (when)
-import           PlutusTx.Prelude
+import qualified Prelude
 
 -- | A 'Contract' that logs a message.
 hello :: Contract () BlockchainActions T.Text ()
-hello = logInfo @String "Hello, world"
+hello = logInfo @Prelude.String "Hello, world"
 
 endpoints :: Contract () BlockchainActions T.Text ()
 endpoints = hello
