@@ -33,7 +33,7 @@ import           Plutus.Contract          hiding (when)
 import qualified Plutus.Contract.Typed.Tx as Typed
 import qualified PlutusTx                 as PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), fold)
-import           Prelude                  (Semigroup (..), show)
+import           Prelude                  as Haskell (Semigroup (..), show)
 import           Wallet.Emulator.Types    (walletPubKey)
 
 {- |

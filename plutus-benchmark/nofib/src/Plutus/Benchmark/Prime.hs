@@ -16,7 +16,7 @@ module Plutus.Benchmark.Prime where
 import           Control.DeepSeq     (NFData)
 import           Data.Char           (isSpace)
 import           GHC.Generics
-import qualified Prelude             (Eq (..), Read, Show, String, dropWhile, lines, show)
+import qualified Prelude             as Haskell
 
 import           PlutusCore.Builtins (DefaultFun)
 import qualified PlutusCore.Pretty   as PLC
@@ -94,7 +94,7 @@ cubeRoot x = until satisfy improve x
 
 {-# INLINABLE log2 #-}
 log2 :: Integer -> Integer
-log2 = fromIntegral . length . chop 2
+log2 = Haskell.fromIntegral . length . chop 2
 
 
 ---------------- Random ----------------
@@ -217,14 +217,14 @@ boundedRandom n r = (makeNumber 65536 (uniform ns rs), r')
 uniform :: [Integer] -> [Integer] -> [Integer]
 uniform [n]    [r]    = [r `modInteger` n]
 uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
-                                  else t: map ((`modInteger` 65536). toInteger) rs
-                        where t  = toInteger r `modInteger` (n+1)
+                                  else t: map ((`modInteger` 65536). Haskell.toInteger) rs
+                        where t  = Haskell.toInteger r `modInteger` (n+1)
 
 
 ---------------- Main ----------------
 
 data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60 | P100 | P150 | P200
-     deriving (Prelude.Read, Prelude.Show)
+     deriving (Haskell.Read, Haskell.Show)
 
 {- Some prime numbers.  The larger ones are taken from
    https://primes.utm.edu/lists/small/small.html and
@@ -248,8 +248,8 @@ getPrime =
 
 
 -- % Only for textual output of PLC scripts
-unindent :: PLC.Doc ann -> [Prelude.String]
-unindent d = map (Prelude.dropWhile isSpace) $ (Prelude.lines . Prelude.show $ d)
+unindent :: PLC.Doc ann -> [Haskell.String]
+unindent d = map (Haskell.dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
 
 
 -- % Initialise the RNG
@@ -263,8 +263,8 @@ numTests :: Integer
 numTests = 100
 
 data Result = Composite | Prime
-    deriving (Prelude.Show, Prelude.Eq, Generic, NFData)
--- Prelude.Eq needed for comparing Haskell results in tests.
+    deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
+-- Haskell.Eq needed for comparing Haskell results in tests.
 
 -- % The @processList@ function takes a list of input numbers
 -- % and produces a list of output results.

@@ -40,8 +40,6 @@ module PlutusTx.Prelude (
     module Bool,
     -- * Integer numbers
     Integer,
-    toInteger,
-    fromIntegral,
     divide,
     modulo,
     quotient,

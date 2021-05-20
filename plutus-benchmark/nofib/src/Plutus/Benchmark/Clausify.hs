@@ -9,7 +9,7 @@ module Plutus.Benchmark.Clausify where
 import           PlutusCore.Builtins
 import           PlutusCore.Universe
 import qualified PlutusTx            as Tx
-import           PlutusTx.Prelude    as TxPrelude
+import           PlutusTx.Prelude    as Plutus
 import qualified Prelude             as Haskell
 import           UntypedPlutusCore
 

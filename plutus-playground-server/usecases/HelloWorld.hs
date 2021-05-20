@@ -8,11 +8,11 @@ module HelloWorld where
 import qualified Data.Text           as T
 import           Playground.Contract
 import           Plutus.Contract     hiding (when)
-import qualified Prelude
+import qualified Prelude             as Haskell
 
 -- | A 'Contract' that logs a message.
 hello :: Contract () BlockchainActions T.Text ()
-hello = logInfo @Prelude.String "Hello, world"
+hello = logInfo @Haskell.String "Hello, world"
 
 endpoints :: Contract () BlockchainActions T.Text ()
 endpoints = hello

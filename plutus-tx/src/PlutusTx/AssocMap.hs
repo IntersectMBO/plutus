@@ -39,13 +39,13 @@ import           PlutusTx.Lift    (makeLift)
 import           PlutusTx.Prelude hiding (all, null, toList)
 import qualified PlutusTx.Prelude as P
 import           PlutusTx.These
-import qualified Prelude
+import qualified Prelude          as Haskell
 
-{-# ANN module ("HLint: ignore Use newtype instead of data"::Prelude.String) #-}
+{-# ANN module ("HLint: ignore Use newtype instead of data"::Haskell.String) #-}
 
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
-    deriving stock (Generic, Prelude.Eq, Prelude.Show)
+    deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving newtype (Eq, Ord, IsData, NFData)
 
 instance Functor (Map k) where

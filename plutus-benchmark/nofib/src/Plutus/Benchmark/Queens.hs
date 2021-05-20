@@ -19,7 +19,7 @@ import           Control.DeepSeq     (NFData)
 import           Control.Monad       (forM_)
 import           Data.Char           (isSpace)
 import           GHC.Generics
-import qualified Prelude
+import qualified Prelude             as Haskell
 import           System.Environment
 
 import           PlutusCore.Builtins
@@ -71,7 +71,7 @@ data Algorithm = Bt
                | Bjbt1
                | Bjbt2
                | Fc
-               deriving (Prelude.Show, Prelude.Read)
+               deriving (Haskell.Show, Haskell.Read)
 
 {-# INLINABLE lookupAlgorithm #-}
 lookupAlgorithm :: Algorithm -> Labeler
@@ -101,20 +101,20 @@ mkQueensTerm sz alg =
   in code
 
 
-main2 :: Prelude.IO ()  -- Haskell version
+main2 :: Haskell.IO ()  -- Haskell version
 main2 = do
   args <- getArgs
   case args of
-    [] -> Prelude.putStrLn "Integer parameter expected"
+    [] -> Haskell.putStrLn "Integer parameter expected"
     arg:_ -> do
-              let n = Prelude.read arg :: Integer
-                  try algorithm = Prelude.print (nqueens n algorithm)
+              let n = Haskell.read arg :: Integer
+                  try algorithm = Haskell.print (nqueens n algorithm)
               forM_ [1..240::Integer] $ const $ do
-                Prelude.sequence_ (map try allAlgorithms)
+                Haskell.sequence_ (map try allAlgorithms)
 
 -- % Only for textual output of PLC scripts
-unindent :: PLC.Doc ann -> [Prelude.String]
-unindent d = map (dropWhile isSpace) $ (Prelude.lines . Prelude.show $ d)
+unindent :: PLC.Doc ann -> [Haskell.String]
+unindent d = map (dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
 
 
 -----------------------------------------------------------
@@ -232,7 +232,7 @@ type Var = Integer
 type Value = Integer
 
 data Assign = Var := Value
-    deriving (Prelude.Show, Prelude.Eq, Prelude.Ord, Generic, NFData)
+    deriving (Haskell.Show, Haskell.Eq, Haskell.Ord, Generic, NFData)
 instance TxPrelude.Eq Assign
     where (a := b) == (a' := b') = a==a' && b==b'
 instance TxPrelude.Ord Assign
@@ -419,8 +419,8 @@ btr seed csp = bt csp . hrandom seed
 random2 :: Integer -> Integer
 random2 n = if test > 0 then test else test + 2147483647
   where test = 16807 * lo - 2836 * hi
-        hi   = n `Prelude.div` 127773
-        lo   = n `Prelude.rem` 127773
+        hi   = n `Haskell.div` 127773
+        lo   = n `Haskell.rem` 127773
 
 {-# INLINABLE randoms #-}
 randoms :: Integer -> Integer -> [Integer]

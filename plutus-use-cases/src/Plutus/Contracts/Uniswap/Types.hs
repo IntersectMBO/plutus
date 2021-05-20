@@ -24,7 +24,7 @@ import           Ledger.Value        (AssetClass (..), assetClass, assetClassVal
 import           Playground.Contract (FromJSON, Generic, ToJSON, ToSchema)
 import qualified PlutusTx
 import           PlutusTx.Prelude
-import qualified Prelude
+import qualified Prelude             as Haskell
 import           Text.Printf         (PrintfArg)
 
 -- | Uniswap coin token
@@ -58,17 +58,17 @@ deriving anyclass instance ToSchema AssetClass
 -- | A single 'AssetClass'. Because we use three coins, we use a phantom type to track
 -- which one is which.
 newtype Coin a = Coin { unCoin :: AssetClass }
-  deriving stock   (Prelude.Show, Generic)
-  deriving newtype (ToJSON, FromJSON, ToSchema, Eq, Prelude.Eq, Prelude.Ord)
+  deriving stock   (Haskell.Show, Generic)
+  deriving newtype (ToJSON, FromJSON, ToSchema, Eq, Haskell.Eq, Haskell.Ord)
 PlutusTx.makeIsDataIndexed ''Coin [('Coin, 0)]
 PlutusTx.makeLift ''Coin
 
 -- | Likewise for 'Integer'; the corresponding amount we have of the
 -- particular 'Coin'.
 newtype Amount a = Amount { unAmount :: Integer }
-  deriving stock   (Prelude.Show, Generic)
+  deriving stock   (Haskell.Show, Generic)
   deriving newtype (ToJSON, FromJSON, ToSchema, Eq, Ord, PrintfArg)
-  deriving newtype (Prelude.Eq, Prelude.Ord, Prelude.Num)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Num)
   deriving newtype (AdditiveGroup, AdditiveMonoid, AdditiveSemigroup, MultiplicativeSemigroup)
 PlutusTx.makeIsDataIndexed ''Amount [('Amount, 0)]
 PlutusTx.makeLift ''Amount
@@ -95,9 +95,9 @@ mkCoin c = Coin . assetClass c
 
 newtype Uniswap = Uniswap
     { usCoin :: Coin U
-    } deriving stock    (Prelude.Show, Generic)
+    } deriving stock    (Haskell.Show, Generic)
       deriving anyclass (ToJSON, FromJSON, ToSchema)
-      deriving newtype  (Prelude.Eq, Prelude.Ord)
+      deriving newtype  (Haskell.Eq, Haskell.Ord)
 PlutusTx.makeIsDataIndexed ''Uniswap [('Uniswap, 0)]
 PlutusTx.makeLift ''Uniswap
 
@@ -105,7 +105,7 @@ data LiquidityPool = LiquidityPool
     { lpCoinA :: Coin A
     , lpCoinB :: Coin B
     }
-    deriving (Prelude.Show, Generic, ToJSON, FromJSON, ToSchema)
+    deriving (Haskell.Show, Generic, ToJSON, FromJSON, ToSchema)
 PlutusTx.makeIsDataIndexed ''LiquidityPool [('LiquidityPool, 0)]
 PlutusTx.makeLift ''LiquidityPool
 
@@ -116,7 +116,7 @@ instance Eq LiquidityPool where
              (unCoin (lpCoinA x) == unCoin (lpCoinB y) && unCoin (lpCoinB x) == unCoin (lpCoinA y))
 
 data UniswapAction = Create LiquidityPool | Close | Swap | Remove | Add
-    deriving Prelude.Show
+    deriving Haskell.Show
 PlutusTx.makeIsDataIndexed ''UniswapAction [ ('Create , 0)
                                            , ('Close,   1)
                                            , ('Swap,    2)
@@ -128,7 +128,7 @@ PlutusTx.makeLift ''UniswapAction
 data UniswapDatum =
       Factory [LiquidityPool]
     | Pool LiquidityPool (Amount Liquidity)
-    deriving stock (Prelude.Show)
+    deriving stock (Haskell.Show)
 PlutusTx.makeIsDataIndexed ''UniswapDatum [ ('Factory, 0)
                                           , ('Pool,    1)
                                           ]
