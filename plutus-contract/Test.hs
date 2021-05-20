@@ -1,4 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE NamedFieldPuns        #-}
@@ -19,6 +21,9 @@ import           Control.Monad.Except                   (catchError, throwError)
 import           Control.Monad.Freer                    (Eff)
 import           Control.Monad.Freer.Extras.Log         (LogLevel (..))
 import qualified Control.Monad.Freer.Extras.Log         as Log
+import           Data.Aeson                             (FromJSON, ToJSON)
+import           Data.Monoid                            (Last (..))
+import           GHC.Generics                           (Generic)
 import           Test.Tasty
 
 import           Ledger                                 (Address, PubKey, Slot)
@@ -68,7 +73,7 @@ loopCheckpointContract = do
             then pure (Left $ newVal + k)
             else pure (Right newVal)
 
-foreverLoopContract :: Contract () Schema ContractError ()
+foreverLoopContract :: Contract (Last Int) Schema ContractError ()
 foreverLoopContract = do
     k <- endpoint @"2" @Int
     flip checkpointLoop (0 :: Int) $ \counter -> do
@@ -77,7 +82,33 @@ foreverLoopContract = do
         vl3 <- endpoint @"3" @Int
         let newVal = counter + vl1 + vl2 + vl3
         logInfo @String (show newVal)
+        tell (Last $ Just newVal)
         pure (Right newVal)
+
+data Round = NoRound | Round Int
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+nestedForeverLoop :: Contract String Schema ContractError ()
+nestedForeverLoop = do
+    -- flip checkpointLoop NoRound $ \round -> do
+        k <- endpoint @"2" @Int
+        tell "2"
+        -- let nextRound = case round of { NoRound -> Round 1; Round i -> Round (i + 1)}
+        flip checkpointLoop (0 :: Int) $ \counter -> do
+                vl1 <- endpoint @"1" @Int
+                tell "1"
+                vl2 <- endpoint @"2" @Int
+                tell "2"
+                vl3 <- endpoint @"3" @Int
+                tell "3"
+                let newVal = counter + vl1 + vl2 + vl3
+                logInfo @String (show newVal)
+                -- tell (Last $ Just newVal)
+                if (newVal > 10000)
+                    then pure (Left ())
+                    else pure (Right newVal)
+        -- pure $ Right nextRound
 
 initial :: _
 initial = State.initialiseContract loopCheckpointContract
@@ -101,6 +132,24 @@ initial2 = State.initialiseContract foreverLoopContract
 
 upd2 :: _
 upd2 = State.insertAndUpdateContract foreverLoopContract
+
+initial3 :: _
+initial3 = State.initialiseContract nestedForeverLoop
+
+upd3 :: _
+upd3 = State.insertAndUpdateContract nestedForeverLoop
+
+call1' :: IterationID -> Int -> _
+call1' it i oldState =
+    upd3 State.ContractRequest{State.oldState, State.event = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"1" i}}
+
+call2' :: IterationID -> Int -> _
+call2' it i oldState =
+    upd3 State.ContractRequest{State.oldState, State.event = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"2" i}}
+
+call3' :: IterationID -> Int -> _
+call3' it i oldState =
+    upd3 State.ContractRequest{State.oldState, State.event = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"3" i}}
 
 call1 :: IterationID -> Int -> _
 call1 it i oldState =
@@ -134,3 +183,15 @@ nonTerminate2 =
     State.newState $ call1 2 15 $
     State.newState $ call2 1 15 $
     State.newState initial2
+
+-- 2, 1, 2, 3
+nonTerminate3 =
+    -- call1' 8 5 $ State.newState $
+    -- call3' 7 4 $ State.newState $
+    -- call2' 6 3 $ State.newState $
+    -- call1' 5 2 $ State.newState $ -- 31  -- here we go wrong (shoud be: 21231)
+    call3' 4 16 $ State.newState $ -- 2123 -- this is where getContractEnv goes wrong
+    call2' 3 15 $ State.newState $ -- 212
+    call1' 2 15 $ State.newState $ -- 21
+    call2' 1 15 $ State.newState $ -- 2
+    initial3

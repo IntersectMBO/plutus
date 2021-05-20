@@ -162,4 +162,5 @@ executable marlowe-pab
     prettyprinter -any,
     freer-extras -any,
     plutus-ledger -any,
-    plutus-tx -any
+    plutus-tx -any,
+    containers -any

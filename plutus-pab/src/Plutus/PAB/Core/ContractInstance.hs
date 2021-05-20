@@ -34,13 +34,13 @@ import           Control.Arrow                                    ((>>>))
 import           Control.Concurrent                               (forkIO)
 import           Control.Concurrent.STM                           (STM)
 import qualified Control.Concurrent.STM                           as STM
-import           Control.Monad                                    (forM_, void)
+import           Control.Monad                                    (forM_, void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error)
 import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
-import           Data.Aeson                                       (Value)
+import           Data.Aeson                                       (ToJSON (toJSON), Value (Object))
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 
@@ -218,7 +218,7 @@ stmInstanceLoop def instanceId = do
     (currentState :: Contract.State t) <- Contract.getState @t instanceId
     InstanceState{issStop} <- ask
     let resp = serialisableState (Proxy @t) currentState
-    updateState resp
+    updateState instanceId resp
     case Contract.requests @t currentState of
         [] -> do
             let ContractResponse{err} = resp
@@ -244,10 +244,13 @@ updateState ::
     , MonadIO m
     , Member (Reader InstanceState) effs
     )
-    => ContractResponse Value Value Value ContractPABRequest
+    => ContractInstanceId
+    -> ContractResponse Value Value Value ContractPABRequest
     -> Eff effs ()
-updateState ContractResponse{observableState, hooks} = do
+updateState i ContractResponse{observableState, hooks} = do
     state <- ask
+    when (isObject observableState) $
+        liftIO $ putStrLn $ show i <> ": " <> show observableState
     liftIO $ STM.atomically $ do
         InstanceState.clearEndpoints state
         forM_ hooks $ \r -> do
@@ -282,3 +285,7 @@ respondToRequestsSTM instanceId currentState = do
     let rqs = Contract.requests @t currentState
     logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId rqs
     tryHandler' stmRequestHandler rqs
+
+isObject :: Value -> Bool
+isObject (Object _) = True
+isObject _          = False

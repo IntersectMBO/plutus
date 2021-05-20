@@ -145,11 +145,13 @@ instance Monoid ContractProgress where
 marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweError ()
 marloweFollowContract = do
     params <- endpoint @"follow"
+    logInfo @String "starting 'follow'"
     slot <- currentSlot
-    logDebug @String "Getting contract history"
+    logInfo @String "Getting contract history"
     checkpointLoop follow (0, slot, params)
   where
     follow (ifrom, ito, params) = do
+        -- logInfo @String $ "follow: " <> show (ifrom, ito)
         let client@StateMachineClient{scInstance} = mkMarloweClient params
         let inst = validatorInstance scInstance
         let address = Scripts.scriptAddress inst
@@ -175,6 +177,7 @@ marloweFollowContract = do
                 pure $ Right (next, next, params)
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
+        logInfo @String $ "Updating history from tx" <> show (Ledger.eitherTx Ledger.txId Ledger.txId tx)
         let inst = validatorInstance scInstance
         let address = Scripts.scriptAddress inst
         let utxo = outputsMapFromTxForAddress address tx
@@ -186,15 +189,16 @@ marloweFollowContract = do
                 Left err    -> throwing _SMContractError err
                 Right (state, _) -> do
                     let initialMarloweData = tyTxOutData state
-                    logDebug @String ("Contract created " <> show initialMarloweData)
+                    logInfo @String ("Contract created " <> show initialMarloweData)
                     tell $ Created params initialMarloweData
+                    logInfo @String "Tell: Created"
                     pure InProgress
             -- There is TxIn with Marlowe contract, hence this is a state transition
             Just (interval, inputs) -> do
                 let txInput = TransactionInput {
                         txInterval = interval,
                         txInputs = inputs }
-                logDebug @String ("Transition " <> show txInput)
+                logInfo @String ("Transition " <> show txInput)
                 tell $ Transition txInput
                 case states of
                     -- when there is no Marlowe TxOut the contract is closed
@@ -643,12 +647,12 @@ marloweCompanionContract = contracts
         utxo <- utxoAt ownAddress
         let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
         forM_ txOuts notifyOnNewContractRoles
-        logWarn @String "marlowe-companion-app: starting checkpoint loop"
+        -- logWarn @String "marlowe-companion-app: starting checkpoint loop"
         checkpointLoop (fmap Right <$> cont) ownAddress
     cont ownAddress = do
-        logWarn @String "marlowe-companion-app: asking nextTransactionsAt"
+        -- logWarn @String "marlowe-companion-app: asking nextTransactionsAt"
         txns <- nextTransactionsAt ownAddress
-        logWarn @String "marlowe-companion-app: received nextTransactionsAt"
+        -- logWarn @String "marlowe-companion-app: received nextTransactionsAt"
         let txOuts = txns >>= eitherTx (const []) txOutputs
         forM_ txOuts notifyOnNewContractRoles
         pure ownAddress
@@ -658,14 +662,14 @@ notifyOnNewContractRoles :: TxOut
 notifyOnNewContractRoles txout = do
     let curSymbols = filterRoles txout
     forM_ curSymbols $ \cs -> do
-        logWarn @String $ "Processing currency symbol: " <> show cs
+        -- logWarn @String $ "Processing currency symbol: " <> show cs
         contract <- findMarloweContractsOnChainByRoleCurrency cs
         case contract of
             Just (params, md) -> do
-                logWarn @String $ "Found on-chain state"
+                logInfo @String $ "Updating observable state"
                 tell $ CompanionState (Map.singleton params md)
             Nothing           -> do
-                logWarn @String $ "On-chain state not found!"
+                -- logWarn @String $ "On-chain state not found!"
                 pure ()
 
 
