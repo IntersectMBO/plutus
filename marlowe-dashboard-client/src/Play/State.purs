@@ -185,35 +185,33 @@ handleAction input@{ currentSlot } UpdateFromStorage = do
   for_ mStoredWalletDetails \storedWalletDetails -> assign _walletDetails storedWalletDetails
   updatedWalletDetails <- use _walletDetails
   ajaxFollowerApps <- getFollowerApps updatedWalletDetails
-  case ajaxFollowerApps of
-    Left error -> pure unit
-    Right followerApps ->
-      let
-        unfoldedFollowerApps :: Array (Tuple PlutusAppId ContractHistory)
-        unfoldedFollowerApps = toUnfoldable followerApps
-      in
-        void
-          $ for unfoldedFollowerApps \(plutusAppId /\ contractHistory) -> case contractHistory of
-              None -> pure unit
-              History marloweParams marloweData transactionInputs -> do
-                allContracts <- use _allContracts
-                case lookup plutusAppId allContracts of
-                  Just contractState -> do
-                    selectedStep <- peruse $ _selectedContract <<< _selectedStep
-                    modifying _allContracts $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
-                    -- if the modification changed the currently selected step, that means the card for the contract
-                    -- that was changed is currently open, so we need to realign the step cards
-                    selectedStep' <- peruse $ _selectedContract <<< _selectedStep
-                    when (selectedStep /= selectedStep')
-                      $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
-                  Nothing -> do
-                    let
-                      mContractState = Contract.mkInitialState updatedWalletDetails currentSlot plutusAppId contractHistory
-                    case mContractState of
-                      Just contractState -> do
-                        modifying _allContracts $ insert plutusAppId contractState
-                        addToast $ successToast "You have been given a role in a new contract."
-                      Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
+  for_ ajaxFollowerApps \followerApps ->
+    let
+      unfoldedFollowerApps :: Array (Tuple PlutusAppId ContractHistory)
+      unfoldedFollowerApps = toUnfoldable followerApps
+    in
+      void
+        $ for unfoldedFollowerApps \(plutusAppId /\ contractHistory) -> case contractHistory of
+            None -> pure unit
+            History marloweParams marloweData transactionInputs -> do
+              allContracts <- use _allContracts
+              case lookup plutusAppId allContracts of
+                Just contractState -> do
+                  selectedStep <- peruse $ _selectedContract <<< _selectedStep
+                  modifying _allContracts $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
+                  -- if the modification changed the currently selected step, that means the card for the contract
+                  -- that was changed is currently open, so we need to realign the step cards
+                  selectedStep' <- peruse $ _selectedContract <<< _selectedStep
+                  when (selectedStep /= selectedStep')
+                    $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
+                Nothing -> do
+                  let
+                    mContractState = Contract.mkInitialState updatedWalletDetails currentSlot plutusAppId contractHistory
+                  case mContractState of
+                    Just contractState -> do
+                      modifying _allContracts $ insert plutusAppId contractState
+                      addToast $ successToast "You have been given a role in a new contract."
+                    Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
 
 handleAction _ (UpdateRunningContracts companionAppState) = do
   walletDetails <- use _walletDetails
@@ -236,7 +234,7 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   selectedStep <- peruse $ _selectedContract <<< _selectedStep
   modify_
     $ over
-        (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout < Just currentSlot))
+        (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot))
         (applyTimeout currentSlot)
   -- if the modification changed the currently selected step, that means the card for the contract
   -- that was changed is currently open, so we need to realign the step cards
