@@ -189,9 +189,16 @@ nonTerminate3 =
     -- call1' 8 5 $ State.newState $
     -- call3' 7 4 $ State.newState $
     -- call2' 6 3 $ State.newState $
-    -- call1' 5 2 $ State.newState $ -- 31  -- here we go wrong (shoud be: 21231)
+    call1' 5 2 $ State.newState $
+        -- 31
+        -- here we go wrong (shoud be: 21231)
+        -- lastState = 1
     call3' 4 16 $ State.newState $ -- 2123 -- this is where getContractEnv goes wrong
+        -- lastState = 3
     call2' 3 15 $ State.newState $ -- 212
+        -- lastState = 2
     call1' 2 15 $ State.newState $ -- 21
+        -- lastSTate = 1
     call2' 1 15 $ State.newState $ -- 2
+        -- lastState = 2
     initial3

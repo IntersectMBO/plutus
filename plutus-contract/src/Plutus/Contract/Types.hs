@@ -151,7 +151,7 @@ getContractEnv ::
   => Eff effs (ContractEnv w)
 getContractEnv = do
   (a, b, c) <- (,,) <$> get <*> get <*> get
-  writeEnv ("getContractEnv: " <> show (a, b) <> " ") (Aeson.toJSON c) -- Does not return the right value ??
+  -- writeEnv ("getContractEnv: " <> show (a, b) <> " ") (Aeson.toJSON c) -- Does not return the right value ??
   pure (a, b, c)
 
 putContractEnv ::
@@ -159,13 +159,14 @@ putContractEnv ::
   ( Member (State RequestID) effs
   , Member (State IterationID) effs
   , Member (State (AccumState w)) effs
+  , Semigroup w
   , Aeson.ToJSON w
   )
   => ContractEnv w
   -> Eff effs ()
 putContractEnv (it, req, w) = do
-  writeEnv "putContractEnv" (Aeson.toJSON w)
-  put it >> put req >> put w
+  -- writeEnv "putContractEnv" (Aeson.toJSON w)
+  put it >> put req -- >> modify (\w' -> w <> w)
 
 writeEnv ::
   forall m.
@@ -181,7 +182,7 @@ addEnvToCheckpoint ::
   , Member (State (AccumState w)) effs
   , Aeson.ToJSON w
   , Aeson.FromJSON w
-  -- , Semigroup w
+  , Semigroup w
   )
   => Eff (Checkpoint ': effs)
   ~> Eff (Checkpoint ': effs)
@@ -292,6 +293,7 @@ data ResumableResult w e i o a =
         , _lastLogs        :: Seq (LogMessage Value) -- Log messages produced in the last step
         , _checkpointStore :: CheckpointStore
         , _observableState :: w -- ^ Accumulated, observable state of the contract
+        , _lastState       :: w -- ^ Last accumulated state
         }
         deriving stock (Generic, Show)
         deriving anyclass (Aeson.ToJSON, Aeson.FromJSON)
@@ -363,7 +365,7 @@ mkResult ::
      , Seq (LogMessage Value)
      )
   -> SuspendedContract w e (Event s) (Handlers s) a
-mkResult oldW oldLogs (initialRes, cpKey, cpStore, AccumState w, newLogs) =
+mkResult oldW oldLogs (initialRes, cpKey, cpStore, AccumState newW, newLogs) =
   SuspendedContract
       { _resumableResult =
           ResumableResult
@@ -377,7 +379,8 @@ mkResult oldW oldLogs (initialRes, cpKey, cpStore, AccumState w, newLogs) =
             , _logs = oldLogs <> newLogs
             , _lastLogs = newLogs
             , _checkpointStore = cpStore
-            , _observableState = oldW <> w
+            , _observableState = oldW <> newW
+            , _lastState = newW
             }
       , _continuations = either (const Nothing) id initialRes
       , _checkpointKey = cpKey
@@ -386,17 +389,16 @@ mkResult oldW oldLogs (initialRes, cpKey, cpStore, AccumState w, newLogs) =
 runSuspContractEffects ::
   forall w e i a.
   Monoid w
-  => w
-  -> CheckpointKey
+  => CheckpointKey
   -> CheckpointStore
   -> Eff (SuspendedContractEffects w e i) a
   -> (Either e a, CheckpointKey, CheckpointStore, AccumState w, Seq (LogMessage Value))
-runSuspContractEffects w cpKey cpStore =
+runSuspContractEffects cpKey cpStore =
   flatten
     . run
     . W.runWriter @(Seq (LogMessage Value))
     . interpret (handleLogWriter @Value @(Seq (LogMessage Value)) $ unto return)
-    . runState @(AccumState w) (AccumState w)
+    . runState @(AccumState w) mempty
     . handleLogIgnore @CheckpointLogMsg
     . runState cpStore
     . runState cpKey
@@ -418,7 +420,6 @@ suspend store action =
   let initialKey = 0 in --fromMaybe 0 (maxKey store) in
   mkResult mempty mempty
     $ runSuspContractEffects @w @e @(Event s) @_
-      mempty
       initialKey
       store
       (handleContractEffs @w @s @e @(SuspendedContractEffects w e (Event s)) action)
@@ -430,14 +431,13 @@ runStep ::
   => SuspendedContract w e (Event s) (Handlers s) a
   -> Response (Event s)
   -> Maybe (SuspendedContract w e (Event s) (Handlers s) a)
-runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState, _logs=oldLogs}} event =
+runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState=oldW, _logs=oldLogs}} event =
   -- let k' = _checkpointKey in -- fromMaybe _checkpointKey (maxKey _checkpointStore) in
   -- Trace.trace ("Inserting event with " <> show k') $
   Just
     $ set (resumableResult . responses) (insertResponse (fmap (_checkpointKey,) event) _responses)
-    $ mkResult _observableState oldLogs
+    $ mkResult oldW oldLogs
     $ runSuspContractEffects
-        _observableState
         _checkpointKey
         _checkpointStore
         $ ndcCont event
@@ -449,9 +449,9 @@ insertAndUpdate ::
   , Aeson.ToJSON w
   , Aeson.FromJSON w
   )
-  => Eff (ContractEffs w s e) a
-  -> CheckpointStore
-  -> Responses (CheckpointKey, Event s)
+  => Eff (ContractEffs w s e) a -- FIXME: State w (Event s)
+  -> CheckpointStore -- ^ Checkpoint store
+  -> Responses (CheckpointKey, Event s) -- ^ Previous responses
   -> Response (Event s)
   -> ResumableResult w e (Event s) (Handlers s) a
 insertAndUpdate action store record newResponse =

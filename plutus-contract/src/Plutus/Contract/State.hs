@@ -54,33 +54,38 @@ import           Plutus.Contract.Types            hiding (lastLogs, logs, observ
 
 -- | The state of a 'Contract', containing all responses that have been fed to
 --   it, and checkpoints that it produced.
-data State e = State
-    { record      :: Responses e
-    , checkpoints :: CheckpointStore
+data State w e = State
+    { record          :: Responses e
+    , checkpoints     :: CheckpointStore
+    , observableState :: w
     }
     deriving stock (Generic, Eq, Show, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)
 
+instance Bifunctor State where
+    bimap f g s =
+        s{record = fmap g (record s), observableState = f (observableState s)}
+
 -- | A request sent to a contract instance. It contains the previous 'State' of
 --   the instance, and a 'Response' to one of the requests of the instance.
-data ContractRequest s = ContractRequest
-    { oldState :: State (CheckpointKey, s)
+data ContractRequest w s = ContractRequest
+    { oldState :: State w (CheckpointKey, s)
     , event    :: Response s
     }
     deriving stock (Generic, Eq, Show, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)
-    deriving Pretty via PrettyShow (ContractRequest s)
+    deriving Pretty via PrettyShow (ContractRequest w s)
 
 -- | A response produced by a contract instance. It contains the new 'State',
 --   the list of endpoints that can be called, logs produced by the contract,
 --   possibly an error message, and the accumulated observable state.
 data ContractResponse w e s h = ContractResponse
-    { newState        :: State (CheckpointKey, s) -- ^ Serialised state of the contract (internal)
-    , hooks           :: [Request h] -- ^ Open requests that can be handled
-    , logs            :: [LogMessage Value] -- ^ Logs produced by the contract
-    , lastLogs        :: [LogMessage Value] -- ^ Logs produced in the last step
-    , err             :: Maybe e -- ^ Error that happened during contract execution
-    , observableState :: w -- ^ Observable, accumulated state of the contract
+    { newState  :: State w (CheckpointKey, s) -- ^ Serialised state of the contract (internal)
+    , hooks     :: [Request h] -- ^ Open requests that can be handled
+    , logs      :: [LogMessage Value] -- ^ Logs produced by the contract
+    , lastLogs  :: [LogMessage Value] -- ^ Logs produced in the last step
+    , err       :: Maybe e -- ^ Error that happened during contract execution
+    , lastState :: w -- ^ Observable state produced in the last step
     }
     deriving stock (Generic, Eq, Show, Functor)
     deriving anyclass (ToJSON, FromJSON)
@@ -93,7 +98,7 @@ mapE :: forall e f w s h. (e -> f) -> ContractResponse w e s h -> ContractRespon
 mapE f c@ContractResponse{err} = c{err = fmap f err}
 
 mapW :: forall w q e s h. (w -> q) -> ContractResponse w e s h -> ContractResponse q e s h
-mapW f c@ContractResponse{observableState} = c{observableState=f observableState}
+mapW f c@ContractResponse{lastState, newState} = c{lastState = f lastState, newState = first f newState}
 
 -- | Run one step of the contract by restoring it to its previous state and
 --   feeding it a single new 'Response' event.
@@ -101,22 +106,27 @@ insertAndUpdateContract ::
     forall w s e a.
     (Monoid w, ToJSON w, FromJSON w)
     => Contract w s e a -- ^ The 'Contract' with schema @s@ error type @e@.
-    -> ContractRequest (Event s) -- ^  The 'ContractRequest' value with the previous state and the new event.
+    -> ContractRequest w (Event s) -- ^  The 'ContractRequest' value with the previous state and the new event.
     -> ContractResponse w e (Event s) (Handlers s)
-insertAndUpdateContract (Contract con) ContractRequest{oldState=State record checkpoints, event} =
-    mkResponse $ shrinkResumableResult $ insertAndUpdate con checkpoints record event
+insertAndUpdateContract (Contract con) ContractRequest{oldState=State record checkpoints oldW, event} =
+    mkResponse
+        oldW
+        $ shrinkResumableResult
+        $ insertAndUpdate con checkpoints record event
 
 mkResponse :: forall w e s h a.
-    ResumableResult w e s h a
+    Monoid w
+    => w
+    -> ResumableResult w e s h a
     -> ContractResponse w e s h
-mkResponse ResumableResult{_responses, _requests=Requests{unRequests},_checkpointStore, _logs, _lastLogs, _finalState, _observableState=observableState} =
+mkResponse oldW ResumableResult{_responses, _requests=Requests{unRequests},_checkpointStore, _logs, _lastLogs, _finalState, _lastState=lastState} =
     ContractResponse
         { hooks = unRequests
-        , newState = State { record = _responses, checkpoints=_checkpointStore }
+        , newState = State { record = _responses, checkpoints=_checkpointStore, observableState = oldW <> lastState }
         , logs = toList _logs
         , lastLogs = toList _lastLogs
         , err = either Just (const Nothing) _finalState
-        , observableState
+        , lastState
         }
 
 -- | The 'ContractResponse' with the initial state of the contract.
@@ -125,4 +135,4 @@ initialiseContract ::
     (Monoid w, ToJSON w, FromJSON w)
     => Contract w s e a
     -> ContractResponse w e (Event s) (Handlers s)
-initialiseContract (Contract c) = mkResponse $ runResumable [] mempty c
+initialiseContract (Contract c) = mkResponse mempty $ runResumable [] mempty c
