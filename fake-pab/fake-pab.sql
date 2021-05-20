@@ -279,6 +279,10 @@ CREATE INDEX index_currency_amount_token ON fakepab.currency_amount USING btree 
 
 
 
+CREATE UNIQUE INDEX index_pub_key ON fakepab.wallet USING btree (pub_key);
+
+
+
 CREATE INDEX index_transaction_contract_id ON fakepab.transaction USING btree (contract_id);
 
 
@@ -320,11 +324,6 @@ ALTER TABLE ONLY fakepab.contract
 
 
 ALTER TABLE ONLY fakepab.transaction
-    ADD CONSTRAINT fk_transaction_contract FOREIGN KEY (transaction_id) REFERENCES fakepab.contract(money_container_id);
-
-
-
-ALTER TABLE ONLY fakepab.transaction
     ADD CONSTRAINT fk_transaction_slot FOREIGN KEY (transaction_id) REFERENCES fakepab.slot(slot_number);
 
 
@@ -341,6 +340,11 @@ ALTER TABLE ONLY fakepab.wallet
 
 ALTER TABLE ONLY fakepab.token
     ADD CONSTRAINT token_currency_symbol FOREIGN KEY (currency_symbol) REFERENCES fakepab.currency_symbol(currency_symbol) NOT VALID;
+
+
+
+ALTER TABLE ONLY fakepab.transaction
+    ADD CONSTRAINT transaction_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES fakepab.contract(money_container_id) NOT VALID;
 
 
 

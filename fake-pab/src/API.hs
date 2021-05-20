@@ -1,4 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -29,12 +31,23 @@ type PrivateKey = String
 
 type PublicKey = String
 
+data TransferRequest = TransferRequest { src_priv_key    :: PrivateKey
+                                       , currency_symbol :: CurrencySymbol
+                                       , token_symbol    :: TokenName
+                                       , amount          :: Integer
+                                       , dest_pub_key    :: PublicKey}
+  deriving (Generic, FromJSON)
+
 type JSON_API = "create_wallet" :> ReqBody '[JSON] PrivateKey :> Post '[JSON] PublicKey :<|>
-                "list_wallet_funds" :> ReqBody '[JSON] PublicKey :> Post '[JSON] (Map CurrencySymbol [(TokenName, Integer)])
+                "list_wallet_funds" :> ReqBody '[JSON] PublicKey :> Post '[JSON] (Map CurrencySymbol [(TokenName, Integer)]) :<|>
+                "transfer_funds" :> ReqBody '[JSON] TransferRequest :> Post '[JSON] ()
 
 
-type PLAIN_API = "create_wallet" :> Capture "secret" String :> Get '[PlainText] String :<|>
-                 "list_wallet_funds" :> Capture "pub_key" String :> Get '[PlainText] String
+type PLAIN_API = "create_wallet" :> Capture "priv_key" String :> Get '[PlainText] String :<|>
+                 "list_wallet_funds" :> Capture "pub_key" String :> Get '[PlainText] String :<|>
+                 "transfer_funds" :> Capture "src_priv_key" String :> Capture "currency_symbol" String
+                                  :> Capture "token_symbol" String :> Capture "amount" Integer
+                                  :> Capture "dest_pub_key" String :> Get '[PlainText] String
 
 type STATIC = Raw
 type API = JSON_API :<|>

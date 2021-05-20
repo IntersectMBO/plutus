@@ -10,7 +10,8 @@
 
 module Server where
 
-import           API                               (API, JSON_API, PLAIN_API, PrivateKey, PublicKey, RawHtml (..))
+import           API                               (API, JSON_API, PLAIN_API, PrivateKey, PublicKey, RawHtml (..),
+                                                    TransferRequest (..))
 import           Control.Concurrent                (threadDelay)
 import           Control.Exception                 (throwIO)
 import           Control.Monad.Except              (ExceptT)
@@ -44,16 +45,15 @@ import           Plutus.V1.Ledger.Value            (CurrencySymbol (..), TokenNa
 import           Servant                           (Application, Handler (Handler), Server, ServerError, hoistServer,
                                                     serve, serveDirectoryFileServer, throwError, (:<|>) ((:<|>)), (:>))
 
-data TransactionData = CreateContract PublicKey Contract
---                   | TransferCurrency PublickKey CurrencySymbol TokenName PublicKey
-
 handlersJSON :: Pool Connection -> FilePath -> Server JSON_API
 handlersJSON conns staticPath = createWallet conns :<|>
-                                listWalletFunds conns
+                                listWalletFunds conns :<|>
+                                transferFundsJSON conns
 
 handlersPlain :: Pool Connection -> FilePath -> Server PLAIN_API
 handlersPlain conns staticPath = showResult . createWallet conns :<|>
-                                 showResult . listWalletFunds conns
+                                 showResult . listWalletFunds conns :<|>
+                                 transferFundsPlain conns
 
 handlers :: Pool Connection -> FilePath -> Server API
 handlers conns staticPath = handlersJSON conns staticPath :<|>
@@ -85,7 +85,6 @@ createWallet conns privateKey =
     catcher _ (UniqueViolation "wallet_pub_key_key") = pure publicKey
     catcher e _                                      = throwIO e
 
-
 -- Lists the amount a wallet has of each currency (of currencies it ever had some amount of)
 listWalletFunds :: Pool Connection -> PublicKey -> Handler (Map CurrencySymbol [(TokenName, Integer)])
 listWalletFunds conns publicKey =
@@ -98,6 +97,39 @@ listWalletFunds conns publicKey =
                         GROUP BY ca.currency_symbol, ca.token_name
                   |] [publicKey]
       pure $ Map.fromListWith (++) [(CurrencySymbol cs, [(TokenName tn, fromRatio am)]) | (cs, tn, am) <- result]
+
+
+
+-- Creates a transaction to transfer funds
+transferFunds :: Pool Connection -> PrivateKey -> CurrencySymbol -> TokenName -> Integer -> PublicKey -> Handler ()
+transferFunds conns srcPrivKey (CurrencySymbol curr) (TokenName tok) amount destPubKey =
+  liftIO . withResource conns $ \conn -> do
+    catchViolation catcher $ do
+      execute conn
+        [sql|WITH source_container AS (SELECT money_container_id AS id FROM wallet WHERE pub_key = ?),
+                  destination_container AS (SELECT money_container_id AS id FROM wallet WHERE pub_key = ?),
+                  main_transaction AS (INSERT INTO transaction (signing_wallet_id)
+                                       VALUES ((SELECT id FROM source_container))
+                                       RETURNING transaction_id AS id)
+              INSERT INTO transaction_line (transaction_id, line_num, money_container_id, amount_change, currency_symbol, token_name)
+              VALUES ((SELECT id FROM main_transaction), 1, (SELECT id FROM source_container), ?, ?, ?),
+                     ((SELECT id FROM main_transaction), 2, (SELECT id FROM destination_container), ?, ?, ?)|]
+                   (srcPubKey,
+                    destPubKey,
+                    amount, curr, tok, -amount, curr, tok)
+      pure ()
+  where
+    srcPubKey = BSU.toString $ B16.encode $ SHA256.hash $ BSU.fromString srcPrivKey
+
+    catcher :: SqlError -> ConstraintViolation -> IO ()
+    catcher e _                                      = throwIO e
+
+transferFundsPlain :: Pool Connection -> String -> String -> String -> Integer -> String -> Handler String
+transferFundsPlain conns srcPrivKey curr tok amount destPubKey =
+  show <$> transferFunds conns srcPrivKey (CurrencySymbol (BSU.fromString curr)) (TokenName (BSU.fromString tok)) amount destPubKey
+
+transferFundsJSON :: Pool Connection -> API.TransferRequest -> Handler ()
+transferFundsJSON = error "not implemented"
 
 fromRatio :: Ratio Integer -> Integer
 fromRatio am = numerator am `div` denominator am
