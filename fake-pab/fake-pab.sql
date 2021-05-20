@@ -133,7 +133,12 @@ CREATE TABLE fakepab.transaction (
     slot_number bigint,
     contract_id bigint,
     signing_wallet_id bigint NOT NULL,
-    inputs text
+    inputs text,
+    state_before text,
+    state_after text,
+    contract_before text,
+    contract_after text,
+    reason_invalid text
 );
 
 
@@ -158,9 +163,14 @@ CREATE VIEW fakepab.transaction_pool AS
     transaction.slot_number,
     transaction.contract_id,
     transaction.signing_wallet_id,
-    transaction.inputs
+    transaction.inputs,
+    transaction.state_before,
+    transaction.state_after,
+    transaction.contract_before,
+    transaction.contract_after,
+    transaction.reason_invalid
    FROM fakepab.transaction
-  WHERE (transaction.slot_number IS NULL);
+  WHERE ((transaction.slot_number IS NULL) AND (transaction.reason_invalid IS NULL));
 
 
 ALTER TABLE fakepab.transaction_pool OWNER TO fakepab;
