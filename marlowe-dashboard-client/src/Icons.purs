@@ -37,6 +37,7 @@ data Icon
   | NewContact
   | Pay
   | Previous
+  | Refresh
   | Roles
   | TaskAlt
   | Terms
@@ -77,6 +78,8 @@ content NewContact = "person_add_alt"
 content Pay = "credit_score"
 
 content Previous = "chevron_left"
+
+content Refresh = "refresh"
 
 content Roles = "person_pin_circle"
 
@@ -122,6 +125,8 @@ iconClass NewContact = "new-contact"
 iconClass Pay = "pay"
 
 iconClass Previous = "previous"
+
+iconClass Refresh = "refresh"
 
 iconClass Roles = "roles"
 

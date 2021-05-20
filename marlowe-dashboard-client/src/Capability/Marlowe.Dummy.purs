@@ -19,7 +19,7 @@ import Prelude
 import Affjax (defaultRequest)
 import AppM (AppM)
 import Capability.Contract (class ManageContract)
-import Capability.LocalStorage (class ManageLocalStorage, addAssets, getContracts, getWalletLibrary, getWalletRoleContracts, insertContract, insertWalletRoleContracts)
+import Capability.MarloweStorage (class ManageMarloweStorage, addAssets, getContracts, getWalletLibrary, getWalletRoleContracts, insertContract, insertWalletRoleContracts)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Wallet (class ManageWallet)
 import Capability.Websocket (class ManageWebsocket)
@@ -48,11 +48,15 @@ import Types (AjaxResponse, DecodedAjaxResponse)
 import WalletData.Lenses (_companionAppId, _pubKey, _walletInfo)
 import WalletData.Types (PubKeyHash(..), Wallet(..), WalletDetails, WalletInfo(..))
 
--- Until everything in the PAB is working as it should be, we can use this "dummy" version of the
--- Marlowe capability. It is simpler and cleaner to do this once and for all here, than to track
--- down each place where these functions are used and write some dummy code there.
+{- Until everything in the PAB is working as it should be, we can use this "dummy" version of the
+   Marlowe capability. It is simpler and cleaner to do this once and for all here, than to track
+   down each place where these functions are used and write some dummy code there.
+
+   We use localStorage to store some data that would be available through the PAB, to give a local
+   illusion of persistent and shared data (see the Capability.MarloweStorage module).
+-}
 class
-  (MainFrameLoop m, ManageContract m, ManageWallet m, ManageWebsocket m, ManageLocalStorage m) <= ManageMarlowe m where
+  (MainFrameLoop m, ManageContract m, ManageWallet m, ManageWebsocket m, ManageMarloweStorage m) <= ManageMarlowe m where
   createWallet :: m (AjaxResponse WalletDetails)
   followContract :: WalletDetails -> MarloweParams -> m (DecodedAjaxResponse (Tuple PlutusAppId ContractHistory))
   createContract :: WalletDetails -> Map TokenName PubKeyHash -> Contract -> m (AjaxResponse Unit)
@@ -173,6 +177,11 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
   unsubscribeFromPlutusApp plutusAppId = pure unit
   unsubscribeFromWallet wallet = pure unit
 
+{- Functions that change the local storage call the UpdateFromStorage action to keep the application
+   state in sync on the tab that called the action. For other tabs, this action is called from a
+   localStorage event handler. (Note that the localStorage event handler is only called on tabs that
+   don't make the change.)
+-}
 instance monadMarloweHalogenM :: ManageMarlowe m => ManageMarlowe (HalogenM state action slots Msg m) where
   createWallet = lift createWallet
   followContract walletDetails marloweParams = lift $ followContract walletDetails marloweParams

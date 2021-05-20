@@ -6,7 +6,7 @@ module Play.State
 
 import Prelude
 import Capability.Contract (class ManageContract)
-import Capability.LocalStorage (class ManageLocalStorage, getCurrentWalletDetails, getWalletLibrary)
+import Capability.MarloweStorage (class ManageMarloweStorage, getCurrentWalletDetails, getWalletLibrary)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe.Dummy (class ManageMarlowe, createContract, followContract, getFollowerApps, lookupWalletInfo, subscribeToPlutusApp)
 import Capability.Toast (class Toast, addToast)
@@ -33,7 +33,6 @@ import Data.Traversable (for)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (emptyUUID)
-import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Foreign.Generic (encodeJSON)
@@ -56,7 +55,7 @@ import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
 import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
-import WalletData.Lenses (_companionAppId, _pubKeyHash, _walletInfo)
+import WalletData.Lenses (_companionAppId, _pubKeyHash, _walletInfo, _walletNickname)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletDetails, WalletLibrary)
 import WalletData.Validation (WalletIdError, WalletNicknameError, parsePlutusAppId, walletIdError, walletNicknameError)
@@ -86,7 +85,7 @@ handleAction ::
   MonadAsk Env m =>
   MainFrameLoop m =>
   ManageContract m =>
-  ManageLocalStorage m =>
+  ManageMarloweStorage m =>
   ManageMarlowe m =>
   Toast m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
@@ -175,42 +174,44 @@ handleAction _ CloseCard = do
   for_ (init cards) \remainingCards ->
     assign _cards remainingCards
 
--- FIXME: until the PAB is working, we get the latest data from local storage here (this action
--- is called every second)
-handleAction { currentSlot } UpdateFromStorage = do
-  let
-    foo = spy "update called" "yay!"
+-- Until everything is working in the PAB, we are simulating persistent and shared data using localStorage; this
+-- action updates the state to match the localStorage, and should be called whenever the stored data changes
+handleAction input@{ currentSlot } UpdateFromStorage = do
   walletDetails <- use _walletDetails
   storedWalletLibrary <- getWalletLibrary
-  mStoredWalletDetails <- getCurrentWalletDetails
   assign _walletLibrary storedWalletLibrary
-  for_ mStoredWalletDetails \storedWalletDetails ->
-    when (view _companionAppId walletDetails == view _companionAppId storedWalletDetails)
-      $ assign _walletDetails storedWalletDetails
+  let
+    mStoredWalletDetails = lookup (view _walletNickname walletDetails) storedWalletLibrary
+  for_ mStoredWalletDetails \storedWalletDetails -> assign _walletDetails storedWalletDetails
   updatedWalletDetails <- use _walletDetails
   ajaxFollowerApps <- getFollowerApps updatedWalletDetails
-  case ajaxFollowerApps of
-    Left error -> pure unit
-    Right followerApps ->
-      let
-        unfoldedFollowerApps :: Array (Tuple PlutusAppId ContractHistory)
-        unfoldedFollowerApps = toUnfoldable followerApps
-      in
-        void
-          $ for unfoldedFollowerApps \(plutusAppId /\ contractHistory) -> case contractHistory of
-              None -> pure unit
-              History marloweParams marloweData transactionInputs -> do
-                allContracts <- use _allContracts
-                case lookup plutusAppId allContracts of
-                  Just contractState -> modifying _allContracts $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
-                  Nothing -> do
-                    let
-                      mContractState = Contract.mkInitialState updatedWalletDetails currentSlot plutusAppId contractHistory
-                    case mContractState of
-                      Just contractState -> do
-                        modifying _allContracts $ insert plutusAppId contractState
-                        addToast $ successToast "You have been given a role in a new contract."
-                      Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
+  for_ ajaxFollowerApps \followerApps ->
+    let
+      unfoldedFollowerApps :: Array (Tuple PlutusAppId ContractHistory)
+      unfoldedFollowerApps = toUnfoldable followerApps
+    in
+      void
+        $ for unfoldedFollowerApps \(plutusAppId /\ contractHistory) -> case contractHistory of
+            None -> pure unit
+            History marloweParams marloweData transactionInputs -> do
+              allContracts <- use _allContracts
+              case lookup plutusAppId allContracts of
+                Just contractState -> do
+                  selectedStep <- peruse $ _selectedContract <<< _selectedStep
+                  modifying _allContracts $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
+                  -- if the modification changed the currently selected step, that means the card for the contract
+                  -- that was changed is currently open, so we need to realign the step cards
+                  selectedStep' <- peruse $ _selectedContract <<< _selectedStep
+                  when (selectedStep /= selectedStep')
+                    $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
+                Nothing -> do
+                  let
+                    mContractState = Contract.mkInitialState updatedWalletDetails currentSlot plutusAppId contractHistory
+                  case mContractState of
+                    Just contractState -> do
+                      modifying _allContracts $ insert plutusAppId contractState
+                      addToast $ successToast "You have been given a role in a new contract."
+                    Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
 
 handleAction _ (UpdateRunningContracts companionAppState) = do
   walletDetails <- use _walletDetails
@@ -228,21 +229,18 @@ handleAction _ (UpdateRunningContracts companionAppState) = do
           Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
           Right (plutusAppId /\ history) -> subscribeToPlutusApp plutusAppId
 
-handleAction { currentSlot } AdvanceTimedoutSteps = do
+handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
   selectedStep <- peruse $ _selectedContract <<< _selectedStep
   modify_
     $ over
-        (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout < Just currentSlot))
+        (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot))
         (applyTimeout currentSlot)
+  -- if the modification changed the currently selected step, that means the card for the contract
+  -- that was changed is currently open, so we need to realign the step cards
   selectedStep' <- peruse $ _selectedContract <<< _selectedStep
   when (selectedStep /= selectedStep')
-    $ for_ selectedStep'
-    $ \step ->
-        let
-          contractInput = { currentSlot, walletDetails }
-        in
-          toContract $ Contract.handleAction contractInput $ Contract.MoveToStep step
+    $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
 
 -- TODO: we have to handle quite a lot of submodule actions here (mainly just because of the cards),
 -- so there's probably a better way of structuring this - perhaps making cards work more like toasts
