@@ -3,15 +3,15 @@ module Pickup.View (renderPickupState) where
 import Prelude hiding (div)
 import Css (classNames, hideWhen)
 import Css as Css
-import Data.Array (take)
+import Data.Array (length)
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (filter, values)
 import Data.Maybe (Maybe(..), isJust, isNothing)
-import Data.String (Pattern(..), contains, null, toLower)
+import Data.String (Pattern(..), contains, toLower)
 import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
-import Halogen.HTML.Events.Extra (onBlur_, onClick_, onFocus_, onValueInput_)
+import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), autocomplete, disabled, for, href, id_, placeholder, src, type_, value)
 import Images (arrowBack, marloweRunLogo)
 import InputField.Lenses (_value)
@@ -292,9 +292,7 @@ pickupWalletScreen state =
 
     matches walletDetails = contains (Pattern $ toLower walletNicknameOrId) (toLower $ view _walletNickname walletDetails)
 
-    matchingWallets = filter matches walletLibrary
-
-    firstMatchingWallets = List.toUnfoldable $ values matchingWallets
+    matchingWallets = List.toUnfoldable $ values $ filter matches walletLibrary
   in
     main
       [ classNames [ "p-4", "max-w-sm", "mx-auto" ] ]
@@ -328,10 +326,10 @@ pickupWalletScreen state =
               ]
           , div
               [ classNames
-                  $ [ "absolute", "z-10", "w-full", "h-56", "overflow-x-hidden", "overflow-y-scroll", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
-                  <> (hideWhen $ not walletDropdownOpen)
+                  $ [ "absolute", "z-10", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-scroll", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
+                  <> (hideWhen $ not walletDropdownOpen || length matchingWallets == 0)
               ]
-              (walletList <$> firstMatchingWallets)
+              (walletList <$> matchingWallets)
           , div
               [ classNames $ Css.inputError <> [ "absolute" ] ]
               $ if isFailure remoteWalletDetails then [ text "Wallet not found." ] else []
