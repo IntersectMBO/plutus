@@ -23,6 +23,7 @@ module Crowdfunding where
 
 import           Control.Applicative         (Applicative (pure))
 import           Control.Monad               (void)
+import           Data.Default                (Default (def))
 import           Ledger                      (POSIXTime, POSIXTimeRange, PubKeyHash, ScriptContext (..), TxInfo (..),
                                               Validator, pubKeyHash, txId)
 import qualified Ledger
@@ -87,12 +88,12 @@ mkCampaign ddl collectionDdl ownerWallet =
 -- | The 'POSIXTimeRange' during which the funds can be collected
 collectionRange :: Campaign -> POSIXTimeRange
 collectionRange cmp =
-    Interval.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
+    Interval.interval (campaignDeadline cmp + 1) (campaignCollectionDeadline cmp)
 
 -- | The 'POSIXTimeRange' during which a refund may be claimed
 refundRange :: Campaign -> POSIXTimeRange
 refundRange cmp =
-    Interval.from (campaignCollectionDeadline cmp)
+    Interval.from (campaignCollectionDeadline cmp + 1)
 
 data Crowdfunding
 instance Scripts.ValidatorTypes Crowdfunding where
@@ -150,8 +151,8 @@ crowdfunding c = contribute c `select` scheduleCollection c
 -- | A sample campaign
 theCampaign :: Campaign
 theCampaign = Campaign
-    { campaignDeadline = TimeSlot.slotToPOSIXTime 40
-    , campaignCollectionDeadline = TimeSlot.slotToPOSIXTime 60
+    { campaignDeadline = TimeSlot.slotToEndPOSIXTime def 40
+    , campaignCollectionDeadline = TimeSlot.slotToEndPOSIXTime def 60
     , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }
 

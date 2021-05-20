@@ -41,6 +41,7 @@ library
     hs-source-dirs: src
     default-language: Haskell2010
     exposed-modules:
+        Data.Time.Units.Extra
         Ledger
         Ledger.AddressMap
         Ledger.Blockchain
@@ -88,6 +89,7 @@ library
         cborg -any,
         containers -any,
         cryptonite >=0.25,
+        data-default -any,
         flat -any,
         hashable -any,
         hedgehog -any,
@@ -102,8 +104,11 @@ library
         plutus-tx -any,
         serialise -any,
         servant -any,
+        scientific -any,
         template-haskell -any,
         text -any,
+        time -any,
+        time-units -any,
         transformers -any,
         recursion-schemes -any,
         lens -any,
@@ -130,6 +135,7 @@ test-suite plutus-ledger-test
     build-depends:
         base >=4.9 && <5,
         containers -any,
+        data-default -any,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,

@@ -3,12 +3,10 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
 
 module Cardano.Wallet.Server
     ( main
@@ -17,7 +15,6 @@ module Cardano.Wallet.Server
 import           Cardano.BM.Data.Trace            (Trace)
 import qualified Cardano.ChainIndex.Client        as ChainIndexClient
 import           Cardano.ChainIndex.Types         (ChainIndexUrl (..))
-import           Cardano.Node.Types               (SlotConfig)
 import qualified Cardano.Protocol.Socket.Client   as Client
 import           Cardano.Wallet.API               (API)
 import           Cardano.Wallet.Mock
@@ -35,6 +32,7 @@ import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
 import           Ledger.Crypto                    (pubKeyHash)
+import           Ledger.TimeSlot                  (SlotConfig)
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           Plutus.PAB.Arbitrary             ()
@@ -80,5 +78,5 @@ main trace WalletConfig { baseUrl, wallet } serverSocket slotConfig (ChainIndexU
              $ runM
              $ flip handleError (error . show @ClientError)
              $ runReader env
-             $ reinterpret2 (ChainIndexClient.handleChainIndexClient)
+             $ reinterpret2 ChainIndexClient.handleChainIndexClient
              $ startWatching (Wallet.ownAddress (emptyWalletState wallet))

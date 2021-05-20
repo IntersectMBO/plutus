@@ -11,11 +11,9 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Spec.Governance(tests, doVoting) where
 
-import           Test.Tasty                  (TestTree, testGroup)
-import qualified Test.Tasty.HUnit            as HUnit
-
 import           Control.Lens                (view)
 import           Control.Monad               (void)
+import           Data.Default                (Default (def))
 import           Data.Foldable               (traverse_)
 
 import qualified Ledger
@@ -29,6 +27,9 @@ import           Plutus.Trace.Emulator       (EmulatorTrace)
 import qualified Plutus.Trace.Emulator       as Trace
 import qualified PlutusTx
 import           PlutusTx.Prelude            (ByteString)
+
+import           Test.Tasty                  (TestTree, testGroup)
+import qualified Test.Tasty.HUnit            as HUnit
 
 tests :: TestTree
 tests =
@@ -83,7 +84,7 @@ doVoting ayes nays rounds = do
             now <- view Trace.currentSlot <$> Trace.chainState
             void $ Trace.activateContractWallet (EM.Wallet 2)
                 (Gov.proposalContract @Gov.GovError params
-                    Gov.Proposal{ Gov.newLaw = law, Gov.votingDeadline = TimeSlot.slotToPOSIXTime $ now + 20, Gov.tokenName = token2 })
+                    Gov.Proposal{ Gov.newLaw = law, Gov.votingDeadline = TimeSlot.slotToEndPOSIXTime def $ now + 20, Gov.tokenName = token2 })
             void $ Trace.waitNSlots 1
             traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, True)  >> Trace.waitNSlots 1) (take ayes namesAndHandles)
             traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, False) >> Trace.waitNSlots 1) (take nays $ drop ayes namesAndHandles)

@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE TypeFamilies      #-}
 
@@ -21,6 +20,7 @@ import           Ouroboros.Network.Block                             (Point (..)
 import qualified Ouroboros.Network.Protocol.ChainSync.Client         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmission
 
+import           Ledger.TimeSlot                                     (SlotConfig, currentSlot)
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode                        hiding (chainSyncMiniProtocolNum,
