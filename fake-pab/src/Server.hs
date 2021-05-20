@@ -106,8 +106,8 @@ transferFunds conns srcPrivKey (CurrencySymbol curr) (TokenName tok) amount dest
   liftIO . withResource conns $ \conn -> do
     catchViolation catcher $ do
       execute conn
-        [sql|WITH source_container AS (SELECT money_container_id AS id FROM wallet WHERE pub_key = ?),
-                  destination_container AS (SELECT money_container_id AS id FROM wallet WHERE pub_key = ?),
+        [sql|WITH source_container AS (SELECT get_or_create_money_container_id_from_pubkey(?) AS id),
+                  destination_container AS (SELECT get_or_create_money_container_id_from_pubkey(?) AS id),
                   main_transaction AS (INSERT INTO transaction (signing_wallet_id)
                                        VALUES ((SELECT id FROM source_container))
                                        RETURNING transaction_id AS id)

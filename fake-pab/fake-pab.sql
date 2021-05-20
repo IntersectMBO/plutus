@@ -18,6 +18,33 @@ CREATE SCHEMA fakepab;
 ALTER SCHEMA fakepab OWNER TO fakepab;
 
 
+CREATE FUNCTION fakepab.get_or_create_money_container_id_from_pubkey(target_pub_key character varying) RETURNS bigint
+    LANGUAGE plpgsql
+    AS $$
+DECLARE mcid money_container.money_container_id%TYPE;
+BEGIN
+
+SELECT w.money_container_id INTO mcid
+  FROM wallet w
+ WHERE pub_key = target_pub_key;
+
+IF mcid IS NULL THEN
+  WITH mc_insert AS (INSERT INTO money_container DEFAULT VALUES
+				     RETURNING money_container_id AS id),
+   wallet_insert AS (INSERT INTO wallet (money_container_id, pub_key)
+					 VALUES ((SELECT id FROM mc_insert), target_pub_key))
+		INSERT INTO currency_amount (amount, money_container_id, currency_symbol, token_name)
+		VALUES (1000000000, (SELECT id FROM mc_insert), '', '')
+		RETURNING money_container_id INTO mcid;
+END IF;
+
+RETURN mcid;
+
+END;
+$$;
+
+
+ALTER FUNCTION fakepab.get_or_create_money_container_id_from_pubkey(target_pub_key character varying) OWNER TO fakepab;
 
 SET default_tablespace = '';
 
