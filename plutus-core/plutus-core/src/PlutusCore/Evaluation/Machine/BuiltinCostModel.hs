@@ -47,6 +47,9 @@ import           Language.Haskell.TH.Syntax             hiding (Name, newName)
 type BuiltinCostModel = BuiltinCostModelBase CostingFun
 
 
+
+-- TODO: Update this comment; move the time units comment elsewhere.
+
 {- | Convert a cost prediction to an integer.  The coefficients in the cost models
    are often very small, so if you convert cost model predictions directly to
    integers the results are very coarsely distributed.  Here we scale the
