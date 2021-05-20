@@ -249,6 +249,13 @@ resource "aws_route53_record" "marlowe_finance_run" {
   records = ["production.marlowe-dash.iohkdev.io"]
 }
 
+resource "aws_route53_record" "marlowe_finance_webinar" {
+  zone_id = aws_route53_zone.marlowe_finance_io_zone.zone_id
+  name    = "webinar.marlowe-finance.io"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["wy8k2fnarz0v.wpeproxy.com"]
+}
 
 # Bastion hosts
 data "template_file" "bastion_user_data" {
