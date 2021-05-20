@@ -158,7 +158,7 @@ actionCard contractInstanceId wrapper endpointForm =
   col4_
     [ card_
         [ cardHeader_ [ h2_ [ text $ view (_schema <<< _FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) endpointForm ] ]
-        , cardBody_ [ actionArgumentForm wrapper (view _argument endpointForm) ]
+        , cardBody_ [ actionArgumentForm 0 wrapper (view _argument endpointForm) ]
         , cardFooter_
             [ button
                 [ classes [ btn, btnSmall, btnPrimary ]
