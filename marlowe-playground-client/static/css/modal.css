@@ -64,7 +64,7 @@ without doing it as an Effect in a mainframe action
   background: white; /* if we dont set background it gets transparent */
   /* end sticky*/
   .title {
-    font-weight: 600;
+    @apply font-semibold;
     margin: 0;
   }
   z-index: 2;
@@ -83,10 +83,7 @@ without doing it as an Effect in a mainframe action
    even if they don't have the same parent */
 .modal-close,
 .modal-header .title {
-  /* @extend .text-xl; */
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-
+  @apply text-xl;
 }
 
 .modal-content {

@@ -47,7 +47,6 @@
     "postcss-scss": "^3.0.5",
     "purs-loader": "^3.6.0",
     "raw-loader": "^4.0.1",
-    "style-loader": "^0.23.1",
     "ts-loader": "^6.2.1",
     "typescript": "^3.8.3",
     "url-loader": "^1.1.2",
