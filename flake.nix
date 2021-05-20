@@ -10,28 +10,12 @@
   outputs = { self, nixpkgs, haskell-nix, flake-utils, ... }:
     (flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
-        #
-        # Obtain all niv sources extending it with the 'nixpkgs' flake input
-        #
-        sources = import ./nix/sources.nix { inherit system; };
-
-        #
-        # all packages from nix/default.nix
-        #
-        plutusPackages = import ./nix {
-          inherit system sources;
+        topLevel = import ./. {
+          inherit system;
           haskellNixOverlays = [ haskell-nix.overlay ];
         };
 
-        #
-        # all packages from ./default.nix
-        #
-        topLevel = import ./. {
-          inherit system;
-          packages = plutusPackages;
-        };
-
-        inherit (plutusPackages) pkgs plutus ownOverlays;
+        inherit (topLevel) pkgs plutus ownOverlays;
         inherit (plutus) haskell iohkNix;
         inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       in
