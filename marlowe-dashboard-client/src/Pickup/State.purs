@@ -26,7 +26,7 @@ import LocalStorage (setItem, removeItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
+import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletDropdownOpen, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
 import Pickup.Types (Action(..), Card(..), State)
 import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
 import Toast.Types (ajaxErrorToast, errorToast)
@@ -46,6 +46,7 @@ mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
   , walletNicknameOrId: mempty
+  , walletDropdownOpen: false
   , walletNicknameInput: InputField.initialState
   , walletIdInput: InputField.initialState
   , remoteWalletDetails: NotAsked
@@ -114,6 +115,8 @@ handleAction (SetWalletNicknameOrId string) = do
               handleAction $ OpenCard PickupNewWalletCard
     Nothing -> pure unit
 
+handleAction (SetWalletDropdownOpen walletDropdownOpen) = assign _walletDropdownOpen walletDropdownOpen
+
 handleAction (OpenPickupWalletCardWithDetails walletDetails) = do
   assign _remoteWalletDetails Loading
   ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
@@ -121,6 +124,7 @@ handleAction (OpenPickupWalletCardWithDetails walletDetails) = do
   case ajaxWalletDetails of
     Left ajaxError -> handleAction $ OpenCard LocalWalletMissingCard
     Right _ -> do
+      handleAction $ SetWalletDropdownOpen false
       handleAction $ WalletNicknameInputAction $ InputField.SetValue $ view _walletNickname walletDetails
       handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
       handleAction $ OpenCard PickupWalletCard
