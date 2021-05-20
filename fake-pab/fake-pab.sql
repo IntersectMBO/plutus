@@ -40,7 +40,8 @@ CREATE TABLE fakepab.currency_amount (
     amount numeric,
     money_container_id bigint NOT NULL,
     currency_symbol character varying(70) NOT NULL,
-    token_name character varying(70) NOT NULL
+    token_name character varying(70) NOT NULL,
+    CONSTRAINT positive_currency_amount CHECK ((amount >= (0)::numeric))
 );
 
 
