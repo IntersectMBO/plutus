@@ -197,13 +197,17 @@ handleAction _ CancelConfirmation = pure unit -- Managed by Play.State
 
 handleAction _ (SelectStep stepNumber) = assign _selectedStep stepNumber
 
+-- The MoveToStep action is called when a new step is added (either via an apply transaction or
+-- a timeout). We unsubscribe and resubscribe to update the tracked elements.
 handleAction _ (MoveToStep stepNumber) = do
-  -- The MoveToStep action is called when a new step is added (either via an apply transaction or
-  -- a timeout). We unsubscribe and resubscribe to update the tracked elements.
   unsubscribeFromSelectCenteredStep
   subscribeToSelectCenteredStep
   mElement <- getHTMLElementRef scrollContainerRef
   for_ mElement $ liftEffect <<< scrollStepToCenter Smooth stepNumber
+
+handleAction input UpdateStepDisplay = do
+  selectedStep <- use _selectedStep
+  handleAction input $ MoveToStep selectedStep
 
 handleAction _ CarouselOpened = do
   selectedStep <- use _selectedStep

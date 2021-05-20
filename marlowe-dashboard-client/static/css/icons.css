@@ -66,6 +66,10 @@
   content: "chevron_left";
 }
 
+.with-icon-refresh::after {
+  content: "refresh";
+}
+
 .with-icon-roles::after {
   content: "person_pin_circle";
 }
