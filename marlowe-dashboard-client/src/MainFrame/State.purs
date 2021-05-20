@@ -21,10 +21,11 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
-import LocalStorage (getItem, setItem, removeItem)
+import Halogen.LocalStorage (localStorageEvents)
+import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_currentSlot, _pickupState, _playState, _subState, _toast, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
@@ -196,6 +197,8 @@ handleAction Init = do
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails -> do
       handleAction $ PickupAction $ Pickup.OpenPickupWalletCardWithDetails walletDetails
+  -- FIXME: Remove after the PAB is connected
+  void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
