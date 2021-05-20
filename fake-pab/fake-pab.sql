@@ -36,7 +36,6 @@ ALTER TABLE fakepab.contract OWNER TO fakepab;
 
 
 CREATE TABLE fakepab.currency_amount (
-    currency_amount_id bigint NOT NULL,
     amount numeric,
     money_container_id bigint NOT NULL,
     currency_symbol character varying(70) NOT NULL,
@@ -46,21 +45,6 @@ CREATE TABLE fakepab.currency_amount (
 
 
 ALTER TABLE fakepab.currency_amount OWNER TO fakepab;
-
-
-CREATE SEQUENCE fakepab.currency_amount_currency_amount_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE fakepab.currency_amount_currency_amount_id_seq OWNER TO fakepab;
-
-
-ALTER SEQUENCE fakepab.currency_amount_currency_amount_id_seq OWNED BY fakepab.currency_amount.currency_amount_id;
-
 
 
 CREATE TABLE fakepab.currency_symbol (
@@ -200,10 +184,6 @@ CREATE TABLE fakepab.wallet (
 ALTER TABLE fakepab.wallet OWNER TO fakepab;
 
 
-ALTER TABLE ONLY fakepab.currency_amount ALTER COLUMN currency_amount_id SET DEFAULT nextval('fakepab.currency_amount_currency_amount_id_seq'::regclass);
-
-
-
 ALTER TABLE ONLY fakepab.money_container ALTER COLUMN money_container_id SET DEFAULT nextval('fakepab.money_container_money_container_id_seq'::regclass);
 
 
@@ -233,7 +213,7 @@ SELECT pg_catalog.setval('fakepab.transaction_transaction_id_seq', 1, false);
 
 
 ALTER TABLE ONLY fakepab.currency_amount
-    ADD CONSTRAINT currency_amount_pkey PRIMARY KEY (currency_amount_id);
+    ADD CONSTRAINT currency_amount_pkey PRIMARY KEY (money_container_id, currency_symbol, token_name);
 
 
 
