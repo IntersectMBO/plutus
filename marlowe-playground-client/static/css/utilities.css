@@ -1,11 +1,3 @@
-.outline {
-  outline: 1px solid lime;
-}
-
-.inline {
-  display: inline;
-}
-
 /* TODO: instead of having a no-margins utitities that resets the current defaults we should
           remove margin defaults in headers and other elements, and specify automatically.
           As a rule of thumb, each component should now how to render "itself" and parent components
@@ -20,52 +12,10 @@
   padding: 0;
 }
 
-.t-align-center {
-  text-align: center;
-}
-
-.m-align-center {
-  margin: 0 auto;
-}
-
 .a-horizontal {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.a-center {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-}
-/* FIXME find and replace to h-full*/
-.full-height {
-  @apply h-full;
-}
-
-/* FIXME find and replace to w-full*/
-.full-width {
-  @apply w-full;
-}
-
-/* FIXME find and replace to overflow-scroll */
-.scroll {
-  overflow: scroll;
-}
-
-/* FIXME find and replace to justify-start */
-.j-flex-start {
-  justify-content: flex-start;
-}
-
-/* FIXME find and replace to justify-end */
-.j-flex-end {
-  justify-content: flex-end;
-}
-
-.end-item {
-  margin-left: auto;
 }
 
 .text-secondary-color {
@@ -82,18 +32,6 @@
 
 .accent-border-top {
   border-top: 1px solid var(--layout-accent-color);
-}
-
-.hide {
-  display: none;
-}
-
-.flip {
-  transform: rotate(180deg);
-}
-
-.pointer {
-  cursor: pointer;
 }
 
 .border-separator * + * {

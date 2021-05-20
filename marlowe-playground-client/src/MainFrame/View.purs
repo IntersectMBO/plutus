@@ -9,7 +9,7 @@ import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Classes (aHorizontal, active, bgGrayDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hide, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, bgGrayDark, flex, flexCol, fontSemibold, fullHeight, fullWidth, group, hidden, justifyBetween, noMargins, paddingLeft, paddingX, smallPaddingLeft, smallPaddingRight, smallPaddingY, smallSpaceBottom, spaceRight, text3xl, textLg, textWhite, uppercase, vl)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, footer, h1, h2, header, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
@@ -62,7 +62,7 @@ render state =
                   , AMB.workspaceBlocks
                   ]
               , tabContents WalletEmulator
-                  [ div [ classes [ ClassName "full-height" ] ]
+                  [ div [ classes [ fullHeight ] ]
                       [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
                   ]
               ]
@@ -112,7 +112,7 @@ render state =
 
   isActiveTab activeView = if isActiveView activeView then [ active ] else []
 
-  tabContents activeView contents = if isActiveView activeView then div [ classes [ fullHeight ] ] contents else div [ classes [ hide ] ] contents
+  tabContents activeView contents = if isActiveView activeView then div [ classes [ fullHeight ] ] contents else div [ classes [ hidden ] ] contents
 
   topBar = div [ class_ (ClassName "global-actions") ] ([ menuBar state ] <> otherActions (state ^. _view))
 

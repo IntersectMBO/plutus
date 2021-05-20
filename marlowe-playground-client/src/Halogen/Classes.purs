@@ -79,14 +79,8 @@ minH0 = ClassName "min-h-0"
 maxH70p :: ClassName
 maxH70p = ClassName "max-h-70p"
 
-scroll :: ClassName
-scroll = ClassName "scroll"
-
 active :: ClassName
 active = ClassName "active"
-
-hide :: ClassName
-hide = ClassName "hide"
 
 noMargins :: ClassName
 noMargins = ClassName "no-margins"
@@ -156,9 +150,6 @@ uppercase = ClassName "uppercase"
 tabLink :: ClassName
 tabLink = ClassName "tab-link"
 
-aCenter :: ClassName
-aCenter = ClassName "a-center"
-
 tabIcon :: ClassName
 tabIcon = ClassName "tab-icon"
 
@@ -170,9 +161,6 @@ accentBorderBottom = ClassName "accent-border-bottom"
 
 accentBorderTop :: ClassName
 accentBorderTop = ClassName "accent-border-top"
-
-jFlexStart :: ClassName
-jFlexStart = ClassName "j-flex-start"
 
 smallBtn :: ClassName
 smallBtn = ClassName "small-btn"
@@ -197,12 +185,6 @@ bold = ClassName "bold"
 
 underline :: ClassName
 underline = ClassName "underline"
-
-mAlignCenter :: ClassName
-mAlignCenter = ClassName "m-align-center"
-
-tAlignCenter :: ClassName
-tAlignCenter = ClassName "t-align-center"
 
 activeClass :: forall a. (a -> Boolean) -> Getter' a (Array ClassName)
 activeClass p = to \x -> if p x then [ active ] else []
@@ -237,8 +219,8 @@ rTableEmptyRow = ClassName "RTable-empty-row"
 rTableDataRow :: ClassName
 rTableDataRow = ClassName "RTable-data-row"
 
-pointer :: ClassName
-pointer = ClassName "pointer"
+cursorPointer :: ClassName
+cursorPointer = ClassName "cursor-pointer"
 
 expanded :: Boolean -> ClassName
 expanded true = ClassName "expanded"
@@ -272,9 +254,6 @@ alignedButtonLast = ClassName "aligned-button-last"
 
 collapsed :: ClassName
 collapsed = ClassName "collapsed"
-
-horizontalFlip :: ClassName
-horizontalFlip = ClassName "flip"
 
 modalContent :: ClassName
 modalContent = ClassName "modal-content"
