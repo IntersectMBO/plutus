@@ -15,6 +15,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # https://github.com/knl/niv-updater-action/issues/45
+          niv_version: 'af958e8057f345ee1aca714c1247ef3ba1c15f5e'
           # nixpkgs,haskell.nix: most updates are a mass rebuild, so merging 
           # an update will force devs  to re-download GHC etc. And even if 
           # we don't want to merge  it, creating the PR will clog up Hydra.
