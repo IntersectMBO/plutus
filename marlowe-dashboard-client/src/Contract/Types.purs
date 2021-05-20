@@ -69,8 +69,6 @@ data Action
   | SelectStep Int
   -- The MoveToStep action scrolls the step carousel so that the indicated step is at the center
   | MoveToStep Int
-  -- The UpdateStepDisplay action calls MoveToStep with the current step number
-  | UpdateStepDisplay
   | CarouselOpened
   | CarouselClosed
 
@@ -82,7 +80,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
   toEvent (SelectStep _) = Just $ defaultEvent "SelectStep"
   toEvent (MoveToStep _) = Just $ defaultEvent "MoveToStep"
-  toEvent UpdateStepDisplay = Nothing
   toEvent CarouselOpened = Just $ defaultEvent "CarouselOpened"
   toEvent CarouselClosed = Just $ defaultEvent "CarouselClosed"
 
