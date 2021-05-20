@@ -222,11 +222,13 @@ resource "aws_route53_zone" "plutus_private_zone" {
 }
 
 resource "aws_route53_zone" "marlowe_finance_io_zone" {
-  name = "marlowe-finance.io"
+  count = (var.env == "production" ? 1 : 0)
+  name  = "marlowe-finance.io"
 }
 
 resource "aws_route53_record" "marlowe_finance_top_level" {
-  zone_id = aws_route53_zone.marlowe_finance_io_zone.zone_id
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
   name    = "marlowe-finance.io"
   type    = "A"
   ttl     = 300
@@ -234,7 +236,8 @@ resource "aws_route53_record" "marlowe_finance_top_level" {
 }
 
 resource "aws_route53_record" "marlowe_finance_play" {
-  zone_id = aws_route53_zone.marlowe_finance_io_zone.zone_id
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
   name    = "play.marlowe-finance.io"
   type    = "CNAME"
   ttl     = 300
@@ -242,7 +245,8 @@ resource "aws_route53_record" "marlowe_finance_play" {
 }
 
 resource "aws_route53_record" "marlowe_finance_run" {
-  zone_id = aws_route53_zone.marlowe_finance_io_zone.zone_id
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
   name    = "run.marlowe-finance.io"
   type    = "CNAME"
   ttl     = 300
@@ -250,7 +254,8 @@ resource "aws_route53_record" "marlowe_finance_run" {
 }
 
 resource "aws_route53_record" "marlowe_finance_webinar" {
-  zone_id = aws_route53_zone.marlowe_finance_io_zone.zone_id
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
   name    = "webinar.marlowe-finance.io"
   type    = "CNAME"
   ttl     = 300
@@ -266,3 +271,4 @@ data "template_file" "bastion_user_data" {
     network_id = "canbeanything"
   }
 }
+
