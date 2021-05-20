@@ -10,12 +10,13 @@ module Contract.State
   ) where
 
 import Prelude
-import Capability.Marlowe.Dummy (class ManageMarlowe)
+import Capability.Marlowe.Dummy (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (difference, filter, foldl, index, length, mapMaybe)
+import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (assign, modifying, over, to, toArrayOf, traversed, use, view, (^.))
@@ -34,7 +35,7 @@ import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
-import Halogen (HalogenM, getHTMLElementRef, gets, liftEffect, modify_, subscribe, unsubscribe)
+import Halogen (HalogenM, getHTMLElementRef, gets, liftEffect, subscribe, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
@@ -46,7 +47,7 @@ import Marlowe.PAB (ContractHistory(..), PlutusAppId(..), MarloweParams)
 import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..))
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
-import Toast.Types (successToast)
+import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.State (adaToken)
 import WalletData.Types (WalletDetails)
@@ -173,19 +174,14 @@ handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = 
     contractInput = toInput namedAction
 
     txInput = mkTx currentSlot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe contractInput)
-  -- FIXME: remove the next four lines and uncomment the code below when things are working in the PAB
-  modify_ $ applyTx currentSlot txInput
-  stepNumber <- gets currentStep
-  handleAction input (MoveToStep stepNumber)
-  addToast $ successToast "Payment received, step completed."
+  ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
+  case ajaxApplyInputs of
+    Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
+    Right _ -> do
+      stepNumber <- gets currentStep
+      handleAction input (MoveToStep stepNumber)
+      addToast $ successToast "Payment received, step completed."
 
---ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
---case ajaxApplyInputs of
---  Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
---  Right _ -> do
---    stepNumber <- gets currentStep
---    handleAction walletDetails (MoveToStep stepNumber)
---    addToast $ successToast "Payment received, step completed."
 handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
   where
   changeChoice (MakeChoice choiceId' bounds _)

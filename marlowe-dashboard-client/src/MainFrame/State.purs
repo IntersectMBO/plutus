@@ -4,7 +4,9 @@ import Prelude
 import Bridge (toFront)
 import Capability.Marlowe.Dummy (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.Toast (class Toast, addToast)
+import Contract.Lenses (_selectedStep)
 import Contract.State (mkInitialState, updateState) as Contract
+import Contract.Types (Action(..)) as Contract
 import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
@@ -21,10 +23,11 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
-import LocalStorage (getItem, setItem, removeItem)
+import Halogen.LocalStorage (localStorageEvents)
+import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_currentSlot, _pickupState, _playState, _subState, _toast, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
@@ -32,7 +35,7 @@ import Marlowe.PAB (ContractHistory(..), PlutusAppId)
 import Pickup.Lenses (_walletLibrary)
 import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
 import Pickup.Types (Action(..), State) as Pickup
-import Play.Lenses (_allContracts, _walletDetails)
+import Play.Lenses (_allContracts, _selectedContract, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
@@ -146,7 +149,14 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                   History marloweParams marloweData transactionInputs -> do
                     currentSlot <- use _currentSlot
                     case lookup plutusAppId (view _allContracts playState) of
-                      Just contractState -> modifying (_playState <<< _allContracts) $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
+                      Just contractState -> do
+                        selectedStep <- peruse $ _playState <<< _selectedContract <<< _selectedStep
+                        modifying (_playState <<< _allContracts) $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
+                        -- if the modification changed the currently selected step, that means the card for the contract
+                        -- that was changed is currently open, so we need to realign the step cards
+                        selectedStep' <- peruse $ _playState <<< _selectedContract <<< _selectedStep
+                        when (selectedStep /= selectedStep')
+                          $ for_ selectedStep' (handleAction <<< PlayAction <<< Play.ContractAction <<< Contract.MoveToStep)
                       Nothing -> do
                         let
                           walletDetails = view _walletDetails playState
@@ -196,6 +206,8 @@ handleAction Init = do
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails -> do
       handleAction $ PickupAction $ Pickup.OpenPickupWalletCardWithDetails walletDetails
+  -- FIXME: Remove after the PAB is connected
+  void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails

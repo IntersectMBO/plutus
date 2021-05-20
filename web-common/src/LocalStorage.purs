@@ -8,6 +8,7 @@ module LocalStorage
   , RawStorageEvent
   ) where
 
+import Prelude
 import Control.Coroutine (Producer, producer)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn3, mkFn3)
@@ -17,9 +18,8 @@ import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
-import Effect.Aff (Aff, Canceler, makeAff)
+import Effect.Aff (Aff, Canceler, effectCanceler, makeAff)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
-import Prelude
 
 newtype Key
   = Key String
@@ -67,7 +67,7 @@ foreign import _listen ::
   EffectFn2
     (Fn3 (Nullable String) (Nullable String) (Nullable String) RawStorageEvent)
     (RawStorageEvent -> Effect Unit)
-    Canceler
+    (EffectFn1 Unit Unit)
 
 foreign import _getItems ::
   EffectFn1
@@ -84,7 +84,11 @@ getItem :: Key -> Effect (Maybe String)
 getItem = map toMaybe <$> runEffectFn1 _getItem
 
 listen :: Producer RawStorageEvent Aff Unit
-listen = producer (makeAff \callback -> runEffectFn2 _listen (mkFn3 toEvent) (callback <<< Right <<< Left))
+listen =
+  producer
+    $ makeAff \callback -> do
+        canceller <- runEffectFn2 _listen (mkFn3 toEvent) (callback <<< Right <<< Left)
+        pure $ effectCanceler $ runEffectFn1 canceller unit
 
 getItems :: Effect (Array RawStorageEvent)
 getItems = runEffectFn1 _getItems (mkFn3 toEvent)
