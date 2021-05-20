@@ -160,10 +160,10 @@ things to be monadic (including the PrettyBy instance for CekValue,
 which is a problem.)
 -}
 
-instance Show (BuiltinRuntime value) where
+instance Show (BuiltinRuntime (CekValue uni fun)) where
     show _ = "<builtin_runtime>"
 
-instance Eq (BuiltinRuntime value) where
+instance Eq (BuiltinRuntime (CekValue uni fun)) where
     _ == _ = True
 
 -- 'Values' for the modified CEK machine.
@@ -277,7 +277,7 @@ type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationExceptionCarrying term fun =
-    EvaluationException CekUserError (MachineError fun term) term
+    EvaluationException CekUserError (MachineError fun) term
 
 type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name uni fun ()) fun
 
@@ -290,7 +290,7 @@ This note represents MPJ's best understanding right now, might be wrong.
 We use a moderately evil trick to throw exceptions in ST, but unlike the evil trick for catching them, it's hidden.
 
 The evil is that the 'MonadThrow' instance for 'ST' uses 'unsafeIOToST . throwIO'! Sneaky! The author has marked it
-"Trustworthy"", no less. However, I believe this to be safe for basically the same reasons as our trick to catch
+"Trustworthy", no less. However, I believe this to be safe for basically the same reasons as our trick to catch
 exceptions is safe, see Note [Catching exceptions in ST]
 -}
 
@@ -315,7 +315,7 @@ But in our case this is okay, because:
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
     :: (PrettyUni uni fun)
-    => AReview (EvaluationError CekUserError (MachineError fun (Term Name uni fun ()))) t
+    => AReview (EvaluationError CekUserError (MachineError fun)) t
     -> t
     -> CekValue uni fun
     -> CekM uni fun s x
@@ -326,17 +326,28 @@ withErrorDischarging
     -> CekCarryingM (Term Name uni fun ()) uni fun s a
 withErrorDischarging = coerce
 
+unsafeRunCekCarryingM :: CekCarryingM term uni fun s a -> IO a
+unsafeRunCekCarryingM = unsafeSTToIO . unCekCarryingM
+
+catchErrorCekCarryingM
+    :: PrettyUni uni fun
+    => CekCarryingM term uni fun s a
+    -> (CekEvaluationExceptionCarrying (Term Name uni fun ()) fun -> CekCarryingM term uni fun s a)
+    -> CekCarryingM term uni fun s a
+catchErrorCekCarryingM a h =
+    CekCarryingM . unsafeIOToST $ unsafeRunCekCarryingM a `catch` (unsafeRunCekCarryingM . h)
+
 instance PrettyUni uni fun => MonadError (CekEvaluationException uni fun) (CekM uni fun s) where
     throwError = CekCarryingM . throwM
-    -- TODO: fixme.
-    catchError = error "Not supposed to be called"
+    catchError = catchErrorCekCarryingM
 
 instance PrettyUni uni fun =>
             MonadError
                 (CekEvaluationExceptionCarrying (CekValue uni fun) fun)
                 (CekCarryingM (CekValue uni fun) uni fun s) where
     throwError = CekCarryingM . throwM . mapCauseInMachineException (void . dischargeCekValue)
-    catchError = error "Not supposed to be called"
+    a `catchError` h =
+        a `catchErrorCekCarryingM` \(ErrorWithCause err _) -> h $ ErrorWithCause err Nothing
 
 -- instance GivenCekEmitter s => MonadEmitter (CekM uni fun s) where
 --     emit = emitCek
@@ -429,6 +440,9 @@ data Frame uni fun
 
 type Context uni fun = [Frame uni fun]
 
+tryError :: MonadError e m => m a -> m (Either e a)
+tryError a = (Right <$> a) `catchError` (pure . Left)
+
 runCekM
     :: forall a cost uni fun.
     (PrettyUni uni fun)
@@ -443,7 +457,7 @@ runCekM runtime (ExBudgetMode getExBudgetInfo) emitting a = runST $ do
     let ?cekRuntime = runtime
         ?cekEmitter = mayLogsRef
         ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
-    errOrRes <- unsafeIOToST $ try @_ @(CekEvaluationException uni fun) $ unsafeSTToIO $ unCekCarryingM a
+    errOrRes <- unCekCarryingM $ tryError a
     st' <- _exBudgetModeGetFinal exBudgetMode
     logs <- case mayLogsRef of
         Nothing      -> pure []

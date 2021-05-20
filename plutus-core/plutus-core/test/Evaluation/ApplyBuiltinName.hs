@@ -28,7 +28,7 @@ import           Test.Tasty.Hedgehog
 type AppErr =
     EvaluationException
         ()
-        (MachineError DefaultFun (Term TyName Name DefaultUni DefaultFun ()))
+        (MachineError DefaultFun)
         (Term TyName Name DefaultUni DefaultFun ())
 
 -- | A simple monad for evaluating constant applications in.

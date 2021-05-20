@@ -108,7 +108,7 @@ toBuiltinsRuntime cost =
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
-    :: (MonadError (ErrorWithCause err term) m, AsMachineError err fun term, Ix fun)
+    :: (MonadError (ErrorWithCause err term) m, AsMachineError err fun, Ix fun)
     => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of

@@ -24,7 +24,7 @@ import           Data.Proxy
 applyTypeSchemed
     :: forall exc err m args fun term res .
        ( exc ~ ErrorWithCause err term, MonadEmitter m, MonadError exc m
-       , AsUnliftingError err, AsEvaluationFailure err, AsConstAppError err fun term
+       , AsUnliftingError err, AsEvaluationFailure err, AsConstAppError err
        , ToExMemory term
        )
     =>
@@ -47,16 +47,11 @@ applyTypeSchemed spend name = go where
         -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
             [] -> makeKnown y                            -- Computed the result.
-            _  -> throwingWithCause _ConstAppError       -- Too many arguments.
-                    (TooManyArgumentsConstAppError name args)
-                    Nothing
+            _  -> undefined
     go (TypeSchemeAll _ schK)    f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)  f exF args = case args of
-        []          ->
-            throwingWithCause _ConstAppError              -- Too few arguments.
-                (TooFewArgumentsConstAppError name)
-                Nothing
+        []          -> undefined
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
             x <- readKnown arg

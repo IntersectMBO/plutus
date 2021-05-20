@@ -41,7 +41,7 @@ withGenArgsRes (TypeSchemeAll _ schK)   f k = withGenArgsRes (schK Proxy) f k
 type AppErr =
     EvaluationException
         ()
-        (MachineError DefaultFun (Term Name DefaultUni DefaultFun ()))
+        (MachineError DefaultFun)
         (Term Name DefaultUni DefaultFun ())
 
 -- | A simple monad for evaluating constant applications in.

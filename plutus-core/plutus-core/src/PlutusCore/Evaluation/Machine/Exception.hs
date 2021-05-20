@@ -54,18 +54,13 @@ newtype UnliftingError
 
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
-data ConstAppError fun term
-    = TooFewArgumentsConstAppError fun
-    | TooManyArgumentsConstAppError fun [term]
-      -- ^ A builtin is applied to more arguments than needed in order to reduce.
-      -- Note that this error occurs even if an expression is well-typed, because
-      -- constant application is supposed to be computed as soon as there are enough arguments.
-    | UnliftingConstAppError UnliftingError
+newtype ConstAppError
+    = UnliftingConstAppError UnliftingError
       -- ^ Could not construct denotation for a builtin.
-    deriving (Show, Eq, Functor, Generic, NFData)
+    deriving (Show, Eq, Generic, NFData)
 
 -- | Errors which can occur during a run of an abstract machine.
-data MachineError fun term
+data MachineError fun
     = NonPolymorphicInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
@@ -74,7 +69,7 @@ data MachineError fun term
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
-    | ConstAppMachineError (ConstAppError fun term)
+    | ConstAppMachineError ConstAppError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | BuiltinTermArgumentExpectedMachineError
       -- ^ A builtin expected a term argument, but something else was received
@@ -85,6 +80,7 @@ data MachineError fun term
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
       -- See the machine implementations for details.
     | UnknownBuiltin fun
+    | UnsupportedOperation Text
     deriving (Show, Eq, Functor, Generic, NFData)
 
 -- | The type of errors (all of them) which can occur during evaluation
@@ -103,17 +99,17 @@ mtraverse makeClassyPrisms
     , ''EvaluationError
     ]
 
-instance internal ~ MachineError fun term => AsMachineError (EvaluationError user internal) fun term where
+instance internal ~ MachineError fun => AsMachineError (EvaluationError user internal) fun where
     _MachineError = _InternalEvaluationError
-instance AsConstAppError (MachineError fun term) fun term where
+instance AsConstAppError (MachineError fun) where
     _ConstAppError = _ConstAppMachineError
-instance internal ~ MachineError fun term => AsConstAppError (EvaluationError user internal) fun term where
+instance internal ~ MachineError fun => AsConstAppError (EvaluationError user internal) where
     _ConstAppError = _InternalEvaluationError . _ConstAppMachineError
-instance AsUnliftingError (ConstAppError fun term) where
+instance AsUnliftingError ConstAppError where
     _UnliftingError = _UnliftingConstAppError
 instance AsUnliftingError internal => AsUnliftingError (EvaluationError user internal) where
     _UnliftingError = _InternalEvaluationError . _UnliftingError
-instance AsUnliftingError (MachineError fun term) where
+instance AsUnliftingError (MachineError fun) where
     _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
 instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user internal) where
     _EvaluationFailure = _UserEvaluationError . _EvaluationFailure
@@ -138,9 +134,9 @@ type EvaluationException user internal =
 
 mapCauseInMachineException
     :: (term1 -> term2)
-    -> EvaluationException user (MachineError fun term1) term1
-    -> EvaluationException user (MachineError fun term2) term2
-mapCauseInMachineException f = bimap (fmap (fmap f)) f
+    -> EvaluationException user (MachineError fun) term1
+    -> EvaluationException user (MachineError fun) term2
+mapCauseInMachineException = fmap
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
@@ -186,18 +182,12 @@ instance Pretty UnliftingError where
         , pretty err
         ]
 
-instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
-        PrettyBy config (ConstAppError fun term) where
-    prettyBy _ (TooFewArgumentsConstAppError name) =
-        "The constant" <+> pretty name <+> "was applied to too few arguments."
-    prettyBy config (TooManyArgumentsConstAppError name args) = fold
-        [ "The constant" <+> pretty name <+> "was applied to too many arguments:", "\n"
-        , "Excess ones are: ", prettyBy config args
-        ]
+instance HasPrettyDefaults config ~ 'True =>
+        PrettyBy config ConstAppError where
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
-instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
-            PrettyBy config (MachineError fun term) where
+instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
+            PrettyBy config (MachineError fun) where
     prettyBy _      NonPolymorphicInstantiationMachineError =
         "Attempted to instantiate a non-polymorphic term."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -216,6 +206,7 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
         prettyBy config constAppError
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
+    prettyBy _      (UnsupportedOperation text)           = pretty text
 
 instance
         ( HasPrettyDefaults config ~ 'True
@@ -248,12 +239,10 @@ deriving anyclass instance
 instance HasErrorCode UnliftingError where
       errorCode        UnliftingErrorE {}        = ErrorCode 30
 
-instance HasErrorCode (ConstAppError _a _b) where
-      errorCode        TooManyArgumentsConstAppError {} = ErrorCode 29
-      errorCode        TooFewArgumentsConstAppError {}  = ErrorCode 28
+instance HasErrorCode ConstAppError where
       errorCode (UnliftingConstAppError e)              = errorCode e
 
-instance HasErrorCode (MachineError err _a) where
+instance HasErrorCode (MachineError err) where
       errorCode        EmptyBuiltinArityMachineError {}             = ErrorCode 34
       errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
       errorCode        BuiltinTermArgumentExpectedMachineError {}   = ErrorCode 32
@@ -263,6 +252,7 @@ instance HasErrorCode (MachineError err _a) where
       errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
       errorCode        (ConstAppMachineError e)                     = errorCode e
       errorCode        UnknownBuiltin {}                            = ErrorCode 17
+      errorCode        UnsupportedOperation {}                      = undefined
 
 instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
   errorCode (InternalEvaluationError e) = errorCode e
