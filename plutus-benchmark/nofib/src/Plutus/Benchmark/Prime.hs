@@ -16,7 +16,7 @@ module Plutus.Benchmark.Prime where
 import           Control.DeepSeq     (NFData)
 import           Data.Char           (isSpace)
 import           GHC.Generics
-import qualified Prelude             (Eq (..), String)
+import qualified Prelude             (Eq (..), Read, Show, String, dropWhile, lines, show)
 
 import           PlutusCore.Builtins (DefaultFun)
 import qualified PlutusCore.Pretty   as PLC
@@ -224,7 +224,7 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 ---------------- Main ----------------
 
 data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60 | P100 | P150 | P200
-     deriving (Read, Show)
+     deriving (Prelude.Read, Prelude.Show)
 
 {- Some prime numbers.  The larger ones are taken from
    https://primes.utm.edu/lists/small/small.html and
@@ -249,7 +249,7 @@ getPrime =
 
 -- % Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [Prelude.String]
-unindent d = map (dropWhile isSpace) $ (lines . show $ d)
+unindent d = map (Prelude.dropWhile isSpace) $ (Prelude.lines . Prelude.show $ d)
 
 
 -- % Initialise the RNG
@@ -263,7 +263,7 @@ numTests :: Integer
 numTests = 100
 
 data Result = Composite | Prime
-    deriving (Show, Prelude.Eq, Generic, NFData)
+    deriving (Prelude.Show, Prelude.Eq, Generic, NFData)
 -- Prelude.Eq needed for comparing Haskell results in tests.
 
 -- % The @processList@ function takes a list of input numbers

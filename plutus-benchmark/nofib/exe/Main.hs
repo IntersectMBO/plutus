@@ -32,7 +32,7 @@ import           PlutusTx.Prelude                         as TxPrelude hiding (f
 import qualified UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
-failWithMsg :: String -> IO a
+failWithMsg :: P.String -> IO a
 failWithMsg s = hPutStrLn stderr s >> exitFailure
 
 
@@ -56,10 +56,10 @@ data Options
 
 -- Clausify options --
 
-knownFormulae :: String
+knownFormulae :: P.String
 knownFormulae = "one of F1, F2, F3, F4, F5, F6, F7"
 
-clausifyFormulaReader :: String -> Either String Clausify.StaticFormula
+clausifyFormulaReader :: P.String -> Either P.String Clausify.StaticFormula
 clausifyFormulaReader "F1" = Right Clausify.F1
 clausifyFormulaReader "F2" = Right Clausify.F2
 clausifyFormulaReader "F3" = Right Clausify.F3
@@ -94,10 +94,10 @@ lastpieceOptions = P.pure LastPiece
 
 -- Primes options --
 
-knownPrimes :: String
+knownPrimes :: P.String
 knownPrimes = "P05, P08, P10, P20, P30, P40, P50, P60, P100, P150, or P200 (a prime with the indicated number of digits)"
 
-primeIdReader :: String -> Either String Prime.PrimeID
+primeIdReader :: P.String -> Either P.String Prime.PrimeID
 primeIdReader "P05"  = Right Prime.P5
 primeIdReader "P08"  = Right Prime.P8
 primeIdReader "P10"  = Right Prime.P10
@@ -128,10 +128,10 @@ primetestOptions =
 
 -- Queens options --
 
-knownAlgorithms :: String
+knownAlgorithms :: P.String
 knownAlgorithms = "bt, bm, bjbt1, bjbt2, fc"
 
-queensAlgorithmReader :: String -> Either String Queens.Algorithm
+queensAlgorithmReader :: P.String -> Either P.String Queens.Algorithm
 queensAlgorithmReader "bt"    = Right Queens.Bt
 queensAlgorithmReader "bm"    = Right Queens.Bm
 queensAlgorithmReader "bjbt1" = Right Queens.Bjbt1
@@ -204,7 +204,7 @@ writeCBORdeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> 
 writeCBORdeBruijn  prog = BSL.putStr . UPLC.serialiseOmittingUnits $
                       UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
 
-description :: String
+description :: P.String
 description = "This program provides operations on a number of Plutus programs "
               ++ "ported from the nofib Haskell test suite.  "
               ++ "The programs are written in Haskell and can be run directly "
@@ -245,8 +245,8 @@ main = do
           Prime input             -> print $ Prime.runFixedPrimalityTest input
           Primetest n             -> if n<0 then P.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
-    DumpPLC pa -> mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getUnDBrTerm $ pa
-        where unindent d = map (dropWhile isSpace) $ (lines . show $ d)
+    DumpPLC pa -> P.mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getUnDBrTerm $ pa
+        where unindent d = map (dropWhile isSpace) $ (P.lines . P.show $ d)
     DumpCBORnamed pa   -> writeCBORnamed . mkProg . getUnDBrTerm $ pa
     DumpCBORdeBruijn pa-> writeCBORdeBruijn . mkProg . getDBrTerm $ pa
     -- Write the output to stdout and let the user deal with redirecting it.
