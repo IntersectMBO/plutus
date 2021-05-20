@@ -16,6 +16,7 @@ type State
   = { card :: Maybe Card
     , walletLibrary :: WalletLibrary
     , walletNicknameOrId :: String
+    , walletDropdownOpen :: Boolean
     , walletNicknameInput :: InputField.State WalletNicknameError
     , walletIdInput :: InputField.State WalletIdError
     , remoteWalletDetails :: WebData WalletDetails
@@ -34,6 +35,7 @@ data Action
   | CloseCard
   | GenerateWallet
   | SetWalletNicknameOrId String
+  | SetWalletDropdownOpen Boolean
   | OpenPickupWalletCardWithDetails WalletDetails
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
   | WalletIdInputAction (InputField.Action WalletIdError)
@@ -47,6 +49,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent CloseCard = Nothing
   toEvent GenerateWallet = Just $ defaultEvent "GenerateWallet"
   toEvent (SetWalletNicknameOrId _) = Nothing
+  toEvent (SetWalletDropdownOpen _) = Nothing
   toEvent (OpenPickupWalletCardWithDetails _) = Nothing
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction
