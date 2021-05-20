@@ -59,11 +59,6 @@ renderHeader walletNickname menuOpen =
         [ navigation (SetScreen ContractsScreen) Home "Home"
         , navigation (SetScreen WalletLibraryScreen) Contacts "Contacts"
         , a
-            [ classNames [ "ml-6", "md:rounded-full", "md:bg-white", "md:text-purple", "md:shadow" ]
-            , onClick_ UpdateFromStorage
-            ]
-            [ icon_ Refresh ]
-        , a
             [ classNames [ "ml-6", "font-bold", "text-sm" ]
             , onClick_ $ OpenCard PutdownWalletCard
             ]
