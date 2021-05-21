@@ -277,6 +277,7 @@ library
         parser-combinators >= 0.4.0,
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
+        primitive -any,
         recursion-schemes -any,
         scientific -any,
         semigroupoids -any,
