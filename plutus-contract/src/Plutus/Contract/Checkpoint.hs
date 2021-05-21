@@ -44,7 +44,6 @@ import qualified Data.Map                       as Map
 import           Data.Text                      (Text)
 import qualified Data.Text                      as Text
 import           Data.Text.Prettyprint.Doc      (Pretty (..), colon, vsep, (<+>))
-import qualified Debug.Trace                    as Trace
 import           GHC.Generics                   (Generic)
 
 -- $checkpoints
@@ -179,7 +178,6 @@ restore k = do
             logDebug $ LogFoundValueRestoringKey csNewKey
             let nk = succ csNewKey
             put nk
-            -- Trace.traceM $ "Restoring value for key: " <> show k <> "; setting new key to: " <> show nk
             pure (Right (Just csValue))
 
 data Checkpoint r where
@@ -271,24 +269,19 @@ jsonCheckpointLoop ::
 jsonCheckpointLoop action initial = do
     doCheckpoint
     k <- allocateKey
-    Trace.traceM $ "jsonCheckpointLoop: k = " <> show k
     current <- do
                 vl <- retrieve @_ k
                 case vl of
                     Left err       -> do
-                        Trace.traceM $ "Left " <> show err
                         throwError @err (review _CheckpointError err)
                     Right (Just a) -> do
-                        Trace.traceM "jsonCheckpointLoop.current: Right Just"
                         pure a
                     Right Nothing  -> do
-                        Trace.traceM "jsonCheckpointLoop.current: Right Nothing"
                         pure (Right initial)
     let go (Left b) = pure b
         go (Right a) = do
                 actionResult <- action a
                 k' <- allocateKey
-                Trace.traceM $ "jsonCheckpointLoop: k' = " <> show k
                 store @_ k k' actionResult
                 doCheckpoint
                 go actionResult

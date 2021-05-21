@@ -90,20 +90,12 @@ handleContractEffectContractExe =
             logNewMessages i result
             pure result
         UpdateContract i (ContractExe contractPath) (oldState :: ContractResponse Value Value Value ContractPABRequest) (input :: Response Events.Contract.ContractPABResponse) -> do
-            let req :: ContractRequest Value
+            let req :: ContractRequest Value Value
                 req = ContractRequest{oldState = ContractState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
                 encodedRequest = JSON.encodePretty req
                 pl = BSL8.unpack encodedRequest
-                -- oldSize = fromIntegral $ BSL8.length $ JSON.encodePretty $ ContractState.newState oldState
             result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
             logNewMessages i result
-            -- let newSize = fromIntegral $ BSL8.length $ JSON.encodePretty $ ContractState.newState result
-            when False $ do
-                let prefix = contractPath ^. filename
-                    IterationID k = rspItID input
-                    jsonToFile :: forall a. ToJSON a => String -> a -> Eff effs ()
-                    jsonToFile p = liftIO . BSL8.writeFile (prefix <> "-" <> show k <> "-" <> p <> ".json") . JSON.encodePretty
-                jsonToFile "result-obs-state" $ ContractState.observableState result
             pure result
         ExportSchema (ContractExe contractPath) -> do
             logDebug $ ExportSignatureMsg contractPath

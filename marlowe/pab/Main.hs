@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeOperators      #-}
 module Main(main, marloweTest) where
 
-import           Control.Monad                       (void)
+import           Control.Monad                       (guard, void)
 import           Control.Monad.Freer                 (Eff, Member, interpret, type (~>))
 import           Control.Monad.Freer.Error           (Error)
 import           Control.Monad.Freer.Extras.Log      (LogMsg)
@@ -41,8 +41,6 @@ import           Plutus.PAB.Types                    (PABError (..))
 import qualified Plutus.PAB.Webserver.Server         as PAB.Server
 import qualified PlutusTx.AssocMap                   as AssocMap
 import           Text.Read                           (readMaybe)
-
-import qualified Debug.Trace                         as Trace
 
 main' :: IO ()
 main' = void $ Simulator.runSimulationWith handlers $ do
@@ -88,16 +86,15 @@ marloweTest = void $ Simulator.runSimulationWith handlers $ do
 
 extractMarloweParams :: JSON.Value -> Maybe MarloweParams
 extractMarloweParams vl = do
-    (Marlowe.CompanionState s) <- either (\e -> Trace.trace (show e) Nothing) Just (JSON.parseEither JSON.parseJSON vl)
+    (Marlowe.CompanionState s) <- either (const Nothing) Just (JSON.parseEither JSON.parseJSON vl)
     (params, _) <- listToMaybe $ Map.toList s
     pure params
 
 extractFollowState :: JSON.Value -> Maybe Marlowe.ContractHistory
 extractFollowState vl = do
-    s <- either (\e -> Trace.trace (show e) Nothing) Just (JSON.parseEither JSON.parseJSON vl)
-    case s of
-        Marlowe.None -> Nothing
-        _            -> pure s
+    s <- either (const Nothing) Just (JSON.parseEither JSON.parseJSON vl)
+    guard (not $ Marlowe.isEmpty s)
+    pure s
 
 createArgs :: PubKeyHash -> PubKeyHash -> (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
 createArgs investor issuer = (tokenNames, zcb) where

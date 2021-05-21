@@ -82,7 +82,6 @@ import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
 import           Data.Sequence                     (Seq)
 import           Data.Void                         (Void)
-import qualified Debug.Trace                       as Trace
 import           GHC.Generics                      (Generic)
 
 import           Plutus.Contract.Schema            (Event (..), Handlers (..))
@@ -108,7 +107,7 @@ type ContractEffs w s e =
     ,  Resumable (Event s) (Handlers s)
     ]
 
-type ContractEnv w = (IterationID, RequestID, AccumState w)
+type ContractEnv = (IterationID, RequestID)
 
 newtype AccumState w = AccumState { unAccumState :: w }
   deriving stock (Eq, Ord, Show)
@@ -142,38 +141,21 @@ handleContractEffs =
   . raiseEnd
 
 getContractEnv ::
-  forall w effs.
+  forall effs.
   ( Member (State RequestID) effs
   , Member (State IterationID) effs
-  , Member (State (AccumState w)) effs
-  , Aeson.ToJSON w
   )
-  => Eff effs (ContractEnv w)
-getContractEnv = do
-  (a, b, c) <- (,,) <$> get <*> get <*> get
-  -- writeEnv ("getContractEnv: " <> show (a, b) <> " ") (Aeson.toJSON c) -- Does not return the right value ??
-  pure (a, b, c)
+  => Eff effs ContractEnv
+getContractEnv = (,) <$> get <*> get
 
 putContractEnv ::
-  forall w effs.
+  forall effs.
   ( Member (State RequestID) effs
   , Member (State IterationID) effs
-  , Member (State (AccumState w)) effs
-  , Semigroup w
-  , Aeson.ToJSON w
   )
-  => ContractEnv w
+  => ContractEnv
   -> Eff effs ()
-putContractEnv (it, req, w) = do
-  -- writeEnv "putContractEnv" (Aeson.toJSON w)
-  put it >> put req -- >> modify (\w' -> w <> w)
-
-writeEnv ::
-  forall m.
-  Monad m =>
-  String -> Aeson.Value -> m ()
-writeEnv msg v@(Aeson.String _) = Trace.traceM $ msg <> show v
-writeEnv _ _                    = pure ()
+putContractEnv (it, req) = put it >> put req
 
 addEnvToCheckpoint ::
   forall w effs.
@@ -190,18 +172,13 @@ addEnvToCheckpoint = reinterpret @Checkpoint @Checkpoint @effs $ \case
   DoCheckpoint -> send DoCheckpoint
   AllocateKey -> send AllocateKey
   Store k k' a -> do
-    (it, req, w) <- getContractEnv @w
-    result <- send $ Retrieve @(ContractEnv w, Aeson.Value) k
-    -- w' <- case result of
-    --         Right (Just ((_, _, wOld), _)) -> pure (wOld <> w)
-    --         _ -> pure w
-    send $ Store k k' ((it, req, w), a)
+    env <- getContractEnv
+    result <- send $ Retrieve @(ContractEnv, Aeson.Value) k
+    send $ Store k k' (env, a)
   Retrieve k -> do
-    result <- send $ Retrieve @(ContractEnv w, _) k
+    result <- send $ Retrieve @(ContractEnv, _) k
     case result of
       Right (Just (env, a)) -> do
-        let (a', b', w) = env
-        Trace.traceM $ show k <> ": " <> show (a', b', Aeson.toJSON w)
         putContractEnv env
         pure (Right (Just a))
       Left err -> do
@@ -306,10 +283,7 @@ shrinkResumableResult :: ResumableResult w e i o a -> ResumableResult w e i o a
 shrinkResumableResult rs =
   let comp = rs ^. checkpointStore . to completedIntervals
       isCovered :: CheckpointKey -> Bool
-      isCovered k =
-        let r = not $ IS.null $ IS.containing comp k
-        -- in Trace.trace (show k <> " `isCovered` == " <> show r <> ": " <> show comp) r
-        in r
+      isCovered k = not $ IS.null $ IS.containing comp k
   in rs & logs .~ mempty
         & over (responses . _Responses) (Map.filter (not . isCovered . fst))
 
@@ -332,13 +306,10 @@ runResumable ::
   -> Eff (ContractEffs w s e) a
   -> ResumableResult w e (Event s) (Handlers s) a
 runResumable events store action =
-  let initial = suspend store action -- Trace.trace "runResumable" $ suspend store action
+  let initial = suspend store action
       runStep' con rsp = fromMaybe con (runStep con rsp)
       result = foldl' runStep' initial events & view resumableResult
   in result
-    -- Trace.trace ("Responses: " <> (show $ fmap fst $ _responses result))
-    -- $ Trace.trace ("Store: " <> show (_checkpointStore result))
-    -- $ result
 
 runWithRecord ::
   forall w s e a.
@@ -371,7 +342,7 @@ mkResult oldW oldLogs (initialRes, cpKey, cpStore, AccumState newW, newLogs) =
           ResumableResult
             { _responses = mempty
             , _requests =
-                let getRequests = \case { AContinuation MultiRequestContinuation{ndcRequests} -> Just ndcRequests; _ -> Trace.trace "mkResult: no more requests" Nothing }
+                let getRequests = \case { AContinuation MultiRequestContinuation{ndcRequests} -> Just ndcRequests; _ -> Nothing }
                 in either mempty ((fromMaybe mempty) . (>>= getRequests)) initialRes
             , _finalState =
                 let getResult = \case { AResult a -> Just a; _ -> Nothing } in
@@ -432,8 +403,6 @@ runStep ::
   -> Response (Event s)
   -> Maybe (SuspendedContract w e (Event s) (Handlers s) a)
 runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore, _observableState=oldW, _logs=oldLogs}} event =
-  -- let k' = _checkpointKey in -- fromMaybe _checkpointKey (maxKey _checkpointStore) in
-  -- Trace.trace ("Inserting event with " <> show k') $
   Just
     $ set (resumableResult . responses) (insertResponse (fmap (_checkpointKey,) event) _responses)
     $ mkResult oldW oldLogs
@@ -441,7 +410,7 @@ runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinu
         _checkpointKey
         _checkpointStore
         $ ndcCont event
-runStep _ _ = Trace.trace "runStep: Nothing" Nothing
+runStep _ _ = Nothing
 
 insertAndUpdate ::
   forall w s e a.

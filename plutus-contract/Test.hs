@@ -32,6 +32,7 @@ import qualified Ledger.Ada                             as Ada
 import qualified Ledger.Constraints                     as Constraints
 import qualified Ledger.Crypto                          as Crypto
 import           Plutus.Contract                        as Con
+import           Plutus.Contract.Schema                 (Event)
 import qualified Plutus.Contract.State                  as State
 import           Plutus.Contract.Test
 import           Plutus.Contract.Types                  (ResumableResult (..), responses)
@@ -41,6 +42,7 @@ import           Plutus.Trace.Emulator                  (ContractInstanceTag, Em
                                                          activeEndpoints, callEndpoint)
 import           Plutus.Trace.Emulator.Types            (ContractInstanceLog (..), ContractInstanceMsg (..),
                                                          ContractInstanceState (..), UserThreadMsg (..))
+import qualified Plutus.Trace.Emulator.Types            as Emulator
 import qualified PlutusTx                               as PlutusTx
 import           PlutusTx.Lattice
 import           Prelude                                hiding (not)
@@ -202,3 +204,23 @@ nonTerminate3 =
     call2' 1 15 $ State.newState $ -- 2
         -- lastState = 2
     initial3
+
+mkResp1 :: IterationID -> Int -> Response (Event Schema)
+mkResp1 it i = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"1" i}
+
+mkResp2 :: IterationID -> Int -> Response (Event Schema)
+mkResp2 it i = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"2" i}
+
+mkResp3 :: IterationID -> Int -> Response (Event Schema)
+mkResp3 it i = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"3" i}
+
+nonTerminate4 =
+        Emulator.addEventInstanceState (mkResp1 5 2) =<<
+        Emulator.addEventInstanceState (mkResp3 4 16) =<<
+        Emulator.addEventInstanceState (mkResp2 3 15) =<<
+        Emulator.addEventInstanceState (mkResp1 2 15) =<<
+        Emulator.addEventInstanceState (mkResp2 1 15) =<<
+        Just (Emulator.emptyInstanceState nestedForeverLoop)
+
+--  State.newState . State.mkResponse mempty . Emulator.instContractState . Emulator.toInstanceState <$> nonTerminate4 WRONG
+-- _resumableResult . Emulator.cisiSuspState <$> nonTerminate4 RIGHT

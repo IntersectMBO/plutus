@@ -240,7 +240,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (Co
                     _                -> Right ()
 
 data ContractEffectMsg =
-    SendContractRequest (ContractRequest JSON.Value)
+    SendContractRequest (ContractRequest JSON.Value JSON.Value)
     | ReceiveContractResponse (PartiallyDecodedResponse ContractPABRequest)
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
