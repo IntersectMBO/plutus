@@ -119,42 +119,42 @@ vestingTest =
         , testCase "should run simple evaluation" $
           evaluate (mkEvaluation []) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 hundredLovelace
-              , mkSimulatorWallet w2 hundredLovelace
+              [ mkSimulatorWallet w1 hundredKLovelace
+              , mkSimulatorWallet w2 hundredKLovelace
               ]
         , testCase "should run simple wait evaluation" $
           evaluate (mkEvaluation [AddBlocks 10]) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 hundredLovelace
-              , mkSimulatorWallet w2 hundredLovelace
+              [ mkSimulatorWallet w1 hundredKLovelace
+              , mkSimulatorWallet w2 hundredKLovelace
               ]
         , testCase "should run vest funds evaluation" $
           evaluate vestFundsEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 100
-              , mkSimulatorWallet w2 $ lovelaceValueOf 92
+              [ mkSimulatorWallet w1 $ hundredKLovelace
+              , mkSimulatorWallet w2 $ lovelaceValueOf 99992
               ]
         , testCase "should run vest and a partial retrieve of funds" $
           evaluate vestAndPartialRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 105
-              , mkSimulatorWallet w2 $ lovelaceValueOf 92
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 100005
+              , mkSimulatorWallet w2 $ lovelaceValueOf 99992
               ]
         , testCase "should run vest and a full retrieve of funds" $
           evaluate vestAndFullRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 108
-              , mkSimulatorWallet w2 $ lovelaceValueOf 92
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 100008
+              , mkSimulatorWallet w2 $ lovelaceValueOf 99992
               ]
         ]
   where
-    hundredLovelace = lovelaceValueOf 100
+    hundredKLovelace = lovelaceValueOf 100000
     mkEvaluation :: [Expression] -> Evaluation
     mkEvaluation expressions =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 hundredLovelace
-                  , mkSimulatorWallet w2 hundredLovelace
+                  [ mkSimulatorWallet w1 hundredKLovelace
+                  , mkSimulatorWallet w2 hundredKLovelace
                   ]
             , sourceCode = vesting
             , program = toJSONString expressions
@@ -175,12 +175,12 @@ gameTest =
     testGroup
         "game"
         [ compilationChecks game
-        -- , testCase "should keep the funds" $
-        --   evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "ade", AddBlocks 1]) >>=
-        --   hasFundsDistribution
-        --       [ mkSimulatorWallet w1 tenAda
-        --       , mkSimulatorWallet w2 (adaValueOf 8)
-        --       ]
+        , testCase "should keep the funds" $
+          evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "ade", AddBlocks 1]) >>=
+          hasFundsDistribution
+              [ mkSimulatorWallet w1 tenAda
+              , mkSimulatorWallet w2 (adaValueOf 8)
+              ]
         , testCase "should unlock the funds" $
           evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "abcde", AddBlocks 1]) >>=
           hasFundsDistribution
@@ -257,59 +257,34 @@ crowdfundingTest =
         , testCase "should run successful campaign" $
           evaluate successfulCampaign >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 600
-              , mkSimulatorWallet w2 $ lovelaceValueOf 190
-              , mkSimulatorWallet w3 $ lovelaceValueOf 200
-              , mkSimulatorWallet w4 $ lovelaceValueOf 210
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 600000
+              , mkSimulatorWallet w2 $ lovelaceValueOf 190000
+              , mkSimulatorWallet w3 $ lovelaceValueOf 200000
+              , mkSimulatorWallet w4 $ lovelaceValueOf 210000
               ]
-        -- , testCase "should run failed campaign and return the funds" $
-        --   evaluate failedCampaign >>=
-        --   hasFundsDistribution
-        --       [ mkSimulatorWallet w1 $ lovelaceValueOf 300
-        --       , mkSimulatorWallet w2 $ lovelaceValueOf 300
-        --       , mkSimulatorWallet w3 $ lovelaceValueOf 300
-        --       ]
         ]
   where
     sourceCode = crowdFunding
     successfulCampaign =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 $ lovelaceValueOf 300
-                  , mkSimulatorWallet w2 $ lovelaceValueOf 300
-                  , mkSimulatorWallet w3 $ lovelaceValueOf 300
-                  , mkSimulatorWallet w4 $ lovelaceValueOf 300
+                  [ mkSimulatorWallet w1 $ lovelaceValueOf 300000
+                  , mkSimulatorWallet w2 $ lovelaceValueOf 300000
+                  , mkSimulatorWallet w3 $ lovelaceValueOf 300000
+                  , mkSimulatorWallet w4 $ lovelaceValueOf 300000
                   ]
             , program =
                   toJSONString
                       [ scheduleCollection w1
-                      , contribute w2 $ lovelaceValueOf 110
-                      , contribute w3 $ lovelaceValueOf 100
-                      , contribute w4 $ lovelaceValueOf 90
+                      , contribute w2 $ lovelaceValueOf 110000
+                      , contribute w3 $ lovelaceValueOf 100000
+                      , contribute w4 $ lovelaceValueOf 90000
                       , AddBlocks 1
                       , AddBlocksUntil 40
                       , AddBlocks 1
                       ]
             , sourceCode
             }
-    -- failedCampaign =
-    --     Evaluation
-    --         { wallets =
-    --               [ mkSimulatorWallet w1 $ lovelaceValueOf 300
-    --               , mkSimulatorWallet w2 $ lovelaceValueOf 300
-    --               , mkSimulatorWallet w3 $ lovelaceValueOf 300
-    --               ]
-    --         , program =
-    --               toJSONString
-    --                   [ scheduleCollection w1
-    --                   , contribute w2 $ lovelaceValueOf 100
-    --                   , AddBlocks 1
-    --                   , AddBlocksUntil 40
-    --                   , AddBlocksUntil 60
-    --                   , AddBlocksUntil 100
-    --                   ]
-    --         , sourceCode
-    --         }
     scheduleCollection caller = callEndpoint "schedule collection" caller ()
     contribute caller contribValue =
         callEndpoint "contribute" caller $ Contribution {contribValue}

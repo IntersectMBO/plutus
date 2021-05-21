@@ -24,7 +24,7 @@ data RequestHandlerLogMsg =
     | HandleAddressChangedAt Slot SlotRange
     | HandleTxFailed WalletAPIError
     | UtxoAtFailed Address
-    deriving stock (Eq, Ord, Show, Generic)
+    deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty RequestHandlerLogMsg where

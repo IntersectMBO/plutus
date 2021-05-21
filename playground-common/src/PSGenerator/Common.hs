@@ -255,7 +255,7 @@ ledgerTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptError)
-    , (genericShow <*> mkSumType) (Proxy @ValidationError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationPhase)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Datum)
