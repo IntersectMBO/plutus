@@ -87,9 +87,9 @@ import           PlutusTx.Traversable as Traversable
 import           Prelude              as Prelude hiding (Applicative (..), Eq (..), Foldable (..), Functor (..),
                                                   Monoid (..), Num (..), Ord (..), Rational, Semigroup (..),
                                                   Traversable (..), all, and, any, concat, concatMap, const, divMod,
-                                                  either, elem, error, filter, fst, id, length, map, max, maybe, min,
-                                                  not, notElem, null, or, quotRem, reverse, round, sequence, snd, zip,
-                                                  (!!), ($), (&&), (++), (<$>), (||))
+                                                  either, elem, error, filter, fst, head, id, length, map, max, maybe,
+                                                  min, not, notElem, null, or, quotRem, reverse, round, sequence, snd,
+                                                  take, zip, (!!), ($), (&&), (++), (<$>), (||))
 import           Prelude              as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately

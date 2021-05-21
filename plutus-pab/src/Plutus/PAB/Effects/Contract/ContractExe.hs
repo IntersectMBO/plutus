@@ -36,15 +36,14 @@ import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc                        (Pretty, pretty, (<+>))
 import           GHC.Generics                                     (Generic)
 import           Plutus.Contract.Resumable                        (Response)
-import           Plutus.Contract.State                            (ContractRequest (..))
+import           Plutus.Contract.State                            (ContractRequest (..), ContractResponse)
+import qualified Plutus.Contract.State                            as ContractState
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog))
 import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract                       (ContractHandlerRequest (..),
                                                                    ContractHandlersResponse (..), ContractInstanceId,
                                                                    ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
-import           Plutus.PAB.Events.ContractInstanceState          (PartiallyDecodedResponse (..))
-import qualified Plutus.PAB.Events.ContractInstanceState          as ContractInstanceState
 import           Plutus.PAB.Monitoring.PABLogMsg                  (ContractExeLogMsg (..), PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                 (PABError (ContractCommandError))
 import           System.Exit                                      (ExitCode (ExitFailure, ExitSuccess))
@@ -52,7 +51,7 @@ import           System.Process                                   (readProcessWi
 
 instance PABContract ContractExe where
     type ContractDef ContractExe = ContractExe
-    type State ContractExe = PartiallyDecodedResponse ContractPABRequest
+    type State ContractExe = ContractResponse Value Value Value ContractPABRequest
 
     serialisableState _ = id
 
@@ -87,9 +86,9 @@ handleContractEffectContractExe =
             result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["init"] ""
             logNewMessages i result
             pure result
-        UpdateContract i (ContractExe contractPath) (oldState :: PartiallyDecodedResponse ContractPABRequest) (input :: Response Events.Contract.ContractResponse) -> do
+        UpdateContract i (ContractExe contractPath) (oldState :: ContractResponse Value Value Value ContractPABRequest) (input :: Response Events.Contract.ContractPABResponse) -> do
             let req :: ContractRequest Value
-                req = ContractRequest{oldState = ContractInstanceState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
+                req = ContractRequest{oldState = ContractState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
                 pl = BSL8.unpack (JSON.encodePretty req)
             logDebug $ UpdateContractMsg contractPath req
             result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
@@ -111,7 +110,7 @@ liftProcess process = do
             logDebug $ ProcessExitFailure stderr
             throwError $ ContractCommandError code (Text.pack stderr)
         ExitSuccess -> do
-            logDebug $ ContractResponse stdout
+            logDebug $ AContractResponse stdout
             case JSON.eitherDecode (BSL8.pack stdout) of
                 Right value -> pure value
                 Left err    -> throwError $ ContractCommandError 0 (Text.pack err)
@@ -120,7 +119,7 @@ logNewMessages ::
     forall effs.
     Member (LogMsg (PABMultiAgentMsg ContractExe)) effs
     => ContractInstanceId
-    -> PartiallyDecodedResponse ContractPABRequest
+    -> ContractResponse Value Value Value ContractPABRequest
     -> Eff effs ()
-logNewMessages i PartiallyDecodedResponse{lastLogs} =
+logNewMessages i ContractState.ContractResponse{ContractState.lastLogs} =
     traverse_ (send @(LogMsg (PABMultiAgentMsg ContractExe)) . LMessage . fmap (ContractInstanceLog . ContractLog i)) lastLogs

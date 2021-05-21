@@ -27,10 +27,8 @@ module Plutus.PAB.Simulator(
     , SimulatorEffectHandlers
     , mkSimulatorHandlers
     , addWallet
-    -- * Simulator actions
-    -- ** Logging
+    -- * Logging
     , logString
-    , logPretty
     -- ** Agent actions
     , payToWallet
     , activateContract
@@ -72,7 +70,7 @@ import           Control.Concurrent                             (forkIO)
 import           Control.Concurrent.STM                         (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Lens                                   (_Just, at, makeLenses, makeLensesFor, preview, set,
-                                                                 view, (&), (.~), (^.))
+                                                                 view, (&), (.~), (?~), (^.))
 import           Control.Monad                                  (forM_, forever, void, when)
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
@@ -96,7 +94,8 @@ import qualified Data.Text.IO                                   as Text
 import           Data.Text.Prettyprint.Doc                      (Pretty (pretty), defaultLayoutOptions, layoutPretty)
 import qualified Data.Text.Prettyprint.Doc.Render.Text          as Render
 import           Data.Time.Units                                (Millisecond)
-import           Ledger                                         (Address (..), Tx, TxId, TxOut (..), txFee, txId)
+import           Ledger                                         (Address (..), Blockchain, Tx, TxId, TxOut (..),
+                                                                 eitherTx, txFee, txId)
 import           Ledger.Crypto                                  (PubKey, pubKeyHash)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
@@ -104,8 +103,7 @@ import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
-import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv, InstancesState,
-                                                                 OpenEndpoint)
+import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), BlockchainEnv (..), OpenEndpoint)
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
@@ -225,7 +223,6 @@ mkSimulatorHandlers definitions handleContractEffect =
                 $ handleDelayEffect
                 $ interpret (Core.handleUserEnvReader @t @(SimulatorState t))
                 $ interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
-                $ interpret (Core.handleInstancesStateReader @t @(SimulatorState t))
                 $ advanceClock @t
             Core.waitUntilSlot 1
         , onShutdown = do
@@ -337,20 +334,11 @@ activateContract = Core.activateContract
 callEndpointOnInstance :: forall a t. (JSON.ToJSON a) => ContractInstanceId -> String -> a -> Simulation t (Maybe NotificationError)
 callEndpointOnInstance = Core.callEndpointOnInstance'
 
--- | Log some output to the console
-logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
-logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
-
--- | Pretty-print a value to the console
-logPretty :: forall a t effs. (Pretty a, Member (LogMsg (PABMultiAgentMsg t)) effs) => a -> Eff effs ()
-logPretty = logInfo @(PABMultiAgentMsg t) . UserLog . render
-
 -- | Wait 1 second, then add a new block.
 makeBlock ::
     forall t effs.
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
-    , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
@@ -445,7 +433,6 @@ handleChainControl ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
     , Member (Reader BlockchainEnv) effs
-    , Member (Reader InstancesState) effs
     , Member (LogMsg Chain.ChainEvent) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
@@ -454,14 +441,11 @@ handleChainControl ::
 handleChainControl = \case
     Chain.ProcessBlock -> do
         blockchainEnv <- ask @BlockchainEnv
-        instancesState <- ask @InstancesState
         (txns, slot) <- runChainEffects @t @_ ((,) <$> Chain.processBlock <*> Chain.getCurrentSlot)
         runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
 
-        void $ liftIO $ STM.atomically $ do
-            cenv <- BlockchainEnv.getClientEnv instancesState
-            BlockchainEnv.updateInterestingAddresses blockchainEnv cenv
-            BlockchainEnv.processBlock blockchainEnv txns slot
+        void $ liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv txns slot
+
         pure txns
     Chain.ModifySlot f -> do
         slot <- runChainEffects @t @_ (Chain.modifySlot f)
@@ -537,10 +521,10 @@ handleNodeClient wallet = \case
             mp <- STM.readTVar _agentStates
             case Map.lookup wallet mp of
                 Nothing -> do
-                    let newState = initialAgentState wallet & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    let newState = initialAgentState wallet & submittedFees . at (txId tx) ?~ txFee tx
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
                 Just s' -> do
-                    let newState = s' & submittedFees . at (txId tx) .~ Just (txFee tx)
+                    let newState = s' & submittedFees . at (txId tx) ?~ txFee tx
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
     GetClientSlot -> Chain.getCurrentSlot
 
@@ -598,7 +582,6 @@ advanceClock ::
     forall t effs.
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
-    , Member (Reader InstancesState) effs
     , Member (Reader BlockchainEnv) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
@@ -683,8 +666,8 @@ valueAt address = do
 walletFees :: forall t. Wallet -> Simulation t Value
 walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
     where
-        succeededFees :: Map TxId Value -> [[Tx]] -> Value
-        succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . txId
+        succeededFees :: Map TxId Value -> Blockchain -> Value
+        succeededFees submitted = foldMap . foldMap $ fold . (submitted Map.!?) . eitherTx txId txId
         walletSubmittedFees = do
             SimulatorState{_agentStates} <- Core.askUserEnv @t @(SimulatorState t)
             result <- liftIO $ STM.atomically $ do
@@ -695,7 +678,7 @@ walletFees wallet = succeededFees <$> walletSubmittedFees <*> blockchain
                 Just s  -> pure (_submittedFees s)
 
 -- | The entire chain (newest transactions first)
-blockchain :: forall t. Simulation t [[Tx]]
+blockchain :: forall t. Simulation t Blockchain
 blockchain = do
     SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
     Chain.ChainState{Chain._chainNewestFirst} <- liftIO $ STM.readTVarIO _chainState
@@ -746,3 +729,7 @@ logBalances bs = do
         logString @t $ show e <> ": "
         forM_ (flattenValue v) $ \(cs, tn, a) ->
             logString @t $ "    {" <> show cs <> ", " <> show tn <> "}: " <> show a
+
+-- | Log some output to the console
+logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
+logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack

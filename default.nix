@@ -11,9 +11,8 @@
 , config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
   # Overrides for niv
 , sourcesOverride ? { }
-, packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization enableHaskellProfiling; }
+, packages ? import ./nix { inherit system crossSystem config sourcesOverride checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
-, rev ? null
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
   # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
@@ -106,4 +105,5 @@ rec {
 
   # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
   devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
+  build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus; };
 }

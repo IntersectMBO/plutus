@@ -4,14 +4,17 @@
 
 module Main where
 
+import           Paths_plutus_benchmark                   (getDataFileName)
+
+
 import qualified PlutusCore                               as PLC
 import qualified PlutusCore.Pretty                        as PP
 
-import           Criterion.Main
-import           Criterion.Types                          (Config (..))
-import           Paths_plutus_benchmark                   (getDataFileName)
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+
+import           Criterion.Main
+import           Criterion.Types                          (Config (..))
 
 import           Control.Monad
 import           Control.Monad.Trans.Except               (runExceptT)
@@ -38,7 +41,7 @@ loadPlcSource file = do
      Right p                    -> return $ () <$ p
 
 benchCek :: Term () -> Benchmarkable
-benchCek program = nf (UPLC.unsafeEvaluateCek UPLC.defaultCekMachineCosts PLC.defBuiltinsRuntime) program
+benchCek program = nf (UPLC.unsafeEvaluateCek PLC.defaultCekParameters) program
 
 
 plcSuffix :: String

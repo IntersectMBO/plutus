@@ -43,6 +43,7 @@ import           Ledger.Ada                               (adaSymbol, adaToken, 
 import qualified Ledger.Ada                               as Ada
 import qualified Ledger.AddressMap                        as AM
 import           Ledger.Value                             (valueOf)
+import           Plutus.Contract.State                    (ContractResponse (..))
 import           Plutus.Contracts.Currency                (OneShotCurrency, SimpleMPS (..))
 import qualified Plutus.Contracts.GameStateMachine        as Contracts.GameStateMachine
 import           Plutus.Contracts.PingPong                (PingPongState (..))
@@ -56,7 +57,7 @@ import           Plutus.PAB.Effects.Contract.Builtin      (Builtin)
 import qualified Plutus.PAB.Effects.Contract.Builtin      as Builtin
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
 import           Plutus.PAB.Effects.EventLog              (EventLogEffect)
-import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse (..))
+import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse)
 import           Plutus.PAB.Simulator                     (Simulation, TxCounts (..))
 import qualified Plutus.PAB.Simulator                     as Simulator
 import           Plutus.PAB.Types                         (PABError (..), chainOverviewBlockchain, mkChainOverview)
@@ -128,10 +129,12 @@ waitForUpdateTest =
         p2 <- Simulator.activateContract defaultWallet PingPong
         void $ Simulator.callEndpointOnInstance p1 "initialise" ()
         Simulator.waitNSlots 5
+        _ <- Simulator.waitForEndpoint p1 "wait"
         void $ Simulator.callEndpointOnInstance p1 "wait" ()
         void $ Simulator.callEndpointOnInstance p2 "pong" ()
         _ <- Simulator.waitForState (is Ponged) p1
         void $ Simulator.callEndpointOnInstance p1 "wait" ()
+        _ <- Simulator.waitForEndpoint p2 "ping"
         void $ Simulator.callEndpointOnInstance p2 "ping" ()
         _ <- Simulator.waitForState (is Pinged) p1
         pure ()
@@ -250,7 +253,7 @@ guessingGameTest =
                       { Contracts.GameStateMachine.lockArgsValue = lovelaceValueOf lockAmount
                       , Contracts.GameStateMachine.lockArgsSecret = "password"
                       }
-              _ <- Simulator.waitNSlots 5
+              _ <- Simulator.waitNSlots 10
 
               assertTxCounts
                   "Locking the game state machine should produce two transactions"
@@ -313,7 +316,7 @@ assertDone ::
     -> ContractInstanceId
     -> Simulation (Builtin TestContracts) ()
 assertDone wallet i = do
-    PartiallyDecodedResponse{hooks} <- serialisableState (Proxy @(Builtin TestContracts)) <$> Simulator.instanceState wallet i
+    ContractResponse{hooks} <- serialisableState (Proxy @(Builtin TestContracts)) <$> Simulator.instanceState wallet i
     case hooks of
         [] -> pure ()
         xs ->

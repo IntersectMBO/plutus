@@ -162,7 +162,8 @@ deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
     , Closed uni, uni `Everywhere` ExMemoryUsage, ExMemoryUsage fun
     ) => ExMemoryUsage (Term tyname name uni fun ann)
 deriving newtype instance ExMemoryUsage TyName
-deriving newtype instance ExMemoryUsage SatInt
+instance ExMemoryUsage SatInt where
+    memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 

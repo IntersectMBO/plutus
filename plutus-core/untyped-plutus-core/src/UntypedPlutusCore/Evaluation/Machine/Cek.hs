@@ -1,7 +1,8 @@
 -- | The API to the CEK machine.
 
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek
     ( EvaluationResult(..)
@@ -34,8 +35,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , unsafeEvaluateCekNoEmit
     , readKnownCek
     , enormousBudget
-    , defaultCekMachineCosts
-    , unitCekMachineCosts
     )
 where
 
@@ -47,9 +46,9 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults        (defaultCekMachineCosts)
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusCore.Universe
@@ -70,13 +69,12 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 runCekNoEmit
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
-runCekNoEmit cekcosts runtime mode term =
-    case runCek cekcosts runtime mode False term of
+runCekNoEmit params mode term =
+    case runCek params mode False term of
         (errOrRes, cost', _) -> (errOrRes, cost')
 
 -- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
@@ -86,33 +84,30 @@ unsafeRunCekNoEmit
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), cost)
-unsafeRunCekNoEmit cekcosts runtime mode =
-    first unsafeExtractEvaluationResult . runCekNoEmit cekcosts runtime mode
+unsafeRunCekNoEmit params mode =
+    first unsafeExtractEvaluationResult . runCekNoEmit params mode
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
-evaluateCek cekcosts runtime term =
-    case runCek cekcosts runtime restrictingEnormous True term of
+evaluateCek params term =
+    case runCek params restrictingEnormous True term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
-evaluateCekNoEmit cekcosts runtime = fst . runCekNoEmit cekcosts runtime restrictingEnormous
+evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
 
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 unsafeEvaluateCek
@@ -120,11 +115,10 @@ unsafeEvaluateCek
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), [String])
-unsafeEvaluateCek cekcosts runtime = first unsafeExtractEvaluationResult . evaluateCek cekcosts runtime
+unsafeEvaluateCek params = first unsafeExtractEvaluationResult . evaluateCek params
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 unsafeEvaluateCekNoEmit
@@ -132,11 +126,10 @@ unsafeEvaluateCekNoEmit
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCekNoEmit cekcosts runtime = unsafeExtractEvaluationResult . evaluateCekNoEmit cekcosts runtime
+unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEmit params
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
@@ -144,8 +137,7 @@ readKnownCek
        , KnownType (Term Name uni fun ()) a
        , Ix fun, PrettyUni uni fun
        )
-    => CekMachineCosts
-    -> BuiltinsRuntime fun (CekValue uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek cekcosts runtime = evaluateCekNoEmit cekcosts runtime >=> readKnown
+readKnownCek params = evaluateCekNoEmit params >=> readKnown

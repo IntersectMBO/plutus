@@ -115,7 +115,7 @@ emulatorEventPane (NotificationEvent notificationEvent) =
   div_
     [ text $ "Notification event: " <> show notificationEvent ]
 
-emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) _ error _)) =
+emulatorEventPane (ChainEvent (TxnValidationFail _ (TxId txId) _ error _)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed: " <> txId.getTxId
     , br_

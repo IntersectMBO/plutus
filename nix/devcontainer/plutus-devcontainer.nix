@@ -14,6 +14,7 @@ let
   '';
 in
 pkgs.callPackage (import ./devcontainer.nix) {
+  inherit pkgs;
   name = "plutus-devcontainer";
   tag = "latest";
   nonRootUser = "plutus";

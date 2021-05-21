@@ -2,9 +2,6 @@
   # 'supportedSystems' restricts the set of systems that we will evaluate for. Useful when you're evaluting
   # on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
-  # This will be used by the packages that get the git revision in lieu of actually trying to find it,
-  # which doesn't work in all situations. Set to null to get it from git.
-, rev ? "fake"
 }:
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
@@ -52,7 +49,7 @@ let
       # given a system ("x86_64-linux") return an attrset of derivations to build
       select = _: system:
         let
-          packages = import ./default.nix { inherit system rev; checkMaterialization = true; };
+          packages = import ./default.nix { inherit system; checkMaterialization = true; };
           pkgs = packages.pkgs;
           plutus = packages.plutus;
           isBuildable = platformFilterGeneric pkgs system;

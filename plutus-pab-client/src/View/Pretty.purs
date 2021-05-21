@@ -14,8 +14,7 @@ import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
-import Plutus.PAB.Events.Contract (ContractResponse(..), ContractPABRequest(..))
-import Plutus.PAB.Events (PABEvent(..))
+import Plutus.PAB.Events.Contract (ContractPABResponse(..), ContractPABRequest(..))
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
@@ -24,27 +23,6 @@ import Types (_contractInstanceIdString)
 
 class Pretty a where
   pretty :: forall p i. a -> HTML p i
-
-instance prettyPABEvent :: Pretty t => Pretty (PABEvent t) where
-  pretty e =
-    withHeading "PAB"
-      $ case e of
-          InstallContract contract -> span_ [ text $ "Install contract:", nbsp, pretty contract ]
-          UpdateContractInstanceState (ContractActivationArgs { caID }) instanceId (PartiallyDecodedResponse { hooks }) ->
-            span_
-              [ text "Update instance "
-              , text (view _contractInstanceIdString instanceId)
-              , text " of contract "
-              , pretty caID
-              , div_
-                  [ nbsp
-                  , text "with new active endpoint(s): "
-                  , text $ show hooks
-                  ]
-              ]
-          SubmitTx tx -> span_ [ text "SubmittedTx:", nbsp, pretty tx ]
-          ActivateContract _ instanceId -> span_ [ text $ "Activate contract:", nbsp, text (view _contractInstanceIdString instanceId) ]
-          StopContract instanceId -> span_ [ text $ "Stop contract:", nbsp, text (view _contractInstanceIdString instanceId) ]
 
 withHeading :: forall i p. String -> HTML p i -> HTML p i
 withHeading prefix content =
@@ -73,7 +51,7 @@ instance prettyResponse :: Pretty a => Pretty (Response a) where
       , div_ [ pretty rspResponse ]
       ]
 
-instance prettyContractResponse :: Pretty ContractResponse where
+instance prettyContractPABResponse :: Pretty ContractPABResponse where
   pretty (AwaitSlotResponse slot) =
     span_
       [ text "AwaitSlotResponse:"

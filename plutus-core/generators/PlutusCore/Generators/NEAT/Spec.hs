@@ -34,6 +34,7 @@ import           PlutusCore.Generators.NEAT.Common
 import           PlutusCore.Generators.NEAT.Term
 import           PlutusCore.Normalize
 import           PlutusCore.Pretty
+
 import qualified UntypedPlutusCore                        as U
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as U
 
@@ -134,7 +135,7 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
 -- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
@@ -152,14 +153,14 @@ prop_agree_termEval tyG tmG = do
 
   -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
 
   -- erase CK output
   let tmUCk = U.erase tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit U.defaultCekMachineCosts defBuiltinsRuntime (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekParameters (U.erase tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $

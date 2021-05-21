@@ -17,6 +17,7 @@ import           Plutus.V1.Ledger.Interval as Export
 import           Plutus.V1.Ledger.Orphans  ()
 import           Plutus.V1.Ledger.Scripts  as Export
 import           Plutus.V1.Ledger.Slot     as Export
+import           Plutus.V1.Ledger.Time     as Export
 import           Plutus.V1.Ledger.Tx       as Export
 import           Plutus.V1.Ledger.TxId     as Export
 import           Plutus.V1.Ledger.Value    (CurrencySymbol, TokenName, Value)

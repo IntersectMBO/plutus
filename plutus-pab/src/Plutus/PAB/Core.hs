@@ -41,9 +41,6 @@ module Plutus.PAB.Core
     , EffectHandlers(..)
     , runPAB
     , PABEnvironment(appEnv)
-    -- * Logging
-    , logString
-    , logPretty
     -- * Contracts and instances
     , installContract
     , reportContractState
@@ -95,7 +92,7 @@ import           Control.Monad.Freer                      (Eff, LastMember, Memb
                                                            subsume, type (~>))
 import           Control.Monad.Freer.Error                (Error, runError, throwError)
 import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg (..), LogObserve, handleObserveLog,
-                                                           logInfo, mapLog)
+                                                           mapLog)
 import qualified Control.Monad.Freer.Extras.Modify        as Modify
 import           Control.Monad.Freer.Reader               (Reader (..), ask, asks, runReader)
 import           Control.Monad.IO.Class                   (MonadIO (..))
@@ -105,9 +102,6 @@ import qualified Data.Map                                 as Map
 import           Data.Proxy                               (Proxy (..))
 import           Data.Set                                 (Set)
 import           Data.Text                                (Text)
-import qualified Data.Text                                as Text
-import           Data.Text.Prettyprint.Doc                (Pretty, defaultLayoutOptions, layoutPretty, pretty)
-import qualified Data.Text.Prettyprint.Doc.Render.Text    as Render
 import           Ledger.Tx                                (Address, Tx)
 import           Ledger.TxId                              (TxId)
 import           Ledger.Value                             (Value)
@@ -125,7 +119,7 @@ import qualified Plutus.PAB.Effects.ContractRuntime       as ContractRuntime
 import           Plutus.PAB.Effects.TimeEffect            (TimeEffect (..), systemTime)
 import           Plutus.PAB.Effects.UUID                  (UUIDEffect, handleUUIDEffect)
 import           Plutus.PAB.Events.Contract               (ContractPABRequest)
-import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse)
+import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse, fromResp)
 import           Plutus.PAB.Monitoring.PABLogMsg          (PABMultiAgentMsg (..))
 import           Plutus.PAB.Timeout                       (Timeout)
 import qualified Plutus.PAB.Timeout                       as Timeout
@@ -426,7 +420,7 @@ reportContractState ::
     )
     => ContractInstanceId
     -> Eff effs (PartiallyDecodedResponse ContractPABRequest)
-reportContractState cid = Contract.serialisableState (Proxy @t) <$> getState @t cid
+reportContractState cid = fromResp . Contract.serialisableState (Proxy @t) <$> getState @t cid
 
 -- | Annotate log messages with the current slot number.
 timed ::
@@ -445,17 +439,6 @@ timed = \case
 
 handleContractRuntimeMsg :: forall t x effs. Member (LogMsg (PABMultiAgentMsg t)) effs => Eff (LogMsg ContractRuntime.ContractRuntimeMsg ': effs) x -> Eff effs x
 handleContractRuntimeMsg = interpret (mapLog @_ @(PABMultiAgentMsg t) RuntimeLog)
-
--- | Log some output to the console
-logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
-logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
-
--- | Pretty-prin a value to the console
-logPretty :: forall a t effs. (Pretty a, Member (LogMsg (PABMultiAgentMsg t)) effs) => a -> Eff effs ()
-logPretty = logInfo @(PABMultiAgentMsg t) . UserLog . render
-
-render :: forall a. Pretty a => a -> Text
-render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty
 
 -- | Get the current state of the contract instance.
 instanceState :: forall t env. Wallet -> ContractInstanceId -> PABAction t env (Contract.State t)

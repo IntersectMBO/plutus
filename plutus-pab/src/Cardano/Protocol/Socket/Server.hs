@@ -138,8 +138,10 @@ pruneChain k original = do
        {- When the counter reaches zero, there are K blocks in the
           original channel and we start to remove the oldest stored
           block by reading it. -}
-       then liftIO $ atomically (readTChan original) >> go 0 localChannel
-       else go (k' - 1) localChannel
+       then do
+           liftIO $ atomically (readTChan original) >> go 0 localChannel
+       else do
+           go (k' - 1) localChannel
 
 handleCommand ::
     MonadIO m
@@ -207,15 +209,14 @@ runChainSync = flip runReaderT
 idleState ::
     ( MonadReader (MVar MockNodeServerChainState) m
     , MonadIO m )
- => Maybe LocalChannel
+ => LocalChannel
  -> m (ServerStIdle Block (Point Block) Tip m ())
-idleState (Just channel') =
+idleState channel' =
     pure ServerStIdle {
         recvMsgRequestNext = nextState channel',
         recvMsgFindIntersect = findIntersect,
         recvMsgDoneClient = return ()
     }
-idleState Nothing = undefined
 
 {- Get the next block, either immediately (the Just/Left branch)
    or within a monad (IO, in our case) where you can wait for the
@@ -230,10 +231,11 @@ nextState localChannel@(LocalChannel channel') = do
     chainState <- ask
     tip' <- getTip chainState
     (liftIO . atomically $ tryReadTChan channel') >>= \case
-        Nothing -> Right . pure <$> do
-            nextBlock <- liftIO . atomically $ readTChan channel'
-            liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
-            sendRollForward localChannel tip' nextBlock
+        Nothing -> do
+            Right . pure <$> do
+                nextBlock <- liftIO . atomically $ readTChan channel'
+                liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
+                sendRollForward localChannel tip' nextBlock
         Just nextBlock -> do
             liftIO $ modifyMVar_ chainState (pure . (tip ?~ nextBlock))
             Left <$> sendRollForward localChannel tip' nextBlock
@@ -280,7 +282,7 @@ sendRollForward channel' tip' current = pure $
     SendMsgRollForward
         current
         tip'
-        (ChainSyncServer (idleState (Just channel')))
+        (ChainSyncServer (idleState channel'))
 
 {- This is the state for a new connection. For now we start with
    slot 0, and in idleState. This will probably change, since it
@@ -298,18 +300,18 @@ cloneChainFrom :: forall m.
     ( MonadReader (MVar MockNodeServerChainState) m
     , MonadIO m )
  => Integer
- -> m (Maybe LocalChannel)
-cloneChainFrom offset = (LocalChannel <$>) <$> go
+ -> m LocalChannel
+cloneChainFrom offset = LocalChannel <$> go
   where
-    go :: m (Maybe (TChan Block))
+    go :: m (TChan Block)
     go = do
         globalChannel <- ask >>= getChannel
         liftIO $ atomically $ do
             localChannel <- cloneTChan globalChannel
             consume localChannel offset
 
-    consume :: TChan a -> Integer -> STM (Maybe (TChan a))
-    consume channel' ix | ix == 0    = pure $ Just channel'
+    consume :: TChan a -> Integer -> STM (TChan a)
+    consume channel' ix | ix == 0    = pure channel'
     consume channel' ix =
         -- We should have all requested blocks available on the
         -- channel, for consumption.

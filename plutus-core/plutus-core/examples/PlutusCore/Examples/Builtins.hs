@@ -18,16 +18,15 @@ module PlutusCore.Examples.Builtins where
 import           PlutusCore
 import           PlutusCore.Constant
 import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Pretty
 
-import qualified PlutusCore.StdLib.Data.List                       as Plc
+import qualified PlutusCore.StdLib.Data.List             as Plc
 
 import           Data.Either
-import           Data.Hashable                                     (Hashable)
-import qualified Data.Kind                                         as GHC (Type)
+import           Data.Hashable                           (Hashable)
+import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           Data.Void
