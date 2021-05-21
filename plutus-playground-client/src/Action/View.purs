@@ -93,7 +93,7 @@ actionPaneBody index (CallEndpoint { caller, argumentValues }) =
         , text ": "
         , text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) argumentValues
         ]
-    , actionArgumentForm (PopulateAction index) $ view (_FunctionSchema <<< _argument) argumentValues
+    , actionArgumentForm index (PopulateAction index) $ view (_FunctionSchema <<< _argument) argumentValues
     ]
 
 actionPaneBody index (PayToWallet { sender, recipient, amount }) =
