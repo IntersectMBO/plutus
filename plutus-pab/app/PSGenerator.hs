@@ -27,7 +27,7 @@ import           Language.PureScript.Bridge                 (BridgePart, Languag
                                                              writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
-import           Language.PureScript.Bridge.TypeParameters  (A)
+import           Language.PureScript.Bridge.TypeParameters  (A, B)
 import           Ledger.Constraints.OffChain                (UnbalancedTx)
 import qualified PSGenerator.Common
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
@@ -98,7 +98,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType))
           (Proxy @(ContractSignatureResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractRequest A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractRequest A B))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
@@ -111,7 +111,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WaitingForSlot)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(State A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(State A B))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointStore)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(CheckpointStoreItem A))

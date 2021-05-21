@@ -61,7 +61,7 @@ jsonTests =
 
         , testCase "Send a response to the contract" $ do
             oldState <- assertRight initialResponse
-            let req :: ContractRequest JSON.Value
+            let req :: ContractRequest JSON.Value JSON.Value
                 req = ContractRequest{oldState = State.newState oldState, event = Response{rspRqID = 0, rspItID = 0, rspResponse = JSON.toJSON (ContractHandlersResponse $ AwaitSlotResponse 1)}}
                 input = BSL.toStrict (JSON.encodePretty req)
                 v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Update) input
