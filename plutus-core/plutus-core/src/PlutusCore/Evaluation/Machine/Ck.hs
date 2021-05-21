@@ -100,7 +100,7 @@ data CkUserError =
 type CkEvaluationExceptionCarrying term fun =
     EvaluationException CkUserError (MachineError fun) term
 
--- See Note [Being generic over @term@ in 'CkM']
+-- See Note [Being generic over @term@ in 'CekM']
 type CkCarryingM term uni fun s =
     ReaderT (CkEnv uni fun s)
         (ExceptT (CkEvaluationExceptionCarrying term fun)

@@ -17,8 +17,6 @@
 module PlutusCore.Evaluation.Machine.Exception
     ( UnliftingError (..)
     , AsUnliftingError (..)
-    , ConstAppError (..)
-    , AsConstAppError (..)
     , MachineError (..)
     , AsMachineError (..)
     , EvaluationError (..)
@@ -52,13 +50,6 @@ newtype UnliftingError
     deriving (Show, Eq)
     deriving newtype (IsString, Semigroup, NFData)
 
--- | The type of constant applications errors (i.e. errors that may occur during evaluation of
--- a builtin function applied to some arguments).
-newtype ConstAppError
-    = UnliftingConstAppError UnliftingError
-      -- ^ Could not construct denotation for a builtin.
-    deriving (Show, Eq, Generic, NFData)
-
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError fun
     = NonPolymorphicInstantiationMachineError
@@ -69,7 +60,7 @@ data MachineError fun
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
-    | ConstAppMachineError ConstAppError
+    | UnliftingMachineError UnliftingError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | BuiltinTermArgumentExpectedMachineError
       -- ^ A builtin expected a term argument, but something else was received
@@ -80,7 +71,6 @@ data MachineError fun
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
       -- See the machine implementations for details.
     | UnknownBuiltin fun
-    | UnsupportedOperation Text
     deriving (Show, Eq, Functor, Generic, NFData)
 
 -- | The type of errors (all of them) which can occur during evaluation
@@ -94,23 +84,16 @@ data EvaluationError user internal
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
-    , ''ConstAppError
     , ''MachineError
     , ''EvaluationError
     ]
 
 instance internal ~ MachineError fun => AsMachineError (EvaluationError user internal) fun where
     _MachineError = _InternalEvaluationError
-instance AsConstAppError (MachineError fun) where
-    _ConstAppError = _ConstAppMachineError
-instance internal ~ MachineError fun => AsConstAppError (EvaluationError user internal) where
-    _ConstAppError = _InternalEvaluationError . _ConstAppMachineError
-instance AsUnliftingError ConstAppError where
-    _UnliftingError = _UnliftingConstAppError
 instance AsUnliftingError internal => AsUnliftingError (EvaluationError user internal) where
     _UnliftingError = _InternalEvaluationError . _UnliftingError
 instance AsUnliftingError (MachineError fun) where
-    _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
+    _UnliftingError = _UnliftingMachineError
 instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user internal) where
     _EvaluationFailure = _UserEvaluationError . _EvaluationFailure
 
@@ -182,10 +165,6 @@ instance Pretty UnliftingError where
         , pretty err
         ]
 
-instance HasPrettyDefaults config ~ 'True =>
-        PrettyBy config ConstAppError where
-    prettyBy _      (UnliftingConstAppError err) = pretty err
-
 instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
             PrettyBy config (MachineError fun) where
     prettyBy _      NonPolymorphicInstantiationMachineError =
@@ -202,11 +181,10 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A builtin received a term argument when something else was expected"
     prettyBy _      EmptyBuiltinArityMachineError =
         "A builtin was applied to a term or type where no more arguments were expected"
-    prettyBy config (ConstAppMachineError constAppError)  =
-        prettyBy config constAppError
+    prettyBy _      (UnliftingMachineError unliftingError)  =
+        pretty unliftingError
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
-    prettyBy _      (UnsupportedOperation text)           = pretty text
 
 instance
         ( HasPrettyDefaults config ~ 'True
@@ -239,9 +217,6 @@ deriving anyclass instance
 instance HasErrorCode UnliftingError where
       errorCode        UnliftingErrorE {}        = ErrorCode 30
 
-instance HasErrorCode ConstAppError where
-      errorCode (UnliftingConstAppError e)              = errorCode e
-
 instance HasErrorCode (MachineError err) where
       errorCode        EmptyBuiltinArityMachineError {}             = ErrorCode 34
       errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
@@ -250,9 +225,8 @@ instance HasErrorCode (MachineError err) where
       errorCode        NonFunctionalApplicationMachineError {}      = ErrorCode 26
       errorCode        NonWrapUnwrappedMachineError {}              = ErrorCode 25
       errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
-      errorCode        (ConstAppMachineError e)                     = errorCode e
+      errorCode        (UnliftingMachineError e)                    = errorCode e
       errorCode        UnknownBuiltin {}                            = ErrorCode 17
-      errorCode        UnsupportedOperation {}                      = undefined
 
 instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
   errorCode (InternalEvaluationError e) = errorCode e
