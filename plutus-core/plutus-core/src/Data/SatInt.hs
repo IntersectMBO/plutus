@@ -4,37 +4,33 @@ Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max
 This is not quite as fast as using 'Int' or 'Int64' directly, but we need the safety.
 -}
 {-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE UnboxedTuples      #-}
-module Data.SatInt (SatInt(..), fromSat, toSat) where
+module Data.SatInt (SatInt) where
 
 import           Control.DeepSeq            (NFData)
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Bits
 import           Data.Csv
+import           Data.Primitive             (Prim)
 import           GHC.Base
 import           GHC.Num
 import           GHC.Real
 import           Language.Haskell.TH.Syntax (Lift)
 
-newtype SatInt = SI Int
-    deriving newtype (NFData, Bits, FiniteBits)
+newtype SatInt = SI { unSatInt :: Int }
+    deriving newtype (NFData, Bits, FiniteBits, Prim)
     deriving Lift
     deriving (FromJSON, ToJSON) via Int
     deriving FromField via Int  -- For reading cost model data from CSV input
 
-fromSat :: SatInt -> Int
-fromSat (SI x) = x
-
-toSat :: Int -> SatInt
-toSat = SI
-
 instance Show SatInt where
-  showsPrec p x = showsPrec p (fromSat x)
+  showsPrec p x = showsPrec p (unSatInt x)
 
 instance Read SatInt where
-  readsPrec p xs = [ (toSat x, r) | (x, r) <- readsPrec p xs ]
+  readsPrec p xs = [ (SI x, r) | (x, r) <- readsPrec p xs ]
 
 instance Eq SatInt where
   SI x == SI y = eqInt x y
@@ -79,7 +75,7 @@ instance Enum SatInt where
   succ (SI x) = SI (succ x)
   pred (SI x) = SI (pred x)
   toEnum                = SI
-  fromEnum              = fromSat
+  fromEnum              = unSatInt
 
   {-# INLINE enumFrom #-}
   enumFrom (SI (I# x)) = eftInt x maxInt#
@@ -252,24 +248,57 @@ quotRemSI a@(I# _) b@(I# _) = (SI (a `quotInt` b), SI (a `remInt` b))
 divModSI ::  Int -> Int -> (SatInt, SatInt)
 divModSI x@(I# _) y@(I# _) = (SI (x `divInt` y), SI (x `modInt` y))
 
+{-
+'addIntC#', 'subIntC#', and 'mulIntMayOflow#' have tricky returns:
+all of them return non-zero (*not* necessarily 1) in the case of an overflow,
+so we can't use 'isTrue#'; and the first two return a truncated value in
+case of overflow, but this is *not* the same as the saturating result,
+but rather a bitwise truncation that is typically not what we want.
+
+So we have to case on the result, and then do some logic to work out what
+kind of overflow we're facing, and pick the correct result accordingly.
+-}
+
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
-  case addIntC# x# y# of
-    (# r#, _ #) -> SI (I# r#)
+  case addIntC# x# y#  of
+    (# r#, 0# #) -> SI (I# r#)
+    -- Overflow
+    _ ->
+      if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+      else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then minBound
+      -- x and y have opposite signs, and yet we've overflowed, should
+      -- be impossible
+      else overflowError
 
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
   case subIntC# x# y# of
-    (# r#, _ #) -> SI (I# r#)
+    (# r#, 0# #) -> SI (I# r#)
+    -- Overflow
+    _ ->
+      if      isTrue# ((x# >=# 0#) `andI#` (y# <# 0#)) then maxBound
+      else if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#)) then minBound
+      -- x and y have the same sign, and yet we've overflowed, should
+      -- be impossible
+      else overflowError
 
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
   case mulIntMayOflo# x# y# of
-    0# -> SI (I# (x# *# y#))
-    _  -> maxBound
+      0# -> SI (I# (x# *# y#))
+      -- Overflow
+      _ ->
+          if      isTrue# ((x# ># 0#) `andI#` (y# ># 0#)) then maxBound
+          else if isTrue# ((x# ># 0#) `andI#` (y# <# 0#)) then minBound
+          else if isTrue# ((x# <# 0#) `andI#` (y# ># 0#)) then minBound
+          else if isTrue# ((x# <# 0#) `andI#` (y# <# 0#)) then maxBound
+          -- Logically unreachable unless x or y is 0, in which case
+          -- it should be impossible to overflow
+          else overflowError
 
 {-# RULES
-"fromIntegral/Int->SatInt"     fromIntegral = toSat
+"fromIntegral/Int->SatInt"     fromIntegral = SI
 "fromIntegral/SatInt->SatInt" fromIntegral = id :: SatInt -> SatInt
   #-}
 

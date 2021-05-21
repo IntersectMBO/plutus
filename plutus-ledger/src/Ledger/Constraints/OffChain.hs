@@ -58,7 +58,6 @@ import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
-import           Ledger.Index                     (minFee)
 import           Ledger.Orphans                   ()
 import           Ledger.Typed.Scripts             (ScriptInstance, ScriptType (..))
 import qualified Ledger.Typed.Scripts             as Scripts
@@ -155,23 +154,26 @@ data UnbalancedTx =
     UnbalancedTx
         { unBalancedTxTx                  :: Tx
         , unBalancedTxRequiredSignatories :: Set PubKeyHash
+        , unBalancedTxUtxoIndex           :: Map TxOutRef TxOut
         }
     deriving stock (Eq, Generic, Show)
     deriving anyclass (FromJSON, ToJSON)
 
-makeLensesFor [("unBalancedTxTx", "tx"), ("unBalancedTxRequiredSignatories", "requiredSignatories")] ''UnbalancedTx
+makeLensesFor
+    [ ("unBalancedTxTx", "tx")
+    , ("unBalancedTxRequiredSignatories", "requiredSignatories")
+    , ("unBalancedTxUtxoIndex", "utxoIndex")
+    ] ''UnbalancedTx
 
 emptyUnbalancedTx :: UnbalancedTx
-emptyUnbalancedTx = UnbalancedTx mempty mempty
-
-addFee :: UnbalancedTx -> UnbalancedTx
-addFee (UnbalancedTx utx rs) = UnbalancedTx utx{ Tx.txFee = minFee utx } rs
+emptyUnbalancedTx = UnbalancedTx mempty mempty mempty
 
 instance Pretty UnbalancedTx where
-    pretty UnbalancedTx{unBalancedTxTx, unBalancedTxRequiredSignatories} =
+    pretty (UnbalancedTx utx rs utxo) =
         vsep
-        [ hang 2 $ vsep ["Tx:", pretty unBalancedTxTx]
-        , hang 2 $ vsep $ "Requires signatures:" : (pretty <$> Set.toList unBalancedTxRequiredSignatories)
+        [ hang 2 $ vsep ["Tx:", pretty utx]
+        , hang 2 $ vsep $ "Requires signatures:" : (pretty <$> Set.toList rs)
+        , hang 2 $ vsep $ "Utxo index:" : (pretty <$> Map.toList utxo)
         ]
 
 {- Note [Balance of value spent]
@@ -265,7 +267,7 @@ mkSomeTx
 mkSomeTx xs =
     let process = \case
             SomeLookupsAndConstraints lookups constraints -> processLookupsAndConstraints lookups constraints
-    in fmap (addFee . cpsUnbalancedTx)
+    in fmap cpsUnbalancedTx
         $ runExcept
         $ execStateT (traverse process xs) initialState
 
@@ -286,6 +288,7 @@ processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, t
             traverse_ addOwnInput txOwnInputs
             traverse_ addOwnOutput txOwnOutputs
             addMissingValueSpent
+            updateUtxoIndex
 
 -- | Turn a 'TxConstraints' value into an unbalanced transaction that satisfies
 --   the constraints. To use this in a contract, see
@@ -319,6 +322,15 @@ addMissingValueSpent = do
             -- Step 4 of the process described in [Balance of value spent]
             pk <- asks slOwnPubkey >>= maybe (throwError OwnPubKeyMissing) pure
             unbalancedTx . tx . Tx.outputs %= (Tx.TxOut{txOutAddress=pubKeyHashAddress pk,txOutValue=missing,txOutDatumHash=Nothing} :)
+
+updateUtxoIndex
+    :: ( MonadReader (ScriptLookups a) m
+       , MonadState ConstraintProcessingState m
+       )
+    => m ()
+updateUtxoIndex = do
+    ScriptLookups{slTxOutputs} <- ask
+    unbalancedTx . utxoIndex <>= fmap txOutTxOut slTxOutputs
 
 -- | Add a typed input, checking the type of the output it spends. Return the value
 --   of the spent output.

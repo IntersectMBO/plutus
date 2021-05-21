@@ -1,9 +1,8 @@
 { crossSystem ? null
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
-, rev ? "in-nix-shell"
 , sourcesOverride ? { }
-, packages ? import ./. { inherit crossSystem config sourcesOverride rev enableHaskellProfiling; }
+, packages ? import ./. { inherit crossSystem config sourcesOverride enableHaskellProfiling; }
 , enableHaskellProfiling ? false
 }:
 let
@@ -92,6 +91,7 @@ let
     plutus-pab.migrate
     plutus-pab.start-backend
     plutus-pab.start-all-servers
+    plutus-pab.start-all-servers-m
     purs
     purty
     spago

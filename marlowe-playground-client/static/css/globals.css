@@ -18,9 +18,9 @@ ul {
   padding: 0;
 }
 
-// TODO: it is preferred to stye classes than actual html components. At the moment I add
-// the btn class, but later on we should make sure all buttons have that class and remove this global
-// style
+ /* TODO: it is preferred to stye classes than actual html components. At the moment I add
+ the btn class, but later on we should make sure all buttons have that class and remove this global
+ style */
 button, .btn {
   cursor: pointer;
   position: relative;

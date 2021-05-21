@@ -283,6 +283,7 @@ emulatorStateInitialDist :: Map PubKey Value -> EmulatorState
 emulatorStateInitialDist mp = emulatorStatePool [tx] where
     tx = Tx
             { txInputs = mempty
+            , txCollateral = mempty
             , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
             , txForge = foldMap snd $ Map.toList mp
             , txFee = mempty
@@ -391,7 +392,7 @@ ownFundsEqual wallet value = do
 isValidated :: (Members MultiAgentEffs effs) => Tx -> Eff effs ()
 isValidated txn = do
     emState <- get
-    if notElem txn (join $ emState ^. chainState . Chain.chainNewestFirst)
+    if notElem (Valid txn) (join $ emState ^. chainState . Chain.chainNewestFirst)
         then throwError $ GenericAssertion $ "Txn not validated: " <> T.pack (show txn)
         else pure ()
 

@@ -79,6 +79,7 @@
           (hsPkgs."parser-combinators" or (errorHandler.buildDepError "parser-combinators"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
+          (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
@@ -244,14 +245,21 @@
           "PlutusCore/Parser"
           "PlutusCore/Error"
           "PlutusIR"
+          "PlutusIR/Core"
+          "PlutusIR/Core/Instance"
+          "PlutusIR/Core/Instance/Pretty"
+          "PlutusIR/Core/Plated"
+          "PlutusIR/Core/Type"
           "PlutusIR/Compiler"
           "PlutusIR/Compiler/Names"
           "PlutusIR/Compiler/Definitions"
           "PlutusIR/Error"
           "PlutusIR/Generators/AST"
           "PlutusIR/Parser"
+          "PlutusIR/Mark"
           "PlutusIR/MkPir"
           "PlutusIR/Purity"
+          "PlutusIR/Subst"
           "PlutusIR/Transform/DeadCode"
           "PlutusIR/Transform/Substitute"
           "PlutusIR/Transform/ThunkRecursions"
@@ -309,6 +317,20 @@
           };
         };
       tests = {
+        "satint-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."test-framework" or (errorHandler.buildDepError "test-framework"))
+            (hsPkgs."test-framework-hunit" or (errorHandler.buildDepError "test-framework-hunit"))
+            (hsPkgs."test-framework-quickcheck2" or (errorHandler.buildDepError "test-framework-quickcheck2"))
+            (hsPkgs."HUnit" or (errorHandler.buildDepError "HUnit"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "plutus-core/satint-test" ];
+          mainPath = [ "TestSatInt.hs" ];
+          };
         "plutus-core-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))

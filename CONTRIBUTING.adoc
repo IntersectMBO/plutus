@@ -331,6 +331,4 @@ Hydra will not report a failed status if `release.nix` fails to evaluate, but yo
 
 === Continuous deployment
 
-The Plutus Playground is continuously deployed to an https://alpha.plutus.iohkdev.io/[alpha environment].
-This happens when a PR is merged to master, you can see the status on the
-Github https://github.com/input-output-hk/plutus/deployments[deployments page].
+Several packages are continuously deployed to a staging environment. See link:./deployment/README.md[deployment/README.md] for detailed information on the deployment setup.

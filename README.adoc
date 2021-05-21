@@ -10,16 +10,16 @@ For more information about the projects, see the <<user-documentation>>.
 This repository contains:
 
 * Plutus Platform
-  * The implementation, specification, and mechanized metatheory of Plutus Core, the scripting language embedded in the Cardano ledger.
-  * Plutus Tx, the compiler from Haskell to Plutus Core.
-  * Libraries which implement the Plutus Application Framework, a framework for writing applications that work with Cardano.
-  * A selection of end-to-end usecases written with the Plutus Application Framework
-  * The Plutus Playground, a web-based playground for learning and writing basic Plutus Applications.
+** The implementation, specification, and mechanized metatheory of Plutus Core, the scripting language embedded in the Cardano ledger.
+** Plutus Tx, the compiler from Haskell to Plutus Core.
+** Libraries which implement the Plutus Application Framework, a framework for writing applications that work with Cardano.
+** A selection of end-to-end usecases written with the Plutus Application Framework
+** The Plutus Playground, a web-based playground for learning and writing basic Plutus Applications.
 * Marlowe
-  * The implementation of the Marlowe domain-specific language.
-  * Tools for working with Marlowe, including static analysis.
-  * A selection of examples using Marlowe, including a number based on the ACTUS financial standard.
-  * The Marlowe Playground, a web-based playground for learning and writing Marlowe Applications.
+** The implementation of the Marlowe domain-specific language.
+** Tools for working with Marlowe, including static analysis.
+** A selection of examples using Marlowe, including a number based on the ACTUS financial standard.
+** The Marlowe Playground, a web-based playground for learning and writing Marlowe Applications.
 
 [IMPORTANT]
 ====

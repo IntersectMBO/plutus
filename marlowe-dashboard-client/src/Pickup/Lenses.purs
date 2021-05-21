@@ -2,6 +2,7 @@ module Pickup.Lenses
   ( _card
   , _walletLibrary
   , _walletNicknameOrId
+  , _walletDropdownOpen
   , _walletNicknameInput
   , _walletIdInput
   , _remoteWalletDetails
@@ -26,6 +27,9 @@ _walletLibrary = prop (SProxy :: SProxy "walletLibrary")
 
 _walletNicknameOrId :: Lens' State String
 _walletNicknameOrId = prop (SProxy :: SProxy "walletNicknameOrId")
+
+_walletDropdownOpen :: Lens' State Boolean
+_walletDropdownOpen = prop (SProxy :: SProxy "walletDropdownOpen")
 
 _walletNicknameInput :: Lens' State (InputField.State WalletNicknameError)
 _walletNicknameInput = prop (SProxy :: SProxy "walletNicknameInput")

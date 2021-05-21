@@ -46,6 +46,7 @@ import qualified Data.ByteString.Lazy.Char8       as Char8
 import           Data.Function                    ((&))
 import qualified Data.Map                         as Map
 import           Data.Text.Encoding               (encodeUtf8)
+import           Data.Text.Prettyprint.Doc        (pretty)
 import qualified Ledger.Ada                       as Ada
 import           Ledger.Address                   (pubKeyAddress)
 import           Ledger.Crypto                    (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
@@ -57,8 +58,7 @@ import qualified Plutus.V1.Ledger.Bytes           as KB
 import           Servant                          (ServerError (..), err400, err401, err404)
 import           Servant.Client                   (ClientEnv)
 import           Servant.Server                   (err500)
-import           Wallet.API                       (PubKey,
-                                                   WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
+import           Wallet.API                       (PubKey, WalletAPIError (..))
 import qualified Wallet.API                       as WAPI
 import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect)
 import qualified Wallet.Effects                   as WalletEffects
@@ -198,5 +198,7 @@ fromWalletAPIError (InsufficientFunds text) =
     err401 {errBody = BSL.fromStrict $ encodeUtf8 text}
 fromWalletAPIError e@(PrivateKeyNotFound _) =
     err404 {errBody = BSL8.pack $ show e}
+fromWalletAPIError e@(ValidationError _) =
+    err500 {errBody = BSL8.pack $ show $ pretty e}
 fromWalletAPIError (OtherError text) =
     err500 {errBody = BSL.fromStrict $ encodeUtf8 text}

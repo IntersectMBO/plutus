@@ -3,7 +3,6 @@
 , config ? { }
 , overlays ? [ ]
 , sourcesOverride ? { }
-, rev ? null
 , checkMaterialization ? false
 , enableHaskellProfiling ? false
 }:
@@ -39,7 +38,7 @@ let
     config = haskellNix.config // config;
   };
 
-  plutus = import ./pkgs { inherit rev pkgs checkMaterialization enableHaskellProfiling sources; };
+  plutus = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };
 
 in
 {

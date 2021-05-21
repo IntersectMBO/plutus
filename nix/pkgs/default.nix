@@ -2,7 +2,6 @@
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ../lib/unfree.nix).unfreePredicate; }
-, rev ? null
 , sources
 , enableHaskellProfiling
 }:
@@ -17,10 +16,6 @@ let
     };
 
   gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
-
-  # The git revision comes from `rev` if available (Hydra), otherwise
-  # it is read using IFD and git, which is avilable on local builds.
-  git-rev = if isNull rev then pkgs.lib.commitIdFromGitRepo ../../.git else rev;
 
   # { index-state, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {

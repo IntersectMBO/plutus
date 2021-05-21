@@ -14,7 +14,7 @@ import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 
-import           Ledger                    (PubKeyHash)
+import           Ledger                    (PubKeyHash, ValidationError)
 
 -- | An error thrown by wallet interactions.
 data WalletAPIError =
@@ -22,9 +22,11 @@ data WalletAPIError =
     -- ^ There were insufficient funds to perform the desired operation.
     | PrivateKeyNotFound PubKeyHash
     -- ^ The private key of this public key hahs is not known to the wallet.
+    | ValidationError ValidationError
+    -- ^ There was an error during off-chain validation.
     | OtherError Text
     -- ^ Some other error occurred.
-    deriving stock (Show, Eq, Ord, Generic)
+    deriving stock (Show, Eq, Generic)
 
 instance Pretty WalletAPIError where
     pretty = \case
@@ -32,6 +34,8 @@ instance Pretty WalletAPIError where
             "Insufficient funds:" <+> pretty t
         PrivateKeyNotFound pk ->
             "Private key not found:" <+> viaShow pk
+        ValidationError e ->
+            "Validation error:" <+> pretty e
         OtherError t ->
             "Other error:" <+> pretty t
 

@@ -2,19 +2,19 @@ html,
 body,
 .site-wrap {
   background: var(--bg-light);
-  // The properties from here on set the layout of the page.
-  // The site-wrap is the topmost element, and it should always
-  // ocupy the full height of the screen.
+  /* The properties from here on set the layout of the page.
+     The site-wrap is the topmost element, and it should always
+     ocupy the full height of the screen. */
   height: 100vh;
 
-  // We use a grid system to keep the header and footer always
-  // at the top and bottom without needing to define margins or
-  // positions absolutes.
+  /* We use a grid system to keep the header and footer always
+     at the top and bottom without needing to define margins or
+     positions absolutes. */
   display: grid;
-  // Only one column of the whole width
+  /* Only one column of the whole width */
   grid-template-columns: 1fr;
-  // Three named rows with headers and footer equal to the space they need (auto)
-  // and the main content occupies the remaining space.
+  /* Three named rows with headers and footer equal to the space they need (auto)
+     and the main content occupies the remaining space. */
   grid-template-rows: auto 1fr auto;
   grid-template-areas:
     'header'
@@ -23,7 +23,7 @@ body,
 }
 
 header {
-  // Indicate which row of the .site-wrap grid to use
+  /* Indicate which row of the .site-wrap grid to use */
   grid-area: header;
 }
 
@@ -31,7 +31,7 @@ main {
   display: flex;
   flex-direction: column;
   overflow: scroll;
-  // Indicate which row of the .site-wrap grid to use
+  /* Indicate which row of the .site-wrap grid to use */
   grid-area: main;
 
   hr {
@@ -44,7 +44,7 @@ main {
 }
 
 footer {
-  // Indicate which row of the .site-wrap grid to use
+  /* Indicate which row of the .site-wrap grid to use */
   grid-area: footer;
 }
 

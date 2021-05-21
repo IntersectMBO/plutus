@@ -22,6 +22,7 @@ import           Ledger
 import qualified Ledger.Ada                    as Ada
 import           Ledger.Bytes
 import qualified Ledger.Crypto                 as Crypto
+import qualified Ledger.TimeSlot               as TimeSlot
 import qualified Ledger.Typed.Scripts          as Scripts
 import           Ledger.Value                  (assetClass, currencySymbol)
 import qualified Plutus.Contracts.Future       as FT
@@ -34,14 +35,14 @@ import           Wallet.Emulator.Types         (Wallet (..), walletPubKey)
 
 import qualified PlutusCore                    as PLC
 import qualified PlutusCore.Evaluation.Result  as PLC
-import qualified PlutusTx                      as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Evaluation           (unsafeEvaluateCek)
 import qualified PlutusTx.Prelude              as PlutusTx
 import qualified UntypedPlutusCore             as UPLC
 
 import           Opt
 import qualified Recursion                     as Rec
-import qualified Scott                         as Scott
+import qualified Scott
 
 main :: IO ()
 main = defaultMain [ functions, validators, scriptHashes ]
@@ -283,7 +284,7 @@ mockCtx = ScriptContext
       , txInfoOutputs = []
       , txInfoFee = PlutusTx.zero
       , txInfoForge = PlutusTx.zero
-      , txInfoValidRange = defaultSlotRange
+      , txInfoValidRange = TimeSlot.slotRangeToPOSIXTimeRange defaultSlotRange
       , txInfoSignatories = []
       , txInfoId = TxId P.emptyByteString
       , txInfoData = []

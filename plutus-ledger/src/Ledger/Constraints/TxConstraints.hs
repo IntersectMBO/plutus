@@ -23,7 +23,7 @@ import qualified Data.Map                  as Map
 import           Data.Text.Prettyprint.Doc hiding ((<>))
 import           GHC.Generics              (Generic)
 
-import qualified PlutusTx                  as PlutusTx
+import qualified PlutusTx
 import qualified PlutusTx.AssocMap         as AssocMap
 import           PlutusTx.Prelude
 

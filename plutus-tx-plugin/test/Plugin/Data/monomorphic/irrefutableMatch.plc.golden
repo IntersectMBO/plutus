@@ -28,30 +28,13 @@
                 (lam
                   default_arg1
                   (con integer)
-                  (lam
-                    thunk
-                    Unit
-                    (let
-                      (nonrec)
-                      (typebind (tyvardecl e (type)) (con integer))
-                      (error e)
-                    )
-                  )
+                  (lam thunk Unit (error (con integer)))
                 )
               )
             ]
             (lam a (con integer) (lam thunk Unit a))
           ]
-          (lam
-            default_arg0
-            (con integer)
-            (lam
-              thunk
-              Unit
-              (let
-                (nonrec) (typebind (tyvardecl e (type)) (con integer)) (error e)
-              )
-            )
+          (lam default_arg0 (con integer) (lam thunk Unit (error (con integer)))
           )
         ]
         Unit

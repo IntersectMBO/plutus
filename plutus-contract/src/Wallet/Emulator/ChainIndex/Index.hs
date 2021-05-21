@@ -21,9 +21,9 @@ import           GHC.Generics      (Generic)
 import           Ledger.Address    (Address)
 import           Ledger.AddressMap (AddressMap)
 import qualified Ledger.AddressMap as AM
+import           Ledger.Blockchain (OnChainTx)
 import           Ledger.Interval   (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Slot       (Slot (..), SlotRange)
-import           Ledger.Tx         (Tx)
 import           Ledger.TxId       (TxId)
 
 -- | The slot in which a transaction was added to the chain.
@@ -38,7 +38,7 @@ newtype TxSlot = TxSlot
 -- | A transaction with extra information, for the chain index.
 data ChainIndexItem = ChainIndexItem
     { ciSlot :: !Slot -- ^ The slot in which the transaction was added to the chain
-    , ciTx   :: !Tx -- ^ The transaction
+    , ciTx   :: !OnChainTx -- ^ The transaction
     , ciTxId :: !TxId -- ^ Hash of the transaction
     } deriving stock (Eq, Show, Generic)
       deriving anyclass (ToJSON, FromJSON)
