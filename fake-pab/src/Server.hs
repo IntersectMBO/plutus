@@ -14,7 +14,7 @@ import           API                               (API, JSON_API, PLAIN_API, Pr
                                                     TransferRequest (..))
 import           Control.Concurrent                (threadDelay)
 import           Control.Exception                 (throwIO)
-import           Control.Monad.Except              (ExceptT)
+import           Control.Monad.Except              (ExceptT, void)
 import           Control.Monad.IO.Class            (MonadIO, liftIO)
 import           Control.Monad.Logger              (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
 import           Control.Monad.Reader              (ReaderT, runReaderT)
@@ -35,7 +35,7 @@ import           Data.String                       as S
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
 import           Data.Time.Clock                   (diffUTCTime, getCurrentTime, nominalDiffTimeToSeconds)
-import           Database.PostgreSQL.Simple        (Connection, Only (..), SqlError, execute, query, query_)
+import           Database.PostgreSQL.Simple        (Connection, FromRow, Only (..), SqlError, execute, query, query_)
 import           Database.PostgreSQL.Simple.Errors (ConstraintViolation (..), catchViolation)
 import           Database.PostgreSQL.Simple.SqlQQ  (sql)
 import           GHC.Generics                      (Generic)
@@ -104,7 +104,7 @@ listWalletFunds conns publicKey =
 transferFunds :: Pool Connection -> PrivateKey -> CurrencySymbol -> TokenName -> Integer -> PublicKey -> Handler ()
 transferFunds conns srcPrivKey (CurrencySymbol curr) (TokenName tok) amount destPubKey =
   liftIO . withResource conns $ \conn -> do
-    catchViolation catcher $ do
+    if amount > 0 then do
       execute conn
         [sql|WITH source_container AS (SELECT get_or_create_money_container_id_from_pubkey(?) AS id),
                   destination_container AS (SELECT get_or_create_money_container_id_from_pubkey(?) AS id),
@@ -118,11 +118,9 @@ transferFunds conns srcPrivKey (CurrencySymbol curr) (TokenName tok) amount dest
                     destPubKey,
                     amount, curr, tok, -amount, curr, tok)
       pure ()
+    else pure ()
   where
     srcPubKey = BSU.toString $ B16.encode $ SHA256.hash $ BSU.fromString srcPrivKey
-
-    catcher :: SqlError -> ConstraintViolation -> IO ()
-    catcher e _                                      = throwIO e
 
 transferFundsPlain :: Pool Connection -> String -> String -> String -> Integer -> String -> Handler String
 transferFundsPlain conns srcPrivKey curr tok amount destPubKey =
@@ -156,9 +154,21 @@ miner conn =
                                                 RETURNING slot_number)
                               SELECT slot_number FROM new_slot
                         |]
+     -- Process transactions
+     transactionIds <- query conn
+                          [sql| WITH chosen_transactions AS (SELECT transaction_id
+                                                             FROM transaction
+                                                             WHERE slot_number IS NULL
+                                                             LIMIT 30)
+                                UPDATE transaction ut
+                                SET slot_number = ?
+                                FROM chosen_transactions st
+                                WHERE st.transaction_id = ut.transaction_id
+                                RETURNING st.transaction_id; |] [fromRatio result]
+     sequence_ [ void (query conn [sql| SELECT process_transaction(?); |] [fromRatio transactionId] :: (IO [Only Bool])) | Only transactionId <- transactionIds]
      -- Validate slot
      execute conn
-        [sql| UPDATE slot SET is_settled = true WHERE slot_number = ? |] [result :: Integer]
+        [sql| UPDATE slot SET is_settled = true WHERE slot_number = ? |] [fromRatio result]
 
      after <- getCurrentTime
      threadDelay $ max 0 (round (1000000 - nominalDiffTimeToSeconds (diffUTCTime after before) * 1000000))

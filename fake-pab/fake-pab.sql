@@ -46,6 +46,101 @@ $$;
 
 ALTER FUNCTION fakepab.get_or_create_money_container_id_from_pubkey(target_pub_key character varying) OWNER TO fakepab;
 
+
+CREATE FUNCTION fakepab.process_transaction(target_transaction_id bigint) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+
+tcontract_id bigint;
+told_contract text;
+told_state text;
+tnew_contract text;
+tnew_state text;
+
+min_amount bigint;
+
+BEGIN
+
+IF tcontract_id IS NOT NULL THEN
+  SELECT contract_id, old_contract, old_state, new_contract, new_state
+  INTO tcontract_id, told_contract, told_state, tnew_contract, tnew_state
+  FROM transaction
+  WHERE transaction_id = target_transaction_id;
+
+  IF NOT update_contract_if_state_matches(tcontract_id, told_contract, told_state, tnew_contract, tnew_state) THEN
+    UPDATE transaction
+	SET reason_invalid = 'Old contract state doesn''t match'
+	WHERE transaction_id = target_transaction_id;
+	RETURN FALSE;
+  END IF;
+END IF;
+
+SELECT MIN(tl.amount_change + COALESCE(ca.amount, 0))
+INTO min_amount
+FROM transaction_line tl LEFT OUTER JOIN currency_amount ca
+    ON tl.money_container_id = ca.money_container_id
+    AND tl.currency_symbol = ca.currency_symbol
+    AND tl.token_name = ca.token_name
+WHERE transaction_id = target_transaction_id;
+
+IF min_amount < 0
+THEN
+    UPDATE transaction
+	SET reason_invalid = 'Not enough funds'
+	WHERE transaction_id = target_transaction_id;
+	RETURN FALSE;
+ELSE
+  INSERT INTO currency_amount (money_container_id, currency_symbol, token_name, amount)
+  (SELECT tl.money_container_id AS money_container_id, tl.currency_symbol AS currency_symbol, tl.token_name AS token_name, tl.amount_change + COALESCE(ca.amount, 0) AS amount
+   FROM transaction_line tl LEFT OUTER JOIN currency_amount ca
+    ON tl.money_container_id = ca.money_container_id
+    AND tl.currency_symbol = ca.currency_symbol
+    AND tl.token_name = ca.token_name
+   WHERE transaction_id = target_transaction_id)
+  ON CONFLICT (money_container_id, currency_symbol, token_name)
+  DO UPDATE SET amount = EXCLUDED.amount;
+  RETURN TRUE;
+END IF;
+
+END;
+$$;
+
+
+ALTER FUNCTION fakepab.process_transaction(target_transaction_id bigint) OWNER TO fakepab;
+
+
+CREATE FUNCTION fakepab.update_contract_if_state_matches(contract_id bigint, old_contract text, old_state text, new_contract text, new_state text) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  actual_old_contract text;
+  actual_old_state text;
+BEGIN
+  IF contract_id IS NULL THEN
+    RETURN TRUE;
+  ELSE
+	SELECT contract, state
+	INTO actual_old_contract, actual_old_state
+	FROM contract
+	WHERE money_container_id = contract_id;
+
+	IF contract = actual_old_contract AND state = actual_old_state THEN
+	  UPDATE contract
+	  SET contract = new_contract, state = new_state
+      WHERE money_container_id = contract_id;
+
+      RETURN TRUE;
+	ELSE
+      RETURN FALSE;
+	END IF;
+  END IF;
+END;
+$$;
+
+
+ALTER FUNCTION fakepab.update_contract_if_state_matches(contract_id bigint, old_contract text, old_state text, new_contract text, new_state text) OWNER TO fakepab;
+
 SET default_tablespace = '';
 
 
@@ -63,7 +158,7 @@ ALTER TABLE fakepab.contract OWNER TO fakepab;
 
 
 CREATE TABLE fakepab.currency_amount (
-    amount numeric,
+    amount numeric NOT NULL,
     money_container_id bigint NOT NULL,
     currency_symbol character varying(70) NOT NULL,
     token_name character varying(70) NOT NULL,
