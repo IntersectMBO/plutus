@@ -16,6 +16,7 @@ really required for ExBudget, but it's simpler if we jut make
 everything strict, and it doesn't seem to do any harm.
 -}
 
+-- TODO: revise this.
 {- Note [Budgeting]
 
 When running Plutus code on the chain, you're running code on other peoples
@@ -73,6 +74,65 @@ both inputs are at 3 words each). These cost estimations will also have factors
 attached which can be configured at runtime via protocol parameters - so it's
 possible to adjust them at runtime.
 
+-}
+
+{-| Note [Budgeting units]
+
+ We use picoseconds for measuring times and words for measuring memory usage.
+ Some care is required with time units because different units are used in
+ different places.
+
+ * The basic data for models of execution time is produced by Criterion
+   benchmarks (run via plutus-core:cost-model-budgeting-bench) and saved in
+   'benching.csv'.  At this point the time units are seconds.
+
+ * The data in 'benching.csv' is used by plutus-core:update-cost-model to create
+   cost-prediction models for the built-in functions, and data describing these
+   is written to builtinCostModel.json.  This process involves several steps:
+
+     * The CostModelCreation module reads in the data from 'benching.csv' and
+       runs R code in 'models.R' to fit linear models to the benchmark results
+       for each builtin.  This process (and its results) necessarily invloves
+       the use of floating-point numbers.
+
+       Builtin execution times are typically of the order of 10^(-6) or 10^(-7)
+       seconds, and the benching data is converted to milliseconds in 'models.R'
+       because it's sometimes useful to work with the data interactively and this
+       makes the numbers a lot more human-readable.
+
+     * The coefficents from the R models are returned to the Haskell code in
+       CostModelCreation and written out to costModel.json.  To avoid the use of
+       floats in JSON and in cost prediction at runtime (which might be
+       machine-dependent if floats were used), numbers are multiplied by 10^6
+       and rounded to the nearest integer, shfting from the millisecond scale to
+       the picosecond scale.  This rescaling is safe because all of our models
+       are (currently) linear in their inputs.
+
+ * When the Plutus Core evaluator is compiled, the JSON data in
+   'builtinCostModel.json' is read in and used to create the defaultCostModel
+   object.  This also includes information about the costs of basic CEK machine
+   operations obtained from 'cekMachineCosts.json' (currently generated manually).
+
+ * When the Plutus Core evaluator is run, the code in
+   PlutusCore.Evaluation.Machine.BuiltinCostModel uses the data in
+   defaultCostModel to create Haskell versions of the cost models which estimate
+   the execution time of a built-in function given the sizes of its inputs.
+   This (and the memory usage) are fed into a budgeting process which measures
+   the ongoing resource consumption during script execution.
+
+   All budget calculations are (at least on 64-bit machines) done using the
+   'SatInt' type which deals with overflow by truncating excessivly large values
+   to the maximum 'SatInt' value, 2^63-1.  In picoseconds this is about 106
+   days, which should suffice for any code we expect to run.  Memory budgeting
+   is entirely in terms of machine words, and floating-point issues are
+   irrelevant.
+
+ Some precision is lost during the conversion from R's floating-point models to
+ the integral numbers used in the Haskell models.  However, experimentation
+ shows that the difference is very small.  The tests in plutus-core:
+ cost-model-test run the R models and the Haskell models with a large number of
+ random inputs and check that they agree to within one part in 10,000, which
+ is well within the accuracy we require forthe cost model.
 -}
 
 module PlutusCore.Evaluation.Machine.ExBudget

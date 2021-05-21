@@ -71,18 +71,22 @@ So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithm
 'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know why that would be, apart from maybe
 just the overflow checks), but the wrapping behaviour of 'Int64' is unacceptable..
 
-One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer with platform-dependent
-size), rather than an 'Int64' since the primops that we need are only available for 'Int' until GHC 9.2
-or so. So on 32bit platforms, we have much less header
+One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
+with platform-dependent size), rather than an 'Int64' since the primops that we
+need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
+have much less header
 
-However we mostly care about 64bit platforms, so this isn't too much of a problem. The only one where it could be a problem
-is GHCJS, which does present as a 32bit platform. However, we won't care about *performance* on GHCJS, since
-nobody will be running a node compiled to JS (and if they do, they deserve terrible performance). So:
-if we are not on a 64bit platform, then we can just fallback to the slower (but safe) 'Integer'.
+However we mostly care about 64bit platforms, so this isn't too much of a
+problem. The only one where it could be a problem is GHCJS, which does present
+as a 32bit platform. However, we won't care about *performance* on GHCJS, since
+nobody will be running a node compiled to JS (and if they do, they deserve
+terrible performance). So: if we are not on a 64bit platform, then we can just
+fallback to the slower (but safe) 'Integer'.
 
 -}
 
 -- See Note [Integer types for costing]
+-- See also Note [Budgeting units] in ExBudget.hs
 type CostingInteger =
 #if WORD_SIZE_IN_BITS < 64
     Integer
@@ -93,7 +97,7 @@ type CostingInteger =
 
 -- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
 
--- | Counts size in machine words (64bit for the near future)
+-- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
   deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
@@ -104,7 +108,8 @@ instance Pretty ExMemory where
 instance PrettyBy config ExMemory where
     prettyBy _ m = pretty m
 
--- | Counts CPU units - no fixed base, proportional.
+-- | Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
+-- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
   deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
