@@ -74,7 +74,7 @@ just the overflow checks), but the wrapping behaviour of 'Int64' is unacceptable
 One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
 with platform-dependent size), rather than an 'Int64' since the primops that we
 need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
-have much less header
+have much less headroom.
 
 However we mostly care about 64bit platforms, so this isn't too much of a
 problem. The only one where it could be a problem is GHCJS, which does present

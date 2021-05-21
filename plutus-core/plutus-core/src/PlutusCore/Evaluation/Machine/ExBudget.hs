@@ -132,7 +132,7 @@ possible to adjust them at runtime.
  shows that the difference is very small.  The tests in plutus-core:
  cost-model-test run the R models and the Haskell models with a large number of
  random inputs and check that they agree to within one part in 10,000, which
- is well within the accuracy we require forthe cost model.
+ is well within the accuracy we require for the cost model.
 -}
 
 module PlutusCore.Evaluation.Machine.ExBudget
