@@ -2,42 +2,40 @@ module MainFrame.State (mkMainFrame, handleAction) where
 
 import Prelude
 import Bridge (toFront)
-import Capability.Marlowe (class ManageMarlowe, followContract, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
+import Capability.Marlowe.Dummy (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_marloweParams)
+import Contract.Lenses (_selectedStep)
 import Contract.State (mkInitialState, updateState) as Contract
-import ContractHome.State (dummyContracts)
+import Contract.Types (Action(..)) as Contract
 import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
-import Data.Array (difference)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, use, view, (^.))
+import Data.Lens (assign, modifying, use, view)
 import Data.Lens.Extra (peruse)
-import Data.List (toUnfoldable) as List
-import Data.Map (Map, insert, keys, lookup, values)
+import Data.Map (insert, keys, lookup)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Set (toUnfoldable) as Set
 import Data.Traversable (for)
-import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
-import LocalStorage (getItem, setItem, removeItem)
+import Halogen.LocalStorage (localStorageEvents)
+import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_currentSlot, _pickupState, _playState, _subState, _toast, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
-import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
+import Marlowe.PAB (ContractHistory(..), PlutusAppId)
 import Pickup.Lenses (_walletLibrary)
 import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
 import Pickup.Types (Action(..), State) as Pickup
-import Play.Lenses (_allContracts, _walletDetails)
+import Play.Lenses (_allContracts, _selectedContract, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
@@ -45,7 +43,7 @@ import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast, errorToast, successToast)
-import WalletData.Lenses (_assets, _companionAppId, _wallet, _walletInfo)
+import WalletData.Lenses (_assets, _companionAppId, _marloweAppId, _wallet, _walletInfo)
 import WebSocket.Support as WS
 
 mkMainFrame ::
@@ -131,19 +129,45 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
           for_ mPlayState \playState -> do
             let
               walletCompanionAppId = view (_walletDetails <<< _companionAppId) playState
-            if plutusAppId == walletCompanionAppId then do
-              -- this is the WalletCompanion app
-              case runExcept $ decodeJSON $ unwrap rawJson of
-                Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                Right companionState -> updateRunningContracts companionState
+
+              marloweAppId = view (_walletDetails <<< _marloweAppId) playState
+            -- if this is the wallet's WalletCompanionApp...
+            if (plutusAppId == walletCompanionAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
+              Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
+              Right companionState -> handleAction $ PlayAction $ Play.UpdateRunningContracts companionState
             else
-              -- this should be one of the wallet's FollowerContracts (if it isn't, we don't care about it anyway)
-              for_ (lookup plutusAppId $ view _allContracts playState) \contractState -> do
-                case runExcept $ decodeJSON $ unwrap rawJson of
-                  Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                  Right history -> do
+              -- if this is the wallet's MarloweApp...
+              if (plutusAppId == marloweAppId) then
+                -- TODO: in the future the Marlowe app's state will change when there is an error, and we can
+                -- use this to show feedback to the user
+                pure unit
+              -- otherwise this should be one of the wallet's WalletFollowerApps
+              else case runExcept $ decodeJSON $ unwrap rawJson of
+                Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
+                Right contractHistory -> case contractHistory of
+                  None -> pure unit -- we can ignore this; we'll get another update with history when it's ready
+                  History marloweParams marloweData transactionInputs -> do
                     currentSlot <- use _currentSlot
-                    modifying (_playState <<< _allContracts) $ insert plutusAppId $ Contract.updateState currentSlot history contractState
+                    case lookup plutusAppId (view _allContracts playState) of
+                      Just contractState -> do
+                        selectedStep <- peruse $ _playState <<< _selectedContract <<< _selectedStep
+                        modifying (_playState <<< _allContracts) $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
+                        -- if the modification changed the currently selected step, that means the card for the contract
+                        -- that was changed is currently open, so we need to realign the step cards
+                        selectedStep' <- peruse $ _playState <<< _selectedContract <<< _selectedStep
+                        when (selectedStep /= selectedStep')
+                          $ for_ selectedStep' (handleAction <<< PlayAction <<< Play.ContractAction <<< Contract.MoveToStep)
+                      Nothing -> do
+                        let
+                          walletDetails = view _walletDetails playState
+
+                          mContractState = Contract.mkInitialState walletDetails currentSlot plutusAppId contractHistory
+                        case mContractState of
+                          Just contractState -> do
+                            modifying (_playState <<< _allContracts) $ insert plutusAppId contractState
+                            handleAction $ PlayAction $ Play.ContractHomeAction $ ContractHome.OpenContract plutusAppId
+                            addToast $ successToast "You have been given a role in a new contract."
+                          Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
         -- Plutus contracts in general can change in other ways, but the Marlowe contracts don't, so
         -- we can ignore these cases here
         _ -> pure unit
@@ -182,6 +206,8 @@ handleAction Init = do
   for_ mWalletDetailsJson \json ->
     for_ (runExcept $ decodeJSON json) \walletDetails -> do
       handleAction $ PickupAction $ Pickup.OpenPickupWalletCardWithDetails walletDetails
+  -- FIXME: Remove after the PAB is connected
+  void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
@@ -201,17 +227,14 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       handleAction $ PickupAction Pickup.CloseCard
       addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
-      -- FIXME: we are currently including some dummy contracts for testing
-      let
-        testingFollowerApps = followerApps <> dummyContracts currentSlot
       subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
       subscribeToPlutusApp $ view _companionAppId walletDetails
       timezoneOffset <- liftEffect getTimezoneOffset
       let
         followerAppIds :: Array PlutusAppId
-        followerAppIds = Set.toUnfoldable $ keys testingFollowerApps
+        followerAppIds = Set.toUnfoldable $ keys followerApps
       for_ followerAppIds subscribeToPlutusApp
-      assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails testingFollowerApps currentSlot timezoneOffset
+      assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails followerApps currentSlot timezoneOffset
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
       -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
@@ -220,7 +243,7 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
         Left decodedAjaxError -> do
           handleAction $ PickupAction Pickup.CloseCard
           addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
-        Right companionState -> updateRunningContracts companionState
+        Right companionState -> handleAction $ PlayAction $ Play.UpdateRunningContracts companionState
 
 handleAction (PickupAction pickupAction) = toPickup $ Pickup.handleAction pickupAction
 
@@ -231,43 +254,6 @@ handleAction (PlayAction playAction) = do
   toPlay $ Play.handleAction inputs playAction
 
 handleAction (ToastAction toastAction) = toToast $ Toast.handleAction toastAction
-
-------------------------------------------------------------
-updateRunningContracts ::
-  forall m.
-  MonadAff m =>
-  MonadAsk Env m =>
-  ManageMarlowe m =>
-  Toast m =>
-  Map MarloweParams MarloweData ->
-  HalogenM State Action ChildSlots Msg m Unit
-updateRunningContracts companionState = do
-  mPlayState <- peruse _playState
-  for_ mPlayState \playState -> do
-    let
-      allMarloweParams = Set.toUnfoldable $ keys companionState
-
-      existingMarloweParams = List.toUnfoldable $ map (view _marloweParams) (values $ playState ^. _allContracts)
-
-      newMarloweParams = difference allMarloweParams existingMarloweParams
-
-      walletDetails = playState ^. _walletDetails
-    void
-      $ for newMarloweParams \marloweParams -> do
-          ajaxFollowerContract <- followContract walletDetails marloweParams
-          case ajaxFollowerContract of
-            Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-            Right (plutusAppId /\ history) -> do
-              currentSlot <- use _currentSlot
-              let
-                mContractState = Contract.mkInitialState walletDetails currentSlot plutusAppId history
-              case mContractState of
-                Just contractState -> do
-                  subscribeToPlutusApp plutusAppId
-                  modifying (_playState <<< _allContracts) $ insert plutusAppId contractState
-                  handleAction $ PlayAction $ Play.ContractHomeAction $ ContractHome.OpenContract plutusAppId
-                  addToast $ successToast "You have been given a role in a new contract."
-                Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
 
 ------------------------------------------------------------
 -- Note [dummyState]: In order to map a submodule whose state might not exist, we need

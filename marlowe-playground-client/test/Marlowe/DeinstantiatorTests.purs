@@ -83,7 +83,7 @@ all =
                     , valueContent:
                         Map.fromFoldable
                           [ "Discounted price" /\ fromInt 50
-                          , "Notional" /\ fromInt 100
+                          , "Notional price" /\ fromInt 100
                           ]
                     }
                 )

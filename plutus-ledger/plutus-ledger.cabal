@@ -52,6 +52,7 @@ library
         Ledger.Oracle
         Ledger.Orphans
         Ledger.Index
+        Ledger.TimeSlot
         Ledger.Tokens
         Ledger.Typed.Scripts
         Ledger.Typed.Scripts.Validators
@@ -73,11 +74,12 @@ library
         Plutus.V1.Ledger.Slot as Ledger.Slot,
         Plutus.V1.Ledger.Tx as Ledger.Tx,
         Plutus.V1.Ledger.TxId as Ledger.TxId,
+        Plutus.V1.Ledger.Time as Ledger.Time,
         Plutus.V1.Ledger.Value as Ledger.Value
     build-depends:
         base >=4.9 && <5,
         aeson -any,
-        base16-bytestring, 
+        base16-bytestring,
         bytestring -any,
         cborg -any,
         containers -any,

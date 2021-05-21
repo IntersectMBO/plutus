@@ -1,0 +1,131 @@
+@import url("https://fonts.googleapis.com/css?family=Barlow:400,600,700|Comfortaa:400,600,700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply h-full text-black bg-lightgray;
+
+  font-family: Barlow, sans-serif;
+}
+
+.button-base {
+  @apply rounded-full px-5 py-2;
+  @apply hover:shadow;
+}
+
+.primary-button-outline {
+  @apply bg-gradient-to-r from-purple to-lightpurple text-white font-bold;
+}
+
+.primary-button {
+  @apply button-base;
+  @apply primary-button-outline;
+}
+
+.primary-button::after {
+  content: url("/static/img/caret-right.svg");
+  position: relative;
+  top: 4px;
+  right: -5px;
+}
+
+.secondary-button-outline {
+  @apply bg-transparent border-3 border-lightpurple text-lightpurple font-bold;
+}
+
+.secondary-button {
+  @apply button-base;
+  @apply secondary-button-outline;
+}
+
+.secondary-button::after {
+  content: url("/static/img/caret-right-purple.svg");
+  position: relative;
+  top: 4px;
+  right: -5px;
+}
+
+/*
+  Not all browsers support backdrop filter to make it transparent with a blur.
+  For the browsers that don't support this we make a default
+*/
+.bg-blured {
+  @apply bg-white;
+
+  box-shadow: 0 2px 24px -1px rgba(0, 0, 0, 0.2);
+}
+
+@supports (-webkit-backdrop-filter: none) or (backdrop-filter: none) {
+  .bg-blured {
+    background-color: unset;
+    -webkit-backdrop-filter: blur(30px);
+    backdrop-filter: blur(30px);
+    box-shadow: 0 2px 24px -1px rgba(0, 0, 0, 0.2);
+    background-image: linear-gradient(
+      144deg,
+      rgba(255, 255, 255, 0.64) 17%,
+      rgba(255, 255, 255, 0.1) 89%,
+      rgba(255, 255, 255, 0.1) 89%
+    );
+  }
+}
+
+/* For the FAQ caret we use the background image property instead of an img tag because the expanded/collapsed
+   state is only stored as a CSS class on the parent. */
+
+.faq-answer {
+  max-height: 0;
+  opacity: 0;
+  transition-property: max-height, opacity, padding;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+
+  /* Because we use max-height for the collapse/expand animation and the element still occupies
+  space (but with 0 opacity). Overflow hidden solves that */
+  overflow: hidden;
+}
+
+.expanded .faq-answer {
+  @apply pt-3;
+
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.faq-caret {
+  background-image: url("/static/img/caret-down-purple.svg");
+  background-repeat: no-repeat;
+  background-position: center 5px;
+}
+
+.expanded .faq-caret {
+  background-image: url("/static/img/caret-up-purple.svg");
+  background-position: center 10px;
+}
+
+/* Similary to the FAQ expanded class, we use a with-buttons class in the header to simplify the JS
+   and HTML */
+#header-try-buttons {
+  opacity: 0;
+}
+
+.with-buttons #header-try-buttons {
+  opacity: 1;
+}
+
+/* The maximum bold that comfortaa ships is still less bold than the one provided in the designs
+   so we add the not official text-stroke-width for the browsers that support it to make it a
+   little bit bolder. */
+.font-comfortaa-bold {
+  @apply font-comfortaa font-bold;
+
+  -webkit-text-stroke-width: 1px;
+}
+
+.font-comfortaa-bolder {
+  @apply font-comfortaa font-bold;
+
+  -webkit-text-stroke-width: 2px;
+}

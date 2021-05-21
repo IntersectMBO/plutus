@@ -1,6 +1,7 @@
 "use strict";
 
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 
@@ -87,11 +88,7 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                use: ["style-loader", "css-loader"]
-            },
-            {
-                test: /\.scss$/,
-                use: ["style-loader", "css-loader", "sass-loader"]
+                use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"]
             },
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
@@ -106,7 +103,7 @@ module.exports = {
     resolve: {
         modules: [
             // We need the second entry for node to be able to
-            // locate `node_modules` from client directory when 
+            // locate `node_modules` from client directory when
             // modules are referenced from inside `web-common`.
             "node_modules", path.resolve(__dirname, "./node_modules")
         ],
@@ -134,6 +131,10 @@ module.exports = {
         new MonacoWebpackPlugin({
             // note that you have to include typescript if you want javascript to work!
             languages: ["javascript", "typescript"],
-        })
+        }),
+        new MiniCssExtractPlugin({
+            filename: "[name].[contenthash].css",
+        }),
+
     ].concat(plugins)
 };

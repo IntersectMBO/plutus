@@ -12,6 +12,9 @@
         "warp".flags.network-bytestring = false;
         "warp".flags.warp-debug = false;
         "groups".revision = (((hackage."groups")."0.5.2").revisions).default;
+        "test-framework-hunit".revision = (((hackage."test-framework-hunit")."0.3.0.2").revisions).default;
+        "test-framework-hunit".flags.base4 = true;
+        "test-framework-hunit".flags.base3 = false;
         "Stream".revision = (((hackage."Stream")."0.4.7.2").revisions).default;
         "http-client".revision = (((hackage."http-client")."0.6.4.1").revisions).default;
         "http-client".flags.network-uri = true;
@@ -107,6 +110,7 @@
         "unliftio".revision = (((hackage."unliftio")."0.2.14").revisions).default;
         "servant-websockets".revision = (((hackage."servant-websockets")."2.0.0").revisions).default;
         "indexed-traversable-instances".revision = (((hackage."indexed-traversable-instances")."0.1").revisions).default;
+        "extensible-exceptions".revision = (((hackage."extensible-exceptions")."0.1.1.4").revisions).default;
         "unix".revision = (((hackage."unix")."2.7.2.2").revisions).default;
         "SHA".revision = (((hackage."SHA")."1.6.4.4").revisions).default;
         "SHA".flags.exe = false;
@@ -404,6 +408,7 @@
         "witherable".revision = (((hackage."witherable")."0.4.1").revisions).default;
         "process-extras".revision = (((hackage."process-extras")."0.7.4").revisions).default;
         "setenv".revision = (((hackage."setenv")."0.1.1.3").revisions).default;
+        "test-framework".revision = (((hackage."test-framework")."0.8.2.0").revisions).default;
         "cryptohash-sha1".revision = (((hackage."cryptohash-sha1")."0.11.100.1").revisions).default;
         "serialise".revision = (((hackage."serialise")."0.2.3.0").revisions).default;
         "serialise".flags.newtime15 = true;
@@ -565,6 +570,7 @@
         "monad-loops".flags.base4 = true;
         "Unique".revision = (((hackage."Unique")."0.4.7.8").revisions).default;
         "unbounded-delays".revision = (((hackage."unbounded-delays")."0.1.1.1").revisions).default;
+        "test-framework-quickcheck2".revision = (((hackage."test-framework-quickcheck2")."0.3.0.5").revisions).default;
         "hedgehog".revision = (((hackage."hedgehog")."1.0.5").revisions).default;
         "hspec-core".revision = (((hackage."hspec-core")."2.7.9").revisions).default;
         "cborg".revision = (((hackage."cborg")."0.2.5.0").revisions).default;
@@ -641,6 +647,7 @@
         "array".revision = (((hackage."array")."0.5.4.0").revisions).default;
         "ekg".revision = (((hackage."ekg")."0.4.0.15").revisions).default;
         "loch-th".revision = (((hackage."loch-th")."0.2.2").revisions).default;
+        "xml".revision = (((hackage."xml")."1.3.14").revisions).default;
         "path-pieces".revision = (((hackage."path-pieces")."0.2.1").revisions).default;
         "conduit-extra".revision = (((hackage."conduit-extra")."1.3.5").revisions).default;
         "erf".revision = (((hackage."erf")."2.0.0.0").revisions).default;

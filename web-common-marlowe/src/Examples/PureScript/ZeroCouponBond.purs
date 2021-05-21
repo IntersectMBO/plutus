@@ -42,8 +42,8 @@ ada = Token "" ""
 discountedPrice :: Value
 discountedPrice = ConstantParam "Discounted price"
 
-notional :: Value
-notional = ConstantParam "Notional"
+notionalPrice :: Value
+notionalPrice = ConstantParam "Notional price"
 
 investor :: Party
 investor = Role "Investor"
@@ -69,5 +69,5 @@ transfer timeout from to amount continuation =
 fullExtendedContract :: Contract
 fullExtendedContract =
   transfer initialExchange investor issuer discountedPrice
-    $ transfer maturityExchangeTimeout issuer investor notional
+    $ transfer maturityExchangeTimeout issuer investor notionalPrice
         Close

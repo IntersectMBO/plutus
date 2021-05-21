@@ -315,7 +315,7 @@ instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
             throwingWithCause
                 _MachineError
                 BuiltinTermArgumentExpectedMachineError
-                (Just $ void term')
+                (Just term')
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just $ ckValueToTerm val
 
@@ -344,7 +344,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
             throwingWithCause
                 _MachineError
                 UnexpectedBuiltinTermArgumentMachineError
-                (Just $ void term')
+                (Just term')
 applyEvaluate _ val _ =
     throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just $ ckValueToTerm val
 

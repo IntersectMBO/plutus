@@ -23,6 +23,7 @@ import           PlutusPrelude
 import           PlutusCore.Generators.Internal.TypedBuiltinGen
 import           PlutusCore.Generators.Internal.Utils
 
+import           PlutusCore                                     (defaultBuiltinsRuntime)
 import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
@@ -126,7 +127,7 @@ unsafeTypeEvalCheck
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (evaluateCkNoEmit defBuiltinsRuntime) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCkNoEmit defaultBuiltinsRuntime) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

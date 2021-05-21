@@ -9,6 +9,7 @@ module Main
 import           PlutusPrelude
 
 import qualified Check.Spec                        as Check
+import           CostModelInterface.Spec
 import           Evaluation.Spec                   (test_evaluation)
 import           Normalization.Check
 import           Normalization.Type
@@ -231,6 +232,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_typecheck
     , test_evaluation
     , test_normalizationCheck
+    , test_costModelInterface
     , Check.tests
     , NEAT.tests NEAT.defaultGenOptions
     ]

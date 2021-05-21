@@ -1,4 +1,5 @@
-{ name ? "devcontainer"
+{ pkgs
+, name ? "devcontainer"
 , tag ? null
 , extraContents ? [ ]
 , extraCommands ? ""
@@ -35,6 +36,12 @@
 }:
 let
   bashrc = ./bashrc;
+  # See: https://github.com/NixOS/docker/issues/7
+  nsswitch-conf = pkgs.writeTextFile {
+    name = "nsswitch.conf";
+    text = "hosts: dns files";
+    destination = "/etc/nsswitch.conf";
+  };
   # I think we should be able to use buildLayeredImage, but for some reason it
   # produces a nonfunctional image
   image = dockerTools.buildImage {
@@ -46,6 +53,7 @@ let
       gnugrep
       gnused
       less
+      nsswitch-conf
 
       # add /bin/sh
       bashInteractive

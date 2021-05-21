@@ -11,7 +11,7 @@
     flags = { disable-observables = false; performance-test-queue = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "iohk-monitoring"; version = "0.1.10.1"; };
+      identifier = { name = "iohk-monitoring"; version = "0.2.0.0"; };
       license = "Apache-2.0";
       copyright = "2018 IOHK";
       maintainer = "operations@iohk.io";
@@ -52,6 +52,7 @@
           (hsPkgs."contravariant" or (errorHandler.buildDepError "contravariant"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+          (hsPkgs."ekg" or (errorHandler.buildDepError "ekg"))
           (hsPkgs."katip" or (errorHandler.buildDepError "katip"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."network" or (errorHandler.buildDepError "network"))

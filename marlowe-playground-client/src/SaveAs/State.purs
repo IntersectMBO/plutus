@@ -5,7 +5,7 @@ import Data.Lens (assign, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
-import Halogen.Classes (activeBorderBlue700, border, borderBlue300, btn, btnSecondary, fontSemibold, fullWidth, modalContent, noMargins, spaceBottom, spaceLeft, spaceRight, spaceTop, textBase, textRight, textSm, uppercase)
+import Halogen.Classes (border, borderBlue300, btn, btnSecondary, fontSemibold, fullWidth, modalContent, noMargins, spaceBottom, spaceLeft, spaceRight, spaceTop, textBase, textRight, textSm, uppercase)
 import Halogen.HTML (button, div, h2, input, text)
 import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (class_, classes, disabled, placeholder, value)
@@ -36,7 +36,7 @@ render state =
         ]
     , div [ classes [ modalContent, ClassName "save-as-modal" ] ]
         [ input
-            [ classes [ spaceBottom, fullWidth, textSm, border, borderBlue300, activeBorderBlue700 ]
+            [ classes [ spaceBottom, fullWidth, textSm, border, borderBlue300 ]
             , value (state ^. _projectName)
             , onValueInput (Just <<< ChangeInput)
             , placeholder "Type a name for your project"

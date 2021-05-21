@@ -55,22 +55,21 @@ import           Data.Text                (Text)
 import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 
-import           Ledger                   (PubKeyHash, Slot, Validator, txId)
-import qualified Ledger                   as Ledger
+import           Ledger                   (PubKeyHash, Slot, SlotRange, Validator, txId)
+import qualified Ledger
 import qualified Ledger.Ada               as Ada
 import qualified Ledger.Constraints       as Constraints
 import           Ledger.Contexts          as V
 import qualified Ledger.Interval          as Interval
 import qualified Ledger.Scripts           as Scripts
-import           Ledger.Slot              (SlotRange)
+import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value)
-import qualified Ledger.Value             as Value
 import           Plutus.Contract
 import qualified Plutus.Contract.Typed.Tx as Typed
 import           Plutus.Trace.Emulator    (ContractHandle, EmulatorTrace)
 import qualified Plutus.Trace.Emulator    as Trace
-import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), return, (<$>), (>>), (>>=))
 import           Prelude                  (Semigroup (..))
 import qualified Prelude                  as Haskell
@@ -81,9 +80,7 @@ import qualified Wallet.Emulator          as Emulator
 -- | A crowdfunding campaign.
 data Campaign = Campaign
     { campaignDeadline           :: Slot
-    -- ^ The date by which the campaign target has to be met
-    , campaignTarget             :: Value
-    -- ^ Target amount of funds
+    -- ^ The date by which the campaign funds can be contributed.
     , campaignCollectionDeadline :: Slot
     -- ^ The date by which the campaign owner has to collect the funds
     , campaignOwner              :: PubKeyHash
@@ -115,21 +112,22 @@ newtype Contribution = Contribution
 
 -- | Construct a 'Campaign' value from the campaign parameters,
 --   using the wallet's public key.
-mkCampaign :: Slot -> Value -> Slot -> Wallet -> Campaign
-mkCampaign ddl target collectionDdl ownerWallet =
+mkCampaign :: Slot -> Slot -> Wallet -> Campaign
+mkCampaign ddl collectionDdl ownerWallet =
     Campaign
         { campaignDeadline = ddl
-        , campaignTarget   = target
         , campaignCollectionDeadline = collectionDdl
         , campaignOwner = pubKeyHash $ Emulator.walletPubKey ownerWallet
         }
 
 -- | The 'SlotRange' during which the funds can be collected
+{-# INLINABLE collectionRange #-}
 collectionRange :: Campaign -> SlotRange
 collectionRange cmp =
     Interval.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
 
 -- | The 'SlotRange' during which a refund may be claimed
+{-# INLINABLE refundRange #-}
 refundRange :: Campaign -> SlotRange
 refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
@@ -150,7 +148,7 @@ scriptInstance = Scripts.validatorParam @Crowdfunding
 validRefund :: Campaign -> PubKeyHash -> TxInfo -> Bool
 validRefund campaign contributor txinfo =
     -- Check that the transaction falls in the refund range of the campaign
-    Interval.contains (refundRange campaign) (txInfoValidRange txinfo)
+    Interval.contains (refundRange campaign) (TimeSlot.posixTimeRangeToSlotRange $ txInfoValidRange txinfo)
     -- Check that the transaction is signed by the contributor
     && (txinfo `V.txSignedBy` contributor)
 
@@ -158,10 +156,7 @@ validRefund campaign contributor txinfo =
 validCollection :: Campaign -> TxInfo -> Bool
 validCollection campaign txinfo =
     -- Check that the transaction falls in the collection range of the campaign
-    (collectionRange campaign `Interval.contains` txInfoValidRange txinfo)
-    -- Check that the transaction is trying to spend more money than the campaign
-    -- target (and hence the target was reached)
-    && (valueSpent txinfo `Value.geq` campaignTarget campaign)
+    (collectionRange campaign `Interval.contains` TimeSlot.posixTimeRangeToSlotRange (txInfoValidRange txinfo))
     -- Check that the transaction is signed by the campaign owner
     && (txinfo `V.txSignedBy` campaignOwner campaign)
 
@@ -194,11 +189,10 @@ campaignAddress = Scripts.validatorHash . contributionScript
 crowdfunding :: Campaign -> Contract () CrowdfundingSchema ContractError ()
 crowdfunding c = contribute c `select` scheduleCollection c
 
--- | A sample campaign with a target of 20 Ada by slot 20
+-- | A sample campaign
 theCampaign :: Campaign
 theCampaign = Campaign
     { campaignDeadline = 20
-    , campaignTarget   = Ada.lovelaceValueOf 20
     , campaignCollectionDeadline = 30
     , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }
@@ -206,7 +200,7 @@ theCampaign = Campaign
 -- | The "contribute" branch of the contract for a specific 'Campaign'. Exposes
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
---   refund if the funding target was not met.
+--   refund if the funding was not collected.
 contribute :: Campaign -> Contract () CrowdfundingSchema ContractError ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
@@ -273,7 +267,7 @@ makeContribution w v = do
 successfulCampaign :: EmulatorTrace ()
 successfulCampaign = do
     _ <- startCampaign
-    makeContribution (Wallet 2) (Ada.lovelaceValueOf 10)
-    makeContribution (Wallet 3) (Ada.lovelaceValueOf 10)
-    makeContribution (Wallet 4) (Ada.lovelaceValueOf 1)
+    makeContribution (Wallet 2) (Ada.lovelaceValueOf 100)
+    makeContribution (Wallet 3) (Ada.lovelaceValueOf 100)
+    makeContribution (Wallet 4) (Ada.lovelaceValueOf 25)
     void $ Trace.waitUntilSlot 21
