@@ -42,15 +42,12 @@ import qualified Plutus.PAB.Webserver.Server         as PAB.Server
 import qualified PlutusTx.AssocMap                   as AssocMap
 import           Text.Read                           (readMaybe)
 
-main' :: IO ()
-main' = void $ Simulator.runSimulationWith handlers $ do
+main :: IO ()
+main = void $ Simulator.runSimulationWith handlers $ do
     Simulator.logString @(Builtin Marlowe) "Starting marlowe PAB webserver on port 8080. Press enter to exit."
     shutdown <- PAB.Server.startServerDebug
     void $ liftIO getLine
     shutdown
-
-main :: IO ()
-main = marloweTest
 
 marloweTest :: IO ()
 marloweTest = void $ Simulator.runSimulationWith handlers $ do
