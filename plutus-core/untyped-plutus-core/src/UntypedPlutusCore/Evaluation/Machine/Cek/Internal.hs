@@ -144,8 +144,6 @@ instance Show fun => Pretty (ExBudgetCategory fun) where
 instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
     exBudgetBuiltin = BBuiltinApp
 
-type TermWithMem uni fun = Term Name uni fun ExMemory
-
 {- Note [Arities in VBuiltin]
 The VBuiltin value below contains two copies of the arity (list of
 TypeArg/TermArg pairs) for the relevant builtin.  The second of these
@@ -162,8 +160,8 @@ which is a problem.)
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun =
     VCon (Some (ValueOf uni))
-  | VDelay (TermWithMem uni fun) (CekValEnv uni fun)
-  | VLamAbs Name (TermWithMem uni fun) (CekValEnv uni fun)
+  | VDelay (Term Name uni fun ()) (CekValEnv uni fun)
+  | VLamAbs Name (Term Name uni fun ()) (CekValEnv uni fun)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
       fun
       Arity             -- Sorts of arguments to be provided (both types and terms): *don't change this*.
@@ -418,7 +416,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ToExMemory (CekValue un
 
 data Frame uni fun
     = FrameApplyFun (CekValue uni fun)                         -- ^ @[V _]@
-    | FrameApplyArg (CekValEnv uni fun) (TermWithMem uni fun)  -- ^ @[_ N]@
+    | FrameApplyArg (CekValEnv uni fun) (Term Name uni fun ()) -- ^ @[_ N]@
     | FrameForce                                               -- ^ @(force _)@
     deriving (Show)
 
@@ -466,7 +464,7 @@ enterComputeCek
     => CekMachineCosts
     -> Context uni fun
     -> CekValEnv uni fun
-    -> TermWithMem uni fun
+    -> Term Name uni fun ()
     -> CekM s (Term Name uni fun ())
 enterComputeCek costs = computeCek where
     -- | The computing part of the CEK machine.
@@ -478,7 +476,7 @@ enterComputeCek costs = computeCek where
     computeCek
         :: Context uni fun
         -> CekValEnv uni fun
-        -> TermWithMem uni fun
+        -> Term Name uni fun ()
         -> CekM s (Term Name uni fun ())
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
     computeCek ctx env (Var _ varName) = do
@@ -642,23 +640,4 @@ runCek
 runCek (MachineParameters cekcosts runtime) mode emitting term =
     runCekM runtime mode emitting $ do
         spendBudgetCek BStartup (cekStartupCost cekcosts)
-        enterComputeCek cekcosts [] mempty memTerm
-  where
-    memTerm = withMemory term
-    {- This is a temporary workaround for a bug where every AST node was being
-       annotated with the size of the entire AST, leading to the costing
-       functions for builtins being supplied with incorrect sizes and producing
-       inflated results.  In the longer term this should be reworked: we only
-       need memory sizes for constants, and it should be possible to obtain them
-       more directly.
-     -}
-    withMemory =
-        \case
-         Constant () v      -> Constant (memoryUsage v) v
-         Builtin  () b      -> Builtin  1 b
-         Var      () name   -> Var      1 name
-         LamAbs   () name t -> LamAbs   1 name (withMemory t)
-         Apply    () t1 t2  -> Apply    1 (withMemory t1) (withMemory t2)
-         Delay    () t      -> Delay    1 (withMemory t)
-         Force    () t      -> Force    1 (withMemory t)
-         Error    ()        -> Error    1
+        enterComputeCek cekcosts [] mempty term
