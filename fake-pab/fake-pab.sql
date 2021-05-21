@@ -318,10 +318,6 @@ ALTER TABLE ONLY fakepab.transaction ALTER COLUMN transaction_id SET DEFAULT nex
 
 
 
-SELECT pg_catalog.setval('fakepab.currency_amount_currency_amount_id_seq', 1, false);
-
-
-
 SELECT pg_catalog.setval('fakepab.money_container_money_container_id_seq', 1, false);
 
 
