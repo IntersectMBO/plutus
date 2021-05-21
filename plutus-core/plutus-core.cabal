@@ -143,7 +143,6 @@ library
         common
     other-modules:
         PlutusCore.Analysis.Definitions
-        PlutusCore.Constant.Apply
         PlutusCore.Constant.Function
         PlutusCore.Constant.Meaning
         PlutusCore.Constant.Typed
@@ -293,7 +292,6 @@ test-suite plutus-core-test
     hs-source-dirs: plutus-core/test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
-        Evaluation.ApplyBuiltinName
         Evaluation.DynamicBuiltins.Common
         Evaluation.DynamicBuiltins.Definition
         Evaluation.DynamicBuiltins.MakeRead
@@ -355,7 +353,6 @@ test-suite untyped-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: untyped-plutus-core/test
     other-modules:
-        Evaluation.ApplyBuiltinName
         Evaluation.Golden
         Evaluation.Machines
         Transform.Simplify
