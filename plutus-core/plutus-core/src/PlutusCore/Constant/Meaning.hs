@@ -114,7 +114,6 @@ lookupBuiltin
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
     Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
     Just bri -> pure bri
-{-# INLINE lookupBuiltin #-}
 
 {- Note [Automatic derivation of type schemes]
 We use two type classes for automatic derivation of type schemes: 'KnownMonotype' and
