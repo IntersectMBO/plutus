@@ -25,7 +25,7 @@ import Foreign.Generic (encodeJSON)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, detectCodeChanges)
-import Halogen.Classes (aHorizontal, alignedButtonInTheMiddle, alignedButtonLast, expanded, flex, flexCol, flexGrow, fontBold, fullHeight, hide, smallPaddingLeft, smallPaddingY, textInactive)
+import Halogen.Classes (aHorizontal, alignedButtonInTheMiddle, alignedButtonLast, expanded, flex, flexCol, flexGrow, fontBold, fullHeight, hidden, smallPaddingLeft, smallPaddingY, textInactive)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Events (onClick)
@@ -230,7 +230,7 @@ shiny ::
   forall p.
   State -> HTML p Action
 shiny state =
-  aside [ classes ([ expanded false ] <> if state.showShiny then [] else [ hide ]) ]
+  aside [ classes ([ expanded false ] <> if state.showShiny then [] else [ hidden ]) ]
     [ div [ attr (AttrName "style") "height: 100%;" ]
         [ iframe
             [ src "http://localhost:8081"
@@ -261,7 +261,7 @@ runAnalysis :: forall p. HTML p Action
 runAnalysis =
   button
     [ onClick $ const $ Just $ RunAnalysis
-    , classes ([ alignedButtonLast, hide ]) --this feature is temporary disabled because shiny is not deployed yet
+    , classes ([ alignedButtonLast, hidden ]) --this feature is temporary disabled because shiny is not deployed yet
     ]
     [ text "Run Analysis" ]
 

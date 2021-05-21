@@ -17,7 +17,7 @@ without doing it as an Effect in a mainframe action
   /* Stay in place */
   position: fixed;
   /* Sit on top */
-  z-index: 100; // Blockly toolbar has z-index of 70, so we need this be bigger than that
+  z-index: 100; /* Blockly toolbar has z-index of 70, so we need this be bigger than that */
   left: 0;
   top: 0;
   /* Full width */
@@ -64,7 +64,7 @@ without doing it as an Effect in a mainframe action
   background: white; /* if we dont set background it gets transparent */
   /* end sticky*/
   .title {
-    @extend .font-semibold;
+    @apply font-semibold;
     margin: 0;
   }
   z-index: 2;
@@ -78,12 +78,12 @@ without doing it as an Effect in a mainframe action
   cursor: pointer;
 }
 
-// This sets the same line-height for the title
-// and the close button so they are horizontally aligned
-// even if they don't have the same parent
+/* This sets the same line-height for the title
+   and the close button so they are horizontally aligned
+   even if they don't have the same parent */
 .modal-close,
 .modal-header .title {
-  @extend .text-xl;
+  @apply text-xl;
 }
 
 .modal-content {

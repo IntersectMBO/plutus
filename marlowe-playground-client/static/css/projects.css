@@ -1,15 +1,15 @@
 .open-project-modal {
-  // This forces the width of the modal to be as wide as it can.
-  // Is the same calculation as the max-width in modal, but instead of using 2 *, we use 4 * to include
-  // the modal padding.
+  /* This forces the width of the modal to be as wide as it can.
+     Is the same calculation as the max-width in modal, but instead of using 2 *, we use 4 * to include
+     the modal padding. */
   width: calc(var(--breakpoint-mid) - 4 * var(--medium-margin));
 }
 .project-list {
   display: grid;
-  // Creates a grid of 7 colums. The last four being the Open Actions
+  /* Creates a grid of 7 colums. The last four being the Open Actions */
   grid-template-columns: 1fr max-content max-content [actions-start] repeat(4, min-content) [actions-end];
 
-  // Make the Open header to span accross all actions
+  /* Make the Open header to span accross all actions */
   & div:nth-child(4) {
     grid-column: actions-start / span actions-end;
   }

@@ -29,7 +29,7 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (ClassName(..), Component, HalogenM, raise)
 import Halogen as H
 import Halogen.Analytics (withAnalytics)
-import Halogen.Classes (aHorizontal, active, bold, closeDrawerIcon, expanded, first, fullHeight, infoIcon, jFlexStart, minusBtn, noMargins, plusBtn, pointer, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes (aHorizontal, active, bold, closeDrawerIcon, cursorPointer, expanded, first, fullHeight, infoIcon, justifyStart, minusBtn, noMargins, plusBtn, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (HTML, a, article, aside, b_, br_, button, div, h6, hr_, img, input, li, option, p, p_, section, select, small, small_, strong_, text, ul)
 import Halogen.HTML (code_, span) as HTML
@@ -316,10 +316,10 @@ scrollHelpPanel =
 
 render :: forall p. State -> HTML p Action
 render state =
-  div [ classes [ ClassName "full-height" ] ]
+  div [ classes [ fullHeight ] ]
     [ section [ classes [ aHorizontal ] ]
         [ div [ classes [ aHorizontal ] ]
-            [ div [ classes [ ClassName "wallet-title", aHorizontal, jFlexStart ] ]
+            [ div [ classes [ ClassName "wallet-title", aHorizontal, justifyStart ] ]
                 [ div [ classes [ ClassName "demos", spaceLeft ] ]
                     [ small_ [ text "Created Wallets:" ]
                     ]
@@ -838,7 +838,7 @@ renderContracts state =
     contracts = state ^. (_walletContracts pubKey <<< to Map.values <<< to Array.fromFoldable)
   in
     div [ classes [ aHorizontal ] ]
-      [ div [ classes [ ClassName "wallet-title", aHorizontal, jFlexStart ] ]
+      [ div [ classes [ ClassName "wallet-title", aHorizontal, justifyStart ] ]
           [ div [ classes [ ClassName "demos", spaceLeft ] ]
               [ small_ [ text "Contracts:" ]
               ]
@@ -1059,13 +1059,13 @@ rightPanel state =
     , ul []
         [ li [] [ text ((state ^. (_runningContracts <<< _MaxIndex <<< to show)) <> " contracts running") ]
         , li [] [ text $ "Current Slot: " <> show currentBlock ]
-        , li [ classes [ bold, pointer ] ]
+        , li [ classes [ bold, cursorPointer ] ]
             [ a
                 [ onClick $ const $ Just ResetContract
                 ]
                 [ text "Reset Blockchain" ]
             ]
-        , li [ classes [ bold, pointer ] ]
+        , li [ classes [ bold, cursorPointer ] ]
             [ a
                 [ onClick $ const $ Just NextSlot
                 ]

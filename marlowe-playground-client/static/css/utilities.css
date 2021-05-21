@@ -1,0 +1,43 @@
+/* TODO: instead of having a no-margins utitities that resets the current defaults we should
+          remove margin defaults in headers and other elements, and specify automatically.
+          As a rule of thumb, each component should now how to render "itself" and parent components
+          should know how to position it's children. So properties like margin should never be set globally. */
+.no-margins,
+.no-margins * {
+  margin: 0;
+}
+
+.no-padding,
+.no-padding * {
+  padding: 0;
+}
+
+.a-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text-secondary-color {
+  color: var(--secondary-color);
+}
+
+.text-white {
+  color: white;
+}
+
+.accent-border-bottom {
+  border-bottom: 1px solid var(--layout-accent-color);
+}
+
+.accent-border-top {
+  border-top: 1px solid var(--layout-accent-color);
+}
+
+.border-separator * + * {
+  border-left: 1px solid var(--layout-accent-color);
+}
+
+.box-shadow-inverted {
+  box-shadow: var(--box-shadow-inverted);
+}

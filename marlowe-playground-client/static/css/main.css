@@ -1,26 +1,30 @@
-@import './normalize.scss';
-@import './css_var_colors.scss';
-@import './css_var_globals.scss';
-@import './typo.scss';
-@import './globals.scss';
-@import './utilities.scss';
-@import './layout.scss';
-@import './header.scss';
-@import './panels.scss';
-@import './panel-mobile.scss';
-@import './wallet.scss';
-@import './main-tabs.scss';
-@import './table.scss';
-@import './animations.scss';
-@import './github-input.scss';
-@import './home.scss';
-@import './projects.scss';
-@import './new-project.scss';
-@import './demos.scss';
-@import './modal.scss';
-@import './confirm_unsaved_navigation.scss';
-@import './simulation.scss';
-@import './save-as-modal.scss';
+@import './normalize.css';
+@import './css_var_colors.css';
+@import './css_var_globals.css';
+@import './globals.css';
+@import './utilities.css';
+@import './typo.css';
+@import './layout.css';
+@import './header.css';
+@import './panels.css';
+@import './panel-mobile.css';
+@import './wallet.css';
+@import './main-tabs.css';
+@import './table.css';
+@import './animations.css';
+@import './github-input.css';
+@import './home.css';
+@import './projects.css';
+@import './new-project.css';
+@import './demos.css';
+@import './modal.css';
+@import './confirm_unsaved_navigation.css';
+@import './simulation.css';
+@import './save-as-modal.css';
+
+/* @tailwind base; */
+@tailwind components;
+@tailwind utilities;
 
 a:hover {
     cursor: pointer;
@@ -41,10 +45,6 @@ a:hover {
 
 .choice-a>.choice-input {
     width: auto;
-}
-
-.hide {
-    display: none;
 }
 
 .auth-button-container {
