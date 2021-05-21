@@ -1,1 +1,1 @@
-(Right (fun (con integer) (fun (con bytestring) (con bytestring))))
+(Right (con bytestring))

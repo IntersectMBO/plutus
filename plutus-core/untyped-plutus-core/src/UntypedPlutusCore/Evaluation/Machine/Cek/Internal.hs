@@ -347,6 +347,7 @@ instance PrettyUni uni fun =>
                 (CekEvaluationExceptionCarrying (CekValue uni fun) fun)
                 (CekCarryingM (CekValue uni fun) uni fun s) where
     throwError = CekCarryingM . throwM . mapCauseInMachineException (void . dischargeCekValue)
+    -- We don't need this function, but it doesn't hurt to define it anyway.
     a `catchError` h =
         a `catchErrorCekCarryingM` \(ErrorWithCause err _) -> h $ ErrorWithCause err Nothing
 

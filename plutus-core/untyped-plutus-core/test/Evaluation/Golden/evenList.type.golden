@@ -1,1 +1,1 @@
-(Right (fun (con integer) (fun (con integer) (con integer))))
+(Right (con integer))

@@ -44,61 +44,42 @@ import           Control.Monad.ST
 import           Data.Array
 import           Data.DList                              (DList)
 import qualified Data.DList                              as DList
+import           Data.Proxy
 import           Data.STRef
 
 infix 4 |>, <|
 
-{- See Note [Arities in VBuiltin] in Cek.hs -}
+instance Show (BuiltinRuntime (CkValue uni fun)) where
+    show _ = "<builtin_runtime>"
+
+instance Eq (BuiltinRuntime (CkValue uni fun)) where
+    _ == _ = True
+
 data CkValue uni fun =
     VCon (Some (ValueOf uni))
   | VTyAbs TyName (Kind ()) (Term TyName Name uni fun ())
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
-  | VBuiltin
-      fun
-      Arity                -- Sorts of arguments to be provided (both types and terms): *don't change this*.
-      Arity                -- A copy of the arity used for checking applications/instantiatons: see Note [Arities in VBuiltin]
-      [Type TyName uni ()] -- The types the builtin is to be instantiated at.
-                           -- We need these to construct a term if the machine is returning a stuck partial application.
-      [CkValue uni fun]        -- Arguments we've computed so far.
+  | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
     deriving (Show, Eq)    -- Eq is just for tests.
 
-{- | Given a possibly partially applied/instantiated builtin, reconstruct the
-   original application from the type and term arguments we've got so far, using
-   the supplied arity.  This also attempts to handle the case of bad
-   interleavings for use in error messages.  The caller has to add the extra
-   type or term argument that caused the error, then mkBuiltinApp works its way
-   along the arity reconstructing the term.  When it can't find an argument of
-   the appropriate kind it looks for one of the other kind (which should be the
-   one supplied by the user): if it finds one it adds an extra application or
-   instantiation as appropriate to what it's constructed so far and returns the
-   result.  If there are no arguments of either kind left it just returns what
-   it has at that point.  Note that we don't call this function if a builtin
-   fails for some reason like division by zero; the term is discarded in that
-   case anyway (see Note [Ignoring context in UserEvaluationError] in
-   Exception.hs)
--}
-mkBuiltinApplication :: fun -> Arity -> [Type TyName uni ()] -> [Term TyName Name uni fun ()] -> Term TyName Name uni fun ()
-mkBuiltinApplication bn arity0 tys0 args0 =
-  go arity0 tys0 args0 (Builtin () bn)
-    where go arity tys args term =
-              case (arity, args, tys) of
-                ([], [], [])                        -> term   -- We've got to the end and successfully constructed the entire application
-                (TermArg:arity', arg:args', _)      -> go arity' tys args' (Apply () term arg)  -- got an expected term argument
-                (TermArg:_,      [],       ty:_)    -> TyInst () term ty                        -- term expected, type found
-                (TypeArg:arity', _,        ty:tys') -> go arity' tys' args (TyInst () term ty)  -- got an expected type argument
-                (TypeArg:_,      arg:_,    [])      -> Apply () term arg                        -- type expected, term found
-                _                                   -> term                                     -- something else, including partial application
+-- | Take pieces of a 'BuiltinApp' and either create a 'Value' using 'makeKnown' or a partial
+-- builtin application depending on whether the built-in function is fully saturated or not.
+evalBuiltinApp
+    :: Term TyName Name uni fun ()
+    -> BuiltinRuntime (CkValue uni fun)
+    -> CkM uni fun s (CkValue uni fun)
+evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
+    TypeSchemeResult _ -> makeKnown x
+    _                  -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
-    VCon val                         -> Constant () val
-    VTyAbs  tn k body                -> TyAbs  () tn k body
-    VLamAbs name ty body             -> LamAbs () name ty body
-    VIWrap  ty1 ty2 val              -> IWrap  () ty1 ty2 $ ckValueToTerm val
-    VBuiltin bn arity0 _ tyargs args -> mkBuiltinApplication bn arity0 tyargs (fmap ckValueToTerm args)
-    {- When we're dealing with VBuiltin we use arity0 to get the type and
-       term arguments into the right sequence. -}
+    VCon val             -> Constant () val
+    VTyAbs  tn k body    -> TyAbs  () tn k body
+    VLamAbs name ty body -> LamAbs () name ty body
+    VIWrap  ty1 ty2 val  -> IWrap  () ty1 ty2 $ ckValueToTerm val
+    VBuiltin term _      -> term
 
 data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
@@ -119,7 +100,7 @@ data CkUserError =
 type CkEvaluationExceptionCarrying term fun =
     EvaluationException CkUserError (MachineError fun) term
 
--- See Note [Being generic over @term@ in 'CekM']
+-- See Note [Being generic over @term@ in 'CkM']
 type CkCarryingM term uni fun s =
     ReaderT (CkEnv uni fun s)
         (ExceptT (CkEvaluationExceptionCarrying term fun)
@@ -266,9 +247,8 @@ stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
-    pure $ Builtin () bn
---     BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . ckEnvRuntime
---     stack <| VBuiltin bn arity arity [] []
+    runtime <- asksM $ lookupBuiltin bn . ckEnvRuntime
+    stack <| VBuiltin (Builtin () bn) runtime
 stack |> Constant _ val          = stack <| VCon val
 _     |> Error{}                 =
     throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) Nothing
@@ -324,17 +304,18 @@ instantiateEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- No kind check - too expensive at run time.
-instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
-    case arity of
-      []             ->
-          throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just $ ckValueToTerm val
-                                                                                 -- Should be impossible: see instantiateEvaluate.
-      TermArg:_      ->
-          throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError $
-              Just $ ckValueToTerm val' where
-                  val' = VBuiltin bn arity0 arity (tys++[ty]) args           -- Reconstruct the bad application
-      TypeArg:[]     -> applyBuiltin stack bn args                           -- Final argument is a type argument
-      TypeArg:arity' -> stack <| VBuiltin bn arity0 arity' (tys++[ty]) args      -- More arguments expected
+instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
+    let term' = TyInst () term ty
+    case sch of
+        TypeSchemeAll  _ schK -> do
+            let runtime' = BuiltinRuntime (schK Proxy) f exF
+            res <- evalBuiltinApp term' runtime'
+            stack <| res
+        _ ->
+            throwingWithCause
+                _MachineError
+                BuiltinTermArgumentExpectedMachineError
+                (Just $ void term')
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just $ ckValueToTerm val
 
@@ -350,33 +331,22 @@ applyEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
-applyEvaluate stack val@(VBuiltin bn arity0 arity tyargs args) arg = do
-    case arity of
-      []             ->
-          throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just $ ckValueToTerm val
-                                                                                    -- Should be impossible: see instantiateEvaluate.
-      TypeArg:_      ->
-          throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $
-              Just $ ckValueToTerm val' where
-                  val' = VBuiltin bn arity0 arity tyargs (args++[arg])          -- Reconstruct the bad application
-      TermArg:[]     -> applyBuiltin stack bn (args ++ [arg])                   -- 'arg' was the final argument
-      TermArg:arity' -> stack <| VBuiltin bn arity0 arity' tyargs (args++[arg])     -- More arguments expected
+applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
+    let term' = Apply () term $ ckValueToTerm arg
+    case sch of
+        TypeSchemeArrow _ schB -> do
+            let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
+            x <- dischargeError $ readKnown arg
+            let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
+            res <- evalBuiltinApp term' runtime'
+            stack <| res
+        _ ->
+            throwingWithCause
+                _MachineError
+                UnexpectedBuiltinTermArgumentMachineError
+                (Just $ void term')
 applyEvaluate _ val _ =
     throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just $ ckValueToTerm val
-
--- | Apply a built-in function to some arguments
-applyBuiltin
-    :: Ix fun
-    => Context uni fun
-    -> fun
-    -> [CkValue uni fun]
-    -> CkM uni fun s (Term TyName Name uni fun ())
-applyBuiltin stack bn args = do
-    pure $ Builtin () bn
-    -- let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
-    -- BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
-    -- result <- dischargeError $ applyTypeSchemed (\_ _ -> pure ()) bn sch f exF args
-    -- stack <| result
 
 runCk
     :: Ix fun
