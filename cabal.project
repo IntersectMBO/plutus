@@ -195,3 +195,24 @@ source-repository-package
   tag: cde90a2b27f79187ca8310b6549331e59595e7ba
 
 
+-- The following is needed because Nix is doing something crazy.
+package byron-spec-ledger
+  tests: False
+
+package marlowe
+  tests: False
+
+package plutus-doc
+  tests: False
+
+package plutus-metatheory
+  tests: False
+
+package prettyprinter-configurable
+  tests: False
+
+package small-steps
+  tests: False
+
+package small-steps-test
+  tests: False

@@ -32,6 +32,8 @@ common lang
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 library
+    if os(windows)
+        buildable: false
     import: lang
     hs-source-dirs: src
     exposed-modules:
@@ -68,6 +70,8 @@ library
         plutus-tx -any
 
 test-suite plutus-tx-tests
+    if os(windows)
+        buildable: false
     type: exitcode-stdio-1.0
     hs-source-dirs: test
     main-is: Spec.hs

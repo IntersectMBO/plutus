@@ -99,7 +99,6 @@ library
         mtl -any,
         natural-transformation -any,
         operational -any,
-        plutus-tx-plugin -any,
         prettyprinter -any,
         plutus-tx -any,
         serialise -any,
@@ -121,6 +120,8 @@ library
         deepseq -any,
         freer-simple -any,
         semigroups -any
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
+        build-depends: plutus-tx-plugin -any
 
     ghc-options: -fprint-potential-instances
 
@@ -146,5 +147,6 @@ test-suite plutus-ledger-test
         lens -any,
         bytestring -any,
         aeson -any,
-        plutus-core -any,
-        plutus-tx-plugin -any
+        plutus-core -any
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
+        build-depends: plutus-tx-plugin -any

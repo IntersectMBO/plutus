@@ -133,7 +133,7 @@ library
         IntervalMap -any,
         plutus-chain-index -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         exposed-modules:
             Plutus.Contract.Test
             Plutus.Contract.Test.ContractModel
@@ -177,5 +177,5 @@ test-suite plutus-contract-test
         freer-simple -any,
         aeson -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any

@@ -35,10 +35,10 @@ let
     # Unfortuntely, they are *not* constant across all possible systems, so in some circumstances we need different sets of files
     # At the moment, we only need one but conceivably we might need one for darwin in future.
     # See https://github.com/input-output-hk/nix-tools/issues/97
-    materialized =
-      if stdenv.hostPlatform.isLinux then ./materialized-linux
-      else if stdenv.hostPlatform.isDarwin then ./materialized-darwin
-      else builtins.error "Don't have materialized files for this platform";
+    # materialized =
+    #   if stdenv.hostPlatform.isLinux then ./materialized-linux
+    #   else if stdenv.hostPlatform.isDarwin then ./materialized-darwin
+    #   else builtins.error "Don't have materialized files for this platform";
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     sha256map = {

@@ -37,6 +37,8 @@ common lang
     if flag(defer-plugin-errors)
 
 executable doc-doctests
+    if os(windows)
+      buildable: false
     import: lang
     hs-source-dirs: plutus/tutorials
     main-is: Main.hs
@@ -70,5 +72,5 @@ executable doc-doctests
       text -any,
       aeson -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any

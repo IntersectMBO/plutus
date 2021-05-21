@@ -101,7 +101,7 @@ library
         wai-cors -any,
         web-ghc -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any
 
 library plutus-playground-usecases
@@ -147,7 +147,7 @@ library plutus-playground-usecases
         time-units -any,
         transformers -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
@@ -221,7 +221,7 @@ executable plutus-playground-server
         web-ghc -any,
         yaml -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any
 
 test-suite plutus-playground-server-test
@@ -262,5 +262,5 @@ test-suite plutus-playground-server-test
         plutus-ledger -any,
         web-ghc -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any

@@ -39,7 +39,7 @@ common lang
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
 
-  if !(impl(ghcjs) || os(ghcjs))
+  if !(impl(ghcjs) || os(ghcjs) || os(windows))
     build-depends: plutus-tx-plugin -any
 
   if flag(defer-plugin-errors)

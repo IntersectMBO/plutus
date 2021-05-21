@@ -88,7 +88,7 @@ library
         streaming -any,
         semigroups -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
@@ -153,7 +153,7 @@ test-suite plutus-use-cases-test
         foldl -any,
         streaming -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any
 
 -- runs emulator traces from plutus-use-cases-tests and
@@ -221,7 +221,7 @@ executable plutus-use-cases-scripts
         plutus-ledger -any,
         plutus-use-cases -any
 
-    if !(impl(ghcjs) || os(ghcjs))
+    if !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any
 
 benchmark plutus-use-cases-bench
@@ -253,5 +253,5 @@ benchmark plutus-use-cases-bench
         bytestring -any,
         plutus-contract -any
 
-  if !(impl(ghcjs) || os(ghcjs))
+  if !(impl(ghcjs) || os(ghcjs) || os(windows))
     build-depends: plutus-tx-plugin -any
