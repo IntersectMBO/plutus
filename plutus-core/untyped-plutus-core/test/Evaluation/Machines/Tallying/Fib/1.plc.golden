@@ -21,7 +21,7 @@
 | mem: 20
 })
 | BBuiltinApp LessThanEqInteger causes ({ cpu: 816637
-| mem: 1000000
+| mem: 1
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 0
 | mem: 0
@@ -30,6 +30,6 @@
 | mem: 0
 })})
 | budget: ({ cpu: 55086637
-| mem: 1000610
+| mem: 611
 })
 }) )

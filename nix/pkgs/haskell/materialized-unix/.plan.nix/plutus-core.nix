@@ -48,6 +48,7 @@
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
+          (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."composition-prelude" or (errorHandler.buildDepError "composition-prelude"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
