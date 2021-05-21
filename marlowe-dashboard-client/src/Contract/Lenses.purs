@@ -24,7 +24,7 @@ import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics as Semantic
 import WalletData.Types (WalletNickname)
 
-_tab :: Lens' State Tab
+_tab :: forall a. Lens' { tab :: Tab | a } Tab
 _tab = prop (SProxy :: SProxy "tab")
 
 _executionState :: Lens' State ExecutionState

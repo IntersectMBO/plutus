@@ -15,7 +15,7 @@ import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
-import Data.Array (difference, filter, foldl, index, length, mapMaybe)
+import Data.Array (difference, filter, foldl, index, length, mapMaybe, modifyAt)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -189,7 +189,13 @@ handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map 
 
   changeChoice namedAction = namedAction
 
-handleAction _ (SelectTab tab) = assign _tab tab
+handleAction _ (SelectTab stepNumber tab) = do
+  previousSteps <- use _previousSteps
+  case modifyAt stepNumber (\previousStep -> previousStep { tab = tab }) previousSteps of
+    -- if the stepNumber is in the range of the previousSteps, we update that step
+    Just modifiedPreviousSteps -> assign _previousSteps modifiedPreviousSteps
+    -- otherwise we update the tab of the current step
+    Nothing -> assign _tab tab
 
 handleAction _ (AskConfirmation action) = pure unit -- Managed by Play.State
 
@@ -283,7 +289,8 @@ transactionsToStep { participants } { txInput, state } =
       else
         TransactionStep txInput
   in
-    { balances
+    { tab: Tasks
+    , balances
     , state: stepState
     }
 
@@ -294,12 +301,15 @@ timeoutToStep { participants, executionState } slot =
 
     balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] currentContractState
   in
-    { balances
+    { tab: Tasks
+    , balances
     , state: TimeoutStep slot
     }
 
 regenerateStepCards :: Slot -> State -> State
 regenerateStepCards currentSlot state =
+  -- TODO: This regenerates all the previous step cards, resetting them to their default state (showing
+  -- the Tasks tab). If any of them are showing the Balances tab, it would be nice to keep them that way.
   let
     confirmedSteps :: Array PreviousStep
     confirmedSteps = toArrayOf (_executionState <<< _previousState <<< traversed <<< to (transactionsToStep state)) state

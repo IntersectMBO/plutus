@@ -207,11 +207,9 @@ actionConfirmationCard assets state namedAction =
           ]
       ]
 
-renderContractCard :: forall p. Int -> State -> Array (HTML p Action) -> HTML p Action
-renderContractCard stepNumber state cardBody =
+renderContractCard :: forall p. Int -> State -> Tab -> Array (HTML p Action) -> HTML p Action
+renderContractCard stepNumber state currentTab cardBody =
   let
-    currentTab = state ^. _tab
-
     tabSelector isActive =
       [ "flex-grow", "text-center", "py-2", "trapesodial-card-selector", "text-sm", "font-semibold" ]
         <> case isActive of
@@ -235,12 +233,12 @@ renderContractCard stepNumber state cardBody =
       [ div [ classNames [ "flex", "overflow-hidden" ] ]
           [ a
               [ classNames (tabSelector $ currentTab == Tasks)
-              , onClick_ $ SelectTab Tasks
+              , onClick_ $ SelectTab stepNumber Tasks
               ]
               [ span_ $ [ text "Tasks" ] ]
           , a
               [ classNames (tabSelector $ currentTab == Balances)
-              , onClick_ $ SelectTab Balances
+              , onClick_ $ SelectTab stepNumber Balances
               ]
               [ span_ $ [ text "Balances" ] ]
           ]
@@ -259,8 +257,7 @@ statusIndicator mIcon status extraClasses =
 renderPastStep :: forall p. State -> Int -> PreviousStep -> HTML p Action
 renderPastStep state stepNumber step =
   let
-    -- FIXME: We need to make the tab independent.
-    currentTab = state ^. _tab
+    currentTab = step ^. _tab
 
     renderBody Tasks { state: TransactionStep txInput } = renderPastActions state txInput
 
@@ -268,7 +265,7 @@ renderPastStep state stepNumber step =
 
     renderBody Balances { balances } = renderBalances state balances
   in
-    renderContractCard stepNumber state
+    renderContractCard stepNumber state currentTab
       [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
@@ -398,7 +395,7 @@ renderCurrentStep currentSlot state =
         (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
         mNextTimeout
   in
-    renderContractCard stepNumber state
+    renderContractCard stepNumber state currentTab
       [ div [ classNames [ "py-2.5", "px-4", "flex", "items-center", "border-b", "border-lightgray" ] ]
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
