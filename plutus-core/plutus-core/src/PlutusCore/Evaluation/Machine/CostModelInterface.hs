@@ -41,9 +41,9 @@ The numbers in CostModel objects are CostingIntegers, which are usually the
 Aeson-encoded JSON objects are represented as Data.Scientific (Integer mantissa,
 Int exponent). We should be able to convert between these types without loss of
 precision, except that Scientific numbers of large magnitude will overflow to
-SatInt::MaxBound or SatInt::MinBound.  This is OK because CostModelParams
-objects should never contain such large numbers. Any Plutus Core programs whose
-cost reaches MaxBound will fail due to excesssive resoutce usage.
+SatInt::MaxBound or underflow to SatInt::MinBound.  This is OK because
+CostModelParams objects should never contain such large numbers. Any Plutus Core
+programs whose cost reaches MaxBound will fail due to excesssive resoutce usage.
 
 3. BuiltinCostModel includes the *type* of the model, which isn't a parameter
 
