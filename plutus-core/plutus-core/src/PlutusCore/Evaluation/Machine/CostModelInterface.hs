@@ -36,8 +36,8 @@ look only at the numbers.
 
 2. We use CostingIntegers, Aeson uses Data.Scientific.
 
-The numbers in CostModel objects are CostingIntegers, which are either (a) the
-64-bit SatInt type, or Integer (only on 32-bit machines).  Numerical values in
+The numbers in CostModel objects are CostingIntegers, which are usually the
+64-bit SatInt type (but Integer on 32-bit machines).  Numerical values in
 Aeson-encoded JSON objects are represented as Data.Scientific (Integer mantissa,
 Int exponent). We should be able to convert between these types without loss of
 precision, except that large Scientific numbers will overflow to
