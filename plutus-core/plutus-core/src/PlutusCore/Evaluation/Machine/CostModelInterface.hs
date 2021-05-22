@@ -128,9 +128,9 @@ extractCostModelParams model = -- this is using the applicative instance of Mayb
    applyParams any superfluous objects in the map being decoded will be
    discarded, so we could update both components of the cost model with the
    entire set of parameters without having to worry about splitting the
-   parameters on a prefix of the key.  This appears to be an undocumented
-   implementation choice in Aeson though (other JSON decoders (for other
-   languages) seem to vary in how unknown fields are handled), so let's be
+   parameters on a prefix of the key.  This relies on what appears to be an
+   undocumented implementation choice in Aeson though (other JSON decoders (for
+   other languages) seem to vary in how unknown fields are handled), so let's be
    explicit. -}
 applySplitCostModelParams
     :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
