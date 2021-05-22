@@ -13,6 +13,7 @@ import qualified Data.ByteString.Lazy   as BS
 import           Data.Map               (Map)
 import           Data.Text              (Text)
 import           GHC.Generics           (Generic)
+import           Language.Marlowe       (Contract)
 import           Network.HTTP.Media     ((//), (/:))
 import           Plutus.V1.Ledger.Value (CurrencySymbol (..), TokenName (..))
 import           Servant.API            (Accept (..), Capture, EmptyAPI, Get, Header, JSON, MimeRender (..), NoContent,
@@ -35,19 +36,30 @@ data TransferRequest = TransferRequest { src_priv_key    :: PrivateKey
                                        , currency_symbol :: CurrencySymbol
                                        , token_symbol    :: TokenName
                                        , amount          :: Integer
-                                       , dest_pub_key    :: PublicKey}
+                                       , dest_pub_key    :: PublicKey
+                                       }
   deriving (Generic, FromJSON)
+
+data CreateContractRequest = CreateContractRequest { creator_priv_key  :: PrivateKey
+                                                   , role_distribution :: [(TokenName, PublicKey)]
+                                                   , contract          :: Contract
+                                                   }
+  deriving (Generic, FromJSON)
+
 
 type JSON_API = "create_wallet" :> ReqBody '[JSON] PrivateKey :> Post '[JSON] PublicKey :<|>
                 "list_wallet_funds" :> ReqBody '[JSON] PublicKey :> Post '[JSON] (Map CurrencySymbol [(TokenName, Integer)]) :<|>
-                "transfer_funds" :> ReqBody '[JSON] TransferRequest :> Post '[JSON] ()
+                "transfer_funds" :> ReqBody '[JSON] TransferRequest :> Post '[JSON] () :<|>
+                "create_contract" :> ReqBody '[JSON] CreateContractRequest :> Post '[JSON] (Either String CurrencySymbol)
 
 
 type PLAIN_API = "create_wallet" :> Capture "priv_key" String :> Get '[PlainText] String :<|>
                  "list_wallet_funds" :> Capture "pub_key" String :> Get '[PlainText] String :<|>
                  "transfer_funds" :> Capture "src_priv_key" String :> Capture "currency_symbol" String
                                   :> Capture "token_symbol" String :> Capture "amount" Integer
-                                  :> Capture "dest_pub_key" String :> Get '[PlainText] String
+                                  :> Capture "dest_pub_key" String :> Get '[PlainText] String :<|>
+                 "create_contract" :> Capture "creator_priv_key" String :> Capture "role_distribution" String
+                                   :> Capture "contract" String :> Get '[PlainText] String
 
 type STATIC = Raw
 type API = JSON_API :<|>

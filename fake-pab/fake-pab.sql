@@ -18,6 +18,10 @@ CREATE SCHEMA fakepab;
 ALTER SCHEMA fakepab OWNER TO fakepab;
 
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA fakepab;
+
+
+
 CREATE FUNCTION fakepab.get_or_create_money_container_id_from_pubkey(target_pub_key character varying) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
