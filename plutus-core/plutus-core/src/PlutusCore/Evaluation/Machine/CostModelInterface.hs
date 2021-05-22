@@ -70,8 +70,6 @@ that to split the map of parameters into two maps.
 
 -}
 
--- ** Also address Roman's comments.
-
 -- See Note [Cost model parameters]
 type CostModelParams = Map.Map Text.Text Integer
 
@@ -83,7 +81,7 @@ extractParams cm = case toJSON cm of
         let
             flattened = flattenObject "-" o
             usingCostingIntegers = HM.mapMaybe (\case { Number n -> Just $ ceiling n; _ -> Nothing }) flattened
-            -- ^ Only the "Just" values are retained in the output map
+            -- ^ Only the "Just" values are retained in the output map.
             mapified = Map.fromList $ HM.toList usingCostingIntegers
         in Just mapified
     _ -> Nothing
@@ -109,28 +107,32 @@ applyParams cm params = case toJSON cm of
 -- | Parameters for a machine step model and a builtin evaluation model bundled together.
 data SplitCostModelParams =
     SplitCostModelParams {
-      machineParams :: CostModelParams
-    , builtinParams :: CostModelParams
+      _machineParams :: CostModelParams
+    , _builtinParams :: CostModelParams
     }
 
 -- | Split a CostModelParams object into two subobjects according to some prefix:
 -- see item 5 of Note [Cost model parameters].
 splitParams :: Text.Text -> CostModelParams -> SplitCostModelParams
 splitParams prefix params =
-    let machineparams = Map.filterWithKey (\k _ ->       Text.isPrefixOf prefix k) params
-        builtinparams = Map.filterWithKey (\k _ -> not $ Text.isPrefixOf prefix k) params
+    let (machineparams, builtinparams) = Map.partitionWithKey (\k _ -> Text.isPrefixOf prefix k) params
     in SplitCostModelParams machineparams builtinparams
 
 -- | Given a CostModel, produce a single map containing the parameters from both components
 extractCostModelParams :: ToJSON machinecosts => CostModel machinecosts -> Maybe CostModelParams
-extractCostModelParams model =
-    case ( extractParams (machineCostModel model)
-         , extractParams (builtinCostModel model) )
-    of (Just machineparams, Just builtinparams) -> Just $ Map.union machineparams builtinparams
-       _                                        -> Nothing
+extractCostModelParams model = -- this is using the applicative instance of Maybe
+    Map.union <$> extractParams (machineCostModel model) <*> extractParams (builtinCostModel model)
 
--- | Given a set of cost model parameters, split it into two parts according to some
--- prefix and use those parts to update the components of a cost model.
+-- | Given a set of cost model parameters, split it into two parts according to
+-- some prefix and use those parts to update the components of a cost model.
+{- Strictly we don't need to do the splitting: when we call fromJSON in
+   applyParams any superfluous objects in the map being decoded will be
+   discarded, so we could update both components of the cost model with the
+   entire set of parameters without having to worry about splitting the
+   parameters on a prefix of the key.  This appears to be an undocumented
+   implementation choice in Aeson though (other JSON decoders (for other
+   languages) seem to vary in how unknown fields are handled), so let's be
+   explicit. -}
 applySplitCostModelParams
     :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
     => Text.Text
@@ -138,12 +140,9 @@ applySplitCostModelParams
     -> CostModelParams
     -> Maybe (CostModel evaluatorcosts)
 applySplitCostModelParams prefix model params =
-    let p = splitParams prefix params
-    in case ( applyParams (machineCostModel model) (machineParams p)
-            , applyParams (builtinCostModel model) (builtinParams p) )
-       of
-         (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
-         _                                     -> Nothing
+    let SplitCostModelParams machineparams builtinparams = splitParams prefix params
+    in CostModel <$> applyParams (machineCostModel model) machineparams
+                 <*> applyParams (builtinCostModel model) builtinparams
 
 -- | Update a CostModel for the CEK machine with a given set of parameters,
 applyCostModelParams
