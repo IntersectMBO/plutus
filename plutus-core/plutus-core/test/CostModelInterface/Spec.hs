@@ -122,7 +122,7 @@ testExtractAfterUpdate model1 model2 =
 
 test_costModelInterface :: TestTree
 test_costModelInterface =
-    testGroup" cost model interface tests"
+    testGroup "cost model interface tests"
        [ testGroup "extractCostModelParams works"
        [ testCase "defaultCekCostModel" $ testExtraction defaultCekCostModel
        , testCase "randomCekCostModel"  $ testExtraction randomCekCostModel
@@ -131,7 +131,7 @@ test_costModelInterface =
        [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testSelfUpdate defaultCekCostModel
        , testCase "randomCekCostModel  <- randomCekCostModel"  $ testSelfUpdate randomCekCostModel
        ]
-     , testGroup "overwriting works"
+      , testGroup "overwriting works"
        [ testCase "defaultCekCostModel <- randomCekCostModel"  $ testOverwrite defaultCekCostModel randomCekCostModel
        , testCase "randomCekCostModel  <- defaultCekCostModel" $ testOverwrite randomCekCostModel  defaultCekCostModel
        ]
