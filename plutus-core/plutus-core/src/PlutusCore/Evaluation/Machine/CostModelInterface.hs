@@ -80,7 +80,7 @@ extractParams cm = case toJSON cm of
         let
             flattened = flattenObject "-" o
             usingCostingIntegers = HM.mapMaybe (\case { Number n -> Just $ ceiling n; _ -> Nothing }) flattened
-            -- ^ Only the "Just" values are retained in the output map.
+            -- ^ Only (the contents of) the "Just" values are retained in the output map.
             mapified = Map.fromList $ HM.toList usingCostingIntegers
         in Just mapified
     _ -> Nothing
