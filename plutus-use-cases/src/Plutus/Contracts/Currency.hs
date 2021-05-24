@@ -55,10 +55,10 @@ import           Data.Semigroup          (Last (..))
 import           GHC.Generics            (Generic)
 import qualified PlutusTx.AssocMap       as AssocMap
 import           Prelude                 (Semigroup (..))
-import qualified Prelude
+import qualified Prelude                 as Haskell
 import           Schema                  (ToSchema)
 
-{-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
+{-# ANN module ("HLint: ignore Use uncurry" :: Haskell.String) #-}
 
 -- | A currency that can be created exactly once
 data OneShotCurrency = OneShotCurrency
@@ -69,7 +69,7 @@ data OneShotCurrency = OneShotCurrency
   -- ^ How many units of each 'TokenName' are to
   --   be forged.
   }
-  deriving stock (Generic, Prelude.Show, Prelude.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''OneShotCurrency
@@ -139,7 +139,7 @@ currencySymbol = scriptCurrencySymbol . curPolicy
 data CurrencyError =
     CurPubKeyError PubKeyError
     | CurContractError ContractError
-    deriving stock (Prelude.Eq, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''CurrencyError
@@ -184,7 +184,7 @@ data SimpleMPS =
         { tokenName :: TokenName
         , amount    :: Integer
         }
-        deriving stock (Prelude.Eq, Prelude.Show, Generic)
+        deriving stock (Haskell.Eq, Haskell.Show, Generic)
         deriving anyclass (FromJSON, ToJSON, ToSchema)
 
 type CurrencySchema =

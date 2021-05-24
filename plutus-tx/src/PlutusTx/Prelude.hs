@@ -16,8 +16,17 @@ module PlutusTx.Prelude (
     module Lattice,
     module Foldable,
     module Traversable,
+    -- * Monad
+    (>>=),
+    (=<<),
+    (>>),
+    return,
     -- * Standard functions
     ($),
+    (.),
+    otherwise,
+    until,
+    flip,
     -- * String and tracing functions
     trace,
     traceIfTrue,
@@ -29,11 +38,13 @@ module PlutusTx.Prelude (
     check,
     -- * Booleans
     module Bool,
-    -- * Int operators
+    -- * Integer numbers
+    Integer,
     divide,
     modulo,
     quotient,
     remainder,
+    even,
     -- * Tuples
     fst,
     snd,
@@ -43,6 +54,8 @@ module PlutusTx.Prelude (
     module Either,
     -- * Lists
     module List,
+    dropWhile,
+    zipWith,
     -- * ByteStrings
     ByteString,
     takeByteString,
@@ -60,7 +73,6 @@ module PlutusTx.Prelude (
     round,
     divMod,
     quotRem,
-    module Prelude
     ) where
 
 import           Data.String          (IsString (..))

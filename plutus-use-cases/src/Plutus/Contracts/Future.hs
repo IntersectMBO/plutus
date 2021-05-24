@@ -109,7 +109,7 @@ data Future =
 
 -- | The two roles involved in the contract.
 data Role = Long | Short
-    deriving stock (Generic, Show)
+    deriving stock (Generic, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Role where
@@ -140,7 +140,7 @@ data Margins =
         { ftsShortMargin :: Value
         , ftsLongMargin  :: Value
         }
-        deriving (Haskell.Eq, Show, Generic)
+        deriving (Haskell.Eq, Haskell.Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Margins where
@@ -152,7 +152,7 @@ data FutureState =
     -- ^ Ongoing contract, with the current margins.
     | Finished
     -- ^ Contract is finished.
-    deriving stock (Show, Generic, Haskell.Eq)
+    deriving stock (Haskell.Show, Generic, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq FutureState where
@@ -171,7 +171,7 @@ data FutureAction =
     -- ^ Close the contract early after a margin payment has been missed.
     --   The value of both margin accounts will be paid to the role that
     --   *didn't* violate the margin requirement
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data FutureError =
@@ -184,7 +184,7 @@ data FutureError =
     | EscrowRefunded RefundSuccess
     -- ^ The other party didn't make their payment in time so the contract never
     --   started.
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''FutureError
@@ -628,7 +628,7 @@ testAccounts =
     let con = setupTokens @() @FutureSchema @FutureError
         fld = Folds.instanceOutcome con (Trace.walletInstanceTag (Wallet.Wallet 1))
         getOutcome (Folds.Done a) = a
-        getOutcome e              = Haskell.error $ "not finished: " <> show e
+        getOutcome e              = Haskell.error $ "not finished: " <> Haskell.show e
     in
     either (Haskell.error . Haskell.show) (getOutcome . S.fst')
         $ Freer.run

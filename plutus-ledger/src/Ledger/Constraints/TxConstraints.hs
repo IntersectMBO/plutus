@@ -50,7 +50,7 @@ data TxConstraint =
     | MustPayToPubKey PubKeyHash Value
     | MustPayToOtherScript ValidatorHash Datum Value
     | MustHashDatum DatumHash Datum
-    deriving stock (Show, Generic, Haskell.Eq)
+    deriving stock (Haskell.Show, Generic, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty TxConstraint where
@@ -82,7 +82,7 @@ data InputConstraint a =
     InputConstraint
         { icRedeemer :: a
         , icTxOutRef :: TxOutRef
-        } deriving stock (Show, Generic, Haskell.Functor)
+        } deriving stock (Haskell.Show, Generic, Haskell.Functor)
 
 addTxIn :: TxOutRef -> i -> TxConstraints i o -> TxConstraints i o
 addTxIn outRef red tc =
@@ -104,7 +104,7 @@ data OutputConstraint a =
     OutputConstraint
         { ocDatum :: a
         , ocValue :: Value
-        } deriving stock (Show, Generic, Haskell.Functor)
+        } deriving stock (Haskell.Show, Generic, Haskell.Functor)
 
 instance (Pretty a) => Pretty (OutputConstraint a) where
     pretty OutputConstraint{ocDatum, ocValue} =
@@ -124,7 +124,7 @@ data TxConstraints i o =
         , txOwnInputs   :: [InputConstraint i]
         , txOwnOutputs  :: [OutputConstraint o]
         }
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
 
 instance Bifunctor TxConstraints where
     bimap f g txc =
@@ -205,7 +205,7 @@ mustForgeValue :: forall i o. Value -> TxConstraints i o
 mustForgeValue = foldMap valueConstraint . (AssocMap.toList . Value.getValue) where
     valueConstraint (currencySymbol, mp) =
         let hs = Value.currencyMPSHash currencySymbol in
-        foldMap (uncurry (mustForgeCurrency hs)) (AssocMap.toList mp)
+        foldMap (Haskell.uncurry (mustForgeCurrency hs)) (AssocMap.toList mp)
 
 {-# INLINABLE mustForgeCurrency #-}
 -- | Create the given amount of the currency

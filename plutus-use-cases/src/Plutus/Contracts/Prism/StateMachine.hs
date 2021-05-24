@@ -56,7 +56,7 @@ data UserCredential =
         -- ^ The 'Value' containing a token of the credential
         -- (this needs to be included here because 'Credential.token'
         -- is not available in on-chain code)
-        } deriving stock (Haskell.Eq, Show, Generic)
+        } deriving stock (Haskell.Eq, Haskell.Show, Generic)
           deriving anyclass (ToJSON, FromJSON, Hashable)
 
 {-# INLINABLE transition #-}

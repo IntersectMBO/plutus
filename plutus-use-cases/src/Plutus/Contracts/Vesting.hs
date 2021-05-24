@@ -162,7 +162,7 @@ contractAddress = Scripts.scriptAddress . scriptInstance
 data VestingError =
     VContractError ContractError
     | InsufficientFundsError Value Value Value
-    deriving stock (Haskell.Eq, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''VestingError

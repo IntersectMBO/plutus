@@ -23,7 +23,9 @@ import           GHC.Generics
 import           Plutus.Benchmark.Knights.Sort
 import           Plutus.Benchmark.Knights.Utils
 
-import           PlutusTx.Prelude               as Tx hiding (init)
+import           PlutusTx.Prelude               as Tx
+
+import qualified Prelude                        as Haskell
 
 
 type Tile     = (Integer,Integer)
@@ -130,9 +132,9 @@ isSquareFree x (Board _ _ _ ts) = notIn x ts
 -- % Everything below here is only needed for printing boards.
 -- % This is useful for debugging.
 
-instance Show ChessSet where
+instance Haskell.Show ChessSet where
    showsPrec _ (Board sze n _ ts)
-      = showString (printBoard sze sortedTrail 1)
+      = Haskell.showString (printBoard sze sortedTrail 1)
         where sortedTrail = quickSort (assignMoveNo ts sze n)
 
 assignMoveNo :: [Tile] -> Integer -> Integer -> [Tile]
@@ -141,25 +143,25 @@ assignMoveNo [] _ _
 assignMoveNo ((x,y):t) size z
    = (((y-1)*size)+x,z):assignMoveNo t size (z-1)
 
-printBoard :: Integer -> [Tile] -> Integer -> String
+printBoard :: Integer -> [Tile] -> Integer -> Haskell.String
 printBoard s [] n
    | (n  > (s*s))   = ""
-   | ((n `mod` s) /=0)= "*"++(spaces (s*s) 1) ++(printBoard s [] (n+1))
-   | ((n `mod` s) ==0)= "*\n"                 ++(printBoard s [] (n+1))
+   | ((n `Haskell.mod` s) /=0)= "*"++(spaces (s*s) 1) ++(printBoard s [] (n+1))
+   | ((n `Haskell.mod` s) ==0)= "*\n"                 ++(printBoard s [] (n+1))
 printBoard s trail@((i,j):xs) n
    | (i==n) &&
-     ((n `mod` s) ==0) = (show j)++"\n"++(printBoard s xs (n+1))
+     ((n `Haskell.mod` s) ==0) = (Haskell.show j)++"\n"++(printBoard s xs (n+1))
    | (i==n) &&
-     ((n `mod` s) /=0)= (show j)++(spaces (s*s) j)++(printBoard s xs    (n+1))
-   | ((n `mod` s) /=0)= "*"     ++(spaces (s*s) 1)++(printBoard s trail (n+1))
-   | ((n `mod` s) ==0)= "*\n"                     ++(printBoard s trail (n+1))
+     ((n `Haskell.mod` s) /=0)= (Haskell.show j)++(spaces (s*s) j)++(printBoard s xs    (n+1))
+   | ((n `Haskell.mod` s) /=0)= "*"     ++(spaces (s*s) 1)++(printBoard s trail (n+1))
+   | ((n `Haskell.mod` s) ==0)= "*\n"                     ++(printBoard s trail (n+1))
 printBoard _ _ _ = "?"
 
-spaces :: Integer -> Integer -> String
+spaces :: Integer -> Integer -> Haskell.String
 spaces s y =
     take' ((logTen s) - (logTen y) + 1) [' ',' '..]
         where
           logTen :: Integer -> Integer
           logTen 0 = 0
-          logTen x = 1 + logTen (x `div` 10)
+          logTen x = 1 + logTen (x `Haskell.div` 10)
 

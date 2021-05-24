@@ -16,6 +16,7 @@ module PlutusTx.Foldable
   , traverse_
   , for_
   , sequenceA_
+  , sequence_
   , asum
   , concat
   , concatMap
@@ -151,6 +152,12 @@ for_ = flip traverse_
 sequenceA_ :: (Foldable t, Applicative f) => t (f a) -> f ()
 sequenceA_ = foldr c (pure ())
   where c m k = m *> k
+        {-# INLINE c #-}
+
+-- | Plutus Tx version of 'Data.Foldable.sequence_'.
+sequence_ :: (Foldable t, Monad m) => t (m a) -> m ()
+sequence_ = foldr c (return ())
+  where c m k = m >> k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.asum'.

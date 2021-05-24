@@ -12,7 +12,8 @@ module PlutusTx.List (
     (++),
     (!!),
     head,
-    take
+    take,
+    tail
     ) where
 
 import qualified PlutusTx.Builtins as Builtins
