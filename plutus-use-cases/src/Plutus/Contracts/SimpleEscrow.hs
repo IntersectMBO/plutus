@@ -54,7 +54,7 @@ data EscrowParams =
     , deadline  :: Slot
     -- ^ Slot after which the contract expires.
     }
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 type EscrowSchema =
@@ -67,14 +67,14 @@ data Action
   = Redeem | Refund
 
 data RedeemFailReason = DeadlinePassed
-    deriving stock (Haskell.Eq, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data EscrowError =
     RedeemFailed RedeemFailReason
     | RefundFailed
     | EContractError ContractError
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''EscrowError
@@ -83,11 +83,11 @@ instance AsContractError EscrowError where
     _ContractError = _EContractError
 
 newtype RefundSuccess = RefundSuccess TxId
-    deriving newtype (Haskell.Eq, Show, Generic)
+    deriving newtype (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 newtype RedeemSuccess = RedeemSuccess TxId
-    deriving (Haskell.Eq, Show)
+    deriving (Haskell.Eq, Haskell.Show)
 
 data Escrow
 instance Scripts.ScriptType Escrow where
@@ -130,7 +130,7 @@ lockEp = do
   params <- endpoint @"lock"
   let tx = Constraints.mustPayToTheScript params (paying params)
             <> Constraints.mustValidateIn valRange
-      valRange = Interval.to (pred $ deadline params)
+      valRange = Interval.to (Haskell.pred $ deadline params)
   void $ submitTxConstraints escrowInstance tx
 
 -- | Attempts to redeem the 'Value' locked into this script by paying in from
@@ -145,7 +145,7 @@ redeemEp = mapError (review _EscrowError) $ endpoint @"redeem" >>= redeem
 
       let value = foldMap (Tx.txOutValue . Tx.txOutTxOut) unspentOutputs
           tx = Typed.collectFromScript unspentOutputs Redeem
-                      <> Constraints.mustValidateIn (Interval.to (pred $ deadline params))
+                      <> Constraints.mustValidateIn (Interval.to (Haskell.pred $ deadline params))
                       -- Pay me the output of this script
                       <> Constraints.mustPayToPubKey (Ledger.pubKeyHash pk) value
                       -- Pay the payee their due
@@ -163,7 +163,7 @@ refundEp = mapError (review _EscrowError) $ endpoint @"refund" >>= refund
       unspentOutputs <- utxoAt escrowAddress
 
       let tx = Typed.collectFromScript unspentOutputs Refund
-                  <> Constraints.mustValidateIn (Interval.from (succ $ deadline params))
+                  <> Constraints.mustValidateIn (Interval.from (Haskell.succ $ deadline params))
 
       if Constraints.modifiesUtxoSet tx
       then RefundSuccess . txId <$> submitTxConstraintsSpending escrowInstance unspentOutputs tx

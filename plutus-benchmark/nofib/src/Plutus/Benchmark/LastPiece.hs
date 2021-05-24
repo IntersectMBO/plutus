@@ -20,7 +20,8 @@ import qualified PlutusCore.Pretty   as PLC
 import           PlutusCore.Universe
 import           PlutusTx            as PlutusTx
 import           PlutusTx.Builtins   as Tx
-import           PlutusTx.Prelude    as PLC hiding (Semigroup (..), check, foldMap, showList)
+import           PlutusTx.Prelude    as PLC hiding (Semigroup (..), check, foldMap)
+import qualified Prelude             as Haskell
 import           UntypedPlutusCore
 
 -------------------------------------
@@ -29,7 +30,7 @@ type Offset  = (Integer, Integer)
 type Square  = (Integer, Integer)
      -- (1,1) is bottom LH corner
 
-type PieceId = Char
+type PieceId = Haskell.Char
 
 type Board = [(Square, PieceId)]  -- Was Map.Map Square PieceId
 
@@ -42,7 +43,7 @@ data Piece = P PieceId
 data Solution = Soln Board
               | Choose [Solution]       -- Non-empty
               | Fail  -- Board Square
-                deriving (Show)
+                deriving (Haskell.Show)
 
 data Sex = Male | Female
 
@@ -290,8 +291,8 @@ bPiece = P 'b'  [ [(0,1),(0,2),(1,2)],
                   [(0,1),(1,0),(2,0)] ]
                 [ [(1,0),(1,1),(1,2)] ]
 
-unindent :: PLC.Doc ann -> [PLC.String]
-unindent d = map (dropWhile isSpace) $ (lines . show $ d)
+unindent :: PLC.Doc ann -> [Haskell.String]
+unindent d = map (Haskell.dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
 
 runLastPiece :: Solution
 runLastPiece = search (1,2) Female initialBoard initialPieces

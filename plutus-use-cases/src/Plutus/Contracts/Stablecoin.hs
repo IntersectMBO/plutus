@@ -356,7 +356,7 @@ data InvalidStateReason
     | MaxReserves { allowed :: BC (Ratio Integer), actual :: BC (Ratio Integer)  }
     | NegativeLiabilities
     | NegativeEquity
-    deriving (Show)
+    deriving (Haskell.Show)
 
 stablecoinStateMachine :: Stablecoin -> StateMachine BankState Input
 stablecoinStateMachine sc = StateMachine.mkStateMachine Nothing (transition sc) isFinal
@@ -413,15 +413,15 @@ checkTransition theClient sc i@Input{inpConversionRate} = do
                 case currentState of
                     Just ((TypedScriptTxOut{tyTxOutData}, _), _) -> do
                         case checkValidState sc tyTxOutData obsValue of
-                            Right _ -> logInfo @String "Current state OK"
-                            Left w  -> logInfo $ "Current state is invalid: " <> show w <> ". The transition may still be allowed."
+                            Right _ -> logInfo @Haskell.String "Current state OK"
+                            Left w  -> logInfo $ "Current state is invalid: " <> Haskell.show w <> ". The transition may still be allowed."
                         case applyInput sc tyTxOutData i of
                             Just (_, newState) -> case checkValidState sc newState obsValue of
-                                Right _ -> logInfo @String "New state OK"
-                                Left w  -> logWarn $ "New state is invalid: " <> show w <> ". The transition is not allowed."
-                            Nothing -> logWarn @String "applyInput is Nothing (transition failed)"
-                    Nothing -> logWarn @String "Unable to find current state."
-            Left e -> logWarn $ "Unable to decode oracle value from datum: " <> show e
+                                Right _ -> logInfo @Haskell.String "New state OK"
+                                Left w  -> logWarn $ "New state is invalid: " <> Haskell.show w <> ". The transition is not allowed."
+                            Nothing -> logWarn @Haskell.String "applyInput is Nothing (transition failed)"
+                    Nothing -> logWarn @Haskell.String "Unable to find current state."
+            Left e -> logWarn $ "Unable to decode oracle value from datum: " <> Haskell.show e
 
 PlutusTx.makeLift ''SC
 PlutusTx.makeLift ''RC

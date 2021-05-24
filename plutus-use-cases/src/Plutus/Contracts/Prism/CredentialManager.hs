@@ -65,7 +65,7 @@ data CredentialManagerClientError =
 data CredentialManagerError =
     TokenAppServerContractError ContractError
     | TokenAppServerRPCError RPCRespondError
-    deriving stock (Show, Haskell.Eq, Generic)
+    deriving stock (Haskell.Show, Haskell.Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Server side implementation of the 'CredentialManager' RPC. This simply calls the 'PresentCredential'

@@ -311,7 +311,7 @@ pickupWalletScreen state =
       , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
       , p
           [ classNames [ "mb-4", "text-center" ] ]
-          [ text "Or use an existing one by enering a wallet ID or nickname." ]
+          [ text "Or use an existing one by entering a wallet ID or nickname." ]
       , div
           [ classNames [ "relative" ] ]
           [ input

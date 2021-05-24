@@ -27,6 +27,7 @@ import qualified Ledger.Typed.Scripts   as Scripts
 import           Plutus.Contract
 import qualified PlutusTx               as PlutusTx
 import           PlutusTx.Prelude
+import qualified Prelude                as Haskell
 import           Schema
 import           Wallet.Emulator.Wallet
 
@@ -38,7 +39,7 @@ data SplitData =
         , recipient2 :: PubKeyHash -- ^ Second recipient of the funds
         , amount     :: Ada -- ^ How much Ada we want to lock
         }
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
 
 -- For a 'real' application use 'makeIsDataIndexed' to ensure the output is stable over time
 PlutusTx.unstableMakeIsData ''SplitData
@@ -73,7 +74,7 @@ data LockArgs =
             , recipient2Wallet :: Wallet
             , totalAda         :: Ada
             }
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 type SplitSchema =
@@ -106,7 +107,7 @@ mkSplitData LockArgs{recipient1Wallet, recipient2Wallet, totalAda} =
 
 lockFunds :: SplitData -> Contract () SplitSchema T.Text ()
 lockFunds s@SplitData{amount} = do
-    logInfo $ "Locking " <> show amount
+    logInfo $ "Locking " <> Haskell.show amount
     let tx = Constraints.mustPayToTheScript s (Ada.toValue amount)
     void $ submitTxConstraints splitInstance tx
 

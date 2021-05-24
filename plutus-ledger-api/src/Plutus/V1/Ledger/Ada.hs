@@ -56,10 +56,10 @@ adaToken = TH.tokenName emptyByteString
 --   1M Lovelace is one Ada.
 --   See note [Currencies] in 'Ledger.Validation.Value.TH'.
 newtype Ada = Lovelace { getLovelace :: Integer }
-    deriving (Enum)
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving (Haskell.Enum)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
-    deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise, PlutusTx.IsData)
+    deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Haskell.Integral, Haskell.Real, Serialise, PlutusTx.IsData)
     deriving Pretty via (Tagged "Lovelace:" Integer)
 
 instance Haskell.Semigroup Ada where

@@ -21,13 +21,13 @@
 | mem: 90
 })
 | BBuiltinApp AddInteger causes ({ cpu: 830210
-| mem: 2000000
+| mem: 2
 })
 | BBuiltinApp SubtractInteger causes ({ cpu: 1794358
-| mem: 4000000
+| mem: 4
 })
 | BBuiltinApp LessThanEqInteger causes ({ cpu: 2449911
-| mem: 3000000
+| mem: 3
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 0
 | mem: 0
@@ -36,6 +36,6 @@
 | mem: 0
 })})
 | budget: ({ cpu: 66064479
-| mem: 9001570
+| mem: 1579
 })
 }) )

@@ -75,14 +75,14 @@ type EscrowSchema =
         .\/ Endpoint "refund-escrow" ()
 
 data RedeemFailReason = DeadlinePassed | NotEnoughFundsAtAddress
-    deriving stock (Haskell.Eq, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data EscrowError =
     RedeemFailed RedeemFailReason
     | RefundFailed
     | EContractError ContractError
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''EscrowError
@@ -259,7 +259,7 @@ pay inst escrow vl = mapError (review _EContractError) $ do
     txId <$> submitTxConstraints inst tx
 
 newtype RedeemSuccess = RedeemSuccess TxId
-    deriving (Haskell.Eq, Show)
+    deriving (Haskell.Eq, Haskell.Show)
 
 -- | 'redeem' with an endpoint.
 redeemEp ::
@@ -293,7 +293,7 @@ redeem inst escrow = mapError (review _EscrowError) $ do
     current <- currentSlot
     unspentOutputs <- utxoAt addr
     let
-        valRange = Interval.to (pred $ escrowDeadline escrow)
+        valRange = Interval.to (Haskell.pred $ escrowDeadline escrow)
         tx = Typed.collectFromScript unspentOutputs Redeem
                 <> foldMap mkTx (escrowTargets escrow)
                 <> Constraints.mustValidateIn valRange
@@ -304,7 +304,7 @@ redeem inst escrow = mapError (review _EscrowError) $ do
          else RedeemSuccess . txId <$> submitTxConstraintsSpending inst unspentOutputs tx
 
 newtype RefundSuccess = RefundSuccess TxId
-    deriving newtype (Haskell.Eq, Show, Generic)
+    deriving newtype (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | 'refund' with an endpoint.
@@ -333,7 +333,7 @@ refund inst escrow = do
     unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
     let flt _ (TxOutTx _ txOut) = Ledger.txOutDatum txOut == Just (Ledger.datumHash $ Datum (PlutusTx.toData $ Ledger.pubKeyHash pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs Refund
-                <> Constraints.mustValidateIn (from (succ $ escrowDeadline escrow))
+                <> Constraints.mustValidateIn (from (Haskell.succ $ escrowDeadline escrow))
     if Constraints.modifiesUtxoSet tx'
     then RefundSuccess . txId <$> submitTxConstraintsSpending inst unspentOutputs tx'
     else throwing _RefundFailed ()

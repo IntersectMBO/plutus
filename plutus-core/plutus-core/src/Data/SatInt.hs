@@ -13,6 +13,7 @@ module Data.SatInt (SatInt) where
 import           Control.DeepSeq            (NFData)
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Bits
+import           Data.Csv
 import           Data.Primitive             (Prim)
 import           GHC.Base
 import           GHC.Num
@@ -23,6 +24,7 @@ newtype SatInt = SI { unSatInt :: Int }
     deriving newtype (NFData, Bits, FiniteBits, Prim)
     deriving Lift
     deriving (FromJSON, ToJSON) via Int
+    deriving FromField via Int  -- For reading cost model data from CSV input
 
 instance Show SatInt where
   showsPrec p x = showsPrec p (unSatInt x)

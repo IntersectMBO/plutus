@@ -188,7 +188,7 @@ data AuctionLog =
     | AuctionEnded HighestBid
     | CurrentStateNotFound
     | TransitionFailed (SM.InvalidTransition AuctionState AuctionInput)
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data AuctionError =
@@ -210,7 +210,7 @@ instance SM.AsSMContractError AuctionError where
 auctionSeller :: Value -> Slot -> Contract AuctionOutput SellerSchema AuctionError ()
 auctionSeller value slot = do
     threadToken <- mapError ThreadTokenError Currency.createThreadToken
-    logInfo $ "Obtained thread token: " <> show threadToken
+    logInfo $ "Obtained thread token: " <> Haskell.show threadToken
     tell $ threadTokenOut threadToken
     self <- Ledger.pubKeyHash <$> ownPubKey
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = slot }
@@ -228,7 +228,7 @@ auctionSeller value slot = do
     case r of
         SM.TransitionFailure i            -> logError (TransitionFailed i) -- TODO: Add an endpoint "retry" to the seller?
         SM.TransitionSuccess (Finished h) -> logInfo $ AuctionEnded h
-        SM.TransitionSuccess s            -> logWarn ("Unexpected state after Payout transition: " <> show s)
+        SM.TransitionSuccess s            -> logWarn ("Unexpected state after Payout transition: " <> Haskell.show s)
 
 
 -- | Get the current state of the contract and log it.
@@ -271,7 +271,7 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
         submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
         otherBid = do
             let address = Scripts.scriptAddress (validatorInstance (SM.scInstance client))
-                targetSlot = succ (succ s) -- FIXME (jm): There is some off-by-one thing going on that requires us to
+                targetSlot = Haskell.succ (Haskell.succ s) -- FIXME (jm): There is some off-by-one thing going on that requires us to
                                            -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
                                            -- to wait for the next slot to begin.
                                            -- I don't have the time to look into that atm though :(
