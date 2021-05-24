@@ -49,9 +49,11 @@ import           Data.STRef
 
 infix 4 |>, <|
 
+-- See Note [Instances for BuiltinRuntime] in the CEK machine.
 instance Show (BuiltinRuntime (CkValue uni fun)) where
     show _ = "<builtin_runtime>"
 
+-- See Note [Instances for BuiltinRuntime] in the CEK machine.
 instance Eq (BuiltinRuntime (CkValue uni fun)) where
     _ == _ = True
 
@@ -63,8 +65,9 @@ data CkValue uni fun =
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
     deriving (Show, Eq)    -- Eq is just for tests.
 
--- | Take pieces of a 'BuiltinApp' and either create a 'Value' using 'makeKnown' or a partial
--- builtin application depending on whether the built-in function is fully saturated or not.
+-- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
+-- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+-- fully saturated or not.
 evalBuiltinApp
     :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
@@ -118,7 +121,7 @@ instance Pretty CkUserError where
 
 type CkM uni fun s = CkCarryingM (Term TyName Name uni fun ()) uni fun s
 
-{- | Note [Errors and CkValues]
+{- Note [Errors and CkValues]
 Most errors take an optional argument that can be used to report the
 term causing the error. Our builtin applications take CkValues as
 arguments, and this constrains the `term` type in the constant
@@ -280,17 +283,19 @@ FrameUnwrap        : stack <| wrapped = case wrapped of
     _               ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just $ ckValueToTerm wrapped
 
-{- Note [Accumulating arguments].  The VBuiltin value contains lists of type and
-term arguments which grow as new arguments are encountered.  In the code below
-We just add new entries by appending to the end of the list: l -> l++[x].  This
-doesn't look terrbily good, but we don't expect the lists to ever contain more
-than three or four elements, so the cost is unlikely to be high.  We could
-accumulate lists in the normal way and reverse them when required, but this is
-error-prone and reversal adds an extra cost anyway.  We could also use something
-like Data.Sequence, but again we incur an extra cost because we have to convert
-to a normal list when passing the arguments to the constant application
-machinery.  If we really care we might want to convert the CAM to use sequences
-instead of lists.
+{- Note [Accumulating arguments].
+The VBuiltin value contains lists of type and term arguments which
+grow as new arguments are encountered.  In the code below We just add
+new entries by appending to the end of the list: l -> l++[x].  This
+doesn't look terrbily good, but we don't expect the lists to ever
+contain more than three or four elements, so the cost is unlikely to
+be high.  We could accumulate lists in the normal way and reverse them
+when required, but this is error-prone and reversal adds an extra cost
+anyway.  We could also use something like Data.Sequence, but again we
+incur an extra cost because we have to convert to a normal list when
+passing the arguments to the constant application machinery.  If we
+really care we might want to convert the CAM to use sequences instead
+of lists.
 -}
 
 -- | Instantiate a term with a type and proceed.
@@ -311,11 +316,7 @@ instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
             let runtime' = BuiltinRuntime (schK Proxy) f exF
             res <- evalBuiltinApp term' runtime'
             stack <| res
-        _ ->
-            throwingWithCause
-                _MachineError
-                BuiltinTermArgumentExpectedMachineError
-                (Just term')
+        _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just $ ckValueToTerm val
 
@@ -341,10 +342,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ ->
-            throwingWithCause
-                _MachineError
-                UnexpectedBuiltinTermArgumentMachineError
-                (Just term')
+            throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
 applyEvaluate _ val _ =
     throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just $ ckValueToTerm val
 

@@ -395,7 +395,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))

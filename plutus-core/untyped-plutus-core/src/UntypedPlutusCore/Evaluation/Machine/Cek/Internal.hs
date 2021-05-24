@@ -146,22 +146,31 @@ instance Show fun => Pretty (ExBudgetCategory fun) where
 instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
     exBudgetBuiltin = BBuiltinApp
 
-{- Note [Arities in VBuiltin]
-The VBuiltin value below contains two copies of the arity (list of
-TypeArg/TermArg pairs) for the relevant builtin.  The second of these
-is consumed as the builtin is instantiated and applied to arguments,
-to check that type and term arguments are interleaved correctly.  The
-first copy of the arity is left unaltered and only used by
-dischargeCekValue if we have to convert the frame back into a term
-(see mkBuiltinApplication).  An alternative would be to look up the
-full arity in mkBuiltinApplication, but that would require a lot of
-things to be monadic (including the PrettyBy instance for CekValue,
-which is a problem.)
+{- Note [Instances for BuiltinRuntime]
+We need to be able to print 'CekValue's and for that we need a 'Show' instance for 'BuiltinRuntime',
+but functions are not printable and hence we provide a dummy instance. Same applies to 'Eq'.
+
+We could define
+
+    instance Eq (BuiltinRuntime term) where
+        _ == _ = True
+
+however this is very unsafe (as two different functions can be, well, different). The reason
+why
+
+    instance Eq (BuiltinRuntime (CekValue uni fun))
+        _ == _ = True
+
+is not as unsafe is because the 'VBuiltin' constructor stores the term representation of the
+partially applied builtin and so we get actual equality from there, which is why it's fine to
+ignore the partially applied builtin itself.
 -}
 
+-- See Note [Instances for BuiltinRuntime].
 instance Show (BuiltinRuntime (CekValue uni fun)) where
     show _ = "<builtin_runtime>"
 
+-- See Note [Instances for BuiltinRuntime].
 instance Eq (BuiltinRuntime (CekValue uni fun)) where
     _ == _ = True
 
