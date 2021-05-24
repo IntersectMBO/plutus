@@ -31,28 +31,30 @@ import           PlutusCore.MkPlc
 import qualified PlutusCore.Name                        as TPLC
 import           PlutusCore.Universe
 
--- | The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
---
--- 1. all types are removed
--- 2. 'IWrap' and 'Unwrap' are removed
--- 3. type abstractions are replaced with 'Delay'
--- 4. type instantiations are replaced with 'Force'
---
--- The latter two are due to the fact that we don't have value restriction in Typed Plutus Core
--- and hence a computation can be stuck expecting only a single type argument for the computation
--- to become unstuck. Therefore we can't just silently remove type abstractions and instantions and
--- need to replace them with something else that also blocks evaluation (in order for the semantics
--- of an erased program to match with the semantics of the original typed one). 'Delay' and 'Force'
--- serve exactly this purpose.
+{-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
+
+1. all types are removed
+2. 'IWrap' and 'Unwrap' are removed
+3. type abstractions are replaced with 'Delay'
+4. type instantiations are replaced with 'Force'
+
+The latter two are due to the fact that we don't have value restriction in Typed Plutus Core
+and hence a computation can be stuck expecting only a single type argument for the computation
+to become unstuck. Therefore we can't just silently remove type abstractions and instantions and
+need to replace them with something else that also blocks evaluation (in order for the semantics
+of an erased program to match with the semantics of the original typed one). 'Delay' and 'Force'
+serve exactly this purpose.
+-}
+-- Making all the fields strict gives us a couple of percent in benchmarks
 data Term name uni fun ann
-    = Constant ann (Some (ValueOf uni))
-    | Builtin ann fun
-    | Var ann name
-    | LamAbs ann name (Term name uni fun ann)
-    | Apply ann (Term name uni fun ann) (Term name uni fun ann)
-    | Delay ann (Term name uni fun ann)
-    | Force ann (Term name uni fun ann)
-    | Error ann
+    = Constant !ann !(Some (ValueOf uni))
+    | Builtin !ann !fun
+    | Var !ann !name
+    | LamAbs !ann !name !(Term name uni fun ann)
+    | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
+    | Delay !ann !(Term name uni fun ann)
+    | Force !ann !(Term name uni fun ann)
+    | Error !ann
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
 
