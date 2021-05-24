@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy   as BS
 import           Data.Map               (Map)
 import           Data.Text              (Text)
 import           GHC.Generics           (Generic)
-import           Language.Marlowe       (Contract, Input, State)
+import           Language.Marlowe       (Contract, Input, State, TransactionInput)
 import           Network.HTTP.Media     ((//), (/:))
 import           Plutus.V1.Ledger.Value (CurrencySymbol (..), TokenName (..))
 import           Servant.API            (Accept (..), Capture, EmptyAPI, Get, Header, JSON, MimeRender (..), NoContent,
@@ -53,7 +53,7 @@ data GetContractStateResponse = GetContractStateResponse { curr_state    :: Stat
 
 data GetContractHistoryResponse = GetContractHistoryResponse { original_state    :: State
                                                              , original_contract :: Contract
-                                                             , inputs            :: [Input]
+                                                             , inputs            :: [TransactionInput]
                                                              }
   deriving (Generic, Show, ToJSON)
 

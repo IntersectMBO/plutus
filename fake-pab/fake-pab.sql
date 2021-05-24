@@ -62,16 +62,26 @@ told_state text;
 tnew_contract text;
 tnew_state text;
 
+min_slot bigint;
+max_slot bigint;
+slot_number bigint;
+
 min_amount bigint;
 
 BEGIN
 
 IF tcontract_id IS NOT NULL THEN
-  SELECT contract_id, old_contract, old_state, new_contract, new_state
-  INTO tcontract_id, told_contract, told_state, tnew_contract, tnew_state
+  SELECT contract_id, old_contract, old_state, new_contract, new_state, slot_number, min_slot, max_slot
+  INTO tcontract_id, told_contract, told_state, tnew_contract, tnew_state, slot_number, min_slot, max_slot
   FROM transaction
   WHERE transaction_id = target_transaction_id;
 
+  IF min_slot IS NOT NULL AND max_slot IS NOT NULL AND (min_slot > slot_number OR max_slot < slot_number) THEN
+    UPDATE transaction
+	SET reason_invalid = 'Current slot not in slot interval'
+	WHERE transaction_id = target_transaction_id;
+	RETURN FALSE;
+  END IF;
   IF NOT update_contract_if_state_matches(tcontract_id, told_contract, told_state, tnew_contract, tnew_state) THEN
     UPDATE transaction
 	SET reason_invalid = 'Old contract state doesn''t match'
