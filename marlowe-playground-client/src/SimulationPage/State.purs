@@ -94,18 +94,39 @@ handleAction (SetIntegerTemplateParam templateType key value) = do
 handleAction StartSimulation =
   void
     $ runMaybeT do
+        -- TODO: move the initialSlot, extended contract and template contract out of the ExecutionState
+        --       and into the SimultationPage top State. This will remove the need of the Maybe
         initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
         extendedContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _extendedContract <<< _Just)
         templateContent <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent)
-        contract <- hoistMaybe $ toCore $ fillTemplate templateContent (extendedContract :: EM.Contract)
-        modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _executionState (emptyExecutionStateWithSlot initialSlot (contract :: S.Contract)))))
+        (contract :: S.Contract) <- hoistMaybe $ toCore $ fillTemplate templateContent (extendedContract :: EM.Contract)
+        -- It is expected that when this function is called, the _marloweState list has a single element
+        -- with an ExecutionState of SimulationNotStarted, and the fact that we are inside a runMaybeT
+        -- with a Prism for _SimulationNotStarted guarantees us that at least the head of the list is
+        -- is in that state. But in theory there could be a list like this
+        -- [SimulationNotStarted, SimulationRunning, SimulationNotStarted] or [SimulationNotStarted, SimulationNotStarted]
+        -- which could result in weird bugs.
+        -- TODO: refactor marloweState type so we can remove "extendWith".
+        --       See note on SimulationPage.Types - Type State {marloweState}
+        modifying
+          _marloweState
+          ( extendWith
+              ( updatePossibleActions
+                  <<< updateStateP
+                  <<< (set _executionState (emptyExecutionStateWithSlot initialSlot contract))
+              )
+          )
         lift $ updateContractInEditor
 
 handleAction (MoveSlot slot) = do
   inTheFuture <- inFuture <$> get <*> pure slot
-  significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
   when inTheFuture do
-    if slot >= (fromMaybe zero significantSlot) then
+    -- The difference between moveToSlot and moveToSignificantSlot is that the later also updates any
+    -- pending transaction input, and we should only do that if the slot that we are moving is bigger
+    -- than the next timeout. But this should be an implementation detail of the Simulator.
+    -- TODO: join moveToSignificantSlot and moveToSlot inside the simulator
+    mSignificantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
+    if slot >= (fromMaybe zero mSignificantSlot) then
       moveToSignificantSlot slot
     else
       moveToSlot slot
@@ -285,6 +306,7 @@ updateContractInEditor = do
   editorSetValue
     ( case executionState of
         SimulationRunning runningState -> show $ genericPretty runningState.contract
+        -- TODO: Simplify this. See note on SimulationPage.Types - Type State {marloweState}
         SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors
     )
   setOraclePrice

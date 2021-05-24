@@ -36,6 +36,7 @@ import Marlowe.Symbolic.Types.Response (Result)
 import Monaco (IMarker)
 import Network.RemoteData (RemoteData)
 
+-- TODO: Create module Simulator.Types and move this there
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
   | ChoiceInputId ChoiceId
@@ -54,6 +55,7 @@ instance encodeActionInputId :: Encode ActionInputId where
 instance decodeActionInputId :: Decode ActionInputId where
   decode = genericDecode aesonCompatibleOptions
 
+-- TODO: Create module Simulator.Types and move this there
 -- | On the front end we need Actions however we also need to keep track of the current
 -- | choice that has been set for Choices
 data ActionInput
@@ -74,6 +76,8 @@ instance encodeActionInput :: Encode ActionInput where
 instance decodeActionInput :: Decode ActionInput where
   decode = genericDecode aesonCompatibleOptions
 
+-- TODO: Probably rename to PartiesActions or similar
+-- TODO: Create module Simulator.Types and move this there
 newtype Parties
   = Parties (Map Party (Map ActionInputId ActionInput))
 
@@ -83,6 +87,7 @@ derive newtype instance semigroupParties :: Semigroup Parties
 
 derive newtype instance monoidParties :: Monoid Parties
 
+-- TODO: Move to Simulator
 mapPartiesActionInput :: (ActionInput -> ActionInput) -> Parties -> Parties
 mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
 
@@ -90,6 +95,7 @@ derive newtype instance encodeParties :: Encode Parties
 
 derive newtype instance decodeParties :: Decode Parties
 
+-- TODO: Move Lenses to it's own file, like we do on the dashboard
 _actionInput :: Party -> ActionInputId -> Traversal' Parties ActionInput
 _actionInput party id = _Newtype <<< ix party <<< ix id
 
@@ -111,6 +117,8 @@ _moveToAction = lens get' set'
     in
       set (_Newtype <<< at otherActionsParty) m p
 
+-- TODO: Maybe rename to LogEntry
+-- TODO: Add an Event/Entry for contract start and for contract close
 data MarloweEvent
   = InputEvent TransactionInput
   | OutputEvent SlotInterval Payment
@@ -136,6 +144,7 @@ type ExecutionStateRecord
     , state :: S.State
     , slot :: Slot
     , moneyInContract :: Assets
+    -- This is the remaining of the contract to be executed
     , contract :: S.Contract
     }
 
@@ -281,6 +290,15 @@ emptyMarloweStateWithSlot sn cont =
 type State
   = { showRightPanel :: Boolean
     , bottomPanelState :: BottomPanel.State BottomPanelView
+    -- TODO: Currently the marloweState is a list that includes the ExecutionState (SimulationRunning, SimulationNotStarted)
+    --       which makes the `undo` functionality easier but leads to states that should be impossible to represent, like
+    --       [SimulationNotStarted, SimulationRunning, SimulationNotStarted]
+    --       We should replace the types so that the MarloweState is
+    --          SimulationNotStarted
+    --          SimulationRunning { NonEmptyList ExecutionStateRecord}
+    --       or even replace with Maybe
+    --       The information currently available in SimulationNotStarted.InitialConditionsRecord should
+    --       be globally available as part of this State
     , marloweState :: NonEmptyList MarloweState
     , helpContext :: HelpContext
     }
