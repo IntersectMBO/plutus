@@ -35,9 +35,9 @@ import           Plutus.V1.Ledger.Interval
 
 -- | POSIX time is measured as the number of seconds since 1970-01-01 00:00 UTC
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
-  deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
-  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable, PlutusTx.IsData)
+  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.IsData)
 
 makeLift ''POSIXTime
 

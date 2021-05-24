@@ -16,7 +16,6 @@ import           Data.Aeson
 import           Data.Aeson.Flatten
 import qualified Data.HashMap.Strict                                      as HM
 import qualified Data.Map                                                 as Map
-import qualified Data.Scientific                                          as S
 import qualified Data.Text                                                as Text
 
 
@@ -27,7 +26,7 @@ cost model.
 
 However, there are quite a few quirks to deal with.
 
-1. BuiltinCostModel is stuctured
+1. BuiltinCostModel is stuctured.
 
 That is, it's a complex data structure and the numbers in question are often
 nested inside it.  To deal with this quickly, we take the ugly approach of
@@ -35,15 +34,16 @@ operating on the JSON representation of the model.  We flatten this down into a
 simple key-value mapping (see 'flattenObject' and 'unflattenObject'), and then
 look only at the numbers.
 
-2. We use floats, not integers
+2. We use CostingIntegers, Aeson uses Data.Scientific.
 
-We'd really prefer to expose integers as our parameters - they're just better
-behaved, and really we'd like to use integers internally too for determinism
-reasons. So we pretend that we have integers by scaling up all our numbers by a
-large power of 10 (see scaleFactor below) and taking the integral floor, at some
-loss of precision.
-
-Once we use integers internally this will be simpler.
+The numbers in CostModel objects are CostingIntegers, which are usually the
+64-bit SatInt type (but Integer on 32-bit machines).  Numerical values in
+Aeson-encoded JSON objects are represented as Data.Scientific (Integer mantissa,
+Int exponent). We should be able to convert between these types without loss of
+precision, except that Scientific numbers of large magnitude will overflow to
+SatInt::MaxBound or underflow to SatInt::MinBound.  This is OK because
+CostModelParams objects should never contain such large numbers. Any Plutus Core
+programs whose cost reaches MaxBound will fail due to excesssive resource usage.
 
 3. BuiltinCostModel includes the *type* of the model, which isn't a parameter
 
@@ -54,7 +54,7 @@ overwrite the parameters, which seems okay.
 
 This is also implemented in a horrible JSON-y way.
 
-4. The implementation is not nice
+4. The implementation is not nice.
 
 Ugly JSON stuff and failure possibilities where there probably shouldn't be any.
 
@@ -69,13 +69,6 @@ that to split the map of parameters into two maps.
 
 -}
 
--- | See point 3 of Note [Cost model parameters]
--- Some of the numbers in the cost model are of the order or 1e-7 or 1e-8, and
--- we need a large scale factor to avoid truncating a significant number of
--- digits.
-scaleFactor :: S.Scientific
-scaleFactor = 1e20
-
 -- See Note [Cost model parameters]
 type CostModelParams = Map.Map Text.Text Integer
 
@@ -86,10 +79,9 @@ extractParams cm = case toJSON cm of
     Object o ->
         let
             flattened = flattenObject "-" o
-            toScaledInteger :: S.Scientific -> Integer
-            toScaledInteger n = floor (n*scaleFactor)
-            scaledNumbers = HM.mapMaybe (\case { Number n -> Just $ toScaledInteger n; _ -> Nothing }) flattened
-            mapified = Map.fromList $ HM.toList scaledNumbers
+            usingCostingIntegers = HM.mapMaybe (\case { Number n -> Just $ ceiling n; _ -> Nothing }) flattened
+            -- ^ Only (the contents of) the "Just" values are retained in the output map.
+            mapified = Map.fromList $ HM.toList usingCostingIntegers
         in Just mapified
     _ -> Nothing
 
@@ -101,10 +93,10 @@ applyParams cm params = case toJSON cm of
     Object o ->
         let
             hashmapified = HM.fromList $ Map.toList params
-            scaledNumbers = fmap (\n -> Number $ fromIntegral n / scaleFactor) hashmapified
+            usingScientific = fmap (Number . fromIntegral) hashmapified
             flattened = flattenObject "-" o
             -- this is where the overwriting happens, this is left-biased
-            merged = HM.union scaledNumbers flattened
+            merged = HM.union usingScientific flattened
             unflattened = unflattenObject "-" merged
         in case fromJSON (Object unflattened) of
             Success a -> Just a
@@ -114,28 +106,32 @@ applyParams cm params = case toJSON cm of
 -- | Parameters for a machine step model and a builtin evaluation model bundled together.
 data SplitCostModelParams =
     SplitCostModelParams {
-      machineParams :: CostModelParams
-    , builtinParams :: CostModelParams
+      _machineParams :: CostModelParams
+    , _builtinParams :: CostModelParams
     }
 
 -- | Split a CostModelParams object into two subobjects according to some prefix:
 -- see item 5 of Note [Cost model parameters].
 splitParams :: Text.Text -> CostModelParams -> SplitCostModelParams
 splitParams prefix params =
-    let machineparams = Map.filterWithKey (\k _ ->       Text.isPrefixOf prefix k) params
-        builtinparams = Map.filterWithKey (\k _ -> not $ Text.isPrefixOf prefix k) params
+    let (machineparams, builtinparams) = Map.partitionWithKey (\k _ -> Text.isPrefixOf prefix k) params
     in SplitCostModelParams machineparams builtinparams
 
 -- | Given a CostModel, produce a single map containing the parameters from both components
 extractCostModelParams :: ToJSON machinecosts => CostModel machinecosts -> Maybe CostModelParams
-extractCostModelParams model =
-    case ( extractParams (machineCostModel model)
-         , extractParams (builtinCostModel model) )
-    of (Just machineparams, Just builtinparams) -> Just $ Map.union machineparams builtinparams
-       _                                        -> Nothing
+extractCostModelParams model = -- this is using the applicative instance of Maybe
+    Map.union <$> extractParams (machineCostModel model) <*> extractParams (builtinCostModel model)
 
--- | Given a set of cost model parameters, split it into two parts according to some
--- prefix and use those parts to update the components of a cost model.
+-- | Given a set of cost model parameters, split it into two parts according to
+-- some prefix and use those parts to update the components of a cost model.
+{- Strictly we don't need to do the splitting: when we call fromJSON in
+   applyParams any superfluous objects in the map being decoded will be
+   discarded, so we could update both components of the cost model with the
+   entire set of parameters without having to worry about splitting the
+   parameters on a prefix of the key.  This relies on what appears to be an
+   undocumented implementation choice in Aeson though (other JSON decoders (for
+   other languages) seem to vary in how unknown fields are handled), so let's be
+   explicit. -}
 applySplitCostModelParams
     :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
     => Text.Text
@@ -143,12 +139,9 @@ applySplitCostModelParams
     -> CostModelParams
     -> Maybe (CostModel evaluatorcosts)
 applySplitCostModelParams prefix model params =
-    let p = splitParams prefix params
-    in case ( applyParams (machineCostModel model) (machineParams p)
-            , applyParams (builtinCostModel model) (builtinParams p) )
-       of
-         (Just machineCosts, Just buitinCosts) -> Just $ CostModel machineCosts buitinCosts
-         _                                     -> Nothing
+    let SplitCostModelParams machineparams builtinparams = splitParams prefix params
+    in CostModel <$> applyParams (machineCostModel model) machineparams
+                 <*> applyParams (builtinCostModel model) builtinparams
 
 -- | Update a CostModel for the CEK machine with a given set of parameters,
 applyCostModelParams

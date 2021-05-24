@@ -32,7 +32,7 @@ randomCekCosts =
                     }
 
 cekVarCostCpuKey :: Text.Text
-cekVarCostCpuKey = "cek_var_cost-_ex_budget_cpu"  -- flatten . camelToSnake
+cekVarCostCpuKey = "cek_var_cost-_ex_budget_cpu"  -- This is the result of flatten . camelToSnake
 
 randomCekCostModel :: CekCostModel
 randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel
@@ -122,37 +122,37 @@ testExtractAfterUpdate model1 model2 =
 
 test_costModelInterface :: TestTree
 test_costModelInterface =
-    testGroup" cost model interface tests"
+    testGroup "cost model interface tests"
        [ testGroup "extractCostModelParams works"
-       [ testCase "defaultCekCostModel" $ testExtraction defaultCekCostModel
-       , testCase "randomCekCostModel"  $ testExtraction randomCekCostModel
-       ]
-     , testGroup "self-update is identity"
-       [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testSelfUpdate defaultCekCostModel
-       , testCase "randomCekCostModel  <- randomCekCostModel"  $ testSelfUpdate randomCekCostModel
-       ]
-     , testGroup "overwriting works"
-       [ testCase "defaultCekCostModel <- randomCekCostModel"  $ testOverwrite defaultCekCostModel randomCekCostModel
-       , testCase "randomCekCostModel  <- defaultCekCostModel" $ testOverwrite randomCekCostModel  defaultCekCostModel
-       ]
-     , testGroup "superfluous entry in params is OK in self-update"
-       [ testCase "defaultCekCostModel" $ testSelfUpdateWithExtraEntry defaultCekCostModel
-       , testCase "randomCekCostModel"  $ testSelfUpdateWithExtraEntry randomCekCostModel
-       ]
-     , testGroup "missing entry in params is OK in self-update"
-       [ testCase "defaultCekCostModel" $ testSelfUpdateWithMissingEntry defaultCekCostModel
-       , testCase "randomCekCostModel"  $ testSelfUpdateWithMissingEntry randomCekCostModel
-       ]
-     , testGroup "missing entry in update of different model"
-       [ testCase "defaultCekCostModel" $ testOtherUpdateWithMissingEntry defaultCekCostModel randomCekCostModel
-       , testCase "randomCekCostModel"  $ testOtherUpdateWithMissingEntry randomCekCostModel defaultCekCostModel
-       ]
-     , testGroup "extract after apply is identity"
-       [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testExtractAfterUpdate defaultCekCostModel defaultCekCostModel
-       , testCase "randomCekCostModel  <- randomCekCostModel"  $ testExtractAfterUpdate randomCekCostModel  randomCekCostModel
-       , testCase "randomCekCostModel  <- defaultCekCostModel" $ testExtractAfterUpdate randomCekCostModel  defaultCekCostModel
-       , testCase "defaultCekCostModel <- randomCekCostModel"  $ testExtractAfterUpdate defaultCekCostModel randomCekCostModel
-       ]
+             [ testCase "defaultCekCostModel" $ testExtraction defaultCekCostModel
+             , testCase "randomCekCostModel"  $ testExtraction randomCekCostModel
+             ]
+       , testGroup "self-update is identity"
+             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testSelfUpdate defaultCekCostModel
+             , testCase "randomCekCostModel  <- randomCekCostModel"  $ testSelfUpdate randomCekCostModel
+             ]
+       , testGroup "overwriting works"
+             [ testCase "defaultCekCostModel <- randomCekCostModel"  $ testOverwrite defaultCekCostModel randomCekCostModel
+             , testCase "randomCekCostModel  <- defaultCekCostModel" $ testOverwrite randomCekCostModel  defaultCekCostModel
+             ]
+       , testGroup "superfluous entry in params is OK in self-update"
+             [ testCase "defaultCekCostModel" $ testSelfUpdateWithExtraEntry defaultCekCostModel
+             , testCase "randomCekCostModel"  $ testSelfUpdateWithExtraEntry randomCekCostModel
+             ]
+       , testGroup "missing entry in params is OK in self-update"
+             [ testCase "defaultCekCostModel" $ testSelfUpdateWithMissingEntry defaultCekCostModel
+             , testCase "randomCekCostModel"  $ testSelfUpdateWithMissingEntry randomCekCostModel
+             ]
+       , testGroup "missing entry in update of different model"
+             [ testCase "defaultCekCostModel" $ testOtherUpdateWithMissingEntry defaultCekCostModel randomCekCostModel
+             , testCase "randomCekCostModel"  $ testOtherUpdateWithMissingEntry randomCekCostModel defaultCekCostModel
+             ]
+       , testGroup "extract after apply is identity"
+             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testExtractAfterUpdate defaultCekCostModel defaultCekCostModel
+             , testCase "randomCekCostModel  <- randomCekCostModel"  $ testExtractAfterUpdate randomCekCostModel  randomCekCostModel
+             , testCase "randomCekCostModel  <- defaultCekCostModel" $ testExtractAfterUpdate randomCekCostModel  defaultCekCostModel
+             , testCase "defaultCekCostModel <- randomCekCostModel"  $ testExtractAfterUpdate defaultCekCostModel randomCekCostModel
+             ]
      ]
 
 

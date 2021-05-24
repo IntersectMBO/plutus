@@ -32,7 +32,7 @@ data CostModel machinecosts =
   cost model for builtins and their denotations.  This bundles one of those
   together with the cost model for evaluator steps.  The 'term' type will be
   CekValue when we're using this with the CEK machine. -}
-data MachineParameters machinecosts (term :: (Type -> Type) -> Type -> Type) (uni :: Type -> Type) (fun :: Type) =
+data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
     MachineParameters {
       machineCosts    :: machinecosts
     , builtinsRuntime :: BuiltinsRuntime fun (term uni fun)
