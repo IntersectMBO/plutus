@@ -134,6 +134,7 @@ fromHTerm (HBuiltin ann fun)      = pure $ Builtin ann fun
 fromHTerm (HVar ann name)         = pure $ Var ann name
 -- Here we do not recover the original annotation and instead use the one that the whole lambda
 -- is annotated with. We could probably handle annotations better, but we don't care for now.
+-- BUG: feeding @HVar ann name@ to @body@ can easily result in variable capture.
 fromHTerm (HLamAbs ann name body) = LamAbs ann name <$> (body (HVar ann name) >>= fromHTerm)
 fromHTerm (HApply ann fun arg)    = Apply ann <$> fromHTerm fun <*> fromHTerm arg
 fromHTerm (HDelay ann getBody)    = Delay ann <$> (getBody () >>= fromHTerm)
