@@ -32,7 +32,7 @@ randomCekCosts =
                     }
 
 cekVarCostCpuKey :: Text.Text
-cekVarCostCpuKey = "cek_var_cost-_ex_budget_cpu"  -- flatten . camelToSnake
+cekVarCostCpuKey = "cek_var_cost-_ex_budget_cpu"  -- This is the result of flatten . camelToSnake
 
 randomCekCostModel :: CekCostModel
 randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel
