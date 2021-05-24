@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy   as BS
 import           Data.Map               (Map)
 import           Data.Text              (Text)
 import           GHC.Generics           (Generic)
-import           Language.Marlowe       (Contract)
+import           Language.Marlowe       (Contract, Input, State)
 import           Network.HTTP.Media     ((//), (/:))
 import           Plutus.V1.Ledger.Value (CurrencySymbol (..), TokenName (..))
 import           Servant.API            (Accept (..), Capture, EmptyAPI, Get, Header, JSON, MimeRender (..), NoContent,
@@ -46,11 +46,30 @@ data CreateContractRequest = CreateContractRequest { creator_priv_key  :: Privat
                                                    }
   deriving (Generic, FromJSON)
 
+data GetContractStateResponse = GetContractStateResponse { curr_state    :: State
+                                                         , curr_contract :: Contract
+                                                         }
+  deriving (Generic, Show, ToJSON)
+
+data GetContractHistoryResponse = GetContractHistoryResponse { original_state    :: State
+                                                             , original_contract :: Contract
+                                                             , inputs            :: [Input]
+                                                             }
+  deriving (Generic, Show, ToJSON)
+
+data ApplyInputRequest = ApplyInputRequest { signing_priv_key         :: PrivateKey
+                                           , contract_currency_symbol :: CurrencySymbol
+                                           , input_to_apply           :: Input
+                                           }
+  deriving (Generic, FromJSON)
+
 
 type JSON_API = "create_wallet" :> ReqBody '[JSON] PrivateKey :> Post '[JSON] PublicKey :<|>
                 "list_wallet_funds" :> ReqBody '[JSON] PublicKey :> Post '[JSON] (Map CurrencySymbol [(TokenName, Integer)]) :<|>
                 "transfer_funds" :> ReqBody '[JSON] TransferRequest :> Post '[JSON] () :<|>
-                "create_contract" :> ReqBody '[JSON] CreateContractRequest :> Post '[JSON] (Either String CurrencySymbol)
+                "create_contract" :> ReqBody '[JSON] CreateContractRequest :> Post '[JSON] (Either String CurrencySymbol) :<|>
+                "get_contract_state" :> ReqBody '[JSON] CurrencySymbol :> Post '[JSON] GetContractStateResponse :<|>
+                "get_contract_history" :> ReqBody '[JSON] CurrencySymbol :> Post '[JSON] GetContractHistoryResponse
 
 
 type PLAIN_API = "create_wallet" :> Capture "priv_key" String :> Get '[PlainText] String :<|>
@@ -59,7 +78,9 @@ type PLAIN_API = "create_wallet" :> Capture "priv_key" String :> Get '[PlainText
                                   :> Capture "token_symbol" String :> Capture "amount" Integer
                                   :> Capture "dest_pub_key" String :> Get '[PlainText] String :<|>
                  "create_contract" :> Capture "creator_priv_key" String :> Capture "role_distribution" String
-                                   :> Capture "contract" String :> Get '[PlainText] String
+                                   :> Capture "contract" String :> Get '[PlainText] String :<|>
+                 "get_contract_state" :> Capture "contract_state" String :> Get '[PlainText] String :<|>
+                 "get_contract_history" :> Capture "contract_history" String :> Get '[PlainText] String
 
 type STATIC = Raw
 type API = JSON_API :<|>

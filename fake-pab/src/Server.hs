@@ -11,10 +11,11 @@
 
 module Server where
 
-import           API                               (API, CreateContractRequest (..), JSON_API, PLAIN_API, PrivateKey,
+import           API                               (API, CreateContractRequest (..), GetContractHistoryResponse (..),
+                                                    GetContractStateResponse (..), JSON_API, PLAIN_API, PrivateKey,
                                                     PublicKey, RawHtml (..), TransferRequest (..))
 import           Control.Concurrent                (threadDelay)
-import           Control.Exception                 (throwIO)
+import           Control.Exception                 (Exception (toException), throwIO)
 import           Control.Monad.Except              (ExceptT, void)
 import           Control.Monad.IO.Class            (MonadIO, liftIO)
 import           Control.Monad.Logger              (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
@@ -61,13 +62,18 @@ handlersJSON :: Pool Connection -> FilePath -> Server JSON_API
 handlersJSON conns staticPath = createWallet conns :<|>
                                 listWalletFunds conns :<|>
                                 transferFundsJSON conns :<|>
-                                createContractJSON conns
+                                createContractJSON conns :<|>
+                                getContractState conns :<|>
+                                getContractHistory conns
+
 
 handlersPlain :: Pool Connection -> FilePath -> Server PLAIN_API
 handlersPlain conns staticPath = showResult . createWallet conns :<|>
                                  showResult . listWalletFunds conns :<|>
                                  transferFundsPlain conns :<|>
-                                 createContractPlain conns
+                                 createContractPlain conns :<|>
+                                 showResult . getContractStatePlain conns :<|>
+                                 showResult . getContractHistoryPlain conns
 
 handlers :: Pool Connection -> FilePath -> Server API
 handlers conns staticPath = handlersJSON conns staticPath :<|>
@@ -195,6 +201,62 @@ createContract conns privkey distrib contract =
       pure $ Right (toCurrencySymbol currencySymbol)
   else let missingRoles = roles `Set.difference` Set.fromList ownerTokenNames in
        pure $ Left $ "You didn't specify owners of these roles: " <> show missingRoles
+
+data DatabaseParsingException = ErrorParsingContractState
+  deriving (Eq, Ord)
+
+instance Exception DatabaseParsingException
+
+instance Show DatabaseParsingException where
+  showsPrec _ ErrorParsingContractState = showString "Could not parse state of the current contract in DB"
+
+getContractStatePlain :: Pool Connection -> String -> Handler GetContractStateResponse
+getContractStatePlain conns currSymb = getContractState conns (toCurrencySymbol currSymb)
+
+getContractState :: Pool Connection -> CurrencySymbol -> Handler GetContractStateResponse
+getContractState conns encCurrSymb =
+  let currencySymbol = fromCurrencySymbol encCurrSymb in
+  liftIO . withResource conns $ \conn -> do
+      [(currentStateStr, currentContractStr)]
+         <- query conn [sql| SELECT state, contract
+                             FROM contract
+                             WHERE currency_symbol = ?
+                       |] (Only currencySymbol) :: IO [(BSLU.ByteString, BSLU.ByteString)]
+      case (eitherDecode currentStateStr, eitherDecode currentContractStr) of
+        (Right currentState, Right currentContract) ->
+            pure (GetContractStateResponse { curr_state = currentState
+                                           , curr_contract = currentContract
+                                           })
+        _ -> throwIO (toException ErrorParsingContractState)
+
+getContractHistoryPlain :: Pool Connection -> String -> Handler GetContractHistoryResponse
+getContractHistoryPlain conns currSymb = getContractHistory conns (toCurrencySymbol currSymb)
+
+getContractHistory :: Pool Connection -> CurrencySymbol -> Handler GetContractHistoryResponse
+getContractHistory conns encCurrSymb =
+  let currencySymbol = fromCurrencySymbol encCurrSymb in
+  liftIO . withResource conns $ \conn -> do
+      [(contractContainerId, originalStateStr, originalContractStr)]
+         <- query conn [sql| SELECT money_container_id, original_state, original_contract
+                             FROM contract
+                             WHERE currency_symbol = ?
+                       |] (Only currencySymbol) :: IO [(Ratio Integer, BSLU.ByteString, BSLU.ByteString)]
+      inputs
+         <- query conn [sql| SELECT inputs
+                             FROM transaction
+                             WHERE contract_id = ?
+                               AND reason_invalid IS NULL
+                               AND slot_number IS NOT NULL
+                       |] (Only (fromRatio contractContainerId)) :: IO [Only BSLU.ByteString]
+      case (eitherDecode originalStateStr, eitherDecode originalContractStr) of
+        (Right originalState, Right originalContract) ->
+            pure (GetContractHistoryResponse { original_state = originalState
+                                             , original_contract = originalContract
+                                             , inputs = [ input | Only eitherInput <- inputs
+                                                                , Right input <- [eitherDecode eitherInput] ]
+                                             })
+        _ -> throwIO (toException ErrorParsingContractState)
+
 
 fromRatio :: Ratio Integer -> Integer
 fromRatio am = numerator am `div` denominator am
