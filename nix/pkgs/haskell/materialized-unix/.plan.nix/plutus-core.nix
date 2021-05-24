@@ -105,7 +105,6 @@
         buildable = true;
         modules = [
           "PlutusCore/Analysis/Definitions"
-          "PlutusCore/Constant/Apply"
           "PlutusCore/Constant/Function"
           "PlutusCore/Constant/Meaning"
           "PlutusCore/Constant/Typed"
@@ -353,7 +352,6 @@
             ];
           buildable = true;
           modules = [
-            "Evaluation/ApplyBuiltinName"
             "Evaluation/DynamicBuiltins/Common"
             "Evaluation/DynamicBuiltins/Definition"
             "Evaluation/DynamicBuiltins/MakeRead"
@@ -406,7 +404,6 @@
             ];
           buildable = true;
           modules = [
-            "Evaluation/ApplyBuiltinName"
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"
