@@ -25,7 +25,7 @@ import           Control.Monad.Reader              (ReaderT, runReaderT)
 import qualified Crypto.Hash.SHA256                as SHA256
 import           Data.Aeson                        (FromJSON, ToJSON, eitherDecode, encode)
 import qualified Data.Aeson                        as Aeson
-import           Data.Bifunctor                    (Bifunctor (second))
+import           Data.Bifunctor                    (Bifunctor (..), bimap)
 import qualified Data.ByteString                   as BS
 import qualified Data.ByteString.Base16            as B16
 import qualified Data.ByteString.Lazy              as BSL
@@ -355,6 +355,25 @@ addRolePaymentsToPubKeyPayments rolePubKeyMap pubKeyPaymentMap =
                            return $ Map.alter (addMaybeVal amount) (pubKey, tok) acc))
                     (Just pubKeyPaymentMap)
 
+
+balancePayments :: Map (PublicKey, (String, String)) Integer -> Map (Maybe PublicKey, (String, String)) Integer
+balancePayments combinedPayments =
+    Map.mapKeys (first Just) combinedPayments
+      `Map.union`
+        Map.mapKeys (Nothing,) (calculateCounterPayments combinedPayments)
+  where
+    aggregatePaymentsByToken :: Map (PublicKey, (String, String)) Integer -> Map (String, String) Integer
+    aggregatePaymentsByToken = Map.mapKeysWith (+) snd
+
+    filterZeroPayments :: Map a Integer -> Map a Integer
+    filterZeroPayments = Map.filter (/= 0)
+
+    invertPayments :: Map a Integer -> Map a Integer
+    invertPayments = Map.map negate
+
+    calculateCounterPayments :: Map (PublicKey, (String, String)) Integer -> Map (String, String) Integer
+    calculateCounterPayments = invertPayments . filterZeroPayments . aggregatePaymentsByToken
+
 -- Create transaction entry with the given parameters
 createTransaction :: Connection -> Integer -> String -> TransactionInput -> State -> State -> Contract -> Contract -> Integer -> Integer -> IO Integer
 createTransaction conn contractId publicKey transactionInput currentState
@@ -369,14 +388,24 @@ createTransaction conn contractId publicKey transactionInput currentState
     return $ fromRatio res
 
 -- Create transaction line entry with the given parameters (also create wallets if needed)
-addTransactionLine :: Connection -> Integer -> Integer -> PublicKey -> Integer -> String -> String -> IO ()
-addTransactionLine conn transactionId lineNum thisPublicKey amount thisCurrSymbol thisTokenName = do
+addTransactionLineByPubKey :: PublicKey -> Connection -> Integer -> Integer -> Integer -> String -> String -> IO ()
+addTransactionLineByPubKey thisPublicKey conn transactionId lineNum amount thisCurrSymbol thisTokenName = do
     execute conn [sql| INSERT INTO transaction_line
                                           (transaction_id, line_num, money_container_id,
                                            amount_change, currency_symbol, token_name)
                                    VALUES (?, ?, (SELECT get_or_create_money_container_id_from_pubkey(?)),
                                            ?, ?, ?)
                       |] (transactionId, lineNum, thisPublicKey, amount, thisCurrSymbol, thisTokenName)
+    return ()
+
+-- Create transaction line entry with the given parameters (also create wallets if needed)
+addTransactionLineByContainerId :: Integer -> Connection -> Integer -> Integer -> Integer -> String -> String -> IO ()
+addTransactionLineByContainerId containerId conn transactionId lineNum amount thisCurrSymbol thisTokenName = do
+    execute conn [sql| INSERT INTO transaction_line
+                                          (transaction_id, line_num, money_container_id,
+                                           amount_change, currency_symbol, token_name)
+                                   VALUES (?, ?, ?, ?, ?, ?)
+                      |] (transactionId, lineNum, containerId, amount, thisCurrSymbol, thisTokenName)
     return ()
 
 -- Creates a transaction that applies a TransactionInput to a contract with a given currency symbol
@@ -399,13 +428,15 @@ applyInput conns privateKey encCurrSymb transactionInput@TransactionInput {txInt
                 if Set.union pubKeySet (Set.fromList pubKeysForRoleSet) `Set.isSubsetOf` Set.singleton publicKey
                 then case addRolePaymentsToPubKeyPayments rolePubKeyMap pubKeyPaymentMap rolePaymentMap of
                        Nothing -> return (Left "Could not resolve all roles in input")
-                       Just combinedPubKeyPaymentMap ->
-                         -- ToDo: Balance combinedPubKeyPaymentMap by adding contract payments
-                         (do transactionId <- createTransaction conn contractId publicKey transactionInput
+                       Just combinedPubKeyPaymentMap -> (do
+                             let balancedPubKeyPaymentMap = balancePayments combinedPubKeyPaymentMap
+                             transactionId <- createTransaction conn contractId publicKey transactionInput
                                                                 currentState newState currentContract newContract
                                                                 minSlot maxSlot
-                             sequence_ [addTransactionLine conn transactionId lineNum thisPublicKey amount thisCurrSymbol thisTokenName
-                                        | (lineNum, ((thisPublicKey, (thisCurrSymbol, thisTokenName)), amount)) <- zip [1..] (Map.toList combinedPubKeyPaymentMap)]
+                             sequence_ [(case mThisPublicKey of
+                                          Just thisPublicKey -> addTransactionLineByPubKey thisPublicKey
+                                          Nothing            -> addTransactionLineByContainerId contractId) conn transactionId lineNum amount thisCurrSymbol thisTokenName
+                                        | (lineNum, ((mThisPublicKey, (thisCurrSymbol, thisTokenName)), amount)) <- zip [1..] (Map.toList balancedPubKeyPaymentMap)]
                              return (Right warningList))
                 else return (Left "The transaction hasn't been signed by all the required public keys")
         Error terror -> return (Left (show terror)))
