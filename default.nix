@@ -22,7 +22,7 @@
 let
   inherit (packages) pkgs plutus sources;
   inherit (pkgs) lib haskell-nix;
-  inherit (plutus) haskell iohkNix agdaPackages;
+  inherit (plutus) haskell agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
@@ -85,7 +85,7 @@ rec {
   });
 
   tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix docs;
+    inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
     inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
     inherit (pkgs) terraform;
