@@ -46,9 +46,15 @@
         };
       tests = {
         "plutus-chain-index-test" = {
-          depends = [ (hsPkgs."base" or (errorHandler.buildDepError "base")) ];
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            ];
           buildable = true;
-          modules = [ "Spec" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };
