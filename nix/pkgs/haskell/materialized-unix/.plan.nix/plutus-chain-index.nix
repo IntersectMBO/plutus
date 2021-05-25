@@ -14,8 +14,8 @@
       identifier = { name = "plutus-chain-index"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
-      maintainer = "jann.mueller@iohk.io";
-      author = "Jann Müller";
+      maintainer = "sjoerd.visscher@iohk.io";
+      author = "Sjoerd Visscher";
       homepage = "https://github.com/iohk/plutus#readme";
       url = "";
       synopsis = "";
