@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -230,7 +231,7 @@ guessingGameTest :: TestTree
 guessingGameTest =
     testCase "Guessing Game" $
           runScenario $ do
-              let openingBalance = 100000000
+              let openingBalance = 100_000_000_000
                   lockAmount = 15
                   walletFundsChange msg delta = do
                         address <- pubKeyAddress <$> Simulator.handleAgentThread defaultWallet ownPubKey
