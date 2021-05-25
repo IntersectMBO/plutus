@@ -13,10 +13,13 @@ module PlutusTx.List (
     (!!),
     head,
     take,
-    tail
+    tail,
+    nub,
+    nubBy
     ) where
 
 import qualified PlutusTx.Builtins as Builtins
+import           PlutusTx.Eq       (Eq, (==))
 import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
                                     reverse, take, zip, (!!), (&&), (++), (||))
 
@@ -131,3 +134,14 @@ take :: Integer -> [a] -> [a]
 take n _      | n <= 0 =  []
 take _ []              =  []
 take n (x:xs)          =  x : take (n-1) xs
+
+{-# INLINABLE nub #-}
+-- | Plutus Tx version of 'Data.List.nub'.
+nub :: (Eq a) => [a] -> [a]
+nub =  nubBy (==)
+
+{-# INLINABLE nubBy #-}
+-- | Plutus Tx version of 'Data.List.nubBy'.
+nubBy :: (a -> a -> Bool) -> [a] -> [a]
+nubBy _ []      =  []
+nubBy eq (x:xs) =  x : nubBy eq (filter (\ y -> not (eq x y)) xs)
