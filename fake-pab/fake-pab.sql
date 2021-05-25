@@ -62,21 +62,21 @@ told_state text;
 tnew_contract text;
 tnew_state text;
 
-min_slot bigint;
-max_slot bigint;
-slot_number bigint;
+tmin_slot bigint;
+tmax_slot bigint;
+tslot_number bigint;
 
 min_amount bigint;
 
 BEGIN
 
-IF tcontract_id IS NOT NULL THEN
-  SELECT contract_id, old_contract, old_state, new_contract, new_state, slot_number, min_slot, max_slot
-  INTO tcontract_id, told_contract, told_state, tnew_contract, tnew_state, slot_number, min_slot, max_slot
+  SELECT contract_id, contract_before, state_before, contract_after, state_after, slot_number, min_slot, max_slot
+  INTO tcontract_id, told_contract, told_state, tnew_contract, tnew_state, tslot_number, tmin_slot, tmax_slot
   FROM transaction
   WHERE transaction_id = target_transaction_id;
 
-  IF min_slot IS NOT NULL AND max_slot IS NOT NULL AND (min_slot > slot_number OR max_slot < slot_number) THEN
+IF tcontract_id IS NOT NULL THEN
+  IF tmin_slot IS NOT NULL AND tmax_slot IS NOT NULL AND (tmin_slot > tslot_number OR tmax_slot < tslot_number) THEN
     UPDATE transaction
 	SET reason_invalid = 'Current slot not in slot interval'
 	WHERE transaction_id = target_transaction_id;
@@ -139,7 +139,7 @@ BEGIN
 	FROM contract
 	WHERE money_container_id = contract_id;
 
-	IF contract = actual_old_contract AND state = actual_old_state THEN
+	IF old_contract = actual_old_contract AND old_state = actual_old_state THEN
 	  UPDATE contract
 	  SET contract = new_contract, state = new_state
       WHERE money_container_id = contract_id;
@@ -258,7 +258,9 @@ CREATE TABLE fakepab.transaction (
     state_after text,
     contract_before text,
     contract_after text,
-    reason_invalid text
+    reason_invalid text,
+    min_slot bigint,
+    max_slot bigint
 );
 
 
