@@ -99,7 +99,7 @@ rec {
     inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
     inherit (pkgs) terraform;
     inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab
-      marlowe-app marlowe-companion-app marlowe-follow-app marlowe-dashboard-fake-pab;
+      marlowe-app marlowe-companion-app marlowe-follow-app;
     src = ./.;
   };
 
