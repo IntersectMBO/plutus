@@ -169,7 +169,7 @@ instance Pretty EmulatorRuntimeError where
 newtype ContractInstanceTag = ContractInstanceTag { unContractInstanceTag :: Text }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
-    deriving newtype (IsString, Pretty)
+    deriving newtype (IsString, Pretty, Semigroup, Monoid)
 
 -- | The 'ContractInstanceTag' for the contract instance of a wallet. See note
 --   [Wallet contract instances]
