@@ -131,7 +131,12 @@ instanceState con tag =
             case flt e of
                 Nothing -> pure Nothing
                 Just response -> case traverse (JSON.fromJSON @(Event s)) response of
-                    JSON.Error e'   -> throwError $ JSONDecodingError e' response
+                    JSON.Error e'   ->
+                        -- JSON decoding error here means that the event is probably for a different 'Contract'. This is often
+                        -- caused by having multiple contract instances share the same 'ContractInstanceTag' (for example, when
+                        -- using 'activateContractWallet' repeatedly on the same wallet). To fix this, use 'activateContract' with
+                        -- a unique 'ContractInstanceTag' per instance.
+                        throwError $ JSONDecodingError e' response
                     JSON.Success e' -> pure (Just e')
 
     in preMapMaybeM decode $ L.generalize $ Fold (\s r -> s >>= addEventInstanceState r) (Just $ emptyInstanceState con) (fmap toInstanceState)
