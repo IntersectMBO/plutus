@@ -1,8 +1,9 @@
 ```
 {-# OPTIONS --allow-unsolved-metas #-}
-
 module Algorithmic.ReductionEC where
 ```
+
+This is currently unfinished
 
 ## Imports
 
@@ -1320,14 +1321,26 @@ data RProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
 -- rigid representation e.g, removing some green slime or even via
 -- extrinsic typing
 
-lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B}{B'}
+lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
   → (o : K ≡ K')
   → (p : substEq (∅ ⊢Nf⋆_) o A ≡ A')
   → (q : Π B ≡ Π B')
   → (r : B [ A ]Nf ≡ B' [ A' ]Nf)
   → ∀{M}
-  → substEq (λ B → ∅ ⊢ B) q M ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
+  → substEq (∅ ⊢_) q M ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
 lem-·⋆ refl refl refl refl = refl
+
+open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl)
+
+{-
+lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
+    → (r : B [ A ]Nf ≡ B' [ A' ]Nf)
+  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
+--  → M' ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
+  → M' _⊢_.·⋆ A' ≅ M _⊢_.·⋆ A
+  → M' ≅ M
+lem-·⋆' p q = {!!}
+-}
 
 rlemma51! : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → RProgress M
 rlemma51! (ƛ M)        = done (V-ƛ M)
