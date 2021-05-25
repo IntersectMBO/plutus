@@ -15,6 +15,7 @@ module Wallet.Emulator.Folds (
     EmulatorEventFold
     , EmulatorEventFoldM
     , EmulatorFoldErr(..)
+    , describeError
     -- * Folds for contract instances
     , instanceState
     , instanceRequests
@@ -132,11 +133,7 @@ instanceState con tag =
                 Nothing -> pure Nothing
                 Just response -> case traverse (JSON.fromJSON @(Event s)) response of
                     JSON.Error e'   ->
-                        -- JSON decoding error here means that the event is probably for a different 'Contract'. This is often
-                        -- caused by having multiple contract instances share the same 'ContractInstanceTag' (for example, when
-                        -- using 'activateContractWallet' repeatedly on the same wallet). To fix this, use 'activateContract' with
-                        -- a unique 'ContractInstanceTag' per instance.
-                        throwError $ JSONDecodingError e' response
+                        throwError $ InstanceStateJSONDecodingError e' response
                     JSON.Success e' -> pure (Just e')
 
     in preMapMaybeM decode $ L.generalize $ Fold (\s r -> s >>= addEventInstanceState r) (Just $ emptyInstanceState con) (fmap toInstanceState)
@@ -328,5 +325,15 @@ postMapM ::
 postMapM f (FoldM step begin done) = FoldM step begin (done >=> f)
 
 data EmulatorFoldErr =
-    JSONDecodingError String (Response JSON.Value)
+    InstanceStateJSONDecodingError String (Response JSON.Value)
     deriving stock (Eq, Ord, Show)
+
+-- | A human-readable explanation of the error, to be included in the logs.
+describeError :: EmulatorFoldErr -> String
+describeError = \case
+    InstanceStateJSONDecodingError _ _ -> unwords $
+        [ "Failed to decode a 'Response JSON.Value'."
+        , "The event is probably for a different 'Contract'."
+        , "This is often caused by having multiple contract instances share the same 'ContractInstanceTag' (for example, when  using 'activateContractWallet' repeatedly on the same wallet)."
+        , "To fix this, use 'activateContract' with a unique 'ContractInstanceTag' per instance."
+        ]
