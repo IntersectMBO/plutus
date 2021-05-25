@@ -62,19 +62,6 @@
         "url": "https://github.com/input-output-hk/haskell.nix/archive/87084d65a476cc826a0e8c5d281d494254f5bc7a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "iohk-nix": {
-        "branch": "master",
-        "builtin": true,
-        "description": "nix scripts shared across projects",
-        "homepage": null,
-        "owner": "input-output-hk",
-        "repo": "iohk-nix",
-        "rev": "9dd0d1d10ae187df885996b85c9cb4f6990dae86",
-        "sha256": "1rdaa3c4sz3h1ky9ilp4sm5j9xm9v0vhnzlgnwcs3z1l8ygmvghf",
-        "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/9dd0d1d10ae187df885996b85c9cb4f6990dae86.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "mvn2nix": {
         "branch": "master",
         "builtin": false,
