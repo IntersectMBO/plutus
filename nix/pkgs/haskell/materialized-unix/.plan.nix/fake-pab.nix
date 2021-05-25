@@ -78,6 +78,7 @@
             (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."fake-pab" or (errorHandler.buildDepError "fake-pab"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
             (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
