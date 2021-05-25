@@ -429,6 +429,7 @@ eq = checkBinRel (==)
 --
 --   @negate (fst (split a)) `plus` (snd (split a)) == a@
 --
+{-# INLINABLE split #-}
 split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos) where
   (neg, pos) = Map.mapThese splitIntl mp
