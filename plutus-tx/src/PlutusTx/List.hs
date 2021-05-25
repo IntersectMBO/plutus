@@ -13,12 +13,16 @@ module PlutusTx.List (
     (!!),
     head,
     take,
-    tail
+    tail,
+    nub,
+    nubBy
     ) where
 
+import           PlutusTx.Bool     ((||))
 import qualified PlutusTx.Builtins as Builtins
+import           PlutusTx.Eq       (Eq, (==))
 import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
-                                    reverse, take, zip, (!!), (&&), (++), (||))
+                                    reverse, tail, take, zip, (!!), (&&), (++), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -125,9 +129,36 @@ head :: [a] -> a
 head []      = Builtins.error ()
 head (x : _) = x
 
+{-# INLINABLE tail #-}
+-- | Plutus Tx version of 'Data.List.tail'.
+tail :: [a] -> [a]
+tail (_:as) =  as
+tail []     =  Builtins.error ()
+
 {-# INLINABLE take #-}
 -- | Plutus Tx version of 'Data.List.take'.
 take :: Integer -> [a] -> [a]
 take n _      | n <= 0 =  []
 take _ []              =  []
 take n (x:xs)          =  x : take (n-1) xs
+
+{-# INLINABLE nub #-}
+-- | Plutus Tx version of 'Data.List.nub'.
+nub :: (Eq a) => [a] -> [a]
+nub =  nubBy (==)
+
+{-# INLINABLE elem_by #-}
+-- | Plutus Tx version of 'Data.List.elem_by'.
+elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
+elem_by _  _ []     =  False
+elem_by eq y (x:xs) =  x `eq` y || elem_by eq y xs
+
+{-# INLINABLE nubBy #-}
+-- | Plutus Tx version of 'Data.List.nubBy'.
+nubBy :: (a -> a -> Bool) -> [a] -> [a]
+nubBy eq l              = nubBy' l []
+  where
+    nubBy' [] _         = []
+    nubBy' (y:ys) xs
+       | elem_by eq y xs = nubBy' ys xs
+       | otherwise       = y : nubBy' ys (y:xs)
