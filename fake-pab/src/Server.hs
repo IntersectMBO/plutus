@@ -60,6 +60,8 @@ import           Plutus.V1.Ledger.Value            (CurrencySymbol (..), TokenNa
 import qualified PlutusTx.AssocMap                 as AssocMap
 import           Servant                           (Application, Handler (Handler), Server, ServerError, hoistServer,
                                                     serve, serveDirectoryFileServer, throwError, (:<|>) ((:<|>)), (:>))
+import           Text.Blaze.Html.Renderer.Utf8     (renderHtml)
+import qualified Text.Blaze.Html5                  as H
 
 fromCurrencySymbol :: CurrencySymbol -> String
 fromCurrencySymbol =  Text.unpack . TE.decodeUtf8 . B16.encode . unCurrencySymbol
@@ -472,7 +474,11 @@ initializeApplication :: Pool Connection -> FilePath -> IO Application
 initializeApplication conn staticPath = return $ app conn staticPath
 
 testEndpoint :: Handler RawHtml
-testEndpoint = return $ RawHtml $ BSL.fromStrict "<html><head><title>Test page</title></head><body><h1>It works!</h1></body></html>"
+testEndpoint = pure $ RawHtml $ renderHtml $ H.docTypeHtml $ H.html $ do
+  H.head $ do
+    H.title "Test page"
+  H.body $ do
+    H.h1 "It works!"
 
 miner :: Connection -> IO ()
 miner conn =

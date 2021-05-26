@@ -27,6 +27,7 @@ library
         aeson -any,
         base >=4.7 && <5,
         base16-bytestring -any,
+        blaze-html -any,
         bytestring -any,
         cryptohash -any,
         containers -any,
