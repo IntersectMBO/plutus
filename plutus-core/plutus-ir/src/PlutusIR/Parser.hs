@@ -2,9 +2,8 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeApplications  #-}
+-- {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module PlutusIR.Parser
     ( topSourcePos
@@ -21,24 +20,16 @@ module PlutusIR.Parser
     , SourcePos
     ) where
 
+import           PlutusPrelude
 import           Prelude                            hiding (fail)
 
-import           Control.Applicative                hiding (many, some)
-import           Control.Monad.State                hiding (fail)
 
 import qualified PlutusCore                         as PLC
 import qualified PlutusCore.Parsable                as PLC
+import           PlutusCore.ParserCommon
 import           PlutusIR                           as PIR
 import qualified PlutusIR.MkPir                     as PIR
-import           PlutusPrelude                      (Pretty, display)
-import           Text.Megaparsec                    hiding (ParseError, State, parse)
-import qualified Text.Megaparsec                    as Parsec
-
-import           Data.Char
-import           Data.Foldable
-import qualified Data.Map                           as M
-import           Data.Proxy
-import qualified Data.Text                          as T
+import           Text.Megaparsec                    hiding (ParseError, State, many, parse, some)
 
 import qualified Control.Monad.Combinators.NonEmpty as NE
 import           ErrorCode

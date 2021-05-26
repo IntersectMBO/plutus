@@ -19,7 +19,7 @@ module UntypedPlutusCore.Evaluation.HOAS
     , unsafeEvaluateHoas
     ) where
 
-import           UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core                  hiding (error)
 
 import           PlutusCore.Constant                     hiding (lookupBuiltin)
 import           PlutusCore.Evaluation.Machine.Exception
@@ -152,7 +152,7 @@ fromValue = fromHTerm >=> bindFunM (const _builtinAppTerm)
 runEvalM
     :: EvalM unique name uni fun ann a
     -> Either (HoasException fun (Term name uni fun ann)) a
-runEvalM = bimap errorValueToTerm id . unEvalM where
+runEvalM = first errorValueToTerm . unEvalM where
     -- Here we call 'runEvalM' recursively. It's fine when the underlying monad is 'Either',
     -- but if it had 'ReaderT', then we'd also need to make sure that 'runEvalM' is supplied
     -- with the most recent environment, not the initial one.

@@ -15,7 +15,7 @@ module UntypedPlutusCore.Subst
 
 import           PlutusPrelude
 
-import           UntypedPlutusCore.Core
+import           UntypedPlutusCore.Core hiding (var)
 
 import           PlutusCore.Core        (HasUniques)
 import           PlutusCore.Name
