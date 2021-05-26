@@ -287,6 +287,9 @@ instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty
 instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
     let term' = TyInst () term ty
     case sch of
+        -- We allow a type argument to appear last in the type of a built-in function,
+        -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
+        -- application.
         TypeSchemeAll  _ schK -> do
             let runtime' = BuiltinRuntime (schK Proxy) f exF
             res <- evalBuiltinApp term' runtime'
@@ -310,7 +313,11 @@ applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckVa
 applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
     let term' = Apply () term $ ckValueToTerm arg
     case sch of
+        -- It's only possible to apply a builtin application if the builtin expects a term
+        -- argument next.
         TypeSchemeArrow _ schB -> do
+            -- The builtin application machinery wants to be able to throw a 'CekValue' rather
+            -- than a 'Term', hence 'withErrorDischarging'.
             let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
             x <- dischargeError $ readKnown arg
             let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg

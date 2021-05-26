@@ -289,7 +289,7 @@ We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself r
 @term@-generic version of 'CekEvaluationException' called 'CekEvaluationExceptionCarrying'.
 This enables us to implement 'MonadError' instances that allow for throwing errors in both the CEK
 machine and the builtin application machinery (as Note [Being generic over 'term' in errors]
-explains those are different kinds of errors) and otherwise we'd have to have more plumbing between
+explains, those are different kinds of errors) and otherwise we'd have to have more plumbing between
 these two and turning the builtin application machinery's 'MonadError' constraint into an explicit
 'Either' just to dispatch on it in the CEK machine and rethrow the error non-purely  (we used to
 have that) has to cost some. Plus, being @term@-generic also enables us to throw actual exceptions
@@ -358,9 +358,6 @@ withErrorDischarging
     -> CekCarryingM (Term Name uni fun ()) uni fun s a
 withErrorDischarging = coerce
 
-unsafeRunCekCarryingM :: CekCarryingM term uni fun s a -> IO a
-unsafeRunCekCarryingM = unsafeSTToIO . unCekCarryingM
-
 -- | Handle a 'CekEvaluationException' in the 'CekCarryingM' monad.
 catchErrorCekCarryingM
     :: PrettyUni uni fun
@@ -368,7 +365,11 @@ catchErrorCekCarryingM
     -> (CekEvaluationException uni fun -> CekCarryingM term uni fun s a)
     -> CekCarryingM term uni fun s a
 catchErrorCekCarryingM a h =
-    CekCarryingM . unsafeIOToST $ unsafeRunCekCarryingM a `catch` (unsafeRunCekCarryingM . h)
+    CekCarryingM . unsafeIOToST $ unsafeRunCekCarryingM a `catch` (unsafeRunCekCarryingM . h) where
+        -- | Unsafely run a 'CekCarryingM' computation in the 'IO' monad by converting the
+        -- underlying 'ST' to it.
+        unsafeRunCekCarryingM :: CekCarryingM term uni fun s a -> IO a
+        unsafeRunCekCarryingM = unsafeSTToIO . unCekCarryingM
 
 instance PrettyUni uni fun => MonadError (CekEvaluationException uni fun) (CekM uni fun s) where
     throwError = CekCarryingM . throwM
@@ -468,6 +469,7 @@ data Frame uni fun
 
 type Context uni fun = [Frame uni fun]
 
+-- | A 'MonadError' version of 'try'.
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
 
@@ -639,8 +641,8 @@ enterComputeCek costs = computeCek where
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term Name uni fun ())
     applyEvaluate ctx (VLamAbs name body env) arg = computeCek ctx (extendEnv name arg env) body
-    -- TODO: explain the bangs.
-    applyEvaluate ctx (VBuiltin fun term env (BuiltinRuntime sch !f !exF)) arg = do
+    -- TODO: check if annotating @f@ and @exF@ with bangs speeds anything up.
+    applyEvaluate ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
         let term' = Apply () term $ dischargeCekValue arg
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
@@ -649,6 +651,7 @@ enterComputeCek costs = computeCek where
                 -- The builtin application machinery wants to be able to throw a 'CekValue' rather
                 -- than a 'Term', hence 'withErrorDischarging'.
                 x <- withErrorDischarging $ readKnown arg
+                -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                 let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
                 res <- evalBuiltinApp fun term' env runtime'
                 returnCek ctx res
