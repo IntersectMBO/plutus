@@ -107,20 +107,13 @@ handleAction (SetIntegerTemplateParam templateType key value) = do
 handleAction StartSimulation =
   void
     $ runMaybeT do
-        -- TODO: move the initialSlot, extended contract and template contract out of the ExecutionState
-        --       and into the SimultationPage top State. This will remove the need of the Maybe
         initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
         extendedContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _extendedContract <<< _Just)
         templateContent <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent)
         (contract :: S.Contract) <- hoistMaybe $ toCore $ fillTemplate templateContent (extendedContract :: EM.Contract)
-        -- It is expected that when this function is called, the _marloweState list has a single element
-        -- with an ExecutionState of SimulationNotStarted, and the fact that we are inside a runMaybeT
-        -- with a Prism for _SimulationNotStarted guarantees us that at least the head of the list is
-        -- is in that state. But in theory there could be a list like this
-        -- [SimulationNotStarted, SimulationRunning, SimulationNotStarted] or [SimulationNotStarted, SimulationNotStarted]
-        -- which could result in weird bugs.
-        -- TODO: refactor marloweState type so we can remove "extendWith".
-        --       See note on SimulationPage.Types - Type State {marloweState}
+        -- The marloweState is a non empty list of an object that includes the ExecutionState (SimulationRunning | SimulationNotStarted)
+        -- Inside the SimulationNotStarted we can find the information needed to start the simulation. By running
+        -- this code inside of a maybeT, we make sure that the Head of the list has the state SimulationNotStarted
         modifying
           _marloweState
           ( extendWith

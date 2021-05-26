@@ -21,15 +21,6 @@ import Simulator.Types (MarloweState)
 type State
   = { showRightPanel :: Boolean
     , bottomPanelState :: BottomPanel.State BottomPanelView
-    -- TODO: Currently the marloweState is a list that includes the ExecutionState (SimulationRunning, SimulationNotStarted)
-    --       which makes the `undo` functionality easier but leads to states that should be impossible to represent, like
-    --       [SimulationNotStarted, SimulationRunning, SimulationNotStarted]
-    --       We should replace the types so that the MarloweState is
-    --          SimulationNotStarted
-    --          SimulationRunning { NonEmptyList ExecutionStateRecord}
-    --       or even replace with Maybe
-    --       The information currently available in SimulationNotStarted.InitialConditionsRecord should
-    --       be globally available as part of this State
     , marloweState :: NonEmptyList MarloweState
     , helpContext :: HelpContext
     }
