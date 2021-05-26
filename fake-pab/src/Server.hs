@@ -60,8 +60,9 @@ import           Plutus.V1.Ledger.Value            (CurrencySymbol (..), TokenNa
 import qualified PlutusTx.AssocMap                 as AssocMap
 import           Servant                           (Application, Handler (Handler), Server, ServerError, hoistServer,
                                                     serve, serveDirectoryFileServer, throwError, (:<|>) ((:<|>)), (:>))
-import           Text.Blaze.Html.Renderer.Utf8     (renderHtml)
+import           Text.Blaze.Html.Renderer.Pretty   (renderHtml)
 import qualified Text.Blaze.Html5                  as H
+import qualified Text.Blaze.Html5.Attributes       as A
 
 fromCurrencySymbol :: CurrencySymbol -> String
 fromCurrencySymbol =  Text.unpack . TE.decodeUtf8 . B16.encode . unCurrencySymbol
@@ -97,6 +98,7 @@ handlers :: Pool Connection -> FilePath -> Server API
 handlers conns staticPath = handlersJSON conns staticPath :<|>
                             handlersPlain conns staticPath :<|>
                             testEndpoint :<|>
+                            dashboard conns :<|>
                             serveDirectoryFileServer staticPath
 
 showResult :: Show a => Handler a -> Handler String
@@ -474,11 +476,68 @@ initializeApplication :: Pool Connection -> FilePath -> IO Application
 initializeApplication conn staticPath = return $ app conn staticPath
 
 testEndpoint :: Handler RawHtml
-testEndpoint = pure $ RawHtml $ renderHtml $ H.docTypeHtml $ H.html $ do
-  H.head $ do
+testEndpoint = pure $ RawHtml $ BSLU.fromString $ renderHtml $ H.docTypeHtml $ H.html $ do
+  H.head $
     H.title "Test page"
-  H.body $ do
+  H.body $
     H.h1 "It works!"
+
+data ContainerType = Wallet PublicKey
+                   | Contract
+
+displayContainerType :: ContainerType -> [String]
+displayContainerType Contract    = ["contract", "N/A"]
+displayContainerType (Wallet pk) = ["wallet", pk]
+
+dashboard :: Pool Connection -> Handler RawHtml
+dashboard conns = do
+  liftIO . withResource conns $ \conn -> withTransaction conn (do
+    currSlot <- getCurrentSlot conn
+    containerInfo <- getContainerContents conn :: IO (Map Integer (ContainerType, Map (String, String) Integer))
+    pure $ RawHtml $ BSLU.fromString $ renderHtml $ H.docTypeHtml $ H.html $ do
+      H.head $ do
+        H.meta H.! A.httpEquiv "refresh" H.! A.content "1"
+        H.title "Fake-pab dashboard"
+        H.style "table, th, td { border: 1px solid black; }"
+      H.body $ do
+        H.h2 (H.toHtml $ "Current slot: " ++ show currSlot)
+        H.h2 "Money containers"
+        H.table $ do
+          H.tr $ mapM_ H.th ["Id", "Type", "Public key", "Currency symbol", "Token name", "Amount"]
+          sequence_  [ let numRows = Map.size value in
+                       let spanV = spanVertically numRows idx in
+                       H.tr $ do sequence_
+                                       (spanV [show id] ++
+                                        spanV (displayContainerType containerType) ++
+                                        map (H.td . H.toHtml) [ currSymb, tokenName, show amount ])
+                               | (id, (containerType, value)) <- Map.toList containerInfo
+                               , (idx, ((currSymb, tokenName), amount)) <- zip [1..] (Map.toList value)
+                             ]
+    )
+  where
+    spanVertically :: Int -> Int -> [String] -> [H.Html]
+    spanVertically numRows currRow v
+      | currRow > 1 = []
+      | otherwise = [H.td H.! A.rowspan (fromString $ show numRows) $ H.toHtml el | el <- v]
+
+getCurrentSlot :: Connection -> IO Integer
+getCurrentSlot conn = do
+  [Only currSlotRatio]
+      <- query_ conn [sql| SELECT MAX(slot_number)
+                           FROM slot
+                     |] :: IO [Only (Ratio Integer)]
+  return (fromRatio currSlotRatio)
+
+getContainerContents :: Connection -> IO (Map Integer (ContainerType, Map (String, String) Integer))
+getContainerContents conn = do
+  result <- query_ conn [sql| SELECT ca.money_container_id, wa.pub_key, ca.currency_symbol, ca.token_name, ca.amount
+                              FROM currency_amount ca LEFT OUTER JOIN wallet wa ON ca.money_container_id = wa.money_container_id
+                              ORDER BY ca.money_container_id DESC
+                              LIMIT 30
+                        |]
+  return (Map.fromListWith (\(a1, a2) (_, b2) -> (a1, a2 `Map.union` b2))
+                           [(fromRatio containerIdRatio, (maybe Contract Wallet mPublicKey, Map.singleton (currencySymbol, tokenName) (fromRatio amountRatio)))
+                            | (containerIdRatio, mPublicKey, currencySymbol, tokenName, amountRatio) <- result])
 
 miner :: Connection -> IO ()
 miner conn =

@@ -90,5 +90,6 @@ type STATIC = Raw
 type API = JSON_API :<|>
            PLAIN_API :<|>
            "test" :> Get '[HTML] RawHtml :<|>
+           "dashboard" :> Get '[HTML] RawHtml :<|>
             Raw
 
