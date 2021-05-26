@@ -157,7 +157,7 @@ transferFunds conns srcPrivKey currSym (TokenName tok) amount destPubKey =
                      ((SELECT id FROM main_transaction), 2, (SELECT id FROM destination_container), ?, ?, ?)|]
                    (srcPubKey,
                     destPubKey,
-                    amount, curr, tok, -amount, curr, tok)
+                    -amount, curr, tok, amount, curr, tok)
       return ()
   where
     srcPubKey = BSU.toString $ B16.encode $ SHA256.hash $ BSU.fromString srcPrivKey
@@ -492,8 +492,9 @@ displayContainerType (Wallet pk) = ["wallet", pk]
 dashboard :: Pool Connection -> Handler RawHtml
 dashboard conns = do
   liftIO . withResource conns $ \conn -> withTransaction conn (do
-    currSlot <- getCurrentSlot conn
+    currSlot <- getCurrentSlot conn :: IO Integer
     containerInfo <- getContainerContents conn :: IO (Map Integer (ContainerType, Map (String, String) Integer))
+    transactionInfo <- getTransactionInfo conn :: IO (Map Integer (PublicKey, Maybe Integer, Maybe String))
     pure $ RawHtml $ BSLU.fromString $ renderHtml $ H.docTypeHtml $ H.html $ do
       H.head $ do
         H.meta H.! A.httpEquiv "refresh" H.! A.content "1"
@@ -501,19 +502,24 @@ dashboard conns = do
         H.style "table, th, td { border: 1px solid black; }"
       H.body $ do
         H.h2 (H.toHtml $ "Current slot: " ++ show currSlot)
-        H.h2 "Money containers"
+        H.h2 "Money containers (last 15)"
         H.table $ do
           H.tr $ mapM_ H.th ["Id", "Type", "Public key", "Currency symbol", "Token name", "Amount"]
           sequence_  [ let numRows = Map.size value in
                        let spanV = spanVertically numRows idx in
-                       H.tr $ do sequence_
+                       H.tr $ sequence_
                                        (spanV [show id] ++
                                         spanV (displayContainerType containerType) ++
                                         map (H.td . H.toHtml) [ currSymb, tokenName, show amount ])
                                | (id, (containerType, value)) <- Map.toList containerInfo
                                , (idx, ((currSymb, tokenName), amount)) <- zip [1..] (Map.toList value)
                              ]
-    )
+        H.h2 "Transactions (last 15)"
+        H.table $ do
+          H.tr $ mapM_ H.th ["Transaction Number", "Signing Public Key", "Block number", "Reason failed"]
+          sequence_  [ H.tr $ mapM_ (H.td . H.toHtml) [show transactionId, signingKey, maybe "" show mBlockNumber, maybe "" id mReasonFailed]
+                               | (transactionId, (signingKey, mBlockNumber, mReasonFailed)) <- Map.toList transactionInfo
+                             ])
   where
     spanVertically :: Int -> Int -> [String] -> [H.Html]
     spanVertically numRows currRow v
@@ -533,11 +539,21 @@ getContainerContents conn = do
   result <- query_ conn [sql| SELECT ca.money_container_id, wa.pub_key, ca.currency_symbol, ca.token_name, ca.amount
                               FROM currency_amount ca LEFT OUTER JOIN wallet wa ON ca.money_container_id = wa.money_container_id
                               ORDER BY ca.money_container_id DESC
-                              LIMIT 30
+                              LIMIT 15
                         |]
   return (Map.fromListWith (\(a1, a2) (_, b2) -> (a1, a2 `Map.union` b2))
                            [(fromRatio containerIdRatio, (maybe Contract Wallet mPublicKey, Map.singleton (currencySymbol, tokenName) (fromRatio amountRatio)))
                             | (containerIdRatio, mPublicKey, currencySymbol, tokenName, amountRatio) <- result])
+
+getTransactionInfo :: Connection -> IO (Map Integer (PublicKey, Maybe Integer, Maybe String))
+getTransactionInfo conn = do
+  result <- query_ conn [sql| SELECT t.transaction_id, wa.pub_key, t.slot_number, t.reason_invalid
+                              FROM transaction t INNER JOIN wallet wa ON t.signing_wallet_id = wa.money_container_id
+                              ORDER BY t.transaction_id DESC
+                              LIMIT 15
+                        |]
+  return (Map.fromList [(fromRatio transactionId, (publicKey, fmap fromRatio maybeSlot, maybeReason))
+                        | (transactionId, publicKey, maybeSlot, maybeReason) <- result])
 
 miner :: Connection -> IO ()
 miner conn =
