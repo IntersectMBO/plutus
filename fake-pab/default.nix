@@ -5,7 +5,7 @@ let
   fake-pab-exe = haskell.packages.fake-pab.components.exes.fake-pab-server;
 
   # Output containing the purescript bridge code
-  fake-pab-generated-purescript = pkgs.runCommand "marlowe-playground-purescript" { } ''
+  fake-pab-generated-purescript = pkgs.runCommand "marlowe-fake-pab-purescript" { } ''
     mkdir $out
     ${fake-pab-exe}/bin/fake-pab-server psgenerator $out
   '';
