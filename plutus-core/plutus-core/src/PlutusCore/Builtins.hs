@@ -73,6 +73,7 @@ data DefaultFun
     | IfThenElse
     | CharToString
     | Append
+    | EqualsString
     | Trace
     | Nop1  -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
     | Nop2
@@ -106,6 +107,7 @@ instance Pretty DefaultFun where
     pretty IfThenElse           = "ifThenElse"
     pretty CharToString         = "charToString"
     pretty Append               = "append"
+    pretty EqualsString         = "equalsString"
     pretty Trace                = "trace"
     pretty Nop1                 = "nop1"
     pretty Nop2                 = "nop2"
@@ -219,6 +221,10 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
         makeBuiltinMeaning
             ((++) :: String -> String -> String)
             mempty  -- TODO: budget.
+    toBuiltinMeaning EqualsString =
+        makeBuiltinMeaning
+            ((==) @String)
+            mempty  -- TODO: budget.
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
             (emit :: String -> Emitter ())
@@ -267,6 +273,7 @@ instance Serialise DefaultFun where
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
+              EqualsString         -> 28
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -297,6 +304,7 @@ instance Serialise DefaultFun where
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
+              go 28 = pure EqualsString
               go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
@@ -343,6 +351,7 @@ instance Flat DefaultFun where
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
+              EqualsString         -> 28
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -373,6 +382,7 @@ instance Flat DefaultFun where
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
+              go 28 = pure EqualsString
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth
