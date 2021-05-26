@@ -84,7 +84,7 @@ resource "aws_security_group" "fake-pab-ec2-sg" {
     to_port     = 80
     protocol    = "tcp"
     description = "HTTP"
-    cidr_blocks = ["192.168.0.0/16"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -92,7 +92,7 @@ resource "aws_security_group" "fake-pab-ec2-sg" {
     to_port     = 5432
     protocol    = "tcp"
     description = "MySql"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["192.168.0.0/16"]
   }
 
   # Allow all outbound traffic.
