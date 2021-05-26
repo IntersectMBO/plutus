@@ -10,6 +10,7 @@ packages: doc
           marlowe-symbolic
           playground-common
           plutus-benchmark
+          plutus-chain-index
           plutus-contract
           plutus-core
           plutus-errors

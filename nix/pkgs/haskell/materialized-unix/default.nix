@@ -740,6 +740,7 @@
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
         plutus-pab = ./.plan.nix/plutus-pab.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
+        plutus-chain-index = ./.plan.nix/plutus-chain-index.nix;
         byron-spec-ledger = ./.plan.nix/byron-spec-ledger.nix;
         small-steps-test = ./.plan.nix/small-steps-test.nix;
         marlowe-playground-server = ./.plan.nix/marlowe-playground-server.nix;
@@ -870,6 +871,7 @@
           "cardano-prelude-test" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "plutus-chain-index" = { flags = {}; };
           "byron-spec-ledger" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
