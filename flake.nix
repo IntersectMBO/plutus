@@ -12,7 +12,8 @@
       let
         topLevel = import ./. {
           inherit system;
-          haskellNixOverlays = [ haskell-nix.overlay ];
+          isInFlake = true;
+          haskellNix = haskell-nix;
         };
 
         inherit (topLevel) pkgs plutus;
