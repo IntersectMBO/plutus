@@ -1,5 +1,5 @@
 ```
-{-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --injective-type-constructors #-}
 module Algorithmic.ReductionEC where
 ```
 
@@ -338,7 +338,10 @@ data BAPP (b : Builtin) : ∀{az}{as}
     → substEq (∅ ⊢_) q tA ≡ t ·⋆ A
     → BAPP b (bubble p) tA
 
-convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b) → ∀{A}(t : ∅ ⊢ A) → BApp b p t → BApp b p' t
+convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
+  → ∀{A}(t : ∅ ⊢ A)
+  → BApp b p t
+  → BApp b p' t
 convBApp b p p' t q rewrite unique<>> p p' = q
 
 BApp2BAPP : ∀{b : Builtin}{az}{as}{p : az <>> as ∈ arity b}{A}{t : ∅ ⊢ A}
@@ -1330,17 +1333,91 @@ lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
   → substEq (∅ ⊢_) q M ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
 lem-·⋆ refl refl refl refl = refl
 
-open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl)
+open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl;≡-to-≅;≅-to-≡) renaming (sym to hsym; trans to htrans; cong to hcong)
 
-{-
 lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
-    → (r : B [ A ]Nf ≡ B' [ A' ]Nf)
   → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
---  → M' ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
   → M' _⊢_.·⋆ A' ≅ M _⊢_.·⋆ A
-  → M' ≅ M
-lem-·⋆' p q = {!!}
--}
+  → M' ≅ M × A ≅ A' × B ≅ B'
+lem-·⋆' refl = refl ,, refl ,, refl
+
+lem-·⋆wrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
+  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ _}
+  → M _⊢_.·⋆ A ≅ _⊢_.wrap A' B' M'
+  → ⊥
+lem-·⋆wrap ()
+
+lem-·⋆unwrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
+  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ μ A' B'}
+  → M _⊢_.·⋆ A ≅ _⊢_.unwrap M'
+  → ⊥
+lem-·⋆unwrap ()
+
+
+test : ∀{A A' : Set}{a : A}{a' : A'} → a ≅ a' → A ≅ A'
+test refl = refl
+
+test0 : ∀{A A'}{a : ∅ ⊢ A}{a' : ∅ ⊢ A'} → a ≅ a' → A ≅ A'
+test0 refl = refl
+
+test1 : ∀{A A' B B'}{M : ∅ ⊢ A ⇒ B}{M' : ∅ ⊢ A' ⇒ B'}{N : ∅ ⊢ A}{N' : ∅ ⊢ A'}
+  → (M _⊢_.· N) ≅ M' _⊢_.· N' → M ≅ M'
+test1 refl = refl
+
+lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
+  → ∀{L : ∅ ,⋆ K ⊢ B}{X}{L' : ∅ ⊢ X}{Y}
+  → Y ≡ Π B
+  → (E : EC Y X)
+  → Λ L ≅ E [ L' ]ᴱ
+  → E ≅ EC.[] {A = Y} × Λ L ≅ L'
+lemΛE eq [] p = refl ,, p
+
+U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
+ {B' : ∅ ⊢Nf⋆ *}
+ → X ≡ B [ A ]Nf →
+ (E'
+ : EC X  B')
+ {L' : ∅ ⊢ B'} →
+ Λ L _⊢_.·⋆ A ≅ (E' [ L' ]ᴱ) →
+ Redex L' →
+ ∃
+ (λ (p : _ ≡ B') →
+   substEq
+   (EC (B [ A ]Nf))
+   p []
+   ≅ E'
+   × substEq (_⊢_ ∅) p (Λ L ·⋆ A) ≅ L')
+U·⋆1  {A = A}{B}{L} eq []        p q = sym eq ,, htrans (≡-subst-removable (EC (B [ A ]Nf)) (sym eq) []) (hcong (λ X → [] {A = X}) (hsym (≡-to-≅ eq))) ,, htrans (≡-subst-removable (∅ ⊢_) (sym eq) (Λ L ·⋆ A)) p
+U·⋆1 eq (E' ·⋆ A) p q with lem-·⋆' p
+... | X ,, refl ,, refl with lemΛE refl E' X
+U·⋆1 eq (.[] ·⋆ A) p (β ()) | X ,, refl ,, refl | refl ,, refl
+
+-- M is not a value, it has made a step
+U·⋆2 : ∀{K}{C}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{M : ∅ ⊢ Π B}{E : EC (Π B) C}{L : ∅ ⊢ C}{X}
+ {B' : ∅ ⊢Nf⋆ *}
+ → ¬ (Value M)
+ → X ≡ B [ A ]Nf → 
+ (E'
+  : EC X B')
+ {L' : ∅ ⊢ B'} →
+ M _⊢_.·⋆ A ≅ (E' [ L' ]ᴱ) →
+ Redex L' →
+ (U : {B' : ∅ ⊢Nf⋆ *} (E' : EC (Π B) B') {L' : ∅ ⊢ B'} →
+      M ≡ (E' [ L' ]ᴱ) →
+      Redex L' →
+      ∃ (λ (p₁ : C ≡ B') → substEq (EC (Π B)) p₁ E ≡ E' × substEq (_⊢_ ∅) p₁ L ≡ L'))
+ →
+ ∃
+ (λ (p₁ : C ≡ B') →
+   substEq
+   (EC (B [ A ]Nf))
+   p₁ (E EC.·⋆ A)
+   ≅ E'
+   × substEq (_⊢_ ∅) p₁ L ≅ L')
+U·⋆2 ¬VM eq [] refl (β β-Λ) U = ⊥-elim (¬VM (V-Λ _))
+U·⋆2 ¬VM eq [] refl (β (β-sbuiltin⋆ b _ p bt _)) U = ⊥-elim (¬VM (V-IΠ b p bt))
+U·⋆2 ¬VM eq (E ·⋆ A) refl q U with U E refl q
+... | refl ,, refl ,, refl = refl ,, refl ,, refl
 
 rlemma51! : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → RProgress M
 rlemma51! (ƛ M)        = done (V-ƛ M)
@@ -1402,13 +1479,15 @@ rlemma51! (M ·⋆ A)     with rlemma51! M
   []
   (β β-Λ)
   refl
-  {!!}
+  λ E' p q → let X ,, Y ,, Y' = U·⋆1 refl E' (≡-to-≅ p) q in
+    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
 ... | step ¬VM E p q U = step
   (λ V → lemV·⋆ (λ V → ¬VM (VALUE2Value V)) (Value2VALUE V))
   (E ·⋆ A)
   p
   (cong (_·⋆ A) q)
-  {!!}
+  λ E p q → let X ,, Y ,, Y' = U·⋆2 ¬VM refl E (≡-to-≅ p) q U in
+    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y' 
 rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = []} p x) = step
   (λ V → valred (Value2VALUE V) (β-sbuiltin⋆ b M p x A))
   []
