@@ -108,7 +108,7 @@ showResult handler = do x <- handler
 -- Creates a Wallet with 1000 ADA
 createWallet :: Pool Connection -> PrivateKey -> Handler PublicKey
 createWallet conns privateKey =
-  liftIO . withResource conns $ \conn -> do
+  liftIO . withResource conns $ \conn -> withTransaction conn (do
     catchViolation catcher $ do
       execute conn
         [sql|WITH mc_insert AS (INSERT INTO money_container DEFAULT VALUES
@@ -117,7 +117,7 @@ createWallet conns privateKey =
                                     VALUES ((SELECT id FROM mc_insert), ?))
               INSERT INTO currency_amount (amount, money_container_id, currency_symbol, token_name)
               VALUES (1000000000, (SELECT id FROM mc_insert), '', '')|] [publicKey]
-      return publicKey
+      return publicKey)
   where
     publicKey = BSU.toString $ B16.encode $ SHA256.hash $ BSU.fromString privateKey
 
@@ -128,7 +128,7 @@ createWallet conns privateKey =
 -- Lists the amount a wallet has of each currency (of currencies it ever had some amount of)
 listWalletFunds :: Pool Connection -> PublicKey -> Handler (Map CurrencySymbol [(TokenName, Integer)])
 listWalletFunds conns publicKey =
-  liftIO . withResource conns $ \conn -> do
+  liftIO . withResource conns $ \conn -> withTransaction conn (do
       result <- query conn
                   [sql| SELECT ca.currency_symbol, ca.token_name, SUM(amount) AS amount
                         FROM wallet w INNER JOIN currency_amount ca
@@ -136,7 +136,7 @@ listWalletFunds conns publicKey =
                         WHERE w.pub_key = ?
                         GROUP BY ca.currency_symbol, ca.token_name
                   |] [publicKey]
-      return $ Map.fromListWith (++) [(toCurrencySymbol cs, [(TokenName tn, fromRatio am)]) | (cs, tn, am) <- result]
+      return $ Map.fromListWith (++) [(toCurrencySymbol cs, [(TokenName tn, fromRatio am)]) | (cs, tn, am) <- result])
 
 
 
@@ -144,7 +144,7 @@ listWalletFunds conns publicKey =
 transferFunds :: Pool Connection -> PrivateKey -> CurrencySymbol -> TokenName -> Integer -> PublicKey -> Handler ()
 transferFunds conns srcPrivKey currSym (TokenName tok) amount destPubKey =
   let curr = fromCurrencySymbol currSym in
-  liftIO . withResource conns $ \conn -> do
+  liftIO . withResource conns $ \conn -> withTransaction conn (do
     when (amount > 0) $ do
       execute conn
         [sql|WITH source_container AS (SELECT get_or_create_money_container_id_from_pubkey(?) AS id),
@@ -158,7 +158,7 @@ transferFunds conns srcPrivKey currSym (TokenName tok) amount destPubKey =
                    (srcPubKey,
                     destPubKey,
                     -amount, curr, tok, amount, curr, tok)
-      return ()
+      return ())
   where
     srcPubKey = BSU.toString $ B16.encode $ SHA256.hash $ BSU.fromString srcPrivKey
 
@@ -239,11 +239,11 @@ getContractStatePlain conns currSymb = getContractState conns (toCurrencySymbol 
 getContractState :: Pool Connection -> CurrencySymbol -> Handler GetContractStateResponse
 getContractState conns encCurrSymb =
   let currencySymbol = fromCurrencySymbol encCurrSymb in
-  liftIO . withResource conns $ \conn -> do
+  liftIO . withResource conns $ \conn -> withTransaction conn (do
       (_, currentState, currentContract) <- getCurrentStateAndContract conn currencySymbol
       return (GetContractStateResponse { curr_state = currentState
                                       , curr_contract = currentContract
-                                      })
+                                      }))
 
 getCurrentStateAndContract :: Connection -> String -> IO (Integer, State, Contract)
 getCurrentStateAndContract conn currencySymbol = do

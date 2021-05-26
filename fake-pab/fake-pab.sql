@@ -106,13 +106,13 @@ THEN
 	RETURN FALSE;
 ELSE
   INSERT INTO currency_amount (money_container_id, currency_symbol, token_name, amount)
-  (SELECT ca.money_container_id AS money_container_id, ca.currency_symbol AS currency_symbol, ca.token_name AS token_name, SUM(tl.amount_change) + COALESCE(ca.amount, 0) AS amount
+  (SELECT tl.money_container_id AS money_container_id, tl.currency_symbol AS currency_symbol, tl.token_name AS token_name, SUM(tl.amount_change) + SUM(COALESCE(ca.amount, 0)) AS amount
    FROM transaction_line tl LEFT OUTER JOIN currency_amount ca
     ON tl.money_container_id = ca.money_container_id
     AND tl.currency_symbol = ca.currency_symbol
     AND tl.token_name = ca.token_name
    WHERE transaction_id = target_transaction_id
-   GROUP BY ca.money_container_id, ca.currency_symbol, ca.token_name)
+   GROUP BY tl.money_container_id, tl.currency_symbol, tl.token_name)
   ON CONFLICT (money_container_id, currency_symbol, token_name)
   DO UPDATE SET amount = EXCLUDED.amount;
   RETURN TRUE;
