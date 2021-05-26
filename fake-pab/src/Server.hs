@@ -497,7 +497,7 @@ dashboard conns = do
     transactionInfo <- getTransactionInfo conn :: IO (Map Integer (PublicKey, Maybe Integer, Maybe String))
     pure $ RawHtml $ BSLU.fromString $ renderHtml $ H.docTypeHtml $ H.html $ do
       H.head $ do
-        H.meta H.! A.httpEquiv "refresh" H.! A.content "1"
+        H.meta H.! A.httpEquiv "refresh" H.! A.content "0.2"
         H.title "Fake-pab dashboard"
         H.style "table, th, td { border: 1px solid black; }"
       H.body $ do
