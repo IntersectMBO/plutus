@@ -30,7 +30,7 @@ import Marlowe.Extended as Extended
 import Marlowe.Holes as Holes
 import Marlowe.Linter as Linter
 import SessionStorage as SessionStorage
-import SimulationPage.Types (_templateContent)
+import Simulator.Lenses (_templateContent)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), _analysisExecutionState, _analysisState)

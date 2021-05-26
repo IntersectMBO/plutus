@@ -46,8 +46,9 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Contract(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
-import SimulationPage.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentContract, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
-import Simulator (updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulator.Lenses (_SimulationRunning, _contract, _currentContract, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings)
+import Simulator.State (emptyMarloweStateWithSlot, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, applyPendingInputs)
+import Simulator.Types (ActionInput(..), ActionInputId, MarloweState)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import WalletSimulation.Types (Action(..), ChildSlots, LoadedContract, Message(..), Query(..), State, View(..), Wallet(..), _addInputError, _assetChanges, _assets, _contracts, _currentLoadedMarloweState, _helpContext, _initialized, _loadContractError, _loadedMarloweState, _name, _openWallet, _parties, _runningContracts, _showRightPanel, _started, _tokens, _view, _walletContracts, _walletLoadedContract, _wallets, mkState)
@@ -77,7 +78,7 @@ mkComponent =
 applyTransactions :: forall m. MonadState State m => m Unit
 applyTransactions = do
   initialPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _payments)
-  modifying _loadedMarloweState (extendWith (updatePossibleActions <<< updateStateP))
+  modifying _loadedMarloweState (extendWith (updatePossibleActions <<< applyPendingInputs))
   updatedPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _payments)
   let
     newPayments = drop (Array.length initialPayments) updatedPayments
