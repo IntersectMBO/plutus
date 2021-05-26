@@ -414,24 +414,6 @@ emitCek str =
         Nothing      -> pure ()
         Just logsRef -> CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
 
-{- | Given a possibly partially applied/instantiated builtin, reconstruct the
-   original application from the type and term arguments we've got so far, using
-   the supplied arity.  This also attempts to handle the case of bad
-   interleavings for use in error messages.  The caller has to add the extra
-   type or term argument that caused the error, then mkBuiltinApp works its way
-   along the arity reconstructing the term.  When it can't find an argument of
-   the appropriate kind it looks for one of the other kind (which should be the
-   one supplied by the user): if it finds one it adds an extra application or
-   instantiation as appropriate to what it's constructed so far and returns the
-   result.  If there are no arguments of either kind left it just returns what
-   it has at that point.  The only circumstances where this is currently called
-   is if (a) the machine is returning a partially applied builtin, or (b) a
-   wrongly interleaved builtin application is being reported in an error.  Note
-   that we don't call this function if a builtin fails for some reason like
-   division by zero; the term is discarded in that case anyway (see
-   Note [Ignoring context in UserEvaluationError] in Exception.hs)
--}
-
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
@@ -586,7 +568,7 @@ enterComputeCek costs = computeCek where
         computeCek (FrameApplyArg env arg : ctx) env fun
     -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
     -- s ; ρ ▻ con c  ↦  s ◅ con c
-    -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
+    -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn (Builtin () bn) (runtimeOf bn) ρ
     computeCek ctx env term@(Builtin _ bn) = do
         spendBudgetCek BBuiltin (cekBuiltinCost costs)
         meaning <- lookupBuiltin bn ?cekRuntime

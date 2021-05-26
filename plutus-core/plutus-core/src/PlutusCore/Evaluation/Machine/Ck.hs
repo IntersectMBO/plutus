@@ -121,17 +121,6 @@ instance Pretty CkUserError where
 
 type CkM uni fun s = CkCarryingM (Term TyName Name uni fun ()) uni fun s
 
-{- Note [Errors and CkValues]
-Most errors take an optional argument that can be used to report the
-term causing the error. Our builtin applications take CkValues as
-arguments, and this constrains the `term` type in the constant
-application machinery to be equal to `CkValue`.  This (I think) means
-that our errors can only involve CkValues and not Terms, so in some
-cases we can't provide any context when an error occurs (eg, if we try
-to look up a free variable in an environment: there's no CkValue for
-Var, so we can't report which variable caused the error.
--}
-
 instance MonadEmitter (CkCarryingM term uni fun s) where
     emit str = do
         mayLogsRef <- asks ckEnvMayEmitRef
@@ -237,7 +226,7 @@ substTyInTy tn0 ty0 = go where
 -- > s ▷ unwrap M   ↦ s , (unwrap _)   ▷ M
 -- > s ▷ abs α K M  ↦ s ◁ abs α K M
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
--- > s ▷ builtin bn ↦ s ◁ builtin bn (arity bn) (arity bn) [] []
+-- > s ▷ builtin bn ↦ s ◁ builtin (Builtin () bn) (runtimeOf bn)
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>)
@@ -283,25 +272,11 @@ FrameUnwrap        : stack <| wrapped = case wrapped of
     _               ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just $ ckValueToTerm wrapped
 
-{- Note [Accumulating arguments].
-The VBuiltin value contains lists of type and term arguments which
-grow as new arguments are encountered.  In the code below We just add
-new entries by appending to the end of the list: l -> l++[x].  This
-doesn't look terrbily good, but we don't expect the lists to ever
-contain more than three or four elements, so the cost is unlikely to
-be high.  We could accumulate lists in the normal way and reverse them
-when required, but this is error-prone and reversal adds an extra cost
-anyway.  We could also use something like Data.Sequence, but again we
-incur an extra cost because we have to convert to a normal list when
-passing the arguments to the constant application machinery.  If we
-really care we might want to convert the CAM to use sequences instead
-of lists.
--}
-
 -- | Instantiate a term with a type and proceed.
--- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
--- iterated application of a 'Builtin' to a list of 'Value's and, if succesful,
--- apply the term to the type via 'TyInst'.
+-- In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application
+-- expecting a type argument, in which case either calculate the builtin application or stick a
+-- 'TyInst' on top of its 'Term' representation depending on whether the application is saturated or
+-- not. In any other case, fail.
 instantiateEvaluate
     :: Ix fun
     => Context uni fun
@@ -321,10 +296,10 @@ instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just $ ckValueToTerm val
 
 -- | Apply a function to an argument and proceed.
--- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
--- as an iterated application of a 'Builtin' to a list of 'Value's.
--- If succesful, proceed with either this same term or with the result of the computation
--- depending on whether 'Builtin' is saturated or not.
+-- If the function is a lambda, then perform substitution and proceed.
+-- If the function is a builtin application then check that it's expecting a term argument,
+-- and either calculate the builtin application or stick a 'Apply' on top of its 'Term'
+-- representation depending on whether the application is saturated or not.
 applyEvaluate
     :: Ix fun
     => Context uni fun
