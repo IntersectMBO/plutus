@@ -1,12 +1,12 @@
 module Simulator
-  ( updateMarloweState
-  , applyInput
+  ( applyInput
+  , applyTransactions
+  , updateMarloweState
   , hasHistory
   , updateStateP
   , updateContractInStateP
   , updatePossibleActions
   , inFuture
-  , moveToSignificantSlot
   , moveToSlot
   , nextSignificantSlot
   ) where
@@ -16,7 +16,8 @@ import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (has, modifying, nearly, over, previewOn, set, use, view, (^.))
+import Data.Lens (has, modifying, nearly, over, previewOn, set, to, use, view, (^.))
+import Data.Lens.NonEmptyList (_Head)
 import Data.List (List(..))
 import Data.List as List
 import Data.List.Types (NonEmptyList)
@@ -268,32 +269,24 @@ applyInput ::
   m Unit
 applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over (_executionState <<< _SimulationRunning <<< _pendingInputs) inputs)))
 
--- TODO: Join moveToSignificantSlot and moveToSlot. See note on SimulationPage.State::handleAction MoveSlot
-moveToSignificantSlot ::
-  forall s m.
-  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
-  Slot ->
-  m Unit
-moveToSignificantSlot slot =
-  modifying
-    _marloweState
-    ( extendWith
-        ( updatePossibleActions
-            <<< updateStateP
-            <<< updateSlot slot
-        )
-    )
-
 moveToSlot ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   Slot ->
   m Unit
-moveToSlot slot =
+moveToSlot slot = do
+  mSignificantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
+  let
+    mApplyPendingTransactions =
+      if slot >= (fromMaybe zero mSignificantSlot) then
+        updateStateP
+      else
+        identity
   modifying
     _marloweState
     ( extendWith
         ( updatePossibleActions
+            <<< mApplyPendingTransactions
             <<< updateSlot slot
         )
     )

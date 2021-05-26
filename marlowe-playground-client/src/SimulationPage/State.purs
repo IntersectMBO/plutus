@@ -18,9 +18,8 @@ import Data.BigInteger (BigInteger, fromString)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
 import Data.Either (Either(..), hush)
-import Data.Lens (_Just, assign, modifying, over, set, to, use)
+import Data.Lens (_Just, assign, modifying, over, set, use)
 import Data.Lens.Extra (peruse)
-import Data.Lens.NonEmptyList (_Head)
 import Data.List.NonEmpty (last, singleton)
 import Data.List.Types (NonEmptyList)
 import Data.Map as Map
@@ -53,7 +52,7 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import SessionStorage as SessionStorage
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentMarloweState, _executionState, _extendedContract, _helpContext, _initialSlot, _marloweState, _moveToAction, _possibleActions, _showRightPanel, _templateContent, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
-import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateMarloweState, updatePossibleActions, updateStateP)
+import Simulator (applyInput, inFuture, moveToSlot, updateMarloweState, updatePossibleActions, updateStateP)
 import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
 import Types (WebData)
@@ -121,15 +120,7 @@ handleAction StartSimulation =
 handleAction (MoveSlot slot) = do
   inTheFuture <- inFuture <$> get <*> pure slot
   when inTheFuture do
-    -- The difference between moveToSlot and moveToSignificantSlot is that the later also updates any
-    -- pending transaction input, and we should only do that if the slot that we are moving is bigger
-    -- than the next timeout. But this should be an implementation detail of the Simulator.
-    -- TODO: join moveToSignificantSlot and moveToSlot inside the simulator
-    mSignificantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
-    if slot >= (fromMaybe zero mSignificantSlot) then
-      moveToSignificantSlot slot
-    else
-      moveToSlot slot
+    moveToSlot slot
     updateContractInEditor
 
 handleAction (SetSlot slot) = do
