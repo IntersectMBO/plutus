@@ -34,6 +34,10 @@ module Plutus.V1.Ledger.Api (
     , ScriptContext(..)
     , ScriptPurpose(..)
     -- ** Supporting types used in the context types
+    -- *** ByteStrings
+    , BuiltinByteString
+    , toBuiltin
+    , fromBuiltin
     -- *** Bytes
     , LedgerBytes (..)
     , fromBytes
@@ -139,6 +143,7 @@ import           PlutusTx                                         (FromData (..)
                                                                    fromData, toData)
 import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
                                                                    dataToBuiltinData)
+import           PlutusTx.Prelude                                 (BuiltinByteString, fromBuiltin, toBuiltin)
 import qualified UntypedPlutusCore                                as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 

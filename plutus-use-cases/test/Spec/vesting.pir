@@ -2484,7 +2484,7 @@
                       (termbind
                         (strict)
                         (vardecl
-                          fOrdData_ccompare
+                          fOrdInteger_ccompare
                           (fun (con integer) (fun (con integer) Ordering))
                         )
                         (lam
@@ -2798,7 +2798,7 @@
                                       [
                                         { CConsOrd (con integer) } equalsInteger
                                       ]
-                                      fOrdData_ccompare
+                                      fOrdInteger_ccompare
                                     ]
                                     lessThanInteger
                                   ]

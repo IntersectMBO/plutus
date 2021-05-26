@@ -10,8 +10,6 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.IsData.Class where
 
-import           Data.ByteString            as BS
-
 import           Prelude                    (Int, Integer, Maybe (..), error)
 
 import qualified PlutusCore.Data            as PLC
@@ -79,13 +77,13 @@ instance UnsafeFromData Integer where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = BI.unsafeDataAsI
 
-instance ToData ByteString where
+instance ToData Builtins.BuiltinByteString where
     {-# INLINABLE toBuiltinData #-}
-    toBuiltinData b = mkB b
-instance FromData ByteString where
+    toBuiltinData = mkB
+instance FromData Builtins.BuiltinByteString where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData d = matchData' d (\_ _ -> Nothing) (const Nothing) (const Nothing) (const Nothing) (\b -> Just b)
-instance UnsafeFromData ByteString where
+instance UnsafeFromData Builtins.BuiltinByteString where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = BI.unsafeDataAsB
 

@@ -25,7 +25,7 @@ import qualified Plutus.Contracts.Governance as Gov
 import           Plutus.Trace.Emulator       (EmulatorTrace)
 import qualified Plutus.Trace.Emulator       as Trace
 import qualified PlutusTx
-import           PlutusTx.Prelude            (ByteString)
+import           PlutusTx.Prelude            (BuiltinByteString, fromBuiltin)
 
 import           Test.Tasty                  (TestTree, testGroup)
 import qualified Test.Tasty.HUnit            as HUnit
@@ -69,7 +69,7 @@ params = Gov.Params
     , Gov.baseTokenName = baseName
     }
 
-lawv1, lawv2, lawv3 :: ByteString
+lawv1, lawv2, lawv3 :: BuiltinByteString
 lawv1 = "Law v1"
 lawv2 = "Law v2"
 lawv3 = "Law v3"
@@ -82,7 +82,7 @@ doVoting ayes nays rounds = do
     namesAndHandles <- traverse activate [1..numberOfHolders]
     let handle1 = snd (head namesAndHandles)
     let token2 = fst (namesAndHandles !! 1)
-    void $ Trace.callEndpoint @"new-law" handle1 lawv1
+    void $ Trace.callEndpoint @"new-law" handle1 (fromBuiltin lawv1)
     void $ Trace.waitNSlots 10
     slotCfg <- Trace.getSlotConfig
     let votingRound (_, law) = do

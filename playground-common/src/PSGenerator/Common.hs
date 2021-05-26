@@ -142,6 +142,12 @@ byteStringBridge = do
     typeModule ^== "Data.ByteString.Lazy.Internal" <|> typeModule ^== "Data.ByteString.Internal"
     pure psString
 
+bultinByteStringBridge :: BridgePart
+bultinByteStringBridge = do
+    typeName ^== "BuiltinByteString"
+    typeModule ^== "PlutusTx.Builtins.Internal"
+    pure psString
+
 scientificBridge :: BridgePart
 scientificBridge = do
     typeName ^== "Scientific"
@@ -169,7 +175,7 @@ exBudgetBridge = do
 
 miscBridge :: BridgePart
 miscBridge =
-    byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
 
 ------------------------------------------------------------
 

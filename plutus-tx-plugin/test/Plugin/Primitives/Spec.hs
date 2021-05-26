@@ -53,11 +53,11 @@ primitives = testNested "Primitives" [
   , goldenPir "emptyByteString" emptyByteString
   , goldenUEval "emptyByteStringApply" [ getPlc emptyByteString, liftProgram Builtins.emptyByteString ]
   , goldenPir "bytestring" bytestring
-  , goldenUEval "bytestringApply" [ getPlc bytestring, liftProgram ("hello"::Builtins.ByteString) ]
-  , goldenUEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.ByteString)]
-  , goldenUEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("hello" :: Builtins.ByteString)]
-  , goldenUEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("world" :: Builtins.ByteString)]
-  , goldenUEval "decodeUtf8" [ getPlc bsDecode, liftProgram ("hello" :: Builtins.ByteString)]
+  , goldenUEval "bytestringApply" [ getPlc bytestring, liftProgram ("hello" ::Builtins.BuiltinByteString) ]
+  , goldenUEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.BuiltinByteString)]
+  , goldenUEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.BuiltinByteString), liftProgram ("hello" :: Builtins.BuiltinByteString)]
+  , goldenUEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.BuiltinByteString), liftProgram ("world" :: Builtins.BuiltinByteString)]
+  , goldenUEval "decodeUtf8" [ getPlc bsDecode, liftProgram ("hello" :: Builtins.BuiltinByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   , goldenPir "traceComplex" traceComplex
@@ -86,7 +86,7 @@ int = plc (Proxy @"int") (1::Integer)
 int2 :: CompiledCode Integer
 int2 = plc (Proxy @"int2") (2::Integer)
 
-emptyBS :: CompiledCode Builtins.ByteString
+emptyBS :: CompiledCode Builtins.BuiltinByteString
 emptyBS = plc (Proxy @"emptyBS") Builtins.emptyByteString
 
 bool :: CompiledCode Bool
@@ -123,26 +123,26 @@ errorPlc = plc (Proxy @"errorPlc") (Builtins.error @Integer)
 ifThenElse :: CompiledCode (Integer -> Integer -> Integer)
 ifThenElse = plc (Proxy @"ifThenElse") (\(x::Integer) (y::Integer) -> if Builtins.equalsInteger x y then x else y)
 
-emptyByteString :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
-emptyByteString = plc (Proxy @"emptyByteString") (\(x :: Builtins.ByteString) -> x)
+emptyByteString :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
+emptyByteString = plc (Proxy @"emptyByteString") (\(x :: Builtins.BuiltinByteString) -> x)
 
-bytestring :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
-bytestring = plc (Proxy @"bytestring") (\(x::Builtins.ByteString) -> x)
+bytestring :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
+bytestring = plc (Proxy @"bytestring") (\(x::Builtins.BuiltinByteString) -> x)
 
-sha2 :: CompiledCode (Builtins.ByteString -> Builtins.ByteString)
-sha2 = plc (Proxy @"sha2") (\(x :: Builtins.ByteString) -> Builtins.sha2_256 x)
+sha2 :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
+sha2 = plc (Proxy @"sha2") (\(x :: Builtins.BuiltinByteString) -> Builtins.sha2_256 x)
 
-bsEquals :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
-bsEquals = plc (Proxy @"bs32Equals") (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.equalsByteString x y)
+bsEquals :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Bool)
+bsEquals = plc (Proxy @"bs32Equals") (\(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) -> Builtins.equalsByteString x y)
 
-bsLt :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
-bsLt = plc (Proxy @"bsLt") (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.lessThanByteString x y)
+bsLt :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Bool)
+bsLt = plc (Proxy @"bsLt") (\(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) -> Builtins.lessThanByteString x y)
 
-bsDecode :: CompiledCode (Builtins.ByteString -> Builtins.BuiltinString)
-bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.ByteString) -> Builtins.decodeUtf8 x)
+bsDecode :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinString)
+bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.BuiltinByteString) -> Builtins.decodeUtf8 x)
 
-verify :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
-verify = plc (Proxy @"verify") (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
+verify :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Bool)
+verify = plc (Proxy @"verify") (\(x::Builtins.BuiltinByteString) (y::Builtins.BuiltinByteString) (z::Builtins.BuiltinByteString) -> Builtins.verifySignature x y z)
 
 trace :: CompiledCode (Builtins.BuiltinString -> ())
 trace = plc (Proxy @"trace") (\(x :: Builtins.BuiltinString) -> Builtins.trace x ())
@@ -159,7 +159,7 @@ stringConvert = plc (Proxy @"stringConvert") ((noinline Builtins.stringToBuiltin
 stringEquals :: CompiledCode (String -> String -> Bool)
 stringEquals = plc (Proxy @"string32Equals") (\(x :: String) (y :: String) -> Builtins.equalsString (Builtins.stringToBuiltinString x) (Builtins.stringToBuiltinString y))
 
-stringEncode :: CompiledCode (Builtins.ByteString)
+stringEncode :: CompiledCode (Builtins.BuiltinByteString)
 stringEncode = plc (Proxy @"stringEncode") (Builtins.encodeUtf8 "abc")
 
 constructData1 :: CompiledCode (Builtins.BuiltinData)

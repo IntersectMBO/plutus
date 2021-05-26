@@ -86,6 +86,7 @@ redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 validatorHash :: Validator -> ValidatorHash
 validatorHash vl =
     ValidatorHash
+        $ toBuiltin
         $ Crypto.hashToBytes
         $ Crypto.hashWith @Crypto.Blake2b_224 id
         $ Crypto.hashToBytes
@@ -96,6 +97,7 @@ validatorHash vl =
 mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
 mintingPolicyHash vl =
     MintingPolicyHash
+        $ toBuiltin
         $ Crypto.hashToBytes
         $ Crypto.hashWith @Crypto.Blake2b_224 id
         $ Crypto.hashToBytes

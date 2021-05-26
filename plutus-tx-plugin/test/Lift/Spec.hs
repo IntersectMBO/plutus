@@ -24,7 +24,7 @@ Lift.makeLift ''MyPolyData
 data NestedRecord = NestedRecord { unNested :: Maybe (Integer, Integer) }
 Lift.makeLift ''NestedRecord
 
-data WrappedBS = WrappedBS { unWrap :: Builtins.ByteString }
+data WrappedBS = WrappedBS { unWrap :: Builtins.BuiltinByteString }
 Lift.makeLift ''WrappedBS
 
 newtype NewtypeInt = NewtypeInt { unNt :: Integer }

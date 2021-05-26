@@ -156,7 +156,7 @@ mkBuiltin = PIR.Builtin ()
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
 builtinNames :: [TH.Name]
 builtinNames = [
-      ''BS.ByteString
+      ''Builtins.BuiltinByteString
     , 'Builtins.concatenate
     , 'Builtins.takeByteString
     , 'Builtins.dropByteString
@@ -168,6 +168,7 @@ builtinNames = [
     , 'Builtins.greaterThanByteString
     , 'Builtins.emptyByteString
     , 'Builtins.decodeUtf8
+    , 'Builtins.stringToBuiltinByteString
 
     , 'Builtins.verifySignature
 
@@ -351,7 +352,7 @@ defineBuiltinTypes
     :: CompilingDefault uni fun m
     => m ()
 defineBuiltinTypes = do
-    defineBuiltinType ''BS.ByteString $ PLC.toTypeAst $ Proxy @BS.ByteString
+    defineBuiltinType ''Builtins.BuiltinByteString $ PLC.toTypeAst $ Proxy @BS.ByteString
     defineBuiltinType ''Integer $ PLC.toTypeAst $ Proxy @Integer
     defineBuiltinType ''Builtins.BuiltinBool $ PLC.toTypeAst $ Proxy @Bool
     defineBuiltinType ''Builtins.BuiltinUnit $ PLC.toTypeAst $ Proxy @()
