@@ -129,16 +129,6 @@ simplifyBoundList (Cons (Bound low1 high1) (Cons b2@(Bound low2 high2) rest))
 
 simplifyBoundList l = l
 
--- TODO: This doesn't seem to be used, confirm and delete
-getAsMuchStateAsPossible :: forall m t0. MonadState { marloweState :: NonEmptyList MarloweState | t0 } m => m State
-getAsMuchStateAsPossible = do
-  executionState <- use (_currentMarloweState <<< _executionState)
-  pure
-    ( case executionState of
-        SimulationRunning runRecord -> runRecord.state
-        SimulationNotStarted notRunRecord -> emptyState notRunRecord.initialSlot
-    )
-
 inFuture :: forall r. { marloweState :: NonEmptyList MarloweState | r } -> Slot -> Boolean
 inFuture state slot = has (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< nearly zero ((>) slot)) state
 
@@ -294,15 +284,7 @@ updateMarloweState ::
   m Unit
 updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
 
--- TODO: This doesn't seem to be used, confirm and delete
-updateContractInState ::
-  forall s m.
-  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
-  String ->
-  m Unit
-updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)
-
--- TODO: This doesn't seem to be used, confirm and delete
+-- TODO: This is only being used in the ContractTests, revisit.
 applyTransactions ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
