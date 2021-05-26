@@ -304,7 +304,6 @@ updateContractInEditor = do
   editorSetValue
     ( case executionState of
         SimulationRunning runningState -> show $ genericPretty runningState.contract
-        -- TODO: Simplify this. See note on SimulationPage.Types - Type State {marloweState}
         SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors
     )
   setOraclePrice
