@@ -10,7 +10,7 @@ module Plutus.V1.Ledger.Api (
     , validateScript
     -- * Cost model
     , validateCostModelParams
-    , defaultCekCostModelParams
+    , defaultCostModelParams
     , CostModelParams
     -- * Running scripts
     , evaluateScriptRestricting
