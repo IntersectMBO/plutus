@@ -163,7 +163,7 @@ updatePossibleActions oldState@{ executionState: SimulationRunning executionStat
 
     currentSlot = executionState ^. _slot
 
-    txInput = stateToTxInput executionState
+    txInput = pendingTransactionInputs executionState
 
     (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
 
@@ -227,7 +227,7 @@ updatePossibleActions oldState = oldState
 applyPendingInputs :: MarloweState -> MarloweState
 applyPendingInputs oldState@{ executionState: SimulationRunning executionState } = newState
   where
-  txInput@(TransactionInput txIn) = stateToTxInput executionState
+  txInput@(TransactionInput txIn) = pendingTransactionInputs executionState
 
   newState = case computeTransaction txInput (executionState ^. _state) (executionState ^. _contract) of
     TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract } ->
@@ -264,9 +264,8 @@ applyPendingInputs oldState = oldState
 updateSlot :: Slot -> MarloweState -> MarloweState
 updateSlot = set (_executionState <<< _SimulationRunning <<< _slot)
 
--- TODO: Probably rename to `pendingTransactionInputs`
-stateToTxInput :: ExecutionStateRecord -> TransactionInput
-stateToTxInput executionState =
+pendingTransactionInputs :: ExecutionStateRecord -> TransactionInput
+pendingTransactionInputs executionState =
   let
     slot = executionState ^. _slot
 
@@ -327,7 +326,7 @@ hasHistory state = case state ^. (_marloweState <<< _Tail) of
 evalObservation :: MarloweState -> Observation -> Boolean
 evalObservation state@{ executionState: SimulationRunning executionState } observation =
   let
-    txInput = stateToTxInput executionState
+    txInput = pendingTransactionInputs executionState
   in
     case fixInterval (unwrap txInput).interval (executionState ^. _state) of
       IntervalTrimmed env state' -> S.evalObservation env state' observation
