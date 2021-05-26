@@ -4,7 +4,7 @@ import Prelude hiding (div)
 import BottomPanel.Types (Action(..), State, _panelView, _showBottomPanel)
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
-import Halogen.Classes (accentBorderTop, borderSeparator, boxShadowInverted, closeDrawerArrowIcon, collapsed, flex, flexCol, flexShrink0, fontBold, fullHeight, hidden, justifyBetween, minH0, minimizeIcon, paddingX, scroll, smallPaddingRight, smallPaddingTop, smallPaddingY, spaceX, textInactive, textSecondary)
+import Halogen.Classes (accentBorderTop, borderSeparator, boxShadowInverted, closeDrawerArrowIcon, collapsed, flex, flexCol, flexShrink0, fontBold, fullHeight, hidden, justifyBetween, minH0, minimizeIcon, overflowScroll, paddingX, smallPaddingRight, smallPaddingTop, smallPaddingY, spaceX, textInactive, textSecondary)
 import Halogen.HTML (ClassName, HTML, a, div, img, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, classes, src)
@@ -49,7 +49,7 @@ render panelTitles panelContent state =
             ]
         ]
     -- Panel contents
-    , div [ classes ([ spaceX, smallPaddingY, accentBorderTop, scroll, minH0 ] <> dontDisplayWhenHidden) ]
+    , div [ classes ([ spaceX, smallPaddingY, accentBorderTop, overflowScroll, minH0 ] <> dontDisplayWhenHidden) ]
         [ panelContent (state ^. _panelView)
         ]
     ]

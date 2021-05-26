@@ -48,7 +48,7 @@ import           Plutus.Contract.Resumable                (Request (..), Respons
 
 import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
                                                            surroundDebug)
-import           Ledger                                   (Address, PubKey, Slot, Tx, TxId)
+import           Ledger                                   (Address, OnChainTx (..), PubKey, Slot, Tx, TxId)
 import           Ledger.AddressMap                        (AddressMap (..))
 import           Ledger.Constraints.OffChain              (UnbalancedTx (unBalancedTxTx))
 import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
@@ -141,7 +141,7 @@ handlePendingTransactions =
         surroundDebug @Text "handlePendingTransactions" $ do
         logDebug StartWatchingContractAddresses
         wa <- Wallet.Effects.watchedAddresses
-        traverse_ Wallet.Effects.startWatching (AM.addressesTouched wa (unBalancedTxTx unbalancedTx))
+        traverse_ Wallet.Effects.startWatching (AM.addressesTouched wa (Valid (unBalancedTxTx unbalancedTx)))
         (Right <$> Wallet.handleTx unbalancedTx) `Eff.handleError` (\err -> logWarn (HandleTxFailed err) >> pure (Left err))
 
 handleUtxoQueries ::

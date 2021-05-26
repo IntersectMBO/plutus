@@ -40,6 +40,7 @@ import qualified Ledger.Constraints           as Constraints
 import           Ledger.Contexts              (ScriptContext (..), TxInfo (..))
 import qualified Ledger.Contexts              as Validation
 import qualified Ledger.Interval              as Interval
+import qualified Ledger.TimeSlot              as TimeSlot
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
@@ -48,8 +49,10 @@ import           Plutus.Contract
 import           Plutus.Contract.StateMachine (AsSMContractError, State (..), StateMachine (..), TransitionResult (..),
                                                Void)
 import qualified Plutus.Contract.StateMachine as SM
-import qualified PlutusTx                     as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..))
+
+import qualified Prelude                      as Haskell
 
 -- $multisig
 --   The n-out-of-m multisig contract works like a joint account of
@@ -74,7 +77,7 @@ data Payment = Payment
     , paymentDeadline  :: Slot
     -- ^ Time until the required amount of signatures has to be collected.
     }
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Payment where
@@ -97,7 +100,7 @@ data MSState =
 
     | CollectingSignatures Payment [PubKeyHash]
     -- ^ A payment has been proposed and is awaiting signatures.
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq MSState where
@@ -121,13 +124,13 @@ data Input =
 
     | Pay
     -- ^ Make the payment.
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data MultiSigError =
     MSContractError ContractError
     | MSStateMachineError SM.SMContractError
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 makeClassyPrisms ''MultiSigError
 
@@ -165,7 +168,7 @@ isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: TxInfo -> Payment -> Bool
 proposalExpired TxInfo{txInfoValidRange} Payment{paymentDeadline} =
-    paymentDeadline `Interval.before` txInfoValidRange
+    TimeSlot.slotToPOSIXTime paymentDeadline `Interval.before` txInfoValidRange
 
 {-# INLINABLE proposalAccepted #-}
 -- | Check whether enough signatories (represented as a list of public keys)
@@ -186,7 +189,7 @@ valuePreserved vl ctx = vl == Validation.valueLockedBy (scriptContextTxInfo ctx)
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
 valuePaid :: Payment -> TxInfo -> Bool
-valuePaid (Payment vl pk _) txinfo = vl == (Validation.valuePaidTo txinfo pk)
+valuePaid (Payment vl pk _) txinfo = vl == Validation.valuePaidTo txinfo pk
 
 {-# INLINABLE transition #-}
 transition :: Params -> State MSState -> Input -> Maybe (TxConstraints Void Void, State MSState)

@@ -48,6 +48,7 @@
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
+          (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."composition-prelude" or (errorHandler.buildDepError "composition-prelude"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -78,6 +79,7 @@
           (hsPkgs."parser-combinators" or (errorHandler.buildDepError "parser-combinators"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
+          (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
@@ -123,6 +125,7 @@
           "PlutusCore/Default/Builtins"
           "PlutusCore/Default/Universe"
           "PlutusCore/Eq"
+          "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/Examples/Data/InterList"
           "PlutusCore/Examples/Data/Shad"
           "PlutusCore/Examples/Data/TreeForest"
@@ -197,11 +200,19 @@
           "PlutusCore/Default"
           "PlutusCore/Error"
           "PlutusCore/Evaluation/Machine/Ck"
+          "PlutusCore/Evaluation/Machine/BuiltinCostModel"
+          "PlutusCore/Evaluation/Machine/CostModelInterface"
           "PlutusCore/Evaluation/Machine/ExBudget"
+<<<<<<< HEAD
           "PlutusCore/Evaluation/Machine/ExBudgeting"
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/Evaluation/Machine/ExMemory"
           "PlutusCore/Evaluation/Machine/Exception"
+=======
+          "PlutusCore/Evaluation/Machine/Exception"
+          "PlutusCore/Evaluation/Machine/ExMemory"
+          "PlutusCore/Evaluation/Machine/MachineParameters"
+>>>>>>> 5ec5927e06aa27d6541b585cee97d8bee7b6a172
           "PlutusCore/Evaluation/Result"
           "PlutusCore/Examples/Builtins"
           "PlutusCore/Examples/Everything"
@@ -243,14 +254,21 @@
           "PlutusCore/Subst"
           "PlutusCore/Universe"
           "PlutusIR"
+          "PlutusIR/Core"
+          "PlutusIR/Core/Instance"
+          "PlutusIR/Core/Instance/Pretty"
+          "PlutusIR/Core/Plated"
+          "PlutusIR/Core/Type"
           "PlutusIR/Compiler"
           "PlutusIR/Compiler/Names"
           "PlutusIR/Compiler/Definitions"
           "PlutusIR/Error"
           "PlutusIR/Generators/AST"
           "PlutusIR/Parser"
+          "PlutusIR/Mark"
           "PlutusIR/MkPir"
           "PlutusIR/Purity"
+          "PlutusIR/Subst"
           "PlutusIR/Transform/DeadCode"
           "PlutusIR/Transform/Substitute"
           "PlutusIR/Transform/ThunkRecursions"
@@ -308,10 +326,25 @@
           };
         };
       tests = {
+        "satint-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."test-framework" or (errorHandler.buildDepError "test-framework"))
+            (hsPkgs."test-framework-hunit" or (errorHandler.buildDepError "test-framework-hunit"))
+            (hsPkgs."test-framework-quickcheck2" or (errorHandler.buildDepError "test-framework-quickcheck2"))
+            (hsPkgs."HUnit" or (errorHandler.buildDepError "HUnit"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "plutus-core/satint-test" ];
+          mainPath = [ "TestSatInt.hs" ];
+          };
         "plutus-core-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
@@ -341,6 +374,7 @@
             "Pretty/Readable"
             "Check/Spec"
             "TypeSynthesis/Spec"
+            "CostModelInterface/Spec"
             ];
           hsSourceDirs = [ "plutus-core/test" ];
           mainPath = [ "Spec.hs" ];

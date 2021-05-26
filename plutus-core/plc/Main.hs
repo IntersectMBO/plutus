@@ -800,7 +800,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = List.foldl f [] (H.toList costs)
         builtinCosts = mconcat (map snd builtinsAndCosts)
-        -- ^ Total builtin evaluation time (according to the models) in picoseconds (units depend on ExBudgeting.costMultiplier)
+        -- ^ Total builtin evaluation time (according to the models) in picoseconds (units depend on BuiltinCostModel.costMultiplier)
         getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
         totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
@@ -840,7 +840,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                                Silent    -> ()
                                Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
                     TypedProgram prog <- getProgram TypedPLC ifmt inp
-                    let evaluate = Ck.evaluateCkNoEmit PLC.defBuiltinsRuntime
+                    let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
                         term = void . PLC.toTerm $ prog
                         !_ = rnf term
                         -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -856,18 +856,18 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
                   let term = void . UPLC.toTerm $ prog
                       !_ = rnf term
-                      cekcosts = case cekModel of
-                                Default -> Cek.defaultCekMachineCosts  -- AST nodes are charged according to the default cost model
-                                Unit    -> Cek.unitCekMachineCosts     -- AST nodes are charged one unit each, so we can see how many times each node
-                                                                       -- type is encountered.  This is useful for calibrating the budgeting code.
+                      cekparams = case cekModel of
+                                Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
+                                Unit    -> PLC.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
+                                                                     -- type is encountered.  This is useful for calibrating the budgeting code.
                   case budgetMode of
                     Silent -> do
-                          let evaluate = Cek.evaluateCekNoEmit cekcosts PLC.defBuiltinsRuntime
+                          let evaluate = Cek.evaluateCekNoEmit cekparams
                           case timingMode of
                             NoTiming -> evaluate term & handleResult
                             Timing n -> timeEval n evaluate term >>= handleTimingResults term
                     Verbose bm -> do
-                          let evaluate = Cek.runCekNoEmit cekcosts PLC.defBuiltinsRuntime bm
+                          let evaluate = Cek.runCekNoEmit cekparams bm
                           case timingMode of
                             NoTiming -> do
                                     let (result, budget) = evaluate term

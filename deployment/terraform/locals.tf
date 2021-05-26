@@ -34,6 +34,7 @@ locals {
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     tobias     = ["tobias", "ci-deployer"]
+    staging    = ["ci-deployer"]
   }
   bastion_ssh_keys = [for k in local.bastion_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
@@ -45,6 +46,7 @@ locals {
     testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     tobias     = ["tobias", "ci-deployer"]
+    staging    = ["ci-deployer"]
   }
   root_ssh_keys = [for k in local.root_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 

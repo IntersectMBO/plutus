@@ -51,11 +51,12 @@ library
         PlutusCore.Default
         PlutusCore.Error
         PlutusCore.Evaluation.Machine.Ck
+        PlutusCore.Evaluation.Machine.BuiltinCostModel
+        PlutusCore.Evaluation.Machine.CostModelInterface
         PlutusCore.Evaluation.Machine.ExBudget
-        PlutusCore.Evaluation.Machine.ExBudgeting
-        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Evaluation.Machine.ExMemory
         PlutusCore.Evaluation.Machine.Exception
+        PlutusCore.Evaluation.Machine.ExMemory
+        PlutusCore.Evaluation.Machine.MachineParameters
         PlutusCore.Evaluation.Result
         PlutusCore.Examples.Builtins
         PlutusCore.Examples.Everything
@@ -98,14 +99,21 @@ library
         PlutusCore.Universe
 
         PlutusIR
+        PlutusIR.Core
+        PlutusIR.Core.Instance
+        PlutusIR.Core.Instance.Pretty
+        PlutusIR.Core.Plated
+        PlutusIR.Core.Type
         PlutusIR.Compiler
         PlutusIR.Compiler.Names
         PlutusIR.Compiler.Definitions
         PlutusIR.Error
         PlutusIR.Generators.AST
         PlutusIR.Parser
+        PlutusIR.Mark
         PlutusIR.MkPir
         PlutusIR.Purity
+        PlutusIR.Subst
         PlutusIR.Transform.DeadCode
         PlutusIR.Transform.Substitute
         PlutusIR.Transform.ThunkRecursions
@@ -162,6 +170,7 @@ library
         PlutusCore.Default.Builtins
         PlutusCore.Default.Universe
         PlutusCore.Eq
+        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Examples.Data.InterList
         PlutusCore.Examples.Data.Shad
         PlutusCore.Examples.Data.TreeForest
@@ -239,6 +248,7 @@ library
         bimap -any,
         bytestring -any,
         cardano-crypto,
+        cassava -any,
         cborg -any,
         composition-prelude >=1.1.0.1,
         containers -any,
@@ -269,6 +279,7 @@ library
         parser-combinators >= 0.4.0,
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
+        primitive -any,
         recursion-schemes -any,
         scientific -any,
         semigroupoids -any,
@@ -287,6 +298,21 @@ library
         transformers -any,
         unordered-containers -any,
         witherable -any
+
+test-suite satint-test
+  import: lang
+  type:              exitcode-stdio-1.0
+  main-is:           TestSatInt.hs
+  ghc-options:       -Wall
+  build-depends:     base >=4.9 && <5,
+                     test-framework,
+                     test-framework-hunit,
+                     test-framework-quickcheck2,
+                     HUnit,
+                     QuickCheck,
+                     plutus-core
+  default-language:  Haskell2010
+  hs-source-dirs:    plutus-core/satint-test
 
 test-suite plutus-core-test
     import: lang
@@ -307,10 +333,12 @@ test-suite plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
+        CostModelInterface.Spec
     default-language: Haskell2010
     build-depends:
         base -any,
         bytestring -any,
+        containers -any,
         filepath -any,
         flat -any,
         hedgehog -any,
@@ -322,6 +350,7 @@ test-suite plutus-core-test
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
+        tasty-hunit -any,
         tasty-hunit -any,
         text -any,
         transformers -any

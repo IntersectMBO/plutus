@@ -2,25 +2,13 @@
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ../lib/unfree.nix).unfreePredicate; }
-, rev ? null
 , sources
 , enableHaskellProfiling
 }:
 let
   inherit (pkgs) stdenv;
 
-  iohkNix =
-    import sources.iohk-nix {
-      inherit system config;
-      # Make iohk-nix use our nixpkgs
-      sourcesOverride = { inherit (sources) nixpkgs; };
-    };
-
   gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
-
-  # The git revision comes from `rev` if available (Hydra), otherwise
-  # it is read using IFD and git, which is avilable on local builds.
-  git-rev = if isNull rev then pkgs.lib.commitIdFromGitRepo ../../.git else rev;
 
   # { index-state, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
@@ -107,7 +95,7 @@ let
   nix-pre-commit-hooks = (pkgs.callPackage ((sources."pre-commit-hooks.nix") + "/nix/default.nix") {
     inherit system;
     inherit (sources) nixpkgs;
-  }).packages;
+  });
 
   # purty is unable to process several files but that is what pre-commit
   # does. pre-commit-hooks.nix does provide a wrapper for that but when
@@ -193,7 +181,7 @@ in
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
   inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix web-ghc;
+  inherit web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib aws-mfa-login;
   inherit lib;

@@ -15,8 +15,11 @@ import           Ledger.Ada
 import           Ledger.Typed.Scripts
 import           Ledger.Value
 
+import qualified Prelude              as Haskell
+
+
 myKeyHash :: PubKeyHash
-myKeyHash = undefined
+myKeyHash = Haskell.undefined
 
 -- BLOCK1
 -- | A specific date.

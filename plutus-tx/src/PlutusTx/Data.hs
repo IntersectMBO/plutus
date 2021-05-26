@@ -107,8 +107,12 @@ fromTerm = \case
     CBOR.TListI l                             -> List <$> traverse fromTerm l
     CBOR.TInteger i                           -> pure $ I i
     CBOR.TInt i                               -> pure $ I $ fromIntegral i
-    CBOR.TBytes b                             -> pure $ B b
-    CBOR.TBytesI b                            -> pure $ B $ BSL.toStrict b
+    CBOR.TBytes b                             -> if BS.length b <= 64
+                                                   then pure $ B b
+                                                   else throwError "ByteString exceeds 64"
+    CBOR.TBytesI b                            -> if BSL.length b <= 64
+                                                   then pure $ B $ BSL.toStrict b
+                                                   else throwError "ByteString exceeds 64"
     _                                         -> throwError "Unsupported kind of CBOR"
 
 -- See Note [Definite and indefinite forms of CBOR]

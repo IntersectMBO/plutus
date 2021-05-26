@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Maybe (isJust, isNothing, maybe, fromMaybe, mapMaybe) where
+module PlutusTx.Maybe (Maybe(..), isJust, isNothing, maybe, fromMaybe, mapMaybe) where
 
 import           PlutusTx.List (foldr)
 import           Prelude       hiding (foldr, maybe)

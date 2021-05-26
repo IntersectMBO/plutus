@@ -1,30 +1,39 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Foldable
-  ( Foldable(..)
-  , fold
-  , foldr
-  , foldl
-  , toList
-  , null
-  , length
-  , elem
-  , sum
-  , product
-  , foldrM
-  , foldlM
-  , traverse_
-  , for_
-  , sequenceA_
-  , asum
-  , concat
-  , concatMap
-  , and
-  , or
-  , any
-  , all
-  , notElem
-  , find
+module PlutusTx.Foldable (
+  Foldable(..),
+  -- * Special biased folds
+  foldrM,
+  foldlM,
+  -- * Folding actions
+  -- ** Applicative actions
+  traverse_,
+  for_,
+  sequenceA_,
+  sequence_,
+  asum,
+  -- ** Monadic actions
+  mapM_,
+  -- * Specialized folds
+  concat,
+  concatMap,
+  and,
+  or,
+  any,
+  all,
+  -- * Searches
+  notElem,
+  find,
+  -- * Other
+  fold,
+  foldr,
+  foldl,
+  toList,
+  null,
+  length,
+  elem,
+  sum,
+  product
   ) where
 
 import           Control.Applicative   (Alternative (..), Const (..))
@@ -153,6 +162,12 @@ sequenceA_ = foldr c (pure ())
   where c m k = m *> k
         {-# INLINE c #-}
 
+-- | Plutus Tx version of 'Data.Foldable.sequence_'.
+sequence_ :: (Foldable t, Monad m) => t (m a) -> m ()
+sequence_ = foldr c (return ())
+  where c m k = m >> k
+        {-# INLINE c #-}
+
 -- | Plutus Tx version of 'Data.Foldable.asum'.
 asum :: (Foldable t, Alternative f) => t (f a) -> f a
 {-# INLINE asum #-}
@@ -201,3 +216,10 @@ find p = getFirst . foldMap (\ x -> First (if p x then Just x else Nothing))
 (#.) :: Coercible b c => (b -> c) -> (a -> b) -> (a -> c)
 (#.) _f = coerce
 {-# INLINE (#.) #-}
+
+-- | Plutus Tx version of 'Data.Foldable.mapM_'.
+{-# INLINABLE mapM_ #-}
+mapM_ :: (Foldable t, Monad m) => (a -> m b) -> t a -> m ()
+mapM_ f = foldr c (return ())
+  where c x k = f x >> k
+        {-# INLINE c #-}

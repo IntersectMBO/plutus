@@ -50,13 +50,13 @@ Moreover, renaming ensures that programs meet the **global uniqueness property**
 
 If program transformations are performed on renamed programs (such as substitution on subterms with free variables), the global uniqueness property may no longer hold. It is recommended to simply perform all necessary transformations without expecting or reinstating the global uniqueness property in between individual transformation steps. When the final form of the program has been reached (or when a program needs to be type checked), an additional use of the renamer can reinstate the global unqiueness property again.
 
-NB: Whenever the global uniqueness property is not a given, care needs be taken to correctly handle binders. For example, when implementing substitution, we need to ensure that we do not propagate a substitution below a binder matching the susbtituted variable and we need to avoid variable capture (as per standard treatments of names in lambda calculi).
+NB: Whenever the global uniqueness property is not a given, care needs be taken to correctly handle binders. For example, when implementing substitution, we need to ensure that we do not propagate a substitution below a binder matching the substituted variable and we need to avoid variable capture (as per standard treatments of names in lambda calculi).
 
 ### Type checker
 
-The type checker synthesises the kind of a given type and the type of a given term. This does not involve any form of inference as Plutus Core is already fully typed. It merely checks the consistency of all variable declarations and the well-formedness of types and terms, while deriving the kind or type of the given type or term.
+The type checker synthesizes the kind of a given type and the type of a given term. This does not involve any form of inference as Plutus Core is already fully typed. It merely checks the consistency of all variable declarations and the well-formedness of types and terms, while deriving the kind or type of the given type or term.
 
-NB: The type checker requires terms to meet the global unqiueness property. If this is not a given, use a renamer pass to suitably pre-process the term in question.
+NB: The type checker requires terms to meet the global uniqueness property. If this is not a given, use a renamer pass to suitably pre-process the term in question.
 
 ### Evaluation
 

@@ -23,7 +23,7 @@ flattenObject sep = go Nothing
                 Object o -> go (Just newName) o
                 leaf     -> HM.singleton newName leaf
 
--- | Turn a "flat" object whose keys represent paths into an unflattened object. The keys in the result will be the get
+-- | Turn a "flat" object whose keys represent paths into an unflattened object. The keys in the result will be the
 -- resulting path, separated by `sep`. The inverse of 'flattenObject'.
 unflattenObject :: Text.Text -> Object -> Object
 unflattenObject sep = HM.foldlWithKey (\acc k v -> mergeObject acc (mkPathObject k v)) mempty

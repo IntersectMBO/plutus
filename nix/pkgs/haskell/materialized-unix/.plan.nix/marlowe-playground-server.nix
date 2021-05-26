@@ -149,6 +149,30 @@
           hsSourceDirs = [ "app" "contracts" ];
           mainPath = [ "Main.hs" ];
           };
+        "flow-chart-generator" = {
+          depends = [
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            (hsPkgs."marlowe-playground-server" or (errorHandler.buildDepError "marlowe-playground-server"))
+            ];
+          buildable = true;
+          modules = [
+            "Types"
+            "Escrow"
+            "EscrowWithCollateral"
+            "Example"
+            "CouponBondGuaranteed"
+            "ZeroCouponBond"
+            "Swap"
+            "Option"
+            "ContractForDifferences"
+            "ContractForDifferencesWithOracle"
+            ];
+          hsSourceDirs = [ "app" "contracts" ];
+          mainPath = [ "FlowChartGenerator.hs" ];
+          };
         };
       tests = {
         "marlowe-playground-server-test" = {

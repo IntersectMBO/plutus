@@ -1,24 +1,28 @@
 module Pickup.View (renderPickupState) where
 
 import Prelude hiding (div)
-import Css (classNames)
+import Css (classNames, hideWhen)
 import Css as Css
+import Data.Array (length)
 import Data.Foldable (foldMap)
 import Data.Lens (view)
-import Data.Maybe (isJust, isNothing)
-import Data.Newtype (unwrap)
-import Data.UUID (toString) as UUID
+import Data.List (toUnfoldable) as List
+import Data.Map (filter, values)
+import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.String (Pattern(..), contains, toLower)
 import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
-import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), disabled, for, href, id_, list, placeholder, readOnly, src, type_, value)
+import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
+import Halogen.HTML.Properties (InputType(..), autocomplete, disabled, for, href, id_, placeholder, src, type_, value)
 import Images (arrowBack, marloweRunLogo)
+import InputField.Lenses (_value)
+import InputField.State (validate)
+import InputField.View (renderInput)
 import Material.Icons (Icon(..), icon, icon_)
-import Pickup.Lenses (_card, _pickingUp, _pickupWalletString, _walletDetails, _walletLibrary)
+import Network.RemoteData (isFailure, isSuccess)
+import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletDropdownOpen, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
-import WalletData.Lenses (_companionAppId, _walletNickname)
-import WalletData.Validation (walletNicknameError)
-import WalletData.View (nicknamesDataList)
+import WalletData.Lenses (_walletNickname)
 
 renderPickupState :: forall p. State -> HTML p Action
 renderPickupState state =
@@ -67,17 +71,31 @@ renderPickupCard state =
 pickupNewWalletCard :: forall p. State -> Array (HTML p Action)
 pickupNewWalletCard state =
   let
-    walletLibrary = view _walletLibrary state
-
-    walletDetails = view _walletDetails state
-
     pickingUp = view _pickingUp state
 
-    walletNickname = view _walletNickname walletDetails
+    remoteWalletDetails = view _remoteWalletDetails state
 
-    contractInstanceId = view _companionAppId walletDetails
+    walletNicknameInput = view _walletNicknameInput state
 
-    mWalletNicknameError = walletNicknameError walletNickname walletLibrary
+    walletIdInput = view _walletIdInput state
+
+    walletNicknameInputDisplayOptions =
+      { baseCss: Css.inputCard
+      , additionalCss: Css.withNestedLabel
+      , id_: "walletNickname"
+      , placeholder: "Choose any nickname"
+      , readOnly: false
+      , datalistId: Nothing
+      }
+
+    walletIdInputDisplayOptions =
+      { baseCss: Css.inputCard
+      , additionalCss: Css.withNestedLabel
+      , id_: "walletId"
+      , placeholder: "Wallet ID"
+      , readOnly: true
+      , datalistId: Nothing
+      }
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
@@ -92,35 +110,19 @@ pickupNewWalletCard state =
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
             $ [ label
                   [ classNames $ Css.nestedLabel
-                  , for "newWalletNickname"
+                  , for "walletNickname"
                   ]
                   [ text "Nickname" ]
-              , input
-                  $ [ type_ InputText
-                    , classNames $ (Css.inputCard $ isJust mWalletNicknameError) <> [ "text-lg" ] <> Css.withNestedLabel
-                    , id_ "newWalletNickname"
-                    , placeholder "Nickname"
-                    , value walletNickname
-                    , onValueInput_ SetWalletNickname
-                    ]
-              , div
-                  [ classNames Css.inputError ]
-                  [ text $ foldMap show mWalletNicknameError ]
+              , WalletNicknameInputAction <$> renderInput walletNicknameInput walletNicknameInputDisplayOptions
               ]
         , div
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
             [ label
                 [ classNames Css.nestedLabel
-                , for "newWalletID"
+                , for "walletID"
                 ]
                 [ text "Wallet ID" ]
-            , input
-                [ type_ InputText
-                , classNames $ (Css.inputCard false) <> [ "text-lg" ] <> Css.withNestedLabel
-                , id_ "newWalletID"
-                , value $ UUID.toString $ unwrap contractInstanceId
-                , readOnly true
-                ]
+            , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
             ]
         , div
             [ classNames [ "flex" ] ]
@@ -131,8 +133,8 @@ pickupNewWalletCard state =
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , disabled $ isJust mWalletNicknameError || pickingUp
-                , onClick_ PickupWallet
+                , disabled $ isJust (validate walletNicknameInput) || pickingUp || not isSuccess remoteWalletDetails
+                , onClick_ $ PickupWallet $ view _value walletNicknameInput
                 ]
                 [ text if pickingUp then "Picking up... " else "Pickup" ]
             ]
@@ -144,11 +146,29 @@ pickupWalletCard state =
   let
     pickingUp = view _pickingUp state
 
-    walletDetails = view _walletDetails state
+    remoteWalletDetails = view _remoteWalletDetails state
 
-    walletNickname = view _walletNickname walletDetails
+    walletNicknameInput = view _walletNicknameInput state
 
-    companionContractId = view _companionAppId walletDetails
+    walletIdInput = view _walletIdInput state
+
+    walletNicknameInputDisplayOptions =
+      { baseCss: Css.inputCard
+      , additionalCss: Css.withNestedLabel
+      , id_: "walletNickname"
+      , placeholder: "Nickname"
+      , readOnly: true
+      , datalistId: Nothing
+      }
+
+    walletIdInputDisplayOptions =
+      { baseCss: Css.inputCard
+      , additionalCss: Css.withNestedLabel
+      , id_: "walletId"
+      , placeholder: "Wallet ID"
+      , readOnly: true
+      , datalistId: Nothing
+      }
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
@@ -158,21 +178,15 @@ pickupWalletCard state =
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
         [ p
             [ classNames [ "font-bold", "mb-4", "truncate", "w-11/12" ] ]
-            [ text $ "Play wallet " <> walletNickname ]
+            [ text $ "Play wallet " <> view _value walletNicknameInput ]
         , div
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
             $ [ label
                   [ classNames $ Css.nestedLabel
-                  , for "nickname"
+                  , for "walletNickname"
                   ]
                   [ text "Nickname" ]
-              , input
-                  $ [ type_ InputText
-                    , classNames $ Css.inputCard false <> Css.withNestedLabel
-                    , id_ "nickname"
-                    , value walletNickname
-                    , readOnly true
-                    ]
+              , WalletNicknameInputAction <$> renderInput walletNicknameInput walletNicknameInputDisplayOptions
               ]
         , div
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
@@ -181,13 +195,7 @@ pickupWalletCard state =
                 , for "walletId"
                 ]
                 [ text "Wallet ID" ]
-            , input
-                [ type_ InputText
-                , classNames $ Css.inputCard false <> Css.withNestedLabel
-                , id_ "walletId"
-                , value $ UUID.toString $ unwrap companionContractId
-                , readOnly true
-                ]
+            , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
             ]
         , div
             [ classNames [ "flex" ] ]
@@ -198,8 +206,8 @@ pickupWalletCard state =
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , onClick_ PickupWallet
-                , disabled pickingUp
+                , onClick_ $ PickupWallet $ view _value walletNicknameInput
+                , disabled $ pickingUp || not isSuccess remoteWalletDetails
                 ]
                 [ text if pickingUp then "Picking up... " else "Pickup" ]
             ]
@@ -276,34 +284,61 @@ pickupWalletScreen state =
   let
     walletLibrary = view _walletLibrary state
 
-    pickupWalletString = view _pickupWalletString state
+    remoteWalletDetails = view _remoteWalletDetails state
+
+    walletNicknameOrId = view _walletNicknameOrId state
+
+    walletDropdownOpen = view _walletDropdownOpen state
+
+    matches walletDetails = contains (Pattern $ toLower walletNicknameOrId) (toLower $ view _walletNickname walletDetails)
+
+    matchingWallets = List.toUnfoldable $ values $ filter matches walletLibrary
   in
     main
-      [ classNames [ "p-4", "max-w-sm", "mx-auto", "text-center" ] ]
+      [ classNames [ "p-4", "max-w-sm", "mx-auto" ] ]
       [ img
-          [ classNames [ "w-4/5", "mx-auto", "mb-6" ]
+          [ classNames [ "w-4/5", "mx-auto", "mb-6", "text-center" ]
           , src marloweRunLogo
           ]
       , p
-          [ classNames [ "mb-4" ] ]
+          [ classNames [ "mb-4", "text-center" ] ]
           [ text "To use Marlowe Run, generate a new demo wallet." ]
       , button
-          [ classNames $ Css.primaryButton <> [ "w-full", "text-center", "mb-4" ]
+          [ classNames $ Css.primaryButton <> [ "w-full", "mb-4", "text-center" ]
           , onClick_ GenerateWallet
           ]
           [ text "Generate demo wallet" ]
       , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
       , p
-          [ classNames [ "mb-4" ] ]
-          [ text "Or use an existing one by selecting from the list or typing a public key or nickname." ]
-      , input
-          [ type_ InputText
-          , classNames $ Css.inputCard false
-          , id_ "existingWallet"
-          , list "walletNicknames"
-          , placeholder "Choose or input key/nickname"
-          , value pickupWalletString
-          , onValueInput_ SetPickupWalletString
+          [ classNames [ "mb-4", "text-center" ] ]
+          [ text "Or use an existing one by entering a wallet ID or nickname." ]
+      , div
+          [ classNames [ "relative" ] ]
+          [ input
+              [ type_ InputText
+              , classNames $ Css.inputNoFocus (isFailure remoteWalletDetails)
+              , id_ "existingWallet"
+              , placeholder "Enter a wallet ID/nickname"
+              , value walletNicknameOrId
+              , autocomplete false
+              , onValueInput_ SetWalletNicknameOrId
+              , onFocus_ $ SetWalletDropdownOpen true
+              ]
+          , div
+              [ classNames
+                  $ [ "absolute", "z-10", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-scroll", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
+                  <> (hideWhen $ not walletDropdownOpen || length matchingWallets == 0)
+              ]
+              (walletList <$> matchingWallets)
+          , div
+              [ classNames $ Css.inputError <> [ "absolute" ] ]
+              $ if isFailure remoteWalletDetails then [ text "Wallet not found." ] else []
           ]
-      , nicknamesDataList walletLibrary
       ]
+  where
+  walletList walletDetails =
+    a
+      [ classNames [ "block", "p-4", "hover:bg-black", "hover:text-white" ]
+      , onClick_ $ OpenPickupWalletCardWithDetails walletDetails
+      ]
+      [ text $ view _walletNickname walletDetails ]

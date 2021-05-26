@@ -21,7 +21,7 @@ import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Ac
 import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
-  = { tab :: Tab
+  = { tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
     , followerAppId :: PlutusAppId
@@ -40,7 +40,8 @@ type State
 
 -- Represents a historical step in a contract's life.
 type PreviousStep
-  = { balances :: Accounts
+  = { tab :: Tab
+    , balances :: Accounts
     , state :: PreviousStepState
     }
 
@@ -62,12 +63,12 @@ type Input
 data Action
   = ConfirmAction NamedAction
   | ChangeChoice ChoiceId (Maybe ChosenNum)
-  | SelectTab Tab
+  | SelectTab Int Tab
   | AskConfirmation NamedAction
   | CancelConfirmation
   -- The SelectStep action is what changes the model and causes the card to seem bigger.
   | SelectStep Int
-  -- The MoveToStep action scrolls the step carousel so that the indicated step is at the center
+  -- The MoveToStep action scrolls the step carousel so that the indicated step is at the center (without changing the model).
   | MoveToStep Int
   | CarouselOpened
   | CarouselClosed
@@ -75,11 +76,11 @@ data Action
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
-  toEvent (SelectTab _) = Just $ defaultEvent "SelectTab"
+  toEvent (SelectTab _ _) = Just $ defaultEvent "SelectTab"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
   toEvent (SelectStep _) = Just $ defaultEvent "SelectStep"
-  toEvent (MoveToStep _) = Just $ defaultEvent "MoveToStep"
+  toEvent (MoveToStep _) = Nothing
   toEvent CarouselOpened = Just $ defaultEvent "CarouselOpened"
   toEvent CarouselClosed = Just $ defaultEvent "CarouselClosed"
 

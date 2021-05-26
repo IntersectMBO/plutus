@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -22,6 +23,8 @@ import           PlutusIR.MkPir
 import qualified Data.ByteString     as BS
 import qualified Data.Kind           as GHC
 import           Data.Proxy
+
+import           GHC.TypeLits        (ErrorMessage (..), TypeError)
 
 -- Derived instances
 
@@ -61,6 +64,14 @@ liftBuiltin
     :: forall a uni fun. uni `PLC.Includes` a
     => a -> RTCompile uni fun (Term TyName Name uni fun ())
 liftBuiltin = pure . mkConstant ()
+
+instance (TypeError ('Text "Int is not supported, use Integer instead"))
+    => Typeable uni Int where
+    typeRep = Prelude.error "unsupported"
+
+instance (TypeError ('Text "Int is not supported, use Integer instead"))
+    => Lift uni Int where
+    lift = Prelude.error "unsupported"
 
 instance uni `PLC.Includes` Integer => Typeable uni Integer where
     typeRep = typeRepBuiltin

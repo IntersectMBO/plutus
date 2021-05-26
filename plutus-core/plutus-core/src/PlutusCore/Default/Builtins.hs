@@ -15,10 +15,8 @@ module PlutusCore.Default.Builtins where
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Meaning
-import           PlutusCore.Constant.Typed
 import           PlutusCore.Default.Universe
-import           PlutusCore.Evaluation.Machine.ExBudgeting
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Pretty
@@ -29,13 +27,13 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Control.DeepSeq
 import           Crypto
-import qualified Data.ByteString                                   as BS
-import qualified Data.ByteString.Hash                              as Hash
+import qualified Data.ByteString                                as BS
+import qualified Data.ByteString.Hash                           as Hash
 import           Data.Ix
-import           Data.Word                                         (Word8)
+import           Data.Word                                      (Word8)
 import           Flat
 import           Flat.Decoder
-import           Flat.Encoder                                      as Flat
+import           Flat.Encoder                                   as Flat
 
 -- For @n >= 24@, CBOR needs two bytes instead of one to encode @n@, so we want the commonest
 -- builtins at the front.
@@ -112,9 +110,6 @@ instance ExMemoryUsage DefaultFun where
 nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> EvaluationResult Integer
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
-
-defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
 
 instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel

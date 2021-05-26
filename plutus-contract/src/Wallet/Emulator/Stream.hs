@@ -43,7 +43,7 @@ import qualified Data.Map                               as Map
 import           Data.Maybe                             (fromMaybe)
 import qualified Data.Set                               as Set
 import qualified Ledger.AddressMap                      as AM
-import           Ledger.Blockchain                      (Block)
+import           Ledger.Blockchain                      (Block, OnChainTx (..))
 import           Ledger.Slot                            (Slot)
 import           Ledger.Value                           (Value)
 import           Streaming                              (Stream)
@@ -137,11 +137,11 @@ data EmulatorConfig =
         { _initialChainState      :: InitialChainState -- ^ State of the blockchain at the beginning of the simulation. Can be given as a map of funds to wallets, or as a block of transactions.
         } deriving (Eq, Show)
 
-type InitialChainState = Either InitialDistribution Block
+type InitialChainState = Either InitialDistribution EM.TxPool
 
 -- | The wallets' initial funds
 initialDist :: InitialChainState -> InitialDistribution
-initialDist = either id walletFunds where
+initialDist = either id (walletFunds . map Valid) where
     walletFunds :: Block -> Map Wallet Value
     walletFunds theBlock =
         let values = AM.values $ AM.fromChain [theBlock]

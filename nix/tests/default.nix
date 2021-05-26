@@ -1,5 +1,4 @@
 { pkgs
-, iohkNix
 , gitignore-nix
 , fixStylishHaskell
 , fixPurty
@@ -22,7 +21,7 @@ let
   cleanSrc = gitignore-nix.gitignoreSource src;
 in
 pkgs.recurseIntoAttrs {
-  shellcheck = pkgs.callPackage iohkNix.tests.shellcheck { src = cleanSrc; };
+  shellcheck = pkgs.callPackage ./shellcheck.nix { src = cleanSrc; };
 
   stylishHaskell = pkgs.callPackage ./stylish-haskell.nix {
     src = cleanSrc;

@@ -25,7 +25,7 @@ import           Data.Time.Units           (Second)
 import           Data.UUID                 (UUID)
 import qualified Data.UUID.Extras          as UUID
 import           GHC.Generics              (Generic)
-import           Ledger                    (Block, Blockchain, Tx, TxId, txId)
+import           Ledger                    (Block, Blockchain, Tx, TxId, eitherTx, txId)
 import           Ledger.Index              as UtxoIndex
 import           Plutus.Contract.Types     (ContractError)
 import           Plutus.PAB.Instances      ()
@@ -51,6 +51,7 @@ data PABError
     | EndpointCallError NotificationError
     | InstanceAlreadyStopped ContractInstanceId -- ^ Attempt to stop the instance failed because it was not running
     | WalletNotFound Wallet
+    | MissingConfigFileOption
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -72,6 +73,7 @@ instance Pretty PABError where
         EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
         InstanceAlreadyStopped i   -> "Instance already stopped:" <+> pretty i
         WalletNotFound w           -> "Wallet not found:" <+> pretty w
+        MissingConfigFileOption    -> "The --config-file option is required"
 
 data DbConfig =
     DbConfig
@@ -140,7 +142,7 @@ mkChainOverview = foldl reducer emptyChainOverview
                           , chainOverviewUtxoIndex = oldUtxoIndex
                           } txs =
         let unprunedTxById =
-                foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
+                foldl (\m -> eitherTx (const m) (\tx -> Map.insert (txId tx) tx m)) oldTxById txs
             newTxById = unprunedTxById -- TODO Prune spent keys.
             newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
          in ChainOverview

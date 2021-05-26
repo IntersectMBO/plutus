@@ -38,6 +38,7 @@ import           Text.Pretty.Simple             (pPrint)
 import           Cardano.Node.RandomTx          (generateTx)
 import           Cardano.Node.Types             (MockServerConfig (..))
 import           Cardano.Protocol.Socket.Client (ClientHandler (..), queueTx, runClientNode)
+import           Ledger.Blockchain              (OnChainTx (..))
 import           Ledger.Index                   (UtxoIndex (..), insertBlock)
 import           Ledger.Tx                      (Tx (..))
 import           Plutus.Contract.Trace          (defaultDist)
@@ -73,7 +74,7 @@ initialUtxoIndex =
         view (chainState . txPool) $
         emulatorStateInitialDist $
         Map.mapKeys walletPubKey defaultDist
-  in insertBlock initialTxs (UtxoIndex Map.empty)
+  in insertBlock (map Valid initialTxs) (UtxoIndex Map.empty)
 
 -- | Starts the producer thread
 runProducer :: AppEnv -> IO ThreadId
@@ -84,7 +85,7 @@ runProducer AppEnv{txQueue, stats, utxoIndex} = do
     producer :: GenIO -> UtxoIndex -> IO ()
     producer rng utxo = do
       tx <- generateTx rng utxo
-      let utxo' = insertBlock [tx] utxo
+      let utxo' = insertBlock [Valid tx] utxo
       atomically $ do
         writeTBQueue txQueue tx
         modifyTVar' stats $ \s -> s { stUtxoSize = Map.size $ getIndex utxo' }

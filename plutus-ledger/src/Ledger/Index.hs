@@ -14,6 +14,7 @@ module Ledger.Index(
     ValidationMonad,
     UtxoIndex(..),
     insert,
+    insertCollateral,
     insertBlock,
     initialise,
     Validation,
@@ -22,10 +23,13 @@ module Ledger.Index(
     lkpTxOut,
     lkpOutputs,
     ValidationError(..),
+    ValidationErrorInPhase,
+    ValidationPhase(..),
     InOutMatch(..),
     minFee,
     -- * Actual validation
     validateTransaction,
+    validateTransactionOffChain,
     -- * Script validation events
     ScriptType(..),
     ScriptValidationEvent(..)
@@ -36,7 +40,7 @@ import           Prelude                          hiding (lookup)
 
 import           Codec.Serialise                  (Serialise)
 import           Control.DeepSeq                  (NFData)
-import           Control.Lens                     (view, (^.))
+import           Control.Lens                     (toListOf, view, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (ExceptT, MonadError (..), runExcept, runExceptT)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
@@ -49,6 +53,7 @@ import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain
+import           Ledger.TimeSlot                  (slotRangeToPOSIXTimeRange)
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
@@ -83,9 +88,13 @@ initialise = UtxoIndex . unspentOutputs
 insert :: Tx -> UtxoIndex -> UtxoIndex
 insert tx = UtxoIndex . updateUtxo tx . getIndex
 
+-- | Update the index for the addition of only the collateral inputs of a failed transaction.
+insertCollateral :: Tx -> UtxoIndex -> UtxoIndex
+insertCollateral tx = UtxoIndex . updateUtxoCollateral tx . getIndex
+
 -- | Update the index for the addition of a block.
-insertBlock :: [Tx] -> UtxoIndex -> UtxoIndex
-insertBlock blck i = foldl' (flip insert) i blck
+insertBlock :: Block -> UtxoIndex -> UtxoIndex
+insertBlock blck i = foldl' (flip (eitherTx insertCollateral insert)) i blck
 
 -- | Find an unspent transaction output by the 'TxOutRef' that spends it.
 lookup :: MonadError ValidationError m => TxOutRef -> UtxoIndex -> m TxOut
@@ -129,13 +138,17 @@ instance FromJSON ValidationError
 instance ToJSON ValidationError
 deriving via (PrettyShow ValidationError) instance Pretty ValidationError
 
+data ValidationPhase = Phase1 | Phase2 deriving (Eq, Show, Generic, FromJSON, ToJSON)
+deriving via (PrettyShow ValidationPhase) instance Pretty ValidationPhase
+type ValidationErrorInPhase = (ValidationPhase, ValidationError)
+
 -- | A monad for running transaction validation inside, which is an instance of 'ValidationMonad'.
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (ExceptT ValidationError (Writer [ScriptValidationEvent]))) a }
     deriving newtype (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError, MonadWriter [ScriptValidationEvent])
 
 -- | Run a 'Validation' on a 'UtxoIndex'.
-runValidation :: Validation a -> UtxoIndex -> (Either ValidationError a, [ScriptValidationEvent])
-runValidation l idx = runWriter $ runExceptT $ runReaderT (_runValidation l) idx
+runValidation :: Validation (Maybe ValidationErrorInPhase, UtxoIndex) -> UtxoIndex -> ((Maybe ValidationErrorInPhase, UtxoIndex), [ScriptValidationEvent])
+runValidation l idx = runWriter $ fmap (either (\e -> (Just (Phase1, e), idx)) id) $ runExceptT $ runReaderT (_runValidation l) idx
 
 -- | Determine the unspent value that a ''TxOutRef' refers to.
 lkpValue :: ValidationMonad m => TxOutRef -> m V.Value
@@ -151,21 +164,45 @@ lkpTxOut t = lookup t =<< ask
 validateTransaction :: ValidationMonad m
     => Slot.Slot
     -> Tx
-    -> m UtxoIndex
+    -> m (Maybe ValidationErrorInPhase, UtxoIndex)
 validateTransaction h t = do
-    _ <- checkSlotRange h t
-    _ <- checkValuePreserved t
-    _ <- checkPositiveValues t
-    _ <- checkFeeIsAda t
+    -- Phase 1 validation
+    checkSlotRange h t
 
     -- see note [Forging of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
-    unless emptyUtxoSet (checkForgingScripts t)
-    unless emptyUtxoSet (checkForgingAuthorised t)
     unless emptyUtxoSet (checkTransactionFee t)
 
-    _ <- checkValidInputs t
-    insert t <$> ask
+    validateTransactionOffChain t
+
+validateTransactionOffChain :: ValidationMonad m
+    => Tx
+    -> m (Maybe ValidationErrorInPhase, UtxoIndex)
+validateTransactionOffChain t = do
+    checkValuePreserved t
+    checkPositiveValues t
+    checkFeeIsAda t
+
+    -- see note [Forging of Ada]
+    emptyUtxoSet <- reader (Map.null . getIndex)
+    unless emptyUtxoSet (checkForgingAuthorised t)
+
+    checkValidInputs (toListOf (inputs . pubKeyTxIns)) t
+    checkValidInputs (Set.toList . view collateralInputs) t
+
+    (do
+        -- Phase 2 validation
+        checkValidInputs (toListOf (inputs . scriptTxIns)) t
+        unless emptyUtxoSet (checkForgingScripts t)
+
+        idx <- ask
+        pure (Nothing, insert t idx)
+        )
+    `catchError` payCollateral
+    where
+        payCollateral e = do
+            idx <- ask
+            pure (Just (Phase2, e), insertCollateral t idx)
 
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()
@@ -176,18 +213,18 @@ checkSlotRange sl tx =
 
 -- | Check if the inputs of the transaction consume outputs that exist, and
 --   can be unlocked by the signatures or validator scripts of the inputs.
-checkValidInputs :: ValidationMonad m => Tx -> m ()
-checkValidInputs tx = do
+checkValidInputs :: ValidationMonad m => (Tx -> [TxIn]) -> Tx -> m ()
+checkValidInputs getInputs tx = do
     let tid = txId tx
         sigs = tx ^. signatures
-    outs <- lkpOutputs tx
-    matches <- traverse (\(txin, txout) -> matchInputOutput tid sigs txin txout) outs
+    outs <- lkpOutputs (getInputs tx)
+    matches <- traverse (uncurry (matchInputOutput tid sigs)) outs
     vld     <- mkTxInfo tx
     traverse_ (checkMatch vld) matches
 
 -- | Match each input of the transaction with the output that it spends.
-lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn, TxOut)]
-lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . view inputs
+lkpOutputs :: ValidationMonad m => [TxIn] -> m [(TxIn, TxOut)]
+lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t))
 
 {- note [Forging of Ada]
 
@@ -331,13 +368,12 @@ mkTxInfo tx = do
     txins <- traverse mkIn $ Set.toList $ view inputs tx
     let ptx = TxInfo
             { txInfoInputs = txins
-            , txInfoInputsFees = [] -- TODO: Fee inputs in emulator transactions
             , txInfoOutputs = txOutputs tx
             , txInfoForge = txForge tx
             , txInfoFee = txFee tx
             , txInfoDCert = [] -- DCerts not supported in emulator
             , txInfoWdrl = [] -- Withdrawals not supported in emulator
-            , txInfoValidRange = txValidRange tx
+            , txInfoValidRange = slotRangeToPOSIXTimeRange $ txValidRange tx
             , txInfoSignatories = fmap pubKeyHash $ Map.keys (tx ^. signatures)
             , txInfoData = Map.toList (tx ^. datumWitnesses)
             , txInfoId = txId tx

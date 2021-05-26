@@ -18,6 +18,7 @@ defaultWalletDetails :: WalletDetails
 defaultWalletDetails =
   { walletNickname: mempty
   , companionAppId: PlutusAppId emptyUUID
+  , marloweAppId: PlutusAppId emptyUUID
   , walletInfo: defaultWalletInfo
   , assets: mempty
   }
