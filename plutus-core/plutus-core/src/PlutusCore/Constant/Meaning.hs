@@ -62,6 +62,9 @@ data BuiltinMeaning term cost =
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
 
+-- TODO: we used to have arities and it was justified to have an additional data type with cached
+-- stuff, but now we need reconsider that. Maybe instantiating 'BuiltinMeaning' on the fly is
+-- in fact faster.
 -- | A 'BuiltinRuntime' is an instantiated (via 'toBuiltinRuntime') 'BuiltinMeaning'.
 -- It contains info that is used during evaluation:
 --
@@ -71,8 +74,11 @@ data BuiltinMeaning term cost =
 data BuiltinRuntime term =
     forall args res. BuiltinRuntime
         (TypeScheme term args res)
-        (FoldArgs args res)  -- Must be lazy
-        (FoldArgsEx args)    -- Must be lazy (for a different reason)
+        (FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
+                             -- it's fully saturated before figuring out what it's going to cost.
+        (FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
+                             -- can put @undefined@ here. TODO: we should test if making this strict
+                             -- introduces any measurable speedup.
 
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.
 newtype BuiltinsRuntime fun term = BuiltinsRuntime

@@ -3,6 +3,7 @@
 -- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
 -- The CEK machines handles name capture by design.
 
+{-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE DeriveAnyClass           #-}
@@ -180,10 +181,18 @@ data CekValue uni fun =
   | VDelay (Term Name uni fun ()) (CekValEnv uni fun)
   | VLamAbs Name (Term Name uni fun ()) (CekValEnv uni fun)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
-      !fun                   -- For costing.
-      (Term Name uni fun ()) -- Must be lazy!
+      !fun                   -- So that we know, for what builtin we're calculating the cost.
+                             -- TODO: any chance we could sneak this into 'BuiltinRuntime'
+                             -- where we have a partially instantiated costing function anyway?
+      (Term Name uni fun ()) -- This must be lazy. It represents the partial application of the
+                             -- builtin function that we're going to run when it's fully saturated.
+                             -- We need the 'Term' to be able to return it in case full saturation
+                             -- is never achieved and a partial application needs to be returned
+                             -- in the result. The laziness is important, because the arguments are
+                             -- discharged values and discharging is expensive, so we don't want to
+                             -- do it unless we really have to.
       (CekValEnv uni fun)    -- For discharging.
-      !(BuiltinRuntime (CekValue uni fun))
+      !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
     deriving (Show, Eq) -- Eq is just for tests.
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
@@ -275,6 +284,20 @@ constant application machinery over a list of 'CekValue's and turning the cause 
 failure into a 'Term', apart from the straightforward generalization of the error type.
 -}
 
+{- Note [Being generic over @term@ in 'CekM']
+We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a
+@term@-generic version of 'CekEvaluationException' called 'CekEvaluationExceptionCarrying'.
+This enables us to implement 'MonadError' instances that allow for throwing errors in both the CEK
+machine and the builtin application machinery (as Note [Being generic over 'term' in errors]
+explains those are different kinds of errors) and otherwise we'd have to have more plumbing between
+these two and turning the builtin application machinery's 'MonadError' constraint into an explicit
+'Either' just to dispatch on it in the CEK machine and rethrow the error non-purely  (we used to
+have that) is expensive. Plus, it also enables us to throw actual exceptions using the normal
+'throwError', 'throwing_', 'throwingWithCause' etc business instead of duplicating all that API for
+exceptions (we used to have @lookupBuiltinExc@, @throwingWithCauseExc@ etc), which is a nice bonus.
+-}
+
+-- See Note [Being generic over @term@ in 'CekM'].
 type CekCarryingM :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.
 newtype CekCarryingM term uni fun s a = CekCarryingM
@@ -329,6 +352,7 @@ throwingDischarged
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
+-- | Enable throwing 'CekValue' rather than 'Term' within the received action.
 withErrorDischarging
     :: CekCarryingM (CekValue uni fun) uni fun s a
     -> CekCarryingM (Term Name uni fun ()) uni fun s a
@@ -337,10 +361,11 @@ withErrorDischarging = coerce
 unsafeRunCekCarryingM :: CekCarryingM term uni fun s a -> IO a
 unsafeRunCekCarryingM = unsafeSTToIO . unCekCarryingM
 
+-- | Handle a 'CekEvaluationException' in the 'CekCarryingM' monad.
 catchErrorCekCarryingM
     :: PrettyUni uni fun
     => CekCarryingM term uni fun s a
-    -> (CekEvaluationExceptionCarrying (Term Name uni fun ()) fun -> CekCarryingM term uni fun s a)
+    -> (CekEvaluationException uni fun -> CekCarryingM term uni fun s a)
     -> CekCarryingM term uni fun s a
 catchErrorCekCarryingM a h =
     CekCarryingM . unsafeIOToST $ unsafeRunCekCarryingM a `catch` (unsafeRunCekCarryingM . h)
@@ -356,8 +381,18 @@ instance PrettyUni uni fun =>
     throwError = CekCarryingM . throwM . mapCauseInMachineException dischargeCekValue
     -- We don't need this function, but it doesn't hurt to define it anyway.
     a `catchError` h =
+        -- We can't convert a thrown 'Term' into a 'CekValue' without computing that 'Term',
+        -- which is silly, so we just lose the term that caused the failure.
         a `catchErrorCekCarryingM` \(ErrorWithCause err _) -> h $ ErrorWithCause err Nothing
 
+-- It would be really nice to define this instance, so that we can use 'makeKnown' directly in
+-- the 'CekM' monad without the 'WithEmitterT' nonsense. Unfortunately, GHC doesn't like
+-- implicit params in instance contexts. As GHC's docs explain:
+--
+-- > Reason: exactly which implicit parameter you pick up depends on exactly where you invoke a
+-- > function. But the "invocation" of instance declarations is done behind the scenes by the
+-- > compiler, so it's hard to figure out exactly where it is done. The easiest thing is to outlaw
+-- > the offending types.
 -- instance GivenCekEmitter s => MonadEmitter (CekM uni fun s) where
 --     emit = emitCek
 
@@ -487,8 +522,9 @@ lookupVarName varName varEnv = do
             var = Var () varName
         Just val -> pure val
 
--- | Take pieces of a 'BuiltinApp' and either create a 'Value' using 'makeKnown' or a partial
--- builtin application depending on whether the built-in function is fully saturated or not.
+-- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
+-- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+-- fully saturated or not.
 evalBuiltinApp
     :: (GivenCekReqs uni fun s, PrettyUni uni fun)
     => fun
@@ -586,24 +622,11 @@ enterComputeCek costs = computeCek where
     returnCek (FrameApplyFun fun : ctx) arg = do
         applyEvaluate ctx fun arg
 
-    {- Note [Accumulating arguments].  The VBuiltin value contains lists of type and
-    term arguments which grow as new arguments are encountered.  In the code below
-    We just add new entries by appending to the end of the list: l -> l++[x].  This
-    doesn't look terrbily good, but we don't expect the lists to ever contain more
-    than three or four elements, so the cost is unlikely to be high.  We could
-    accumulate lists in the normal way and reverse them when required, but this is
-    error-prone and reversal adds an extra cost anyway.  We could also use something
-    like Data.Sequence, but again we incur an extra cost because we have to convert
-    to a normal list when passing the arguments to the constant application
-    machinery.  If we really care we might want to convert the CAM to use sequences
-    instead of lists.
-    -}
-
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
     -- if v is a builtin application then check that it's expecting a type argument,
-    -- either apply the builtin to its arguments and return the result,
-    -- or extend the value with @force@ and call returnCek;
+    -- and either calculate the builtin application or stick a 'Force' on top of its 'Term'
+    -- representation depending on whether the application is saturated or not,
     -- if v is anything else, fail.
     forceEvaluate
         :: Context uni fun -> CekValue uni fun -> CekM uni fun s (Term Name uni fun ())
@@ -611,43 +634,48 @@ enterComputeCek costs = computeCek where
     forceEvaluate ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) = do
         let term' = Force () term
         case sch of
+            -- It's only possible to force a builtin application if the builtin expects a type
+            -- argument next.
             TypeSchemeAll  _ schK -> do
                 let runtime' = BuiltinRuntime (schK Proxy) f exF
+                -- We allow a type argument to appear last in the type of a built-in function,
+                -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
+                -- application.
                 res <- evalBuiltinApp fun term' env runtime'
                 returnCek ctx res
             _ ->
-                throwingWithCause
-                    _MachineError
-                    BuiltinTermArgumentExpectedMachineError
-                    (Just term')
+                throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate _ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
     -- | Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
     -- to x@ and call 'computeCek' on the body.
-    -- If the function is a builtin application then check that it's expecting a term argument, and if
-    -- it's the final argument then apply the builtin to its arguments, return the result, or extend
-    -- the value with the new argument and call 'returnCek'. If v is anything else, fail.
+    -- If the function is a builtin application then check that it's expecting a term argument,
+    -- and either calculate the builtin application or stick a 'Apply' on top of its 'Term'
+    -- representation depending on whether the application is saturated or not.
+    -- If v is anything else, fail.
     applyEvaluate
         :: Context uni fun
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term Name uni fun ())
     applyEvaluate ctx (VLamAbs name body env) arg = computeCek ctx (extendEnv name arg env) body
-    applyEvaluate ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
+    -- TODO: explain the bangs.
+    applyEvaluate ctx (VBuiltin fun term env (BuiltinRuntime sch !f !exF)) arg = do
         let term' = Apply () term $ dischargeCekValue arg
         case sch of
+            -- It's only possible to apply a builtin application if the builtin expects a term
+            -- argument next.
             TypeSchemeArrow _ schB -> do
+                -- The builtin application machinery wants to be able to throw a 'CekValue' rather
+                -- than a 'Term', hence 'withErrorDischarging'.
                 x <- withErrorDischarging $ readKnown arg
                 let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
                 res <- evalBuiltinApp fun term' env runtime'
                 returnCek ctx res
             _ ->
-                throwingWithCause
-                    _MachineError
-                    UnexpectedBuiltinTermArgumentMachineError
-                    (Just term')
+                throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate _ val _ =
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
