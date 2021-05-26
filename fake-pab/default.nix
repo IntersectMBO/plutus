@@ -42,6 +42,5 @@ let
   };
 in
 {
-  inherit (plutus-pab) server-invoker generated-purescript generate-purescript;
-  inherit client contractsJSON;
+  inherit client fake-pab-exe fake-pab-generated-purescript;
 }
