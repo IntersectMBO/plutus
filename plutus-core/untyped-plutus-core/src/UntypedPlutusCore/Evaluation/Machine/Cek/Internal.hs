@@ -292,9 +292,9 @@ machine and the builtin application machinery (as Note [Being generic over 'term
 explains those are different kinds of errors) and otherwise we'd have to have more plumbing between
 these two and turning the builtin application machinery's 'MonadError' constraint into an explicit
 'Either' just to dispatch on it in the CEK machine and rethrow the error non-purely  (we used to
-have that) is expensive. Plus, it also enables us to throw actual exceptions using the normal
-'throwError', 'throwing_', 'throwingWithCause' etc business instead of duplicating all that API for
-exceptions (we used to have @lookupBuiltinExc@, @throwingWithCauseExc@ etc), which is a nice bonus.
+have that) has to cost some. Plus, being @term@-generic also enables us to throw actual exceptions
+using the normal 'throwError', 'throwing_', 'throwingWithCause' etc business instead of duplicating
+all that API for exceptions (we used to have @lookupBuiltinExc@, @throwingWithCauseExc@ etc).
 -}
 
 -- See Note [Being generic over @term@ in 'CekM'].
@@ -444,18 +444,19 @@ dischargeCekValEnv valEnv =
         val <- lookupName name valEnv
         Just $ dischargeCekValue val
 
--- TODO: docs.
--- Convert a CekValue into a term by replacing all bound variables with the terms
+-- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
 dischargeCekValue :: CekValue uni fun -> Term Name uni fun ()
 dischargeCekValue = \case
     VCon     val           -> Constant () val
     VDelay   body env      -> dischargeCekValEnv env $ Delay () body
+    -- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an
+    -- argument of 'computeCek' and hence we need to start discharging outside of the reassembled
+    -- lambda, otherwise @name@ could clash with the names that we have in @env@.
     VLamAbs  name body env -> dischargeCekValEnv env $ LamAbs () name body
+    -- We only discharge a value when (a) it's being returned by the machine,
+    -- or (b) it's needed for an error message.
     VBuiltin _ term env _  -> dischargeCekValEnv env term
-    {- We only discharge a value when (a) it's being returned by the machine,
-       or (b) it's needed for an error message.  When we're discharging VBuiltin
-       we use arity0 to get the type and term arguments into the right sequence. -}
 
 instance (Closed uni, GShow uni, uni `EverywhereAll` '[PrettyConst, ExMemoryUsage], Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
@@ -554,7 +555,7 @@ enterComputeCek costs = computeCek where
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
     -- 2. calls 'returnCek' on values ('Delay', 'LamAbs', 'Constant', 'Builtin')
-    -- 3. returns 'EvaluationFailure' ('Error')
+    -- 3. throws 'EvaluationFailure' ('Error')
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
         :: Context uni fun
@@ -600,13 +601,8 @@ enterComputeCek costs = computeCek where
 
       * 'FrameForce': call forceEvaluate
       * 'FrameApplyArg': call 'computeCek' over the context extended with 'FrameApplyFun'
-      * 'FrameApplyFun': call applyEvaluate to attempt to apply the function
-          stored in the frame to an argument.  If the function is a lambda 'lam x ty body'
-          then extend the environment with a binding of v to x and call computeCek on the body.
-          If the is a builtin application then check that it's expecting a term argument,
-          and if it's the final argument then apply the builtin to its arguments
-          return the result, or extend the value with the new argument and call
-          returnCek.  If v is anything else, fail.
+      * 'FrameApplyFun': call 'applyEvaluate' to attempt to apply the function
+          stored in the frame to an argument.
     -}
     returnCek :: Context uni fun -> CekValue uni fun -> CekM uni fun s (Term Name uni fun ())
     --- Instantiate all the free variable of the resulting term in case there are any.
