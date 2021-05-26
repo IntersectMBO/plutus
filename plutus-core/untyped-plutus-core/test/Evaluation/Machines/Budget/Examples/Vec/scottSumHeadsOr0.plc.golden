@@ -1,11 +1,11 @@
 ( (Right (delay (\xs -> \ys -> force xs (delay (\x -> \xs' -> \coe -> addInteger x (force (force (delay (delay (\xs -> force xs (delay (\x -> \xs' -> x)) ())))) (coe ys)))) (\coe -> 0) (\xs' -> xs'))))
-, ({ tally: ({ BDelay causes ({ cpu: 70000
+, ({ tally: ({ BDelay causes ({ cpu: 39000
 | mem: 10
 })
-| BStartup causes ({ cpu: 50000000
+| BStartup causes ({ cpu: 1000000
 | mem: 0
 })})
-| budget: ({ cpu: 50070000
+| budget: ({ cpu: 1039000
 | mem: 10
 })
 }) )
