@@ -3,11 +3,12 @@ module SimulationPage.State
   , editorSetTheme
   , editorGetValue
   , getCurrentContract
+  , mkState
   ) where
 
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
-import BottomPanel.Types (Action(..), State) as BottomPanel
+import BottomPanel.Types (Action(..), State, initialState) as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
@@ -20,7 +21,8 @@ import Data.Decimal as Decimal
 import Data.Either (Either(..), hush)
 import Data.Lens (_Just, assign, modifying, over, set, use)
 import Data.Lens.Extra (peruse)
-import Data.List.NonEmpty (last, singleton)
+import Data.List.NonEmpty (last)
+import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
@@ -38,6 +40,7 @@ import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Query(..)) as Monaco
+import Help (HelpContext(..))
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe as Server
 import Marlowe.Extended (fillTemplate, toCore, typeToLens)
@@ -51,8 +54,11 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import SessionStorage as SessionStorage
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentMarloweState, _executionState, _extendedContract, _helpContext, _initialSlot, _marloweState, _moveToAction, _possibleActions, _showRightPanel, _templateContent, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
-import Simulator.State (applyInput, inFuture, moveToSlot, updateMarloweState, updatePossibleActions, updateStateP)
+import SimulationPage.Lenses (_bottomPanelState, _helpContext, _showRightPanel)
+import SimulationPage.Types (Action(..), BottomPanelView(..), State)
+import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _currentMarloweState, _executionState, _extendedContract, _initialSlot, _marloweState, _moveToAction, _possibleActions, _templateContent)
+import Simulator.State (applyInput, emptyExecutionStateWithSlot, emptyMarloweState, inFuture, mapPartiesActionInput, moveToSlot, updateMarloweState, updatePossibleActions, updateStateP)
+import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..))
 import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
 import Types (WebData)
@@ -63,6 +69,14 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
+
+mkState :: State
+mkState =
+  { showRightPanel: true
+  , marloweState: NEL.singleton (emptyMarloweState Nothing)
+  , helpContext: MarloweHelp
+  , bottomPanelState: BottomPanel.initialState CurrentStateView
+  }
 
 toBottomPanel ::
   forall m a.
@@ -145,7 +159,7 @@ handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over (_executi
   updateChoice _ input = input
 
 handleAction ResetSimulator = do
-  modifying _marloweState (singleton <<< last)
+  modifying _marloweState (NEL.singleton <<< last)
   updateContractInEditor
 
 handleAction Undo = do
@@ -158,7 +172,7 @@ handleAction (LoadContract contents) = do
     mExtendedContract = do
       termContract <- hush $ parseContract contents
       fromTerm termContract :: Maybe EM.Contract
-  assign _marloweState $ singleton $ emptyMarloweState mExtendedContract
+  assign _marloweState $ NEL.singleton $ emptyMarloweState mExtendedContract
   updateContractInEditor
 
 handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action

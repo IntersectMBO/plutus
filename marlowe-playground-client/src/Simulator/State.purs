@@ -9,6 +9,10 @@ module Simulator.State
   , inFuture
   , moveToSlot
   , nextSignificantSlot
+  , emptyExecutionStateWithSlot
+  , emptyMarloweStateWithSlot
+  , emptyMarloweState
+  , mapPartiesActionInput
   ) where
 
 import Prelude
@@ -23,13 +27,13 @@ import Data.List as List
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
 import Data.Tuple (Tuple(..))
-import Marlowe.Extended (toCore)
+import Marlowe.Extended (getPlaceholderIds, initializeTemplateContent, toCore)
 import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter (lint)
@@ -37,7 +41,50 @@ import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, Timeouts(..), TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
-import SimulationPage.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
+import Simulator.Lenses (_SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings)
+import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties(..), otherActionsParty)
+
+emptyExecutionStateWithSlot :: Slot -> S.Contract -> ExecutionState
+emptyExecutionStateWithSlot sn cont =
+  SimulationRunning
+    { possibleActions: mempty
+    , pendingInputs: mempty
+    , transactionError: Nothing
+    , transactionWarnings: mempty
+    , log: mempty
+    , state: emptyState sn
+    , slot: sn
+    , moneyInContract: mempty
+    , contract: cont
+    }
+
+simulationNotStartedWithSlot :: Slot -> Maybe EM.Contract -> ExecutionState
+simulationNotStartedWithSlot slot mContract =
+  SimulationNotStarted
+    { initialSlot: slot
+    , extendedContract: mContract
+    , templateContent: maybe mempty (initializeTemplateContent <<< getPlaceholderIds) mContract
+    }
+
+simulationNotStarted :: Maybe EM.Contract -> ExecutionState
+simulationNotStarted = simulationNotStartedWithSlot zero
+
+emptyMarloweState :: Maybe EM.Contract -> MarloweState
+emptyMarloweState mContract =
+  { editorErrors: mempty
+  , editorWarnings: mempty
+  , holes: mempty
+  , executionState: simulationNotStarted mContract
+  }
+
+-- TODO: I think this is only being used in wallet, delete once the wallet is deleted
+emptyMarloweStateWithSlot :: Slot -> S.Contract -> MarloweState
+emptyMarloweStateWithSlot sn cont =
+  { editorErrors: mempty
+  , editorWarnings: mempty
+  , holes: mempty
+  , executionState: emptyExecutionStateWithSlot sn cont
+  }
 
 minimumBound :: Array Bound -> ChosenNum
 minimumBound bnds = case uncons (map boundFrom bnds) of
@@ -214,9 +261,9 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = new
         newExecutionState =
           ( set _transactionError (Just txError)
               -- apart from setting the error, we also removing the pending inputs
-
+              
               -- otherwise there can be hidden pending inputs in the simulation
-
+              
               <<< set _pendingInputs mempty
           )
             executionState
@@ -317,3 +364,6 @@ nextSignificantSlot state = do
   let
     Timeouts { minTime } = timeouts mContract
   minTime
+
+mapPartiesActionInput :: (ActionInput -> ActionInput) -> Parties -> Parties
+mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
