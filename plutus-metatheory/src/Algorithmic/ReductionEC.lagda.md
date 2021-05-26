@@ -1438,6 +1438,41 @@ U·⋆3 : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{B' : ∅ ⊢Nf⋆ *}{X
 U·⋆3 eq [] _ refl q = refl ,, refl ,, refl
 U·⋆3 eq (E ·⋆ A) VM refl q = ⊥-elim (valredex (lemVE _ E (Value2VALUE VM)) q)
 
+-- body of wrap made a step, it's not a value
+Uwrap : ∀{A C}{B : ∅ ⊢Nf⋆ K}{M : ∅ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}{L : ∅ ⊢ C}{E}{B' : ∅ ⊢Nf⋆ *}{X}
+ → X ≡ μ A B
+ → (E' : EC X B') {L' : ∅ ⊢ B'} →
+ _⊢_.wrap A B M ≅ E' [ L' ]ᴱ →
+ Redex L' →
+ (U : {B' : ∅ ⊢Nf⋆ *}
+      (E' : EC (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) B')
+      {L' : ∅ ⊢ B'} →
+      M ≡ (E' [ L' ]ᴱ) →
+      Redex L' →
+      ∃
+      (λ p₁ →
+         substEq
+         (EC
+          ((eval (embNf A) (λ x → reflect (` x)) ·V
+            inj₂
+            (λ ρ v →
+               μ
+               (reify
+                (eval (embNf (renNf S A))
+                 ((λ x → renVal ρ (reflect (` x))) ,,⋆ v)))
+               (reify v)))
+           ·V eval (embNf B) (λ x → reflect (` x))))
+         p₁ E
+         ≡ E'
+         × substEq (_⊢_ ∅) p₁ L ≡ L'))
+ → 
+ ∃
+ (λ (p₁ : C ≡ B') →
+    substEq (EC (μ A B)) p₁ (wrap E) ≅ E' × substEq (_⊢_ ∅) p₁ L ≅ L')
+Uwrap eq [] refl (β ()) U
+Uwrap eq (wrap E') refl q U with U E' refl q
+... | refl ,, refl ,, refl = refl ,, refl ,, refl
+
 rlemma51! : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → RProgress M
 rlemma51! (ƛ M)        = done (V-ƛ M)
 rlemma51! (M · M') with rlemma51! M
@@ -1529,7 +1564,8 @@ rlemma51! (wrap A B M) with rlemma51! M
   (wrap E)
   p
   (cong (wrap A B) q)
-  {!!}
+  λ E p q → let X ,, Y ,, Y' = Uwrap refl E (≡-to-≅ p) q U in
+    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y' 
 rlemma51! (unwrap M) with rlemma51! M
 ... | step ¬VM E p q U = step
   (λ V → lemVunwrap (Value2VALUE V))
