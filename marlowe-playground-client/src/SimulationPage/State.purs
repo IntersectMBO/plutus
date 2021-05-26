@@ -57,7 +57,7 @@ import SessionStorage as SessionStorage
 import SimulationPage.Lenses (_bottomPanelState, _helpContext, _showRightPanel)
 import SimulationPage.Types (Action(..), BottomPanelView(..), State)
 import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _currentMarloweState, _executionState, _extendedContract, _initialSlot, _marloweState, _moveToAction, _possibleActions, _templateContent)
-import Simulator.State (applyInput, emptyExecutionStateWithSlot, emptyMarloweState, inFuture, mapPartiesActionInput, moveToSlot, updateMarloweState, updatePossibleActions, updateStateP)
+import Simulator.State (applyInput, emptyExecutionStateWithSlot, emptyMarloweState, inFuture, mapPartiesActionInput, moveToSlot, updateMarloweState, updatePossibleActions, applyPendingInputs)
 import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..))
 import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
@@ -125,7 +125,7 @@ handleAction StartSimulation =
           _marloweState
           ( extendWith
               ( updatePossibleActions
-                  <<< updateStateP
+                  <<< applyPendingInputs
                   <<< (set _executionState (emptyExecutionStateWithSlot initialSlot contract))
               )
           )

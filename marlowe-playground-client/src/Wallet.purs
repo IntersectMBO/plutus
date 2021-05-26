@@ -47,7 +47,7 @@ import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Contra
 import Marlowe.Semantics as S
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
 import Simulator.Lenses (_SimulationRunning, _contract, _currentContract, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings)
-import Simulator.State (emptyMarloweStateWithSlot, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulator.State (emptyMarloweStateWithSlot, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, applyPendingInputs)
 import Simulator.Types (ActionInput(..), ActionInputId, MarloweState)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
@@ -78,7 +78,7 @@ mkComponent =
 applyTransactions :: forall m. MonadState State m => m Unit
 applyTransactions = do
   initialPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _payments)
-  modifying _loadedMarloweState (extendWith (updatePossibleActions <<< updateStateP))
+  modifying _loadedMarloweState (extendWith (updatePossibleActions <<< applyPendingInputs))
   updatedPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _payments)
   let
     newPayments = drop (Array.length initialPayments) updatedPayments

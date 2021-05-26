@@ -3,7 +3,7 @@ module Simulator.State
   , applyTransactions
   , updateMarloweState
   , hasHistory
-  , updateStateP
+  , applyPendingInputs
   , updateContractInStateP
   , updatePossibleActions
   , inFuture
@@ -224,9 +224,8 @@ updatePossibleActions oldState@{ executionState: SimulationRunning executionStat
 
 updatePossibleActions oldState = oldState
 
--- TODO: Probably rename to "applyPendingInputs"
-updateStateP :: MarloweState -> MarloweState
-updateStateP oldState@{ executionState: SimulationRunning executionState } = newState
+applyPendingInputs :: MarloweState -> MarloweState
+applyPendingInputs oldState@{ executionState: SimulationRunning executionState } = newState
   where
   txInput@(TransactionInput txIn) = stateToTxInput executionState
 
@@ -260,7 +259,7 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = new
       in
         set _executionState (SimulationRunning newExecutionState) oldState
 
-updateStateP oldState = oldState
+applyPendingInputs oldState = oldState
 
 updateSlot :: Slot -> MarloweState -> MarloweState
 updateSlot = set (_executionState <<< _SimulationRunning <<< _slot)
@@ -289,14 +288,14 @@ applyTransactions ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   m Unit
-applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
+applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< applyPendingInputs))
 
 applyInput ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   (Array Input -> Array Input) ->
   m Unit
-applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over (_executionState <<< _SimulationRunning <<< _pendingInputs) inputs)))
+applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< applyPendingInputs <<< (over (_executionState <<< _SimulationRunning <<< _pendingInputs) inputs)))
 
 moveToSlot ::
   forall s m.
@@ -308,7 +307,7 @@ moveToSlot slot = do
   let
     mApplyPendingTransactions =
       if slot >= (fromMaybe zero mSignificantSlot) then
-        updateStateP
+        applyPendingInputs
       else
         identity
   modifying
