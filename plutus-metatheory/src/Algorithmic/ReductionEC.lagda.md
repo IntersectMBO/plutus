@@ -1,10 +1,6 @@
 ```
-{-# OPTIONS --injective-type-constructors #-}
 module Algorithmic.ReductionEC where
 ```
-
-This is currently unfinished
-
 ## Imports
 
 ```
@@ -43,6 +39,14 @@ open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 ```
+
+## Pragmas
+
+```
+{-# INJECTIVE _⊢Nf⋆_ #-}
+{-# INJECTIVE _⊢_ #-}
+```
+
 
 ## Values
 
@@ -1369,6 +1373,8 @@ lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
 lemΛE eq [] p = refl ,, p
 
 -- a beta⋆ reduction happened
+{-# INJECTIVE _⊢Nf⋆_ #-}
+
 U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  {B' : ∅ ⊢Nf⋆ *}
  → X ≡ B [ A ]Nf →

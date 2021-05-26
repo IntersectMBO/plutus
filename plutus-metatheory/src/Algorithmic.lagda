@@ -219,7 +219,6 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 
   error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
-
 \end{code}
 
 Utility functions
