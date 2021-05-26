@@ -8,7 +8,6 @@ module Simulator.State
   , updatePossibleActions
   , inFuture
   , moveToSlot
-  , nextSignificantSlot
   , emptyExecutionStateWithSlot
   , emptyMarloweStateWithSlot
   , emptyMarloweState
@@ -169,7 +168,7 @@ updatePossibleActions oldState@{ executionState: SimulationRunning executionStat
 
     usefulActions = mapMaybe removeUseless actions
 
-    slot = fromMaybe (add one currentSlot) (nextSignificantSlot oldState)
+    slot = fromMaybe (add one currentSlot) (nextTimeout oldState)
 
     rawActionInputs = Map.fromFoldableWith combineChoices $ map (actionToActionInput nextState) usefulActions
 
@@ -302,7 +301,7 @@ moveToSlot ::
   Slot ->
   m Unit
 moveToSlot slot = do
-  mSignificantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
+  mSignificantSlot <- use (_marloweState <<< _Head <<< to nextTimeout)
   let
     mApplyPendingTransactions =
       if slot >= (fromMaybe zero mSignificantSlot) then
@@ -336,10 +335,8 @@ evalObservation state@{ executionState: SimulationRunning executionState } obser
 
 evalObservation state observation = false
 
--- TODO: Probably rename to `nextTimeout` to match the same function of Marlowe.Execution in
---       the dashboard
-nextSignificantSlot :: MarloweState -> Maybe Slot
-nextSignificantSlot state = do
+nextTimeout :: MarloweState -> Maybe Slot
+nextTimeout state = do
   mContract <- previewOn state (_executionState <<< _SimulationRunning <<< _contract)
   let
     Timeouts { minTime } = timeouts mContract
