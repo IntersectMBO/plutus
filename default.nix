@@ -17,8 +17,11 @@
       stackage = sources."stackage.nix";
     };
   }
+  # haskell-nix has to be used differently in flakes/no-flakes scenarios:
+  # - When imported from flakes, 'haskellNix.overlay' needs to be passed here.
+  # - When imported from default.nix without flakes, default to haskellNix.overlays
 , haskellNixOverlays ? haskellNix.overlays
-, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNixOverlays checkMaterialization enableHaskellProfiling; }
+, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix haskellNixOverlays checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
   # false, generally, since it does more work, but we set it to true in the CI

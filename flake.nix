@@ -15,9 +15,7 @@
           haskellNixOverlays = [ haskell-nix.overlay ];
         };
 
-        inherit (topLevel) pkgs plutus ownOverlays;
-        inherit (plutus) haskell iohkNix;
-        inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
+        inherit (topLevel) pkgs plutus;
       in
       rec {
         packages = rec {
