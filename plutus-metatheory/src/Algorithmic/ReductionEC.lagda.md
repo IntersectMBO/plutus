@@ -1372,6 +1372,7 @@ lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
   → E ≅ EC.[] {A = Y} × Λ L ≅ L'
 lemΛE eq [] p = refl ,, p
 
+-- a beta⋆ reduction happened
 U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  {B' : ∅ ⊢Nf⋆ *}
  → X ≡ B [ A ]Nf →
@@ -1387,7 +1388,7 @@ U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
    p []
    ≅ E'
    × substEq (_⊢_ ∅) p (Λ L ·⋆ A) ≅ L')
-U·⋆1  {A = A}{B}{L} eq []        p q = sym eq ,, htrans (≡-subst-removable (EC (B [ A ]Nf)) (sym eq) []) (hcong (λ X → [] {A = X}) (hsym (≡-to-≅ eq))) ,, htrans (≡-subst-removable (∅ ⊢_) (sym eq) (Λ L ·⋆ A)) p
+U·⋆1 eq [] refl q = refl ,, refl ,, refl
 U·⋆1 eq (E' ·⋆ A) p q with lem-·⋆' p
 ... | X ,, refl ,, refl with lemΛE refl E' X
 U·⋆1 eq (.[] ·⋆ A) p (β ()) | X ,, refl ,, refl | refl ,, refl
@@ -1418,6 +1419,24 @@ U·⋆2 ¬VM eq [] refl (β β-Λ) U = ⊥-elim (¬VM (V-Λ _))
 U·⋆2 ¬VM eq [] refl (β (β-sbuiltin⋆ b _ p bt _)) U = ⊥-elim (¬VM (V-IΠ b p bt))
 U·⋆2 ¬VM eq (E ·⋆ A) refl q U with U E refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
+
+-- BUILTIN
+U·⋆3 : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{B' : ∅ ⊢Nf⋆ *}{X}
+      → X ≡ B [ A ]Nf →
+      (E' : EC X B')
+      {L' : ∅ ⊢ B'} →
+      Value M → 
+      M _⊢_.·⋆ A ≅ (E' [ L' ]ᴱ) →
+      Redex L' →
+      Σ
+      (B [ A ]Nf ≡ B')
+      (λ p₁ →
+         Σ
+         (substEq (EC (B [ A ]Nf)) p₁ []
+          ≅ E')
+         (λ x₁ → substEq (_⊢_ ∅) p₁ (M _⊢_.·⋆ A) ≅ L'))
+U·⋆3 eq [] _ refl q = refl ,, refl ,, refl
+U·⋆3 eq (E ·⋆ A) VM refl q = ⊥-elim (valredex (lemVE _ E (Value2VALUE VM)) q)
 
 rlemma51! : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → RProgress M
 rlemma51! (ƛ M)        = done (V-ƛ M)
@@ -1493,7 +1512,8 @@ rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = []} p x) = step
   []
   (β (β-sbuiltin⋆ b M p x A))
   refl
-  {!!}
+  λ E p q → let X ,, Y ,, Y' = U·⋆3 refl E (V-IΠ b _ x) (≡-to-≅ p) q in
+    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y' 
 rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = Term ∷ as'} p x)
   with bappTermLem b (M ·⋆ A) (bubble p) (BApp2BAPP (step⋆ p x))
 ... | _ ,, _ ,, X =
@@ -1522,7 +1542,7 @@ rlemma51! (unwrap M) with rlemma51! M
   []
   (β (β-wrap VM))
   refl
-  λ {E p q → {!!}}
+  {!!}
 rlemma51! (con c)      = done (V-con c)
 rlemma51! (ibuiltin b) = done (ival b)
 rlemma51! (error _)    = step
