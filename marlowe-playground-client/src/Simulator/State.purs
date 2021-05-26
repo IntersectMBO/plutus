@@ -1,4 +1,4 @@
-module Simulator
+module Simulator.State
   ( applyInput
   , applyTransactions
   , updateMarloweState
@@ -214,9 +214,9 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = new
         newExecutionState =
           ( set _transactionError (Just txError)
               -- apart from setting the error, we also removing the pending inputs
-              
+
               -- otherwise there can be hidden pending inputs in the simulation
-              
+
               <<< set _pendingInputs mempty
           )
             executionState

@@ -52,7 +52,7 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import SessionStorage as SessionStorage
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentMarloweState, _executionState, _extendedContract, _helpContext, _initialSlot, _marloweState, _moveToAction, _possibleActions, _showRightPanel, _templateContent, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
-import Simulator (applyInput, inFuture, moveToSlot, updateMarloweState, updatePossibleActions, updateStateP)
+import Simulator.State (applyInput, inFuture, moveToSlot, updateMarloweState, updatePossibleActions, updateStateP)
 import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
 import Types (WebData)

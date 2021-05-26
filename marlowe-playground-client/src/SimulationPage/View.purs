@@ -35,7 +35,7 @@ import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings, otherActionsParty)
-import Simulator (hasHistory, inFuture)
+import Simulator.State (hasHistory, inFuture)
 import Text.Markdown.TrimmedInline (markdownToHTML)
 
 render ::

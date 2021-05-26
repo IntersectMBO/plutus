@@ -26,12 +26,12 @@ import Examples.PureScript.ContractForDifferencesWithOracle as ContractForDiffer
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Party(..), Token(..))
 import SimulationPage.Types (_SimulationRunning, _currentContract, _executionState, _marloweState, _pendingInputs, _transactionError, emptyExecutionStateWithSlot, mkState)
-import Simulator (applyTransactions, updateMarloweState)
+import Simulator.State (applyTransactions, updateMarloweState)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assertFalse, equal)
 
 contractToExtended :: String -> Maybe EM.Contract
-contractToExtended contract = case parseContract contract of -- We reuse the extended Marlowe parser for now since it is a superset 
+contractToExtended contract = case parseContract contract of -- We reuse the extended Marlowe parser for now since it is a superset
   Right parsedContract -> fromTerm parsedContract
   Left error -> Nothing
 
