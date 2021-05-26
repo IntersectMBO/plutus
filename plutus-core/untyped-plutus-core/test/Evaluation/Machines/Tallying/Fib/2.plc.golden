@@ -1,23 +1,23 @@
 ( (Right (1))
-, ({ tally: ({ BConst causes ({ cpu: 558000
+, ({ tally: ({ BConst causes ({ cpu: 351000
 | mem: 90
 })
-| BVar causes ({ cpu: 2232000
+| BVar causes ({ cpu: 1404000
 | mem: 360
 })
-| BLamAbs causes ({ cpu: 1860000
+| BLamAbs causes ({ cpu: 1170000
 | mem: 300
 })
-| BApply causes ({ cpu: 3224000
+| BApply causes ({ cpu: 2028000
 | mem: 520
 })
-| BDelay causes ({ cpu: 558000
+| BDelay causes ({ cpu: 351000
 | mem: 90
 })
-| BForce causes ({ cpu: 744000
+| BForce causes ({ cpu: 468000
 | mem: 120
 })
-| BBuiltin causes ({ cpu: 558000
+| BBuiltin causes ({ cpu: 351000
 | mem: 90
 })
 | BBuiltinApp AddInteger causes ({ cpu: 237457
@@ -32,10 +32,10 @@
 | BBuiltinApp IfThenElse causes ({ cpu: 0
 | mem: 0
 })
-| BStartup causes ({ cpu: 5000000
+| BStartup causes ({ cpu: 1000000
 | mem: 0
 })})
-| budget: ({ cpu: 16127855
+| budget: ({ cpu: 8516855
 | mem: 1579
 })
 }) )
