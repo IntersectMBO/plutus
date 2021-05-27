@@ -967,15 +967,35 @@ class FromTerm a b where
 --
 -- Semantic functions
 --
--- These functions are a trimmed down version from the correspondig Marlowe.Semantics counterparts
--- in order to work with Term contracts instead of actual contracts. The idea is to be able to use
--- them in the context of the simulator, to know the location of current step instead of just the
--- remaining contract to be evaluated.
--- FIMXE: Add comment about why I took this approach instead of making the semantic contract more abstract
---       and having a single computeTransaction implementation, or to truly copy and paste the semantic
---       implementation.
+-- These functions and data structures are a trimmed down version from the correspondig Marlowe.Semantics
+-- counterparts in order to work with Term contracts instead of actual contracts. The idea is to be able
+-- to use them in the context of the simulator, so we can know the location of the current step instead of just
+-- showing the continuation that needs to be evaluated.
+-- The algorithm chosen for this task is very naive and not the most performant. We just track the out-contract
+-- and rely on the original semantic implementation for the rest of the details (payments, warnings and state).
+-- This means that we are converting from Term -> Extended -> Contract and calling the original code more than
+-- once per transaction. In practice the added overhead should not matter as the simulation is run on the user
+-- machine, and you only simulate one contract at a time.
+--
+-- Other approaches that were considered and discarded:
+--  * Adapt a full copy-paste of the semantic code:
+--      The idea would be to implement all the semantic logic in this module so we don't need to call the original
+--      code. It would have better performance than the current approach but it would be harder to maintain. Currently
+--      the purescript semantic implementation is a copy of the haskell one, and we don't have any test to check that
+--      they behave the same. Using this approach would mean that we have a 3rd copy and whenever we change the
+--      semantics, we'd need to change all 3 implementations. Eventually, we could get rid of the purescript semantic
+--      implementation if we use a project like ghcjs or asterius to run the haskell version in JS/WASM. If we manage
+--      to do that, then this option would be viable, as it's easier to test that the implementations are in-sync.
+--  * Make the semantic more abstract:
+--      The idea would be to change the semantic implementation so we can make it work with the Term and the Semantic
+--      code using the same algorithm. At the moment of considering this, I don't know what type of abstraction should
+--      we use to solve this, and moreover, there is value on keeping the semantic code as "boring haskell/purescript".
+--
 -- TODO: create a module in web commons for Term similary how Extended is done, and put this into it's own file
 ----
+-- This version of the TransactionOutput is similar to the Semantic version, but we've changed Error to SemanticError
+-- and added an InvalidContract for cases like when you are calling computeTransaction on a contract with holes or
+-- with template parameters
 data TransactionOutput
   = TransactionOutput
     { txOutWarnings :: List S.TransactionWarning
@@ -987,7 +1007,6 @@ data TransactionOutput
   | InvalidContract
 
 -- This function is like Semantics.computeTransaction,
--- FIXME: update comment
 computeTransaction :: S.TransactionInput -> S.State -> Term Contract -> TransactionOutput
 computeTransaction tx state contract =
   let
@@ -1067,10 +1086,7 @@ applyInput _ _ _ _ = Nothing
 
 -- This function is a simplified version of Semantics.reduceContractUntilQuiescent, we don't care
 -- in here about the warnings or payments, but we do need to keep track of the real semantic state
--- as some continuations could depend on previous payments. This fact could contribute to an increase
--- of repetitives calls to the semantic module, but in the context of the simulation, the overhead should
--- be trivial enough.
--- FIXME: update comment once I modify the overall comment
+-- as some continuations could depend on previous payments.
 reduceContractUntilQuiescent :: S.Environment -> S.State -> Term Contract -> Maybe (S.State /\ Term Contract)
 reduceContractUntilQuiescent env startState term@(Term startContract _) = do
   semanticContract <- fromTerm startContract
@@ -1080,8 +1096,9 @@ reduceContractUntilQuiescent env startState term@(Term startContract _) = do
     termsStep = reduceContractStep env startState startContract
   case semanticStep /\ termsStep of
     (S.Reduced _ _ newState _ /\ Reduced newContract) -> reduceContractUntilQuiescent env newState newContract
-    -- FIXME: add comment about close
-    (S.Reduced _ _ _ _ /\ NotReduced) -> Just (startState /\ term)
+    -- This case is thought the Close contract, because in the semantic version, running a contract step
+    -- can do a payment (so the state is reduced), but in this version the close is never reduced
+    (S.Reduced _ _ newState _ /\ NotReduced) -> reduceContractUntilQuiescent env newState term
     (S.NotReduced /\ NotReduced) -> Just (startState /\ term)
     _ -> Nothing
 
@@ -1090,7 +1107,7 @@ reduceContractUntilQuiescent _ _ (Hole _ _ _) = Nothing
 -- This structure represents the result of doing a reduceContractStep and its a simplified view
 -- of the Semantic counterpart.
 -- We group all possible errors inside ReduceError with a string representation of the error
--- that will probably never be shown, but it's useful when reading the code
+-- that will never be shown, but it's useful when reading the code
 data ReduceStepResult
   = Reduced (Term Contract)
   | NotReduced
