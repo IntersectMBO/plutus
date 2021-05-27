@@ -45,6 +45,7 @@ library
         Plutus.V1.Ledger.Credential
         Plutus.V1.Ledger.Crypto
         Plutus.V1.Ledger.DCert
+        Plutus.V1.Ledger.Decimal
         Plutus.V1.Ledger.Examples
         Plutus.V1.Ledger.Interval
         Plutus.V1.Ledger.Orphans
@@ -77,7 +78,8 @@ library
         deepseq -any,
         newtype-generics -any,
         tagged -any,
-        lens -any
+        lens -any,
+        scientific -any
 
 test-suite plutus-ledger-api-test
     import: lang
