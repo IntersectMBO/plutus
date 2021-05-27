@@ -23,8 +23,6 @@ let
     ++ [
       # Modifications to derivations from nixpkgs
       (import ./overlays/nixpkgs-overrides.nix)
-      # fix r-modules
-      (import ./overlays/r.nix)
     ];
 
   pkgs = import sources.nixpkgs {
