@@ -154,7 +154,7 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
                 pure tx'
             else do
                 logDebug $ AddingInputsFor neg
-                addInputs utxo pk neg tx'
+                addInputs utxo inputValues pk neg tx'
 
     if remainingFees `Value.leq` P.zero
     then do
@@ -165,18 +165,22 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
         addCollateral utxo remainingFees tx''
 
 
--- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
---   @vl@ from the UTXO map @mp@ and adds them as inputs to @tx@. A public
---   key output for @pk@ is added containing any leftover change.
+-- | @addInputs mp iv pk vl tx@ selects transaction outputs worth at least
+--   @vl@ from the UTXO map @mp@, with filtered out values from @iv@ that are already presented in unbalanced tx,
+--   and adds them as inputs to @tx@. A public key output for @pk@ is added containing any leftover change.
 addInputs
     :: Member (Error WalletAPIError) effs
     => UtxoMap
+    -> [Value]
     -> PubKey
     -> Value
     -> Tx
     -> Eff effs Tx
-addInputs mp pk vl tx = do
-    (spend, change) <- E.selectCoin (second (Tx.txOutValue . Tx.txOutTxOut) <$> Map.toList mp) vl
+addInputs mp iv pk vl tx = do
+    let
+        utxoVals = second (Tx.txOutValue . Tx.txOutTxOut) <$> Map.toList mp
+        filteredVals = filter ((`notElem` iv) . snd) utxoVals
+    (spend, change) <- E.selectCoin filteredVals vl
     let
 
         addTxIns  =
