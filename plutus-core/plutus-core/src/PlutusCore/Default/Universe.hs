@@ -97,23 +97,21 @@ noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> any
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 
 instance ToKind DefaultUni where
-    toKind = undefined
-
-    -- toKind DefaultUniInteger        = kindOf DefaultUniInteger
-    -- toKind DefaultUniByteString     = kindOf DefaultUniByteString
-    -- toKind DefaultUniChar           = kindOf DefaultUniChar
-    -- toKind DefaultUniUnit           = kindOf DefaultUniUnit
-    -- toKind DefaultUniBool           = kindOf DefaultUniBool
-    -- toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
-    -- toKind DefaultUniProtoPair      = kindOf DefaultUniProtoPair
-    -- toKind (DefaultUniApply uniF _) = case toKind uniF of
-    --     -- We can using @error@ here by having more type astronautics with 'Typeable',
-    --     -- but having @error@ should be fine.
-    --     Type _            -> error "Panic: a type function can't be of type *"
-    --     KindArrow _ _ cod -> cod
+    toKind DefaultUniInteger        = kindOf DefaultUniInteger
+    toKind DefaultUniByteString     = kindOf DefaultUniByteString
+    toKind DefaultUniChar           = kindOf DefaultUniChar
+    toKind DefaultUniUnit           = kindOf DefaultUniUnit
+    toKind DefaultUniBool           = kindOf DefaultUniBool
+    toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
+    toKind DefaultUniProtoPair      = kindOf DefaultUniProtoPair
+    toKind (DefaultUniApply uniF _) = case toKind uniF of
+        -- We can using @error@ here by having more type astronautics with 'Typeable',
+        -- but having @error@ should be fine.
+        Type _            -> error "Panic: a type function can't be of type *"
+        KindArrow _ _ cod -> cod
 
 instance HasUniApply DefaultUni where
-    matchUniApply (DefaultUniApply f a) _ h = h (Tag f) (Tag a)
+    matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
 
 instance GShow DefaultUni where gshowsPrec = showsPrec
@@ -135,45 +133,44 @@ instance Show (DefaultUni a) where
 
 -- See Note [Parsing horribly broken].
 instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
-    parse "bool"       = Just . SomeTypeIn . Tag . Kinded $ Tag DefaultUniBool
-    parse "bytestring" = Just . SomeTypeIn . Tag . Kinded $ Tag DefaultUniByteString
-    parse "char"       = Just . SomeTypeIn . Tag . Kinded $ Tag DefaultUniChar
-    parse "integer"    = Just . SomeTypeIn . Tag . Kinded $ Tag DefaultUniInteger
-    parse "unit"       = Just . SomeTypeIn . Tag . Kinded $ Tag DefaultUniUnit
-    parse "string"     = Just . SomeTypeIn . Tag . Kinded $ Tag DefaultUniString
-    parse text         = undefined
-    -- parse text         = asum
-    --     [ do
-    --         aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
-    --         SomeTypeIn (Kinded a) <- parse aT
-    --         Refl <- checkStar @DefaultUni a
-    --         Just . SomeTypeIn . Kinded $ DefaultUniList a
-    --     , do
-    --         abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
-    --         -- Note that we don't allow whitespace after @,@ (but we could).
-    --         -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
-    --         -- tuple (and it can be left- or right- or both-nested), so we're running into
-    --         -- the same parsing problem as with constants.
-    --         case Text.splitOn "," abT of
-    --             [aT, bT] -> do
-    --                 SomeTypeIn (Kinded a) <- parse aT
-    --                 Refl <- checkStar @DefaultUni a
-    --                 SomeTypeIn (Kinded b) <- parse bT
-    --                 Refl <- checkStar @DefaultUni b
-    --                 Just . SomeTypeIn . Kinded $ DefaultUniPair a b
-    --             _ -> Nothing
-    --     ]
+    parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
+    parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
+    parse "char"       = Just . SomeTypeIn $ Kinded DefaultUniChar
+    parse "integer"    = Just . SomeTypeIn $ Kinded DefaultUniInteger
+    parse "unit"       = Just . SomeTypeIn $ Kinded DefaultUniUnit
+    parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
+    parse text         = asum
+        [ do
+            aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
+            SomeTypeIn (Kinded a) <- parse aT
+            Refl <- checkStar @DefaultUni a
+            Just . SomeTypeIn . Kinded $ DefaultUniList a
+        , do
+            abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
+            -- Note that we don't allow whitespace after @,@ (but we could).
+            -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
+            -- tuple (and it can be left- or right- or both-nested), so we're running into
+            -- the same parsing problem as with constants.
+            case Text.splitOn "," abT of
+                [aT, bT] -> do
+                    SomeTypeIn (Kinded a) <- parse aT
+                    Refl <- checkStar @DefaultUni a
+                    SomeTypeIn (Kinded b) <- parse bT
+                    Refl <- checkStar @DefaultUni b
+                    Just . SomeTypeIn . Kinded $ DefaultUniPair a b
+                _ -> Nothing
+        ]
 
-instance DefaultUni `Contains` Integer       where knownUni = Tag DefaultUniInteger
-instance DefaultUni `Contains` BS.ByteString where knownUni = Tag DefaultUniByteString
-instance DefaultUni `Contains` Char          where knownUni = Tag DefaultUniChar
-instance DefaultUni `Contains` ()            where knownUni = Tag DefaultUniUnit
-instance DefaultUni `Contains` Bool          where knownUni = Tag DefaultUniBool
-instance DefaultUni `Contains` []            where knownUni = Tag DefaultUniProtoList
-instance DefaultUni `Contains` (,)           where knownUni = Tag DefaultUniProtoPair
+instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
+instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
+instance DefaultUni `Contains` Char          where knownUni = DefaultUniChar
+instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
+instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
+instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoList
+instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoPair
 
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
-    knownUni = Tag $ unTag knownUni `DefaultUniApply` unTag knownUni
+    knownUni = knownUni `DefaultUniApply` knownUni
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
@@ -195,43 +192,43 @@ instance Closed DefaultUni where
         )
 
     -- See Note [Stable encoding of tags].
-    encodeUni (Tag DefaultUniInteger)           = [0]
-    encodeUni (Tag DefaultUniByteString)        = [1]
-    encodeUni (Tag DefaultUniChar)              = [2]
-    encodeUni (Tag DefaultUniUnit)              = [3]
-    encodeUni (Tag DefaultUniBool)              = [4]
-    encodeUni (Tag DefaultUniProtoList)         = [5]
-    encodeUni (Tag DefaultUniProtoPair)         = [6]
-    encodeUni (Tag (DefaultUniApply uniF uniA)) = 7 : encodeUni (Tag uniF) ++ encodeUni (Tag uniA)
+    encodeUni DefaultUniInteger           = [0]
+    encodeUni DefaultUniByteString        = [1]
+    encodeUni DefaultUniChar              = [2]
+    encodeUni DefaultUniUnit              = [3]
+    encodeUni DefaultUniBool              = [4]
+    encodeUni DefaultUniProtoList         = [5]
+    encodeUni DefaultUniProtoPair         = [6]
+    encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
 
     -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
     withDecodedUni k = peelUniTag >>= \case
-        0 -> k $ Tag DefaultUniInteger
-        1 -> k $ Tag DefaultUniByteString
-        2 -> k $ Tag DefaultUniChar
-        3 -> k $ Tag DefaultUniUnit
-        4 -> k $ Tag DefaultUniBool
-        5 -> k $ Tag DefaultUniProtoList
-        6 -> k $ Tag DefaultUniProtoPair
-        -- 7 ->
-        --     withDecodedUni @DefaultUni $ \uniF ->
-        --         withDecodedUni @DefaultUni $ \uniA ->
-        --             withApplicable uniF uniA $
-        --                 k $ uniF `DefaultUniApply` uniA
-        -- _ -> empty
+        0 -> k DefaultUniInteger
+        1 -> k DefaultUniByteString
+        2 -> k DefaultUniChar
+        3 -> k DefaultUniUnit
+        4 -> k DefaultUniBool
+        5 -> k DefaultUniProtoList
+        6 -> k DefaultUniProtoPair
+        7 ->
+            withDecodedUni @DefaultUni $ \uniF ->
+                withDecodedUni @DefaultUni $ \uniA ->
+                    withApplicable uniF uniA $
+                        k $ uniF `DefaultUniApply` uniA
+        _ -> empty
 
     bring
         :: forall constr a r proxy. DefaultUni `Everywhere` constr
-        => proxy constr -> Tag DefaultUni a -> (constr a => r) -> r
-    bring _ (Tag DefaultUniInteger)    r = r
-    bring _ (Tag DefaultUniByteString) r = r
-    bring _ (Tag DefaultUniChar)       r = r
-    bring _ (Tag DefaultUniUnit)       r = r
-    bring _ (Tag DefaultUniBool)       r = r
-    bring p (Tag (DefaultUniProtoList `DefaultUniApply` uniA)) r =
-        bring p (Tag uniA) r
-    bring p (Tag (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB)) r =
-        bring p (Tag uniA) $ bring p (Tag uniB) r
-    bring _ (Tag (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _)) _ =
+        => proxy constr -> DefaultUni (T a) -> (constr a => r) -> r
+    bring _ DefaultUniInteger    r = r
+    bring _ DefaultUniByteString r = r
+    bring _ DefaultUniChar       r = r
+    bring _ DefaultUniUnit       r = r
+    bring _ DefaultUniBool       r = r
+    bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
+        bring p uniA r
+    bring p (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) r =
+        bring p uniA $ bring p uniB r
+    bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f

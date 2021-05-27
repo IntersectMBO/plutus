@@ -29,7 +29,6 @@ import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
 import qualified PlutusCore.Name                        as TPLC
-
 import           Universe
 
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except

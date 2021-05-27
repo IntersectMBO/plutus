@@ -115,7 +115,7 @@ instance Closed uni => Flat (SomeTypeIn uni) where
       encodeListWith encodeConstant .
         map (fromIntegral :: Int -> Word8) $ encodeUni uni
 
-    decode = decodeKindedUniFlat <&> \(SomeTypeIn (Tag (Kinded uni))) -> SomeTypeIn uni
+    decode = decodeKindedUniFlat <&> \(SomeTypeIn (Kinded uni)) -> SomeTypeIn uni
 
     -- Encode a view of the universe, not the universe itself.
     size (SomeTypeIn uni) acc =
@@ -128,7 +128,7 @@ instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
     encode (Some (ValueOf uni x)) = encode (SomeTypeIn uni) <> bring (Proxy @Flat) uni (encode x)
 
     decode =
-        decodeKindedUniFlat @uni >>= \(SomeTypeIn (Tag (Kinded uni))) ->
+        decodeKindedUniFlat @uni >>= \(SomeTypeIn (Kinded uni)) ->
             -- See Note [Decoding universes].
             case checkStar uni of
                 Nothing   -> fail "A non-star type can't have a value to decode"

@@ -16,10 +16,11 @@ import           PlutusCore.Name
 import           PlutusCore.Parsable
 
 import           Control.Monad.Except
+import           Universe
+
 import           Data.List             (find)
 import           Data.Proxy
 import qualified Data.Text             as T
-import           Universe
 
 --- The Parse monad ---
 
@@ -51,7 +52,7 @@ mkBuiltinType
     :: Parsable (SomeTypeIn (Kinded uni))
     => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
 mkBuiltinType tyloc typeName =
-    decodeTypeName tyloc typeName <&> \(SomeTypeIn (Tag (Kinded uni))) ->
+    decodeTypeName tyloc typeName <&> \(SomeTypeIn (Kinded uni)) ->
         TyBuiltin tyloc $ SomeTypeIn uni
 
 -- | Produce (the contents of) a constant term from a type name and a literal constant.
@@ -61,7 +62,7 @@ mkBuiltinConstant
     :: forall uni. (Parsable (SomeTypeIn (Kinded uni)), Closed uni, uni `Everywhere` Parsable)
     => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (AlexPosn, Some (ValueOf uni))
 mkBuiltinConstant tyloc typeName litloc lit = do
-    SomeTypeIn (Tag (Kinded uni)) <- decodeTypeName tyloc typeName
+    SomeTypeIn (Kinded uni) <- decodeTypeName tyloc typeName
     -- See Note [Decoding universes].
     case checkStar @uni uni of
         Nothing -> throwError undefined
