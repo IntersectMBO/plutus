@@ -18,6 +18,7 @@
 module Universe.Core
     ( T
     , Some (..)
+    , Tag (..)
     , SomeTypeIn (..)
     , Kinded (..)
     , ValueOf (..)
@@ -47,6 +48,7 @@ import           Control.Applicative
 import           Control.DeepSeq
 import           Control.Monad
 import           Control.Monad.Trans.State.Strict
+import           Data.Coerce
 import           Data.GADT.Compare
 import           Data.GADT.Compare.TH
 import           Data.GADT.Show
@@ -327,16 +329,21 @@ data T a
 type Some :: forall a. (a -> Type) -> Type
 data Some f = forall x. Some !(f x)
 
+type Tag :: forall k. (Type -> Type) -> k -> Type
+newtype Tag uni a = Tag
+    { unTag :: uni (T a)
+    }
+
 -- | A particular type from a universe.
 type SomeTypeIn :: (Type -> Type) -> Type
-data SomeTypeIn uni = forall k (a :: k). SomeTypeIn !(uni (T a))
+data SomeTypeIn uni = forall k (a :: k). SomeTypeIn !(Tag uni a)
 
 data Kinded uni ta where
-    Kinded :: Typeable k => !(uni (T a)) -> Kinded uni (T (a :: k))
+    Kinded :: Typeable k => !(Tag uni a) -> Kinded uni (T (a :: k))
 
 -- | A value of a particular type from a universe.
 type ValueOf :: (Type -> Type) -> Type -> Type
-data ValueOf uni a = ValueOf !(uni (T a)) !a
+data ValueOf uni a = ValueOf !(Tag uni a) !a
 
 {- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
 For example, a particular @ExampleUni@ may have monomorphic types in it:
@@ -378,7 +385,7 @@ per type from the universe and you'll get 'Includes' for free.
 -}
 type Contains :: forall k. (Type -> Type) -> k -> Constraint
 class uni `Contains` a where
-    knownUni :: uni (T a)
+    knownUni :: Tag uni a
 
 {- Note [The definition of Includes]
 We need to be able to partially apply 'Includes' (required in the definition of '<:' for example),
@@ -407,11 +414,11 @@ type Includes :: forall k. (Type -> Type) -> k -> Constraint
 type Includes uni = Permits (Contains uni)
 
 -- | Same as 'knownUni', but receives a @proxy@.
-knownUniOf :: uni `Contains` a => proxy a -> uni (T a)
+knownUniOf :: uni `Contains` a => proxy a -> Tag uni a
 knownUniOf _ = knownUni
 
 -- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
-someValueOf :: forall a uni. uni (T a) -> a -> Some (ValueOf uni)
+someValueOf :: forall a uni. Tag uni a -> a -> Some (ValueOf uni)
 someValueOf uni = Some . ValueOf uni
 
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
@@ -446,20 +453,21 @@ class Closed uni where
 
     -- | Encode a type as a sequence of 'Int' tags.
     -- The opposite of 'decodeUni'.
-    encodeUni :: uni a -> [Int]
+    encodeUni :: Tag uni a -> [Int]
 
     -- | Decode a type and feed it to the continuation.
-    withDecodedUni :: (forall k (a :: k). Typeable k => uni (T a) -> DecodeUniM r) -> DecodeUniM r
+    withDecodedUni :: (forall k (a :: k). Typeable k => Tag uni a -> DecodeUniM r) -> DecodeUniM r
 
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
-    bring :: uni `Everywhere` constr => proxy constr -> uni (T a) -> (constr a => r) -> r
+    bring :: uni `Everywhere` constr => proxy constr -> Tag uni a -> (constr a => r) -> r
 
 -- | Decode a type from a sequence of 'Int' tags.
 -- The opposite of 'encodeUni' (modulo invalid input).
 decodeKindedUni :: Closed uni => [Int] -> Maybe (SomeTypeIn (Kinded uni))
 decodeKindedUni is = do
-    (x, []) <- runDecodeUniM is $ withDecodedUni $ pure . SomeTypeIn . Kinded
+    -- (x, []) <- runDecodeUniM is $ withDecodedUni (\(Tag uni) -> pure $ SomeTypeIn . Tag . Kinded $ Tag uni)
+    (x, []) <- runDecodeUniM is $ withDecodedUni (pure . SomeTypeIn . Tag . Kinded)
     pure x
 
 -- >>> runDecodeUniM [1,2,3] peelUniTag
@@ -551,9 +559,9 @@ class HasUniApply (uni :: Type -> Type) where
     -- | Deconstruct a type application into the function and the argument and feed them to the
     -- continuation. If the type is not an application, then return the default value.
     matchUniApply
-        :: uni tb  -- ^ The type.
+        :: Tag uni (tb :: l)  -- ^ The type.
         -> r       -- ^ What to return if the type is not an application.
-        -> (forall k l (f :: k -> l) a. tb ~ T (f a) => uni (T f) -> uni (T a) -> r)
+        -> (forall k (f :: k -> l) a. tb ~ f a => Tag uni f -> Tag uni a -> r)
                    -- ^ The continuation taking a function and an argument.
         -> r
 
@@ -561,7 +569,7 @@ class HasUniApply (uni :: Type -> Type) where
 -- You might think @uni@ is inferrable from the explicitly given argument. Nope, in most cases it's
 -- not. It seems, kind equalities mess up inference.
 -- | Check if the kind of the given type from the universe is 'Type'.
-checkStar :: forall uni a (x :: a). Typeable a => uni (T x) -> Maybe (a :~: Type)
+checkStar :: forall uni a (x :: a). Typeable a => Tag uni x -> Maybe (a :~: Type)
 checkStar _ = typeRep @a `testEquality` typeRep @Type
 
 fromJustM :: MonadPlus f => Maybe a -> f a
@@ -573,8 +581,8 @@ fromJustM = maybe mzero pure
 -- Fail with 'mzero' otherwise.
 withApplicable
     :: forall (a :: Type) (ab :: Type) f x uni m r. (Typeable ab, Typeable a, MonadPlus m)
-    => uni (T (f :: ab))
-    -> uni (T (x :: a))
+    => Tag uni (f :: ab)
+    -> Tag uni (x :: a)
     -> (forall (b :: Type). (Typeable b, ab ~ (a -> b)) => m r)
     -> m r
 withApplicable _ _ k =
@@ -701,6 +709,34 @@ $(return [])  -- Stage restriction, see https://gitlab.haskell.org/ghc/ghc/issue
 
 -------------------- 'Show' / 'GShow'
 
+-- >>> :i GShow
+-- type GShow :: forall k. (k -> *) -> Constraint
+-- class GShow t where
+--   gshowsPrec :: forall (a :: k). Int -> t a -> ShowS
+--   {-# MINIMAL gshowsPrec #-}
+--   	-- Defined in ‘Data.GADT.Show’
+-- instance (GShow uni, Closed uni, Everywhere uni Show) =>
+--          GShow (ValueOf uni)
+--   -- Defined at /tmp/dante15308OTe.hs:737:10
+-- instance GShow uni => GShow (Kinded uni)
+--   -- Defined at /tmp/dante15308OTe.hs:735:10
+-- instance GShow uni => GShow (Tag uni)
+--   -- Defined at /tmp/dante15308OTe.hs:713:10
+-- instance [safe] GShow TypeRep -- Defined in ‘Data.GADT.Show’
+-- instance [safe] forall k (a :: k). GShow ((:~:) a)
+--   -- Defined in ‘Data.GADT.Show’
+-- instance [safe] forall k (a :: k). GShow (GOrdering a)
+--   -- Defined in ‘Data.GADT.Compare’
+
+instance GShow uni => GShow (Tag uni) where
+    gshowsPrec p = gshowsPrec p . unTag
+
+instance Show (uni (T a)) => Show (Tag uni a) where
+    show = show . unTag
+
+tagAG :: Tag uni a -> Tag (AG uni) a
+tagAG = coerce
+
 instance GShow f => Show (AG f a) where
     showsPrec pr (AG a) = gshowsPrec pr a
 
@@ -708,10 +744,11 @@ instance GShow f => Show (Some f) where
     showsPrec pr (Some a) = ($(makeShowsPrec ''Some)) pr (Some (AG a))
 
 instance GShow uni => Show (SomeTypeIn uni) where
-    showsPrec pr (SomeTypeIn uni) = ($(makeShowsPrec ''SomeTypeIn)) pr (SomeTypeIn (AG uni))
+    showsPrec pr (SomeTypeIn uni) =
+        ($(makeShowsPrec ''SomeTypeIn)) pr (SomeTypeIn $ tagAG uni)
 
 instance GShow uni => Show (Kinded uni ta) where
-    showsPrec pr (Kinded uni) = ($(makeShowsPrec ''Kinded)) pr (Kinded (AG uni))
+    showsPrec pr (Kinded uni) = ($(makeShowsPrec ''Kinded)) pr (Kinded (tagAG uni))
 
 instance GShow uni => GShow (Kinded uni) where gshowsPrec = showsPrec
 
@@ -719,9 +756,14 @@ instance (GShow uni, Closed uni, uni `Everywhere` Show) => GShow (ValueOf uni) w
     gshowsPrec = showsPrec
 instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) where
     showsPrec pr (ValueOf uni x) =
-        bring (Proxy @Show) uni $ ($(makeShowsPrec ''ValueOf)) pr (ValueOf (AG uni) x)
+        bring (Proxy @Show) uni $ ($(makeShowsPrec ''ValueOf)) pr (ValueOf (tagAG uni) x)
 
 -------------------- 'Eq' / 'GEq'
+
+instance GEq uni => GEq (Tag uni) where
+    -- Expected type: Maybe (a :~: b)
+    -- Actual type: Maybe (T a :~: T b)
+    Tag uni1 `geq` Tag uni2 = undefined -- uni1 `geq` uni2
 
 instance GEq f => Eq (Some f) where
     Some a1 == Some a2 = a1 `defaultEq` a2
@@ -733,7 +775,10 @@ instance (GEq uni, Closed uni, uni `Everywhere` Eq) => GEq (ValueOf uni) where
         Just Refl
 
 instance GEq uni => Eq (SomeTypeIn uni) where
-    SomeTypeIn a1 == SomeTypeIn a2 = a1 `defaultEq` a2
+    SomeTypeIn (Tag uni1) == SomeTypeIn (Tag uni2) = uni1 `defaultEq` uni2
+    --   Expected type: Tag uni b0
+    --     Actual type: Tag uni a1
+    -- SomeTypeIn uni1 == SomeTypeIn uni2 = uni1 `defaultEq` auni2
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
     (==) = defaultEq
