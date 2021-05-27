@@ -400,13 +400,6 @@ instance termHasContractData :: HasContractData a => HasContractData (Term a) wh
   gatherContractData (Term a _) s = gatherContractData a s
   gatherContractData _ s = s
 
--- NOTE: Maybe we can implement getTerm as (FromTerm (Term a) a) without the constraint
---       of having a (FromTerm a b) like below
-getTerm :: forall a. Term a -> Maybe a
-getTerm (Term t _) = Just t
-
-getTerm _ = Nothing
-
 instance termFromTerm :: FromTerm a b => FromTerm (Term a) b where
   fromTerm (Term a _) = fromTerm a
   fromTerm _ = Nothing
@@ -1068,7 +1061,7 @@ applyCases env state input cases = case input, cases of
   _, Nil -> Nothing
 
 applyInput :: S.Environment -> S.State -> S.Input -> Term Contract -> Maybe (Term Contract)
-applyInput env state input (Term (When cases _ _) _) = applyCases env state input (List.mapMaybe getTerm $ fromFoldable cases)
+applyInput env state input (Term (When cases _ _) _) = applyCases env state input (List.mapMaybe termToValue $ fromFoldable cases)
 
 applyInput _ _ _ _ = Nothing
 
@@ -1087,6 +1080,8 @@ reduceContractUntilQuiescent env startState term@(Term startContract _) = do
     termsStep = reduceContractStep env startState startContract
   case semanticStep /\ termsStep of
     (S.Reduced _ _ newState _ /\ Reduced newContract) -> reduceContractUntilQuiescent env newState newContract
+    -- FIXME: add comment about close
+    (S.Reduced _ _ _ _ /\ NotReduced) -> Just (startState /\ term)
     (S.NotReduced /\ NotReduced) -> Just (startState /\ term)
     _ -> Nothing
 
