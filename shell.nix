@@ -115,13 +115,5 @@ haskell.project.shellFor {
   # affinity APIs!
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
-  ''
-  # It's handy to have an environment variable for the project root (assuming people
-  # normally start the shell from there.
-  # We also use it in a deployment hack.
-  # We have a local passwords store that we use for deployments etc.
-  + ''
-    #export PLUTUS_ROOT=$(pwd)
-    #export PASSWORD_STORE_DIR="$(pwd)/secrets"
   '';
 }
