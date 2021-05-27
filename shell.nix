@@ -57,19 +57,15 @@ let
 
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
-    # pkgs.sqlite-analyzer -- Broken on 20.03, needs a backport
-    awscli
     cacert
     ghcid
     morph
     niv
     nixpkgs-fmt
     nodejs
-    pass
     shellcheck
     sqlite-interactive
     stack
-    terraform
     z3
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
