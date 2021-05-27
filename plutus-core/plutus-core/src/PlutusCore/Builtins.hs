@@ -269,11 +269,11 @@ instance Serialise DefaultFun where
               IfThenElse           -> 21
               CharToString         -> 22
               Append               -> 23
+              EqualsString         -> 28
               Trace                -> 24
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
-              EqualsString         -> 28
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -300,11 +300,11 @@ instance Serialise DefaultFun where
               go 21 = pure IfThenElse
               go 22 = pure CharToString
               go 23 = pure Append
+              go 28 = pure EqualsString
               go 24 = pure Trace
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
-              go 28 = pure EqualsString
               go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
@@ -347,11 +347,11 @@ instance Flat DefaultFun where
               IfThenElse           -> 21
               CharToString         -> 22
               Append               -> 23
+              EqualsString         -> 28
               Trace                -> 24
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
-              EqualsString         -> 28
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -378,11 +378,11 @@ instance Flat DefaultFun where
               go 21 = pure IfThenElse
               go 22 = pure CharToString
               go 23 = pure Append
+              go 28 = pure EqualsString
               go 24 = pure Trace
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
-              go 28 = pure EqualsString
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth
