@@ -52,6 +52,15 @@ extEC (VM ·r E)  F       = VM ·r extEC E F
 extEC (E ·⋆ A)   F       = extEC E F ·⋆ A
 extEC (wrap E)   F       = wrap (extEC E F)
 extEC (unwrap E) F       = unwrap (extEC E F)
+
+compEC' : ∀{A B C} → EC A B → EC B C → EC A C
+compEC' E []          = E
+compEC' E (E' l· M')  = compEC' (extEC E (-· M')) E'
+compEC' E (VM ·r E')  = compEC' (extEC E (VM ·-)) E'
+compEC' E (E' ·⋆ A)   = compEC' (extEC E (-·⋆ A)) E'
+compEC' E (wrap E')   = compEC' (extEC E wrap-) E'
+compEC' E (unwrap E') = compEC' (extEC E unwrap-) E'
+
 ```
 
 # the machine
@@ -110,3 +119,61 @@ stepT (E ◅ V)          = stepV V (dissect E)
 stepT (□ V)            = □ V
 stepT (◆ A)            = ◆ A
 ```
+
+```
+data _-→s_ {A : ∅ ⊢Nf⋆ *} : State A → State A → Set where
+  base  : {s : State A} → s -→s s
+  step* : {s s' s'' : State A}
+        → stepT s ≡ s'
+        → s' -→s s''
+        → s -→s s''
+
+step** : ∀{A}{s : State A}{s' : State A}{s'' : State A}
+        → s -→s s'
+        → s' -→s s''
+        → s -→s s''
+step** base q = q
+step** (step* x p) q = step* x (step** p q)
+
+dissect-lemma : ∀{A B C}(E : EC A B)(F : Frame B C)
+  → dissect (extEC E F) ≡ inj₂ (_ ,, E ,, F)
+dissect-lemma []         (-· M') = refl
+dissect-lemma []         (VM ·-) = refl
+dissect-lemma []         (-·⋆ A) = refl
+dissect-lemma []         wrap-   = refl
+dissect-lemma []         unwrap- = refl
+dissect-lemma (E l· M')  F
+  rewrite dissect-lemma E F = refl
+dissect-lemma (VM ·r E)  F
+  rewrite dissect-lemma E F = refl
+dissect-lemma (E ·⋆ A)   F
+  rewrite dissect-lemma E F = refl
+dissect-lemma (wrap E)   F
+  rewrite dissect-lemma E F = refl
+dissect-lemma (unwrap E) F
+  rewrite dissect-lemma E F = refl
+
+lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) -→s (E ◅ V)
+lemV .(ƛ M)        (V-ƛ M)      E = step* refl base
+lemV .(Λ M)        (V-Λ M)      E = step* refl base
+lemV .(wrap _ _ _) (V-wrap V)   E = step*
+  refl
+  (step**
+    (lemV _ V (extEC E wrap-))
+    (step* (cong (stepV V) (dissect-lemma E wrap-))
+           base))
+lemV .(con cn)     (V-con cn)   E = step* refl base
+lemV M (V-I⇒ b p q) E = {!!}
+lemV M (V-IΠ b p x) E = {!!}
+
+lem62 : ∀{A B C}(L : ∅ ⊢ C)(E : EC A B)(E' : EC B C)
+      → (E ▻ (E' [ L ]ᴱ)) -→s (compEC' E E' ▻ L)
+lem62 L E []          = base
+lem62 L E (E' l· M')  = step* refl (lem62 L (extEC E (-· M')) E')
+lem62 L E (VM ·r E')  = step* refl (step**
+  (lemV _ VM (extEC E (-· (E' [ L ]ᴱ))))
+  (step* (cong (stepV VM) (dissect-lemma E (-· (E' [ L ]ᴱ))))
+         (lem62 L (extEC E (VM ·-)) E')))
+lem62 L E (E' ·⋆ A)   = step* refl (lem62 L (extEC E (-·⋆ A)) E')
+lem62 L E (wrap E')   = step* refl (lem62 L (extEC E wrap-) E')
+lem62 L E (unwrap E') = step* refl (lem62 L (extEC E unwrap-) E')
