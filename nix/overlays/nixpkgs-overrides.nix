@@ -1,6 +1,4 @@
 self: super: {
-  z3 = super.callPackage ../pkgs/z3 { };
-
   morph = super.morph.overrideAttrs (old: {
     # See https://github.com/DBCDK/morph/pull/141
     # Note that this patch does refelct the original content
