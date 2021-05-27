@@ -245,7 +245,7 @@
             ];
           buildable = true;
           modules = [ "Uniswap" ];
-          hsSourceDirs = [ "uniswap" ];
+          hsSourceDirs = [ "examples/uniswap" ];
           mainPath = [ "Main.hs" ];
           };
         "plutus-game" = {
@@ -256,7 +256,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          hsSourceDirs = [ "game-contract" ];
+          hsSourceDirs = [ "examples/game-contract" ];
           mainPath = [ "Main.hs" ];
           };
         "plutus-currency" = {
@@ -267,7 +267,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          hsSourceDirs = [ "currency-contract" ];
+          hsSourceDirs = [ "examples/currency-contract" ];
           mainPath = [ "Main.hs" ];
           };
         "plutus-atomic-swap" = {
@@ -285,7 +285,7 @@
             ];
           buildable = true;
           modules = [ "AtomicSwap" ];
-          hsSourceDirs = [ "atomic-swap-contract" ];
+          hsSourceDirs = [ "examples/atomic-swap-contract" ];
           mainPath = [ "Main.hs" ];
           };
         "plutus-pay-to-wallet" = {
@@ -301,7 +301,7 @@
             ];
           buildable = true;
           modules = [ "PayToWallet" ];
-          hsSourceDirs = [ "pay-to-wallet-contract" ];
+          hsSourceDirs = [ "examples/pay-to-wallet-contract" ];
           mainPath = [ "Main.hs" ];
           };
         "prism-credential-manager" = {
@@ -312,7 +312,7 @@
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             ];
           buildable = true;
-          hsSourceDirs = [ "prism/credential-manager" ];
+          hsSourceDirs = [ "examples/prism/credential-manager" ];
           mainPath = [
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
@@ -325,7 +325,7 @@
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             ];
           buildable = true;
-          hsSourceDirs = [ "prism/mirror" ];
+          hsSourceDirs = [ "examples/prism/mirror" ];
           mainPath = [
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
@@ -338,7 +338,7 @@
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             ];
           buildable = true;
-          hsSourceDirs = [ "prism/unlock-sto" ];
+          hsSourceDirs = [ "examples/prism/unlock-sto" ];
           mainPath = [
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
@@ -351,7 +351,7 @@
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             ];
           buildable = true;
-          hsSourceDirs = [ "prism/unlock-exchange" ];
+          hsSourceDirs = [ "examples/prism/unlock-exchange" ];
           mainPath = [
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
@@ -438,8 +438,8 @@
             ];
           hsSourceDirs = [
             "test"
-            "pay-to-wallet-contract"
-            "atomic-swap-contract"
+            "examples/pay-to-wallet-contract"
+            "examples/atomic-swap-contract"
             ];
           mainPath = [ "Spec.hs" ];
           };
