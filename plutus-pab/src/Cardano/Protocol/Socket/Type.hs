@@ -23,6 +23,7 @@ import           Data.Time.Clock                                    (UTCTime (..
                                                                      nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import           Data.Time.Units                                    (Second)
 import           Data.Time.Units.Extra                              ()
+import           Data.Word                                          (Word16)
 
 import           GHC.Generics
 import           NoThunks.Class                                     (NoThunks)
@@ -82,41 +83,24 @@ maximumMiniProtocolLimits =
         maximumIngressQueue = maxBound
     }
 
--- | Packs up an application from the mini protocols we use.
--- This is used to build both a client and server application,
--- depending on the mini protocols passed as arguments.
-clientApplication
-  :: RunMiniProtocol appType bytes m a b
+-- | Build an application from a set of protocol numbers and protocols.
+mkApplication
+  :: [ (Word16, RunMiniProtocol appType bytes m a b) ]
   -> OuroborosApplication appType addr bytes m a b
-clientApplication protocol =
-    OuroborosApplication $ \_connectionId _shouldStopSTM -> [
-      MiniProtocol {
-        miniProtocolNum = MiniProtocolNum 2,
-        miniProtocolLimits = maximumMiniProtocolLimits,
-        miniProtocolRun = protocol
-      }
-    ]
+mkApplication protocols =
+  OuroborosApplication $ \_connectionId _shoudStomSTM ->
+    map (\(ix, protocol) -> MiniProtocol {
+                             miniProtocolNum = MiniProtocolNum ix,
+                             miniProtocolLimits = maximumMiniProtocolLimits,
+                             miniProtocolRun = protocol
+                            })
+    protocols
 
--- | Packs up an application from the mini protocols we use.
--- This is used to build both a client and server application,
--- depending on the mini protocols passed as arguments.
-serverApplication
-  :: RunMiniProtocol appType bytes m a b
-  -> RunMiniProtocol appType bytes m a b
-  -> OuroborosApplication appType addr bytes m a b
-serverApplication chainSync txSubmission =
-    OuroborosApplication $ \_connectionId _shouldStopSTM -> [
-      MiniProtocol {
-        miniProtocolNum = MiniProtocolNum 2,
-        miniProtocolLimits = maximumMiniProtocolLimits,
-        miniProtocolRun = chainSync
-      },
-      MiniProtocol {
-        miniProtocolNum = MiniProtocolNum 3,
-        miniProtocolLimits = maximumMiniProtocolLimits,
-        miniProtocolRun = txSubmission
-      }
-    ]
+chainSyncMiniProtocolNum :: Word16
+chainSyncMiniProtocolNum = 5
+
+txSubmissionMiniProtocolNum :: Word16
+txSubmissionMiniProtocolNum = 2
 
 type Offset = Integer
 

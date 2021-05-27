@@ -23,7 +23,8 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmis
 
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux
-import           Ouroboros.Network.NodeToNode
+import           Ouroboros.Network.NodeToNode                        hiding (chainSyncMiniProtocolNum,
+                                                                      txSubmissionMiniProtocolNum)
 import           Ouroboros.Network.Protocol.Handshake.Codec
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Protocol.Handshake.Version
@@ -95,7 +96,7 @@ runChainSync socketPath slotConfig onNewBlock = do
           -> OuroborosApplication 'InitiatorMode addr
                                   LBS.ByteString IO () Void
       app onNewBlock' =
-        clientApplication (chainSync onNewBlock')
+        mkApplication [(chainSyncMiniProtocolNum, chainSync onNewBlock')]
 
       chainSync :: (Block -> Slot -> IO ())
                 -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
@@ -165,14 +166,15 @@ runTxSender socketPath = do
           -> OuroborosApplication 'InitiatorMode addr
                                   LBS.ByteString IO () Void
       app inputQueue =
-        clientApplication (txSubmission inputQueue)
+        mkApplication [(txSubmissionMiniProtocolNum, txSubmission inputQueue)]
+
 
       txSubmission :: TQueue Tx
                    -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
       txSubmission inputQueue =
           InitiatorProtocolOnly $
           MuxPeer
-            nullTracer
+            (showTracing stdoutTracer)
             codecTxSubmission
             (TxSubmission.localTxSubmissionClientPeer
                (txSubmissionClient inputQueue))
