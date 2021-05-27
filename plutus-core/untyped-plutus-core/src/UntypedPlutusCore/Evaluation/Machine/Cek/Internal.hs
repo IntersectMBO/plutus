@@ -52,7 +52,7 @@ import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
+
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 
 import           Control.Lens.Review
@@ -68,6 +68,7 @@ import qualified Data.Kind                                                as GHC
 import           Data.Proxy
 import           Data.STRef
 import           Data.Text.Prettyprint.Doc
+import           Universe
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

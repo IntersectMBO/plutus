@@ -20,7 +20,8 @@ import           PlutusCore.Core.Type
 import           PlutusCore.Eq
 import           PlutusCore.Name
 import           PlutusCore.Rename.Monad
-import           PlutusCore.Universe
+
+import           Universe
 
 -- See Note [Annotations and equality].
 

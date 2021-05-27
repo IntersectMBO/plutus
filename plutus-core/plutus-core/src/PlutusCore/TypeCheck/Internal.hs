@@ -22,7 +22,6 @@ import           PlutusCore.Name
 import qualified PlutusCore.Normalize.Internal as Norm
 import           PlutusCore.Quote
 import           PlutusCore.Rename
-import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Lens
@@ -30,6 +29,7 @@ import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Array
+import           Universe
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition

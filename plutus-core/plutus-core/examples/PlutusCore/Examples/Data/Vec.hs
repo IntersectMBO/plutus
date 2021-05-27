@@ -15,10 +15,11 @@ import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Integer
 import           PlutusCore.StdLib.Data.Unit
+
+import           Universe
 
 -- |
 --

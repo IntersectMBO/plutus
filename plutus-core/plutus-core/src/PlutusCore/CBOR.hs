@@ -28,7 +28,6 @@ import           PlutusCore.DeBruijn
 import           PlutusCore.Lexer.Type
 import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
@@ -36,6 +35,7 @@ import           Codec.Serialise
 import qualified Data.ByteString.Lazy  as BSL
 import           Data.Functor
 import           Data.Proxy
+import           Universe
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

@@ -26,7 +26,6 @@ import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import           Control.Lens                            (ix, (^?))
 import           Control.Lens.TH
@@ -35,6 +34,7 @@ import           Data.Array
 import           Data.Bifunctor
 import           Data.Proxy
 import           Data.Typeable
+import           Universe
 
 -- | A higher-order version of 'Term'.
 -- We parameterize it by a monad, because there's no way we could generally convert a first-order

@@ -20,7 +20,6 @@ import           PlutusCore.Constant
 import           PlutusCore.Quote
 import           PlutusCore.Rename
 import qualified PlutusCore.TypeCheck        as PLC
-import           PlutusCore.Universe
 import           PlutusIR
 import           PlutusIR.Error
 import           PlutusIR.Transform.Rename   ()
@@ -28,6 +27,7 @@ import           PlutusIR.TypeCheck.Internal
 
 import           Control.Monad.Except
 import           Data.Ix
+import           Universe
 
 {- Note [Goal of PIR typechecker]
 

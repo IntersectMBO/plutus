@@ -20,7 +20,6 @@ import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding

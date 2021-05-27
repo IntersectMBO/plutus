@@ -33,7 +33,6 @@ import           PlutusCore.DeBruijn.Internal
 import           PlutusCore.Lexer.Type
 import           PlutusCore.Name
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import           Control.Lens                       hiding (use)
 import           Control.Monad.Error.Lens
@@ -42,6 +41,7 @@ import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           ErrorCode
+import           Universe
 
 {- Note [Annotations and equality]
 Equality of two errors DOES DEPEND on their annotations.

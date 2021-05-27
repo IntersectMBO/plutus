@@ -16,9 +16,10 @@ import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Normalize
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Type
+
+import           Universe
 
 {- Note [Tree]
 Here we encode the following:

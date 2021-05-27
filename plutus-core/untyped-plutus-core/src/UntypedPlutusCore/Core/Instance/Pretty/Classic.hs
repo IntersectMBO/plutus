@@ -17,10 +17,10 @@ import           UntypedPlutusCore.Core.Type
 import           PlutusCore.Core.Instance.Pretty.Common ()
 import           PlutusCore.Pretty.Classic
 import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Universe
 
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Custom
+import           Universe
 
 instance
         ( PrettyClassicBy configName name

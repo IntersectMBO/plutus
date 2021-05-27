@@ -21,18 +21,19 @@
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
-    , pattern DefaultUniTuple
+    , pattern DefaultUniPair
     , pattern DefaultUniString
+    , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
 import           PlutusCore.Core
 import           PlutusCore.Parsable
-import           PlutusCore.Universe
 
 import           Control.Applicative
 import qualified Data.ByteString     as BS
 import           Data.Foldable
 import qualified Data.Text           as Text
+import           Universe            as Export
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -77,15 +78,15 @@ data DefaultUni a where
     DefaultUniUnit       :: DefaultUni (T ())
     DefaultUniBool       :: DefaultUni (T Bool)
     DefaultUniProtoList  :: DefaultUni (T [])
-    DefaultUniProtoTuple :: DefaultUni (T (,))
+    DefaultUniProtoPair  :: DefaultUni (T (,))
     DefaultUniApply      :: !(DefaultUni (T f)) -> !(DefaultUni (T a)) -> DefaultUni (T (f a))
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
 pattern DefaultUniList uniA =
     DefaultUniProtoList `DefaultUniApply` uniA
-pattern DefaultUniTuple uniA uniB =
-    DefaultUniProtoTuple `DefaultUniApply` uniA `DefaultUniApply` uniB
+pattern DefaultUniPair uniA uniB =
+    DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 -- Just for backwards compatibility, probably should be removed at some point.
 pattern DefaultUniString = DefaultUniList DefaultUniChar
 
@@ -102,7 +103,7 @@ instance ToKind DefaultUni where
     toKind DefaultUniUnit           = kindOf DefaultUniUnit
     toKind DefaultUniBool           = kindOf DefaultUniBool
     toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
-    toKind DefaultUniProtoTuple     = kindOf DefaultUniProtoTuple
+    toKind DefaultUniProtoPair      = kindOf DefaultUniProtoPair
     toKind (DefaultUniApply uniF _) = case toKind uniF of
         -- We can using @error@ here by having more type astronautics with 'Typeable',
         -- but having @error@ should be fine.
@@ -120,14 +121,14 @@ instance Show (DefaultUni a) where
     show DefaultUniChar                = "char"
     show DefaultUniUnit                = "unit"
     show DefaultUniBool                = "bool"
-    show DefaultUniProtoList           = "[]"
-    show DefaultUniProtoTuple          = "(,)"
+    show DefaultUniProtoList           = "list"
+    show DefaultUniProtoPair           = "pair"
     show (uniF `DefaultUniApply` uniB) = case uniF of
         DefaultUniProtoList -> case uniB of
             DefaultUniChar -> "string"
-            _              -> "[" ++ show uniB ++ "]"
-        DefaultUniProtoTuple -> concat ["(", show uniB, ",)"]
-        DefaultUniProtoTuple `DefaultUniApply` uniA -> concat ["(", show uniA, ",", show uniB, ")"]
+            _              -> concat ["list (", show uniB, ")"]
+        DefaultUniProtoPair -> concat ["pair (", show uniB, ")"]
+        DefaultUniProtoPair `DefaultUniApply` uniA -> concat ["pair (", show uniA, ") (", show uniB, ")"]
         uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
 
 -- See Note [Parsing horribly broken].
@@ -156,7 +157,7 @@ instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
                     Refl <- checkStar @DefaultUni a
                     SomeTypeIn (Kinded b) <- parse bT
                     Refl <- checkStar @DefaultUni b
-                    Just . SomeTypeIn . Kinded $ DefaultUniTuple a b
+                    Just . SomeTypeIn . Kinded $ DefaultUniPair a b
                 _ -> Nothing
         ]
 
@@ -166,7 +167,7 @@ instance DefaultUni `Contains` Char          where knownUni = DefaultUniChar
 instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
 instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoList
-instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoTuple
+instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoPair
 
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
     knownUni = knownUni `DefaultUniApply` knownUni
@@ -197,7 +198,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniUnit              = [3]
     encodeUni DefaultUniBool              = [4]
     encodeUni DefaultUniProtoList         = [5]
-    encodeUni DefaultUniProtoTuple        = [6]
+    encodeUni DefaultUniProtoPair         = [6]
     encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
 
     -- See Note [Decoding universes].
@@ -209,7 +210,7 @@ instance Closed DefaultUni where
         3 -> k DefaultUniUnit
         4 -> k DefaultUniBool
         5 -> k DefaultUniProtoList
-        6 -> k DefaultUniProtoTuple
+        6 -> k DefaultUniProtoPair
         7 ->
             withDecodedUni @DefaultUni $ \uniF ->
                 withDecodedUni @DefaultUni $ \uniA ->
@@ -227,7 +228,7 @@ instance Closed DefaultUni where
     bring _ DefaultUniBool       r = r
     bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
         bring p uniA r
-    bring p (DefaultUniProtoTuple `DefaultUniApply` uniA `DefaultUniApply` uniB) r =
+    bring p (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) r =
         bring p uniA $ bring p uniB r
     bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f

@@ -31,10 +31,10 @@ import           PlutusCore.Normalize
 import           PlutusCore.Quote
 import           PlutusCore.Rename
 import           PlutusCore.TypeCheck.Internal
-import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Data.Array
+import           Universe
 
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding 'Type' for each built-in function.

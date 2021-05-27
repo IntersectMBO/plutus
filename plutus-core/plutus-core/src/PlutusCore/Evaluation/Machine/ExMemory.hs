@@ -18,9 +18,7 @@ module PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Core
 import           PlutusCore.Name
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 import           PlutusPrelude
-
 
 import           Control.Monad.RWS.Strict
 import           Data.Aeson
@@ -33,6 +31,7 @@ import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
 import           Language.Haskell.TH.Syntax (Lift)
+import           Universe
 
 #include "MachDeps.h"
 

@@ -23,7 +23,6 @@ import           PlutusCore.DeBruijn
 import           PlutusCore.Lexer.Type
 import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           Data.Functor
 import           Data.Proxy
@@ -31,6 +30,7 @@ import           Data.Word             (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder
+import           Universe
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE

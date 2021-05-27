@@ -35,7 +35,7 @@ module PlutusCore
     , type (<:)
     , DefaultUni (..)
     , pattern DefaultUniList
-    , pattern DefaultUniTuple
+    , pattern DefaultUniPair
     , pattern DefaultUniString
     , DefaultFun (..)
     -- * AST
@@ -154,7 +154,7 @@ import           PlutusCore.Quote
 import           PlutusCore.Rename
 import           PlutusCore.Size
 import           PlutusCore.TypeCheck                                     as TypeCheck
-import           PlutusCore.Universe
+
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import           Control.Monad.Except

@@ -13,8 +13,6 @@
 
 module PlutusCore.Pretty.PrettyConst where
 
-import           PlutusCore.Universe
-
 import qualified Data.ByteString                    as BS
 import           Data.Coerce
 import           Data.Foldable                      (fold)
@@ -26,6 +24,7 @@ import           Data.Word                          (Word8)
 import           Numeric                            (showHex)
 import           Text.PrettyBy
 import           Text.PrettyBy.Internal             (DefaultPrettyBy (..))
+import           Universe
 
 {- Note [Prettyprinting built-in constants]
 When we're printing PLC

@@ -35,7 +35,6 @@ import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
 import           PlutusCore.Pretty                       (PrettyConfigPlc, PrettyConst)
-import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Control.Monad.Morph
@@ -45,6 +44,7 @@ import           Data.Array
 import           Data.DList                              (DList)
 import qualified Data.DList                              as DList
 import           Data.STRef
+import           Universe
 
 infix 4 |>, <|
 

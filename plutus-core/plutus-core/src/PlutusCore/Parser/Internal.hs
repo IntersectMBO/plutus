@@ -14,9 +14,9 @@ import           PlutusCore.Lexer
 import           PlutusCore.Lexer.Type
 import           PlutusCore.Name
 import           PlutusCore.Parsable
-import           PlutusCore.Universe
 
 import           Control.Monad.Except
+import           Universe
 
 import           Data.List             (find)
 import           Data.Proxy

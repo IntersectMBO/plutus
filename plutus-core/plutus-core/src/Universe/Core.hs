@@ -57,7 +57,6 @@ import           Data.Type.Equality
 import           Text.Show.Deriving
 import           Type.Reflection
 
-
 {- Note [Universes]
 A universe is a collection of tags for types. It can be finite like
 
@@ -320,6 +319,7 @@ even though that required reworking all the infrastructure in a backwards-incomp
 -}
 
 -- See Note [Representing polymorphism].
+-- | To wrap a type of an arbitrary kind to get a 'Type'.
 type T :: forall k. k -> Type
 data T a
 
@@ -338,43 +338,44 @@ data Kinded uni ta where
 type ValueOf :: (Type -> Type) -> Type -> Type
 data ValueOf uni a = ValueOf !(uni (T a)) !a
 
--- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
--- For example, a particular @ExampleUni@ may have monomorphic types in it:
---
---     instance ExampleUni `Contains` Integer where <...>
---     instance ExampleUni `Contains` Bool    where <...>
---
--- as well as polymorphic ones:
---
---     instance ExampleUni `Contains` [] where <...>
---     instance ExampleUni `Contains` (,) where <...>
---
--- as well as their instantiations:
---
---     instance ExampleUni `Contains` a => ExampleUni `Contains` [a] where <...>
---     instance (ExampleUni `Contains` a, ExampleUni `Contains` b) => ExampleUni `Contains` (a, b) where <...>
---
--- (a universe can have any subset of the mentioned sorts of types, for example it's fine to have
--- instantiated polymorphic types and not have uninstantiated ones and vice versa)
---
--- Note that when used as a constraint of a function 'Contains' does not allow you to directly
--- express things like \"@uni@ has the @Integer@, @Bool@ and @[]@ types and type formers\",
--- because @[]@ is not fully instantiated. So you can only say \"@uni@ has @Integer@, @Bool@,
--- @[Integer]@, @[Bool]@, @[[Integer]]@, @[[Bool]]@ etc\" and such manual enumeration is annoying,
--- so we'd really like to be able to say that @uni@ has lists of arbitrary built-in types
--- (including lists of lists etc). 'Contains' does not allow that, but 'Includes' does.
--- For example, in the body of the following definition:
---
---     foo :: (uni `Includes` Integer, uni `Includes` Bool, uni `Includes` []) => <...>
---     foo = <...>
---
--- you can make use of the fact that @uni@ has lists of arbitrary included types (integers,
--- booleans and lists).
---
--- Hence most of the time opt for using the more flexible 'Includes'.
---
--- 'Includes' is defined in terms of 'Contains', so you only need to provide a 'Contains' instance
--- per type from the universe and you'll get 'Includes' for free.
+{- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
+For example, a particular @ExampleUni@ may have monomorphic types in it:
+
+    instance ExampleUni `Contains` Integer where <...>
+    instance ExampleUni `Contains` Bool    where <...>
+
+as well as polymorphic ones:
+
+    instance ExampleUni `Contains` [] where <...>
+    instance ExampleUni `Contains` (,) where <...>
+
+as well as their instantiations:
+
+    instance ExampleUni `Contains` a => ExampleUni `Contains` [a] where <...>
+    instance (ExampleUni `Contains` a, ExampleUni `Contains` b) => ExampleUni `Contains` (a, b) where <...>
+
+(a universe can have any subset of the mentioned sorts of types, for example it's fine to have
+instantiated polymorphic types and not have uninstantiated ones and vice versa)
+
+Note that when used as a constraint of a function 'Contains' does not allow you to directly
+express things like \"@uni@ has the @Integer@, @Bool@ and @[]@ types and type formers\",
+because @[]@ is not fully instantiated. So you can only say \"@uni@ has @Integer@, @Bool@,
+@[Integer]@, @[Bool]@, @[[Integer]]@, @[[Bool]]@ etc\" and such manual enumeration is annoying,
+so we'd really like to be able to say that @uni@ has lists of arbitrary built-in types
+(including lists of lists etc). 'Contains' does not allow that, but 'Includes' does.
+For example, in the body of the following definition:
+
+    foo :: (uni `Includes` Integer, uni `Includes` Bool, uni `Includes` []) => <...>
+    foo = <...>
+
+you can make use of the fact that @uni@ has lists of arbitrary included types (integers,
+booleans and lists).
+
+Hence most of the time opt for using the more flexible 'Includes'.
+
+'Includes' is defined in terms of 'Contains', so you only need to provide a 'Contains' instance
+per type from the universe and you'll get 'Includes' for free.
+-}
 type Contains :: forall k. (Type -> Type) -> k -> Constraint
 class uni `Contains` a where
     knownUni :: uni (T a)
@@ -418,6 +419,9 @@ someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
 
 -- | A monad to decode types from a universe in.
+-- We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off
+-- an arbitrary amount of type tags from the input list of tags and so we have state, which is
+-- convenient to handle with, well, 'StateT'.
 newtype DecodeUniM a = DecodeUniM
     { unDecodeUniM :: StateT [Int] Maybe a
     } deriving newtype (Functor, Applicative, Alternative, Monad, MonadPlus, MonadFail)
@@ -462,6 +466,7 @@ decodeKindedUni is = do
 -- Just (1,[2,3])
 -- >>> runDecodeUniM [] peelUniTag
 -- Nothing
+-- | Peel off a tag from the input list of type tags.
 peelUniTag :: DecodeUniM Int
 peelUniTag = DecodeUniM $ do
     i:is <- get
@@ -490,37 +495,38 @@ instance (forall a b c. (constr a, constr b, constr c) => constr (f a b c)) => c
 -- (i.e. I was getting errors in existing code). That probably requires bidirectional instances
 -- to work, but who cares given that the type family version works alright and can even be
 -- partially applied (the kind has to be provided immediately though, but that's fine).
--- | @constr `Permits` f@ elaborates to one of
---
---     constr f
---     forall a. constr a => constr (f a)
---     forall a b. (constr a, constr b) => constr (f a b)
---     forall a b c. (constr a, constr b, constr c) => constr (f a b c)
---
--- depending on the kind of @f@. This allows us to say things like
---
---    ( constr `Permits` Integer
---    , constr `Permits` []
---    , constr `Permits` (,)
---    )
---
--- and thus constraint every type from the universe (including polymorphic ones) to satisfy
--- @constr@, which is how we provide an implementation of 'Everywhere' for universes with
--- polymorphic types.
---
--- 'Permits' is an open type family, so you can provide type instances for @f@s expecting
--- more type arguments than 3 if you need that.
---
--- Note that, say, @constr `Permits` []@ elaborates to
---
---     forall a. constr a => constr [a]
---
--- and for certain type classes that does not make sense (e.g. the 'Generic' instance of @[]@
--- does not require the type of elements to be 'Generic'), however it's not a problem because
--- we use 'Permit' to constrain the whole universe and so we know that arguments of polymorphic
--- built-in types are builtins themselves are hence do satisfy the constraint and the fact that
--- these constraints on arguments do not get used in the polymorphic case only means that they
--- get ignored.
+{- | @constr `Permits` f@ elaborates to one of
+-
+    constr f
+    forall a. constr a => constr (f a)
+    forall a b. (constr a, constr b) => constr (f a b)
+    forall a b c. (constr a, constr b, constr c) => constr (f a b c)
+
+depending on the kind of @f@. This allows us to say things like
+
+   ( constr `Permits` Integer
+   , constr `Permits` []
+   , constr `Permits` (,)
+   )
+
+and thus constraint every type from the universe (including polymorphic ones) to satisfy
+@constr@, which is how we provide an implementation of 'Everywhere' for universes with
+polymorphic types.
+
+'Permits' is an open type family, so you can provide type instances for @f@s expecting
+more type arguments than 3 if you need that.
+
+Note that, say, @constr `Permits` []@ elaborates to
+
+    forall a. constr a => constr [a]
+
+and for certain type classes that does not make sense (e.g. the 'Generic' instance of @[]@
+does not require the type of elements to be 'Generic'), however it's not a problem because
+we use 'Permit' to constrain the whole universe and so we know that arguments of polymorphic
+built-in types are builtins themselves are hence do satisfy the constraint and the fact that
+these constraints on arguments do not get used in the polymorphic case only means that they
+get ignored.
+-}
 type Permits :: forall k. (Type -> Constraint) -> k -> Constraint
 type family Permits
 

@@ -17,12 +17,12 @@ import           PlutusCore.MkPlc     (mkTyBuiltinOf)
 import           PlutusCore.Name
 import           PlutusCore.Quote
 import           PlutusCore.Rename
-import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Lens
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Universe
 
 {- Note [Global uniqueness]
 WARNING: everything in this module works under the assumption that the global uniqueness condition
@@ -140,6 +140,15 @@ scope via 'bring' etc -- for all of that we have to have fully monomorphized typ
 
 So in order for type checking to work we need to normalize polymorphic built-in types. For that
 we simply turn intra-universe applications into regular type applications during type normalization.
+
+We could go the other way around and "reduce" regular type applications into intra-universe ones,
+however that would be harder to implement, because collapsing a general 'Type' into a 'SomeTypeIn'
+is harder than expanding a 'SomeTypeIn' into a 'Type'. And it would also be impossible to do in the
+general case, 'cause you can't collapse an application of a built-in type to, say, a type variable
+into an intra-universe application as there are no type variables there. I guess we could "reduce"
+application of built-in types in some cases and not reduce them in others and still make the whole
+thing work, but that requires substantially more logic and is also a lot harder to get right.
+Hence we do the opposite, which is straightforward.
 -}
 
 -- See Note [Normalization of built-in types].

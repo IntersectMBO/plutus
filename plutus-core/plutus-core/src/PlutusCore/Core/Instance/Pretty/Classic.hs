@@ -19,11 +19,11 @@ import           PlutusCore.Core.Instance.Recursive
 import           PlutusCore.Core.Type
 import           PlutusCore.Pretty.Classic
 import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Universe
 
 import           Data.Functor.Foldable
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Custom
+import           Universe
 
 instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
     prettyBy _ = cata a where

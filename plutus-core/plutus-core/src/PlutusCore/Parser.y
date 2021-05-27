@@ -31,7 +31,7 @@ import PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
 import PlutusCore.Name
 import PlutusCore.Parsable
 import PlutusCore.Quote
-import PlutusCore.Universe
+import Universe
 
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.List.NonEmpty        as NE

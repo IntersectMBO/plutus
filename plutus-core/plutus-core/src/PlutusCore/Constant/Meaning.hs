@@ -25,7 +25,6 @@ import           PlutusCore.Core
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           Control.Lens                            (ix, (^?))
 import           Control.Monad.Catch
@@ -37,6 +36,7 @@ import           Data.Proxy
 import           Data.Type.Bool
 import           Data.Type.Equality
 import           GHC.TypeLits
+import           Universe
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
 -- its Haskell denotation and a costing function (both in uninstantiated form).
@@ -299,6 +299,8 @@ instance
 
 -- | For looking into the type of a constant or the type arguments of a polymorphic built-in type
 -- and specializing them as types representing Plutus type variables.
+-- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleSomeConstant'
+-- can specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
 type HandleSomeConstant :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class HandleSomeConstant i j term a | i term a -> j
 instance {-# OVERLAPPABLE #-} i ~ j => HandleSomeConstant i j term a

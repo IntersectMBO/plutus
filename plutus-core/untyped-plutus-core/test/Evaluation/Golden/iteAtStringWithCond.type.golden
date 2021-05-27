@@ -1,1 +1,1 @@
-(Right (fun [(con []) (con char)] (fun [(con []) (con char)] [(con []) (con char)])))
+(Right (fun [(con list) (con char)] (fun [(con list) (con char)] [(con list) (con char)])))

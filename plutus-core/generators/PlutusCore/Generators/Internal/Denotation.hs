@@ -21,7 +21,6 @@ import           PlutusCore.Constant
 import           PlutusCore.Core
 import           PlutusCore.Default
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           Data.Dependent.Map                       (DMap)
 import qualified Data.Dependent.Map                       as DMap

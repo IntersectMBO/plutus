@@ -258,7 +258,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         swapPlc :: SomeConstantOf uni (,) '[a, b] -> SomeConstantOf uni (,) '[b, a]
         swapPlc (SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes _ (x, y)))) =
             SomeConstantOfArg uniB . SomeConstantOfArg uniA $
-                SomeConstantOfRes (DefaultUniTuple uniB uniA) (y, x)
+                SomeConstantOfRes (DefaultUniPair uniB uniA) (y, x)
 
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
@@ -267,9 +267,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             => SomeConstantOf uni [] '[SomeConstantOf uni (,) '[a, Bool]]
             -> EvaluationResult (SomeConstantOf uni [] '[SomeConstantOf uni (,) '[Bool, a]])
         swapElsPlc (SomeConstantOfArg uniEl (SomeConstantOfRes _ xs)) = case uniEl of
-            DefaultUniTuple uniA DefaultUniBool ->
+            DefaultUniPair uniA DefaultUniBool ->
                 EvaluationSuccess $
-                    let uniElS = DefaultUniTuple DefaultUniBool uniA
+                    let uniElS = DefaultUniPair DefaultUniBool uniA
                         listUniElS = DefaultUniList uniElS
                     in SomeConstantOfArg uniElS . SomeConstantOfRes listUniElS $ map swap xs
             _ -> EvaluationFailure

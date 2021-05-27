@@ -16,7 +16,6 @@ import           PlutusIR.Compiler.Definitions
 import qualified PlutusCore.Constant           as PLC
 import qualified PlutusCore.Default            as PLC
 import           PlutusCore.Quote
-import qualified PlutusCore.Universe           as PLC
 
 import qualified FamInstEnv                    as GHC
 import qualified GhcPlugins                    as GHC

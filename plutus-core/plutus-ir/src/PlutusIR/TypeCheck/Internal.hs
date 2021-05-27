@@ -28,7 +28,6 @@ import           PlutusCore                    (ToKind (..), typeAnn)
 import           PlutusCore.Error              as PLC
 import           PlutusCore.Quote
 import           PlutusCore.Rename             as PLC
-import           PlutusCore.Universe
 import           PlutusIR
 import           PlutusIR.Compiler.Datatype
 import           PlutusIR.Compiler.Provenance
@@ -40,6 +39,8 @@ import           PlutusPrelude
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
 import           PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
 import qualified PlutusIR.MkPir                as PIR
+
+import           Universe
 
 {- Note [PLC Typechecker code reuse]
 For PIR kind-checking, we reuse `checkKindM`, `inferKindM` directly from the PLC typechecker.

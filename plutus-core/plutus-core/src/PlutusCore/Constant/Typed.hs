@@ -49,7 +49,6 @@ import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import qualified Data.ByteString                         as BS
@@ -61,6 +60,7 @@ import           Data.SOP.Constraint
 import           Data.String
 import qualified Data.Text                               as Text
 import           GHC.TypeLits
+import           Universe
 
 infixr 9 `TypeSchemeArrow`
 
@@ -501,36 +501,37 @@ instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
     makeKnown = pure . fromConstant . unSomeConstant
     readKnown = fmap SomeConstant . unliftSomeValue
 
--- | 'SomeConstantOf' is similar to 'SomeConstant': while the latter is for unlifting any
--- constants, the former is for unlifting constants of a specific polymorphic built-in type
--- (the @f@ parameter).
---
--- A @SomeConstantOf uni f reps@ is a value of existentially instantiated @f@. For instance,
--- a @SomeConstantOf uni [] reps@ is a list of something (a list of integers or a list of lists
--- of booleans etc). And a @SomeConstantOf uni (,) reps@ is a tuple of something.
---
--- The @reps@ parameter serves two purposes: its main purpose is to specify how the argument
--- types look on the PLC side (i.e. it's the same thing as with @Opaque term rep@), so that
--- we can apply the type of built-in lists to a PLC type variable for example. The secondary
--- purpose is ensuring type safety via indexing: a value of @SomeConstantOf uni f reps@ can be viewed
--- as a proof that the amount of arguments @f@ expects and the length of @reps@ are the same number
--- (we could go even further and compute the kind of @f@ from @reps@, but it doesn't seem like
--- that would give us any more type safety while it certainly would be a more complex thing to do).
---
--- The existential Haskell types @f@ is applied to are reified as type tags from @uni@.
--- Note however that the correspondence between the Haskell types and the PLC ones from @reps@ is
--- not demanded and this is by design: during evaluation (i.e. on the Haskell side of things)
--- we always have concrete type tags, but at Plutus compile time an argument to @f@ can be
--- a Plutus type variable and so we can't establish any connection between the type tag that
--- we'll end up having at runtime and a Plutus type variable that we have at compile time.
--- Which also implies that one can specify that a built-in function takes, say, a tuple of a type
--- variable and a boolean, but in the actual denotation unlift to a tuple of a unit and an integer
--- (boolean vs integer) and there won't be any Haskell type error for that, let alone a Plutus type
--- error -- it'll be an evaluation failure, maybe even a delayed one.
--- So be careful in the denotation of a builtin to unlift its arguments to what you promised to
--- unlift them to in its type signature.
+{- | 'SomeConstantOf' is similar to 'SomeConstant': while the latter is for unlifting any
+constants, the former is for unlifting constants of a specific polymorphic built-in type
+(the @f@ parameter).
+
+A @SomeConstantOf uni f reps@ is a value of existentially instantiated @f@. For instance,
+a @SomeConstantOf uni [] reps@ is a list of something (a list of integers or a list of lists
+of booleans etc). And a @SomeConstantOf uni (,) reps@ is a tuple of something.
+
+The @reps@ parameter serves two purposes: its main purpose is to specify how the argument
+types look on the PLC side (i.e. it's the same thing as with @Opaque term rep@), so that
+we can apply the type of built-in lists to a PLC type variable for example. The secondary
+purpose is ensuring type safety via indexing: a value of @SomeConstantOf uni f reps@ can be viewed
+as a proof that the amount of arguments @f@ expects and the length of @reps@ are the same number
+(we could go even further and compute the kind of @f@ from @reps@, but it doesn't seem like
+that would give us any more type safety while it certainly would be a more complex thing to do).
+
+The existential Haskell types @f@ is applied to are reified as type tags from @uni@.
+Note however that the correspondence between the Haskell types and the PLC ones from @reps@ is
+not demanded and this is by design: during evaluation (i.e. on the Haskell side of things)
+we always have concrete type tags, but at Plutus compile time an argument to @f@ can be
+a Plutus type variable and so we can't establish any connection between the type tag that
+we'll end up having at runtime and a Plutus type variable that we have at compile time.
+Which also implies that one can specify that a built-in function takes, say, a tuple of a type
+variable and a boolean, but in the actual denotation unlift to a tuple of a unit and an integer
+(boolean vs integer) and there won't be any Haskell type error for that, let alone a Plutus type
+error -- it'll be an evaluation failure, maybe even a delayed one.
+So be careful in the denotation of a builtin to unlift its arguments to what you promised to
+unlift them to in its type signature.
+-}
 type SomeConstantOf :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
-data SomeConstantOf uni (f :: k) reps where
+data SomeConstantOf uni f reps where
     SomeConstantOfRes :: uni (T b) -> b -> SomeConstantOf uni b '[]
     SomeConstantOfArg
         :: uni (T a)
@@ -553,6 +554,8 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
                 []
 
 -- | State needed during unlifting of a 'SomeConstantOf'.
+type ReadSomeConstantOf
+        :: forall k. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
 data ReadSomeConstantOf m uni f reps =
     forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (T a))
 

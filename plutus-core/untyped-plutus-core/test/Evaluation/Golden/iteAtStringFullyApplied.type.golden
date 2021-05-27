@@ -1,1 +1,1 @@
-(Right [(con []) (con char)])
+(Right [(con list) (con char)])

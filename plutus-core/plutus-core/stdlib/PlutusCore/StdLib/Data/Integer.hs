@@ -14,7 +14,8 @@ import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
+
+import           Universe
 
 integer :: uni `Includes` Integer => Type tyname uni ()
 integer = mkTyBuiltin @_ @Integer ()

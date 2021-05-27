@@ -1,13 +1,14 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DeriveAnyClass           #-}
+{-# LANGUAGE DerivingVia              #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE UndecidableInstances     #-}
 
 module PlutusCore.Core.Type
     ( Kind(..)
@@ -33,7 +34,6 @@ where
 import           PlutusPrelude
 
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           Control.Lens
 import           Data.Hashable
@@ -41,6 +41,7 @@ import qualified Data.Kind                as GHC
 import           Data.Proxy
 import           Instances.TH.Lift        ()
 import           Language.Haskell.TH.Lift
+import           Universe
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
@@ -53,7 +54,8 @@ data Kind ann
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | A 'Type' assigned to expressions.
-data Type tyname (uni :: GHC.Type -> GHC.Type) ann
+type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
+data Type tyname uni ann
     = TyVar ann tyname
     | TyFun ann (Type tyname uni ann) (Type tyname uni ann)
     | TyIFix ann (Type tyname uni ann) (Type tyname uni ann)

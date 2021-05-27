@@ -11,9 +11,9 @@ import           PlutusCore.Name
 import           PlutusCore.Normalize.Internal
 import           PlutusCore.Quote
 import           PlutusCore.Rename
-import           PlutusCore.Universe
 
 import           Control.Monad                 ((>=>))
+import           Universe
 
 -- See Note [Normalization].
 -- | Normalize a 'Type'.

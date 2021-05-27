@@ -14,7 +14,8 @@ import           PlutusCore.Core
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
+
+import           Universe
 
 -- | '()' as a PLC type.
 unit :: uni `Includes` () => Type TyName uni ()

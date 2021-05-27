@@ -13,9 +13,11 @@ import           PlutusPrelude
 
 import           PlutusCore.Pretty.Classic
 import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Universe
+
 import           UntypedPlutusCore.Core.Instance.Pretty.Classic ()
 import           UntypedPlutusCore.Core.Type
+
+import           Universe
 
 instance
         ( PrettyClassic name
