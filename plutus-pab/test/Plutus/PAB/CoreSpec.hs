@@ -15,7 +15,7 @@ module Plutus.PAB.CoreSpec
     , observableStateChangeTest
     ) where
 
-import           Control.Lens                             ((&), (+~))
+import           Control.Lens                             ((&), (+~), (^.))
 import           Control.Monad                            (unless, void)
 import           Control.Monad.Freer                      (Eff, Member, Members)
 import           Control.Monad.Freer.Error                (Error, throwError)
@@ -246,14 +246,12 @@ guessingGameTest =
               assertTxCounts
                   "Activating the game does not generate transactions."
                   initialTxCounts
-              _ <- Simulator.waitNSlots 5
               lock
                   instanceId
                   Contracts.GameStateMachine.LockArgs
                       { Contracts.GameStateMachine.lockArgsValue = lovelaceValueOf lockAmount
                       , Contracts.GameStateMachine.lockArgsSecret = "password"
                       }
-              _ <- Simulator.waitNSlots 10
 
               assertTxCounts
                   "Locking the game state machine should produce two transactions"
@@ -275,7 +273,6 @@ guessingGameTest =
                 (initialTxCounts & Simulator.txValidated +~ 2)
               game2Id <- Simulator.activateContract defaultWallet GameStateMachine
 
-              _ <- Simulator.waitNSlots 5
               guess
                   game2Id
                   Contracts.GameStateMachine.GuessArgs
@@ -284,7 +281,6 @@ guessingGameTest =
                       , Contracts.GameStateMachine.guessArgsValueTakenOut = lovelaceValueOf lockAmount
                       }
 
-              _ <- Simulator.waitNSlots 5
               assertTxCounts
                 "A correct guess creates a third transaction."
                 (initialTxCounts & Simulator.txValidated +~ 3)
@@ -309,7 +305,9 @@ assertTxCounts ::
     Text
     -> TxCounts
     -> Simulation (Builtin TestContracts) ()
-assertTxCounts msg expected = Simulator.txCounts >>= assertEqual msg expected
+assertTxCounts msg expected = do
+    Simulator.waitForValidatedTxCount (expected ^. Simulator.txValidated)
+    Simulator.txCounts >>= assertEqual msg expected
 
 assertDone ::
     Wallet

@@ -61,8 +61,10 @@ module Plutus.PAB.Simulator(
     -- ** Transaction counts
     , TxCounts(..)
     , txCounts
+    , txCountsSTM
     , txValidated
     , txMemPool
+    , waitForValidatedTxCount
     ) where
 
 import qualified Cardano.Wallet.Mock                            as MockWallet
@@ -71,7 +73,7 @@ import           Control.Concurrent.STM                         (STM, TQueue, TV
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Lens                                   (_Just, at, makeLenses, makeLensesFor, preview, set,
                                                                  view, (&), (.~), (?~), (^.))
-import           Control.Monad                                  (forM_, forever, void, when)
+import           Control.Monad                                  (forM_, forever, guard, void, when)
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
 import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
@@ -635,14 +637,27 @@ makeLenses ''TxCounts
 
 -- | Get the 'TxCounts' of the emulated blockchain
 txCounts :: forall t. Simulation t TxCounts
-txCounts = do
+txCounts = txCountsSTM >>= liftIO . STM.atomically
+
+-- | Get an STM transaction with the 'TxCounts' of the emulated blockchain
+txCountsSTM :: forall t. Simulation t (STM TxCounts)
+txCountsSTM = do
     SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
-    Chain.ChainState{Chain._chainNewestFirst, Chain._txPool} <- liftIO $ STM.readTVarIO _chainState
-    return
-        $ TxCounts
-            { _txValidated = sum (length <$> _chainNewestFirst)
-            , _txMemPool   = length _txPool
-            }
+    return $ do
+        Chain.ChainState{Chain._chainNewestFirst, Chain._txPool} <- STM.readTVar _chainState
+        pure
+            $ TxCounts
+                { _txValidated = sum (length <$> _chainNewestFirst)
+                , _txMemPool   = length _txPool
+                }
+
+-- | Wait until at least the given number of valid transactions are on the simulated blockchain.
+waitForValidatedTxCount :: forall t. Int -> Simulation t ()
+waitForValidatedTxCount i = do
+    counts <- txCountsSTM
+    liftIO $ STM.atomically $ do
+        TxCounts{_txValidated} <- counts
+        guard (_txValidated >= i)
 
 -- | The set of all active contracts.
 activeContracts :: forall t. Simulation t (Set ContractInstanceId)
