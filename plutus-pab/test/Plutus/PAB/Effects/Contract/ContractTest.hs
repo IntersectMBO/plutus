@@ -23,30 +23,30 @@ module Plutus.PAB.Effects.Contract.ContractTest(
     ) where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error                   (Error)
-import           Control.Monad.Freer.Extras.Log              (LogMsg)
-import           Data.Aeson                                  (FromJSON, ToJSON)
-import           Data.Bifunctor                              (Bifunctor (..))
+import           Control.Monad.Freer.Error           (Error)
+import           Control.Monad.Freer.Extras.Log      (LogMsg)
+import           Data.Aeson                          (FromJSON, ToJSON)
+import           Data.Bifunctor                      (Bifunctor (..))
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                                (Generic)
+import           GHC.Generics                        (Generic)
 
-import           Data.Text.Extras                            (tshow)
-import           Playground.Types                            (FunctionSchema)
-import           Plutus.Contract                             (BlockchainActions)
-import           Plutus.Contract.Effects.RPC                 (RPCClient)
-import qualified Plutus.Contracts.Currency                   as Contracts.Currency
-import qualified Plutus.Contracts.GameStateMachine           as Contracts.GameStateMachine
-import qualified Plutus.Contracts.PingPong                   as Contracts.PingPong
-import qualified Plutus.Contracts.RPC                        as Contracts.RPC
-import           Plutus.PAB.Effects.Contract                 (ContractEffect (..))
-import           Plutus.PAB.Effects.Contract.Builtin         (Builtin, SomeBuiltin (..))
-import qualified Plutus.PAB.Effects.Contract.Builtin         as Builtin
-import qualified Plutus.PAB.Effects.ContractTest.AtomicSwap  as Contracts.AtomicSwap
-import qualified Plutus.PAB.Effects.ContractTest.PayToWallet as Contracts.PayToWallet
-import           Plutus.PAB.Monitoring.PABLogMsg             (PABMultiAgentMsg)
-import           Plutus.PAB.Types                            (PABError (..))
-import           Schema                                      (FormSchema)
+import qualified AtomicSwap                          as Contracts.AtomicSwap
+import           Data.Text.Extras                    (tshow)
+import qualified PayToWallet                         as Contracts.PayToWallet
+import           Playground.Types                    (FunctionSchema)
+import           Plutus.Contract                     (BlockchainActions)
+import           Plutus.Contract.Effects.RPC         (RPCClient)
+import qualified Plutus.Contracts.Currency           as Contracts.Currency
+import qualified Plutus.Contracts.GameStateMachine   as Contracts.GameStateMachine
+import qualified Plutus.Contracts.PingPong           as Contracts.PingPong
+import qualified Plutus.Contracts.RPC                as Contracts.RPC
+import           Plutus.PAB.Effects.Contract         (ContractEffect (..))
+import           Plutus.PAB.Effects.Contract.Builtin (Builtin, SomeBuiltin (..))
+import qualified Plutus.PAB.Effects.Contract.Builtin as Builtin
+import           Plutus.PAB.Monitoring.PABLogMsg     (PABMultiAgentMsg)
+import           Plutus.PAB.Types                    (PABError (..))
+import           Schema                              (FormSchema)
 
 data TestContracts = GameStateMachine | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer | PingPong
     deriving (Eq, Ord, Show, Generic)

@@ -39,7 +39,6 @@
           (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
-          (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
@@ -162,13 +161,9 @@
           "Plutus/PAB/Db/Eventful/Query"
           "Plutus/PAB/Db/Memory/ContractStore"
           "Plutus/PAB/Effects/Contract"
-          "Plutus/PAB/Effects/Contract/ContractTest"
           "Plutus/PAB/Effects/Contract/Builtin"
           "Plutus/PAB/Effects/Contract/ContractExe"
           "Plutus/PAB/Effects/ContractRuntime"
-          "Plutus/PAB/Effects/ContractTest/AtomicSwap"
-          "Plutus/PAB/Effects/ContractTest/PayToWallet"
-          "Plutus/PAB/Effects/ContractTest/Uniswap"
           "Plutus/PAB/Effects/EventLog"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Effects/TimeEffect"
@@ -249,6 +244,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
+          modules = [ "Uniswap" ];
           hsSourceDirs = [ "uniswap" ];
           mainPath = [ "Main.hs" ];
           };
@@ -279,8 +275,16 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             ];
           buildable = true;
+          modules = [ "AtomicSwap" ];
           hsSourceDirs = [ "atomic-swap-contract" ];
           mainPath = [ "Main.hs" ];
           };
@@ -289,8 +293,14 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             ];
           buildable = true;
+          modules = [ "PayToWallet" ];
           hsSourceDirs = [ "pay-to-wallet-contract" ];
           mainPath = [ "Main.hs" ];
           };
@@ -412,16 +422,25 @@
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
             ];
           buildable = true;
           modules = [
             "Plutus/PAB/CoreSpec"
             "Plutus/PAB/Events/ContractSpec"
+            "Plutus/PAB/Effects/Contract/ContractTest"
+            "Plutus/PAB/Simulator/Test"
+            "AtomicSwap"
+            "PayToWallet"
             "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"
             "Cardano/Wallet/ServerSpec"
             ];
-          hsSourceDirs = [ "test" ];
+          hsSourceDirs = [
+            "test"
+            "pay-to-wallet-contract"
+            "atomic-swap-contract"
+            ];
           mainPath = [ "Spec.hs" ];
           };
         };

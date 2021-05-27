@@ -84,13 +84,9 @@ library
         Plutus.PAB.Db.Eventful.Query
         Plutus.PAB.Db.Memory.ContractStore
         Plutus.PAB.Effects.Contract
-        Plutus.PAB.Effects.Contract.ContractTest
         Plutus.PAB.Effects.Contract.Builtin
         Plutus.PAB.Effects.Contract.ContractExe
         Plutus.PAB.Effects.ContractRuntime
-        Plutus.PAB.Effects.ContractTest.AtomicSwap
-        Plutus.PAB.Effects.ContractTest.PayToWallet
-        Plutus.PAB.Effects.ContractTest.Uniswap
         Plutus.PAB.Effects.EventLog
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Effects.TimeEffect
@@ -121,8 +117,7 @@ library
         plutus-tx -any,
         plutus-tx-plugin -any,
         plutus-contract -any,
-        playground-common -any,
-        plutus-use-cases -any,
+        playground-common -any
     build-depends:
         QuickCheck -any,
         aeson -any,
@@ -249,6 +244,7 @@ executable plutus-pab
 
 executable plutus-uniswap
     main-is: Main.hs
+    other-modules: Uniswap
     hs-source-dirs:  uniswap
     other-modules:
     default-language: Haskell2010
@@ -299,6 +295,7 @@ executable plutus-currency
 executable plutus-atomic-swap
     main-is: Main.hs
     hs-source-dirs: atomic-swap-contract
+    other-modules: AtomicSwap
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -306,10 +303,18 @@ executable plutus-atomic-swap
     build-depends:
         base >=4.9 && <5,
         text -any,
-        plutus-pab
+        plutus-pab,
+        plutus-use-cases -any,
+        lens -any,
+        aeson -any,
+        playground-common -any,
+        plutus-ledger -any,
+        plutus-ledger-api -any,
+        plutus-contract -any
 
 executable plutus-pay-to-wallet
     main-is: Main.hs
+    other-modules: PayToWallet
     hs-source-dirs: pay-to-wallet-contract
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
@@ -318,16 +323,28 @@ executable plutus-pay-to-wallet
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
-        text -any
+        text -any,
+        aeson -any,
+        playground-common -any,
+        plutus-ledger -any,
+        plutus-ledger-api -any,
+        plutus-contract -any
 
 test-suite plutus-pab-test
     default-language: Haskell2010
-    hs-source-dirs: test
+    hs-source-dirs:
+        test,
+        pay-to-wallet-contract,
+        atomic-swap-contract
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
         Plutus.PAB.CoreSpec
         Plutus.PAB.Events.ContractSpec
+        Plutus.PAB.Effects.Contract.ContractTest
+        Plutus.PAB.Simulator.Test
+        AtomicSwap
+        PayToWallet
         Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec
         Cardano.Wallet.ServerSpec
@@ -363,7 +380,8 @@ test-suite plutus-pab-test
         transformers -any,
         prettyprinter -any,
         row-types -any,
-        plutus-tx -any
+        plutus-tx -any,
+        playground-common -any
 
 executable prism-credential-manager
     import: lang
