@@ -139,6 +139,7 @@
         "natural-transformation".revision = (((hackage."natural-transformation")."0.4").revisions).default;
         "statistics".revision = (((hackage."statistics")."0.15.2.0").revisions).default;
         "th-expand-syns".revision = (((hackage."th-expand-syns")."0.4.7.0").revisions).default;
+        "immortal".revision = (((hackage."immortal")."0.3").revisions).default;
         "regex-posix".revision = (((hackage."regex-posix")."0.96.0.0").revisions).default;
         "regex-posix".flags._regex-posix-clib = false;
         "cryptonite".revision = (((hackage."cryptonite")."0.28").revisions).default;

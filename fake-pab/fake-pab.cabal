@@ -73,6 +73,7 @@ executable fake-pab-server
         http-types -any,
         lens -any,
         fake-pab -any,
+        immortal -any,
         marlowe -any,
         monad-logger -any,
         mtl -any,
