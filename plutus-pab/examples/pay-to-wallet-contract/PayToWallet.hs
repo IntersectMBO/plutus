@@ -7,7 +7,7 @@
 {-# LANGUAGE StrictData         #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
-module Plutus.PAB.Effects.ContractTest.PayToWallet(
+module PayToWallet(
     payToWallet
     , PayToWalletParams(..)
     , PayToWalletSchema

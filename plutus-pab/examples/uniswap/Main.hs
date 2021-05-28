@@ -13,33 +13,33 @@ module Main
     ( main
     ) where
 
-import           Control.Monad                           (forM, void)
-import           Control.Monad.Freer                     (Eff, Member, interpret, type (~>))
-import           Control.Monad.Freer.Error               (Error)
-import           Control.Monad.Freer.Extras.Log          (LogMsg)
-import           Control.Monad.IO.Class                  (MonadIO (..))
-import           Data.Aeson                              (FromJSON, Result (..), ToJSON, encode, fromJSON)
-import qualified Data.Map.Strict                         as Map
-import qualified Data.Monoid                             as Monoid
-import qualified Data.Semigroup                          as Semigroup
-import           Data.Text                               (Text)
-import           Data.Text.Prettyprint.Doc               (Pretty (..), viaShow)
-import           GHC.Generics                            (Generic)
-import           Ledger.Ada                              (adaSymbol, adaToken)
+import           Control.Monad                       (forM, void)
+import           Control.Monad.Freer                 (Eff, Member, interpret, type (~>))
+import           Control.Monad.Freer.Error           (Error)
+import           Control.Monad.Freer.Extras.Log      (LogMsg)
+import           Control.Monad.IO.Class              (MonadIO (..))
+import           Data.Aeson                          (FromJSON, Result (..), ToJSON, encode, fromJSON)
+import qualified Data.Map.Strict                     as Map
+import qualified Data.Monoid                         as Monoid
+import qualified Data.Semigroup                      as Semigroup
+import           Data.Text                           (Text)
+import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
+import           GHC.Generics                        (Generic)
+import           Ledger.Ada                          (adaSymbol, adaToken)
 import           Plutus.Contract
-import qualified Plutus.Contracts.Currency               as Currency
-import qualified Plutus.Contracts.Uniswap                as Uniswap
-import           Plutus.PAB.Effects.Contract             (ContractEffect (..))
-import           Plutus.PAB.Effects.Contract.Builtin     (Builtin, SomeBuiltin (..), type (.\\))
-import qualified Plutus.PAB.Effects.Contract.Builtin     as Builtin
-import           Plutus.PAB.Effects.ContractTest.Uniswap as US
-import           Plutus.PAB.Monitoring.PABLogMsg         (PABMultiAgentMsg)
-import           Plutus.PAB.Simulator                    (SimulatorEffectHandlers, logString)
-import qualified Plutus.PAB.Simulator                    as Simulator
-import           Plutus.PAB.Types                        (PABError (..))
-import qualified Plutus.PAB.Webserver.Server             as PAB.Server
-import           Prelude                                 hiding (init)
-import           Wallet.Emulator.Types                   (Wallet (..))
+import qualified Plutus.Contracts.Currency           as Currency
+import qualified Plutus.Contracts.Uniswap            as Uniswap
+import           Plutus.PAB.Effects.Contract         (ContractEffect (..))
+import           Plutus.PAB.Effects.Contract.Builtin (Builtin, SomeBuiltin (..), type (.\\))
+import qualified Plutus.PAB.Effects.Contract.Builtin as Builtin
+import           Plutus.PAB.Monitoring.PABLogMsg     (PABMultiAgentMsg)
+import           Plutus.PAB.Simulator                (SimulatorEffectHandlers, logString)
+import qualified Plutus.PAB.Simulator                as Simulator
+import           Plutus.PAB.Types                    (PABError (..))
+import qualified Plutus.PAB.Webserver.Server         as PAB.Server
+import           Prelude                             hiding (init)
+import           Uniswap                             as US
+import           Wallet.Emulator.Types               (Wallet (..))
 
 
 main :: IO ()

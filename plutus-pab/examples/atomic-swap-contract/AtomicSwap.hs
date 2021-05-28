@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
-module Plutus.PAB.Effects.ContractTest.AtomicSwap(
+module AtomicSwap(
     AtomicSwapParams(..),
     AtomicSwapError(..),
     AsAtomicSwapError(..),

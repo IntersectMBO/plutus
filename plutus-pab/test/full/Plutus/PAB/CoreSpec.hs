@@ -60,6 +60,7 @@ import           Plutus.PAB.Effects.EventLog              (EventLogEffect)
 import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse)
 import           Plutus.PAB.Simulator                     (Simulation, TxCounts (..))
 import qualified Plutus.PAB.Simulator                     as Simulator
+import qualified Plutus.PAB.Simulator.Test                as Simulator
 import           Plutus.PAB.Types                         (PABError (..), chainOverviewBlockchain, mkChainOverview)
 import qualified Plutus.PAB.Webserver.WebSocket           as WS
 import           PlutusTx.Monoid                          (Group (inv))
