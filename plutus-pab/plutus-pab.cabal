@@ -334,10 +334,9 @@ executable plutus-pab-test-psgenerator
     default-language: Haskell2010
     hs-source-dirs:
         test-psgenerator,
-        test,
+        test/full,
         examples/pay-to-wallet-contract,
         examples/atomic-swap-contract
-    type: exitcode-stdio-1.0
     main-is: TestPSGenerator.hs
     other-modules:
         AtomicSwap
@@ -381,10 +380,51 @@ executable plutus-pab-test-psgenerator
         purescript-bridge -any,
         filepath -any
 
-test-suite plutus-pab-test
+test-suite plutus-pab-test-light
     default-language: Haskell2010
     hs-source-dirs:
-        test,
+        test/light
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    other-modules:
+        Cardano.Metadata.ServerSpec
+        Cardano.Metadata.TypesSpec
+        Cardano.Wallet.ServerSpec
+
+    build-depends:
+        QuickCheck -any,
+        aeson -any,
+        aeson-pretty -any,
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        eventful-core -any,
+        eventful-memory -any,
+        freer-extras -any,
+        freer-simple -any,
+        http-client -any,
+        http-client-tls -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        plutus-contract -any,
+        plutus-pab,
+        plutus-ledger -any,
+        quickcheck-instances -any,
+        servant-client -any,
+        tasty -any,
+        tasty-hunit -any,
+        smallcheck -any,
+        tasty-smallcheck -any,
+        tasty-quickcheck -any,
+        text -any,
+        transformers -any,
+        prettyprinter -any,
+
+test-suite plutus-pab-test-full
+    default-language: Haskell2010
+    hs-source-dirs:
+        test/full,
         examples/pay-to-wallet-contract,
         examples/atomic-swap-contract
     type: exitcode-stdio-1.0
@@ -396,9 +436,6 @@ test-suite plutus-pab-test
         Plutus.PAB.Simulator.Test
         AtomicSwap
         PayToWallet
-        Cardano.Metadata.ServerSpec
-        Cardano.Metadata.TypesSpec
-        Cardano.Wallet.ServerSpec
 
     build-depends:
         QuickCheck -any,

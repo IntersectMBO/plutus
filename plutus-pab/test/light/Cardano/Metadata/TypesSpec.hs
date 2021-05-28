@@ -43,38 +43,38 @@ jsonTests =
                       void $
                       assertDecodes
                           @(Property 'ExternalEncoding)
-                          "test/Cardano/Metadata/property_owner.json"
+                          "test/light/Cardano/Metadata/property_owner.json"
                     , testCase "name" $
                       void $
                       assertDecodes
                           @(Property 'ExternalEncoding)
-                          "test/Cardano/Metadata/property_name.json"
+                          "test/light/Cardano/Metadata/property_name.json"
                     , testCase "preImage" $
                       void $
                       assertDecodes
                           @(Property 'ExternalEncoding)
-                          "test/Cardano/Metadata/property_preimage.json"
+                          "test/light/Cardano/Metadata/property_preimage.json"
                     , testCase "description" $
                       void $
                       assertDecodes
                           @(Property 'ExternalEncoding)
-                          "test/Cardano/Metadata/property_description.json"
+                          "test/light/Cardano/Metadata/property_description.json"
                     ]
               , testCase "Subject query response" $
                 void $
                 assertDecodes
                     @(SubjectProperties 'ExternalEncoding)
-                    "test/Cardano/Metadata/subject_response1.json"
+                    "test/light/Cardano/Metadata/subject_response1.json"
               , testCase "Batch query response 1" $
                 void $
                 assertDecodes
                     @(QueryResult 'ExternalEncoding)
-                    "test/Cardano/Metadata/query_response1.json"
+                    "test/light/Cardano/Metadata/query_response1.json"
               , testCase "Batch query response 1" $
                 void $
                 assertDecodes
                     @(QueryResult 'ExternalEncoding)
-                    "test/Cardano/Metadata/query_response2.json"
+                    "test/light/Cardano/Metadata/query_response2.json"
               ]
         ]
 

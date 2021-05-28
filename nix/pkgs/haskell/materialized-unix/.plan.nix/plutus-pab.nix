@@ -351,7 +351,7 @@
             ];
           hsSourceDirs = [
             "test-psgenerator"
-            "test"
+            "test/full"
             "examples/pay-to-wallet-contract"
             "examples/atomic-swap-contract"
             ];
@@ -442,7 +442,47 @@
           };
         };
       tests = {
-        "plutus-pab-test" = {
+        "plutus-pab-test-light" = {
+          depends = [
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
+            (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
+            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
+            (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
+            (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."smallcheck" or (errorHandler.buildDepError "smallcheck"))
+            (hsPkgs."tasty-smallcheck" or (errorHandler.buildDepError "tasty-smallcheck"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            ];
+          buildable = true;
+          modules = [
+            "Cardano/Metadata/ServerSpec"
+            "Cardano/Metadata/TypesSpec"
+            "Cardano/Wallet/ServerSpec"
+            ];
+          hsSourceDirs = [ "test/light" ];
+          mainPath = [ "Spec.hs" ];
+          };
+        "plutus-pab-test-full" = {
           depends = [
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
@@ -485,12 +525,9 @@
             "Plutus/PAB/Simulator/Test"
             "AtomicSwap"
             "PayToWallet"
-            "Cardano/Metadata/ServerSpec"
-            "Cardano/Metadata/TypesSpec"
-            "Cardano/Wallet/ServerSpec"
             ];
           hsSourceDirs = [
-            "test"
+            "test/full"
             "examples/pay-to-wallet-contract"
             "examples/atomic-swap-contract"
             ];
