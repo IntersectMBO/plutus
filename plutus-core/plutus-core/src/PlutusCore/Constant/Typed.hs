@@ -268,7 +268,7 @@ we don't add complex built-in types too often.
 {- Note [Representable built-in functions over polymorphic built-in types]
 In Note [Pattern matching on built-in types] we talked about how general higher-order polymorphic
 built-in functions are troubling, but polymorphic built-in functions can be troubling even in
-the first-order case. In a Plutus program we always pair constant of built-in types with their
+the first-order case. In a Plutus program we always pair constants of built-in types with their
 tags from the universe, which means that in order to produce a constant embedded into a program
 we need the tag of the type of that constant. We can't get that tag from a Plutus type -- those
 are gone at runtime, so the only place we can get a type tag from during evaluation is some already
