@@ -11,7 +11,7 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.List.Types (NonEmptyList)
 import Data.Maybe (Maybe(..))
 import Help (HelpContext)
-import Marlowe.Extended (IntegerTemplateType)
+import Marlowe.Template (IntegerTemplateType)
 import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Input, Slot)
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
@@ -23,6 +23,8 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , marloweState :: NonEmptyList MarloweState
     , helpContext :: HelpContext
+    -- List of decoration ids used by the monaco editor to track the running contract
+    , decorationIds :: Array String
     }
 
 data Action

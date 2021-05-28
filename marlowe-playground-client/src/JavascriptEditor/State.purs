@@ -8,8 +8,6 @@ import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
-import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Either (Either(..))
@@ -34,8 +32,9 @@ import Language.Javascript.Interpreter (InterpreterResult(..))
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
+import Marlowe.Extended (Contract)
 import Marlowe.Extended.Metadata (MetadataHintInfo, getMetadataHintInfo)
+import Marlowe.Template (getPlaceholderIds, typeToLens, updateTemplateContent)
 import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
 import SessionStorage as SessionStorage
@@ -222,14 +221,32 @@ editorSetValue contents = do
     decoratedContent = joinWith "\n" [ decorationHeader, contents, decorationFooter ]
 
     numLines = Array.length $ lines decoratedContent
+
+    decorationOptions = { isWholeLine: true, className: "monaco-readonly-decoration", linesDecorationsClassName: "" }
+
+    topRange = { startLineNumber: 1, startColumn: 0, endLineNumber: decorationHeaderLines, endColumn: 0 }
+
+    bottomRange = { startLineNumber: (numLines - decorationFooterLines + 1), startColumn: 0, endLineNumber: numLines, endColumn: 0 }
   void $ query _jsEditorSlot unit $ Monaco.SetText decoratedContent unit
-  mTopDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 decorationHeaderLines identity
-  mBottomDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - decorationFooterLines + 1) numLines identity
-  void
-    $ runMaybeT do
-        topDecorationId <- hoistMaybe mTopDecorationId
-        bottomDecorationId <- hoistMaybe mBottomDecorationId
-        assign _decorationIds $ Just { topDecorationId, bottomDecorationId }
+  -- FIXME: Fix this
+  -- mTopDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 decorationHeaderLines identity
+  -- mBottomDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - decorationFooterLines + 1) numLines identity
+  -- void
+  --   $ runMaybeT do
+  --       topDecorationId <- hoistMaybe mTopDecorationId
+  --       bottomDecorationId <- hoistMaybe mBottomDecorationId
+  --       assign _decorationIds $ Just { topDecorationId, bottomDecorationId }
+  -- Instead of [] we should use the old decorations if present
+  mDecorationIds <-
+    query _jsEditorSlot unit
+      $ Monaco.SetDeltaDecorations
+          []
+          [ { range: topRange, options: decorationOptions }
+          , { range: bottomRange, options: decorationOptions }
+          ]
+          identity
+  -- for_ mDecorationIds (assign _decorationIds)
+  pure unit
 
 checkJSboilerplate :: String -> Boolean
 checkJSboilerplate content =

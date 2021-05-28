@@ -205,6 +205,16 @@ type CodeAction
 type Theme
   = { name :: String, themeData :: IStandaloneThemeData }
 
+type IModelDeltaDecoration
+  = { range :: IRange, options :: IModelDecorationOptions }
+
+-- This is a trimmed down version of https://github.com/microsoft/monaco-editor/blob/08dd4fad2bd41dcdac8bbdc3c08cc21578144d45/typedoc/monaco.d.ts#L1382
+-- PS type system is too strict to represent this data structure without help, eventually we could use something like
+-- https://github.com/natefaubion/purescript-convertable-options to model this correctly, for now, only the needed
+-- properties are modeled.
+type IModelDecorationOptions
+  = { isWholeLine :: Boolean, className :: String, linesDecorationsClassName :: String }
+
 foreign import isWarning_ :: Fn1 MarkerSeverity Boolean
 
 foreign import isError_ :: Fn1 MarkerSeverity Boolean
@@ -233,7 +243,7 @@ foreign import getDecorationRange_ :: EffectFn2 ITextModel String (Nullable IRan
 
 foreign import setStrictNullChecks_ :: EffectFn2 Monaco Boolean Unit
 
-foreign import setDeltaDecorations_ :: EffectFn3 Editor Int Int String
+foreign import setDeltaDecorations_ :: EffectFn3 Editor (Array String) (Array IModelDeltaDecoration) (Array String)
 
 foreign import getModel_ :: EffectFn1 Editor ITextModel
 
@@ -316,7 +326,7 @@ setStrictNullChecks = runEffectFn2 setStrictNullChecks_
 getDecorationRange :: ITextModel -> String -> Effect (Maybe IRange)
 getDecorationRange model id = toMaybe <$> runEffectFn2 getDecorationRange_ model id
 
-setDeltaDecorations :: Editor -> Int -> Int -> Effect String
+setDeltaDecorations :: Editor -> Array String -> Array IModelDeltaDecoration -> Effect (Array String)
 setDeltaDecorations = runEffectFn3 setDeltaDecorations_
 
 getModel :: Editor -> Effect ITextModel

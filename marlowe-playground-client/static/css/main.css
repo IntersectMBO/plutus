@@ -156,3 +156,13 @@ a:hover {
 .monaco-readonly-decoration {
     background-color: #fafafa;
 }
+
+.monaco-simulation-text-decoration {
+  background-color: rgba(173, 216, 230, 0.3)
+}
+
+.monaco-simulation-line-decoration {
+  background: lightblue;
+  width: 5px !important;
+	margin-left: 3px;
+}

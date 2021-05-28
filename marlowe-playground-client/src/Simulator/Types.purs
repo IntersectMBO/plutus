@@ -7,9 +7,9 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
-import Marlowe.Extended (TemplateContent)
-import Marlowe.Extended as EM
-import Marlowe.Holes (Holes)
+import Marlowe.Template (TemplateContent)
+import Marlowe.Holes (Holes, Term)
+import Marlowe.Holes as T
 import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
@@ -94,12 +94,14 @@ type ExecutionStateRecord
     , slot :: Slot
     , moneyInContract :: Assets
     -- This is the remaining of the contract to be executed
-    , contract :: S.Contract
+    , contract :: Term T.Contract
     }
 
 type InitialConditionsRecord
   = { initialSlot :: Slot
-    , extendedContract :: Maybe EM.Contract
+    -- TODO: Should we remove the Maybe and just not set InitialConditionsRecord if we cannot
+    --       parse the contract?
+    , termContract :: Maybe (Term T.Contract)
     , templateContent :: TemplateContent
     }
 

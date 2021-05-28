@@ -31,7 +31,7 @@ import Halogen.ElementResize (elementResize)
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
-import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IRange)
+import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, IRange, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IModelDeltaDecoration)
 import Monaco as Monaco
 import Web.DOM.ResizeObserver (ResizeObserverBoxOptions(..))
 import Web.HTML.HTMLElement as HTMLElement
@@ -94,7 +94,7 @@ data Query a
   | GetModel (Monaco.ITextModel -> a)
   | GetModelMarkers (Array IMarker -> a)
   | GetDecorationRange String (IRange -> a)
-  | SetDeltaDecorations Int Int (String -> a)
+  | SetDeltaDecorations (Array String) (Array IModelDeltaDecoration) (Array String -> a)
   | SetPosition IPosition a
   | Focus a
   | Resize a

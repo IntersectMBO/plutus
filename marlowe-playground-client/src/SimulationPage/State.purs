@@ -10,7 +10,6 @@ import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State, initialState) as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
-import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (snoc)
@@ -19,13 +18,14 @@ import Data.BigInteger (BigInteger, fromString)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
 import Data.Either (Either(..), hush)
+import Data.Foldable (for_)
 import Data.Lens (_Just, assign, modifying, over, set, use)
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty (last)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmptyList.Extra (extendWith, tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
 import Data.String (splitAt)
@@ -43,24 +43,21 @@ import Halogen.Monaco (Query(..)) as Monaco
 import Help (HelpContext(..))
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe as Server
-import Marlowe.Extended (fillTemplate, toCore, typeToLens)
-import Marlowe.Extended as EM
-import Marlowe.Holes (fromTerm)
+import Marlowe.Holes (Location(..), getLocation)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), inBounds)
-import Marlowe.Semantics as S
+import Marlowe.Template (fillTemplate, typeToLens)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import SessionStorage as SessionStorage
-import SimulationPage.Lenses (_bottomPanelState, _helpContext, _showRightPanel)
+import SimulationPage.Lenses (_bottomPanelState, _decorationIds, _helpContext, _showRightPanel)
 import SimulationPage.Types (Action(..), BottomPanelView(..), State)
-import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _currentMarloweState, _executionState, _extendedContract, _initialSlot, _marloweState, _moveToAction, _possibleActions, _templateContent)
+import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _currentContract, _currentMarloweState, _executionState, _initialSlot, _marloweState, _moveToAction, _possibleActions, _templateContent, _termContract)
 import Simulator.State (applyInput, emptyExecutionStateWithSlot, emptyMarloweState, inFuture, mapPartiesActionInput, moveToSlot, updateMarloweState, updatePossibleActions, applyPendingInputs)
 import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..))
 import StaticData (simulatorBufferLocalStorageKey)
-import Text.Pretty (genericPretty)
 import Types (WebData)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
@@ -76,6 +73,7 @@ mkState =
   , marloweState: NEL.singleton (emptyMarloweState Nothing)
   , helpContext: MarloweHelp
   , bottomPanelState: BottomPanel.initialState CurrentStateView
+  , decorationIds: []
   }
 
 toBottomPanel ::
@@ -108,9 +106,10 @@ handleAction StartSimulation =
   void
     $ runMaybeT do
         initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
-        extendedContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _extendedContract <<< _Just)
+        termContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _termContract <<< _Just)
         templateContent <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent)
-        (contract :: S.Contract) <- hoistMaybe $ toCore $ fillTemplate templateContent (extendedContract :: EM.Contract)
+        let
+          contract = fillTemplate templateContent termContract
         -- The marloweState is a non empty list of an object that includes the ExecutionState (SimulationRunning | SimulationNotStarted)
         -- Inside the SimulationNotStarted we can find the information needed to start the simulation. By running
         -- this code inside of a maybeT, we make sure that the Head of the list has the state SimulationNotStarted
@@ -162,11 +161,9 @@ handleAction Undo = do
 handleAction (LoadContract contents) = do
   liftEffect $ SessionStorage.setItem simulatorBufferLocalStorageKey contents
   let
-    mExtendedContract = do
-      termContract <- hush $ parseContract contents
-      fromTerm termContract :: Maybe EM.Contract
-  assign _marloweState $ NEL.singleton $ emptyMarloweState mExtendedContract
-  updateContractInEditor
+    mTermContract = hush $ parseContract contents
+  assign _marloweState $ NEL.singleton $ emptyMarloweState mTermContract
+  editorSetValue contents
 
 handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
@@ -300,10 +297,13 @@ updateContractInEditor ::
   MonadAsk Env m =>
   HalogenM State Action ChildSlots Void m Unit
 updateContractInEditor = do
-  executionState <- use (_currentMarloweState <<< _executionState)
-  editorSetValue
-    ( case executionState of
-        SimulationRunning runningState -> show $ genericPretty runningState.contract
-        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors
-    )
+  mContract <- peruse _currentContract
+  decorationIds <- use _decorationIds
+  for_ (getLocation <$> mContract) \loc -> case loc of
+    Range r -> do
+      let
+        decorationOptions = { isWholeLine: false, className: "monaco-simulation-text-decoration", linesDecorationsClassName: "monaco-simulation-line-decoration" }
+      mNewDecorationIds <- query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations decorationIds [ { range: r, options: decorationOptions } ] identity
+      for_ mNewDecorationIds (assign _decorationIds)
+    _ -> pure unit
   setOraclePrice

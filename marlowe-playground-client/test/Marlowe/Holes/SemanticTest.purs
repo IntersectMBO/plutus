@@ -10,8 +10,9 @@ import Data.Maybe (Maybe(..), maybe')
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.ContractForDifferences as ContractForDifferences
-import Marlowe.Extended (TemplateContent(..), fillTemplate, toCore)
+import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Holes (Term, fromTerm)
 import Marlowe.Holes as T
 import Marlowe.Parser (parseContract)

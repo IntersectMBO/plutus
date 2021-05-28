@@ -10,13 +10,14 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List.Types (NonEmptyList)
-import Data.Profunctor.Choice (class Choice)
-import Data.Profunctor.Strong (class Strong)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Profunctor.Choice (class Choice)
+import Data.Profunctor.Strong (class Strong)
 import Data.Symbol (SProxy(..))
-import Marlowe.Semantics (Contract, Party, Payment)
+import Marlowe.Holes (Contract, Term)
+import Marlowe.Semantics (Party, Payment)
 import Simulator.Types (ActionInput, ActionInputId(..), ExecutionState(..), ExecutionStateRecord, InitialConditionsRecord, MarloweEvent(..), Parties, MarloweState, otherActionsParty)
 
 --------------------------------------------------------------------------
@@ -86,8 +87,8 @@ _payments = _log <<< to (mapMaybe f)
 _initialSlot :: forall s a. Lens' { initialSlot :: a | s } a
 _initialSlot = prop (SProxy :: SProxy "initialSlot")
 
-_extendedContract :: forall s a. Lens' { extendedContract :: a | s } a
-_extendedContract = prop (SProxy :: SProxy "extendedContract")
+_termContract :: forall s a. Lens' { termContract :: a | s } a
+_termContract = prop (SProxy :: SProxy "termContract")
 
 _templateContent :: forall s a. Lens' { templateContent :: a | s } a
 _templateContent = prop (SProxy :: SProxy "templateContent")
@@ -138,5 +139,5 @@ _marloweState = prop (SProxy :: SProxy "marloweState")
 _currentMarloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } MarloweState
 _currentMarloweState = _marloweState <<< _Head
 
-_currentContract :: forall s p. Strong p => Choice p => Optic' p { marloweState :: NonEmptyList MarloweState | s } Contract
+_currentContract :: forall s p. Strong p => Choice p => Optic' p { marloweState :: NonEmptyList MarloweState | s } (Term Contract)
 _currentContract = _currentMarloweState <<< _executionState <<< _SimulationRunning <<< _contract

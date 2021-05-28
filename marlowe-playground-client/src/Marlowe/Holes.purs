@@ -1,3 +1,4 @@
+-- TODO: Rename to Marlowe.Term
 module Marlowe.Holes where
 
 import Prelude
@@ -17,7 +18,7 @@ import Data.List (List(..), fromFoldable, (:))
 import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set (Set)
 import Data.Set as Set
@@ -31,8 +32,9 @@ import Effect.Exception.Unsafe (unsafeThrow)
 import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
 import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
-import Marlowe.Semantics (CurrencySymbol, IntervalResult(..), PubKey, Rational(..), TokenName, _slotInterval, fixInterval, ivFrom, ivTo)
+import Marlowe.Semantics (class HasTimeout, CurrencySymbol, IntervalResult(..), PubKey, Rational(..), Timeouts(..), TokenName, _slotInterval, fixInterval, ivFrom, ivTo, timeouts)
 import Marlowe.Semantics as S
+import Marlowe.Template (class Fillable, class Template, Placeholders(..), TemplateContent(..), fillTemplate, getPlaceholderIds)
 import Monaco (IRange)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
 import Text.Pretty as P
@@ -369,6 +371,18 @@ instance hasArgsTerm :: Args a => Args (Term a) where
   hasNestedArgs (Term a _) = hasNestedArgs a
   hasNestedArgs _ = false
 
+instance templateTerm :: (Template a b, Monoid b) => Template (Term a) b where
+  getPlaceholderIds (Term a _) = getPlaceholderIds a
+  getPlaceholderIds (Hole _ _ _) = mempty
+
+instance fillableTerm :: Fillable a b => Fillable (Term a) b where
+  fillTemplate b (Term a loc) = Term (fillTemplate b a) loc
+  fillTemplate b a = a
+
+instance hasTimeoutTerm :: HasTimeout a => HasTimeout (Term a) where
+  timeouts (Term a _) = timeouts a
+  timeouts (Hole _ _ _) = Timeouts { maxTime: zero, minTime: Nothing }
+
 mkHole :: forall a. String -> Location -> Term a
 mkHole name range = Hole name Proxy range
 
@@ -547,6 +561,18 @@ instance hasArgsTimeout :: Args Timeout where
   hasNestedArgs (Slot _) = false
   hasNestedArgs x = genericHasNestedArgs x
 
+instance templateTimeout :: Template Timeout Placeholders where
+  getPlaceholderIds (SlotParam slotParamId) = Placeholders (unwrap (mempty :: Placeholders)) { slotPlaceholderIds = Set.singleton slotParamId }
+  getPlaceholderIds (Slot x) = mempty
+
+instance fillableTimeout :: Fillable Timeout TemplateContent where
+  fillTemplate placeholders v@(SlotParam slotParamId) = maybe v Slot $ Map.lookup slotParamId (unwrap placeholders).slotContent
+  fillTemplate _ (Slot x) = Slot x
+
+instance hasTimeoutTimeout :: HasTimeout Timeout where
+  timeouts (Slot slot) = Timeouts { maxTime: (S.Slot slot), minTime: Just (S.Slot slot) }
+  timeouts (SlotParam _) = Timeouts { maxTime: zero, minTime: Nothing }
+
 instance timeoutFromTerm :: FromTerm Timeout EM.Timeout where
   fromTerm (Slot b) = pure $ EM.Slot b
   fromTerm (SlotParam b) = pure $ EM.SlotParam b
@@ -677,6 +703,20 @@ instance hasArgsAction :: Args Action where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateAction :: Template Action Placeholders where
+  getPlaceholderIds (Deposit accId party tok val) = getPlaceholderIds val
+  getPlaceholderIds (Choice choId bounds) = mempty
+  getPlaceholderIds (Notify obs) = getPlaceholderIds obs
+
+instance fillableAction :: Fillable Action TemplateContent where
+  fillTemplate placeholders action = case action of
+    Deposit accId party tok val -> Deposit accId party tok $ go val
+    Choice _ _ -> action
+    Notify obs -> Notify $ go obs
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
 instance actionFromTerm :: FromTerm Action EM.Action where
   fromTerm (Deposit a b c d) = EM.Deposit <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
   fromTerm (Choice a b) = EM.Choice <$> fromTerm a <*> (traverse fromTerm b)
@@ -743,8 +783,25 @@ instance hasArgsCase :: Args Case where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateCase :: Template Case Placeholders where
+  getPlaceholderIds (Case act c) = getPlaceholderIds act <> getPlaceholderIds c
+
+instance fillableCase :: Fillable Case TemplateContent where
+  fillTemplate placeholders (Case act c) = Case (go act) (go c)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
+instance hasTimeoutCase :: HasTimeout Case where
+  timeouts (Case _ contract) = timeouts contract
+
 instance caseFromTerm :: FromTerm Case EM.Case where
   fromTerm (Case a b) = EM.Case <$> fromTerm a <*> fromTerm b
+
+instance semanticCaseFromTerm :: FromTerm Case S.Case where
+  fromTerm termCase = do
+    (emCase :: EM.Case) <- fromTerm termCase
+    toCore emCase
 
 instance caseMarloweType :: IsMarloweType Case where
   marloweType _ = CaseType
@@ -782,6 +839,40 @@ instance prettyValue :: Pretty Value where
 instance hasArgsValue :: Args Value where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
+
+instance templateValue :: Template Value Placeholders where
+  getPlaceholderIds (ConstantParam constantParamId) = Placeholders (unwrap (mempty :: Placeholders)) { valuePlaceholderIds = Set.singleton constantParamId }
+  getPlaceholderIds (Constant _) = mempty
+  getPlaceholderIds (AvailableMoney _ _) = mempty
+  getPlaceholderIds (NegValue v) = getPlaceholderIds v
+  getPlaceholderIds (AddValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (SubValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (MulValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (Scale _ v) = getPlaceholderIds v
+  getPlaceholderIds (ChoiceValue _) = mempty
+  getPlaceholderIds SlotIntervalStart = mempty
+  getPlaceholderIds SlotIntervalEnd = mempty
+  getPlaceholderIds (UseValue _) = mempty
+  getPlaceholderIds (Cond obs lhs rhs) = getPlaceholderIds obs <> getPlaceholderIds lhs <> getPlaceholderIds rhs
+
+instance fillableValue :: Fillable Value TemplateContent where
+  fillTemplate placeholders val = case val of
+    Constant _ -> val
+    ConstantParam constantParamId -> maybe val Constant $ Map.lookup constantParamId (unwrap placeholders).valueContent
+    AvailableMoney _ _ -> val
+    NegValue v -> NegValue $ go v
+    AddValue lhs rhs -> AddValue (go lhs) (go rhs)
+    SubValue lhs rhs -> SubValue (go lhs) (go rhs)
+    MulValue lhs rhs -> MulValue (go lhs) (go rhs)
+    Scale f v -> Scale f $ go v
+    ChoiceValue _ -> val
+    SlotIntervalStart -> val
+    SlotIntervalEnd -> val
+    UseValue _ -> val
+    Cond obs lhs rhs -> Cond (go obs) (go lhs) (go rhs)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
 
 instance valueFromTerm :: FromTerm Value EM.Value where
   fromTerm (AvailableMoney a b) = EM.AvailableMoney <$> fromTerm a <*> fromTerm b
@@ -846,6 +937,36 @@ instance hasArgsObservation :: Args Observation where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateObservation :: Template Observation Placeholders where
+  getPlaceholderIds (AndObs lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (OrObs lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (NotObs v) = getPlaceholderIds v
+  getPlaceholderIds (ChoseSomething _) = mempty
+  getPlaceholderIds (ValueGE lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueGT lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueLT lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueLE lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueEQ lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds TrueObs = mempty
+  getPlaceholderIds FalseObs = mempty
+
+instance fillableObservation :: Fillable Observation TemplateContent where
+  fillTemplate placeholders obs = case obs of
+    AndObs lhs rhs -> AndObs (go lhs) (go rhs)
+    OrObs lhs rhs -> OrObs (go lhs) (go rhs)
+    NotObs v -> NotObs (go v)
+    ChoseSomething _ -> obs
+    ValueGE lhs rhs -> ValueGE (go lhs) (go rhs)
+    ValueGT lhs rhs -> ValueGT (go lhs) (go rhs)
+    ValueLT lhs rhs -> ValueLT (go lhs) (go rhs)
+    ValueLE lhs rhs -> ValueLE (go lhs) (go rhs)
+    ValueEQ lhs rhs -> ValueEQ (go lhs) (go rhs)
+    TrueObs -> obs
+    FalseObs -> obs
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
 instance observationFromTerm :: FromTerm Observation EM.Observation where
   fromTerm (AndObs a b) = EM.AndObs <$> fromTerm a <*> fromTerm b
   fromTerm (OrObs a b) = EM.OrObs <$> fromTerm a <*> fromTerm b
@@ -900,6 +1021,45 @@ instance prettyContract :: Pretty Contract where
 instance hasArgsContract :: Args Contract where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
+
+-- FIXME: Add a property based test to check that the template implementation for Terms is the
+--        same as Extended
+instance templateContract :: Template Contract Placeholders where
+  getPlaceholderIds Close = mempty
+  getPlaceholderIds (Pay accId payee tok val cont) = getPlaceholderIds val <> getPlaceholderIds cont
+  getPlaceholderIds (If obs cont1 cont2) = getPlaceholderIds obs <> getPlaceholderIds cont1 <> getPlaceholderIds cont2
+  getPlaceholderIds (When cases tim cont) = foldMap getPlaceholderIds cases <> getPlaceholderIds tim <> getPlaceholderIds cont
+  getPlaceholderIds (Let varId val cont) = getPlaceholderIds val <> getPlaceholderIds cont
+  getPlaceholderIds (Assert obs cont) = getPlaceholderIds obs <> getPlaceholderIds cont
+
+-- FIXME: Add a property based test to check that the template implementation for Terms is the
+--        same as Extended
+instance fillableContract :: Fillable Contract TemplateContent where
+  fillTemplate placeholders contract = case contract of
+    Close -> Close
+    Pay accId payee tok val cont -> Pay accId payee tok (go val) (go cont)
+    If obs cont1 cont2 -> If (go obs) (go cont1) (go cont2)
+    When cases tim cont -> When (map go cases) (go tim) (go cont)
+    Let varId val cont -> Let varId (go val) (go cont)
+    Assert obs cont -> Assert (go obs) (go cont)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
+-- FIXME: Add a property based test to check that the template implementation for Terms is the
+--        same as Extended
+instance hasTimeoutContract :: HasTimeout Contract where
+  timeouts Close = Timeouts { maxTime: zero, minTime: Nothing }
+  timeouts (Pay _ _ _ _ contract) = timeouts contract
+  timeouts (If _ contractTrue contractFalse) = timeouts [ contractTrue, contractFalse ]
+  timeouts (When cases timeoutTerm contract) =
+    timeouts
+      [ timeouts cases
+      , timeouts timeoutTerm
+      , timeouts contract
+      ]
+  timeouts (Let _ _ contract) = timeouts contract
+  timeouts (Assert _ contract) = timeouts contract
 
 instance contractFromTerm :: FromTerm Contract EM.Contract where
   fromTerm Close = pure EM.Close

@@ -21,6 +21,7 @@ import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Index (hasProperty)
 import Marlowe.Semantics (decodeProp)
 import Marlowe.Semantics as S
+import Marlowe.Template (class Fillable, class Template, Placeholders(..), TemplateContent(..), fillTemplate, getPlaceholderIds)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, pretty)
 
 data ContractType
@@ -96,74 +97,7 @@ instance decodeJsonContractType :: Decode ContractType where
 class ToCore a b where
   toCore :: a -> Maybe b
 
--- TODO: Move to Marlowe.Extended.Template
-newtype Placeholders
-  = Placeholders
-  { slotPlaceholderIds :: Set String
-  , valuePlaceholderIds :: Set String
-  }
-
-derive instance newTypePlaceholders :: Newtype Placeholders _
-
-derive newtype instance semigroupPlaceholders :: Semigroup Placeholders
-
-derive newtype instance monoidPlaceholders :: Monoid Placeholders
-
--- TODO: Move to Marlowe.Extended.Template
-data IntegerTemplateType
-  = SlotContent
-  | ValueContent
-
-newtype TemplateContent
-  = TemplateContent
-  { slotContent :: Map String BigInteger
-  , valueContent :: Map String BigInteger
-  }
-
-_slotContent :: Lens' TemplateContent (Map String BigInteger)
-_slotContent = _Newtype <<< prop (SProxy :: SProxy "slotContent")
-
-_valueContent :: Lens' TemplateContent (Map String BigInteger)
-_valueContent = _Newtype <<< prop (SProxy :: SProxy "valueContent")
-
-typeToLens :: IntegerTemplateType -> Lens' TemplateContent (Map String BigInteger)
-typeToLens SlotContent = _slotContent
-
-typeToLens ValueContent = _valueContent
-
-derive instance newTypeTemplateContent :: Newtype TemplateContent _
-
-derive newtype instance semigroupTemplateContent :: Semigroup TemplateContent
-
-derive newtype instance monoidTemplateContent :: Monoid TemplateContent
-
-initializeWith :: forall a b. Ord a => (a -> b) -> Set a -> Map a b
-initializeWith f = foldMap (\x -> Map.singleton x $ f x)
-
-initializeTemplateContent :: Placeholders -> TemplateContent
-initializeTemplateContent ( Placeholders
-    { slotPlaceholderIds, valuePlaceholderIds }
-) =
-  TemplateContent
-    { slotContent: initializeWith (const one) slotPlaceholderIds
-    , valueContent: initializeWith (const zero) valuePlaceholderIds
-    }
-
-updateTemplateContent :: Placeholders -> TemplateContent -> TemplateContent
-updateTemplateContent ( Placeholders { slotPlaceholderIds, valuePlaceholderIds }
-) (TemplateContent { slotContent, valueContent }) =
-  TemplateContent
-    { slotContent: initializeWith (\x -> fromMaybe one $ Map.lookup x slotContent) slotPlaceholderIds
-    , valueContent: initializeWith (\x -> fromMaybe zero $ Map.lookup x valueContent) valuePlaceholderIds
-    }
-
--- TODO: Move to Marlowe.Extended.Template
-class Template a b where
-  getPlaceholderIds :: a -> b
-
-class Fillable a b where
-  fillTemplate :: b -> a -> a
-
+-- TODO: Should this be in here or in Marlowe.Template?
 class HasChoices a where
   getChoiceNames :: a -> Set String
 

@@ -15,3 +15,6 @@ _helpContext = prop (SProxy :: SProxy "helpContext")
 
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
+
+_decorationIds :: Lens' State (Array String)
+_decorationIds = prop (SProxy :: SProxy "decorationIds")

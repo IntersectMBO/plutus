@@ -28,10 +28,11 @@ import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..),
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (postRunghc)
-import Marlowe.Extended (Contract, getPlaceholderIds, typeToLens, updateTemplateContent)
+import Marlowe.Extended (Contract)
 import Marlowe.Extended.Metadata (MetadataHintInfo, getMetadataHintInfo)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
+import Marlowe.Template (getPlaceholderIds, typeToLens, updateTemplateContent)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
