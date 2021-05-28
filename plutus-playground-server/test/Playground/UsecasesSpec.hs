@@ -1,6 +1,7 @@
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 module Playground.UsecasesSpec
@@ -119,42 +120,42 @@ vestingTest =
         , testCase "should run simple evaluation" $
           evaluate (mkEvaluation []) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 hundredKLovelace
-              , mkSimulatorWallet w2 hundredKLovelace
+              [ mkSimulatorWallet w1 hundredMLovelace
+              , mkSimulatorWallet w2 hundredMLovelace
               ]
         , testCase "should run simple wait evaluation" $
           evaluate (mkEvaluation [AddBlocks 10]) >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 hundredKLovelace
-              , mkSimulatorWallet w2 hundredKLovelace
+              [ mkSimulatorWallet w1 hundredMLovelace
+              , mkSimulatorWallet w2 hundredMLovelace
               ]
         , testCase "should run vest funds evaluation" $
           evaluate vestFundsEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ hundredKLovelace
-              , mkSimulatorWallet w2 $ lovelaceValueOf 99992
+              [ mkSimulatorWallet w1 hundredMLovelace
+              , mkSimulatorWallet w2 $ lovelaceValueOf 20_000_000
               ]
         , testCase "should run vest and a partial retrieve of funds" $
           evaluate vestAndPartialRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 100005
-              , mkSimulatorWallet w2 $ lovelaceValueOf 99992
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 150_000_000
+              , mkSimulatorWallet w2 $ lovelaceValueOf 20_000_000
               ]
         , testCase "should run vest and a full retrieve of funds" $
           evaluate vestAndFullRetrieveEval >>=
           hasFundsDistribution
-              [ mkSimulatorWallet w1 $ lovelaceValueOf 100008
-              , mkSimulatorWallet w2 $ lovelaceValueOf 99992
+              [ mkSimulatorWallet w1 $ lovelaceValueOf 180_000_000
+              , mkSimulatorWallet w2 $ lovelaceValueOf 20_000_000
               ]
         ]
   where
-    hundredKLovelace = lovelaceValueOf 100000
+    hundredMLovelace = lovelaceValueOf 100_000_000
     mkEvaluation :: [Expression] -> Evaluation
     mkEvaluation expressions =
         Evaluation
             { wallets =
-                  [ mkSimulatorWallet w1 hundredKLovelace
-                  , mkSimulatorWallet w2 hundredKLovelace
+                  [ mkSimulatorWallet w1 hundredMLovelace
+                  , mkSimulatorWallet w2 hundredMLovelace
                   ]
             , sourceCode = vesting
             , program = toJSONString expressions
@@ -162,10 +163,10 @@ vestingTest =
     vestFundsEval = mkEvaluation [vestFunds w2, AddBlocks 1]
     vestAndPartialRetrieveEval =
         mkEvaluation
-            [vestFunds w2, AddBlocks 20, retrieveFunds w1 5, AddBlocks 1]
+            [vestFunds w2, AddBlocks 20, retrieveFunds w1 50_000_000, AddBlocks 1]
     vestAndFullRetrieveEval =
         mkEvaluation
-            [vestFunds w2, AddBlocks 40, retrieveFunds w1 8, AddBlocks 5]
+            [vestFunds w2, AddBlocks 40, retrieveFunds w1 80_000_000, AddBlocks 5]
     vestFunds caller = callEndpoint "vest funds" caller ()
     retrieveFunds caller balance =
         callEndpoint "retrieve funds" caller $ lovelaceValueOf balance
@@ -242,7 +243,7 @@ hasFundsDistribution requiredDistribution (Right InterpreterResult {result = Eva
     let noFeesDistribution = zipWith addFees fundsDistribution feesDistribution
     unless (requiredDistribution == noFeesDistribution) $ do
         Text.putStrLn $
-            either id id $ showBlockchain walletKeys $ fmap (fmap (\(AnnotatedTx {tx, valid}) -> if valid then Valid tx else Invalid tx)) resultRollup
+            either id id $ showBlockchain walletKeys $ fmap (fmap (\AnnotatedTx {tx, valid} -> if valid then Valid tx else Invalid tx)) resultRollup
         traverse_ print $ reverse emulatorLog
     assertEqual "" requiredDistribution noFeesDistribution
 
