@@ -330,6 +330,57 @@ executable plutus-pay-to-wallet
         plutus-ledger-api -any,
         plutus-contract -any
 
+executable plutus-pab-test-psgenerator
+    default-language: Haskell2010
+    hs-source-dirs:
+        test-psgenerator,
+        test,
+        examples/pay-to-wallet-contract,
+        examples/atomic-swap-contract
+    type: exitcode-stdio-1.0
+    main-is: TestPSGenerator.hs
+    other-modules:
+        AtomicSwap
+        PayToWallet
+        Plutus.PAB.Effects.Contract.ContractTest
+        Plutus.PAB.Simulator.Test
+    build-depends:
+        QuickCheck -any,
+        aeson -any,
+        aeson-pretty -any,
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        eventful-core -any,
+        eventful-memory -any,
+        freer-extras -any,
+        freer-simple -any,
+        http-client -any,
+        http-client-tls -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        plutus-contract -any,
+        plutus-pab,
+        plutus-use-cases -any,
+        plutus-ledger -any,
+        quickcheck-instances -any,
+        servant-client -any,
+        tasty -any,
+        tasty-hunit -any,
+        smallcheck -any,
+        tasty-smallcheck -any,
+        tasty-quickcheck -any,
+        text -any,
+        transformers -any,
+        prettyprinter -any,
+        row-types -any,
+        plutus-tx -any,
+        playground-common -any,
+        servant-purescript -any,
+        purescript-bridge -any,
+        filepath -any
+
 test-suite plutus-pab-test
     default-language: Haskell2010
     hs-source-dirs:

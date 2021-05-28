@@ -1,11 +1,13 @@
 { pkgs, gitignore-nix, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules, filterNpm }:
 let
   server-invoker = haskell.packages.plutus-pab.components.exes.plutus-pab;
+  plutus-pab-test-psgenerator = haskell.packages.plutus-pab.components.exes.plutus-pab-test-psgenerator;
 
   generated-purescript = pkgs.runCommand "plutus-pab-purescript" { } ''
     mkdir $out
     ln -s ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
     ${server-invoker}/bin/plutus-pab psgenerator $out
+    ${plutus-pab-test-psgenerator}/bin/plutus-pab-test-psgenerator $out
   '';
 
   # For dev usage
