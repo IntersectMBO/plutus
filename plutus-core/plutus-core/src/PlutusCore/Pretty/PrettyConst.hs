@@ -49,7 +49,7 @@ type appearing in a universe of built-in types.
 
 Setting up our own machinery for overloading pretty-printing behavior would be laborious,
 but fortunately the @prettyprinter-configurable@ library already provides us with all the tools
-for doing that and so we define a dummy config for pretty-printing constans, implement a bunch of
+for doing that and so we define a dummy config for pretty-printing constants, implement a bunch of
 instances and derive pretty-printing behavior for non-polymorphic types (including how lists of
 such types are pretty-printed) via 'Show'. However always pretty-printing the spine of, say, a list
 via 'Show' while pretty-printing its contents via 'PrettyConst' is not something that can be easily

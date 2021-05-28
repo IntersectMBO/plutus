@@ -61,7 +61,7 @@ lexical analysis upfront.
 
 So at the moment we don't do anything correctly. Neither PLC nor PIR can handle lists of lists
 and none of them can handle tuples at all ('Read' provides us with overloaded parsing for lists
-but not tuples, hence the difference) and PIR, doing its own broken lexical analysis, fails o
+but not tuples, hence the difference) and PIR, doing its own broken lexical analysis, fails on
 things like @(con string "yes (no)")@.
 
 This mess needs to be fixed at some point. It seems that dumping Happy and using megaparsec

@@ -105,7 +105,7 @@ instance ToKind DefaultUni where
     toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
     toKind DefaultUniProtoPair      = kindOf DefaultUniProtoPair
     toKind (DefaultUniApply uniF _) = case toKind uniF of
-        -- We can using @error@ here by having more type astronautics with 'Typeable',
+        -- We can avoid using @error@ here by having more type astronautics with 'Typeable',
         -- but having @error@ should be fine.
         Type _            -> error "Panic: a type function can't be of type *"
         KindArrow _ _ cod -> cod
