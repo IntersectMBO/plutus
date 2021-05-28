@@ -1095,11 +1095,11 @@ reduceContractUntilQuiescent env startState term@(Term startContract _) = do
 
     termsStep = reduceContractStep env startState startContract
   case semanticStep /\ termsStep of
-    (S.Reduced _ _ newState _ /\ Reduced newContract) -> reduceContractUntilQuiescent env newState newContract
-    -- This case is thought the Close contract, because in the semantic version, running a contract step
+    S.Reduced _ _ newState _ /\ Reduced newContract -> reduceContractUntilQuiescent env newState newContract
+    -- This case is thought for the Close contract, because in the semantic version, running a contract step
     -- can do a payment (so the state is reduced), but in this version the close is never reduced
-    (S.Reduced _ _ newState _ /\ NotReduced) -> reduceContractUntilQuiescent env newState term
-    (S.NotReduced /\ NotReduced) -> Just (startState /\ term)
+    S.Reduced _ _ newState S.Close /\ NotReduced -> Just (startState /\ term)
+    S.NotReduced /\ NotReduced -> Just (startState /\ term)
     _ -> Nothing
 
 reduceContractUntilQuiescent _ _ (Hole _ _ _) = Nothing
@@ -1121,10 +1121,11 @@ reduceContractStep env state contract = case contract of
   Pay accId payee tok val cont -> Reduced cont
   If obsTerm cont1 cont2 -> case fromTerm obsTerm of
     Just obs ->
-      if S.evalObservation env state obs then
-        Reduced cont1
-      else
-        Reduced cont2
+      Reduced
+        if S.evalObservation env state obs then
+          cont1
+        else
+          cont2
     Nothing -> ReduceError "this function should not be called in a contract with holes"
   When _ (Hole _ _ _) _ -> ReduceError "this function should not be called in a contract with holes"
   When _ (Term (SlotParam _) _) _ -> ReduceError "this function should not be called with slot params"
