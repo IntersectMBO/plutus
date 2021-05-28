@@ -153,6 +153,8 @@ dissect-lemma (wrap E)   F
 dissect-lemma (unwrap E) F
   rewrite dissect-lemma E F = refl
 
+open import Builtin
+
 lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) -→s (E ◅ V)
 lemV .(ƛ M)        (V-ƛ M)      E = step* refl base
 lemV .(Λ M)        (V-Λ M)      E = step* refl base
@@ -163,8 +165,231 @@ lemV .(wrap _ _ _) (V-wrap V)   E = step*
     (step* (cong (stepV V) (dissect-lemma E wrap-))
            base))
 lemV .(con cn)     (V-con cn)   E = step* refl base
-lemV M (V-I⇒ b p q) E = {!!}
-lemV M (V-IΠ b p x) E = {!!}
+-- v a brute force proof by pattern matching on builtins
+lemV .(ibuiltin addInteger)
+     (V-I⇒ addInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin addInteger · _)
+     (V-I⇒ addInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ addInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+lemV .(ibuiltin subtractInteger)
+     (V-I⇒ subtractInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin subtractInteger · _)
+     (V-I⇒ subtractInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ subtractInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+
+lemV .(ibuiltin multiplyInteger)
+     (V-I⇒ multiplyInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin multiplyInteger · _)
+     (V-I⇒ multiplyInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ multiplyInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+
+lemV .(ibuiltin divideInteger)
+     (V-I⇒ divideInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin divideInteger · _)
+     (V-I⇒ divideInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ divideInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+
+
+lemV .(ibuiltin quotientInteger)
+     (V-I⇒ quotientInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin quotientInteger · _)
+     (V-I⇒ quotientInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ quotientInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+
+lemV .(ibuiltin remainderInteger)
+     (V-I⇒ remainderInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin remainderInteger · _)
+     (V-I⇒ remainderInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ remainderInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+lemV .(ibuiltin modInteger)
+     (V-I⇒ modInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin modInteger · _)
+     (V-I⇒ modInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ modInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+lemV .(ibuiltin lessThanInteger)
+     (V-I⇒ lessThanInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin lessThanInteger · _)
+     (V-I⇒ lessThanInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ lessThanInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+lemV .(ibuiltin lessThanEqualsInteger)
+     (V-I⇒ lessThanEqualsInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin lessThanEqualsInteger · _)
+     (V-I⇒ lessThanEqualsInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ lessThanEqualsInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+lemV .(ibuiltin greaterThanInteger)
+     (V-I⇒ greaterThanInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin greaterThanInteger · _)
+     (V-I⇒ greaterThanInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ greaterThanInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+
+lemV .(ibuiltin greaterThanEqualsInteger)
+     (V-I⇒ greaterThanEqualsInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin greaterThanEqualsInteger · _)
+     (V-I⇒ greaterThanEqualsInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ greaterThanEqualsInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+lemV .(ibuiltin equalsInteger)
+     (V-I⇒ equalsInteger (start .(Term ∷ Term ∷ [])) base)
+     E = step* refl base
+lemV .(ibuiltin equalsInteger · _)
+     (V-I⇒ equalsInteger (bubble (start .(Term ∷ Term ∷ [])))
+     (step .(start (Term ∷ Term ∷ [])) base v))
+     E = step*
+  refl
+  (step*
+    refl
+    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
+           (step**
+             (lemV (deval v) v (extEC E (_ ·-)))
+             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ equalsInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
+  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
+... | X ,, () ,, Y'
+lemV M (V-I⇒ concatenate p q) E = {!!}
+lemV M (V-I⇒ takeByteString p q) E = {!!}
+lemV M (V-I⇒ dropByteString p q) E = {!!}
+lemV M (V-I⇒ lessThanByteString p q) E = {!!}
+lemV M (V-I⇒ greaterThanByteString p q) E = {!!}
+lemV M (V-I⇒ sha2-256 p q) E = {!!}
+lemV M (V-I⇒ sha3-256 p q) E = {!!}
+lemV M (V-I⇒ verifySignature p q) E = {!!}
+lemV M (V-I⇒ equalsByteString p q) E = {!!}
+lemV M (V-I⇒ ifThenElse p q) E = {!!}
+lemV M (V-I⇒ charToString p q) E = {!!}
+lemV M (V-I⇒ append p q) E = {!!}
+lemV M (V-I⇒ trace p q) E = {!!}
+lemV M (V-IΠ b p q) E = {!!}
 
 lem62 : ∀{A B C}(L : ∅ ⊢ C)(E : EC A B)(E' : EC B C)
       → (E ▻ (E' [ L ]ᴱ)) -→s (compEC' E E' ▻ L)
@@ -177,3 +402,4 @@ lem62 L E (VM ·r E')  = step* refl (step**
 lem62 L E (E' ·⋆ A)   = step* refl (lem62 L (extEC E (-·⋆ A)) E')
 lem62 L E (wrap E')   = step* refl (lem62 L (extEC E wrap-) E')
 lem62 L E (unwrap E') = step* refl (lem62 L (extEC E unwrap-) E')
+
