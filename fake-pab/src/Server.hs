@@ -555,9 +555,15 @@ getTransactionInfo conn = do
   return (Map.fromList [(fromRatio transactionId, (publicKey, fmap fromRatio maybeSlot, maybeReason))
                         | (transactionId, publicKey, maybeSlot, maybeReason) <- result])
 
+
 miner :: Connection -> IO ()
-miner conn =
-  do before <- getCurrentTime
+miner conn = do
+    threadDelay 1000000
+    miner_aux conn
+  where
+  miner_aux :: Connection -> IO ()
+  miner_aux conn = do
+     before <- getCurrentTime
      -- Create slot placeholder
      [Only result] <- query_ conn
                         [sql| WITH new_slot AS (INSERT INTO slot DEFAULT VALUES
@@ -583,5 +589,5 @@ miner conn =
 
      after <- getCurrentTime
      threadDelay $ max 0 (round (1000000 - nominalDiffTimeToSeconds (diffUTCTime after before) * 1000000))
-     miner conn
+     miner_aux conn
 
