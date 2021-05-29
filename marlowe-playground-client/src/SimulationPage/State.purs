@@ -37,7 +37,7 @@ import Effect.Console (log)
 import Env (Env)
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
-import Halogen (HalogenM, get, query)
+import Halogen (HalogenM, get, query, tell)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Query(..)) as Monaco
 import Help (HelpContext(..))
@@ -305,5 +305,6 @@ updateContractInEditor = do
         decorationOptions = { isWholeLine: false, className: "monaco-simulation-text-decoration", linesDecorationsClassName: "monaco-simulation-line-decoration" }
       mNewDecorationIds <- query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations decorationIds [ { range: r, options: decorationOptions } ] identity
       for_ mNewDecorationIds (assign _decorationIds)
+      void $ query _simulatorEditorSlot unit $ tell $ Monaco.RevealRange r
     _ -> pure unit
   setOraclePrice

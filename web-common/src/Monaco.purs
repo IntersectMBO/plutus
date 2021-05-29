@@ -271,6 +271,8 @@ foreign import registerDocumentFormattingEditProvider_ :: EffectFn3 Monaco Strin
 
 foreign import setPosition_ :: EffectFn2 Editor IPosition Unit
 
+foreign import revealRangeInCenter_ :: EffectFn2 Editor IRange Unit
+
 foreign import revealLine_ :: EffectFn2 Editor Int Unit
 
 foreign import layout_ :: EffectFn1 Editor Unit
@@ -367,6 +369,9 @@ registerDocumentFormattingEditProvider = runEffectFn3 registerDocumentFormatting
 
 setPosition :: Editor -> IPosition -> Effect Unit
 setPosition = runEffectFn2 setPosition_
+
+revealRangeInCenter :: Editor -> IRange -> Effect Unit
+revealRangeInCenter = runEffectFn2 revealRangeInCenter_
 
 revealLine :: Editor -> Int -> Effect Unit
 revealLine = runEffectFn2 revealLine_

@@ -96,6 +96,7 @@ data Query a
   | GetDecorationRange String (IRange -> a)
   | SetDeltaDecorations (Array String) (Array IModelDeltaDecoration) (Array String -> a)
   | SetPosition IPosition a
+  | RevealRange IRange a
   | Focus a
   | Resize a
   | SetTheme String a
@@ -262,6 +263,11 @@ handleQuery (SetPosition position next) = do
   withEditor \editor -> do
     liftEffect $ Monaco.setPosition editor position
     liftEffect $ Monaco.revealLine editor position.lineNumber
+    pure next
+
+handleQuery (RevealRange range next) = do
+  withEditor \editor -> do
+    liftEffect $ Monaco.revealRangeInCenter editor range
     pure next
 
 handleQuery (Focus next) = do
