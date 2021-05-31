@@ -57,19 +57,15 @@ let
 
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
-    # pkgs.sqlite-analyzer -- Broken on 20.03, needs a backport
-    awscli
     cacert
     ghcid
     morph
     niv
     nixpkgs-fmt
     nodejs
-    pass
     shellcheck
     sqlite-interactive
     stack
-    terraform
     z3
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
@@ -119,13 +115,5 @@ haskell.project.shellFor {
   # affinity APIs!
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
-  ''
-  # It's handy to have an environment variable for the project root (assuming people
-  # normally start the shell from there.
-  # We also use it in a deployment hack.
-  # We have a local passwords store that we use for deployments etc.
-  + ''
-    #export PLUTUS_ROOT=$(pwd)
-    #export PASSWORD_STORE_DIR="$(pwd)/secrets"
   '';
 }
