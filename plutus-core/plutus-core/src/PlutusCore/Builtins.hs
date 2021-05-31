@@ -316,6 +316,8 @@ instance Serialise DefaultFun where
               go 22 = pure CharToString
               go 23 = pure Append
               go 28 = pure EqualsString
+              go 29 = pure EncodeUtf8
+              go 30 = pure DecodeUtf8
               go 24 = pure Trace
               go 25 = pure Nop1
               go 26 = pure Nop2
