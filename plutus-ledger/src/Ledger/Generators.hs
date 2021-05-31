@@ -169,16 +169,16 @@ genValidTransactionSpending' :: MonadGen m
     -> Ada
     -> m Tx
 genValidTransactionSpending' g f ins totalVal = do
-    let fee = estimateFee f (fromIntegral $ length ins) 3
+    let fee' = estimateFee f (fromIntegral $ length ins) 3
         numOut = Set.size $ gmPubKeys g
-    if fee < totalVal
+    if fee' < totalVal
         then do
-            let sz = totalVal - fee
+            let sz = totalVal - fee'
             outVals <- fmap Ada.toValue <$> splitVal numOut sz
             let tx = mempty
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
-                        , txFee = Ada.toValue fee
+                        , txFee = Ada.toValue fee'
                         }
 
                 -- sign the transaction with all three known wallets

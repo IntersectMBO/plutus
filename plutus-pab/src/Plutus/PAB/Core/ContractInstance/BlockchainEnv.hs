@@ -38,8 +38,8 @@ startNodeClient ::
   -> IO BlockchainEnv
 startNodeClient socket slotConfig = do
     env <- STM.atomically emptyBlockchainEnv
-    _ <- Client.runClientNode socket slotConfig $ \block slot -> do
-          STM.atomically $ processBlock env block slot
+    _ <- Client.runChainSync socket slotConfig
+            (\block slot -> STM.atomically $ processBlock env block slot)
     pure env
 
 -- | Interesting addresses and transactions from all the

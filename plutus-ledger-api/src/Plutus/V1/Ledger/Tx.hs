@@ -32,6 +32,7 @@ module Plutus.V1.Ledger.Tx(
     lookupDatum,
     addSignature,
     forge,
+    fee,
     -- ** Hashing transactions
     txId,
     -- ** Stripped transactions
@@ -205,6 +206,11 @@ signatures :: Lens' Tx (Map PubKey Signature)
 signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
+
+fee :: Lens' Tx Value
+fee = lens g s where
+    g = txFee
+    s tx v = tx { txFee = v }
 
 forge :: Lens' Tx Value
 forge = lens g s where
