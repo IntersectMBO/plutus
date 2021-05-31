@@ -37,10 +37,11 @@ import           Text.Pretty.Simple             (pPrint)
 import           Cardano.Node.RandomTx          (generateTx)
 import           Cardano.Node.Types             (MockServerConfig (..))
 import           Cardano.Protocol.Socket.Client (TxSendHandle (..), queueTx, runTxSender)
+import qualified Ledger.Ada                     as Ada
 import           Ledger.Blockchain              (OnChainTx (..))
 import           Ledger.Index                   (UtxoIndex (..), insertBlock)
+import           Ledger.Slot                    (Slot (..))
 import           Ledger.Tx                      (Tx (..))
-import           Plutus.Contract.Trace          (defaultDist)
 import           Plutus.PAB.Types               (Config (..))
 import           Wallet.Emulator                (chainState, txPool, walletPubKey)
 import           Wallet.Emulator.MultiAgent     (emulatorStateInitialDist)
@@ -67,12 +68,15 @@ data AppEnv = AppEnv
   }
 
 -- | This builds the default UTxO index, using 10 wallets.
-initialUtxoIndex :: UtxoIndex
-initialUtxoIndex =
-  let initialTxs =
+initialUtxoIndex :: Config -> UtxoIndex
+initialUtxoIndex config =
+  let dist = Map.fromList $
+               zip (config & nodeServerConfig & mscInitialTxWallets)
+                   (repeat (Ada.adaValueOf 1000_000_000))
+      initialTxs =
         view (chainState . txPool) $
         emulatorStateInitialDist $
-        Map.mapKeys walletPubKey defaultDist
+        Map.mapKeys walletPubKey dist
   in insertBlock (map Valid initialTxs) (UtxoIndex Map.empty)
 
 -- | Starts the producer thread
@@ -83,7 +87,10 @@ runProducer AppEnv{txQueue, stats, utxoIndex} = do
   where
     producer :: GenIO -> UtxoIndex -> IO ()
     producer rng utxo = do
-      tx <- generateTx rng utxo
+      -- The transaction validator also checks if transactions are within slot
+      -- boundaries. We don't currently use boundaries for our generated
+      -- transactions, so we chose the random number.
+      tx <- generateTx rng (Slot 4) utxo
       let utxo' = insertBlock [Valid tx] utxo
       atomically $ do
         writeTBQueue txQueue tx
@@ -198,7 +205,7 @@ main = do
            -- Increasing the size beyond this point adds quite a bit of overhead.
            <*> newTBQueueIO 1000
            <*> initializeStats
-           <*> pure initialUtxoIndex
+           <*> pure (initialUtxoIndex config)
   initializeInterruptHandler (stats env)
   _   <- runProducer env
   forever =<< rateLimitedConsumer opts <*> pure env
