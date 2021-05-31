@@ -10,7 +10,7 @@ module Contract.State
   ) where
 
 import Prelude
-import Capability.Marlowe.Dummy (class ManageMarlowe, applyTransactionInput)
+import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)

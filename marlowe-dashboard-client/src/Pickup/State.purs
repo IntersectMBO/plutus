@@ -6,7 +6,7 @@ module Pickup.State
 
 import Prelude
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe.Dummy (class ManageMarlowe, createWallet, lookupWalletDetails)
+import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
 import Capability.Toast (class Toast, addToast)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))

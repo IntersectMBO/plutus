@@ -8,7 +8,7 @@ import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.MarloweStorage (class ManageMarloweStorage, getCurrentWalletDetails, getWalletLibrary)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe.Dummy (class ManageMarlowe, createContract, followContract, getFollowerApps, lookupWalletInfo, subscribeToPlutusApp)
+import Capability.Marlowe (class ManageMarlowe, createContract, followContract, getFollowerApps, lookupWalletInfo, subscribeToPlutusApp)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_marloweParams, _selectedStep)
 import Contract.State (applyTimeout)
