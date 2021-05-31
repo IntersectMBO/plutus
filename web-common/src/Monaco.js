@@ -132,8 +132,20 @@ exports.setPosition_ = function (editor, position) {
   editor.setPosition(position);
 }
 
+exports.revealRange_ = function (editor, range) {
+  editor.revealRange(range);
+}
+
 exports.revealRangeInCenter_ = function (editor, range) {
   editor.revealRangeInCenter(range);
+}
+
+exports.revealRangeAtTop_ = function (editor, range) {
+  editor.revealRangeAtTop(range);
+}
+
+exports.revealRangeNearTop_ = function (editor, range) {
+  editor.revealRangeNearTop(range);
 }
 
 exports.revealLine_ = function (editor, lineNumber) {

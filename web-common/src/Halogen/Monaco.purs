@@ -267,7 +267,7 @@ handleQuery (SetPosition position next) = do
 
 handleQuery (RevealRange range next) = do
   withEditor \editor -> do
-    liftEffect $ Monaco.revealRangeInCenter editor range
+    liftEffect $ Monaco.revealRange editor range
     pure next
 
 handleQuery (Focus next) = do
