@@ -121,13 +121,13 @@ handleAction StartSimulation =
                   <<< (set _executionState (emptyExecutionStateWithSlot initialSlot contract))
               )
           )
-        lift $ updateContractInEditor
+        lift $ updateOracleAndContractEditor
 
 handleAction (MoveSlot slot) = do
   inTheFuture <- inFuture <$> get <*> pure slot
   when inTheFuture do
     moveToSlot slot
-    updateContractInEditor
+    updateOracleAndContractEditor
 
 handleAction (SetSlot slot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
@@ -136,7 +136,7 @@ handleAction (SetSlot slot) = do
 handleAction (AddInput input bounds) = do
   when validInput do
     applyInput ((flip snoc) input)
-    updateContractInEditor
+    updateOracleAndContractEditor
   where
   validInput = case input of
     (IChoice _ chosenNum) -> inBounds chosenNum bounds
@@ -152,11 +152,11 @@ handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over (_executi
 
 handleAction ResetSimulator = do
   modifying _marloweState (NEL.singleton <<< last)
-  updateContractInEditor
+  updateOracleAndContractEditor
 
 handleAction Undo = do
   modifying _marloweState tailIfNotEmpty
-  updateContractInEditor
+  updateOracleAndContractEditor
 
 handleAction (LoadContract contents) = do
   liftEffect $ SessionStorage.setItem simulatorBufferLocalStorageKey contents
@@ -291,19 +291,20 @@ editorSetValue contents = void $ query _simulatorEditorSlot unit (Monaco.SetText
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue = query _simulatorEditorSlot unit (Monaco.GetText identity)
 
-updateContractInEditor ::
+updateOracleAndContractEditor ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   HalogenM State Action ChildSlots Void m Unit
-updateContractInEditor = do
+updateOracleAndContractEditor = do
   mContract <- peruse _currentContract
-  decorationIds <- use _decorationIds
-  for_ (getLocation <$> mContract) \loc -> case loc of
-    Range r -> do
+  -- Update the decorations around the current part of the running contract
+  case (getLocation <$> mContract) of
+    Just (Range r) -> do
       let
         decorationOptions = { isWholeLine: false, className: "monaco-simulation-text-decoration", linesDecorationsClassName: "monaco-simulation-line-decoration" }
-      mNewDecorationIds <- query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations decorationIds [ { range: r, options: decorationOptions } ] identity
+      oldDecorationIds <- use _decorationIds
+      mNewDecorationIds <- query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations oldDecorationIds [ { range: r, options: decorationOptions } ] identity
       for_ mNewDecorationIds (assign _decorationIds)
       void $ query _simulatorEditorSlot unit $ tell $ Monaco.RevealRange r
     _ -> pure unit

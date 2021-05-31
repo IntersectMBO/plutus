@@ -57,8 +57,6 @@ simulationNotStartedWithSlot slot mContract =
   SimulationNotStarted
     { initialSlot: slot
     , termContract: mContract
-    -- FIXME: check if I should implement Template for Term or if this is fine.
-    -- , templateContent: maybe mempty (initializeTemplateContent <<< getPlaceholderIds) mContract
     , templateContent: maybe mempty (initializeTemplateContent <<< getPlaceholderIds) mContract
     }
 
