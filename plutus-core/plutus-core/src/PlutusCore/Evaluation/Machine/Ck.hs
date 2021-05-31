@@ -49,13 +49,9 @@ import           Data.STRef
 
 infix 4 |>, <|
 
--- See Note [Instances for BuiltinRuntime] in the CEK machine.
+-- See Note [Show instance for BuiltinRuntime] in the CEK machine.
 instance Show (BuiltinRuntime (CkValue uni fun)) where
     show _ = "<builtin_runtime>"
-
--- See Note [Instances for BuiltinRuntime] in the CEK machine.
-instance Eq (BuiltinRuntime (CkValue uni fun)) where
-    _ == _ = True
 
 data CkValue uni fun =
     VCon (Some (ValueOf uni))
@@ -63,7 +59,7 @@ data CkValue uni fun =
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
-    deriving (Show, Eq)    -- Eq is just for tests.
+    deriving (Show)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is

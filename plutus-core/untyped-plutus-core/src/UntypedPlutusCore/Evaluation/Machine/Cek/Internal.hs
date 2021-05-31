@@ -147,33 +147,14 @@ instance Show fun => Pretty (ExBudgetCategory fun) where
 instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
     exBudgetBuiltin = BBuiltinApp
 
-{- Note [Instances for BuiltinRuntime]
+{- Note [Show instance for BuiltinRuntime]
 We need to be able to print 'CekValue's and for that we need a 'Show' instance for 'BuiltinRuntime',
-but functions are not printable and hence we provide a dummy instance. Same applies to 'Eq'.
-
-We could define
-
-    instance Eq (BuiltinRuntime term) where
-        _ == _ = True
-
-however this is very unsafe (as two different functions can be, well, different). The reason
-why
-
-    instance Eq (BuiltinRuntime (CekValue uni fun))
-        _ == _ = True
-
-is not as unsafe is because the 'VBuiltin' constructor stores the term representation of the
-partially applied builtin and so we get actual equality from there, which is why it's fine to
-ignore the partially applied builtin itself.
+but functions are not printable and hence we provide a dummy instance.
 -}
 
--- See Note [Instances for BuiltinRuntime].
+-- See Note [Show instance for BuiltinRuntime].
 instance Show (BuiltinRuntime (CekValue uni fun)) where
     show _ = "<builtin_runtime>"
-
--- See Note [Instances for BuiltinRuntime].
-instance Eq (BuiltinRuntime (CekValue uni fun)) where
-    _ == _ = True
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun =
@@ -193,7 +174,7 @@ data CekValue uni fun =
                              -- do it unless we really have to.
       (CekValEnv uni fun)    -- For discharging.
       !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
-    deriving (Show, Eq) -- Eq is just for tests.
+    deriving (Show)
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
