@@ -482,7 +482,7 @@ extendEnv = insertByName
 
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun s . (PrettyUni uni fun) => Name -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
-lookupVarName varName varEnv = do
+lookupVarName varName varEnv =
     case lookupName varName varEnv of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
@@ -557,7 +557,7 @@ enterComputeCek costs = computeCek where
         meaning <- lookupBuiltin bn ?cekRuntime
         returnCek ctx (VBuiltin bn term env meaning)
     -- s ; ρ ▻ error A  ↦  <> A
-    computeCek _ _ (Error _) = do
+    computeCek _ _ (Error _) =
         throwing_ _EvaluationFailure
 
     {- | The returning phase of the CEK machine.
@@ -576,11 +576,11 @@ enterComputeCek costs = computeCek where
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek (FrameForce : ctx) fun = forceEvaluate ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
+    returnCek (FrameApplyArg argVarEnv arg : ctx) fun =
         computeCek (FrameApplyFun fun : ctx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME: add rule for VBuiltin once it's in the specification.
-    returnCek (FrameApplyFun fun : ctx) arg = do
+    returnCek (FrameApplyFun fun : ctx) arg =
         applyEvaluate ctx fun arg
 
     -- | @force@ a term and proceed.
