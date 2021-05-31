@@ -15,9 +15,10 @@ import Data.Lens (assign, modifying, over, set, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Data.String (drop, joinWith, length, take)
+import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Env (Env)
@@ -67,7 +68,7 @@ handleAction (HandleEditorMessage (Monaco.TextChanged text)) =
   ( do
       -- TODO: This handler manages the logic of having a restricted range that cannot be modified. But the
       --       current implementation uses editorSetValue to overwrite the editor contents with the last
-      --       correct value (taken from local storage). By using editorSetValue inside the TextChanged handler
+      --       correct value (taken from session storage). By using editorSetValue inside the TextChanged handler
       --       the events get fired multiple times on init, which makes hasUnsavedChanges always true for a new
       --       JS project or a project load.
       --
@@ -76,7 +77,7 @@ handleAction (HandleEditorMessage (Monaco.TextChanged text)) =
       --       information of the range of the modifications, and if the action was triggered by an undo/redo
       --       action. With that information we can reimplement this by firing an undo event if a "read only"
       --       decoration. At this moment I'm not sure if that will solve the bubble problem but at least it will
-      --       allow us to decouple from local storage.
+      --       allow us to decouple from session storage.
       let
         prunedText = pruneJSboilerplate text
 
@@ -228,25 +229,22 @@ editorSetValue contents = do
 
     bottomRange = { startLineNumber: (numLines - decorationFooterLines + 1), startColumn: 0, endLineNumber: numLines, endColumn: 0 }
   void $ query _jsEditorSlot unit $ Monaco.SetText decoratedContent unit
-  -- FIXME: Fix this
-  -- mTopDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 decorationHeaderLines identity
-  -- mBottomDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - decorationFooterLines + 1) numLines identity
-  -- void
-  --   $ runMaybeT do
-  --       topDecorationId <- hoistMaybe mTopDecorationId
-  --       bottomDecorationId <- hoistMaybe mBottomDecorationId
-  --       assign _decorationIds $ Just { topDecorationId, bottomDecorationId }
-  -- Instead of [] we should use the old decorations if present
-  mDecorationIds <-
+  -- TODO: Refactor HandleEditorMessage Monaco.TextChanged so we can store the array of decorations instead of having to split them between top
+  --       and bottom
+  mDecorationIds <- use _decorationIds
+  let
+    oldHeaderDecoration = maybe [] (Array.singleton <<< _.topDecorationId) mDecorationIds
+
+    oldFooterDecoration = maybe [] (Array.singleton <<< _.bottomDecorationId) mDecorationIds
+  mNewHeaderIds <-
     query _jsEditorSlot unit
-      $ Monaco.SetDeltaDecorations
-          []
-          [ { range: topRange, options: decorationOptions }
-          , { range: bottomRange, options: decorationOptions }
-          ]
-          identity
-  -- for_ mDecorationIds (assign _decorationIds)
-  pure unit
+      $ Monaco.SetDeltaDecorations oldHeaderDecoration [ { range: topRange, options: decorationOptions } ] identity
+  mNewFooterIds <-
+    query _jsEditorSlot unit
+      $ Monaco.SetDeltaDecorations oldFooterDecoration [ { range: bottomRange, options: decorationOptions } ] identity
+  case mNewHeaderIds /\ mNewFooterIds of
+    Just [ topDecorationId ] /\ Just [ bottomDecorationId ] -> assign _decorationIds $ Just { topDecorationId, bottomDecorationId }
+    _ -> pure unit
 
 checkJSboilerplate :: String -> Boolean
 checkJSboilerplate content =
