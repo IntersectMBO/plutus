@@ -99,10 +99,8 @@ instance Parsable a => Parsable [a] where
 -- Just "abc"
 -- >>> parse "[\"abc\"]" :: Maybe [String]
 -- *** Exception: Parsing of lists of this type is not implemented. Caused by: ["abc"]
--- CallStack (from HasCallStack):
---   error, called at /tmp/dante13247OOZ.hs:83:9 in main:PlutusCore.Parsable
 -- >>> parse "(1, False)" :: Maybe (Integer, Bool)
--- Nothing
+-- *** Exception: Parsing for tuples is not implemented
 deriving via AsRead Bool    instance Parsable Bool
 deriving via AsRead Char    instance Parsable Char
 deriving via AsRead Integer instance Parsable Integer
