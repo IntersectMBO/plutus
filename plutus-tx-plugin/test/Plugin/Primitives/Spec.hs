@@ -52,11 +52,13 @@ primitives = testNested "Primitives" [
   , goldenUEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.ByteString)]
   , goldenUEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("hello" :: Builtins.ByteString)]
   , goldenUEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("world" :: Builtins.ByteString)]
+  , goldenUEval "decodeUtf8" [ getPlc bsDecode, liftProgram ("hello" :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   , goldenPir "stringLiteral" stringLiteral
   , goldenPir "stringConvert" stringConvert
   , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: String), liftProgram ("hello" :: String)]
+  , goldenPir "encodeUtf8" stringEncode
   ]
 
 string :: CompiledCode String
@@ -120,6 +122,9 @@ bsEquals = plc (Proxy @"bs32Equals") (\(x :: Builtins.ByteString) (y :: Builtins
 bsLt :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
 bsLt = plc (Proxy @"bsLt") (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.lessThanByteString x y)
 
+bsDecode :: CompiledCode (Builtins.ByteString -> Builtins.String)
+bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.ByteString) -> Builtins.decodeUtf8 x)
+
 verify :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
 verify = plc (Proxy @"verify") (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
 
@@ -134,3 +139,6 @@ stringConvert = plc (Proxy @"stringConvert") ((noinline P.stringToBuiltinString)
 
 stringEquals :: CompiledCode (String -> String -> Bool)
 stringEquals = plc (Proxy @"string32Equals") (\(x :: String) (y :: String) -> Builtins.equalsString (P.stringToBuiltinString x) (P.stringToBuiltinString y))
+
+stringEncode :: CompiledCode (Builtins.ByteString)
+stringEncode = plc (Proxy @"stringEncode") (Builtins.encodeUtf8 "abc")
