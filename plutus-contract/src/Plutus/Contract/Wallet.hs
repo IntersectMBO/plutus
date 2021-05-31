@@ -200,6 +200,7 @@ addOutputs :: PubKey -> Value -> Tx -> Tx
 addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
     pko = Tx.pubKeyTxOut vl pk
 
+-- | Removes transaction outputs with empty datum and empty value.
 removeEmptyOutputs :: Tx -> Tx
 removeEmptyOutputs tx = tx & over Tx.outputs (filter (not . isEmpty)) where
     isEmpty (Tx.TxOut{Tx.txOutValue, Tx.txOutDatumHash}) =
