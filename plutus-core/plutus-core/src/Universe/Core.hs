@@ -86,7 +86,7 @@ For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' ('UInt
 -}
 
 {- Note [Representing polymorphism]
-Consider the following universe (in this example and the ones belwo bangs on arguments in universes
+Consider the following universe (in this example and the ones below bangs on arguments in universes
 are omitted for clarity):
 
     data U a where
