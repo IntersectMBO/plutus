@@ -8,7 +8,6 @@ import Blockly.Internal (getBlockById)
 import Blockly.Internal as Blockly
 import Blockly.Types (BlocklyState)
 import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
-import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either)
 import Data.Foldable (for_)
@@ -18,21 +17,17 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Marlowe.Blockly (blockDefinitions, blockToContract, rootBlockName, toBlockly)
 import Marlowe.Gen (genContract, genTerm)
-import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
+import Marlowe.GenWithHoles (GenWithHoles, quickCheckWithHoles)
 import Marlowe.Holes (Contract, Term)
 import Marlowe.Parser as Parser
-import Test.QuickCheck (class Testable, Result, (===))
-import Test.Unit (Test, TestSuite, suite, test)
-import Test.Unit.QuickCheck (quickCheck)
+import Test.QuickCheck (Result, (===))
+import Test.Unit (TestSuite, suite, test)
 import Text.Extra (stripParens)
 
 all :: TestSuite
 all =
   suite "Marlowe.Blockly" do
-    test "codeToBlocklyToCode" $ quickCheckGen codeToBlocklyToCode
-
-quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
-quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
+    test "codeToBlocklyToCode" $ quickCheckWithHoles codeToBlocklyToCode
 
 mkTestState :: forall m. MonadEffect m => m BlocklyState
 mkTestState = do

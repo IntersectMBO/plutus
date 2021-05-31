@@ -54,7 +54,11 @@ genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
 genTimeout :: forall m. MonadGen m => MonadRec m => m H.Timeout
-genTimeout = H.Slot <$> genBigInteger
+genTimeout = oneOf $ slot :| [ slotParam ]
+  where
+  slot = H.Slot <$> genBigInteger
+
+  slotParam = H.SlotParam <$> genTokenName
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
@@ -179,7 +183,7 @@ genCases ::
   m (Array (Term Case))
 genCases size = resize (_ - 1) (unfoldable (local (const false) (genTerm "case" (genCase size))))
 
-genValue :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => MonadReader Boolean m => m Value
+genValue :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => Lazy (m Observation) => MonadReader Boolean m => m Value
 genValue = genValue' 5
 
 genValue' ::
@@ -187,6 +191,7 @@ genValue' ::
   MonadGen m =>
   MonadRec m =>
   Lazy (m Value) =>
+  Lazy (m Observation) =>
   MonadReader Boolean m =>
   Int ->
   m Value
@@ -204,6 +209,7 @@ genValue' size
           :| [ pure SlotIntervalEnd
             , AvailableMoney <$> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName TokenType) genToken
             , Constant <$> genBigInteger
+            , ConstantParam <$> genTokenName
             , NegValue <$> genNewValue
             , AddValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , SubValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
@@ -211,6 +217,7 @@ genValue' size
             , Scale <$> genTermWrapper genRational <*> genNewValue
             , ChoiceValue <$> genChoiceId
             , UseValue <$> genTermWrapper genValueId
+            , Cond <$> genTerm "condition" (genObservation' newSize) <*> genTerm "then" (genValue' newSize) <*> genTerm "else" (genValue' newSize)
             ]
   | otherwise =
     oneOf $ pure SlotIntervalStart

@@ -1,27 +1,22 @@
 module Marlowe.ParserTests where
 
 import Prelude
-import Control.Monad.Reader (runReaderT)
 import Data.Either (Either(..))
 import Data.Maybe (fromMaybe)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Marlowe.Gen (genContract)
-import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
+import Marlowe.GenWithHoles (GenWithHoles, quickCheckWithoutHoles)
 import Marlowe.Holes (Contract)
 import Marlowe.Parser (parseContract)
-import Test.QuickCheck (class Testable, Result, (===))
-import Test.Unit (Test, TestSuite, suite, test)
-import Test.Unit.QuickCheck (quickCheck)
+import Test.QuickCheck (Result, (===))
+import Test.Unit (TestSuite, suite, test)
 import Text.Pretty (genericPretty)
 
 all :: TestSuite
 all =
   suite "Marlowe.Parser" do
-    test "Contract Parser" $ quickCheckGen contractParser
-    test "Pretty Contract Parser" $ quickCheckGen prettyContractParser
-
-quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
-quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) false
+    test "Contract Parser" $ quickCheckWithoutHoles contractParser
+    test "Pretty Contract Parser" $ quickCheckWithoutHoles prettyContractParser
 
 contractParser :: GenWithHoles Result
 contractParser = do

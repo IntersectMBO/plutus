@@ -9,7 +9,7 @@ import Data.Foldable (for_)
 import Data.Lens (over, preview, previewOn, set, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Examples.Marlowe.Contracts as Contracts
@@ -20,9 +20,8 @@ import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.Swap as Swap
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
-import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
-import Marlowe.Holes (Term(..), fromTerm)
+import Marlowe.Holes (Term, fromTerm)
 import Marlowe.Holes as T
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Party(..), Token(..))
@@ -39,6 +38,7 @@ contractToExtended contract = case parseContract contract of -- We reuse the ext
   Right parsedContract -> fromTerm parsedContract
   Left error -> Nothing
 
+-- TODO: Move these tests to marlowe-commons
 all :: TestSuite
 all =
   suite "Contract Tests" do

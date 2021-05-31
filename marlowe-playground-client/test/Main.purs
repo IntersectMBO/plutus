@@ -9,6 +9,7 @@ import Marlowe.LintTests as LintTests
 import Marlowe.ParserTests as ParserTests
 import Marlowe.DeinstantiatorTests as DeinstantiatorTests
 import Marlowe.Holes.SemanticTest as HolesSemanticTest
+import Marlowe.Holes.TemplateTest as HolesTemplateTest
 import Test.Unit.Main (runTest)
 
 foreign import forDeps :: Effect Unit
@@ -23,3 +24,4 @@ main =
     LintTests.all
     DeinstantiatorTests.all
     HolesSemanticTest.all
+    HolesTemplateTest.all

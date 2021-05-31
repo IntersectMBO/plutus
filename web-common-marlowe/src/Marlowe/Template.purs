@@ -1,25 +1,17 @@
 module Marlowe.Template where
 
 import Prelude
-import Control.Alt ((<|>))
 import Data.BigInteger (BigInteger)
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Data.Newtype (class Newtype, unwrap)
+import Data.Maybe (fromMaybe)
+import Data.Newtype (class Newtype)
 import Data.Set (Set)
-import Data.Set as Set
 import Data.Symbol (SProxy(..))
-import Data.Traversable (foldMap, traverse)
-import Foreign (ForeignError(..), fail)
-import Foreign.Class (class Encode, class Decode, encode, decode)
-import Foreign.Index (hasProperty)
-import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, pretty)
+import Data.Traversable (foldMap)
 
 newtype Placeholders
   = Placeholders
@@ -28,6 +20,12 @@ newtype Placeholders
   }
 
 derive instance newTypePlaceholders :: Newtype Placeholders _
+
+-- The eq and show instances are required for doing property based testing with quickcheck
+-- and are not needed by the actual code.
+derive newtype instance eqPlaceholders :: Eq Placeholders
+
+derive newtype instance showPlaceholders :: Show Placeholders
 
 derive newtype instance semigroupPlaceholders :: Semigroup Placeholders
 

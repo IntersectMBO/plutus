@@ -1022,8 +1022,6 @@ instance hasArgsContract :: Args Contract where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
--- FIXME: Add a property based test to check that the template implementation for Terms is the
---        same as Extended
 instance templateContract :: Template Contract Placeholders where
   getPlaceholderIds Close = mempty
   getPlaceholderIds (Pay accId payee tok val cont) = getPlaceholderIds val <> getPlaceholderIds cont
@@ -1032,8 +1030,6 @@ instance templateContract :: Template Contract Placeholders where
   getPlaceholderIds (Let varId val cont) = getPlaceholderIds val <> getPlaceholderIds cont
   getPlaceholderIds (Assert obs cont) = getPlaceholderIds obs <> getPlaceholderIds cont
 
--- FIXME: Add a property based test to check that the template implementation for Terms is the
---        same as Extended
 instance fillableContract :: Fillable Contract TemplateContent where
   fillTemplate placeholders contract = case contract of
     Close -> Close

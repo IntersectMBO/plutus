@@ -3,9 +3,12 @@ module Marlowe.GenWithHoles where
 import Prelude
 import Control.Lazy (class Lazy)
 import Control.Monad.Gen (class MonadGen, chooseBool, chooseFloat, chooseInt, resize, sized)
-import Control.Monad.Reader (class MonadAsk, class MonadReader, ReaderT(..))
+import Control.Monad.Reader (class MonadAsk, class MonadReader, ReaderT(..), runReaderT)
 import Control.Monad.Rec.Class (class MonadRec)
+import Test.QuickCheck (class Testable)
 import Test.QuickCheck.Gen (Gen)
+import Test.Unit (Test)
+import Test.Unit.QuickCheck (quickCheck)
 
 newtype GenWithHoles a
   = GenWithHoles (ReaderT Boolean Gen a)
@@ -47,3 +50,9 @@ instance genWithGenWithHolessMonadGen :: MonadGen GenWithHoles where
                 in
                   q v
             )
+
+quickCheckWithoutHoles :: forall prop. Testable prop => GenWithHoles prop -> Test
+quickCheckWithoutHoles g = quickCheck $ runReaderT (unGenWithHoles g) false
+
+quickCheckWithHoles :: forall prop. Testable prop => GenWithHoles prop -> Test
+quickCheckWithHoles g = quickCheck $ runReaderT (unGenWithHoles g) true
