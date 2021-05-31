@@ -5,7 +5,7 @@ import Data.Either (Either(..))
 import Data.Maybe (fromMaybe)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Marlowe.Gen (genContract)
-import Marlowe.GenWithHoles (GenWithHoles, quickCheckWithoutHoles)
+import Marlowe.GenWithHoles (GenWithHoles, contractQuickCheck, GenerationOptions(..))
 import Marlowe.Holes (Contract)
 import Marlowe.Parser (parseContract)
 import Test.QuickCheck (Result, (===))
@@ -15,8 +15,10 @@ import Text.Pretty (genericPretty)
 all :: TestSuite
 all =
   suite "Marlowe.Parser" do
-    test "Contract Parser" $ quickCheckWithoutHoles contractParser
-    test "Pretty Contract Parser" $ quickCheckWithoutHoles prettyContractParser
+    let
+      genOpts = GenerationOptions { withHoles: false, withExtendedConstructs: true }
+    test "Contract Parser" $ contractQuickCheck genOpts contractParser
+    test "Pretty Contract Parser" $ contractQuickCheck genOpts prettyContractParser
 
 contractParser :: GenWithHoles Result
 contractParser = do

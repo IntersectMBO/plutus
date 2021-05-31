@@ -17,7 +17,7 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Marlowe.Blockly (blockDefinitions, blockToContract, rootBlockName, toBlockly)
 import Marlowe.Gen (genContract, genTerm)
-import Marlowe.GenWithHoles (GenWithHoles, quickCheckWithHoles)
+import Marlowe.GenWithHoles (GenWithHoles, contractQuickCheck, GenerationOptions(..))
 import Marlowe.Holes (Contract, Term)
 import Marlowe.Parser as Parser
 import Test.QuickCheck (Result, (===))
@@ -27,7 +27,7 @@ import Text.Extra (stripParens)
 all :: TestSuite
 all =
   suite "Marlowe.Blockly" do
-    test "codeToBlocklyToCode" $ quickCheckWithHoles codeToBlocklyToCode
+    test "codeToBlocklyToCode" $ contractQuickCheck (GenerationOptions { withHoles: true, withExtendedConstructs: true }) codeToBlocklyToCode
 
 mkTestState :: forall m. MonadEffect m => m BlocklyState
 mkTestState = do

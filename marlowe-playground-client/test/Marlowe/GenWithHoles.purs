@@ -10,10 +10,14 @@ import Test.QuickCheck.Gen (Gen)
 import Test.Unit (Test)
 import Test.Unit.QuickCheck (quickCheck)
 
-newtype GenWithHoles a
-  = GenWithHoles (ReaderT Boolean Gen a)
+newtype GenerationOptions
+  = GenerationOptions { withHoles :: Boolean, withExtendedConstructs :: Boolean }
 
-unGenWithHoles :: forall a. GenWithHoles a -> ReaderT Boolean Gen a
+-- TODO: rename to GenContract or similar
+newtype GenWithHoles a
+  = GenWithHoles (ReaderT GenerationOptions Gen a)
+
+unGenWithHoles :: forall a. GenWithHoles a -> ReaderT GenerationOptions Gen a
 unGenWithHoles (GenWithHoles g) = g
 
 derive newtype instance genWithGenWithHolessFunctor :: Functor GenWithHoles
@@ -26,9 +30,9 @@ derive newtype instance genWithGenWithHolessBind :: Bind GenWithHoles
 
 instance genWithGenWithHolessMonad :: Monad GenWithHoles
 
-derive newtype instance genWithGenWithHolessMonadAsk :: MonadAsk Boolean GenWithHoles
+derive newtype instance genWithGenWithHolessMonadAsk :: MonadAsk GenerationOptions GenWithHoles
 
-derive newtype instance genWithGenWithHolessMonadReader :: MonadReader Boolean GenWithHoles
+derive newtype instance genWithGenWithHolessMonadReader :: MonadReader GenerationOptions GenWithHoles
 
 instance genWithGenWithHolessLazy :: Lazy (GenWithHoles a) where
   defer f = f unit
@@ -51,8 +55,5 @@ instance genWithGenWithHolessMonadGen :: MonadGen GenWithHoles where
                   q v
             )
 
-quickCheckWithoutHoles :: forall prop. Testable prop => GenWithHoles prop -> Test
-quickCheckWithoutHoles g = quickCheck $ runReaderT (unGenWithHoles g) false
-
-quickCheckWithHoles :: forall prop. Testable prop => GenWithHoles prop -> Test
-quickCheckWithHoles g = quickCheck $ runReaderT (unGenWithHoles g) true
+contractQuickCheck :: forall prop. Testable prop => GenerationOptions -> GenWithHoles prop -> Test
+contractQuickCheck options g = quickCheck $ runReaderT (unGenWithHoles g) options

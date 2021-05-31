@@ -34,7 +34,7 @@ import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
 import Marlowe.Semantics (class HasTimeout, CurrencySymbol, IntervalResult(..), PubKey, Rational(..), Timeouts(..), TokenName, _slotInterval, fixInterval, ivFrom, ivTo, timeouts)
 import Marlowe.Semantics as S
-import Marlowe.Template (class Fillable, class Template, Placeholders(..), TemplateContent(..), fillTemplate, getPlaceholderIds)
+import Marlowe.Template (class Fillable, class Template, Placeholders(..), TemplateContent, fillTemplate, getPlaceholderIds)
 import Monaco (IRange)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
 import Text.Pretty as P
@@ -1042,8 +1042,6 @@ instance fillableContract :: Fillable Contract TemplateContent where
     go :: forall a. (Fillable a TemplateContent) => a -> a
     go = fillTemplate placeholders
 
--- FIXME: Add a property based test to check that the template implementation for Terms is the
---        same as Extended
 instance hasTimeoutContract :: HasTimeout Contract where
   timeouts Close = Timeouts { maxTime: zero, minTime: Nothing }
   timeouts (Pay _ _ _ _ contract) = timeouts contract

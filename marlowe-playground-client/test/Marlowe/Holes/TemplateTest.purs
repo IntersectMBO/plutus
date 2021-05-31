@@ -9,7 +9,7 @@ import Data.Tuple.Nested ((/\))
 import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
 import Marlowe.Gen (genBigInteger, genContract)
-import Marlowe.GenWithHoles (GenWithHoles, quickCheckWithoutHoles)
+import Marlowe.GenWithHoles (GenWithHoles, contractQuickCheck, GenerationOptions(..))
 import Marlowe.Holes (fromTerm)
 import Marlowe.Semantics as S
 import Marlowe.Template (Placeholders(..), TemplateContent(..), fillTemplate, getPlaceholderIds)
@@ -19,8 +19,10 @@ import Test.Unit (TestSuite, suite, test)
 all :: TestSuite
 all =
   suite "Marlowe.Holes.Template" do
-    test "Term and Extended contract has the same getPlaceholderIds" $ quickCheckWithoutHoles sameGetPlaceholderIds
-    test "Term and Extended contract has the same fillTemplate" $ quickCheckWithoutHoles sameFillTemplate
+    let
+      genOpts = GenerationOptions { withHoles: false, withExtendedConstructs: true }
+    test "Term and Extended contract has the same getPlaceholderIds" $ contractQuickCheck genOpts sameGetPlaceholderIds
+    test "Term and Extended contract has the same fillTemplate" $ contractQuickCheck genOpts sameFillTemplate
 
 sameGetPlaceholderIds :: GenWithHoles Result
 sameGetPlaceholderIds = do

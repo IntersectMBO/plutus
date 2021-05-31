@@ -1588,6 +1588,11 @@ newtype Timeouts
 
 derive instance newtypeTimeouts :: Newtype Timeouts _
 
+-- The eq and show instances are only needed for quickcheck
+derive newtype instance eqTimeouts :: Eq Timeouts
+
+derive newtype instance showTimeouts :: Show Timeouts
+
 class HasTimeout a where
   timeouts :: a -> Timeouts
 
