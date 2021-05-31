@@ -1,20 +1,15 @@
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -24,6 +19,9 @@ module Plutus.Contract.Request(
     awaitSlot
     , currentSlot
     , waitNSlots
+    , awaitTime
+    , currentTime
+    , waitNSeconds
     -- ** Querying the UTXO set
     , utxoAt
     -- ** Waiting for changes to the UTXO set
@@ -32,7 +30,8 @@ module Plutus.Contract.Request(
     , fundsAtAddressGt
     , fundsAtAddressGeq
     , fundsAtAddressCondition
-    , watchAddressUntil
+    , watchAddressUntilSlot
+    , watchAddressUntilTime
     -- ** Tx confirmation
     , awaitTxConfirmed
     -- ** Contract instances
@@ -78,8 +77,8 @@ import           Data.Text.Extras            (tshow)
 import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
-import           Ledger                      (Address, OnChainTx (..), PubKey, Slot, Tx, TxId, TxOut (..), TxOutTx (..),
-                                              Value, txId)
+import           Ledger                      (Address, DiffSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx, TxId,
+                                              TxOut (..), TxOutTx (..), Value, fromSeconds, txId)
 import           Ledger.AddressMap           (UtxoMap)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
@@ -87,7 +86,7 @@ import qualified Ledger.Constraints.OffChain as Constraints
 import           Ledger.Typed.Scripts        (TypedValidator, ValidatorTypes (..))
 import qualified Ledger.Value                as V
 import           Plutus.Contract.Util        (loopM)
-import qualified PlutusTx                    as PlutusTx
+import qualified PlutusTx
 
 import           Plutus.Contract.Effects     (ActiveEndpoint (..), PABReq (..), PABResp (..), UtxoAtAddress (..))
 import qualified Plutus.Contract.Effects     as E
@@ -151,6 +150,36 @@ waitNSlots n = do
   c <- currentSlot
   awaitSlot $ c + fromIntegral n
 
+-- | Wait until the given time.
+awaitTime ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => POSIXTime
+    -> Contract w s e POSIXTime
+awaitTime s = pabReq (AwaitTimeReq s) E._AwaitTimeResp
+
+-- | Get the current time
+currentTime ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => Contract w s e POSIXTime
+currentTime = pabReq CurrentTimeReq E._CurrentTimeResp
+
+-- | Wait for a number of seconds to pass.
+--
+-- Note: Currently, if n < length of a slot, then 'waitNSeconds' has no effect.
+waitNSeconds ::
+  forall w s e.
+  ( AsContractError e
+  )
+  => DiffSeconds
+  -> Contract w s e POSIXTime
+waitNSeconds n = do
+  t <- currentTime
+  awaitTime $ t + fromSeconds n
+
 -- | Get the unspent transaction outputs at an address.
 utxoAt ::
     forall w s e.
@@ -160,14 +189,27 @@ utxoAt ::
     -> Contract w s e UtxoMap
 utxoAt addr = fmap utxo $ pabReq (UtxoAtReq addr) E._UtxoAtResp
 
-watchAddressUntil ::
+-- | Wait until the target slot and get the unspent transaction outputs at an
+-- address.
+watchAddressUntilSlot ::
     forall w s e.
     ( AsContractError e
     )
     => Address
     -> Slot
     -> Contract w s e UtxoMap
-watchAddressUntil a slot = awaitSlot slot >> utxoAt a
+watchAddressUntilSlot a slot = awaitSlot slot >> utxoAt a
+
+-- | Wait until the target time and get the unspent transaction outputs at an
+-- address.
+watchAddressUntilTime ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => Address
+    -> POSIXTime
+    -> Contract w s e UtxoMap
+watchAddressUntilTime a time = awaitTime time >> utxoAt a
 
 {-| Get the transactions that modified an address in a specific slot.
 -}

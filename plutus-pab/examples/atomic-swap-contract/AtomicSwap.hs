@@ -24,7 +24,7 @@ import           Plutus.Contracts.Escrow (EscrowParams (..))
 import qualified Plutus.Contracts.Escrow as Escrow
 import           Schema                  (ToSchema)
 
-import           Ledger                  (CurrencySymbol, PubKey, Slot, TokenName, Value)
+import           Ledger                  (CurrencySymbol, POSIXTime, PubKey, TokenName, Value)
 import qualified Ledger
 import qualified Ledger.Value            as Value
 import           Plutus.Contract
@@ -41,7 +41,7 @@ data AtomicSwapParams =
         , amount       :: Integer
         , party1       :: Wallet -- ^ The first party in the atomic swap
         , party2       :: Wallet -- ^ The second party in the atomic swap
-        , deadline     :: Slot -- ^ Last slot in which the swap can be executed.
+        , deadline     :: POSIXTime -- ^ Last time in which the swap can be executed.
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON, ToSchema)

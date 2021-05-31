@@ -30,6 +30,7 @@ import           Ledger.Index                              (ScriptType, ScriptVa
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
+import           Ledger.Time                               (POSIXTime)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
@@ -232,6 +233,7 @@ servantBridge = headersBridge <|> headerBridge
 ledgerTypes :: [SumType 'Haskell]
 ledgerTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @POSIXTime)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Ada)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxId)

@@ -11,10 +11,11 @@ import           Data.Either                       (fromRight)
 import           Data.Text                         (Text)
 
 import qualified Language.Marlowe                  as Marlowe
-import qualified Ledger                            as Ledger
+import qualified Ledger
 import qualified Ledger.Ada                        as Ada
 import           Ledger.Crypto
 import qualified Ledger.Scripts                    as Plutus
+import qualified Ledger.TimeSlot                   as TimeSlot
 import qualified Ledger.Typed.Scripts              as Plutus
 import           Ledger.Value
 import           Plutus.Contract.Trace
@@ -34,7 +35,7 @@ wallet2 = Wallet 2
 escrowParams :: Escrow.EscrowParams d
 escrowParams =
   Escrow.EscrowParams
-    { Escrow.escrowDeadline = 200
+    { Escrow.escrowDeadline = TimeSlot.slotToPOSIXTime 200
     , Escrow.escrowTargets  =
         [ Escrow.payToPubKeyTarget (pubKeyHash $ walletPubKey wallet1)
                                    (Ada.lovelaceValueOf 10)
@@ -47,9 +48,9 @@ vesting :: Vesting.VestingParams
 vesting =
     Vesting.VestingParams
         { Vesting.vestingTranche1 =
-            Vesting.VestingTranche (Ledger.Slot 10) (Ada.lovelaceValueOf 20)
+            Vesting.VestingTranche (TimeSlot.slotToPOSIXTime 10) (Ada.lovelaceValueOf 20)
         , Vesting.vestingTranche2 =
-            Vesting.VestingTranche (Ledger.Slot 20) (Ada.lovelaceValueOf 40)
+            Vesting.VestingTranche (TimeSlot.slotToPOSIXTime 20) (Ada.lovelaceValueOf 40)
         , Vesting.vestingOwner    = Ledger.pubKeyHash $ walletPubKey wallet1 }
 
 -- Future data
@@ -69,7 +70,7 @@ oracleKeys =
 
 theFuture :: Future.Future
 theFuture = Future.Future {
-    Future.ftDeliveryDate  = Ledger.Slot 100,
+    Future.ftDeliveryDate  = TimeSlot.slotToPOSIXTime 100,
     Future.ftUnits         = units,
     Future.ftUnitPrice     = forwardPrice,
     Future.ftInitialMargin = Ada.lovelaceValueOf 800,

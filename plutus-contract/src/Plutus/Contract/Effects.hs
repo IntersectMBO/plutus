@@ -1,14 +1,15 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     PABReq(..),
     _AwaitSlotReq,
+    _AwaitTimeReq,
     _CurrentSlotReq,
+    _CurrentTimeReq,
     _AwaitTxConfirmedReq,
     _OwnContractInstanceIdReq,
     _SendNotificationReq,
@@ -19,7 +20,9 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _ExposeEndpointReq,
     PABResp(..),
     _AwaitSlotResp,
+    _AwaitTimeResp,
     _CurrentSlotResp,
+    _CurrentTimeResp,
     _AwaitTxConfirmedResp,
     _OwnContractInstanceIdResp,
     _SendNotificationResp,
@@ -48,6 +51,7 @@ import           Ledger                      (Address, PubKey, Tx, TxId, TxOutTx
 import           Ledger.AddressMap           (UtxoMap)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Slot                 (Slot (..))
+import           Ledger.Time                 (POSIXTime (..))
 import           Wallet.API                  (WalletAPIError)
 import           Wallet.Types                (AddressChangeRequest, AddressChangeResponse, ContractInstanceId,
                                               EndpointDescription, EndpointValue, Notification, NotificationError)
@@ -55,7 +59,9 @@ import           Wallet.Types                (AddressChangeRequest, AddressChang
 -- | Requests that 'Contract's can make
 data PABReq =
     AwaitSlotReq Slot
+    | AwaitTimeReq POSIXTime
     | CurrentSlotReq
+    | CurrentTimeReq
     | AwaitTxConfirmedReq TxId
     | OwnContractInstanceIdReq
     | SendNotificationReq Notification -- TODO: Delete
@@ -70,7 +76,9 @@ data PABReq =
 instance Pretty PABReq where
   pretty = \case
     AwaitSlotReq s           -> "Await slot:" <+> pretty s
+    AwaitTimeReq s           -> "Await time:" <+> pretty s
     CurrentSlotReq           -> "Current slot"
+    CurrentTimeReq           -> "Current time"
     AwaitTxConfirmedReq txid -> "Await tx confirmed:" <+> pretty txid
     OwnContractInstanceIdReq -> "Own contract instance ID"
     SendNotificationReq noti -> "Send notification:" <+> pretty noti
@@ -83,7 +91,9 @@ instance Pretty PABReq where
 -- | Responses that 'Contract's receive
 data PABResp =
     AwaitSlotResp Slot
+    | AwaitTimeResp POSIXTime
     | CurrentSlotResp Slot
+    | CurrentTimeResp POSIXTime
     | AwaitTxConfirmedResp TxId
     | OwnContractInstanceIdResp ContractInstanceId
     | SendNotificationResp (Maybe NotificationError)
@@ -99,7 +109,9 @@ data PABResp =
 instance Pretty PABResp where
   pretty = \case
     AwaitSlotResp s             -> "Slot:" <+> pretty s
+    AwaitTimeResp s             -> "Time:" <+> pretty s
     CurrentSlotResp s           -> "Current slot:" <+> pretty s
+    CurrentTimeResp s           -> "Current time:" <+> pretty s
     AwaitTxConfirmedResp txid   -> "Tx confirmed:" <+> pretty txid
     OwnContractInstanceIdResp i -> "Own contract instance ID:" <+> pretty i
     SendNotificationResp e      -> "Send notification:" <+> pretty e
@@ -112,7 +124,9 @@ instance Pretty PABResp where
 matches :: PABReq -> PABResp -> Bool
 matches a b = case (a, b) of
   (AwaitSlotReq{}, AwaitSlotResp{})                       -> True
+  (AwaitTimeReq{}, AwaitTimeResp{})                       -> True
   (CurrentSlotReq, CurrentSlotResp{})                     -> True
+  (CurrentTimeReq, CurrentTimeResp{})                     -> True
   (AwaitTxConfirmedReq{}, AwaitTxConfirmedResp{})         -> True
   (OwnContractInstanceIdReq, OwnContractInstanceIdResp{}) -> True
   (SendNotificationReq{}, SendNotificationResp{})         -> True

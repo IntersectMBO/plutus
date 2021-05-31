@@ -41,7 +41,7 @@ import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
 import qualified Ledger.Typed.Scripts         as Scripts
 import qualified Ledger.Value                 as V
-import qualified PlutusTx                     as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..), check)
 import           Schema                       (ToArgument, ToSchema)
 

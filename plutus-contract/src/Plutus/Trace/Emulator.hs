@@ -33,7 +33,9 @@ module Plutus.Trace.Emulator(
     , EmulatedWalletAPI.payToWallet
     , Waiting.nextSlot
     , Waiting.waitUntilSlot
+    , Waiting.waitUntilTime
     , Waiting.waitNSlots
+    , Waiting.waitNSeconds
     , EmulatorControl.freezeContractInstance
     , EmulatorControl.thawContractInstance
     -- ** Inspecting the chain state

@@ -26,8 +26,10 @@ module Plutus.Contract.Trace
     -- * Handle contract requests
     , handleBlockchainQueries
     , handleSlotNotifications
+    , handleTimeNotifications
     , handleOwnPubKeyQueries
     , handleCurrentSlotQueries
+    , handleCurrentTimeQueries
     , handlePendingTransactions
     , handleUtxoQueries
     , handleTxConfirmedQueries
@@ -114,6 +116,15 @@ handleSlotNotifications ::
 handleSlotNotifications =
     generalise (preview E._AwaitSlotReq) E.AwaitSlotResp RequestHandler.handleSlotNotifications
 
+handleTimeNotifications ::
+    ( Member (LogObserve (LogMessage Text)) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
+    , Member NodeClientEffect effs
+    )
+    => RequestHandler effs PABReq PABResp
+handleTimeNotifications =
+    generalise (preview E._AwaitTimeReq) E.AwaitTimeResp RequestHandler.handleTimeNotifications
+
 handleCurrentSlotQueries ::
     ( Member (LogObserve (LogMessage Text)) effs
     , Member NodeClientEffect effs
@@ -121,6 +132,14 @@ handleCurrentSlotQueries ::
     => RequestHandler effs PABReq PABResp
 handleCurrentSlotQueries =
     generalise (preview E._CurrentSlotReq) E.CurrentSlotResp RequestHandler.handleCurrentSlot
+
+handleCurrentTimeQueries ::
+    ( Member (LogObserve (LogMessage Text)) effs
+    , Member NodeClientEffect effs
+    )
+    => RequestHandler effs PABReq PABResp
+handleCurrentTimeQueries =
+    generalise (preview E._CurrentTimeReq) E.CurrentTimeResp RequestHandler.handleCurrentTime
 
 handleBlockchainQueries ::
     RequestHandler
@@ -136,6 +155,8 @@ handleBlockchainQueries =
     <> handleOwnInstanceIdQueries
     <> handleSlotNotifications
     <> handleCurrentSlotQueries
+    <> handleTimeNotifications
+    <> handleCurrentTimeQueries
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions and respond to

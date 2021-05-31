@@ -308,7 +308,7 @@ scriptHashes = bgroup "script hashes" [
 --   due at slot #100.
 theFuture :: FT.Future
 theFuture = FT.Future {
-    FT.ftDeliveryDate  = Ledger.Slot 100,
+    FT.ftDeliveryDate  = TimeSlot.slotToPOSIXTime 100,
     FT.ftUnits         = 187,
     FT.ftUnitPrice     = Ada.lovelaceValueOf 1123,
     FT.ftInitialMargin = Ada.lovelaceValueOf 800,

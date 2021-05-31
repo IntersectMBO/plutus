@@ -30,7 +30,7 @@ import           PlutusTx.Prelude
 import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
 import qualified Plutus.V1.Ledger.Interval as I
 import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
-import           Plutus.V1.Ledger.Slot     (SlotRange)
+import           Plutus.V1.Ledger.Time     (POSIXTimeRange)
 import           Plutus.V1.Ledger.Tx       (TxOutRef)
 import           Plutus.V1.Ledger.Value    (TokenName, Value, isZero)
 import qualified Plutus.V1.Ledger.Value    as Value
@@ -40,7 +40,7 @@ import qualified Prelude                   as Haskell
 -- | Constraints on transactions that want to spend script outputs
 data TxConstraint =
     MustIncludeDatum Datum
-    | MustValidateIn SlotRange
+    | MustValidateIn POSIXTimeRange
     | MustBeSignedBy PubKeyHash
     | MustSpendAtLeast Value
     | MustProduceAtLeast Value
@@ -162,9 +162,9 @@ singleton :: TxConstraint -> TxConstraints i o
 singleton a = mempty { txConstraints = [a] }
 
 {-# INLINABLE mustValidateIn #-}
--- | @mustValidateIn r@ requires the transaction's slot range to be contained
+-- | @mustValidateIn r@ requires the transaction's time range to be contained
 --   in @r@.
-mustValidateIn :: forall i o. SlotRange -> TxConstraints i o
+mustValidateIn :: forall i o. POSIXTimeRange -> TxConstraints i o
 mustValidateIn = singleton . MustValidateIn
 
 {-# INLINABLE mustBeSignedBy #-}

@@ -19,7 +19,7 @@ import           Ledger.Value                (Value)
 import           Wallet.Emulator.Error       (WalletAPIError)
 
 data RequestHandlerLogMsg =
-    SlotNoficationTargetVsCurrent Slot Slot
+    SlotNoticationTargetVsCurrent Slot Slot
     | StartWatchingContractAddresses
     | HandleAddressChangedAt Slot SlotRange
     | HandleTxFailed WalletAPIError
@@ -29,7 +29,7 @@ data RequestHandlerLogMsg =
 
 instance Pretty RequestHandlerLogMsg where
     pretty = \case
-        SlotNoficationTargetVsCurrent target current ->
+        SlotNoticationTargetVsCurrent target current ->
             "target slot:" <+> pretty target <> "; current slot:" <+> pretty current
         StartWatchingContractAddresses -> "Start watching contract addresses"
         HandleTxFailed e -> "handleTx failed:" <+> viaShow e

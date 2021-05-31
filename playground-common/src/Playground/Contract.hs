@@ -46,7 +46,7 @@ module Playground.Contract
     , modifiesUtxoSet
     , nextTransactionsAt
     , utxoAt
-    , watchAddressUntil
+    , watchAddressUntilSlot
     , submitTx
     , Tx
     , TxOutRef(TxOutRef, txOutRefId)
@@ -70,7 +70,7 @@ import           Playground.TH               (ensureKnownCurrencies, mkFunction,
 import           Playground.Types            (Expression, FunctionSchema, KnownCurrency (KnownCurrency), adaCurrency)
 import           Plutus.Contract             (AsContractError, Contract, Endpoint, awaitSlot, endpoint,
                                               nextTransactionsAt, ownPubKey, submitTx, type (.\/), utxoAt,
-                                              watchAddressUntil)
+                                              watchAddressUntilSlot)
 import           Plutus.Contract.Trace       (TraceError (..))
 import           Schema                      (FormSchema, ToArgument, ToSchema)
 import           Wallet.Emulator.Types       (Wallet (..))

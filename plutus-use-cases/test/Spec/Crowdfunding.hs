@@ -29,7 +29,7 @@ import           Plutus.Contract.Test
 import           Plutus.Contracts.Crowdfunding
 import           Plutus.Trace.Emulator                 (ContractHandle (..), EmulatorTrace)
 import qualified Plutus.Trace.Emulator                 as Trace
-import qualified PlutusTx                              as PlutusTx
+import qualified PlutusTx
 import qualified PlutusTx.Prelude                      as PlutusTx
 import qualified Streaming.Prelude                     as S
 import qualified Wallet.Emulator.Folds                 as Folds

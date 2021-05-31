@@ -7,7 +7,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MonoLocalBinds         #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE NamedFieldPuns         #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -37,7 +36,8 @@ module Plutus.Contract.StateMachine(
     , runInitialise
     , getOnChainState
     , waitForUpdate
-    , waitForUpdateUntil
+    , waitForUpdateUntilSlot
+    , waitForUpdateUntilTime
     -- * Lower-level API
     , StateMachineTransition(..)
     , mkStep
@@ -55,7 +55,7 @@ import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
 import           Data.Void                            (Void, absurd)
 import           GHC.Generics                         (Generic)
-import           Ledger                               (Slot, Value)
+import           Ledger                               (POSIXTime, Slot, Value)
 import qualified Ledger
 import           Ledger.AddressMap                    (outputsMapFromTxForAddress)
 import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
@@ -63,6 +63,7 @@ import           Ledger.Constraints.OffChain          (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain          as Constraints
 import           Ledger.Constraints.TxConstraints     (InputConstraint (..), OutputConstraint (..))
 import           Ledger.Crypto                        (pubKeyHash)
+import qualified Ledger.TimeSlot                      as TimeSlot
 import           Ledger.Tx                            as Tx
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
@@ -72,7 +73,7 @@ import qualified Ledger.Value                         as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
 import qualified Plutus.Contract.StateMachine.OnChain as SM
-import qualified PlutusTx                             as PlutusTx
+import qualified PlutusTx
 
 -- $statemachine
 -- To write your contract as a state machine you need
@@ -210,7 +211,7 @@ data WaitingResult a
 --   terminated. If 'waitForUpdate' is called before the instance has even
 --   started then it returns the first state of the instance as soon as it
 --   has started.
-waitForUpdateUntil ::
+waitForUpdateUntilSlot ::
     ( AsSMContractError e
     , AsContractError e
     , PlutusTx.IsData state
@@ -218,7 +219,7 @@ waitForUpdateUntil ::
     => StateMachineClient state i
     -> Slot
     -> Contract w schema e (WaitingResult state)
-waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
+waitForUpdateUntilSlot StateMachineClient{scInstance, scChooser} timeoutSlot = do
     let addr = Scripts.validatorAddress $ typedValidator scInstance
     let go sl = do
             txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
@@ -241,6 +242,17 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
                 Left err         -> throwing _SMContractError err
                 Right (state, _) -> pure $ WaitingResult (tyTxOutData state)
 
+-- | Same as 'waitForUpdateUntilSlot', but works with 'POSIXTime' instead.
+waitForUpdateUntilTime ::
+    ( AsSMContractError e
+    , AsContractError e
+    , PlutusTx.IsData state
+    )
+    => StateMachineClient state i
+    -> POSIXTime
+    -> Contract w schema e (WaitingResult state)
+waitForUpdateUntilTime sm timeoutTime = do
+    waitForUpdateUntilSlot sm $ TimeSlot.posixTimeToSlot timeoutTime
 
 -- | Wait until the on-chain state of the state machine instance has changed,
 --   and return the new state, or return 'Nothing' if the instance has been
