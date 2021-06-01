@@ -40,7 +40,7 @@ import           Control.Monad.Freer.Error                        (Error)
 import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
-import           Data.Aeson                                       (ToJSON, Value)
+import           Data.Aeson                                       (Value)
 import           Data.Proxy                                       (Proxy (..))
 import qualified Data.Text                                        as Text
 

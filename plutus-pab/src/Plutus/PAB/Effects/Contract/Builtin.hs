@@ -41,7 +41,6 @@ import qualified Data.Aeson                                       as JSON
 import qualified Data.Aeson.Types                                 as JSON
 import           Data.Bifunctor                                   (Bifunctor (..))
 import           Data.Foldable                                    (traverse_)
-import           Data.List                                        (isInfixOf)
 import           Data.Row
 import qualified Data.Text                                        as Text
 

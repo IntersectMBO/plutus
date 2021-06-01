@@ -22,8 +22,6 @@ module Plutus.PAB.Effects.Contract.ContractExe(
     ) where
 
 import           Cardano.BM.Data.Tracer.Extras                    (StructuredLog (..))
-import           Control.Lens                                     ((^.))
-import           Control.Monad                                    (when)
 import           Control.Monad.Freer                              (Eff, LastMember, Member, send, sendM, type (~>))
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
@@ -37,7 +35,7 @@ import qualified Data.HashMap.Strict                              as HM
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc                        (Pretty, pretty, (<+>))
 import           GHC.Generics                                     (Generic)
-import           Plutus.Contract.Resumable                        (IterationID (..), Response (rspItID))
+import           Plutus.Contract.Resumable                        (Response)
 import           Plutus.Contract.State                            (ContractRequest (..), ContractResponse)
 import qualified Plutus.Contract.State                            as ContractState
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog))
@@ -49,7 +47,6 @@ import qualified Plutus.PAB.Events.Contract                       as Events.Cont
 import           Plutus.PAB.Monitoring.PABLogMsg                  (ContractExeLogMsg (..), PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                 (PABError (ContractCommandError))
 import           System.Exit                                      (ExitCode (ExitFailure, ExitSuccess))
-import           System.FilePath.Lens                             (filename)
 import           System.Process                                   (readProcessWithExitCode)
 
 instance PABContract ContractExe where
