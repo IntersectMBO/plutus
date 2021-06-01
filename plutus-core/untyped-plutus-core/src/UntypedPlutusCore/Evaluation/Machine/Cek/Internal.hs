@@ -264,12 +264,17 @@ being the cause of a potential failure. But as mentioned, turning a 'CekValue' i
 no problem and we need that elsewhere anyway, so we don't need any extra machinery for calling the
 constant application machinery over a list of 'CekValue's and turning the cause of a possible
 failure into a 'Term', apart from the straightforward generalization of the error type.
+
+Error handling is arranged as follows: we allow the CEK machine to throw terms and the builtin
+appliation machinery to throw values and in 'runCekM' we catch both kinds of errors and turn
+the latter into the former, so that to the outside it looks like the CEK machine is pure and
+can only return errors with terms in them, not values.
 -}
 
 {- Note [Being generic over @term@ in 'CekM']
 We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a
 @term@-generic version of 'CekEvaluationException' called 'CekEvaluationExceptionCarrying'.
-This enables us to implement 'MonadError' instances that allow for throwing errors in both the CEK
+This enables us to implement a 'MonadError' instance that allow for throwing errors in both the CEK
 machine and the builtin application machinery (as Note [Being generic over 'term' in errors]
 explains, those are different kinds of errors) and otherwise we'd have to have more plumbing between
 these two and turning the builtin application machinery's 'MonadError' constraint into an explicit
@@ -334,39 +339,34 @@ throwingDischarged
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
--- | Enable throwing 'CekValue' rather than 'Term' within the received action.
-withErrorDischarging
+-- | Enable throwing/catching 'CekValue's within the received action and
+-- catching 'Term's outside of it.
+withCekValueErrors
     :: CekCarryingM (CekValue uni fun) uni fun s a
     -> CekCarryingM (Term Name uni fun ()) uni fun s a
-withErrorDischarging = coerce
+withCekValueErrors = coerce
 
--- | Handle a 'CekEvaluationException' in the 'CekCarryingM' monad.
-catchErrorCekCarryingM
-    :: PrettyUni uni fun
-    => CekCarryingM term uni fun s a
-    -> (CekEvaluationException uni fun -> CekCarryingM term uni fun s a)
-    -> CekCarryingM term uni fun s a
-catchErrorCekCarryingM a h =
-    CekCarryingM . unsafeIOToST $ unsafeRunCekCarryingM a `catch` (unsafeRunCekCarryingM . h) where
+-- | Enable throwing/catching 'Term's within the received action and
+-- catching 'CekValue's outside of it.
+withTermErrors
+    :: CekCarryingM (Term Name uni fun ()) uni fun s a
+    -> CekCarryingM (CekValue uni fun) uni fun s a
+withTermErrors = coerce
+
+instance (PrettyUni uni fun, PrettyPlc term, Typeable term) =>
+            MonadError (CekEvaluationExceptionCarrying term fun) (CekCarryingM term uni fun s) where
+    -- See Note [Throwing exceptions in ST].
+    throwError = CekCarryingM . throwM
+
+    -- See Note [Catching exceptions in ST].
+    a `catchError` h = CekCarryingM . unsafeIOToST $ aIO `catch` hIO where
+        aIO = unsafeRunCekCarryingM a
+        hIO = unsafeRunCekCarryingM . h
+
         -- | Unsafely run a 'CekCarryingM' computation in the 'IO' monad by converting the
         -- underlying 'ST' to it.
         unsafeRunCekCarryingM :: CekCarryingM term uni fun s a -> IO a
         unsafeRunCekCarryingM = unsafeSTToIO . unCekCarryingM
-
-instance PrettyUni uni fun => MonadError (CekEvaluationException uni fun) (CekM uni fun s) where
-    throwError = CekCarryingM . throwM
-    catchError = catchErrorCekCarryingM
-
-instance PrettyUni uni fun =>
-            MonadError
-                (CekEvaluationExceptionCarrying (CekValue uni fun) fun)
-                (CekCarryingM (CekValue uni fun) uni fun s) where
-    throwError = CekCarryingM . throwM . mapCauseInMachineException dischargeCekValue
-    -- We don't need this function, but it doesn't hurt to define it anyway.
-    a `catchError` h =
-        -- We can't convert a thrown 'Term' into a 'CekValue' without computing that 'Term',
-        -- which is silly, so we just lose the term that caused the failure.
-        a `catchErrorCekCarryingM` \(ErrorWithCause err _) -> h $ ErrorWithCause err Nothing
 
 -- It would be really nice to define this instance, so that we can use 'makeKnown' directly in
 -- the 'CekM' monad without the 'WithEmitterT' nonsense. Unfortunately, GHC doesn't like
@@ -423,7 +423,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     VBuiltin _ term env _  -> dischargeCekValEnv env term
 
-instance (Closed uni, GShow uni, uni `EverywhereAll` '[PrettyConst, ExMemoryUsage], Pretty fun) =>
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
@@ -469,7 +469,9 @@ runCekM runtime (ExBudgetMode getExBudgetInfo) emitting a = runST $ do
     let ?cekRuntime = runtime
         ?cekEmitter = mayLogsRef
         ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
-    errOrRes <- unCekCarryingM $ tryError a
+    -- See Note Note [Being generic over 'term' in errors].
+    errValOrErrTermOrRes <- unCekCarryingM . tryError . withTermErrors $ tryError a
+    let errOrRes = join $ first (mapCauseInMachineException dischargeCekValue) errValOrErrTermOrRes
     st' <- _exBudgetModeGetFinal exBudgetMode
     logs <- case mayLogsRef of
         Nothing      -> pure []
@@ -631,8 +633,8 @@ enterComputeCek costs = computeCek where
             -- argument next.
             TypeSchemeArrow _ schB -> do
                 -- The builtin application machinery wants to be able to throw a 'CekValue' rather
-                -- than a 'Term', hence 'withErrorDischarging'.
-                x <- withErrorDischarging $ readKnown arg
+                -- than a 'Term', hence 'withCekValueErrors'.
+                x <- withCekValueErrors $ readKnown arg
                 -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                 let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
                 res <- evalBuiltinApp fun term' env runtime'
