@@ -1,22 +1,19 @@
 module Wallet where
 
 import Prelude hiding (div)
-import Control.Alt ((<|>))
 import Control.Monad.State (class MonadState)
 import Data.Array (concatMap, delete, drop, fold, foldMap, snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
-import Data.Either (Either(..))
-import Data.Foldable (foldl, for_, intercalate, traverse_)
+import Data.Foldable (foldl, intercalate, traverse_)
 import Data.Lens (_Just, assign, has, modifying, over, preview, previewOn, to, toArrayOf, traversed, use, (^.), (^?))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
-import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Map.Lens (_MaxIndex, _NextIndex)
-import Data.Maybe (Maybe(..), fromMaybe, isNothing, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Newtype (unwrap)
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
@@ -38,16 +35,12 @@ import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, enabled, placeholder, selected, src, type_, value)
 import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
-import Marlowe.Extended (toCore)
-import Marlowe.Extended as EM
 import Marlowe.Extended.Metadata (emptyContractMetadata)
-import Marlowe.Holes (fromTerm, gatherContractData)
-import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Contract(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds)
 import Marlowe.Semantics as S
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
-import Simulator.Lenses (_SimulationRunning, _contract, _currentContract, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings)
-import Simulator.State (emptyMarloweStateWithSlot, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, applyPendingInputs)
+import Simulator.Lenses (_SimulationRunning, _contract, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings)
+import Simulator.State (mapPartiesActionInput, updatePossibleActions, applyPendingInputs)
 import Simulator.Types (ActionInput(..), ActionInputId, MarloweState)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
@@ -106,44 +99,7 @@ hasHistory = has (_loadedMarloweState <<< _Tail)
 
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Message m (Maybe a)
 handleQuery (LoadContract contractString next) = do
-  case parseContract contractString of
-    Left err -> assign _loadContractError (Just $ show err)
-    Right contractTerm ->
-      for_ (fromTerm contractTerm) \extendedContract -> do
-        -- We reuse the extended Marlowe parser for now since it is a superset
-        for_ (toCore (extendedContract :: EM.Contract)) \contract -> do
-          idx <- use (_contracts <<< _NextIndex)
-          mOpenWallet <- use _openWallet
-          for_ mOpenWallet \openWallet -> do
-            existingWallets <- use _wallets
-            slot <- use _slot
-            let
-              contractData = gatherContractData contractTerm { parties: mempty, tokens: mempty }
-
-              parties = Set.mapMaybe fromTerm contractData.parties
-
-              tokens = Map.fromFoldable $ Set.map (\token -> Tuple token zero) $ Set.mapMaybe fromTerm contractData.tokens
-
-              newWallets = foldl (walletFromPK tokens) existingWallets parties
-
-              -- A PK party should be owned by the wallet that is that PK but by default it is owned by the primary wallet
-              partiesMap = Map.fromFoldable $ Set.map (mkPartyPair openWallet newWallets) parties
-
-              loadedContract =
-                { contract
-                , idx
-                , owner: openWallet ^. _name
-                , parties: mempty
-                , started: false
-                , marloweState: NEL.singleton (emptyMarloweStateWithSlot slot contract)
-                }
-            modifying _wallets (Map.union newWallets)
-            assign _walletLoadedContract (Just loadedContract)
-            modifying _contracts (Map.insert idx loadedContract)
-            assign (_walletLoadedContract <<< _Just <<< _parties) partiesMap
-            modifying (_openWallet <<< _Just <<< _assets) (flip Map.union tokens)
-            modifying _tokens (Set.union (Map.keys tokens))
-            updateContractInState contractString
+  -- TODO: We are going to delete the wallet code, so no need to update this function
   pure $ Just next
   where
   walletFromPK :: Map Token BigInteger -> Map String Wallet -> Party -> Map String Wallet
@@ -168,7 +124,9 @@ updateMarloweState :: forall m. MonadState State m => (MarloweState -> MarloweSt
 updateMarloweState f = modifying _loadedMarloweState (extendWith (updatePossibleActions <<< f))
 
 updateContractInState :: forall m. MonadState State m => String -> m Unit
-updateContractInState contents = modifying _currentLoadedMarloweState (updatePossibleActions <<< updateContractInStateP contents)
+-- TODO: We are going to delete wallet code soon, so there is no point in updating updateContractInStateP
+-- updateContractInState contents = modifying _currentLoadedMarloweState (updatePossibleActions <<< updateContractInStateP contents)
+updateContractInState contents = pure unit
 
 handleAction ::
   forall m.
@@ -193,8 +151,8 @@ handleAction ResetContract = do
   mContract <- use _walletLoadedContract
   assign _slot zero
   assign (_contracts <<< traversed <<< _started) false
-  assign (_contracts <<< traversed <<< _marloweState) (NEL.singleton (emptyMarloweStateWithSlot zero (maybe Close (\x -> x.contract) mContract)))
 
+-- assign (_contracts <<< traversed <<< _marloweState) (NEL.singleton (emptyMarloweStateWithSlot zero (maybe Close (\x -> x.contract) mContract)))
 handleAction ResetAll = do
   assign _initialized false
   assign _walletLoadedContract Nothing
@@ -413,12 +371,7 @@ mainPanel state =
       where
       numberedText = (HTML.code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") contractString
 
-  contractString =
-    fromMaybe mempty do
-      contract <-
-        preview (_walletLoadedContract <<< _Just <<< _currentContract) state
-          <|> preview (_walletLoadedContract <<< _Just <<< _contract) state
-      pure $ show $ pretty contract
+  contractString = "TODO delete"
 
 renderActions :: forall p. State -> Array (HTML p Action)
 renderActions state =
@@ -609,11 +562,7 @@ renderCurrentState state =
   where
   contractMaxTime Nothing = "Closed"
 
-  contractMaxTime (Just contract) =
-    let
-      t = (_.maxTime <<< unwrap <<< timeouts) contract
-    in
-      if t == zero then "Closed" else show t
+  contractMaxTime (Just contract) = "TODO:DELETE"
 
   warnings = state ^. (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _transactionWarnings)
 

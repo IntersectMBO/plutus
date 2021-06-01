@@ -76,10 +76,8 @@ exports.getDecorationRange_ = function (editor, identifier) {
   return editor.getDecorationRange(identifier);
 }
 
-exports.setDeltaDecorations_ = function (editor, initialLine, finalLine) {
-  return editor.deltaDecorations([], [
-    { range: new monaco.Range(initialLine,0,finalLine,0), options: { isWholeLine: true, className: 'monaco-readonly-decoration' }},
-  ]);
+exports.setDeltaDecorations_ = function (editor, oldDecorations, newDecorations) {
+  return editor.deltaDecorations(oldDecorations, newDecorations);
 }
 
 exports.getModel_ = function (editor) {
@@ -132,6 +130,22 @@ exports.registerDocumentFormattingEditProvider_ = function (monaco, languageId, 
 
 exports.setPosition_ = function (editor, position) {
   editor.setPosition(position);
+}
+
+exports.revealRange_ = function (editor, range) {
+  editor.revealRange(range);
+}
+
+exports.revealRangeInCenter_ = function (editor, range) {
+  editor.revealRangeInCenter(range);
+}
+
+exports.revealRangeAtTop_ = function (editor, range) {
+  editor.revealRangeAtTop(range);
+}
+
+exports.revealRangeNearTop_ = function (editor, range) {
+  editor.revealRangeNearTop(range);
 }
 
 exports.revealLine_ = function (editor, lineNumber) {
