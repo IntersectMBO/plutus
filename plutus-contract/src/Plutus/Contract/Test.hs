@@ -80,7 +80,6 @@ import           Control.Monad.Freer.Extras.Log         (LogLevel (..), LogMessa
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.Writer             (Writer (..), tell)
 import           Control.Monad.IO.Class                 (MonadIO (liftIO))
-import           Data.Aeson                             (FromJSON, ToJSON)
 import           Data.Default                           (Default (..))
 import           Data.Foldable                          (fold, toList, traverse_)
 import           Data.Maybe                             (fromJust, mapMaybe)
@@ -253,8 +252,6 @@ endpointAvailable
        , KnownSymbol l
        , ContractConstraints s
        , Monoid w
-       , FromJSON w
-       , ToJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -272,8 +269,6 @@ interestingAddress
        ( WatchAddress.HasWatchAddress s
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -297,8 +292,6 @@ queryingUtxoAt
        ( UtxoAt.HasUtxoAt s
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -322,8 +315,6 @@ tx
        ( HasWriteTx s
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -352,8 +343,6 @@ assertEvents
        ( Forall (Input s) Pretty
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -396,8 +385,6 @@ waitingForSlot
        ( HasType SlotSymbol AwaitSlot.WaitingForSlot (Output s)
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -416,8 +403,6 @@ anyTx
        ( HasWriteTx s
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -429,8 +414,6 @@ assertHooks
        ( Forall (Output s) Pretty
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -455,8 +438,6 @@ assertResponses
        ( Forall (Input s) Pretty
        , ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -488,8 +469,6 @@ assertResumableResult ::
     , Show e
     , Show a
     , Show w
-    , ToJSON w
-    , FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -520,8 +499,6 @@ assertDone
     :: forall w s e a.
     ( ContractConstraints s
     , Monoid w
-    , ToJSON w
-    , FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -536,8 +513,6 @@ assertNotDone
     :: forall w s e a.
     ( ContractConstraints s
     , Monoid w
-    , ToJSON w
-    , FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -551,8 +526,6 @@ assertContractError
     :: forall w s e a.
     ( ContractConstraints s
     , Monoid w
-    , ToJSON w
-    , FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -565,8 +538,6 @@ assertOutcome
     :: forall w s e a.
        ( ContractConstraints s
        , Monoid w
-       , ToJSON w
-       , FromJSON w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -684,8 +655,6 @@ assertAccumState ::
     ( ContractConstraints s
     , Monoid w
     , Show w
-    , ToJSON w
-    , FromJSON w
     )
     => Contract w s e a
     -> ContractInstanceTag

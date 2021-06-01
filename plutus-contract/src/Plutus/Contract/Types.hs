@@ -47,6 +47,7 @@ module Plutus.Contract.Types(
     , requests
     , finalState
     , logs
+    , lastState
     , checkpointStore
     , observableState
     , shrinkResumableResult
@@ -74,9 +75,7 @@ import           Control.Monad.Freer.Writer        (Writer)
 import qualified Control.Monad.Freer.Writer        as W
 import           Data.Aeson                        (Value)
 import qualified Data.Aeson                        as Aeson
-import           Data.Bifunctor                    (Bifunctor (..))
 import           Data.Foldable                     (foldl')
-import           Data.IntervalMap.Interval         (Interval (ClosedInterval))
 import qualified Data.IntervalSet                  as IS
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
@@ -89,7 +88,7 @@ import           Plutus.Contract.Schema            (Event (..), Handlers (..))
 import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Checkpoint (..), CheckpointError (..),
                                                     CheckpointKey, CheckpointLogMsg, CheckpointStore,
                                                     completedIntervals, handleCheckpoint, jsonCheckpoint,
-                                                    jsonCheckpointLoop, maxKey)
+                                                    jsonCheckpointLoop)
 import           Plutus.Contract.Resumable         hiding (responses, select)
 import qualified Plutus.Contract.Resumable         as Resumable
 
@@ -125,8 +124,6 @@ handleContractEffs ::
   , Member (LogMsg CheckpointLogMsg) effs
   , Member (LogMsg Value) effs
   , Monoid w
-  , Aeson.ToJSON w
-  , Aeson.FromJSON w
   )
   => Eff (ContractEffs w s e) a
   -> Eff effs (Maybe (MultiRequestContStatus (Event s) (Handlers s) effs a))
@@ -134,7 +131,7 @@ handleContractEffs =
   suspendNonDet @(Event s) @(Handlers s) @a @effs
   . handleResumable @(Event s) @(Handlers s)
   . handleCheckpoint
-  . addEnvToCheckpoint @w
+  . addEnvToCheckpoint
   . interpret @(Writer w) (writeIntoState _AccumState)
   . subsume @(LogMsg Value)
   . subsume @(Error e)
@@ -158,13 +155,9 @@ putContractEnv ::
 putContractEnv (it, req) = put it >> put req
 
 addEnvToCheckpoint ::
-  forall w effs.
+  forall effs.
   ( Member (State RequestID) effs
   , Member (State IterationID) effs
-  , Member (State (AccumState w)) effs
-  , Aeson.ToJSON w
-  , Aeson.FromJSON w
-  , Semigroup w
   )
   => Eff (Checkpoint ': effs)
   ~> Eff (Checkpoint ': effs)
@@ -173,7 +166,6 @@ addEnvToCheckpoint = reinterpret @Checkpoint @Checkpoint @effs $ \case
   AllocateKey -> send AllocateKey
   Store k k' a -> do
     env <- getContractEnv
-    result <- send $ Retrieve @(ContractEnv, Aeson.Value) k
     send $ Store k k' (env, a)
   Retrieve k -> do
     result <- send $ Retrieve @(ContractEnv, _) k
@@ -298,8 +290,6 @@ makeLenses ''SuspendedContract
 
 runResumable ::
   ( Monoid w
-  , Aeson.ToJSON w
-  , Aeson.FromJSON w
   )
   => [Response (Event s)]
   -> CheckpointStore
@@ -314,8 +304,6 @@ runResumable events store action =
 runWithRecord ::
   forall w s e a.
   ( Monoid w
-  , Aeson.ToJSON w
-  , Aeson.FromJSON w
   )
   => Eff (ContractEffs w s e) a
   -> CheckpointStore
@@ -381,8 +369,6 @@ runSuspContractEffects cpKey cpStore =
 suspend ::
   forall w s e a.
   ( Monoid w
-  , Aeson.ToJSON w
-  , Aeson.FromJSON w
   )
   => CheckpointStore
   -> Eff (ContractEffs w s e) a -- ^ The contract
@@ -415,10 +401,8 @@ runStep _ _ = Nothing
 insertAndUpdate ::
   forall w s e a.
   ( Monoid w
-  , Aeson.ToJSON w
-  , Aeson.FromJSON w
   )
-  => Eff (ContractEffs w s e) a -- FIXME: State w (Event s)
+  => Eff (ContractEffs w s e) a
   -> CheckpointStore -- ^ Checkpoint store
   -> Responses (CheckpointKey, Event s) -- ^ Previous responses
   -> Response (Event s)

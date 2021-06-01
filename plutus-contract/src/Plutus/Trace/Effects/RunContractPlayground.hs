@@ -75,7 +75,6 @@ handleRunContractPlayground ::
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
-    , JSON.FromJSON w
     , Monoid w
     , Member ContractInstanceIdEff effs
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
@@ -100,7 +99,6 @@ handleLaunchContract ::
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
-    , JSON.FromJSON w
     , Monoid w
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member ContractInstanceIdEff effs

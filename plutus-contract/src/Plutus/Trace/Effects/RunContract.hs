@@ -167,7 +167,6 @@ handleActivate :: forall w s e effs effs2.
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
-    , JSON.FromJSON w
     , Monoid w
     )
     => Wallet
@@ -197,7 +196,6 @@ startContractThread ::
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
-    , JSON.FromJSON w
     , Monoid w
     )
     => Wallet

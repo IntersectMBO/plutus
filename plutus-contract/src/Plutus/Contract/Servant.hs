@@ -36,7 +36,7 @@ type ContractAPI w e s =
 -- | Serve a 'PlutusContract' via the contract API.
 contractServer
     :: forall w s e.
-    (Show e, Monoid w, ToJSON w, FromJSON w)
+    (Show e, Monoid w)
     => Contract w s e ()
     -> Server (ContractAPI w e s)
 contractServer con = initialise :<|> run where
