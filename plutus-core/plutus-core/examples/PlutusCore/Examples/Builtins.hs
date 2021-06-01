@@ -95,8 +95,11 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
-    | ExpensivePlus
+    -- The next four are for testing that costing always precedes actual evaluation.
+    | FailingSucc
+    | ExpensiveSucc
     | FailingPlus
+    | ExpensivePlus
     | Absurd
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
@@ -186,6 +189,16 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
                    )
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
+    toBuiltinMeaning FailingSucc =
+        makeBuiltinMeaning
+            @(Integer -> Integer)
+            (\_ -> throw BuiltinErrorCall)
+            (\_ _ -> ExBudget 1 0)
+    toBuiltinMeaning ExpensiveSucc =
+        makeBuiltinMeaning
+            @(Integer -> Integer)
+            (\_ -> throw BuiltinErrorCall)
+            (\_ _ -> unExRestrictingBudget enormousBudget)
     toBuiltinMeaning FailingPlus =
         makeBuiltinMeaning
             @(Integer -> Integer -> Integer)

@@ -165,7 +165,33 @@ test_IdRank2 =
         typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess res)
 
 -- | Test that an exception thrown in the builtin application code does not get caught in the CEK
--- machine and blows in the caller face instead.
+-- machine and blows in the caller face instead. Uses a one-argument built-in function.
+test_FailingSucc :: TestTree
+test_FailingSucc =
+    testCase "FailingSucc" $ do
+        let term =
+                apply () (builtin () $ Right FailingSucc) $
+                    mkConstant @Integer @DefaultUni () 0
+        typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
+            -- Here we rely on 'typecheckAnd' lazily running the action after type checking the term.
+            traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
+        typeErrOrEvalExcOrRes @?= Right (Left BuiltinErrorCall)
+
+-- | Test that evaluating a PLC builtin application that is expensive enough to exceed the budget
+-- does not result in actual evaluation of the application on the Haskell side and instead we get an
+-- 'EvaluationFailure'. Uses a one-argument built-in function.
+test_ExpensiveSucc :: TestTree
+test_ExpensiveSucc =
+    testCase "ExpensiveSucc" $ do
+        let term =
+                apply () (builtin () $ Right ExpensiveSucc) $
+                    mkConstant @Integer @DefaultUni () 0
+        typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
+            traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
+        typeErrOrEvalExcOrRes @?= Right (Right EvaluationFailure)
+
+-- | Test that an exception thrown in the builtin application code does not get caught in the CEK
+-- machine and blows in the caller face instead. Uses a two-arguments built-in function.
 test_FailingPlus :: TestTree
 test_FailingPlus =
     testCase "FailingPlus" $ do
@@ -181,7 +207,7 @@ test_FailingPlus =
 
 -- | Test that evaluating a PLC builtin application that is expensive enough to exceed the budget
 -- does not result in actual evaluation of the application on the Haskell side and instead we get an
--- 'EvaluationFailure'.
+-- 'EvaluationFailure'. Uses a two-arguments built-in function.
 test_ExpensivePlus :: TestTree
 test_ExpensivePlus =
     testCase "ExpensivePlus" $ do
@@ -203,6 +229,8 @@ test_definition =
         , test_IdFInteger
         , test_IdList
         , test_IdRank2
+        , test_FailingSucc
+        , test_ExpensiveSucc
         , test_FailingPlus
         , test_ExpensivePlus
         ]
