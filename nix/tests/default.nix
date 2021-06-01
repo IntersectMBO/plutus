@@ -43,11 +43,6 @@ pkgs.recurseIntoAttrs {
     inherit fixPngOptimization;
   };
 
-  terraform = pkgs.callPackage ./terraform.nix {
-    src = cleanSrc;
-    inherit (pkgs) terraform;
-  };
-
   vmTests = pkgs.callPackage ./vm.nix {
     inherit vmCompileTests plutus-playground marlowe-playground
       marlowe-dashboard web-ghc plutus-pab
