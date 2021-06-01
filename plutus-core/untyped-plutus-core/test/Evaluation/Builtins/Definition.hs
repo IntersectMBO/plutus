@@ -1,4 +1,4 @@
--- | A dynamic built-in name test.
+-- | Tests for all kinds of built-in functions.
 
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -165,7 +165,7 @@ test_IdRank2 =
         typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess res)
 
 -- | Test that an exception thrown in the builtin application code does not get caught in the CEK
--- machine.
+-- machine and blows in the caller face instead.
 test_FailingPlus :: TestTree
 test_FailingPlus =
     testCase "FailingPlus" $ do
@@ -174,11 +174,14 @@ test_FailingPlus =
                     [ mkConstant @Integer @DefaultUni () 0
                     , mkConstant @Integer @DefaultUni () 1
                     ]
-        -- Here we rely on 'typecheckAnd' lazily returning running the action.
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
+            -- Here we rely on 'typecheckAnd' lazily running the action after type checking the term.
             traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
         typeErrOrEvalExcOrRes @?= Right (Left BuiltinErrorCall)
 
+-- | Test that evaluating a PLC builtin application that is expensive enough to exceed the budget
+-- does not result in actual evaluation of the application on the Haskell side and instead we get an
+-- 'EvaluationFailure'.
 test_ExpensivePlus :: TestTree
 test_ExpensivePlus =
     testCase "ExpensivePlus" $ do

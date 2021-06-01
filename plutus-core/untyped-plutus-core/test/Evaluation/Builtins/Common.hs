@@ -21,7 +21,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Control.Monad.Except
 
--- | Type check and evaluate a term that can contain dynamic built-ins.
+-- | Type check and evaluate a term.
 typecheckAnd
     :: (MonadError (TPLC.Error uni fun ()) m, ToBuiltinMeaning uni fun, GShow uni, GEq uni)
     => (params -> UPLC.Term Name uni fun () -> a)
@@ -31,7 +31,7 @@ typecheckAnd action runtime term = TPLC.runQuoteT $ do
     _ <- TPLC.inferType tcConfig term
     return . action runtime $ UPLC.erase term
 
--- | Type check and evaluate a term that can contain dynamic builtins, logging enabled.
+-- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
     :: ( MonadError (TPLC.Error uni fun ()) m, ToBuiltinMeaning uni fun
        , GEq uni, uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
@@ -41,7 +41,7 @@ typecheckEvaluateCek
     -> m (EvaluationResult (UPLC.Term Name uni fun ()), [String])
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
 
--- | Type check and evaluate a term that can contain dynamic builtins, logging disabled.
+-- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
     :: ( MonadError (TPLC.Error uni fun ()) m, ToBuiltinMeaning uni fun
        , GEq uni, uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
