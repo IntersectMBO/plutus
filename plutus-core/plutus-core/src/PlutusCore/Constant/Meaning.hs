@@ -62,15 +62,23 @@ data BuiltinMeaning term cost =
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
 
--- TODO: we used to have arities and it was justified to have an additional data type with cached
--- stuff, but now we need reconsider that. Maybe instantiating 'BuiltinMeaning' on the fly is
--- in fact faster.
--- | A 'BuiltinRuntime' is an instantiated (via 'toBuiltinRuntime') 'BuiltinMeaning'.
--- It contains info that is used during evaluation:
+-- TODO: we used to have arities and it was justified to precache them before executing an
+-- evaluator, but now we need to reconsider that. Maybe instantiating 'BuiltinMeaning' on the fly
+-- is in fact faster.
+-- | A 'BuiltinRuntime' represents a possibly partial builtin application.
+-- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
+-- builtin with no arguments) by instantiating (via 'toBuiltinRuntime') a 'BuiltinMeaning'.
 --
--- 1. the 'TypeScheme' of a builtin
--- 2. the denotation
--- 3. the costing function
+-- A 'BuiltinRuntime' contains info that is used during evaluation:
+--
+-- 1. the 'TypeScheme' of the uninstantiated part of the builtin. I.e. initially it's the type
+--      scheme of the whole builtin, but applying or type-instantiating the builtin peels off
+--      the corresponding constructor from the type scheme
+-- 2. the (possibly partially instantiated) denotation
+-- 3. the (possibly partially instantiated) costing function
+--
+-- All the three are in sync in terms of partial instantiatedness due to 'TypeScheme' being a
+-- GADT and 'FoldArgs' and 'FoldArgsEx' operating on the index of that GADT.
 data BuiltinRuntime term =
     forall args res. BuiltinRuntime
         (TypeScheme term args res)

@@ -174,6 +174,7 @@ data CekValue uni fun =
                              -- do it unless we really have to.
       (CekValEnv uni fun)    -- For discharging.
       !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
+                                            -- Check the docs of 'BuiltinRuntime' for details.
     deriving (Show)
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
