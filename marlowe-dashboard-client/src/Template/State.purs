@@ -24,9 +24,10 @@ import Halogen.Extra (mapMaybeSubmodule)
 import InputField.State (dummyState, handleAction, initialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Extended (TemplateContent, _slotContent, _valueContent, fillTemplate, getPlaceholderIds, initializeTemplateContent, resolveRelativeTimes, toCore)
+import Marlowe.Extended (resolveRelativeTimes, toCore)
 import Marlowe.Extended (Contract) as Extended
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (ContractTemplate)
+import Marlowe.Template (TemplateContent, fillTemplate, getPlaceholderIds, _slotContent, _valueContent, initializeTemplateContent)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot(..), TokenName)

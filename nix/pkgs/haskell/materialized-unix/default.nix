@@ -307,6 +307,7 @@
         "call-stack".revision = (((hackage."call-stack")."0.3.0").revisions).default;
         "primitive".revision = (((hackage."primitive")."0.7.1.0").revisions).default;
         "profunctors".revision = (((hackage."profunctors")."5.6").revisions).default;
+        "fin".revision = (((hackage."fin")."0.1.1").revisions).default;
         "safe".revision = (((hackage."safe")."0.3.19").revisions).default;
         "size-based".revision = (((hackage."size-based")."0.1.2.0").revisions).default;
         "ListLike".revision = (((hackage."ListLike")."4.7.4").revisions).default;
@@ -380,6 +381,10 @@
         "these".flags.assoc = true;
         "bimap".revision = (((hackage."bimap")."0.4.0").revisions).default;
         "dependent-sum".revision = (((hackage."dependent-sum")."0.5").revisions).default;
+        "ral".revision = (((hackage."ral")."0.1").revisions).default;
+        "ral".flags.semigroupoids = true;
+        "ral".flags.adjunctions = true;
+        "ral".flags.distributive = true;
         "socks".revision = (((hackage."socks")."0.6.1").revisions).default;
         "wai-cors".revision = (((hackage."wai-cors")."0.2.7").revisions).default;
         "ekg-core".revision = (((hackage."ekg-core")."0.1.1.7").revisions).default;
@@ -496,6 +501,7 @@
         "bech32".revision = (((hackage."bech32")."1.1.0").revisions).default;
         "bech32".flags.release = false;
         "bech32".flags.werror = false;
+        "bin".revision = (((hackage."bin")."0.1").revisions).default;
         "managed".revision = (((hackage."managed")."1.0.8").revisions).default;
         "terminfo".revision = (((hackage."terminfo")."0.4.1.4").revisions).default;
         "base16-bytestring".revision = (((hackage."base16-bytestring")."1.0.1.0").revisions).default;
@@ -740,6 +746,7 @@
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
         plutus-pab = ./.plan.nix/plutus-pab.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
+        plutus-chain-index = ./.plan.nix/plutus-chain-index.nix;
         byron-spec-ledger = ./.plan.nix/byron-spec-ledger.nix;
         small-steps-test = ./.plan.nix/small-steps-test.nix;
         marlowe-playground-server = ./.plan.nix/marlowe-playground-server.nix;
@@ -870,6 +877,7 @@
           "cardano-prelude-test" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "plutus-chain-index" = { flags = {}; };
           "byron-spec-ledger" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };

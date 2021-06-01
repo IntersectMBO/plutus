@@ -73,6 +73,7 @@ data DefaultFun
     | IfThenElse
     | CharToString
     | Append
+    | EqualsString
     | Trace
     | Nop1  -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
     | Nop2
@@ -106,6 +107,7 @@ instance Pretty DefaultFun where
     pretty IfThenElse           = "ifThenElse"
     pretty CharToString         = "charToString"
     pretty Append               = "append"
+    pretty EqualsString         = "equalsString"
     pretty Trace                = "trace"
     pretty Nop1                 = "nop1"
     pretty Nop2                 = "nop2"
@@ -219,6 +221,10 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
         makeBuiltinMeaning
             ((++) :: String -> String -> String)
             mempty  -- TODO: budget.
+    toBuiltinMeaning EqualsString =
+        makeBuiltinMeaning
+            ((==) @String)
+            mempty  -- TODO: budget.
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
             (emit :: String -> Emitter ())
@@ -263,6 +269,7 @@ instance Serialise DefaultFun where
               IfThenElse           -> 21
               CharToString         -> 22
               Append               -> 23
+              EqualsString         -> 28
               Trace                -> 24
               Nop1                 -> 25
               Nop2                 -> 26
@@ -293,6 +300,7 @@ instance Serialise DefaultFun where
               go 21 = pure IfThenElse
               go 22 = pure CharToString
               go 23 = pure Append
+              go 28 = pure EqualsString
               go 24 = pure Trace
               go 25 = pure Nop1
               go 26 = pure Nop2
@@ -339,6 +347,7 @@ instance Flat DefaultFun where
               IfThenElse           -> 21
               CharToString         -> 22
               Append               -> 23
+              EqualsString         -> 28
               Trace                -> 24
               Nop1                 -> 25
               Nop2                 -> 26
@@ -369,6 +378,7 @@ instance Flat DefaultFun where
               go 21 = pure IfThenElse
               go 22 = pure CharToString
               go 23 = pure Append
+              go 28 = pure EqualsString
               go 24 = pure Trace
               go 25 = pure Nop1
               go 26 = pure Nop2

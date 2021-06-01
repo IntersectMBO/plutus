@@ -15,7 +15,7 @@ import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
-import Marlowe.Extended (IntegerTemplateType)
+import Marlowe.Template (IntegerTemplateType)
 import Marlowe.Extended.Metadata (MetadataHintInfo)
 import Marlowe.Parser (parseContract)
 import MetadataTab.Types (MetadataAction, showConstructor)

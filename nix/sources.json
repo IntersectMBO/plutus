@@ -62,45 +62,6 @@
         "url": "https://github.com/input-output-hk/haskell.nix/archive/87084d65a476cc826a0e8c5d281d494254f5bc7a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "iohk-nix": {
-        "branch": "master",
-        "builtin": true,
-        "description": "nix scripts shared across projects",
-        "homepage": null,
-        "owner": "input-output-hk",
-        "repo": "iohk-nix",
-        "rev": "9dd0d1d10ae187df885996b85c9cb4f6990dae86",
-        "sha256": "1rdaa3c4sz3h1ky9ilp4sm5j9xm9v0vhnzlgnwcs3z1l8ygmvghf",
-        "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/9dd0d1d10ae187df885996b85c9cb4f6990dae86.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "mvn2nix": {
-        "branch": "master",
-        "builtin": false,
-        "description": "Easily package your Maven Java application with the Nix package manager.",
-        "homepage": "",
-        "owner": "fzakaria",
-        "repo": "mvn2nix",
-        "rev": "3af3a7e02bce9cccc77c582a589d742e4fb8540e",
-        "sha256": "0v5jv129a8wg7hgpcjgkvi8kadmh4x8gm9vacb35jlwyvhf00kal",
-        "type": "tarball",
-        "url": "https://github.com/fzakaria/mvn2nix/archive/3af3a7e02bce9cccc77c582a589d742e4fb8540e.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "nixops": {
-        "branch": "master",
-        "builtin": false,
-        "description": "NixOps is a tool for deploying to NixOS machines in a network or cloud.",
-        "homepage": "https://nixos.org/nixops",
-        "owner": "NixOS",
-        "repo": "nixops",
-        "rev": "45256745cef246dabe1ae8a7d109988f190cd7ef",
-        "sha256": "0ni1v8ppg5cf35gq7nzd50kajxzp5zkbzhf022in0fgbjcprlzr2",
-        "type": "tarball",
-        "url": "https://github.com/NixOS/nixops/archive/45256745cef246dabe1ae8a7d109988f190cd7ef.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "nixpkgs": {
         "branch": "nixpkgs-unstable",
         "builtin": true,

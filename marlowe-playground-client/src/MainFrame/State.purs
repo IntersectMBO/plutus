@@ -98,7 +98,7 @@ initialState =
   , javascriptState: JS.initialState
   , marloweEditorState: ME.initialState
   , blocklyEditorState: BE.initialState
-  , simulationState: ST.mkState
+  , simulationState: Simulation.mkState
   , jsEditorKeybindings: DefaultBindings
   , activeJSDemo: mempty
   , contractMetadata: emptyContractMetadata

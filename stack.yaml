@@ -10,6 +10,7 @@ packages:
 - marlowe-symbolic
 - playground-common
 - plutus-benchmark
+- plutus-chain-index
 - plutus-contract
 - plutus-core
 - plutus-errors
@@ -88,7 +89,7 @@ extra-deps:
 - git: https://github.com/input-output-hk/cardano-prelude
   commit: ee4e7b547a991876e6b05ba542f4e62909f4a571
   subdirs:
-    - cardano-prelude 
+    - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
   commit: 4251c0bb6e4f443f00231d28f5f70d42876da055

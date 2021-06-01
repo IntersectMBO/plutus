@@ -14,7 +14,7 @@ module Cardano.Node.RandomTx(
     , runGenRandomTx
     ) where
 
-import           Control.Lens                   (view, (&), (.~))
+import           Control.Lens                   (view)
 import           Control.Monad.Freer            (Eff, LastMember, Member)
 import qualified Control.Monad.Freer            as Eff
 import           Control.Monad.Freer.State      (State)
@@ -28,7 +28,7 @@ import qualified Data.Set                       as Set
 import qualified Hedgehog.Gen                   as Gen
 import           System.Random.MWC              as MWC
 
-import           Cardano.Chain                  (MockNodeServerChainState, index)
+import           Cardano.Chain                  (MockNodeServerChainState, currentSlot, index)
 import           Cardano.Node.Types             (GenRandomTx (..), MockServerLogMsg (..), genRandomTx)
 import           Control.Monad.Freer.Extras.Log
 import qualified Ledger.Ada                     as Ada
@@ -36,7 +36,8 @@ import qualified Ledger.Address                 as Address
 import           Ledger.Crypto                  (PrivateKey, PubKey)
 import qualified Ledger.Crypto                  as Crypto
 import qualified Ledger.Generators              as Generators
-import           Ledger.Index                   (UtxoIndex (..))
+import           Ledger.Index                   (UtxoIndex (..), runValidation, validateTransaction)
+import           Ledger.Slot                    (Slot (..))
 import           Ledger.Tx                      (Tx, TxOut (..))
 import qualified Ledger.Tx                      as Tx
 
@@ -60,7 +61,8 @@ runGenRandomTx =
         Eff.sendM $
           liftIO $ do
             gen <- MWC.createSystemRandom
-            generateTx gen (view index chainState)
+            generateTx gen (view currentSlot chainState)
+                           (view index chainState)
 
 {- | This function will generate a random transaction, given a `GenIO` and a
      `ChainState`.
@@ -78,10 +80,13 @@ runGenRandomTx =
      implementation. Please make sure to read it's documentation if you want to split
      the value into more than 10 outputs.
 -}
-generateTx :: GenIO -> UtxoIndex -> IO Tx
-generateTx gen (UtxoIndex utxo) = do
-  (sourcePrivKey, sourcePubKey) <- pickNEL gen keyPairs
-  (_, targetPubKey) <- pickNEL gen keyPairs
+generateTx
+  :: GenIO       -- ^ Reused across all function invocations (for performance reasons).
+  -> Slot        -- ^ Used to validate transctions.
+  -> UtxoIndex   -- ^ Used to generate new transactions.
+  -> IO Tx
+generateTx gen slot (UtxoIndex utxo) = do
+  (_, sourcePubKey) <- pickNEL gen keyPairs
   let sourceAddress = Address.pubKeyAddress sourcePubKey
   -- outputs at the source address
       sourceOutputs
@@ -102,28 +107,23 @@ generateTx gen (UtxoIndex utxo) = do
   -- list of inputs owned by 'sourcePrivKey' that we are going to spend
   -- in the transaction
   inputs <- sublist gen sourceOutputs
-  -- Total Ada amount that we want to spend
-  let sourceAda =
-        foldMap
-          (Ada.fromValue . txOutValue . snd)
-          inputs
-      -- inputs of the transaction
-      sourceTxIns = fmap (Tx.pubKeyTxIn . fst) inputs
-  outputValues <-
-    Gen.sample (Generators.splitVal 10 sourceAda)
-  let targetTxOuts =
-        fmap
-          (\ada ->
-              Tx.pubKeyTxOut
-                (Ada.toValue ada)
-                targetPubKey)
-          outputValues
-      -- the transaction :)
-      tx =
-        mempty & Tx.inputs .~ Set.fromList sourceTxIns &
-                 Tx.outputs .~ targetTxOuts &
-                 Tx.addSignature sourcePrivKey
-  return tx
+  if null inputs
+  then generateTx gen slot (UtxoIndex utxo)
+  else do
+    -- Total Ada amount that we want to spend
+    let sourceAda =
+          foldMap
+            (Ada.fromValue . txOutValue . snd)
+            inputs
+        -- inputs of the transaction
+        sourceTxIns = Set.fromList $ fmap (Tx.pubKeyTxIn . fst) inputs
+    tx <- Gen.sample $
+      Generators.genValidTransactionSpending sourceTxIns sourceAda
+    let ((validationResult, _), _) =
+          runValidation (validateTransaction slot tx) (UtxoIndex utxo)
+    case validationResult of
+      Nothing -> pure tx
+      Just  _ -> generateTx gen slot (UtxoIndex utxo)
 
 keyPairs :: NonEmpty (PrivateKey, PubKey)
 keyPairs =

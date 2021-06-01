@@ -23,7 +23,8 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmis
 
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux
-import           Ouroboros.Network.NodeToNode
+import           Ouroboros.Network.NodeToNode                        hiding (chainSyncMiniProtocolNum,
+                                                                      txSubmissionMiniProtocolNum)
 import           Ouroboros.Network.Protocol.Handshake.Codec
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Protocol.Handshake.Version
@@ -33,42 +34,46 @@ import           Ouroboros.Network.Socket
 import           Cardano.Protocol.Socket.Type
 import           Ledger                                              (Block, Slot (..), Tx (..))
 
--- | Client handler, used to communicate with the client thread.
-data ClientHandler = ClientHandler
-    { chInputQueue  :: TQueue Tx
-    , chSocketPath  :: FilePath
-    , chCurrentSlot :: IO Slot
-    , chHandler     :: Block -> Slot -> IO ()
+data ChainSyncHandle = ChainSyncHandle
+    { cshCurrentSlot :: IO Slot
+    , cshHandler     :: Block -> Slot -> IO ()
     }
+
+newtype TxSendHandle = TxSendHandle
+    { tshQueue :: TQueue Tx }
 
 -- | Queue a transaction to be sent to the server.
 queueTx ::
-    ClientHandler
+    TxSendHandle
  -> Tx
  -> IO ()
-queueTx ClientHandler { chInputQueue } tx =
-    atomically (writeTQueue chInputQueue tx)
+queueTx TxSendHandle { tshQueue } tx =
+    atomically (writeTQueue tshQueue tx)
 
-getCurrentSlot :: ClientHandler -> IO Slot
-getCurrentSlot = chCurrentSlot
+getCurrentSlot :: ChainSyncHandle -> IO Slot
+getCurrentSlot = cshCurrentSlot
 
-runClientNode :: FilePath
+-- | Run the chain sync protocol to get access to the current slot number.
+runChainSync' :: FilePath
               -> SlotConfig
-              -> (Block -> Slot -> IO ())
-              -> IO ClientHandler
-runClientNode socketPath slotConfig onNewBlock = do
-    inputQueue  <- newTQueueIO
-    let handle = ClientHandler { chInputQueue = inputQueue
-                               , chSocketPath = socketPath
-                               , chCurrentSlot = currentSlot slotConfig
-                               , chHandler = onNewBlock
-                               }
+              -> IO ChainSyncHandle
+runChainSync' socketPath slotConfig =
+  runChainSync socketPath slotConfig (\_ _ -> pure ())
+
+runChainSync :: FilePath
+             -> SlotConfig
+             -> (Block -> Slot -> IO ())
+             -> IO ChainSyncHandle
+runChainSync socketPath slotConfig onNewBlock = do
+    let handle = ChainSyncHandle { cshCurrentSlot = currentSlot slotConfig
+                                 , cshHandler = onNewBlock
+                                 }
 
     _ <- forkIO $ withIOManager $ loop (1 :: Second) handle
     pure handle
     where
-      loop :: TimeUnit a => a -> ClientHandler -> IOManager -> IO ()
-      loop timeout ch@ClientHandler{chSocketPath, chInputQueue, chHandler} iocp = do
+      loop :: TimeUnit a => a -> ChainSyncHandle -> IOManager -> IO ()
+      loop timeout ch@ChainSyncHandle{ cshHandler } iocp = do
         catchAll
           (connectToNode
             (localSnocket iocp socketPath)
@@ -76,9 +81,9 @@ runClientNode socketPath slotConfig onNewBlock = do
             (cborTermVersionDataCodec unversionedProtocolDataCodec)
             nullNetworkConnectTracers
             acceptableVersion
-            (unversionedProtocol (app chHandler chInputQueue))
+            (unversionedProtocol $ app cshHandler)
             Nothing
-            (localAddressFromPath chSocketPath))
+            (localAddressFromPath socketPath))
           {- If we receive any error or disconnect, try to reconnect.
              This happens a lot on startup, until the server starts. -}
           (\_ -> do
@@ -88,11 +93,10 @@ runClientNode socketPath slotConfig onNewBlock = do
       {- Application that communicates using 2 multiplexed protocols
          (ChainSync and TxSubmission). -}
       app :: (Block -> Slot -> IO ())
-          -> TQueue Tx
           -> OuroborosApplication 'InitiatorMode addr
                                   LBS.ByteString IO () Void
-      app onNewBlock' inputQueue =
-        nodeApplication (chainSync onNewBlock') (txSubmission inputQueue)
+      app onNewBlock' =
+        mkApplication [(chainSyncMiniProtocolNum, chainSync onNewBlock')]
 
       chainSync :: (Block -> Slot -> IO ())
                 -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
@@ -103,16 +107,6 @@ runClientNode socketPath slotConfig onNewBlock = do
             codecChainSync
             (ChainSync.chainSyncClientPeer
                (chainSyncClient slotConfig onNewBlock'))
-
-      txSubmission :: TQueue Tx
-                   -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
-      txSubmission inputQueue =
-          InitiatorProtocolOnly $
-          MuxPeer
-            nullTracer
-            codecTxSubmission
-            (TxSubmission.localTxSubmissionClientPeer
-               (txSubmissionClient inputQueue))
 
 -- | The client updates the application state when the protocol state changes.
 chainSyncClient :: SlotConfig
@@ -138,6 +132,52 @@ chainSyncClient slotConfig onNewBlock =
               return requestNext
         , ChainSync.recvMsgRollBackward = error "Not supported."
         }
+
+runTxSender :: FilePath
+            -> IO TxSendHandle
+runTxSender socketPath = do
+    inputQueue  <- newTQueueIO
+    let handle = TxSendHandle { tshQueue = inputQueue }
+
+    _ <- forkIO $ withIOManager $ loop (1 :: Second) handle
+    pure handle
+    where
+      loop :: TimeUnit a => a -> TxSendHandle -> IOManager -> IO ()
+      loop timeout ch@TxSendHandle{ tshQueue } iocp = do
+        catchAll
+          (connectToNode
+            (localSnocket iocp socketPath)
+            unversionedHandshakeCodec
+            (cborTermVersionDataCodec unversionedProtocolDataCodec)
+            nullNetworkConnectTracers
+            acceptableVersion
+            (unversionedProtocol (app tshQueue))
+            Nothing
+            (localAddressFromPath socketPath))
+          {- If we receive any error or disconnect, try to reconnect.
+             This happens a lot on startup, until the server starts. -}
+          (\_ -> do
+               threadDelay (fromIntegral $ toMicroseconds timeout)
+               loop timeout ch iocp)
+
+      {- Application that communicates using 2 multiplexed protocols
+         (ChainSync and TxSubmission). -}
+      app :: TQueue Tx
+          -> OuroborosApplication 'InitiatorMode addr
+                                  LBS.ByteString IO () Void
+      app inputQueue =
+        mkApplication [(txSubmissionMiniProtocolNum, txSubmission inputQueue)]
+
+
+      txSubmission :: TQueue Tx
+                   -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
+      txSubmission inputQueue =
+          InitiatorProtocolOnly $
+          MuxPeer
+            (showTracing stdoutTracer)
+            codecTxSubmission
+            (TxSubmission.localTxSubmissionClientPeer
+               (txSubmissionClient inputQueue))
 
 -- | The client updates the application state when the protocol state changes.
 txSubmissionClient :: TQueue Tx

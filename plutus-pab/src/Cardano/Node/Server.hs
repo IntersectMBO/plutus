@@ -33,7 +33,7 @@ import           Servant.Client                   (BaseUrl (baseUrlPort))
 
 app ::
     Trace IO MockServerLogMsg
- -> Client.ClientHandler
+ -> Client.TxSendHandle
  -> MVar AppState
  -> Application
 app trace clientHandler stateVar =
@@ -46,7 +46,7 @@ app trace clientHandler stateVar =
           consumeEventHistory stateVar))
 
 data Ctx = Ctx { serverHandler :: Server.ServerHandler
-               , clientHandler :: Client.ClientHandler
+               , txSendHandle  :: Client.TxSendHandle
                , serverState   :: MVar AppState
                , mockTrace     :: Trace IO MockServerLogMsg
                }
@@ -69,7 +69,7 @@ main trace MockServerConfig { mscBaseUrl
     serverHandler <- liftIO $ Server.runServerNode trace mscSocketPath mscKeptBlocks (_chainState appState)
     serverState   <- liftIO $ newMVar appState
     handleDelayEffect $ delayThread (2 :: Second)
-    clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (\_ _ -> pure ())
+    clientHandler <- liftIO $ Client.runTxSender mscSocketPath
 
     let ctx = Ctx serverHandler clientHandler serverState trace
 
@@ -82,9 +82,9 @@ main trace MockServerConfig { mscBaseUrl
         where
             warpSettings = Warp.defaultSettings & Warp.setPort (baseUrlPort mscBaseUrl) & Warp.setBeforeMainLoop (available availability)
 
-            runRandomTxGeneration Ctx { clientHandler , serverState , mockTrace } randomTxInterval = do
+            runRandomTxGeneration Ctx { txSendHandle , serverState , mockTrace } randomTxInterval = do
                     logInfo StartingRandomTx
-                    void $ liftIO $ forkIO $ transactionGenerator mockTrace randomTxInterval clientHandler serverState
+                    void $ liftIO $ forkIO $ transactionGenerator mockTrace randomTxInterval txSendHandle serverState
 
             runSlotCoordinator Ctx { serverHandler } = do
                 let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig

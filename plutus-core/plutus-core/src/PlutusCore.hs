@@ -115,9 +115,9 @@ module PlutusCore
     , defaultBuiltinCostModel
     , defaultBuiltinsRuntime
     , defaultCekCostModel
-    , defaultCekCostModelParams
     , defaultCekMachineCosts
     , defaultCekParameters
+    , defaultCostModelParams
     , unitCekParameters
     -- * CEK machine costs
     , cekMachineCostsPrefix

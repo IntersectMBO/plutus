@@ -8,13 +8,6 @@
 let
   inherit (pkgs) stdenv;
 
-  iohkNix =
-    import sources.iohk-nix {
-      inherit system config;
-      # Make iohk-nix use our nixpkgs
-      sourcesOverride = { inherit (sources) nixpkgs; };
-    };
-
   gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
 
   # { index-state, project, projectPackages, packages, extraPackages }
@@ -188,7 +181,7 @@ in
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
   inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix web-ghc;
+  inherit web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib aws-mfa-login;
   inherit lib;

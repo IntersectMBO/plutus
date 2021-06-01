@@ -9,7 +9,7 @@ import Examples.PureScript.Escrow as Escrow
 import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.Swap as Swap
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (ContractTemplate)
 
 contractTemplates :: Array ContractTemplate
 contractTemplates =

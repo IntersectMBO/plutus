@@ -5,9 +5,9 @@
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     ( defaultBuiltinsRuntime
     , defaultCekCostModel
-    , defaultCekCostModelParams
     , defaultCekMachineCosts
     , defaultCekParameters
+    , defaultCostModelParams
     , unitCekMachineCosts
     , unitCekParameters
     , defaultBuiltinCostModel
@@ -52,9 +52,10 @@ defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 --- defaultCekMachineCosts is CekMachineCosts
 
--- | The default cost model data.
-defaultCekCostModelParams :: Maybe CostModelParams
-defaultCekCostModelParams = extractCostModelParams defaultCekCostModel
+-- | The default cost model data.  This is exposed to the ledger, so let's not
+-- confuse anybody by mentioning the CEK machine
+defaultCostModelParams :: Maybe CostModelParams
+defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 defaultCekParameters = toMachineParameters defaultCekCostModel

@@ -130,7 +130,7 @@ import           Plutus.Trace.Emulator.Types            (ContractConstraints, Co
 import qualified Streaming                              as S
 import qualified Streaming.Prelude                      as S
 import           Wallet.Emulator.Chain                  (ChainEvent)
-import           Wallet.Emulator.Folds                  (EmulatorFoldErr, Outcome (..), postMapM)
+import           Wallet.Emulator.Folds                  (EmulatorFoldErr (..), Outcome (..), describeError, postMapM)
 import qualified Wallet.Emulator.Folds                  as Folds
 import           Wallet.Emulator.Stream                 (filterLogLevel, foldEmulatorStreamM, initialChainState,
                                                          initialDist, takeUntilSlot)
@@ -216,6 +216,7 @@ checkPredicateInner CheckOptions{_minLogLevel, _maxSlot, _emulatorConfig} predic
         case result of
             Left err -> do
                 annot "Error:"
+                annot (describeError err)
                 annot (show err)
                 assert False
             Right _ -> assert False

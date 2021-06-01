@@ -139,6 +139,7 @@ library
         Crypto
         Data.Text.Prettyprint.Doc.Custom
         Data.SatInt
+        Data.RandomAccessList.SkewBinary
     build-tool-depends: alex:alex -any, happy:happy >=1.17.1
     hs-source-dirs:
         plutus-core/src
@@ -279,7 +280,6 @@ library
         prettyprinter-configurable -any,
         primitive -any,
         recursion-schemes -any,
-        scientific -any,
         semigroupoids -any,
         semigroups -any,
         serialise -any,
@@ -510,3 +510,27 @@ benchmark cost-model-test
         vector -any
     other-modules:
         CostModelCreation
+
+benchmark bral-bench
+    type: exitcode-stdio-1.0
+    hs-source-dirs:      untyped-plutus-core/bench
+    main-is: Main.hs
+    build-depends:
+        base -any,
+        plutus-core -any,
+        criterion >= 1.5.9.0,
+        random >= 1.2.0,
+        containers -any,
+        -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
+        ral == 0.1
+
+test-suite bral-test
+    type: exitcode-stdio-1.0
+    hs-source-dirs:      untyped-plutus-core/test
+    main-is: TestRAList.hs
+    build-depends:
+        base -any,
+        plutus-core -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-quickcheck -any

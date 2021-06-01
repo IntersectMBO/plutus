@@ -26,7 +26,7 @@ import           PlutusCore.Builtins
 import qualified PlutusCore.Pretty   as PLC
 import           PlutusCore.Universe
 import qualified PlutusTx            as Tx
-import           PlutusTx.Prelude    as TxPrelude hiding (head, notElem, tail)
+import           PlutusTx.Prelude    as TxPrelude
 import           UntypedPlutusCore
 
 
@@ -128,22 +128,6 @@ iterateN k f x =
     if k == 0 then []
     else x : iterateN (k-1) f (f x)
 
-{-# INLINABLE head #-}
-head :: [a] -> a
-head (x:_) =  x
-head []    =  TxPrelude.error ()
-
-{-# INLINABLE tail #-}
-tail :: [a] -> [a]
-tail (_:as) =  as
-tail []     =  TxPrelude.error ()
-
-infix 4 `notElem`
-
-{-# INLINABLE notElem #-}
-notElem :: (Eq a) => a -> [a] -> Bool
-notElem a as = not (a `elem` as)
-
 -- % Replacement for [a..b]
 {-# INLINABLE interval #-}
 interval :: Integer -> Integer -> [Integer]
@@ -157,20 +141,6 @@ abs n = if n<0 then 0-n else n
 
 -- % Things needed for `union`
 
-{-# INLINABLE elem_by #-}
-elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
-elem_by _  _ []     =  False
-elem_by eq y (x:xs) =  x `eq` y || elem_by eq y xs
-
-{-# INLINABLE nubBy #-}
-nubBy :: (a -> a -> Bool) -> [a] -> [a]
-nubBy eq l              = nubBy' l []
-  where
-    nubBy' [] _         = []
-    nubBy' (y:ys) xs
-       | elem_by eq y xs = nubBy' ys xs
-       | otherwise       = y : nubBy' ys (y:xs)
-
 {-# INLINABLE deleteBy #-}
 deleteBy :: (a -> a -> Bool) -> a -> [a] -> [a]
 deleteBy _  _ []     = []
@@ -178,7 +148,7 @@ deleteBy eq x (y:ys) = if x `eq` y then ys else y : deleteBy eq x ys
 
 {-# INLINABLE unionBy #-}
 unionBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
-unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (TxPrelude.nubBy eq ys) xs
 
 {-# INLINABLE union #-}
 union :: (Eq a) => [a] -> [a] -> [a]

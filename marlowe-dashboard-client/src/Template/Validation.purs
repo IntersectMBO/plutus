@@ -10,7 +10,7 @@ module Template.Validation
 
 -- General note: Validating number inputs is a pain. I cannot find a nice way
 -- of checking that number inputs are non-empty, or that they are integers (as
--- opposed to rationals). It would almost be simpler to give all inputs a 
+-- opposed to rationals). It would almost be simpler to give all inputs a
 -- type="text", and validate against the string input before converting it to
 -- a number. But then the HTML interface wouldn't be as user-friendly. :(
 import Prelude
@@ -19,7 +19,7 @@ import Data.Map (Map, isEmpty, mapMaybe, member)
 import Data.Maybe (Maybe(..))
 import InputField.Types (class InputFieldError, State)
 import InputField.State (validate)
-import Marlowe.Extended (TemplateContent(..))
+import Marlowe.Template (TemplateContent(..))
 import Marlowe.Semantics (Slot, TokenName)
 import Marlowe.Slot (dateTimeStringToSlot)
 import WalletData.Types (WalletLibrary)

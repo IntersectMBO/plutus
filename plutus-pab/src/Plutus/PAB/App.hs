@@ -77,7 +77,8 @@ data AppEnv =
         , walletClientEnv       :: ClientEnv
         , nodeClientEnv         :: ClientEnv
         , chainIndexEnv         :: ClientEnv
-        , clientHandler         :: Client.ClientHandler
+        , txSendHandle          :: Client.TxSendHandle
+        , chainSyncHandle       :: Client.ChainSyncHandle
         , appConfig             :: Config
         , appTrace              :: Trace IO (PABLogMsg ContractExe)
         , appInMemContractStore :: InMemInstances ContractExe
@@ -125,10 +126,12 @@ appEffectHandlers eventfulBackend config trace =
             -- handle 'NodeClientEffect'
             flip handleError (throwError . NodeClientError)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . reinterpret (Core.handleMappedReader @AppEnv @Client.ClientHandler clientHandler)
+            . reinterpret (Core.handleMappedReader @AppEnv @Client.ChainSyncHandle chainSyncHandle)
+            . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
+            . reinterpret (Core.handleMappedReader @AppEnv @Client.TxSendHandle txSendHandle)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
             . reinterpret (Core.handleMappedReader @AppEnv @ClientEnv nodeClientEnv)
-            . reinterpretN @'[_, _, _] (handleNodeClientClient @IO)
+            . reinterpretN @'[_, _, _, _] (handleNodeClientClient @IO)
 
             -- handle 'ChainIndexEffect'
             . flip handleError (throwError . ChainIndexError)
@@ -174,7 +177,9 @@ mkEnv eventfulBackend appTrace appConfig@Config { dbConfig
     dbConnection <- case eventfulBackend of
         SqliteBackend   -> Sqlite <$> dbConnect appTrace dbConfig
         InMemoryBackend -> InMemory <$> M.eventMapTVar
-    clientHandler <- liftIO $ Client.runClientNode mscSocketPath mscSlotConfig (\_ _ -> pure ())
+    txSendHandle <- liftIO $ Client.runTxSender mscSocketPath
+    -- This is for access to the slot number in the interpreter
+    chainSyncHandle <- liftIO $ Client.runChainSync' mscSocketPath mscSlotConfig
     appInMemContractStore <- liftIO initialInMemInstances
     pure AppEnv {..}
   where

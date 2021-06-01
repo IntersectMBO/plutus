@@ -1069,7 +1069,7 @@ data TransactionWarning
   = TransactionNonPositiveDeposit Party AccountId Token BigInteger
   | TransactionNonPositivePay AccountId Payee Token BigInteger
   | TransactionPartialPay AccountId Payee Token BigInteger BigInteger
-  --                                               ^ src    ^ dest ^ paid ^ expected
+  --                         ^ src    ^ dest       ^ paid     ^ expected
   | TransactionShadowing ValueId BigInteger BigInteger
   --                           oldVal ^  newVal ^
   | TransactionAssertionFailed
@@ -1577,20 +1577,6 @@ computeTransaction tx state contract =
         ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
       IntervalError error -> Error (TEIntervalError error)
 
-extractRequiredActionsWithTxs :: TransactionInput -> State -> Contract -> Tuple State (Array Action)
-extractRequiredActionsWithTxs txInput state contract
-  | TransactionOutput { txOutContract, txOutState } <- computeTransaction txInput state contract = Tuple txOutState (extractRequiredActions txOutContract)
-  | TransactionInput { inputs: Nil } <- txInput
-  , IntervalTrimmed env fixState <- fixInterval (unwrap txInput).interval state
-  , (ContractQuiescent _ _ _ reducedContract) <- reduceContractUntilQuiescent env fixState contract = Tuple fixState (extractRequiredActions reducedContract)
-  -- the actions remain unchanged in error cases, cases where the contract is not reduced or cases where inputs remain
-  | otherwise = Tuple state (extractRequiredActions contract)
-
-extractRequiredActions :: Contract -> Array Action
-extractRequiredActions contract = case contract of
-  (When cases _ _) -> map (\(Case action _) -> action) cases
-  _ -> mempty
-
 moneyInContract :: State -> Money
 moneyInContract state =
   foldMapWithIndex
@@ -1601,6 +1587,11 @@ newtype Timeouts
   = Timeouts { maxTime :: Timeout, minTime :: Maybe Timeout }
 
 derive instance newtypeTimeouts :: Newtype Timeouts _
+
+-- The eq and show instances are only needed for quickcheck
+derive newtype instance eqTimeouts :: Eq Timeouts
+
+derive newtype instance showTimeouts :: Show Timeouts
 
 class HasTimeout a where
   timeouts :: a -> Timeouts

@@ -10,7 +10,8 @@ import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.CouponBondGuaranteed as CouponBondGuaranteed
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.Extended (TemplateContent(..), fillTemplate, toCore)
+import Marlowe.Extended (toCore)
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Contract)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assertFalse, equal)
