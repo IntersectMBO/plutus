@@ -236,8 +236,6 @@ lemV .(ibuiltin divideInteger · _)
 lemV M (V-I⇒ divideInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-
-
 lemV .(ibuiltin quotientInteger)
      (V-I⇒ quotientInteger (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
@@ -444,8 +442,6 @@ lemV .(ibuiltin lessThanByteString · _)
 lemV M (V-I⇒ lessThanByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-
-
 lemV .(ibuiltin greaterThanByteString)
      (V-I⇒ greaterThanByteString (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
@@ -463,10 +459,21 @@ lemV .(ibuiltin greaterThanByteString · _)
 lemV M (V-I⇒ greaterThanByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-lemV M (V-I⇒ sha2-256 p q) E = {!q!}
-lemV M (V-I⇒ sha3-256 p q) E = {!!}
-lemV M (V-I⇒ verifySignature p q) E = {!!}
-
+lemV .(ibuiltin sha2-256) (V-I⇒ sha2-256 (start .(Term ∷ [])) base) E =
+  step* refl base
+lemV M (V-I⇒ sha2-256 {as' = as'} (bubble {as = as} p) q) E with
+  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
+... | _ ,, () ,, _
+lemV .(ibuiltin sha3-256) (V-I⇒ sha3-256 (start .(Term ∷ [])) base) E =
+  step* refl base
+lemV M (V-I⇒ sha3-256 {as' = as'} (bubble {as = as} p) q) E with
+  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
+... | _ ,, () ,, _
+lemV .(ibuiltin verifySignature) (V-I⇒ verifySignature (start .(Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
+lemV (ibuiltin verifySignature · t) (V-I⇒ verifySignature (bubble (start .(Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt)) E = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E (_ ·-))) (step* (cong (stepV vt) (dissect-lemma E (_ ·-))) base))))
+lemV ((ibuiltin verifySignature · t) · u) (V-I⇒ verifySignature (bubble (bubble (start .(Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt) vu)) E = step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC E (-· u)) (-· t))) (step** (lemV t vt (extEC (extEC E (-· u)) (_ ·-))) (step* (cong (stepV vt) (dissect-lemma (extEC E (-· u)) (_ ·-)) ) (step* (cong (stepV _) (dissect-lemma E (-· u))) (step** (lemV u vu (extEC E (_ ·-))) (step* (cong (stepV vu) (dissect-lemma E (_ ·-))) base))))))))
+lemV M (V-I⇒ verifySignature {as' = as'} (bubble (bubble (bubble {as = as} p))) q) E with <>>-cancel-both' as _ ((([] ∷ Term) ∷ Term) ∷ Term) _ p refl
+... | _ ,, () ,, _
 lemV .(ibuiltin equalsByteString)
      (V-I⇒ equalsByteString (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
@@ -492,7 +499,11 @@ lemV .((_ · _) · _) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(Type �
 lemV (((ibuiltin ifThenElse ·⋆ A) · b) · t) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(arity ifThenElse))))) (step .(bubble (bubble (start (arity ifThenElse)))) (step .(bubble (start (arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base) vb) vt)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step* refl (step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· t)) (-· b))) (step** (lemV b vb (extEC (extEC E (-· t)) (_ ·-))) (step* (cong (stepV vb) (dissect-lemma (extEC E (-· t)) (_ ·-))) (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E _)) (step* (cong (stepV vt) (dissect-lemma E _)) base))))))))))
 lemV M (V-I⇒ ifThenElse {as' = as'} (bubble (bubble (bubble (bubble {as = as} p)))) q) E with <>>-cancel-both' as _ ([] <>< arity ifThenElse) _ p refl
 ... | X ,, () ,, Y'
-lemV M (V-I⇒ charToString p q) E = {!!}
+lemV .(ibuiltin charToString) (V-I⇒ charToString (start .(Term ∷ [])) base) E =
+  step* refl base
+lemV M (V-I⇒ charToString {as' = as'} (bubble {as = as} p) q) E with
+  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
+... | _ ,, () ,, _
 lemV .(ibuiltin append)
      (V-I⇒ append (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
@@ -510,8 +521,12 @@ lemV .(ibuiltin append · _)
 lemV M (V-I⇒ append {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-lemV M (V-I⇒ trace p q) E = {!!}
-lemV M (V-IΠ b p q) E = {!b!}
+lemV .(ibuiltin trace) (V-I⇒ trace (start .(Term ∷ [])) base) E =
+  step* refl base
+lemV M (V-I⇒ trace {as' = as'} (bubble {as = as} p) q) E with
+  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
+... | _ ,, () ,, _
+lemV M (V-IΠ b p q) E = {!!}
 
 lem62 : ∀{A B C}(L : ∅ ⊢ C)(E : EC A B)(E' : EC B C)
       → (E ▻ (E' [ L ]ᴱ)) -→s (compEC' E E' ▻ L)
