@@ -7,6 +7,7 @@
 module CostModelInterface.Spec (test_costModelInterface) where
 
 import           PlutusCore
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.CostModelInterface
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.MachineParameters
@@ -16,7 +17,7 @@ import qualified Data.Text                                        as Text
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-type CekCostModel = CostModel CekMachineCosts
+type CekCostModel = CostModel CekMachineCosts BuiltinCostModel
 
 -- Just for testing
 randomCekCosts :: CekMachineCosts
@@ -154,5 +155,3 @@ test_costModelInterface =
              , testCase "defaultCekCostModel <- randomCekCostModel"  $ testExtractAfterUpdate defaultCekCostModel randomCekCostModel
              ]
      ]
-
-
