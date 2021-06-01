@@ -526,7 +526,43 @@ lemV .(ibuiltin trace) (V-I⇒ trace (start .(Term ∷ [])) base) E =
 lemV M (V-I⇒ trace {as' = as'} (bubble {as = as} p) q) E with
   <>>-cancel-both' as _ ([] ∷ Term) _ p refl
 ... | _ ,, () ,, _
-lemV M (V-IΠ b p q) E = {!!}
+lemV M (V-IΠ addInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) ([] <>< arity addInteger) as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ subtractInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ multiplyInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ divideInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ quotientInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ remainderInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ modInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ lessThanInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ lessThanEqualsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ greaterThanInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ greaterThanEqualsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ equalsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ concatenate p q) E = {!!}
+lemV M (V-IΠ takeByteString p q) E = {!!}
+lemV M (V-IΠ dropByteString p q) E = {!!}
+lemV M (V-IΠ lessThanByteString p q) E = {!!}
+lemV M (V-IΠ greaterThanByteString p q) E = {!!}
+lemV M (V-IΠ sha2-256 p q) E = {!!}
+lemV M (V-IΠ sha3-256 p q) E = {!!}
+lemV M (V-IΠ verifySignature p q) E = {!!}
+lemV M (V-IΠ equalsByteString p q) E = {!!}
+lemV M (V-IΠ ifThenElse p q) E = {!!}
+lemV M (V-IΠ charToString p q) E = {!!}
+lemV M (V-IΠ append p q) E = {!!}
+lemV M (V-IΠ trace p q) E = {!!}
 
 lem62 : ∀{A B C}(L : ∅ ⊢ C)(E : EC A B)(E' : EC B C)
       → (E ▻ (E' [ L ]ᴱ)) -→s (compEC' E E' ▻ L)
