@@ -550,19 +550,33 @@ lemV M (V-IΠ greaterThanEqualsInteger {as' = as'} (bubble p) q) E with <>>-canc
 ... | X ,, Y ,, ()
 lemV M (V-IΠ equalsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
-lemV M (V-IΠ concatenate p q) E = {!!}
-lemV M (V-IΠ takeByteString p q) E = {!!}
-lemV M (V-IΠ dropByteString p q) E = {!!}
-lemV M (V-IΠ lessThanByteString p q) E = {!!}
-lemV M (V-IΠ greaterThanByteString p q) E = {!!}
-lemV M (V-IΠ sha2-256 p q) E = {!!}
-lemV M (V-IΠ sha3-256 p q) E = {!!}
-lemV M (V-IΠ verifySignature p q) E = {!!}
-lemV M (V-IΠ equalsByteString p q) E = {!!}
-lemV M (V-IΠ ifThenElse p q) E = {!!}
-lemV M (V-IΠ charToString p q) E = {!!}
-lemV M (V-IΠ append p q) E = {!!}
-lemV M (V-IΠ trace p q) E = {!!}
+lemV M (V-IΠ concatenate {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ takeByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ dropByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ lessThanByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ greaterThanByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ sha2-256 {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ sha3-256 {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
+... | X ,, Y ,, () 
+lemV M (V-IΠ verifySignature {as' = as'} (bubble (bubble p)) q) E with <>>-cancel-both' _ ((([] ∷ _) ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ equalsByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV .(ibuiltin ifThenElse) (V-IΠ ifThenElse (start .(Type ∷ Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
+lemV M (V-IΠ ifThenElse {as' = as'} (bubble (bubble (bubble p))) q) E with <>>-cancel-both' _ (((([] ∷ _) ∷ _) ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ charToString {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
+... | X ,, Y ,, () 
+lemV M (V-IΠ append {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
+lemV M (V-IΠ trace {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
+... | X ,, Y ,, ()
 
 lem62 : ∀{A B C}(L : ∅ ⊢ C)(E : EC A B)(E' : EC B C)
       → (E ▻ (E' [ L ]ᴱ)) -→s (compEC' E E' ▻ L)
