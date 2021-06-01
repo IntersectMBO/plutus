@@ -82,7 +82,6 @@ import           Data.Text.Prettyprint.Doc               (Pretty (..), defaultLa
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Time.Units                         (Second)
 import qualified Plutus.PAB.Effects.Contract             as Contract
-import           Plutus.PAB.Effects.EventLog             (EventLogBackend (..))
 
 import           Cardano.Node.Types                      (MockServerConfig (..))
 import qualified PSGenerator
@@ -91,7 +90,7 @@ import           Plutus.Contract.State                   (State (..))
 import qualified Plutus.Contract.State                   as State
 import qualified Plutus.PAB.App                          as App
 import qualified Plutus.PAB.Core                         as Core
-import qualified Plutus.PAB.Db.Eventful                  as Eventful
+import qualified Plutus.PAB.Db.Beam                      as Beam
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import qualified Plutus.PAB.Monitoring.Monitoring        as LM
 import           Plutus.PAB.Types                        (Config (..), DbConfig (..), chainIndexConfig,
@@ -118,11 +117,10 @@ runNoConfigCommand trace = \case
 
 data ConfigCommandArgs =
     ConfigCommandArgs
-        { ccaTrace           :: Trace IO (LM.AppMsg ContractExe)  -- ^ PAB Tracer logging instance
-        , ccaLoggingConfig   :: Configuration -- ^ Monitoring configuration
-        , ccaPABConfig       :: Config        -- ^ PAB Configuration
-        , ccaAvailability    :: Availability  -- ^ Token for signaling service availability
-        , ccaEventfulBackend :: App.EventfulBackend -- ^ Whether to use the sqlite or the in-memory backend
+        { ccaTrace         :: Trace IO (LM.AppMsg ContractExe)  -- ^ PAB Tracer logging instance
+        , ccaLoggingConfig :: Configuration -- ^ Monitoring configuration
+        , ccaPABConfig     :: Config        -- ^ PAB Configuration
+        , ccaAvailability  :: Availability  -- ^ Token for signaling service availability
         }
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
@@ -157,9 +155,9 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {metadataServ
         ccaAvailability
 
 -- Run PAB webserver
-runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=config@Config{pabWebserverConfig}, ccaAvailability, ccaEventfulBackend} PABWebserver =
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=config@Config{pabWebserverConfig}, ccaAvailability} PABWebserver =
         fmap (either (error . show) id)
-        $ App.runApp ccaEventfulBackend (toPABMsg ccaTrace) config
+        $ App.runApp (toPABMsg ccaTrace) config
         $ do
             App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
             (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) ccaAvailability
@@ -190,17 +188,18 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config {nodeServerConf
         ccaAvailability
 
 -- Install a contract
-runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (InstallContract contractExe) = do
-    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
-    fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
-        $ Contract.addDefinition @ContractExe contractExe
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (InstallContract contractExe) =
+      do
+        connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+        fmap (either (error . show) id)
+            $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+            $ Contract.addDefinition @ContractExe contractExe
 
 -- Get the state of a contract
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ContractState contractInstanceId) = do
-    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             s <- Contract.getState @ContractExe contractInstanceId
@@ -210,9 +209,9 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (Con
 
 -- Get all installed contracts
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} ReportInstalledContracts = do
-    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             installedContracts <- Contract.getDefinitions @ContractExe
@@ -223,9 +222,9 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} Repo
 
 -- Get all active contracts
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} ReportActiveContracts = do
-    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             logInfo @(LM.AppMsg ContractExe) LM.ActiveContractsMsg
@@ -236,9 +235,9 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} Repo
 
 -- Get history of a specific contract
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ReportContractHistory contractInstanceId) = do
-    connection <- Sqlite <$> App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
+    connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Eventful.runEventfulStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             logInfo @(LM.AppMsg ContractExe) LM.ContractHistoryMsg

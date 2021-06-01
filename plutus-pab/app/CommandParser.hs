@@ -10,25 +10,21 @@
 
 module CommandParser (parseOptions, AppOpts(..)) where
 
-import           Command
-
 import           Cardano.BM.Data.Severity                (Severity (..))
-
+import           Command
 import           Options.Applicative                     (CommandFields, Mod, Parser, argument, auto, command,
                                                           customExecParser, disambiguate, flag, fullDesc, help, helper,
                                                           idm, info, long, metavar, option, prefs, progDesc, short,
                                                           showHelpOnEmpty, showHelpOnError, str, strOption, subparser,
                                                           value)
-import           Plutus.PAB.App                          (EventfulBackend (..))
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe (..))
 import           Wallet.Types                            (ContractInstanceId (..))
 
-data AppOpts = AppOpts { minLogLevel     :: Maybe Severity
-                       , logConfigPath   :: Maybe FilePath
-                       , configPath      :: Maybe FilePath
-                       , runEkgServer    :: Bool
-                       , eventfulBackend :: EventfulBackend
-                       , cmd             :: Command
+data AppOpts = AppOpts { minLogLevel   :: Maybe Severity
+                       , logConfigPath :: Maybe FilePath
+                       , configPath    :: Maybe FilePath
+                       , runEkgServer  :: Bool
+                       , cmd           :: Command
                        }
 
 parseOptions :: IO AppOpts
@@ -50,21 +46,14 @@ ekgFlag =
         True
         (short 'e' <> long "ekg" <> help "Enable the EKG server")
 
-inMemoryFlag :: Parser EventfulBackend
-inMemoryFlag =
-    flag
-        SqliteBackend
-        InMemoryBackend
-        (short 'm' <> long "memory" <> help "Use the memory-backed eventful backend. If false, the sqlite backend is used.")
-
 commandLineParser :: Parser AppOpts
 commandLineParser =
         AppOpts <$> logLevelFlag
-               <*> logConfigFileParser
-               <*> configFileParser
-               <*> ekgFlag
-               <*> inMemoryFlag
-               <*> commandParser
+                <*> logConfigFileParser
+                <*> configFileParser
+                <*> ekgFlag
+                -- <*> dbKindParser
+                <*> commandParser
 
 configFileParser :: Parser (Maybe FilePath)
 configFileParser =
@@ -141,6 +130,7 @@ migrationParser =
                 str
                 (metavar "DATABASE" <>
                  help "The sqlite database file.")
+        -- TODO: This will need to be 'WithConfig'.
         pure $ WithoutConfig $ Migrate{dbPath}
 
 mockNodeParser :: Mod CommandFields Command

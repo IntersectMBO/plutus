@@ -32,8 +32,12 @@ import           Eventful.Store.Sqlite                   (sqliteEventStoreWriter
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg, TraceLoggerT (..))
 import           Plutus.PAB.Types                        (Source (..), toUUID)
 
-newtype Connection =
-    Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
+data EventfulBackend event
+    = EventfulSqliteBackend EventfulConnection
+    | EventfulInMemoryBackend (TVar (M.EventMap event))
+
+newtype EventfulConnection =
+    EventfulConnection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
 
 data EventLogEffect event r where
     RefreshProjection
@@ -47,13 +51,9 @@ data EventLogEffect event r where
 
 makeEffect ''EventLogEffect
 
-data EventLogBackend event =
-    Sqlite Connection
-    | InMemory (TVar (M.EventMap event))
-
 handleEventLog ::
     forall effs event.
-    ( Member (Reader (EventLogBackend event)) effs
+    ( Member (Reader (EventfulBackend event)) effs
     , LastMember IO effs
     , ToJSON event
     , FromJSON event
@@ -62,10 +62,10 @@ handleEventLog ::
     -> EventLogEffect event
     ~> Eff effs
 handleEventLog trace m = do
-    backend <- ask @(EventLogBackend event)
+    backend <- ask @(EventfulBackend event)
     case backend of
-        Sqlite conn   -> handleEventLogSql trace conn m
-        InMemory tvar -> handleEventLogTVar tvar m
+        EventfulSqliteBackend conn   -> handleEventLogSql trace conn m
+        EventfulInMemoryBackend tvar -> handleEventLogTVar tvar m
 
 -- | A handler for 'EventLogEffect' that uses an 'M.EventMap'
 --   as the event store (in-memory)
@@ -100,12 +100,12 @@ handleEventLogSql ::
        , FromJSON event
        )
     => Trace IO MonadLoggerMsg
-    -> Connection
+    -> EventfulConnection
     -> EventLogEffect event
     ~> Eff effs
 handleEventLogSql trace connection = \case
     RefreshProjection projection -> do
-        let Connection (sqlConfig, connectionPool) = connection
+        let EventfulConnection (sqlConfig, connectionPool) = connection
         sendM $ flip runTraceLoggerT trace $ do
             let reader =
                     serializedGlobalEventStoreReader jsonStringSerializer $
@@ -113,7 +113,7 @@ handleEventLogSql trace connection = \case
             flip runSqlPool connectionPool $
                 getLatestStreamProjection reader projection
     RunCommand aggregate source input -> do
-        let Connection (sqlConfig, connectionPool) = connection
+        let EventfulConnection (sqlConfig, connectionPool) = connection
         sendM $ flip runTraceLoggerT trace $ do
             let reader :: VersionedEventStoreReader (SqlPersistT (TraceLoggerT IO)) event
                 reader =

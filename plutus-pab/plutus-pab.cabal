@@ -77,6 +77,9 @@ library
         Plutus.PAB.Core.ContractInstance.BlockchainEnv
         Plutus.PAB.Core.ContractInstance.RequestHandlers
         Plutus.PAB.Core.ContractInstance.STM
+        Plutus.PAB.Db.Beam
+        Plutus.PAB.Db.Beam.ContractStore
+        Plutus.PAB.Db.Beam.ContractDefinitionStore
         Plutus.PAB.Db.Eventful
         Plutus.PAB.Db.Eventful.Command
         Plutus.PAB.Db.Eventful.ContractDefinitionStore
@@ -87,6 +90,7 @@ library
         Plutus.PAB.Effects.Contract.Builtin
         Plutus.PAB.Effects.Contract.ContractExe
         Plutus.PAB.Effects.ContractRuntime
+        Plutus.PAB.Effects.DbStore
         Plutus.PAB.Effects.EventLog
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Effects.TimeEffect
@@ -195,7 +199,11 @@ library
         exceptions -any,
         data-default -any,
         time-units -any,
-        time -any
+        time -any,
+        beam-core -any,
+        beam-sqlite -any,
+        beam-migrate -any,
+        sqlite-simple -any
 
 executable plutus-pab
     main-is: Main.hs

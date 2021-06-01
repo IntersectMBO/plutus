@@ -64,6 +64,8 @@
         "attoparsec-iso8601".flags.developer = false;
         "generic-random".revision = (((hackage."generic-random")."1.4.0.0").revisions).default;
         "generic-random".flags.enable-inspect = false;
+        "beam-migrate".revision = (((hackage."beam-migrate")."0.5.0.0").revisions).default;
+        "beam-migrate".flags.werror = false;
         "formatting".revision = (((hackage."formatting")."7.1.2").revisions).default;
         "pipes".revision = (((hackage."pipes")."4.3.16").revisions).default;
         "deriving-aeson".revision = (((hackage."deriving-aeson")."0.2.7").revisions).default;
@@ -148,6 +150,8 @@
         "cmdargs".flags.quotation = true;
         "easy-file".revision = (((hackage."easy-file")."0.2.2").revisions).default;
         "filelock".revision = (((hackage."filelock")."0.1.1.5").revisions).default;
+        "beam-core".revision = (((hackage."beam-core")."0.9.0.0").revisions).default;
+        "beam-core".flags.werror = false;
         "ghci".revision = (((hackage."ghci")."8.10.4.20210212").revisions).default;
         "dictionary-sharing".revision = (((hackage."dictionary-sharing")."0.1.0.0").revisions).default;
         "natural-transformation".revision = (((hackage."natural-transformation")."0.4").revisions).default;
@@ -165,6 +169,7 @@
         "cryptonite".flags.support_pclmuldq = false;
         "cryptonite".flags.check_alignment = false;
         "cryptonite".flags.old_toolchain_inliner = false;
+        "indexed-list-literals".revision = (((hackage."indexed-list-literals")."0.2.1.3").revisions).default;
         "alex".revision = (((hackage."alex")."3.2.6").revisions).default;
         "alex".flags.small_base = true;
         "clock".revision = (((hackage."clock")."0.8.2").revisions).default;
@@ -191,6 +196,10 @@
         "megaparsec".flags.dev = false;
         "syb".revision = (((hackage."syb")."0.7.2.1").revisions).default;
         "js-chart".revision = (((hackage."js-chart")."2.9.4.1").revisions).default;
+        "blaze-textual".revision = (((hackage."blaze-textual")."0.2.1.0").revisions).default;
+        "blaze-textual".flags.native = true;
+        "blaze-textual".flags.integer-simple = false;
+        "blaze-textual".flags.developer = false;
         "distributive".revision = (((hackage."distributive")."0.6.2.1").revisions).default;
         "distributive".flags.semigroups = true;
         "distributive".flags.tagged = true;
@@ -254,8 +263,7 @@
         "async".flags.bench = false;
         "protolude".revision = (((hackage."protolude")."0.3.0").revisions).default;
         "protolude".flags.dev = false;
-        "dlist".revision = (((hackage."dlist")."1.0").revisions).default;
-        "dlist".flags.werror = false;
+        "dlist".revision = (((hackage."dlist")."0.8.0.8").revisions).default;
         "doctest".revision = (((hackage."doctest")."0.18.1").revisions).default;
         "time-out".revision = (((hackage."time-out")."0.2").revisions).default;
         "websockets".revision = (((hackage."websockets")."0.12.7.2").revisions).default;
@@ -264,6 +272,12 @@
         "nothunks".revision = (((hackage."nothunks")."0.1.2").revisions).default;
         "x509-store".revision = (((hackage."x509-store")."1.6.7").revisions).default;
         "constraints".revision = (((hackage."constraints")."0.13").revisions).default;
+        "direct-sqlite".revision = (((hackage."direct-sqlite")."2.3.26").revisions).default;
+        "direct-sqlite".flags.urifilenames = true;
+        "direct-sqlite".flags.systemlib = false;
+        "direct-sqlite".flags.haveusleep = true;
+        "direct-sqlite".flags.json1 = true;
+        "direct-sqlite".flags.fulltextsearch = true;
         "turtle".revision = (((hackage."turtle")."1.5.22").revisions).default;
         "semigroups".revision = (((hackage."semigroups")."0.19.1").revisions).default;
         "semigroups".flags.bytestring = true;
@@ -362,6 +376,7 @@
         "cassava".flags.bytestring--lt-0_10_4 = false;
         "string-conv".revision = (((hackage."string-conv")."0.1.2").revisions).default;
         "string-conv".flags.lib-werror = false;
+        "haskell-src-exts".revision = (((hackage."haskell-src-exts")."1.23.1").revisions).default;
         "lens".revision = (((hackage."lens")."4.19.2").revisions).default;
         "lens".flags.j = false;
         "lens".flags.test-properties = true;
@@ -477,6 +492,7 @@
         "parser-combinators".flags.dev = false;
         "blaze-markup".revision = (((hackage."blaze-markup")."0.8.2.8").revisions).default;
         "eventful-core".revision = (((hackage."eventful-core")."0.2.0").revisions).default;
+        "sqlite-simple".revision = (((hackage."sqlite-simple")."0.4.18.0").revisions).default;
         "tasty-golden".revision = (((hackage."tasty-golden")."2.3.4").revisions).default;
         "tasty-golden".flags.build-example = false;
         "uuid".revision = (((hackage."uuid")."1.3.15").revisions).default;
@@ -487,6 +503,7 @@
         "deriving-compat".flags.new-functor-classes = true;
         "persistent".revision = (((hackage."persistent")."2.11.0.4").revisions).default;
         "persistent".flags.nooverlap = false;
+        "vector-sized".revision = (((hackage."vector-sized")."1.4.3.1").revisions).default;
         "text".revision = (((hackage."text")."1.2.4.1").revisions).default;
         "Cabal".revision = (((hackage."Cabal")."3.2.1.0").revisions).default;
         "assoc".revision = (((hackage."assoc")."1.0.2").revisions).default;
@@ -532,6 +549,8 @@
         "tasty-hunit".revision = (((hackage."tasty-hunit")."0.10.0.3").revisions).default;
         "readable".revision = (((hackage."readable")."0.3.1").revisions).default;
         "pretty-show".revision = (((hackage."pretty-show")."1.10").revisions).default;
+        "beam-sqlite".revision = (((hackage."beam-sqlite")."0.5.0.0").revisions).default;
+        "beam-sqlite".flags.werror = false;
         "monad-logger".revision = (((hackage."monad-logger")."0.3.36").revisions).default;
         "monad-logger".flags.template_haskell = true;
         "transformers".revision = (((hackage."transformers")."0.5.6.2").revisions).default;
@@ -630,6 +649,7 @@
         "aeson".flags.developer = false;
         "abstract-par".revision = (((hackage."abstract-par")."0.3.3").revisions).default;
         "data-ordlist".revision = (((hackage."data-ordlist")."0.4.7.0").revisions).default;
+        "finite-typelits".revision = (((hackage."finite-typelits")."0.1.4.2").revisions).default;
         "wai-app-static".revision = (((hackage."wai-app-static")."3.1.7.2").revisions).default;
         "wai-app-static".flags.print = false;
         "persistent-sqlite".revision = (((hackage."persistent-sqlite")."2.11.1.0").revisions).default;
@@ -645,6 +665,7 @@
         "http-types".revision = (((hackage."http-types")."0.12.3").revisions).default;
         "signal".revision = (((hackage."signal")."0.1.0.4").revisions).default;
         "ghc-boot-th".revision = (((hackage."ghc-boot-th")."8.10.4.20210212").revisions).default;
+        "pqueue".revision = (((hackage."pqueue")."1.4.1.3").revisions).default;
         "jwt".revision = (((hackage."jwt")."0.10.0").revisions).default;
         "th-lift-instances".revision = (((hackage."th-lift-instances")."0.1.18").revisions).default;
         "servant-server".revision = (((hackage."servant-server")."0.18.2").revisions).default;
