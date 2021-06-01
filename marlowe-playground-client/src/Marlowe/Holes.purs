@@ -1,7 +1,7 @@
 module Marlowe.Holes where
 
 import Prelude
-import Data.Array (foldMap)
+import Data.Array (foldMap, mapMaybe)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
@@ -11,8 +11,10 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', over)
+import Data.Lens (Lens', over, to, view)
 import Data.Lens.Record (prop)
+import Data.List (List(..), fromFoldable, (:))
+import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -24,10 +26,12 @@ import Data.String.CodeUnits (dropRight)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\), type (/\))
 import Effect.Exception.Unsafe (unsafeThrow)
 import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
+import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
-import Marlowe.Semantics (PubKey, Rational(..), TokenName, CurrencySymbol)
+import Marlowe.Semantics (CurrencySymbol, IntervalResult(..), PubKey, Rational(..), TokenName, _slotInterval, fixInterval, ivFrom, ivTo)
 import Marlowe.Semantics as S
 import Monaco (IRange)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
@@ -794,6 +798,11 @@ instance valueFromTerm :: FromTerm Value EM.Value where
   fromTerm (UseValue a) = EM.UseValue <$> fromTerm a
   fromTerm (Cond c a b) = EM.Cond <$> fromTerm c <*> fromTerm a <*> fromTerm b
 
+instance semanticValueFromTerm :: FromTerm Value S.Value where
+  fromTerm val = do
+    (emVal :: EM.Value) <- fromTerm val
+    toCore emVal
+
 instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
 
@@ -850,6 +859,11 @@ instance observationFromTerm :: FromTerm Observation EM.Observation where
   fromTerm TrueObs = pure EM.TrueObs
   fromTerm FalseObs = pure EM.FalseObs
 
+instance semanticObservationFromTerm :: FromTerm Observation S.Observation where
+  fromTerm obs = do
+    (emObs :: EM.Observation) <- fromTerm obs
+    toCore emObs
+
 instance observationIsMarloweType :: IsMarloweType Observation where
   marloweType _ = ObservationType
 
@@ -894,6 +908,11 @@ instance contractFromTerm :: FromTerm Contract EM.Contract where
   fromTerm (When as b c) = EM.When <$> (traverse fromTerm as) <*> fromTerm b <*> fromTerm c
   fromTerm (Let a b c) = EM.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
   fromTerm (Assert a b) = EM.Assert <$> fromTerm a <*> fromTerm b
+
+instance semanticContractFromTerm :: FromTerm Contract S.Contract where
+  fromTerm contract = do
+    (emContract :: EM.Contract) <- fromTerm contract
+    toCore emContract
 
 instance contractIsMarloweType :: IsMarloweType Contract where
   marloweType _ = ContractType
@@ -943,3 +962,187 @@ termToValue _ = Nothing
 
 class FromTerm a b where
   fromTerm :: a -> Maybe b
+
+---------------------------------------------------------------------------------------------------
+--
+-- Semantic functions
+--
+-- These functions and data structures are a trimmed down version from the correspondig Marlowe.Semantics
+-- counterparts in order to work with Term contracts instead of actual contracts. The idea is to be able
+-- to use them in the context of the simulator, so we can know the location of the current step instead of just
+-- showing the continuation that needs to be evaluated.
+-- The algorithm chosen for this task is very naive and not the most performant. We just track the out-contract
+-- and rely on the original semantic implementation for the rest of the details (payments, warnings and state).
+-- This means that we are converting from Term -> Extended -> Contract and calling the original code more than
+-- once per transaction. In practice the added overhead should not matter as the simulation is run on the user
+-- machine, and you only simulate one contract at a time.
+--
+-- Other approaches that were considered and discarded:
+--  * Adapt a full copy-paste of the semantic code:
+--      The idea would be to implement all the semantic logic in this module so we don't need to call the original
+--      code. It would have better performance than the current approach but it would be harder to maintain. Currently
+--      the purescript semantic implementation is a copy of the haskell one, and we don't have any test to check that
+--      they behave the same. Using this approach would mean that we have a 3rd copy and whenever we change the
+--      semantics, we'd need to change all 3 implementations. Eventually, we could get rid of the purescript semantic
+--      implementation if we use a project like ghcjs or asterius to run the haskell version in JS/WASM. If we manage
+--      to do that, then this option would be viable, as it's easier to test that the implementations are in-sync.
+--  * Make the semantic more abstract:
+--      The idea would be to change the semantic implementation so we can make it work with the Term and the Semantic
+--      code using the same algorithm. At the moment of considering this, I don't know what type of abstraction should
+--      we use to solve this, and moreover, there is value on keeping the semantic code as "boring haskell/purescript".
+--
+-- TODO: create a module in web commons for Term similary how Extended is done, and put this into it's own file
+----
+-- This version of the TransactionOutput is similar to the Semantic version, but we've changed Error to SemanticError
+-- and added an InvalidContract for cases like when you are calling computeTransaction on a contract with holes or
+-- with template parameters
+data TransactionOutput
+  = TransactionOutput
+    { txOutWarnings :: List S.TransactionWarning
+    , txOutPayments :: List S.Payment
+    , txOutState :: S.State
+    , txOutContract :: Term Contract
+    }
+  | SemanticError S.TransactionError
+  | InvalidContract
+
+-- This function is like Semantics.computeTransaction,
+computeTransaction :: S.TransactionInput -> S.State -> Term Contract -> TransactionOutput
+computeTransaction tx state contract =
+  let
+    inputs = (unwrap tx).inputs
+
+    mSemanticContract = fromTerm contract
+  in
+    case mSemanticContract /\ fixInterval (unwrap tx).interval state of
+      Nothing /\ _ -> InvalidContract
+      _ /\ IntervalError error -> SemanticError (S.TEIntervalError error)
+      Just sContract /\ IntervalTrimmed env fixState ->
+        let
+          semanticResult = S.computeTransaction tx state sContract
+
+          termResult = applyAllInputs env fixState contract inputs
+        in
+          case semanticResult /\ termResult of
+            S.TransactionOutput o /\ Just txOutContract ->
+              TransactionOutput
+                { txOutWarnings: o.txOutWarnings
+                , txOutPayments: o.txOutPayments
+                , txOutState: o.txOutState
+                , txOutContract
+                }
+            S.Error error /\ _ -> SemanticError error
+            _ /\ Nothing -> InvalidContract
+
+applyAllInputs :: S.Environment -> S.State -> Term Contract -> (List S.Input) -> Maybe (Term Contract)
+applyAllInputs env state startContract inputs = do
+  (curState /\ cont) <- reduceContractUntilQuiescent env state startContract
+  semanticCont <- fromTerm cont
+  case inputs of
+    Nil -> Just cont
+    (input : rest) ->
+      let
+        semanticApplyResult = S.applyInput env curState input semanticCont
+
+        termsApplyResult = applyInput env curState input cont
+      in
+        case semanticApplyResult /\ termsApplyResult of
+          (S.Applied _ newState _) /\ (Just nextContract) -> applyAllInputs env newState nextContract rest
+          _ -> Nothing
+
+applyCases :: S.Environment -> S.State -> S.Input -> List Case -> Maybe (Term Contract)
+applyCases env state input cases = case input, cases of
+  S.IDeposit accId1 party1 tok1 amount, (Case (Term (Deposit accId2 party2 tok2 val) _) cont) : rest ->
+    let
+      val' = S.evalValue env state <$> fromTerm val
+    in
+      if Just accId1 == fromTerm accId2
+        && (Just party1 == fromTerm party2)
+        && (Just tok1 == fromTerm tok2)
+        && (Just amount == val') then
+        Just cont
+      else
+        applyCases env state input rest
+  S.IChoice choId1 choice, (Case (Term (Choice choId2 bounds) _) cont) : rest ->
+    let
+      bounds' = mapMaybe fromTerm bounds
+    in
+      if Just choId1 == fromTerm choId2 && S.inBounds choice bounds' then
+        Just cont
+      else
+        applyCases env state input rest
+  S.INotify, (Case (Term (Notify obs) _) cont) : rest ->
+    if Just true == (S.evalObservation env state <$> fromTerm obs) then
+      Just cont
+    else
+      applyCases env state input rest
+  _, _ : rest -> applyCases env state input rest
+  _, Nil -> Nothing
+
+applyInput :: S.Environment -> S.State -> S.Input -> Term Contract -> Maybe (Term Contract)
+applyInput env state input (Term (When cases _ _) _) = applyCases env state input (List.mapMaybe termToValue $ fromFoldable cases)
+
+applyInput _ _ _ _ = Nothing
+
+-- This function is a simplified version of Semantics.reduceContractUntilQuiescent, we don't care
+-- in here about the warnings or payments, but we do need to keep track of the real semantic state
+-- as some continuations could depend on previous payments.
+reduceContractUntilQuiescent :: S.Environment -> S.State -> Term Contract -> Maybe (S.State /\ Term Contract)
+reduceContractUntilQuiescent env startState term@(Term startContract _) = do
+  semanticContract <- fromTerm startContract
+  let
+    semanticStep = S.reduceContractStep env startState semanticContract
+
+    termsStep = reduceContractStep env startState startContract
+  case semanticStep /\ termsStep of
+    S.Reduced _ _ newState _ /\ Reduced newContract -> reduceContractUntilQuiescent env newState newContract
+    -- This case is thought for the Close contract, because in the semantic version, running a contract step
+    -- can do a payment (so the state is reduced), but in this version the close is never reduced
+    S.Reduced _ _ newState S.Close /\ NotReduced -> Just (startState /\ term)
+    S.NotReduced /\ NotReduced -> Just (startState /\ term)
+    _ -> Nothing
+
+reduceContractUntilQuiescent _ _ (Hole _ _ _) = Nothing
+
+-- This structure represents the result of doing a reduceContractStep and its a simplified view
+-- of the Semantic counterpart.
+-- We group all possible errors inside ReduceError with a string representation of the error
+-- that will never be shown, but it's useful when reading the code
+data ReduceStepResult
+  = Reduced (Term Contract)
+  | NotReduced
+  | ReduceError String
+
+-- This function is a simplified version of Semantics.reduceContractStep, but we don't calculate the
+-- new state, instead we rely on the original implementation.
+reduceContractStep :: S.Environment -> S.State -> Contract -> ReduceStepResult
+reduceContractStep env state contract = case contract of
+  Close -> NotReduced
+  Pay accId payee tok val cont -> Reduced cont
+  If obsTerm cont1 cont2 -> case fromTerm obsTerm of
+    Just obs ->
+      Reduced
+        if S.evalObservation env state obs then
+          cont1
+        else
+          cont2
+    Nothing -> ReduceError "this function should not be called in a contract with holes"
+  When _ (Hole _ _ _) _ -> ReduceError "this function should not be called in a contract with holes"
+  When _ (Term (SlotParam _) _) _ -> ReduceError "this function should not be called with slot params"
+  When _ (Term (Slot timeout) _) nextContract ->
+    let
+      sTimeout = S.Slot timeout
+
+      startSlot = view (_slotInterval <<< to ivFrom) env
+
+      endSlot = view (_slotInterval <<< to ivTo) env
+    in
+      if endSlot < sTimeout then
+        NotReduced
+      else
+        if sTimeout <= startSlot then
+          Reduced nextContract
+        else
+          ReduceError "AmbiguousSlotIntervalReductionError"
+  Let _ _ nextContract -> Reduced nextContract
+  Assert _ cont -> Reduced cont
