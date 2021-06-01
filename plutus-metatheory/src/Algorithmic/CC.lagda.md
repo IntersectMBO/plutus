@@ -427,7 +427,6 @@ lemV .(ibuiltin dropByteString · _)
 lemV M (V-I⇒ dropByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-
 lemV .(ibuiltin lessThanByteString)
      (V-I⇒ lessThanByteString (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
@@ -464,7 +463,7 @@ lemV .(ibuiltin greaterThanByteString · _)
 lemV M (V-I⇒ greaterThanByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-lemV M (V-I⇒ sha2-256 p q) E = {!!}
+lemV M (V-I⇒ sha2-256 p q) E = {!q!}
 lemV M (V-I⇒ sha3-256 p q) E = {!!}
 lemV M (V-I⇒ verifySignature p q) E = {!!}
 
@@ -485,7 +484,14 @@ lemV .(ibuiltin equalsByteString · _)
 lemV M (V-I⇒ equalsByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-lemV M (V-I⇒ ifThenElse p q) E = {!!}
+lemV M (V-I⇒ ifThenElse (bubble (start .(Type ∷ Term ∷ Term ∷ Term ∷ []))) q) E with BApp2BAPP q
+lemV (ibuiltin ifThenElse ·⋆ A) (V-I⇒ ifThenElse (bubble (start .(arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC E (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
+lemV .(_ · _) (V-I⇒ ifThenElse (bubble (bubble (start .(Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) q vu)) E with BApp2BAPP q
+lemV ((ibuiltin ifThenElse ·⋆ A) · b) (V-I⇒ ifThenElse (bubble (bubble (start .(arity ifThenElse)))) (step .(bubble (start (arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base) vb)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC (extEC E (-· _)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· _)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma E (-· _))) (step** (lemV _ vb (extEC E (_ ·-))) (step* (cong (stepV vb) (dissect-lemma E _)) base))))))
+lemV .((_ · _) · _) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) q x₁) x)) E with BApp2BAPP q
+lemV (((ibuiltin ifThenElse ·⋆ A) · b) · t) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(arity ifThenElse))))) (step .(bubble (bubble (start (arity ifThenElse)))) (step .(bubble (start (arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base) vb) vt)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step* refl (step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· t)) (-· b))) (step** (lemV b vb (extEC (extEC E (-· t)) (_ ·-))) (step* (cong (stepV vb) (dissect-lemma (extEC E (-· t)) (_ ·-))) (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E _)) (step* (cong (stepV vt) (dissect-lemma E _)) base))))))))))
+lemV M (V-I⇒ ifThenElse {as' = as'} (bubble (bubble (bubble (bubble {as = as} p)))) q) E with <>>-cancel-both' as _ ([] <>< arity ifThenElse) _ p refl
+... | X ,, () ,, Y'
 lemV M (V-I⇒ charToString p q) E = {!!}
 lemV .(ibuiltin append)
      (V-I⇒ append (start .(Term ∷ Term ∷ [])) base)
