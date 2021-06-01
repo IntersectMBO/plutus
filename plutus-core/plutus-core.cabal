@@ -318,10 +318,6 @@ test-suite plutus-core-test
     hs-source-dirs: plutus-core/test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
-        Evaluation.DynamicBuiltins.Common
-        Evaluation.DynamicBuiltins.Definition
-        Evaluation.DynamicBuiltins.MakeRead
-        Evaluation.DynamicBuiltins
         Evaluation.Machines
         Evaluation.Spec
         Normalization.Check
@@ -382,18 +378,24 @@ test-suite untyped-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: untyped-plutus-core/test
     other-modules:
+        Evaluation.Builtins
+        Evaluation.Builtins.Common
+        Evaluation.Builtins.Definition
+        Evaluation.Builtins.MakeRead
         Evaluation.Golden
         Evaluation.Machines
         Transform.Simplify
     build-depends:
-        plutus-core -any,
         base >=4.9 && <5,
         bytestring -any,
         hedgehog -any,
+        mtl -any,
+        plutus-core -any,
         prettyprinter -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
+        tasty-hunit -any,
         text -any
 
 executable plc

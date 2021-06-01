@@ -24,6 +24,7 @@ import           PlutusCore.Pretty
 
 import qualified PlutusCore.StdLib.Data.List             as Plc
 
+import           Control.Exception
 import           Data.Either
 import           Data.Hashable                           (Hashable)
 import qualified Data.Kind                               as GHC (Type)
@@ -94,6 +95,8 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
+    | ExpensivePlus
+    | FailingPlus
     | Absurd
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
@@ -127,6 +130,9 @@ instance KnownType term Void where
     makeKnown = absurd
     readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
 type instance ToBinds Void = '[]
+
+data BuiltinErrorCall = BuiltinErrorCall
+    deriving (Show, Eq, Exception)
 
 -- Every polymorphic function ignores the memory annotation of its argument. This is due to the fact
 -- that no function duplicates the AST and so threading an argument through a function or dropping
@@ -180,6 +186,16 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
                    )
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
+    toBuiltinMeaning FailingPlus =
+        makeBuiltinMeaning
+            @(Integer -> Integer -> Integer)
+            (\_ _ -> throw BuiltinErrorCall)
+            (\_ _ _ -> ExBudget 1 0)
+    toBuiltinMeaning ExpensivePlus =
+        makeBuiltinMeaning
+            @(Integer -> Integer -> Integer)
+            (\_ _ -> throw BuiltinErrorCall)
+            (\_ _ _ -> unExRestrictingBudget enormousBudget)
     toBuiltinMeaning Absurd =
         makeBuiltinMeaning
             (absurd

@@ -48,7 +48,7 @@ defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile "cost-model/data/cekMachineCosts.json")
 
-defaultCekCostModel :: CostModel CekMachineCosts
+defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 --- defaultCekMachineCosts is CekMachineCosts
 
@@ -64,4 +64,3 @@ unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts defaultBu
 
 defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
-

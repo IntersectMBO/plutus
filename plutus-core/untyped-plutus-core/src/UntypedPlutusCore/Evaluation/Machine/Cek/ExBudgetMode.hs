@@ -141,12 +141,6 @@ restricting (ExRestrictingBudget (ExBudget cpuInit memInit)) = ExBudgetMode $ do
         finalExBudget <- ExBudget <$> readCpu <*> readMem
         pure . RestrictingSt $ ExRestrictingBudget finalExBudget
 
--- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
--- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
-enormousBudget :: ExRestrictingBudget
-enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
-                 where maxInt = fromIntegral (maxBound::Int)
-
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: (PrettyUni uni fun) => ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget

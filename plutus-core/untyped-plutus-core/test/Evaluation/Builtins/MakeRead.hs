@@ -1,21 +1,23 @@
--- | Tests of dynamic strings and characters.
-
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module Evaluation.DynamicBuiltins.MakeRead
-    ( test_dynamicMakeRead
+module Evaluation.Builtins.MakeRead
+    ( test_makeRead
     ) where
 
-import           PlutusCore
+import qualified PlutusCore                              as TPLC
+import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Pretty
 import           PlutusCore.StdLib.Data.Unit
+import           PlutusCore.Universe
 
-import           Evaluation.DynamicBuiltins.Common
+import           UntypedPlutusCore                       as UPLC
+
+import           Evaluation.Builtins.Common
 
 import           Hedgehog                                hiding (Size, Var)
 import qualified Hedgehog.Gen                            as Gen
@@ -27,26 +29,33 @@ import           Test.Tasty.Hedgehog
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
 readMakeHetero
-    :: ( KnownType (Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (Term TyName Name DefaultUni DefaultFun ()) b
+    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) b
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
-    xTerm <- makeKnownNoEmit @(Term TyName Name DefaultUni DefaultFun ()) x
-    case extractEvaluationResult <$> typecheckReadKnownCk defaultBuiltinsRuntime xTerm of
+    xTerm <- makeKnownNoEmit @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
+    case extractEvaluationResult <$> typecheckReadKnownCek TPLC.defaultCekParameters xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
-readMake :: KnownType (Term TyName Name DefaultUni DefaultFun ()) a => a -> EvaluationResult a
+readMake
+    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+       )
+    => a -> EvaluationResult a
 readMake = readMakeHetero
 
-dynamicBuiltinRoundtrip
-    :: (KnownType (Term TyName Name DefaultUni DefaultFun ()) a, Show a, Eq a)
+builtinRoundtrip
+    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+       , Show a, Eq a
+       )
     => Gen a -> Property
-dynamicBuiltinRoundtrip genX = property $ do
+builtinRoundtrip genX = property $ do
     x <- forAll genX
     case readMake x of
         EvaluationFailure    -> fail "EvaluationFailure"
@@ -54,10 +63,10 @@ dynamicBuiltinRoundtrip genX = property $ do
 
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip =
-    testProperty "stringRoundtrip" . dynamicBuiltinRoundtrip $
+    testProperty "stringRoundtrip" . builtinRoundtrip $
         Gen.string (Range.linear 0 20) Gen.unicode
 
--- | Generate a bunch of 'String's, put each of them into a 'Term', apply a dynamic built-in name over
+-- | Generate a bunch of 'String's, put each of them into a 'Term', apply a builtin over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
 -- the contents of an external 'IORef' and assemble all the resulting terms together in a single
 -- term where all characters are passed to lambdas and ignored, so that only 'unitval' is returned
@@ -69,13 +78,12 @@ test_stringRoundtrip =
 test_collectStrings :: TestTree
 test_collectStrings = testProperty "collectStrings" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 20) Gen.unicode
-    let runtime = toBuiltinsRuntime defaultBuiltinCostModel
-        step arg rest = mkIterApp () sequ
-            [ Apply () (Builtin () Trace) $ mkConstant @String @DefaultUni () arg
+    let step arg rest = mkIterApp () sequ
+            [ apply () (builtin () Trace) $ mkConstant @String @DefaultUni () arg
             , rest
             ]
         term = foldr step unitval strs
-    strs' <- case typecheckEvaluateCk runtime term of
+    strs' <- case typecheckEvaluateCek TPLC.defaultCekParameters term of
         Left _                             -> failure
         Right (EvaluationFailure, _)       -> failure
         Right (EvaluationSuccess _, strs') -> return strs'
@@ -89,9 +97,9 @@ test_noticeEvaluationFailure =
             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
             readMake 'a'
 
-test_dynamicMakeRead :: TestTree
-test_dynamicMakeRead =
-    testGroup "dynamicMakeRead"
+test_makeRead :: TestTree
+test_makeRead =
+    testGroup "makeRead"
         [ test_stringRoundtrip
         , test_collectStrings
         , test_noticeEvaluationFailure
