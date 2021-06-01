@@ -1,8 +1,6 @@
 /*eslint-env node*/
 "use strict";
 
-exports.closeDrawerIcon = require("static/images/close-drawer-icon.svg");
-
 exports.closeDrawerArrowIcon = require("static/images/down-arrow-2.svg");
 
 exports.closeModal = require("static/images/close-modal.svg");
@@ -14,8 +12,6 @@ exports.downloadIcon = require("static/images/download.svg");
 exports.blocklyIcon = require("static/images/blockly.svg");
 
 exports.blocklyIconColour = require("static/images/blockly-icon.svg");
-
-exports.infoIcon = require("static/images/info.svg");
 
 exports.readMoreIconWhite = require("static/images/read-more-icon-white.svg");
 
