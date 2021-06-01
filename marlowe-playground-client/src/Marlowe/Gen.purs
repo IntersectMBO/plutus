@@ -16,13 +16,15 @@ import Data.Maybe (fromMaybe)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Extended as EM
-import Marlowe.GenWithHoles (GenerationOptions(..))
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), MarloweType(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
 import Marlowe.Holes as H
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
+
+newtype GenerationOptions
+  = GenerationOptions { withHoles :: Boolean, withExtendedConstructs :: Boolean }
 
 oneOf ::
   forall m a f.
@@ -41,11 +43,11 @@ genRational = do
   d <- genBigInteger
   pure
     -- we need to do this because in tests where we wrap a Rational in a Term or TermWrapper
-    
+
     -- when we have two negative values then the column position of the term will different
-    
+
     -- to if we have two positive values, even though the rationals themselves are equal
-    
+
     $ if d > zero then
         Rational n d
       else

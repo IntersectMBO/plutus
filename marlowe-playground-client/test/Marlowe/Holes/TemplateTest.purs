@@ -8,8 +8,8 @@ import Data.Traversable (for)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
-import Marlowe.Gen (genBigInteger, genContract)
-import Marlowe.GenWithHoles (GenWithHoles, contractQuickCheck, GenerationOptions(..))
+import Marlowe.Gen (genBigInteger, genContract, GenerationOptions(..))
+import Marlowe.GenWithHoles (GenWithHoles, contractQuickCheck)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Semantics as S
 import Marlowe.Template (Placeholders(..), TemplateContent(..), fillTemplate, getPlaceholderIds)

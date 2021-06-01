@@ -9,9 +9,7 @@ import Test.QuickCheck (class Testable)
 import Test.QuickCheck.Gen (Gen)
 import Test.Unit (Test)
 import Test.Unit.QuickCheck (quickCheck)
-
-newtype GenerationOptions
-  = GenerationOptions { withHoles :: Boolean, withExtendedConstructs :: Boolean }
+import Marlowe.Gen (GenerationOptions)
 
 -- TODO: rename to GenContract or similar
 newtype GenWithHoles a
