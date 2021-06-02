@@ -75,6 +75,7 @@ letFloat =
   ,"strictValueNonValue"
   ,"strictValueValue"
   ,"even3Eval"
+  ,"strictNonValueDeep"
   ]
 
 instance Semigroup SourcePos where
