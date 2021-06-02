@@ -302,19 +302,23 @@ removeLets t =
          TyAbs a n k tBody  -> TyAbs a n k <$> local (+1) (go tBody)
 
          Let a r bs tIn -> do
-          curDepth <- ask
-          bs' <- forM bs $ \b -> do
-            b' <- b & bindingSubterms go
+          bs' <- forM bs $ \b ->
             if mayHaveEffects b
-            then pure $ Just b' -- keep this let
+            -- increment depth since it is an anchor
+            then local (+1) $ do
+                b' <- b & traverseOf bindingSubterms go
+                -- keep this let
+                pure $ Just b'
             else do
-              -- remove the let and store it in the rhstable
-              modify . M.insert (b'^.principal) $ Rhs { _rhsAnn = a
-                                                      , _rhsRecurs = r
-                                                      , _rhsBinding =  b'
-                                                      , _rhsRank = curDepth
-                                                      }
-              pure Nothing
+                b' <- b & traverseOf bindingSubterms go
+                curDepth <- ask
+                -- remove the let and store it in the rhstable
+                modify . M.insert (b'^.principal) $ Rhs { _rhsAnn = a
+                                                       , _rhsRecurs = r
+                                                       , _rhsBinding =  b'
+                                                       , _rhsRank = curDepth
+                                                       }
+                pure Nothing
           let nbs' = catMaybes $ NE.toList bs'
           mkLet a r nbs' <$> go tIn
 
