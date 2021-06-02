@@ -56,6 +56,7 @@ library
         Wallet.Emulator.Chain
         Wallet.Emulator.ChainIndex
         Wallet.Emulator.ChainIndex.Index
+        Wallet.Emulator.ChainIndex.Query
         Wallet.Emulator.Error
         Wallet.Emulator.Folds
         Wallet.Emulator.LogMessages
