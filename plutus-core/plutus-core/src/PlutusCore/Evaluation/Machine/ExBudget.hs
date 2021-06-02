@@ -140,6 +140,7 @@ module PlutusCore.Evaluation.Machine.ExBudget
     , ToExMemory(..)
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
+    , enormousBudget
     )
 where
 
@@ -189,6 +190,14 @@ instance Pretty ExBudget where
         , "}"
         ]
 
-newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-    deriving newtype (Pretty, PrettyBy config, NFData)
+newtype ExRestrictingBudget = ExRestrictingBudget
+    { unExRestrictingBudget :: ExBudget
+    } deriving (Show, Eq)
+      deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
+      deriving newtype (Pretty, PrettyBy config, NFData)
+
+-- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
+-- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
+enormousBudget :: ExRestrictingBudget
+enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
+                 where maxInt = fromIntegral (maxBound ::Int)

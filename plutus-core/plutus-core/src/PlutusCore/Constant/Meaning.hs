@@ -28,7 +28,6 @@ import           PlutusCore.Name
 import           PlutusCore.Universe
 
 import           Control.Lens                            (ix, (^?))
-import           Control.Monad.Catch
 import           Control.Monad.Except
 import           Data.Array
 import qualified Data.ByteString                         as BS
@@ -63,19 +62,31 @@ data BuiltinMeaning term cost =
 -- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
 -- function at runtime anyway, due to constraints being compiled as dictionaries).
 
--- | A 'BuiltinRuntime' is an instantiated (via 'toBuiltinRuntime') 'BuiltinMeaning'.
--- It contains info that is used during evaluation:
+-- TODO: we used to have arities and it was justified to precache them before executing an
+-- evaluator, but now we need to reconsider that. Maybe instantiating 'BuiltinMeaning' on the fly
+-- is in fact faster.
+-- | A 'BuiltinRuntime' represents a possibly partial builtin application.
+-- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
+-- builtin with no arguments) by instantiating (via 'toBuiltinRuntime') a 'BuiltinMeaning'.
 --
--- 1. the 'TypeScheme' of a builtin
--- 2. the 'Arity'
--- 3. the denotation
--- 4. the costing function
+-- A 'BuiltinRuntime' contains info that is used during evaluation:
+--
+-- 1. the 'TypeScheme' of the uninstantiated part of the builtin. I.e. initially it's the type
+--      scheme of the whole builtin, but applying or type-instantiating the builtin peels off
+--      the corresponding constructor from the type scheme
+-- 2. the (possibly partially instantiated) denotation
+-- 3. the (possibly partially instantiated) costing function
+--
+-- All the three are in sync in terms of partial instantiatedness due to 'TypeScheme' being a
+-- GADT and 'FoldArgs' and 'FoldArgsEx' operating on the index of that GADT.
 data BuiltinRuntime term =
     forall args res. BuiltinRuntime
         (TypeScheme term args res)
-        Arity
-        (FoldArgs args res)
-        (FoldArgsEx args)
+        (FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
+                             -- it's fully saturated before figuring out what it's going to cost.
+        (FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
+                             -- can put @undefined@ here. TODO: we should test if making this strict
+                             -- introduces any measurable speedup.
 
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.
 newtype BuiltinsRuntime fun term = BuiltinsRuntime
@@ -84,8 +95,7 @@ newtype BuiltinsRuntime fun term = BuiltinsRuntime
 
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning term cost -> BuiltinRuntime term
-toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
-    BuiltinRuntime sch (getArity sch) f (exF cost)
+toBuiltinRuntime cost (BuiltinMeaning sch f exF) = BuiltinRuntime sch f (exF cost)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
@@ -112,20 +122,11 @@ toBuiltinsRuntime cost =
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
-    :: (MonadError (ErrorWithCause err term) m, AsMachineError err fun term, Ix fun)
+    :: (MonadError (ErrorWithCause err term) m, AsMachineError err fun, Ix fun)
     => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
     Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
-    Just bri -> pure bri
-
--- | Look up the runtime info of a built-in function during evaluation.
-lookupBuiltinExc
-    :: forall ex err fun term m proxy val . (MonadThrow m, ex ~ ErrorWithCause err term, AsMachineError err fun term, Ix fun, Exception ex)
-    => proxy ex -> fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
--- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
-lookupBuiltinExc _ fun (BuiltinsRuntime env) = case env ^? ix fun of
-    Nothing  -> throwingWithCauseExc @ex _MachineError (UnknownBuiltin fun) Nothing
     Just bri -> pure bri
 
 {- Note [Automatic derivation of type schemes]

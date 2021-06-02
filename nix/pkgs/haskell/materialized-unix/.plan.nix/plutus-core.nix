@@ -104,7 +104,6 @@
         buildable = true;
         modules = [
           "PlutusCore/Analysis/Definitions"
-          "PlutusCore/Constant/Apply"
           "PlutusCore/Constant/Function"
           "PlutusCore/Constant/Meaning"
           "PlutusCore/Constant/Typed"
@@ -353,11 +352,6 @@
             ];
           buildable = true;
           modules = [
-            "Evaluation/ApplyBuiltinName"
-            "Evaluation/DynamicBuiltins/Common"
-            "Evaluation/DynamicBuiltins/Definition"
-            "Evaluation/DynamicBuiltins/MakeRead"
-            "Evaluation/DynamicBuiltins"
             "Evaluation/Machines"
             "Evaluation/Spec"
             "Normalization/Check"
@@ -393,20 +387,24 @@
           };
         "untyped-plutus-core-test" = {
           depends = [
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           modules = [
-            "Evaluation/ApplyBuiltinName"
+            "Evaluation/Builtins"
+            "Evaluation/Builtins/Common"
+            "Evaluation/Builtins/Definition"
+            "Evaluation/Builtins/MakeRead"
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"

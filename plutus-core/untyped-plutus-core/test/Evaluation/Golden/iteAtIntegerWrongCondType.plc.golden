@@ -1,4 +1,4 @@
-(Right [
-  [ (force (builtin ifThenElse)) (con string "11 <= 22") ]
-  (con string "\172(11 <= 22)")
-])
+(Left An error has occurred:  error:
+Could not unlift a builtin:
+Type mismatch: expected: bool; actual: string
+Caused by: (con string "11 <= 22"))

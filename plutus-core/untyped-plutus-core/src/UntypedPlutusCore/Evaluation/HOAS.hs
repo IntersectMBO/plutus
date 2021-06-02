@@ -134,6 +134,7 @@ fromHTerm (HBuiltin ann fun)      = pure $ Builtin ann fun
 fromHTerm (HVar ann name)         = pure $ Var ann name
 -- Here we do not recover the original annotation and instead use the one that the whole lambda
 -- is annotated with. We could probably handle annotations better, but we don't care for now.
+-- BUG: feeding @HVar ann name@ to @body@ can easily result in variable capture.
 fromHTerm (HLamAbs ann name body) = LamAbs ann name <$> (body (HVar ann name) >>= fromHTerm)
 fromHTerm (HApply ann fun arg)    = Apply ann <$> fromHTerm fun <*> fromHTerm arg
 fromHTerm (HDelay ann getBody)    = Delay ann <$> (getBody () >>= fromHTerm)
@@ -208,8 +209,8 @@ evalBuiltinApp
     -> EvalM unique name uni fun ann (Value unique name uni fun ann)
 -- Note the absence of 'evalValue'. Same logic as with the CEK machine applies:
 -- 'makeKnown' never returns a non-value term.
-evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) _ x _) = makeKnown x
-evalBuiltinApp ann getTerm runtime                                     =
+evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) x _) = makeKnown x
+evalBuiltinApp ann getTerm runtime =
     pure . HBuiltin ann $ BuiltinApp getTerm runtime
 
 -- See Note [Builtin application evaluation].
@@ -224,19 +225,19 @@ evalFeedBuiltinApp
     -> BuiltinApp unique name uni fun ann
     -> Maybe (Value unique name uni fun ann)
     -> EvalM unique name uni fun ann (Value unique name uni fun ann)
-evalFeedBuiltinApp ann (BuiltinApp getTerm (BuiltinRuntime sch ar f _)) e =
+evalFeedBuiltinApp ann (BuiltinApp getTerm (BuiltinRuntime sch f _)) e =
     case (sch, e) of
         (TypeSchemeArrow _ schB, Just arg) -> do
             x <- readKnown arg
             evalBuiltinApp
                 ann
                 (Apply ann <$> getTerm <*> fromValue arg)
-                (BuiltinRuntime schB ar (f x) noCosting)
+                (BuiltinRuntime schB (f x) noCosting)
         (TypeSchemeAll  _ schK, Nothing) ->
             evalBuiltinApp
                 ann
                 (Force ann <$> getTerm)
-                (BuiltinRuntime (schK Proxy) ar f noCosting)
+                (BuiltinRuntime (schK Proxy) f noCosting)
         _ ->
             throwingWithCause _InternalHoasError ArityHoasError Nothing
   where

@@ -118,7 +118,9 @@ splitParams prefix params =
     in SplitCostModelParams machineparams builtinparams
 
 -- | Given a CostModel, produce a single map containing the parameters from both components
-extractCostModelParams :: ToJSON machinecosts => CostModel machinecosts -> Maybe CostModelParams
+extractCostModelParams
+    :: (ToJSON machinecosts, ToJSON builtincosts)
+    => CostModel machinecosts builtincosts -> Maybe CostModelParams
 extractCostModelParams model = -- this is using the applicative instance of Maybe
     Map.union <$> extractParams (machineCostModel model) <*> extractParams (builtinCostModel model)
 
@@ -133,11 +135,11 @@ extractCostModelParams model = -- this is using the applicative instance of Mayb
    other languages) seem to vary in how unknown fields are handled), so let's be
    explicit. -}
 applySplitCostModelParams
-    :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
+    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts)
     => Text.Text
-    -> CostModel evaluatorcosts
+    -> CostModel evaluatorcosts builtincosts
     -> CostModelParams
-    -> Maybe (CostModel evaluatorcosts)
+    -> Maybe (CostModel evaluatorcosts builtincosts)
 applySplitCostModelParams prefix model params =
     let SplitCostModelParams machineparams builtinparams = splitParams prefix params
     in CostModel <$> applyParams (machineCostModel model) machineparams
@@ -145,8 +147,8 @@ applySplitCostModelParams prefix model params =
 
 -- | Update a CostModel for the CEK machine with a given set of parameters,
 applyCostModelParams
-    :: (FromJSON evaluatorcosts, ToJSON evaluatorcosts)
-    => CostModel evaluatorcosts
+    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts)
+    => CostModel evaluatorcosts builtincosts
     -> CostModelParams
-    -> Maybe (CostModel evaluatorcosts)
+    -> Maybe (CostModel evaluatorcosts builtincosts)
 applyCostModelParams = applySplitCostModelParams cekMachineCostsPrefix
