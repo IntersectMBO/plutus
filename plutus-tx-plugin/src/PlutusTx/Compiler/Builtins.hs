@@ -199,6 +199,7 @@ builtinNames = [
     , 'Builtins.appendString
     , 'Builtins.emptyString
     , 'Builtins.charToString
+    , 'Builtins.equalsString
     , 'String.stringToBuiltinString
 
     , 'Builtins.trace
@@ -336,6 +337,9 @@ defineBuiltinTerms = do
     do
         let term = mkBuiltin PLC.CharToString
         defineBuiltinTerm 'Builtins.charToString term [char, str]
+    do
+        term <- wrapRel strTy 2 $ mkBuiltin PLC.EqualsString
+        defineBuiltinTerm 'Builtins.equalsString term [str, bool]
     do
         term <- wrapUnitFun strTy $ mkBuiltin PLC.Trace
         defineBuiltinTerm 'Builtins.trace term [str, unit]

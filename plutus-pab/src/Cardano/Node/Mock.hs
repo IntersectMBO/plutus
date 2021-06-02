@@ -52,7 +52,7 @@ consumeEventHistory stateVar =
 
 addTx ::
     ( Member (LogMsg MockServerLogMsg) effs
-    , Member (Reader Client.ClientHandler) effs
+    , Member (Reader Client.TxSendHandle) effs
     , MonadIO m
     , LastMember m effs
     )
@@ -66,7 +66,7 @@ addTx tx = do
 -- | Run all chain effects in the IO Monad
 runChainEffects ::
  Trace IO MockServerLogMsg
- -> Client.ClientHandler
+ -> Client.TxSendHandle
  -> MVar AppState
  -> Eff (NodeServerEffects IO) a
  -> IO ([LogMessage MockServerLogMsg], a)
@@ -98,7 +98,7 @@ runChainEffects trace clientHandler stateVar eff = do
 
 processChainEffects ::
     Trace IO MockServerLogMsg
-    -> Client.ClientHandler
+    -> Client.TxSendHandle
     -> MVar AppState
     -> Eff (NodeServerEffects IO) a
     -> IO a
@@ -116,7 +116,7 @@ processChainEffects trace clientHandler stateVar eff = do
 transactionGenerator ::
   Trace IO MockServerLogMsg
  -> Second
- -> Client.ClientHandler
+ -> Client.TxSendHandle
  -> MVar AppState
  -> IO ()
 transactionGenerator trace interval clientHandler stateVar =

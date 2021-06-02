@@ -81,7 +81,6 @@
           (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
-          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
@@ -106,7 +105,6 @@
         buildable = true;
         modules = [
           "PlutusCore/Analysis/Definitions"
-          "PlutusCore/Constant/Apply"
           "PlutusCore/Constant/Function"
           "PlutusCore/Constant/Meaning"
           "PlutusCore/Constant/Typed"
@@ -292,6 +290,7 @@
           "Crypto"
           "Data/Text/Prettyprint/Doc/Custom"
           "Data/SatInt"
+          "Data/RandomAccessList/SkewBinary"
           ];
         hsSourceDirs = [
           "plutus-core/src"
@@ -362,11 +361,6 @@
             ];
           buildable = true;
           modules = [
-            "Evaluation/ApplyBuiltinName"
-            "Evaluation/DynamicBuiltins/Common"
-            "Evaluation/DynamicBuiltins/Definition"
-            "Evaluation/DynamicBuiltins/MakeRead"
-            "Evaluation/DynamicBuiltins"
             "Evaluation/Machines"
             "Evaluation/Spec"
             "Normalization/Check"
@@ -402,26 +396,42 @@
           };
         "untyped-plutus-core-test" = {
           depends = [
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
           modules = [
-            "Evaluation/ApplyBuiltinName"
+            "Evaluation/Builtins"
+            "Evaluation/Builtins/Common"
+            "Evaluation/Builtins/Definition"
+            "Evaluation/Builtins/MakeRead"
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
+          };
+        "bral-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "untyped-plutus-core/test" ];
+          mainPath = [ "TestRAList.hs" ];
           };
         };
       benchmarks = {
@@ -495,6 +505,18 @@
           buildable = true;
           modules = [ "CostModelCreation" ];
           hsSourceDirs = [ "cost-model/test" "cost-model/create-cost-model" ];
+          };
+        "bral-bench" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "untyped-plutus-core/bench" ];
           };
         };
       };

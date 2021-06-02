@@ -23,7 +23,8 @@ import Data.Symbol (SProxy(..))
 import Help (HelpContext(..))
 import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Input, Party, PubKey, Slot, Token(..))
 import Marlowe.Semantics as S
-import SimulationPage.Types (MarloweState, _marloweState)
+import Simulator.Types (MarloweState)
+import Simulator.Lenses (_marloweState)
 
 newtype Wallet
   = Wallet

@@ -55,6 +55,7 @@ primitives = testNested "Primitives" [
   , goldenPir "trace" trace
   , goldenPir "stringLiteral" stringLiteral
   , goldenPir "stringConvert" stringConvert
+  , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: String), liftProgram ("hello" :: String)]
   ]
 
 string :: CompiledCode String
@@ -129,3 +130,6 @@ stringLiteral = plc (Proxy @"stringLiteral") ("abc"::Builtins.String)
 
 stringConvert :: CompiledCode (Builtins.String)
 stringConvert = plc (Proxy @"stringConvert") ((noinline P.stringToBuiltinString) "abc")
+
+stringEquals :: CompiledCode (String -> String -> Bool)
+stringEquals = plc (Proxy @"string32Equals") (\(x :: String) (y :: String) -> Builtins.equalsString (P.stringToBuiltinString x) (P.stringToBuiltinString y))

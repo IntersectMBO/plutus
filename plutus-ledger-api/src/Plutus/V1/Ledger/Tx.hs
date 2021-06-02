@@ -32,6 +32,7 @@ module Plutus.V1.Ledger.Tx(
     lookupDatum,
     addSignature,
     forge,
+    fee,
     -- ** Hashing transactions
     txId,
     -- ** Stripped transactions
@@ -206,6 +207,11 @@ signatures = lens g s where
     g = txSignatures
     s tx sig = tx { txSignatures = sig }
 
+fee :: Lens' Tx Value
+fee = lens g s where
+    g = txFee
+    s tx v = tx { txFee = v }
+
 forge :: Lens' Tx Value
 forge = lens g s where
     g = txForge
@@ -360,7 +366,7 @@ instance PlutusTx.Eq TxOut where
         PlutusTx.&& txOutValue l PlutusTx.== txOutValue r
         PlutusTx.&& txOutDatumHash l PlutusTx.== txOutDatumHash r
 
--- | The datum attached to a 'TxOutOf', if there is one.
+-- | The datum attached to a 'TxOut', if there is one.
 txOutDatum :: TxOut -> Maybe DatumHash
 txOutDatum TxOut{txOutDatumHash} = txOutDatumHash
 

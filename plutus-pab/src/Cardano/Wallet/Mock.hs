@@ -150,14 +150,15 @@ handleMultiWallet = do
 processWalletEffects ::
     (MonadIO m, MonadError ServerError m)
     => Trace IO WalletMsg -- ^ trace for logging
-    -> Client.ClientHandler -- ^ node client
+    -> Client.TxSendHandle -- ^ node client
+    -> Client.ChainSyncHandle -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> m a
-processWalletEffects trace clientHandler chainIndexEnv mVarState action = do
+processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState action = do
     oldState <- liftIO $ takeMVar mVarState
-    result <- liftIO $ runWalletEffects trace clientHandler chainIndexEnv oldState action
+    result <- liftIO $ runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv oldState action
     case result of
         Left e -> do
             liftIO $ putMVar mVarState oldState
@@ -170,15 +171,17 @@ processWalletEffects trace clientHandler chainIndexEnv mVarState action = do
 runWalletEffects ::
      MonadIO m
     => Trace m WalletMsg -- ^ trace for logging
-    -> Client.ClientHandler -- ^ node client
+    -> Client.TxSendHandle -- ^ node client
+    -> Client.ChainSyncHandle -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
     -> Eff (WalletEffects m) a -- ^ wallet effect
     -> m (Either ServerError (a, Wallets))
-runWalletEffects trace clientHandler chainIndexEnv wallets action =
+runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets action =
     handleMultiWallet action
-    & reinterpret NodeClient.handleNodeClientClient
-    & runReader clientHandler
+    & reinterpret2 NodeClient.handleNodeClientClient
+    & runReader chainSyncHandle
+    & runReader txSendHandle
     & reinterpret ChainIndexClient.handleChainIndexClient
     & runReader chainIndexEnv
     & runState wallets

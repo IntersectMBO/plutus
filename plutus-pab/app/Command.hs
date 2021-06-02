@@ -39,7 +39,6 @@ data NoConfigCommand =
     | WriteDefaultConfig -- ^ Write default logging configuration
           { outputFile :: !FilePath -- ^ Path to write configuration to
           }
-    | StartSimulatorWebServer -- ^ Start a simulator with some predefined contracts, no interaction with external services
     deriving stock (Show, Eq, Generic)
     deriving anyclass JSON.ToJSON
 

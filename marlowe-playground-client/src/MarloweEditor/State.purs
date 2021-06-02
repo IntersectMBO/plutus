@@ -30,9 +30,10 @@ import Halogen as H
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetadataHintInfo)
+import Marlowe.Template (TemplateContent)
+import Marlowe.Template as Template
 import Marlowe.Holes as Holes
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
@@ -118,7 +119,7 @@ handleAction (InitMarloweProject contents) = do
 
 handleAction (SelectHole hole) = assign _selectedHole hole
 
-handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< Extended.typeToLens templateType) (Map.insert key value)
+handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< Template.typeToLens templateType) (Map.insert key value)
 
 handleAction (MetadataAction _) = pure unit
 
@@ -202,7 +203,7 @@ processMarloweCode text = do
     -- If we can get an Extended contract from the holes contract (basically if it has no holes)
     -- then update the template content. If not, leave them as they are
     maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
-    maybeUpdateTemplateContent = maybe identity (Extended.updateTemplateContent <<< Extended.getPlaceholderIds) mContract
+    maybeUpdateTemplateContent = maybe identity (Template.updateTemplateContent <<< Template.getPlaceholderIds) mContract
   void $ query _marloweEditorPageSlot unit $ H.request $ Monaco.SetModelMarkers markerData
   modify_
     ( set _editorWarnings warningMarkers

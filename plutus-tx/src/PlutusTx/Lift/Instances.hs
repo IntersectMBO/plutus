@@ -85,6 +85,12 @@ instance uni `PLC.Includes` BS.ByteString => Typeable uni BS.ByteString where
 instance uni `PLC.Includes` BS.ByteString => Lift uni BS.ByteString where
     lift = liftBuiltin
 
+instance uni `PLC.Includes` Char => Typeable uni Char where
+    typeRep = typeRepBuiltin
+
+instance uni `PLC.Includes` Char => Lift uni Char where
+    lift = liftBuiltin
+
 -- Standard types
 -- These need to be in a separate file for TH staging reasons
 

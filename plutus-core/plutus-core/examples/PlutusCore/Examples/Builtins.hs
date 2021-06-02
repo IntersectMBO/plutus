@@ -25,6 +25,7 @@ import           PlutusCore.Pretty
 
 import qualified PlutusCore.StdLib.Data.List             as Plc
 
+import           Control.Exception
 import           Data.Either
 import           Data.Hashable                           (Hashable)
 import qualified Data.Kind                               as GHC (Type)
@@ -97,6 +98,11 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
+    -- The next four are for testing that costing always precedes actual evaluation.
+    | FailingSucc
+    | ExpensiveSucc
+    | FailingPlus
+    | ExpensivePlus
     | Absurd
     | Cons
     | Null
@@ -139,6 +145,9 @@ instance KnownType term Void where
     makeKnown = absurd
     readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
 type instance ToBinds Void = '[]
+
+data BuiltinErrorCall = BuiltinErrorCall
+    deriving (Show, Eq, Exception)
 
 -- See Note [Representable built-in functions over polymorphic built-in types].
 -- Every polymorphic function ignores the memory annotation of its argument. This is due to the fact
@@ -200,6 +209,30 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                    )
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning FailingSucc =
+        makeBuiltinMeaning
+            @(Integer -> Integer)
+            (\_ -> throw BuiltinErrorCall)
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning ExpensiveSucc =
+        makeBuiltinMeaning
+            @(Integer -> Integer)
+            (\_ -> throw BuiltinErrorCall)
+            (\_ _ -> unExRestrictingBudget enormousBudget)
+
+    toBuiltinMeaning FailingPlus =
+        makeBuiltinMeaning
+            @(Integer -> Integer -> Integer)
+            (\_ _ -> throw BuiltinErrorCall)
+            (\_ _ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning ExpensivePlus =
+        makeBuiltinMeaning
+            @(Integer -> Integer -> Integer)
+            (\_ _ -> throw BuiltinErrorCall)
+            (\_ _ _ -> unExRestrictingBudget enormousBudget)
 
     toBuiltinMeaning Absurd =
         makeBuiltinMeaning

@@ -61,8 +61,6 @@ allErrors =
    , 'PLC.NonWrapUnwrappedMachineError
    , 'PLC.NonFunctionalApplicationMachineError
    , 'PLC.OpenTermEvaluatedMachineError
-   , 'PLC.TooFewArgumentsConstAppError
-   , 'PLC.TooManyArgumentsConstAppError
    , 'PLC.UnliftingErrorE
    , 'PLC.BuiltinTermArgumentExpectedMachineError
    , 'PLC.UnexpectedBuiltinTermArgumentMachineError

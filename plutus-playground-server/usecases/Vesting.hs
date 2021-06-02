@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE NumericUnderscores    #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -223,10 +224,10 @@ endpoints = vestingContract vestingParams
         VestingParams {vestingTranche1, vestingTranche2, vestingOwner}
     vestingTranche1 =
         VestingTranche
-            {vestingTrancheDate = Slot 20, vestingTrancheAmount = Ada.lovelaceValueOf 5}
+            {vestingTrancheDate = Slot 20, vestingTrancheAmount = Ada.lovelaceValueOf 50_000_000}
     vestingTranche2 =
         VestingTranche
-            {vestingTrancheDate = Slot 40, vestingTrancheAmount = Ada.lovelaceValueOf 3}
+            {vestingTrancheDate = Slot 40, vestingTrancheAmount = Ada.lovelaceValueOf 30_000_000}
 
 mkSchemaDefinitions ''VestingSchema
 

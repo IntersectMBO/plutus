@@ -17,7 +17,8 @@ import Halogen.HTML.Properties (class_, classes)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId(..), Party, Token, ValueId(..), _accounts, _boundValues, _choices)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
-import SimulationPage.Types (Action, BottomPanelView(..), State, _SimulationNotStarted, _SimulationRunning, _executionState, _initialSlot, _marloweState, _slot, _state)
+import SimulationPage.Types (Action, BottomPanelView(..), State)
+import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _executionState, _initialSlot, _marloweState, _slot, _state)
 
 panelContents :: forall p. MetaData -> State -> BottomPanelView -> HTML p Action
 panelContents metadata state CurrentStateView =

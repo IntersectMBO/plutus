@@ -40,6 +40,7 @@ module PlutusTx.Builtins (
                                 , appendString
                                 , emptyString
                                 , charToString
+                                , equalsString
                                 -- * Tracing
                                 , trace
                                 ) where
@@ -214,6 +215,11 @@ emptyString = mustBeReplaced "emptyString"
 -- | Turn a 'Char' into a 'String'.
 charToString :: Char -> String
 charToString = mustBeReplaced "charToString"
+
+{-# NOINLINE equalsString #-}
+-- | Check if two strings are equal
+equalsString :: String -> String -> Bool
+equalsString = mustBeReplaced "equalsString"
 
 {-# NOINLINE trace #-}
 -- | Logs the given 'String' to the evaluation log.

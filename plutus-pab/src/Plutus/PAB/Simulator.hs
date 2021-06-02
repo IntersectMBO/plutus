@@ -19,7 +19,6 @@ to one PAB, with its own view of the world, all acting on the same blockchain.
 module Plutus.PAB.Simulator(
     Simulation
     , SimulatorState
-    , runSimulation
     -- * Run with user-defined contracts
     , SimulatorContractHandler
     , runSimulationWith
@@ -61,8 +60,10 @@ module Plutus.PAB.Simulator(
     -- ** Transaction counts
     , TxCounts(..)
     , txCounts
+    , txCountsSTM
     , txValidated
     , txMemPool
+    , waitForValidatedTxCount
     ) where
 
 import qualified Cardano.Wallet.Mock                            as MockWallet
@@ -71,7 +72,7 @@ import           Control.Concurrent.STM                         (STM, TQueue, TV
 import qualified Control.Concurrent.STM                         as STM
 import           Control.Lens                                   (_Just, at, makeLenses, makeLensesFor, preview, set,
                                                                  view, (&), (.~), (?~), (^.))
-import           Control.Monad                                  (forM_, forever, void, when)
+import           Control.Monad                                  (forM_, forever, guard, void, when)
 import           Control.Monad.Freer                            (Eff, LastMember, Member, interpret, reinterpret,
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
 import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
@@ -107,8 +108,6 @@ import           Plutus.PAB.Core.ContractInstance.STM           (Activity (..), 
 import qualified Plutus.PAB.Core.ContractInstance.STM           as Instances
 import           Plutus.PAB.Effects.Contract                    (ContractStore)
 import qualified Plutus.PAB.Effects.Contract                    as Contract
-import           Plutus.PAB.Effects.Contract.Builtin            (Builtin)
-import           Plutus.PAB.Effects.Contract.ContractTest       (TestContracts (..), handleContractTest)
 import           Plutus.PAB.Effects.TimeEffect                  (TimeEffect)
 import           Plutus.PAB.Monitoring.PABLogMsg                (ContractEffectMsg, PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                               (PABError (ContractInstanceNotFound, WalletError, WalletNotFound))
@@ -228,14 +227,6 @@ mkSimulatorHandlers definitions handleContractEffect =
         , onShutdown = do
             handleDelayEffect $ delayThread (500 :: Millisecond) -- need to wait a little to avoid garbled terminal output in GHCi.
         }
-
-
--- | 'EffectHandlers' for running the PAB as a simulator (no connectivity to
---   out-of-process services such as wallet backend, node, etc.)
-simulatorHandlers :: EffectHandlers (Builtin TestContracts) (SimulatorState (Builtin TestContracts))
-simulatorHandlers = mkSimulatorHandlers @(Builtin TestContracts) [GameStateMachine, Currency, AtomicSwap] handler where
-    handler :: SimulatorContractHandler (Builtin TestContracts)
-    handler = interpret handleContractTest
 
 handleLogSimulator ::
     forall t effs.
@@ -407,9 +398,6 @@ waitNSlots :: forall t. Int -> Simulation t ()
 waitNSlots = Core.waitNSlots
 
 type Simulation t a = Core.PABAction t (SimulatorState t) a
-
-runSimulation :: Simulation (Builtin TestContracts) a -> IO (Either PABError a)
-runSimulation = runSimulationWith @(Builtin TestContracts) simulatorHandlers
 
 runSimulationWith :: SimulatorEffectHandlers t -> Simulation t a -> IO (Either PABError a)
 runSimulationWith handlers = Core.runPAB def handlers
@@ -635,14 +623,27 @@ makeLenses ''TxCounts
 
 -- | Get the 'TxCounts' of the emulated blockchain
 txCounts :: forall t. Simulation t TxCounts
-txCounts = do
+txCounts = txCountsSTM >>= liftIO . STM.atomically
+
+-- | Get an STM transaction with the 'TxCounts' of the emulated blockchain
+txCountsSTM :: forall t. Simulation t (STM TxCounts)
+txCountsSTM = do
     SimulatorState{_chainState} <- Core.askUserEnv @t @(SimulatorState t)
-    Chain.ChainState{Chain._chainNewestFirst, Chain._txPool} <- liftIO $ STM.readTVarIO _chainState
-    return
-        $ TxCounts
-            { _txValidated = sum (length <$> _chainNewestFirst)
-            , _txMemPool   = length _txPool
-            }
+    return $ do
+        Chain.ChainState{Chain._chainNewestFirst, Chain._txPool} <- STM.readTVar _chainState
+        pure
+            $ TxCounts
+                { _txValidated = sum (length <$> _chainNewestFirst)
+                , _txMemPool   = length _txPool
+                }
+
+-- | Wait until at least the given number of valid transactions are on the simulated blockchain.
+waitForValidatedTxCount :: forall t. Int -> Simulation t ()
+waitForValidatedTxCount i = do
+    counts <- txCountsSTM
+    liftIO $ STM.atomically $ do
+        TxCounts{_txValidated} <- counts
+        guard (_txValidated >= i)
 
 -- | The set of all active contracts.
 activeContracts :: forall t. Simulation t (Set ContractInstanceId)

@@ -7,11 +7,10 @@ where
 
 import           PlutusCore.Constant
 
-import           PlutusCore.Core.Type                           hiding (Type)
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.ExBudget         ()
+import           PlutusCore.Core.Type                   hiding (Type)
+import           PlutusCore.Evaluation.Machine.ExBudget ()
 
-import           GHC.Types                                      (Type)
+import           GHC.Types                              (Type)
 
 {-| We need to account for the costs of evaluator steps and also built-in function
    evaluation.  The models for these have different structures and are used in
@@ -22,10 +21,10 @@ import           GHC.Types                                      (Type)
    internal costs, so we keep the machine costs abstract.  The model for Cek
    machine steps is in UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.
 -}
-data CostModel machinecosts =
+data CostModel machinecosts builtincosts =
     CostModel {
       machineCostModel :: machinecosts
-    , builtinCostModel :: BuiltinCostModel
+    , builtinCostModel :: builtincosts
     } deriving (Eq, Show)
 
 {-| At execution time we need a 'BuiltinsRuntime' object which includes both the
@@ -40,14 +39,13 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
 
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
 toMachineParameters ::
-    ( UniOf (val uni fun) ~ uni,
+    ( UniOf (val uni fun) ~ uni
       -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
-      CostingPart uni  fun ~ BuiltinCostModel
+    , CostingPart uni fun ~ builtincosts
     , HasConstant (val uni fun)
     , ToBuiltinMeaning uni fun
     )
-    => CostModel machinecosts
+    => CostModel machinecosts builtincosts
     -> MachineParameters machinecosts val uni fun
 toMachineParameters (CostModel mchnCosts builtinCosts) =
     MachineParameters mchnCosts (toBuiltinsRuntime builtinCosts)
-
