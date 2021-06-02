@@ -23,7 +23,7 @@ import qualified PlutusCore                           as PLC
 import qualified PlutusCore.Error                     as PLC
 import           PlutusPrelude                        (through)
 
-import           Control.Monad.Except
+import           Control.Monad.Except                 (MonadError, (<=<))
 import qualified Data.ByteString.Lazy                 as BSL
 
 
