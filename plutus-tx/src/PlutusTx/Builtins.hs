@@ -116,6 +116,7 @@ greaterThanByteString :: ByteString -> ByteString -> Bool
 greaterThanByteString = (>)
 
 {-# NOINLINE decodeUtf8 #-}
+-- | Converts a ByteString to a String.
 decodeUtf8 :: ByteString -> String
 decodeUtf8 = mustBeReplaced "decodeUtf8"
 
@@ -233,5 +234,6 @@ trace :: String -> ()
 trace _ = () --mustBeReplaced "trace"
 
 {-# NOINLINE encodeUtf8 #-}
+-- | Convert a String into a ByteString.
 encodeUtf8 :: String -> ByteString
 encodeUtf8 = mustBeReplaced "encodeUtf8"
