@@ -82,10 +82,10 @@
         "homepage": null,
         "owner": "tweag",
         "repo": "npmlock2nix",
-        "rev": "32d6c291422cb1569debafe203aaed32ab72b158",
-        "sha256": "0gg2dyizz4qgpznybd3izm31bjdqb6g5zyqkchja7bqr386gdlrg",
+        "rev": "5d3586977dea8d5680f383adee98be2667fa8131",
+        "sha256": "0ni3z64wf1cha7xf5vqzqfqs73qc938zvnnbn147li1m4v8pnzzx",
         "type": "tarball",
-        "url": "https://github.com/tweag/npmlock2nix/archive/32d6c291422cb1569debafe203aaed32ab72b158.tar.gz",
+        "url": "https://github.com/tweag/npmlock2nix/archive/5d3586977dea8d5680f383adee98be2667fa8131.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {
