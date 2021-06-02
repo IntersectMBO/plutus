@@ -366,7 +366,7 @@ instance PlutusTx.Eq TxOut where
         PlutusTx.&& txOutValue l PlutusTx.== txOutValue r
         PlutusTx.&& txOutDatumHash l PlutusTx.== txOutDatumHash r
 
--- | The datum attached to a 'TxOutOf', if there is one.
+-- | The datum attached to a 'TxOut', if there is one.
 txOutDatum :: TxOut -> Maybe DatumHash
 txOutDatum TxOut{txOutDatumHash} = txOutDatumHash
 
