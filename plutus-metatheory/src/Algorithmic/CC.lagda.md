@@ -11,7 +11,7 @@ open import Type
 open import Type.BetaNormal
 open import Algorithmic.ReductionEC
 
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality renaming ([_] to I[_])
 open import Data.Sum
 open import Data.Product renaming (_,_ to _,,_)
 
@@ -33,6 +33,20 @@ dissect (unwrap E) with dissect E
 ... | inj₁ refl         = inj₂ (_ ,, [] ,, unwrap-)
 ... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, unwrap E' ,, F)
 
+dissect-inj₁ : ∀{A B}(E : EC A B)(p : A ≡ B) → dissect E ≡ inj₁ p
+  → subst (λ A → EC A B) p E ≡ []
+dissect-inj₁ [] refl refl = refl
+dissect-inj₁ (E l· N) p q with dissect E
+dissect-inj₁ (E l· N) refl q | inj₁ ()
+dissect-inj₁ (VM ·r E) p q with dissect E
+dissect-inj₁ (VM ·r E) refl () | inj₁ refl
+dissect-inj₁ (E ·⋆ A) p q with dissect E
+dissect-inj₁ (E ·⋆ A) p () | inj₁ refl
+dissect-inj₁ (wrap E) p q with dissect E
+dissect-inj₁ (wrap E) p () | inj₁ refl
+dissect-inj₁ (unwrap E) p q with dissect E
+dissect-inj₁ (unwrap E) p () | inj₁ refl
+
 compEC : ∀{A B C} → EC A B → EC B C → EC A C
 compEC []         E' = E'
 compEC (E  l· M') E' = compEC E E' l· M'
@@ -52,6 +66,36 @@ extEC (VM ·r E)  F       = VM ·r extEC E F
 extEC (E ·⋆ A)   F       = extEC E F ·⋆ A
 extEC (wrap E)   F       = wrap (extEC E F)
 extEC (unwrap E) F       = unwrap (extEC E F)
+
+dissect-inj₂ : ∀{A B C}(E : EC A C)(E' : EC A B)(F : Frame B C)
+  → dissect E ≡ inj₂ (_ ,, E' ,, F) → E ≡ extEC E' F
+dissect-inj₂ (E l· N) E' F p with dissect E | inspect dissect E
+dissect-inj₂ (E l· N) .[] .(-· N) refl | inj₁ refl | I[ eq ]
+  rewrite dissect-inj₁ E refl eq = refl
+dissect-inj₂ (E l· N) .(E'' l· N) .F' refl | inj₂ (_ ,, E'' ,, F') | I[ eq ] =
+  cong (_l· N) (dissect-inj₂ E E'' F' eq)
+dissect-inj₂ (VM ·r E) E' F p with dissect E | inspect dissect E
+dissect-inj₂ (VM ·r E) .[] .(VM ·-) refl | inj₁ refl | I[ eq ] =
+  cong (VM ·r_) ( dissect-inj₁ E refl eq)
+dissect-inj₂ (VM ·r E) .(VM ·r E') .F refl | inj₂ (_ ,, E' ,, F) | I[ eq ] =
+  cong (VM ·r_) (dissect-inj₂ E E' F eq) 
+dissect-inj₂ (E ·⋆ A) E' F p with dissect E | inspect dissect E
+dissect-inj₂ (E ·⋆ A) .[] .(-·⋆ A) refl | inj₁ refl | I[ eq ] =
+  cong (_·⋆ A) (dissect-inj₁ E refl eq)
+dissect-inj₂ (E ·⋆ A) .(E'' ·⋆ A) .F' refl | inj₂ (_ ,, E'' ,, F') | I[ eq ] =
+  cong (_·⋆ A) (dissect-inj₂ E E'' F' eq)
+dissect-inj₂ (wrap E) E' F p with dissect E | inspect dissect E
+dissect-inj₂ (wrap E) .[] .wrap- refl | inj₁ refl | I[ eq ] =
+  cong wrap (dissect-inj₁ E refl eq)
+dissect-inj₂ (wrap E) .(wrap E'') .F' refl | inj₂ (_ ,, E'' ,, F') | I[ eq ] =
+  cong wrap (dissect-inj₂ E E'' F' eq)
+
+dissect-inj₂ (unwrap E) E' F p with dissect E | inspect dissect E
+dissect-inj₂ (unwrap E) .[] .unwrap- refl | inj₁ refl | I[ eq ] =
+  cong unwrap (dissect-inj₁ E refl eq)
+dissect-inj₂ (unwrap E) .(unwrap E'') .F' refl | inj₂ (_ ,, E'' ,, F') | I[ eq ]
+  = cong unwrap (dissect-inj₂ E E'' F' eq)
+
 
 compEC' : ∀{A B C} → EC A B → EC B C → EC A C
 compEC' E []          = E
@@ -590,3 +634,19 @@ lem62 L E (E' ·⋆ A)   = step* refl (lem62 L (extEC E (-·⋆ A)) E')
 lem62 L E (wrap E')   = step* refl (lem62 L (extEC E wrap-) E')
 lem62 L E (unwrap E') = step* refl (lem62 L (extEC E unwrap-) E')
 
+{-
+unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
+      → N ≡ E' [ M ]ᴱ
+      → (VM : Value M)
+      → (VN : Value N)
+      → (compEC' E E' ◅ VM) -→s (E ◅ VN) 
+unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
+... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E' refl eq rewrite uniqueVal A VM VN = base
+... | inj₂ (C ,, E'' ,, F) | I[ eq ] = {!!}
+
+unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
+      → N ≡ E' [ M ]ᴱ
+      → (VN : Value N)
+      → (compEC' E E' ▻ M) -→s (E ◅ VN) 
+unwindE A B E E' refl VN = {!!}
+-- -}
