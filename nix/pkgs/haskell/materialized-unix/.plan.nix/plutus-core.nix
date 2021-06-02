@@ -277,16 +277,13 @@
           "Common"
           "Crypto"
           "Data/ByteString/Hash"
-          "Data/SatInt"
-<<<<<<< HEAD
           "Data/RandomAccessList/SkewBinary"
-=======
+          "Data/SatInt"
           "Data/Text/Prettyprint/Doc/Custom"
           "ErrorCode"
           "PlcTestUtils"
           "PlutusPrelude"
           "Universe"
->>>>>>> 64fd90aa927781a2d7ea294536bebbf5fa3d58fc
           ];
         hsSourceDirs = [
           "plutus-core/src"
