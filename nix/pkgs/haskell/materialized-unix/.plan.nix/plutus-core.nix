@@ -201,16 +201,9 @@
           "PlutusCore/Evaluation/Machine/BuiltinCostModel"
           "PlutusCore/Evaluation/Machine/CostModelInterface"
           "PlutusCore/Evaluation/Machine/ExBudget"
-<<<<<<< HEAD
-          "PlutusCore/Evaluation/Machine/ExBudgeting"
-          "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
-          "PlutusCore/Evaluation/Machine/ExMemory"
-          "PlutusCore/Evaluation/Machine/Exception"
-=======
           "PlutusCore/Evaluation/Machine/Exception"
           "PlutusCore/Evaluation/Machine/ExMemory"
           "PlutusCore/Evaluation/Machine/MachineParameters"
->>>>>>> 5ec5927e06aa27d6541b585cee97d8bee7b6a172
           "PlutusCore/Evaluation/Result"
           "PlutusCore/Examples/Builtins"
           "PlutusCore/Examples/Everything"
@@ -250,7 +243,6 @@
           "PlutusCore/StdLib/Meta/Data/Tuple"
           "PlutusCore/StdLib/Type"
           "PlutusCore/Subst"
-          "PlutusCore/Universe"
           "PlutusIR"
           "PlutusIR/Core"
           "PlutusIR/Core/Instance"
@@ -282,15 +274,19 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
-          "PlutusPrelude"
           "Common"
-          "ErrorCode"
-          "Data/ByteString/Hash"
-          "PlcTestUtils"
           "Crypto"
-          "Data/Text/Prettyprint/Doc/Custom"
+          "Data/ByteString/Hash"
           "Data/SatInt"
+<<<<<<< HEAD
           "Data/RandomAccessList/SkewBinary"
+=======
+          "Data/Text/Prettyprint/Doc/Custom"
+          "ErrorCode"
+          "PlcTestUtils"
+          "PlutusPrelude"
+          "Universe"
+>>>>>>> 64fd90aa927781a2d7ea294536bebbf5fa3d58fc
           ];
         hsSourceDirs = [
           "plutus-core/src"
