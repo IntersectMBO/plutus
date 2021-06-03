@@ -20,7 +20,6 @@ import           PlutusTx.Prelude
 import           PlutusTx.TH
 
 import           PlutusCore.Pretty         (PrettyConst)
-import qualified PlutusCore.Universe       as PLC
 import qualified UntypedPlutusCore         as UPLC
 
 import           Codec.Serialise           (Serialise)

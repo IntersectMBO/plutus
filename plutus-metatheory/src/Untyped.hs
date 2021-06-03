@@ -3,12 +3,12 @@
 module Untyped where
 
 import           PlutusCore.Default
-import           PlutusCore.Universe
 import           UntypedPlutusCore
 
-import           Data.ByteString     as BS
-import           Data.Text           as T
+import           Data.ByteString    as BS
+import           Data.Text          as T
 import           GHC.Natural
+import           Universe
 
 
 -- Untyped (Raw) syntax
