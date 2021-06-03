@@ -16,7 +16,7 @@
 {-# LANGUAGE UndecidableSuperClasses  #-}
 
 module Universe.Core
-    ( T
+    ( Esc
     , Some (..)
     , SomeTypeIn (..)
     , Kinded (..)
@@ -224,12 +224,12 @@ So basically this approach is unusable.
 But there's another way to spell @forall k. k -> Type@ and it's @(exists k. k) -> Type@ or in
 Haskell terms:
 
-    data T = forall k. T k
+    data Esc = forall k. Esc k
 
     data U (a :: T) where
-        UProtoList :: U ('T [])
-        UInt       :: U ('T Int)
-        UApply     :: U ('T f) -> U ('T a) -> U ('T (f a))
+        UProtoList :: U ('Esc [])
+        UInt       :: U ('Esc Int)
+        UApply     :: U ('Esc f) -> U ('Esc a) -> U ('Esc (f a))
 
 However this variant of 'U' has the disadvantage of not being of the @Type -> Type@ kind
 (it's @T -> Type@ instead), which means that the user now needs to enable @DataKinds@ just to be
@@ -237,12 +237,12 @@ able to mention universes (even without actually doing anything with them) and a
 annoying ticks. So instead we can think of @Type@ as a data type itself whose constructors
 (an infinite amount of them) are things introduced via the @data@ keyword. This gives us
 
-    data T (a :: k)
+    data Esc (a :: k)
 
     data U (a :: Type) where
-        UProtoList :: U (T [])
-        UInt       :: U (T Int)
-        UApply     :: U (T f) -> U (T a) -> U (T (f a))
+        UProtoList :: U (Esc [])
+        UInt       :: U (Esc Int)
+        UApply     :: U (Esc f) -> U (Esc a) -> U (Esc (f a))
 
 (note that we haven't introduced any more "openness" with this trick as any kind in Haskell is
 already weirdly open (including @T@): https://gist.github.com/ekmett/ac881f3dba3f89ec03f8fdb1d8bf0a40)
@@ -254,7 +254,7 @@ that we originally had. For example, 'ValueOf' had to change from
 
 to
 
-    data ValueOf uni a = ValueOf (uni (T a)) a
+    data ValueOf uni a = ValueOf (uni (Esc a)) a
 
 It is annoying that if we want to talk about partially applied type constructors, then suddenly we
 need a completely different encoding of universes (and of the whole infrastructure) than the one
@@ -268,7 +268,7 @@ kind star. I.e. we have to be able to parse/decode arbitrary types, but ensure t
 is of kind star whenever we expect to parse/decode a constant of that type next. This is one reason
 why we have all these 'Typeable' constraints lying around.
 
-Type-wise this is enforced via 'bring' expecting a @uni (T a)@ with @a@ being of kind @Type@.
+Type-wise this is enforced via 'bring' expecting a @uni (Esc a)@ with @a@ being of kind @Type@.
 I.e. there is no way one could parse a general type and then attempt to bring a constraint for
 that type in scope via 'bring' without first ensuring that the type is of kind star.
 
@@ -299,7 +299,7 @@ the monomorphic and polymorphic cases. I.e. we could use good old
 
 instead of having to use the slightly more awkward
 
-    data ValueOf uni a = ValueOf (uni (T a)) a
+    data ValueOf uni a = ValueOf (uni (Esc a)) a
 
 One problem that this representation has is redundancy: there are two ways to represent the type
 of lists of integers (for some definition of @SomeTypeIn@):
@@ -319,9 +319,9 @@ even though that required reworking all the infrastructure in a backwards-incomp
 -}
 
 -- See Note [Representing polymorphism].
--- | To wrap a type of an arbitrary kind to get a 'Type'.
-type T :: forall k. k -> Type
-data T a
+-- | \"Escapes\" a type of an arbitrary kind to fit into 'Type'.
+type Esc :: forall k. k -> Type
+data Esc a
 
 -- | Existential quantification as a data type.
 type Some :: forall a. (a -> Type) -> Type
@@ -329,14 +329,14 @@ data Some f = forall x. Some !(f x)
 
 -- | A particular type from a universe.
 type SomeTypeIn :: (Type -> Type) -> Type
-data SomeTypeIn uni = forall k (a :: k). SomeTypeIn !(uni (T a))
+data SomeTypeIn uni = forall k (a :: k). SomeTypeIn !(uni (Esc a))
 
 data Kinded uni ta where
-    Kinded :: Typeable k => !(uni (T a)) -> Kinded uni (T (a :: k))
+    Kinded :: Typeable k => !(uni (Esc a)) -> Kinded uni (Esc (a :: k))
 
 -- | A value of a particular type from a universe.
 type ValueOf :: (Type -> Type) -> Type -> Type
-data ValueOf uni a = ValueOf !(uni (T a)) !a
+data ValueOf uni a = ValueOf !(uni (Esc a)) !a
 
 {- | A class for enumerating types and fully instantiated type formers that @uni@ contains.
 For example, a particular @ExampleUni@ may have monomorphic types in it:
@@ -378,7 +378,7 @@ per type from the universe and you'll get 'Includes' for free.
 -}
 type Contains :: forall k. (Type -> Type) -> k -> Constraint
 class uni `Contains` a where
-    knownUni :: uni (T a)
+    knownUni :: uni (Esc a)
 
 {- Note [The definition of Includes]
 We need to be able to partially apply 'Includes' (required in the definition of '<:' for example),
@@ -407,11 +407,11 @@ type Includes :: forall k. (Type -> Type) -> k -> Constraint
 type Includes uni = Permits (Contains uni)
 
 -- | Same as 'knownUni', but receives a @proxy@.
-knownUniOf :: uni `Contains` a => proxy a -> uni (T a)
+knownUniOf :: uni `Contains` a => proxy a -> uni (Esc a)
 knownUniOf _ = knownUni
 
 -- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
-someValueOf :: forall a uni. uni (T a) -> a -> Some (ValueOf uni)
+someValueOf :: forall a uni. uni (Esc a) -> a -> Some (ValueOf uni)
 someValueOf uni = Some . ValueOf uni
 
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
@@ -449,11 +449,11 @@ class Closed uni where
     encodeUni :: uni a -> [Int]
 
     -- | Decode a type and feed it to the continuation.
-    withDecodedUni :: (forall k (a :: k). Typeable k => uni (T a) -> DecodeUniM r) -> DecodeUniM r
+    withDecodedUni :: (forall k (a :: k). Typeable k => uni (Esc a) -> DecodeUniM r) -> DecodeUniM r
 
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
-    bring :: uni `Everywhere` constr => proxy constr -> uni (T a) -> (constr a => r) -> r
+    bring :: uni `Everywhere` constr => proxy constr -> uni (Esc a) -> (constr a => r) -> r
 
 -- | Decode a type from a sequence of 'Int' tags.
 -- The opposite of 'encodeUni' (modulo invalid input).
@@ -553,7 +553,7 @@ class HasUniApply (uni :: Type -> Type) where
     matchUniApply
         :: uni tb  -- ^ The type.
         -> r       -- ^ What to return if the type is not an application.
-        -> (forall k l (f :: k -> l) a. tb ~ T (f a) => uni (T f) -> uni (T a) -> r)
+        -> (forall k l (f :: k -> l) a. tb ~ Esc (f a) => uni (Esc f) -> uni (Esc a) -> r)
                    -- ^ The continuation taking a function and an argument.
         -> r
 
@@ -561,7 +561,7 @@ class HasUniApply (uni :: Type -> Type) where
 -- You might think @uni@ is inferrable from the explicitly given argument. Nope, in most cases it's
 -- not. It seems, kind equalities mess up inference.
 -- | Check if the kind of the given type from the universe is 'Type'.
-checkStar :: forall uni a (x :: a). Typeable a => uni (T x) -> Maybe (a :~: Type)
+checkStar :: forall uni a (x :: a). Typeable a => uni (Esc x) -> Maybe (a :~: Type)
 checkStar _ = typeRep @a `testEquality` typeRep @Type
 
 fromJustM :: MonadPlus f => Maybe a -> f a
@@ -573,8 +573,8 @@ fromJustM = maybe mzero pure
 -- Fail with 'mzero' otherwise.
 withApplicable
     :: forall (a :: Type) (ab :: Type) f x uni m r. (Typeable ab, Typeable a, MonadPlus m)
-    => uni (T (f :: ab))
-    -> uni (T (x :: a))
+    => uni (Esc (f :: ab))
+    -> uni (Esc (x :: a))
     -> (forall (b :: Type). (Typeable b, ab ~ (a -> b)) => m r)
     -> m r
 withApplicable _ _ k =

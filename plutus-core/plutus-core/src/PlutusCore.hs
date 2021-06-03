@@ -18,7 +18,7 @@ module PlutusCore
     , ValueOf (..)
     , someValueOf
     , someValue
-    , T
+    , Esc
     , Contains (..)
     , Includes
     , Closed (..)

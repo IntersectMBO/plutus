@@ -72,14 +72,14 @@ and have meta-constructors as builtin names.
 -- See Note [Representing polymorphism].
 -- | The universe used by default.
 data DefaultUni a where
-    DefaultUniInteger    :: DefaultUni (T Integer)
-    DefaultUniByteString :: DefaultUni (T BS.ByteString)
-    DefaultUniChar       :: DefaultUni (T Char)
-    DefaultUniUnit       :: DefaultUni (T ())
-    DefaultUniBool       :: DefaultUni (T Bool)
-    DefaultUniProtoList  :: DefaultUni (T [])
-    DefaultUniProtoPair  :: DefaultUni (T (,))
-    DefaultUniApply      :: !(DefaultUni (T f)) -> !(DefaultUni (T a)) -> DefaultUni (T (f a))
+    DefaultUniInteger    :: DefaultUni (Esc Integer)
+    DefaultUniByteString :: DefaultUni (Esc BS.ByteString)
+    DefaultUniChar       :: DefaultUni (Esc Char)
+    DefaultUniUnit       :: DefaultUni (Esc ())
+    DefaultUniBool       :: DefaultUni (Esc Bool)
+    DefaultUniProtoList  :: DefaultUni (Esc [])
+    DefaultUniProtoPair  :: DefaultUni (Esc (,))
+    DefaultUniApply      :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -93,7 +93,7 @@ pattern DefaultUniString = DefaultUniList DefaultUniChar
 deriveGEq ''DefaultUni
 
 -- | For pleasing the coverage checker.
-noMoreTypeFunctions :: DefaultUni (T (f :: a -> b -> c -> d)) -> any
+noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 
 instance ToKind DefaultUni where
@@ -220,7 +220,7 @@ instance Closed DefaultUni where
 
     bring
         :: forall constr a r proxy. DefaultUni `Everywhere` constr
-        => proxy constr -> DefaultUni (T a) -> (constr a => r) -> r
+        => proxy constr -> DefaultUni (Esc a) -> (constr a => r) -> r
     bring _ DefaultUniInteger    r = r
     bring _ DefaultUniByteString r = r
     bring _ DefaultUniChar       r = r

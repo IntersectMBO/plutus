@@ -322,7 +322,7 @@ But since we're ignoring the actual list, can't we just not pass it in the first
 pass around our good old friends, singletons. We should be able to do that, but it hasn't been
 investigated. Perhaps something along the lines of adding the following constructor to 'DefaultUni':
 
-    DefaultUniProtoSing :: DefaultUni (T (Proxy @GHC.Type))
+    DefaultUniProtoSing :: DefaultUni (Esc (Proxy @GHC.Type))
 
 and then defining
 
@@ -532,9 +532,9 @@ unlift them to in its type signature.
 -}
 type SomeConstantOf :: forall k. (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
 data SomeConstantOf uni f reps where
-    SomeConstantOfRes :: uni (T b) -> b -> SomeConstantOf uni b '[]
+    SomeConstantOfRes :: uni (Esc b) -> b -> SomeConstantOf uni b '[]
     SomeConstantOfArg
-        :: uni (T a)
+        :: uni (Esc a)
         -> SomeConstantOf uni (f a) reps
         -> SomeConstantOf uni f (rep ': reps)
 
@@ -557,7 +557,7 @@ instance (uni `Contains` f, uni ~ uni', All (KnownTypeAst uni) reps) =>
 type ReadSomeConstantOf
         :: forall k. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Type) -> k -> [GHC.Type] -> GHC.Type
 data ReadSomeConstantOf m uni f reps =
-    forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (T a))
+    forall k (a :: k). ReadSomeConstantOf (SomeConstantOf uni a reps) (uni (Esc a))
 
 instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniApply uni) =>
             KnownType term (SomeConstantOf uni f reps) where

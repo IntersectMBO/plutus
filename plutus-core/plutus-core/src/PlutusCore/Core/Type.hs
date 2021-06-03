@@ -127,10 +127,10 @@ instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
 -- no big deal.
 -- | For getting the Plutus kind of a type from the universe.
 class ToKind (uni :: GHC.Type -> GHC.Type) where
-    toKind :: forall k (a :: k). uni (T a) -> Kind ()
+    toKind :: forall k (a :: k). uni (Esc a) -> Kind ()
 
 -- | Get the PLC kind of @a@.
-kindOf :: forall uni k (a :: k). KnownKind k => uni (T a) -> Kind ()
+kindOf :: forall uni k (a :: k). KnownKind k => uni (Esc a) -> Kind ()
 kindOf _ = knownKind $ Proxy @k
 
 -- | The default version of Plutus Core supported by this library.
