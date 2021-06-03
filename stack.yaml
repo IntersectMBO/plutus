@@ -25,6 +25,7 @@ packages:
 - prettyprinter-configurable
 - quickcheck-dynamic
 - web-ghc
+- word-array
 
 extra-deps:
 # Flat compression

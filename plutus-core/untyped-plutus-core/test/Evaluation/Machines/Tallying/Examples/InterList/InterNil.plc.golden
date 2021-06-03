@@ -1,6 +1,24 @@
 ( (Right (delay (delay (delay (\z -> \f -> z)))))
-, ({ tally: ({ BDelay causes ({ cpu: 39000
+, ({ tally: ({ BStep BConst causes ({ cpu: 0
+| mem: 0
+})
+| BStep BVar causes ({ cpu: 0
+| mem: 0
+})
+| BStep BLamAbs causes ({ cpu: 0
+| mem: 0
+})
+| BStep BApply causes ({ cpu: 0
+| mem: 0
+})
+| BStep BDelay causes ({ cpu: 39000
 | mem: 10
+})
+| BStep BForce causes ({ cpu: 0
+| mem: 0
+})
+| BStep BBuiltin causes ({ cpu: 0
+| mem: 0
 })
 | BStartup causes ({ cpu: 1000000
 | mem: 0

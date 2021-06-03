@@ -13,6 +13,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
+    , StepKind(..)
     , CekExTally(..)
     , ExBudgetMode(..)
     , CountingSt (..)
