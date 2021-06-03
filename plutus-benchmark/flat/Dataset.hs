@@ -23,8 +23,8 @@ import qualified Plutus.Contracts.Escrow           as Escrow
 import qualified Plutus.Contracts.Future           as Future
 import qualified Plutus.Contracts.GameStateMachine as GameStateMachine
 import qualified Plutus.Contracts.Vesting          as Vesting
-import           PlutusCore                        (DefaultFun (..), runQuoteT)
-import           PlutusCore.Universe
+import           PlutusCore                        (runQuoteT)
+import           PlutusCore.Default
 import           UntypedPlutusCore
 
 wallet1, wallet2 :: Wallet

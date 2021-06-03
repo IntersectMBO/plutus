@@ -117,7 +117,7 @@ values = runQuote $ do
 normalTypes :: TestTree
 normalTypes = runQuote $ do
     aN <- freshTyName "a"
-    let integer = mkTyBuiltin @Integer @DefaultUni ()
+    let integer = mkTyBuiltin @_ @Integer @DefaultUni ()
         neutral = TyVar () aN
         normal = integer
         nonNormal = TyApp () (TyLam () aN (Type ()) neutral) normal
@@ -146,7 +146,7 @@ normalTypesCheck :: TestTree
 normalTypesCheck = runQuote $ do
     aN <- freshTyName "a"
     xN <- freshName "x"
-    let integer = mkTyBuiltin @Integer ()
+    let integer = mkTyBuiltin @_ @Integer ()
         aV = TyVar () aN
         xV = Var () xN
         normal = integer

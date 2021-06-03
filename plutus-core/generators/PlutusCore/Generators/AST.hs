@@ -86,6 +86,17 @@ genConstant = Gen.choice
     , someValue <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
     ]
 
+-- We only generate types that are parsable. See Note [Parsing horribly broken].
+genSomeTypeIn :: AstGen (SomeTypeIn DefaultUni)
+genSomeTypeIn = Gen.frequency
+    [ (1, pure $ SomeTypeIn DefaultUniInteger)
+    , (1, pure $ SomeTypeIn DefaultUniByteString)
+    , (1, pure $ SomeTypeIn DefaultUniChar)
+    , (1, pure $ SomeTypeIn DefaultUniUnit)
+    , (1, pure $ SomeTypeIn DefaultUniBool)
+    , (3, pure $ SomeTypeIn $ DefaultUniList DefaultUniChar)
+    ]
+
 genType :: AstGen (Type TyName DefaultUni ())
 genType = simpleRecursive nonRecursive recursive where
     varGen = TyVar () <$> genTyName
@@ -93,8 +104,9 @@ genType = simpleRecursive nonRecursive recursive where
     lamGen = TyLam () <$> genTyName <*> genKind <*> genType
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
+    tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
     recursive = [funGen, applyGen]
-    nonRecursive = [varGen, lamGen, forallGen]
+    nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
 genTerm :: AstGen (Term TyName Name DefaultUni DefaultFun ())
 genTerm = simpleRecursive nonRecursive recursive where

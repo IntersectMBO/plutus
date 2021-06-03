@@ -28,7 +28,7 @@ module Ledger.Typed.Scripts(
     , Any
     ) where
 
-import           PlutusCore.Universe             (DefaultUni)
+import           PlutusCore.Default              (DefaultUni)
 import           PlutusTx
 
 import qualified Plutus.V1.Ledger.Address        as Addr

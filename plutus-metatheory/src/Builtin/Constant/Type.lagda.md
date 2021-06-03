@@ -45,14 +45,14 @@ data TyCon : Set where
   unit       : TyCon
   bool       : TyCon
 
-{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                   #-}
-{-# FOREIGN GHC import PlutusCore                                #-}
-{-# FOREIGN GHC type TypeBuiltin = Some (TypeIn DefaultUni)               #-}
-{-# FOREIGN GHC pattern TyInteger    = Some (TypeIn DefaultUniInteger)    #-}
-{-# FOREIGN GHC pattern TyByteString = Some (TypeIn DefaultUniByteString) #-}
-{-# FOREIGN GHC pattern TyString     = Some (TypeIn DefaultUniString)     #-}
-{-# FOREIGN GHC pattern TyChar       = Some (TypeIn DefaultUniChar)       #-}
-{-# FOREIGN GHC pattern TyUnit       = Some (TypeIn DefaultUniUnit)       #-}
-{-# FOREIGN GHC pattern TyBool       = Some (TypeIn DefaultUniBool)       #-}
+{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}
+{-# FOREIGN GHC import PlutusCore                                      #-}
+{-# FOREIGN GHC type TypeBuiltin = SomeTypeIn DefaultUni               #-}
+{-# FOREIGN GHC pattern TyInteger    = SomeTypeIn DefaultUniInteger    #-}
+{-# FOREIGN GHC pattern TyByteString = SomeTypeIn DefaultUniByteString #-}
+{-# FOREIGN GHC pattern TyString     = SomeTypeIn DefaultUniString     #-}
+{-# FOREIGN GHC pattern TyChar       = SomeTypeIn DefaultUniChar       #-}
+{-# FOREIGN GHC pattern TyUnit       = SomeTypeIn DefaultUniUnit       #-}
+{-# FOREIGN GHC pattern TyBool       = SomeTypeIn DefaultUniBool       #-}
 {-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString | TyChar | TyUnit | TyBool) #-}
 ```

@@ -6,14 +6,13 @@ module Evaluation.Builtins.MakeRead
     ) where
 
 import qualified PlutusCore                              as TPLC
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Pretty
 import           PlutusCore.StdLib.Data.Unit
-import           PlutusCore.Universe
 
 import           UntypedPlutusCore                       as UPLC
 

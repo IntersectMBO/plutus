@@ -11,14 +11,13 @@ import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified PlutusTx.Builtins   as Builtins
+import qualified PlutusTx.Builtins  as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Lift
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude    as P
+import qualified PlutusTx.Prelude   as P
 
-import qualified PlutusCore.Builtins as PLC
-import qualified PlutusCore.Universe as PLC
+import qualified PlutusCore.Default as PLC
 
 import           Data.Proxy
 

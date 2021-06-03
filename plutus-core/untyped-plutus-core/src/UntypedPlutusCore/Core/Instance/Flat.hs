@@ -8,12 +8,12 @@ module UntypedPlutusCore.Core.Instance.Flat where
 import           UntypedPlutusCore.Core.Type
 
 import           PlutusCore.Flat
-import           PlutusCore.Universe
 
 import           Data.Word                   (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder
+import           Universe
 
 {-
 The definitions in this file rely on some Flat instances defined for typed plutus core.

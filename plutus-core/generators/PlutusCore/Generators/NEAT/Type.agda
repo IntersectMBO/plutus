@@ -48,10 +48,10 @@ newtype Neutral a = Neutral
 data TypeBuiltinG : Set where
   TyByteStringG  : TypeBuiltinG
   TyIntegerG     : TypeBuiltinG
-  TyStringG      : TypeBuiltinG
   TyBoolG        : TypeBuiltinG
   TyUnitG        : TypeBuiltinG
-  TyCharG        : TypeBuiltinG 
+  TyCharG        : TypeBuiltinG
+  TyListG        : TypeBuiltinG
 
 
 {-# COMPILE AGDA2HS TypeBuiltinG deriving (Show, Eq, Ord) #-}
@@ -138,7 +138,7 @@ ext-comp (FS x) ρ ρ' = refl
 
 -- ren (map for TypeG) satisfies the functor laws
 
-ren-id : (ty : TypeG m) → ren id ty ≡ ty 
+ren-id : (ty : TypeG m) → ren id ty ≡ ty
 ren-id (TyVarG _)          = refl
 ren-id (TyFunG ty1 ty2)    = cong₂ TyFunG (ren-id ty1) (ren-id ty2)
 ren-id (TyIFixG ty1 k ty2) =

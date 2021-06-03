@@ -40,8 +40,8 @@ data Builtin : Set where
   append                   : Builtin
   trace                    : Builtin
 
-{-# FOREIGN GHC import PlutusCore.Builtins #-}
-{-# COMPILE GHC Builtin = data DefaultFun (AddInteger 
+{-# FOREIGN GHC import PlutusCore.Default #-}
+{-# COMPILE GHC Builtin = data DefaultFun (AddInteger
                                           | SubtractInteger
                                           | MultiplyInteger
                                           | DivideInteger
@@ -140,4 +140,3 @@ postulate
 -- no binding needed for traceStr
 
 ```
-

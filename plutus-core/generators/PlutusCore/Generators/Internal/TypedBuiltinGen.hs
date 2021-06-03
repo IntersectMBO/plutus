@@ -27,9 +27,9 @@ import           PlutusCore.Generators.Internal.Dependent
 
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Universe
 
 import qualified Data.ByteString                          as BS
 import           Data.Functor.Identity

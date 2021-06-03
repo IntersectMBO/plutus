@@ -13,8 +13,8 @@ import           UntypedPlutusCore.Evaluation.HOAS
 import           UntypedPlutusCore.Evaluation.Machine.Cek        as Cek
 
 import qualified PlutusCore                                      as Plc
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Machine.MachineParameters
@@ -22,7 +22,6 @@ import           PlutusCore.FsTree
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import           PlutusCore.Examples.Builtins
 import           PlutusCore.Examples.Everything                  (examples)

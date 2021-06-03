@@ -4,8 +4,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 module BasicPolicies where
 
-import qualified PlutusCore.Builtins  as PLC
-import qualified PlutusCore.Universe  as PLC
+import qualified PlutusCore.Default   as PLC
 import           PlutusTx
 import           PlutusTx.Lift
 import           PlutusTx.Prelude

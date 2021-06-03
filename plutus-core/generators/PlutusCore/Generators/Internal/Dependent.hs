@@ -17,9 +17,9 @@ import           PlutusPrelude
 
 import           PlutusCore.Constant
 import           PlutusCore.Core
-import           PlutusCore.Universe
 
 import           Data.GADT.Compare
+import           Universe
 import           Unsafe.Coerce
 
 liftOrdering :: Ordering -> GOrdering a b

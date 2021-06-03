@@ -78,7 +78,7 @@ instance ( PLC.PrettyClassicBy configName tyname
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
 
         where prettyTypeOf :: PLC.GShow t => PLC.Some (PLC.ValueOf t) -> Doc ann
-              prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.TypeIn uni
+              prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.SomeTypeIn uni
 
 
 instance ( PLC.PrettyClassicBy configName tyname

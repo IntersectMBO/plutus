@@ -77,7 +77,7 @@ test_Id =
         let zer = mkConstant @Integer @DefaultUni () 0
             oneT = mkConstant @Integer @DefaultUni () 1
             oneU = mkConstant @Integer @DefaultUni () 1
-            integer = mkTyBuiltin @Integer ()
+            integer = mkTyBuiltin @_ @Integer ()
             -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
             term =
                 mkIterApp () (tyInst () (builtin () $ Right Id) (TyFun () integer integer))
@@ -118,7 +118,7 @@ test_IdList =
             one = mkConstant @Integer @DefaultUni () 1
             ten = mkConstant @Integer @DefaultUni () 10
             res = mkConstant @Integer @DefaultUni () 55
-            integer = mkTyBuiltin @Integer ()
+            integer = mkTyBuiltin @_ @Integer ()
             -- sum (idList {integer} (enumFromTo 1 10))
             term
                 = apply () (mapFun Left Plc.sum)
@@ -156,7 +156,7 @@ test_IdRank2 :: TestTree
 test_IdRank2 =
     testCase "IdRank2" $ do
         let res = mkConstant @Integer @DefaultUni () 0
-            integer = mkTyBuiltin @Integer ()
+            integer = mkTyBuiltin @_ @Integer ()
             -- sum (idRank2 {list} nil {integer})
             term
                 = apply () (mapFun Left Plc.sum)

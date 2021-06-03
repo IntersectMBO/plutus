@@ -18,20 +18,20 @@ module PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Core
 import           PlutusCore.Name
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
 import           Data.Aeson
-import qualified Data.ByteString          as BS
+import qualified Data.ByteString            as BS
 import           Data.Proxy
 import           Data.SatInt
-import qualified Data.Text                as T
-import           Foreign.Storable
+import qualified Data.Text                  as T
 import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
+import           Language.Haskell.TH.Syntax (Lift)
+import           Universe
 
 #include "MachDeps.h"
 
@@ -173,7 +173,7 @@ deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
-instance ExMemoryUsage (Some (TypeIn uni)) where
+instance ExMemoryUsage (SomeTypeIn uni) where
   memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
@@ -207,5 +207,4 @@ instance ExMemoryUsage Char where
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
-instance ExMemoryUsage String where
-  memoryUsage string = ExMemory $ fromIntegral $ (sum $ fmap sizeOf string) `div` 8
+deriving via GenericExMemoryUsage [a] instance ExMemoryUsage a => ExMemoryUsage [a]

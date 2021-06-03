@@ -15,9 +15,8 @@ import qualified Data.ByteString                    as BS
 import qualified Data.ByteString.Lazy               as LBS
 import           Data.Text                          (Text)
 
-import           PlutusCore                         (DefaultFun (..))
 import           PlutusCore.CBOR                    (InvisibleUnit (..))
-import           PlutusCore.Universe
+import           PlutusCore.Default
 import           UntypedPlutusCore                  hiding (OmitUnitAnnotations, restoreUnitAnnotations)
 
 import           "pure-zlib" Codec.Compression.Zlib as PureZlib

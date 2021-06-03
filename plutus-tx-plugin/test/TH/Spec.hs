@@ -34,7 +34,6 @@ import qualified PlutusIR                  as PIR
 
 import qualified PlutusCore                as PLC
 import           PlutusCore.Pretty
-import qualified PlutusCore.Universe       as PLC
 import           UntypedPlutusCore
 import qualified UntypedPlutusCore         as UPLC
 

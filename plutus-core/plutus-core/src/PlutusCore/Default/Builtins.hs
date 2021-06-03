@@ -11,15 +11,15 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusCore.Builtins where
+module PlutusCore.Default.Builtins where
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Meaning
+import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
@@ -34,17 +34,6 @@ import           Data.Word                                      (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder                                   as Flat
-
--- TODO: I think we should have the following structure:
---
--- PlutusCore.Default.Universe
--- PlutusCore.Default.Builtins
---
--- and
---
--- PlutusCore.Default
---
--- reexporting stuff from these two.
 
 -- For @n >= 24@, CBOR needs two bytes instead of one to encode @n@, so we want the commonest
 -- builtins at the front.

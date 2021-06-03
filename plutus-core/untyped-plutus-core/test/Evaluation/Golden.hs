@@ -33,11 +33,11 @@ import           Test.Tasty.Golden
 
 -- (con integer)
 integer :: uni `Includes` Integer => Type TyName uni ()
-integer = mkTyBuiltin @ Integer ()
+integer = mkTyBuiltin @_ @Integer ()
 
 -- (con string)
 string :: uni `Includes` String => Type TyName uni ()
-string = mkTyBuiltin @ String ()
+string = mkTyBuiltin @_ @String ()
 
 evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
@@ -352,7 +352,7 @@ namesAndTests =
    , ("even3", Apply () even $ metaIntegerToNat 3)
    , ("evenList", Apply () natSum $ Apply () evenList smallNatList)
    , ("polyError", polyError)
-   , ("polyErrorInst", TyInst () polyError (mkTyBuiltin @Integer ()))
+   , ("polyErrorInst", TyInst () polyError (mkTyBuiltin @_ @Integer ()))
    , ("closure", closure)
    , ("ite", ite)
    , ("iteUninstantiatedWithCond", iteUninstantiatedWithCond)
