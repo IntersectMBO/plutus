@@ -276,6 +276,7 @@ library
         monoidal-containers,
         mtl -any,
         nonempty-containers -any,
+        mono-traversable -any,
         parser-combinators >= 0.4.0,
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
@@ -296,7 +297,8 @@ library
         th-utilities -any,
         transformers -any,
         unordered-containers -any,
-        witherable -any
+        witherable -any,
+        word-array -any
 
 test-suite satint-test
   import: lang

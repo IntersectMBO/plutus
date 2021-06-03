@@ -19,7 +19,7 @@ module Starter where
 -- What you should change to something more suitable for
 -- your use case:
 --   * The MyDatum type
---   * The MyMyRedeemerValue type
+--   * The MyRedeemer type
 --
 -- And add function implementations (and rename them to
 -- something suitable) for the endpoints:

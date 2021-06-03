@@ -319,6 +319,7 @@
         "math-functions".revision = (((hackage."math-functions")."0.3.4.2").revisions).default;
         "math-functions".flags.system-expm1 = true;
         "math-functions".flags.system-erf = true;
+        "tasty-bench".revision = (((hackage."tasty-bench")."0.2.5").revisions).default;
         "regex-compat".revision = (((hackage."regex-compat")."0.95.2.1").revisions).default;
         "time-compat".revision = (((hackage."time-compat")."1.9.5").revisions).default;
         "time-compat".flags.old-locale = false;
@@ -745,6 +746,7 @@
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         plutus-tx = ./.plan.nix/plutus-tx.nix;
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
+        word-array = ./.plan.nix/word-array.nix;
         plutus-pab = ./.plan.nix/plutus-pab.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
         plutus-chain-index = ./.plan.nix/plutus-chain-index.nix;
@@ -873,6 +875,7 @@
             };
           "plutus-tx" = { flags = {}; };
           "prettyprinter-configurable" = { flags = {}; };
+          "word-array" = { flags = {}; };
           "plutus-pab" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };

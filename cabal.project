@@ -25,6 +25,7 @@ packages: doc
           prettyprinter-configurable
           quickcheck-dynamic
           web-ghc
+          word-array
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
