@@ -92,7 +92,7 @@ cardNavigationButtons state =
               [ classNames [ "text-purple" ]
               , onClick_ $ MoveToStep $ selectedStep - 1
               ]
-              [ icon ArrowLeft [ "text-2xl" ] ]
+              [ icon ArrowLeft [ "text-2xl", "py-4" ] ]
       | otherwise = Nothing
 
     rightButton selectedStep

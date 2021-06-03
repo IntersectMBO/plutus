@@ -116,7 +116,7 @@ contractCard currentSlot contractState =
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
       [ classNames
-          [ "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
+          [ "flex", "flex-col", "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
       , onClick_ $ OpenContract contractInstanceId
       ]
       -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
@@ -125,7 +125,7 @@ contractCard currentSlot contractState =
           , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text contractType ]
           , icon ArrowRight [ "text-28px" ]
           ]
-      , div [ classNames [ "px-4", "py-2", "text-lg" ] ]
+      , div [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
           [ text longTitle
           ]
       , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ]
