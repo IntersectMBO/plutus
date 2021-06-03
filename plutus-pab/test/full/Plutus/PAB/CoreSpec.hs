@@ -110,7 +110,6 @@ executionTests =
         "Executing contracts."
         [ guessingGameTest
         , currencyTest
-        , rpcTest
         , testCase "wait for update" waitForUpdateTest
         , testCase "stop contract instance" stopContractInstanceTest
         , testCase "can subscribe to slot updates" slotChangeTest
@@ -211,20 +210,6 @@ currencyTest =
               assertTxCounts
                 "Forging the currency should produce two valid transactions."
                 (initialTxCounts & Simulator.txValidated +~ 2)
-
-rpcTest :: TestTree
-rpcTest =
-    testCase "RPC" $
-        runScenario $ do
-            clientId <- Simulator.activateContract defaultWallet RPCClient
-            serverId <- Simulator.activateContract defaultWallet RPCServer
-            Simulator.waitNSlots 1
-            void $ Simulator.callEndpointOnInstance serverId "serve" ()
-            Simulator.waitNSlots 1
-            callAdder clientId serverId
-            Simulator.waitNSlots 5
-            assertDone defaultWallet clientId
-            assertDone defaultWallet serverId
 
 guessingGameTest :: TestTree
 guessingGameTest =

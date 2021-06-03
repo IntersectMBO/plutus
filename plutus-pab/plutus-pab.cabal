@@ -471,17 +471,6 @@ test-suite plutus-pab-test-full
         plutus-tx -any,
         playground-common -any
 
-executable prism-credential-manager
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: examples/prism/credential-manager
-    default-language: Haskell2010
-    build-depends:
-        base >=4.9 && <5,
-        plutus-pab,
-        plutus-use-cases -any,
-        plutus-contract -any
-
 executable prism-mirror
     import: lang
     main-is: Main.hs

@@ -357,19 +357,6 @@
             ];
           mainPath = [ "TestPSGenerator.hs" ];
           };
-        "prism-credential-manager" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
-            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "examples/prism/credential-manager" ];
-          mainPath = [
-            "Main.hs"
-            ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
-          };
         "prism-mirror" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
