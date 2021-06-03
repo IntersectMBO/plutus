@@ -351,7 +351,7 @@ participant ::
   Array ActionInput ->
   HTML p Action
 participant metadata state party actionInputs =
-  li [ classes [ ClassName "participant-a", noMargins ] ]
+  li [ classes [ noMargins ] ]
     ( [ title ]
         <> (map (inputItem metadata state partyName) actionInputs)
     )
