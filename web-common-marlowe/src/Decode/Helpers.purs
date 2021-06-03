@@ -6,7 +6,7 @@ import Data.Either (Either(..))
 import Data.Identity (Identity(..))
 import Foreign (F)
 
--- This is a lazy version of the Alt operator to be used in the context of decoding a Foreing
+-- This is a lazy version of the Alt operator to be used in the context of decoding a Foreign
 -- value into a PureScript data type.
 -- The problem of using <|> from Control.Alt is that `F a` is defined as an `Except MultipleErrors a`
 -- which resolves to `ExceptT MultipleErrors Indentity a`, and the Identity monad is not lazy, so when
