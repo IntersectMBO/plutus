@@ -429,7 +429,8 @@ newtype DecodeUniM a = DecodeUniM
 runDecodeUniM :: [Int] -> DecodeUniM a -> Maybe (a, [Int])
 runDecodeUniM is (DecodeUniM a) = runStateT a is
 
--- | A universe is 'Closed', if it's known how to constrain every type from the universe.
+-- | A universe is 'Closed', if it's known how to constrain every type from the universe and
+-- every type can be encoded to / decoded from a sequence of integer tags.
 -- The universe doesn't have to be finite and providing support for infinite universes is the
 -- reason why we encode a type as a sequence of integer tags as opposed to a single integer tag.
 -- For example, given
