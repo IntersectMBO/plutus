@@ -52,9 +52,6 @@ data Liquidity = Liquidity
 PlutusTx.makeIsDataIndexed ''Liquidity [('Liquidity, 0)]
 PlutusTx.makeLift ''Liquidity
 
--- Note: An orphan instance here because of the newtype wrapper below.
-deriving anyclass instance ToSchema AssetClass
-
 -- | A single 'AssetClass'. Because we use three coins, we use a phantom type to track
 -- which one is which.
 newtype Coin a = Coin { unCoin :: AssetClass }
