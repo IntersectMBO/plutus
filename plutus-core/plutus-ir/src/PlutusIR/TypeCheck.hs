@@ -16,7 +16,6 @@ module PlutusIR.TypeCheck
     ) where
 
 import           PlutusCore                  (ToKind)
-import           PlutusCore.Constant
 import           PlutusCore.Quote
 import           PlutusCore.Rename
 import qualified PlutusCore.TypeCheck        as PLC
@@ -60,9 +59,7 @@ getDefTypeCheckConfig
     :: forall uni fun m err ann.
        ( MonadError err m
        , AsTypeError err (Term TyName Name uni fun ()) uni fun ann
-       , ToKind uni
-       , HasUniApply uni
-       , ToBuiltinMeaning uni fun
+       , PLC.Typecheckable uni fun
        )
     => ann -> m (PirTCConfig uni fun)
 getDefTypeCheckConfig ann = do
@@ -73,7 +70,7 @@ getDefTypeCheckConfig ann = do
 -- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferType
     :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, Ix fun
+       , GEq uni, Ix fun
        )
     => PirTCConfig uni fun -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
@@ -84,7 +81,7 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- Note: this may allow witnessing a type that escapes its scope, see [PIR vs Paper Escaping Types Difference]
 checkType
     :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, Ix fun
+       , GEq uni, Ix fun
        )
     => PirTCConfig uni fun
     -> ann
@@ -99,7 +96,7 @@ checkType config ann term ty = do
 -- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferTypeOfProgram
     :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, Ix fun
+       , GEq uni, Ix fun
        )
     => PirTCConfig uni fun -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferTypeOfProgram config (Program _ term) = inferType config term
@@ -112,7 +109,7 @@ inferTypeOfProgram config (Program _ term) = inferType config term
 checkTypeOfProgram
     :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann,
         MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, Ix fun
+       , GEq uni, Ix fun
        )
     => PirTCConfig uni fun
     -> ann

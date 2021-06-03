@@ -101,7 +101,7 @@ type PirTCEnv uni fun e a = TypeCheckM uni fun (PirTCConfig uni fun) e a
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: (GShow uni, GEq uni, Ix fun, AsTypeErrorExt e uni ann, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni)
+    :: (GEq uni, Ix fun, AsTypeErrorExt e uni ann, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni)
     => ann -> Term TyName Name uni fun ann -> Normalized (Type TyName uni ()) -> PirTCEnv uni fun e ()
 -- [infer| G !- term : vTermTy]    vTermTy ~ vTy
 -- ---------------------------------------------
@@ -113,7 +113,7 @@ checkTypeM ann term vTy = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: forall uni fun ann e. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann)
+    :: forall uni fun ann e. (GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann)
     => Term TyName Name uni fun ann -> PirTCEnv uni fun e (Normalized (Type TyName uni ()))
 -- c : vTy
 -- -------------------------
@@ -297,7 +297,7 @@ checkKindFromBinding = \case
 ---------------------------------------------------
 checkTypeFromBinding(G,b)
 -}
-checkTypeFromBinding :: forall e uni fun a. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun a, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni a)
+checkTypeFromBinding :: forall e uni fun a. (GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun a, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni a)
                  => Recursivity -> Binding TyName Name uni fun a -> PirTCEnv uni fun e ()
 checkTypeFromBinding recurs = \case
     TypeBind{} -> pure () -- no types to check

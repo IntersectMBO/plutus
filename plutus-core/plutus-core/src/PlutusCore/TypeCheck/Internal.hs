@@ -321,7 +321,7 @@ unfoldIFixOf pat arg k = do
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
     :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
+       , HasTypeCheckConfig cfg uni fun, GEq uni, Ix fun
        )
     => Term TyName Name uni fun ann -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
 
@@ -418,7 +418,7 @@ inferTypeM (Error ann ty) = do
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
     :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
+       , HasTypeCheckConfig cfg uni fun, GEq uni, Ix fun
        )
     => ann
     -> Term TyName Name uni fun ann
