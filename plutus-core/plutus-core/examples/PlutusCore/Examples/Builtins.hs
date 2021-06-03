@@ -150,19 +150,12 @@ data BuiltinErrorCall = BuiltinErrorCall
     deriving (Show, Eq, Exception)
 
 -- See Note [Representable built-in functions over polymorphic built-in types].
--- Every polymorphic function ignores the memory annotation of its argument. This is due to the fact
--- that no function duplicates the AST and so threading an argument through a function or dropping
--- it completely does not increase memory consumption. It does not seem to be possible to define
--- a function that duplicates the AST of its argument with the current set of built-in types,
--- but once we have lists in the universe, that should be easy to do. Once there's a duplicating
--- function, should we multiple memory consumption by the number of duplicates it returns minus one?
--- For example, should @\x -> [x, x]@ increase memory consumption by the memory annotation of @x@
--- just once and not twice, since one of the @x@s is going to be essentially reused and the other
--- one will be a true duplicate? Or should memory consumption stay the same regardless of the
--- number of duplicates (modulo whatever the spine of the freshly list takes up)? Since
+-- We have lists in the universe and so we can define a function like @\x -> [x, x]@ that duplicates
+-- the constant that it receives. Should memory consumption of that function be linear in the number
+-- of duplicates that the function creates? I think, no:
 --
 -- 1. later we can call @head@ over the resulting list thus not duplicating anything in the end
--- 2. any monomorphic builtin forcing a 'Constant' node of the duplicated AST will automatically
+-- 2. any monomorphic builtin touching a duplicated constant will automatically
 --    add it to the current budget. And if we never touch the duplicate again and just keep it
 --    around, then it won't ever increase memory consumption. And any other node will be taken into
 --    account automatically as well: just think that having @\x -> f x x@ as a PLC term is supposed
