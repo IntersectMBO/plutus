@@ -70,7 +70,7 @@ safeLift x = do
 -- | Get a Plutus Core program corresponding to the given value.
 safeLiftProgram
     :: (Lift.Lift uni a
-       , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GShow uni, PLC.GEq uni
+       , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()),  PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
@@ -81,7 +81,7 @@ safeLiftProgram x = UPLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
 safeLiftCode
     :: (Lift.Lift uni a
-       , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GShow uni, PLC.GEq uni
+       , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
@@ -143,7 +143,7 @@ typeCheckAgainst
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PIR.AsError e uni fun (Provenance ())
        , MonadError e m, MonadQuote m
-       , PLC.GShow uni, PLC.GEq uni
+       , PLC.GEq uni
        , PLC.Typecheckable uni fun
        )
     => Proxy a
@@ -176,7 +176,7 @@ typeCode
        , PLC.AsFreeVariableError e
        , PIR.AsError e uni fun (Provenance ())
        , MonadError e m, MonadQuote m
-       , PLC.GShow uni, PLC.GEq uni
+       , PLC.GEq uni
        , PLC.Typecheckable uni fun
        )
     => Proxy a
