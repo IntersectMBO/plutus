@@ -56,7 +56,6 @@ module Plutus.Contract(
     , ContractInstanceId
     , ownInstanceId
     -- * Notifications
-    , notifyInstance
     , tell
     -- * Transactions
     , HasWriteTx
@@ -97,7 +96,6 @@ import           Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import           Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Plutus.Contract.Effects.ExposeEndpoint
 import           Plutus.Contract.Effects.Instance
-import           Plutus.Contract.Effects.Notify
 import           Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import           Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import           Plutus.Contract.Effects.WatchAddress     as WatchAddress
@@ -124,7 +122,6 @@ type BlockchainActions =
   .\/ UtxoAt
   .\/ OwnPubKey
   .\/ TxConfirmation
-  .\/ ContractInstanceNotify
   .\/ OwnId
 
 type HasBlockchainActions s =
@@ -134,7 +131,6 @@ type HasBlockchainActions s =
   , HasUtxoAt s
   , HasOwnPubKey s
   , HasTxConfirmation s
-  , HasContractNotify s
   , HasOwnId s
   )
 

@@ -89,7 +89,6 @@
           "Plutus/Contract/Effects/AwaitTxConfirmed"
           "Plutus/Contract/Effects/Instance"
           "Plutus/Contract/Effects/ExposeEndpoint"
-          "Plutus/Contract/Effects/Notify"
           "Plutus/Contract/Effects/OwnPubKey"
           "Plutus/Contract/Effects/UtxoAt"
           "Plutus/Contract/Effects/WatchAddress"

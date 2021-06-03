@@ -17,7 +17,6 @@ module Plutus.PAB.Core.ContractInstance.RequestHandlers(
     , processAddressChangedAtRequests
     , processTxConfirmedRequests
     , processInstanceRequests
-    , processNotificationEffects
     ) where
 
 import           Cardano.BM.Data.Tracer                  (ToObject (..), TracingVerbosity (..))
@@ -44,7 +43,7 @@ import           Plutus.PAB.Events.Contract              (ContractInstanceId (..
                                                           ContractPABResponse (..))
 import qualified Plutus.PAB.Events.Contract              as Events.Contract
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
-import           Wallet.Effects                          (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
+import           Wallet.Effects                          (ChainIndexEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages             (TxBalanceMsg)
 import           Wallet.Emulator.Types                   (Wallet)
 import           Wallet.Types                            (NotificationError)
@@ -119,17 +118,6 @@ processInstanceRequests =
     maybeToHandler (extract Events.Contract._OwnInstanceIdRequest)
     >>> RequestHandler.handleOwnInstanceIdQueries
     >>^ OwnInstanceResponse
-
-processNotificationEffects ::
-    forall effs.
-    ( Member ContractRuntimeEffect effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
-    )
-    => RequestHandler effs ContractPABRequest ContractPABResponse
-processNotificationEffects =
-    maybeToHandler (extract Events.Contract._SendNotificationRequest)
-    >>> RequestHandler.handleContractNotifications
-    >>^ NotificationResponse
 
 -- | Log messages about the
 data ContractInstanceMsg t =

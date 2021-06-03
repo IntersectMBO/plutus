@@ -42,7 +42,6 @@ import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude              as Haskell
 
-
 data STOData =
     STOData
         { stoIssuer          :: PubKeyHash
