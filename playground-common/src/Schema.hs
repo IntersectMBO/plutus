@@ -57,7 +57,7 @@ import qualified Data.Text                   as Text
 import           Data.UUID                   (UUID)
 import           GHC.Generics                (C1, Constructor, D1, Generic, K1 (K1), M1 (M1), Rec0, Rep, S1, Selector,
                                               U1, conIsRecord, conName, from, selName, (:*:) ((:*:)), (:+:) (L1, R1))
-import           Ledger                      (Ada, CurrencySymbol, DatumHash, Interval, PubKey, PubKeyHash,
+import           Ledger                      (Ada, AssetClass, CurrencySymbol, DatumHash, Interval, PubKey, PubKeyHash,
                                               RedeemerHash, Signature, Slot, SlotRange, TokenName, ValidatorHash, Value)
 import           Ledger.Bytes                (LedgerBytes)
 import           Plutus.Contract.Effects.RPC (RPCParams)
@@ -248,6 +248,8 @@ instance ToArgument String where
 
 instance {-# OVERLAPPABLE #-} (ToSchema a, ToArgument a) => ToArgument [a] where
     toArgument xs = Fix $ FormArrayF (toSchema @a) (toArgument <$> xs)
+
+instance ToSchema AssetClass
 
 ------------------------------------------------------------
 class GenericToSchema f where
