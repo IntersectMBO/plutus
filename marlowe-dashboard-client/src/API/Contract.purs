@@ -28,7 +28,7 @@ import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Types (ContractInstanceId)
 
--- PAB contracts can be activated either with a `ContractExe` (a wrapper around a path the the exe on disk), or
+-- PAB contracts can be activated either with a `ContractExe` (a wrapper around a path to the exe on disk), or
 -- some custom data type that identifies the contract (for versions of the plutus-pab that are bundled up with
 -- contracts). That value is also returned in the `ContractInstanceClientState`. The implementation of the API
 -- functions is the same regardless of this type, but for greater type safety we wrap them up in a class and
