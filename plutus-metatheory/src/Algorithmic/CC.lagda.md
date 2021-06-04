@@ -9,6 +9,8 @@ module Algorithmic.CC where
 
 open import Type
 open import Type.BetaNormal
+open import Algorithmic
+open import Algorithmic.RenamingSubstitution
 open import Algorithmic.ReductionEC
 
 open import Relation.Binary.PropositionalEquality renaming ([_] to I[_])
@@ -105,15 +107,38 @@ compEC' E (E' ·⋆ A)   = compEC' (extEC E (-·⋆ A)) E'
 compEC' E (wrap E')   = compEC' (extEC E wrap-) E'
 compEC' E (unwrap E') = compEC' (extEC E unwrap-) E'
 
+
+compEC'-extEC : ∀{A B C D}(E : EC A B)(E' : EC B C)(F : Frame C D)
+  → compEC' E (extEC E' F) ≡ extEC (compEC' E E') F
+compEC'-extEC E [] (-· N) = refl
+compEC'-extEC E [] (VM ·-) = refl
+compEC'-extEC E [] (-·⋆ A) = refl
+compEC'-extEC E [] wrap- = refl
+compEC'-extEC E [] unwrap- = refl
+compEC'-extEC E (E' l· N) F = compEC'-extEC (extEC E (-· N)) E' F
+compEC'-extEC E (VM ·r E') F = compEC'-extEC (extEC E (VM ·-)) E' F
+compEC'-extEC E (E' ·⋆ A) F = compEC'-extEC (extEC E (-·⋆ A)) E' F
+compEC'-extEC E (wrap E') F = compEC'-extEC (extEC E wrap-) E' F
+compEC'-extEC E (unwrap E') F = compEC'-extEC (extEC E unwrap-) E' F
+
+extEC-[]ᴱ : ∀{A B C}(E : EC A B)(F : Frame B C)(M : ∅ ⊢ C) →
+  extEC E F [ M ]ᴱ ≡ E [ F [ M ]ᶠ ]ᴱ
+extEC-[]ᴱ [] (-· N) M = refl
+extEC-[]ᴱ [] (VL ·-) M = refl
+extEC-[]ᴱ [] (-·⋆ A) M = refl
+extEC-[]ᴱ [] wrap- M = refl
+extEC-[]ᴱ [] unwrap- M = refl
+extEC-[]ᴱ (E l· N) F M = cong (_· N) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (VL ·r E) F M = cong (deval VL ·_) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (E ·⋆ A) F M = cong (_·⋆ A) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (wrap E) F M = cong (wrap _ _) (extEC-[]ᴱ E F M)
+extEC-[]ᴱ (unwrap E) F M = cong unwrap (extEC-[]ᴱ E F M)
 ```
 
 # the machine
 
 ```
 open import Data.List hiding ([_])
-
-open import Algorithmic
-open import Algorithmic.RenamingSubstitution
 
 data State (T : ∅ ⊢Nf⋆ *) : Set where
   _▻_ : {H : ∅ ⊢Nf⋆ *} → EC T H → ∅ ⊢ H → State T
@@ -634,7 +659,11 @@ lem62 L E (E' ·⋆ A)   = step* refl (lem62 L (extEC E (-·⋆ A)) E')
 lem62 L E (wrap E')   = step* refl (lem62 L (extEC E wrap-) E')
 lem62 L E (unwrap E') = step* refl (lem62 L (extEC E unwrap-) E')
 
+open import Data.Empty
+
 {-
+-- a sketch of unwind
+-- stepV needs to be refined to manage the unsat builtin cases
 unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → N ≡ E' [ M ]ᴱ
       → (VM : Value M)
@@ -642,8 +671,17 @@ unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → (compEC' E E' ◅ VM) -→s (E ◅ VN) 
 unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
 ... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E' refl eq rewrite uniqueVal A VM VN = base
-... | inj₂ (C ,, E'' ,, F) | I[ eq ] = {!!}
-
+... | inj₂ (_ ,, E'' ,, (M ·-)) | I[ eq ] = {!!}
+... | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] = {!!}
+... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] = {!!}
+... | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] = {!!}
+unwindVE .(ƛ M) .(E' [ ƛ M ]ᴱ) E E' refl (V-ƛ M) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (lemVβ (lemVE (ƛ M · M') E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (-· M') (ƛ M)) VN))))
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = []} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (valred (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (-· M') A) VN))) (β-sbuiltin b A p x M' (VALUE2Value (lemVE _ (extEC E'' (V ·-)) (Value2VALUE (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V ·-) M'))) VN))))))
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = Term ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] = {!!}
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = Type ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] = {!!}
+-- the use of the with rule in stepV gets in the way of the above two cases.
+-- Introducing some helper functions into the definition of stepV are
+-- probably the way to go
 unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → N ≡ E' [ M ]ᴱ
       → (VN : Value N)
