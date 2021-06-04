@@ -68,7 +68,6 @@ main = void $ Simulator.runSimulationWith handlers $ do
         logString @(Builtin UniswapContracts) $ "Uniswap user contract started for " ++ show w
         Simulator.waitForEndpoint cid "funds"
         _ <- Simulator.callEndpointOnInstance cid "funds" ()
-        logString @(Builtin UniswapContracts) "Called funds endpoint"
         v <- flip Simulator.waitForState cid $ \json -> case (fromJSON json :: Result (Monoid.Last (Either Text Uniswap.UserContractState))) of
                 Success (Monoid.Last (Just (Right (Uniswap.Funds v)))) -> Just v
                 _                                                      -> Nothing
