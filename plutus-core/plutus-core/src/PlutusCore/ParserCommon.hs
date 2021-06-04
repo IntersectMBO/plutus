@@ -1,9 +1,12 @@
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -- | Common functions for parsers of UPLC, PLC, and PIR.
+
 module PlutusCore.ParserCommon where
 
 import           Data.Char                  (isAlphaNum)
@@ -22,22 +25,31 @@ import           Control.Monad.State        (MonadState (get, put), StateT, eval
 
 import           Data.Proxy                 (Proxy (Proxy))
 
+
+newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
+    deriving (Show)
+
 data ParseError = UnknownBuiltinType T.Text
+                | BuiltinTypeNotAStar T.Text
                 | InvalidConstant T.Text T.Text
                 deriving (Eq, Ord, Show)
 
 instance HasErrorCode ParseError where
-      errorCode UnknownBuiltinType {} = ErrorCode 5
-      errorCode InvalidConstant {}    = ErrorCode 4
+      errorCode UnknownBuiltinType {}  = ErrorCode 5
+      errorCode BuiltinTypeNotAStar {} = ErrorCode 52
+      errorCode InvalidConstant {}     = ErrorCode 4
 
 type Error = Parsec.ParseError Char ParseError
 
 instance ShowErrorComponent ParseError where
     showErrorComponent (UnknownBuiltinType ty) = "Unknown built-in type: " ++ T.unpack ty
+    showErrorComponent (BuiltinTypeNotAStar ty) =
+        "Expected a type of kind star (to later parse a constant), but got: " ++ T.unpack ty
     showErrorComponent (InvalidConstant ty con) =
         "Invalid constant: " ++ T.unpack con ++ " of type " ++ T.unpack ty
-newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
-    deriving (Show)
+
+topSourcePos :: SourcePos
+topSourcePos = initialPos "top"
 
 initial :: ParserState
 initial = ParserState M.empty
@@ -53,20 +65,20 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
+type Parser = ParsecT ParseError T.Text (StateT ParserState PLC.Quote)
+instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
+
 parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParseError) a
 parse p file str = PLC.runQuote $ parseQuoted p file str
 
 parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote (Either (ParseErrorBundle T.Text ParseError) a)
 parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
-type Parser = ParsecT ParseError T.Text (StateT ParserState PLC.Quote)
-instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
-
-topSourcePos :: SourcePos
-topSourcePos = initialPos "top"
-
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
+
+-- Tokens
+-- TODO: move this to separate module?
 
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
@@ -108,45 +120,9 @@ reservedWord w = lexeme $ try $ do
     notFollowedBy (satisfy isIdentifierChar)
     return p
 
--- | Parse a type tag by feeding the output of 'closedChunk' to 'PLC.parse'.
-builtinTypeTag
-    :: PLC.Parsable (PLC.Some uni)
-    => Parser (PLC.Some uni)
-builtinTypeTag = do
-    uniText <- closedChunk
-    case PLC.parse uniText of
-        Nothing  -> customFailure $ UnknownBuiltinType uniText
-        Just uni -> pure uni
-
--- | Parse a constant by parsing a type tag first and using the type-specific parser of constants.
--- Uses 'PLC.parse' under the hood for both types and constants.
-constant
-    :: (PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable)
-    => Parser (PLC.Some (PLC.ValueOf uni))
-constant = do
-    -- We use 'match' for remembering the textual representation of the parsed type tag,
-    -- so that we can show it in the error message if the constant fails to parse.
-    (uniText, PLC.Some uni) <- match builtinTypeTag
-    conText <- closedChunk
-    case PLC.bring (Proxy @PLC.Parsable) uni $ PLC.parse conText of
-        Nothing  -> customFailure $ InvalidConstant uniText conText
-        Just con -> pure . PLC.Some $ PLC.ValueOf uni con
-
 builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
 builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
     where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
-
-name :: Parser PLC.Name
-name = lexeme $ try $ do
-    void $ lookAhead letterChar
-    str <- takeWhileP (Just "identifier") isIdentifierChar
-    PLC.Name str <$> intern str
-
-var :: Parser PLC.Name
-var = name
-
-tyVar :: Parser PLC.TyName
-tyVar = PLC.TyName <$> name
 
 version :: Parser (PLC.Version SourcePos)
 version = lexeme $ do
@@ -156,6 +132,15 @@ version = lexeme $ do
     y <- Lex.decimal
     void $ char '.'
     PLC.Version p x y <$> Lex.decimal
+
+name :: Parser PLC.Name
+name = lexeme $ try $ do
+    void $ lookAhead letterChar
+    str <- takeWhileP (Just "identifier") isIdentifierChar
+    PLC.Name str <$> intern str
+
+tyName :: Parser PLC.TyName
+tyName = PLC.TyName <$> name
 
 -- | Turn a parser that can succeed without consuming any input into one that fails in this case.
 enforce :: Parser a -> Parser a
@@ -177,3 +162,35 @@ enforce p = do
 closedChunk :: Parser T.Text
 closedChunk = T.pack <$> manyTill anySingle end where
     end = enforce whitespace <|> void (lookAhead $ char ')')
+
+-- | Parse a type tag by feeding the output of 'closedChunk' to 'PLC.parse'.
+builtinTypeTag
+    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+    => Parser (PLC.SomeTypeIn (PLC.Kinded uni))
+builtinTypeTag = do
+    uniText <- closedChunk
+    case PLC.parse uniText of
+        Nothing  -> customFailure $ UnknownBuiltinType uniText
+        Just uni -> pure uni
+
+-- | Parse a constant by parsing a type tag first and using the type-specific parser of constants.
+-- Uses 'PLC.parse' under the hood for both types and constants.
+constant
+    :: forall uni.
+       ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
+       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
+       )
+    => Parser (PLC.Some (PLC.ValueOf uni))
+constant = do
+    -- We use 'match' for remembering the textual representation of the parsed type tag,
+    -- so that we can show it in the error message if the constant fails to parse.
+    (uniText, PLC.SomeTypeIn (PLC.Kinded uni)) <- match builtinTypeTag
+    -- See Note [Decoding universes].
+    case PLC.checkStar @uni uni of
+        Nothing -> customFailure $ BuiltinTypeNotAStar uniText
+        Just PLC.Refl -> do
+            conText <- closedChunk
+            case PLC.bring (Proxy @PLC.Parsable) uni $ PLC.parse conText of
+                Nothing  -> customFailure $ InvalidConstant uniText conText
+                Just con -> pure . PLC.Some $ PLC.ValueOf uni con
+
