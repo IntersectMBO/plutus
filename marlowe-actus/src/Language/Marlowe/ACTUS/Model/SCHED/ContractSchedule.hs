@@ -3,7 +3,6 @@
 module Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule where
 
 import           Data.Maybe                                                 (fromJust, fromMaybe)
-
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IED, IP, IPCB, IPCI, MD, PP, PR, PRD, PY, RR, RRF, SC, TD))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractStatePoly (tmd))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (CT (LAM, NAM, PAM), ContractTerms (..))

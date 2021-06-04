@@ -13,7 +13,7 @@ import           GHC.Generics     (Generic)
 data CT = PAM -- principal at maturity
         | LAM -- linear amortizer
         | NAM -- negative amortizer
-        deriving stock (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+        deriving stock (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- ContractRole
 data CR = CR_RPA -- real position asset
@@ -29,7 +29,7 @@ data CR = CR_RPA -- real position asset
         | CR_PFL -- pay first leg
         | CR_RF  -- receive fix leg
         | CR_PF  -- pay fix leg
-        deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+        deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- DayCountConvention
 data DCC = DCC_A_AISDA     -- Actual/Actual ISDA
@@ -38,12 +38,12 @@ data DCC = DCC_A_AISDA     -- Actual/Actual ISDA
          | DCC_E30_360ISDA -- 30E/360 ISDA
          | DCC_E30_360     -- 30E/360
          | DCC_B_252       -- Business / 252
-         deriving (Show, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- EndOfMonthConvention
 data EOMC = EOMC_EOM -- end of month
           | EOMC_SD  -- same day
-          deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- BusinessDayConvention
 data BDC = BDC_NULL -- no shift
@@ -55,7 +55,7 @@ data BDC = BDC_NULL -- no shift
          | BDC_SCMP -- shift/calculate modified preceding
          | BDC_CSP  -- calculate/shift preceding
          | BDC_CSMP -- calculate/shift modified preceding
-         deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data ScheduleConfig = ScheduleConfig
   { calendar      :: [Day] -- custom calendar days
@@ -71,18 +71,18 @@ data PRF = PRF_PF -- performant
          | PRF_DL -- delayed
          | PRF_DQ -- delinquent
          | PRF_DF -- default
-         deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- FeeBasis
 data FEB = FEB_A -- absolute value
          | FEB_N -- notional of underlying
-         deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+         deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
  -- InterestCalculationBase
 data IPCB = IPCB_NT    -- calculation base always equals to NT
           | IPCB_NTIED -- notional remains constant amount as per IED
           | IPCB_NTL   -- calculation base is notional base laged
-          deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- ScalingEffect
 data SCEF = SE_000 -- no scaling
@@ -93,20 +93,20 @@ data SCEF = SE_000 -- no scaling
           | SE_0NM -- nominal and maximum deferred amount scaled
           | SE_I0M -- interest and maximum deferred amount scaled
           | SE_INM -- interest, nominal and maximum deferred amount scaled
-          deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
  -- PenaltyType
 data PYTP = PYTP_A -- absolute
           | PYTP_N -- nominal rate
           | PYTP_I -- current interest rate differential
           | PYTP_O -- no penalty
-          deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 -- PrepaymentEffect
 data PPEF = PPEF_N -- no prepayment
           | PPEF_A -- prepayment allowed, prepayment results in reduction of PRNXT while MD remains
           | PPEF_M -- prepayment allowed, prepayment results in reduction of MD while PRNXT remains
-          deriving (Show, Eq, Ord, Generic)
+          deriving (Show, Read, Eq, Ord, Generic)
           deriving anyclass (FromJSON, ToJSON)
 
 data CalendarType = NoCalendar
@@ -121,7 +121,7 @@ data Period = P_D -- day
             | P_Q -- quarter
             | P_H -- half year
             | P_Y -- year
-            deriving (Show, Eq, Ord, Generic)
+            deriving (Show, Read, Eq, Ord, Generic)
             deriving anyclass (FromJSON, ToJSON)
 
  -- CycleStub

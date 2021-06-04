@@ -218,6 +218,9 @@ test-suite marlowe-actus-test
     other-modules:
         Spec.Marlowe.Actus
     build-depends:
+        scientific -any,
+        extra -any,
+        utf8-string -any,
         aeson -any,
         base >=4.9 && <5,
         containers -any,

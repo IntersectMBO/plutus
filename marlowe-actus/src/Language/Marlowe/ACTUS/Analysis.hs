@@ -1,11 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
-import qualified Data.List                                             as L (dropWhile, groupBy, head, scanl, tail, zip)
+import qualified Data.List                                             as L (dropWhile, groupBy, scanl, tail, zip)
 import qualified Data.Map                                              as M (fromList, lookup)
 import           Data.Maybe                                            (fromJust, fromMaybe)
 import           Data.Sort                                             (sortOn)
 import           Data.Time                                             (Day, fromGregorian)
+
+import           Debug.Trace
 
 import           Language.Marlowe                                      (Contract (Assert), Observation (..), Value (..))
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents     (EventType (..), RiskFactors (..))
@@ -32,8 +34,8 @@ postProcessSchedule ct =
         priority (event, _) = fromJust $ M.lookup event $ M.fromList (zip prioritised [1..])
         simillarity (_, l) (_, r) = calculationDay l == calculationDay r
         regroup = L.groupBy simillarity
-        overwrite = map (L.head . sortOn priority) . regroup
-    in overwrite . trim
+        overwrite = map (sortOn priority) . regroup
+    in concat . (overwrite . trim)
 
 
 sampleCashflows :: (Day -> RiskFactors) -> ContractTerms -> [CashFlow]
@@ -46,7 +48,7 @@ sampleCashflows riskFactors terms =
         getSchedule e = fromMaybe [] $ schedule e terms
         scheduleEvent e = preserveDate e <$> getSchedule e
         events = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
-        events' = postProcessSchedule terms events
+        events' = trace (show $ postProcessSchedule terms events) postProcessSchedule terms events
 
         applyStateTransition (st, ev, date) (ev', date') =
             (stateTransition ev (riskFactors $ calculationDay date) terms st (calculationDay date), ev', date')
