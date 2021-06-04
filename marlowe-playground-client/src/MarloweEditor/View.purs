@@ -10,6 +10,7 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, div, option, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
@@ -74,6 +75,7 @@ sendToSimulatorButton state =
   button
     ( [ onClick $ const $ Just SendToSimulator
       , disabled disabled'
+      , classNames [ "btn" ]
       ]
         <> disabledTooltip
     )
@@ -97,6 +99,7 @@ viewAsBlocklyButton state =
   button
     ( [ onClick $ const $ Just ViewAsBlockly
       , disabled disabled'
+      , classNames [ "btn" ]
       ]
         <> disabledTooltip
     )

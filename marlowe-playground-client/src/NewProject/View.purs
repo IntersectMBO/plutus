@@ -5,7 +5,7 @@ import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (fontSemibold, modalContent, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, newProjectMarloweIcon, textBase, textSm)
+import Halogen.Classes (fontSemibold, marloweLogo, modalContent, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, textBase, textSm)
 import Halogen.HTML (div, div_, h3, img, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
@@ -46,7 +46,7 @@ render state =
   langIcon = case _ of
     Haskell -> newProjectHaskellIcon
     Javascript -> newProjectJavascriptIcon
-    Marlowe -> newProjectMarloweIcon
+    Marlowe -> marloweLogo
     Blockly -> newProjectBlocklyIcon
     _ -> "" -- The default should never happen but it's not checked at the type level
 

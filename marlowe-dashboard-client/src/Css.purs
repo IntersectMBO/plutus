@@ -37,6 +37,8 @@ classNames = classes <<< map ClassName
 toggleWhen :: Boolean -> Array String -> Array String -> Array String
 toggleWhen condition classes1 classes2 = if condition then classes1 else classes2
 
+-- TODO: classNames, applyWhen and hideWhen were copy-pasted to Halogen.Css web-common.
+--       In a future PR we should remove them from here.
 applyWhen :: Boolean -> Array String -> Array String
 applyWhen condition classes = toggleWhen condition classes []
 
