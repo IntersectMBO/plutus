@@ -44,7 +44,7 @@ import           PlutusTx.Lattice
 import           Ledger                                hiding (Value)
 import qualified Ledger
 import           Ledger.Ada                            (lovelaceValueOf)
-import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import           Ledger.Typed.Scripts                  (validatorScript)
 import qualified PlutusTx.Prelude                      as P
 import           Spec.Marlowe.Common
 import           Test.Tasty

@@ -54,8 +54,8 @@ import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Typed.Tx              (TypedScriptTxOut (..), tyTxOutData)
 import qualified Ledger.Value                 as Val
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine (AsSMContractError (..), StateMachine (..), StateMachineClient (..),
-                                               StateMachineInstance (..), Void, WaitingResult (..), getStates)
+import           Plutus.Contract.StateMachine (AsSMContractError (..), StateMachine (..), StateMachineClient (..), Void,
+                                               WaitingResult (..), getStates)
 import qualified Plutus.Contract.StateMachine as SM
 import qualified Plutus.Contracts.Currency    as Currency
 import qualified PlutusTx                     as PlutusTx
@@ -153,8 +153,8 @@ marloweFollowContract = do
   where
     follow (ifrom, ito, params) = do
         let client@StateMachineClient{scInstance} = mkMarloweClient params
-        let inst = typedValidator scInstance
-        let address = Scripts.scriptAddress inst
+        let inst = SM.typedValidator scInstance
+        let address = Scripts.validatorAddress inst
         AddressChangeResponse{acrTxns} <- addressChangeRequest
                 AddressChangeRequest
                 { acreqSlotRangeFrom = ifrom
@@ -178,8 +178,8 @@ marloweFollowContract = do
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
         logInfo @String $ "Updating history from tx" <> show (Ledger.eitherTx Ledger.txId Ledger.txId tx)
-        let inst = typedValidator scInstance
-        let address = Scripts.scriptAddress inst
+        let inst = SM.typedValidator scInstance
+        let address = Scripts.validatorAddress inst
         let utxo = outputsMapFromTxForAddress address tx
         let states = getStates scInstance utxo
         case findInput inst tx of
@@ -233,7 +233,7 @@ marlowePlutusContract = do
                 marloweContract = contract,
                 marloweState = emptyState slot }
         let payValue = adaValueOf 0
-        let StateMachineInstance{typedValidator} = scInstance
+        let SM.StateMachineInstance{SM.typedValidator} = scInstance
         let tx = mustPayToTheScript marloweData payValue <> distributeRoleTokens
         let lookups = Constraints.typedValidatorLookups typedValidator
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
