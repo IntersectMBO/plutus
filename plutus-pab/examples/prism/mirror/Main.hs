@@ -1,5 +1,4 @@
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
 module Main where
 
 import           Data.Bifunctor                (first)

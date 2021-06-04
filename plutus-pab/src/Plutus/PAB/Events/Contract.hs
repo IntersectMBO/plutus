@@ -25,7 +25,6 @@ module Plutus.PAB.Events.Contract(
   , _AddressChangedAtRequest
   , _WriteTxRequest
   , _OwnInstanceIdRequest
-  , _SendNotificationRequest
   -- ** ContractResponse
   , _AwaitSlotResponse
   , _AwaitTxConfirmedResponse
@@ -35,7 +34,6 @@ module Plutus.PAB.Events.Contract(
   , _AddressChangedAtResponse
   , _WriteTxResponse
   , _OwnInstanceResponse
-  , _NotificationResponse
   ) where
 
 import           Control.Lens.TH                          (makePrisms)
@@ -53,7 +51,6 @@ import           Ledger.Slot                              (Slot)
 import qualified Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import qualified Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import qualified Plutus.Contract.Effects.Instance         as Instance
-import qualified Plutus.Contract.Effects.Notify           as Notify
 import qualified Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import qualified Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Plutus.Contract.Effects.WatchAddress     as AddressChangedAt
@@ -69,7 +66,7 @@ import           Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 
 import           Wallet.Effects                           (AddressChangeRequest, AddressChangeResponse)
-import           Wallet.Types                             (ContractInstanceId (..), Notification, NotificationError)
+import           Wallet.Types                             (ContractInstanceId (..))
 
 -- $contract-events
 -- The events that compiled Plutus contracts are concerned with. For each type
@@ -115,7 +112,6 @@ data ContractPABRequest =
   | AddressChangedAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.
   | WriteTxRequest UnbalancedTx -- ^ Submit an unbalanced transaction to the PAB.
   | OwnInstanceIdRequest OwnIdRequest -- ^ Request the ID of the contract instance.
-  | SendNotificationRequest Notification -- ^ Send a notification to another contract instance
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
@@ -134,7 +130,6 @@ instance FromJSON ContractHandlerRequest where
             "address"         -> AddressChangedAtRequest <$> v .: "value"
             "tx"              -> WriteTxRequest <$> v .: "value"
             "own-instance-id" -> OwnInstanceIdRequest <$> v .: "value"
-            "notify-instance" -> SendNotificationRequest <$> v .: "value"
             _                 -> UserEndpointRequest <$> v .: "value"
 
 instance Pretty ContractPABRequest where
@@ -147,7 +142,6 @@ instance Pretty ContractPABRequest where
         AddressChangedAtRequest a -> "AddressChangedAt:" <+> pretty a
         WriteTxRequest u          -> "WriteTx:" <+> pretty u
         OwnInstanceIdRequest r    -> "OwnInstanceId:" <+> pretty r
-        SendNotificationRequest n -> "Notification:" <+> pretty n
 
 data ContractPABResponse =
   AwaitSlotResponse Slot
@@ -158,7 +152,6 @@ data ContractPABResponse =
   | AddressChangedAtResponse AddressChangeResponse
   | WriteTxResponse W.WriteTxResponse
   | OwnInstanceResponse ContractInstanceId
-  | NotificationResponse (Maybe NotificationError)
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
@@ -172,7 +165,6 @@ instance Pretty ContractPABResponse where
         WriteTxResponse w            -> "WriteTx:" <+> pretty w
         AwaitTxConfirmedResponse w   -> "AwaitTxConfirmed:" <+> pretty w
         OwnInstanceResponse r        -> "OwnInstance:" <+> pretty r
-        NotificationResponse r       -> "Notification:" <+> pretty r
 
 -- | 'ContractResponse' with a 'ToJSON' instance that is compatible with
 --   the 'FromJSON' instance of 'Plutus.Contract.Schema.Event'.
@@ -187,7 +179,6 @@ instance ToJSON ContractHandlersResponse where
         WriteTxResponse rsp -> toJSON $ WriteTx.event @WriteTx.WriteTx rsp
         AwaitTxConfirmedResponse (TxConfirmed rsp) -> toJSON $ AwaitTxConfirmed.event @AwaitTxConfirmed.TxConfirmation rsp
         OwnInstanceResponse r -> toJSON $ Instance.event @Instance.OwnId r
-        NotificationResponse r -> toJSON $ Notify.event @Notify.ContractInstanceNotify r
         UserEndpointResponse (EndpointDescription n) r -> object ["tag" .= n, "value" .= r]
 
 makePrisms ''ContractPABRequest

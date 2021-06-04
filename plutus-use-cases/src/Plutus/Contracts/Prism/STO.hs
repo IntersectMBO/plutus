@@ -38,10 +38,9 @@ import           Ledger.Scripts       (MonetaryPolicy, mkMonetaryPolicyScript, m
 import qualified Ledger.Typed.Scripts as Scripts
 import           Ledger.Value         (TokenName, Value)
 import qualified Ledger.Value         as Value
-import qualified PlutusTx             as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude              as Haskell
-
 
 data STOData =
     STOData
