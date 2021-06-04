@@ -10,7 +10,7 @@ import Effect.Aff (Aff, forkAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
-import Env (DataProvider(..), Env, PABType(..))
+import Env (DataProvider(..), Env)
 import Foreign.Generic (defaultOptions)
 import Halogen (Component, hoist)
 import Halogen.Aff (awaitBody, runHalogenAff)
@@ -43,7 +43,7 @@ mkEnvironment = do
   pure
     { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
     , contractStepCarouselSubscription
-    , dataProvider: PAB WithMarloweContracts
+    , dataProvider: LocalStorage
     }
 
 main :: Effect Unit

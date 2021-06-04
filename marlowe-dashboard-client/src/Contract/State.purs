@@ -43,7 +43,7 @@ import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.HasParties (getParties)
-import Marlowe.PAB (ContractHistory(..), PlutusAppId(..), MarloweParams)
+import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
 import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..))
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
@@ -84,9 +84,9 @@ dummyState =
   emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
 
 mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> ContractHistory -> Maybe State
-mkInitialState walletDetails currentSlot followerAppId contractHistory = case contractHistory of
-  None -> Nothing
-  History marloweParams marloweData transactionInputs ->
+mkInitialState walletDetails currentSlot followerAppId { chParams, chHistory } = case chParams of
+  Nothing -> Nothing
+  Just (marloweParams /\ marloweData) ->
     let
       contract = marloweData.marloweContract
 
@@ -124,7 +124,7 @@ mkInitialState walletDetails currentSlot followerAppId contractHistory = case co
             , namedActions: mempty
             }
 
-          updateExecutionState = over _executionState (applyTransactionInputs transactionInputs)
+          updateExecutionState = over _executionState (applyTransactionInputs chHistory)
         in
           initialState
             # updateExecutionState

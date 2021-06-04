@@ -19,6 +19,7 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
+import Data.Tuple (Tuple)
 import Data.UUID (UUID)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
@@ -167,17 +168,10 @@ type MarloweData
 -- and state, and the array of `TransactionInput`s records all the transactions of the
 -- contract so far.  The value is `None` when the app is first activated, before the "follow"
 -- endpoint has been called (and the PAB has had time to settle).
-data ContractHistory
-  = None
-  | History MarloweParams MarloweData (Array TransactionInput)
-
-derive instance genericHistory :: Generic ContractHistory _
-
-instance encodeHistory :: Encode ContractHistory where
-  encode value = genericEncode defaultOptions value
-
-instance decodeHistory :: Decode ContractHistory where
-  decode value = genericDecode defaultOptions value
+type ContractHistory
+  = { chParams :: Maybe (Tuple MarloweParams MarloweData)
+    , chHistory :: Array TransactionInput
+    }
 
 -- HACK: rolling my own websocket type to see if this helps
 data CombinedWSStreamToServer

@@ -52,7 +52,7 @@ import Foreign (MultipleErrors)
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM)
 import MainFrame.Types (Action(..), Msg)
-import Marlowe.PAB (ContractHistory(..), MarloweData, MarloweParams, PlutusApp(..), PlutusAppId(..), plutusAppPath, plutusAppType)
+import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusApp(..), PlutusAppId(..), plutusAppPath, plutusAppType)
 import Marlowe.Semantics (Assets(..), Contract, TokenName, TransactionInput(..), asset, emptyState)
 import Play.Types (Action(..)) as Play
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
@@ -167,7 +167,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
         let
           followAppId = PlutusAppId uuid
 
-          observableState = None
+          observableState = { chParams: Nothing, chHistory: mempty }
         pure $ Right $ followAppId /\ observableState
   -- "create" a Marlowe contract on the blockchain
   -- FIXME: if we want users to be able to follow contracts that they don't have roles in, we need this function
@@ -408,7 +408,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
               mTransactionInputs = map snd $ lookup marloweParams allContracts
             in
               case mUuid, mTransactionInputs of
-                Just uuid, Just transactionInputs -> Just $ PlutusAppId uuid /\ History marloweParams marloweData transactionInputs
+                Just uuid, Just transactionInputs -> Just $ PlutusAppId uuid /\ { chParams: Just $ marloweParams /\ marloweData, chHistory: transactionInputs }
                 _, _ -> Nothing
         pure $ Right $ fromFoldable $ values $ mapMaybeWithKey roleContractsToHistory roleContracts
   subscribeToPlutusApp = Websocket.subscribeToContract <<< toBack
