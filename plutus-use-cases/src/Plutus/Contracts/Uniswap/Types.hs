@@ -11,7 +11,6 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
-{-# options_ghc -fno-warn-orphans          #-}
 {-# options_ghc -Wno-redundant-constraints #-}
 {-# options_ghc -fno-strictness            #-}
 {-# options_ghc -fno-specialise            #-}
@@ -51,9 +50,6 @@ PlutusTx.makeLift ''PoolState
 data Liquidity = Liquidity
 PlutusTx.makeIsDataIndexed ''Liquidity [('Liquidity, 0)]
 PlutusTx.makeLift ''Liquidity
-
--- Note: An orphan instance here because of the newtype wrapper below.
-deriving anyclass instance ToSchema AssetClass
 
 -- | A single 'AssetClass'. Because we use three coins, we use a phantom type to track
 -- which one is which.

@@ -1,5 +1,6 @@
 module Ledger (
     module Export,
+    AssetClass,
     CurrencySymbol,
     TokenName,
     Value,
@@ -20,4 +21,4 @@ import           Plutus.V1.Ledger.Slot     as Export
 import           Plutus.V1.Ledger.Time     as Export
 import           Plutus.V1.Ledger.Tx       as Export
 import           Plutus.V1.Ledger.TxId     as Export
-import           Plutus.V1.Ledger.Value    (CurrencySymbol, TokenName, Value)
+import           Plutus.V1.Ledger.Value    (AssetClass, CurrencySymbol, TokenName, Value)
