@@ -18,7 +18,7 @@
 module Ledger.Constraints.OffChain(
     -- * Lookups
     ScriptLookups(..)
-    , scriptInstanceLookups
+    , typedValidatorLookups
     , unspentOutputs
     , monetaryPolicy
     , otherScript
@@ -110,8 +110,8 @@ instance Monoid (ScriptLookups a) where
 -- | A script lookups value with a script instance. For convenience this also
 --   includes the monetary policy script that forwards all checks to the
 --   instance's validator.
-scriptInstanceLookups :: TypedValidator a -> ScriptLookups a
-scriptInstanceLookups inst =
+typedValidatorLookups :: TypedValidator a -> ScriptLookups a
+typedValidatorLookups inst =
     ScriptLookups
         { slMPS = Map.singleton (Scripts.forwardingMonetaryPolicyHash inst) (Scripts.forwardingMonetaryPolicy inst)
         , slTxOutputs = Map.empty

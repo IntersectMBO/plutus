@@ -96,11 +96,11 @@ data StateMachineInstance s i = StateMachineInstance {
     -- | The state machine specification.
     stateMachine      :: StateMachine s i,
     -- | The validator code for this state machine.
-    validatorInstance :: TypedValidator (StateMachine s i)
+    typedValidator :: TypedValidator (StateMachine s i)
     }
 
 machineAddress :: StateMachineInstance s i -> Address
-machineAddress = validatorAddress . validatorInstance
+machineAddress = validatorAddress . typedValidator
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.

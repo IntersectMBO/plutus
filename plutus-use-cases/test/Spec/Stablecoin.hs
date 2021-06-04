@@ -62,7 +62,7 @@ signConversionRate :: ConversionRate -> SignedMessage (Observation ConversionRat
 signConversionRate rate = signObservation (Slot 0) rate (walletPrivKey oracle)
 
 stablecoinAddress :: Address
-stablecoinAddress = validatorAddress $ Stablecoin.scriptInstance coin
+stablecoinAddress = validatorAddress $ Stablecoin.typedValidator coin
 
 initialDeposit :: Value
 initialDeposit = Ada.lovelaceValueOf 100

@@ -93,7 +93,7 @@ submitTxConstraints
   => TypedValidator a
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract w s e Tx
-submitTxConstraints inst = submitTxConstraintsWith (Constraints.scriptInstanceLookups inst)
+submitTxConstraints inst = submitTxConstraintsWith (Constraints.typedValidatorLookups inst)
 
 -- | Build a transaction that satisfies the constraints using the UTXO map
 --   to resolve any input constraints (see 'Ledger.Constraints.TxConstraints.InputConstraint')
@@ -109,7 +109,7 @@ submitTxConstraintsSpending
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract w s e Tx
 submitTxConstraintsSpending inst utxo =
-  let lookups = Constraints.scriptInstanceLookups inst <> Constraints.unspentOutputs utxo
+  let lookups = Constraints.typedValidatorLookups inst <> Constraints.unspentOutputs utxo
   in submitTxConstraintsWith lookups
 
 -- | Build a transaction that satisfies the constraints, then submit it to the

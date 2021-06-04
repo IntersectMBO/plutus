@@ -26,7 +26,7 @@ module Plutus.Contracts.Escrow(
     , targetTotal
     , escrowContract
     , payRedeemRefund
-    , scriptInstance
+    , typedValidator
     -- * Actions
     , pay
     , payEp
@@ -204,8 +204,8 @@ validate EscrowParams{escrowDeadline, escrowTargets} contributor action ScriptCo
             traceIfFalse "escrowDeadline-before" (TimeSlot.slotToPOSIXTime escrowDeadline `before` txInfoValidRange scriptContextTxInfo)
             && traceIfFalse "txSignedBy" (scriptContextTxInfo `txSignedBy` contributor)
 
-scriptInstance :: EscrowParams Datum -> Scripts.TypedValidator Escrow
-scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where
+typedValidator :: EscrowParams Datum -> Scripts.TypedValidator Escrow
+typedValidator escrow = go (Haskell.fmap Ledger.datumHash escrow) where
     go = Scripts.mkTypedValidatorParam @Escrow
         $$(PlutusTx.compile [|| validate ||])
         $$(PlutusTx.compile [|| wrap ||])
@@ -215,7 +215,7 @@ escrowContract
     :: EscrowParams Datum
     -> Contract () EscrowSchema EscrowError ()
 escrowContract escrow =
-    let inst = scriptInstance escrow
+    let inst = typedValidator escrow
         payAndRefund = do
             vl <- endpoint @"pay-escrow"
             _ <- pay inst escrow vl
@@ -236,7 +236,7 @@ payEp ::
     -> Contract w s e TxId
 payEp escrow = do
     vl <- mapError (review _EContractError) (endpoint @"pay-escrow")
-    pay (scriptInstance escrow) escrow vl
+    pay (typedValidator escrow) escrow vl
 
 -- | Pay some money into the escrow contract.
 pay ::
@@ -274,7 +274,7 @@ redeemEp ::
     -> Contract w s e RedeemSuccess
 redeemEp escrow =
     mapError (review _EscrowError) $
-    endpoint @"redeem-escrow" >> redeem (scriptInstance escrow) escrow
+    endpoint @"redeem-escrow" >> redeem (typedValidator escrow) escrow
 
 -- | Redeem all outputs at the contract address using a transaction that
 --   has all the outputs defined in the contract's list of targets.
@@ -317,7 +317,7 @@ refundEp ::
     )
     => EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
-refundEp escrow = endpoint @"refund-escrow" >> refund (scriptInstance escrow) escrow
+refundEp escrow = endpoint @"refund-escrow" >> refund (typedValidator escrow) escrow
 
 -- | Claim a refund of the contribution.
 refund ::
@@ -352,7 +352,7 @@ payRedeemRefund ::
     -> Value
     -> Contract w s EscrowError (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
-    let inst = scriptInstance params
+    let inst = typedValidator params
     -- Pay the value 'vl' into the contract
     _ <- pay inst params vl
     outcome <- selectEither (awaitSlot (escrowDeadline params)) (fundsAtAddressGeq (Scripts.validatorAddress inst) (targetTotal params))

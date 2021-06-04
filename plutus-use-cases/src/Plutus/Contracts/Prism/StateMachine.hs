@@ -11,7 +11,7 @@ module Plutus.Contracts.Prism.StateMachine(
     IDState(..)
     , IDAction(..)
     , UserCredential(..)
-    , scriptInstance
+    , typedValidator
     , machineClient
     , mkMachineClient
     ) where
@@ -24,8 +24,7 @@ import           Ledger.Constraints.TxConstraints  (TxConstraints)
 import           Ledger.Crypto                     (PubKeyHash)
 import qualified Ledger.Typed.Scripts              as Scripts
 import           Ledger.Value                      (TokenName, Value)
-import           Plutus.Contract.StateMachine      (State (..), StateMachine (..), StateMachineClient (..),
-                                                    StateMachineInstance (..), Void)
+import           Plutus.Contract.StateMachine      (State (..), StateMachine (..), StateMachineClient (..), Void)
 import qualified Plutus.Contract.StateMachine      as StateMachine
 import           Plutus.Contracts.Prism.Credential (Credential (..), CredentialAuthority (..))
 import qualified Plutus.Contracts.Prism.Credential as Credential
@@ -84,10 +83,10 @@ credentialStateMachine cd = StateMachine.mkStateMachine Nothing (transition cd) 
   isFinal Revoked = True
   isFinal _       = False
 
-scriptInstance ::
+typedValidator ::
   UserCredential
   -> Scripts.TypedValidator (StateMachine IDState IDAction)
-scriptInstance credentialData =
+typedValidator credentialData =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode credentialData
         validator d = StateMachine.mkValidator (credentialStateMachine d)
         wrap = Scripts.wrapValidator @IDState @IDAction
@@ -99,7 +98,7 @@ machineClient ::
     -> StateMachineClient IDState IDAction
 machineClient inst credentialData =
     let machine = credentialStateMachine credentialData
-    in StateMachine.mkStateMachineClient (StateMachineInstance machine inst)
+    in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
 
 mkMachineClient :: CredentialAuthority -> PubKeyHash -> TokenName -> StateMachineClient IDState IDAction
 mkMachineClient authority credentialOwner tokenName =
@@ -110,7 +109,7 @@ mkMachineClient authority credentialOwner tokenName =
                 , ucCredential = credential
                 , ucToken = Credential.token credential
                 }
-    in machineClient (scriptInstance userCredential) userCredential
+    in machineClient (typedValidator userCredential) userCredential
 
 PlutusTx.makeLift ''UserCredential
 PlutusTx.makeLift ''IDState

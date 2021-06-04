@@ -217,16 +217,16 @@ uniqueContractHash = do
             { rolesCurrency = cs
             , rolePayoutValidatorHash = validatorHash (rolePayoutScript cs) }
 
-    let hash1 = scriptHash $ scriptInstance (params "11")
-    let hash2 = scriptHash $ scriptInstance (params "22")
-    let hash3 = scriptHash $ scriptInstance (params "22")
+    let hash1 = scriptHash $ typedValidator (params "11")
+    let hash2 = scriptHash $ typedValidator (params "22")
+    let hash3 = scriptHash $ typedValidator (params "22")
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
 
 validatorSize :: IO ()
 validatorSize = do
-    let validator = validatorScript $ scriptInstance defaultMarloweParams
+    let validator = validatorScript $ typedValidator defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
     assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
 

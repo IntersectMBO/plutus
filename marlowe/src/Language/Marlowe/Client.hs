@@ -153,7 +153,7 @@ marloweFollowContract = do
   where
     follow (ifrom, ito, params) = do
         let client@StateMachineClient{scInstance} = mkMarloweClient params
-        let inst = validatorInstance scInstance
+        let inst = typedValidator scInstance
         let address = Scripts.scriptAddress inst
         AddressChangeResponse{acrTxns} <- addressChangeRequest
                 AddressChangeRequest
@@ -178,7 +178,7 @@ marloweFollowContract = do
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
         logInfo @String $ "Updating history from tx" <> show (Ledger.eitherTx Ledger.txId Ledger.txId tx)
-        let inst = validatorInstance scInstance
+        let inst = typedValidator scInstance
         let address = Scripts.scriptAddress inst
         let utxo = outputsMapFromTxForAddress address tx
         let states = getStates scInstance utxo
@@ -233,9 +233,9 @@ marlowePlutusContract = do
                 marloweContract = contract,
                 marloweState = emptyState slot }
         let payValue = adaValueOf 0
-        let StateMachineInstance{validatorInstance} = scInstance
+        let StateMachineInstance{typedValidator} = scInstance
         let tx = mustPayToTheScript marloweData payValue <> distributeRoleTokens
-        let lookups = Constraints.scriptInstanceLookups validatorInstance
+        let lookups = Constraints.typedValidatorLookups typedValidator
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
         submitTxConfirmed utx
         marlowePlutusContract
@@ -598,8 +598,8 @@ mkMarloweValidatorCode params =
 
 type MarloweStateMachine = StateMachine MarloweData MarloweInput
 
-scriptInstance :: MarloweParams -> Scripts.TypedValidator MarloweStateMachine
-scriptInstance params = Scripts.mkTypedValidator @MarloweStateMachine
+typedValidator :: MarloweParams -> Scripts.TypedValidator MarloweStateMachine
+typedValidator params = Scripts.mkTypedValidator @MarloweStateMachine
     (mkMarloweValidatorCode params)
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -610,7 +610,7 @@ mkMachineInstance :: MarloweParams -> SM.StateMachineInstance MarloweData Marlow
 mkMachineInstance params =
     SM.StateMachineInstance
     (SM.mkStateMachine Nothing (mkMarloweStateMachineTransition params) isFinal)
-    (scriptInstance params)
+    (typedValidator params)
 
 
 mkMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData MarloweInput

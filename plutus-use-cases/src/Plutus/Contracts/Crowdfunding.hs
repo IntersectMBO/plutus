@@ -137,8 +137,8 @@ instance Scripts.ValidatorTypes Crowdfunding where
     type instance RedeemerType Crowdfunding = CampaignAction
     type instance DatumType Crowdfunding = PubKeyHash
 
-scriptInstance :: Campaign -> Scripts.TypedValidator Crowdfunding
-scriptInstance = Scripts.mkTypedValidatorParam @Crowdfunding
+typedValidator :: Campaign -> Scripts.TypedValidator Crowdfunding
+typedValidator = Scripts.mkTypedValidatorParam @Crowdfunding
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -179,7 +179,7 @@ mkValidator c con act ScriptContext{scriptContextTxInfo} = case act of
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> Validator
-contributionScript = Scripts.validatorScript . scriptInstance
+contributionScript = Scripts.validatorScript . typedValidator
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.ValidatorHash
@@ -206,7 +206,7 @@ contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     logInfo @Text $ "Contributing " <> Text.pack (Haskell.show contribValue)
     contributor <- ownPubKey
-    let inst = scriptInstance cmp
+    let inst = typedValidator cmp
         tx = Constraints.mustPayToTheScript (pubKeyHash contributor) contribValue
                 <> Constraints.mustValidateIn (Ledger.interval 1 (campaignDeadline cmp))
     txid <- fmap txId (submitTxConstraints inst tx)
@@ -232,7 +232,7 @@ contribute cmp = do
 --   the funding goal was reached in time.
 scheduleCollection :: Campaign -> Contract () CrowdfundingSchema ContractError ()
 scheduleCollection cmp = do
-    let inst = scriptInstance cmp
+    let inst = typedValidator cmp
 
     -- Expose an endpoint that lets the user fire the starting gun on the
     -- campaign. (This endpoint isn't technically necessary, we could just

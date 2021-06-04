@@ -19,7 +19,7 @@ module Plutus.Contracts.MultiSig
     , MultiSigSchema
     , contract
     , lock
-    , scriptInstance
+    , typedValidator
     , validate
     ) where
 
@@ -67,8 +67,8 @@ instance Scripts.ValidatorTypes MultiSig where
     type instance RedeemerType MultiSig = ()
     type instance DatumType MultiSig = ()
 
-scriptInstance :: MultiSig -> Scripts.TypedValidator MultiSig
-scriptInstance = Scripts.mkTypedValidatorParam @MultiSig
+typedValidator :: MultiSig -> Scripts.TypedValidator MultiSig
+typedValidator = Scripts.mkTypedValidatorParam @MultiSig
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -80,7 +80,7 @@ lock :: AsContractError e => Contract () MultiSigSchema e ()
 lock = do
     (ms, vl) <- endpoint @"lock"
     let tx = Constraints.mustPayToTheScript () vl
-    let inst = scriptInstance ms
+    let inst = typedValidator ms
     void $ submitTxConstraints inst tx
 
 -- | The @"unlock"@ endpoint, unlocking some funds with a list
@@ -88,7 +88,7 @@ lock = do
 unlock :: AsContractError e => Contract () MultiSigSchema e ()
 unlock = do
     (ms, pks) <- endpoint @"unlock"
-    let inst = scriptInstance ms
+    let inst = typedValidator ms
     utx <- utxoAt (Scripts.validatorAddress inst)
     let tx = Tx.collectFromScript utx ()
                 <> foldMap Constraints.mustBeSignedBy pks

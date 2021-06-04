@@ -300,7 +300,7 @@ wallets = [w1, w2, w3]
 -- START gameTokenVal
 gameTokenVal :: Value
 gameTokenVal =
-    let sym = Scripts.monetaryPolicyHash G.scriptInstance
+    let sym = Scripts.monetaryPolicyHash G.typedValidator
     in G.token sym "guess"
 -- END gameTokenVal
 

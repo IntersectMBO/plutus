@@ -35,7 +35,7 @@ module Plutus.Contracts.TokenAccount(
   , TokenAccountError(..)
   , AsTokenAccountError(..)
   , validatorHash
-  , scriptInstance
+  , typedValidator
   ) where
 
 import           Control.Lens
@@ -131,18 +131,18 @@ accountToken (Account currency) = Value.assetClassValue currency 1
 validate :: Account -> () -> () -> V.ScriptContext -> Bool
 validate account _ _ ptx = V.valueSpent (V.scriptContextTxInfo ptx) `Value.geq` accountToken account
 
-scriptInstance :: Account -> Scripts.TypedValidator TokenAccount
-scriptInstance = Scripts.mkTypedValidatorParam @TokenAccount
+typedValidator :: Account -> Scripts.TypedValidator TokenAccount
+typedValidator = Scripts.mkTypedValidatorParam @TokenAccount
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 address :: Account -> Address
-address = Scripts.validatorAddress . scriptInstance
+address = Scripts.validatorAddress . typedValidator
 
 validatorHash :: Account -> ValidatorHash
-validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptInstance
+validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . typedValidator
 
 -- | A transaction that pays the given value to the account
 payTx
@@ -160,7 +160,7 @@ pay
     -> Value
     -> Contract w s e Tx
 pay account vl = do
-    let inst = scriptInstance account
+    let inst = typedValidator account
     logInfo @String
         $ "TokenAccount.pay: Paying "
         <> show vl
@@ -179,7 +179,7 @@ redeemTx :: forall w s e.
     -> PubKeyHash
     -> Contract w s e (TxConstraints () (), ScriptLookups TokenAccount)
 redeemTx account pk = mapError (review _TAContractError) $ do
-    let inst = scriptInstance account
+    let inst = typedValidator account
     utxos <- utxoAt (address account)
     let totalVal = foldMap (V.txOutValue . txOutTxOut) utxos
         numInputs = Map.size utxos
@@ -190,7 +190,7 @@ redeemTx account pk = mapError (review _TAContractError) $ do
             <> show totalVal
     let constraints = TypedTx.collectFromScript utxos ()
                 <> Constraints.mustPayToPubKey pk (accountToken account)
-        lookups = Constraints.scriptInstanceLookups inst
+        lookups = Constraints.typedValidatorLookups inst
                 <> Constraints.unspentOutputs utxos
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
     --       Or perhaps add a field 'requiredTokens' to 'LedgerTxConstraints' and let the

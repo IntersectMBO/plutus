@@ -99,7 +99,7 @@ atomicSwap = do
                 -- redeeming transaction.
                 void $ mapError EscrowError (Escrow.payRedeemRefund params value2)
             | pk == walletPubKey (party2 p) =
-                void $ mapError EscrowError (Escrow.pay (Escrow.scriptInstance params) params value1) >>= awaitTxConfirmed
+                void $ mapError EscrowError (Escrow.pay (Escrow.typedValidator params) params value1) >>= awaitTxConfirmed
             | otherwise = throwError (NotInvolvedError pk p)
 
     ownPubKey >>= go

@@ -219,27 +219,27 @@ tests =
     testGroup "game state machine tests"
     [ checkPredicate "run a successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
-        .&&. valueAtAddress (Scripts.validatorAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.typedValidator) (Ada.lovelaceValueOf 5 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         successTrace
 
     , checkPredicate "run a 2nd successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3)
-        .&&. valueAtAddress (Scripts.validatorAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.typedValidator) (Ada.lovelaceValueOf 1 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8))
         .&&. walletFundsChange w3 (Ada.lovelaceValueOf 4 <> gameTokenVal))
         successTrace2
 
     , checkPredicate "run a failed trace"
         (walletFundsChange w2 gameTokenVal
-        .&&. valueAtAddress (Scripts.validatorAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.typedValidator) (Ada.lovelaceValueOf 8 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         failTrace
 
     , goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
     , HUnit.testCaseSteps "script size is reasonable" $ \step ->
-        reasonable' step (Scripts.validatorScript G.scriptInstance) 49000
+        reasonable' step (Scripts.validatorScript G.typedValidator) 49000
 
     , testProperty "can always get the funds out" $
         withMaxSuccess 10 prop_NoLockedFunds
@@ -298,5 +298,5 @@ failTrace = do
 
 gameTokenVal :: Value
 gameTokenVal =
-    let sym = Scripts.forwardingMonetaryPolicyHash G.scriptInstance
+    let sym = Scripts.forwardingMonetaryPolicyHash G.typedValidator
     in G.token sym "guess"

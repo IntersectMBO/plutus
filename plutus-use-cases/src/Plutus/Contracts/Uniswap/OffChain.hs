@@ -205,7 +205,7 @@ create us CreateParams{..} = do
         usVal    = unitValue $ usCoin us
         lpVal    = valueOf cpCoinA cpAmountA <> valueOf cpCoinB cpAmountB <> unitValue psC
 
-        lookups  = Constraints.scriptInstanceLookups usInst        <>
+        lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
                    Constraints.monetaryPolicy (liquidityPolicy us) <>
                    Constraints.unspentOutputs (Map.singleton oref o)
@@ -236,7 +236,7 @@ close us CloseParams{..} = do
         lVal     = valueOf lC liquidity
         redeemer = Redeemer $ PlutusTx.toData Close
 
-        lookups  = Constraints.scriptInstanceLookups usInst        <>
+        lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
                    Constraints.monetaryPolicy (liquidityPolicy us) <>
                    Constraints.ownPubKeyHash pkh                   <>
@@ -273,7 +273,7 @@ remove us RemoveParams{..} = do
         val          = psVal <> valueOf rpCoinA outA <> valueOf rpCoinB outB
         redeemer     = Redeemer $ PlutusTx.toData Remove
 
-        lookups  = Constraints.scriptInstanceLookups usInst          <>
+        lookups  = Constraints.typedValidatorLookups usInst          <>
                    Constraints.otherScript usScript                  <>
                    Constraints.monetaryPolicy (liquidityPolicy us)   <>
                    Constraints.unspentOutputs (Map.singleton oref o) <>
@@ -314,7 +314,7 @@ add us AddParams{..} = do
         val          = psVal <> valueOf apCoinA newA <> valueOf apCoinB newB
         redeemer     = Redeemer $ PlutusTx.toData Add
 
-        lookups  = Constraints.scriptInstanceLookups usInst             <>
+        lookups  = Constraints.typedValidatorLookups usInst             <>
                    Constraints.otherScript usScript                     <>
                    Constraints.monetaryPolicy (liquidityPolicy us)      <>
                    Constraints.ownPubKeyHash pkh                        <>
@@ -356,7 +356,7 @@ swap us SwapParams{..} = do
     let inst    = uniswapInstance us
         val     = valueOf spCoinA newA <> valueOf spCoinB newB <> unitValue (poolStateCoin us)
 
-        lookups = Constraints.scriptInstanceLookups inst                 <>
+        lookups = Constraints.typedValidatorLookups inst                 <>
                   Constraints.otherScript (Scripts.validatorScript inst) <>
                   Constraints.unspentOutputs (Map.singleton oref o)      <>
                   Constraints.ownPubKeyHash pkh

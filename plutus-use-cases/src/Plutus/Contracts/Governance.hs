@@ -24,7 +24,7 @@ module Plutus.Contracts.Governance (
     , Proposal(..)
     , Schema
     , mkTokenName
-    , scriptInstance
+    , typedValidator
     , mkValidator
     , GovState(..)
     , Voting(..)
@@ -137,15 +137,15 @@ machine params = SM.mkStateMachine Nothing (transition params) isFinal where
 mkValidator :: Params -> Scripts.ValidatorType GovernanceMachine
 mkValidator params = SM.mkValidator $ machine params
 
-scriptInstance :: Params -> Scripts.TypedValidator GovernanceMachine
-scriptInstance = Scripts.mkTypedValidatorParam @GovernanceMachine
+typedValidator :: Params -> Scripts.TypedValidator GovernanceMachine
+typedValidator = Scripts.mkTypedValidatorParam @GovernanceMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 client :: Params -> SM.StateMachineClient GovState GovInput
-client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (scriptInstance params)
+client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (typedValidator params)
 
 -- | Generate a voting token name by tagging on a number after the base token name.
 mkTokenName :: TokenName -> Integer -> TokenName
@@ -201,7 +201,7 @@ contract params = forever $ mapError (review _GovError) endpoints where
 
     initLaw = do
         bsLaw <- endpoint @"new-law"
-        let mph = Scripts.forwardingMonetaryPolicyHash (scriptInstance params)
+        let mph = Scripts.forwardingMonetaryPolicyHash (typedValidator params)
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
         let tokens = Haskell.zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
         SM.runStep theClient $ ForgeTokens tokens

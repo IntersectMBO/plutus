@@ -24,7 +24,7 @@ module Plutus.Contracts.MultiSigStateMachine(
     , Payment(..)
     , State
     , mkValidator
-    , scriptInstance
+    , typedValidator
     , MultiSigError(..)
     , MultiSigSchema
     , contract
@@ -244,15 +244,15 @@ machine params = SM.mkStateMachine Nothing (transition params) isFinal where
 mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator params = SM.mkValidator $ machine params
 
-scriptInstance :: Params -> Scripts.TypedValidator MultiSigSym
-scriptInstance = Scripts.mkTypedValidatorParam @MultiSigSym
+typedValidator :: Params -> Scripts.TypedValidator MultiSigSym
+typedValidator = Scripts.mkTypedValidatorParam @MultiSigSym
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 client :: Params -> SM.StateMachineClient MSState Input
-client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (scriptInstance params)
+client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (typedValidator params)
 
 contract ::
     ( AsContractError e
