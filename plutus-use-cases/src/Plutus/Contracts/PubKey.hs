@@ -42,7 +42,7 @@ instance Scripts.ValidatorTypes PubKeyContract where
     type instance DatumType PubKeyContract = ()
 
 scriptInstance :: PubKeyHash -> Scripts.TypedValidator PubKeyContract
-scriptInstance = Scripts.validatorParam @PubKeyContract
+scriptInstance = Scripts.mkTypedValidatorParam @PubKeyContract
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -73,7 +73,7 @@ pubKeyContract
     -> Contract w s e (TxOutRef, TxOutTx, TypedValidator PubKeyContract)
 pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
     let inst = scriptInstance pk
-        address = Scripts.scriptAddress inst
+        address = Scripts.validatorAddress inst
         tx = Constraints.mustPayToTheScript () vl
 
     ledgerTx <- submitTxConstraints inst tx

@@ -12,19 +12,19 @@ module Ledger.Typed.Scripts(
     , Validator
     , TypedValidator
     , MonetaryPolicy
-    , validator
-    , validatorParam
-    , scriptHash
-    , scriptAddress
+    , mkTypedValidator
+    , mkTypedValidatorParam
+    , validatorHash
+    , validatorAddress
     , validatorScript
     , wrapValidator
     , wrapMonetaryPolicy
-    , monetaryPolicy
-    , monetaryPolicyHash
+    , forwardingMonetaryPolicy
+    , forwardingMonetaryPolicyHash
     , ValidatorType
     , WrappedValidatorType
     , WrappedMonetaryPolicyType
-    , fromValidator
+    , unsafeMkTypedValidator
     , Any
     ) where
 
@@ -32,7 +32,7 @@ import           PlutusCore.Default              (DefaultUni)
 import           PlutusTx
 
 import qualified Plutus.V1.Ledger.Address        as Addr
-import           Plutus.V1.Ledger.Scripts        hiding (monetaryPolicyHash)
+import           Plutus.V1.Ledger.Scripts        hiding (monetaryPolicyHash, validatorHash)
 import qualified Plutus.V1.Ledger.Scripts        as Scripts
 
 import           Data.Aeson                      (FromJSON, ToJSON)
@@ -43,8 +43,8 @@ import           Ledger.Typed.Scripts.Validators
 -- | A typed validator script with its 'ValidatorScript' and 'Address'.
 data TypedValidator (a :: Type) =
     TypedValidator
-        { tvValidator  :: Validator
-        , tvValidatorHash    :: ValidatorHash
+        { tvValidator         :: Validator
+        , tvValidatorHash     :: ValidatorHash
         , tvForwardingMPS     :: MonetaryPolicy
         , tvForwardingMPSHash :: MonetaryPolicyHash
         -- ^ The hash of the monetary policy that checks whether the validator
@@ -52,16 +52,16 @@ data TypedValidator (a :: Type) =
         }
     deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
--- | The 'TypedValidator' of a validator script and its wrapper.
-validator ::
+-- | Make a 'TypedValidator' from the 'CompiledCode' of a validator script and its wrapper.
+mkTypedValidator ::
     CompiledCode (ValidatorType a)
     -- ^ Validator script (compiled)
     -> CompiledCode (ValidatorType a -> WrappedValidatorType)
     -- ^ A wrapper for the compiled validator
     -> TypedValidator a
-validator vc wrapper =
+mkTypedValidator vc wrapper =
     let val = mkValidatorScript $ wrapper `applyCode` vc
-        hsh = validatorHash val
+        hsh = Scripts.validatorHash val
         mps = forwardingMPS hsh
     in TypedValidator
         { tvValidator         = val
@@ -70,8 +70,8 @@ validator vc wrapper =
         , tvForwardingMPSHash = Scripts.monetaryPolicyHash mps
         }
 
--- | The 'TypedValidator' of a paramaterized validator script and its wrapper.
-validatorParam
+-- | Make a 'TypedValidator' from the 'CompiledCode' of a paramaterized validator script and its wrapper.
+mkTypedValidatorParam
     :: forall a param. Lift DefaultUni param
     => CompiledCode (param -> ValidatorType a)
     -- ^ Validator script (compiled)
@@ -80,25 +80,25 @@ validatorParam
     -> param
     -- ^ The extra paramater for the validator script
     -> TypedValidator a
-validatorParam vc wrapper param =
-    validator (vc `PlutusTx.applyCode` PlutusTx.liftCode param) wrapper
+mkTypedValidatorParam vc wrapper param =
+    mkTypedValidator (vc `PlutusTx.applyCode` PlutusTx.liftCode param) wrapper
 
--- | The script's 'ValidatorHash'
-scriptHash :: TypedValidator a -> ValidatorHash
-scriptHash = tvValidatorHash
+-- | The hash of the validator.
+validatorHash :: TypedValidator a -> ValidatorHash
+validatorHash = tvValidatorHash
 
--- | Get the address for a script instance.
-scriptAddress :: TypedValidator a -> Addr.Address
-scriptAddress = Addr.scriptHashAddress . tvValidatorHash
+-- | The address of the validator.
+validatorAddress :: TypedValidator a -> Addr.Address
+validatorAddress = Addr.scriptHashAddress . tvValidatorHash
 
--- | Get the validator script for a script instance.
+-- | The validator script itself.
 validatorScript :: TypedValidator a -> Validator
 validatorScript = tvValidator
 
--- | Script instance for a validator whose type is unknown
-fromValidator :: Validator -> TypedValidator Any
-fromValidator vl =
-    let vh = validatorHash vl
+-- | Make a 'TypedValidator' (with no type constraints) from an untyped 'Validator' script.
+unsafeMkTypedValidator :: Validator -> TypedValidator Any
+unsafeMkTypedValidator vl =
+    let vh = Scripts.validatorHash vl
         mps = forwardingMPS vh
     in
     TypedValidator
@@ -110,10 +110,10 @@ fromValidator vl =
 
 -- | The monetary policy that forwards all checks to the instance's
 --   validator
-monetaryPolicy :: TypedValidator a -> MonetaryPolicy
-monetaryPolicy = tvForwardingMPS
+forwardingMonetaryPolicy :: TypedValidator a -> MonetaryPolicy
+forwardingMonetaryPolicy = tvForwardingMPS
 
 -- | Hash of the monetary policy that forwards all checks to the instance's
 --   validator
-monetaryPolicyHash :: TypedValidator a -> MonetaryPolicyHash
-monetaryPolicyHash = tvForwardingMPSHash
+forwardingMonetaryPolicyHash :: TypedValidator a -> MonetaryPolicyHash
+forwardingMonetaryPolicyHash = tvForwardingMPSHash

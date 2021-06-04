@@ -162,7 +162,7 @@ scriptInstance currency auctionParams =
         validatorParam c f = SM.mkValidator (auctionStateMachine c f)
         wrap = Scripts.wrapValidator @AuctionState @AuctionInput
 
-    in Scripts.validator @(StateMachine AuctionState AuctionInput)
+    in Scripts.mkTypedValidator @(StateMachine AuctionState AuctionInput)
         val
         $$(PlutusTx.compile [|| wrap ||])
 
@@ -270,7 +270,7 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
         auctionOver = awaitSlot apEndTime >> pure (AuctionIsOver lastHighestBid)
         submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
         otherBid = do
-            let address = Scripts.scriptAddress (validatorInstance (SM.scInstance client))
+            let address = Scripts.validatorAddress (validatorInstance (SM.scInstance client))
                 targetSlot = Haskell.succ (Haskell.succ s) -- FIXME (jm): There is some off-by-one thing going on that requires us to
                                            -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
                                            -- to wait for the next slot to begin.

@@ -113,7 +113,7 @@ instance Monoid (ScriptLookups a) where
 scriptInstanceLookups :: TypedValidator a -> ScriptLookups a
 scriptInstanceLookups inst =
     ScriptLookups
-        { slMPS = Map.singleton (Scripts.monetaryPolicyHash inst) (Scripts.monetaryPolicy inst)
+        { slMPS = Map.singleton (Scripts.forwardingMonetaryPolicyHash inst) (Scripts.forwardingMonetaryPolicy inst)
         , slTxOutputs = Map.empty
         , slOtherScripts = Map.empty
         , slOtherData = Map.empty

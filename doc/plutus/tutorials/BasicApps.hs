@@ -61,7 +61,7 @@ instance Scripts.ValidatorTypes Split where
     type instance DatumType Split = SplitData
 
 splitInstance :: Scripts.TypedValidator Split
-splitInstance = Scripts.validator @Split
+splitInstance = Scripts.mkTypedValidator @Split
     $$(PlutusTx.compile [|| validateSplit ||])
     $$(PlutusTx.compile [|| wrap ||]) where
         wrap = Scripts.wrapValidator @SplitData @()
@@ -115,7 +115,7 @@ lockFunds s@SplitData{amount} = do
 
 unlockFunds :: SplitData -> Contract () SplitSchema T.Text ()
 unlockFunds SplitData{recipient1, recipient2, amount} = do
-    let contractAddress = (Ledger.scriptAddress (Scripts.validatorScript splitInstance))
+    let contractAddress = Ledger.validatorAddress splitInstance
     utxos <- utxoAt contractAddress
     let half = Ada.divide amount 2
         tx =

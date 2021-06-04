@@ -100,7 +100,7 @@ data StateMachineInstance s i = StateMachineInstance {
     }
 
 machineAddress :: StateMachineInstance s i -> Address
-machineAddress = scriptAddress . validatorInstance
+machineAddress = validatorAddress . validatorInstance
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.

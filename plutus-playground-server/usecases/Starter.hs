@@ -51,7 +51,7 @@ validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an im
 
 -- | The address of the contract (the hash of its validator script).
 contractAddress :: Address
-contractAddress = Ledger.scriptAddress (Scripts.validatorScript starterInstance)
+contractAddress = Script.validatorAddress starterInstance
 
 data Starter
 instance Scripts.ValidatorTypes Starter where
@@ -60,7 +60,7 @@ instance Scripts.ValidatorTypes Starter where
 
 -- | The script instance is the compiled validator (ready to go onto the chain)
 starterInstance :: Scripts.TypedValidator Starter
-starterInstance = Scripts.validator @Starter
+starterInstance = Scripts.mkTypedValidator @Starter
     $$(PlutusTx.compile [|| validateSpend ||])
     $$(PlutusTx.compile [|| wrap ||]) where
         wrap = Scripts.wrapValidator @MyDatum @MyRedeemer

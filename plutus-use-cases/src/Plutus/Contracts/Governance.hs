@@ -138,7 +138,7 @@ mkValidator :: Params -> Scripts.ValidatorType GovernanceMachine
 mkValidator params = SM.mkValidator $ machine params
 
 scriptInstance :: Params -> Scripts.TypedValidator GovernanceMachine
-scriptInstance = Scripts.validatorParam @GovernanceMachine
+scriptInstance = Scripts.mkTypedValidatorParam @GovernanceMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -201,7 +201,7 @@ contract params = forever $ mapError (review _GovError) endpoints where
 
     initLaw = do
         bsLaw <- endpoint @"new-law"
-        let mph = Scripts.monetaryPolicyHash (scriptInstance params)
+        let mph = Scripts.forwardingMonetaryPolicyHash (scriptInstance params)
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
         let tokens = Haskell.zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
         SM.runStep theClient $ ForgeTokens tokens

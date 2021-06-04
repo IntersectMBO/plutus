@@ -95,10 +95,10 @@ instance Scripts.ValidatorTypes Escrow where
     type instance DatumType    Escrow = EscrowParams
 
 escrowAddress :: Ledger.Address
-escrowAddress = Scripts.scriptAddress escrowInstance
+escrowAddress = Scripts.validatorAddress escrowInstance
 
 escrowInstance :: Scripts.TypedValidator Escrow
-escrowInstance = Scripts.validator @Escrow
+escrowInstance = Scripts.mkTypedValidator @Escrow
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
       where

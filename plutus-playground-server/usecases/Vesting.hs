@@ -137,14 +137,14 @@ vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance
 
 scriptInstance :: VestingParams -> Scripts.TypedValidator Vesting
-scriptInstance = Scripts.validatorParam @Vesting
+scriptInstance = Scripts.mkTypedValidatorParam @Vesting
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 contractAddress :: VestingParams -> Ledger.Address
-contractAddress = Scripts.scriptAddress . scriptInstance
+contractAddress = Scripts.validatorAddress . scriptInstance
 
 vestingContract :: VestingParams -> Contract () VestingSchema T.Text ()
 vestingContract vesting = vest `select` retrieve
@@ -181,7 +181,7 @@ retrieveFundsC
     -> Contract () s T.Text Liveness
 retrieveFundsC vesting payment = do
     let inst = scriptInstance vesting
-        addr = Scripts.scriptAddress inst
+        addr = Scripts.validatorAddress inst
     nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
     let

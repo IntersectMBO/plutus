@@ -219,20 +219,20 @@ tests =
     testGroup "game state machine tests"
     [ checkPredicate "run a successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
-        .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         successTrace
 
     , checkPredicate "run a 2nd successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3)
-        .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8))
         .&&. walletFundsChange w3 (Ada.lovelaceValueOf 4 <> gameTokenVal))
         successTrace2
 
     , checkPredicate "run a failed trace"
         (walletFundsChange w2 gameTokenVal
-        .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         failTrace
 
@@ -298,6 +298,5 @@ failTrace = do
 
 gameTokenVal :: Value
 gameTokenVal =
-    let sym = Scripts.monetaryPolicyHash G.scriptInstance
+    let sym = Scripts.forwardingMonetaryPolicyHash G.scriptInstance
     in G.token sym "guess"
-

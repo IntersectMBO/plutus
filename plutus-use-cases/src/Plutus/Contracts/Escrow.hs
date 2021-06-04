@@ -206,7 +206,7 @@ validate EscrowParams{escrowDeadline, escrowTargets} contributor action ScriptCo
 
 scriptInstance :: EscrowParams Datum -> Scripts.TypedValidator Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where
-    go = Scripts.validatorParam @Escrow
+    go = Scripts.mkTypedValidatorParam @Escrow
         $$(PlutusTx.compile [|| validate ||])
         $$(PlutusTx.compile [|| wrap ||])
     wrap = Scripts.wrapValidator
@@ -289,7 +289,7 @@ redeem ::
     -> EscrowParams Datum
     -> Contract w s e RedeemSuccess
 redeem inst escrow = mapError (review _EscrowError) $ do
-    let addr = Scripts.scriptAddress inst
+    let addr = Scripts.validatorAddress inst
     current <- currentSlot
     unspentOutputs <- utxoAt addr
     let
@@ -330,7 +330,7 @@ refund ::
     -> Contract w s EscrowError RefundSuccess
 refund inst escrow = do
     pk <- ownPubKey
-    unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
+    unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
     let flt _ (TxOutTx _ txOut) = Ledger.txOutDatum txOut == Just (Ledger.datumHash $ Datum (PlutusTx.toData $ Ledger.pubKeyHash pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs Refund
                 <> Constraints.mustValidateIn (from (Haskell.succ $ escrowDeadline escrow))
@@ -355,7 +355,7 @@ payRedeemRefund params vl = do
     let inst = scriptInstance params
     -- Pay the value 'vl' into the contract
     _ <- pay inst params vl
-    outcome <- selectEither (awaitSlot (escrowDeadline params)) (fundsAtAddressGeq (Scripts.scriptAddress inst) (targetTotal params))
+    outcome <- selectEither (awaitSlot (escrowDeadline params)) (fundsAtAddressGeq (Scripts.validatorAddress inst) (targetTotal params))
     -- wait
     -- for the 'targetTotal' of the contract to appear at the address, or
     -- for the 'escrowDeadline' to pass, whichever happens first.

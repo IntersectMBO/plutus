@@ -26,7 +26,7 @@
 module Ledger.Typed.Tx where
 
 import           Ledger.Typed.Scripts
-import           Plutus.V1.Ledger.Address  hiding (scriptAddress)
+import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Scripts
 import           Plutus.V1.Ledger.Tx
@@ -113,7 +113,7 @@ makeTypedScriptTxOut
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
     let outTy = datumHash $ Datum $ toData d
-    in TypedScriptTxOut @out TxOut{txOutAddress = scriptAddress ct, txOutValue=value, txOutDatumHash = Just outTy} d
+    in TypedScriptTxOut @out TxOut{txOutAddress = validatorAddress ct, txOutValue=value, txOutDatumHash = Just outTy} d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOutRef a = TypedScriptTxOutRef { tyTxOutRefRef :: TxOutRef, tyTxOutRefOut :: TypedScriptTxOut a }
@@ -174,7 +174,7 @@ instance Pretty ConnectionError where
 -- | Checks that the given validator hash is consistent with the actual validator.
 checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => TypedValidator a -> Address -> m ()
 checkValidatorAddress ct actualAddr = do
-    let expectedAddr = scriptAddress ct
+    let expectedAddr = validatorAddress ct
     unless (expectedAddr == actualAddr) $ throwError $ WrongValidatorAddress expectedAddr actualAddr
 
 -- | Checks that the given redeemer script has the right type.

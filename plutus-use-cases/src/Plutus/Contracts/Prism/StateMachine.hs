@@ -91,7 +91,7 @@ scriptInstance credentialData =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode credentialData
         validator d = StateMachine.mkValidator (credentialStateMachine d)
         wrap = Scripts.wrapValidator @IDState @IDAction
-    in Scripts.validator @(StateMachine IDState IDAction) val $$(PlutusTx.compile [|| wrap ||])
+    in Scripts.mkTypedValidator @(StateMachine IDState IDAction) val $$(PlutusTx.compile [|| wrap ||])
 
 machineClient ::
     Scripts.TypedValidator (StateMachine IDState IDAction)

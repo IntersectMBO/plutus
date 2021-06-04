@@ -220,7 +220,7 @@ waitForUpdateUntil ::
     -> Slot
     -> Contract w schema e (WaitingResult state)
 waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
-    let addr = Scripts.scriptAddress $ validatorInstance scInstance
+    let addr = Scripts.validatorAddress $ validatorInstance scInstance
     let go sl = do
             txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
                 { acreqSlotRangeFrom = sl
@@ -257,7 +257,7 @@ waitForUpdate ::
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
-    let addr = Scripts.scriptAddress $ validatorInstance scInstance
+    let addr = Scripts.validatorAddress $ validatorInstance scInstance
     txns <- nextTransactionsAt addr
     let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of

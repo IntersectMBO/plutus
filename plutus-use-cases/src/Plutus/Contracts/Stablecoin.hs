@@ -88,10 +88,8 @@ import qualified Ledger.Constraints              as Constraints
 import           Ledger.Crypto                   (PubKey)
 import qualified Ledger.Interval                 as Interval
 import           Ledger.Oracle
-import           Ledger.Scripts                  (MonetaryPolicyHash, monetaryPolicyHash)
-import           Ledger.Typed.Scripts            (scriptHash)
+import           Ledger.Scripts                  (MonetaryPolicyHash)
 import qualified Ledger.Typed.Scripts            as Scripts
-import           Ledger.Typed.Scripts.Validators (forwardingMPS)
 import           Ledger.Typed.Tx                 (TypedScriptTxOut (..))
 import           Ledger.Value                    (AssetClass, TokenName, Value)
 import qualified Ledger.Value                    as Value
@@ -158,7 +156,7 @@ initialState StateMachineClient{scInstance=StateMachineInstance{validatorInstanc
         { bsReserves = 0
         , bsStablecoins = 0
         , bsReservecoins = 0
-        , bsForgingPolicyScript = monetaryPolicyHash $ forwardingMPS $ scriptHash validatorInstance
+        , bsForgingPolicyScript = Scripts.forwardingMonetaryPolicyHash validatorInstance
         }
 
 {-# INLINEABLE convert #-}
@@ -316,13 +314,13 @@ step sc@Stablecoin{scOracle} bs i@Input{inpConversionRate} = do
 -- | A 'Value' with the given number of reservecoins
 reserveCoins :: Stablecoin -> RC Integer -> Value
 reserveCoins sc@Stablecoin{scReservecoinTokenName} =
-    let sym = Scripts.monetaryPolicyHash $ scriptInstance sc
+    let sym = Scripts.forwardingMonetaryPolicyHash $ scriptInstance sc
     in Value.singleton (Value.mpsSymbol sym) scReservecoinTokenName . unRC
 
 -- | A 'Value' with the given number of stablecoins
 stableCoins :: Stablecoin -> SC Integer -> Value
 stableCoins sc@Stablecoin{scStablecoinTokenName} =
-    let sym = Scripts.monetaryPolicyHash $ scriptInstance sc
+    let sym = Scripts.forwardingMonetaryPolicyHash $ scriptInstance sc
     in Value.singleton (Value.mpsSymbol sym) scStablecoinTokenName . unSC
 
 {-# INLINEABLE isValidState #-}
@@ -369,7 +367,7 @@ scriptInstance stablecoin =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode stablecoin
         validator d = StateMachine.mkValidator (stablecoinStateMachine d)
         wrap = Scripts.wrapValidator @BankState @Input
-    in Scripts.validator @(StateMachine BankState Input) val $$(PlutusTx.compile [|| wrap ||])
+    in Scripts.mkTypedValidator @(StateMachine BankState Input) val $$(PlutusTx.compile [|| wrap ||])
 
 machineClient ::
     Scripts.TypedValidator (StateMachine BankState Input)

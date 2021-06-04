@@ -132,14 +132,14 @@ validate :: Account -> () -> () -> V.ScriptContext -> Bool
 validate account _ _ ptx = V.valueSpent (V.scriptContextTxInfo ptx) `Value.geq` accountToken account
 
 scriptInstance :: Account -> Scripts.TypedValidator TokenAccount
-scriptInstance = Scripts.validatorParam @TokenAccount
+scriptInstance = Scripts.mkTypedValidatorParam @TokenAccount
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 address :: Account -> Address
-address = Scripts.scriptAddress . scriptInstance
+address = Scripts.validatorAddress . scriptInstance
 
 validatorHash :: Account -> ValidatorHash
 validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptInstance

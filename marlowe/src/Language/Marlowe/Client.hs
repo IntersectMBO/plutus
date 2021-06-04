@@ -599,7 +599,7 @@ mkMarloweValidatorCode params =
 type MarloweStateMachine = StateMachine MarloweData MarloweInput
 
 scriptInstance :: MarloweParams -> Scripts.TypedValidator MarloweStateMachine
-scriptInstance params = Scripts.validator @MarloweStateMachine
+scriptInstance params = Scripts.mkTypedValidator @MarloweStateMachine
     (mkMarloweValidatorCode params)
     $$(PlutusTx.compile [|| wrap ||])
     where

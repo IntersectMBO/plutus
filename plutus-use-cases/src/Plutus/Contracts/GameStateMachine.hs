@@ -180,14 +180,14 @@ mkValidator :: Scripts.ValidatorType GameStateMachine
 mkValidator = SM.mkValidator machine
 
 scriptInstance :: Scripts.TypedValidator GameStateMachine
-scriptInstance = Scripts.validator @GameStateMachine
+scriptInstance = Scripts.mkTypedValidator @GameStateMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 monetaryPolicy :: Scripts.MonetaryPolicy
-monetaryPolicy = Scripts.monetaryPolicy scriptInstance
+monetaryPolicy = Scripts.forwardingMonetaryPolicy scriptInstance
 
 client :: SM.StateMachineClient GameState GameInput
 client = SM.mkStateMachineClient $ SM.StateMachineInstance machine scriptInstance
@@ -209,7 +209,7 @@ lock :: Contract () GameStateMachineSchema GameError ()
 lock = do
     LockArgs{lockArgsSecret, lockArgsValue} <- mapError GameContractError $ endpoint @"lock"
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
-        sym = Scripts.monetaryPolicyHash scriptInstance
+        sym = Scripts.forwardingMonetaryPolicyHash scriptInstance
     _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
     void $ mapError GameSMError $ SM.runStep client ForgeToken
 

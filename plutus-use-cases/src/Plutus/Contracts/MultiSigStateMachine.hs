@@ -245,7 +245,7 @@ mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator params = SM.mkValidator $ machine params
 
 scriptInstance :: Params -> Scripts.TypedValidator MultiSigSym
-scriptInstance = Scripts.validatorParam @MultiSigSym
+scriptInstance = Scripts.mkTypedValidatorParam @MultiSigSym
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where

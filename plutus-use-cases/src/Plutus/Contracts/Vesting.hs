@@ -150,14 +150,14 @@ vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance
 
 scriptInstance :: VestingParams -> Scripts.TypedValidator Vesting
-scriptInstance = Scripts.validatorParam @Vesting
+scriptInstance = Scripts.mkTypedValidatorParam @Vesting
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 contractAddress :: VestingParams -> Address
-contractAddress = Scripts.scriptAddress . scriptInstance
+contractAddress = Scripts.validatorAddress . scriptInstance
 
 data VestingError =
     VContractError ContractError
@@ -207,7 +207,7 @@ retrieveFundsC
     -> Contract w s e Liveness
 retrieveFundsC vesting payment = mapError (review _VestingError) $ do
     let inst = scriptInstance vesting
-        addr = Scripts.scriptAddress inst
+        addr = Scripts.validatorAddress inst
     nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
     let

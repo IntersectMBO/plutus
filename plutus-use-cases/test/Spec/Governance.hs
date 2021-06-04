@@ -34,17 +34,17 @@ tests =
     testGroup "governance tests"
     [ checkPredicate "vote all in favor, 2 rounds - SUCCESS"
         (assertNoFailedTransactions
-        .&&. dataAtAddress (Scripts.scriptAddress $ Gov.scriptInstance params) ((== lawv3) . Gov.law))
+        .&&. dataAtAddress (Scripts.validatorAddress $ Gov.scriptInstance params) ((== lawv3) . Gov.law))
         (doVoting 10 0 2)
 
     , checkPredicate "vote 60/40, accepted - SUCCESS"
         (assertNoFailedTransactions
-        .&&. dataAtAddress (Scripts.scriptAddress $ Gov.scriptInstance params) ((== lawv2) . Gov.law))
+        .&&. dataAtAddress (Scripts.validatorAddress $ Gov.scriptInstance params) ((== lawv2) . Gov.law))
         (doVoting 6 4 1)
 
     , checkPredicate "vote 50/50, rejected - SUCCESS"
         (assertNoFailedTransactions
-        .&&. dataAtAddress (Scripts.scriptAddress $ Gov.scriptInstance params) ((== lawv1) . Gov.law))
+        .&&. dataAtAddress (Scripts.validatorAddress $ Gov.scriptInstance params) ((== lawv1) . Gov.law))
         (doVoting 5 5 1)
 
     , goldenPir "test/Spec/governance.pir" $$(PlutusTx.compile [|| Gov.mkValidator ||])

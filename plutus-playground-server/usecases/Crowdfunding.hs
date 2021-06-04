@@ -101,7 +101,7 @@ instance Scripts.ValidatorTypes Crowdfunding where
     type instance DatumType Crowdfunding = PubKeyHash
 
 scriptInstance :: Campaign -> Scripts.TypedValidator Crowdfunding
-scriptInstance = Scripts.validatorParam @Crowdfunding
+scriptInstance = Scripts.mkTypedValidatorParam @Crowdfunding
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -169,7 +169,7 @@ contribute cmp = do
                 <> Constraints.mustValidateIn (Ledger.interval 1 (campaignDeadline cmp))
     txid <- fmap txId (submitTxConstraints inst tx)
 
-    utxo <- watchAddressUntil (Scripts.scriptAddress inst) (campaignCollectionDeadline cmp)
+    utxo <- watchAddressUntil (Scripts.validatorAddress inst) (campaignCollectionDeadline cmp)
 
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
@@ -196,7 +196,7 @@ scheduleCollection cmp = do
     () <- endpoint @"schedule collection"
 
     _ <- awaitSlot (campaignDeadline cmp)
-    unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
+    unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
 
     let tx = Typed.collectFromScript unspentOutputs Collect
             <> Constraints.mustValidateIn (collectionRange cmp)

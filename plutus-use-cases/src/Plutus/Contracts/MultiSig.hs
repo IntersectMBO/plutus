@@ -68,7 +68,7 @@ instance Scripts.ValidatorTypes MultiSig where
     type instance DatumType MultiSig = ()
 
 scriptInstance :: MultiSig -> Scripts.TypedValidator MultiSig
-scriptInstance = Scripts.validatorParam @MultiSig
+scriptInstance = Scripts.mkTypedValidatorParam @MultiSig
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -89,7 +89,7 @@ unlock :: AsContractError e => Contract () MultiSigSchema e ()
 unlock = do
     (ms, pks) <- endpoint @"unlock"
     let inst = scriptInstance ms
-    utx <- utxoAt (Scripts.scriptAddress inst)
+    utx <- utxoAt (Scripts.validatorAddress inst)
     let tx = Tx.collectFromScript utx ()
                 <> foldMap Constraints.mustBeSignedBy pks
     void $ submitTxConstraintsSpending inst utx tx
