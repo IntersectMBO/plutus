@@ -6,9 +6,9 @@ module Play.State
 
 import Prelude
 import Capability.Contract (class ManageContract)
-import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, followContract, getFollowerApps, lookupWalletInfo, subscribeToPlutusApp)
+import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_marloweParams, _selectedStep)
 import Contract.State (applyTimeout)
@@ -235,11 +235,15 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
     $ over
         (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot))
         (applyTimeout currentSlot)
-  -- if the modification changed the currently selected step, that means the card for the contract
-  -- that was changed is currently open, so we need to realign the step cards
+  -- If the modification changed the currently selected step, that means the card for the contract
+  -- that was changed is currently open, so we need to realign the step cards. We also call the
+  -- CancelConfirmation action - because if the user had the action confirmation card open for an
+  -- action in the current step, we want to close it (otherwise they could confirm an action that
+  -- is no longer possible).
   selectedStep' <- peruse $ _selectedContract <<< _selectedStep
-  when (selectedStep /= selectedStep')
-    $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
+  when (selectedStep /= selectedStep') do
+    for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
+    handleAction input $ ContractAction Contract.CancelConfirmation
 
 -- TODO: we have to handle quite a lot of submodule actions here (mainly just because of the cards),
 -- so there's probably a better way of structuring this - perhaps making cards work more like toasts
