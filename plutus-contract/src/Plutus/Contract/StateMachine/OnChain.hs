@@ -94,7 +94,7 @@ instance ValidatorTypes (StateMachine s i) where
 
 data StateMachineInstance s i = StateMachineInstance {
     -- | The state machine specification.
-    stateMachine      :: StateMachine s i,
+    stateMachine   :: StateMachine s i,
     -- | The validator code for this state machine.
     typedValidator :: TypedValidator (StateMachine s i)
     }

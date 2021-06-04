@@ -1,30 +1,30 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE ViewPatterns      #-}
-{-# LANGUAGE DerivingStrategies      #-}
-{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE KindSignatures     #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Typed.Scripts.Validators where
 
+import           Data.Aeson                            (FromJSON, ToJSON)
 import           Data.Kind
 import           Data.Void
-import           GHC.Generics                    (Generic)
-import           Data.Aeson                      (FromJSON, ToJSON)
+import           GHC.Generics                          (Generic)
 
+import           PlutusCore.Default                    (DefaultUni)
 import           PlutusTx
-import           PlutusCore.Default             (DefaultUni)
-import           PlutusTx.Prelude (check)
+import           PlutusTx.Prelude                      (check)
 
-import           Plutus.V1.Ledger.Address    (Address (..), scriptHashAddress)
-import qualified Plutus.V1.Ledger.Contexts   as Validation
+import           Plutus.V1.Ledger.Address              (Address (..), scriptHashAddress)
+import qualified Plutus.V1.Ledger.Contexts             as Validation
 import           Plutus.V1.Ledger.Scripts
-import qualified Plutus.V1.Ledger.Scripts        as Scripts
+import qualified Plutus.V1.Ledger.Scripts              as Scripts
 
 import qualified Ledger.Typed.Scripts.MonetaryPolicies as MPS
 
