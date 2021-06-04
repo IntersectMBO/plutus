@@ -13,6 +13,7 @@ module Evaluation.Builtins.Definition
 
 import           PlutusCore
 import           PlutusCore.Constant
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.MkPlc                                hiding (error)
@@ -24,8 +25,6 @@ import qualified PlutusCore.StdLib.Data.List                     as Plc
 
 import           Evaluation.Builtins.Common
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek
-
 import           Control.Exception
 import           Data.Either
 import           Data.Proxy
@@ -36,9 +35,8 @@ import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
 
 defaultCekParametersExt
-    :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
-defaultCekParametersExt =
-    toMachineParameters $ CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
+    :: CostModel CekMachineCosts (BuiltinCostModel, ())
+defaultCekParametersExt = CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
 
 -- | Check that 'Factorial' from the above computes to the same thing as
 -- a factorial defined in PLC itself.
@@ -60,7 +58,7 @@ test_Const =
     testProperty "Const" . property $ do
         c <- forAll Gen.unicode
         b <- forAll Gen.bool
-        let tC = mkConstant () c
+        let tC = mkConstant @_ @_ @(Either DefaultFun ExtensionFun) () c
             tB = mkConstant () b
             char = toTypeAst @_ @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
@@ -74,7 +72,7 @@ test_Const =
 test_Id :: TestTree
 test_Id =
     testCase "Id" $ do
-        let zer = mkConstant @Integer @DefaultUni () 0
+        let zer = mkConstant @Integer @DefaultUni @(Either DefaultFun ExtensionFun) () 0
             oneT = mkConstant @Integer @DefaultUni () 1
             oneU = mkConstant @Integer @DefaultUni () 1
             integer = mkTyBuiltin @_ @Integer ()
@@ -171,7 +169,7 @@ test_FailingSucc =
     testCase "FailingSucc" $ do
         let term =
                 apply () (builtin () $ Right FailingSucc) $
-                    mkConstant @Integer @DefaultUni () 0
+                    mkConstant @Integer @DefaultUni @(Either DefaultFun ExtensionFun) () 0
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
             -- Here we rely on 'typecheckAnd' lazily running the action after type checking the term.
             traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
@@ -185,7 +183,7 @@ test_ExpensiveSucc =
     testCase "ExpensiveSucc" $ do
         let term =
                 apply () (builtin () $ Right ExpensiveSucc) $
-                    mkConstant @Integer @DefaultUni () 0
+                    mkConstant @Integer @DefaultUni @(Either DefaultFun ExtensionFun) () 0
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
             traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
         typeErrOrEvalExcOrRes @?= Right (Right EvaluationFailure)
@@ -197,7 +195,7 @@ test_FailingPlus =
     testCase "FailingPlus" $ do
         let term =
                 mkIterApp () (builtin () $ Right FailingPlus)
-                    [ mkConstant @Integer @DefaultUni () 0
+                    [ mkConstant @Integer @DefaultUni @(Either DefaultFun ExtensionFun) () 0
                     , mkConstant @Integer @DefaultUni () 1
                     ]
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
@@ -213,7 +211,7 @@ test_ExpensivePlus =
     testCase "ExpensivePlus" $ do
         let term =
                 mkIterApp () (builtin () $ Right ExpensivePlus)
-                    [ mkConstant @Integer @DefaultUni () 0
+                    [ mkConstant @Integer @DefaultUni @(Either DefaultFun ExtensionFun) () 0
                     , mkConstant @Integer @DefaultUni () 1
                     ]
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-

@@ -93,7 +93,6 @@ import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelPara
 import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
 import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
-import           PlutusCore.Evaluation.Machine.MachineParameters
 import qualified PlutusCore.MkPlc                                 as PLC
 import           PlutusCore.Pretty
 import           PlutusTx                                         (Data (..), IsData (..))
@@ -184,7 +183,7 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
 
     let (res, _, logs) =
             UPLC.runCek
-                (toMachineParameters model)
+                model
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (verbose == Verbose)
                 appliedTerm
@@ -208,7 +207,7 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCek
-                (toMachineParameters model)
+                model
                 UPLC.counting
                 (verbose == Verbose)
                 appliedTerm

@@ -36,7 +36,7 @@ typecheckEvaluateCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => CostModel CekMachineCosts (CostingPart uni fun)
     -> TPLC.Term TyName Name uni fun ()
     -> m (EvaluationResult (UPLC.Term Name uni fun ()), [String])
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
@@ -46,7 +46,7 @@ typecheckEvaluateCekNoEmit
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => CostModel CekMachineCosts (CostingPart uni fun)
     -> TPLC.Term TyName Name uni fun ()
     -> m (EvaluationResult (UPLC.Term Name uni fun ()))
 typecheckEvaluateCekNoEmit = typecheckAnd unsafeEvaluateCekNoEmit
@@ -57,7 +57,7 @@ typecheckReadKnownCek
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        , KnownType (UPLC.Term Name uni fun ()) a
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => CostModel CekMachineCosts (CostingPart uni fun)
     -> TPLC.Term TyName Name uni fun ()
     -> m (Either (CekEvaluationException uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

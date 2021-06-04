@@ -5,13 +5,6 @@
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
-import           PlutusCore.Constant
-
-import           PlutusCore.Core.Type                   hiding (Type)
-import           PlutusCore.Evaluation.Machine.ExBudget ()
-
-import           GHC.Types                              (Type)
-
 {-| We need to account for the costs of evaluator steps and also built-in function
    evaluation.  The models for these have different structures and are used in
    different parts of the code, so inside the valuator we pass separate objects
@@ -27,25 +20,17 @@ data CostModel machinecosts builtincosts =
     , builtinCostModel :: builtincosts
     } deriving (Eq, Show)
 
-{-| At execution time we need a 'BuiltinsRuntime' object which includes both the
-  cost model for builtins and their denotations.  This bundles one of those
-  together with the cost model for evaluator steps.  The 'term' type will be
-  CekValue when we're using this with the CEK machine. -}
-data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
-    MachineParameters {
-      machineCosts    :: machinecosts
-    , builtinsRuntime :: BuiltinsRuntime fun (term uni fun)
+
+
+{-
+data CostModel machinecosts uni fun =
+    CostModel {
+      machineCostModel :: machinecosts
+    , builtinCostModel :: CostingPart uni fun
     }
 
-{-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
-toMachineParameters ::
-    ( UniOf (val uni fun) ~ uni
-      -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
-    , CostingPart uni fun ~ builtincosts
-    , HasConstant (val uni fun)
-    , ToBuiltinMeaning uni fun
-    )
-    => CostModel machinecosts builtincosts
-    -> MachineParameters machinecosts val uni fun
-toMachineParameters (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (toBuiltinsRuntime builtinCosts)
+deriving instance (Eq machinecosts, Eq (CostingPart uni fun)) =>
+            Eq (CostModel machinecosts uni fun)
+deriving instance (Show machinecosts, Show (CostingPart uni fun)) =>
+            Show (CostModel machinecosts uni fun)
+-}

@@ -34,7 +34,7 @@ readMakeHetero
     => a -> EvaluationResult b
 readMakeHetero x = do
     xTerm <- makeKnownNoEmit @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
-    case extractEvaluationResult <$> typecheckReadKnownCek TPLC.defaultCekParameters xTerm of
+    case extractEvaluationResult <$> typecheckReadKnownCek TPLC.defaultCekCostModel xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
@@ -82,7 +82,7 @@ test_collectStrings = testProperty "collectStrings" . property $ do
             , rest
             ]
         term = foldr step unitval strs
-    strs' <- case typecheckEvaluateCek TPLC.defaultCekParameters term of
+    strs' <- case typecheckEvaluateCek TPLC.defaultCekCostModel term of
         Left _                             -> failure
         Right (EvaluationFailure, _)       -> failure
         Right (EvaluationSuccess _, strs') -> return strs'

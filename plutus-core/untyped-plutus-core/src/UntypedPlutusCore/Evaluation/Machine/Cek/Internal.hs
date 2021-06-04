@@ -64,7 +64,6 @@ import           Control.Monad.Catch
 import           Control.Monad.Except
 import           Control.Monad.ST
 import           Control.Monad.ST.Unsafe
-import           Data.Array
 import           Data.DList                                               (DList)
 import qualified Data.DList                                               as DList
 import           Data.Hashable                                            (Hashable)
@@ -303,7 +302,7 @@ they don't actually take the context as an argument even at the source level.
 -}
 
 -- | Implicit parameter for the builtin runtime.
-type GivenCekRuntime uni fun = (?cekRuntime :: (BuiltinsRuntime fun (CekValue uni fun)))
+type GivenCekCostingPart uni fun = (?cekBuiltinCosts :: CostingPart uni fun)
 -- | Implicit parameter for the log emitter reference.
 type GivenCekEmitter s = (?cekEmitter :: (Maybe (STRef s (DList String))))
 -- | Implicit parameter for budget spender.
@@ -312,7 +311,7 @@ type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 
 -- | Constraint requiring all of the machine's implicit parameters.
-type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
+type GivenCekReqs uni fun s = (GivenCekCostingPart uni fun, GivenCekEmitter s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
@@ -535,18 +534,18 @@ tryError a = (Right <$> a) `catchError` (pure . Left)
 runCekM
     :: forall a cost uni fun.
     (PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => CostModel CekMachineCosts (CostingPart uni fun)
     -> ExBudgetMode cost uni fun
     -> Bool
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitting a = runST $ do
+runCekM (CostModel machineCosts builtinCosts) (ExBudgetMode getExBudgetInfo) emitting a = runST $ do
     exBudgetMode <- getExBudgetInfo
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
-    let ?cekRuntime = runtime
+    let ?cekBuiltinCosts = builtinCosts
         ?cekEmitter = mayLogsRef
         ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
-        ?cekCosts = costs
+        ?cekCosts = machineCosts
         ?cekSlippage = defaultSlippage
     -- See Note Note [Being generic over 'term' in errors].
     errValOrErrTermOrRes <- unCekCarryingM . tryError . withTermErrors $ tryError a
@@ -591,7 +590,7 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun s
-    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
+    . (PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage, ToBuiltinMeaning uni fun)
     => Context uni fun
     -> CekValEnv uni fun
     -> Term Name uni fun ()
@@ -636,8 +635,8 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !unbudgetedSteps ctx env term@(Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
-        meaning <- lookupBuiltin bn ?cekRuntime
-        returnCek unbudgetedSteps' ctx (VBuiltin bn term env meaning)
+        let runtime = toBuiltinRuntime ?cekBuiltinCosts $ toBuiltinMeaning bn
+        returnCek unbudgetedSteps' ctx (VBuiltin bn term env runtime)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ _ _ (Error _) =
         throwing_ _EvaluationFailure
@@ -756,8 +755,8 @@ enterComputeCek = computeCek (toWordArray 0) where
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCek
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun
+    :: (uni `Everywhere` ExMemoryUsage, PrettyUni uni fun, ToBuiltinMeaning uni fun)
+    => CostModel CekMachineCosts (CostingPart uni fun)
     -> ExBudgetMode cost uni fun
     -> Bool
     -> Term Name uni fun ()

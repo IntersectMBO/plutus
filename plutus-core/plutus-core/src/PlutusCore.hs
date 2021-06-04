@@ -121,13 +121,12 @@ module PlutusCore
     , programSize
     , serialisedSize
     -- * Budgeting defaults
+    , unitCekCostModel
     , defaultBuiltinCostModel
     , defaultBuiltinsRuntime
     , defaultCekCostModel
     , defaultCekMachineCosts
-    , defaultCekParameters
     , defaultCostModelParams
-    , unitCekParameters
     -- * CEK machine costs
     , cekMachineCostsPrefix
     , CekMachineCosts (..)

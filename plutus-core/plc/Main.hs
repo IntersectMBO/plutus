@@ -856,8 +856,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
                   let term = void . UPLC.toTerm $ prog
                       !_ = rnf term
                       cekparams = case cekModel of
-                                Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
-                                Unit    -> PLC.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
+                                Default -> PLC.defaultCekCostModel  -- AST nodes are charged according to the default cost model
+                                Unit    -> PLC.unitCekCostModel  -- AST nodes are charged one unit each, so we can see how many times each node
                                                                      -- type is encountered.  This is useful for calibrating the budgeting code.
                   case budgetMode of
                     Silent -> do

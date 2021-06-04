@@ -5,11 +5,9 @@
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     ( defaultBuiltinsRuntime
     , defaultCekCostModel
+    , unitCekCostModel
     , defaultCekMachineCosts
-    , defaultCekParameters
     , defaultCostModelParams
-    , unitCekMachineCosts
-    , unitCekParameters
     , defaultBuiltinCostModel
     )
 
@@ -27,7 +25,6 @@ import           PlutusCore.Evaluation.Machine.ExMemory                   ()
 import           PlutusCore.Evaluation.Machine.MachineParameters
 
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 
 -- | The default cost model for built-in functions.
@@ -51,16 +48,13 @@ defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 --- defaultCekMachineCosts is CekMachineCosts
 
+unitCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
+unitCekCostModel = CostModel unitCekMachineCosts defaultBuiltinCostModel
+
 -- | The default cost model data.  This is exposed to the ledger, so let's not
 -- confuse anybody by mentioning the CEK machine
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
-
-defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = toMachineParameters defaultCekCostModel
-
-unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts defaultBuiltinCostModel)
 
 defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel

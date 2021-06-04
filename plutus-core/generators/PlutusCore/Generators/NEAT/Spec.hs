@@ -162,7 +162,7 @@ prop_agree_termEval tyG tmG = do
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParameters (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekCostModel (U.erase tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
@@ -511,4 +511,3 @@ bigTestTypeG_NO_LIST s GenOptions{..} t f = testCaseInfo s $ do
   as <- search' genMode genDepth (\a -> noListTypeG a &&& check t a)
   _  <- traverse (f t) as
   return $ show (length as)
-
