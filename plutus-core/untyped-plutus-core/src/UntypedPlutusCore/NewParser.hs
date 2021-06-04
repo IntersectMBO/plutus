@@ -42,61 +42,66 @@ import           Data.ByteString.Lazy.Internal   (unpackChars)
 import qualified Data.Text                       as T
 import           PlutusCore.ParserCommon
 
--- The following functions correspond to UntypedPlutusCore.Core.Type TermLike instances
+-- Parsers for UPLC terms
 
-delayTerm :: ParsecT ParseError
-                   T.Text
-                   (StateT ParserState PLC.Quote)
-                   (UPLC.Term PLC.Name uni fun SourcePos)
-                   -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-delayTerm tm = UPLC.Delay <$> reservedWord "abs" <*> tm
+conTerm
+    :: (PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable, PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)))
+    => Parser (UPLC.Term PLC.Name uni fun SourcePos)
+conTerm = inParens $ UPLC.Constant <$> reservedWord "con" <*> constant
+
+builtinTerm :: (Bounded fun, Enum fun, Pretty fun)
+    => Parser (UPLC.Term PLC.Name uni fun SourcePos)
+builtinTerm = inParens $ UPLC.Builtin <$> reservedWord "builtin" <*> builtinFunction
+
+varTerm :: Parser (UPLC.Term PLC.Name uni fun SourcePos)
+varTerm = UPLC.Var <$> getSourcePos <*> name
 
 lamTerm :: ParsecT ParseError
                    T.Text
                    (StateT ParserState PLC.Quote)
                    (UPLC.Term PLC.Name uni fun SourcePos)
                    -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-lamTerm tm = UPLC.LamAbs <$> reservedWord "lam" <*> name <*> tm
+lamTerm tm = inParens $ UPLC.LamAbs <$> reservedWord "lam" <*> name <*> tm
 
 appTerm :: ParsecT ParseError
                    T.Text
                    (StateT ParserState PLC.Quote)
                    (UPLC.Term PLC.Name uni fun SourcePos)
                    -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-appTerm tm = UPLC.Apply <$> getSourcePos <*> tm <*> tm
+appTerm tm = inBrackets $ UPLC.Apply <$> getSourcePos <*> tm <*> tm
 
-conTerm
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable, PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)))
-    => Parser (UPLC.Term PLC.Name uni fun SourcePos)
-conTerm = UPLC.Constant <$> reservedWord "con" <*> constant
-
-builtinTerm :: (Bounded fun, Enum fun, Pretty fun)
-    => Parser (UPLC.Term PLC.Name uni fun SourcePos)
-builtinTerm = UPLC.Builtin <$> reservedWord "builtin" <*> builtinFunction
+delayTerm :: ParsecT ParseError
+                   T.Text
+                   (StateT ParserState PLC.Quote)
+                   (UPLC.Term PLC.Name uni fun SourcePos)
+                   -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
+delayTerm tm = inParens $ UPLC.Delay <$> reservedWord "abs" <*> tm
 
 forceTerm :: ParsecT ParseError
                    T.Text
                    (StateT ParserState PLC.Quote)
                    (UPLC.Term PLC.Name uni fun SourcePos)
                    -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-forceTerm tm = UPLC.Force <$> getSourcePos <*> tm
+forceTerm tm = inBraces $ UPLC.Force <$> getSourcePos <*> tm
 
 -- In uplc, Iwrap and Unwrap are removed.
 
 errorTerm
     :: Parser (UPLC.Term PLC.Name uni fun SourcePos)
-errorTerm = UPLC.Error <$> reservedWord "error"
+errorTerm = inParens $ UPLC.Error <$> reservedWord "error"
 
+-- | Parser for all UPLC terms.
 term
     :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun, PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)))
         => Parser (UPLC.Term PLC.Name uni fun SourcePos)
-term = (name >>= (\n -> getSourcePos >>= \p -> return $ UPLC.Var p n))
-    <|> (inParens $ delayTerm self <|> lamTerm self <|> conTerm <|> builtinTerm <|> errorTerm)
-    <|> inBraces (forceTerm self)
-    <|> inBrackets (appTerm self)
+term = conTerm <|> builtinTerm <|> varTerm
+    <|> lamTerm self <|> appTerm self
+    <|> delayTerm self <|> forceTerm self
+    <|>   errorTerm
     where self = term
 
+-- | Parser for UPLC programs.
 program
     :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun, PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)))
@@ -106,7 +111,7 @@ program = whitespace >> do
     notFollowedBy anySingle
     return prog
 
--- | Generic parser function
+-- | Generic parser function.
 parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text ParseError) a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
 

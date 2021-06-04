@@ -54,6 +54,9 @@ topSourcePos = initialPos "top"
 initial :: ParserState
 initial = ParserState M.empty
 
+-- | Return the unique identifier of a name.
+-- If it's not in the current parser state, map the name with a fresh id
+-- and add it to the state. Used in the Name parser.
 intern :: (MonadState ParserState m, PLC.MonadQuote m) => T.Text -> m PLC.Unique
 intern n = do
     st <- get
@@ -76,9 +79,6 @@ parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
-
--- Tokens
--- TODO: move this to separate module?
 
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
@@ -113,6 +113,7 @@ inBraces = between lbrace rbrace
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 
+-- | Return the source position of the input word.
 reservedWord :: T.Text -> Parser SourcePos
 reservedWord w = lexeme $ try $ do
     p <- getSourcePos
