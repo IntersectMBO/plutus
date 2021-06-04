@@ -59,7 +59,7 @@ import qualified PlutusTx.Numeric                 as N
 
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Orphans                   ()
-import           Ledger.Typed.Scripts             (ScriptInstance, ScriptType (..))
+import           Ledger.Typed.Scripts             (ScriptInstance, ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (ConnectionError)
 import qualified Ledger.Typed.Tx                  as Typed

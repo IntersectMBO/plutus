@@ -31,7 +31,7 @@ import           Ledger.Constraints                       (TxConstraints)
 import           Ledger.Constraints.OffChain              (ScriptLookups, UnbalancedTx)
 import qualified Ledger.Constraints.OffChain              as Constraints
 import           Ledger.Tx                                (Tx, txId)
-import           Ledger.Typed.Scripts                     (ScriptInstance, ScriptType (..))
+import           Ledger.Typed.Scripts                     (ScriptInstance, ValidatorTypes (..))
 
 import           Wallet.API                               (WalletAPIError)
 

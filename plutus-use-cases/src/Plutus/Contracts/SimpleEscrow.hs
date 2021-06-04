@@ -90,7 +90,7 @@ newtype RedeemSuccess = RedeemSuccess TxId
     deriving (Haskell.Eq, Haskell.Show)
 
 data Escrow
-instance Scripts.ScriptType Escrow where
+instance Scripts.ValidatorTypes Escrow where
     type instance RedeemerType Escrow = Action
     type instance DatumType    Escrow = EscrowParams
 

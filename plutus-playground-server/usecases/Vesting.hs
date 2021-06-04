@@ -129,7 +129,7 @@ validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx
             -- please, potentially saving one transaction.
 
 data Vesting
-instance Scripts.ScriptType Vesting where
+instance Scripts.ValidatorTypes Vesting where
     type instance RedeemerType Vesting = ()
     type instance DatumType Vesting = ()
 

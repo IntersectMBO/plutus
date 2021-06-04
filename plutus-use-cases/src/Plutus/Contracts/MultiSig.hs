@@ -63,7 +63,7 @@ validate MultiSig{signatories, minNumSignatures} _ _ p =
     let present = length (filter (V.txSignedBy (scriptContextTxInfo p)) signatories)
     in traceIfFalse "not enough signatures" (present >= minNumSignatures)
 
-instance Scripts.ScriptType MultiSig where
+instance Scripts.ValidatorTypes MultiSig where
     type instance RedeemerType MultiSig = ()
     type instance DatumType MultiSig = ()
 

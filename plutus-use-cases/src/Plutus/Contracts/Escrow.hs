@@ -165,7 +165,7 @@ mkTx = \case
 data Action = Redeem | Refund
 
 data Escrow
-instance Scripts.ScriptType Escrow where
+instance Scripts.ValidatorTypes Escrow where
     type instance RedeemerType Escrow = Action
     type instance DatumType Escrow = PubKeyHash
 

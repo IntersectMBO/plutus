@@ -32,7 +32,7 @@ type WrappedMonetaryPolicyType = Data -> ()
 
 -- | A class that associates a type standing for a connection type with two types, the type of the redeemer
 -- and the data script for that connection type.
-class ScriptType (a :: Type) where
+class ValidatorTypes (a :: Type) where
     -- | The type of the redeemers of this connection type.
     type RedeemerType a :: Type
     -- | The type of the data of this connection type.
@@ -42,13 +42,13 @@ class ScriptType (a :: Type) where
     type instance RedeemerType a = ()
     type instance DatumType  a = ()
 
-instance ScriptType Void where
+instance ValidatorTypes Void where
     type RedeemerType Void = Void
     type DatumType Void = Void
 
 data Any
 
-instance ScriptType Any where
+instance ValidatorTypes Any where
     type RedeemerType Any = Data
     type DatumType Any = Data
 

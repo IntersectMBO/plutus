@@ -51,7 +51,7 @@ type GameSchema =
         .\/ Endpoint "guess" GuessParams
 
 data Game
-instance Scripts.ScriptType Game where
+instance Scripts.ValidatorTypes Game where
     type instance RedeemerType Game = ClearString
     type instance DatumType Game = HashedString
 

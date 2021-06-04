@@ -50,7 +50,7 @@ import           Prelude                          as Haskell (Int, Semigroup (..
 import           Text.Printf                      (printf)
 
 data Uniswapping
-instance Scripts.ScriptType Uniswapping where
+instance Scripts.ValidatorTypes Uniswapping where
     type instance RedeemerType Uniswapping = UniswapAction
     type instance DatumType    Uniswapping = UniswapDatum
 
@@ -537,4 +537,3 @@ userEndpoints us =
         tell $ Last $ Just $ case e of
             Left err -> Left err
             Right () -> Right Stopped
-

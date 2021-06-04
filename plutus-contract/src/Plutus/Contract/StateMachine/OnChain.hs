@@ -88,7 +88,7 @@ mkStateMachine smThreadToken smTransition smFinal =
         , smThreadToken
         }
 
-instance ScriptType (StateMachine s i) where
+instance ValidatorTypes (StateMachine s i) where
     type instance RedeemerType (StateMachine s i) = i
     type instance DatumType (StateMachine s i) = s
 

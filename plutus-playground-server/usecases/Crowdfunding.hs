@@ -96,7 +96,7 @@ refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
 data Crowdfunding
-instance Scripts.ScriptType Crowdfunding where
+instance Scripts.ValidatorTypes Crowdfunding where
     type instance RedeemerType Crowdfunding = CampaignAction
     type instance DatumType Crowdfunding = PubKeyHash
 

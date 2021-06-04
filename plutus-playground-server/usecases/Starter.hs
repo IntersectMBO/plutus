@@ -54,7 +54,7 @@ contractAddress :: Address
 contractAddress = Ledger.scriptAddress (Scripts.validatorScript starterInstance)
 
 data Starter
-instance Scripts.ScriptType Starter where
+instance Scripts.ValidatorTypes Starter where
     type instance RedeemerType Starter = MyRedeemer
     type instance DatumType Starter = MyDatum
 

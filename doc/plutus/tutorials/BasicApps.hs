@@ -56,7 +56,7 @@ validateSplit SplitData{recipient1, recipient2, amount} _ ScriptContext{scriptCo
 -- BLOCK3
 
 data Split
-instance Scripts.ScriptType Split where
+instance Scripts.ValidatorTypes Split where
     type instance RedeemerType Split = ()
     type instance DatumType Split = SplitData
 

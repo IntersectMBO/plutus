@@ -74,7 +74,7 @@ You then need some boilerplate to compile the validator to a Plutus script (see 
    :start-after: BLOCK3
    :end-before: BLOCK4
 
-The ``ScriptType`` class defines the types of the validator, and ``splitInstance`` contains the compiled Plutus core code of ``validateSplit``.
+The :hsobj:`Ledger.Typed.Scripts.Validators.ValidatorTypes` class defines the types of the validator, and ``splitInstance`` contains the compiled Plutus core code of ``validateSplit``.
 
 Asking for input
 ----------------

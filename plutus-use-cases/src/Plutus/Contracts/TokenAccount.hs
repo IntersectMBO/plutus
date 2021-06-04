@@ -56,7 +56,7 @@ import qualified Ledger                           as Ledger
 import qualified Ledger.Constraints               as Constraints
 import qualified Ledger.Contexts                  as V
 import qualified Ledger.Scripts
-import           Ledger.Typed.Scripts             (ScriptType (..))
+import           Ledger.Typed.Scripts             (ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Value                     (TokenName, Value)
 import qualified Ledger.Value                     as Value
@@ -71,7 +71,7 @@ newtype Account = Account { accountOwner :: Value.AssetClass }
 
 data TokenAccount
 
-instance ScriptType TokenAccount where
+instance ValidatorTypes TokenAccount where
     type RedeemerType TokenAccount = ()
     type DatumType TokenAccount = ()
 

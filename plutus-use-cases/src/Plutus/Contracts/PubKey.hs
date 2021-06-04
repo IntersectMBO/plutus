@@ -37,7 +37,7 @@ mkValidator pk' _ _ p = V.txSignedBy (scriptContextTxInfo p) pk'
 
 data PubKeyContract
 
-instance Scripts.ScriptType PubKeyContract where
+instance Scripts.ValidatorTypes PubKeyContract where
     type instance RedeemerType PubKeyContract = ()
     type instance DatumType PubKeyContract = ()
 

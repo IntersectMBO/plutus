@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Typed.Scripts(
-    ScriptType(..)
+    ValidatorTypes(..)
     , Validator
     , ScriptInstance
     , MonetaryPolicy

@@ -41,7 +41,7 @@ import qualified Ledger.Interval          as Interval
 import qualified Ledger.Time              as Time
 import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
-import           Ledger.Typed.Scripts     (ScriptType (..))
+import           Ledger.Typed.Scripts     (ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value)
 import qualified Ledger.Value             as Value
@@ -76,7 +76,7 @@ type VestingSchema =
 
 data Vesting
 
-instance ScriptType Vesting where
+instance ValidatorTypes Vesting where
     type instance RedeemerType Vesting = ()
     type instance DatumType Vesting = ()
 
