@@ -176,6 +176,8 @@ type SchemaConstraints w schema err =
         , Typeable err
         , JSON.ToJSON err
         , JSON.FromJSON err
+        , JSON.ToJSON w
+        , JSON.FromJSON w
         )
 
 -- | A `ContractInstanceSpec` associates a `ContractInstanceKey` with a concrete `Wallet` and

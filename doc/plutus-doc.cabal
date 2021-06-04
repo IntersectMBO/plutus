@@ -63,6 +63,7 @@ executable doc-doctests
       containers -any,
       freer-extras -any,
       lens -any,
+      serialise -any,
       QuickCheck -any,
       random -any,
       text -any,

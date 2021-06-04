@@ -25,6 +25,7 @@ import           Data.Default                          (Default (..))
 import           Data.Either                           (isRight)
 import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
+import           Data.Monoid                           (First (..))
 import           Data.Ratio                            ((%))
 import           Data.Set                              (Set)
 import qualified Data.Set                              as Set
@@ -138,8 +139,12 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     T..&&. walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
     T..&&. walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
     T..&&. assertAccumState marloweFollowContract "bob follow"
-        (\state@(History mp MarloweData{marloweContract} history) ->
-            mp == params && marloweContract == contract) "follower contract state"
+        (\state@ContractHistory{chParams, chHistory} ->
+            case chParams of
+                First (Just (mp, MarloweData{marloweContract})) -> mp == params && marloweContract == contract
+                _                                               -> False) "follower contract state"
+            --mp MarloweData{marloweContract} history
+            -- chParams == (_ params) && chParams == (_ contract))
     ) $ do
 
     -- Init a contract

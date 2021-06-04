@@ -33,35 +33,36 @@ module Plutus.PAB.ContractCLI
     , runPromptIO
     ) where
 
-import           Control.Monad.Freer               (Eff, LastMember, Member, interpret, run, runM, send, sendM,
-                                                    type (~>))
-import           Control.Monad.Freer.Error         (Error, runError, throwError)
-import qualified Control.Monad.Freer.Extras.Modify as Modify
-import           Control.Monad.IO.Class            (liftIO)
-import           Data.Aeson                        (FromJSON, ToJSON)
-import qualified Data.Aeson                        as JSON
-import qualified Data.Aeson.Encode.Pretty          as JSON
-import           Data.Bifunctor                    (bimap)
-import qualified Data.ByteString                   as BS
-import qualified Data.ByteString.Char8             as BS8
-import qualified Data.ByteString.Lazy              as BSL
-import           Data.Foldable                     (traverse_)
-import           Data.Proxy                        (Proxy (..))
-import           Data.Row                          (AllUniqueLabels, Forall)
-import           Data.Row.Extras                   (type (.\\))
-import           Data.Text                         (Text)
-import qualified Data.Text                         as Text
-import           Options.Applicative               (CommandFields, Mod, Parser, ParserResult, command, disambiguate,
-                                                    execParserPure, fullDesc, helper, idm, info, prefs, progDesc,
-                                                    showHelpOnEmpty, showHelpOnError, subparser)
+import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, run, runM, send, sendM,
+                                                          type (~>))
+import           Control.Monad.Freer.Error               (Error, runError, throwError)
+import qualified Control.Monad.Freer.Extras.Modify       as Modify
+import           Control.Monad.IO.Class                  (liftIO)
+import           Data.Aeson                              (FromJSON, ToJSON (toJSON))
+import qualified Data.Aeson                              as JSON
+import qualified Data.Aeson.Encode.Pretty                as JSON
+import           Data.Bifunctor                          (bimap)
+import qualified Data.ByteString                         as BS
+import qualified Data.ByteString.Char8                   as BS8
+import qualified Data.ByteString.Lazy                    as BSL
+import           Data.Foldable                           (traverse_)
+import           Data.Proxy                              (Proxy (..))
+import           Data.Row                                (AllUniqueLabels, Forall)
+import           Data.Row.Extras                         (type (.\\))
+import           Data.Text                               (Text)
+import qualified Data.Text                               as Text
+import           Options.Applicative                     (CommandFields, Mod, Parser, ParserResult, command,
+                                                          disambiguate, execParserPure, fullDesc, helper, idm, info,
+                                                          prefs, progDesc, showHelpOnEmpty, showHelpOnError, subparser)
 import qualified Options.Applicative
-import           Playground.Schema                 (EndpointToSchema, endpointsToSchemas)
-import           Plutus.Contract                   (BlockchainActions, Contract)
-import           Plutus.Contract.Schema            (Input, Output)
-import qualified Plutus.Contract.State             as ContractState
-import           Prelude                           hiding (getContents)
-import           System.Environment                (getArgs)
-import           System.Exit                       (ExitCode (ExitFailure), exitSuccess, exitWith)
+import           Playground.Schema                       (EndpointToSchema, endpointsToSchemas)
+import           Plutus.Contract                         (BlockchainActions, Contract)
+import           Plutus.Contract.Schema                  (Input, Output)
+import qualified Plutus.Contract.State                   as ContractState
+import           Plutus.PAB.Events.ContractInstanceState (fromResp)
+import           Prelude                                 hiding (getContents)
+import           System.Environment                      (getArgs)
+import           System.Exit                             (ExitCode (ExitFailure), exitSuccess, exitWith)
 import qualified System.IO
 
 -- | Read from stdin
@@ -114,6 +115,7 @@ runCliCommand :: forall w s s2.
        , Forall (Input s) ToJSON
        , EndpointToSchema (s .\\ s2)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Proxy s2
@@ -134,6 +136,7 @@ runUpdate :: forall w s.
     , Forall (Output s) ToJSON
     , Forall (Input s) ToJSON
     , ToJSON w
+    , FromJSON w
     , Monoid w
     )
     => Contract w s Text ()
@@ -142,7 +145,7 @@ runUpdate :: forall w s.
 runUpdate contract arg = either (throwError @[BS.ByteString] . return) pure $
     bimap
         (BSL.toStrict . JSON.encodePretty . Text.pack)
-        (BSL.toStrict . JSON.encodePretty . ContractState.insertAndUpdateContract contract)
+        (BSL.toStrict . JSON.encodePretty . fromResp . ContractState.mapE toJSON . ContractState.mapW toJSON . bimap toJSON toJSON . ContractState.insertAndUpdateContract contract)
         (JSON.eitherDecode $ BSL.fromStrict arg)
 
 -- | Make a command line app with a schema that includes all of the contract's
@@ -154,6 +157,7 @@ commandLineApp :: forall w s.
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ BlockchainActions)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Contract w s Text ()
@@ -169,12 +173,13 @@ commandLineApp' :: forall w s s2.
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ s2)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Proxy s2
     -> Contract w s Text ()
     -> IO ()
-commandLineApp' p schema = runPromptIO (contractCliApp  p schema)
+commandLineApp' p schema = runPromptIO (contractCliApp p schema)
 
 contractCliApp :: forall w s s2.
        ( AllUniqueLabels (Input s)
@@ -183,6 +188,7 @@ contractCliApp :: forall w s s2.
        , Forall (Output s) ToJSON
        , EndpointToSchema (s .\\ s2)
        , ToJSON w
+       , FromJSON w
        , Monoid w
        )
     => Proxy s2

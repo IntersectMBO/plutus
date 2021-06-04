@@ -10,10 +10,10 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
-module Spec.Contract(tests) where
+module Spec.Contract(tests, loopCheckpointContract, initial, upd, call) where
 
 import           Control.Lens
-import           Control.Monad                          (forever, void)
+import           Control.Monad                          (forM, forever, void)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except                   (catchError, throwError)
 import           Control.Monad.Freer                    (Eff)
@@ -27,8 +27,9 @@ import qualified Ledger.Ada                             as Ada
 import qualified Ledger.Constraints                     as Constraints
 import qualified Ledger.Crypto                          as Crypto
 import           Plutus.Contract                        as Con
+import qualified Plutus.Contract.State                  as State
 import           Plutus.Contract.Test
-import           Plutus.Contract.Types                  (ResumableResult (..))
+import           Plutus.Contract.Types                  (ResumableResult (..), responses)
 import           Plutus.Contract.Util                   (loopM)
 import qualified Plutus.Trace                           as Trace
 import           Plutus.Trace.Emulator                  (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
@@ -43,6 +44,8 @@ import qualified Wallet.Emulator                        as EM
 
 import qualified Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
 import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
+import qualified Plutus.Contract.Effects.ExposeEndpoint as Endpoint
+import           Plutus.Contract.Resumable              (IterationID, Response (..))
 import           Plutus.Contract.Trace.RequestHandler   (maybeToHandler)
 
 tests :: TestTree
@@ -182,6 +185,16 @@ tests =
             (assertDone errorContract tag (\i -> i == 11) "should finish")
             (void $ activateContract w1 (void errorContract) tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 10 >> callEndpoint @"3" hdl 11)
 
+        , run 1 "loop checkpoint"
+            (assertDone loopCheckpointContract tag (\i -> i == 4) "should finish"
+            .&&. assertResumableResult loopCheckpointContract tag DoShrink (null . view responses) "should collect garbage"
+            .&&. assertResumableResult loopCheckpointContract tag DontShrink ((==) 4 . length . view responses) "should keep everything"
+            )
+            $ do
+                hdl <- activateContract w1 loopCheckpointContract tag
+                forM [1..4] (\_ -> callEndpoint @"1" hdl 1)
+                pure ()
+
         , let theContract :: Contract () Schema ContractError () = logInfo @String "waiting for endpoint 1" >> endpoint @"1" >>= logInfo . (<>) "Received value: " . show
               matchLogs :: [EM.EmulatorTimeEvent ContractInstanceLog] -> Bool
               matchLogs lgs =
@@ -226,6 +239,19 @@ checkpointContract = void $ do
         endpoint @"1" @Int
         endpoint @"3" @Int
 
+loopCheckpointContract :: Contract () Schema ContractError Int
+loopCheckpointContract = do
+    -- repeatedly expose the "1" endpoint until we get a total
+    -- value greater than 3.
+    -- We can call "1" with different values to control whether
+    -- the left or right branch is chosen.
+    flip checkpointLoop (0 :: Int) $ \counter -> do
+        vl <- endpoint @"1" @Int
+        let newVal = counter + vl
+        if newVal > 3
+            then pure (Left newVal)
+            else pure (Right newVal)
+
 errorContract :: Contract () Schema ContractError Int
 errorContract = do
     catchError
@@ -244,3 +270,14 @@ type Schema =
         .\/ Endpoint "4" Int
         .\/ Endpoint "ep" ()
         .\/ Endpoint "5" [ActiveEndpoint]
+
+initial :: _
+initial = State.initialiseContract loopCheckpointContract
+
+upd :: _
+upd = State.insertAndUpdateContract loopCheckpointContract
+
+call :: IterationID -> Int -> _
+call it i oldState =
+    let r = upd State.ContractRequest{State.oldState, State.event = Response{rspRqID = 1, rspItID = it, rspResponse = Endpoint.event @"1" i}}
+    in (State.newState r, State.hooks r)

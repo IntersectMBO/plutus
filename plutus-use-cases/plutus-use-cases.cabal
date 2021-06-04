@@ -41,13 +41,11 @@ library
         Plutus.Contracts.PingPong
         Plutus.Contracts.Prism
         Plutus.Contracts.Prism.Credential
-        Plutus.Contracts.Prism.CredentialManager
         Plutus.Contracts.Prism.STO
         Plutus.Contracts.Prism.Mirror
         Plutus.Contracts.Prism.StateMachine
         Plutus.Contracts.Prism.Unlock
         Plutus.Contracts.PubKey
-        Plutus.Contracts.RPC
         Plutus.Contracts.Stablecoin
         Plutus.Contracts.Swap
         Plutus.Contracts.Uniswap
@@ -115,7 +113,6 @@ test-suite plutus-use-cases-test
         Spec.PubKey
         Spec.Prism
         Spec.Rollup
-        Spec.RPC
         Spec.Stablecoin
         Spec.TokenAccount
         Spec.Vesting
@@ -181,7 +178,6 @@ executable plutus-use-cases-scripts
         Spec.PubKey
         Spec.Prism
         Spec.Rollup
-        Spec.RPC
         Spec.Stablecoin
         Spec.TokenAccount
         Spec.Vesting

@@ -104,4 +104,3 @@ compileReadableToPlc =
 compileTerm :: Compiling m e uni fun a
             => Term TyName Name uni fun a -> m (PLCTerm uni fun a)
 compileTerm = compileToReadable >=> compileReadableToPlc
-

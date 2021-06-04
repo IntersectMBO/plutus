@@ -2,20 +2,26 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 module BasicValidators where
 
-import qualified PlutusCore.Builtins  as PLC
-import qualified PlutusCore.Universe  as PLC
+import qualified PlutusCore.Default   as PLC
 import           PlutusTx
 import           PlutusTx.Lift
 import           PlutusTx.Prelude
 
-import           Ledger
+import           Ledger               hiding (ScriptType)
 import           Ledger.Ada
 import           Ledger.Typed.Scripts
 import           Ledger.Value
 
+import qualified Data.ByteString.Lazy as BSL
+
+import           Codec.Serialise
+
+import           Prelude              (IO, print, show)
 import qualified Prelude              as Haskell
 
 
@@ -77,9 +83,36 @@ validatePayment _ _ ctx = check $ case fromData ctx of
         in fold values `geq` adaValueOf 1
     _ -> False
 -- BLOCK5
-validateDate' :: Data -> Data -> Data -> ()
-validateDate' = wrapValidator validateDateTyped
-    where
-        validateDateTyped :: EndDate -> Date -> ScriptContext -> Bool
-        validateDateTyped endDate date _ = beforeEnd date endDate
+data DateValidator
+instance ScriptType DateValidator where
+    type instance RedeemerType DateValidator = Date
+    type instance DatumType DateValidator = EndDate
 -- BLOCK6
+validateDateTyped :: EndDate -> Date -> ScriptContext -> Bool
+validateDateTyped endDate date _ = beforeEnd date endDate
+
+validateDateWrapped :: Data -> Data -> Data -> ()
+validateDateWrapped = wrapValidator validateDateTyped
+-- BLOCK7
+dateInstance :: ScriptInstance DateValidator
+dateInstance = validator @DateValidator
+    -- The first argument is the compiled validator.
+    $$(compile [|| validateDateTyped ||])
+    -- The second argument is a compiled wrapper.
+    -- Unfortunately we can't just inline wrapValidator here for technical reasons.
+    $$(compile [|| wrap ||])
+    where
+        wrap = wrapValidator
+
+dateValidatorHash :: ValidatorHash
+dateValidatorHash = scriptHash dateInstance
+
+dateValidator :: Validator
+dateValidator = validatorScript dateInstance
+-- BLOCK8
+serializedDateValidator :: BSL.ByteString
+serializedDateValidator = serialise dateValidator
+
+main :: IO ()
+main = print serializedDateValidator
+-- BLOCK9

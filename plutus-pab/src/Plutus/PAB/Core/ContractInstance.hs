@@ -1,11 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -47,14 +44,14 @@ import qualified Data.Text                                        as Text
 import           Plutus.Contract.Effects.AwaitSlot                (WaitingForSlot (..))
 import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
-import           Plutus.Contract.State                            (ContractResponse (..))
+import           Plutus.Contract.State                            (ContractResponse (..), State (..))
 import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                    maybeToHandler, tryHandler', wrapHandler)
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..),
                                                                    processAddressChangedAtRequests,
-                                                                   processInstanceRequests, processNotificationEffects,
-                                                                   processOwnPubkeyRequests, processTxConfirmedRequests,
-                                                                   processUtxoAtRequests, processWriteTxRequests)
+                                                                   processInstanceRequests, processOwnPubkeyRequests,
+                                                                   processTxConfirmedRequests, processUtxoAtRequests,
+                                                                   processWriteTxRequests)
 
 import           Wallet.Effects                                   (ChainIndexEffect, ContractRuntimeEffect,
                                                                    WalletEffect)
@@ -136,7 +133,6 @@ stmRequestHandler ::
     forall effs.
     ( Member ChainIndexEffect effs
     , Member WalletEffect effs
-    , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg TxBalanceMsg) effs
@@ -154,7 +150,6 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> processWriteTxRequests @effs
         <> processTxConfirmedRequests @effs
         <> processInstanceRequests @effs
-        <> processNotificationEffects @effs
         <> processAddressChangedAtRequests @effs
 
     -- requests that wait for changes to happen
@@ -246,7 +241,7 @@ updateState ::
     )
     => ContractResponse Value Value Value ContractPABRequest
     -> Eff effs ()
-updateState ContractResponse{observableState, hooks} = do
+updateState ContractResponse{newState = State{observableState}, hooks} = do
     state <- ask
     liftIO $ STM.atomically $ do
         InstanceState.clearEndpoints state
@@ -265,7 +260,6 @@ respondToRequestsSTM ::
     forall t effs.
     ( Member ChainIndexEffect effs
     , Member WalletEffect effs
-    , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs

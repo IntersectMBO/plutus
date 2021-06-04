@@ -246,7 +246,7 @@ data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
-  deriving stock (Haskell.Show,Generic)
+  deriving stock (Haskell.Show,Haskell.Eq,Generic)
 
 {-| Execution environment. Contains a slot interval of a transaction.
 -}
@@ -414,7 +414,7 @@ data TransactionOutput =
 data MarloweData = MarloweData {
         marloweState    :: State,
         marloweContract :: Contract
-    } deriving stock (Haskell.Show, Generic)
+    } deriving stock (Haskell.Show, Haskell.Eq, Generic)
       deriving anyclass (ToJSON, FromJSON)
 
 

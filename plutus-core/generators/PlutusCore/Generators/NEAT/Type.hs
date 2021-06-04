@@ -39,10 +39,10 @@ newtype Neutral a = Neutral
 
 data TypeBuiltinG = TyByteStringG
                   | TyIntegerG
-                  | TyStringG
                   | TyBoolG
                   | TyUnitG
                   | TyCharG
+                  | TyListG
                       deriving (Show, Eq, Ord)
 
 deriveEnumerable ''TypeBuiltinG
@@ -100,4 +100,3 @@ instance Monad TypeG where
 instance Applicative TypeG where
   (<*>) = ap
   pure = TyVarG
-

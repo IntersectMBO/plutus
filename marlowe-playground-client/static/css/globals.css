@@ -74,3 +74,42 @@ button.small-btn {
   background: var(--btn-secondary-color-active);
 }
 
+select {
+  display: block;
+  padding: 0.3rem 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, .04);
+  border-radius: .3em;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  background-image: url(../images/select-button.svg);
+  background-repeat: no-repeat, repeat;
+  background-position: right -15px top 50%, 0 0;
+  background-size: 55px auto, 100%;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+select:hover {
+  border-color: #888;
+}
+
+select:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 1px 3px rgba(59, 153, 252, .7);
+  box-shadow: 0 0 0 3px -moz-mac-focusring;
+  color: #222;
+  outline: none;
+}
+
+select option {
+  font-weight: normal;
+}

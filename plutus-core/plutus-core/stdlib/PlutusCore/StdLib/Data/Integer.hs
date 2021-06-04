@@ -9,15 +9,16 @@ module PlutusCore.StdLib.Data.Integer
     , succInteger
     ) where
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
+
+import           Universe
 
 integer :: uni `Includes` Integer => Type tyname uni ()
-integer = mkTyBuiltin @Integer ()
+integer = mkTyBuiltin @_ @Integer ()
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
 --

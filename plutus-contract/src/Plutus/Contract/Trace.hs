@@ -6,9 +6,7 @@
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MonoLocalBinds         #-}
 {-# LANGUAGE NamedFieldPuns         #-}
 {-# LANGUAGE NumericUnderscores     #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -66,8 +64,6 @@ import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import qualified Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Plutus.Contract.Effects.Instance         (HasOwnId)
 import qualified Plutus.Contract.Effects.Instance         as OwnInstance
-import           Plutus.Contract.Effects.Notify           (HasContractNotify)
-import qualified Plutus.Contract.Effects.Notify           as Notify
 import           Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey)
 import qualified Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import qualified Plutus.Contract.Effects.UtxoAt           as UtxoAt
@@ -138,7 +134,6 @@ handleBlockchainQueries ::
     , HasOwnPubKey s
     , HasWatchAddress s
     , HasOwnId s
-    , HasContractNotify s
     , HasAwaitSlot s
     )
     => RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Handlers s) (Event s)
@@ -149,7 +144,6 @@ handleBlockchainQueries =
     <> handleOwnPubKeyQueries
     <> handleAddressChangedAtQueries
     <> handleOwnInstanceIdQueries
-    <> handleContractNotifications
     <> handleSlotNotifications
 
 -- | Submit the wallet's pending transactions to the blockchain
@@ -228,17 +222,6 @@ handleOwnInstanceIdQueries =
     maybeToHandler OwnInstance.request
     >>> RequestHandler.handleOwnInstanceIdQueries
     >>^ OwnInstance.event
-
-handleContractNotifications ::
-    ( HasContractNotify s
-    , Member (LogObserve (LogMessage Text)) effs
-    , Member ContractRuntimeEffect effs
-    )
-    => RequestHandler effs (Handlers s) (Event s)
-handleContractNotifications =
-    maybeToHandler Notify.request
-    >>> RequestHandler.handleContractNotifications
-    >>^ Notify.event
 
 -- | The wallets used in mockchain simulations by default. There are
 --   ten wallets because the emulator comes with ten private keys.

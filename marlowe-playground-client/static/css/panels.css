@@ -1,11 +1,6 @@
-.drawer-icon,
 .minimize-icon {
   height: 30px;
   width: 30px;
-}
-
-.drawer-icon {
-  display: none;
 }
 
 .expanded.minimize-icon {
@@ -72,18 +67,6 @@ button.minus-btn:hover {
   padding-top: 1rem;
 }
 
-.documentation-panel {
-  color: var(--white);
-  margin-top: 2rem;
-  background: var(--accent-color);
-  border-radius: var(--border-radius);
-  padding: 0rem 1rem 1rem 1rem;
-}
-
-.documentation-panel div {
-  display: flex;
-}
-
 .help-title {
   display: flex;
 }
@@ -100,12 +83,6 @@ button.minus-btn:hover {
   display: block;
   max-width: 42px;
   padding-right: 10px;
-}
-
-.documentation-panel hr {
-  width: 44px;
-  margin: -0.5rem auto 1rem auto;
-  opacity: 0.7;
 }
 
 .underline-red {
@@ -130,10 +107,6 @@ button.minus-btn:hover {
 .flex-left {
   flex-direction: column;
   align-items: flex-start;
-}
-
-.drawer-icon-click {
-  display: none;
 }
 
 .global-actions li a.disabled {

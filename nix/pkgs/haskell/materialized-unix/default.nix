@@ -231,6 +231,7 @@
         "optparse-applicative".revision = (((hackage."optparse-applicative")."0.16.1.0").revisions).default;
         "optparse-applicative".flags.process = true;
         "statistics-linreg".revision = (((hackage."statistics-linreg")."0.3").revisions).default;
+        "IntervalMap".revision = (((hackage."IntervalMap")."0.6.1.2").revisions).default;
         "network".revision = (((hackage."network")."3.1.2.1").revisions).default;
         "network".flags.devel = false;
         "word8".revision = (((hackage."word8")."0.1.3").revisions).default;
@@ -319,6 +320,7 @@
         "math-functions".revision = (((hackage."math-functions")."0.3.4.2").revisions).default;
         "math-functions".flags.system-expm1 = true;
         "math-functions".flags.system-erf = true;
+        "tasty-bench".revision = (((hackage."tasty-bench")."0.2.5").revisions).default;
         "regex-compat".revision = (((hackage."regex-compat")."0.95.2.1").revisions).default;
         "time-compat".revision = (((hackage."time-compat")."1.9.5").revisions).default;
         "time-compat".flags.old-locale = false;
@@ -417,7 +419,6 @@
         "cryptohash-sha1".revision = (((hackage."cryptohash-sha1")."0.11.100.1").revisions).default;
         "serialise".revision = (((hackage."serialise")."0.2.3.0").revisions).default;
         "serialise".flags.newtime15 = true;
-        "flat".revision = (((hackage."flat")."0.4.4").revisions).default;
         "wl-pprint".revision = (((hackage."wl-pprint")."1.2.1").revisions).default;
         "hostname".revision = (((hackage."hostname")."1.0").revisions).default;
         "tasty-smallcheck".revision = (((hackage."tasty-smallcheck")."0.8.2").revisions).default;
@@ -590,6 +591,7 @@
         "tls".flags.compat = true;
         "tls".flags.network = true;
         "tls".flags.hans = false;
+        "list-t".revision = (((hackage."list-t")."1.0.4").revisions).default;
         "kan-extensions".revision = (((hackage."kan-extensions")."5.2.2").revisions).default;
         "nonempty-vector".revision = (((hackage."nonempty-vector")."0.2.1.0").revisions).default;
         "wai-logger".revision = (((hackage."wai-logger")."2.3.6").revisions).default;
@@ -706,6 +708,7 @@
         cardano-crypto-wrapper = ./.plan.nix/cardano-crypto-wrapper.nix;
         cardano-ledger-test = ./.plan.nix/cardano-ledger-test.nix;
         plutus-use-cases = ./.plan.nix/plutus-use-cases.nix;
+        flat = ./.plan.nix/flat.nix;
         plutus-playground-server = ./.plan.nix/plutus-playground-server.nix;
         shelley-spec-ledger = ./.plan.nix/shelley-spec-ledger.nix;
         typed-protocols-examples = ./.plan.nix/typed-protocols-examples.nix;
@@ -744,6 +747,7 @@
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         plutus-tx = ./.plan.nix/plutus-tx.nix;
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
+        word-array = ./.plan.nix/word-array.nix;
         plutus-pab = ./.plan.nix/plutus-pab.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
         plutus-chain-index = ./.plan.nix/plutus-chain-index.nix;
@@ -782,6 +786,7 @@
           "plutus-use-cases" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
+          "flat" = { flags = {}; };
           "plutus-playground-server" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
@@ -871,6 +876,7 @@
             };
           "plutus-tx" = { flags = {}; };
           "prettyprinter-configurable" = { flags = {}; };
+          "word-array" = { flags = {}; };
           "plutus-pab" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };

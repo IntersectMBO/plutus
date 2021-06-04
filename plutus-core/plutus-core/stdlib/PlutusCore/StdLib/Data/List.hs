@@ -22,18 +22,19 @@ module PlutusCore.StdLib.Data.List
 
 import           Prelude                         hiding (enumFromTo, map, product, reverse, sum)
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function
 import           PlutusCore.StdLib.Data.Integer
 import           PlutusCore.StdLib.Data.Unit
 import           PlutusCore.StdLib.Type
+
+import           Universe
 
 -- | @List@ as a PLC type.
 --
@@ -221,7 +222,11 @@ reverse = runQuote $ do
 -- >                 (nil {integer})
 -- >                 (cons {integer} n' (rec (succInteger n'))))
 -- >         n
-enumFromTo :: (TermLike term TyName Name uni DefaultFun, uni `IncludesAll` '[Integer, (), Bool]) => term ()
+enumFromTo
+    :: ( TermLike term TyName Name uni DefaultFun
+       , uni `Includes` Integer, uni `Includes` (), uni `Includes` Bool
+       )
+    => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
     n   <- freshName "n"
@@ -230,7 +235,7 @@ enumFromTo = runQuote $ do
     n'  <- freshName "n'"
     u   <- freshName "u"
     let gtInteger  = builtin () GreaterThanInteger
-        int = mkTyBuiltin @Integer ()
+        int = mkTyBuiltin @_ @Integer ()
         listInt = TyApp () list int
     return
         . lamAbs () n int
@@ -256,7 +261,7 @@ enumFromTo = runQuote $ do
 -- > foldList {integer} {integer} addInteger 0
 sum :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
 sum = runQuote $ do
-    let int = mkTyBuiltin @Integer ()
+    let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
@@ -267,7 +272,7 @@ sum = runQuote $ do
 -- > foldList {integer} {integer} multiplyInteger 1
 product :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
 product = runQuote $ do
-    let int = mkTyBuiltin @Integer ()
+    let int = mkTyBuiltin @_ @Integer ()
         mul = builtin () MultiplyInteger
     return
         . mkIterApp () (mkIterInst () foldList [int, int])

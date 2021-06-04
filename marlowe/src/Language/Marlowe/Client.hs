@@ -29,7 +29,9 @@ import           Control.Monad.Error.Lens     (catching, throwing)
 import           Data.Aeson                   (FromJSON, ToJSON, parseJSON, toJSON)
 import           Data.Map.Strict              (Map)
 import qualified Data.Map.Strict              as Map
-import           Data.Maybe                   (maybeToList)
+import           Data.Maybe                   (isNothing, maybeToList)
+import           Data.Monoid                  (First (..))
+import           Data.Semigroup.Generic       (GenericSemigroupMonoid (..))
 import qualified Data.Set                     as Set
 import qualified Data.Text                    as T
 import           GHC.Generics                 (Generic)
@@ -114,22 +116,23 @@ type RoleOwners = AssocMap.Map Val.TokenName PubKeyHash
 
 type MarloweContractState = [MarloweData]
 
-data ContractHistory
-        = None
-        | Created MarloweParams MarloweData
-        | Transition TransactionInput
-        | History MarloweParams MarloweData [TransactionInput]
-    deriving (Show,Generic)
-    deriving anyclass (FromJSON, ToJSON)
+data ContractHistory =
+    ContractHistory
+        { chParams  :: First (MarloweParams, MarloweData)
+        , chHistory :: [TransactionInput]
+        }
+        deriving stock (Show, Generic)
+        deriving anyclass (FromJSON, ToJSON)
+        deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ContractHistory)
 
-instance Semigroup ContractHistory where
-    any <> None                                  = any
-    _ <> Created params md                       = History params md []
-    History params md inputs <> Transition input = History params md (inputs <> [input])
-    cur <> _                                     = cur
+created :: MarloweParams -> MarloweData -> ContractHistory
+created p d = mempty{chParams = First (Just (p, d)) }
 
-instance Monoid ContractHistory where
-    mempty = None
+transition :: TransactionInput -> ContractHistory
+transition i = mempty{chHistory = [i] }
+
+isEmpty :: ContractHistory -> Bool
+isEmpty = isNothing . getFirst . chParams
 
 data ContractProgress = InProgress | Finished
   deriving (Show,Eq)
@@ -146,10 +149,9 @@ marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweErr
 marloweFollowContract = do
     params <- endpoint @"follow"
     slot <- currentSlot
-    logDebug @String "Getting contract history"
-    follow 0 slot params
+    checkpointLoop follow (0, slot, params)
   where
-    follow ifrom ito params = do
+    follow (ifrom, ito, params) = do
         let client@StateMachineClient{scInstance} = mkMarloweClient params
         let inst = validatorInstance scInstance
         let address = Scripts.scriptAddress inst
@@ -169,12 +171,13 @@ marloweFollowContract = do
         case res of
             Finished -> do
                 logDebug @String ("Contract finished " <> show params)
-                pure () -- close the contract
+                pure $ Left () -- close the contract
             InProgress ->
                 let next = succ ito in
-                follow next next params
+                pure $ Right (next, next, params)
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
+        logInfo @String $ "Updating history from tx" <> show (Ledger.eitherTx Ledger.txId Ledger.txId tx)
         let inst = validatorInstance scInstance
         let address = Scripts.scriptAddress inst
         let utxo = outputsMapFromTxForAddress address tx
@@ -186,16 +189,15 @@ marloweFollowContract = do
                 Left err    -> throwing _SMContractError err
                 Right (state, _) -> do
                     let initialMarloweData = tyTxOutData state
-                    logDebug @String ("Contract created " <> show initialMarloweData)
-                    tell $ Created params initialMarloweData
+                    logInfo @String ("Contract created " <> show initialMarloweData)
+                    tell $ created params initialMarloweData
                     pure InProgress
             -- There is TxIn with Marlowe contract, hence this is a state transition
             Just (interval, inputs) -> do
                 let txInput = TransactionInput {
                         txInterval = interval,
                         txInputs = inputs }
-                logDebug @String ("Transition " <> show txInput)
-                tell $ Transition txInput
+                tell $ transition txInput
                 case states of
                     -- when there is no Marlowe TxOut the contract is closed
                     -- and we can close the follower contract
@@ -643,24 +645,26 @@ marloweCompanionContract = contracts
         utxo <- utxoAt ownAddress
         let txOuts = fmap (txOutTxOut . snd) $ Map.toList utxo
         forM_ txOuts notifyOnNewContractRoles
-        cont ownAddress
+        checkpointLoop (fmap Right <$> cont) ownAddress
     cont ownAddress = do
         txns <- nextTransactionsAt ownAddress
         let txOuts = txns >>= eitherTx (const []) txOutputs
         forM_ txOuts notifyOnNewContractRoles
-        cont ownAddress
-
+        pure ownAddress
 
 notifyOnNewContractRoles :: TxOut
     -> Contract CompanionState MarloweCompanionSchema MarloweError ()
 notifyOnNewContractRoles txout = do
     let curSymbols = filterRoles txout
     forM_ curSymbols $ \cs -> do
-        logInfo @String $ "Processing currency symbol: " <> show cs
         contract <- findMarloweContractsOnChainByRoleCurrency cs
         case contract of
-            Just (params, md) -> tell $ CompanionState (Map.singleton params md)
-            Nothing           -> pure ()
+            Just (params, md) -> do
+                logDebug @String $ "Updating observable state"
+                tell $ CompanionState (Map.singleton params md)
+            Nothing           -> do
+                logWarn @String $ "On-chain state not found!"
+                pure ()
 
 
 filterRoles :: TxOut -> [CurrencySymbol]

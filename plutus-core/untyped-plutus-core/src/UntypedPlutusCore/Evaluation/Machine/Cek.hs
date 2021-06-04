@@ -13,6 +13,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
+    , StepKind(..)
     , CekExTally(..)
     , ExBudgetMode(..)
     , CountingSt (..)
@@ -51,9 +52,9 @@ import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Name
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import           Data.Ix
+import           Universe
 
 {- Note [CEK runners naming convention]
 A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.

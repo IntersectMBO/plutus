@@ -107,9 +107,12 @@ Glossary
 
       2. Other user software which uses the contract application as part of a wider system.
 
+    Plutus Application
+      An application written using the Plutus Application Framework.
+
     Plutus Application Backend (PAB)
-      The component which manages contract applications run on users'
-      machines. It handles:
+      The component which manages Plutus Applications that run on users' machines.
+      It handles:
 
       1. Interactions with the node
 

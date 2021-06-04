@@ -16,8 +16,7 @@ import qualified Plutus.Benchmark.Prime                   as Prime
 import qualified Plutus.Benchmark.Queens                  as Queens
 
 import qualified PlutusCore                               as PLC
-import           PlutusCore.Builtins
-import           PlutusCore.Universe
+import           PlutusCore.Default
 
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek

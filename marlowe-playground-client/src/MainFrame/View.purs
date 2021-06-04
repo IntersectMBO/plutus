@@ -20,13 +20,12 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, hasGlobalLoading)
 import Marlowe.ActusBlockly as AMB
 import MarloweEditor.View as MarloweEditor
 import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
 import SimulationPage.View as Simulation
-import Wallet as Wallet
 
 render ::
   forall m.
@@ -60,10 +59,6 @@ render state =
               , tabContents ActusBlocklyEditor
                   [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions AMB.toolbox) unit (Just <<< HandleActusBlocklyMessage)
                   , AMB.workspaceBlocks
-                  ]
-              , tabContents WalletEmulator
-                  [ div [ classes [ fullHeight ] ]
-                      [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
                   ]
               ]
           ]

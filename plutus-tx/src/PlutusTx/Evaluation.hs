@@ -15,10 +15,8 @@ module PlutusTx.Evaluation
 where
 
 import qualified PlutusCore                               as PLC
-
-import           PlutusCore.Builtins
+import           PlutusCore.Default
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)

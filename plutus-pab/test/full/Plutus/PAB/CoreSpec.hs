@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -110,7 +111,6 @@ executionTests =
         "Executing contracts."
         [ guessingGameTest
         , currencyTest
-        , rpcTest
         , testCase "wait for update" waitForUpdateTest
         , testCase "stop contract instance" stopContractInstanceTest
         , testCase "can subscribe to slot updates" slotChangeTest
@@ -158,7 +158,8 @@ slotChangeTest = runScenario $ do
 
 walletFundsChangeTest :: IO ()
 walletFundsChangeTest = runScenario $ do
-    let payment = lovelaceValueOf 50
+    let initialBalance = lovelaceValueOf 10_000_000_000
+        payment = lovelaceValueOf 50
         fee     = lovelaceValueOf 10 -- TODO: Calculate the fee from the tx
 
     env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
@@ -171,10 +172,10 @@ walletFundsChangeTest = runScenario $ do
     let difference = initialValue <> inv finalValue
     assertEqual "defaultWallet should make a payment" difference (payment <> fee)
 
-    -- Check that the funds are correctly registerd in the newly created wallet
+    -- Check that the funds are correctly registered in the newly created wallet
     let stream2 = WS.walletFundsChange wllt env
     vl2 <- liftIO (WS.readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
-    assertEqual "generated wallet should receive a payment" payment vl2
+    assertEqual "generated wallet should receive a payment" (initialBalance <> payment) vl2
 
 observableStateChangeTest :: IO ()
 observableStateChangeTest = runScenario $ do
@@ -212,25 +213,11 @@ currencyTest =
                 "Forging the currency should produce two valid transactions."
                 (initialTxCounts & Simulator.txValidated +~ 2)
 
-rpcTest :: TestTree
-rpcTest =
-    testCase "RPC" $
-        runScenario $ do
-            clientId <- Simulator.activateContract defaultWallet RPCClient
-            serverId <- Simulator.activateContract defaultWallet RPCServer
-            Simulator.waitNSlots 1
-            void $ Simulator.callEndpointOnInstance serverId "serve" ()
-            Simulator.waitNSlots 1
-            callAdder clientId serverId
-            Simulator.waitNSlots 5
-            assertDone defaultWallet clientId
-            assertDone defaultWallet serverId
-
 guessingGameTest :: TestTree
 guessingGameTest =
     testCase "Guessing Game" $
           runScenario $ do
-              let openingBalance = 100000000
+              let openingBalance = 100_000_000_000
                   lockAmount = 15
                   walletFundsChange msg delta = do
                         address <- pubKeyAddress <$> Simulator.handleAgentThread defaultWallet ownPubKey

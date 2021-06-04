@@ -56,7 +56,6 @@ module Plutus.Contract(
     , ContractInstanceId
     , ownInstanceId
     -- * Notifications
-    , notifyInstance
     , tell
     -- * Transactions
     , HasWriteTx
@@ -76,6 +75,7 @@ module Plutus.Contract(
     , awaitTxConfirmed
     -- * Checkpoints
     , checkpoint
+    , checkpointLoop
     , AsCheckpointError(..)
     , CheckpointError(..)
     -- * Logging
@@ -97,7 +97,6 @@ import           Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import           Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Plutus.Contract.Effects.ExposeEndpoint
 import           Plutus.Contract.Effects.Instance
-import           Plutus.Contract.Effects.Notify
 import           Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import           Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import           Plutus.Contract.Effects.WatchAddress     as WatchAddress
@@ -107,8 +106,8 @@ import           Plutus.Contract.Request                  (ContractRow)
 import           Plutus.Contract.Typed.Tx                 as Tx
 import           Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
                                                            CheckpointError (..), Contract (..), ContractError (..),
-                                                           checkpoint, handleError, mapError, runError, select,
-                                                           selectEither, throwError)
+                                                           checkpoint, checkpointLoop, handleError, mapError, runError,
+                                                           select, selectEither, throwError)
 
 import qualified Control.Monad.Freer.Extras.Log           as L
 import qualified Control.Monad.Freer.Writer               as W
@@ -124,7 +123,6 @@ type BlockchainActions =
   .\/ UtxoAt
   .\/ OwnPubKey
   .\/ TxConfirmation
-  .\/ ContractInstanceNotify
   .\/ OwnId
 
 type HasBlockchainActions s =
@@ -134,7 +132,6 @@ type HasBlockchainActions s =
   , HasUtxoAt s
   , HasOwnPubKey s
   , HasTxConfirmation s
-  , HasContractNotify s
   , HasOwnId s
   )
 

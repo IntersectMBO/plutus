@@ -22,7 +22,6 @@ import           PlutusCore.Name
 import qualified PlutusCore.Normalize.Internal as Norm
 import           PlutusCore.Quote
 import           PlutusCore.Rename
-import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Lens
@@ -30,6 +29,7 @@ import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Array
+import           Universe
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -189,13 +189,15 @@ dummyType = TyVar () dummyTyName
 
 -- | Normalize a 'Type'.
 normalizeTypeM
-    :: Type TyName uni ann
+    :: HasUniApply uni
+    => Type TyName uni ann
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ann))
 normalizeTypeM ty = Norm.runNormalizeTypeM $ Norm.normalizeTypeM ty
 
 -- | Substitute a type for a variable in a type and normalize the result.
 substNormalizeTypeM
-    :: Normalized (Type TyName uni ())  -- ^ @ty@
+    :: HasUniApply uni
+    => Normalized (Type TyName uni ())  -- ^ @ty@
     -> TyName                           -- ^ @name@
     -> Type TyName uni ()               -- ^ @body@
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
@@ -207,14 +209,14 @@ substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeT
 
 -- | Infer the kind of a type.
 inferKindM
-    :: AsTypeError err term uni fun ann
+    :: (AsTypeError err term uni fun ann, ToKind uni)
     => Type TyName uni ann -> TypeCheckM uni fun cfg err (Kind ())
 
 -- b :: k
 -- ------------------------
 -- [infer| G !- con b :: k]
-inferKindM (TyBuiltin _ _)         =
-    pure $ Type ()
+inferKindM (TyBuiltin _ (SomeTypeIn uni)) =
+    pure $ toKind uni
 
 -- [infer| G !- v :: k]
 -- ------------------------
@@ -265,7 +267,7 @@ inferKindM (TyIFix ann pat arg)    = do
 
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
-    :: AsTypeError err term uni fun ann
+    :: (AsTypeError err term uni fun ann, ToKind uni)
     => ann -> Type TyName uni ann -> Kind () -> TypeCheckM uni fun cfg err ()
 
 -- [infer| G !- ty : tyK]    tyK ~ k
@@ -277,7 +279,7 @@ checkKindM ann ty k = do
 
 -- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
 checkKindOfPatternFunctorM
-    :: AsTypeError err term uni fun ann
+    :: (AsTypeError err term uni fun ann, ToKind uni)
     => ann
     -> Type TyName uni ann  -- ^ A pattern functor.
     -> Kind ()              -- ^ @k@.
@@ -291,7 +293,8 @@ checkKindOfPatternFunctorM ann pat k =
 
 -- | @unfoldIFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldIFixOf
-    :: Normalized (Type TyName uni ())  -- ^ @vPat@
+    :: HasUniApply uni
+    => Normalized (Type TyName uni ())  -- ^ @vPat@
     -> Normalized (Type TyName uni ())  -- ^ @vArg@
     -> Kind ()                          -- ^ @k@
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
@@ -317,8 +320,8 @@ unfoldIFixOf pat arg k = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann
-       , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
+       , HasTypeCheckConfig cfg uni fun, GEq uni, Ix fun
        )
     => Term TyName Name uni fun ann -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
 
@@ -326,8 +329,8 @@ inferTypeM
 -- -------------------------
 -- [infer| G !- con c : vTy]
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
-    -- See Note [PLC types and universes].
-    pure . Normalized . TyBuiltin () $ Some (TypeIn uni)
+    -- See Note [Normalization of built-in types].
+    normalizeTypeM $ mkTyBuiltinOf () uni
 
 -- [infer| G !- bi : vTy]
 -- ------------------------------
@@ -414,8 +417,8 @@ inferTypeM (Error ann ty) = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann
-       , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
+       , HasTypeCheckConfig cfg uni fun, GEq uni, Ix fun
        )
     => ann
     -> Term TyName Name uni fun ann

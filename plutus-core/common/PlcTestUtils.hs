@@ -28,9 +28,9 @@ import           Common
 
 import qualified PlutusCore                               as TPLC
 import           PlutusCore.DeBruijn
+import           PlutusCore.Default.Universe
 import qualified PlutusCore.Evaluation.Machine.Ck         as TPLC
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC

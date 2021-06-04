@@ -6,8 +6,6 @@ import Halogen (ClassName(..))
 import Halogen.HTML (HTML, IProp, div, span, text)
 import Halogen.HTML.Properties (classes)
 
-foreign import closeDrawerIcon :: String
-
 foreign import closeDrawerArrowIcon :: String
 
 foreign import closeModal :: String
@@ -19,8 +17,6 @@ foreign import downloadIcon :: String
 foreign import blocklyIcon :: String
 
 foreign import blocklyIconColour :: String
-
-foreign import infoIcon :: String
 
 foreign import readMoreIconWhite :: String
 
@@ -237,9 +233,6 @@ spanText s = span [] [ text s ]
 
 spanTextBreakWord :: forall p i. String -> HTML p i
 spanTextBreakWord s = span [ classes [ ClassName "break-word-span" ] ] [ text s ]
-
-sidebarComposer :: ClassName
-sidebarComposer = ClassName "sidebar-composer"
 
 minimizeIcon :: Boolean -> Array ClassName
 minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]

@@ -25,6 +25,7 @@ packages: doc
           prettyprinter-configurable
           quickcheck-dynamic
           web-ghc
+          word-array
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -60,6 +61,12 @@ constraints:
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
+
+-- Drops an instance breaking our code. Should be released to Hackage eventually.
+source-repository-package
+  type: git
+  location: https://github.com/Quid2/flat.git
+  tag: 95e5d7488451e43062ca84d5376b3adcc465f1cd
 
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package

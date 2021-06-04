@@ -21,14 +21,13 @@ module PlutusCore.Generators.Interesting
     , fromInterestingTermGens
     ) where
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function as Function
@@ -75,7 +74,7 @@ genOverapplication = do
 factorial :: Term TyName Name DefaultUni DefaultFun ()
 factorial = runQuote $ do
     i <- freshName "i"
-    let int = mkTyBuiltin @Integer ()
+    let int = mkTyBuiltin @_ @Integer ()
     return
         . LamAbs () i int
         . apply () List.product
@@ -103,7 +102,7 @@ naiveFib iv = runQuote $ do
     i   <- freshName "i"
     u   <- freshName "u"
     let
-      intS = mkTyBuiltin @Integer ()
+      intS = mkTyBuiltin @_ @Integer ()
       fib = LamAbs () i0 intS
         $ mkIterApp () (mkIterInst () fix [intS, intS])
             [   LamAbs () rec (TyFun () intS intS)
@@ -155,7 +154,7 @@ genNatRoundtrip = do
 -- | @sumNat@ as a PLC term.
 natSum :: Term TyName Name DefaultUni DefaultFun ()
 natSum = runQuote $ do
-    let int = mkTyBuiltin @Integer ()
+    let int = mkTyBuiltin @_ @Integer ()
         nat = _recursiveType natData
         add = Builtin () AddInteger
     acc <- freshName "acc"

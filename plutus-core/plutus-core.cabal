@@ -40,8 +40,16 @@ library
     import: lang
     exposed-modules:
         PlutusCore
-        PlutusCore.Quote
-        PlutusCore.MkPlc
+        PlutusCore.CBOR
+        PlutusCore.Check.Normal
+        PlutusCore.Check.Uniques
+        PlutusCore.Check.Value
+        PlutusCore.Constant
+        PlutusCore.Constant.Dynamic.Emit
+        PlutusCore.Core
+        PlutusCore.DeBruijn
+        PlutusCore.Default
+        PlutusCore.Error
         PlutusCore.Evaluation.Machine.Ck
         PlutusCore.Evaluation.Machine.BuiltinCostModel
         PlutusCore.Evaluation.Machine.CostModelInterface
@@ -50,53 +58,44 @@ library
         PlutusCore.Evaluation.Machine.ExMemory
         PlutusCore.Evaluation.Machine.MachineParameters
         PlutusCore.Evaluation.Result
-        PlutusCore.Check.Value
-        PlutusCore.Check.Normal
-        PlutusCore.CBOR
+        PlutusCore.Examples.Builtins
+        PlutusCore.Examples.Everything
         PlutusCore.Flat
-        PlutusCore.Constant
-        PlutusCore.Constant.Dynamic.Emit
-        PlutusCore.Universe
-        PlutusCore.Builtins
-        PlutusCore.Rename.Internal
-        PlutusCore.Rename.Monad
-        PlutusCore.Rename
+        PlutusCore.FsTree
+        PlutusCore.Generators
+        PlutusCore.Generators.AST
+        PlutusCore.Generators.Interesting
+        PlutusCore.Generators.NEAT.Common
+        PlutusCore.Generators.NEAT.Spec
+        PlutusCore.Generators.NEAT.Term
+        PlutusCore.Generators.NEAT.Type
+        PlutusCore.Generators.Test
+        PlutusCore.Lexer
+        PlutusCore.MkPlc
+        PlutusCore.Name
         PlutusCore.Normalize
         PlutusCore.Normalize.Internal
+        PlutusCore.Parser
         PlutusCore.Pretty
-        PlutusCore.Subst
-        PlutusCore.Name
-        PlutusCore.Core
-        PlutusCore.DeBruijn
-        PlutusCore.Check.Uniques
-        PlutusCore.FsTree
+        PlutusCore.Quote
+        PlutusCore.Rename
+        PlutusCore.Rename.Internal
+        PlutusCore.Rename.Monad
         PlutusCore.StdLib.Data.Bool
         PlutusCore.StdLib.Data.ChurchNat
         PlutusCore.StdLib.Data.Function
         PlutusCore.StdLib.Data.Integer
         PlutusCore.StdLib.Data.List
         PlutusCore.StdLib.Data.Nat
+        PlutusCore.StdLib.Data.ScottUnit
         PlutusCore.StdLib.Data.Sum
         PlutusCore.StdLib.Data.Unit
-        PlutusCore.StdLib.Data.ScottUnit
         PlutusCore.StdLib.Everything
         PlutusCore.StdLib.Meta
-        PlutusCore.StdLib.Meta.Data.Tuple
         PlutusCore.StdLib.Meta.Data.Function
+        PlutusCore.StdLib.Meta.Data.Tuple
         PlutusCore.StdLib.Type
-        PlutusCore.Examples.Builtins
-        PlutusCore.Examples.Everything
-        PlutusCore.Generators
-        PlutusCore.Generators.AST
-        PlutusCore.Generators.Interesting
-        PlutusCore.Generators.Test
-        PlutusCore.Generators.NEAT.Common
-        PlutusCore.Generators.NEAT.Spec
-        PlutusCore.Generators.NEAT.Type
-        PlutusCore.Generators.NEAT.Term
-        PlutusCore.Lexer
-        PlutusCore.Parser
-        PlutusCore.Error
+        PlutusCore.Subst
 
         PlutusIR
         PlutusIR.Core
@@ -131,15 +130,16 @@ library
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
 
-        PlutusPrelude
         Common
-        ErrorCode
-        Data.ByteString.Hash
-        PlcTestUtils
         Crypto
-        Data.Text.Prettyprint.Doc.Custom
-        Data.SatInt
+        Data.ByteString.Hash
         Data.RandomAccessList.SkewBinary
+        Data.SatInt
+        Data.Text.Prettyprint.Doc.Custom
+        ErrorCode
+        PlcTestUtils
+        PlutusPrelude
+        Universe
     build-tool-depends: alex:alex -any, happy:happy >=1.17.1
     hs-source-dirs:
         plutus-core/src
@@ -167,6 +167,8 @@ library
         PlutusCore.Core.Plated
         PlutusCore.Core.Type
         PlutusCore.DeBruijn.Internal
+        PlutusCore.Default.Builtins
+        PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Examples.Data.InterList
@@ -194,8 +196,6 @@ library
         PlutusCore.Size
         PlutusCore.TypeCheck
         PlutusCore.TypeCheck.Internal
-        PlutusCore.Universe.Core
-        PlutusCore.Universe.Default
 
         PlutusIR.Analysis.Dependencies
         PlutusIR.Analysis.Usages
@@ -236,6 +236,7 @@ library
         Data.Aeson.Flatten
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
+        Universe.Core
     build-depends:
         Stream -any,
         aeson -any,
@@ -275,6 +276,7 @@ library
         monoidal-containers,
         mtl -any,
         nonempty-containers -any,
+        mono-traversable -any,
         parser-combinators >= 0.4.0,
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
@@ -284,6 +286,7 @@ library
         semigroups -any,
         serialise -any,
         size-based -any,
+        sop-core -any,
         tasty -any,
         tasty-golden -any,
         tasty-hunit -any,
@@ -294,7 +297,8 @@ library
         th-utilities -any,
         transformers -any,
         unordered-containers -any,
-        witherable -any
+        witherable -any,
+        word-array -any
 
 test-suite satint-test
   import: lang

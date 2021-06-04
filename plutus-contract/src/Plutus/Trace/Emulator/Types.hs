@@ -270,18 +270,18 @@ toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_r
 data ContractInstanceState w s e a =
     ContractInstanceState
         { instContractState   :: ResumableResult w e (Event s) (Handlers s) a
-        , instEvents          :: Seq (Response (Event s))
-        , instHandlersHistory :: Seq [State.Request (Handlers s)]
+        , instEvents          :: Seq (Response (Event s)) -- ^ Events received by the contract instance. (Used for debugging purposes)
+        , instHandlersHistory :: Seq [State.Request (Handlers s)] -- ^ Requests issued by the contract instance (Used for debugging purposes)
         }
         deriving stock Generic
 
 deriving anyclass instance  (V.Forall (Input s) JSON.ToJSON, V.Forall (Output s) JSON.ToJSON, JSON.ToJSON e, JSON.ToJSON a, JSON.ToJSON w) => JSON.ToJSON (ContractInstanceState w s e a)
 deriving anyclass instance  (V.Forall (Input s) JSON.FromJSON, V.Forall (Output s) JSON.FromJSON, JSON.FromJSON e, JSON.FromJSON a, V.AllUniqueLabels (Input s), V.AllUniqueLabels (Output s), JSON.FromJSON w) => JSON.FromJSON (ContractInstanceState w s e a)
 
-emptyInstanceState :: Monoid w => Contract w s e a -> ContractInstanceStateInternal w s e a
+emptyInstanceState :: (Monoid w) => Contract w s e a -> ContractInstanceStateInternal w s e a
 emptyInstanceState (Contract c) =
     ContractInstanceStateInternal
-        { cisiSuspState = Contract.Types.suspend c
+        { cisiSuspState = Contract.Types.suspend mempty c
         , cisiEvents = mempty
         , cisiHandlersHistory = mempty
         }

@@ -8,3 +8,4 @@ How-to guides
    :titlesonly:
 
    getting-started
+   exporting-a-script

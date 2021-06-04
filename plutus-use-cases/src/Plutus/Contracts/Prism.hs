@@ -55,9 +55,6 @@ module Plutus.Contracts.Prism(
     , Credential(..)
     , UserCredential(..)
     , CredentialAuthority(..)
-    , CredentialManagerSchema
-    , CredentialManagerError(..)
-    , credentialManager
     -- * all-in-one
     , Role(..)
     , PrismSchema
@@ -65,10 +62,9 @@ module Plutus.Contracts.Prism(
     , contract
     ) where
 
-import           Data.Aeson                               (FromJSON, ToJSON)
-import           GHC.Generics                             (Generic)
+import           Data.Aeson                          (FromJSON, ToJSON)
+import           GHC.Generics                        (Generic)
 import           Plutus.Contracts.Prism.Credential
-import           Plutus.Contracts.Prism.CredentialManager
 import           Plutus.Contracts.Prism.Mirror
 import           Plutus.Contracts.Prism.StateMachine
 import           Plutus.Contracts.Prism.Unlock
@@ -77,16 +73,14 @@ import           Plutus.Contract
 
 -- | The roles that we pass to 'contract'.
 data Role
-    = CredMan -- ^ The 'credentialManager' contract
-    | Mirror -- ^ The 'mirror' contract
+    = Mirror -- ^ The 'mirror' contract
     | UnlockSTO -- ^ The 'subscribeSTO' contract
     | UnlockExchange -- ^ The 'unlockExchange' contract
     deriving stock (Eq, Generic, Show)
     deriving anyclass (ToJSON, FromJSON)
 
 type PrismSchema =
-    CredentialManagerSchema
-    .\/ MirrorSchema
+    MirrorSchema
     .\/ STOSubscriberSchema
     .\/ UnlockExchangeSchema
     .\/ Endpoint "role" Role
@@ -97,7 +91,6 @@ type PrismSchema =
 data PrismError =
     UnlockSTOErr UnlockError
     | MirrorErr MirrorError
-    | CredManErr CredentialManagerError
     | EPError ContractError
     | UnlockExchangeErr UnlockError
     deriving stock (Eq, Generic, Show)
@@ -111,7 +104,6 @@ contract :: Contract () PrismSchema PrismError ()
 contract = do
     r <- mapError EPError $ endpoint @"role"
     case r of
-        CredMan        -> mapError CredManErr credentialManager
         Mirror         -> mapError MirrorErr mirror
         UnlockSTO      -> mapError UnlockSTOErr subscribeSTO
         UnlockExchange -> mapError UnlockExchangeErr unlockExchange

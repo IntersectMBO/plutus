@@ -37,9 +37,7 @@ library
         Plutus.Contract.Effects.AwaitSlot
         Plutus.Contract.Effects.AwaitTxConfirmed
         Plutus.Contract.Effects.Instance
-        Plutus.Contract.Effects.RPC
         Plutus.Contract.Effects.ExposeEndpoint
-        Plutus.Contract.Effects.Notify
         Plutus.Contract.Effects.OwnPubKey
         Plutus.Contract.Effects.UtxoAt
         Plutus.Contract.Effects.WatchAddress
@@ -138,7 +136,8 @@ library
         random -any,
         unordered-containers -any,
         foldl -any,
-        streaming -any
+        streaming -any,
+        IntervalMap -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:

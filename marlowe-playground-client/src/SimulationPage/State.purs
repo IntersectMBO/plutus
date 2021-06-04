@@ -299,7 +299,7 @@ updateOracleAndContractEditor ::
 updateOracleAndContractEditor = do
   mContract <- peruse _currentContract
   -- Update the decorations around the current part of the running contract
-  case (getLocation <$> mContract) of
+  case getLocation <$> mContract of
     Just (Range r) -> do
       let
         decorationOptions = { isWholeLine: false, className: "monaco-simulation-text-decoration", linesDecorationsClassName: "monaco-simulation-line-decoration" }

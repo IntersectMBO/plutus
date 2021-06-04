@@ -21,6 +21,7 @@ import           PlutusIR
 import           PlutusIR.MkPir
 
 import qualified Data.ByteString     as BS
+import qualified Data.Kind           as GHC
 import           Data.Proxy
 
 import           GHC.TypeLits        (ErrorMessage (..), TypeError)
@@ -55,9 +56,9 @@ instance Typeable uni (->) where
 -- Primitives
 
 typeRepBuiltin
-    :: forall a uni fun. uni `PLC.Includes` a
+    :: forall (a :: GHC.Type) uni fun. uni `PLC.Includes` a
     => Proxy a -> RTCompile uni fun (Type TyName uni ())
-typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @a ()
+typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @_ @a ()
 
 liftBuiltin
     :: forall a uni fun. uni `PLC.Includes` a

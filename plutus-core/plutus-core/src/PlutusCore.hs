@@ -1,7 +1,7 @@
--- Why is it needed here, but not in 'Universe.hs'?
+-- Why is it needed here, but not in "Universe.Core"?
 {-# LANGUAGE ExplicitNamespaces #-}
+{-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TypeApplications   #-}
-
 
 module PlutusCore
     (
@@ -13,11 +13,14 @@ module PlutusCore
     , topAlexPosn
     -- * Builtins
     , Some (..)
-    , TypeIn (..)
+    , SomeTypeIn (..)
+    , Kinded (..)
     , ValueOf (..)
+    , someValueOf
     , someValue
-    , Includes (..)
-    , IncludesAll
+    , Esc
+    , Contains (..)
+    , Includes
     , Closed (..)
     , EverywhereAll
     , knownUniOf
@@ -25,10 +28,15 @@ module PlutusCore
     , show
     , GEq (..)
     , deriveGEq
+    , HasUniApply (..)
+    , checkStar
+    , withApplicable
     , (:~:) (..)
-    , Lift
     , type (<:)
     , DefaultUni (..)
+    , pattern DefaultUniList
+    , pattern DefaultUniPair
+    , pattern DefaultUniString
     , DefaultFun (..)
     -- * AST
     , Term (..)
@@ -65,6 +73,7 @@ module PlutusCore
     , formatDoc
     -- * Processing
     , HasUniques
+    , ToKind (..)
     , Rename (..)
     -- * Type checking
     , module TypeCheck
@@ -126,11 +135,11 @@ module PlutusCore
 
 import           PlutusPrelude
 
-import           PlutusCore.Builtins
 import           PlutusCore.CBOR                                          ()
 import qualified PlutusCore.Check.Uniques                                 as Uniques
 import           PlutusCore.Core
 import           PlutusCore.DeBruijn
+import           PlutusCore.Default
 import           PlutusCore.Error
 import           PlutusCore.Evaluation.Machine.Ck
 import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -145,7 +154,7 @@ import           PlutusCore.Quote
 import           PlutusCore.Rename
 import           PlutusCore.Size
 import           PlutusCore.TypeCheck                                     as TypeCheck
-import           PlutusCore.Universe
+
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import           Control.Monad.Except
