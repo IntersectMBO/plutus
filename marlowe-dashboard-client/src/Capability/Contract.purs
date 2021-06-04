@@ -21,12 +21,11 @@ import API.Contract as API
 import Control.Monad.Except (lift, runExceptT)
 import Data.Lens (view)
 import Data.RawJson (RawJson)
-import Foreign.Generic (class Decode, class Encode)
+import Foreign.Generic (class Encode)
 import Halogen (HalogenM)
 import Marlowe.PAB (PlutusAppId)
 import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Plutus.Contract.Resumable (Request)
-import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..), ContractInstanceClientState, ContractSignatureResponse)
 import Types (AjaxResponse)
@@ -36,42 +35,42 @@ import WalletData.Types (Wallet)
 class
   Monad m <= ManageContract m where
   activateContract :: forall a. ContractActivationId a => a -> Wallet -> m (AjaxResponse PlutusAppId)
-  deactivateContract :: PlutusAppId -> m (AjaxResponse Unit)
-  getContractInstanceClientState :: forall a. ContractActivationId a => PlutusAppId -> m (AjaxResponse (ContractInstanceClientState a))
-  getContractInstanceCurrentState :: PlutusAppId -> m (AjaxResponse (PartiallyDecodedResponse ActiveEndpoint))
-  getContractInstanceObservableState :: PlutusAppId -> m (AjaxResponse RawJson)
-  getContractInstanceHooks :: PlutusAppId -> m (AjaxResponse (Array (Request ActiveEndpoint)))
-  invokeEndpoint :: forall d. Encode d => PlutusAppId -> String -> d -> m (AjaxResponse Unit)
-  getWalletContractInstances :: forall a. ContractActivationId a => Wallet -> m (AjaxResponse (Array (ContractInstanceClientState a)))
-  getAllContractInstances :: forall a. ContractActivationId a => m (AjaxResponse (Array (ContractInstanceClientState a)))
-  getContractDefinitions :: forall a. ContractActivationId a => m (AjaxResponse (Array (ContractSignatureResponse a)))
+  deactivateContract :: forall a. ContractActivationId a => a -> PlutusAppId -> m (AjaxResponse Unit)
+  getContractInstanceClientState :: forall a. ContractActivationId a => a -> PlutusAppId -> m (AjaxResponse (ContractInstanceClientState a))
+  getContractInstanceCurrentState :: forall a. ContractActivationId a => a -> PlutusAppId -> m (AjaxResponse (PartiallyDecodedResponse ActiveEndpoint))
+  getContractInstanceObservableState :: forall a. ContractActivationId a => a -> PlutusAppId -> m (AjaxResponse RawJson)
+  getContractInstanceHooks :: forall a. ContractActivationId a => a -> PlutusAppId -> m (AjaxResponse (Array (Request ActiveEndpoint)))
+  invokeEndpoint :: forall a d. ContractActivationId a => Encode d => a -> PlutusAppId -> String -> d -> m (AjaxResponse Unit)
+  getWalletContractInstances :: forall a. ContractActivationId a => a -> Wallet -> m (AjaxResponse (Array (ContractInstanceClientState a)))
+  getAllContractInstances :: forall a. ContractActivationId a => a -> m (AjaxResponse (Array (ContractInstanceClientState a)))
+  getContractDefinitions :: forall a. ContractActivationId a => a -> m (AjaxResponse (Array (ContractSignatureResponse a)))
 
 instance monadContractAppM :: ManageContract AppM where
-  activateContract contractExe wallet = map toFront $ runExceptT $ API.activateContract $ ContractActivationArgs { caID: contractExe, caWallet: toBack wallet }
-  deactivateContract plutusAppId = runExceptT $ API.deactivateContract (toBack plutusAppId)
-  getContractInstanceClientState plutusAppId = runExceptT $ API.getContractInstanceClientState $ toBack plutusAppId
-  getContractInstanceCurrentState plutusAppId = do
-    clientState <- getContractInstanceClientState plutusAppId
+  activateContract contractActivationId wallet = map toFront $ runExceptT $ API.activateContract $ ContractActivationArgs { caID: contractActivationId, caWallet: toBack wallet }
+  deactivateContract contractActivationId plutusAppId = runExceptT $ API.deactivateContract contractActivationId (toBack plutusAppId)
+  getContractInstanceClientState contractActivationId plutusAppId = runExceptT $ API.getContractInstanceClientState contractActivationId $ toBack plutusAppId
+  getContractInstanceCurrentState contractActivationId plutusAppId = do
+    clientState <- getContractInstanceClientState contractActivationId plutusAppId
     pure $ map (view _cicCurrentState) clientState
-  getContractInstanceObservableState plutusAppId = do
-    currentState <- getContractInstanceCurrentState plutusAppId
+  getContractInstanceObservableState contractActivationId plutusAppId = do
+    currentState <- getContractInstanceCurrentState contractActivationId plutusAppId
     pure $ map (view _observableState) currentState
-  getContractInstanceHooks plutusAppId = do
-    currentState <- getContractInstanceCurrentState plutusAppId
+  getContractInstanceHooks contractActivationId plutusAppId = do
+    currentState <- getContractInstanceCurrentState contractActivationId plutusAppId
     pure $ map (view _hooks) currentState
-  invokeEndpoint plutusAppId endpoint payload = runExceptT $ API.invokeEndpoint (toBack plutusAppId) endpoint payload
-  getWalletContractInstances wallet = runExceptT $ API.getWalletContractInstances $ toBack wallet
-  getAllContractInstances = runExceptT API.getAllContractInstances
-  getContractDefinitions = runExceptT API.getContractDefinitions
+  invokeEndpoint contractActivationId plutusAppId endpoint payload = runExceptT $ API.invokeEndpoint contractActivationId (toBack plutusAppId) endpoint payload
+  getWalletContractInstances contractActivationId wallet = runExceptT $ API.getWalletContractInstances contractActivationId $ toBack wallet
+  getAllContractInstances contractActivationId = runExceptT $ API.getAllContractInstances contractActivationId
+  getContractDefinitions contractActivationId = runExceptT $ API.getContractDefinitions contractActivationId
 
 instance monadContractHalogenM :: ManageContract m => ManageContract (HalogenM state action slots msg m) where
-  activateContract contractExe wallet = lift $ activateContract contractExe wallet
-  deactivateContract = lift <<< deactivateContract
-  getContractInstanceClientState = lift <<< getContractInstanceClientState
-  getContractInstanceCurrentState = lift <<< getContractInstanceCurrentState
-  getContractInstanceObservableState = lift <<< getContractInstanceObservableState
-  getContractInstanceHooks = lift <<< getContractInstanceHooks
-  invokeEndpoint plutusAppId endpointDescription payload = lift $ invokeEndpoint plutusAppId endpointDescription payload
-  getWalletContractInstances = lift <<< getWalletContractInstances
-  getAllContractInstances = lift getAllContractInstances
-  getContractDefinitions = lift getContractDefinitions
+  activateContract contractActivationId wallet = lift $ activateContract contractActivationId wallet
+  deactivateContract contractActivationId plutusAppId = lift $ deactivateContract contractActivationId plutusAppId
+  getContractInstanceClientState contractActivationId plutusAppId = lift $ getContractInstanceClientState contractActivationId plutusAppId
+  getContractInstanceCurrentState contractActivationId plutusAppId = lift $ getContractInstanceCurrentState contractActivationId plutusAppId
+  getContractInstanceObservableState contractActivationId plutusAppId = lift $ getContractInstanceObservableState contractActivationId plutusAppId
+  getContractInstanceHooks contractActivationId plutusAppId = lift $ getContractInstanceHooks contractActivationId plutusAppId
+  invokeEndpoint contractActivationId plutusAppId endpointDescription payload = lift $ invokeEndpoint contractActivationId plutusAppId endpointDescription payload
+  getWalletContractInstances contractActivationId wallet = lift $ getWalletContractInstances contractActivationId wallet
+  getAllContractInstances = lift <<< getAllContractInstances
+  getContractDefinitions = lift <<< getContractDefinitions

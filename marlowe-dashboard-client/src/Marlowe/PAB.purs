@@ -13,7 +13,7 @@ module Marlowe.PAB
   ) where
 
 import Prelude
-import API.Contract (class ContractActivationId)
+import API.Contract (class ContractActivationId, defaultActivateContract, defaultDeactivateContract, defaultGetContractInstanceClientState, defaultInvokeEndpoint, defaultGetWalletContractInstances, defaultGetAllContractInstances, defaultGetContractDefinitions)
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
@@ -65,7 +65,14 @@ instance encodePlutusApp :: Encode PlutusApp where
 instance decodePlutusApp :: Decode PlutusApp where
   decode value = genericDecode defaultOptions value
 
-instance plutusAppContractActivationId :: ContractActivationId PlutusApp
+instance plutusAppContractActivationId :: ContractActivationId PlutusApp where
+  activateContract = defaultActivateContract
+  deactivateContract = defaultDeactivateContract
+  getContractInstanceClientState = defaultGetContractInstanceClientState
+  invokeEndpoint = defaultInvokeEndpoint
+  getWalletContractInstances = defaultGetWalletContractInstances
+  getAllContractInstances = defaultGetAllContractInstances
+  getContractDefinitions = defaultGetContractDefinitions
 
 {-
 In order to activate instances of the Plutus "contracts" (or apps) in the PAB, we need to pass the path
