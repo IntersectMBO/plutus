@@ -280,7 +280,6 @@ dissect-lemma (μl E B) E' .(μ- B) refl | inj₁ refl | I[ eq ] rewrite dissect
 dissect-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (λ E → μl E B) (dissect-lemma E E'' F' eq)
 
 {-# TERMINATING #-}
-
 unwindVE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
       → B ≡ closeEvalCtx E' A
       → (VA : Value⋆ A)
