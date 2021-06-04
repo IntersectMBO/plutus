@@ -93,7 +93,7 @@ contractTerms = ContractTerms {
         , ct_PPEF = Just PPEF_A -- allow PP
         , ct_PRF = Just PRF_PF
         , scfg = ScheduleConfig {
-            calendar = []
+            calendar = Just CLDR_NC
             , includeEndDay = False
             , eomc = Just EOMC_EOM
             , bdc = Just BDC_NULL
@@ -225,7 +225,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_IED           = parseMaybeDate $ Map.lookup "initialExchangeDate" terms'
      , ct_DCC           = maybeDCCFromString $ Map.lookup "dayCountConvention" terms'
      , scfg             = ScheduleConfig {
-                           calendar = []
+                           calendar = readMaybe (maybeConcatPrefix "CLDR_" (Map.lookup "calendar" terms')) :: Maybe Calendar
                            , includeEndDay = False
                            , eomc = readMaybe (maybeConcatPrefix "EOMC_" (Map.lookup "endOfMonthConvention" terms')) :: Maybe EOMC
                            , bdc = readMaybe (maybeConcatPrefix "BDC_" (Map.lookup "businessDayConvention" terms')) :: Maybe BDC

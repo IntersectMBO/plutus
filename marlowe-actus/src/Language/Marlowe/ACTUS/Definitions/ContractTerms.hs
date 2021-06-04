@@ -57,8 +57,12 @@ data BDC = BDC_NULL -- no shift
          | BDC_CSMP -- calculate/shift modified preceding
          deriving (Show, Read, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
+data Calendar = CLDR_MF -- monday to friday
+              | CLDR_NC -- no calendar
+              deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
+
 data ScheduleConfig = ScheduleConfig
-  { calendar      :: [Day] -- custom calendar days
+  { calendar      :: Maybe Calendar
   , includeEndDay :: Bool
   , eomc          :: Maybe EOMC
   , bdc           :: Maybe BDC
@@ -272,6 +276,9 @@ setDefaultContractTermValues ct@ContractTerms{..} =
       bdc'      | isNothing bdc      = Just BDC_SCF
                 | otherwise          = bdc
 
+      calendar' | isNothing calendar = Just CLDR_NC
+                | otherwise          = calendar
+
       ct_PRF'   | isNothing ct_PRF   = Just PRF_PF
                 | otherwise          = ct_PRF
 
@@ -299,7 +306,7 @@ setDefaultContractTermValues ct@ContractTerms{..} =
       ct_RRMLT' | isNothing ct_RRMLT = Just defaultRRMLT
                 | otherwise          = ct_RRMLT
   in ct {
-    scfg     = scfg { eomc = eomc', bdc = bdc' },
+    scfg     = scfg { eomc = eomc', bdc = bdc', calendar = calendar' },
     ct_PRF   = ct_PRF',
     ct_IPCB  = ct_IPCB',
     ct_PDIED = ct_PDIED',

@@ -76,7 +76,7 @@ generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig
   = generateRecurrentSchedule cycle anchorDate endDate &
       (endDateCorrection includeEndDay endDate >>>
       (fmap $ applyEOMC anchorDate cycle (fromJust eomc)) >>>
-      (fmap $ applyBDC (fromJust bdc) calendar) >>>
+      (fmap $ applyBDC (fromJust bdc) (fromJust calendar)) >>>
       stubCorrection (stub cycle) endDate)
 
 plusCycle :: Day -> Cycle -> Day
