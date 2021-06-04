@@ -29,7 +29,7 @@ theContract = do
                   , slTxOutputs = Map.singleton txOutRef txOutTx
                   , slOtherScripts = Map.singleton (Scripts.scriptAddress pkInst) (Scripts.validatorScript pkInst)
                   , slOtherData = Map.empty
-                  , slScriptInstance = Nothing
+                  , slTypedValidator = Nothing
                   , slOwnPubkey = Nothing
                   }
   void $ submitTxConstraintsWith @Scripts.Any lookups (Constraints.mustSpendScriptOutput txOutRef unitRedeemer)

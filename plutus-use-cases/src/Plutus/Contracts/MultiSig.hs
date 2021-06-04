@@ -67,7 +67,7 @@ instance Scripts.ValidatorTypes MultiSig where
     type instance RedeemerType MultiSig = ()
     type instance DatumType MultiSig = ()
 
-scriptInstance :: MultiSig -> Scripts.ScriptInstance MultiSig
+scriptInstance :: MultiSig -> Scripts.TypedValidator MultiSig
 scriptInstance = Scripts.validatorParam @MultiSig
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])

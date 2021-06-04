@@ -59,7 +59,7 @@ instance Scripts.ValidatorTypes Starter where
     type instance DatumType Starter = MyDatum
 
 -- | The script instance is the compiled validator (ready to go onto the chain)
-starterInstance :: Scripts.ScriptInstance Starter
+starterInstance :: Scripts.TypedValidator Starter
 starterInstance = Scripts.validator @Starter
     $$(PlutusTx.compile [|| validateSpend ||])
     $$(PlutusTx.compile [|| wrap ||]) where

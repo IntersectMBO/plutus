@@ -25,7 +25,7 @@ import           GHC.Generics             (Generic)
 
 import           Ledger                   as Ledger hiding (initialise, to)
 import           Ledger.Contexts          as V
-import           Ledger.Typed.Scripts     (ScriptInstance)
+import           Ledger.Typed.Scripts     (TypedValidator)
 import qualified Ledger.Typed.Scripts     as Scripts
 import qualified PlutusTx                 as PlutusTx
 
@@ -41,7 +41,7 @@ instance Scripts.ValidatorTypes PubKeyContract where
     type instance RedeemerType PubKeyContract = ()
     type instance DatumType PubKeyContract = ()
 
-scriptInstance :: PubKeyHash -> Scripts.ScriptInstance PubKeyContract
+scriptInstance :: PubKeyHash -> Scripts.TypedValidator PubKeyContract
 scriptInstance = Scripts.validatorParam @PubKeyContract
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
@@ -70,7 +70,7 @@ pubKeyContract
     )
     => PubKeyHash
     -> Value
-    -> Contract w s e (TxOutRef, TxOutTx, ScriptInstance PubKeyContract)
+    -> Contract w s e (TxOutRef, TxOutTx, TypedValidator PubKeyContract)
 pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
     let inst = scriptInstance pk
         address = Scripts.scriptAddress inst

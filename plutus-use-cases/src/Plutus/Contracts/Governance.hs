@@ -137,7 +137,7 @@ machine params = SM.mkStateMachine Nothing (transition params) isFinal where
 mkValidator :: Params -> Scripts.ValidatorType GovernanceMachine
 mkValidator params = SM.mkValidator $ machine params
 
-scriptInstance :: Params -> Scripts.ScriptInstance GovernanceMachine
+scriptInstance :: Params -> Scripts.TypedValidator GovernanceMachine
 scriptInstance = Scripts.validatorParam @GovernanceMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])

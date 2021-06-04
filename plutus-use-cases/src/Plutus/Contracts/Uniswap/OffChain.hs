@@ -87,7 +87,7 @@ uniswapTokenName, poolStateTokenName :: TokenName
 uniswapTokenName = "Uniswap"
 poolStateTokenName = "Pool State"
 
-uniswapInstance :: Uniswap -> Scripts.ScriptInstance Uniswapping
+uniswapInstance :: Uniswap -> Scripts.TypedValidator Uniswapping
 uniswapInstance us = Scripts.validator @Uniswapping
     ($$(PlutusTx.compile [|| mkUniswapValidator ||])
         `PlutusTx.applyCode` PlutusTx.liftCode us

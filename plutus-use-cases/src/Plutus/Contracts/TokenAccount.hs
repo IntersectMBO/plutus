@@ -131,7 +131,7 @@ accountToken (Account currency) = Value.assetClassValue currency 1
 validate :: Account -> () -> () -> V.ScriptContext -> Bool
 validate account _ _ ptx = V.valueSpent (V.scriptContextTxInfo ptx) `Value.geq` accountToken account
 
-scriptInstance :: Account -> Scripts.ScriptInstance TokenAccount
+scriptInstance :: Account -> Scripts.TypedValidator TokenAccount
 scriptInstance = Scripts.validatorParam @TokenAccount
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])

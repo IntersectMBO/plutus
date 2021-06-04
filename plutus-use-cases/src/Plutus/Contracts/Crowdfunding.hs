@@ -137,7 +137,7 @@ instance Scripts.ValidatorTypes Crowdfunding where
     type instance RedeemerType Crowdfunding = CampaignAction
     type instance DatumType Crowdfunding = PubKeyHash
 
-scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
+scriptInstance :: Campaign -> Scripts.TypedValidator Crowdfunding
 scriptInstance = Scripts.validatorParam @Crowdfunding
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])

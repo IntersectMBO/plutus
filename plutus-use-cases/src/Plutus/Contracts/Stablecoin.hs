@@ -364,7 +364,7 @@ stablecoinStateMachine sc = StateMachine.mkStateMachine Nothing (transition sc) 
     -- to add a final state to the real thing)
     where isFinal _ = False
 
-scriptInstance :: Stablecoin -> Scripts.ScriptInstance (StateMachine BankState Input)
+scriptInstance :: Stablecoin -> Scripts.TypedValidator (StateMachine BankState Input)
 scriptInstance stablecoin =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode stablecoin
         validator d = StateMachine.mkValidator (stablecoinStateMachine d)
@@ -372,7 +372,7 @@ scriptInstance stablecoin =
     in Scripts.validator @(StateMachine BankState Input) val $$(PlutusTx.compile [|| wrap ||])
 
 machineClient ::
-    Scripts.ScriptInstance (StateMachine BankState Input)
+    Scripts.TypedValidator (StateMachine BankState Input)
     -> Stablecoin
     -> StateMachineClient BankState Input
 machineClient inst stablecoin =

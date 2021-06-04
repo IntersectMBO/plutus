@@ -97,7 +97,7 @@ instance Scripts.ValidatorTypes Escrow where
 escrowAddress :: Ledger.Address
 escrowAddress = Scripts.scriptAddress escrowInstance
 
-escrowInstance :: Scripts.ScriptInstance Escrow
+escrowInstance :: Scripts.TypedValidator Escrow
 escrowInstance = Scripts.validator @Escrow
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])

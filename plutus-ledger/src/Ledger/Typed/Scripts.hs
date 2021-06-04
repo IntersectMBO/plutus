@@ -10,7 +10,7 @@
 module Ledger.Typed.Scripts(
     ValidatorTypes(..)
     , Validator
-    , ScriptInstance
+    , TypedValidator
     , MonetaryPolicy
     , validator
     , validatorParam
@@ -41,8 +41,8 @@ import           GHC.Generics                    (Generic)
 import           Ledger.Typed.Scripts.Validators
 
 -- | A typed validator script with its 'ValidatorScript' and 'Address'.
-data ScriptInstance (a :: Type) =
-    ValidatorInstance
+data TypedValidator (a :: Type) =
+    TypedValidator
         { instanceScript  :: Validator
         , instanceHash    :: ValidatorHash
         , instanceMPSHash :: MonetaryPolicyHash
@@ -52,13 +52,13 @@ data ScriptInstance (a :: Type) =
         }
     deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
--- | The 'ScriptInstance' of a validator script and its wrapper.
+-- | The 'TypedValidator' of a validator script and its wrapper.
 validator ::
     CompiledCode (ValidatorType a)
     -- ^ Validator script (compiled)
     -> CompiledCode (ValidatorType a -> WrappedValidatorType)
     -- ^ A wrapper for the compiled validator
-    -> ScriptInstance a
+    -> TypedValidator a
 validator vc wrapper =
     let val = mkValidatorScript $ wrapper `applyCode` vc
         hsh = validatorHash val
@@ -70,7 +70,7 @@ validator vc wrapper =
         , instanceMPSHash = Scripts.monetaryPolicyHash mps
         }
 
--- | The 'ScriptInstance' of a paramaterized validator script and its wrapper.
+-- | The 'TypedValidator' of a paramaterized validator script and its wrapper.
 validatorParam
     :: forall a param. Lift DefaultUni param
     => CompiledCode (param -> ValidatorType a)
@@ -79,24 +79,24 @@ validatorParam
     -- ^ A wrapper for the compiled validator
     -> param
     -- ^ The extra paramater for the validator script
-    -> ScriptInstance a
+    -> TypedValidator a
 validatorParam vc wrapper param =
     validator (vc `PlutusTx.applyCode` PlutusTx.liftCode param) wrapper
 
 -- | The script's 'ValidatorHash'
-scriptHash :: ScriptInstance a -> ValidatorHash
+scriptHash :: TypedValidator a -> ValidatorHash
 scriptHash = instanceHash
 
 -- | Get the address for a script instance.
-scriptAddress :: ScriptInstance a -> Addr.Address
+scriptAddress :: TypedValidator a -> Addr.Address
 scriptAddress = Addr.scriptHashAddress . scriptHash
 
 -- | Get the validator script for a script instance.
-validatorScript :: ScriptInstance a -> Validator
+validatorScript :: TypedValidator a -> Validator
 validatorScript = instanceScript
 
 -- | Script instance for a validator whose type is unknown
-fromValidator :: Validator -> ScriptInstance Any
+fromValidator :: Validator -> TypedValidator Any
 fromValidator vl =
     let vh = validatorHash vl
         mps = forwardingMPS vh
@@ -110,10 +110,10 @@ fromValidator vl =
 
 -- | The monetary policy that forwards all checks to the instance's
 --   validator
-monetaryPolicy :: ScriptInstance a -> MonetaryPolicy
+monetaryPolicy :: TypedValidator a -> MonetaryPolicy
 monetaryPolicy = instanceMPS
 
 -- | Hash of the monetary policy that forwards all checks to the instance's
 --   validator
-monetaryPolicyHash :: ScriptInstance a -> MonetaryPolicyHash
+monetaryPolicyHash :: TypedValidator a -> MonetaryPolicyHash
 monetaryPolicyHash = instanceMPSHash

@@ -63,7 +63,7 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxIn a) where
 makeTypedScriptTxIn
     :: forall inn
     . (IsData (RedeemerType inn), IsData (DatumType inn))
-    => ScriptInstance inn
+    => TypedValidator inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
     -> TypedScriptTxIn inn
@@ -107,7 +107,7 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxOut a) where
 makeTypedScriptTxOut
     :: forall out
     . (IsData (DatumType out))
-    => ScriptInstance out
+    => TypedValidator out
     -> DatumType out
     -> Value.Value
     -> TypedScriptTxOut out
@@ -172,7 +172,7 @@ instance Pretty ConnectionError where
         UnknownRef                  -> "Unknown reference"
 
 -- | Checks that the given validator hash is consistent with the actual validator.
-checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> Address -> m ()
+checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => TypedValidator a -> Address -> m ()
 checkValidatorAddress ct actualAddr = do
     let expectedAddr = scriptAddress ct
     unless (expectedAddr == actualAddr) $ throwError $ WrongValidatorAddress expectedAddr actualAddr
@@ -181,7 +181,7 @@ checkValidatorAddress ct actualAddr = do
 checkRedeemer
     :: forall inn m
     . (IsData (RedeemerType inn), MonadError ConnectionError m)
-    => ScriptInstance inn
+    => TypedValidator inn
     -> Redeemer
     -> m (RedeemerType inn)
 checkRedeemer _ (Redeemer d) =
@@ -192,7 +192,7 @@ checkRedeemer _ (Redeemer d) =
 -- | Checks that the given datum has the right type.
 checkDatum
     :: forall a m . (IsData (DatumType a), MonadError ConnectionError m)
-    => ScriptInstance a
+    => TypedValidator a
     -> Datum
     -> m (DatumType a)
 checkDatum _ (Datum d) =
@@ -207,7 +207,7 @@ typeScriptTxIn
       , IsData (DatumType inn)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
-    -> ScriptInstance inn
+    -> TypedValidator inn
     -> TxIn
     -> m (TypedScriptTxIn inn)
 typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
@@ -238,7 +238,7 @@ typeScriptTxOut
     :: forall out m
     . ( IsData (DatumType out)
       , MonadError ConnectionError m)
-    => ScriptInstance out
+    => TypedValidator out
     -> TxOutTx
     -> m (TypedScriptTxOut out)
 typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValue,txOutDatumHash}} = do
@@ -260,7 +260,7 @@ typeScriptTxOutRef
     . ( IsData (DatumType out)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
-    -> ScriptInstance out
+    -> TypedValidator out
     -> TxOutRef
     -> m (TypedScriptTxOutRef out)
 typeScriptTxOutRef lookupRef ct ref = do

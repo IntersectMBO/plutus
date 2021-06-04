@@ -56,7 +56,7 @@ import           Ledger.Interval          (after, before, from)
 import qualified Ledger.Interval          as Interval
 import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
-import           Ledger.Typed.Scripts     (ScriptInstance)
+import           Ledger.Typed.Scripts     (TypedValidator)
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value, geq, lt)
 
@@ -204,7 +204,7 @@ validate EscrowParams{escrowDeadline, escrowTargets} contributor action ScriptCo
             traceIfFalse "escrowDeadline-before" (TimeSlot.slotToPOSIXTime escrowDeadline `before` txInfoValidRange scriptContextTxInfo)
             && traceIfFalse "txSignedBy" (scriptContextTxInfo `txSignedBy` contributor)
 
-scriptInstance :: EscrowParams Datum -> Scripts.ScriptInstance Escrow
+scriptInstance :: EscrowParams Datum -> Scripts.TypedValidator Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where
     go = Scripts.validatorParam @Escrow
         $$(PlutusTx.compile [|| validate ||])
@@ -245,7 +245,7 @@ pay ::
     , HasOwnPubKey s
     , AsEscrowError e
     )
-    => ScriptInstance Escrow
+    => TypedValidator Escrow
     -- ^ The instance
     -> EscrowParams Datum
     -- ^ The escrow contract
@@ -285,7 +285,7 @@ redeem ::
     , HasWriteTx s
     , AsEscrowError e
     )
-    => ScriptInstance Escrow
+    => TypedValidator Escrow
     -> EscrowParams Datum
     -> Contract w s e RedeemSuccess
 redeem inst escrow = mapError (review _EscrowError) $ do
@@ -325,7 +325,7 @@ refund ::
     ( HasUtxoAt s
     , HasOwnPubKey s
     , HasWriteTx s)
-    => ScriptInstance Escrow
+    => TypedValidator Escrow
     -> EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
 refund inst escrow = do

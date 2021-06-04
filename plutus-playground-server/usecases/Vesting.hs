@@ -136,7 +136,7 @@ instance Scripts.ValidatorTypes Vesting where
 vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance
 
-scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
+scriptInstance :: VestingParams -> Scripts.TypedValidator Vesting
 scriptInstance = Scripts.validatorParam @Vesting
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])

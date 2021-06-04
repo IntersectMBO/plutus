@@ -179,7 +179,7 @@ machine = SM.mkStateMachine Nothing transition isFinal where
 mkValidator :: Scripts.ValidatorType GameStateMachine
 mkValidator = SM.mkValidator machine
 
-scriptInstance :: Scripts.ScriptInstance GameStateMachine
+scriptInstance :: Scripts.TypedValidator GameStateMachine
 scriptInstance = Scripts.validator @GameStateMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])

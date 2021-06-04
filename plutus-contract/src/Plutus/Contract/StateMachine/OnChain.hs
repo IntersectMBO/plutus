@@ -96,7 +96,7 @@ data StateMachineInstance s i = StateMachineInstance {
     -- | The state machine specification.
     stateMachine      :: StateMachine s i,
     -- | The validator code for this state machine.
-    validatorInstance :: ScriptInstance (StateMachine s i)
+    validatorInstance :: TypedValidator (StateMachine s i)
     }
 
 machineAddress :: StateMachineInstance s i -> Address

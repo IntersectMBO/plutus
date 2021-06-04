@@ -244,7 +244,7 @@ machine params = SM.mkStateMachine Nothing (transition params) isFinal where
 mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator params = SM.mkValidator $ machine params
 
-scriptInstance :: Params -> Scripts.ScriptInstance MultiSigSym
+scriptInstance :: Params -> Scripts.TypedValidator MultiSigSym
 scriptInstance = Scripts.validatorParam @MultiSigSym
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])

@@ -152,7 +152,7 @@ auctionStateMachine threadToken auctionParams = SM.mkStateMachine (Just threadTo
 
 -- | The script instance of the auction state machine. It contains the state
 --   machine compiled to a Plutus core validator script.
-scriptInstance :: AssetClass -> AuctionParams -> Scripts.ScriptInstance (StateMachine AuctionState AuctionInput)
+scriptInstance :: AssetClass -> AuctionParams -> Scripts.TypedValidator (StateMachine AuctionState AuctionInput)
 scriptInstance currency auctionParams =
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
@@ -170,7 +170,7 @@ scriptInstance currency auctionParams =
 --   with the on-chain code, and the Haskell definition of the state machine for
 --   off-chain use.
 machineClient
-    :: Scripts.ScriptInstance (StateMachine AuctionState AuctionInput)
+    :: Scripts.TypedValidator (StateMachine AuctionState AuctionInput)
     -> AssetClass -- ^ Thread token of the instance
     -> AuctionParams
     -> StateMachineClient AuctionState AuctionInput

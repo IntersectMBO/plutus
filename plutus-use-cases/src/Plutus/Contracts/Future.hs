@@ -314,7 +314,7 @@ futureStateMachine ft fos = SM.mkStateMachine Nothing (transition ft fos) isFina
     isFinal Finished = True
     isFinal _        = False
 
-scriptInstance :: Future -> FutureAccounts -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
+scriptInstance :: Future -> FutureAccounts -> Scripts.TypedValidator (SM.StateMachine FutureState FutureAction)
 scriptInstance future ftos =
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
@@ -329,7 +329,7 @@ scriptInstance future ftos =
         $$(PlutusTx.compile [|| wrap ||])
 
 machineClient
-    :: Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
+    :: Scripts.TypedValidator (SM.StateMachine FutureState FutureAction)
     -> Future
     -> FutureAccounts
     -> SM.StateMachineClient FutureState FutureAction

@@ -31,7 +31,7 @@ import           Ledger.Constraints                       (TxConstraints)
 import           Ledger.Constraints.OffChain              (ScriptLookups, UnbalancedTx)
 import qualified Ledger.Constraints.OffChain              as Constraints
 import           Ledger.Tx                                (Tx, txId)
-import           Ledger.Typed.Scripts                     (ScriptInstance, ValidatorTypes (..))
+import           Ledger.Typed.Scripts                     (TypedValidator, ValidatorTypes (..))
 
 import           Wallet.API                               (WalletAPIError)
 
@@ -90,7 +90,7 @@ submitTxConstraints
   , PlutusTx.IsData (DatumType a)
   , AsContractError e
   )
-  => ScriptInstance a
+  => TypedValidator a
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract w s e Tx
 submitTxConstraints inst = submitTxConstraintsWith (Constraints.scriptInstanceLookups inst)
@@ -104,7 +104,7 @@ submitTxConstraintsSpending
   , PlutusTx.IsData (DatumType a)
   , AsContractError e
   )
-  => ScriptInstance a
+  => TypedValidator a
   -> UtxoMap
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract w s e Tx

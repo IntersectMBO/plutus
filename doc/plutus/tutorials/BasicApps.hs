@@ -60,7 +60,7 @@ instance Scripts.ValidatorTypes Split where
     type instance RedeemerType Split = ()
     type instance DatumType Split = SplitData
 
-splitInstance :: Scripts.ScriptInstance Split
+splitInstance :: Scripts.TypedValidator Split
 splitInstance = Scripts.validator @Split
     $$(PlutusTx.compile [|| validateSplit ||])
     $$(PlutusTx.compile [|| wrap ||]) where
