@@ -374,7 +374,7 @@ suspend ::
   -> Eff (ContractEffs w s e) a -- ^ The contract
   -> SuspendedContract w e (Event s) (Handlers s) a
 suspend store action =
-  let initialKey = 0 in --fromMaybe 0 (maxKey store) in
+  let initialKey = 0 in
   mkResult mempty mempty
     $ runSuspContractEffects @w @e @(Event s) @_
       initialKey

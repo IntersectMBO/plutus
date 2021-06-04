@@ -241,6 +241,10 @@ checkpointContract = void $ do
 
 loopCheckpointContract :: Contract () Schema ContractError Int
 loopCheckpointContract = do
+    -- repeatedly expose the "1" endpoint until we get a total
+    -- value greater than 3.
+    -- We can call "1" with different values to control whether
+    -- the left or right branch is chosen.
     flip checkpointLoop (0 :: Int) $ \counter -> do
         vl <- endpoint @"1" @Int
         let newVal = counter + vl

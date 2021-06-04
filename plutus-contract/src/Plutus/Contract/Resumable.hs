@@ -250,11 +250,6 @@ answered.
 -- produced by 'handleResumable'.
 type ResumableEffs i o effs a =
     -- anything that comes before 'NonDet' can be backtracked.
-
-    -- We put 'State IterationID' here to ensure that only
-    -- the 'State IterationID' effects of the branch that is
-    -- selected will persist, so that the iteration ID is increased
-    -- exactly once per branching level.
      NonDet
      ': State IterationID
      ': State RequestID
