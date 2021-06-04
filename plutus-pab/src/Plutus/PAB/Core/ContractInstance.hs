@@ -44,7 +44,7 @@ import qualified Data.Text                                        as Text
 import           Plutus.Contract.Effects.AwaitSlot                (WaitingForSlot (..))
 import           Plutus.Contract.Effects.ExposeEndpoint           (ActiveEndpoint (..))
 import           Plutus.Contract.Resumable                        (Request (..), Response (..))
-import           Plutus.Contract.State                            (ContractResponse (..))
+import           Plutus.Contract.State                            (ContractResponse (..), State (..))
 import           Plutus.Contract.Trace.RequestHandler             (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                    maybeToHandler, tryHandler', wrapHandler)
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..),
@@ -241,7 +241,7 @@ updateState ::
     )
     => ContractResponse Value Value Value ContractPABRequest
     -> Eff effs ()
-updateState ContractResponse{observableState, hooks} = do
+updateState ContractResponse{newState = State{observableState}, hooks} = do
     state <- ask
     liftIO $ STM.atomically $ do
         InstanceState.clearEndpoints state

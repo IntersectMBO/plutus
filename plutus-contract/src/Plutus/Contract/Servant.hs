@@ -31,7 +31,7 @@ import           Plutus.Contract.Types  (Contract)
 
 type ContractAPI w e s =
        "initialise" :> Get '[JSON] (ContractResponse w e (Event s) (Handlers s))
-  :<|> "run" :> ReqBody '[JSON] (ContractRequest (Event s)) :> Post '[JSON] (ContractResponse w e (Event s) (Handlers s))
+  :<|> "run" :> ReqBody '[JSON] (ContractRequest w (Event s)) :> Post '[JSON] (ContractResponse w e (Event s) (Handlers s))
 
 -- | Serve a 'PlutusContract' via the contract API.
 contractServer
@@ -62,6 +62,7 @@ contractApp
        , Forall (Output s) ToJSON
        , ToJSON e
        , ToJSON w
+       , FromJSON w
        , Monoid w
        , Show e
        )

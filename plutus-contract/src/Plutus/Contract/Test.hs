@@ -40,6 +40,8 @@ module Plutus.Contract.Test(
     , assertBlockchain
     , assertChainEvents
     , assertAccumState
+    , Shrinking(..)
+    , assertResumableResult
     , tx
     , anyTx
     , assertEvents
@@ -108,7 +110,7 @@ import qualified Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import           Plutus.Contract.Effects.WriteTx        (HasWriteTx)
 import           Plutus.Contract.Resumable              (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable              as State
-import           Plutus.Contract.Types                  (Contract (..))
+import           Plutus.Contract.Types                  (Contract (..), ResumableResult, shrinkResumableResult)
 import           PlutusTx                               (CompiledCode, IsData (..), getPir)
 import qualified PlutusTx.Prelude                       as P
 
@@ -125,8 +127,8 @@ import           Wallet.Emulator                        (EmulatorEvent, Emulator
 import           Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
 import           Plutus.Contract.Trace                  as X
 import           Plutus.Trace.Emulator                  (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
-import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog, ContractInstanceTag,
-                                                         UserThreadMsg)
+import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog,
+                                                         ContractInstanceState (..), ContractInstanceTag, UserThreadMsg)
 import qualified Streaming                              as S
 import qualified Streaming.Prelude                      as S
 import           Wallet.Emulator.Chain                  (ChainEvent)
@@ -452,6 +454,44 @@ assertResponses contract inst p nm =
                 , "Failed" <+> squotes (fromString nm)
                 ]
         pure result
+
+data Shrinking = DoShrink | DontShrink
+    deriving (Eq, Ord, Show)
+
+-- | make an assertion about the 'ContractInstanceState' of a contract
+--   instance
+assertResumableResult ::
+    forall w s e a.
+    ( ContractConstraints s
+    , Monoid w
+    , Forall (Input s) Show
+    , Forall (Output s) Show
+    , Show e
+    , Show a
+    , Show w
+    )
+    => Contract w s e a
+    -> ContractInstanceTag
+    -> Shrinking
+    -> (ResumableResult w e (Event s) (Handlers s) a -> Bool)
+    -> String
+    -> TracePredicate
+assertResumableResult contract inst shrinking p nm =
+    let f = case shrinking of { DontShrink -> id; DoShrink -> shrinkResumableResult } in
+    flip postMapM (Folds.instanceState contract inst) $ \case
+        Nothing -> do
+            tell @(Doc Void) $ "No state for " <+> pretty inst
+            pure False
+        Just ContractInstanceState{instContractState} -> do
+            let shrunkState = f instContractState
+                result = p shrunkState
+            unless result $ do
+                tell @(Doc Void) $ vsep
+                    [ "Resumable result for" <+> pretty inst
+                    , viaShow shrunkState
+                    , "Failed" <+> squotes (fromString nm)
+                    ]
+            pure result
 
 -- | A 'TracePredicate' checking that the wallet's contract instance finished
 --   without errors.

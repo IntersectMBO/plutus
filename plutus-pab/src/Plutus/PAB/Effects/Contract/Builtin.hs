@@ -74,6 +74,7 @@ type ContractConstraints w schema error =
     , Forall (Input schema) FromJSON
     , ToJSON error
     , ToJSON w
+    , FromJSON w
     , AllUniqueLabels (Input schema)
     )
 
@@ -87,6 +88,7 @@ data SomeBuiltinState a where
         forall a w schema error b.
         ContractConstraints w schema error
         => Emulator.ContractInstanceStateInternal w schema error b -- ^ Internal state
+        -> w -- ^ Observable state (stored separately)
         -> SomeBuiltinState a
 
 instance PABContract (Builtin a) where
@@ -107,15 +109,15 @@ handleBuiltin ::
     ~> Eff effs
 handleBuiltin mkSchema initialise = \case
     InitialState i c           -> case initialise c of SomeBuiltin c' -> initBuiltin i c'
-    UpdateContract i _ state p -> case state of SomeBuiltinState s -> updateBuiltin i s p
+    UpdateContract i _ state p -> case state of SomeBuiltinState s w -> updateBuiltin i s w p
     ExportSchema a             -> pure $ mkSchema a
 
 getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value Value ContractPABRequest
-getResponse (SomeBuiltinState s) =
+getResponse (SomeBuiltinState s w) =
     bimap JSON.toJSON (C.unContractHandlerRequest . fromJSON' . JSON.toJSON)
     $ ContractState.mapE JSON.toJSON
     $ ContractState.mapW JSON.toJSON
-    $ ContractState.mkResponse
+    $ ContractState.mkResponse w
     $ Emulator.instContractState
     $ Emulator.toInstanceState s
 
@@ -130,7 +132,7 @@ initBuiltin ::
 initBuiltin i con = do
     let initialState = Emulator.emptyInstanceState con
     logNewMessages @a i initialState
-    pure $ SomeBuiltinState initialState
+    pure $ SomeBuiltinState initialState mempty
 
 updateBuiltin ::
     forall effs a w schema error b.
@@ -140,25 +142,28 @@ updateBuiltin ::
     )
     => ContractInstanceId
     -> Emulator.ContractInstanceStateInternal w schema error b
+    -> w
     -> Response C.ContractPABResponse
     -> Eff effs (SomeBuiltinState a)
-updateBuiltin i oldState event = do
+updateBuiltin i oldState oldW event = do
     resp <- traverse toEvent event
     let newState = Emulator.addEventInstanceState resp oldState
     case newState of
         Just k -> do
             logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i event)
             logNewMessages @a i k
-            pure (SomeBuiltinState k)
+            let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
+            pure (SomeBuiltinState k newW)
         _      -> throwError $ ContractCommandError 0 "failed to update contract"
 
 logNewMessages ::
     forall b w s e a effs.
-    Member (LogMsg (PABMultiAgentMsg (Builtin b))) effs
+    ( Member (LogMsg (PABMultiAgentMsg (Builtin b))) effs
+    )
     => ContractInstanceId
     -> ContractInstanceStateInternal w s e a
     -> Eff effs ()
-logNewMessages i ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult=ResumableResult{_lastLogs}}} =
+logNewMessages i ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult=ResumableResult{_lastLogs, _observableState}}} = do
     traverse_ (send @(LogMsg (PABMultiAgentMsg (Builtin b))) . LMessage . fmap (ContractInstanceLog . ContractLog i)) _lastLogs
 
 toEvent ::

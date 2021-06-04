@@ -82,7 +82,7 @@ deriving via (Tagged "message" RequestHandlerLogMsg) instance StructuredLog Requ
 deriving via (Tagged "message" TxBalanceMsg) instance StructuredLog TxBalanceMsg
 deriving via (Tagged "tx" Tx) instance StructuredLog Tx
 deriving via (Tagged "uuid" UUID) instance StructuredLog UUID
-deriving via (Tagged "request" (ContractRequest v)) instance ToJSON v => StructuredLog (ContractRequest v)
+deriving via (Tagged "request" (ContractRequest w v)) instance (ToJSON w, ToJSON v) => StructuredLog (ContractRequest w v)
 deriving via (Tagged "value" V.Value) instance StructuredLog V.Value
 deriving via (Tagged "endpoint" EndpointDescription) instance StructuredLog EndpointDescription
 instance ToJSON v => StructuredLog (PartiallyDecodedResponse v) where

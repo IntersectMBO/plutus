@@ -34,7 +34,7 @@ data PartiallyDecodedResponse v =
     deriving anyclass (ToJSON, FromJSON)
 
 fromResp :: Contract.ContractResponse Value Value Value v -> PartiallyDecodedResponse v
-fromResp Contract.ContractResponse{Contract.hooks, Contract.logs, Contract.err, Contract.observableState, Contract.lastLogs} =
+fromResp Contract.ContractResponse{Contract.hooks, Contract.logs, Contract.err, Contract.lastLogs, Contract.newState = Contract.State{Contract.observableState}} =
     PartiallyDecodedResponse{hooks, logs, err, observableState, lastLogs}
 
 instance Pretty v => Pretty (PartiallyDecodedResponse v) where

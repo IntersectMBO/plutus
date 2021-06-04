@@ -41,8 +41,8 @@ import qualified Plutus.Contract.State                            as ContractSta
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog))
 import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
 import           Plutus.PAB.Events.Contract                       (ContractHandlerRequest (..),
-                                                                   ContractHandlersResponse (..), ContractInstanceId,
-                                                                   ContractPABRequest)
+                                                                   ContractHandlersResponse (..),
+                                                                   ContractInstanceId (..), ContractPABRequest)
 import qualified Plutus.PAB.Events.Contract                       as Events.Contract
 import           Plutus.PAB.Monitoring.PABLogMsg                  (ContractExeLogMsg (..), PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                 (PABError (ContractCommandError))
@@ -87,10 +87,10 @@ handleContractEffectContractExe =
             logNewMessages i result
             pure result
         UpdateContract i (ContractExe contractPath) (oldState :: ContractResponse Value Value Value ContractPABRequest) (input :: Response Events.Contract.ContractPABResponse) -> do
-            let req :: ContractRequest Value
+            let req :: ContractRequest Value Value
                 req = ContractRequest{oldState = ContractState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
-                pl = BSL8.unpack (JSON.encodePretty req)
-            logDebug $ UpdateContractMsg contractPath req
+                encodedRequest = JSON.encodePretty req
+                pl = BSL8.unpack encodedRequest
             result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
             logNewMessages i result
             pure result
