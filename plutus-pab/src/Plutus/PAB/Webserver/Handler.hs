@@ -40,6 +40,7 @@ import           Data.Proxy                              (Proxy (..))
 import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
 import qualified Data.UUID                               as UUID
+import Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger                                  (Slot, Value, pubKeyHash)
 import           Ledger.AddressMap                       (UtxoMap)
 import           Ledger.Tx                               (Tx, TxOut (txOutValue), TxOutTx (txOutTxOut))
@@ -53,8 +54,9 @@ import           Plutus.PAB.Webserver.Types
 import           Servant                                 (NoContent (NoContent), (:<|>) ((:<|>)))
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
 import qualified Wallet.Effects                          as Wallet.Effects
+import           Wallet.Emulator.Error                   (WalletAPIError)
 import           Wallet.Emulator.Wallet                  (Wallet (..))
-import           Wallet.Types                            (ContractInstanceId (..), NotificationError, Payment)
+import           Wallet.Types                            (ContractInstanceId (..), NotificationError)
 
 -- | Handler for the "old" API
 handlerOld ::
@@ -187,9 +189,7 @@ walletProxyClientEnv ::
     (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
     :<|> (Integer -> PABAction t env WalletInfo)
-    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
-    :<|> (Integer -> PABAction t env Slot) -- Wallet slot
-    :<|> (Integer -> PABAction t env UtxoMap)
+    :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
     :<|> (Integer -> PABAction t env Value)
     :<|> (Integer -> Tx -> PABAction t env Tx))
 walletProxyClientEnv clientEnv =
@@ -211,18 +211,14 @@ walletProxy ::
     (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
     :<|> (Integer -> PABAction t env WalletInfo)
-    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
-    :<|> (Integer -> PABAction t env Slot) -- Wallet slot
-    :<|> (Integer -> PABAction t env UtxoMap)
+    :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
     :<|> (Integer -> PABAction t env Value)
     :<|> (Integer -> Tx -> PABAction t env Tx))
 walletProxy createNewWallet =
     ( createNewWallet
     :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
     :<|> (\w -> (\pk -> WalletInfo{wiWallet=Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
-    :<|> (\w (value, payment) -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.updatePaymentWithChange value payment)
-    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.walletSlot)
-    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)
-    :<|> (\w -> foldMap (txOutValue . txOutTxOut) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) . Wallet.Effects.balanceTx)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.totalFunds)
     :<|> (\w tx -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.walletAddSignature tx)
     )

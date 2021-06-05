@@ -15,7 +15,7 @@
 {-# OPTIONS_GHC -Wno-orphans  #-}
 module Wallet.Emulator.Wallet where
 
-import           Control.Lens
+import           Control.Lens                   as Lens
 import           Control.Monad                  (foldM)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
@@ -169,6 +169,7 @@ handleWallet = \case
         tx' <- handleBalanceTx (utx & U.tx . fee .~ (utxWithFees ^. U.tx . fee))
         handleAddSignature tx'
     WalletAddSignature tx -> handleAddSignature tx
+    TotalFunds -> gets (foldMap (txOutValue . txOutTxOut) . ownOutputs)
 
 handleAddSignature ::
     Member (State WalletState) effs
@@ -177,6 +178,12 @@ handleAddSignature ::
 handleAddSignature tx = do
     privKey <- gets _ownPrivateKey
     pure (addSignature privKey tx)
+
+-- | The wallet's own output
+ownOutputs :: WalletState -> Map.Map TxOutRef TxOutTx
+ownOutputs WalletState{_ownPrivateKey, _chainIndex} =
+    let addr = pubKeyAddress $ toPublicKey _ownPrivateKey
+    in view (idxWatchedAddresses . at addr . non mempty) _chainIndex
 
 validateTxAndAddFees ::
     ( Member (Error WAPI.WalletAPIError) effs
@@ -187,13 +194,11 @@ validateTxAndAddFees ::
     => UnbalancedTx
     -> Eff effs UnbalancedTx
 validateTxAndAddFees utx = do
-    ownPubKey <- gets (toPublicKey . view ownPrivateKey)
-    let addr = pubKeyAddress ownPubKey
-    ownOutputs <- view (at addr . non mempty) <$> W.watchedAddresses
+    ownTxOuts <- fmap txOutTxOut <$> gets ownOutputs
     -- Balance and sign just for validation
     tx <- handleBalanceTx utx
     signedTx <- handleAddSignature tx
-    let utxoIndex        = Ledger.UtxoIndex $ unBalancedTxUtxoIndex utx <> fmap Tx.txOutTxOut ownOutputs
+    let utxoIndex        = Ledger.UtxoIndex $ unBalancedTxUtxoIndex utx <> ownTxOuts
         ((e, _), events) = Ledger.runValidation (Ledger.validateTransactionOffChain signedTx) utxoIndex
     traverse_ (throwError . WAPI.ValidationError . snd) e
     let scriptsSize = getSum $ foldMap (Sum . scriptSize . Ledger.sveScript) events
@@ -231,8 +236,7 @@ handleBalanceTx UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} = do
     let filteredUnbalancedTxTx = removeEmptyOutputs unBalancedTxTx
     let txInputs = Set.toList $ Tx.txInputs filteredUnbalancedTxTx
     ownPubKey <- gets (toPublicKey . view ownPrivateKey)
-    let addr = pubKeyAddress ownPubKey
-    utxo <- view (at addr . non mempty) <$> W.watchedAddresses
+    utxo <- gets ownOutputs
     inputValues <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txInputs filteredUnbalancedTxTx)
     collateral  <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txCollateral filteredUnbalancedTxTx)
     let fees = txFee filteredUnbalancedTxTx

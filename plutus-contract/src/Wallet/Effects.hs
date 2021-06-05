@@ -18,6 +18,7 @@ module Wallet.Effects(
     , submitTxn
     , ownPubKey
     , balanceTx
+    , totalFunds
     , walletAddSignature
     -- * Node client
     , NodeClientEffect(..)
@@ -38,7 +39,7 @@ module Wallet.Effects(
     ) where
 
 import           Control.Monad.Freer.TH      (makeEffect)
-import           Ledger                      (Address, Block, PubKey, Slot, Tx, TxId)
+import           Ledger                      (Address, Block, PubKey, Slot, Tx, TxId, Value)
 import           Ledger.AddressMap           (AddressMap)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Wallet.Emulator.Error       (WalletAPIError)
@@ -49,6 +50,7 @@ data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
     OwnPubKey :: WalletEffect PubKey
     BalanceTx :: UnbalancedTx -> WalletEffect (Either WalletAPIError Tx)
+    TotalFunds :: WalletEffect Value -- ^ Total of all funds that are in the wallet (incl. tokens)
     WalletAddSignature :: Tx -> WalletEffect Tx
 makeEffect ''WalletEffect
 
