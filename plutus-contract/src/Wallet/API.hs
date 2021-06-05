@@ -60,6 +60,7 @@ module Wallet.API(
 
 import           Control.Monad               (void)
 import           Control.Monad.Freer
+import           Control.Monad.Freer.Error   (Error, throwError)
 import           Ledger                      hiding (inputs, out, value)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..), emptyUnbalancedTx)
 import           Wallet.Effects
@@ -72,21 +73,18 @@ import           Prelude                     hiding (Ordering (..))
 --   transaction that was submitted.
 payToPublicKey ::
     ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
     )
     => SlotRange -> Value -> PubKey -> Eff effs Tx
 payToPublicKey range v pk = do
     let tx = mempty{txOutputs = [pubKeyTxOut v pk], txValidRange = range}
-    balanceTx emptyUnbalancedTx{unBalancedTxTx = tx} >>= signTxAndSubmit
-    -- p <- createPaymentWithChange v
-    -- let other = pubKeyTxOut v pk
-    -- let tx = createTx range (paymentInputs p) (other : maybeToList (paymentChangeOutput p)) []
-    -- p' <- updatePaymentWithChange (txFee tx) p
-    -- let tx' = createTx range (paymentInputs p') (other : maybeToList (paymentChangeOutput p')) []
-    -- signTxAndSubmit tx'
+    balancedTx <- balanceTx emptyUnbalancedTx{unBalancedTxTx = tx}
+    either throwError signTxAndSubmit balancedTx
 
 -- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ ::
     ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
     )
     => SlotRange -> Value -> PubKey -> Eff effs ()
 payToPublicKey_ r v = void . payToPublicKey r v
@@ -94,7 +92,8 @@ payToPublicKey_ r v = void . payToPublicKey r v
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
 signTxAndSubmit ::
-    ( Member WalletEffect effs )
+    ( Member WalletEffect effs
+    )
     => Tx -> Eff effs Tx
 signTxAndSubmit t = do
     tx' <- walletAddSignature t
@@ -103,7 +102,8 @@ signTxAndSubmit t = do
 
 -- | A version of 'signTxAndSubmit' that discards the result.
 signTxAndSubmit_ ::
-    ( Member WalletEffect effs )
+    ( Member WalletEffect effs
+    )
     => Tx -> Eff effs ()
 signTxAndSubmit_ = void . signTxAndSubmit
 

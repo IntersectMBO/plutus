@@ -16,10 +16,12 @@ module Plutus.Contract.Wallet(
 
 import           Control.Monad               ((>=>))
 import           Control.Monad.Freer         (Eff, Member)
+import           Control.Monad.Freer.Error   (Error, throwError)
 import           Ledger.Constraints.OffChain (UnbalancedTx (..))
 import           Ledger.Tx                   (Tx (..))
 import qualified Wallet.API                  as WAPI
 import           Wallet.Effects
+import           Wallet.Emulator.Error       (WalletAPIError)
 
 {- Note [Submitting transactions from Plutus contracts]
 
@@ -60,6 +62,8 @@ be submitted to the network, the contract backend needs to
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
 handleTx ::
-    (Member WalletEffect effs)
+    ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
+    )
     => UnbalancedTx -> Eff effs Tx
-handleTx = balanceTx >=> WAPI.signTxAndSubmit
+handleTx = balanceTx >=> either throwError WAPI.signTxAndSubmit

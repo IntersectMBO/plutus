@@ -41,13 +41,14 @@ import           Control.Monad.Freer.TH      (makeEffect)
 import           Ledger                      (Address, Block, PubKey, Slot, Tx, TxId)
 import           Ledger.AddressMap           (AddressMap)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
+import           Wallet.Emulator.Error       (WalletAPIError)
 import           Wallet.Types                (AddressChangeRequest (..), AddressChangeResponse (..), Notification,
                                               NotificationError, Payment (..))
 
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
     OwnPubKey :: WalletEffect PubKey
-    BalanceTx :: UnbalancedTx -> WalletEffect Tx
+    BalanceTx :: UnbalancedTx -> WalletEffect (Either WalletAPIError Tx)
     WalletAddSignature :: Tx -> WalletEffect Tx
 makeEffect ''WalletEffect
 

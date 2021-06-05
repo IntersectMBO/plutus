@@ -154,7 +154,6 @@ handleWallet ::
     ( Member NodeClientEffect effs
     , Member ChainIndexEffect effs
     , Member (State WalletState) effs
-    , Member (Error WAPI.WalletAPIError) effs
     , Member (LogMsg TxBalanceMsg) effs
     )
     => WalletEffect ~> Eff effs
@@ -163,7 +162,7 @@ handleWallet = \case
         logInfo $ SubmittingTx tx
         W.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
-    BalanceTx utx -> do
+    BalanceTx utx -> runError $ do
         logInfo $ BalancingUnbalancedTx utx
         utxWithFees <- validateTxAndAddFees utx
         -- balance to add fees
