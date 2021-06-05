@@ -17,9 +17,7 @@ module Wallet.Effects(
     , Payment(..)
     , submitTxn
     , ownPubKey
-    , updatePaymentWithChange
-    , walletSlot
-    , ownOutputs
+    , balanceTx
     , walletAddSignature
     -- * Node client
     , NodeClientEffect(..)
@@ -39,18 +37,17 @@ module Wallet.Effects(
     , sendNotification
     ) where
 
-import           Control.Monad.Freer.TH (makeEffect)
-import           Ledger                 (Address, Block, PubKey, Slot, Tx, TxId, Value)
-import           Ledger.AddressMap      (AddressMap, UtxoMap)
-import           Wallet.Types           (AddressChangeRequest (..), AddressChangeResponse (..), Notification,
-                                         NotificationError, Payment (..))
+import           Control.Monad.Freer.TH      (makeEffect)
+import           Ledger                      (Address, Block, PubKey, Slot, Tx, TxId)
+import           Ledger.AddressMap           (AddressMap)
+import           Ledger.Constraints.OffChain (UnbalancedTx)
+import           Wallet.Types                (AddressChangeRequest (..), AddressChangeResponse (..), Notification,
+                                              NotificationError, Payment (..))
 
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
     OwnPubKey :: WalletEffect PubKey
-    UpdatePaymentWithChange :: Value -> Payment -> WalletEffect Payment
-    WalletSlot :: WalletEffect Slot
-    OwnOutputs :: WalletEffect UtxoMap
+    BalanceTx :: UnbalancedTx -> WalletEffect Tx
     WalletAddSignature :: Tx -> WalletEffect Tx
 makeEffect ''WalletEffect
 

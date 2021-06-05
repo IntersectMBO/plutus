@@ -68,10 +68,9 @@ import           Ledger.Value                         (Value)
 
 import           Plutus.Trace.Emulator.Types          (EmulatedWalletEffects)
 import           Wallet.API                           (ChainIndexEffect)
-import           Wallet.Effects                       (ContractRuntimeEffect, WalletEffect)
+import           Wallet.Effects                       (ContractRuntimeEffect, WalletEffect, NodeClientEffect)
 import           Wallet.Emulator                      (EmulatorState, Wallet)
 import qualified Wallet.Emulator                      as EM
-import           Wallet.Emulator.LogMessages          (TxBalanceMsg)
 import qualified Wallet.Emulator.MultiAgent           as EM
 import           Wallet.Emulator.Notify               (EmulatorNotifyLogMsg (..))
 import           Wallet.Types                         (ContractInstanceId, EndpointDescription (..),
@@ -109,7 +108,7 @@ makeTimed e = do
 handleSlotNotifications ::
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member WalletEffect effs
+    , Member NodeClientEffect effs
     )
     => RequestHandler effs PABReq PABResp
 handleSlotNotifications =
@@ -117,7 +116,7 @@ handleSlotNotifications =
 
 handleCurrentSlotQueries ::
     ( Member (LogObserve (LogMessage Text)) effs
-    , Member WalletEffect effs
+    , Member NodeClientEffect effs
     )
     => RequestHandler effs PABReq PABResp
 handleCurrentSlotQueries =
@@ -146,7 +145,6 @@ handlePendingTransactions ::
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
-    , Member (LogMsg TxBalanceMsg) effs
     )
     => RequestHandler effs PABReq PABResp
 handlePendingTransactions =
@@ -174,8 +172,8 @@ handleTxConfirmedQueries =
 handleAddressChangedAtQueries ::
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member WalletEffect effs
     , Member ChainIndexEffect effs
+    , Member NodeClientEffect effs
     )
     => RequestHandler effs PABReq PABResp
 handleAddressChangedAtQueries =
