@@ -30,7 +30,6 @@ import           PlutusPrelude
 
 import           PlutusCore.Constant
 import           PlutusCore.Core
-import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
@@ -130,11 +129,8 @@ instance FromConstant (CkValue uni fun) where
     fromConstant = VCon
 
 instance AsConstant (CkValue uni fun) where
-    asConstant (VCon val) = Just val
-    asConstant _          = Nothing
-
-instance ToExMemory (CkValue uni fun) where
-    toExMemory _ = 0
+    asConstant (VCon val) = pure val
+    asConstant term       = throwNotAConstant term
 
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
@@ -306,7 +302,7 @@ applyEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
-applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
+applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
     let term' = Apply () term $ ckValueToTerm arg
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
@@ -316,7 +312,8 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
             -- than a 'Term', hence 'withErrorDischarging'.
             let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
             x <- dischargeError $ readKnown arg
-            let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
+            let noCosting = error "The CK machine does not support costing"
+                runtime' = BuiltinRuntime schB (f x) noCosting
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ ->

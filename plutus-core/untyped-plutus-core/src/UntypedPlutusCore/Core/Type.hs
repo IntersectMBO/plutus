@@ -25,7 +25,6 @@ import           PlutusPrelude
 
 import qualified PlutusCore.Constant                    as TPLC
 import qualified PlutusCore.Core                        as TPLC
-import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
 import qualified PlutusCore.Name                        as TPLC
@@ -78,20 +77,14 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     error    = \ann _ -> Error ann
 
 instance TPLC.AsConstant (Term name uni fun ann) where
-    asConstant (Constant _ val) = Just val
-    asConstant _                = Nothing
+    asConstant (Constant _ val) = pure val
+    asConstant term             = TPLC.throwNotAConstant term
 
 instance TPLC.FromConstant (Term name uni fun ()) where
     fromConstant = Constant ()
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
-
-instance ToExMemory (Term name uni fun ()) where
-    toExMemory _ = 0
-
-instance ToExMemory (Term name uni fun ExMemory) where
-    toExMemory = termAnn
 
 deriving via GenericExMemoryUsage (Term name uni fun ann) instance
     ( ExMemoryUsage name, ExMemoryUsage fun, ExMemoryUsage ann

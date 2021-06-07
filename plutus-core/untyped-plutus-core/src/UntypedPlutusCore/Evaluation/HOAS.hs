@@ -60,8 +60,8 @@ data HTerm m name uni fun ann
 type instance UniOf (HTerm m name uni fun ann) = uni
 
 instance AsConstant (HTerm m name uni fun ann) where
-    asConstant (HConstant _ val) = Just val
-    asConstant _                 = Nothing
+    asConstant (HConstant _ val) = pure val
+    asConstant term              = throwNotAConstant term
 
 instance FromConstant (HTerm m name uni fun ()) where
     fromConstant = HConstant ()
