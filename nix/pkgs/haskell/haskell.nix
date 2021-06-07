@@ -1,7 +1,8 @@
 ############################################################################
 # Builds Haskell packages with Haskell.nix
 ############################################################################
-{ lib
+{ pkgs
+, lib
 , stdenv
 , rPackages
 , haskell-nix
@@ -16,11 +17,28 @@
   # Whether to set the `defer-plugin-errors` flag on those packages that need
   # it. If set to true, we will also build the haddocks for those packages.
 , deferPluginErrors
+, nativePlutus ? null
 }:
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.cabalProject' {
     inherit compiler-nix-name;
+
+    cabalProjectLocal = if (nativePlutus == null)
+    then ''
+      -- packages: ${pkgs.pkgsCross.ghcjs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.configured-src}
+
+
+      source-repository-package
+        type: git
+        location: https://github.com/ghcjs/ghcjs.git
+        tag: 6f20f45e384e4907cbf11ec7c258e456c4f0f4d7
+        --sha256: 098n3nabc9dgsfh0mznpkaxhbwmsp5rx5wcvx4411k631lglkyk2
+
+      allow-newer: ghcjs:base16-bytestring,
+                   ghcjs:aeson
+    '' else "";
+
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
       haskell-nix.haskellLib.cleanSourceWith {
@@ -57,9 +75,45 @@ let
       "https://github.com/input-output-hk/hedgehog-extras"."8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187" = "12viwpahjdfvlqpnzdgjp40nw31rvyznnab1hml9afpaxd6ixh70";
     };
     modules = [
+        # { nonReinstallablePkgs = [
+        #   "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base"
+        #   "deepseq" "array" "ghc-boot-th" "pretty" "template-haskell"
+        #   # ghcjs custom packages
+        #   "ghcjs-prim" "ghcjs-th"
+        #   "ghc-boot"
+        #   "ghc" "Win32" "array" "binary" "bytestring" "containers"
+        #   "directory" "filepath" "ghc-boot" "ghc-compact" "ghc-prim"
+        #   # "ghci" "haskeline"
+        #   "hpc"
+        #   "mtl" "parsec" "process" "text" "time" "transformers"
+        #   "unix" "xhtml"
+        #   # "stm" "terminfo"
+        # ]; }
       {
         reinstallableLibGhc = false;
         packages = {
+
+          ghcjs.components.library.build-tools = let alex = pkgs.haskell-nix.tool compiler-nix-name "alex" {
+            index-state = pkgs.haskell-nix.internalHackageIndexState;
+            version = "3.2.5"; }; in [ alex ];
+          ghcjs.flags.use-host-template-haskell = true;
+
+          plutus-use-cases.ghcOptions = if (nativePlutus != null)
+                                        then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}" "-host-package-db ${attr}/package.conf.d" "-Werror" "-v"])
+                                        else __trace "nativePlutus is null" [];
+
+
+          plutus-ledger.components.library.build-tools = if (nativePlutus != null) then [ pkgs.pkgsCross.ghcjs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.buildGHC ] else [];
+          plutus-ledger.ghcOptions = if (nativePlutus != null)
+                                        then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
+
+          Cabal.patches = [ ../../patches/cabal.patch ];
           # See https://github.com/input-output-hk/plutus/issues/1213 and
           # https://github.com/input-output-hk/plutus/pull/2865.
           marlowe.doHaddock = deferPluginErrors;
@@ -133,14 +187,14 @@ let
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";
           plutus-contract.ghcOptions = [ "-Werror" ];
-          plutus-ledger.ghcOptions = [ "-Werror" ];
+          # plutus-ledger.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-playground-server.ghcOptions = [ "-Werror" ];
           plutus-pab.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           plutus-doc.ghcOptions = [ "-Werror" ];
-          plutus-use-cases.ghcOptions = [ "-Werror" ];
+          # plutus-use-cases.ghcOptions = [ "-Werror" ];
 
           # External package settings
 

@@ -27,6 +27,8 @@ packages: doc
           quickcheck-dynamic
           web-ghc
           word-array
+          stubs/*
+          contrib/*
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -53,6 +55,16 @@ allow-newer:
            , beam-sqlite:aeson
            , beam-sqlite:dlist
            , beam-migrate:aeson
+
+           , stm:base
+           , cardano-binary:recursion-schemes
+           , jsaddle:ghcjs-base
+           , ghcjs-base:primitive
+           , ghcjs-base:time
+           , ghcjs-base:hashable
+           , ghcjs-base:aeson
+           , servant-foreign:lens
+           , servant-client:http-client
 
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
@@ -216,3 +228,11 @@ package small-steps
 
 package small-steps-test
   tests: False
+
+-- GHCJS specific stuff...
+source-repository-package
+   type: git
+   location: https://github.com/hamishmack/foundation
+   tag: 421e8056fabf30ef2f5b01bb61c6880d0dfaa1c8
+   --sha256: 0cbsj3dyycykh0lcnsglrzzh898n2iydyw8f2nwyfvfnyx6ac2im
+   subdir: foundation

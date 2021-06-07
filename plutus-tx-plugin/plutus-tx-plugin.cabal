@@ -31,43 +31,65 @@ common lang
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
+flag ghcjs-plugin
+  description: build the plugin for GHCJS instead of GHC
+  default:     True
+  manual:      True
+
 library
-    if os(windows)
-        buildable: false
     import: lang
-    hs-source-dirs: src
-    exposed-modules:
-        PlutusTx.Plugin
-        PlutusTx.Compiler.Error
-    other-modules:
-        PlutusTx.Compiler.Binders
-        PlutusTx.Compiler.Builtins
-        PlutusTx.Compiler.Expr
-        PlutusTx.Compiler.Kind
-        PlutusTx.Compiler.Laziness
-        PlutusTx.Compiler.Names
-        PlutusTx.Compiler.Primitives
-        PlutusTx.Compiler.Type
-        PlutusTx.Compiler.Types
-        PlutusTx.Compiler.Utils
-        PlutusTx.PIRTypes
-        PlutusTx.PLCTypes
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        containers -any,
-        extra -any,
-        flat -any,
-        ghc >=8.10 && <9,
-        ghc-prim -any,
-        plutus-core -any,
-        lens -any,
-        mtl -any,
-        prettyprinter -any,
-        template-haskell -any,
-        text -any,
-        transformers -any,
-        plutus-tx -any
+    if os(windows)
+        buildable: False
+    -- For ghcjs (where we have some hope of this to work), we use a rather
+    -- peculiar hack.  We pretend this package exists.  So most of ghcjs is
+    -- trivially happy, but then when it's loaded, we'll swap it out for the
+    -- natively (e.g. not cross compiled like ghcjs results) package, such that
+    -- ghcjs can load the plugin and execute it natively.
+    if(impl(ghcjs))
+        hs-source-dirs: cross-src
+        exposed-modules:
+            PlutusTx.Plugin
+        build-depends:
+            base >=4.9 && <5,
+            plutus-ghc-stub
+    else
+        hs-source-dirs: src
+        exposed-modules:
+            PlutusTx.Plugin
+            PlutusTx.Compiler.Error
+        other-modules:
+            PlutusTx.Compiler.Binders
+            PlutusTx.Compiler.Builtins
+            PlutusTx.Compiler.Expr
+            PlutusTx.Compiler.Kind
+            PlutusTx.Compiler.Laziness
+            PlutusTx.Compiler.Names
+            PlutusTx.Compiler.Primitives
+            PlutusTx.Compiler.Type
+            PlutusTx.Compiler.Types
+            PlutusTx.Compiler.Utils
+            PlutusTx.PIRTypes
+            PlutusTx.PLCTypes
+        build-depends:
+            base >=4.9 && <5,
+            bytestring -any,
+            containers -any,
+            extra -any,
+            flat -any,
+            ghc-prim -any,
+            plutus-core -any,
+            lens -any,
+            mtl -any,
+            prettyprinter -any,
+            template-haskell -any,
+            text -any,
+            transformers -any,
+            plutus-tx -any
+        if(flag(ghcjs-plugin))
+            build-depends: ghcjs >=8.10 && <9
+        else
+            build-depends: ghc >=8.10 && <9
+
 
 test-suite plutus-tx-tests
     if os(windows)

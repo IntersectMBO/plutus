@@ -87,10 +87,10 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
-        "branch": "nixpkgs-unstable",
+        "branch": "nixos-unstable",
         "builtin": true,
-        "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
-        "homepage": "https://github.com/NixOS/nixpkgs",
+        "description": "Nix Packages collection",
+        "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "7d71001b796340b219d1bfa8552c81995017544a",

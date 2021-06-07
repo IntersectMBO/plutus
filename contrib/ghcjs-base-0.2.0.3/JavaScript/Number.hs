@@ -1,0 +1,2 @@
+module JavaScript.Number where
+

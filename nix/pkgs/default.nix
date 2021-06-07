@@ -4,6 +4,7 @@
 , config ? { allowUnfreePredicate = (import ../lib/unfree.nix).unfreePredicate; }
 , sources
 , enableHaskellProfiling
+, nativePlutus ? null
 }:
 let
   inherit (pkgs) stdenv;
@@ -12,11 +13,14 @@ let
 
   # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
+    inherit pkgs;
     inherit gitignore-nix sources;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
     inherit (pkgs.evalPackages) writeShellScript;
+
+    inherit nativePlutus;
   };
 
   #
@@ -203,4 +207,8 @@ in
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib aws-mfa-login;
   inherit lib;
+
+  cabal-plan = pkgs.haskell-nix.tool "ghc8104" "cabal-plan" {
+            index-state = pkgs.haskell-nix.internalHackageIndexState;
+            version = "0.7.2.0"; };
 }

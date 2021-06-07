@@ -1,0 +1,197 @@
+cabal-version:       3.0
+name:                ghcjs-base
+version:             0.2.0.3
+synopsis:            base library for GHCJS
+homepage:            http://github.com/ghcjs/ghcjs-base
+license:             MIT
+license-file:        LICENSE
+author:              Luite Stegeman
+maintainer:          stegeman@gmail.com
+category:            Web
+build-type:          Simple
+
+source-repository head
+  type:     git
+  location: https://github.com/ghcjs/ghcjs-base
+
+library
+  if impl(ghc >= 8.10.1)
+    js-sources:    jsbits/array.js.pp
+                   jsbits/animationFrame.js.pp
+                   jsbits/export.js.pp
+                   jsbits/jsstring.js.pp
+                   jsbits/jsstringRaw.js.pp
+                   jsbits/foreign.js.pp
+                   jsbits/text.js.pp
+                   jsbits/utils.js.pp
+                   jsbits/xhr.js.pp
+                   jsbits/websocket.js.pp
+  else
+    js-sources:    jsbits-old/array.js
+                   jsbits-old/animationFrame.js
+                   jsbits-old/export.js
+                   jsbits-old/jsstring.js
+                   jsbits-old/jsstringRaw.js
+                   jsbits-old/foreign.js
+                   jsbits-old/text.js
+                   jsbits-old/utils.js
+                   jsbits-old/xhr.js
+                   jsbits-old/websocket.js
+  other-extensions: DeriveDataTypeable
+                    DeriveGeneric
+                    ForeignFunctionInterface
+                    JavaScriptFFI
+                    GHCForeignImportPrim
+                    MagicHash
+                    UnboxedTuples
+                    TypeFamilies
+                    CPP
+                    UnliftedFFITypes
+                    BangPatterns
+                    ScopedTypeVariables
+                    FlexibleInstances
+                    TypeSynonymInstances
+                    ViewPatterns
+--                    NegativeLiterals
+-- fixme do we need negativeliterals?
+                    DefaultSignatures
+                    EmptyDataDecls
+                    OverloadedStrings
+                    Rank2Types
+                    ExistentialQuantification
+                    GeneralizedNewtypeDeriving
+                    ScopedTypeVariables
+                    TypeOperators
+
+  exposed-modules: Data.JSString
+                   Data.JSString.Int
+                   Data.JSString.Raw
+                   Data.JSString.Read
+                   Data.JSString.RealFloat
+                   Data.JSString.RegExp
+                   Data.JSString.Internal
+                   Data.JSString.Text
+                   Data.JSString.Internal.Fusion
+                   Data.JSString.Internal.Fusion.Types
+                   Data.JSString.Internal.Fusion.Common
+                   Data.JSString.Internal.Fusion.CaseMapping
+                   Data.JSString.Internal.Search
+                   GHCJS.Buffer
+                   GHCJS.Buffer.Types
+                   GHCJS.Concurrent
+                   GHCJS.Foreign
+                   GHCJS.Foreign.Callback
+                   GHCJS.Foreign.Callback.Internal
+                   GHCJS.Foreign.Export
+                   GHCJS.Foreign.Internal
+                   GHCJS.Marshal
+                   GHCJS.Marshal.Internal
+                   GHCJS.Marshal.Pure
+                   GHCJS.Nullable
+                   GHCJS.Types
+                   JavaScript.Array
+                   JavaScript.Array.Internal
+                   JavaScript.Array.ST
+                   JavaScript.Cast
+                   JavaScript.JSON
+                   JavaScript.JSON.Types
+                   JavaScript.JSON.Types.Class
+                   JavaScript.JSON.Types.Generic
+                   JavaScript.JSON.Types.Instances
+                   JavaScript.JSON.Types.Internal
+                   JavaScript.Number
+                   JavaScript.Object
+                   JavaScript.Object.Internal
+                   JavaScript.RegExp
+                   JavaScript.TypedArray
+                   JavaScript.TypedArray.ArrayBuffer
+                   JavaScript.TypedArray.ArrayBuffer.ST
+                   JavaScript.TypedArray.DataView
+                   JavaScript.TypedArray.DataView.ST
+                   JavaScript.TypedArray.Internal
+                   JavaScript.TypedArray.ST
+                   JavaScript.Web.AnimationFrame
+                   JavaScript.Web.Blob
+                   JavaScript.Web.Blob.Internal
+                   JavaScript.Web.Canvas
+                   JavaScript.Web.Canvas.ImageData
+                   JavaScript.Web.Canvas.Internal
+                   JavaScript.Web.Canvas.TextMetrics
+                   JavaScript.Web.CloseEvent
+                   JavaScript.Web.CloseEvent.Internal
+                   JavaScript.Web.ErrorEvent
+                   JavaScript.Web.ErrorEvent.Internal
+                   JavaScript.Web.File
+                   JavaScript.Web.History
+                   JavaScript.Web.Location
+                   JavaScript.Web.MessageEvent
+                   JavaScript.Web.MessageEvent.Internal
+                   JavaScript.Web.Performance
+                   JavaScript.Web.Storage
+                   JavaScript.Web.Storage.Internal
+                   JavaScript.Web.StorageEvent
+                   JavaScript.Web.XMLHttpRequest
+                   JavaScript.Web.WebSocket
+                   JavaScript.Web.Worker
+  other-modules:   GHCJS.Internal.Types
+                   Data.JSString.Internal.Type
+                   JavaScript.TypedArray.Internal.Types
+                   JavaScript.TypedArray.ArrayBuffer.Internal
+                   JavaScript.TypedArray.DataView.Internal
+  build-depends:   base                 >= 4.7  && < 5,
+                   ghc-prim,
+                   ghcjs-prim,
+                   integer-gmp,
+                   binary               >= 0.8  && < 0.11,
+                   bytestring           >= 0.10 && < 0.11,
+                   text                 >= 1.1  && < 1.3,
+                   aeson                >= 0.8  && < 1.6,
+                   scientific           >= 0.3  && < 0.4,
+                   vector               >= 0.10 && < 0.13,
+                   containers           >= 0.5  && < 0.7,
+                   time                 >= 1.5  && < 1.10,
+                   hashable             >= 1.2  && < 1.4,
+                   unordered-containers >= 0.2  && < 0.3,
+                   attoparsec           >= 0.11 && < 0.15,
+                   transformers         >= 0.3  && < 0.6,
+                   primitive            >= 0.5  && < 0.8,
+                   deepseq              >= 1.3  && < 1.5,
+                   dlist                >= 0.7  && < 1.1
+  default-language: Haskell2010
+  if !impl(ghcjs) && !os(ghcjs)
+    buildable: False
+
+test-suite tests
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        Tests.hs
+  other-modules:  Tests.Marshal
+                  Tests.Properties
+                  Tests.Properties.Numeric
+                  Tests.SlowFunctions
+                  Tests.QuickCheckUtils
+                  Tests.Regressions
+                  Tests.Utils
+  ghc-options:
+    -Wall -rtsopts
+  build-depends:
+    HUnit >= 1.2,
+    QuickCheck >= 2.7,
+    array,
+    text,
+    base,
+    bytestring,
+    deepseq,
+    directory,
+    ghc-prim,
+    ghcjs-prim,
+    ghcjs-base,
+    primitive,
+    quickcheck-unicode,
+    random,
+    test-framework >= 0.4,
+    test-framework-hunit >= 0.2,
+    test-framework-quickcheck2 >= 0.2
+  default-language: Haskell2010
+  if !impl(ghcjs) && !os(ghcjs)
+    buildable: False

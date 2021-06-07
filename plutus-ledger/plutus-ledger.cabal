@@ -120,7 +120,8 @@ library
         deepseq -any,
         freer-simple -any,
         semigroups -any
-    if !(impl(ghcjs) || os(ghcjs) || os(windows))
+
+    if true || !(impl(ghcjs) || os(ghcjs) || os(windows))
         build-depends: plutus-tx-plugin -any
 
     ghc-options: -fprint-potential-instances
