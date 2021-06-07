@@ -58,13 +58,16 @@ let
         in
         filterAttrsOnlyRecursive (_: drv: isBuildable drv) ({
           # build relevant top level attributes from default.nix
-          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab deployment;
+          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab;
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
           # cache for users
           inherit (plutus.haskell.project) roots;
 
           # build all haskell packages and tests
           haskell = pkgs.recurseIntoAttrs (mkHaskellDimension pkgs plutus.haskell.projectPackages);
+        } // pkgs.lib.optionalAttrs (crossSystem == null) {
+          # no deployment for cross compiled targets
+          inherit (packages) deployment;
         # } // pkgs.lib.optionalAttrs (crossSystem == null) {
         #   # Build the shell expression to be sure it works on all platforms
         #   #
