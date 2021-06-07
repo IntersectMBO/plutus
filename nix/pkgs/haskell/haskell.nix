@@ -46,6 +46,7 @@ let
                  , ghcjs-base:aeson
                  , servant-foreign:lens
                  , servant-client:http-client
+      constraints: plutus-tx +ghcjs-plugin
 
 
       -- The following is needed because Nix is doing something crazy.

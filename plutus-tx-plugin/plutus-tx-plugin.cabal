@@ -33,7 +33,7 @@ common lang
 
 flag ghcjs-plugin
   description: build the plugin for GHCJS instead of GHC
-  default:     True
+  default:     False
   manual:      True
 
 library
