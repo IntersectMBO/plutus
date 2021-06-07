@@ -210,6 +210,9 @@ makeTest {
     playgrounds.wait_for_unit("network-online.target")
     pab.wait_for_unit("network-online.target")
     pab.wait_for_unit("pab.service")
+
+    # Refer to `services.pab` configuration  above to see what
+    # service each individual port relates to.
     pab.wait_for_open_port(8080)
     pab.wait_for_open_port(8081)
     pab.wait_for_open_port(8082)
