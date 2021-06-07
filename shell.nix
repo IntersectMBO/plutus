@@ -1,5 +1,6 @@
 { system ? builtins.currentSystem
-, packages ? import ./. { inherit system; }
+, enableHaskellProfiling ? false
+, packages ? import ./. { inherit system enableHaskellProfiling; }
 }:
 let
   inherit (packages) pkgs plutus plutus-playground marlowe-playground plutus-pab marlowe-dashboard deployment docs;
