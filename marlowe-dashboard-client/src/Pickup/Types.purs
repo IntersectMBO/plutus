@@ -32,7 +32,7 @@ derive instance eqCard :: Eq Card
 
 data Action
   = OpenCard Card
-  | CloseCard
+  | CloseCard Card
   | GenerateWallet
   | SetWalletNicknameOrId String
   | SetWalletDropdownOpen Boolean
@@ -46,7 +46,7 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCard _) = Nothing
-  toEvent CloseCard = Nothing
+  toEvent (CloseCard _) = Nothing
   toEvent GenerateWallet = Just $ defaultEvent "GenerateWallet"
   toEvent (SetWalletNicknameOrId _) = Nothing
   toEvent (SetWalletDropdownOpen _) = Nothing
