@@ -57,7 +57,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.njk"),
       templateParameters: { faqContent },
-      // favicon: 'static/favicon.ico',
+      favicon: "static/favicon.ico",
       title: "Marlowe",
       // FIXME: add google analytics id
       // googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
