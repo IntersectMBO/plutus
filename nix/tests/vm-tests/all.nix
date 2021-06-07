@@ -280,7 +280,7 @@ makeTest {
     # plutus-playground / webghc : using api/contract
     # marlowe-playground / webghc : using /runghc
     #
-    with subtest("********************************************************************************************* TEST: All content is being served on playgrounds"):
+    with subtest("********************************************************************************************* TEST: compilation works"):
       res = playgrounds.succeed("curl --silent -H 'Content-Type: application/json' --request POST --data @${plutusApiRequest} http://plutus-playground:8080/api/contract")
       assert "Right" in res, "Expected response wrapped in 'Right'. Actual: {}".format(res)
 
