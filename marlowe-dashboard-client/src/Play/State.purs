@@ -6,9 +6,9 @@ module Play.State
 
 import Prelude
 import Capability.Contract (class ManageContract)
-import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, followContract, getFollowerApps, lookupWalletInfo, subscribeToPlutusApp)
+import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_marloweParams, _selectedStep)
 import Contract.State (applyTimeout)
@@ -18,7 +18,7 @@ import ContractHome.Lenses (_contracts)
 import ContractHome.State (handleAction, mkInitialState) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
-import Data.Array (difference, init, snoc)
+import Data.Array (difference, head, init, reverse, snoc)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, filtered, modifying, over, set, use, view)
@@ -44,6 +44,7 @@ import InputField.Types (Action(..), State) as InputField
 import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
+import Marlowe.Execution (NamedAction(..))
 import Marlowe.PAB (ContractHistory, PlutusAppId(..))
 import Marlowe.Semantics (Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
@@ -126,7 +127,7 @@ handleAction input (SaveNewWallet mTokenName) = do
     mWalletId = parsePlutusAppId walletIdString
   case remoteWalletInfo, mWalletId of
     Success walletInfo, Just walletId -> do
-      handleAction input CloseCard
+      handleAction input $ CloseCard $ SaveWalletCard Nothing
       let
         -- note the empty properties are fine for saved wallets - these will be fetched if/when
         -- this wallet is picked up
@@ -169,10 +170,19 @@ handleAction input (OpenCard card) = do
     $ over _cards (flip snoc card)
     <<< set _menuOpen false
 
-handleAction _ CloseCard = do
+handleAction _ (CloseCard card) = do
   cards <- use _cards
-  for_ (init cards) \remainingCards ->
-    assign _cards remainingCards
+  let
+    topCard = head $ reverse cards
+
+    cardsMatch = case topCard, card of
+      Just (SaveWalletCard _), SaveWalletCard _ -> true
+      Just (ViewWalletCard _), ViewWalletCard _ -> true
+      Just (ContractActionConfirmationCard _), ContractActionConfirmationCard _ -> true
+      _, _ -> topCard == Just card
+  when cardsMatch $ void
+    $ for_ (init cards) \remainingCards ->
+        assign _cards remainingCards
 
 -- Until everything is working in the PAB, we are simulating persistent and shared data using localStorage; this
 -- action updates the state to match the localStorage, and should be called whenever the stored data changes
@@ -235,11 +245,15 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
     $ over
         (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot))
         (applyTimeout currentSlot)
-  -- if the modification changed the currently selected step, that means the card for the contract
-  -- that was changed is currently open, so we need to realign the step cards
+  -- If the modification changed the currently selected step, that means the card for the contract
+  -- that was changed is currently open, so we need to realign the step cards. We also call the
+  -- CancelConfirmation action - because if the user had the action confirmation card open for an
+  -- action in the current step, we want to close it (otherwise they could confirm an action that
+  -- is no longer possible).
   selectedStep' <- peruse $ _selectedContract <<< _selectedStep
-  when (selectedStep /= selectedStep')
-    $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
+  when (selectedStep /= selectedStep') do
+    for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
+    handleAction input $ ContractAction Contract.CancelConfirmation
 
 -- TODO: we have to handle quite a lot of submodule actions here (mainly just because of the cards),
 -- so there's probably a better way of structuring this - perhaps making cards work more like toasts
@@ -253,7 +267,7 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
   Template.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
   Template.OpenCreateWalletCard tokenName -> handleAction input $ OpenCard $ SaveWalletCard $ Just tokenName
   Template.OpenSetupConfirmationCard -> handleAction input $ OpenCard ContractSetupConfirmationCard
-  Template.CloseSetupConfirmationCard -> handleAction input CloseCard -- TODO: guard against closing the wrong card
+  Template.CloseSetupConfirmationCard -> handleAction input $ CloseCard ContractSetupConfirmationCard
   Template.StartContract -> do
     extendedContract <- use (_templateState <<< _template <<< _extendedContract)
     templateContent <- use (_templateState <<< _templateContent)
@@ -296,8 +310,8 @@ handleAction input@{ currentSlot } (ContractAction contractAction) = do
     Contract.AskConfirmation action -> handleAction input $ OpenCard $ ContractActionConfirmationCard action
     Contract.ConfirmAction action -> do
       void $ toContract $ Contract.handleAction contractInput contractAction
-      handleAction input CloseCard -- TODO: guard against closing the wrong card
-    Contract.CancelConfirmation -> handleAction input CloseCard -- TODO: guard against closing the wrong card
+      handleAction input $ CloseCard $ ContractActionConfirmationCard CloseContract
+    Contract.CancelConfirmation -> handleAction input $ CloseCard $ ContractActionConfirmationCard CloseContract
     _ -> toContract $ Contract.handleAction contractInput contractAction
 
 ------------------------------------------------------------

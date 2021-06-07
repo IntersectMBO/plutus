@@ -99,7 +99,7 @@ pickupNewWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ CloseCard
+        , onClick_ $ CloseCard PickupNewWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
@@ -128,7 +128,7 @@ pickupNewWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ CloseCard
+                , onClick_ $ CloseCard PickupNewWalletCard
                 ]
                 [ text "Cancel" ]
             , button
@@ -172,7 +172,7 @@ pickupWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ CloseCard
+        , onClick_ $ CloseCard PickupWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
@@ -201,7 +201,7 @@ pickupWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ CloseCard
+                , onClick_ $ CloseCard PickupWalletCard
                 ]
                 [ text "Cancel" ]
             , button
@@ -218,7 +218,7 @@ localWalletMissingCard :: forall p. Array (HTML p Action)
 localWalletMissingCard =
   [ a
       [ classNames [ "absolute", "top-4", "right-4" ]
-      , onClick_ CloseCard
+      , onClick_ $ CloseCard LocalWalletMissingCard
       ]
       [ icon_ Close ]
   , div [ classNames [ "flex", "font-semibold", "px-5", "py-4", "bg-gray" ] ]

@@ -35,7 +35,7 @@ import MainFrame.View (render)
 import Marlowe.PAB (PlutusAppId)
 import Pickup.Lenses (_walletLibrary)
 import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
-import Pickup.Types (Action(..), State) as Pickup
+import Pickup.Types (Action(..), Card(..), State) as Pickup
 import Play.Lenses (_allContracts, _selectedContract, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
@@ -224,7 +224,8 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
   currentSlot <- use _currentSlot
   case ajaxFollowerApps of
     Left decodedAjaxError -> do
-      handleAction $ PickupAction Pickup.CloseCard
+      handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupWalletCard
+      handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupNewWalletCard
       addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
       subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
@@ -241,7 +242,8 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       ajaxRoleContracts <- getRoleContracts walletDetails
       case ajaxRoleContracts of
         Left decodedAjaxError -> do
-          handleAction $ PickupAction Pickup.CloseCard
+          handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupWalletCard
+          handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupNewWalletCard
           addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
         Right companionState -> handleAction $ PlayAction $ Play.UpdateRunningContracts companionState
 

@@ -116,6 +116,7 @@ cardNavigationButtons state =
           , rightButton (state ^. _selectedStep)
           ]
 
+-- TODO: This is a lot like the `contractSetupConfirmationCard` in `Template.View`. Consider factoring out a shared component.
 actionConfirmationCard :: forall p. Assets -> State -> NamedAction -> HTML p Action
 actionConfirmationCard assets state namedAction =
   let
@@ -152,9 +153,13 @@ actionConfirmationCard assets state namedAction =
         ]
       _ -> [ transactionFeeItem false ]
 
+    -- TODO: when we allow custom currency other than ada, we won't be able to add the deposit amount
+    -- to the transaction fee (always in ada)
     totalToPay = case namedAction of
-      MakeDeposit _ _ token amount -> text $ humanizeValue token $ amount + transactionFee
-      _ -> text $ humanizeValue adaToken transactionFee
+      MakeDeposit _ _ _ amount -> amount + transactionFee
+      _ -> transactionFee
+
+    hasSufficientFunds = getAda assets >= totalToPay
   in
     div_
       [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
@@ -175,7 +180,7 @@ actionConfirmationCard assets state namedAction =
               [ text "Confirm payment of:" ]
           , div
               [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-              [ totalToPay ]
+              [ text $ humanizeValue adaToken totalToPay ]
           , div [ classNames [ "flex", "justify-center" ] ]
               [ button
                   [ classNames $ Css.secondaryButton <> [ "mr-2", "flex-1" ]
@@ -185,9 +190,16 @@ actionConfirmationCard assets state namedAction =
               , button
                   [ classNames $ Css.primaryButton <> [ "flex-1" ]
                   , onClick_ $ ConfirmAction namedAction
+                  , enabled hasSufficientFunds
                   ]
                   [ text cta ]
               ]
+          , div
+              [ classNames [ "my-4", "text-sm", "text-red" ] ]
+              if hasSufficientFunds then
+                []
+              else
+                [ text "You have insufficient funds to complete this transaction." ]
           , div [ classNames [ "bg-black", "text-white", "p-4", "mt-4", "rounded" ] ]
               [ h3 [ classNames [ "text-sm", "font-semibold" ] ] [ sup_ [ text "*" ], text "Transaction fees are estimates only:" ]
               , p [ classNames [ "pb-4", "border-b-half", "border-lightgray", "text-xs", "text-gray" ] ]
