@@ -10,7 +10,7 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "cardano-crypto-test"; version = "1.3.0"; };
       license = "Apache-2.0";
       copyright = "2018 IOHK";
@@ -56,4 +56,4 @@
           ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/26; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/31; }

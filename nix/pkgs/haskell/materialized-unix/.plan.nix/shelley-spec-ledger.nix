@@ -10,7 +10,7 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.8";
+      specVersion = "2.2";
       identifier = { name = "shelley-spec-ledger"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -33,8 +33,8 @@
     components = {
       "library" = {
         depends = [
-          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."bech32" or (errorHandler.buildDepError "bech32"))
           (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
@@ -43,11 +43,11 @@
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
           (hsPkgs."cardano-crypto-wrapper" or (errorHandler.buildDepError "cardano-crypto-wrapper"))
-          (hsPkgs."cardano-ledger" or (errorHandler.buildDepError "cardano-ledger"))
+          (hsPkgs."cardano-ledger-byron" or (errorHandler.buildDepError "cardano-ledger-byron"))
+          (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
-          (hsPkgs."cborg-json" or (errorHandler.buildDepError "cborg-json"))
           (hsPkgs."constraints" or (errorHandler.buildDepError "constraints"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
@@ -55,43 +55,35 @@
           (hsPkgs."groups" or (errorHandler.buildDepError "groups"))
           (hsPkgs."iproute" or (errorHandler.buildDepError "iproute"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-          (hsPkgs."network" or (errorHandler.buildDepError "network"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
-          (hsPkgs."partial-order" or (errorHandler.buildDepError "partial-order"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
+          (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           ];
         buildable = true;
         modules = [
-          "Shelley/Spec/Ledger/API/Mempool"
           "Shelley/Spec/Ledger/API/Types"
-          "Cardano/Ledger/AuxiliaryData"
-          "Cardano/Ledger/Compactible"
-          "Cardano/Ledger/Core"
-          "Cardano/Ledger/Crypto"
-          "Cardano/Ledger/Era"
           "Cardano/Ledger/Pretty"
           "Cardano/Ledger/Shelley"
           "Cardano/Ledger/Shelley/Constraints"
-          "Cardano/Ledger/Torsor"
-          "Cardano/Ledger/Val"
           "Shelley/Spec/Ledger/Address"
           "Shelley/Spec/Ledger/Address/Bootstrap"
           "Shelley/Spec/Ledger/API"
           "Shelley/Spec/Ledger/API/ByronTranslation"
+          "Shelley/Spec/Ledger/API/Genesis"
           "Shelley/Spec/Ledger/API/Protocol"
           "Shelley/Spec/Ledger/API/Validation"
           "Shelley/Spec/Ledger/API/Wallet"
+          "Shelley/Spec/Ledger/API/Mempool"
           "Shelley/Spec/Ledger/BaseTypes"
           "Shelley/Spec/Ledger/BlockChain"
-          "Shelley/Spec/Ledger/Coin"
           "Shelley/Spec/Ledger/CompactAddr"
           "Shelley/Spec/Ledger/Credential"
           "Shelley/Spec/Ledger/Delegation/Certificates"
@@ -99,7 +91,6 @@
           "Shelley/Spec/Ledger/EpochBoundary"
           "Shelley/Spec/Ledger/Genesis"
           "Shelley/Spec/Ledger/HardForks"
-          "Shelley/Spec/Ledger/Hashing"
           "Shelley/Spec/Ledger/Keys"
           "Shelley/Spec/Ledger/LedgerState"
           "Shelley/Spec/Ledger/Metadata"
@@ -109,8 +100,8 @@
           "Shelley/Spec/Ledger/PParams"
           "Shelley/Spec/Ledger/Rewards"
           "Shelley/Spec/Ledger/RewardProvenance"
+          "Shelley/Spec/Ledger/RewardUpdate"
           "Shelley/Spec/Ledger/Scripts"
-          "Shelley/Spec/Ledger/Serialization"
           "Shelley/Spec/Ledger/Slot"
           "Shelley/Spec/Ledger/SoftForks"
           "Shelley/Spec/Ledger/StabilityWindow"
@@ -147,4 +138,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/33; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/38; }

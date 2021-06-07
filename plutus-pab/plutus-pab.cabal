@@ -125,6 +125,7 @@ library
         async -any,
         base >=4.7 && <5,
         bytestring -any,
+        cardano-api -any,
         cardano-crypto -any,
         cardano-prelude -any,
         cardano-slotting -any,

@@ -10,8 +10,8 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.10";
-      identifier = { name = "cardano-ledger-test"; version = "1.3.0"; };
+      specVersion = "2.2";
+      identifier = { name = "cardano-ledger-byron-test"; version = "1.3.0"; };
       license = "Apache-2.0";
       copyright = "2018 IOHK";
       maintainer = "operations@iohk.io";
@@ -39,7 +39,7 @@
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-binary-test" or (errorHandler.buildDepError "cardano-binary-test"))
-          (hsPkgs."cardano-ledger" or (errorHandler.buildDepError "cardano-ledger"))
+          (hsPkgs."cardano-ledger-byron" or (errorHandler.buildDepError "cardano-ledger-byron"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cardano-crypto-test" or (errorHandler.buildDepError "cardano-crypto-test"))
           (hsPkgs."cardano-crypto-wrapper" or (errorHandler.buildDepError "cardano-crypto-wrapper"))
@@ -92,6 +92,7 @@
           "Test/Cardano/Chain/Elaboration/Update"
           "Test/Cardano/Chain/Elaboration/UTxO"
           "Test/Cardano/Chain/Epoch/File"
+          "Test/Cardano/Chain/Genesis/CBOR"
           "Test/Cardano/Chain/Genesis/Dummy"
           "Test/Cardano/Chain/Genesis/Example"
           "Test/Cardano/Chain/Genesis/Gen"
@@ -119,4 +120,4 @@
           ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/29; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/34; }

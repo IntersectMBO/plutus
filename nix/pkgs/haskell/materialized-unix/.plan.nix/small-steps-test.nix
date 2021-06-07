@@ -10,7 +10,7 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "small-steps-test"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -41,11 +41,10 @@
           (hsPkgs."microlens-th" or (errorHandler.buildDepError "microlens-th"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
-          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
-          (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
+          (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           ];
         buildable = true;
         modules = [
@@ -58,19 +57,6 @@
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "doctests" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."doctest" or (errorHandler.buildDepError "doctest"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            ];
-          build-tools = [
-            (hsPkgs.buildPackages.doctest-discover.components.exes.doctest-discover or (pkgs.buildPackages.doctest-discover or (errorHandler.buildToolDepError "doctest-discover:doctest-discover")))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "test" ];
-          mainPath = [ "DoctestDiscover.hs" ];
-          };
         "examples" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -100,4 +86,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/31; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/36; }

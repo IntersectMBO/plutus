@@ -395,6 +395,7 @@ protocolLoop socketPath internalState = liftIO $ withIOManager $ \iocp -> do
       (AcceptedConnectionsLimit maxBound maxBound 0)
       (localAddressFromPath socketPath)
       unversionedHandshakeCodec
+      noTimeLimitsHandshake
       (cborTermVersionDataCodec unversionedProtocolDataCodec)
       acceptableVersion
       (unversionedProtocol (SomeResponderApplication (application internalState)))
