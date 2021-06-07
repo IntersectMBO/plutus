@@ -112,7 +112,7 @@ revealUnique (Name name uniq) =
 -- TODO: we can generate more types here.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: (Generatable uni, HasConstantIn uni term, Monad m)
+    :: (uni ~ DefaultUni, HasConstantIn uni term, Monad m)
     => (forall a. AsKnownType term a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
     [ k @Integer       AsKnownType
@@ -172,7 +172,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
 -- Arguments to functions and 'Builtin's are generated recursively.
 genTerm
     :: forall uni fun m.
-       (Generatable uni, Monad m)
+       (uni ~ DefaultUni, Monad m)
     => TypedBuiltinGenT (Plain Term uni fun) m
        -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext (Plain Term uni fun)

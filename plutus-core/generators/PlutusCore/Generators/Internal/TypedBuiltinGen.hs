@@ -15,7 +15,6 @@ module PlutusCore.Generators.Internal.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
     , TypedBuiltinGen
-    , Generatable
     , genLowerBytes
     , genTypedBuiltinFail
     , genTypedBuiltinDef
@@ -56,8 +55,6 @@ type TypedBuiltinGenT term m = forall a. AsKnownType term a -> GenT m (TermOf te
 -- | 'TypedBuiltinGenT' specified to 'Identity'.
 type TypedBuiltinGen term = TypedBuiltinGenT term Identity
 
-type Generatable uni = (GShow uni, GEq uni, DefaultUni <: uni)
-
 instance (PrettyBy config a, PrettyBy config term) =>
         PrettyBy config (TermOf term a) where
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
@@ -95,7 +92,7 @@ genTypedBuiltinFail tb = fail $ fold
 
 -- | A default built-ins generator.
 genTypedBuiltinDef
-    :: (Generatable uni, HasConstantIn uni term, Monad m)
+    :: (HasConstantIn DefaultUni term, Monad m)
     => TypedBuiltinGenT term m
 genTypedBuiltinDef
     = updateTypedBuiltinGen @Integer (Gen.integral $ Range.linearFrom 0 0 10)
