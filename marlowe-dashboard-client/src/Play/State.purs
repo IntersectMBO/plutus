@@ -6,9 +6,9 @@ module Play.State
 
 import Prelude
 import Capability.Contract (class ManageContract)
-import Capability.MarloweStorage (class ManageMarloweStorage, getCurrentWalletDetails, getWalletLibrary)
+import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe.Dummy (class ManageMarlowe, createContract, followContract, getFollowerApps, lookupWalletInfo, subscribeToPlutusApp)
+import Capability.Marlowe (class ManageMarlowe, createContract, followContract, getFollowerApps, lookupWalletInfo, subscribeToPlutusApp)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_marloweParams, _selectedStep)
 import Contract.State (applyTimeout)
@@ -44,7 +44,7 @@ import InputField.Types (Action(..), State) as InputField
 import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.PAB (ContractHistory(..), PlutusAppId(..))
+import Marlowe.PAB (ContractHistory, PlutusAppId(..))
 import Marlowe.Semantics (Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Play.Lenses (_allContracts, _cards, _contractsState, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
@@ -55,7 +55,7 @@ import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
 import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
-import WalletData.Lenses (_companionAppId, _pubKeyHash, _walletInfo, _walletNickname)
+import WalletData.Lenses (_pubKeyHash, _walletInfo, _walletNickname)
 import WalletData.State (defaultWalletDetails)
 import WalletData.Types (WalletDetails, WalletLibrary)
 import WalletData.Validation (WalletIdError, WalletNicknameError, parsePlutusAppId, walletIdError, walletNicknameError)
@@ -191,14 +191,13 @@ handleAction input@{ currentSlot } UpdateFromStorage = do
       unfoldedFollowerApps = toUnfoldable followerApps
     in
       void
-        $ for unfoldedFollowerApps \(plutusAppId /\ contractHistory) -> case contractHistory of
-            None -> pure unit
-            History marloweParams marloweData transactionInputs -> do
+        $ for unfoldedFollowerApps \(plutusAppId /\ contractHistory@{ chParams, chHistory }) ->
+            for_ chParams \(marloweParams /\ marloweData) -> do
               allContracts <- use _allContracts
               case lookup plutusAppId allContracts of
                 Just contractState -> do
                   selectedStep <- peruse $ _selectedContract <<< _selectedStep
-                  modifying _allContracts $ insert plutusAppId $ Contract.updateState currentSlot transactionInputs contractState
+                  modifying _allContracts $ insert plutusAppId $ Contract.updateState currentSlot chHistory contractState
                   -- if the modification changed the currently selected step, that means the card for the contract
                   -- that was changed is currently open, so we need to realign the step cards
                   selectedStep' <- peruse $ _selectedContract <<< _selectedStep

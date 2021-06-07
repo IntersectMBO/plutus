@@ -1,4 +1,8 @@
-module Env where
+module Env
+  ( Env
+  , DataProvider(..)
+  , PABType(..)
+  ) where
 
 import Effect.AVar (AVar)
 import Halogen (SubscriptionId)
@@ -17,4 +21,18 @@ type Env
     --    creation functions didn't require that, so it seemed wrong to lift several functions into Effect.
     --    In contrast, the Env is created in Main, where we already have access to Effect
     , contractStepCarouselSubscription :: AVar SubscriptionId
+    , dataProvider :: DataProvider
     }
+
+-- The frontend app can be run with three different data providers: the regular PAB (with the Marlowe PAB
+-- contracts installed on disk alongside it), the "Marlowe PAB" (the PAB bundled up with the Marlowe PAB
+-- contracts in one executable), or with the browser's localStorage giving the local illusion of persistent
+-- and shared data. How this env property is set determines the implementation of the functions in the
+-- ManageMarlowe capability monad.
+data DataProvider
+  = PAB PABType
+  | LocalStorage
+
+data PABType
+  = Plain
+  | WithMarloweContracts

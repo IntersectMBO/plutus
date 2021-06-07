@@ -10,7 +10,7 @@ module Contract.State
   ) where
 
 import Prelude
-import Capability.Marlowe.Dummy (class ManageMarlowe, applyTransactionInput)
+import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
@@ -43,8 +43,8 @@ import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.HasParties (getParties)
-import Marlowe.PAB (ContractHistory(..), PlutusAppId(..), MarloweParams)
-import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..))
+import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
+import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _minSlot)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import Toast.Types (ajaxErrorToast, successToast)
@@ -84,19 +84,16 @@ dummyState =
   emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
 
 mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> ContractHistory -> Maybe State
-mkInitialState walletDetails currentSlot followerAppId contractHistory = case contractHistory of
-  None -> Nothing
-  History marloweParams marloweData transactionInputs ->
+mkInitialState walletDetails currentSlot followerAppId { chParams, chHistory } =
+  bind chParams \(marloweParams /\ marloweData) ->
     let
       contract = marloweData.marloweContract
 
       mTemplate = findTemplate contract
 
-      -- FIXME: We can't use the currentSlot to create the initial execution state, since the contract
-      -- might have been created several slots ago. Hopefully this doesn't matter (the argument is
-      -- only used to set the minSlot in the contract's initial state), but we should check. We could
-      -- also consider using the `minSlot` of the original contract.
-      initialExecutionState = initExecution zero contract
+      minSlot = view _minSlot marloweData.marloweState
+
+      initialExecutionState = initExecution minSlot contract
     in
       flip map mTemplate \template ->
         let
@@ -124,7 +121,7 @@ mkInitialState walletDetails currentSlot followerAppId contractHistory = case co
             , namedActions: mempty
             }
 
-          updateExecutionState = over _executionState (applyTransactionInputs transactionInputs)
+          updateExecutionState = over _executionState (applyTransactionInputs chHistory)
         in
           initialState
             # updateExecutionState
