@@ -35,8 +35,44 @@ let
         tag: 6f20f45e384e4907cbf11ec7c258e456c4f0f4d7
         --sha256: 098n3nabc9dgsfh0mznpkaxhbwmsp5rx5wcvx4411k631lglkyk2
 
-      allow-newer: ghcjs:base16-bytestring,
-                   ghcjs:aeson
+      allow-newer: ghcjs:base16-bytestring
+                 , ghcjs:aeson
+                 , stm:base
+                 , cardano-binary:recursion-schemes
+                 , jsaddle:ghcjs-base
+                 , ghcjs-base:primitive
+                 , ghcjs-base:time
+                 , ghcjs-base:hashable
+                 , ghcjs-base:aeson
+                 , servant-foreign:lens
+                 , servant-client:http-client
+
+
+      -- The following is needed because Nix is doing something crazy.
+      package byron-spec-ledger
+        tests: False
+
+      package marlowe
+        tests: False
+
+      package plutus-doc
+        tests: False
+
+      package plutus-metatheory
+        tests: False
+
+      package prettyprinter-configurable
+        tests: False
+
+      package small-steps
+        tests: False
+
+      package small-steps-test
+        tests: False
+
+      package byron-spec-chain
+        tests: False
+
     '' else "";
 
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
