@@ -86,7 +86,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ CloseCard
+              , onClick_ $ CloseCard $ SaveWalletCard Nothing
               ]
               [ text "Cancel" ]
           , button
@@ -161,7 +161,7 @@ putdownWalletCard walletDetails =
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ CloseCard
+              , onClick_ $ CloseCard PutdownWalletCard
               ]
               [ text "Cancel" ]
           , button
