@@ -50,9 +50,9 @@ import           Universe
 -- functions from a certain set, hence the @cost@ parameter.
 data BuiltinMeaning term cost =
     forall args res. BuiltinMeaning
-        !(TypeScheme term args res)
-        !(FoldArgs args res)
-        !(cost -> FoldArgsEx args)
+        (TypeScheme term args res)
+        (FoldArgs args res)
+        (cost -> FoldArgsEx args)
 -- I tried making it @(forall term. HasConstantIn uni term => TypeScheme term args res)@ instead of
 -- @TypeScheme term args res@, but 'makeBuiltinMeaning' has to talk about
 -- @KnownPolytype binds term args res a@ (note the @term@), because instances of 'KnownMonotype'
