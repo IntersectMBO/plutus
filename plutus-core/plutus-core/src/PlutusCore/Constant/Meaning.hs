@@ -32,10 +32,10 @@ import           Data.Array
 import qualified Data.ByteString                         as BS
 import qualified Data.Kind                               as GHC
 import           Data.Proxy
+import           Data.Some.GADT
 import           Data.Type.Bool
 import           Data.Type.Equality
 import           GHC.TypeLits
-import           Universe
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
 -- its Haskell denotation and a costing function (both in uninstantiated form).

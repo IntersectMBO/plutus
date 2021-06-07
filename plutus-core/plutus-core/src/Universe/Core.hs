@@ -49,10 +49,12 @@ import           Control.Monad
 import           Control.Monad.Trans.State.Strict
 import           Data.GADT.Compare
 import           Data.GADT.Compare.TH
+import           Data.GADT.DeepSeq
 import           Data.GADT.Show
 import           Data.Hashable
 import           Data.Kind
 import           Data.Proxy
+import           Data.Some.Newtype
 import           Data.Type.Equality
 import           Text.Show.Deriving
 import           Type.Reflection
@@ -322,10 +324,6 @@ even though that required reworking all the infrastructure in a backwards-incomp
 -- | \"Escapes\" a type of an arbitrary kind to fit into 'Type'.
 type Esc :: forall k. k -> Type
 data Esc a
-
--- | Existential quantification as a data type.
-type Some :: forall a. (a -> Type) -> Type
-data Some f = forall x. Some !(f x)
 
 -- | A particular type from a universe.
 type SomeTypeIn :: (Type -> Type) -> Type
@@ -705,9 +703,6 @@ $(return [])  -- Stage restriction, see https://gitlab.haskell.org/ghc/ghc/issue
 instance GShow f => Show (AG f a) where
     showsPrec pr (AG a) = gshowsPrec pr a
 
-instance GShow f => Show (Some f) where
-    showsPrec pr (Some a) = ($(makeShowsPrec ''Some)) pr (Some (AG a))
-
 instance GShow uni => Show (SomeTypeIn uni) where
     showsPrec pr (SomeTypeIn uni) = ($(makeShowsPrec ''SomeTypeIn)) pr (SomeTypeIn (AG uni))
 
@@ -724,9 +719,6 @@ instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) 
 
 -------------------- 'Eq' / 'GEq'
 
-instance GEq f => Eq (Some f) where
-    Some a1 == Some a2 = a1 `defaultEq` a2
-
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => GEq (ValueOf uni) where
     ValueOf uni1 x1 `geq` ValueOf uni2 x2 = do
         Refl <- uni1 `geq` uni2
@@ -741,14 +733,14 @@ instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
 
 -------------------- 'NFData'
 
+instance (Closed uni, uni `Everywhere` NFData) => GNFData (ValueOf uni) where
+    grnf (ValueOf uni x) = bring (Proxy @NFData) uni $ rnf x
+
 instance Closed uni => NFData (SomeTypeIn uni) where
     rnf (SomeTypeIn uni) = rnf $ encodeUni uni
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
-    rnf (ValueOf uni x) = bring (Proxy @NFData) uni $ rnf x
-
-instance (Closed uni, uni `Everywhere` NFData) => NFData (Some (ValueOf uni)) where
-    rnf (Some s) = rnf s
+    rnf = grnf
 
 -------------------- 'Hashable'
 

@@ -42,7 +42,7 @@ extra-deps:
 - composition-prelude-3.0.0.2
 - constraints-extras-0.3.0.2
 - dependent-map-0.4.0.0
-- dependent-sum-0.6.2.0
+- dependent-sum-0.7.1.0
 - dependent-sum-template-0.1.0.3
 - eventful-memory-0.2.0
 - barbies-2.0.2.0

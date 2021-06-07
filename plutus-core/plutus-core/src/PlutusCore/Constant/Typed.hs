@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase               #-}
 -- | This module assigns types to built-ins.
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
@@ -91,7 +92,7 @@ data TypeScheme term (args :: [GHC.Type]) res where
                Proxy ot -> TypeScheme term args res)
         -> TypeScheme term args res
 
--- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
+-- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
 --
 -- >>> :set -XDataKinds
 -- >>> :kind! FoldArgs [Char, Bool] Integer
@@ -444,18 +445,18 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
            , KnownBuiltinType term a
            )
         => term -> m a
-    readKnown term = do
-        Some (ValueOf uniAct x) <- unliftSomeValue term
-        let uniExp = knownUni @_ @(UniOf term) @a
-        case uniAct `geq` uniExp of
-            Just Refl -> pure x
-            Nothing   -> do
-                let err = fromString $ concat
-                        [ "Type mismatch: "
-                        , "expected: " ++ gshow uniExp
-                        , "; actual: " ++ gshow uniAct
-                        ]
-                throwingWithCause _UnliftingError err $ Just term
+    readKnown term = unliftSomeValue term >>= \case
+        Some (ValueOf uniAct x) -> do
+            let uniExp = knownUni @_ @(UniOf term) @a
+            case uniAct `geq` uniExp of
+                Just Refl -> pure x
+                Nothing   -> do
+                    let err = fromString $ concat
+                            [ "Type mismatch: "
+                            , "expected: " ++ gshow uniExp
+                            , "; actual: " ++ gshow uniAct
+                            ]
+                    throwingWithCause _UnliftingError err $ Just term
 
 makeKnownNoEmit :: (KnownType term a, MonadError err m, AsEvaluationFailure err) => a -> m term
 makeKnownNoEmit = unNoEmitterT . makeKnown
@@ -563,33 +564,33 @@ instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniAppl
             KnownType term (SomeConstantOf uni f reps) where
     makeKnown = pure . fromConstant . runSomeConstantOf
 
-    readKnown term = do
-        Some (ValueOf uni xs) <- unliftSomeValue term
-        let uniF = knownUni @_ @_ @f
-            err = fromString $ concat
-                [ "Type mismatch: "
-                , "expected an application of: " ++ gshow uniF
-                , "; but got the following type: " ++ gshow uni
-                ]
-            wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
-            wrongType = throwingWithCause _UnliftingError err $ Just term
-        -- In order to prove that the type of @xs@ is an application of @f@ we need to
-        -- peel all type applications off in the type of @xs@ until we get to the head and then
-        -- check that the head is indeed @f@. Each peeled type application becomes a
-        -- 'SomeConstantOfArg' in the final result.
-        ReadSomeConstantOf res uniHead <-
-            cparaM_SList @_ @(KnownTypeAst uni) @reps
-                Proxy
-                (ReadSomeConstantOf (SomeConstantOfRes uni xs) uni)
-                (\(ReadSomeConstantOf acc uniApp) ->
-                    matchUniApply
-                        uniApp
-                        wrongType
-                        (\uniApp' uniA ->
-                            pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
-        case uniHead `geq` uniF of
-            Nothing   -> wrongType
-            Just Refl -> pure res
+    readKnown term = unliftSomeValue term >>= \case
+        Some (ValueOf uni xs) -> do
+            let uniF = knownUni @_ @_ @f
+                err = fromString $ concat
+                    [ "Type mismatch: "
+                    , "expected an application of: " ++ gshow uniF
+                    , "; but got the following type: " ++ gshow uni
+                    ]
+                wrongType :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err) => m a
+                wrongType = throwingWithCause _UnliftingError err $ Just term
+            -- In order to prove that the type of @xs@ is an application of @f@ we need to
+            -- peel all type applications off in the type of @xs@ until we get to the head and then
+            -- check that the head is indeed @f@. Each peeled type application becomes a
+            -- 'SomeConstantOfArg' in the final result.
+            ReadSomeConstantOf res uniHead <-
+                cparaM_SList @_ @(KnownTypeAst uni) @reps
+                    Proxy
+                    (ReadSomeConstantOf (SomeConstantOfRes uni xs) uni)
+                    (\(ReadSomeConstantOf acc uniApp) ->
+                        matchUniApply
+                            uniApp
+                            wrongType
+                            (\uniApp' uniA ->
+                                pure $ ReadSomeConstantOf (SomeConstantOfArg uniA acc) uniApp'))
+            case uniHead `geq` uniF of
+                Nothing   -> wrongType
+                Just Refl -> pure res
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)
