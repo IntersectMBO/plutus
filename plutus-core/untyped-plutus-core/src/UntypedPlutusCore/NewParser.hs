@@ -8,6 +8,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Parser for untyped Plutus Core using megaparsec, as in Plutus IR.
+-- Will replace UntypedPlutusCore.Parser.hs.
+-- Parser.y and Lexer.x, which currently generate Parser.hs, will be removed.
 
 module UntypedPlutusCore.NewParser
     ( topSourcePos
@@ -83,8 +85,6 @@ forceTerm :: ParsecT ParseError
                    (UPLC.Term PLC.Name uni fun SourcePos)
                    -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
 forceTerm tm = inBraces $ UPLC.Force <$> getSourcePos <*> tm
-
--- In uplc, Iwrap and Unwrap are removed.
 
 errorTerm
     :: Parser (UPLC.Term PLC.Name uni fun SourcePos)

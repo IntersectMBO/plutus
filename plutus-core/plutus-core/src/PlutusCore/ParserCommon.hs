@@ -55,9 +55,10 @@ initial :: ParserState
 initial = ParserState M.empty
 
 -- | Return the unique identifier of a name.
--- If it's not in the current parser state, map the name with a fresh id
+-- If it's not in the current parser state, map the name to a fresh id
 -- and add it to the state. Used in the Name parser.
-intern :: (MonadState ParserState m, PLC.MonadQuote m) => T.Text -> m PLC.Unique
+intern :: (MonadState ParserState m, PLC.MonadQuote m)
+    => T.Text -> m PLC.Unique
 intern n = do
     st <- get
     case M.lookup n (identifiers st) of
@@ -113,8 +114,12 @@ inBraces = between lbrace rbrace
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 
--- | Return the source position of the input word.
-reservedWord :: T.Text -> Parser SourcePos
+-- | Create a parser that matches the input word and returns its source position.
+-- This is for attaching source positions to parsed terms/programs.
+-- getSourcePos is not cheap, don't call it on matching of every token.
+reservedWord ::
+    -- | The word to match
+    T.Text -> Parser SourcePos
 reservedWord w = lexeme $ try $ do
     p <- getSourcePos
     void $ string w

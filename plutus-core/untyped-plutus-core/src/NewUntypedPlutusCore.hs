@@ -1,3 +1,5 @@
+-- | Will replace UntypedPlutusCore.
+
 module NewUntypedPlutusCore (
     Term (..)
     , TermLike (..)
