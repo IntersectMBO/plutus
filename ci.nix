@@ -74,9 +74,9 @@ let
           # FIXME: this should simply be set on the main shell derivation, but this breaks
           # lorri: https://github.com/target/lorri/issues/489. In the mean time, we set it
           # only on the CI version, so that we still catch it, but lorri doesn't see it.
-          shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
-            disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
-          });
+          # shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
+          #   disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
+          # });
         });
     in
     dimension "System" systems (name: sys: _select name sys null)
