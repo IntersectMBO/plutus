@@ -65,21 +65,21 @@ let
 
           # build all haskell packages and tests
           haskell = pkgs.recurseIntoAttrs (mkHaskellDimension pkgs plutus.haskell.projectPackages);
-        } // pkgs.lib.optionalAttrs (crossSystem == null) {
-          # Build the shell expression to be sure it works on all platforms
-          #
-          # The shell should never depend on any of our Haskell packages, which can
-          # sometimes happen by accident. In practice, everything depends transitively
-          # on 'plutus-core', so this does the job.
-          # FIXME: this should simply be set on the main shell derivation, but this breaks
-          # lorri: https://github.com/target/lorri/issues/489. In the mean time, we set it
-          # only on the CI version, so that we still catch it, but lorri doesn't see it.
-          # shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
-          #   disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
-          # });
+        # } // pkgs.lib.optionalAttrs (crossSystem == null) {
+        #   # Build the shell expression to be sure it works on all platforms
+        #   #
+        #   # The shell should never depend on any of our Haskell packages, which can
+        #   # sometimes happen by accident. In practice, everything depends transitively
+        #   # on 'plutus-core', so this does the job.
+        #   # FIXME: this should simply be set on the main shell derivation, but this breaks
+        #   # lorri: https://github.com/target/lorri/issues/489. In the mean time, we set it
+        #   # only on the CI version, so that we still catch it, but lorri doesn't see it.
+        #   shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
+        #     disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
+        #   });
         });
     in
     dimension "System" systems (name: sys: _select name sys null)
-    // dimension "Cross System" crossSystems (name: crossSys: _select "x86_64-linux" crossSys);
+    // dimension "Cross System" crossSystems (name: crossSys: _select name "x86_64-linux" crossSys);
 in
 mkSystemDimension systems
