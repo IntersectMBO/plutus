@@ -23,11 +23,16 @@ let
   # - When imported from default.nix without flakes, default to haskellNix.overlays
   haskellNixOverlays = if isInFlake then [ haskellNix.overlay ] else haskellNix.overlays;
 
+  # haskell-nix provides some global config settings but it's exposed under different
+  # attribute paths when imported as flake/non-flake.
+  haskellNixConfig = if isInFlake then haskellNix.internal.config else haskellNix.config;
+
   extraOverlays = haskellNixOverlays ++ ownOverlays;
 
   pkgs = import sources.nixpkgs {
-    inherit config system crossSystem;
+    inherit system crossSystem;
     overlays = extraOverlays ++ overlays;
+    config = haskellNixConfig // config;
   };
 
   plutus = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };
