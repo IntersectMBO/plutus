@@ -41,7 +41,7 @@ render state =
                   , src marlowePlayLogo
                   ]
               , projectTitle
-              , div [ classNames [] ]
+              , div_
                   [ a [ href "./doc/marlowe/tutorials/index.html", target "_blank", classNames [ "font-semibold" ] ] [ text "Tutorial" ]
                   , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classNames [ "ml-medium", "font-semibold" ] ] [ text "Actus Labs" ]
                   ]
@@ -69,7 +69,7 @@ render state =
               [ a [ href "https://cardano.org/", target "_blank", classNames [ "pr-small" ] ] [ text "cardano.org" ]
               , a [ href "https://iohk.io/", target "_blank", classNames [ "pl-small" ] ] [ text "iohk.io" ]
               ]
-          , div [] [ text (copyright <> " 2021 IOHK Ltd") ]
+          , div_ [ text (copyright <> " 2021 IOHK Ltd") ]
           , div [ classNames [ "flex" ] ]
               [ a [ href "https://t.me/IOHK_Marlowe", target "_blank", classNames [ "pr-small" ] ] [ text "Telegram" ]
               , a [ href "https://twitter.com/hashtag/Marlowe", target "_blank", classNames [ "pl-small" ] ] [ text "Twitter" ]

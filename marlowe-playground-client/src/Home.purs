@@ -14,16 +14,16 @@ import Projects.Types (Lang(..))
 
 render :: forall m. State -> ComponentHTML Action ChildSlots m
 render state =
-  div [ classNames [ "flex", "flex-col", "items-center" ] ]
-    [ h1 [ classNames [ "font-semibold", "text-4xl", "my-16" ] ] [ text "Get started" ]
+  div [ classNames [ "flex", "flex-col", "items-center", "my-16" ] ]
+    [ h1 [ classNames [ "font-semibold", "text-4xl", "mb-16" ] ] [ text "Get started" ]
     , div [ classNames [ "mb-6" ] ]
         [ button
-            [ classNames (secondaryButton <> [ "mr-small", "w-56", "text-base" ])
+            [ classNames (secondaryButton <> [ "mr-small", "w-56", "text-base", "cursor-pointer" ])
             , onClick ((const <<< Just <<< OpenModal) NewProject)
             ]
             [ text "Open existing project" ]
         , button
-            [ classNames (primaryButton <> [ "ml-small", "w-56", "text-base" ])
+            [ classNames (primaryButton <> [ "ml-small", "w-56", "text-base", "cursor-pointer" ])
             , onClick ((const <<< Just <<< OpenModal) OpenDemo)
             ]
             [ text "Open an example" ]
@@ -86,4 +86,4 @@ render state =
         ]
     ]
   where
-  newProjectClasses = [ "flex", "flex-col", "font-bold", "text-sm", "cursor-pointer" ]
+  newProjectClasses = [ "flex", "flex-col", "font-bold", "text-sm", "cursor-pointer", "text-center" ]

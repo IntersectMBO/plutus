@@ -30,7 +30,7 @@ header {
 main {
   display: flex;
   flex-direction: column;
-  overflow: scroll;
+  overflow: auto;
   /* Indicate which row of the .site-wrap grid to use */
   grid-area: main;
 
