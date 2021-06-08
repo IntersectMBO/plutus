@@ -32,8 +32,8 @@ let
       source-repository-package
         type: git
         location: https://github.com/ghcjs/ghcjs.git
-        tag: 6f20f45e384e4907cbf11ec7c258e456c4f0f4d7
-        --sha256: 098n3nabc9dgsfh0mznpkaxhbwmsp5rx5wcvx4411k631lglkyk2
+        tag: ecb5954b98cdaeb3d4097401c9c3551e7a6f69ce
+        --sha256: 09120brnd8n8psskq9f098n7wrlrbb2h7s703678a4gbl2xfglql
 
       allow-newer: ghcjs:base16-bytestring
                  , ghcjs:aeson
@@ -74,7 +74,9 @@ let
       package byron-spec-chain
         tests: False
 
-    '' else "";
+    '' else ''
+      constraints: plutus-tx +ghcjs-plugin
+    '';
 
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
@@ -137,7 +139,16 @@ let
 
           plutus-use-cases.ghcOptions = if (nativePlutus != null)
                                         then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
-                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}" "-host-package-db ${attr}/package.conf.d" "-Werror" "-v"])
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
+          plutus-tx-plugin.ghcOptions = if (nativePlutus != null)
+                                        then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
                                         else __trace "nativePlutus is null" [];
 
 
@@ -229,7 +240,7 @@ let
           plutus-playground-server.ghcOptions = [ "-Werror" ];
           plutus-pab.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
-          plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+          # plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           plutus-doc.ghcOptions = [ "-Werror" ];
           # plutus-use-cases.ghcOptions = [ "-Werror" ];
 
