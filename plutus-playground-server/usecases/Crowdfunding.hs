@@ -30,7 +30,7 @@ import qualified Ledger.Interval             as Interval
 import qualified Ledger.Scripts              as Scripts
 import           Ledger.Slot                 (Slot, SlotRange)
 import qualified Ledger.TimeSlot             as TimeSlot
-import qualified Ledger.Typed.Scripts        as Scripts
+import qualified Ledger.Typed.Scripts        as Scripts hiding (validatorHash)
 import           Ledger.Value                (Value)
 import           Playground.Contract
 import           Plutus.Contract

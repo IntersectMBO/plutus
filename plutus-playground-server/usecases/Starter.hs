@@ -27,7 +27,7 @@ module Starter where
 --   * redeem
 
 import           Control.Monad        (void)
-import           Ledger               (Address, ScriptContext, scriptAddress)
+import           Ledger               (Address, ScriptContext)
 import qualified Ledger.Constraints   as Constraints
 import qualified Ledger.Typed.Scripts as Scripts
 import           Ledger.Value         (Value)
@@ -51,7 +51,7 @@ validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an im
 
 -- | The address of the contract (the hash of its validator script).
 contractAddress :: Address
-contractAddress = Script.validatorAddress starterInstance
+contractAddress = Scripts.validatorAddress starterInstance
 
 data Starter
 instance Scripts.ValidatorTypes Starter where
