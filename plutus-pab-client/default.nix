@@ -12,10 +12,12 @@ let
 
   # For dev usage
   generate-purescript = pkgs.writeShellScriptBin "plutus-pab-generate-purs" ''
-    rm -rf ./generated
+    generatedDir=./generated
+    rm -rf $generatedDir
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator generated
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator $generatedDir
+    ${plutus-pab-test-psgenerator}/bin/plutus-pab-test-psgenerator $generatedDir
   '';
 
   # For dev usage
