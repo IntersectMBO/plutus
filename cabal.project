@@ -56,6 +56,16 @@ allow-newer:
            , beam-sqlite:dlist
            , beam-migrate:aeson
 
+           , stm:base
+           , cardano-binary:recursion-schemes
+           , jsaddle:ghcjs-base
+           , ghcjs-base:primitive
+           , ghcjs-base:time
+           , ghcjs-base:hashable
+           , ghcjs-base:aeson
+           , servant-foreign:lens
+           , servant-client:http-client
+
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
   singletons < 3.0
