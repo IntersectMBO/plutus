@@ -10,6 +10,7 @@ import Contract.Types (Action(..)) as Contract
 import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
+import Control.Monad.Reader.Class (ask)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, use, view)
@@ -22,7 +23,7 @@ import Data.Traversable (for)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
-import Env (Env)
+import Env (DataProvider(..), Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
@@ -95,8 +96,10 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
 
           followAppIds :: Array PlutusAppId
           followAppIds = Set.toUnfoldable $ keys $ view _allContracts playState
-        subscribeToWallet wallet
-        for followAppIds subscribeToPlutusApp
+        { dataProvider } <- ask
+        when (dataProvider /= LocalStorage) do
+          void $ subscribeToWallet wallet
+          void $ for followAppIds subscribeToPlutusApp
     (WS.WebSocketClosed closeEvent) -> do
       -- TODO: Consider whether we should show an error/warning when this happens. It might be more
       -- confusing than helpful, since the websocket is automatically reopened if it closes for any
@@ -210,12 +213,14 @@ handleAction Init = do
   void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
-  unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
-  unsubscribeFromPlutusApp $ view _companionAppId walletDetails
-  let
-    followerAppIds :: Array PlutusAppId
-    followerAppIds = Set.toUnfoldable $ keys followerApps
-  for_ followerAppIds unsubscribeFromPlutusApp
+  { dataProvider } <- ask
+  when (dataProvider /= LocalStorage) do
+    let
+      followerAppIds :: Array PlutusAppId
+      followerAppIds = Set.toUnfoldable $ keys followerApps
+    void $ unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
+    void $ unsubscribeFromPlutusApp $ view _companionAppId walletDetails
+    void $ for_ followerAppIds unsubscribeFromPlutusApp
   assign _subState $ Left $ Pickup.mkInitialState walletLibrary
   liftEffect $ removeItem walletDetailsLocalStorageKey
 
@@ -228,13 +233,15 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupNewWalletCard
       addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
-      subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
-      subscribeToPlutusApp $ view _companionAppId walletDetails
+      { dataProvider } <- ask
+      when (dataProvider /= LocalStorage) do
+        let
+          followerAppIds :: Array PlutusAppId
+          followerAppIds = Set.toUnfoldable $ keys followerApps
+        void $ subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
+        void $ subscribeToPlutusApp $ view _companionAppId walletDetails
+        void $ for_ followerAppIds subscribeToPlutusApp
       timezoneOffset <- liftEffect getTimezoneOffset
-      let
-        followerAppIds :: Array PlutusAppId
-        followerAppIds = Set.toUnfoldable $ keys followerApps
-      for_ followerAppIds subscribeToPlutusApp
       assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails followerApps currentSlot timezoneOffset
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
