@@ -24,7 +24,7 @@ module Plutus.PAB.Effects.Contract.ContractExe(
 import           Cardano.BM.Data.Tracer.Extras                    (StructuredLog (..))
 import           Control.Monad.Freer                              (Eff, LastMember, Member, send, sendM, type (~>))
 import           Control.Monad.Freer.Error                        (Error, throwError)
-import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
+import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug, logError, logWarn)
 import           Control.Monad.IO.Class                           (MonadIO (..))
 import           Data.Aeson                                       (FromJSON (..), ToJSON (..), Value)
 import qualified Data.Aeson                                       as JSON
@@ -107,13 +107,15 @@ liftProcess process = do
     (exitCode, stdout, stderr) <- sendM $ liftIO process
     case exitCode of
         ExitFailure code -> do
-            logDebug $ ProcessExitFailure stderr
+            logError $ ProcessExitFailure stderr
             throwError $ ContractCommandError code (Text.pack stderr)
         ExitSuccess -> do
-            logDebug $ AContractResponse stdout
             case JSON.eitherDecode (BSL8.pack stdout) of
                 Right value -> pure value
-                Left err    -> throwError $ ContractCommandError 0 (Text.pack err)
+                Left err    -> do
+                    logWarn $ AContractResponse stdout
+                    logError $ ContractResponseJSONDecodingError err
+                    throwError $ ContractCommandError 0 (Text.pack err)
 
 logNewMessages ::
     forall effs.

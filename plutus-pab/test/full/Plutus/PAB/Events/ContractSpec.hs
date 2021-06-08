@@ -65,7 +65,7 @@ jsonTests =
                 req = ContractRequest{oldState = State.newState oldState, event = Response{rspRqID = 0, rspItID = 0, rspResponse = JSON.toJSON (ContractHandlersResponse $ AwaitSlotResponse 1)}}
                 input = BSL.toStrict (JSON.encodePretty req)
                 v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Update) input
-                result = v >>= JSON.eitherDecode @(PartiallyDecodedResponse ContractHandlerRequest) . BSL.fromStrict
+                result = v >>= JSON.eitherDecode @ResponseType . BSL.fromStrict
 
             void (assertRight result)
         ]
@@ -73,7 +73,9 @@ jsonTests =
 assertRight :: Either String a -> IO a
 assertRight = either assertFailure pure
 
-initialResponse :: Either String (State.ContractResponse Value Value Value ContractHandlerRequest)
+type ResponseType = State.ContractResponse Value Value Value ContractHandlerRequest
+
+initialResponse :: Either String ResponseType
 initialResponse =
     let v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Initialise) mempty
     in v >>= JSON.eitherDecode @(State.ContractResponse Value Value Value ContractHandlerRequest) . BSL.fromStrict
