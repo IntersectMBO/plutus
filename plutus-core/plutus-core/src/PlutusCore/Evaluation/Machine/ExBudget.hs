@@ -137,7 +137,6 @@ possible to adjust them at runtime.
 
 module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
-    , ToExMemory(..)
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
     , enormousBudget
@@ -146,25 +145,11 @@ where
 
 import           PlutusPrelude                          hiding (toList)
 
-import           PlutusCore.Core
-import           PlutusCore.Name
-
 import           Data.Semigroup
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
 import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
-
-class ToExMemory term where
-    -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
-    -- return something arbitrary just to fit such a term into the builtin application machinery.
-    toExMemory :: term -> ExMemory
-
-instance ToExMemory (Term TyName Name uni fun ()) where
-    toExMemory _ = 0
-
-instance ToExMemory (Term TyName Name uni fun ExMemory) where
-    toExMemory = termAnn
 
 -- | A class for injecting a 'Builtin' into an @exBudgetCat@.
 -- We need it, because the constant application machinery calls 'spendBudget' before reducing a
