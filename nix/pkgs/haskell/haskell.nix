@@ -32,8 +32,8 @@ let
       source-repository-package
         type: git
         location: https://github.com/ghcjs/ghcjs.git
-        tag: ecb5954b98cdaeb3d4097401c9c3551e7a6f69ce
-        --sha256: 09120brnd8n8psskq9f098n7wrlrbb2h7s703678a4gbl2xfglql
+        tag: 6f20f45e384e4907cbf11ec7c258e456c4f0f4d7
+        --sha256: 098n3nabc9dgsfh0mznpkaxhbwmsp5rx5wcvx4411k631lglkyk2
 
       allow-newer: ghcjs:base16-bytestring
                  , ghcjs:aeson
