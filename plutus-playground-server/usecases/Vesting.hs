@@ -129,22 +129,22 @@ validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx
             -- please, potentially saving one transaction.
 
 data Vesting
-instance Scripts.ScriptType Vesting where
+instance Scripts.ValidatorTypes Vesting where
     type instance RedeemerType Vesting = ()
     type instance DatumType Vesting = ()
 
 vestingScript :: VestingParams -> Validator
-vestingScript = Scripts.validatorScript . scriptInstance
+vestingScript = Scripts.validatorScript . typedValidator
 
-scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
-scriptInstance = Scripts.validatorParam @Vesting
+typedValidator :: VestingParams -> Scripts.TypedValidator Vesting
+typedValidator = Scripts.mkTypedValidatorParam @Vesting
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 contractAddress :: VestingParams -> Ledger.Address
-contractAddress = Scripts.scriptAddress . scriptInstance
+contractAddress = Scripts.validatorAddress . typedValidator
 
 vestingContract :: VestingParams -> Contract () VestingSchema T.Text ()
 vestingContract vesting = vest `select` retrieve
@@ -167,7 +167,7 @@ vestFundsC
     -> Contract () s T.Text ()
 vestFundsC vesting = do
     let tx = payIntoContract (totalAmount vesting)
-    void $ submitTxConstraints (scriptInstance vesting) tx
+    void $ submitTxConstraints (typedValidator vesting) tx
 
 data Liveness = Alive | Dead
 
@@ -180,8 +180,8 @@ retrieveFundsC
     -> Value
     -> Contract () s T.Text Liveness
 retrieveFundsC vesting payment = do
-    let inst = scriptInstance vesting
-        addr = Scripts.scriptAddress inst
+    let inst = typedValidator vesting
+        addr = Scripts.validatorAddress inst
     nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
     let

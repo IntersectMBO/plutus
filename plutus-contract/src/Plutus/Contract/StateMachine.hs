@@ -220,7 +220,7 @@ waitForUpdateUntil ::
     -> Slot
     -> Contract w schema e (WaitingResult state)
 waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
-    let addr = Scripts.scriptAddress $ validatorInstance scInstance
+    let addr = Scripts.validatorAddress $ typedValidator scInstance
     let go sl = do
             txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
                 { acreqSlotRangeFrom = sl
@@ -257,7 +257,7 @@ waitForUpdate ::
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
-    let addr = Scripts.scriptAddress $ validatorInstance scInstance
+    let addr = Scripts.validatorAddress $ typedValidator scInstance
     txns <- nextTransactionsAt addr
     let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of
@@ -331,9 +331,9 @@ runInitialise ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{validatorInstance, stateMachine} = scInstance
+    let StateMachineInstance{typedValidator, stateMachine} = scInstance
         tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine)
-    let lookups = Constraints.scriptInstanceLookups validatorInstance
+    let lookups = Constraints.typedValidatorLookups typedValidator
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
     submitTxConfirmed utx
     pure initialState
@@ -360,7 +360,7 @@ mkStep ::
     -> input
     -> Contract w schema e (Either (InvalidTransition state input) (StateMachineTransition state input))
 mkStep client@StateMachineClient{scInstance} input = do
-    let StateMachineInstance{stateMachine, validatorInstance} = scInstance
+    let StateMachineInstance{stateMachine, typedValidator} = scInstance
         StateMachine{smTransition} = stateMachine
     maybeState <- getOnChainState client
     case maybeState of
@@ -373,7 +373,7 @@ mkStep client@StateMachineClient{scInstance} input = do
             case smTransition oldState input of
                 Just (newConstraints, newState)  ->
                     let lookups =
-                            Constraints.scriptInstanceLookups validatorInstance
+                            Constraints.typedValidatorLookups typedValidator
                             <> Constraints.unspentOutputs utxo
                         outputConstraints =
                             if smFinal (SM.stateMachine scInstance) (stateData newState)

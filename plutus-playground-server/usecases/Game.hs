@@ -51,12 +51,12 @@ type GameSchema =
         .\/ Endpoint "guess" GuessParams
 
 data Game
-instance Scripts.ScriptType Game where
+instance Scripts.ValidatorTypes Game where
     type instance RedeemerType Game = ClearString
     type instance DatumType Game = HashedString
 
-gameInstance :: Scripts.ScriptInstance Game
-gameInstance = Scripts.validator @Game
+gameInstance :: Scripts.TypedValidator Game
+gameInstance = Scripts.mkTypedValidator @Game
     $$(PlutusTx.compile [|| validateGuess ||])
     $$(PlutusTx.compile [|| wrap ||]) where
         wrap = Scripts.wrapValidator @HashedString @ClearString

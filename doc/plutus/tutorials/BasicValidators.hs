@@ -12,7 +12,7 @@ import           PlutusTx
 import           PlutusTx.Lift
 import           PlutusTx.Prelude
 
-import           Ledger               hiding (ScriptType)
+import           Ledger               hiding (validatorHash)
 import           Ledger.Ada
 import           Ledger.Typed.Scripts
 import           Ledger.Value
@@ -84,7 +84,7 @@ validatePayment _ _ ctx = check $ case fromData ctx of
     _ -> False
 -- BLOCK5
 data DateValidator
-instance ScriptType DateValidator where
+instance ValidatorTypes DateValidator where
     type instance RedeemerType DateValidator = Date
     type instance DatumType DateValidator = EndDate
 -- BLOCK6
@@ -94,8 +94,8 @@ validateDateTyped endDate date _ = beforeEnd date endDate
 validateDateWrapped :: Data -> Data -> Data -> ()
 validateDateWrapped = wrapValidator validateDateTyped
 -- BLOCK7
-dateInstance :: ScriptInstance DateValidator
-dateInstance = validator @DateValidator
+dateInstance :: TypedValidator DateValidator
+dateInstance = mkTypedValidator @DateValidator
     -- The first argument is the compiled validator.
     $$(compile [|| validateDateTyped ||])
     -- The second argument is a compiled wrapper.
@@ -105,7 +105,7 @@ dateInstance = validator @DateValidator
         wrap = wrapValidator
 
 dateValidatorHash :: ValidatorHash
-dateValidatorHash = scriptHash dateInstance
+dateValidatorHash = validatorHash dateInstance
 
 dateValidator :: Validator
 dateValidator = validatorScript dateInstance

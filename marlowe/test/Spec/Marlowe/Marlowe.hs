@@ -43,7 +43,7 @@ import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Constraints.TxConstraints      (TxConstraints)
-import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import qualified Ledger.Typed.Scripts                  as Scripts
 import qualified Ledger.Value                          as Val
 import           Plutus.Contract.Test                  hiding ((.&&.))
 import qualified Plutus.Contract.Test                  as T
@@ -217,16 +217,16 @@ uniqueContractHash = do
             { rolesCurrency = cs
             , rolePayoutValidatorHash = validatorHash (rolePayoutScript cs) }
 
-    let hash1 = scriptHash $ scriptInstance (params "11")
-    let hash2 = scriptHash $ scriptInstance (params "22")
-    let hash3 = scriptHash $ scriptInstance (params "22")
+    let hash1 = Scripts.validatorHash $ typedValidator (params "11")
+    let hash2 = Scripts.validatorHash $ typedValidator (params "22")
+    let hash3 = Scripts.validatorHash $ typedValidator (params "22")
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
 
 validatorSize :: IO ()
 validatorSize = do
-    let validator = validatorScript $ scriptInstance defaultMarloweParams
+    let validator = Scripts.validatorScript $ typedValidator defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
     assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
 

@@ -56,12 +56,12 @@ validateSplit SplitData{recipient1, recipient2, amount} _ ScriptContext{scriptCo
 -- BLOCK3
 
 data Split
-instance Scripts.ScriptType Split where
+instance Scripts.ValidatorTypes Split where
     type instance RedeemerType Split = ()
     type instance DatumType Split = SplitData
 
-splitInstance :: Scripts.ScriptInstance Split
-splitInstance = Scripts.validator @Split
+splitValidator :: Scripts.TypedValidator Split
+splitValidator = Scripts.mkTypedValidator @Split
     $$(PlutusTx.compile [|| validateSplit ||])
     $$(PlutusTx.compile [|| wrap ||]) where
         wrap = Scripts.wrapValidator @SplitData @()
@@ -109,20 +109,20 @@ lockFunds :: SplitData -> Contract () SplitSchema T.Text ()
 lockFunds s@SplitData{amount} = do
     logInfo $ "Locking " <> Haskell.show amount
     let tx = Constraints.mustPayToTheScript s (Ada.toValue amount)
-    void $ submitTxConstraints splitInstance tx
+    void $ submitTxConstraints splitValidator tx
 
 -- BLOCK8
 
 unlockFunds :: SplitData -> Contract () SplitSchema T.Text ()
 unlockFunds SplitData{recipient1, recipient2, amount} = do
-    let contractAddress = (Ledger.scriptAddress (Scripts.validatorScript splitInstance))
+    let contractAddress = Scripts.validatorAddress splitValidator
     utxos <- utxoAt contractAddress
     let half = Ada.divide amount 2
         tx =
             collectFromScript utxos ()
             <> Constraints.mustPayToPubKey recipient1 (Ada.toValue half)
             <> Constraints.mustPayToPubKey recipient2 (Ada.toValue $ amount - half)
-    void $ submitTxConstraintsSpending splitInstance utxos tx
+    void $ submitTxConstraintsSpending splitValidator utxos tx
 
 -- BLOCK9
 

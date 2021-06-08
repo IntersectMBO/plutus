@@ -41,7 +41,7 @@ import qualified Ledger.Interval          as Interval
 import qualified Ledger.Time              as Time
 import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
-import           Ledger.Typed.Scripts     (ScriptType (..))
+import           Ledger.Typed.Scripts     (ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value)
 import qualified Ledger.Value             as Value
@@ -76,7 +76,7 @@ type VestingSchema =
 
 data Vesting
 
-instance ScriptType Vesting where
+instance ValidatorTypes Vesting where
     type instance RedeemerType Vesting = ()
     type instance DatumType Vesting = ()
 
@@ -147,17 +147,17 @@ validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx
             -- please, potentially saving one transaction.
 
 vestingScript :: VestingParams -> Validator
-vestingScript = Scripts.validatorScript . scriptInstance
+vestingScript = Scripts.validatorScript . typedValidator
 
-scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
-scriptInstance = Scripts.validatorParam @Vesting
+typedValidator :: VestingParams -> Scripts.TypedValidator Vesting
+typedValidator = Scripts.mkTypedValidatorParam @Vesting
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 contractAddress :: VestingParams -> Address
-contractAddress = Scripts.scriptAddress . scriptInstance
+contractAddress = Scripts.validatorAddress . typedValidator
 
 data VestingError =
     VContractError ContractError
@@ -192,7 +192,7 @@ vestFundsC
     -> Contract w s e ()
 vestFundsC vesting = mapError (review _VestingError) $ do
     let tx = payIntoContract (totalAmount vesting)
-    void $ submitTxConstraints (scriptInstance vesting) tx
+    void $ submitTxConstraints (typedValidator vesting) tx
 
 data Liveness = Alive | Dead
 
@@ -206,8 +206,8 @@ retrieveFundsC
     -> Value
     -> Contract w s e Liveness
 retrieveFundsC vesting payment = mapError (review _VestingError) $ do
-    let inst = scriptInstance vesting
-        addr = Scripts.scriptAddress inst
+    let inst = typedValidator vesting
+        addr = Scripts.validatorAddress inst
     nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
     let

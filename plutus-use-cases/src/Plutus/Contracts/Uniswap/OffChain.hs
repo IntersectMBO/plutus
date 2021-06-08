@@ -50,7 +50,7 @@ import           Prelude                          as Haskell (Int, Semigroup (..
 import           Text.Printf                      (printf)
 
 data Uniswapping
-instance Scripts.ScriptType Uniswapping where
+instance Scripts.ValidatorTypes Uniswapping where
     type instance RedeemerType Uniswapping = UniswapAction
     type instance DatumType    Uniswapping = UniswapDatum
 
@@ -87,8 +87,8 @@ uniswapTokenName, poolStateTokenName :: TokenName
 uniswapTokenName = "Uniswap"
 poolStateTokenName = "Pool State"
 
-uniswapInstance :: Uniswap -> Scripts.ScriptInstance Uniswapping
-uniswapInstance us = Scripts.validator @Uniswapping
+uniswapInstance :: Uniswap -> Scripts.TypedValidator Uniswapping
+uniswapInstance us = Scripts.mkTypedValidator @Uniswapping
     ($$(PlutusTx.compile [|| mkUniswapValidator ||])
         `PlutusTx.applyCode` PlutusTx.liftCode us
         `PlutusTx.applyCode` PlutusTx.liftCode c)
@@ -205,7 +205,7 @@ create us CreateParams{..} = do
         usVal    = unitValue $ usCoin us
         lpVal    = valueOf cpCoinA cpAmountA <> valueOf cpCoinB cpAmountB <> unitValue psC
 
-        lookups  = Constraints.scriptInstanceLookups usInst        <>
+        lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
                    Constraints.monetaryPolicy (liquidityPolicy us) <>
                    Constraints.unspentOutputs (Map.singleton oref o)
@@ -236,7 +236,7 @@ close us CloseParams{..} = do
         lVal     = valueOf lC liquidity
         redeemer = Redeemer $ PlutusTx.toData Close
 
-        lookups  = Constraints.scriptInstanceLookups usInst        <>
+        lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
                    Constraints.monetaryPolicy (liquidityPolicy us) <>
                    Constraints.ownPubKeyHash pkh                   <>
@@ -273,7 +273,7 @@ remove us RemoveParams{..} = do
         val          = psVal <> valueOf rpCoinA outA <> valueOf rpCoinB outB
         redeemer     = Redeemer $ PlutusTx.toData Remove
 
-        lookups  = Constraints.scriptInstanceLookups usInst          <>
+        lookups  = Constraints.typedValidatorLookups usInst          <>
                    Constraints.otherScript usScript                  <>
                    Constraints.monetaryPolicy (liquidityPolicy us)   <>
                    Constraints.unspentOutputs (Map.singleton oref o) <>
@@ -314,7 +314,7 @@ add us AddParams{..} = do
         val          = psVal <> valueOf apCoinA newA <> valueOf apCoinB newB
         redeemer     = Redeemer $ PlutusTx.toData Add
 
-        lookups  = Constraints.scriptInstanceLookups usInst             <>
+        lookups  = Constraints.typedValidatorLookups usInst             <>
                    Constraints.otherScript usScript                     <>
                    Constraints.monetaryPolicy (liquidityPolicy us)      <>
                    Constraints.ownPubKeyHash pkh                        <>
@@ -356,7 +356,7 @@ swap us SwapParams{..} = do
     let inst    = uniswapInstance us
         val     = valueOf spCoinA newA <> valueOf spCoinB newB <> unitValue (poolStateCoin us)
 
-        lookups = Constraints.scriptInstanceLookups inst                 <>
+        lookups = Constraints.typedValidatorLookups inst                 <>
                   Constraints.otherScript (Scripts.validatorScript inst) <>
                   Constraints.unspentOutputs (Map.singleton oref o)      <>
                   Constraints.ownPubKeyHash pkh
@@ -537,4 +537,3 @@ userEndpoints us =
         tell $ Last $ Just $ case e of
             Left err -> Left err
             Right () -> Right Stopped
-

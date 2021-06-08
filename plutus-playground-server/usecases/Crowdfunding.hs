@@ -30,7 +30,7 @@ import qualified Ledger.Interval             as Interval
 import qualified Ledger.Scripts              as Scripts
 import           Ledger.Slot                 (Slot, SlotRange)
 import qualified Ledger.TimeSlot             as TimeSlot
-import qualified Ledger.Typed.Scripts        as Scripts
+import qualified Ledger.Typed.Scripts        as Scripts hiding (validatorHash)
 import           Ledger.Value                (Value)
 import           Playground.Contract
 import           Plutus.Contract
@@ -96,12 +96,12 @@ refundRange cmp =
     Interval.from (campaignCollectionDeadline cmp)
 
 data Crowdfunding
-instance Scripts.ScriptType Crowdfunding where
+instance Scripts.ValidatorTypes Crowdfunding where
     type instance RedeemerType Crowdfunding = CampaignAction
     type instance DatumType Crowdfunding = PubKeyHash
 
-scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
-scriptInstance = Scripts.validatorParam @Crowdfunding
+typedValidator :: Campaign -> Scripts.TypedValidator Crowdfunding
+typedValidator = Scripts.mkTypedValidatorParam @Crowdfunding
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -138,7 +138,7 @@ mkValidator c con act p = case act of
 --   retrieve the funds or the contributors can claim a refund.
 --
 contributionScript :: Campaign -> Validator
-contributionScript = Scripts.validatorScript . scriptInstance
+contributionScript = Scripts.validatorScript . typedValidator
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.ValidatorHash
@@ -164,12 +164,12 @@ contribute :: AsContractError e => Campaign -> Contract () CrowdfundingSchema e 
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- pubKeyHash <$> ownPubKey
-    let inst = scriptInstance cmp
+    let inst = typedValidator cmp
         tx = Constraints.mustPayToTheScript contributor contribValue
                 <> Constraints.mustValidateIn (Ledger.interval 1 (campaignDeadline cmp))
     txid <- fmap txId (submitTxConstraints inst tx)
 
-    utxo <- watchAddressUntil (Scripts.scriptAddress inst) (campaignCollectionDeadline cmp)
+    utxo <- watchAddressUntil (Scripts.validatorAddress inst) (campaignCollectionDeadline cmp)
 
     -- 'utxo' is the set of unspent outputs at the campaign address at the
     -- collection deadline. If 'utxo' still contains our own contribution
@@ -188,7 +188,7 @@ contribute cmp = do
 --   the funding goal was reached in time.
 scheduleCollection :: AsContractError e => Campaign -> Contract () CrowdfundingSchema e ()
 scheduleCollection cmp = do
-    let inst = scriptInstance cmp
+    let inst = typedValidator cmp
 
     -- Expose an endpoint that lets the user fire the starting gun on the
     -- campaign. (This endpoint isn't technically necessary, we could just
@@ -196,7 +196,7 @@ scheduleCollection cmp = do
     () <- endpoint @"schedule collection"
 
     _ <- awaitSlot (campaignDeadline cmp)
-    unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
+    unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
 
     let tx = Typed.collectFromScript unspentOutputs Collect
             <> Constraints.mustValidateIn (collectionRange cmp)

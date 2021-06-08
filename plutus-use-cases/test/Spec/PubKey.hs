@@ -27,9 +27,9 @@ theContract = do
   let lookups = ScriptLookups
                   { slMPS = Map.empty
                   , slTxOutputs = Map.singleton txOutRef txOutTx
-                  , slOtherScripts = Map.singleton (Scripts.scriptAddress pkInst) (Scripts.validatorScript pkInst)
+                  , slOtherScripts = Map.singleton (Scripts.validatorAddress pkInst) (Scripts.validatorScript pkInst)
                   , slOtherData = Map.empty
-                  , slScriptInstance = Nothing
+                  , slTypedValidator = Nothing
                   , slOwnPubkey = Nothing
                   }
   void $ submitTxConstraintsWith @Scripts.Any lookups (Constraints.mustSpendScriptOutput txOutRef unitRedeemer)

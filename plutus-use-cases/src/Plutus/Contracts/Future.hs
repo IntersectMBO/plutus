@@ -37,7 +37,7 @@ module Plutus.Contracts.Future(
     , futureAddress
     , tokenFor
     , initialState
-    , scriptInstance
+    , typedValidator
     , setupTokens
     -- * Test data
     , testAccounts
@@ -314,8 +314,8 @@ futureStateMachine ft fos = SM.mkStateMachine Nothing (transition ft fos) isFina
     isFinal Finished = True
     isFinal _        = False
 
-scriptInstance :: Future -> FutureAccounts -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
-scriptInstance future ftos =
+typedValidator :: Future -> FutureAccounts -> Scripts.TypedValidator (SM.StateMachine FutureState FutureAction)
+typedValidator future ftos =
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
                 PlutusTx.liftCode future
@@ -324,12 +324,12 @@ scriptInstance future ftos =
         validatorParam f g = SM.mkValidator (futureStateMachine f g)
         wrap = Scripts.wrapValidator @FutureState @FutureAction
 
-    in Scripts.validator @(SM.StateMachine FutureState FutureAction)
+    in Scripts.mkTypedValidator @(SM.StateMachine FutureState FutureAction)
         val
         $$(PlutusTx.compile [|| wrap ||])
 
 machineClient
-    :: Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
+    :: Scripts.TypedValidator (SM.StateMachine FutureState FutureAction)
     -> Future
     -> FutureAccounts
     -> SM.StateMachineClient FutureState FutureAction
@@ -338,7 +338,7 @@ machineClient inst future ftos =
     in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
 validator :: Future -> FutureAccounts -> Validator
-validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
+validator ft fos = Scripts.validatorScript (typedValidator ft fos)
 
 {-# INLINABLE verifyOracle #-}
 verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
@@ -478,7 +478,7 @@ initialiseFuture future = mapError (review _FutureError) $ do
     -- tokens that we will use for the future contract. Now we use an escrow
     --  contract to initialise the future contract.
 
-    inst <- checkpoint $ pure (scriptInstance future ftos)
+    inst <- checkpoint $ pure (typedValidator future ftos)
 
     let
         client = machineClient inst future ftos
@@ -570,10 +570,10 @@ joinFuture
     -> Contract w s e (SM.StateMachineClient FutureState FutureAction)
 joinFuture ft = mapError (review _FutureError) $ do
     (owners, stp) <- endpoint @"join-future" @(FutureAccounts, FutureSetup)
-    inst <- checkpoint $ pure (scriptInstance ft owners)
+    inst <- checkpoint $ pure (typedValidator ft owners)
     let client = machineClient inst ft owners
         escr = escrowParams client ft owners stp
-        payment = Escrow.pay (Escrow.scriptInstance escr) escr (initialMargin ft)
+        payment = Escrow.pay (Escrow.typedValidator escr) escr (initialMargin ft)
     void $ mapError EscrowFailed payment
     pure client
 
@@ -609,7 +609,7 @@ escrowParams
     -> EscrowParams Datum
 escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
-        address = Ledger.validatorHash $ Scripts.validatorScript $ SM.validatorInstance $ SM.scInstance client
+        address = Ledger.validatorHash $ Scripts.validatorScript $ SM.typedValidator $ SM.scInstance client
         dataScript  = Ledger.Datum $ PlutusTx.toData $ initialState future
         targets =
             [ Escrow.payToScriptTarget address

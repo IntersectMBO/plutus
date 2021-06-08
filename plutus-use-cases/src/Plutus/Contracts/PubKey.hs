@@ -15,7 +15,7 @@
 --   contract. This is useful if you need something that behaves like
 --   a pay-to-pubkey output, but is not (easily) identified by wallets
 --   as one.
-module Plutus.Contracts.PubKey(pubKeyContract, scriptInstance, PubKeyError(..), AsPubKeyError(..)) where
+module Plutus.Contracts.PubKey(pubKeyContract, typedValidator, PubKeyError(..), AsPubKeyError(..)) where
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
@@ -25,7 +25,7 @@ import           GHC.Generics             (Generic)
 
 import           Ledger                   as Ledger hiding (initialise, to)
 import           Ledger.Contexts          as V
-import           Ledger.Typed.Scripts     (ScriptInstance)
+import           Ledger.Typed.Scripts     (TypedValidator)
 import qualified Ledger.Typed.Scripts     as Scripts
 import qualified PlutusTx                 as PlutusTx
 
@@ -37,12 +37,12 @@ mkValidator pk' _ _ p = V.txSignedBy (scriptContextTxInfo p) pk'
 
 data PubKeyContract
 
-instance Scripts.ScriptType PubKeyContract where
+instance Scripts.ValidatorTypes PubKeyContract where
     type instance RedeemerType PubKeyContract = ()
     type instance DatumType PubKeyContract = ()
 
-scriptInstance :: PubKeyHash -> Scripts.ScriptInstance PubKeyContract
-scriptInstance = Scripts.validatorParam @PubKeyContract
+typedValidator :: PubKeyHash -> Scripts.TypedValidator PubKeyContract
+typedValidator = Scripts.mkTypedValidatorParam @PubKeyContract
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -70,10 +70,10 @@ pubKeyContract
     )
     => PubKeyHash
     -> Value
-    -> Contract w s e (TxOutRef, TxOutTx, ScriptInstance PubKeyContract)
+    -> Contract w s e (TxOutRef, TxOutTx, TypedValidator PubKeyContract)
 pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
-    let inst = scriptInstance pk
-        address = Scripts.scriptAddress inst
+    let inst = typedValidator pk
+        address = Scripts.validatorAddress inst
         tx = Constraints.mustPayToTheScript () vl
 
     ledgerTx <- submitTxConstraints inst tx

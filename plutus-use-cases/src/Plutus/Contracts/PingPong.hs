@@ -100,15 +100,15 @@ machine = SM.mkStateMachine Nothing transition isFinal where
 mkValidator :: Scripts.ValidatorType (SM.StateMachine PingPongState Input)
 mkValidator = SM.mkValidator machine
 
-scriptInstance :: Scripts.ScriptInstance (SM.StateMachine PingPongState Input)
-scriptInstance = Scripts.validator @(SM.StateMachine PingPongState Input)
+typedValidator :: Scripts.TypedValidator (SM.StateMachine PingPongState Input)
+typedValidator = Scripts.mkTypedValidator @(SM.StateMachine PingPongState Input)
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator @PingPongState @Input
 
 machineInstance :: SM.StateMachineInstance PingPongState Input
-machineInstance = SM.StateMachineInstance machine scriptInstance
+machineInstance = SM.StateMachineInstance machine typedValidator
 
 client :: SM.StateMachineClient PingPongState Input
 client = SM.mkStateMachineClient machineInstance
