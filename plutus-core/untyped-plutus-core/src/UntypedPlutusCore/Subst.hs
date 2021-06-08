@@ -15,10 +15,9 @@ module UntypedPlutusCore.Subst
 
 import           PlutusPrelude
 
-import           UntypedPlutusCore.Core hiding (var)
-
 import           PlutusCore.Core        (HasUniques)
 import           PlutusCore.Name
+import           UntypedPlutusCore.Core
 
 import           Control.Lens
 import           Data.Set               as Set

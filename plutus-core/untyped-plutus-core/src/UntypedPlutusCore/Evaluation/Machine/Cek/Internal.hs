@@ -45,7 +45,7 @@ where
 import           ErrorCode
 import           PlutusPrelude
 
-import           UntypedPlutusCore.Core                                   hiding (var)
+import           UntypedPlutusCore.Core
 import           UntypedPlutusCore.Subst
 
 import           PlutusCore.Constant

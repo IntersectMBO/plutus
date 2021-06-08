@@ -2,7 +2,6 @@
 
 module NewUntypedPlutusCore (
     Term (..)
-    , TermLike (..)
     , Program (..)
     , toTerm
     , bindFunM

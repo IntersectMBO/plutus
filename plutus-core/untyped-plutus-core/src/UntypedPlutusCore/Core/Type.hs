@@ -10,7 +10,6 @@ module UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
     , TPLC.Version (..)
     , Term (..)
-    , TermLike (..)
     , Program (..)
     , toTerm
     , bindFunM
