@@ -24,14 +24,14 @@ module Playground.Schema
     , EndpointToSchema
     ) where
 
-import           Data.Kind                              (Type)
-import           Data.Row                               (Empty, KnownSymbol, Label (Label))
-import           Data.Row.Internal                      (LT ((:->)), Row (R))
-import           Playground.Types                       (FunctionSchema (FunctionSchema), argument, endpointDescription)
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription (EndpointDescription),
-                                                         EndpointValue)
-import           Plutus.Contract.Schema                 ()
-import           Schema                                 (FormSchema, ToSchema, toSchema)
+import           Data.Kind               (Type)
+import           Data.Row                (Empty, KnownSymbol, Label (Label))
+import           Data.Row.Internal       (LT ((:->)), Row (R))
+import           Playground.Types        (FunctionSchema (FunctionSchema), argument, endpointDescription)
+import           Plutus.Contract.Effects (ActiveEndpoint)
+import           Plutus.Contract.Schema  ()
+import           Schema                  (FormSchema, ToSchema, toSchema)
+import           Wallet.Types            (EndpointDescription (EndpointDescription), EndpointValue)
 
 class EndpointToSchema (s :: Row Type) where
     endpointsToSchemas :: [FunctionSchema FormSchema]
