@@ -167,7 +167,9 @@ handleWallet = \case
         utxWithFees <- validateTxAndAddFees utx
         -- balance to add fees
         tx' <- handleBalanceTx (utx & U.tx . fee .~ (utxWithFees ^. U.tx . fee))
-        handleAddSignature tx'
+        tx'' <- handleAddSignature tx'
+        logInfo $ FinishedBalancing tx''
+        pure tx''
     WalletAddSignature tx -> handleAddSignature tx
     TotalFunds -> gets (foldMap (txOutValue . txOutTxOut) . ownOutputs)
 
@@ -269,13 +271,10 @@ handleBalanceTx UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} = do
     if remainingFees `Value.leq` PlutusTx.zero
     then do
         logDebug NoCollateralInputsAdded
-        logInfo $ FinishedBalancing tx''
         pure tx''
     else do
         logDebug $ AddingCollateralInputsFor remainingFees
-        tx''' <- addCollateral utxo remainingFees tx''
-        logInfo $ FinishedBalancing tx'''
-        pure tx'''
+        addCollateral utxo remainingFees tx''
 
 addOutputs :: PubKey -> Value -> Tx -> Tx
 addOutputs pk vl tx = tx & over Tx.outputs (pko :) where

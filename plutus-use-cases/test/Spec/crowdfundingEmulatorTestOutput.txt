@@ -34,7 +34,6 @@ Slot 1: W2: Balancing an unbalanced transaction:
                     "9\247\DC3\208\166D%?\EOTR\148!\185\245\ESC\155\b\151\157\b)YY\196\243\153\SO\230\ETB\245\DC3\159"}
               Requires signatures:
               Utxo index:
-Slot 1: W2: Finished balancing. 5ce8e7d3ad0a104952a7d7100e992d6951ace6e84e3d9a60107090dccd801116
 Slot 1: W2: Finished balancing. 2aaaf67b98c5908b6d166ba4d53c36977d908cd01a05cf743094dcb498f2bc76
 Slot 1: W2: Submitting tx: 2aaaf67b98c5908b6d166ba4d53c36977d908cd01a05cf743094dcb498f2bc76
 Slot 1: W2: TxSubmit: 2aaaf67b98c5908b6d166ba4d53c36977d908cd01a05cf743094dcb498f2bc76
@@ -61,7 +60,6 @@ Slot 1: W3: Balancing an unbalanced transaction:
                     "\218\192s\224\DC2;\222\165\157\217\179\189\169\207`7\246:\202\130b}z\188\213\196\172)\221t\NUL>"}
               Requires signatures:
               Utxo index:
-Slot 1: W3: Finished balancing. 2710c244e9e82f0189991e0a0727814bb852119316a0655fff95ad2e70d522c8
 Slot 1: W3: Finished balancing. 1bd85856e7ef51c994cb9b0a84a1a80626dd23da2e51428dedf23091cf99ffe3
 Slot 1: W3: Submitting tx: 1bd85856e7ef51c994cb9b0a84a1a80626dd23da2e51428dedf23091cf99ffe3
 Slot 1: W3: TxSubmit: 1bd85856e7ef51c994cb9b0a84a1a80626dd23da2e51428dedf23091cf99ffe3
@@ -82,7 +80,6 @@ Slot 1: W4: Balancing an unbalanced transaction:
                     "\237\209\195sr\247R\201z\236\b\130E/\172\172\ETB\164\253\175F\230\FS\ETX?J\246x\164\a\155\205"}
               Requires signatures:
               Utxo index:
-Slot 1: W4: Finished balancing. 958b240f46a6b1acd0bc95afc8775f1babf0556f48c2cb3f6fe82cca10b7460c
 Slot 1: W4: Finished balancing. 93d26b0662b3078076f623d6ba8e613dbddc9e17f1bc0ae38729861b1b119462
 Slot 1: W4: Submitting tx: 93d26b0662b3078076f623d6ba8e613dbddc9e17f1bc0ae38729861b1b119462
 Slot 1: W4: TxSubmit: 93d26b0662b3078076f623d6ba8e613dbddc9e17f1bc0ae38729861b1b119462
@@ -120,7 +117,6 @@ Slot 20: W1: Balancing an unbalanced transaction:
                  ( 93d26b0662b3078076f623d6ba8e613dbddc9e17f1bc0ae38729861b1b119462!1
                  , - Value (Map [(,Map [("",25)])]) addressed to
                      addressed to ScriptCredential: 501ad86b4065d6ca104affc283f3dec198e9631a9c04e6a7ba213eb7ac9dbc0c (no staking credential) )
-Slot 20: W1: Finished balancing. 7d30bd2ff1e537c808bbb6e117a90c0a584d174a65a6df0587e4002307e2fa32
 Slot 20: W1: Finished balancing. a2fe78d60575e22f75699fdbb5cec25e51113228c0d43ce728641da87d229300
 Slot 20: W1: Submitting tx: a2fe78d60575e22f75699fdbb5cec25e51113228c0d43ce728641da87d229300
 Slot 20: W1: TxSubmit: a2fe78d60575e22f75699fdbb5cec25e51113228c0d43ce728641da87d229300
