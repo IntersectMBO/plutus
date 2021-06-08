@@ -26,7 +26,8 @@ Library
 
     Build-Depends: base,
                    ghc-boot,
-                   bytestring -any
+                   bytestring -any,
+                   template-haskell -any
 
     hs-source-dirs:
         src

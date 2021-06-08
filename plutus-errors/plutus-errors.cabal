@@ -47,9 +47,8 @@ library
       containers >= 0.6,
       prettyprinter >=1.1.0.1,
       plutus-core -any,
-      plutus-tx -any
-if !(impl(ghcjs) || os(ghcjs) || os(windows))
-    build-depends: plutus-tx-plugin
+      plutus-tx -any,
+      plutus-tx-plugin
 
 executable plutus-errors-next
   import: lang

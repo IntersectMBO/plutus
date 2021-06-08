@@ -45,46 +45,41 @@ library
     -- trivially happy, but then when it's loaded, we'll swap it out for the
     -- natively (e.g. not cross compiled like ghcjs results) package, such that
     -- ghcjs can load the plugin and execute it natively.
+    hs-source-dirs: src
+    exposed-modules:
+        PlutusTx.Plugin
+        PlutusTx.Compiler.Error
+    other-modules:
+        PlutusTx.Compiler.Binders
+        PlutusTx.Compiler.Builtins
+        PlutusTx.Compiler.Expr
+        PlutusTx.Compiler.Kind
+        PlutusTx.Compiler.Laziness
+        PlutusTx.Compiler.Names
+        PlutusTx.Compiler.Primitives
+        PlutusTx.Compiler.Type
+        PlutusTx.Compiler.Types
+        PlutusTx.Compiler.Utils
+        PlutusTx.PIRTypes
+        PlutusTx.PLCTypes
+    build-depends:
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        extra -any,
+        flat -any,
+        ghc-prim -any,
+        plutus-core -any,
+        lens -any,
+        mtl -any,
+        prettyprinter -any,
+        template-haskell -any,
+        text -any,
+        transformers -any,
+        plutus-tx -any
     if(impl(ghcjs))
-        hs-source-dirs: cross-src
-        exposed-modules:
-            PlutusTx.Plugin
-        build-depends:
-            base >=4.9 && <5,
-            plutus-ghc-stub
+        build-depends: plutus-ghc-stub
     else
-        hs-source-dirs: src
-        exposed-modules:
-            PlutusTx.Plugin
-            PlutusTx.Compiler.Error
-        other-modules:
-            PlutusTx.Compiler.Binders
-            PlutusTx.Compiler.Builtins
-            PlutusTx.Compiler.Expr
-            PlutusTx.Compiler.Kind
-            PlutusTx.Compiler.Laziness
-            PlutusTx.Compiler.Names
-            PlutusTx.Compiler.Primitives
-            PlutusTx.Compiler.Type
-            PlutusTx.Compiler.Types
-            PlutusTx.Compiler.Utils
-            PlutusTx.PIRTypes
-            PlutusTx.PLCTypes
-        build-depends:
-            base >=4.9 && <5,
-            bytestring -any,
-            containers -any,
-            extra -any,
-            flat -any,
-            ghc-prim -any,
-            plutus-core -any,
-            lens -any,
-            mtl -any,
-            prettyprinter -any,
-            template-haskell -any,
-            text -any,
-            transformers -any,
-            plutus-tx -any
         if(flag(ghcjs-plugin))
             build-depends: ghcjs >=8.10 && <9
         else

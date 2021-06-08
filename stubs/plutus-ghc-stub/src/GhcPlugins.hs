@@ -1,6 +1,6 @@
 module GhcPlugins(
     module Plugins,
-    module StubTypes
+    module StubTypes,
     ) where
 
 import Plugins

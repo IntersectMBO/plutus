@@ -4,9 +4,11 @@ module StubTypes where
 import Data.Data (Data)
 import Data.String (IsString(..))
 import Control.Monad
+import Control.Monad.IO.Class (MonadIO (..))
 import Data.Functor.Identity
 import Data.ByteString
 import qualified Control.Exception as Exception
+import qualified Language.Haskell.TH as TH
 
 data DynFlags    = DynFlags_
 type FamInstEnvs = (FamInstEnv, FamInstEnv)
@@ -20,7 +22,7 @@ data TcGblEnv    = TcGblEnv_
 data LHsExpr a   = LHsExpr_
 data GhcTc       = GhcTc_
 data GhcRn       = GhcRn_
-data GhcException 
+data GhcException
   = CmdLineError String
   | ProgramError String
   | PprProgramError String SDoc
@@ -36,7 +38,7 @@ type Kind      = Type
 type TyVar = Var
 data SrcSpan = SrcSpan_ deriving (Eq, Ord, Data, Outputable)
 data RealSrcSpan = RealSrcSpan_ deriving (Data, Outputable)
-data Tickish a = 
+data Tickish a =
     SourceNote { sourceSpan :: RealSrcSpan -- ^ Source covered
                , sourceName :: String      -- ^ Name for source location
     }
@@ -64,25 +66,30 @@ data Messages = Messages_
 data Literal
     =     ------------------
           -- First the primitive guys
-      MachChar    Char            -- ^ @Char#@ - at least 31 bits. Create with 'mkMachChar'
-  
+      LitChar    Char            -- ^ @Char#@ - at least 31 bits. Create with 'mkMachChar'
+
     | LitNumber !LitNumType !Integer Type
         --  ^ Any numeric literal that can be
         -- internally represented with an Integer
-  
-    | MachStr     ByteString      -- ^ A string-literal: stored and emitted
+    | LitString   ByteString      -- ^ A string-literal: stored and emitted
                                   -- UTF-8 encoded, we'll arrange to decode it
                                   -- at runtime.  Also emitted with a @'\0'@
                                   -- terminator. Create with 'mkMachString'
-  
-    | MachNullAddr                -- ^ The @NULL@ pointer, the only pointer value
+
+    | LitNullAddr                 -- ^ The @NULL@ pointer, the only pointer value
                                   -- that can be represented as a Literal. Create
                                   -- with 'nullAddrLit'
-  
-    | MachFloat   Rational        -- ^ @Float#@. Create with 'mkMachFloat'
-    | MachDouble  Rational        -- ^ @Double#@. Create with 'mkMachDouble'
-  
-    | MachLabel   FastString
+
+    | LitRubbish                  -- ^ A nonsense value, used when an unlifted
+                                  -- binding is absent and has type
+                                  -- @forall (a :: 'TYPE' 'UnliftedRep'). a@.
+                                  -- May be lowered by code-gen to any possible
+                                  -- value. Also see Note [Rubbish literals]
+
+    | LitFloat   Rational         -- ^ @Float#@. Create with 'mkMachFloat'
+    | LitDouble  Rational         -- ^ @Double#@. Create with 'mkMachDouble'
+
+    | LitLabel   FastString
                   (Maybe Int)
           FunctionOrData
                   -- ^ A label literal. Parameters:
@@ -94,7 +101,7 @@ data Literal
                   --    @stdcall@ labels. @Just x@ => @\<x\>@ will
                   --    be appended to label name when emitting assembly.
     deriving Data
-  
+
 -- | Numeric literal type
 data LitNumType
     = LitNumInteger -- ^ @Integer@ (see Note [Integer literals])
@@ -104,7 +111,7 @@ data LitNumType
     | LitNumWord    -- ^ @Word#@ - according to target machine
     | LitNumWord64  -- ^ @Word64#@ - exactly 64 bits
     deriving (Data,Enum,Eq,Ord)
-  
+
 type FastString = String
 
 data AlgTyConRhs =
@@ -173,7 +180,7 @@ data ImpDeclSpec
           is_mod      :: ModuleName, -- ^ Module imported, e.g. @import Muggle@
                                      -- Note the @Muggle@ may well not be
                                      -- the defining module for this thing!
-  
+
                                      -- TODO: either should be Module, or there
                                      -- should be a Maybe UnitId here too.
           is_as       :: ModuleName, -- ^ Import alias, e.g. from @as M@ (or @Muggle@ if there is no @as@ clause)
@@ -182,10 +189,10 @@ data ImpDeclSpec
       } deriving (Eq, Ord, Data)
 
 data ImpItemSpec
-    = ImpAll           
+    = ImpAll
     | ImpSome {
           is_explicit :: Bool,
-          is_iloc     :: SrcSpan 
+          is_iloc     :: SrcSpan
     }
     deriving (Eq, Ord, Data)
 
@@ -276,8 +283,10 @@ instance Applicative StubM where pure _ = StubM_
 instance Monad StubM
 
 newtype Hsc a       = Hsc_ (StubM a) deriving (Functor, Applicative, Monad)
--- newtype CoreM a     = CoreM_ (StubM a) deriving (Functor, Applicative, Monad)
-type CoreM a = IO a
+newtype CoreM a     = CoreM_ (StubM a) deriving (Functor, Applicative, Monad)
+instance MonadIO CoreM where
+    liftIO = undefined
+-- type CoreM a = IO a
 newtype TcM a       = TcM_ (StubM a) deriving (Functor, Applicative, Monad)
 type TcRn a = TcM a
 newtype IfM ab a    = IfM_ (StubM a) deriving (Functor, Applicative, Monad)
@@ -295,24 +304,24 @@ data FindResult
           -- ^ The requested package was not found
     | FoundMultiple [(Module, ModuleOrigin)]
           -- ^ _Error_: both in multiple packages
-  
+
           -- | Not found
     | NotFound
         { fr_paths       :: [FilePath]       -- Places where I looked
-  
+
         , fr_pkg         :: Maybe UnitId  -- Just p => module is in this package's
                                              --           manifest, but couldn't find
                                              --           the .hi file
-  
+
         , fr_mods_hidden :: [UnitId]      -- Module is in these packages,
                                              --   but the *module* is hidden
-  
+
         , fr_pkgs_hidden :: [UnitId]      -- Module is in these packages,
                                              --   but the *package* is hidden
-  
+
           -- Modules are in these packages, but it is unusable
         , fr_unusables   :: [(UnitId, UnusablePackageReason)]
-  
+
         , fr_suggestions :: [ModuleSuggestion] -- Possible mis-spelled modules
         }
 
@@ -489,13 +498,13 @@ algTyConRhs :: TyCon -> AlgTyConRhs
 algTyConRhs _ = AbstractTyCon
 
 mkCharExpr :: Char -> CoreExpr
-mkCharExpr c = Lit (MachChar c)
+mkCharExpr c = Lit (LitChar c)
 
 isDefaultAlt :: a -> Bool
 isDefaultAlt _ = False
 
 mkListExpr :: Type -> [CoreExpr] -> CoreExpr
-mkListExpr _ _ = Lit MachNullAddr
+mkListExpr _ _ = Lit LitNullAddr
 
 findAlt :: AltCon -> [(AltCon, a, b)] -> Maybe (AltCon, a, b)
 findAlt _ _ = Nothing
@@ -521,7 +530,7 @@ realIdUnfolding :: Id -> Unfolding
 realIdUnfolding _ = Unfolding_
 
 mkDictSelRhs :: Class -> Int -> CoreExpr
-mkDictSelRhs _ _ = Lit MachNullAddr
+mkDictSelRhs _ _ = Lit LitNullAddr
 
 classAllSelIds :: Class -> [Id]
 classAllSelIds _ = []
@@ -533,7 +542,7 @@ maybeUnfoldingTemplate :: Unfolding -> Maybe CoreExpr
 maybeUnfoldingTemplate _ = Nothing
 
 mkImpossibleExpr :: Type -> CoreExpr
-mkImpossibleExpr _ = Lit MachNullAddr
+mkImpossibleExpr _ = Lit LitNullAddr
 
 getDynFlags :: Monad m => m DynFlags
 getDynFlags = return DynFlags_
@@ -566,7 +575,7 @@ lookupTyCon :: Monad m => Name -> m TyCon
 lookupTyCon _ = return TyCon_
 
 mkRuntimeErrorApp :: Id -> Type -> String -> CoreExpr
-mkRuntimeErrorApp _ _ _ = Lit MachNullAddr
+mkRuntimeErrorApp _ _ _ = Lit LitNullAddr
 
 idName :: Id -> Name
 idName _ = Name_
@@ -581,10 +590,10 @@ mkTyConTy :: TyCon -> Type
 mkTyConTy _ = Type_
 
 mkCoreApps :: CoreExpr -> [CoreExpr] -> CoreExpr
-mkCoreApps _ _ = Lit MachNullAddr
+mkCoreApps _ _ = Lit LitNullAddr
 
 mkIntExpr :: DynFlags -> Integer -> CoreExpr
-mkIntExpr _ _ = Lit MachNullAddr
+mkIntExpr _ _ = Lit LitNullAddr
 
 mkModuleName :: String -> ModuleName
 mkModuleName _ = ModuleName_
@@ -637,3 +646,28 @@ varName, dataName, tcClsName :: NameSpace
 varName = NameSpace_
 dataName = NameSpace_
 tcClsName = NameSpace_
+
+tyConAppTyCon_maybe :: Type -> Maybe TyCon
+tyConAppTyCon_maybe _ = Nothing
+
+
+nameOccName :: Name -> OccName
+nameOccName _ = undefined
+
+charTyConName :: Name
+charTyConName = undefined
+
+noinlineIdName :: Name
+noinlineIdName = undefined
+
+nilDataCon :: DataCon
+nilDataCon = undefined
+
+dataConWorkId :: DataCon -> Id
+dataConWorkId = undefined
+
+thNameToGhcName :: TH.Name -> CoreM (Maybe Name)
+thNameToGhcName _ = undefined
+
+showSDocUnsafe :: SDoc -> String
+showSDocUnsafe _ = undefined
