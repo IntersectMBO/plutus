@@ -507,18 +507,11 @@ instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
 type instance UniOf (CekValue uni fun) = uni
 
 instance FromConstant (CekValue uni fun) where
-    fromConstant val = VCon val
+    fromConstant = VCon
 
 instance AsConstant (CekValue uni fun) where
-    asConstant (VCon val) = Just val
-    asConstant _          = Nothing
-
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ToExMemory (CekValue uni fun) where
-    toExMemory = \case
-        VCon c      -> memoryUsage c
-        VDelay {}   -> 1
-        VLamAbs {}  -> 1
-        VBuiltin {} -> 1
+    asConstant (VCon val) = pure val
+    asConstant term       = throwNotAConstant term
 
 data Frame uni fun
     = FrameApplyFun (CekValue uni fun)                         -- ^ @[V _]@
@@ -527,6 +520,15 @@ data Frame uni fun
     deriving (Show)
 
 type Context uni fun = [Frame uni fun]
+
+toExMemory :: (Closed uni, uni `Everywhere` ExMemoryUsage) => CekValue uni fun -> ExMemory
+toExMemory = \case
+    VCon c      -> memoryUsage c
+    VDelay {}   -> 1
+    VLamAbs {}  -> 1
+    VBuiltin {} -> 1
+{-# INLINE toExMemory #-}  -- It probably gets inlined anyway, but an explicit pragma
+                           -- shouldn't hurt.
 
 -- | A 'MonadError' version of 'try'.
 tryError :: MonadError e m => m a -> m (Either e a)
@@ -721,6 +723,8 @@ enterComputeCek = computeCek (toWordArray 0) where
                 -- than a 'Term', hence 'withCekValueErrors'.
                 x <- withCekValueErrors $ readKnown arg
                 -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
+                -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
+                -- Maybe we could fuse the two?
                 let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
                 res <- evalBuiltinApp fun term' env runtime'
                 returnCek unbudgetedSteps ctx res

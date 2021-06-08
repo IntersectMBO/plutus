@@ -131,7 +131,7 @@ obtainCredentialTokenData credential = do
 
     -- Calls the 'PresentCredential' step on the state machine instance and returns the constraints
     -- needed to construct a transaction that presents the token.
-    let theClient = StateMachine.machineClient (StateMachine.scriptInstance userCredential) userCredential
+    let theClient = StateMachine.machineClient (StateMachine.typedValidator userCredential) userCredential
     t <- mapError GetCredentialStateMachineError $ mkStep theClient PresentCredential
     case t of
         Left e -> throwError $ GetCredentialTransitionError e

@@ -109,7 +109,7 @@ There is a higher-level interface in :hsmod:`Ledger.Typed.Scripts` which handles
 To use it, we first need to define a datatype that we can use to identify the particular validator that we are working on.
 This data type is empty, because we're just going to use it as a "name": it helps the Haskell type system know what to look for.
 
-We then define an instance of :hsobj:`Ledger.Typed.Scripts.Validators.ScriptType` for our "name".
+We then define an instance of :hsobj:`Ledger.Typed.Scripts.Validators.ValidatorTypes` for our "name".
 This tells the compiler what the Haskell types for the redeemer and datum are, so that the compiler can check whether we're using the right ones later.
 
 .. literalinclude:: BasicValidators.hs
@@ -125,7 +125,7 @@ This takes advantage of the information we provided in our ``ScriptType`` instan
    :start-after: BLOCK6
    :end-before: BLOCK7
 
-Finally, we can use the :hsobj:`Ledger.Typed.Scripts.validator` function to get a :hsobj:`Ledger.Typed.Scripts.ScriptInstance`.
+Finally, we can use the :hsobj:`Ledger.Typed.Scripts.Validators.mkTypedValidator` function to get a :hsobj:`Ledger.Typed.Scripts.Validators.TypedValidator`.
 This packages up the compiled validator for us, letting us pull out the compiled version, the hash, the address, and a few other useful things.
 
 .. literalinclude:: BasicValidators.hs

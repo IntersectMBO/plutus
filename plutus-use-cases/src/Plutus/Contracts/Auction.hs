@@ -38,8 +38,8 @@ import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (TypedScriptTxOut (..))
 import           Ledger.Value                     (AssetClass)
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine     (State (..), StateMachine (..), StateMachineClient,
-                                                   StateMachineInstance (..), Void, WaitingResult (..))
+import           Plutus.Contract.StateMachine     (State (..), StateMachine (..), StateMachineClient, Void,
+                                                   WaitingResult (..))
 import qualified Plutus.Contract.StateMachine     as SM
 import           Plutus.Contract.Util             (loopM)
 import qualified Plutus.Contracts.Currency        as Currency
@@ -152,8 +152,8 @@ auctionStateMachine threadToken auctionParams = SM.mkStateMachine (Just threadTo
 
 -- | The script instance of the auction state machine. It contains the state
 --   machine compiled to a Plutus core validator script.
-scriptInstance :: AssetClass -> AuctionParams -> Scripts.ScriptInstance (StateMachine AuctionState AuctionInput)
-scriptInstance currency auctionParams =
+typedValidator :: AssetClass -> AuctionParams -> Scripts.TypedValidator (StateMachine AuctionState AuctionInput)
+typedValidator currency auctionParams =
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
                 PlutusTx.liftCode currency
@@ -162,7 +162,7 @@ scriptInstance currency auctionParams =
         validatorParam c f = SM.mkValidator (auctionStateMachine c f)
         wrap = Scripts.wrapValidator @AuctionState @AuctionInput
 
-    in Scripts.validator @(StateMachine AuctionState AuctionInput)
+    in Scripts.mkTypedValidator @(StateMachine AuctionState AuctionInput)
         val
         $$(PlutusTx.compile [|| wrap ||])
 
@@ -170,13 +170,13 @@ scriptInstance currency auctionParams =
 --   with the on-chain code, and the Haskell definition of the state machine for
 --   off-chain use.
 machineClient
-    :: Scripts.ScriptInstance (StateMachine AuctionState AuctionInput)
+    :: Scripts.TypedValidator (StateMachine AuctionState AuctionInput)
     -> AssetClass -- ^ Thread token of the instance
     -> AuctionParams
     -> StateMachineClient AuctionState AuctionInput
 machineClient inst threadToken auctionParams =
     let machine = auctionStateMachine threadToken auctionParams
-    in SM.mkStateMachineClient (StateMachineInstance machine inst)
+    in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
 type BuyerSchema = BlockchainActions .\/ Endpoint "bid" Ada
 type SellerSchema = BlockchainActions -- Don't need any endpoints: the contract runs automatically until the auction is finished.
@@ -214,7 +214,7 @@ auctionSeller value slot = do
     tell $ threadTokenOut threadToken
     self <- Ledger.pubKeyHash <$> ownPubKey
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = slot }
-        inst         = scriptInstance threadToken params
+        inst         = typedValidator threadToken params
         client       = machineClient inst threadToken params
 
     _ <- handleError
@@ -270,7 +270,7 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
         auctionOver = awaitSlot apEndTime >> pure (AuctionIsOver lastHighestBid)
         submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
         otherBid = do
-            let address = Scripts.scriptAddress (validatorInstance (SM.scInstance client))
+            let address = Scripts.validatorAddress (SM.typedValidator (SM.scInstance client))
                 targetSlot = Haskell.succ (Haskell.succ s) -- FIXME (jm): There is some off-by-one thing going on that requires us to
                                            -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
                                            -- to wait for the next slot to begin.
@@ -312,7 +312,7 @@ handleEvent client lastHighestBid change =
 
 auctionBuyer :: AssetClass -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
 auctionBuyer currency params = do
-    let inst         = scriptInstance currency params
+    let inst         = typedValidator currency params
         client       = machineClient inst currency params
 
         -- the actual loop, see note [Buyer client]

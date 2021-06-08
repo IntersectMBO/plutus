@@ -263,6 +263,7 @@ data ContractExeLogMsg =
     | UpdateContractMsg FilePath RequestSize String
     | ExportSignatureMsg FilePath
     | ProcessExitFailure String
+    | ContractResponseJSONDecodingError String
     | AContractResponse String
     | Migrating
     | InvokingEndpoint String JSON.Value
@@ -278,6 +279,7 @@ instance Pretty ContractExeLogMsg where
         UpdateContractMsg fp vl _ -> "updating" <+> fromString fp <+> parens (pretty vl)
         ExportSignatureMsg fp -> fromString fp <+> "export-signature"
         ProcessExitFailure err -> "ExitFailure" <+> pretty err
+        ContractResponseJSONDecodingError err -> "Error decoding contract response from JSON:" <+> pretty err
         AContractResponse str -> pretty str
         Migrating -> "Migrating"
         InvokingEndpoint s v ->
@@ -301,6 +303,8 @@ instance ToObject ContractExeLogMsg where
             mkObjectStr "exporting signature" (Tagged @"file_path" fp)
         ProcessExitFailure f ->
             mkObjectStr "process exit failure" (Tagged @"error" f)
+        ContractResponseJSONDecodingError e ->
+            mkObjectStr "contract response JSON decoding error" (Tagged @"error" e)
         AContractResponse r ->
             mkObjectStr "received contract response" $
                 case v of

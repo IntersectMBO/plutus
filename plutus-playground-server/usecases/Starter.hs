@@ -27,7 +27,7 @@ module Starter where
 --   * redeem
 
 import           Control.Monad        (void)
-import           Ledger               (Address, ScriptContext, scriptAddress)
+import           Ledger               (Address, ScriptContext)
 import qualified Ledger.Constraints   as Constraints
 import qualified Ledger.Typed.Scripts as Scripts
 import           Ledger.Value         (Value)
@@ -51,16 +51,16 @@ validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an im
 
 -- | The address of the contract (the hash of its validator script).
 contractAddress :: Address
-contractAddress = Ledger.scriptAddress (Scripts.validatorScript starterInstance)
+contractAddress = Scripts.validatorAddress starterInstance
 
 data Starter
-instance Scripts.ScriptType Starter where
+instance Scripts.ValidatorTypes Starter where
     type instance RedeemerType Starter = MyRedeemer
     type instance DatumType Starter = MyDatum
 
 -- | The script instance is the compiled validator (ready to go onto the chain)
-starterInstance :: Scripts.ScriptInstance Starter
-starterInstance = Scripts.validator @Starter
+starterInstance :: Scripts.TypedValidator Starter
+starterInstance = Scripts.mkTypedValidator @Starter
     $$(PlutusTx.compile [|| validateSpend ||])
     $$(PlutusTx.compile [|| wrap ||]) where
         wrap = Scripts.wrapValidator @MyDatum @MyRedeemer

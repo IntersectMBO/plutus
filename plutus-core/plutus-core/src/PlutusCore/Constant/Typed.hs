@@ -29,6 +29,7 @@ module PlutusCore.Constant.Typed
     , TyAppRep
     , TyForallRep
     , Opaque (..)
+    , throwNotAConstant
     , AsConstant (..)
     , FromConstant (..)
     , HasConstant
@@ -357,21 +358,26 @@ newtype Opaque term (rep :: GHC.Type) = Opaque
     { unOpaque :: term
     } deriving newtype (Pretty)
 
+-- | Throw an 'UnliftingError' saying that the received argument is not a constant.
+throwNotAConstant
+    :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
+    => term -> m r
+throwNotAConstant = throwingWithCause _UnliftingError "Not a constant" . Just
+
 class AsConstant term where
-    -- | Unwrap a shallowly embedded Haskell value from a @term@ or fail.
-    asConstant :: term -> Maybe (Some (ValueOf (UniOf term)))
+    -- | Unlift from the 'Constant' constructor throwing an 'UnliftingError' if the provided @term@
+    -- is not a 'Constant'.
+    asConstant
+        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
+        => term -> m (Some (ValueOf (UniOf term)))
 
 class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
 
 instance AsConstant (Term TyName Name uni fun ann) where
-    asConstant (Constant _ val) = Just val
-    asConstant _                = Nothing
-
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) =>
-            FromConstant (Term tyname name uni fun ExMemory) where
-    fromConstant value = Constant (memoryUsage value) value
+    asConstant (Constant _ val) = pure val
+    asConstant term             = throwNotAConstant term
 
 instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
@@ -387,16 +393,6 @@ type HasConstant term = (AsConstant term, FromConstant term)
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
 -- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
-
--- | Unlift from the 'Constant' constructor throwing an 'UnliftingError' if the provided @term@
--- is not a 'Constant'.
-unliftSomeValue
-    :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstant term)
-    => term -> m (Some (ValueOf (UniOf term)))
-unliftSomeValue term =
-    case asConstant term of
-        Nothing  -> throwingWithCause _UnliftingError "Not a constant" $ Just term
-        Just val -> pure val
 
 class KnownTypeAst uni (a :: k) where
     -- | The type representing @a@ used on the PLC side.
@@ -445,7 +441,7 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
            , KnownBuiltinType term a
            )
         => term -> m a
-    readKnown term = unliftSomeValue term >>= \case
+    readKnown term = asConstant term >>= \case
         Some (ValueOf uniAct x) -> do
             let uniExp = knownUni @_ @(UniOf term) @a
             case uniAct `geq` uniExp of
@@ -500,7 +496,7 @@ instance (uni ~ uni', KnownTypeAst uni rep) => KnownTypeAst uni (SomeConstant un
 instance (HasConstantIn uni term, KnownTypeAst uni rep) =>
             KnownType term (SomeConstant uni rep) where
     makeKnown = pure . fromConstant . unSomeConstant
-    readKnown = fmap SomeConstant . unliftSomeValue
+    readKnown = fmap SomeConstant . asConstant
 
 {- | 'SomeConstantOf' is similar to 'SomeConstant': while the latter is for unlifting any
 constants, the former is for unlifting constants of a specific polymorphic built-in type
@@ -564,7 +560,7 @@ instance (KnownBuiltinTypeIn uni term f, All (KnownTypeAst uni) reps, HasUniAppl
             KnownType term (SomeConstantOf uni f reps) where
     makeKnown = pure . fromConstant . runSomeConstantOf
 
-    readKnown term = unliftSomeValue term >>= \case
+    readKnown term = asConstant term >>= \case
         Some (ValueOf uni xs) -> do
             let uniF = knownUni @_ @_ @f
                 err = fromString $ concat

@@ -65,14 +65,16 @@ handleAction ::
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (OpenCard card) = assign _card $ Just card
 
-handleAction CloseCard = do
-  modify_
-    $ set _walletNicknameOrId mempty
-    <<< set _remoteWalletDetails NotAsked
-    <<< set _pickingUp false
-    <<< set _card Nothing
-  handleAction $ WalletNicknameInputAction $ InputField.Reset
-  handleAction $ WalletIdInputAction $ InputField.Reset
+handleAction (CloseCard card) = do
+  currentCard <- use _card
+  when (currentCard == Just card) do
+    modify_
+      $ set _walletNicknameOrId mempty
+      <<< set _remoteWalletDetails NotAsked
+      <<< set _pickingUp false
+      <<< set _card Nothing
+    handleAction $ WalletNicknameInputAction $ InputField.Reset
+    handleAction $ WalletIdInputAction $ InputField.Reset
 
 handleAction GenerateWallet = do
   walletLibrary <- use _walletLibrary
@@ -147,7 +149,8 @@ handleAction (PickupWallet walletNickname) = do
     _ -> do
       -- this should never happen (the "Pickup Wallet" button should be disabled unless remoteWalletDetails is Success),
       -- but let's add some sensible behaviour anyway just in case
-      handleAction CloseCard
+      handleAction $ CloseCard PickupWalletCard -- either of these cards could be open at
+      handleAction $ CloseCard PickupNewWalletCard -- this point, so we close both to be sure
       addToast $ errorToast "Unable to pick up wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage =

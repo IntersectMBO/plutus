@@ -68,7 +68,7 @@ tests = testGroup "escrow"
           .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
         refundTrace
 
-    , HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (Scripts.validatorScript $ scriptInstance escrowParams) 32000
+    , HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (Scripts.validatorScript $ typedValidator escrowParams) 32000
     ]
 
 w1, w2, w3 :: Wallet

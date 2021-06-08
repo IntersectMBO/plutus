@@ -12,6 +12,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {- Stablecoin backed by a cryptocurrency.
 
 = Concept
@@ -66,7 +67,7 @@ module Plutus.Contracts.Stablecoin(
     , SCAction(..)
     , ConversionRate
     -- * State machine client
-    , scriptInstance
+    , typedValidator
     , machineClient
     , step
     -- * Contract using the state machine
@@ -79,30 +80,27 @@ module Plutus.Contracts.Stablecoin(
     , checkValidState
     ) where
 
-import           Control.Monad                   (forever, guard)
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           Data.Functor.Identity           (Identity (..))
-import           GHC.Generics                    (Generic)
-import           Ledger.Constraints              (TxConstraints)
-import qualified Ledger.Constraints              as Constraints
-import           Ledger.Crypto                   (PubKey)
-import qualified Ledger.Interval                 as Interval
+import           Control.Monad                (forever, guard)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.Functor.Identity        (Identity (..))
+import           GHC.Generics                 (Generic)
+import           Ledger.Constraints           (TxConstraints)
+import qualified Ledger.Constraints           as Constraints
+import           Ledger.Crypto                (PubKey)
+import qualified Ledger.Interval              as Interval
 import           Ledger.Oracle
-import           Ledger.Scripts                  (MonetaryPolicyHash, monetaryPolicyHash)
-import           Ledger.Typed.Scripts            (scriptHash)
-import qualified Ledger.Typed.Scripts            as Scripts
-import           Ledger.Typed.Scripts.Validators (forwardingMPS)
-import           Ledger.Typed.Tx                 (TypedScriptTxOut (..))
-import           Ledger.Value                    (AssetClass, TokenName, Value)
-import qualified Ledger.Value                    as Value
+import           Ledger.Scripts               (MonetaryPolicyHash)
+import qualified Ledger.Typed.Scripts         as Scripts
+import           Ledger.Typed.Tx              (TypedScriptTxOut (..))
+import           Ledger.Value                 (AssetClass, TokenName, Value)
+import qualified Ledger.Value                 as Value
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine    (SMContractError, State (..), StateMachine, StateMachineClient (..),
-                                                  StateMachineInstance (..), Void)
-import qualified Plutus.Contract.StateMachine    as StateMachine
-import qualified PlutusTx                        as PlutusTx
+import           Plutus.Contract.StateMachine (SMContractError, State (..), StateMachine, StateMachineClient (..), Void)
+import qualified Plutus.Contract.StateMachine as StateMachine
+import qualified PlutusTx                     as PlutusTx
 import           PlutusTx.Prelude
-import           PlutusTx.Ratio                  as R
-import qualified Prelude                         as Haskell
+import           PlutusTx.Ratio               as R
+import qualified Prelude                      as Haskell
 
 -- | Conversion rate from peg currency (eg. USD) to base currency (eg. Ada)
 type ConversionRate = Ratio Integer
@@ -153,12 +151,12 @@ data BankState =
 
 -- | Initialise the 'BankState' with zero deposits.
 initialState :: StateMachineClient BankState Input -> BankState
-initialState StateMachineClient{scInstance=StateMachineInstance{validatorInstance}} =
+initialState StateMachineClient{scInstance=StateMachine.StateMachineInstance{StateMachine.typedValidator}} =
     BankState
         { bsReserves = 0
         , bsStablecoins = 0
         , bsReservecoins = 0
-        , bsForgingPolicyScript = monetaryPolicyHash $ forwardingMPS $ scriptHash validatorInstance
+        , bsForgingPolicyScript = Scripts.forwardingMonetaryPolicyHash typedValidator
         }
 
 {-# INLINEABLE convert #-}
@@ -316,13 +314,13 @@ step sc@Stablecoin{scOracle} bs i@Input{inpConversionRate} = do
 -- | A 'Value' with the given number of reservecoins
 reserveCoins :: Stablecoin -> RC Integer -> Value
 reserveCoins sc@Stablecoin{scReservecoinTokenName} =
-    let sym = Scripts.monetaryPolicyHash $ scriptInstance sc
+    let sym = Scripts.forwardingMonetaryPolicyHash $ typedValidator sc
     in Value.singleton (Value.mpsSymbol sym) scReservecoinTokenName . unRC
 
 -- | A 'Value' with the given number of stablecoins
 stableCoins :: Stablecoin -> SC Integer -> Value
 stableCoins sc@Stablecoin{scStablecoinTokenName} =
-    let sym = Scripts.monetaryPolicyHash $ scriptInstance sc
+    let sym = Scripts.forwardingMonetaryPolicyHash $ typedValidator sc
     in Value.singleton (Value.mpsSymbol sym) scStablecoinTokenName . unSC
 
 {-# INLINEABLE isValidState #-}
@@ -364,20 +362,20 @@ stablecoinStateMachine sc = StateMachine.mkStateMachine Nothing (transition sc) 
     -- to add a final state to the real thing)
     where isFinal _ = False
 
-scriptInstance :: Stablecoin -> Scripts.ScriptInstance (StateMachine BankState Input)
-scriptInstance stablecoin =
+typedValidator :: Stablecoin -> Scripts.TypedValidator (StateMachine BankState Input)
+typedValidator stablecoin =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode stablecoin
         validator d = StateMachine.mkValidator (stablecoinStateMachine d)
         wrap = Scripts.wrapValidator @BankState @Input
-    in Scripts.validator @(StateMachine BankState Input) val $$(PlutusTx.compile [|| wrap ||])
+    in Scripts.mkTypedValidator @(StateMachine BankState Input) val $$(PlutusTx.compile [|| wrap ||])
 
 machineClient ::
-    Scripts.ScriptInstance (StateMachine BankState Input)
+    Scripts.TypedValidator (StateMachine BankState Input)
     -> Stablecoin
     -> StateMachineClient BankState Input
 machineClient inst stablecoin =
     let machine = stablecoinStateMachine stablecoin
-    in StateMachine.mkStateMachineClient (StateMachineInstance machine inst)
+    in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
 
 type StablecoinSchema =
     BlockchainActions
@@ -396,7 +394,7 @@ data StablecoinError =
 contract :: Contract () StablecoinSchema StablecoinError ()
 contract = do
     sc <- mapError InitialiseEPError $ endpoint @"initialise"
-    let theClient = machineClient (scriptInstance sc) sc
+    let theClient = machineClient (typedValidator sc) sc
     _ <- mapError StateMachineError $ StateMachine.runInitialise theClient (initialState theClient) mempty
     forever $ do
         i <- mapError RunStepError (endpoint @"run step")

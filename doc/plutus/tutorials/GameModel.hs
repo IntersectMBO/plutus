@@ -300,7 +300,7 @@ wallets = [w1, w2, w3]
 -- START gameTokenVal
 gameTokenVal :: Value
 gameTokenVal =
-    let sym = Scripts.monetaryPolicyHash G.scriptInstance
+    let sym = Scripts.forwardingMonetaryPolicyHash G.typedValidator
     in G.token sym "guess"
 -- END gameTokenVal
 
@@ -580,4 +580,3 @@ typeSignatures = id
  chooseQ :: (Arbitrary a, Random a, Ord a) => (a, a) -> Quantification a
 -- END chooseQ type
  chooseQ = ContractModel.chooseQ
-

@@ -26,7 +26,7 @@ module Plutus.Contracts.Escrow(
     , targetTotal
     , escrowContract
     , payRedeemRefund
-    , scriptInstance
+    , typedValidator
     -- * Actions
     , pay
     , payEp
@@ -56,7 +56,7 @@ import           Ledger.Interval          (after, before, from)
 import qualified Ledger.Interval          as Interval
 import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
-import           Ledger.Typed.Scripts     (ScriptInstance)
+import           Ledger.Typed.Scripts     (TypedValidator)
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value, geq, lt)
 
@@ -165,7 +165,7 @@ mkTx = \case
 data Action = Redeem | Refund
 
 data Escrow
-instance Scripts.ScriptType Escrow where
+instance Scripts.ValidatorTypes Escrow where
     type instance RedeemerType Escrow = Action
     type instance DatumType Escrow = PubKeyHash
 
@@ -204,9 +204,9 @@ validate EscrowParams{escrowDeadline, escrowTargets} contributor action ScriptCo
             traceIfFalse "escrowDeadline-before" (TimeSlot.slotToPOSIXTime escrowDeadline `before` txInfoValidRange scriptContextTxInfo)
             && traceIfFalse "txSignedBy" (scriptContextTxInfo `txSignedBy` contributor)
 
-scriptInstance :: EscrowParams Datum -> Scripts.ScriptInstance Escrow
-scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where
-    go = Scripts.validatorParam @Escrow
+typedValidator :: EscrowParams Datum -> Scripts.TypedValidator Escrow
+typedValidator escrow = go (Haskell.fmap Ledger.datumHash escrow) where
+    go = Scripts.mkTypedValidatorParam @Escrow
         $$(PlutusTx.compile [|| validate ||])
         $$(PlutusTx.compile [|| wrap ||])
     wrap = Scripts.wrapValidator
@@ -215,7 +215,7 @@ escrowContract
     :: EscrowParams Datum
     -> Contract () EscrowSchema EscrowError ()
 escrowContract escrow =
-    let inst = scriptInstance escrow
+    let inst = typedValidator escrow
         payAndRefund = do
             vl <- endpoint @"pay-escrow"
             _ <- pay inst escrow vl
@@ -236,7 +236,7 @@ payEp ::
     -> Contract w s e TxId
 payEp escrow = do
     vl <- mapError (review _EContractError) (endpoint @"pay-escrow")
-    pay (scriptInstance escrow) escrow vl
+    pay (typedValidator escrow) escrow vl
 
 -- | Pay some money into the escrow contract.
 pay ::
@@ -245,7 +245,7 @@ pay ::
     , HasOwnPubKey s
     , AsEscrowError e
     )
-    => ScriptInstance Escrow
+    => TypedValidator Escrow
     -- ^ The instance
     -> EscrowParams Datum
     -- ^ The escrow contract
@@ -274,7 +274,7 @@ redeemEp ::
     -> Contract w s e RedeemSuccess
 redeemEp escrow =
     mapError (review _EscrowError) $
-    endpoint @"redeem-escrow" >> redeem (scriptInstance escrow) escrow
+    endpoint @"redeem-escrow" >> redeem (typedValidator escrow) escrow
 
 -- | Redeem all outputs at the contract address using a transaction that
 --   has all the outputs defined in the contract's list of targets.
@@ -285,11 +285,11 @@ redeem ::
     , HasWriteTx s
     , AsEscrowError e
     )
-    => ScriptInstance Escrow
+    => TypedValidator Escrow
     -> EscrowParams Datum
     -> Contract w s e RedeemSuccess
 redeem inst escrow = mapError (review _EscrowError) $ do
-    let addr = Scripts.scriptAddress inst
+    let addr = Scripts.validatorAddress inst
     current <- currentSlot
     unspentOutputs <- utxoAt addr
     let
@@ -317,7 +317,7 @@ refundEp ::
     )
     => EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
-refundEp escrow = endpoint @"refund-escrow" >> refund (scriptInstance escrow) escrow
+refundEp escrow = endpoint @"refund-escrow" >> refund (typedValidator escrow) escrow
 
 -- | Claim a refund of the contribution.
 refund ::
@@ -325,12 +325,12 @@ refund ::
     ( HasUtxoAt s
     , HasOwnPubKey s
     , HasWriteTx s)
-    => ScriptInstance Escrow
+    => TypedValidator Escrow
     -> EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
 refund inst escrow = do
     pk <- ownPubKey
-    unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
+    unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
     let flt _ (TxOutTx _ txOut) = Ledger.txOutDatum txOut == Just (Ledger.datumHash $ Datum (PlutusTx.toData $ Ledger.pubKeyHash pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs Refund
                 <> Constraints.mustValidateIn (from (Haskell.succ $ escrowDeadline escrow))
@@ -352,10 +352,10 @@ payRedeemRefund ::
     -> Value
     -> Contract w s EscrowError (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
-    let inst = scriptInstance params
+    let inst = typedValidator params
     -- Pay the value 'vl' into the contract
     _ <- pay inst params vl
-    outcome <- selectEither (awaitSlot (escrowDeadline params)) (fundsAtAddressGeq (Scripts.scriptAddress inst) (targetTotal params))
+    outcome <- selectEither (awaitSlot (escrowDeadline params)) (fundsAtAddressGeq (Scripts.validatorAddress inst) (targetTotal params))
     -- wait
     -- for the 'targetTotal' of the contract to appear at the address, or
     -- for the 'escrowDeadline' to pass, whichever happens first.

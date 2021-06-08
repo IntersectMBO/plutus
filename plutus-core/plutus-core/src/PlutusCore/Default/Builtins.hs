@@ -117,7 +117,7 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
-instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
+instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
