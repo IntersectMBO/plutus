@@ -122,8 +122,7 @@ import           Plutus.PAB.Events.Contract               (ContractPABRequest)
 import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse, fromResp)
 import           Plutus.PAB.Monitoring.PABLogMsg          (PABMultiAgentMsg (..))
 import           Plutus.PAB.Timeout                       (Timeout)
--- import qualified Plutus.PAB.Timeout                       as Timeout
-import qualified Debug.Trace                              as Trace
+import qualified Plutus.PAB.Timeout                       as Timeout
 import           Plutus.PAB.Types                         (PABError (ContractInstanceNotFound, InstanceAlreadyStopped))
 import           Plutus.PAB.Webserver.Types               (ContractActivationArgs (..))
 import           Wallet.API                               (PubKey, Slot)
@@ -225,12 +224,10 @@ callEndpointOnInstance ::
     -> PABAction t env (Maybe NotificationError)
 callEndpointOnInstance instanceID ep value = do
     state <- asks @(PABEnvironment t env) instancesState
-    -- timeoutVar <- asks @(PABEnvironment t env) endpointTimeout >>= liftIO . Timeout.startTimeout
-    result <- liftIO
+    timeoutVar <- asks @(PABEnvironment t env) endpointTimeout >>= liftIO . Timeout.startTimeout
+    liftIO
         $ STM.atomically
-        $ Instances.callEndpointOnInstance state (EndpointDescription ep) (JSON.toJSON value) instanceID
-    Trace.traceM (show result)
-    pure result
+        $ Instances.callEndpointOnInstanceTimeout timeoutVar state (EndpointDescription ep) (JSON.toJSON value) instanceID
 
 -- | The 'InstanceState' for the instance. Throws a 'ContractInstanceNotFound' error if the instance does not exist.
 instanceStateInternal :: forall t env. ContractInstanceId -> PABAction t env Instances.InstanceState
