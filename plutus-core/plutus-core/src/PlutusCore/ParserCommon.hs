@@ -120,11 +120,7 @@ isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 reservedWord ::
     -- | The word to match
     T.Text -> Parser SourcePos
-reservedWord w = lexeme $ try $ do
-    p <- getSourcePos
-    void $ string w
-    notFollowedBy (satisfy isIdentifierChar)
-    return p
+reservedWord w = lexeme $ try $ getSourcePos <* symbol w
 
 builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
 builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
@@ -160,11 +156,10 @@ enforce p = do
 -- parse a built-in type or a constant. This is neither efficient (because of @manyTill anySingle@),
 -- nor future-proof (what if some future built-in type has parens in its syntax?). A good way of
 -- resolving this would be to turn 'PLC.parse' into a proper parser rather than just a function
--- from @Text@, but PLC's parser also uses 'PLC.parse' and it's currently not @megaparsec@-based,
--- and so mixing two distinct parsing machines doesn't sound too exciting.
---
+-- from @Text@ - this will happen as SCP-2251 gets done.
 -- Note that this also fails on @(con string \"yes (no)\")@ as well as @con unit ()@, so it really
 -- should be fixed somehow.
+-- (For @con unit ()@, @kwxm suggested replacing it with @unitval@ or @one@ or *)
 closedChunk :: Parser T.Text
 closedChunk = T.pack <$> manyTill anySingle end where
     end = enforce whitespace <|> void (lookAhead $ char ')')
@@ -181,6 +176,13 @@ builtinTypeTag = do
 
 -- | Parse a constant by parsing a type tag first and using the type-specific parser of constants.
 -- Uses 'PLC.parse' under the hood for both types and constants.
+-- @kwxm: this'll have problems with some built-in constants like strings and characters.
+-- The existing parser has special cases involving complicated regular expressions
+-- to deal with those (see Lexer.x), but things got more complicated recently when
+-- @effectfully added built-in lists and pairs that can have other constants
+-- nested inside them...We're probably still going to need special parsers
+-- for things like quoted strings that can contain escape sequences.
+-- @thealmarty will hopefully deal with these in SCP-2251.
 constant
     :: forall uni.
        ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))

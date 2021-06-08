@@ -95,10 +95,14 @@ term
     :: ( PLC.Parsable (PLC.Some uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        , Bounded fun, Enum fun, Pretty fun, PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)))
         => Parser (UPLC.Term PLC.Name uni fun SourcePos)
-term = conTerm <|> builtinTerm <|> varTerm
-    <|> lamTerm self <|> appTerm self
-    <|> delayTerm self <|> forceTerm self
-    <|>   errorTerm
+term = conTerm
+    <|> builtinTerm
+    <|> varTerm
+    <|> lamTerm self
+    <|> appTerm self
+    <|> delayTerm self
+    <|> forceTerm self
+    <|> errorTerm
     where self = term
 
 -- | Parser for UPLC programs.

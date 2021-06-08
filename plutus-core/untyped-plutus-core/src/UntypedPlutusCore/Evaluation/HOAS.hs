@@ -19,7 +19,7 @@ module UntypedPlutusCore.Evaluation.HOAS
     , unsafeEvaluateHoas
     ) where
 
-import           UntypedPlutusCore.Core                  hiding (error)
+import           UntypedPlutusCore.Core                  (Term (..), UniOf, bindFunM)
 
 import           PlutusCore.Constant                     hiding (lookupBuiltin)
 import           PlutusCore.Evaluation.Machine.Exception
