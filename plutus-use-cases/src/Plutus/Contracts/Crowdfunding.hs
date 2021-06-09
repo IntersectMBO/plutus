@@ -100,9 +100,8 @@ PlutusTx.unstableMakeIsData ''CampaignAction
 PlutusTx.makeLift ''CampaignAction
 
 type CrowdfundingSchema =
-    BlockchainActions
-        .\/ Endpoint "schedule collection" ()
-        .\/ Endpoint "contribute" Contribution
+    Endpoint "schedule collection" ()
+    .\/ Endpoint "contribute" Contribution
 
 newtype Contribution = Contribution
         { contribValue :: Value

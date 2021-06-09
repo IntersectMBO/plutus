@@ -13,12 +13,12 @@ import           PlutusTx.Prelude
 import qualified Prelude             as Haskell
 
 -- | A 'Contract' that logs a message.
-hello :: Contract () BlockchainActions T.Text ()
+hello :: Contract () EmptySchema T.Text ()
 hello = logInfo @Haskell.String "Hello, world"
 
-endpoints :: Contract () BlockchainActions T.Text ()
+endpoints :: Contract () EmptySchema T.Text ()
 endpoints = hello
 
-mkSchemaDefinitions ''BlockchainActions
+mkSchemaDefinitions ''EmptySchema
 
 $(mkKnownCurrencies [])

@@ -56,15 +56,12 @@ data STOSubscriber =
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON, ToSchema)
 
-type STOSubscriberSchema =
-    BlockchainActions
-        .\/ Endpoint "sto" STOSubscriber
+type STOSubscriberSchema = Endpoint "sto" STOSubscriber
 
 -- | Obtain a token from the credential manager app,
 --   then participate in the STO
 subscribeSTO :: forall w s.
-    ( HasBlockchainActions s
-    , HasEndpoint "sto" STOSubscriber s
+    ( HasEndpoint "sto" STOSubscriber s
     )
     => Contract w s UnlockError ()
 subscribeSTO = forever $ handleError (const $ return ()) $ do
@@ -89,15 +86,12 @@ subscribeSTO = forever $ handleError (const $ return ()) $ do
     mapError WithdrawTxError
         $ submitTxConstraintsWith lookups constraints >>= awaitTxConfirmed . txId
 
-type UnlockExchangeSchema =
-    BlockchainActions
-        .\/ Endpoint "unlock from exchange" Credential
+type UnlockExchangeSchema = Endpoint "unlock from exchange" Credential
 
 -- | Obtain a token from the credential manager app,
 --   then use it to unlock funds that were locked by an exchange.
 unlockExchange :: forall w s.
-    ( HasBlockchainActions s
-    , HasEndpoint "unlock from exchange" Credential s
+    ( HasEndpoint "unlock from exchange" Credential s
     )
     => Contract w s UnlockError ()
 unlockExchange = do
@@ -118,8 +112,7 @@ unlockExchange = do
 -- | Get the constraints and script lookups that are needed to construct a
 --   transaction that presents the 'Credential'
 obtainCredentialTokenData :: forall w s.
-    HasBlockchainActions s
-    => Credential
+    Credential
     -> Contract w s UnlockError (TxConstraints IDAction IDState, ScriptLookups (StateMachine IDState IDAction))
 obtainCredentialTokenData credential = do
     -- credentialManager <- mapError WithdrawEndpointError $ endpoint @"credential manager"

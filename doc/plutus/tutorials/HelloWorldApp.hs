@@ -10,13 +10,13 @@ import           PlutusTx.Prelude
 
 -- BLOCK1
 -- | A 'Contract' that logs a message.
-hello :: Contract () BlockchainActions T.Text ()
+hello :: Contract () EmptySchema T.Text ()
 hello = logInfo @String "Hello, world"
 -- BLOCK2
 
-endpoints :: Contract () BlockchainActions T.Text ()
+endpoints :: Contract () EmptySchema T.Text ()
 endpoints = hello
 
-mkSchemaDefinitions ''BlockchainActions
+mkSchemaDefinitions ''EmptySchema
 
 $(mkKnownCurrencies [])

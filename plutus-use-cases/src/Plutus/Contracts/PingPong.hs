@@ -60,8 +60,7 @@ data Input = Ping | Pong | Stop
     deriving anyclass (ToJSON, FromJSON)
 
 type PingPongSchema =
-    BlockchainActions
-        .\/ Endpoint "initialise" ()
+        Endpoint "initialise" ()
         .\/ Endpoint "ping" ()
         .\/ Endpoint "pong" ()
         .\/ Endpoint "stop" () -- Transition the state machine instance to the final state

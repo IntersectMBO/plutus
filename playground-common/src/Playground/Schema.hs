@@ -16,8 +16,6 @@ In practice this means having a way of turning the Contract's effect
 rows into a Schema declaration, by using an 'EndpointToSchema'
 instance.
 
-Typically you'll call this as 'endpointsToSchemas (mySchema .\\ BlockchainActions)'
-to filter the special endpoints that don't need a Schema.
 |-}
 module Playground.Schema
     ( endpointsToSchemas

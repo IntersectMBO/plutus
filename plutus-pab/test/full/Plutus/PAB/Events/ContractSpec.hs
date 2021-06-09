@@ -21,7 +21,7 @@ import qualified Data.ByteString.Lazy.Char8              as BSL8
 import           Data.Proxy                              (Proxy (Proxy))
 import qualified Data.Text                               as T
 import           GHC.TypeLits                            (symbolVal)
-import           Plutus.Contract                         (BlockchainActions)
+import           Plutus.Contract                         (EmptySchema)
 import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..),
                                                           EndpointDescription (EndpointDescription))
 import           Plutus.Contract.Resumable               (Response (..))
@@ -64,7 +64,7 @@ jsonTests =
             let req :: ContractRequest JSON.Value JSON.Value
                 req = ContractRequest{oldState = State.newState oldState, event = Response{rspRqID = 0, rspItID = 0, rspResponse = JSON.toJSON (ContractHandlersResponse $ AwaitSlotResponse 1)}}
                 input = BSL.toStrict (JSON.encodePretty req)
-                v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Update) input
+                v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @EmptySchema) (first (T.pack . show) contract) Update) input
                 result = v >>= JSON.eitherDecode @ResponseType . BSL.fromStrict
 
             void (assertRight result)
@@ -77,5 +77,5 @@ type ResponseType = State.ContractResponse Value Value Value ContractHandlerRequ
 
 initialResponse :: Either String ResponseType
 initialResponse =
-    let v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @BlockchainActions) (first (T.pack . show) contract) Initialise) mempty
+    let v = first (foldMap BS8.unpack) $ runPromptPure (runCliCommand (Proxy @EmptySchema) (first (T.pack . show) contract) Initialise) mempty
     in v >>= JSON.eitherDecode @(State.ContractResponse Value Value Value ContractHandlerRequest) . BSL.fromStrict

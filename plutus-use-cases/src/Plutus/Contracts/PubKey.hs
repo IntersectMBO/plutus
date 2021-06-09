@@ -64,9 +64,7 @@ instance AsContractError PubKeyError where
 --   and a 'TxIn' transaction input that can spend it.
 pubKeyContract
     :: forall w s e.
-    ( HasWriteTx s
-    , HasTxConfirmation s
-    , AsPubKeyError e
+    ( AsPubKeyError e
     )
     => PubKeyHash
     -> Value

@@ -27,7 +27,7 @@ module Plutus.PAB.Effects.Contract.Builtin(
     -- * Extracting schemas from contracts
     , type (.\\)
     , type (.\/)
-    , BlockchainActions
+    , EmptySchema
     , Empty
     , endpointsToSchemas
     , getResponse
@@ -53,7 +53,7 @@ import           Plutus.PAB.Types                                 (PABError (..)
 
 import           Playground.Schema                                (endpointsToSchemas)
 import           Playground.Types                                 (FunctionSchema)
-import           Plutus.Contract                                  (BlockchainActions, Contract, ContractInstanceId)
+import           Plutus.Contract                                  (Contract, ContractInstanceId, EmptySchema)
 import           Plutus.Contract.Resumable                        (Response)
 import           Plutus.Contract.Schema                           (Event, Input, Output)
 import           Plutus.Contract.State                            (ContractResponse (..))

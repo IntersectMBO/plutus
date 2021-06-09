@@ -119,7 +119,7 @@ tests = testGroup "crowdfunding"
         "test/Spec/crowdfundingEmulatorTestOutput.txt"
         (pure $ renderEmulatorLog successfulCampaign)
 
-    , let con :: Contract () BlockchainActions ContractError () = throwError "something went wrong" in
+    , let con :: Contract () EmptySchema ContractError () = throwError "something went wrong" in
         goldenVsString
         "renders an error sensibly"
         "test/Spec/contractError.txt"

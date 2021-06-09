@@ -199,8 +199,7 @@ instance AsCheckpointError FutureError where
     _CheckpointError = _OtherFutureError . _CheckpointError
 
 type FutureSchema =
-    BlockchainActions
-        .\/ Endpoint "initialise-future" (FutureSetup, Role)
+        Endpoint "initialise-future" (FutureSetup, Role)
         .\/ Endpoint "join-future" (FutureAccounts, FutureSetup)
         .\/ Endpoint "increase-margin" (Value, Role)
         .\/ Endpoint "settle-early" (SignedMessage (Observation Value))
@@ -464,7 +463,6 @@ violatingRole future margins spotPrice =
 --   * Paying the initial margin for the given role
 initialiseFuture
     :: ( HasEndpoint "initialise-future" (FutureSetup, Role) s
-       , HasBlockchainActions s
        , AsFutureError e
        )
     => Future
@@ -516,7 +514,6 @@ initialiseFuture future = mapError (review _FutureError) $ do
 --   the 'FutureAccounts' argument.
 settleFuture
     :: ( HasEndpoint "settle-future" (SignedMessage (Observation Value)) s
-       , HasBlockchainActions s
        , AsFutureError e
        )
     => SM.StateMachineClient FutureState FutureAction
@@ -532,7 +529,6 @@ settleFuture client = mapError (review _FutureError) $ do
 --   the spot price is within the margin range.
 settleEarly
     :: ( HasEndpoint "settle-early" (SignedMessage (Observation Value)) s
-       , HasBlockchainActions s
        , AsSMContractError e
        , AsContractError e
        )
@@ -546,10 +542,6 @@ settleEarly client = do
 --   the roles by an amount.
 increaseMargin
     :: ( HasEndpoint "increase-margin" (Value, Role) s
-       , HasUtxoAt s
-       , HasWriteTx s
-       , HasOwnPubKey s
-       , HasTxConfirmation s
        , AsSMContractError e
        , AsContractError e
        )
@@ -563,7 +555,6 @@ increaseMargin client = do
 --   margin to the escrow that initialises the contract.
 joinFuture
     :: ( HasEndpoint "join-future" (FutureAccounts, FutureSetup) s
-       , HasBlockchainActions s
        , AsFutureError e
        )
     => Future
@@ -584,10 +575,7 @@ joinFuture ft = mapError (review _FutureError) $ do
 --   public key output belonging to the wallet that ran 'setupTokens'.
 setupTokens
     :: forall w s e.
-    ( HasWriteTx s
-    , HasOwnPubKey s
-    , HasTxConfirmation s
-    , AsFutureError e
+    ( AsFutureError e
     )
     => Contract w s e FutureAccounts
 setupTokens = mapError (review _FutureError) $ do

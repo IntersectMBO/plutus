@@ -33,8 +33,7 @@ import           Plutus.Contract
 -- to write tests for error conditions.
 
 type Schema =
-    BlockchainActions
-        .\/ Endpoint "throwError" ()
+        Endpoint "throwError" ()
         .\/ Endpoint "catchError" ()
         .\/ Endpoint "catchContractError" ()
 
@@ -70,7 +69,7 @@ throwAndCatch =
     in catching _Error1 throw handleError1
 
 -- | Handle an error from another contract (in this case, 'awaitSlot')
-catchContractError :: (AsMyError e, HasAwaitSlot s) => Contract w s e ()
+catchContractError :: (AsMyError e) => Contract w s e ()
 catchContractError =
     catching _MyContractError
         (void $ mapError (review _MyContractError) $ awaitSlot 10)

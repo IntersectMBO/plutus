@@ -378,8 +378,7 @@ machineClient inst stablecoin =
     in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
 
 type StablecoinSchema =
-    BlockchainActions
-        .\/ Endpoint "run step" Input
+        Endpoint "run step" Input
         .\/ Endpoint "initialise" Stablecoin
 
 data StablecoinError =

@@ -85,9 +85,6 @@ type PrismSchema =
     .\/ UnlockExchangeSchema
     .\/ Endpoint "role" Role
 
-{- With the implementation of .\/ from row-types, GHC chokes on the above type because of the four
-   repeated BlockchainActions. Using our own implementation from Data.Row.Extras everything is fine. -}
-
 data PrismError =
     UnlockSTOErr UnlockError
     | MirrorErr MirrorError

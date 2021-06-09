@@ -33,7 +33,6 @@ import qualified AtomicSwap                          as Contracts.AtomicSwap
 import           Data.Text.Extras                    (tshow)
 import qualified PayToWallet                         as Contracts.PayToWallet
 import           Playground.Types                    (FunctionSchema)
-import           Plutus.Contract                     (BlockchainActions)
 import qualified Plutus.Contracts.Currency           as Contracts.Currency
 import qualified Plutus.Contracts.GameStateMachine   as Contracts.GameStateMachine
 import qualified Plutus.Contracts.PingPong           as Contracts.PingPong
@@ -62,11 +61,11 @@ handleContractTest = Builtin.handleBuiltin getSchema getContract
 
 getSchema :: TestContracts -> [FunctionSchema FormSchema]
 getSchema = \case
-    GameStateMachine -> Builtin.endpointsToSchemas @(Contracts.GameStateMachine.GameStateMachineSchema .\\ BlockchainActions)
-    Currency         -> Builtin.endpointsToSchemas @(Contracts.Currency.CurrencySchema .\\ BlockchainActions)
-    AtomicSwap       -> Builtin.endpointsToSchemas @(Contracts.AtomicSwap.AtomicSwapSchema .\\ BlockchainActions)
-    PayToWallet      -> Builtin.endpointsToSchemas @(Contracts.PayToWallet.PayToWalletSchema .\\ BlockchainActions)
-    PingPong         -> Builtin.endpointsToSchemas @(Contracts.PingPong.PingPongSchema .\\ BlockchainActions)
+    GameStateMachine -> Builtin.endpointsToSchemas @(Contracts.GameStateMachine.GameStateMachineSchema)
+    Currency         -> Builtin.endpointsToSchemas @(Contracts.Currency.CurrencySchema)
+    AtomicSwap       -> Builtin.endpointsToSchemas @(Contracts.AtomicSwap.AtomicSwapSchema)
+    PayToWallet      -> Builtin.endpointsToSchemas @(Contracts.PayToWallet.PayToWalletSchema)
+    PingPong         -> Builtin.endpointsToSchemas @(Contracts.PingPong.PingPongSchema)
 
 getContract :: TestContracts -> SomeBuiltin
 getContract = \case

@@ -178,8 +178,8 @@ machineClient inst threadToken auctionParams =
     let machine = auctionStateMachine threadToken auctionParams
     in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
-type BuyerSchema = BlockchainActions .\/ Endpoint "bid" Ada
-type SellerSchema = BlockchainActions -- Don't need any endpoints: the contract runs automatically until the auction is finished.
+type BuyerSchema = Endpoint "bid" Ada
+type SellerSchema = EmptySchema -- Don't need any endpoints: the contract runs automatically until the auction is finished.
 
 data AuctionLog =
     AuctionStarted AuctionParams
@@ -296,8 +296,11 @@ handleEvent client lastHighestBid change =
     in case change of
         AuctionIsOver s -> tell (auctionStateOut $ Finished s) >> stop
         SubmitOwnBid ada -> do
+            logInfo @Haskell.String "Submitting bid"
             self <- Ledger.pubKeyHash <$> ownPubKey
+            logInfo @Haskell.String "received pubkey"
             r <- SM.runStep client Bid{newBid = ada, newBidder = self}
+            logInfo @Haskell.String "SM: runStep done"
             case r of
                 SM.TransitionFailure i -> logError (TransitionFailed i) >> continue lastHighestBid
                 SM.TransitionSuccess (Ongoing newHighestBid) -> logInfo (BidSubmitted newHighestBid) >> continue newHighestBid

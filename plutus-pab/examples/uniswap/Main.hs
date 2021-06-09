@@ -105,8 +105,8 @@ handleUniswapContract ::
     ~> Eff effs
 handleUniswapContract = Builtin.handleBuiltin getSchema getContract where
   getSchema = \case
-    UniswapUser _ -> Builtin.endpointsToSchemas @(Uniswap.UniswapUserSchema .\\ BlockchainActions)
-    UniswapStart  -> Builtin.endpointsToSchemas @(Uniswap.UniswapOwnerSchema .\\ BlockchainActions)
+    UniswapUser _ -> Builtin.endpointsToSchemas @Uniswap.UniswapUserSchema
+    UniswapStart  -> Builtin.endpointsToSchemas @Uniswap.UniswapOwnerSchema
     Init          -> Builtin.endpointsToSchemas @Empty
   getContract = \case
     UniswapUser us -> SomeBuiltin $ Uniswap.userEndpoints us

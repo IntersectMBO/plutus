@@ -58,8 +58,7 @@ data EscrowParams =
     deriving anyclass (ToJSON, FromJSON)
 
 type EscrowSchema =
-    BlockchainActions
-        .\/ Endpoint "lock"   EscrowParams
+        Endpoint "lock"   EscrowParams
         .\/ Endpoint "refund" EscrowParams
         .\/ Endpoint "redeem" EscrowParams
 

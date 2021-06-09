@@ -67,9 +67,7 @@ mkEscrowParams p@AtomicSwapParams{party1,party2,deadline} =
                 ]
         }
 
-type AtomicSwapSchema =
-    BlockchainActions
-        .\/ Endpoint "Atomic swap" AtomicSwapParams
+type AtomicSwapSchema = Endpoint "Atomic swap" AtomicSwapParams
 
 data AtomicSwapError =
     EscrowError Escrow.EscrowError

@@ -58,8 +58,7 @@ import           Wallet.Emulator.Types    (walletPubKey)
 -}
 
 type VestingSchema =
-    BlockchainActions
-        .\/ Endpoint "vest funds" ()
+        Endpoint "vest funds" ()
         .\/ Endpoint "retrieve funds" Value
 
 -- | Tranche of a vesting scheme.

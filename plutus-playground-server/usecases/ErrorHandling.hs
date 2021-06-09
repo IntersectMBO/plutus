@@ -29,8 +29,7 @@ import           Prelude                  (Maybe (..), const, show, ($), (.), (<
 -- to write tests for error conditions.
 
 type Schema =
-    BlockchainActions
-     .\/ Endpoint "throwError" Text
+    Endpoint "throwError" Text
      .\/ Endpoint "catchError" Text
      .\/ Endpoint "catchContractError" ()
 
