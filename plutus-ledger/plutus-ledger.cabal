@@ -120,9 +120,7 @@ library
         deepseq -any,
         freer-simple -any,
         semigroups -any
-
-    if true || !(impl(ghcjs) || os(ghcjs) || os(windows))
-        build-depends: plutus-tx-plugin -any
+        plutus-tx-plugin -any
 
     ghc-options: -fprint-potential-instances
 
@@ -149,5 +147,4 @@ test-suite plutus-ledger-test
         bytestring -any,
         aeson -any,
         plutus-core -any
-    if !(impl(ghcjs) || os(ghcjs) || os(windows))
-        build-depends: plutus-tx-plugin -any
+        plutus-tx-plugin -any
