@@ -11,6 +11,8 @@
 
 module PSGenerator
     ( generate
+    , pabBridge
+    , pabTypes
     ) where
 
 import           Cardano.Metadata.Types                     (AnnotatedSignature, HashFunction, Property, PropertyKey,
@@ -54,8 +56,9 @@ import           Servant.PureScript                         (HasBridge, Settings
                                                              writeAPIModuleWithSettings)
 import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
 
-myBridge :: BridgePart
-myBridge =
+-- | PAB's main bridge that includes common bridges
+pabBridge :: BridgePart
+pabBridge =
     PSGenerator.Common.aesonBridge <|>
     PSGenerator.Common.containersBridge <|>
     PSGenerator.Common.languageBridge <|>
@@ -77,16 +80,17 @@ metadataBridge = do
   name <- view (haskType . typeName)
   pure $ TypeInfo "plutus-pab" moduleName name []
 
-data MyBridge
+data PabBridge
 
-myBridgeProxy :: Proxy MyBridge
-myBridgeProxy = Proxy
+pabBridgeProxy :: Proxy PabBridge
+pabBridgeProxy = Proxy
 
-instance HasBridge MyBridge where
-    languageBridge _ = buildBridge myBridge
+instance HasBridge PabBridge where
+    languageBridge _ = buildBridge pabBridge
 
-myTypes :: [SumType 'Haskell]
-myTypes =
+-- | PAB's list of types that includes common types
+pabTypes :: [SumType 'Haskell]
+pabTypes =
     PSGenerator.Common.ledgerTypes <>
     PSGenerator.Common.playgroundTypes <>
     PSGenerator.Common.walletTypes <>
@@ -149,11 +153,11 @@ generate outputDir = do
     writeAPIModuleWithSettings
         mySettings
         outputDir
-        myBridgeProxy
+        pabBridgeProxy
         (Proxy @(API.API ContractExe :<|> API.NewAPI ContractExe Text.Text :<|> (API.WalletProxy Text.Text)))
     writePSTypesWith
         (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
         outputDir
-        (buildBridge myBridge)
-        myTypes
+        (buildBridge pabBridge)
+        pabTypes
     putStrLn $ "Done: " <> outputDir
