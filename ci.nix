@@ -52,11 +52,13 @@ let
       _select = _: system: crossSystem:
         let
           packages = import ./default.nix { inherit system crossSystem; checkMaterialization = true; };
+          # haskell.nix bug. If we set checkMaterialization, plan-nix.json doesn't exist on project.
+          packages2 = import ./default.nix { inherit system crossSystem; };
           pkgs = packages.pkgs;
           plutus = packages.plutus;
           isBuildable = platformFilterGeneric pkgs system;
         in
-        filterAttrsOnlyRecursive (_: drv: isBuildable drv) ({
+        (filterAttrsOnlyRecursive (_: drv: isBuildable drv) ({
           # build relevant top level attributes from default.nix
           inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab;
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
@@ -80,7 +82,9 @@ let
         #   shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
         #     disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
         #   });
-        });
+        })) // {
+          plan-json = packages2.plutus.haskell.project.plan-nix.json;
+        };
     in
     dimension "System" systems (name: sys: _select name sys null)
     // dimension "Cross System" crossSystems (name: crossSys: _select name "x86_64-linux" crossSys);
