@@ -1,2 +1,0 @@
-module JavaScript.Number where
-
