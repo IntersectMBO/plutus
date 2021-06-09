@@ -22,25 +22,21 @@ import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Ac
 import WalletData.Types (WalletDetails, WalletNickname)
 
 -- The Contract.State wraps the Execution.State up with some additional information that is necessary
--- to render the execution state of the contract in the page. Some of this is derived data that could
--- be calculated on the fly, but is stored here for efficiency. The rest is data specific to the UX
--- (like which step card is currently centered, and which tabs are shown in which step cards).
+-- to render the execution state of the contract in the app. Some of this is derived data that could
+-- be calculated on the fly, but is stored here for efficiency. Some of it is data specific to the UX
+-- (like which step card is currently centered, and which tabs are shown in which step cards). And some
+-- of it is metadata (the actual metadata of the contract, but also functional metadata like the ID of
+-- the user's follower app for this contract, and the MarloweParams of the contract).
 type State
   = { followerAppId :: PlutusAppId
     , marloweParams :: MarloweParams
     , metadata :: MetaData
     , executionState :: Execution.State
-    -- The following properties contain additional information on top of the Execution.State that is
-    -- necessary to render the current state of the contract. Some of this information is just a function
-    -- of the Execution.State, but is saved here for efficiency. (It needs to be recalculate when the
-    -- Execution.State of the contract changes, but this way it doesn't need to be recalculated every time
-    -- the user opens the card for this contract.
-    ----------
     -- This is the tab of the current (latest) step card - previous step cards have their own tabs.
     , tab :: Tab
     -- These contain the data needed to render the previous step cards. This corresponds loosely to the
-    -- array of PreviousTransactionSteps in the Execution.State, except that the shape and content of the
-    -- data is slightly different, and we include timeout steps here in addition to transaction steps.
+    -- array of PreviousStates in the Execution.State, except that the shape and content of the data is
+    -- slightly different, and we include timeout steps here in addition to transaction steps.
     , previousSteps :: Array PreviousStep
     -- Which step is selected. This index is 0 based and should be between [0, previousStepCards.length]
     -- (both sides inclusive). This is because the array represents the past steps and the Execution.State
