@@ -49,11 +49,11 @@ import           PlutusCore.ParserCommon
 conTerm
     :: (PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable, PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)))
     => Parser (UPLC.Term PLC.Name uni fun SourcePos)
-conTerm = inParens $ UPLC.Constant <$> reservedWord "con" <*> constant
+conTerm = inParens $ UPLC.Constant <$> wordPos "con" <*> constant
 
 builtinTerm :: (Bounded fun, Enum fun, Pretty fun)
     => Parser (UPLC.Term PLC.Name uni fun SourcePos)
-builtinTerm = inParens $ UPLC.Builtin <$> reservedWord "builtin" <*> builtinFunction
+builtinTerm = inParens $ UPLC.Builtin <$> wordPos "builtin" <*> builtinFunction
 
 varTerm :: Parser (UPLC.Term PLC.Name uni fun SourcePos)
 varTerm = UPLC.Var <$> getSourcePos <*> name
@@ -63,7 +63,7 @@ lamTerm :: ParsecT ParseError
                    (StateT ParserState PLC.Quote)
                    (UPLC.Term PLC.Name uni fun SourcePos)
                    -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-lamTerm tm = inParens $ UPLC.LamAbs <$> reservedWord "lam" <*> name <*> tm
+lamTerm tm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> tm
 
 appTerm :: ParsecT ParseError
                    T.Text
@@ -77,7 +77,7 @@ delayTerm :: ParsecT ParseError
                    (StateT ParserState PLC.Quote)
                    (UPLC.Term PLC.Name uni fun SourcePos)
                    -> Parser (UPLC.Term PLC.Name uni fun SourcePos)
-delayTerm tm = inParens $ UPLC.Delay <$> reservedWord "abs" <*> tm
+delayTerm tm = inParens $ UPLC.Delay <$> wordPos "abs" <*> tm
 
 forceTerm :: ParsecT ParseError
                    T.Text
@@ -88,7 +88,7 @@ forceTerm tm = inBraces $ UPLC.Force <$> getSourcePos <*> tm
 
 errorTerm
     :: Parser (UPLC.Term PLC.Name uni fun SourcePos)
-errorTerm = inParens $ UPLC.Error <$> reservedWord "error"
+errorTerm = inParens $ UPLC.Error <$> wordPos "error"
 
 -- | Parser for all UPLC terms.
 term
@@ -111,7 +111,7 @@ program
        , Bounded fun, Enum fun, Pretty fun, PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)))
     => Parser (UPLC.Program PLC.Name uni fun SourcePos)
 program = whitespace >> do
-    prog <- inParens $ UPLC.Program <$> reservedWord "program" <*> version <*> term
+    prog <- inParens $ UPLC.Program <$> wordPos "program" <*> version <*> term
     notFollowedBy anySingle
     return prog
 

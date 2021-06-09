@@ -34,35 +34,35 @@ import qualified Control.Monad.Combinators.NonEmpty as NE
 
 
 recursivity :: Parser Recursivity
-recursivity = inParens $ (reservedWord "rec" >> return Rec) <|> (reservedWord "nonrec" >> return NonRec)
+recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> return NonRec)
 
 strictness :: Parser Strictness
-strictness = inParens $ (reservedWord "strict" >> return Strict) <|> (reservedWord "nonstrict" >> return NonStrict)
+strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
 
 funType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-funType = TyFun <$> reservedWord "fun" <*> typ <*> typ
+funType = TyFun <$> wordPos "fun" <*> typ <*> typ
 
 allType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-allType = TyForall <$> reservedWord "all" <*> tyName <*> kind <*> typ
+allType = TyForall <$> wordPos "all" <*> tyName <*> kind <*> typ
 
 lamType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-lamType = TyLam <$> reservedWord "lam" <*> tyName <*> kind <*> typ
+lamType = TyLam <$> wordPos "lam" <*> tyName <*> kind <*> typ
 
 ifixType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-ifixType = TyIFix <$> reservedWord "ifix" <*> typ <*> typ
+ifixType = TyIFix <$> wordPos "ifix" <*> typ <*> typ
 
 conType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-conType = reservedWord "con" >> builtinType
+conType = wordPos "con" >> builtinType
 
 builtinType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
@@ -84,8 +84,8 @@ appType = do
 kind :: Parser (Kind SourcePos)
 kind = inParens (typeKind <|> funKind)
     where
-        typeKind = Type <$> reservedWord "type"
-        funKind  = KindArrow <$> reservedWord "fun" <*> kind <*> kind
+        typeKind = Type <$> wordPos "type"
+        funKind  = KindArrow <$> wordPos "fun" <*> kind <*> kind
 
 typ
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
@@ -97,15 +97,15 @@ typ = (tyName >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
 varDecl
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (VarDecl TyName Name uni fun SourcePos)
-varDecl = inParens $ VarDecl <$> reservedWord "vardecl" <*> name <*> typ
+varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> typ
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
-tyVarDecl = inParens $ TyVarDecl <$> reservedWord "tyvardecl" <*> tyName <*> kind
+tyVarDecl = inParens $ TyVarDecl <$> wordPos "tyvardecl" <*> tyName <*> kind
 
 datatype
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Datatype TyName Name uni fun SourcePos)
-datatype = inParens $ Datatype <$> reservedWord "datatype"
+datatype = inParens $ Datatype <$> wordPos "datatype"
     <*> tyVarDecl
     <*> many tyVarDecl
     <*> name
@@ -118,9 +118,9 @@ binding
        )
     => Parser (Binding TyName Name uni fun SourcePos)
 binding = inParens $
-    (try $ reservedWord "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
-    <|> (reservedWord "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
-    <|> (reservedWord "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
+    (try $ wordPos "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
+    <|> (wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
+    <|> (wordPos "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 
 -- A small type wrapper for parsers that are parametric in the type of term they parse
 type Parametric uni fun
@@ -129,29 +129,29 @@ type Parametric uni fun
     -> Parser (term SourcePos)
 
 absTerm :: Parametric uni fun
-absTerm tm = PIR.tyAbs <$> reservedWord "abs" <*> tyName <*> kind <*> tm
+absTerm tm = PIR.tyAbs <$> wordPos "abs" <*> tyName <*> kind <*> tm
 
 lamTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
-lamTerm tm = PIR.lamAbs <$> reservedWord "lam" <*> name <*> typ <*> tm
+lamTerm tm = PIR.lamAbs <$> wordPos "lam" <*> name <*> typ <*> tm
 
 conTerm
     :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
        , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        )
     => Parametric uni fun
-conTerm _tm = PIR.constant <$> reservedWord "con" <*> constant
+conTerm _tm = PIR.constant <$> wordPos "con" <*> constant
 
 iwrapTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
-iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
+iwrapTerm tm = PIR.iWrap <$> wordPos "iwrap" <*> typ <*> typ <*> tm
 
 builtinTerm :: (Bounded fun, Enum fun, Pretty fun) => Parametric uni fun
-builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinFunction
+builtinTerm _term = PIR.builtin <$> wordPos "builtin" <*> builtinFunction
 
 unwrapTerm :: Parametric uni fun
-unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
+unwrapTerm tm = PIR.unwrap <$> wordPos "unwrap" <*> tm
 
 errorTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
-errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
+errorTerm _tm = PIR.error <$> wordPos "error" <*> typ
 
 letTerm
     :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
@@ -159,7 +159,7 @@ letTerm
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (Term TyName Name uni fun SourcePos)
-letTerm = Let <$> reservedWord "let" <*> recursivity <*> NE.some (try binding) <*> term
+letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> term
 
 appTerm :: Parametric uni fun
 appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
@@ -205,7 +205,7 @@ program
     => Parser (Program TyName Name uni fun SourcePos)
 program = whitespace >> do
     prog <- inParens $ do
-        p <- reservedWord "program"
+        p <- wordPos "program"
         option () $ void version
         Program p <$> term
     notFollowedBy anySingle
@@ -218,6 +218,6 @@ plcProgram
        )
     => Parser (PLC.Program TyName Name uni fun SourcePos)
 plcProgram = whitespace >> do
-    prog <- inParens $ PLC.Program <$> reservedWord "program" <*> version <*> plcTerm
+    prog <- inParens $ PLC.Program <$> wordPos "program" <*> version <*> plcTerm
     notFollowedBy anySingle
     return prog

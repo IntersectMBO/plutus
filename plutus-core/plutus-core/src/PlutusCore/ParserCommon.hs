@@ -117,10 +117,10 @@ isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 -- | Create a parser that matches the input word and returns its source position.
 -- This is for attaching source positions to parsed terms/programs.
 -- getSourcePos is not cheap, don't call it on matching of every token.
-reservedWord ::
+wordPos ::
     -- | The word to match
     T.Text -> Parser SourcePos
-reservedWord w = lexeme $ try $ getSourcePos <* symbol w
+wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
 builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
 builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
