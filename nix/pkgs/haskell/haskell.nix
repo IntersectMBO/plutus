@@ -152,12 +152,28 @@ let
                                             ])
                                         else __trace "nativePlutus is null" [];
 
+          plutus-tx-tests.ghcOptions = if (nativePlutus != null)
+                                        then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+#                                              "-Werror"
+                                            ])
+                                        else __trace "nativePlutus is null" [];
+
           plutus-errors.ghcOptions = if (nativePlutus != null)
                                         then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
                                               "-Werror" ])
                                         else __trace "nativePlutus is null" [];
+
+          plutus-benchmark.ghcOptions = if (nativePlutus != null)
+                                        then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
 
           plutus-ledger.components.library.build-tools = if (nativePlutus != null) then [ pkgs.pkgsCross.ghcjs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.buildGHC ] else [];
           plutus-ledger.ghcOptions = if (nativePlutus != null)
@@ -167,6 +183,12 @@ let
                                               "-Werror" ])
                                         else __trace "nativePlutus is null" [];
 
+          plutus-ledger-test.ghcOptions = if (nativePlutus != null)
+                                        then (let attr = nativePlutus.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
 
           Cabal.patches = [ ../../patches/cabal.patch ];
           # See https://github.com/input-output-hk/plutus/issues/1213 and
