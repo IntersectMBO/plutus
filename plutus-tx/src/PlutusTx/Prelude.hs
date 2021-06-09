@@ -67,12 +67,7 @@ module PlutusTx.Prelude (
     sha3_256,
     verifySignature,
     -- * Rational numbers
-    Rational,
-    (%),
-    fromInteger,
-    round,
-    divMod,
-    quotRem,
+    module Ratio
     ) where
 
 import           Data.String          (IsString (..))
