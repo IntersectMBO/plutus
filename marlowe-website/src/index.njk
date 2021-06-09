@@ -7,38 +7,41 @@
   </head>
 
   <body>
-    <header class="flex p-6 md:px-5vw xl:px-10vw items-center fixed top-0 left-0 right-0 z-10 transition-colors duration-300 ease-out">
-      <img loading="lazy" class="h-10 hidden md:block" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
-      <img loading="lazy" class="h-10 block md:hidden" src="{% static './static/img/marlowe-logo.svg' %}" alt="Marlowe prototype logo">
-      <div id="header-try-buttons" class="transition-opacity duration-300 ease-out text-sm flex-grow flex justify-end mr-2 sm:mr-4 md:mr-5 lg:mr-7">
-        <div class="hidden md:block">
-          <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Marlowe Run</a>
-          <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Try Marlowe Play</a>
-        </div>
+    <header class="p-6 md:px-5vw xl:px-10vw fixed top-0 left-0 right-0 z-10 transition-colors duration-300 ease-out">
+      <div class="widest:mx-auto max-w-screen flex items-center ">
+        <img loading="lazy" class="h-10 hidden md:block" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
+        <img loading="lazy" class="h-10 block md:hidden" src="{% static './static/img/marlowe-logo.svg' %}" alt="Marlowe prototype logo">
+        <div id="header-try-buttons" class="transition-opacity duration-300 ease-out text-sm flex-grow flex justify-end mr-2 sm:mr-4 md:mr-5 lg:mr-7">
+          <div class="hidden md:block">
+            <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Marlowe Run</a>
+            <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Try Marlowe Play</a>
+          </div>
 
-        <div class="md:hidden">
-          <a href="https://run.marlowe-finance.io" target="_blank" class="button-base primary-button-outline flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Run</a>
-          <a href="https://play.marlowe-finance.io" target="_blank" class="button-base secondary-button-outline flex-shrink-0">Try Play</a>
-        </div>
+          <div class="md:hidden">
+            <a href="https://run.marlowe-finance.io" target="_blank" class="button-base primary-button-outline flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Try Run</a>
+            <a href="https://play.marlowe-finance.io" target="_blank" class="button-base secondary-button-outline flex-shrink-0">Try Play</a>
+          </div>
 
+        </div>
+        <a class="text-lightpurple font-bold text-sm" href="">Docs</a>
       </div>
-      <a class="text-lightpurple font-bold text-sm" href="">Docs</a>
-    </header>
-    {# The padding top and height 0 are part of a "hack" to make the div to occupy the height of its background image
-    https://stackoverflow.com/questions/600743/how-to-get-div-height-to-auto-adjust-to-background-size #}
-    <section class="sm:bg-main bg-no-repeat bg-contain sm:h-0 sm:pt-main-bg relative ">
-      <div class="sm:absolute sm:w-min inset-0 mx-6 md:ml-5vw xl:ml-10vw max-w-2xl">
-        <h1 class="text-3xl md:text-4xl lg:text-5xl flex flex-col font-comfortaa-bolder leading-tight pt-28 lg:pt-40 pb-4">
-          <span class="min-w-max">Financial</span>
-          <span class="min-w-max">Smart Contracts,</span>
-          <span>reimagined.</span>
-        </h1>
-        <h2 class="text-xl lg:text-2xl xl:text-27px pb-8">Marlowe puts the power of financial agreements into the hands of millions.</h2>
-        <div id="main-try-buttons" class="flex mb-10 text-sm">
-          <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Marlowe Run</a>
-          <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Marlowe Playground</a>
-        </div>
 
+    </header>
+    <section class="sm:bg-main bg-no-repeat bg-cover bg-center sm:h-main">
+      <div class="relative mx-6 md:ml-5vw xl:ml-10vw w-full max-w-screen widest:mx-auto">
+        <div class="sm:absolute sm:w-min inset-0 ">
+          <h1 class="text-3xl md:text-4xl lg:text-5xl flex flex-col font-comfortaa-bolder leading-tight pt-28 lg:pt-40 pb-4">
+            <span class="min-w-max">Financial</span>
+            <span class="min-w-max">Smart Contracts,</span>
+            <span>reimagined.</span>
+          </h1>
+          <h2 class="text-xl lg:text-2xl xl:text-27px pb-8">Marlowe puts the power of financial agreements into the hands of millions.</h2>
+          <div id="main-try-buttons" class="flex mb-10 text-sm">
+            <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button flex-shrink-0 mr-2 sm:mr-4 md:mr-5 lg:mr-7">Marlowe Run</a>
+            <a href="https://play.marlowe-finance.io" target="_blank" class="secondary-button flex-shrink-0">Marlowe Playground</a>
+          </div>
+
+        </div>
       </div>
 
     </section>
@@ -117,7 +120,7 @@
       <h3 class="text-lightpurple font-comfortaa font-bold text-2xl">Market</h3>
       <h4>Coming 2021 Q3/Q4</h4>
     </section>
-    <section class="pt-6 pb-20 lg:py-20 grid grid-cols-1 md:grid-cols-2 md:auto-rows-fr md:gap-x-6 lg:gap-x-5vw xl:gap-x-10vw mx-6 lg:mx-5vw xl:mx-10vw">
+    <section class="pt-6 pb-20 lg:py-20 grid grid-cols-1 md:grid-cols-2 md:auto-rows-fr md:gap-x-6 lg:gap-x-5vw xl:gap-x-10vw mx-6 lg:mx-5vw xl:mx-10vw max-w-screen widest:mx-auto">
       <div>
         <h4 class="text-lightpurple text-xl font-semibold mb-6">The core of Marlowe is our special-purpose language.</h4>
         <h3 class="text-2xl font-comfortaa-bold leading-tight mb-6">Marlowe is a new language for modeling financial contracts as smart contracts on a blockchain.</h3>
@@ -149,7 +152,7 @@
       </div>
 
     </section>
-    <section class="pb-10 mx-6 md:mx-5vw xl:mx-10vw">
+    <section class="pb-10 mx-6 md:mx-5vw xl:mx-10vw max-w-screen widest:mx-auto">
       {# The current faqContent was taken from:
          https://docs.google.com/document/d/1Ydm7k6UhTFr-Oj5wY7V3JLC6vUA3-S_PRUzl6D7Ziec/edit#
          I did not include questions in red or the Q suggestions.
@@ -179,12 +182,14 @@
       <h3 class="text-green font-comfortaa font-bold text-2xl">Play</h3>
       <h4>Coming 2021 Q3/Q4</h4>
     </section>
-
-    <section class="px-6 md:px-5vw xl:px-10vw bg-green py-20">
-      <h3 class="text-2xl font-comfortaa-bold leading-tight mb-6">Sign up to the testing program</h3>
-      <button class="primary-button">Help make Marlowe better</button>
+    {# FIXME should we remove this section? #}
+    <section class="bg-green py-20">
+      <div class="mx-6 md:mx-5vw xl:mx-10vw widest:mx-auto max-w-screen">
+        <h3 class="text-2xl font-comfortaa-bold leading-tight mb-6">Sign up to the testing program</h3>
+        <button class="primary-button">Help make Marlowe better</button>
+      </div>
     </section>
-    <footer class="py-10 mx-6 md:mx-5vw xl:mx-10vw flex flex-col md:flex-row md:items-center">
+    <footer class="py-10 mx-6 md:mx-5vw xl:mx-10vw widest:mx-auto max-w-screen flex flex-col md:flex-row md:items-center">
       <div class="self-center md:mr-6">
         <img class="h-10" src="{% static './static/img/marlowe-prototype-logo.svg' %}" alt="Marlowe prototype logo">
       </div>

@@ -4,6 +4,13 @@ module.exports = {
   purge: ["./src/**/*.njk", "./src/**/*.js"],
   darkMode: false, // or 'media' or 'class'
   theme: {
+    screens: {
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      widest: "1440px",
+    },
     colors: {
       transparent: "transparent",
       current: "currentColor",
@@ -66,17 +73,17 @@ module.exports = {
         "5vw": "5vw",
         "10vw": "10vw",
       },
-      padding: {
-        /* This value was obtained from a "hack" to make the div occupy the height of
-           its background image
-           https://stackoverflow.com/questions/600743/how-to-get-div-height-to-auto-adjust-to-background-size
-           */
-        /* (img-height / img-width * container-width) */
-        /* (927 / 1440 * 100) */
-        "main-bg": "64.37%",
+      height: {
+        // This corresponds to the height of the hero image
+        // FIXME: put this as max-height and use a proportion of the screen as the size
+        main: "700px",
+      },
+      maxWidth: {
+        // All content must be at most this size and centered if the screen is wider
+        screen: "1440px",
       },
       backgroundImage: (theme) => ({
-        main: "url('/static/img/woman-using-cellphone.jpg')",
+        main: "url('/static/img/hero-background.jpg')",
       }),
       borderWidth: {
         3: "3px",
@@ -102,7 +109,7 @@ module.exports = {
     backgroundImage: true,
     gradientColorStops: true,
     backgroundOpacity: false,
-    backgroundPosition: false,
+    backgroundPosition: true,
     backgroundRepeat: true,
     backgroundSize: true,
     borderCollapse: false,
