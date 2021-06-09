@@ -1,11 +1,11 @@
 module Contract.Lenses
-  ( _tab
-  , _executionState
-  , _previousSteps
+  ( _followerAppId
   , _marloweParams
-  , _followerAppId
-  , _selectedStep
   , _metadata
+  , _executionState
+  , _tab
+  , _previousSteps
+  , _selectedStep
   , _participants
   , _userParties
   , _namedActions
@@ -18,32 +18,33 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Set (Set)
 import Data.Symbol (SProxy(..))
-import Marlowe.Execution (ExecutionState, NamedAction)
+import Marlowe.Execution.Types (NamedAction)
+import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics as Semantic
 import WalletData.Types (WalletNickname)
 
-_tab :: forall a. Lens' { tab :: Tab | a } Tab
-_tab = prop (SProxy :: SProxy "tab")
-
-_executionState :: Lens' State ExecutionState
-_executionState = prop (SProxy :: SProxy "executionState")
-
-_previousSteps :: Lens' State (Array PreviousStep)
-_previousSteps = prop (SProxy :: SProxy "previousSteps")
+_followerAppId :: Lens' State PlutusAppId
+_followerAppId = prop (SProxy :: SProxy "followerAppId")
 
 _marloweParams :: Lens' State MarloweParams
 _marloweParams = prop (SProxy :: SProxy "marloweParams")
 
-_followerAppId :: Lens' State PlutusAppId
-_followerAppId = prop (SProxy :: SProxy "followerAppId")
+_metadata :: Lens' State MetaData
+_metadata = prop (SProxy :: SProxy "metadata")
+
+_executionState :: Lens' State Execution.State
+_executionState = prop (SProxy :: SProxy "executionState")
+
+_tab :: forall a. Lens' { tab :: Tab | a } Tab
+_tab = prop (SProxy :: SProxy "tab")
+
+_previousSteps :: Lens' State (Array PreviousStep)
+_previousSteps = prop (SProxy :: SProxy "previousSteps")
 
 _selectedStep :: Lens' State Int
 _selectedStep = prop (SProxy :: SProxy "selectedStep")
-
-_metadata :: Lens' State MetaData
-_metadata = prop (SProxy :: SProxy "metadata")
 
 _participants :: Lens' State (Map Semantic.Party (Maybe WalletNickname))
 _participants = prop (SProxy :: SProxy "participants")

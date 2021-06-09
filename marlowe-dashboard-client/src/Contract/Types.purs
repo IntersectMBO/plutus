@@ -14,23 +14,38 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Halogen (RefLabel(..))
-import Marlowe.Execution (ExecutionState, NamedAction)
+import Marlowe.Execution.Types (NamedAction)
+import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletDetails, WalletNickname)
 
+-- The Contract.State wraps the Execution.State up with some additional information that is necessary
+-- to render the execution state of the contract in the page. Some of this is derived data that could
+-- be calculated on the fly, but is stored here for efficiency. The rest is data specific to the UX
+-- (like which step card is currently centered, and which tabs are shown in which step cards).
 type State
-  = { tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
-    , executionState :: ExecutionState
-    , previousSteps :: Array PreviousStep
-    , followerAppId :: PlutusAppId
+  = { followerAppId :: PlutusAppId
     , marloweParams :: MarloweParams
-    -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
-    -- (both sides inclusive). This is because the array represent the past steps and the
-    -- executionState has the current state and visually we can select any one of them.
-    , selectedStep :: Int
     , metadata :: MetaData
+    , executionState :: Execution.State
+    -- The following properties contain additional information on top of the Execution.State that is
+    -- necessary to render the current state of the contract. Some of this information is just a function
+    -- of the Execution.State, but is saved here for efficiency. (It needs to be recalculate when the
+    -- Execution.State of the contract changes, but this way it doesn't need to be recalculated every time
+    -- the user opens the card for this contract.
+    ----------
+    -- This is the tab of the current (latest) step card - previous step cards have their own tabs.
+    , tab :: Tab
+    -- These contain the data needed to render the previous step cards. This corresponds loosely to the
+    -- array of PreviousTransactionSteps in the Execution.State, except that the shape and content of the
+    -- data is slightly different, and we include timeout steps here in addition to transaction steps.
+    , previousSteps :: Array PreviousStep
+    -- Which step is selected. This index is 0 based and should be between [0, previousStepCards.length]
+    -- (both sides inclusive). This is because the array represents the past steps and the Execution.State
+    -- has the current state and visually we can select any one of them.
+    , selectedStep :: Int
     , participants :: Map Party (Maybe WalletNickname)
     , userParties :: Set Party
     -- These are the possible actions a user can make in the current step. We store this mainly because
@@ -38,7 +53,6 @@ type State
     , namedActions :: Array NamedAction
     }
 
--- Represents a historical step in a contract's life.
 type PreviousStep
   = { tab :: Tab
     , balances :: Accounts
@@ -55,6 +69,7 @@ data Tab
 
 derive instance eqTab :: Eq Tab
 
+-- The inputs provided to the Contract action handlers from the parent module (Play.State).
 type Input
   = { currentSlot :: Slot
     , walletDetails :: WalletDetails

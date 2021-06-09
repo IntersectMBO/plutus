@@ -15,7 +15,7 @@ import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _marloweParams, _namedActions, _previousSteps, _selectedStep, _tab)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
-import Data.Array (difference, filter, foldl, index, length, mapMaybe, modifyAt)
+import Data.Array (difference, filter, foldr, index, length, mapMaybe, modifyAt)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -40,7 +40,10 @@ import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.Execution (ExecutionState, NamedAction(..), PreviousState, _currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions, expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
+import Marlowe.Execution.Lenses (_currentContract, _currentMarloweState, _pendingTimeouts, _previousStates, _previousTransactions)
+import Marlowe.Execution.State (expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
+import Marlowe.Execution.Types (NamedAction(..), PreviousState)
+import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (emptyContractMetadata)
 import Marlowe.HasParties (getParties)
 import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
@@ -219,8 +222,8 @@ handleAction _ CarouselOpened = do
 
 handleAction _ CarouselClosed = unsubscribeFromSelectCenteredStep
 
-applyTransactionInputs :: Array TransactionInput -> ExecutionState -> ExecutionState
-applyTransactionInputs transactionInputs state = foldl nextState state transactionInputs
+applyTransactionInputs :: Array TransactionInput -> Execution.State -> Execution.State
+applyTransactionInputs transactionInputs state = foldr nextState state transactionInputs
 
 currentStep :: State -> Int
 currentStep = length <<< view _previousSteps
@@ -231,7 +234,7 @@ isContractClosed state = isClosed $ state ^. _executionState
 applyTx :: Slot -> TransactionInput -> State -> State
 applyTx currentSlot txInput state =
   let
-    updateExecutionState = over _executionState (\s -> nextState s txInput)
+    updateExecutionState = over _executionState $ nextState txInput
   in
     state
       # updateExecutionState
@@ -269,13 +272,13 @@ toInput (MakeNotify _) = Just $ Semantic.INotify
 toInput _ = Nothing
 
 transactionsToStep :: State -> PreviousState -> PreviousStep
-transactionsToStep { participants } { txInput, state } =
+transactionsToStep { participants } { marloweState, txInput } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
 
     -- TODO: When we add support for multiple tokens we should extract the possible tokens from the
     --       contract, store it in ContractState and pass them here.
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] state
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] marloweState
 
     stepState =
       -- For the moment the only way to get an empty transaction is if there was a timeout,
@@ -294,9 +297,9 @@ transactionsToStep { participants } { txInput, state } =
 timeoutToStep :: State -> Slot -> PreviousStep
 timeoutToStep { participants, executionState } slot =
   let
-    currentContractState = executionState ^. _currentState
+    currentMarloweState = executionState ^. _currentMarloweState
 
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] currentContractState
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] currentMarloweState
   in
     { tab: Tasks
     , balances
@@ -309,7 +312,7 @@ regenerateStepCards currentSlot state =
   -- the Tasks tab). If any of them are showing the Balances tab, it would be nice to keep them that way.
   let
     confirmedSteps :: Array PreviousStep
-    confirmedSteps = toArrayOf (_executionState <<< _previousState <<< traversed <<< to (transactionsToStep state)) state
+    confirmedSteps = toArrayOf (_executionState <<< _previousStates <<< traversed <<< to (transactionsToStep state)) state
 
     pendingTimeoutSteps :: Array PreviousStep
     pendingTimeoutSteps = toArrayOf (_executionState <<< _pendingTimeouts <<< traversed <<< to (timeoutToStep state)) state
