@@ -273,7 +273,7 @@ setDefaultContractTermValues ct@ContractTerms{..} =
       eomc'     | isNothing eomc     = Just EOMC_SD
                 | otherwise          = eomc
 
-      bdc'      | isNothing bdc      = Just BDC_SCF
+      bdc'      | isNothing bdc      = Just BDC_NULL
                 | otherwise          = bdc
 
       calendar' | isNothing calendar = Just CLDR_NC
