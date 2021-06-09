@@ -119,7 +119,7 @@ library
         cardano-crypto -any,
         deepseq -any,
         freer-simple -any,
-        semigroups -any
+        semigroups -any,
         plutus-tx-plugin -any
 
     ghc-options: -fprint-potential-instances
@@ -146,5 +146,5 @@ test-suite plutus-ledger-test
         lens -any,
         bytestring -any,
         aeson -any,
-        plutus-core -any
+        plutus-core -any,
         plutus-tx-plugin -any
