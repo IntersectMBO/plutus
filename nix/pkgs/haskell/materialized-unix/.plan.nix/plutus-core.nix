@@ -140,6 +140,7 @@
           "PlutusCore/Mark"
           "PlutusCore/Parsable"
           "PlutusCore/Parser/Internal"
+          "PlutusCore/ParserCommon"
           "PlutusCore/Pretty/Classic"
           "PlutusCore/Pretty/ConfigName"
           "PlutusCore/Pretty/Default"

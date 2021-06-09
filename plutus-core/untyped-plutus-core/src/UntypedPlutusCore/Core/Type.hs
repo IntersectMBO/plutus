@@ -72,7 +72,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     constant = Constant
     builtin  = Builtin
     tyInst   = \ann term _ -> Force ann term
-    unwrap   = \_ -> id
+    unwrap   = const id
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
 
