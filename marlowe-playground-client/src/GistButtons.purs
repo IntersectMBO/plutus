@@ -6,6 +6,7 @@ import Data.Lens (to, view, (^.))
 import Data.Maybe (Maybe(..))
 import Gists.View (idPublishGist)
 import Halogen.Classes (modalContent)
+import Halogen.Css (classNames)
 import Halogen.HTML (ClassName(..), HTML, a, button, div, div_, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, disabled)
@@ -29,6 +30,7 @@ authButton intendedAction state =
       Failure _ ->
         button
           [ idPublishGist
+          , classNames [ "btn" ]
           ]
           [ text "Failed to login" ]
       Success Anonymous ->
@@ -53,11 +55,13 @@ authButton intendedAction state =
         button
           [ idPublishGist
           , disabled true
+          , classNames [ "btn" ]
           ]
           [ icon Spinner ]
       NotAsked ->
         button
           [ idPublishGist
           , disabled true
+          , classNames [ "btn" ]
           ]
           [ icon Spinner ]

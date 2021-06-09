@@ -9,7 +9,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Set (Set, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (minusBtn, plusBtn, smallBtn)
+import Halogen.Classes (minusBtn, plusBtn, smallBtn, btn)
 import Halogen.HTML (ClassName(..), HTML, button, div, em_, h6_, input, option, select, text)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, selected, type_, value)
@@ -42,7 +42,7 @@ metadataList metadataAction metadataMap hintSet setAction deleteAction typeNameT
                           ]
                       , div [ class_ $ ClassName "metadata-prop-delete" ]
                           [ button
-                              [ classes [ if needed then plusBtn else minusBtn, smallBtn, ClassName "align-top" ]
+                              [ classes [ if needed then plusBtn else minusBtn, smallBtn, ClassName "align-top", btn ]
                               , onClick $ const $ Just $ metadataAction $ deleteAction key
                               ]
                               [ text "-" ]
@@ -54,7 +54,7 @@ metadataList metadataAction metadataMap hintSet setAction deleteAction typeNameT
                           [ text $ typeNameTitle <> " " <> show key <> " description not defined" ]
                       , div [ class_ $ ClassName "metadata-prop-create" ]
                           [ button
-                              [ classes [ minusBtn, smallBtn, ClassName "align-top" ]
+                              [ classes [ minusBtn, smallBtn, ClassName "align-top", btn ]
                               , onClick $ const $ Just $ metadataAction $ setAction key mempty
                               ]
                               [ text "+" ]
