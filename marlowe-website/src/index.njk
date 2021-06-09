@@ -150,6 +150,11 @@
 
     </section>
     <section class="pb-10 mx-6 md:mx-5vw xl:mx-10vw">
+      {# The current faqContent was taken from:
+         https://docs.google.com/document/d/1Ydm7k6UhTFr-Oj5wY7V3JLC6vUA3-S_PRUzl6D7Ziec/edit#
+         I did not include questions in red or the Q suggestions.
+         Last update (on google doc) Apr 27 7:20 AM
+         #}
       <h3 class="text-2xl font-comfortaa-bold  mb-6 md:text-center">Marlowe FAQ’s</h3>
       {% macro faqComponent(index, question, answer) %}
         <div class="faq border-t border-darkgray pt-5 mt-5">
@@ -161,7 +166,7 @@
             <span class="flex-shrink-0 w-6 faq-caret"></span>
           </h4>
 
-          <p class="text-lg faq-answer">{{ answer }}</p>
+          <p class="text-lg faq-answer">{{ answer | safe}}</p>
         </div>
       {% endmacro %}
       {% for item in faqContent %}
