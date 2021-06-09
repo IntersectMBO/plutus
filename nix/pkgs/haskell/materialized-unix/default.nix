@@ -101,6 +101,8 @@
         "extensible-effects".flags.dump-core = false;
         "extensible-effects".flags.lib-werror = false;
         "base-compat-batteries".revision = (((hackage."base-compat-batteries")."0.11.2").revisions).default;
+        "constraints-extras".revision = (((hackage."constraints-extras")."0.3.1.0").revisions).default;
+        "constraints-extras".flags.build-readme = true;
         "appar".revision = (((hackage."appar")."0.1.8").revisions).default;
         "hourglass".revision = (((hackage."hourglass")."0.2.12").revisions).default;
         "case-insensitive".revision = (((hackage."case-insensitive")."1.2.1.0").revisions).default;
@@ -163,7 +165,7 @@
         "double-conversion".flags.developer = false;
         "system-fileio".revision = (((hackage."system-fileio")."0.3.16.4").revisions).default;
         "safe-exceptions".revision = (((hackage."safe-exceptions")."0.1.7.1").revisions).default;
-        "dependent-map".revision = (((hackage."dependent-map")."0.2.4.0").revisions).default;
+        "dependent-map".revision = (((hackage."dependent-map")."0.4.0.0").revisions).default;
         "adjunctions".revision = (((hackage."adjunctions")."4.4").revisions).default;
         "cryptohash-md5".revision = (((hackage."cryptohash-md5")."0.11.100.1").revisions).default;
         "invariant".revision = (((hackage."invariant")."0.5.3").revisions).default;
@@ -252,7 +254,7 @@
         "conduit".revision = (((hackage."conduit")."1.3.4.1").revisions).default;
         "nothunks".revision = (((hackage."nothunks")."0.1.2").revisions).default;
         "x509-store".revision = (((hackage."x509-store")."1.6.7").revisions).default;
-        "constraints".revision = (((hackage."constraints")."0.13").revisions).default;
+        "constraints".revision = (((hackage."constraints")."0.12").revisions).default;
         "turtle".revision = (((hackage."turtle")."1.5.22").revisions).default;
         "semigroups".revision = (((hackage."semigroups")."0.19.1").revisions).default;
         "semigroups".flags.bytestring = true;
@@ -366,6 +368,8 @@
         "lens".flags.safe = false;
         "unliftio-core".revision = (((hackage."unliftio-core")."0.2.0.1").revisions).default;
         "containers".revision = (((hackage."containers")."0.6.2.1").revisions).default;
+        "some".revision = (((hackage."some")."1.0.2").revisions).default;
+        "some".flags.newtype-unsafe = true;
         "wl-pprint-annotated".revision = (((hackage."wl-pprint-annotated")."0.1.0.1").revisions).default;
         "ekg-json".revision = (((hackage."ekg-json")."0.1.0.6").revisions).default;
         "integer-logarithms".revision = (((hackage."integer-logarithms")."1.0.3.1").revisions).default;
@@ -382,7 +386,7 @@
         "these".revision = (((hackage."these")."1.1.1.1").revisions).default;
         "these".flags.assoc = true;
         "bimap".revision = (((hackage."bimap")."0.4.0").revisions).default;
-        "dependent-sum".revision = (((hackage."dependent-sum")."0.5").revisions).default;
+        "dependent-sum".revision = (((hackage."dependent-sum")."0.7.1.0").revisions).default;
         "ral".revision = (((hackage."ral")."0.1").revisions).default;
         "ral".flags.semigroupoids = true;
         "ral".flags.adjunctions = true;
