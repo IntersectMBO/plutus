@@ -70,8 +70,7 @@ library
     , plutus-tx -any
     , plutus-core -any
     , deepseq -any
-  if !(impl(ghcjs) || os(ghcjs) || os(windows))
-      build-depends: plutus-tx-plugin -any
+    , plutus-tx-plugin -any
   default-extensions:
     DataKinds
     NamedFieldPuns
@@ -97,8 +96,7 @@ executable nofib-exe
     , optparse-applicative -any
     , serialise -any
     , transformers -any
-  if !(impl(ghcjs) || os(ghcjs) || os(windows))
-      build-depends: plutus-tx-plugin -any
+    , plutus-tx-plugin -any
 
 benchmark nofib
   import: lang
@@ -118,8 +116,7 @@ benchmark nofib
     , criterion >= 1.5.9.0
     , filepath -any
     , mtl -any
-  if !(impl(ghcjs) || os(ghcjs) || os(windows))
-      build-depends: plutus-tx-plugin -any
+    , plutus-tx-plugin -any
 
 benchmark nofib-hs
   import: lang
@@ -138,8 +135,7 @@ benchmark nofib-hs
     , containers -any
     , criterion -any
     , filepath -any
-  if !(impl(ghcjs) || os(ghcjs) || os(windows))
-      build-depends: plutus-tx-plugin -any
+    , plutus-tx-plugin -any
 
 
 benchmark validation
@@ -181,8 +177,7 @@ test-suite plutus-benchmark-nofib-tests
       , tasty-hunit -any
       , tasty-quickcheck -any
       , mtl -any
-    if !(impl(ghcjs) || os(ghcjs) || os(windows))
-        build-depends: plutus-tx-plugin -any
+      , plutus-tx-plugin -any
 
 benchmark flat
   import: lang
@@ -219,5 +214,4 @@ benchmark flat
     , text -any
     , transformers -any
     , zlib
-  if !(impl(ghcjs) || os(ghcjs) || os(windows))
-      build-depends: plutus-tx-plugin -any
+    , plutus-tx-plugin -any

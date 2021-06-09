@@ -70,7 +70,5 @@ executable doc-doctests
       QuickCheck -any,
       random -any,
       text -any,
-      aeson -any
-
-    if !(impl(ghcjs) || os(ghcjs) || os(windows))
-        build-depends: plutus-tx-plugin -any
+      aeson -any,
+      plutus-tx-plugin -any

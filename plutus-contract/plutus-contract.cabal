@@ -175,7 +175,5 @@ test-suite plutus-contract-test
         plutus-ledger -any,
         plutus-tx -any,
         freer-simple -any,
-        aeson -any
-
-    if !(impl(ghcjs) || os(ghcjs) || os(windows))
-        build-depends: plutus-tx-plugin -any
+        aeson -any,
+        plutus-tx-plugin -any
