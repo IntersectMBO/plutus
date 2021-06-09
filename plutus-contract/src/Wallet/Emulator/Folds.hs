@@ -282,7 +282,7 @@ blockchain =
             TxnValidationFail Phase2 _ txn _ _ -> (Invalid txn : currentBlock, otherBlocks)
         initial = ([], [])
         extract (currentBlock, otherBlocks) =
-            reverse (currentBlock : otherBlocks)
+            (currentBlock : otherBlocks)
     in preMapMaybe (preview (eteEvent . chainEvent))
         $ Fold step initial extract
 
