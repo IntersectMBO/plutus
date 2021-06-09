@@ -157,10 +157,10 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "stackage.nix",
-        "rev": "e32c8b06d56954865725514ce0d98d5d1867e43a",
-        "sha256": "18dpgyk5hrc6w3f9nwsb22k5ar9q5c8x40mszxzqmrdhkrymrykk",
+        "rev": "2050c2ddc85e8c285eac81f188239fa62f83f7a7",
+        "sha256": "1d2kyvlw8lj2ks4b351j6pnkx49gbn0qvavphnwf02gv9zvrq1ic",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/stackage.nix/archive/e32c8b06d56954865725514ce0d98d5d1867e43a.tar.gz",
+        "url": "https://github.com/input-output-hk/stackage.nix/archive/2050c2ddc85e8c285eac81f188239fa62f83f7a7.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
