@@ -131,7 +131,8 @@ balanceTx ::
     -- ^ The unbalanced transaction
     -> Eff effs Tx
 balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
-    inputValues <- traverse lookupValue (Set.toList $ Tx.txInputs unBalancedTxTx)
+    let txInputs = Set.toList $ Tx.txInputs unBalancedTxTx
+    inputValues <- traverse lookupValue txInputs
     collateral  <- traverse lookupValue (Set.toList $ Tx.txCollateral unBalancedTxTx)
     let fees = L.txFee unBalancedTxTx
         left = L.txForge unBalancedTxTx <> fold inputValues
@@ -142,8 +143,8 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
 
     tx' <- if Value.isZero pos
            then do
-               logDebug NoOutputsAdded
-               pure unBalancedTxTx
+                logDebug NoOutputsAdded
+                pure unBalancedTxTx
            else do
                 logDebug $ AddingPublicKeyOutputFor pos
                 pure $ addOutputs pk pos unBalancedTxTx
@@ -154,7 +155,11 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
                 pure tx'
             else do
                 logDebug $ AddingInputsFor neg
-                addInputs utxo pk neg tx'
+                -- filter out inputs from utxo that are already in unBalancedTx
+                let inputsOutRefs = map Tx.txInRef txInputs
+                    filteredUtxo = flip Map.filterWithKey utxo $ \txOutRef _ ->
+                        txOutRef `notElem` inputsOutRefs
+                addInputs filteredUtxo pk neg tx'
 
     if remainingFees `Value.leq` P.zero
     then do
