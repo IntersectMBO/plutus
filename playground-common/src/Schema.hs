@@ -62,6 +62,7 @@ import           Ledger                 (Ada, AssetClass, CurrencySymbol, DatumH
 import           Ledger.Bytes           (LedgerBytes)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude       as P
+import qualified PlutusTx.Ratio         as P
 import           Wallet.Emulator.Wallet (Wallet)
 import           Wallet.Types           (ContractInstanceId)
 
