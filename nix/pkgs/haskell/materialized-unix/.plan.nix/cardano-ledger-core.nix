@@ -10,16 +10,16 @@
   {
     flags = {};
     package = {
-      specVersion = "2.2";
-      identifier = { name = "cardano-ledger-shelley-ma"; version = "0.1.0.0"; };
+      specVersion = "2.4";
+      identifier = { name = "cardano-ledger-core"; version = "0.1.0.0"; };
       license = "Apache-2.0";
-      copyright = "2020 Input Output (Hong Kong) Ltd.";
+      copyright = "2021 Input Output (Hong Kong) Ltd.";
       maintainer = "formal.methods@iohk.io";
       author = "IOHK Formal Methods Team";
       homepage = "";
       url = "";
-      synopsis = "Shelley ledger with multiasset and time lock support.";
-      description = "This package extends the Shelley ledger with support for\nnative tokens and timelocks.";
+      synopsis = "Core components of Cardano ledgers from the Shelley release on.";
+      description = "Cardano ledgers from the Shelley release onwards share a core basis rooted in\nthe Shelley ledger specification. This package abstracts a number of components\nwhich we expect to be shared amongst all future ledgers implemented around this base.";
       buildType = "Simple";
       isLocal = true;
       detailLevel = "FullDetails";
@@ -34,44 +34,49 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-          (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
-          (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
+          (hsPkgs."cardano-crypto-praos" or (errorHandler.buildDepError "cardano-crypto-praos"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
-          (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-          (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."groups" or (errorHandler.buildDepError "groups"))
+          (hsPkgs."iproute" or (errorHandler.buildDepError "iproute"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."network" or (errorHandler.buildDepError "network"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
-          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-          (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
-          (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
+          (hsPkgs."partial-order" or (errorHandler.buildDepError "partial-order"))
+          (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
+          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
+          (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
           (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           ];
         buildable = true;
         modules = [
-          "Cardano/Ledger/Allegra"
-          "Cardano/Ledger/Allegra/Translation"
-          "Cardano/Ledger/Mary"
-          "Cardano/Ledger/Mary/Translation"
-          "Cardano/Ledger/Mary/Value"
-          "Cardano/Ledger/ShelleyMA"
-          "Cardano/Ledger/ShelleyMA/AuxiliaryData"
-          "Cardano/Ledger/ShelleyMA/Rules/EraMapping"
-          "Cardano/Ledger/ShelleyMA/Rules/Utxo"
-          "Cardano/Ledger/ShelleyMA/Rules/Utxow"
-          "Cardano/Ledger/ShelleyMA/Timelocks"
-          "Cardano/Ledger/ShelleyMA/TxBody"
+          "Cardano/Ledger/AuxiliaryData"
+          "Cardano/Ledger/BaseTypes"
+          "Cardano/Ledger/Coin"
+          "Cardano/Ledger/Compactible"
+          "Cardano/Ledger/Core"
+          "Cardano/Ledger/Crypto"
+          "Cardano/Ledger/Era"
+          "Cardano/Ledger/Keys"
+          "Cardano/Ledger/Hashes"
+          "Cardano/Ledger/Rules/ValidationMode"
+          "Cardano/Ledger/SafeHash"
+          "Cardano/Ledger/Serialization"
+          "Cardano/Ledger/Tx"
+          "Cardano/Ledger/Val"
           ];
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/40; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/41; }

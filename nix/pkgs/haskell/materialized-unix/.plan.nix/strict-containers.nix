@@ -10,15 +10,15 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "2.2";
-      identifier = { name = "cardano-slotting"; version = "0.1.0.0"; };
+      specVersion = "1.10";
+      identifier = { name = "strict-containers"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "IOHK";
-      maintainer = "formal.methods@iohk.io";
-      author = "IOHK Formal Methods Team";
+      maintainer = "operations@iohk.io";
+      author = "IOHK";
       homepage = "";
       url = "";
-      synopsis = "Key slotting types for cardano libraries";
+      synopsis = "Various strict container types";
       description = "";
       buildType = "Simple";
       isLocal = true;
@@ -33,28 +33,25 @@
     components = {
       "library" = {
         depends = [
-          (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
+          (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-          (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+          (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
-          (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           ];
         buildable = true;
         modules = [
-          "Cardano/Slotting/Block"
-          "Cardano/Slotting/EpochInfo"
-          "Cardano/Slotting/EpochInfo/API"
-          "Cardano/Slotting/EpochInfo/Impl"
-          "Cardano/Slotting/Slot"
-          "Cardano/Slotting/Time"
+          "Data/FingerTree/Strict"
+          "Data/Maybe/Strict"
+          "Data/Sequence/Strict"
+          "Data/Unit/Strict"
           ];
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/6; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/10; }

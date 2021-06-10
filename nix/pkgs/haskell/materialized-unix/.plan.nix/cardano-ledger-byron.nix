@@ -10,16 +10,16 @@
   {
     flags = { development = false; test-normal-form = false; };
     package = {
-      specVersion = "1.10";
-      identifier = { name = "cardano-ledger"; version = "0.1.0.0"; };
+      specVersion = "2.2";
+      identifier = { name = "cardano-ledger-byron"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "2018 IOHK";
       maintainer = "operations@iohk.io";
       author = "IOHK";
       homepage = "";
       url = "";
-      synopsis = "The blockchain layer of Cardano";
-      description = "The blockchain layer of Cardano";
+      synopsis = "The blockchain layer of Cardano during the Byron era";
+      description = "The blockchain layer of Cardano during the Byron era";
       buildType = "Simple";
       isLocal = true;
       detailLevel = "FullDetails";
@@ -162,7 +162,7 @@
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "cardano-ledger-test" = {
+        "cardano-ledger-byron-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
@@ -170,7 +170,7 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
             (hsPkgs."cardano-binary-test" or (errorHandler.buildDepError "cardano-binary-test"))
-            (hsPkgs."cardano-ledger" or (errorHandler.buildDepError "cardano-ledger"))
+            (hsPkgs."cardano-ledger-byron" or (errorHandler.buildDepError "cardano-ledger-byron"))
             (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
             (hsPkgs."cardano-crypto-test" or (errorHandler.buildDepError "cardano-crypto-test"))
             (hsPkgs."cardano-crypto-wrapper" or (errorHandler.buildDepError "cardano-crypto-wrapper"))
@@ -225,6 +225,7 @@
             "Test/Cardano/Chain/Elaboration/Update"
             "Test/Cardano/Chain/Elaboration/UTxO"
             "Test/Cardano/Chain/Epoch/File"
+            "Test/Cardano/Chain/Genesis/CBOR"
             "Test/Cardano/Chain/Genesis/Dummy"
             "Test/Cardano/Chain/Genesis/Example"
             "Test/Cardano/Chain/Genesis/Gen"
@@ -283,4 +284,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/28; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/33; }

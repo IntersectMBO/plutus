@@ -10,7 +10,7 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.8";
+      specVersion = "2.2";
       identifier = { name = "shelley-spec-non-integral"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -39,8 +39,9 @@
         };
       tests = {
         "shelley-spec-non-integral-test" = {
-          depends = (pkgs.lib).optionals (!flags.development) [
+          depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            ] ++ (pkgs.lib).optionals (!flags.development) [
             (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             ];
@@ -51,4 +52,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/32; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/37; }
