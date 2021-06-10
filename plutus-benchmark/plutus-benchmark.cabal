@@ -178,38 +178,38 @@ test-suite plutus-benchmark-nofib-tests
       , tasty-quickcheck -any
       , mtl -any
 
--- benchmark flat
---   import: lang
---   type: exitcode-stdio-1.0
---   main-is: Main.hs
---   ghc-options: -fno-full-laziness
---   hs-source-dirs:
---       flat
---   other-modules:
---       Dataset
---       Codec
---       Report
---        Paths_plutus_benchmark
---   build-depends:
---       base >=4.7 && <5
---     , boxes -any
---     , bytestring -any
---     , containers -any
---     , criterion >= 1.5.9.0
---     , deepseq -any
---     , flat -any
---     , lens -any
---     , marlowe -any
---     , plutus-core -any
---     , plutus-use-cases -any
---     , plutus-ledger -any
---     , plutus-core -any
---     , plutus-contract -any
---     , plutus-tx -any
---     , plutus-tx-plugin -any
---     , pure-zlib -any
---     , filepath -any
---     , serialise -any
---     , text -any
---     , transformers -any
---     , zlib
+benchmark flat
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  ghc-options: -fno-full-laziness
+  hs-source-dirs:
+      flat
+  other-modules:
+      Dataset
+      Codec
+      Report
+       Paths_plutus_benchmark
+  build-depends:
+      base >=4.7 && <5
+    , boxes -any
+    , bytestring -any
+    , containers -any
+    , criterion >= 1.5.9.0
+    , deepseq -any
+    , flat -any
+    , lens -any
+    , marlowe -any
+    , plutus-core -any
+    , plutus-use-cases -any
+    , plutus-ledger -any
+    , plutus-core -any
+    , plutus-contract -any
+    , plutus-tx -any
+    , plutus-tx-plugin -any
+    , pure-zlib -any
+    , filepath -any
+    , serialise -any
+    , text -any
+    , transformers -any
+    , zlib
