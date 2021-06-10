@@ -347,11 +347,7 @@ marlowePlutusContract = do
 
 setupMarloweParams
     :: forall s e i o.
-       ( HasWriteTx s
-       , HasOwnPubKey s
-       , HasTxConfirmation s
-       , AsMarloweError e
-       )
+    (AsMarloweError e)
     => RoleOwners -> Marlowe.Contract -> Contract MarloweContractState s e (MarloweParams, TxConstraints i o)
 setupMarloweParams owners contract = mapError (review _MarloweError) $ do
     creator <- pubKeyHash <$> ownPubKey
