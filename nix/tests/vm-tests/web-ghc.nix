@@ -26,6 +26,7 @@ makeTest {
         enable = true;
         port = 80;
         web-ghc-package = web-ghc;
+        timeout = 180;
       };
     };
   testScript = ''
