@@ -34,6 +34,9 @@ write-ghc-environment-files: never
 tests: true
 benchmarks: true
 
+package cardano-api
+  tests: false
+
 -- This is also needed so evenful-sql-common will build with a
 -- newer version of persistent. See stack.yaml for the mirrored
 -- configuration.
@@ -49,6 +52,7 @@ allow-newer:
            -- The following two dependencies are needed by plutus.
            , eventful-sql-common:persistent
            , eventful-sql-common:persistent-template
+           , ouroboros-consensus-byron:formatting
 
 constraints:
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
@@ -82,23 +86,25 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-crypto.git
-  tag: f73079303f663e028288f9f4a9e08bcca39a923e
+  tag: ce8f1934e4b6252084710975bd9bbc0a4648ece4
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base
-  tag: 4251c0bb6e4f443f00231d28f5f70d42876da055
+  tag: a715c7f420770b70bbe95ca51d3dec83866cb1bd
   subdir:
     binary
     binary/test
     slotting
     cardano-crypto-class
     cardano-crypto-praos
+    cardano-crypto-tests
+    strict-containers
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-prelude
-  tag: ee4e7b547a991876e6b05ba542f4e62909f4a571
+  tag: fd773f7a58412131512b9f694ab95653ac430852
   subdir:
     cardano-prelude
     cardano-prelude-test
@@ -106,22 +112,25 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: 6cb9052bde39472a0555d19ade8a42da63d3e904
+  tag: e50613562d6d4a0f933741fcf590b0f69a1eda67
   subdir:
     typed-protocols
     typed-protocols-examples
     ouroboros-network
     ouroboros-network-testing
     ouroboros-network-framework
+    ouroboros-consensus
+    ouroboros-consensus-byron
+    ouroboros-consensus-cardano
+    ouroboros-consensus-shelley
     io-sim
     io-sim-classes
     network-mux
-    Win32-network
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/iohk-monitoring-framework
-  tag: 34abfb7f4f5610cabb45396e0496472446a0b2ca
+  tag: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
   subdir:
     iohk-monitoring
     tracer-transformers
@@ -131,7 +140,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: 097890495cbb0e8b62106bcd090a5721c3f4b36f
+  tag: a3ef848542961079b7cd53d599e5385198a3035c
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -143,9 +152,32 @@ source-repository-package
     semantics/small-steps-test
     shelley/chain-and-ledger/dependencies/non-integer
     shelley/chain-and-ledger/executable-spec
+    shelley/chain-and-ledger/shelley-spec-ledger-test
     shelley-ma/impl
+    cardano-ledger-core
+    alonzo/impl
 
--- The following two dependencies are not mirrored in the
+-- A lot of plutus dependencies have to be synchronized with the dependencies of
+-- cardano-node. If you update cardano-node, please make sure that all dependencies
+-- of cardano-node are also updated.
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/cardano-node.git
+  tag: b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6
+  subdir:
+    cardano-api
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/Win32-network
+  tag: 94153b676617f8f33abe8d8182c37377d2784bd1
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/hedgehog-extras
+  tag: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
+
+-- The following dependencies are not mirrored in the
 -- stack.yaml file, but they are needed regardless by cabal.
 source-repository-package
   type: git

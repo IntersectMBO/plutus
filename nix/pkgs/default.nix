@@ -10,7 +10,7 @@ let
 
   gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
 
-  # { index-state, project, projectPackages, packages, extraPackages }
+  # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;

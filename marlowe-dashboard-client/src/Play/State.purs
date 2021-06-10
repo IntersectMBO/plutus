@@ -18,6 +18,7 @@ import ContractHome.Lenses (_contracts)
 import ContractHome.State (handleAction, mkInitialState) as ContractHome
 import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
+import Control.Monad.Reader.Class (ask)
 import Data.Array (difference, head, init, reverse, snoc)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
@@ -236,7 +237,9 @@ handleAction _ (UpdateRunningContracts companionAppState) = do
         ajaxFollowerContract <- followContract walletDetails marloweParams
         case ajaxFollowerContract of
           Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-          Right (plutusAppId /\ history) -> subscribeToPlutusApp plutusAppId
+          Right (plutusAppId /\ history) -> do
+            { dataProvider } <- ask
+            subscribeToPlutusApp dataProvider plutusAppId
 
 handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails

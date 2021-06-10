@@ -270,6 +270,7 @@
           "PlutusIR/Transform/LetFloat"
           "PlutusIR/Transform/Inline"
           "PlutusIR/Transform/Beta"
+          "PlutusIR/Transform/Unwrap"
           "PlutusIR/TypeCheck"
           "UntypedPlutusCore"
           "UntypedPlutusCore/DeBruijn"

@@ -10,6 +10,7 @@ import Contract.Types (Action(..)) as Contract
 import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
+import Control.Monad.Reader.Class (ask)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, use, view)
@@ -95,8 +96,9 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
 
           followAppIds :: Array PlutusAppId
           followAppIds = Set.toUnfoldable $ keys $ view _allContracts playState
-        subscribeToWallet wallet
-        for followAppIds subscribeToPlutusApp
+        { dataProvider } <- ask
+        subscribeToWallet dataProvider wallet
+        for followAppIds $ subscribeToPlutusApp dataProvider
     (WS.WebSocketClosed closeEvent) -> do
       -- TODO: Consider whether we should show an error/warning when this happens. It might be more
       -- confusing than helpful, since the websocket is automatically reopened if it closes for any
@@ -210,12 +212,13 @@ handleAction Init = do
   void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage
 
 handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
-  unsubscribeFromWallet $ view (_walletInfo <<< _wallet) walletDetails
-  unsubscribeFromPlutusApp $ view _companionAppId walletDetails
+  { dataProvider } <- ask
   let
     followerAppIds :: Array PlutusAppId
     followerAppIds = Set.toUnfoldable $ keys followerApps
-  for_ followerAppIds unsubscribeFromPlutusApp
+  unsubscribeFromWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
+  unsubscribeFromPlutusApp dataProvider $ view _companionAppId walletDetails
+  for_ followerAppIds $ unsubscribeFromPlutusApp dataProvider
   assign _subState $ Left $ Pickup.mkInitialState walletLibrary
   liftEffect $ removeItem walletDetailsLocalStorageKey
 
@@ -228,13 +231,14 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupNewWalletCard
       addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
-      subscribeToWallet $ view (_walletInfo <<< _wallet) walletDetails
-      subscribeToPlutusApp $ view _companionAppId walletDetails
-      timezoneOffset <- liftEffect getTimezoneOffset
+      { dataProvider } <- ask
       let
         followerAppIds :: Array PlutusAppId
         followerAppIds = Set.toUnfoldable $ keys followerApps
-      for_ followerAppIds subscribeToPlutusApp
+      subscribeToWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
+      subscribeToPlutusApp dataProvider $ view _companionAppId walletDetails
+      for_ followerAppIds $ subscribeToPlutusApp dataProvider
+      timezoneOffset <- liftEffect getTimezoneOffset
       assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails followerApps currentSlot timezoneOffset
       liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the

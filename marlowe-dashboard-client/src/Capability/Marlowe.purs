@@ -82,10 +82,10 @@ class
   lookupWalletDetails :: PlutusAppId -> m (AjaxResponse WalletDetails)
   getRoleContracts :: WalletDetails -> m (DecodedAjaxResponse (Map MarloweParams MarloweData))
   getFollowerApps :: WalletDetails -> m (DecodedAjaxResponse (Map PlutusAppId ContractHistory))
-  subscribeToPlutusApp :: PlutusAppId -> m Unit
-  subscribeToWallet :: Wallet -> m Unit
-  unsubscribeFromPlutusApp :: PlutusAppId -> m Unit
-  unsubscribeFromWallet :: Wallet -> m Unit
+  subscribeToPlutusApp :: DataProvider -> PlutusAppId -> m Unit
+  subscribeToWallet :: DataProvider -> Wallet -> m Unit
+  unsubscribeFromPlutusApp :: DataProvider -> PlutusAppId -> m Unit
+  unsubscribeFromWallet :: DataProvider -> Wallet -> m Unit
 
 instance monadMarloweAppM :: ManageMarlowe AppM where
   -- create a Wallet, together with a WalletCompanion and a MarloweApp, and return the WalletDetails
@@ -411,10 +411,10 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
                 Just uuid, Just transactionInputs -> Just $ PlutusAppId uuid /\ { chParams: Just $ marloweParams /\ marloweData, chHistory: transactionInputs }
                 _, _ -> Nothing
         pure $ Right $ fromFoldable $ values $ mapMaybeWithKey roleContractsToHistory roleContracts
-  subscribeToPlutusApp = Websocket.subscribeToContract <<< toBack
-  subscribeToWallet = Websocket.subscribeToWallet <<< toBack
-  unsubscribeFromPlutusApp = Websocket.unsubscribeFromContract <<< toBack
-  unsubscribeFromWallet = Websocket.unsubscribeFromWallet <<< toBack
+  subscribeToPlutusApp dataProvider plutusAppId = Websocket.subscribeToContract $ toBack plutusAppId
+  subscribeToWallet dataProvider wallet = Websocket.subscribeToWallet $ toBack wallet
+  unsubscribeFromPlutusApp dataProvider plutusAppId = Websocket.unsubscribeFromContract $ toBack plutusAppId
+  unsubscribeFromWallet dataProvider wallet = Websocket.unsubscribeFromWallet $ toBack wallet
 
 instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m) => ManageMarlowe (HalogenM state action slots Msg m) where
   createWallet = lift createWallet
@@ -435,7 +435,7 @@ instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m) => ManageM
   lookupWalletDetails = lift <<< lookupWalletDetails
   getRoleContracts = lift <<< getRoleContracts
   getFollowerApps = lift <<< getFollowerApps
-  subscribeToPlutusApp = Websocket.subscribeToContract <<< toBack
-  subscribeToWallet = Websocket.subscribeToWallet <<< toBack
-  unsubscribeFromPlutusApp = Websocket.unsubscribeFromContract <<< toBack
-  unsubscribeFromWallet = Websocket.unsubscribeFromWallet <<< toBack
+  subscribeToPlutusApp dataProvider plutusAppId = when (dataProvider /= LocalStorage) $ Websocket.subscribeToContract $ toBack plutusAppId
+  subscribeToWallet dataProvider wallet = when (dataProvider /= LocalStorage) $ Websocket.subscribeToWallet $ toBack wallet
+  unsubscribeFromPlutusApp dataProvider plutusAppId = when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromContract $ toBack plutusAppId
+  unsubscribeFromWallet dataProvider wallet = when (dataProvider /= LocalStorage) $ Websocket.unsubscribeFromWallet $ toBack wallet
