@@ -39,6 +39,8 @@
         "validation/data/stablecoin/*.flat"
         "validation/data/token-account/*.flat"
         "validation/data/vesting/*.flat"
+        "validation/data/marlowe/trustfund/*.flat"
+        "validation/data/marlowe/zerocoupon/*.flat"
         ];
       extraSrcFiles = [];
       extraTmpFiles = [];

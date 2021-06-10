@@ -72,6 +72,8 @@ contractDirs =
     , "stablecoin"
     , "token-account"
     , "vesting"
+    , "marlowe" </> "trustfund"  -- The Marlowe examples aren't included in plutus-use-cases-scripts
+    , "marlowe" </> "zerocoupon"
     ]
 
 fromDeBruijn :: DbProgram -> IO Program
