@@ -48,7 +48,7 @@ let
     config = haskellNix.config // config;
   };
 
-  ghcjsPluginPkgs = if system == builtins.currentSystem && crossSystem == null
+  ghcjsPluginPkgs = if system == builtins.currentSystem && !crossSystem.isGhcjs
                     then null
                     else import ./pkgs {
       pkgs = nativePkgs;
