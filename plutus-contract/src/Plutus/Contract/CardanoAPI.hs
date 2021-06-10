@@ -19,7 +19,8 @@ module Plutus.Contract.CardanoAPI(
   , fromCardanoFee
   , fromCardanoValidityRange
   , fromCardanoAuxScriptData
-  , fromCardanoTxAuxScripts
+  , fromCardanoScriptInEra
+  , toCardanoTxBody
   , toCardanoTxIn
   , toCardanoTxInsCollateral
   , toCardanoTxInWitness
@@ -30,13 +31,14 @@ module Plutus.Contract.CardanoAPI(
   , toCardanoFee
   , toCardanoValidityRange
   , toCardanoAuxScriptData
-  , toCardanoTxAuxScripts
+  , toCardanoScriptInEra
 ) where
 
 import qualified Cardano.Api                 as C
 import qualified Cardano.Api.Shelley         as C
 import qualified Cardano.Ledger.Era          as C
 import qualified Codec.Serialise             as Codec
+import           Data.Bifunctor              (first)
 import           Data.ByteString             (ByteString)
 import qualified Data.ByteString.Lazy        as BSL
 import           Data.ByteString.Short       as BSS
@@ -51,9 +53,8 @@ import qualified Plutus.V1.Ledger.Value      as Value
 import qualified PlutusTx.Data               as Data
 
 fromCardanoTx :: C.Era era => C.Tx era -> Either FromCardanoError P.Tx
-fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) keyWitnesses) = do
+fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
     txOutputs <- traverse fromCardanoTxOut txOuts
-    txForgeScripts <- fromCardanoTxAuxScripts txAuxScripts
     pure $ P.Tx
         { txInputs = Set.fromList $ fmap (P.pubKeyTxIn . fromCardanoTxIn . fst) txIns -- TODO: can create TxInType only with a Build Tx
         , txCollateral = fromCardanoTxInsCollateral txInsCollateral
@@ -62,13 +63,41 @@ fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) keyWitnesses) = do
         , txFee = fromCardanoFee txFee
         , txValidRange = fromCardanoValidityRange txValidityRange
         , txData = Map.fromList $ fmap (\ds -> (P.datumHash ds, ds)) $ fromCardanoAuxScriptData txAuxScriptData
-        , txSignatures = fromCardanoKeyWitnesses keyWitnesses -- TODO: also use txExtraKeyWits?
-        , txForgeScripts = txForgeScripts -- TODO: is this correct?
-        -- not used from Cardano Tx: txMetadata, txExtraKeyWits, txProtocolParams, txWithdrawals, txCertificates, txUpdateProposal
+        , txSignatures = mempty -- TODO: convert from _keyWitnesses?
+        , txForgeScripts = mempty -- only available with a Build Tx
+        }
+
+toCardanoTxBody :: P.Tx -> Either ToCardanoError (C.TxBody C.AlonzoEra)
+toCardanoTxBody P.Tx{..} = do
+    txIns <- traverse toCardanoTxInBuild $ Set.toList txInputs
+    txInsCollateral <- toCardanoTxInsCollateral txCollateral
+    txOuts <- traverse toCardanoTxOut txOutputs
+    txFee' <- toCardanoFee txFee
+    txValidityRange <- toCardanoValidityRange txValidRange
+    txMintValue <- toCardanoMintValue txForge txForgeScripts
+    first TxBodyError $ C.makeTransactionBody C.TxBodyContent
+        { txIns = txIns
+        , txInsCollateral = txInsCollateral
+        , txOuts = txOuts
+        , txFee = txFee'
+        , txValidityRange = txValidityRange
+        , txAuxScriptData = toCardanoAuxScriptData (Map.elems txData)
+        , txMintValue = txMintValue
+        -- unused:
+        , txMetadata = C.TxMetadataNone
+        , txAuxScripts = C.TxAuxScriptsNone
+        , txExtraKeyWits = C.TxExtraKeyWitnessesNone
+        , txProtocolParams = C.BuildTxWith Nothing
+        , txWithdrawals = C.TxWithdrawalsNone
+        , txCertificates = C.TxCertificatesNone
+        , txUpdateProposal = C.TxUpdateProposalNone
         }
 
 fromCardanoTxIn :: C.TxIn -> P.TxOutRef
 fromCardanoTxIn (C.TxIn txId (C.TxIx txIx)) = P.TxOutRef (fromCardanoTxId txId) (toInteger txIx)
+
+toCardanoTxInBuild :: P.TxIn -> Either ToCardanoError (C.TxIn, C.BuildTxWith C.BuildTx (C.Witness C.WitCtxTxIn C.AlonzoEra))
+toCardanoTxInBuild (P.TxIn txInRef txInType) = (,) <$> toCardanoTxIn txInRef <*> (C.BuildTxWith <$> toCardanoTxInWitness txInType)
 
 toCardanoTxIn :: P.TxOutRef -> Either ToCardanoError C.TxIn
 toCardanoTxIn (P.TxOutRef txId txIx) = C.TxIn <$> toCardanoTxId txId <*> pure (C.TxIx (fromInteger txIx))
@@ -113,8 +142,15 @@ toCardanoTxInWitness
         <$> toCardanoPlutusScript validator
         <*> pure (C.ScriptDatumForTxIn $ toCardanoScriptData datum)
         <*> pure (toCardanoScriptData redeemer)
-        <*> toCardanoExecutionUnits validator [datum] -- TODO: is [datum] correct?
+        <*> toCardanoExecutionUnits validator [datum, redeemer] -- TODO: is [datum, redeemer] correct?
         )
+
+toCardanoMintWitness :: P.MonetaryPolicy -> Either ToCardanoError (C.ScriptWitness C.WitCtxMint C.AlonzoEra)
+toCardanoMintWitness (P.MonetaryPolicy script) = C.PlutusScriptWitness C.PlutusScriptV1InAlonzo C.PlutusScriptV1
+    <$> toCardanoPlutusScript script
+    <*> pure C.NoScriptDatumForMint
+    <*> pure (C.ScriptDataNumber 0) -- TODO: redeemers not modelled yet in Plutus MP scripts, value is ignored
+    <*> toCardanoExecutionUnits script [] -- TODO: is [] correct?
 
 fromCardanoTxOut :: C.TxOut era -> Either FromCardanoError P.TxOut
 fromCardanoTxOut (C.TxOut addr value datumHash) =
@@ -190,27 +226,30 @@ fromCardanoMintValue :: C.TxMintValue build era -> P.Value
 fromCardanoMintValue C.TxMintNone              = mempty
 fromCardanoMintValue (C.TxMintValue _ value _) = fromCardanoValue value
 
-toCardanoMintValue :: P.Value -> Either ToCardanoError (C.TxMintValue C.ViewTx C.AlonzoEra)
-toCardanoMintValue value = C.TxMintValue C.MultiAssetInAlonzoEra <$> toCardanoValue value <*> pure C.ViewTx
+toCardanoMintValue :: P.Value -> Set.Set P.MonetaryPolicy -> Either ToCardanoError (C.TxMintValue C.BuildTx C.AlonzoEra)
+toCardanoMintValue value mps =
+    C.TxMintValue C.MultiAssetInAlonzoEra
+        <$> toCardanoValue value
+        <*> (C.BuildTxWith . Map.fromList <$> traverse (\mp -> (,) <$> (toCardanoPolicyId . P.monetaryPolicyHash) mp <*> toCardanoMintWitness mp) (Set.toList mps))
 
 fromCardanoValue :: C.Value -> P.Value
 fromCardanoValue (C.valueToList -> list) = foldMap toValue list
     where
         toValue (C.AdaAssetId, C.Quantity q) = Ada.lovelaceValueOf q
         toValue (C.AssetId policyId assetName, C.Quantity q)
-            = Value.singleton (fromCardanoPolicyId policyId) (fromCardanoAssetName assetName) q
+            = Value.singleton (Value.mpsSymbol $ fromCardanoPolicyId policyId) (fromCardanoAssetName assetName) q
 
 toCardanoValue :: P.Value -> Either ToCardanoError C.Value
 toCardanoValue = fmap C.valueFromList . traverse fromValue . Value.flattenValue
     where
         fromValue (currencySymbol, tokenName, amount) =
-            (,) <$> (C.AssetId <$> toCardanoPolicyId currencySymbol <*> pure (toCardanoAssetName tokenName)) <*> pure (C.Quantity amount)
+            (,) <$> (C.AssetId <$> toCardanoPolicyId (Value.currencyMPSHash currencySymbol) <*> pure (toCardanoAssetName tokenName)) <*> pure (C.Quantity amount)
 
-fromCardanoPolicyId :: C.PolicyId -> Value.CurrencySymbol
-fromCardanoPolicyId (C.PolicyId scriptHash) = Value.CurrencySymbol (C.serialiseToRawBytes scriptHash)
+fromCardanoPolicyId :: C.PolicyId -> P.MonetaryPolicyHash
+fromCardanoPolicyId (C.PolicyId scriptHash) = P.MonetaryPolicyHash (C.serialiseToRawBytes scriptHash)
 
-toCardanoPolicyId :: Value.CurrencySymbol -> Either ToCardanoError C.PolicyId
-toCardanoPolicyId (Value.CurrencySymbol bs) = C.PolicyId <$> deserialiseFromRawBytes C.AsScriptHash bs
+toCardanoPolicyId :: P.MonetaryPolicyHash -> Either ToCardanoError C.PolicyId
+toCardanoPolicyId (P.MonetaryPolicyHash bs) = C.PolicyId <$> deserialiseFromRawBytes C.AsScriptHash bs
 
 fromCardanoAssetName :: C.AssetName -> Value.TokenName
 fromCardanoAssetName (C.AssetName bs) = Value.TokenName bs
@@ -278,16 +317,6 @@ fromCardanoScriptData = C.toPlutusData
 toCardanoScriptData :: Data.Data -> C.ScriptData
 toCardanoScriptData = C.fromPlutusData
 
-fromCardanoKeyWitnesses :: [C.KeyWitness era] -> Map.Map P.PubKey P.Signature
-fromCardanoKeyWitnesses = fromCardanoKeyWitnesses -- TODO
-
-fromCardanoTxAuxScripts :: C.TxAuxScripts era -> Either FromCardanoError (Set.Set P.MonetaryPolicy)
-fromCardanoTxAuxScripts C.TxAuxScriptsNone = pure mempty
-fromCardanoTxAuxScripts (C.TxAuxScripts _ scripts) = fmap Set.fromList . traverse (fmap P.MonetaryPolicy . fromCardanoScriptInEra) $ scripts
-
-toCardanoTxAuxScripts :: Set.Set P.MonetaryPolicy -> Either ToCardanoError (C.TxAuxScripts C.AlonzoEra)
-toCardanoTxAuxScripts = fmap (C.TxAuxScripts C.AuxScriptsInAlonzoEra) . traverse (toCardanoScriptInEra . P.getMonetaryPolicy) . Set.toList
-
 fromCardanoScriptInEra :: C.ScriptInEra era -> Either FromCardanoError P.Script
 fromCardanoScriptInEra (C.ScriptInEra C.PlutusScriptV1InAlonzo (C.PlutusScript C.PlutusScriptV1 script)) =
     pure $ fromCardanoPlutusScript script
@@ -309,7 +338,7 @@ toCardanoExecutionUnits script datum = do
     case Api.evaluateScriptCounting Api.Quiet cmp apiScript datum of
         (_, Left err) -> Left $ EvaluationError err
         (_, Right (Api.ExBudget (Api.ExCPU cpu) (Api.ExMemory memory))) ->
-            pure $ C.ExecutionUnits (fromInteger $ toInteger cpu) (fromInteger $ toInteger memory)
+            pure $ C.ExecutionUnits (fromIntegral cpu) (fromIntegral memory)
 
 deserialiseFromRawBytes :: C.SerialiseAsRawBytes t => C.AsType t -> ByteString -> Either ToCardanoError t
 deserialiseFromRawBytes asType = maybe (Left DeserialisationError) Right . C.deserialiseFromRawBytes asType
@@ -318,7 +347,6 @@ data FromCardanoError
     = SimpleScriptsNotSupported
     | ByronAddressesNotSupported
     | StakeAddressPointersNotSupported
-    deriving (Eq, Show)
 
 instance Pretty FromCardanoError where
     pretty SimpleScriptsNotSupported        = "Simple scripts are not supported"
@@ -327,15 +355,16 @@ instance Pretty FromCardanoError where
 
 data ToCardanoError
     = EvaluationError Api.EvaluationError
+    | TxBodyError (C.TxBodyError C.AlonzoEra)
     | DeserialisationError
     | InvalidValidityRange
     | ValueNotPureAda
     | NoDefaultCostModelParams
     | StakingPointersNotSupported
-    deriving (Eq, Show)
 
 instance Pretty ToCardanoError where
     pretty (EvaluationError err)       = pretty err
+    pretty (TxBodyError err)           = pretty $ C.displayError err
     pretty DeserialisationError        = "ByteString deserialisation failed"
     pretty InvalidValidityRange        = "Invalid validity range"
     pretty ValueNotPureAda             = "Fee values should only contain Ada"
