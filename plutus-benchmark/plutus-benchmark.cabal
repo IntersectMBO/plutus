@@ -155,6 +155,7 @@ benchmark validation
     , directory -any
     , filepath -any
     , flat -any
+    , optparse-applicative -any
     , text -any
     , transformers -any
 

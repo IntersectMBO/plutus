@@ -11,7 +11,9 @@ import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Criterion.Main
+import           Criterion.Main.Options                   (Mode, parseWith)
 import           Criterion.Types                          (Config (..))
+import           Options.Applicative
 
 import           Control.DeepSeq                          (force)
 import           Control.Monad.Trans.Except               (runExceptT)
@@ -29,23 +31,14 @@ scripts. Generating these scripts is a very lengthy process involving building a
 lot of code, so the scripts were generated once and copied to the 'data'
 directory here.
 
-NB. Running these benchmarks with "cabal bench" will use copies of the scripts
-in cabal's private directories (and accessed via Paths_plutus_benchmark), and
-if the a file in 'data' is removed and the benchmarks are re-run, the benchmarking
-code may still be able to access the old copy in cabal's files.
---}
+NB. Running these benchmarks with `stack bench` will use copies of the scripts
+in `.stack_work` (and accessed via Paths_plutus_benchmark), and if a file in
+`data` is removed and the benchmarks are re-run, the benchmarking code may still
+be able to access the old copy in stack's files.  --}
 
-type Term          = UPLC.Term    PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
-type Program       = UPLC.Program PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
-type DbProgram     = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
-
-
-benchCek :: Term -> Benchmarkable
-benchCek program = nf (UPLC.unsafeEvaluateCek PLC.defaultCekParameters) program
-
--- The name of the directory where the scripts are kept.  This must match the
--- location of the files relative to the directory containing the cabal file.
--- IF THE DIRECTORY IS MOVED, THIS MUST BE UPDATED.
+{- | The name of the directory where the scripts are kept.  This must match the
+   location of the files relative to the directory containing the cabal file.
+   IF THE DIRECTORY IS MOVED, THIS MUST BE UPDATED. -}
 getScriptDirectory :: IO FilePath
 getScriptDirectory = do
   root <- getDataDir
@@ -73,6 +66,20 @@ contractDirs =
     , "marlowe" </> "zerocoupon"
     ]
 
+-- | A small subset of the contracts for quick benchmarking
+contractDirs2 :: [FilePath]
+contractDirs2 =
+    [ "crowdfunding"
+    , "prism"
+    , "token-account"
+    , "marlowe" </> "zerocoupon"
+    ]
+
+
+type Term          = UPLC.Term    PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
+type Program       = UPLC.Program PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
+type DbProgram     = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
+
 fromDeBruijn :: DbProgram -> IO Program
 fromDeBruijn prog = do
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
@@ -87,11 +94,15 @@ loadFlat file = do
     Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
     Right r -> do
         p <- fromDeBruijn r
-        return . force $  UPLC.toTerm p  -- `force` to try to ensure that deserialiation's not included in benchmarking time.
+        return . force $  UPLC.toTerm p
+        -- `force` to try to ensure that deserialiation is not included in benchmarking time.
+
+mkCekBM :: Term -> Benchmarkable
+mkCekBM program = nf (UPLC.unsafeEvaluateCek PLC.defaultCekParameters) program
 
 mkScriptBM :: FilePath -> FilePath -> Benchmark
 mkScriptBM dir file =
-    env (loadFlat $ dir </> file) $ \script -> bench (dropExtension file) $ benchCek script
+    env (loadFlat $ dir </> file) $ \script -> bench (dropExtension file) $ mkCekBM script
 
 -- Make a benchmark group including benchmarks for all the files in a given directory.
 mkContractBMs :: FilePath -> IO Benchmark
@@ -101,6 +112,7 @@ mkContractBMs dirName = do
   files <- listDirectory dirPath
   let files' = sort $ filter (isExtensionOf ".flat") files  -- Just in case there's anything else in the directory.
   return $ bgroup dirName $ fmap (mkScriptBM dirPath) files'
+
 
 ----------------------- Main -----------------------
 
@@ -119,6 +131,24 @@ getConfig limit = do
                 timeLimit = limit
               }
 
+-- Extend the options to include `--quick`: see eg https://github.com/haskell/criterion/pull/206
+data BenchOptions = BenchOptions
+  { quick        :: Bool
+  , otherOptions :: Mode  -- The standard options
+  }
+
+parseBenchOptions :: Config -> Parser BenchOptions
+parseBenchOptions cfg = BenchOptions
+  <$> switch
+      (  short 'q'
+      <> long "quick"
+      <> help "Run only a small subset of the benchmarks")
+  <*> parseWith cfg
+
+parserInfo :: Config -> ParserInfo BenchOptions
+parserInfo cfg =
+    info (helper <*> parseBenchOptions cfg) $ header "Plutus Core nofib benchmark suite"
+
 {- Run the benchmarks.  You can run groups of benchmarks by typing things like
      `stack bench -- plutus-benchmark:validation --ba crowdfunding`
    or
@@ -126,6 +156,9 @@ getConfig limit = do
 -}
 main :: IO ()
 main = do
-  config <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
-  benchmarks <- mapM mkContractBMs contractDirs
-  defaultMainWith config benchmarks
+  cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
+  options <- execParser $ parserInfo cfg
+  benchmarks <- if quick options
+                then mapM mkContractBMs contractDirs2
+                else mapM mkContractBMs contractDirs
+  runMode (otherOptions options) benchmarks
