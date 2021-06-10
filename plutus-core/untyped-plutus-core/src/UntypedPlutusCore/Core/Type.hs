@@ -35,7 +35,7 @@ import qualified PlutusCore.Name                        as TPLC
 import           Universe
 
 -- | A global name ('GName') or an underlying name.
-data GName name = GName {-# UNPACK #-} !Word64 | NName !name
+data GName name = GName {-# UNPACK #-} !Int | NName !name
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 

@@ -6,7 +6,6 @@ import           Control.Lens.Fold
 import           Control.Lens.Plated
 import           Control.Monad.Reader
 import           Data.Semigroup
-import           Data.Word
 import qualified PlutusCore.Name               as TPLC
 import           PlutusCore.Quote
 import           UntypedPlutusCore.Core.Plated
@@ -49,10 +48,10 @@ globalifyProgram (Program x v t) = Program x v $ globalifyTerm t
 globalifyTerm :: Term TPLC.Name uni fun ann -> Term (GName TPLC.Name) uni fun ann
 globalifyTerm t = flip runReader (0, mempty) $ gatherGlobals $ runQuote $ rename t
 
-maxGlobal :: Term (GName name) uni fun a -> Word64
+maxGlobal :: Term (GName name) uni fun a -> Int
 maxGlobal t = getMax $ foldMapOf (cosmosOf termSubterms) (\case {LamAbs _ (GName w) _  -> Max w; _ -> Max 0}) t
 
-gatherGlobals :: forall m uni fun ann . (m ~ Reader (Word64, TPLC.UniqueMap TPLC.TermUnique Word64)) => Term TPLC.Name uni fun ann -> m (Term (GName TPLC.Name) uni fun ann)
+gatherGlobals :: forall m uni fun ann . (m ~ Reader (Int, TPLC.UniqueMap TPLC.TermUnique Int)) => Term TPLC.Name uni fun ann -> m (Term (GName TPLC.Name) uni fun ann)
 -- See Note [Globalifying]
 -- This is the key part!
 gatherGlobals (Apply x l r) = Apply x <$> gatherGlobals l <*> rewriteGlobals r
@@ -65,7 +64,7 @@ gatherGlobals (Force x b) = Force x <$> gatherGlobals b
 -- This is just the non-recursive bits
 gatherGlobals t = rewriteGlobals t
 
-rewriteGlobals :: Term TPLC.Name uni fun ann -> Reader (Word64, TPLC.UniqueMap TPLC.TermUnique Word64) (Term (GName TPLC.Name) uni fun ann)
+rewriteGlobals :: Term TPLC.Name uni fun ann -> Reader (Int, TPLC.UniqueMap TPLC.TermUnique Int) (Term (GName TPLC.Name) uni fun ann)
 rewriteGlobals t = do
     m <- asks snd
     let go n  =

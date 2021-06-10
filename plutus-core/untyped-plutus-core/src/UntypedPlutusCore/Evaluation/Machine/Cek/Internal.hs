@@ -8,6 +8,7 @@
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE DeriveAnyClass           #-}
 {-# LANGUAGE FlexibleInstances        #-}
+
 {-# LANGUAGE ImplicitParams           #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
@@ -75,7 +76,6 @@ import           Data.Proxy
 import           Data.STRef
 import           Data.Semigroup                                           (stimes)
 import           Data.Text.Prettyprint.Doc
-import           Data.Word
 import           Data.Word64Array.Word8
 import           Debug.Trace
 import           Universe
@@ -205,7 +205,7 @@ data CekValue uni fun =
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
-type CekGValEnv uni fun s = STArray.STArray s Word64 (CekValue uni fun)
+type CekGValEnv uni fun s = STArray.STArray s Int (CekValue uni fun)
 
 -- | The CEK machine is parameterized over a @spendBudget@ function that has (roughly) the same type
 -- as the one from the 'SpendBudget' class (and so the @SpendBudget@ instance for 'CekM'
@@ -548,7 +548,7 @@ runCekM
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> Bool
-    -> Word64
+    -> Int
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitting gmax a = runST $ do
