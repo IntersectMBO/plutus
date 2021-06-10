@@ -62,6 +62,7 @@ import           Ledger                 (Ada, AssetClass, CurrencySymbol, DatumH
 import           Ledger.Bytes           (LedgerBytes)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude       as P
+import qualified PlutusTx.Ratio         as P
 import           Wallet.Emulator.Wallet (Wallet)
 import           Wallet.Types           (ContractInstanceId)
 
@@ -217,6 +218,12 @@ instance ToSchema Integer where
 
 instance ToArgument Integer where
     toArgument = Fix . FormIntegerF . Just
+
+instance ToSchema P.Rational where
+    toSchema = FormSchemaTuple FormSchemaInteger FormSchemaInteger
+
+instance ToArgument P.Rational where
+    toArgument r = Fix $ FormTupleF (toArgument $ P.numerator r) (toArgument $ P.denominator r)
 
 instance ToSchema Text where
     toSchema = FormSchemaString
