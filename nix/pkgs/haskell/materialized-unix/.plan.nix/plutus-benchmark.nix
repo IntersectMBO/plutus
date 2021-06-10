@@ -32,7 +32,6 @@
         "validation/data/escrow/*.flat"
         "validation/data/future/*.flat"
         "validation/data/game-sm/*.flat"
-        "validation/data/multisig/*.flat"
         "validation/data/multisig-sm/*.flat"
         "validation/data/ping-pong/*.flat"
         "validation/data/prism/*.flat"

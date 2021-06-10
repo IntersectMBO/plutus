@@ -65,7 +65,6 @@ contractDirs =
     , "escrow"
     , "future"
     , "game-sm"
-    , "multisig"
     , "multisig-sm"
     , "ping-pong"
     , "prism"
