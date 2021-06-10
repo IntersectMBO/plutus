@@ -21,7 +21,7 @@ import           Ledger
 import           Ledger.Ada                        (adaSymbol, adaToken)
 import           Ledger.Constraints
 import           Ledger.Value                      as Value
-import           Plutus.Contract                   hiding (throwError, when)
+import           Plutus.Contract                   hiding (throwError)
 import qualified Plutus.Contracts.Currency         as Currency
 import           Plutus.Contracts.Uniswap.OffChain as OffChain
 import           Plutus.Contracts.Uniswap.Types    as Types

@@ -47,7 +47,6 @@ import qualified Data.ByteString.Char8             as BS8
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.Foldable                     (traverse_)
 import           Data.Proxy                        (Proxy (..))
-import           Data.Row                          (AllUniqueLabels, Forall)
 import           Data.Row.Extras                   (type (.\\))
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
@@ -57,7 +56,6 @@ import           Options.Applicative               (CommandFields, Mod, Parser, 
 import qualified Options.Applicative
 import           Playground.Schema                 (EndpointToSchema, endpointsToSchemas)
 import           Plutus.Contract                   (Contract, EmptySchema)
-import           Plutus.Contract.Schema            (Input, Output)
 import qualified Plutus.Contract.State             as ContractState
 import           Prelude                           hiding (getContents)
 import           System.Environment                (getArgs)
@@ -108,11 +106,7 @@ exportSignatureParser =
     info (pure ExportSignature) (fullDesc <> progDesc "Export the contract's signature.")
 
 runCliCommand :: forall w s s2.
-       ( AllUniqueLabels (Input s)
-       , Forall (Input s) FromJSON
-       , Forall (Output s) ToJSON
-       , Forall (Input s) ToJSON
-       , EndpointToSchema (s .\\ s2)
+       ( EndpointToSchema (s .\\ s2)
        , ToJSON w
        , FromJSON w
        , Monoid w
@@ -130,11 +124,7 @@ runCliCommand _ _ ExportSignature = do
   pure $ BSL.toStrict $ JSON.encodePretty r
 
 runUpdate :: forall w s.
-    ( AllUniqueLabels (Input s)
-    , Forall (Input s) FromJSON
-    , Forall (Output s) ToJSON
-    , Forall (Input s) ToJSON
-    , ToJSON w
+    ( ToJSON w
     , FromJSON w
     , Monoid w
     )
@@ -150,11 +140,7 @@ runUpdate contract arg = either (throwError @[BS.ByteString] . return) pure $
 -- | Make a command line app with a schema that includes all of the contract's
 --   endpoints
 commandLineApp :: forall w s.
-       ( AllUniqueLabels (Input s)
-       , Forall (Input s) FromJSON
-       , Forall (Input s) ToJSON
-       , Forall (Output s) ToJSON
-       , EndpointToSchema s
+       ( EndpointToSchema (s .\\ EmptySchema)
        , ToJSON w
        , FromJSON w
        , Monoid w
@@ -166,11 +152,7 @@ commandLineApp = commandLineApp' @w @s @EmptySchema (Proxy @EmptySchema)
 -- | Make a command line app for a contract, excluding some of the contract's
 --   endpoints from the generated schema.
 commandLineApp' :: forall w s s2.
-       ( AllUniqueLabels (Input s)
-       , Forall (Input s) FromJSON
-       , Forall (Input s) ToJSON
-       , Forall (Output s) ToJSON
-       , EndpointToSchema (s .\\ s2)
+       ( EndpointToSchema (s .\\ s2)
        , ToJSON w
        , FromJSON w
        , Monoid w
@@ -181,11 +163,7 @@ commandLineApp' :: forall w s s2.
 commandLineApp' p schema = runPromptIO (contractCliApp p schema)
 
 contractCliApp :: forall w s s2.
-       ( AllUniqueLabels (Input s)
-       , Forall (Input s) FromJSON
-       , Forall (Input s) ToJSON
-       , Forall (Output s) ToJSON
-       , EndpointToSchema (s .\\ s2)
+       ( EndpointToSchema (s .\\ s2)
        , ToJSON w
        , FromJSON w
        , Monoid w

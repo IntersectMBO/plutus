@@ -43,10 +43,10 @@ import qualified Data.UUID                               as UUID
 import           Ledger                                  (Slot, Value, pubKeyHash)
 import           Ledger.AddressMap                       (UtxoMap)
 import           Ledger.Tx                               (Tx, TxOut (txOutValue), TxOutTx (txOutTxOut))
+import           Plutus.Contract.Effects                 (PABReq, _ExposeEndpointReq)
 import           Plutus.PAB.Core                         (PABAction)
 import qualified Plutus.PAB.Core                         as Core
 import qualified Plutus.PAB.Effects.Contract             as Contract
-import           Plutus.PAB.Events.Contract              (ContractPABRequest, _UserEndpointRequest)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..), fromResp)
 import           Plutus.PAB.Types
 import           Plutus.PAB.Webserver.Types
@@ -132,13 +132,13 @@ fromInternalState ::
     t
     -> ContractInstanceId
     -> Wallet
-    -> PartiallyDecodedResponse ContractPABRequest
+    -> PartiallyDecodedResponse PABReq
     -> ContractInstanceClientState t
 fromInternalState t i wallet resp =
     ContractInstanceClientState
         { cicContract = i
         , cicCurrentState =
-            let hks' = mapMaybe (traverse (preview _UserEndpointRequest)) (hooks resp)
+            let hks' = mapMaybe (traverse (preview _ExposeEndpointReq)) (hooks resp)
             in resp { hooks = hks' }
         , cicWallet = wallet
         , cicDefintion = t

@@ -18,7 +18,7 @@ import qualified Data.Semigroup            as Semigroup
 import           Ledger
 import           Ledger.Constraints
 import           Ledger.Value              as Value
-import           Plutus.Contract           hiding (when)
+import           Plutus.Contract
 import qualified Plutus.Contracts.Currency as Currency
 import           Wallet.Emulator.Types     (Wallet (..), walletPubKey)
 

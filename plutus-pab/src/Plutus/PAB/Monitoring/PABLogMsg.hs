@@ -38,12 +38,13 @@ import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
 import           Data.Aeson.Text                         (encodeToLazyText)
 import qualified Data.Text                               as T
+import           Plutus.Contract.Effects                 (PABReq)
 import           Plutus.Contract.Resumable               (Response)
 import           Plutus.Contract.State                   (ContractRequest, ContractResponse)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
-import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
+import           Plutus.PAB.Events.Contract              (ContractInstanceId)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Plutus.PAB.Instances                    ()
 import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
@@ -211,7 +212,7 @@ data CoreMsg t =
     Installing (ContractDef t)
     | Installed
     | FindingContract ContractInstanceId
-    | FoundContract (Maybe (ContractResponse Value Value Value ContractPABRequest))
+    | FoundContract (Maybe (ContractResponse Value Value Value PABReq))
     deriving stock Generic
 
 deriving stock instance (Show (ContractDef t)) => Show (CoreMsg t)
@@ -241,7 +242,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (Co
 
 data ContractEffectMsg =
     SendContractRequest (ContractRequest JSON.Value JSON.Value)
-    | ReceiveContractResponse (PartiallyDecodedResponse ContractPABRequest)
+    | ReceiveContractResponse (PartiallyDecodedResponse PABReq)
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 

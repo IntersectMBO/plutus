@@ -38,16 +38,13 @@ import           Control.Monad.Freer.Error                        (Error, throwE
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
 import           Data.Aeson                                       (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                                       as JSON
-import qualified Data.Aeson.Types                                 as JSON
 import           Data.Bifunctor                                   (Bifunctor (..))
 import           Data.Foldable                                    (traverse_)
 import           Data.Row
-import qualified Data.Text                                        as Text
 
+import           Plutus.Contract.Effects                          (PABReq, PABResp)
 import           Plutus.Contract.Types                            (ResumableResult (..), SuspendedContract (..))
 import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Events.Contract                       (ContractPABRequest)
-import qualified Plutus.PAB.Events.Contract                       as C
 import           Plutus.PAB.Monitoring.PABLogMsg                  (PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                 (PABError (..))
 
@@ -55,7 +52,7 @@ import           Playground.Schema                                (endpointsToSc
 import           Playground.Types                                 (FunctionSchema)
 import           Plutus.Contract                                  (Contract, ContractInstanceId, EmptySchema)
 import           Plutus.Contract.Resumable                        (Response)
-import           Plutus.Contract.Schema                           (Event, Input, Output)
+import           Plutus.Contract.Schema                           (Input, Output)
 import           Plutus.Contract.State                            (ContractResponse (..))
 import qualified Plutus.Contract.State                            as ContractState
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog, ProcessFirstInboxMessage))
@@ -112,9 +109,9 @@ handleBuiltin mkSchema initialise = \case
     UpdateContract i _ state p -> case state of SomeBuiltinState s w -> updateBuiltin i s w p
     ExportSchema a             -> pure $ mkSchema a
 
-getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value Value ContractPABRequest
+getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value Value PABReq
 getResponse (SomeBuiltinState s w) =
-    bimap JSON.toJSON (C.unContractHandlerRequest . fromJSON' . JSON.toJSON)
+    bimap JSON.toJSON id
     $ ContractState.mapE JSON.toJSON
     $ ContractState.mapW JSON.toJSON
     $ ContractState.mkResponse w
@@ -143,14 +140,13 @@ updateBuiltin ::
     => ContractInstanceId
     -> Emulator.ContractInstanceStateInternal w schema error b
     -> w
-    -> Response C.ContractPABResponse
+    -> Response PABResp
     -> Eff effs (SomeBuiltinState a)
-updateBuiltin i oldState oldW event = do
-    resp <- traverse toEvent event
+updateBuiltin i oldState oldW resp = do
     let newState = Emulator.addEventInstanceState resp oldState
     case newState of
         Just k -> do
-            logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i event)
+            logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i resp)
             logNewMessages @a i k
             let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
             pure (SomeBuiltinState k newW)
@@ -166,20 +162,3 @@ logNewMessages ::
 logNewMessages i ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult=ResumableResult{_lastLogs, _observableState}}} = do
     traverse_ (send @(LogMsg (PABMultiAgentMsg (Builtin b))) . LMessage . fmap (ContractInstanceLog . ContractLog i)) _lastLogs
 
-toEvent ::
-    forall schema effs.
-    ( Member (Error PABError) effs
-    , AllUniqueLabels (Input schema)
-    , Forall (Input schema) FromJSON
-    )
-    => C.ContractPABResponse
-    -> Eff effs (Either () (Event schema))
-toEvent = fromJSON . JSON.toJSON . C.ContractHandlersResponse
-
-fromJSON :: (Member (Error PABError) effs, FromJSON a) => Value -> Eff effs a
-fromJSON =
-    either (throwError . OtherError . Text.pack) pure
-    . JSON.parseEither JSON.parseJSON
-
-fromJSON' :: FromJSON a => Value -> a
-fromJSON' = either (\x -> error $ "fromJSON'" <> show x) id . JSON.parseEither JSON.parseJSON

@@ -102,7 +102,7 @@ import qualified Ledger.Ada                                     as Ada
 import           Ledger.Crypto                                  (PubKey, pubKeyHash)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
-import           Plutus.Contract.Effects.AwaitTxConfirmed       (TxConfirmed)
+import           Plutus.Contract.Effects                        (TxConfirmed)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv

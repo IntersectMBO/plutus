@@ -46,27 +46,26 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , runningInstances
     ) where
 
-import           Control.Applicative                      (Alternative (..))
-import           Control.Concurrent.STM                   (STM, TMVar, TVar)
-import qualified Control.Concurrent.STM                   as STM
-import           Control.Lens                             (view)
-import           Control.Monad                            (guard)
-import           Data.Aeson                               (Value)
-import           Data.Foldable                            (fold)
-import           Data.Map                                 (Map)
-import qualified Data.Map                                 as Map
-import           Data.Set                                 (Set)
-import qualified Data.Set                                 as Set
-import           Ledger                                   (Address, Slot, TxId, txOutTxOut, txOutValue)
-import           Ledger.AddressMap                        (AddressMap)
-import qualified Ledger.AddressMap                        as AM
-import qualified Ledger.Value                             as Value
-import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointValue (..))
-import           Plutus.Contract.Resumable                (IterationID, Request (..), RequestID)
-import           Wallet.Emulator.ChainIndex.Index         (ChainIndex)
-import           Wallet.Types                             (ContractInstanceId, EndpointDescription,
-                                                           NotificationError (..))
+import           Control.Applicative              (Alternative (..))
+import           Control.Concurrent.STM           (STM, TMVar, TVar)
+import qualified Control.Concurrent.STM           as STM
+import           Control.Lens                     (view)
+import           Control.Monad                    (guard)
+import           Data.Aeson                       (Value)
+import           Data.Foldable                    (fold)
+import           Data.Map                         (Map)
+import qualified Data.Map                         as Map
+import           Data.Set                         (Set)
+import qualified Data.Set                         as Set
+import           Ledger                           (Address, Slot, TxId, txOutTxOut, txOutValue)
+import           Ledger.AddressMap                (AddressMap)
+import qualified Ledger.AddressMap                as AM
+import qualified Ledger.Value                     as Value
+import           Plutus.Contract.Effects          (ActiveEndpoint (..), TxConfirmed (..))
+import           Plutus.Contract.Resumable        (IterationID, Request (..), RequestID)
+import           Wallet.Emulator.ChainIndex.Index (ChainIndex)
+import           Wallet.Types                     (ContractInstanceId, EndpointDescription, EndpointValue (..),
+                                                   NotificationError (..))
 
 {- Note [Contract instance thread model]
 
