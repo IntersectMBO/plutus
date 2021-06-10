@@ -44,21 +44,25 @@ import           Flat                          (flat)
 
 import qualified Data.ByteString               as BS
 import qualified Data.ByteString.Unsafe        as BSUnsafe
+import           Data.List                     (isPrefixOf)
 import qualified Data.Map                      as Map
+import           Data.Maybe                    (fromMaybe)
 import qualified Data.Text.Prettyprint.Doc     as PP
 import           Data.Traversable
 import           ErrorCode
 import qualified FamInstEnv                    as GHC
+import           Text.Read                     (readMaybe)
 
 import           System.IO.Unsafe              (unsafePerformIO)
 
 data PluginOptions = PluginOptions {
-    poDoTypecheck    :: Bool
-    , poDeferErrors  :: Bool
-    , poContextLevel :: Int
-    , poDumpPir      :: Bool
-    , poDumpPlc      :: Bool
-    , poOptimize     :: Bool
+    poDoTypecheck               :: Bool
+    , poDeferErrors             :: Bool
+    , poContextLevel            :: Int
+    , poDumpPir                 :: Bool
+    , poDumpPlc                 :: Bool
+    , poOptimize                :: Bool
+    , poMaxSimplifierIterations :: Int
     }
 
 data PluginCtx = PluginCtx
@@ -126,9 +130,22 @@ parsePluginArgs args = do
             , poDumpPir = elem "dump-pir" args
             , poDumpPlc = elem "dump-plc" args
             , poOptimize = notElem "dont-optimize" args
+            , poMaxSimplifierIterations = maxIterations
             }
     -- TODO: better parsing with failures
     pure opts
+    where
+        prefix :: String
+        prefix = "max-simplifier-iterations="
+        defaultIterations :: Int
+        defaultIterations = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
+        maxIterations :: Int
+        maxIterations = case filter (isPrefixOf prefix) args of
+            match : _ ->
+                let val = drop (length prefix) match in
+                    fromMaybe defaultIterations (readMaybe val)
+            _ -> defaultIterations
+
 
 {- Note [Marker resolution]
 We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as
@@ -316,6 +333,7 @@ runCompiler opts expr = do
                       else Nothing
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
                  & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (poMaxSimplifierIterations opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
 
     -- GHC.Core -> Pir translation.

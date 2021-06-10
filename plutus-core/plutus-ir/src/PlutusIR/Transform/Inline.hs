@@ -15,6 +15,7 @@ module PlutusIR.Transform.Inline (inline) where
 
 import           PlutusIR
 import qualified PlutusIR.Analysis.Dependencies as Deps
+import qualified PlutusIR.Analysis.Usages       as Usages
 import           PlutusIR.Mark
 import           PlutusIR.MkPir
 import           PlutusIR.Purity
@@ -104,10 +105,14 @@ type ExternalConstraints tyname name uni fun =
 
 type Inlining tyname name uni fun a m =
     ( MonadState (Subst tyname name uni fun a) m
-    , MonadReader Deps.StrictnessMap m
+    , MonadReader InlineInfo m
     , MonadQuote m
     , ExternalConstraints tyname name uni fun
     )
+
+data InlineInfo = InlineInfo { _strictnessMap :: Deps.StrictnessMap
+                             , _usages        :: Usages.Usages
+                             }
 
 lookupTerm
     :: (HasUnique name TermUnique)
@@ -154,15 +159,18 @@ inline
     :: ExternalConstraints tyname name uni fun
     => Term tyname name uni fun a
     -> Term tyname name uni fun a
-inline t =
-    let
+inline t = flip runReader inlineInfo $ flip evalStateT mempty $ runQuoteT $ do
+    -- Ensure that we can safely rename inside that term
+    markNonFreshTerm t
+    processTerm t
+  where
+        inlineInfo :: InlineInfo
+        inlineInfo = InlineInfo (snd deps) usgs
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
         deps = Deps.runTermDeps t
-    in flip runReader (snd deps) $ flip evalStateT mempty $ runQuoteT $ do
-        -- Ensure that we can safely rename inside that term
-        markNonFreshTerm t
-        processTerm t
+        usgs :: Map.Map Unique Int
+        usgs = Usages.runTermUsages t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
@@ -213,7 +221,6 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         -- further optimization here.
         Done t -> PLC.rename t
 
-
 {- Note [Inlining various kinds of binding]
 We can inline term and type bindings, we can't do anything with datatype bindings.
 
@@ -249,21 +256,40 @@ processSingleBinding = \case
     -- Not a strict binding, just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm
 
+-- NOTE:  Nothing means that we are inlining the term:
+--   * we have extended the substitution, and
+--   * we are removing the binding (hence we return Nothing)
 maybeAddSubst
-    :: Inlining tyname name uni fun a m
+    :: forall tyname name uni fun a m . Inlining tyname name uni fun a m
     => Strictness
     -> name
     -> Term tyname name uni fun a
     -> m (Maybe (Term tyname name uni fun a))
 maybeAddSubst s n rhs = do
-    -- Only do PostInlineUnconditional
-    -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
     rhs' <- processTerm rhs
-    doInline <- postInlineUnconditional s rhs'
-    if doInline then do
-        modify (\subst -> extendTerm n (Done rhs') subst)
-        pure Nothing
-    else pure $ Just rhs'
+    preUnconditional <- preInlineUnconditional n rhs'
+    if preUnconditional then do
+        extendAndDrop (Done rhs')
+    else do
+        -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+        postUnconditional <- postInlineUnconditional s rhs'
+        if postUnconditional then
+            extendAndDrop (Done rhs')
+        -- NOTE:  keep the processed binding
+        else pure $ Just rhs'
+    where
+        extendAndDrop :: forall b. InlineTerm tyname name uni fun a -> m (Maybe b)
+        extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
+
+preInlineUnconditional :: Inlining tyname name uni fun a m => name -> Term tyname name uni fun a -> m Bool
+preInlineUnconditional n t = do
+    usgs <- asks _usages
+    let usedOnce = Usages.isUsedOnce n usgs
+    let termIsLambda = case t of
+            LamAbs{} -> True
+            TyAbs{}  -> True
+            _        -> False
+    pure $ usedOnce && termIsLambda
 
 {- Note [Inlining criteria]
 What gets inlined? We don't really care about performance here, so we're really just
@@ -289,11 +315,11 @@ unconditionally.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 postInlineUnconditional :: Inlining tyname name uni fun a m => Strictness -> Term tyname name uni fun a -> m Bool
 postInlineUnconditional s t = do
-    strictnessMap <- ask
+    strctMap <- asks _strictnessMap
     let -- See Note [Inlining criteria]
         termIsTrivial = trivialTerm t
         -- See Note [Inlining and purity]
-        strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strictnessMap
+        strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
         termIsPure = case s of { Strict -> isPure strictnessFun t; NonStrict -> True; }
     pure $ termIsTrivial && termIsPure
 
