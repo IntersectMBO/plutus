@@ -71,7 +71,6 @@
         "bifunctors".revision = (((hackage."bifunctors")."5.5.7").revisions).default;
         "bifunctors".flags.semigroups = true;
         "bifunctors".flags.tagged = true;
-        "pure-zlib".revision = (((hackage."pure-zlib")."0.6.7").revisions).default;
         "monoidal-containers".revision = (((hackage."monoidal-containers")."0.6.0.1").revisions).default;
         "monoidal-containers".flags.split-these = true;
         "extra".revision = (((hackage."extra")."1.7.9").revisions).default;
@@ -224,7 +223,6 @@
         "recursion-schemes".revision = (((hackage."recursion-schemes")."5.1.3").revisions).default;
         "recursion-schemes".flags.template-haskell = true;
         "optics-th".revision = (((hackage."optics-th")."0.3.0.2").revisions).default;
-        "boxes".revision = (((hackage."boxes")."0.1.5").revisions).default;
         "validation".revision = (((hackage."validation")."1.1.1").revisions).default;
         "http-conduit".revision = (((hackage."http-conduit")."2.3.8").revisions).default;
         "http-conduit".flags.aeson = true;
