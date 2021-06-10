@@ -62,7 +62,6 @@ module.exports = {
       none: "none",
       sm: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
       DEFAULT: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
-      "top-left": "-10px -10px 15px -3px rgba(0,0,0,0.2), 0 -5px 6px -2px rgba(0,0,0,0.04)",
       lg: "0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.04)",
       xl: "0 25px 50px -12px rgba(0,0,0,0.25)",
       deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
@@ -75,8 +74,11 @@ module.exports = {
       },
       height: {
         // This corresponds to the height of the hero image
-        // FIXME: put this as max-height and use a proportion of the screen as the size
         main: "700px",
+        "banner-section-sm": "308px",
+        "banner-section": "470px",
+        "play-img-sm": "100px",
+        "play-img-md": "200px",
       },
       maxWidth: {
         // All content must be at most this size and centered if the screen is wider
@@ -84,7 +86,13 @@ module.exports = {
       },
       backgroundImage: (theme) => ({
         main: "url('/static/img/hero-background.jpg')",
+        "play-banner": "url('/static/img/marlowe-play-banner-background-mobile.png')",
+        "market-banner": "url('/static/img/marlowe-market-banner-background-mobile.png')",
       }),
+      backgroundPosition: {
+        "pos-play-banner-mobile": "-118px",
+        "pos-market-banner-mobile": "76px",
+      },
       borderWidth: {
         3: "3px",
       },
@@ -131,7 +139,7 @@ module.exports = {
     alignSelf: true,
     justifyItems: false,
     justifyContent: true,
-    justifySelf: false,
+    justifySelf: true,
     flex: true,
     flexGrow: true,
     flexShrink: true,
