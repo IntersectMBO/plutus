@@ -12,8 +12,8 @@
 , rPackages
 , z3
 , enableHaskellProfiling
-, nativePlutus ? null
-, jsPlutus ? null
+, ghcjsPluginPkgs ? null
+, cabalProjectLocal ? null
 }:
 let
   # The Hackage index-state from cabal.project
@@ -43,7 +43,7 @@ let
       inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
       inherit enableHaskellProfiling;
       inherit deferPluginErrors;
-      inherit nativePlutus;
+      inherit ghcjsPluginPkgs cabalProjectLocal;
     };
   project = baseProject { deferPluginErrors = false; };
   # The same as above, but this time with we defer plugin errors so that we

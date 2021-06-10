@@ -27,13 +27,13 @@
 , enableHaskellProfiling ? false
 }:
 let
-  inherit (packages) pkgs plutus nativePlutus sources;
+  inherit (packages) pkgs plutus ghcjsPluginPkgs sources;
   inherit (pkgs) lib haskell-nix;
   inherit (plutus) haskell agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
-  inherit pkgs plutus nativePlutus;
+  inherit pkgs plutus ghcjsPluginPkgs;
 
   inherit (plutus) web-ghc;
 
