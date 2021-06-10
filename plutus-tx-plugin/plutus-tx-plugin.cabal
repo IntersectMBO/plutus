@@ -108,5 +108,4 @@ test-suite plutus-tx-tests
         lens -any,
         ghc-prim -any,
     -- this makes the plugin give better errors
-    -- NOTE: we are disabling the simplifier
-    ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0
+    ghc-options: -g

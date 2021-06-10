@@ -1,11 +1,5 @@
 (program
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (builtin addInteger)
-    )
-    (lam ds (con integer) (lam ds (con integer) [ [ addInteger ds ] ds ]))
+  (lam
+    ds (con integer) (lam ds (con integer) [ [ (builtin addInteger) ds ] ds ])
   )
 )

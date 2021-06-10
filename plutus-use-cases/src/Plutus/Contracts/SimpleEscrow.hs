@@ -13,7 +13,6 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=4 #-}
 
 -- | This simple escrow contract facilitiates and exchange of currencies.
 module Plutus.Contracts.SimpleEscrow

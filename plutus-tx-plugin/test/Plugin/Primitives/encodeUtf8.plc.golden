@@ -1,11 +1,1 @@
-(program
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl encodeUtf (fun (con string) (con bytestring)))
-      (builtin encodeUtf8)
-    )
-    [ encodeUtf (con string "abc") ]
-  )
-)
+(program [ (builtin encodeUtf8) (con string "abc") ])

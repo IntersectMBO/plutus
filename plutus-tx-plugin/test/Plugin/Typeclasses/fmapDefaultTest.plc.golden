@@ -1,20 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind (strict) (vardecl ds (con integer)) (con integer 1))
-    (termbind
-      (strict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (builtin addInteger)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        fAdditiveSemigroupInteger
-        [(lam a (type) (fun a (fun a a))) (con integer)]
-      )
-      addInteger
-    )
     (datatypebind
       (datatype
         (tyvardecl Monoid (fun (type) (type)))
@@ -611,13 +597,10 @@
                         (con integer)
                         [
                           [
-                            [
-                              { bad_name (con integer) }
-                              fAdditiveSemigroupInteger
-                            ]
+                            [ { bad_name (con integer) } (builtin addInteger) ]
                             ds
                           ]
-                          ds
+                          (con integer 1)
                         ]
                       )
                     ]
