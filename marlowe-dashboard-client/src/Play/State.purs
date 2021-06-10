@@ -45,7 +45,7 @@ import InputField.Types (Action(..), State) as InputField
 import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Execution (NamedAction(..))
+import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.PAB (ContractHistory, PlutusAppId(..))
 import Marlowe.Semantics (Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
