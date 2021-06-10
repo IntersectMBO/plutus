@@ -1,16 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind
-      (strict)
-      (vardecl fAdditiveMonoidInteger_czero (con integer))
-      (con integer 0)
-    )
-    (termbind
-      (strict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (builtin addInteger)
-    )
     (datatypebind
       (datatype
         (tyvardecl AdditiveMonoid (fun (type) (type)))
@@ -26,8 +16,8 @@
       (nonstrict)
       (vardecl fAdditiveMonoidInteger [AdditiveMonoid (con integer)])
       [
-        [ { CConsAdditiveMonoid (con integer) } addInteger ]
-        fAdditiveMonoidInteger_czero
+        [ { CConsAdditiveMonoid (con integer) } (builtin addInteger) ]
+        (con integer 0)
       ]
     )
     (datatypebind
@@ -165,14 +155,6 @@
           (let
             (nonrec)
             (termbind
-              (nonstrict)
-              (vardecl
-                fFoldableNil
-                [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) List]
-              )
-              fFoldableNil_cfoldMap
-            )
-            (termbind
               (strict)
               (vardecl
                 build
@@ -288,7 +270,7 @@
             )
             [
               [
-                [ { { sum List } (con integer) } fFoldableNil ]
+                [ { { sum List } (con integer) } fFoldableNil_cfoldMap ]
                 fAdditiveMonoidInteger
               ]
               [

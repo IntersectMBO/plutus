@@ -40,15 +40,14 @@ makeLenses ''PirTCConfig
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
-data CompilationOpts = CompilationOpts {
-      _coOptimize                :: Bool
-    , _coMaxSimplifierIterations :: Int
+newtype CompilationOpts = CompilationOpts {
+    _coOptimize :: Bool
     } deriving (Eq, Show)
 
 makeLenses ''CompilationOpts
 
 defaultCompilationOpts :: CompilationOpts
-defaultCompilationOpts = CompilationOpts True 8
+defaultCompilationOpts = CompilationOpts True
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts

@@ -1,13 +1,7 @@
 (program
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl
-        divideInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin divideInteger)
-    )
-    (lam ds (con integer) (lam ds (con integer) [ [ divideInteger ds ] ds ]))
+  (lam
+    ds
+    (con integer)
+    (lam ds (con integer) [ [ (builtin divideInteger) ds ] ds ])
   )
 )

@@ -21,23 +21,17 @@
         (lam
           arg
           (con integer)
-          [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+          (let
+            (nonrec)
+            (termbind
+              (strict)
+              (vardecl b (con bool))
+              [ [ (builtin equalsInteger) arg ] arg ]
             )
-            [ [ (builtin equalsInteger) arg ] arg ]
-          ]
+            [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+          )
         )
       )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin subtractInteger)
     )
     (let
       (rec)
@@ -59,7 +53,9 @@
               (lam
                 thunk
                 Unit
-                [ oddDirect [ [ subtractInteger n ] (con integer 1) ] ]
+                [
+                  oddDirect [ [ (builtin subtractInteger) n ] (con integer 1) ]
+                ]
               )
             ]
             Unit
@@ -84,7 +80,9 @@
               (lam
                 thunk
                 Unit
-                [ evenDirect [ [ subtractInteger n ] (con integer 1) ] ]
+                [
+                  evenDirect [ [ (builtin subtractInteger) n ] (con integer 1) ]
+                ]
               )
             ]
             Unit
