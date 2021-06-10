@@ -1,8 +1,5 @@
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Main where
 
@@ -46,8 +43,8 @@ type DbProgram     = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
 benchCek :: Term -> Benchmarkable
 benchCek program = nf (UPLC.unsafeEvaluateCek PLC.defaultCekParameters) program
 
--- The name of the directory where the scripts are kept.
--- This must match the location of the files relative to the directory containing the cabal file.
+-- The name of the directory where the scripts are kept.  This must match the
+-- location of the files relative to the directory containing the cabal file.
 -- IF THE DIRECTORY IS MOVED, THIS MUST BE UPDATED.
 getScriptDirectory :: IO FilePath
 getScriptDirectory = do
@@ -122,11 +119,10 @@ getConfig limit = do
                 timeLimit = limit
               }
 
-{- Run the benchmarks.  You can run groups of  benchmarks by typing things like
+{- Run the benchmarks.  You can run groups of benchmarks by typing things like
      `stack bench -- plutus-benchmark:validation --ba crowdfunding`
    or
      `cabal bench -- -plutus-benchmark:validation --benchmark-options crowdfunding`.
-   To
 -}
 main :: IO ()
 main = do
