@@ -54,6 +54,8 @@ let
           packages = import ./default.nix { inherit system crossSystem; checkMaterialization = true; };
           # haskell.nix bug. If we set checkMaterialization, plan-nix.json doesn't exist on project.
           packages2 = import ./default.nix { inherit system crossSystem; };
+          nativePackages = import ./default.nix { inherit system; };
+
           pkgs = packages.pkgs;
           plutus = packages.plutus;
           isBuildable = platformFilterGeneric pkgs system;
@@ -82,8 +84,16 @@ let
         #   shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
         #     disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
         #   });
-        })) // {
+        })) // rec {
+          inherit (nativePackages.plutus) cabal-plan;
           plan-json = packages2.plutus.haskell.project.plan-nix.json;
+          dependencies-tred = (import sources.nixpkgs { }).stdenv.mkDerivation {
+            name = "dependencies-tred";
+            phases = [ "buildPhase" ];
+            buildPhase = ''
+              ${cabal-plan}/bin/cabal-plan tred --plan-json ${plan-json} | tee $out
+            '';
+          };
         };
     in
     dimension "System" systems (name: sys: _select name sys null)
