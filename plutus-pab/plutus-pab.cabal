@@ -80,18 +80,12 @@ library
         Plutus.PAB.Db.Beam
         Plutus.PAB.Db.Beam.ContractStore
         Plutus.PAB.Db.Beam.ContractDefinitionStore
-        Plutus.PAB.Db.Eventful
-        Plutus.PAB.Db.Eventful.Command
-        Plutus.PAB.Db.Eventful.ContractDefinitionStore
-        Plutus.PAB.Db.Eventful.ContractStore
-        Plutus.PAB.Db.Eventful.Query
         Plutus.PAB.Db.Memory.ContractStore
         Plutus.PAB.Effects.Contract
         Plutus.PAB.Effects.Contract.Builtin
         Plutus.PAB.Effects.Contract.ContractExe
         Plutus.PAB.Effects.ContractRuntime
         Plutus.PAB.Effects.DbStore
-        Plutus.PAB.Effects.EventLog
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Effects.TimeEffect
         Plutus.PAB.Instances
@@ -139,10 +133,6 @@ library
         cborg -any,
         directory -any,
         errors -any,
-        eventful-core -any,
-        eventful-memory -any,
-        eventful-sql-common -any,
-        eventful-sqlite -any,
         freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
@@ -160,8 +150,6 @@ library
         optparse-applicative -any,
         ouroboros-network -any,
         ouroboros-network-framework -any,
-        persistent -any,
-        persistent-sqlite -any,
         playground-common -any,
         plutus-ledger-api -any,
         prettyprinter >=1.1.0.1,
@@ -358,8 +346,6 @@ executable plutus-pab-test-psgenerator
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
-        eventful-core -any,
-        eventful-memory -any,
         freer-extras -any,
         freer-simple -any,
         http-client -any,
@@ -406,8 +392,6 @@ test-suite plutus-pab-test-light
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
-        eventful-core -any,
-        eventful-memory -any,
         freer-extras -any,
         freer-simple -any,
         http-client -any,
@@ -452,8 +436,6 @@ test-suite plutus-pab-test-full
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
-        eventful-core -any,
-        eventful-memory -any,
         freer-extras -any,
         freer-simple -any,
         http-client -any,

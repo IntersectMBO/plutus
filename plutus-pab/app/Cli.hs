@@ -19,6 +19,7 @@ module Cli (ConfigCommandArgs(..), runConfigCommand, runNoConfigCommand) where
 -- Command interpretation
 -----------------------------------------------------------------------------------------------------------------------
 
+-- TODO: Resolve this note.
 {- Note [Use of iohk-monitoring in PAB]
 
 We use the 'iohk-monitoring' package to process the log messages that come
@@ -42,7 +43,7 @@ this instance was by pulling both 'MonadLogger' and 'MonadUnliftIO' into the
 base monad of the 'AppBackend' effects stack.
 
 The 'MonadLogger' and 'MonadUnliftIO' constraints propagate up to the top level
-via 'Plutus.PAB.Effects.EventLog.handleEventLogSql'. Both instances are
+via 'Plutus.PAB.Effects.DbStore.handleDbStore'. Both instances are
 provided by 'Plutus.PAB.Monitoring.MonadLoggerBridge.TraceLoggerT', which translates
 'MonadLogger' calls to 'Tracer' calls. This is why the base monad of the
 effects stack in 'runConfigCommand' is 'TraceLoggerT IO' instead of just 'IO'.
