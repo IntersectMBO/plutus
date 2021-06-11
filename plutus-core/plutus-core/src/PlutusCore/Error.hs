@@ -67,6 +67,9 @@ data ParseError ann
     | InvalidBuiltinConstant ann T.Text T.Text
     deriving (Eq, Generic, NFData, Functor)
 
+instance (Eq ann) => (Ord (ParseError ann)) where
+    compare _ _ = EQ
+
 makeClassyPrisms ''ParseError
 
 instance Pretty ann => Show (ParseError ann)
