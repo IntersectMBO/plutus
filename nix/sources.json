@@ -1,4 +1,16 @@
 {
+    "cardano-repo-tool": {
+        "branch": "master",
+        "description": "A tool for handling the update of Cardano related git repos",
+        "homepage": "",
+        "owner": "input-output-hk",
+        "repo": "cardano-repo-tool",
+        "rev": "71b1333552989093a89e6b04c5397f0b7bb9d0d0",
+        "sha256": "0fxk26dhi9y00sil9kkhf7yqsp3ydy4xi64rnws77881rlxhyqhc",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/cardano-repo-tool/archive/71b1333552989093a89e6b04c5397f0b7bb9d0d0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "easy-purescript-nix": {
         "branch": "master",
         "builtin": false,
@@ -60,6 +72,18 @@
         "sha256": "168vj5zswhxvvgp39ksr400gl2szih9sjbcdz2wsb7r7rnwp42xp",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/haskell.nix/archive/87084d65a476cc826a0e8c5d281d494254f5bc7a.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "iohk-nix": {
+        "branch": "master",
+        "description": "nix scripts shared across projects",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "iohk-nix",
+        "rev": "7f57f750e27c84def8e0ed2492eea01ea957cbf2",
+        "sha256": "0dpcibd0sn4a5687nywhd9j5pg6qpcwgjn6qxannj6isiv932m8a",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/7f57f750e27c84def8e0ed2492eea01ea957cbf2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -137,18 +161,6 @@
         "sha256": "18dpgyk5hrc6w3f9nwsb22k5ar9q5c8x40mszxzqmrdhkrymrykk",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/stackage.nix/archive/e32c8b06d56954865725514ce0d98d5d1867e43a.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "iohk-nix": {
-        "branch": "master",
-        "description": "nix scripts shared across projects",
-        "homepage": null,
-        "owner": "input-output-hk",
-        "repo": "iohk-nix",
-        "rev": "7f57f750e27c84def8e0ed2492eea01ea957cbf2",
-        "sha256": "0dpcibd0sn4a5687nywhd9j5pg6qpcwgjn6qxannj6isiv932m8a",
-        "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/7f57f750e27c84def8e0ed2492eea01ea957cbf2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

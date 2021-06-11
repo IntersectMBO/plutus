@@ -70,6 +70,7 @@ let
   localInputs = (with plutus; [
     aws-mfa-login
     cabal-install
+    cardano-repo-tool
     fixPurty
     fixStylishHaskell
     haskell-language-server
