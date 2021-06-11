@@ -14,7 +14,7 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
 import InputField.Types (Action, State) as InputField
-import Marlowe.Execution (NamedAction)
+import Marlowe.Execution.Types (NamedAction)
 import Marlowe.PAB (MarloweData, MarloweParams)
 import Marlowe.Semantics (Slot, TokenName)
 import Template.Types (Action, State) as Template

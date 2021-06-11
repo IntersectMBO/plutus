@@ -18,7 +18,7 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Set (Set)
 import Data.Symbol (SProxy(..))
-import Marlowe.Execution (ExecutionState, NamedAction)
+import Marlowe.Execution.Types (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics as Semantic
