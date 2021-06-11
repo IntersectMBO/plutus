@@ -8,8 +8,8 @@ Interface to the transaction types from 'cardano-api'
 
 -}
 module Plutus.Contract.CardanoAPI(
-    fromCardanoTx
-  , fromCardanoTxIn
+    -- fromCardanoTx
+  fromCardanoTxIn
   , fromCardanoTxInsCollateral
   , fromCardanoTxInWitness
   , fromCardanoTxOut
@@ -36,7 +36,7 @@ module Plutus.Contract.CardanoAPI(
 
 import qualified Cardano.Api                 as C
 import qualified Cardano.Api.Shelley         as C
-import qualified Cardano.Ledger.Era          as C
+-- import qualified Cardano.Ledger.Era          as C
 import qualified Codec.Serialise             as Codec
 import           Data.Bifunctor              (first)
 import           Data.ByteString             (ByteString)
@@ -52,20 +52,20 @@ import qualified Plutus.V1.Ledger.Credential as Credential
 import qualified Plutus.V1.Ledger.Value      as Value
 import qualified PlutusTx.Data               as Data
 
-fromCardanoTx :: C.Era era => C.Tx era -> Either FromCardanoError P.Tx
-fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
-    txOutputs <- traverse fromCardanoTxOut txOuts
-    pure $ P.Tx
-        { txInputs = Set.fromList $ fmap (P.pubKeyTxIn . fromCardanoTxIn . fst) txIns -- TODO: can create TxInType only with a Build Tx
-        , txCollateral = fromCardanoTxInsCollateral txInsCollateral
-        , txOutputs = txOutputs
-        , txForge = fromCardanoMintValue txMintValue
-        , txFee = fromCardanoFee txFee
-        , txValidRange = fromCardanoValidityRange txValidityRange
-        , txData = Map.fromList $ fmap (\ds -> (P.datumHash ds, ds)) $ fromCardanoAuxScriptData txAuxScriptData
-        , txSignatures = mempty -- TODO: convert from _keyWitnesses?
-        , txForgeScripts = mempty -- only available with a Build Tx
-        }
+-- fromCardanoTx :: C.Era era => C.Tx era -> Either FromCardanoError P.Tx
+-- fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
+--     txOutputs <- traverse fromCardanoTxOut txOuts
+--     pure $ P.Tx
+--         { txInputs = Set.fromList $ fmap (P.pubKeyTxIn . fromCardanoTxIn . fst) txIns -- TODO: can create TxInType only with a Build Tx
+--         , txCollateral = fromCardanoTxInsCollateral txInsCollateral
+--         , txOutputs = txOutputs
+--         , txForge = fromCardanoMintValue txMintValue
+--         , txFee = fromCardanoFee txFee
+--         , txValidRange = fromCardanoValidityRange txValidityRange
+--         , txData = Map.fromList $ fmap (\ds -> (P.datumHash ds, ds)) $ fromCardanoAuxScriptData txAuxScriptData
+--         , txSignatures = mempty -- TODO: convert from _keyWitnesses?
+--         , txForgeScripts = mempty -- TODO: only available with a Build Tx
+--         }
 
 toCardanoTxBody :: P.Tx -> Either ToCardanoError (C.TxBody C.AlonzoEra)
 toCardanoTxBody P.Tx{..} = do
@@ -198,12 +198,14 @@ toCardanoScriptHash (P.ValidatorHash bs) = deserialiseFromRawBytes C.AsScriptHas
 fromCardanoStakeAddressReference :: C.StakeAddressReference -> Either FromCardanoError (Maybe Credential.StakingCredential)
 fromCardanoStakeAddressReference C.NoStakeAddress = pure Nothing
 fromCardanoStakeAddressReference (C.StakeAddressByValue (C.StakeCredentialByKey stakeKeyHash)) =
-    pure $ Just (Credential.StakingHash $ C.serialiseToRawBytes stakeKeyHash)
+    pure $ Just (Credential.StakingHash $ C.serialiseToRawBytes stakeKeyHash) -- TODO: use fromCardanoPaymentKeyHash
+fromCardanoStakeAddressReference (C.StakeAddressByValue (C.StakeCredentialByScript scriptHash)) =
+    pure $ Just (Credential.StakingHash $ C.serialiseToRawBytes scriptHash) -- TODO: use fromCardanoScriptHash
 fromCardanoStakeAddressReference C.StakeAddressByPointer{} = Left StakeAddressPointersNotSupported
 
 toCardanoStakeAddressReference :: Maybe Credential.StakingCredential -> Either ToCardanoError C.StakeAddressReference
 toCardanoStakeAddressReference Nothing = pure C.NoStakeAddress
-toCardanoStakeAddressReference (Just (Credential.StakingHash bs)) =
+toCardanoStakeAddressReference (Just (Credential.StakingHash bs)) = -- TODO: use code similar to toCardanoPaymentCredential
     C.StakeAddressByValue <$> (C.StakeCredentialByKey <$> deserialiseFromRawBytes (C.AsHash C.AsStakeKey) bs)
 toCardanoStakeAddressReference (Just Credential.StakingPtr{}) = Left StakingPointersNotSupported
 
