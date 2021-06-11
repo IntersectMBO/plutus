@@ -5,7 +5,7 @@
 The interface to Plutus V1 for the ledger.
 -}
 module Plutus.V1.Ledger.Api (
-    Script
+    SerializedScript
     -- * Validating scripts
     , validateScript
     -- * Cost model
@@ -85,8 +85,7 @@ import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.DCert
 import           Plutus.V1.Ledger.Interval
-import           Plutus.V1.Ledger.Scripts                         hiding (Script)
-import qualified Plutus.V1.Ledger.Scripts                         as Scripts
+import           Plutus.V1.Ledger.Scripts
 import           Plutus.V1.Ledger.Slot
 import           PlutusCore                                       as PLC
 import qualified PlutusCore.DeBruijn                              as PLC
@@ -123,8 +122,8 @@ anything, we're just going to create new versions.
 
 -- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
-validateScript :: Script -> Bool
-validateScript = isRight . CBOR.deserialiseOrFail @Scripts.Script . fromStrict . fromShort
+validateScript :: SerializedScript -> Bool
+validateScript = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
 
 validateCostModelParams :: CostModelParams -> Bool
 validateCostModelParams = isJust . applyCostModelParams PLC.defaultCekCostModel
@@ -135,7 +134,7 @@ data VerboseMode = Verbose | Quiet
 type LogOutput = [Text.Text]
 
 -- | Scripts to the ledger are serialised bytestrings.
-type Script = ShortByteString
+type SerializedScript = ShortByteString
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
@@ -154,10 +153,10 @@ instance Pretty EvaluationError where
     pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
--- | Shared helper for the evaluation functions, deserializes the 'Script' , applies it to its arguments, and un-deBruijn-ifies it.
-mkTermToEvaluate :: (MonadError EvaluationError m) => Script -> [Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
+-- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, and un-deBruijn-ifies it.
+mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
-    (Scripts.Script (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
+    (Script (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let namedTerm = UPLC.termMapNames PLC.fakeNameDeBruijn t
         -- This should go away when Data is a builtin
@@ -174,7 +173,7 @@ evaluateScriptRestricting
     :: VerboseMode     -- ^ Whether to produce log output
     -> CostModelParams -- ^ The cost model to use
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
-    -> Script          -- ^ The script to evaluate
+    -> SerializedScript          -- ^ The script to evaluate
     -> [Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ())
 evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
@@ -198,7 +197,7 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
 evaluateScriptCounting
     :: VerboseMode     -- ^ Whether to produce log output
     -> CostModelParams -- ^ The cost model to use
-    -> Script          -- ^ The script to evaluate
+    -> SerializedScript          -- ^ The script to evaluate
     -> [Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ runExceptT $ do

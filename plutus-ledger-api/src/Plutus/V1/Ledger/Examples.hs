@@ -20,7 +20,7 @@ It seems better therefore to avoid depending on Plutus Tx in any "core" projects
 -}
 
 -- | Creates a script which has N arguments, and always succeeds.
-alwaysSucceedingNAryFunction :: Natural -> Script
+alwaysSucceedingNAryFunction :: Natural -> SerializedScript
 alwaysSucceedingNAryFunction n = toShort $ toStrict $ serialise $ Scripts.Script $ UPLC.Program () (PLC.defaultVersion ()) (body n)
     where
         -- No more arguments! The body can be anything that doesn't fail, so we return `\x . x`
@@ -29,7 +29,7 @@ alwaysSucceedingNAryFunction n = toShort $ toStrict $ serialise $ Scripts.Script
         body i = UPLC.LamAbs () (UPLC.DeBruijn 0) $ body (i-1)
 
 -- | Creates a script which has N arguments, and always fails.
-alwaysFailingNAryFunction :: Natural -> Script
+alwaysFailingNAryFunction :: Natural -> SerializedScript
 alwaysFailingNAryFunction n = toShort $ toStrict $ serialise $ Scripts.Script $ UPLC.Program () (PLC.defaultVersion ()) (body n)
     where
         -- No more arguments! The body should be error.
