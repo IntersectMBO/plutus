@@ -130,7 +130,7 @@ extra-deps:
     - cardano-ledger-core
     - alonzo/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
+  commit: 34abfb7f4f5610cabb45396e0496472446a0b2ca
   subdirs:
     - contra-tracer
     - iohk-monitoring
