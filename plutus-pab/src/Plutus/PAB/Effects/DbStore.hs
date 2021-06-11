@@ -38,7 +38,6 @@ data ContractT f
     }
     deriving (Generic, Beamable)
 
--- TODO: How to give signatures for these functions? (or hide the warning?)
 Contract (LensFor contractPath) = tableLenses
 
 type Contract   = ContractT Identity
@@ -52,15 +51,15 @@ instance Table ContractT where
 data ContractInstanceT f
   = ContractInstance
     { _contractInstanceId           :: Columnar f Text
-    , _contractInstanceContractPath :: Columnar f Text -- TODO: Foreign Key
-    , _contractInstanceWallet       :: Columnar f Text -- Note/Sadness: Sqlite doesn't have a integer type large enough.
+    , _contractInstanceContractPath :: PrimaryKey ContractT f
+    , _contractInstanceWallet       :: Columnar f Text -- Note: Sqlite doesn't have a integer type large enough.
     , _contractInstanceState        :: Columnar f (Maybe Text)
     , _contractInstanceActive       :: Columnar f Bool
     } deriving (Generic, Beamable)
 
 ContractInstance
   (LensFor contractInstanceId)
-  (LensFor contractInstanceContractPath)
+  (ContractId (LensFor contractInstanceContractPath))
   (LensFor contractInstanceWallet)
   (LensFor contractInstanceState)
   (LensFor contractInstanceActive)
@@ -86,7 +85,7 @@ db = defaultDbSettings
 checkedSqliteDb :: CheckedDatabaseSettings Sqlite Db
 checkedSqliteDb = defaultMigratableDbSettings
 
--- | Effect for managing a Db store.
+-- | Effect for managing a beam-based database.
 data DbStoreEffect r where
   -- | Insert a row into a table.
   AddRow

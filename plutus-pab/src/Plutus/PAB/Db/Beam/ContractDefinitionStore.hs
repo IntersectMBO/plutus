@@ -31,6 +31,7 @@ mkRow (ContractExe {contractPath}) = Contract (Text.pack contractPath)
 fromRow :: Contract -> ContractExe
 fromRow (Contract {_contractPath})  = ContractExe (Text.unpack _contractPath)
 
+-- | Run the 'ContractDefinitionStore' effect in the context of the 'DbStore'.
 handleContractDefinitionStore ::
   forall effs.
   ( Member DbStoreEffect effs

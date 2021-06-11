@@ -43,6 +43,8 @@ import           Plutus.PAB.Webserver.Types              (ContractActivationArgs
 import           Wallet.Emulator.Wallet                  (Wallet (..))
 import           Wallet.Types                            (ContractInstanceId (..))
 
+-- | Convert from the internal representation of a  contract into the database
+-- representation.
 mkRow
   :: ContractActivationArgs (ContractDef ContractExe)
   -> ContractInstanceId
@@ -50,30 +52,34 @@ mkRow
 mkRow (ContractActivationArgs{caID, caWallet}) instanceId
   = ContractInstance
       (uuidStr instanceId)
-      (Text.pack $ contractPath caID)
+      (ContractId $ Text.pack $ contractPath caID)
       (Text.pack . show . getWallet $ caWallet)
       Nothing -- No state, initially
       True    -- 'Active' immediately
 
+-- | Convert from the database representation of a contract into the
+-- internal representation.
 mkContracts
   :: [ContractInstance]
   -> Map ContractInstanceId (ContractActivationArgs (ContractDef ContractExe))
 mkContracts xs =
   Map.fromList xs'
     where
-      -- Silently drop those items that failed to decode to UUIDs (shouldn't
-      -- ever happen ....)
+      -- Silently drop those items that failed to decode to UUIDs
       xs'    = [ (k, v) | (Just k, v) <- map f xs ]
       toId i = ContractInstanceId <$> fromText i
       f ci   = ( toId . _contractInstanceId $ ci
                , ContractActivationArgs
-                   (ContractExe . Text.unpack . _contractInstanceContractPath $ ci)
+                   (ContractExe . Text.unpack . (\(ContractId x) -> x) . _contractInstanceContractPath $ ci)
                    (Wallet . read . Text.unpack . _contractInstanceWallet $ ci)
                )
 
+-- | Our database doesn't store UUIDs natively, so we need to convert them
+-- from a string.
 uuidStr :: ContractInstanceId -> Text
 uuidStr = toText . unContractInstanceId
 
+-- | Run the 'ContractStore' actions in the 'DbStore' context.
 handleContractStore ::
   forall effs.
   ( Member DbStoreEffect effs
@@ -87,7 +93,7 @@ handleContractStore = \case
       $ mkRow args instanceId
 
   -- TODO: Should we use 'args' ?
-  PutState _ instanceId state ->
+  PutState _args instanceId state ->
     let encode' = Just . Text.decodeUtf8 . B.concat . LB.toChunks . encode
     in updateRow
         $ update (_contractInstances db)
