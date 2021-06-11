@@ -68,7 +68,7 @@ import           Data.Hashable                    (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           Flat                             (Flat, flat, unflat)
+import qualified Flat
 import           GHC.Generics                     (Generic)
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (..))
 import           Plutus.V1.Ledger.Orphans         ()
@@ -83,7 +83,6 @@ import qualified UntypedPlutusCore                as UPLC
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
-  deriving newtype (Flat)
 
 {-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
@@ -100,10 +99,10 @@ data structures that include scripts (for example, transactions) no-longer benef
 for CBOR's ability to self-describe it's format.
 -}
 instance Serialise Script where
-  encode = encode . flat . unScript
+  encode = encode . Flat.flat . unScript
   decode = do
     bs <- decodeBytes
-    case unflat bs of
+    case Flat.unflat bs of
       Left  err    -> Haskell.fail (Haskell.show err)
       Right script -> return $ Script script
 

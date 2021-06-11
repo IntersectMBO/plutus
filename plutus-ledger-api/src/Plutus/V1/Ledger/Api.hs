@@ -67,16 +67,17 @@ module Plutus.V1.Ledger.Api (
     , EvaluationError (..)
 ) where
 
+import qualified Codec.Serialise                                  as CBOR
 import           Control.Monad.Except
 import           Control.Monad.Writer
 import           Data.Bifunctor
+import           Data.ByteString.Lazy                             (fromStrict)
 import           Data.ByteString.Short
 import           Data.Either
 import           Data.Maybe                                       (isJust)
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
-import qualified Flat
 import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Bytes
 import           Plutus.V1.Ledger.Contexts
@@ -123,7 +124,7 @@ anything, we're just going to create new versions.
 -- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
 validateScript :: Script -> Bool
-validateScript = isRight . Flat.unflat @Scripts.Script . fromShort
+validateScript = isRight . CBOR.deserialiseOrFail @Scripts.Script . fromStrict . fromShort
 
 validateCostModelParams :: CostModelParams -> Bool
 validateCostModelParams = isJust . applyCostModelParams PLC.defaultCekCostModel
@@ -140,7 +141,7 @@ type Script = ShortByteString
 data EvaluationError =
     CekError (UPLC.CekEvaluationException PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError PLC.FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
-    | CodecError Flat.DecodeException -- ^ A serialisation error
+    | CodecError CBOR.DeserialiseFailure -- ^ A serialisation error
     | IncompatibleVersionError (PLC.Version ()) -- ^ An error indicating a version tag that we don't support
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
@@ -156,7 +157,7 @@ instance Pretty EvaluationError where
 -- | Shared helper for the evaluation functions, deserializes the 'Script' , applies it to its arguments, and un-deBruijn-ifies it.
 mkTermToEvaluate :: (MonadError EvaluationError m) => Script -> [Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
-    (Scripts.Script (UPLC.Program _ v t)) <- liftEither $ first CodecError $ Flat.unflat $ fromShort bs
+    (Scripts.Script (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let namedTerm = UPLC.termMapNames PLC.fakeNameDeBruijn t
         -- This should go away when Data is a builtin

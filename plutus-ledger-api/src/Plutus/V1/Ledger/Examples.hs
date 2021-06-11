@@ -4,8 +4,9 @@ This module contains example values to be used for testing. These should NOT be 
 -}
 module Plutus.V1.Ledger.Examples where
 
+import           Codec.Serialise
+import           Data.ByteString.Lazy     (toStrict)
 import           Data.ByteString.Short
-import qualified Flat
 import           Numeric.Natural
 import           Plutus.V1.Ledger.Api
 import qualified Plutus.V1.Ledger.Scripts as Scripts
@@ -20,7 +21,7 @@ It seems better therefore to avoid depending on Plutus Tx in any "core" projects
 
 -- | Creates a script which has N arguments, and always succeeds.
 alwaysSucceedingNAryFunction :: Natural -> Script
-alwaysSucceedingNAryFunction n = toShort $ Flat.flat @Scripts.Script $ Scripts.Script $ UPLC.Program () (PLC.defaultVersion ()) (body n)
+alwaysSucceedingNAryFunction n = toShort $ toStrict $ serialise $ Scripts.Script $ UPLC.Program () (PLC.defaultVersion ()) (body n)
     where
         -- No more arguments! The body can be anything that doesn't fail, so we return `\x . x`
         body i | i == 0 = UPLC.LamAbs() (UPLC.DeBruijn 0) $ UPLC.Var () (UPLC.DeBruijn 1)
@@ -29,7 +30,7 @@ alwaysSucceedingNAryFunction n = toShort $ Flat.flat @Scripts.Script $ Scripts.S
 
 -- | Creates a script which has N arguments, and always fails.
 alwaysFailingNAryFunction :: Natural -> Script
-alwaysFailingNAryFunction n = toShort $ Flat.flat @Scripts.Script $ Scripts.Script $ UPLC.Program () (PLC.defaultVersion ()) (body n)
+alwaysFailingNAryFunction n = toShort $ toStrict $ serialise $ Scripts.Script $ UPLC.Program () (PLC.defaultVersion ()) (body n)
     where
         -- No more arguments! The body should be error.
         body i | i == 0 = UPLC.Error ()
