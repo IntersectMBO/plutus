@@ -38,8 +38,6 @@ flag ghcjs-plugin
 
 library
     import: lang
-    if os(windows)
-        buildable: False
     -- For ghcjs (where we have some hope of this to work), we use a rather
     -- peculiar hack.  We pretend this package exists.  So most of ghcjs is
     -- trivially happy, but then when it's loaded, we'll swap it out for the

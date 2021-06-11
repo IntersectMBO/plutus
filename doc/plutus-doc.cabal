@@ -37,9 +37,9 @@ common lang
     if flag(defer-plugin-errors)
 
 executable doc-doctests
-    if os(windows)
-      buildable: false
     import: lang
+    if(impl(ghcjs) || os(windows))
+      buildable: false
     hs-source-dirs: plutus/tutorials
     main-is: Main.hs
     ghc-options: -Wno-unused-imports

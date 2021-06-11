@@ -84,14 +84,14 @@ let
             version = "3.2.5"; }; in [ alex ];
           ghcjs.flags.use-host-template-haskell = true;
 
-          plutus-use-cases.ghcOptions = if (ghcjsPluginPkgs != null)
+          plutus-use-cases.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
                                               "-Werror" ])
                                         else __trace "nativePlutus is null" [];
 
-          plutus-tx-plugin.ghcOptions = if (ghcjsPluginPkgs != null)
+          plutus-tx-plugin.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
@@ -99,7 +99,7 @@ let
                                             ])
                                         else __trace "nativePlutus is null" [];
 
-          plutus-tx-tests.ghcOptions = if (ghcjsPluginPkgs != null)
+          plutus-tx-tests.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
@@ -107,14 +107,14 @@ let
                                             ])
                                         else __trace "nativePlutus is null" [];
 
-          plutus-errors.ghcOptions = if (ghcjsPluginPkgs != null)
+          plutus-errors.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
                                               "-Werror" ])
                                         else __trace "nativePlutus is null" [];
 
-          plutus-benchmark.ghcOptions = if (ghcjsPluginPkgs != null)
+          plutus-benchmark.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
@@ -122,15 +122,15 @@ let
                                         else __trace "nativePlutus is null" [];
 
 
-          plutus-ledger.components.library.build-tools = if (ghcjsPluginPkgs != null) then [ pkgs.pkgsCross.ghcjs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.buildGHC ] else [];
-          plutus-ledger.ghcOptions = if (ghcjsPluginPkgs != null)
+          plutus-ledger.components.library.build-tools = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs) then [ pkgs.pkgsCross.ghcjs.buildPackages.haskell-nix.compiler.${compiler-nix-name}.buildGHC ] else [];
+          plutus-ledger.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
                                               "-Werror" ])
                                         else __trace "nativePlutus is null" [];
 
-          plutus-ledger-test.ghcOptions = if (ghcjsPluginPkgs != null)
+          plutus-ledger-test.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
                                               "-host-package-db ${attr}/package.conf.d"
