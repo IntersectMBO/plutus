@@ -94,7 +94,7 @@ loadFlat file = do
     Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
     Right r -> do
         p <- fromDeBruijn r
-        return . force $  UPLC.toTerm p
+        return $! force $ UPLC.toTerm p
         -- `force` to try to ensure that deserialiation is not included in benchmarking time.
 
 mkCekBM :: Term -> Benchmarkable
@@ -147,12 +147,12 @@ parseBenchOptions cfg = BenchOptions
 
 parserInfo :: Config -> ParserInfo BenchOptions
 parserInfo cfg =
-    info (helper <*> parseBenchOptions cfg) $ header "Plutus Core nofib benchmark suite"
+    info (helper <*> parseBenchOptions cfg) $ header "Plutus Core validation benchmark suite"
 
 {- Run the benchmarks.  You can run groups of benchmarks by typing things like
      `stack bench -- plutus-benchmark:validation --ba crowdfunding`
    or
-     `cabal bench -- -plutus-benchmark:validation --benchmark-options crowdfunding`.
+     `cabal bench -- plutus-benchmark:validation --benchmark-options crowdfunding`.
 -}
 main :: IO ()
 main = do
