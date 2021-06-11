@@ -3,18 +3,19 @@
 \todompj{Maybe we should just move the content of the EUTXO doc into here?}
 
 The \gls{plutus-platform} is designed to work with a specific kind of ledger, namely an extended form of the traditional \gls{utxo} ledger introduced by Bitcoin.
-We refer to our ledger model as the \gls{eutxo} Model, and it is discussed in detail in \textcite{eutxo} and partially published as \textcite{chakravarty2020extended}.
+We refer to our ledger model as the \gls{eutxo} Model, and it is discussed in detail in \textcite{eutxo,utxoma,eutxoma}.
 
 We give a high-level overview here, further details can be found in the above references.
 
 \subsection{Requirements}
 \begin{requirement}[Locality]
 \label{req:ledger-locality}
-\Gls{utxo} ledgers have the nice property that all the information which is needed to validate a transaction is specified in the transaction.
-All you need to check is the output that the transaction says that it spends.
+\Gls{utxo} ledgers have the desirable property that all the information which is needed to validate a transaction is specified in the transaction.
 In particular, there is no global state apart from the \gls{utxo} set.
 
-This is in contrast to account-based ledgers, where account balances are global.
+This is in contrast to account-based ledgers, where account balances are global.\footnote{
+  In fact Cardano has a small maount
+}
 
 We aim not to disturb this property, since it is helpful in a number of ways.
 For example, it allows a greater degree of parallel processing.

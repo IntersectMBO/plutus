@@ -15,11 +15,6 @@
   url = {https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest/download-by-type/doc-pdf/plutus-core-specification}
 }
 
-@online{eutxo,
-  title = {The Extended UTXO Model},
-  url = {https://hydra.iohk.io/job/Cardano/plutus/docs.extended-utxo-spec.x86_64-linux/latest/download-by-type/doc-pdf/extended-utxo-specification}
-}
-
 @online{haskell-nix-repo,
   title = {The haskell.nix repository},
   url = {https://github.com/input-output-hk/haskell.nix}
@@ -37,12 +32,36 @@
 
 % IOHK papers
 
-@inproceedings{chakravarty2020extended,
-  title={The extended UTxO model},
-  author={Chakravarty, Manuel MT and Chapman, James and MacKenzie, Kenneth and Melkonian, Orestis and Jones, Michael Peyton and Wadler, Philip},
-  booktitle={4th Workshop on Trusted Smart Contracts},
+@inproceedings{eutxo,
+  title = {The {Extended UTXO} Model},
+  author = {Manuel M. T. Chakravarty and James Chapman and Kenneth
+                  MacKenzie and Orestis Melkonian and Michael {Peyton
+                  Jones} and Philip Wadler},
+  booktitle = {Proceedings of Trusted Smart Contracts (WTSC)},
+  year = 2020,
+  volume = "12063",
+  publisher = "Springer",
+  series = "LNCS",
+  note={Also available at https://github.com/input-output-hk/plutus}
+}
+
+@inproceedings{utxoma,
+   title={{UTXO$_{\mathrm{ma}}$}: {UTXO} with Multi-Asset Support},
+   author={Manuel M. T. Chakravarty and James Chapman and Kenneth MacKenzie and Orestis Melkonian and Jann M{\"u}ller and Michael {Peyton Jones} and Polina Vinogradova and Philip Wadler and Joachim Zahnentferner},
+   year=2020,
+   booktitle={International Symposium on Leveraging Applications of Formal Methods},
+   organization={Springer},
+   note={Also available at https://github.com/input-output-hk/plutus}
+}
+
+@inproceedings{eutxoma,
+  title={Native custom tokens in the extended {UTXO} model},
+  author={Chakravarty, Manuel MT and Chapman, James and MacKenzie, Kenneth and Melkonian, Orestis and M{\"u}ller, Jann and Jones, Michael Peyton and Vinogradova, Polina and Wadler, Philip},
+  booktitle={International Symposium on Leveraging Applications of Formal Methods},
+  pages={89--111},
   year={2020},
-  url={https://hydra.iohk.io/job/Cardano/plutus/papers.eutxo.x86_64-linux/latest/download-by-type/doc-pdf/eutxo}
+  organization={Springer},
+  note={Also available at https://github.com/input-output-hk/plutus}
 }
 
 @inproceedings{peytonjones2019unraveling,
