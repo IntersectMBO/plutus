@@ -33,16 +33,11 @@ import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Ledger.Constraints.OffChain                (UnbalancedTx)
 import qualified PSGenerator.Common
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
-import           Plutus.Contract.Effects.AwaitSlot          (WaitingForSlot)
-import           Plutus.Contract.Effects.AwaitTxConfirmed   (TxConfirmed)
-import           Plutus.Contract.Effects.ExposeEndpoint     (ActiveEndpoint, EndpointValue)
-import           Plutus.Contract.Effects.Instance           (OwnIdRequest)
-import           Plutus.Contract.Effects.OwnPubKey          (OwnPubKeyRequest)
-import           Plutus.Contract.Effects.UtxoAt             (UtxoAtAddress)
-import           Plutus.Contract.Effects.WriteTx            (WriteTxResponse)
+import           Plutus.Contract.Effects                    (ActiveEndpoint, TxConfirmed, UtxoAtAddress,
+                                                             WriteTxResponse)
+import           Plutus.Contract.Effects.WriteTx            ()
 import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
-import           Plutus.PAB.Events.Contract                 (ContractPABRequest, ContractPABResponse)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Webserver.API                   as API
 import           Plutus.PAB.Webserver.Types                 (ChainReport, CombinedWSStreamToClient,
@@ -55,6 +50,7 @@ import           Servant.PureScript                         (HasBridge, Settings
                                                              defaultBridge, defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings)
 import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
+import           Wallet.Types                               (EndpointValue)
 
 -- | PAB's main bridge that includes common bridges
 pabBridge :: BridgePart
@@ -101,25 +97,20 @@ pabTypes =
     , (equal <*> (genericShow <*> mkSumType))
           (Proxy @(ContractSignatureResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABRequest)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractPABResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
 
     -- Contract request / response types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnPubKeyRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WaitingForSlot)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointStore)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(CheckpointStoreItem A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnIdRequest)
 
     -- Logging types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))
