@@ -13,8 +13,6 @@ For example, you might want to submit it as part of a manually created transacti
 Fortunately, it is quite simple to do this.
 You can either translate directly into CBOR using the `Serialise` typeclass from the `serialise` package, or you can create an envelope of the sort used by the Cardano node CLI.
 
-.. TODO: include instructions on the latter once we have support for it
-
 .. literalinclude:: ../tutorials/BasicValidators.hs
    :start-after: BLOCK8
    :end-before: BLOCK9

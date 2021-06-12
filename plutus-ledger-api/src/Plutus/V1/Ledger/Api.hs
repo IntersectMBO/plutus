@@ -75,6 +75,7 @@ import           Data.ByteString.Lazy                             (fromStrict)
 import           Data.ByteString.Short
 import           Data.Either
 import           Data.Maybe                                       (isJust)
+import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
@@ -101,7 +102,7 @@ import qualified PlutusTx.Lift                                    as PlutusTx
 import qualified UntypedPlutusCore                                as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 
-plutusScriptEnvelopeType :: Text.Text
+plutusScriptEnvelopeType :: Text
 plutusScriptEnvelopeType = "PlutusV1Script"
 
 {- Note [Abstract types in the ledger API]
@@ -131,7 +132,7 @@ validateCostModelParams = isJust . applyCostModelParams PLC.defaultCekCostModel
 data VerboseMode = Verbose | Quiet
     deriving (Eq)
 
-type LogOutput = [Text.Text]
+type LogOutput = [Text]
 
 -- | Scripts to the ledger are serialised bytestrings.
 type SerializedScript = ShortByteString
