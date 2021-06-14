@@ -89,7 +89,6 @@ library
         Plutus.PAB.Effects.UUID
         Plutus.PAB.Effects.TimeEffect
         Plutus.PAB.Instances
-        Plutus.PAB.Monitoring.MonadLoggerBridge
         Plutus.PAB.Monitoring.Monitoring
         Plutus.PAB.Monitoring.PABLogMsg
         Plutus.PAB.Monitoring.Config

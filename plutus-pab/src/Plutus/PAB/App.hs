@@ -25,7 +25,7 @@ module Plutus.PAB.App(
     dbConnect,
     ) where
 
-import           Cardano.BM.Trace                               (Trace)
+import           Cardano.BM.Trace                               (Trace, logDebug)
 import           Cardano.ChainIndex.Client                      (handleChainIndexClient)
 import qualified Cardano.ChainIndex.Types                       as ChainIndex
 import           Cardano.Node.Client                            (handleNodeClientClient)
@@ -38,9 +38,8 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                      (handleError, throwError)
 import           Control.Monad.Freer.Extras.Log                 (mapLog)
 import           Control.Monad.IO.Class                         (MonadIO (..))
-import qualified Control.Monad.Logger                           as MonadLogger
 import           Data.Coerce                                    (coerce)
-import           Data.Text                                      (unpack)
+import           Data.Text                                      (Text, pack, unpack)
 import           Database.Beam.Migrate.Simple
 import qualified Database.Beam.Sqlite                           as Sqlite
 import qualified Database.Beam.Sqlite.Migrate                   as Sqlite
@@ -60,9 +59,8 @@ import           Plutus.PAB.Db.Memory.ContractStore             (InMemInstances,
 import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
 import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe (..), handleContractEffectContractExe)
 import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb, handleDbStore)
-import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..))
-import           Plutus.PAB.Monitoring.Monitoring               (convertLog, handleLogMsgTrace)
-import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..))
+import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTrace)
+import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..), PABMultiAgentMsg (UserLog))
 import           Plutus.PAB.Timeout                             (Timeout (..))
 import           Plutus.PAB.Types                               (Config (Config), DbConfig (..), PABError (..),
                                                                  chainIndexConfig, dbConfig, endpointTimeout,
@@ -180,23 +178,26 @@ mkEnv appTrace appConfig@Config { dbConfig
         newManager $
         tlsManagerSettings {managerModifyRequest = pure . setRequestIgnoreStatus}
 
--- | Initialize/update the database to hold events.
+logDebugString :: Trace IO (PABLogMsg t) -> Text -> IO ()
+logDebugString trace = logDebug trace . SMultiAgent . UserLog
+
+-- | Initialize/update the database to hold our effects.
 migrate :: Trace IO (PABLogMsg ContractExe) -> DbConfig -> IO ()
 migrate trace config = do
     connection <- dbConnect trace config
-    flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
-      MonadLogger.logDebugN "Running beam migration"
-      liftIO $ runBeamMigration connection
+    logDebugString trace "Running beam migration"
+    runBeamMigration trace connection
 
 runBeamMigration
-  :: Sqlite.Connection
+  ::
+  Trace IO (PABLogMsg ContractExe)
+  -> Sqlite.Connection
   -> IO ()
-runBeamMigration conn = Sqlite.runBeamSqliteDebug putStrLn conn $ do
+runBeamMigration trace conn = Sqlite.runBeamSqliteDebug (logDebugString trace . pack) conn $ do
   autoMigrate Sqlite.migrationBackend checkedSqliteDb
 
--- TODO: Document
+-- | Connect to the database.
 dbConnect :: Trace IO (PABLogMsg ContractExe) -> DbConfig -> IO Sqlite.Connection
-dbConnect trace DbConfig {dbConfigFile} =
-  flip runTraceLoggerT (convertLog SLoggerBridge trace) $ do
-    MonadLogger.logDebugN $ "Connecting to DB: " <> dbConfigFile
-    liftIO $ open (unpack dbConfigFile)
+dbConnect trace DbConfig {dbConfigFile} = do
+  logDebugString trace $ "Connecting to DB: " <> dbConfigFile
+  open (unpack dbConfigFile)

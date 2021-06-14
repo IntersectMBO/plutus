@@ -55,10 +55,6 @@
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."errors" or (errorHandler.buildDepError "errors"))
-          (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-          (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
-          (hsPkgs."eventful-sql-common" or (errorHandler.buildDepError "eventful-sql-common"))
-          (hsPkgs."eventful-sqlite" or (errorHandler.buildDepError "eventful-sqlite"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."generic-arbitrary" or (errorHandler.buildDepError "generic-arbitrary"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -76,8 +72,6 @@
           (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
           (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
           (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
-          (hsPkgs."persistent" or (errorHandler.buildDepError "persistent"))
-          (hsPkgs."persistent-sqlite" or (errorHandler.buildDepError "persistent-sqlite"))
           (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."process" or (errorHandler.buildDepError "process"))
@@ -162,22 +156,15 @@
           "Plutus/PAB/Db/Beam"
           "Plutus/PAB/Db/Beam/ContractStore"
           "Plutus/PAB/Db/Beam/ContractDefinitionStore"
-          "Plutus/PAB/Db/Eventful"
-          "Plutus/PAB/Db/Eventful/Command"
-          "Plutus/PAB/Db/Eventful/ContractDefinitionStore"
-          "Plutus/PAB/Db/Eventful/ContractStore"
-          "Plutus/PAB/Db/Eventful/Query"
           "Plutus/PAB/Db/Memory/ContractStore"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/Contract/Builtin"
           "Plutus/PAB/Effects/Contract/ContractExe"
           "Plutus/PAB/Effects/ContractRuntime"
           "Plutus/PAB/Effects/DbStore"
-          "Plutus/PAB/Effects/EventLog"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Effects/TimeEffect"
           "Plutus/PAB/Instances"
-          "Plutus/PAB/Monitoring/MonadLoggerBridge"
           "Plutus/PAB/Monitoring/Monitoring"
           "Plutus/PAB/Monitoring/PABLogMsg"
           "Plutus/PAB/Monitoring/Config"
@@ -320,8 +307,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-            (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -445,8 +430,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-            (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -485,8 +468,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-            (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))

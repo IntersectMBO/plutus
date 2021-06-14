@@ -19,43 +19,6 @@ module Cli (ConfigCommandArgs(..), runConfigCommand, runNoConfigCommand) where
 -- Command interpretation
 -----------------------------------------------------------------------------------------------------------------------
 
--- TODO: Resolve this note.
-{- Note [Use of iohk-monitoring in PAB]
-
-We use the 'iohk-monitoring' package to process the log messages that come
-out of the 'Control.Monad.Freer.Log' effects. We create a top-level 'Tracer'
-value that we pass to 'Plutus.PAB.Monitoring.Monitoring.handleLogMsgTrace', which
-ultimately runs the trace actions in IO.
-
-This works well for our own code that uses the 'freer-simple' effects, but in
-order to get our dependencies to work together we need to do a bit more work:
-The SQLite backend for eventful uses 'mtl' and requires a 'MonadLogger' instance
-for the monad that it runs in.
-
-My first thought was to define an instance
-
-@Member (LogMsg MonadLoggerMsg effs) => MonadLogger (Eff effs)@
-
-similar to the 'MonadIO' instance for 'Control.Monad.Freer.Eff' [1]. This
-works, but it doesn't solve the problem because the sqlite backend *also*
-requires an instance of 'MonadUnliftIO'. The only way I was able to provide
-this instance was by pulling both 'MonadLogger' and 'MonadUnliftIO' into the
-base monad of the 'AppBackend' effects stack.
-
-The 'MonadLogger' and 'MonadUnliftIO' constraints propagate up to the top level
-via 'Plutus.PAB.Effects.DbStore.handleDbStore'. Both instances are
-provided by 'Plutus.PAB.Monitoring.MonadLoggerBridge.TraceLoggerT', which translates
-'MonadLogger' calls to 'Tracer' calls. This is why the base monad of the
-effects stack in 'runConfigCommand' is 'TraceLoggerT IO' instead of just 'IO'.
-
-We have to use 'natTracer' in some places to turn 'Trace IO a' into
-'Trace (TraceLoggerT IO) a'.
-
-[1] https://hackage.haskell.org/package/freer-simple-1.2.1.1/docs/Control-Monad-Freer.html#t:Eff
-
--}
-
-
 import           Command
 
 import           Cardano.BM.Configuration                (Configuration)
