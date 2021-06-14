@@ -100,17 +100,11 @@ pabTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
 
     -- Contract request / response types
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointStore)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(CheckpointStoreItem A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
 
     -- Logging types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))
