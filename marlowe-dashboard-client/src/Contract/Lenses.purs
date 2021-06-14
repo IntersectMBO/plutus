@@ -2,7 +2,7 @@ module Contract.Lenses
   ( _tab
   , _executionState
   , _previousSteps
-  , _marloweParams
+  , _mMarloweParams
   , _followerAppId
   , _selectedStep
   , _metadata
@@ -33,8 +33,8 @@ _executionState = prop (SProxy :: SProxy "executionState")
 _previousSteps :: Lens' State (Array PreviousStep)
 _previousSteps = prop (SProxy :: SProxy "previousSteps")
 
-_marloweParams :: Lens' State MarloweParams
-_marloweParams = prop (SProxy :: SProxy "marloweParams")
+_mMarloweParams :: Lens' State (Maybe MarloweParams)
+_mMarloweParams = prop (SProxy :: SProxy "mMarloweParams")
 
 _followerAppId :: Lens' State PlutusAppId
 _followerAppId = prop (SProxy :: SProxy "followerAppId")

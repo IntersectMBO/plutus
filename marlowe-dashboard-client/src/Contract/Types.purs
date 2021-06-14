@@ -25,7 +25,10 @@ type State
     , executionState :: ExecutionState
     , previousSteps :: Array PreviousStep
     , followerAppId :: PlutusAppId
-    , marloweParams :: MarloweParams
+    -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"
+    -- contracts when a user creates a contract, to show on the page until the blockchain settles and
+    -- we get the MarloweParams back from the PAB (through the MarloweFollower app).
+    , mMarloweParams :: Maybe MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.

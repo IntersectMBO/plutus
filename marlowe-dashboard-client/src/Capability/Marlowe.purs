@@ -2,6 +2,8 @@ module Capability.Marlowe
   ( class ManageMarlowe
   , createWallet
   , followContract
+  , createPendingFollowerApp
+  , followContractWithPendingFollowerApp
   , createContract
   , applyTransactionInput
   , redeem
@@ -75,6 +77,8 @@ class
   (MainFrameLoop m, ManageContract m, ManageMarloweStorage m, ManageWallet m, ManageWebsocket m) <= ManageMarlowe m where
   createWallet :: m (AjaxResponse WalletDetails)
   followContract :: WalletDetails -> MarloweParams -> m (DecodedAjaxResponse (Tuple PlutusAppId ContractHistory))
+  createPendingFollowerApp :: WalletDetails -> m (AjaxResponse PlutusAppId)
+  followContractWithPendingFollowerApp :: WalletDetails -> MarloweParams -> PlutusAppId -> m (DecodedAjaxResponse (Tuple PlutusAppId ContractHistory))
   createContract :: WalletDetails -> Map TokenName PubKeyHash -> Contract -> m (AjaxResponse Unit)
   applyTransactionInput :: WalletDetails -> MarloweParams -> TransactionInput -> m (AjaxResponse Unit)
   redeem :: WalletDetails -> MarloweParams -> TokenName -> m (AjaxResponse Unit)
@@ -113,6 +117,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
                 , marloweAppId
                 , walletInfo
                 , assets
+                , previousCompanionAppState: Nothing
                 }
             pure $ createWalletDetails <$> ajaxCompanionAppId <*> ajaxMarloweAppId <*> ajaxAssets
       LocalStorage -> do
@@ -136,6 +141,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
             , marloweAppId: PlutusAppId uuid
             , walletInfo
             , assets
+            , previousCompanionAppState: Nothing
             }
         pure $ Right walletDetails
   -- create a MarloweFollower to follow a Marlowe contract on the blockchain, and return its instance ID and initial state
@@ -169,6 +175,38 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
 
           observableState = { chParams: Nothing, chHistory: mempty }
         pure $ Right $ followAppId /\ observableState
+  createPendingFollowerApp walletDetails = do
+    { dataProvider } <- ask
+    case dataProvider of
+      PAB pabType -> do
+        let
+          wallet = view (_walletInfo <<< _wallet) walletDetails
+        followAppId <- case pabType of
+          Plain -> Contract.activateContract (plutusAppPath MarloweFollower) wallet
+          WithMarloweContracts -> Contract.activateContract MarloweFollower wallet
+        pure followAppId
+      LocalStorage -> do
+        uuid <- liftEffect genUUID
+        pure $ Right $ PlutusAppId uuid
+  followContractWithPendingFollowerApp walletDetails marloweParams followAppId = do
+    { dataProvider } <- ask
+    case dataProvider of
+      PAB pabType ->
+        runExceptT do
+          let
+            wallet = view (_walletInfo <<< _wallet) walletDetails
+          void $ withExceptT Left $ ExceptT
+            $ case pabType of
+                Plain -> Contract.invokeEndpoint (plutusAppPath MarloweFollower) followAppId "follow" marloweParams
+                WithMarloweContracts -> Contract.invokeEndpoint MarloweFollower followAppId "follow" marloweParams
+          observableStateJson <-
+            withExceptT Left $ ExceptT
+              $ case pabType of
+                  Plain -> Contract.getContractInstanceObservableState (plutusAppPath MarloweFollower) followAppId
+                  WithMarloweContracts -> Contract.getContractInstanceObservableState MarloweFollower followAppId
+          observableState <- mapExceptT (pure <<< lmap Right <<< unwrap) $ decodeJSON $ unwrap observableStateJson
+          pure $ followAppId /\ observableState
+      LocalStorage -> pure $ Right $ followAppId /\ { chParams: Nothing, chHistory: mempty }
   -- "create" a Marlowe contract on the blockchain
   -- FIXME: if we want users to be able to follow contracts that they don't have roles in, we need this function
   -- to return the MarloweParams of the created contract - but this isn't currently possible in the PAB
@@ -299,6 +337,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
                         , marloweAppId: toFront $ view _cicContract marloweApp
                         , walletInfo
                         , assets
+                        , previousCompanionAppState: Nothing
                         }
                 Nothing -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
             _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
@@ -323,6 +362,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
                         , marloweAppId: toFront $ view _cicContract marloweApp
                         , walletInfo
                         , assets
+                        , previousCompanionAppState: Nothing
                         }
                 Nothing -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
             _ -> except $ Left $ AjaxError { request: defaultRequest, description: NotFound }
@@ -419,6 +459,8 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
 instance monadMarloweHalogenM :: (ManageMarlowe m, ManageWebsocket m) => ManageMarlowe (HalogenM state action slots Msg m) where
   createWallet = lift createWallet
   followContract walletDetails marloweParams = lift $ followContract walletDetails marloweParams
+  createPendingFollowerApp = lift <<< createPendingFollowerApp
+  followContractWithPendingFollowerApp walletDetails marloweParams followAppId = lift $ followContractWithPendingFollowerApp walletDetails marloweParams followAppId
   createContract walletDetails roles contract = do
     result <- lift $ createContract walletDetails roles contract
     callMainFrameAction $ PlayAction $ Play.UpdateFromStorage
