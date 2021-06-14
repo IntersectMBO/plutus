@@ -30,11 +30,9 @@ import           Language.PureScript.Bridge                 (BridgePart, Languag
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger.Constraints.OffChain                (UnbalancedTx)
 import qualified PSGenerator.Common
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
-import           Plutus.Contract.Effects                    (ActiveEndpoint, TxConfirmed, UtxoAtAddress,
-                                                             WriteTxResponse)
+import           Plutus.Contract.Effects                    (TxConfirmed)
 import           Plutus.Contract.Effects.WriteTx            ()
 import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
@@ -49,8 +47,6 @@ import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,
                                                              defaultBridge, defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings)
-import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
-import           Wallet.Types                               (EndpointValue)
 
 -- | PAB's main bridge that includes common bridges
 pabBridge :: BridgePart
@@ -97,7 +93,6 @@ pabTypes =
     , (equal <*> (genericShow <*> mkSumType))
           (Proxy @(ContractSignatureResponse A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
 
     -- Contract request / response types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)

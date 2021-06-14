@@ -66,7 +66,7 @@ instance prettyPABResp :: Pretty PABResp where
     span_
       [ text "AwaitTxConfirmedResponse:"
       , nbsp
-      , text $ view (_txConfirmed <<< _txId) txConfirmed
+      , text $ view _txId txConfirmed
       ]
   pretty (ExposeEndpointResp endpointDescription endpointValue) =
     span_
@@ -106,8 +106,12 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ view _contractInstanceIdString ownInstanceResponse
       ]
+  pretty (SendNotificationResp _) =
+    span_
+      [ text "SendNotificationResponse"
+      ]
 
-instance prettyContractPABRequest :: Pretty ContractPABRequest where
+instance prettyContractPABRequest :: Pretty PABReq where
   pretty (AwaitSlotReq slot) =
     span_
       [ text "AwaitSlotRequest:"
@@ -155,6 +159,10 @@ instance prettyContractPABRequest :: Pretty ContractPABRequest where
   pretty OwnContractInstanceIdReq =
     span_
       [ text "OwnInstanceIdRequest:"
+      ]
+  pretty (SendNotificationReq _) =
+    span_
+      [ text "SendNotificationRequest"
       ]
 
 instance prettyWriteTxResponse :: Pretty WriteTxResponse where
