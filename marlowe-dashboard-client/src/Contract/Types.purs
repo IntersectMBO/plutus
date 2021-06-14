@@ -23,6 +23,9 @@ import WalletData.Types (WalletDetails, WalletNickname)
 type State
   = { tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
     , executionState :: ExecutionState
+    -- When the user submits a transaction, we save it here until we get confirmation from the PAB and
+    -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
+    , pendingTransaction :: Maybe TransactionInput
     , previousSteps :: Array PreviousStep
     , followerAppId :: PlutusAppId
     -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"

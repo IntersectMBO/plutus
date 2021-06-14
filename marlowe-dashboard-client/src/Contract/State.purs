@@ -13,7 +13,7 @@ module Contract.State
 import Prelude
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array (difference, filter, foldl, index, length, mapMaybe, modifyAt)
@@ -36,7 +36,7 @@ import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (Env)
-import Halogen (HalogenM, getHTMLElementRef, gets, liftEffect, subscribe, unsubscribe)
+import Halogen (HalogenM, getHTMLElementRef, liftEffect, subscribe, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (ChildSlots, Msg)
@@ -65,6 +65,7 @@ dummyState :: State
 dummyState =
   { tab: Tasks
   , executionState: initExecution zero contract
+  , pendingTransaction: Nothing
   , previousSteps: mempty
   , mMarloweParams: Nothing
   , followerAppId: emptyPlutusAppId
@@ -89,6 +90,7 @@ mkPlaceholderState :: PlutusAppId -> MetaData -> Contract -> State
 mkPlaceholderState followerAppId metaData contract =
   { tab: Tasks
   , executionState: initExecution zero contract
+  , pendingTransaction: Nothing
   , previousSteps: mempty
   , mMarloweParams: Nothing
   , followerAppId
@@ -123,6 +125,7 @@ mkInitialState walletDetails currentSlot followerAppId { chParams, chHistory } =
           initialState =
             { tab: Tasks
             , executionState: initialExecutionState
+            , pendingTransaction: Nothing
             , previousSteps: mempty
             , mMarloweParams: Just marloweParams
             , followerAppId
@@ -164,13 +167,20 @@ updateState walletDetails marloweParams currentSlot transactionInputs state =
 
     mMarloweParams = view _mMarloweParams state
 
-    baseState =
-      if isNothing mMarloweParams then
+    baseState = case isNothing mMarloweParams, newTransactionInputs /= mempty of
+      true, true ->
         state
           # set _mMarloweParams (Just marloweParams)
           # set _userParties (getUserParties walletDetails marloweParams)
-      else
+          # set _pendingTransaction Nothing
+      true, false ->
         state
+          # set _mMarloweParams (Just marloweParams)
+          # set _userParties (getUserParties walletDetails marloweParams)
+      false, true ->
+        state
+          # set _pendingTransaction Nothing
+      false, false -> state
   in
     baseState
       # updateExecutionState
@@ -211,9 +221,8 @@ handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = 
     case ajaxApplyInputs of
       Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
       Right _ -> do
-        stepNumber <- gets currentStep
-        handleAction input (MoveToStep stepNumber)
-        addToast $ successToast "Payment received, step completed."
+        assign _pendingTransaction $ Just txInput
+        addToast $ successToast "Transaction submitted, awating confirmation."
 
 handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
   where
@@ -280,6 +289,7 @@ applyTimeout currentSlot state =
     updateExecutionState = over _executionState (timeoutState currentSlot)
   in
     state
+      # set _pendingTransaction Nothing
       # updateExecutionState
       # regenerateStepCards currentSlot
       # selectLastStep

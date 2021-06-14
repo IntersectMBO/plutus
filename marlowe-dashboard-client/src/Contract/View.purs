@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
@@ -18,7 +18,7 @@ import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
 import Data.Map (keys, lookup, toUnfoldable) as Map
-import Data.Maybe (Maybe(..), maybe, maybe')
+import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String as String
@@ -394,6 +394,8 @@ renderCurrentStep currentSlot state =
 
     currentTab = state ^. _tab
 
+    pendingTransaction = state ^. _pendingTransaction
+
     contractIsClosed = isContractClosed state
 
     mNextTimeout = state ^. (_executionState <<< _mNextTimeout)
@@ -414,16 +416,17 @@ renderCurrentStep currentSlot state =
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
               [ text $ "Step " <> show (stepNumber + 1) ]
-          , if contractIsClosed then
-              statusIndicator Nothing "Contract closed" [ "bg-lightgray" ]
-            else
-              statusIndicator (Just Timer) timeoutStr [ "bg-lightgray" ]
+          , case contractIsClosed, isJust pendingTransaction of
+              true, _ -> statusIndicator Nothing "Contract closed" [ "bg-lightgray" ]
+              _, true -> statusIndicator Nothing "Awaiting confirmation" [ "bg-lightgray" ]
+              _, _ -> statusIndicator (Just Timer) timeoutStr [ "bg-lightgray" ]
           ]
       , div [ classNames [ "overflow-y-auto", "px-4" ] ]
-          [ case currentTab /\ contractIsClosed of
-              Tasks /\ false -> renderTasks state
-              Tasks /\ true -> renderContractClose
-              Balances /\ _ -> renderBalances state balances
+          [ case currentTab, contractIsClosed, isJust pendingTransaction of
+              Tasks, true, _ -> renderContractClose
+              Tasks, _, true -> renderPendingStep
+              Tasks, _, _ -> renderTasks state
+              Balances, _, _ -> renderBalances state balances
           ]
       ]
 
@@ -440,6 +443,13 @@ renderContractClose =
         , div_ [ text "There are no tasks to complete" ]
         ]
     ]
+
+-- FIXME: when we have a design for this, we can include more information (probably making this look more like
+-- the past step card)
+renderPendingStep :: forall p a. HTML p a
+renderPendingStep =
+  div [ classNames [ "mt-4" ] ]
+    [ text "Your transaction has been submitted. You will be notified when confirmation is received." ]
 
 -- This helper function expands actions that can be taken by anybody,
 -- then groups by participant and sorts it so that the owner starts first and the rest go
