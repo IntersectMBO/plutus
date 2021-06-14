@@ -7,6 +7,8 @@
 
 module Main (main) where
 
+import           PlutusPrelude                            (through)
+
 import qualified PlutusCore                               as PLC
 import qualified PlutusCore.CBOR                          as PLC
 import qualified PlutusCore.Evaluation.Machine.Ck         as Ck
@@ -16,23 +18,25 @@ import qualified PlutusCore.Generators                    as Gen
 import qualified PlutusCore.Generators.Interesting        as Gen
 import qualified PlutusCore.Generators.Test               as Gen
 import qualified PlutusCore.Pretty                        as PP
+import           PlutusCore.Rename                        (rename)
 import qualified PlutusCore.StdLib.Data.Bool              as StdLib
 import qualified PlutusCore.StdLib.Data.ChurchNat         as StdLib
 import qualified PlutusCore.StdLib.Data.Integer           as StdLib
 import qualified PlutusCore.StdLib.Data.Unit              as StdLib
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
+import qualified UntypedPlutusCore                        as UPLC
+import           UntypedPlutusCore.Check.Uniques          (checkProgram)
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import qualified UntypedPlutusCore.Parser                 as UPLC (parseProgram)
 
 import           Codec.Serialise
 import           Control.DeepSeq                          (NFData, rnf)
-import           Control.Monad
+import           Control.Monad                            (void)
 import           Control.Monad.Trans.Except               (runExcept, runExceptT)
 import           Data.Bifunctor                           (second)
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (asum, traverse_)
 import           Data.Function                            ((&))
-import           Data.Functor                             ((<&>))
 import qualified Data.HashMap.Monoidal                    as H
 import           Data.List                                (nub)
 import qualified Data.List                                as List
@@ -42,7 +46,7 @@ import           Data.Text.Encoding                       (encodeUtf8)
 import qualified Data.Text.IO                             as T
 import           Data.Text.Prettyprint.Doc                (Doc, pretty, (<+>))
 import           Data.Traversable                         (for)
-import           Flat
+import           Flat                                     (Flat, flat, unflat)
 import           Options.Applicative
 import           System.CPUTime                           (getCPUTime)
 import           System.Exit                              (exitFailure, exitSuccess)
@@ -61,7 +65,6 @@ import           Text.Read                                (readMaybe)
    CBOR with arbitrary annotation types: fixing the annotation type to be () is
    the simplest thing to do and fits our use case.
  -}
-
 
 -- | Our internal representation of programs is as ASTs over the Name type.
 type TypedProgram a = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun a
@@ -82,9 +85,6 @@ instance (PP.PrettyBy PP.PrettyConfigPlc (Program a)) where
 -- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
 -- support for this is lacking elsewhere at the moment.
 type UntypedProgramDeBruijn a = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun a
-
-type PlcParserError = PLC.Error PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
-
 
 ---------------- Types for commands and arguments ----------------
 
@@ -429,14 +429,25 @@ parsePlcInput :: Language -> Input -> IO (Program PLC.AlexPosn)
 parsePlcInput language inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getPlcInput inp
     case language of
-      TypedPLC   -> handleResult TypedProgram   $ PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents)
-      UntypedPLC -> handleResult UntypedProgram $ PLC.runQuoteT $ runExceptT (UPLC.parseScoped bsContents)
-      where handleResult wrapper =
-                \case
-                  Left errCheck        -> failWith errCheck
-                  Right (Left errEval) -> failWith errEval
-                  Right (Right p)      -> return $ wrapper p
-            failWith (err :: PlcParserError) =  errorWithoutStackTrace $ PP.displayPlcDef err
+      TypedPLC   ->  undefined
+      UntypedPLC ->
+        -- parse the UPLC program
+        case PLC.runQuoteT $ UPLC.parseProgram bsContents of
+          -- when it's failed, pretty print parse errors.
+          Left (err :: PLC.ParseError PLC.AlexPosn) ->
+            errorWithoutStackTrace $ PP.render $ pretty err
+          -- otherwise,
+          Right p -> do
+            -- run @rename@ through the program
+            renamed <- PLC.runQuoteT $ rename p
+            -- check the program for @UniqueError@'s
+            let checked = through (checkProgram (const True)) renamed
+            case checked of
+              -- pretty print the error
+              Left (err :: PLC.UniqueError PLC.AlexPosn) ->
+                errorWithoutStackTrace $ PP.render $ pretty err
+              -- if there's no errors, return the parsed program
+              Right _ -> pure $ UntypedProgram p
 
 -- Read a binary-encoded file (eg, CBOR- or Flat-encoded PLC)
 getBinaryInput :: Input -> IO BSL.ByteString
@@ -448,11 +459,11 @@ getBinaryInput (FileInput file) = BSL.readFile file
 loadASTfromCBOR :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
-         (TypedPLC,   Named)    -> getBinaryInput inp <&> PLC.deserialiseRestoringUnitsOrFail >>= handleResult TypedProgram
-         (UntypedPLC, Named)    -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>= handleResult UntypedProgram
+         (TypedPLC,   Named)    -> getBinaryInput inp >>= handleResult TypedProgram . PLC.deserialiseRestoringUnitsOrFail
+         (UntypedPLC, Named)    -> getBinaryInput inp >>= handleResult UntypedProgram . UPLC.deserialiseRestoringUnitsOrFail
          (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
-         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>=
-                                   mapM fromDeBruijn >>= handleResult UntypedProgram
+         (UntypedPLC, DeBruijn) -> getBinaryInput inp >>=
+                                   mapM fromDeBruijn . UPLC.deserialiseRestoringUnitsOrFail >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
                Left (DeserialiseFailure offset msg) ->
@@ -463,10 +474,10 @@ loadASTfromCBOR language cborMode inp =
 loadASTfromFlat :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromFlat language flatMode inp =
     case (language, flatMode) of
-         (TypedPLC,   Named)    -> getBinaryInput inp <&> unflat >>= handleResult TypedProgram
-         (UntypedPLC, Named)    -> getBinaryInput inp <&> unflat >>= handleResult UntypedProgram
+         (TypedPLC,   Named)    -> getBinaryInput inp >>= handleResult TypedProgram . unflat
+         (UntypedPLC, Named)    -> getBinaryInput inp >>= handleResult UntypedProgram . unflat
          (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
-         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= mapM fromDeBruijn >>= handleResult UntypedProgram
+         (UntypedPLC, DeBruijn) -> getBinaryInput inp >>= mapM fromDeBruijn . unflat >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
                Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure: " ++ show e
@@ -493,7 +504,7 @@ serialiseProgramCBOR (TypedProgram p)   = PLC.serialiseOmittingUnits p
 serialiseProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits p
 
 -- | Convert names to de Bruijn indices and then serialise
-serialiseDbProgramCBOR :: Program () -> IO (BSL.ByteString)
+serialiseDbProgramCBOR :: Program () -> IO BSL.ByteString
 serialiseDbProgramCBOR (TypedProgram _)   = typedDeBruijnNotSupportedError
 serialiseDbProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits <$> toDeBruijn p
 
@@ -513,7 +524,7 @@ serialiseProgramFlat (TypedProgram p)   = BSL.fromStrict $ flat p
 serialiseProgramFlat (UntypedProgram p) = BSL.fromStrict $ flat p
 
 -- | Convert names to de Bruijn indices and then serialise
-serialiseDbProgramFlat :: Flat a => Program a -> IO (BSL.ByteString)
+serialiseDbProgramFlat :: Flat a => Program a -> IO BSL.ByteString
 serialiseDbProgramFlat (TypedProgram _)   = typedDeBruijnNotSupportedError
 serialiseDbProgramFlat (UntypedProgram p) = BSL.fromStrict . flat <$> toDeBruijn p
 
@@ -565,7 +576,7 @@ runConvert (ConvertOptions lang inp ifmt outp ofmt mode) = do
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions language inp mode) =
-    parsePlcInput language inp >>= print . (getPrintMethod mode)
+    parsePlcInput language inp >>= print . getPrintMethod mode
 
 
 ---------------- Erasure ----------------
@@ -590,7 +601,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions language inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM (getProgram language ifmt) (map FileInput inputfiles)
+  scripts <- mapM (getProgram language ifmt . FileInput) inputfiles
   let appliedScript =
           case language of  -- Annoyingly, we've got a list which could in principle contain both typed and untyped programs
             TypedPLC ->
@@ -612,9 +623,9 @@ data TypedTermExample = TypedTermExample
     (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 data SomeTypedExample = SomeTypeExample TypeExample | SomeTypedTermExample TypedTermExample
 
-data UntypedTermExample = UntypedTermExample
+newtype UntypedTermExample = UntypedTermExample
     (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-data SomeUntypedExample = SomeUntypedTermExample UntypedTermExample
+newtype SomeUntypedExample = SomeUntypedTermExample UntypedTermExample
 
 data SomeExample = SomeTypedExample SomeTypedExample | SomeUntypedExample SomeUntypedExample
 
@@ -719,8 +730,8 @@ runTypecheck (TypecheckOptions inp fmt) = do
 ---------------- Timing ----------------
 
 -- Convert a time in picoseconds into a readble format with appropriate units
-formatTime_picoseconds :: Double -> String
-formatTime_picoseconds t
+formatTimePicoseconds :: Double -> String
+formatTimePicoseconds t
     | t >= 1e12 = printf "%.3f s"  (t/1e12)
     | t >= 1e9  = printf "%.3f ms" (t/1e9)
     | t >= 1e6  = printf "%.3f μs" (t/1e6)
@@ -736,16 +747,16 @@ timeEval n evaluate prog
     | n <= 0 = errorWithoutStackTrace "Error: the number of repetitions should be at least 1"
     | otherwise = do
   (results, times) <- unzip . tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
-  let mean = (fromIntegral $ sum times) / (fromIntegral n) :: Double
+  let mean = fromIntegral (sum times) / fromIntegral n :: Double
       runs :: String = if n==1 then "run" else "runs"
-  printf "Mean evaluation time (%d %s): %s\n" n runs (formatTime_picoseconds mean)
+  printf "Mean evaluation time (%d %s): %s\n" n runs (formatTimePicoseconds mean)
   pure results
     where timeOnce eval prg = do
             start <- performGC >> getCPUTime
             let result = eval prg
                 !_ = rnf result
             end <- getCPUTime
-            pure $ (result, end - start)
+            pure (result, end - start)
 
 
 ---------------- Printing budgets and costs ----------------
@@ -784,7 +795,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
           traverse_ (\(b,cost) -> putStrLn $ printf "%-20s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
           putStrLn ""
           putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
-          putStrLn $ "Predicted execution time: " ++ (formatTime_picoseconds totalTime)
+          putStrLn $ "Predicted execution time: " ++ formatTimePicoseconds totalTime
     Unit -> pure ()
   where
         getSpent k =
@@ -802,7 +813,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         -- ^ Total builtin evaluation time (according to the models) in picoseconds (units depend on BuiltinCostModel.costMultiplier)
         getCPU b = let ExCPU b' = _exBudgetCPU b in fromIntegral b'::Double
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
-        totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
+        totalTime = getCPU (getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
 class PrintBudgetState cost where
     printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
@@ -876,7 +887,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode budgetMode timingMode 
 
     where handleResult result =
               case result of
-                Right v  -> (print $ getPrintMethod printMode v) >> exitSuccess
+                Right v  -> print (getPrintMethod printMode v) >> exitSuccess
                 Left err -> print err *> exitFailure
           handleResultSilently = \case
                 Right _  -> exitSuccess
