@@ -23,7 +23,7 @@ import           Plutus.PAB.Db.Beam.ContractStore           (handleContractStore
 import           Plutus.PAB.Effects.Contract                (ContractDefinitionStore, ContractStore)
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
 import           Plutus.PAB.Effects.DbStore
-import           Plutus.PAB.Monitoring.MonadLoggerBridge    (MonadLoggerMsg)
+import           Plutus.PAB.Monitoring.PABLogMsg            (PABLogMsg)
 import           Plutus.PAB.Types                           (PABError)
 
 -- | Run the ContractStore and ContractDefinitionStore effects on the
@@ -31,7 +31,7 @@ import           Plutus.PAB.Types                           (PABError)
 runBeamStoreAction ::
     forall a.
     Connection
-    -> Trace IO MonadLoggerMsg
+    -> Trace IO (PABLogMsg ContractExe)
     -> Eff '[ContractDefinitionStore ContractExe, ContractStore ContractExe, DelayEffect, IO] a
     -> IO (Either PABError a)
 runBeamStoreAction connection trace =

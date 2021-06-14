@@ -172,6 +172,7 @@ data PABMultiAgentMsg t =
     | CoreLog (CoreMsg t)
     | RuntimeLog ContractRuntimeMsg
     | UserLog T.Text
+    | SqlLog String
     | StartingPABBackendServer Int
     | StartingMetadataServer Int
     deriving stock Generic
@@ -186,6 +187,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         CoreLog m                  -> toObject v m
         RuntimeLog m               -> toObject v m
         UserLog t                  -> toObject v t
+        SqlLog s                   -> toObject v s
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
         StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
 
@@ -203,6 +205,7 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         CoreLog m             -> pretty m
         RuntimeLog m          -> pretty m
         UserLog m             -> pretty m
+        SqlLog m              -> pretty m
         StartingPABBackendServer port ->
             "Starting PAB backend server on port:" <+> pretty port
         StartingMetadataServer port ->

@@ -58,7 +58,7 @@ import qualified Plutus.PAB.Db.Beam.ContractStore               as BeamEff
 import           Plutus.PAB.Db.Memory.ContractStore             (InMemInstances, initialInMemInstances)
 -- TODO: Use this or delete it
 import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
-import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe, handleContractEffectContractExe)
+import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe (..), handleContractEffectContractExe)
 import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb, handleDbStore)
 import           Plutus.PAB.Monitoring.MonadLoggerBridge        (TraceLoggerT (..))
 import           Plutus.PAB.Monitoring.Monitoring               (convertLog, handleLogMsgTrace)
@@ -104,16 +104,20 @@ appEffectHandlers config trace =
             . reinterpret (handleContractEffectContractExe @IO)
 
         , handleContractStoreEffect =
-            interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
+            interpret (handleLogMsgTrace trace)
+            . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SMultiAgent)
+            . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
             . interpret (Core.handleMappedReader @AppEnv dbConnection)
-            . interpret (handleDbStore (convertLog SLoggerBridge trace))
-            . reinterpret3 BeamEff.handleContractStore
+            . interpret (handleDbStore trace)
+            . reinterpretN @'[_, _, _, _] BeamEff.handleContractStore
 
         , handleContractDefinitionStoreEffect =
-            interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
+            interpret (handleLogMsgTrace trace)
+            . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SMultiAgent)
+           .  interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
             . interpret (Core.handleMappedReader @AppEnv dbConnection)
-            . interpret (handleDbStore (convertLog SLoggerBridge trace))
-            . reinterpret3 BeamEff.handleContractDefinitionStore
+            . interpret (handleDbStore trace)
+            . reinterpretN @'[_, _, _, _] BeamEff.handleContractDefinitionStore
 
         , handleServicesEffects = \wallet ->
             -- handle 'NodeClientEffect'

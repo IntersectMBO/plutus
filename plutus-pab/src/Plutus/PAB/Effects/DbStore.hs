@@ -18,19 +18,21 @@
 module Plutus.PAB.Effects.DbStore where
 
 import           Cardano.BM.Trace                        (Trace)
-import           Control.Monad.Freer                     (Eff, LastMember, Member, type (~>))
+import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, reinterpret, runM,
+                                                          type (~>))
+import           Control.Monad.Freer.Extras.Log          (logDebug, mapLog)
 import           Control.Monad.Freer.Reader              (Reader, ask)
 import           Control.Monad.Freer.TH                  (makeEffect)
-import qualified Control.Monad.Logger                    as MonadLogger
 import           Data.Text                               (Text)
-import qualified Data.Text                               as Text
 import           Database.Beam
 import           Database.Beam.Backend.SQL
 import           Database.Beam.Migrate
 import           Database.Beam.Schema.Tables
 import           Database.Beam.Sqlite
 import           Database.SQLite.Simple                  (Connection)
-import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg, TraceLoggerT (..))
+import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
+import           Plutus.PAB.Monitoring.Monitoring        (handleLogMsgTrace)
+import           Plutus.PAB.Monitoring.PABLogMsg         (PABLogMsg (..), PABMultiAgentMsg (..))
 
 data ContractT f
     = Contract
@@ -125,12 +127,17 @@ handleDbStore ::
   ( Member (Reader Connection) effs
   , LastMember IO effs
   )
-  => Trace IO MonadLoggerMsg
+  => Trace IO (PABLogMsg ContractExe)
   -> DbStoreEffect
   ~> Eff effs
 handleDbStore trace eff = do
   connection <- ask @Connection
-  let traceSql = flip runTraceLoggerT trace . MonadLogger.logDebugN . Text.pack
+
+  let traceSql s =
+          runM
+            . interpret (handleLogMsgTrace trace)
+            . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SMultiAgent)
+          $ logDebug @(PABMultiAgentMsg ContractExe) $ SqlLog s
 
   case eff of
     AddRow table record ->

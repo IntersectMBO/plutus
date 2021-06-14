@@ -193,14 +193,14 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (Ins
       do
         connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
         fmap (either (error . show) id)
-            $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+            $ Beam.runBeamStoreAction connection (LM.convertLog LM.PABMsg ccaTrace)
             $ Contract.addDefinition @ContractExe contractExe
 
 -- Get the state of a contract
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ContractState contractInstanceId) = do
     connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog LM.PABMsg ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             s <- Contract.getState @ContractExe contractInstanceId
@@ -212,7 +212,7 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (Con
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} ReportInstalledContracts = do
     connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog LM.PABMsg ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             installedContracts <- Contract.getDefinitions @ContractExe
@@ -225,7 +225,7 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} Repo
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} ReportActiveContracts = do
     connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog LM.PABMsg ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             logInfo @(LM.AppMsg ContractExe) LM.ActiveContractsMsg
@@ -238,7 +238,7 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} Repo
 runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} (ReportContractHistory contractInstanceId) = do
     connection <- App.dbConnect (LM.convertLog LM.PABMsg ccaTrace) dbConfig
     fmap (either (error . show) id)
-        $ Beam.runBeamStoreAction connection (LM.convertLog (LM.PABMsg . LM.SLoggerBridge) ccaTrace)
+        $ Beam.runBeamStoreAction connection (LM.convertLog LM.PABMsg ccaTrace)
         $ interpret (LM.handleLogMsgTrace ccaTrace)
         $ do
             logInfo @(LM.AppMsg ContractExe) LM.ContractHistoryMsg
