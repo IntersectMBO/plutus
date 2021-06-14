@@ -131,6 +131,7 @@ data ContractInstanceMsg t =
     | ObtainedNewState
     | ContractLog ContractInstanceId JSON.Value
     | UpdatedContract ContractInstanceId IterationID
+    | UpdateContractFailed String
     | LookingUpContract (Contract.ContractDef t)
     | InitialisingContract (Contract.ContractDef t) ContractInstanceId
     | InitialContractPABResponse (PartiallyDecodedResponse ContractPABRequest)
@@ -175,6 +176,7 @@ instance (ToJSON (Contract.ContractDef t)) => ToObject (ContractInstanceMsg t) w
         ObtainedNewState -> mkObjectStr "obtained new state" ()
         UpdatedContract instanceID iterationID ->
             mkObjectStr "updated contract" (instanceID, iterationID)
+        UpdateContractFailed msg -> mkObjectStr "update contract failed" (Tagged @"message" msg)
         LookingUpContract t ->
             mkObjectStr "looking up contract" (Tagged @"contract" t)
         InitialisingContract t instanceID ->
@@ -233,6 +235,7 @@ instance Pretty (Contract.ContractDef t) => Pretty (ContractInstanceMsg t) where
         InvokingContractUpdate -> "Invoking contract update."
         ObtainedNewState -> "Obtained new state. Sending contract state messages."
         UpdatedContract instanceID iterationID -> "Updated contract" <+> pretty instanceID <+> "to new iteration" <+> pretty iterationID
+        UpdateContractFailed msg -> "Update contract failed: " <+> pretty msg
         LookingUpContract c -> "Looking up contract" <+> pretty c
         InitialisingContract c instanceID -> "Initialising contract" <+> pretty c <+> "with ID" <+> pretty instanceID
         InitialContractPABResponse rsp -> "Initial contract response:" <+> pretty rsp

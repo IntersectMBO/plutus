@@ -42,6 +42,7 @@ import qualified Data.Aeson.Types                                 as JSON
 import           Data.Bifunctor                                   (Bifunctor (..))
 import           Data.Foldable                                    (traverse_)
 import           Data.Row
+import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
 
 import           Plutus.Contract.Types                            (ResumableResult (..), SuspendedContract (..))
@@ -54,7 +55,7 @@ import           Plutus.PAB.Types                                 (PABError (..)
 import           Playground.Schema                                (endpointsToSchemas)
 import           Playground.Types                                 (FunctionSchema)
 import           Plutus.Contract                                  (BlockchainActions, Contract, ContractInstanceId)
-import           Plutus.Contract.Resumable                        (Response)
+import           Plutus.Contract.Resumable                        (Response (..))
 import           Plutus.Contract.Schema                           (Event, Input, Output)
 import           Plutus.Contract.State                            (ContractResponse (..))
 import qualified Plutus.Contract.State                            as ContractState
@@ -144,17 +145,21 @@ updateBuiltin ::
     -> Emulator.ContractInstanceStateInternal w schema error b
     -> w
     -> Response C.ContractPABResponse
-    -> Eff effs (SomeBuiltinState a)
+    -> Eff effs (Either PABError (SomeBuiltinState a))
 updateBuiltin i oldState oldW event = do
-    resp <- traverse toEvent event
-    let newState = Emulator.addEventInstanceState resp oldState
-    case newState of
-        Just k -> do
-            logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i event)
-            logNewMessages @a i k
-            let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
-            pure (SomeBuiltinState k newW)
-        _      -> throwError $ ContractCommandError 0 "failed to update contract"
+    resp' <- traverse toEvent event
+    case rspResponse resp' of
+        Left errMsg -> pure $ Left $ JSONParseError errMsg
+        Right r -> do
+            let resp = resp' { rspResponse = r }
+            let newState = Emulator.addEventInstanceState resp oldState
+            case newState of
+                Just k -> do
+                    logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i event)
+                    logNewMessages @a i k
+                    let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
+                    pure $ Right $ SomeBuiltinState k newW
+                _      -> throwError $ ContractCommandError 0 "failed to update contract"
 
 logNewMessages ::
     forall b w s e a effs.
@@ -168,18 +173,15 @@ logNewMessages i ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_
 
 toEvent ::
     forall schema effs.
-    ( Member (Error PABError) effs
-    , AllUniqueLabels (Input schema)
+    ( AllUniqueLabels (Input schema)
     , Forall (Input schema) FromJSON
     )
     => C.ContractPABResponse
-    -> Eff effs (Event schema)
+    -> Eff effs (Either Text (Event schema))
 toEvent = fromJSON . JSON.toJSON . C.ContractHandlersResponse
 
-fromJSON :: (Member (Error PABError) effs, FromJSON a) => Value -> Eff effs a
-fromJSON =
-    either (throwError . OtherError . Text.pack) pure
-    . JSON.parseEither JSON.parseJSON
+fromJSON :: FromJSON a => Value -> Eff effs (Either Text a)
+fromJSON = pure . bimap Text.pack id . JSON.parseEither JSON.parseJSON
 
 fromJSON' :: FromJSON a => Value -> a
 fromJSON' = either (\x -> error $ "fromJSON'" <> show x) id . JSON.parseEither JSON.parseJSON

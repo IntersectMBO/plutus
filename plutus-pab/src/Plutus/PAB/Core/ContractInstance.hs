@@ -34,7 +34,8 @@ import qualified Control.Concurrent.STM                           as STM
 import           Control.Monad                                    (forM_, void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error)
-import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logInfo)
+import           Control.Monad.Freer.Extras.Log                   (LogMessage, LogMsg, LogObserve, logDebug, logError,
+                                                                   logInfo)
 import           Control.Monad.Freer.Reader                       (Reader, ask, runReader)
 import           Control.Monad.IO.Class                           (MonadIO (liftIO))
 import           Data.Aeson                                       (Value)
@@ -227,9 +228,14 @@ stmInstanceLoop def instanceId = do
                 Left () -> do
                     ask >>= liftIO . STM.atomically . InstanceState.setActivity Stopped
                 Right event' -> do
-                    (newState :: Contract.State t) <- Contract.updateContract @t instanceId (caID def) currentState event'
-                    Contract.putState @t def instanceId newState
-                    stmInstanceLoop @t def instanceId
+                    (newState' :: Either PABError (Contract.State t)) <- Contract.updateContract @t instanceId (caID def) currentState event'
+                    case newState' of
+                        Left err -> do
+                            logError @(ContractInstanceMsg t) $ UpdateContractFailed $ show err
+                            stmInstanceLoop @t def instanceId
+                        Right newState -> do
+                            Contract.putState @t def instanceId newState
+                            stmInstanceLoop @t def instanceId
 
 -- | Update the TVars in the 'InstanceState' with data from the list
 --   of requests.

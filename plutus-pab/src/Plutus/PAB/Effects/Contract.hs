@@ -45,6 +45,7 @@ import           Plutus.Contract.Resumable  (Request, Response)
 import           Plutus.Contract.State      (ContractResponse)
 import qualified Plutus.Contract.State      as C
 import           Plutus.PAB.Events.Contract (ContractPABRequest, ContractPABResponse)
+import           Plutus.PAB.Types           (PABError)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs)
 import           Schema                     (FormSchema)
 import           Wallet.Types               (ContractInstanceId)
@@ -76,7 +77,7 @@ requests = C.hooks . serialisableState (Proxy @contract)
 data ContractEffect t r where
     ExportSchema   :: PABContract t => ContractDef t -> ContractEffect t [FunctionSchema FormSchema] -- ^ The schema of the contract
     InitialState   :: PABContract t => ContractInstanceId -> ContractDef t -> ContractEffect t (State t) -- ^ The initial state of the contract's instance
-    UpdateContract :: PABContract t => ContractInstanceId -> ContractDef t -> State t -> Response ContractPABResponse -> ContractEffect t (State t) -- ^ Send an update to the contract and return the new state.
+    UpdateContract :: PABContract t => ContractInstanceId -> ContractDef t -> State t -> Response ContractPABResponse -> ContractEffect t (Either PABError (State t)) -- ^ Send an update to the contract and return the new state.
 
 -- | Get the schema of a contract given its definition.
 exportSchema ::
@@ -113,9 +114,9 @@ updateContract ::
     -> ContractDef t
     -> State t
     -> Response ContractPABResponse
-    -> Eff effs (State t)
+    -> Eff effs (Either PABError (State t))
 updateContract i def state request =
-    let command :: ContractEffect t (State t) = UpdateContract i def state request
+    let command :: ContractEffect t (Either PABError (State t)) = UpdateContract i def state request
     in send command
 
 -- | Storing and retrieving the state of a contract instance

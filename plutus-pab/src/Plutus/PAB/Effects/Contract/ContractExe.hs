@@ -93,7 +93,7 @@ handleContractEffectContractExe =
                 pl = BSL8.unpack encodedRequest
             result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
             logNewMessages i result
-            pure result
+            pure $ Right result
         ExportSchema (ContractExe contractPath) -> do
             logDebug $ ExportSignatureMsg contractPath
             liftProcess $
