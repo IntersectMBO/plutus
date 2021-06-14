@@ -57,6 +57,10 @@ constraints:
   singletons < 3.0
   -- breaks eventful even more than it already was
   , persistent-template < 2.12
+  -- bizarre issue: in earlier versions they define their own 'GEq', in newer
+  -- ones they reuse the one from 'some', but there isn't e.g. a proper version
+  -- constraint from dependent-sum-template (which is the library we actually use).
+  , dependent-sum > 0.6.2.0
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
