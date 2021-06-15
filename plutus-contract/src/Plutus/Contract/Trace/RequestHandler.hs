@@ -17,9 +17,11 @@ module Plutus.Contract.Trace.RequestHandler(
     , wrapHandler
     , extract
     , maybeToHandler
+    , generalise
     -- * handlers for common requests
     , handleOwnPubKey
     , handleSlotNotifications
+    , handleCurrentSlot
     , handlePendingTransactions
     , handleUtxoQueries
     , handleTxConfirmedQueries
@@ -28,40 +30,36 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleContractNotifications
     ) where
 
-import           Control.Applicative                      (Alternative (empty, (<|>)))
-import           Control.Arrow                            (Arrow, Kleisli (..))
-import           Control.Category                         (Category)
+import           Control.Applicative            (Alternative (empty, (<|>)))
+import           Control.Arrow                  (Arrow, Kleisli (..))
+import           Control.Category               (Category)
 import           Control.Lens
-import           Control.Monad                            (foldM, guard, join)
+import           Control.Monad                  (foldM, guard, join)
 import           Control.Monad.Freer
-import qualified Control.Monad.Freer.Error                as Eff
-import           Control.Monad.Freer.NonDet               (NonDet)
-import qualified Control.Monad.Freer.NonDet               as NonDet
-import           Control.Monad.Freer.Reader               (Reader, ask)
-import           Data.Foldable                            (traverse_)
-import qualified Data.Map                                 as Map
-import           Data.Monoid                              (Alt (..), Ap (..))
-import           Data.Text                                (Text)
-import qualified Ledger.AddressMap                        as AM
+import qualified Control.Monad.Freer.Error      as Eff
+import           Control.Monad.Freer.NonDet     (NonDet)
+import qualified Control.Monad.Freer.NonDet     as NonDet
+import           Control.Monad.Freer.Reader     (Reader, ask)
+import           Data.Foldable                  (traverse_)
+import qualified Data.Map                       as Map
+import           Data.Monoid                    (Alt (..), Ap (..))
+import           Data.Text                      (Text)
+import qualified Ledger.AddressMap              as AM
 
-import           Plutus.Contract.Resumable                (Request (..), Response (..))
+import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
-import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
-                                                           surroundDebug)
-import           Ledger                                   (Address, OnChainTx (..), PubKey, Slot, Tx, TxId)
-import           Ledger.AddressMap                        (AddressMap (..))
-import           Ledger.Constraints.OffChain              (UnbalancedTx (unBalancedTxTx))
-import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Plutus.Contract.Effects.Instance         (OwnIdRequest)
-import           Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
-import qualified Plutus.Contract.Wallet                   as Wallet
-import           Wallet.API                               (WalletAPIError)
-import           Wallet.Effects                           (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
+import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
+import           Ledger                         (Address, OnChainTx (Valid), PubKey, Slot, Tx, TxId)
+import           Ledger.AddressMap              (AddressMap (..))
+import           Ledger.Constraints.OffChain    (UnbalancedTx (unBalancedTxTx))
+import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..))
+import qualified Plutus.Contract.Wallet         as Wallet
+import           Wallet.API                     (WalletAPIError)
+import           Wallet.Effects                 (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
 import qualified Wallet.Effects
-import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg (..), TxBalanceMsg)
-import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse,
-                                                           ContractInstanceId, Notification, NotificationError,
-                                                           slotRange, targetSlot)
+import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg (..), TxBalanceMsg)
+import           Wallet.Types                   (AddressChangeRequest (..), AddressChangeResponse, ContractInstanceId,
+                                                 Notification, NotificationError, slotRange, targetSlot)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -91,6 +89,18 @@ tryHandler' (RequestHandler h) requests =
 
 extract :: Alternative f => Prism' a b -> a -> f b
 extract p = maybe empty pure . preview p
+
+-- | Generalise a request handler
+generalise ::
+    forall effs req req' resp resp'
+    . (req' -> Maybe req)
+    -> (resp -> resp')
+    -> RequestHandler effs req resp
+    -> RequestHandler effs req' resp'
+generalise rq rsp (RequestHandler h) = RequestHandler $ \k -> do
+    case rq k of
+        Nothing -> empty
+        Just k' -> rsp <$> h k'
 
 wrapHandler :: RequestHandler effs req resp -> RequestHandler effs (Request req) (Response resp)
 wrapHandler (RequestHandler h) = RequestHandler $ \Request{rqID, itID, rqRequest} -> do
@@ -125,6 +135,18 @@ handleSlotNotifications =
             currentSlot <- Wallet.Effects.walletSlot
             logDebug $ SlotNoficationTargetVsCurrent targetSlot_ currentSlot
             guard (currentSlot >= targetSlot_)
+            pure currentSlot
+
+handleCurrentSlot ::
+    forall effs a.
+    ( Member WalletEffect effs
+    , Member (LogObserve (LogMessage Text)) effs
+    )
+    => RequestHandler effs a Slot
+handleCurrentSlot =
+    RequestHandler $ \_ ->
+        surroundDebug @Text "handleCurrentSLot" $ do
+            currentSlot <- Wallet.Effects.walletSlot
             pure currentSlot
 
 handlePendingTransactions ::
@@ -195,11 +217,11 @@ handleAddressChangedAtQueries = RequestHandler $ \req ->
         Wallet.Effects.addressChanged req
 
 handleOwnInstanceIdQueries ::
-    forall effs.
+    forall effs a.
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (Reader ContractInstanceId) effs
     )
-    => RequestHandler effs OwnIdRequest ContractInstanceId
+    => RequestHandler effs a ContractInstanceId
 handleOwnInstanceIdQueries = RequestHandler $ \_ ->
     surroundDebug @Text "handleOwnInstanceIdQueries" ask
 

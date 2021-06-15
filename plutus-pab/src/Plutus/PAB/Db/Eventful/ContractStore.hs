@@ -13,13 +13,13 @@ import           Control.Monad.Freer            (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error      (Error, throwError)
 import           Data.Aeson                     (Value)
 import qualified Data.Map                       as Map
+import           Plutus.Contract.Effects        (PABReq)
 import           Plutus.Contract.State          (ContractResponse)
 import qualified Plutus.PAB.Db.Eventful.Command as Command
 import qualified Plutus.PAB.Db.Eventful.Query   as Query
 import           Plutus.PAB.Effects.Contract    (ContractStore (..), PABContract (..))
 import           Plutus.PAB.Effects.EventLog    (EventLogEffect, runCommand, runGlobalQuery)
 import           Plutus.PAB.Events              (PABEvent)
-import           Plutus.PAB.Events.Contract     (ContractPABRequest)
 import           Plutus.PAB.Types               (PABError (..), Source (..))
 
 -- | Handle the 'ContractStore' effect by storing states
@@ -28,7 +28,7 @@ handleContractStore ::
     forall t effs.
     ( Member (EventLogEffect (PABEvent (ContractDef t))) effs
     , Member (Error PABError) effs
-    , State t ~ ContractResponse Value Value Value ContractPABRequest
+    , State t ~ ContractResponse Value Value Value PABReq
     )
     => ContractStore t
     ~> Eff effs

@@ -48,13 +48,11 @@ data CredentialOwnerReference =
     deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 type MirrorSchema =
-    BlockchainActions
-        .\/ Endpoint "issue" CredentialOwnerReference -- lock a single credential token in a state machine tied to the credential token owner
+        Endpoint "issue" CredentialOwnerReference -- lock a single credential token in a state machine tied to the credential token owner
         .\/ Endpoint "revoke" CredentialOwnerReference -- revoke a credential token token from its owner by calling 'Revoke' on the state machine instance
 
 mirror ::
-    ( HasBlockchainActions s
-    , HasEndpoint "revoke" CredentialOwnerReference s
+    ( HasEndpoint "revoke" CredentialOwnerReference s
     , HasEndpoint "issue" CredentialOwnerReference s
     )
     => Contract w s MirrorError ()
@@ -65,7 +63,6 @@ mirror = do
 
 createTokens ::
     ( HasEndpoint "issue" CredentialOwnerReference s
-    , HasBlockchainActions s
     )
     => CredentialAuthority
     -> Contract w s MirrorError ()
@@ -88,8 +85,7 @@ createTokens authority = do
     void $ mapError StateMachineError $ runInitialise stateMachine Active theToken
 
 revokeToken ::
-    ( HasBlockchainActions s
-    , HasEndpoint "revoke" CredentialOwnerReference s
+    ( HasEndpoint "revoke" CredentialOwnerReference s
     )
     => CredentialAuthority
     -> Contract w s MirrorError ()

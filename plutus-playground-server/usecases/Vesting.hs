@@ -32,7 +32,7 @@ import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value)
 import qualified Ledger.Value             as Value
 import           Playground.Contract
-import           Plutus.Contract          hiding (when)
+import           Plutus.Contract
 import qualified Plutus.Contract.Typed.Tx as Typed
 import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), fold)
@@ -58,8 +58,7 @@ import           Wallet.Emulator.Types    (walletPubKey)
 -}
 
 type VestingSchema =
-    BlockchainActions
-        .\/ Endpoint "vest funds" ()
+        Endpoint "vest funds" ()
         .\/ Endpoint "retrieve funds" Value
 
 -- | Tranche of a vesting scheme.
@@ -161,9 +160,7 @@ payIntoContract :: Value -> TxConstraints () ()
 payIntoContract = mustPayToTheScript ()
 
 vestFundsC
-    :: ( HasWriteTx s
-       )
-    => VestingParams
+    :: VestingParams
     -> Contract () s T.Text ()
 vestFundsC vesting = do
     let tx = payIntoContract (totalAmount vesting)
@@ -172,11 +169,7 @@ vestFundsC vesting = do
 data Liveness = Alive | Dead
 
 retrieveFundsC
-    :: ( HasAwaitSlot s
-       , HasUtxoAt s
-       , HasWriteTx s
-       )
-    => VestingParams
+    :: VestingParams
     -> Value
     -> Contract () s T.Text Liveness
 retrieveFundsC vesting payment = do

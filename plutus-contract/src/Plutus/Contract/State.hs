@@ -29,8 +29,8 @@ import           GHC.Generics                     (Generic)
 
 import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
 import           Plutus.Contract.Checkpoint       (CheckpointKey, CheckpointStore)
+import           Plutus.Contract.Effects          (PABReq, PABResp)
 import           Plutus.Contract.Resumable
-import           Plutus.Contract.Schema           (Event (..), Handlers (..))
 import           Plutus.Contract.Types            hiding (lastLogs, lastState, logs, observableState)
 
 -- $contractstate
@@ -106,8 +106,8 @@ insertAndUpdateContract ::
     forall w s e a.
     (Monoid w)
     => Contract w s e a -- ^ The 'Contract' with schema @s@ error type @e@.
-    -> ContractRequest w (Event s) -- ^  The 'ContractRequest' value with the previous state and the new event.
-    -> ContractResponse w e (Event s) (Handlers s)
+    -> ContractRequest w PABResp -- ^  The 'ContractRequest' value with the previous state and the new event.
+    -> ContractResponse w e PABResp PABReq
 insertAndUpdateContract (Contract con) ContractRequest{oldState=State record checkpoints oldW, event} =
     mkResponse
         oldW
@@ -134,5 +134,5 @@ initialiseContract ::
     forall w s e a.
     (Monoid w)
     => Contract w s e a
-    -> ContractResponse w e (Event s) (Handlers s)
+    -> ContractResponse w e PABResp PABReq
 initialiseContract (Contract c) = mkResponse mempty $ runResumable [] mempty c

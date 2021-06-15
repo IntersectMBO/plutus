@@ -66,18 +66,15 @@ type MarloweSlotRange = (Slot, Slot)
 type MarloweInput = (MarloweSlotRange, [Input])
 
 type MarloweSchema =
-    BlockchainActions
-        .\/ Endpoint "create" (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
+        Endpoint "create" (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
         .\/ Endpoint "apply-inputs" (MarloweParams, Maybe SlotInterval, [Input])
         .\/ Endpoint "auto" (MarloweParams, Party, Slot)
         .\/ Endpoint "redeem" (MarloweParams, TokenName, PubKeyHash)
         .\/ Endpoint "close" ()
 
 
-type MarloweCompanionSchema = BlockchainActions
-type MarloweFollowSchema =
-        BlockchainActions
-            .\/ Endpoint "follow" MarloweParams
+type MarloweCompanionSchema = EmptySchema
+type MarloweFollowSchema = Endpoint "follow" MarloweParams
 
 
 data MarloweError =
@@ -350,11 +347,7 @@ marlowePlutusContract = do
 
 setupMarloweParams
     :: forall s e i o.
-       ( HasWriteTx s
-       , HasOwnPubKey s
-       , HasTxConfirmation s
-       , AsMarloweError e
-       )
+    (AsMarloweError e)
     => RoleOwners -> Marlowe.Contract -> Contract MarloweContractState s e (MarloweParams, TxConstraints i o)
 setupMarloweParams owners contract = mapError (review _MarloweError) $ do
     creator <- pubKeyHash <$> ownPubKey

@@ -34,9 +34,10 @@ import           Data.Text.Prettyprint.Doc  (Pretty, pretty)
 import           Eventful                   (Projection (Projection), StreamEvent (StreamEvent), StreamProjection,
                                              projectionEventHandler, projectionMapMaybe, projectionSeed,
                                              streamProjectionState)
+import           Plutus.Contract.Effects    (PABReq)
 import           Plutus.Contract.State      (ContractResponse)
 import           Plutus.PAB.Events          (PABEvent (InstallContract, UpdateContractInstanceState))
-import           Plutus.PAB.Events.Contract (ContractInstanceId, ContractPABRequest)
+import           Plutus.PAB.Events.Contract (ContractInstanceId)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs (..))
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
@@ -69,9 +70,9 @@ instance Pretty state =>
     pretty = pretty . streamProjectionState
 
 -- | The last known state of the contract.
-contractState :: forall t key position. Projection (Map ContractInstanceId (ContractResponse Value Value Value ContractPABRequest)) (StreamEvent key position (PABEvent t))
+contractState :: forall t key position. Projection (Map ContractInstanceId (ContractResponse Value Value Value PABReq)) (StreamEvent key position (PABEvent t))
 contractState =
-    let projectionEventHandler :: Map ContractInstanceId (ContractResponse Value Value Value ContractPABRequest) -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId (ContractResponse Value Value Value ContractPABRequest)
+    let projectionEventHandler :: Map ContractInstanceId (ContractResponse Value Value Value PABReq) -> StreamEvent key position (PABEvent t) -> Map ContractInstanceId (ContractResponse Value Value Value PABReq)
         projectionEventHandler oldMap = \case
             (StreamEvent _ _ (UpdateContractInstanceState _ i s)) ->
                 Map.union (Map.singleton i s) oldMap

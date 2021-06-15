@@ -98,7 +98,7 @@ You are going to convert the wallet values to their corresponding public key has
 That way, the user can simply identify the recipient by a number and doesn't have to enter a public key into a text box.
 This type of conversion from a nickname to a unique identifier is a common task for Plutus apps.
 
-To use the ``lock`` endpoint in our app, you call the :hsobj:`Plutus.Contract.Effects.ExposeEndpoint.endpoint` function:
+To use the ``lock`` endpoint in our app, you call the :hsobj:`Plutus.Contract.Request.endpoint` function:
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK5

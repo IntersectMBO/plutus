@@ -97,8 +97,7 @@ data GovInput
 -- * @new-law@ to create a new law and distribute voting tokens
 -- * @add-vote@ to vote on a proposal with the name of the voting token and a boolean to vote in favor or against.
 type Schema =
-    BlockchainActions
-        .\/ Endpoint "new-law" ByteString
+    Endpoint "new-law" ByteString
         .\/ Endpoint "add-vote" (TokenName, Bool)
 
 -- | The governace contract parameters.
@@ -211,7 +210,7 @@ proposalContract ::
     AsGovError e
     => Params
     -> Proposal
-    -> Contract () BlockchainActions e ()
+    -> Contract () EmptySchema e ()
 proposalContract params proposal = mapError (review _GovError) propose where
     theClient = client params
     propose = do

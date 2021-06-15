@@ -31,7 +31,7 @@ import qualified Plutus.Contracts.Currency           as Currency
 import qualified Plutus.Contracts.Uniswap            as Uniswap
 import           Plutus.Contracts.Uniswap.Trace      as US
 import           Plutus.PAB.Effects.Contract         (ContractEffect (..))
-import           Plutus.PAB.Effects.Contract.Builtin (Builtin, SomeBuiltin (..), type (.\\))
+import           Plutus.PAB.Effects.Contract.Builtin (Builtin, SomeBuiltin (..))
 import qualified Plutus.PAB.Effects.Contract.Builtin as Builtin
 import           Plutus.PAB.Monitoring.PABLogMsg     (PABMultiAgentMsg)
 import           Plutus.PAB.Simulator                (SimulatorEffectHandlers, logString)
@@ -105,8 +105,8 @@ handleUniswapContract ::
     ~> Eff effs
 handleUniswapContract = Builtin.handleBuiltin getSchema getContract where
   getSchema = \case
-    UniswapUser _ -> Builtin.endpointsToSchemas @(Uniswap.UniswapUserSchema .\\ BlockchainActions)
-    UniswapStart  -> Builtin.endpointsToSchemas @(Uniswap.UniswapOwnerSchema .\\ BlockchainActions)
+    UniswapUser _ -> Builtin.endpointsToSchemas @Uniswap.UniswapUserSchema
+    UniswapStart  -> Builtin.endpointsToSchemas @Uniswap.UniswapOwnerSchema
     Init          -> Builtin.endpointsToSchemas @Empty
   getContract = \case
     UniswapUser us -> SomeBuiltin $ Uniswap.userEndpoints us

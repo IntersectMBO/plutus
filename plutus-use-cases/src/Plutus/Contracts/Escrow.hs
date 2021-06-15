@@ -69,8 +69,7 @@ import           Prelude                  (Semigroup (..), foldMap)
 import qualified Prelude                  as Haskell
 
 type EscrowSchema =
-    BlockchainActions
-        .\/ Endpoint "pay-escrow" Value
+        Endpoint "pay-escrow" Value
         .\/ Endpoint "redeem-escrow" ()
         .\/ Endpoint "refund-escrow" ()
 
@@ -227,9 +226,7 @@ escrowContract escrow =
 --   contribution.
 payEp ::
     forall w s e.
-    ( HasWriteTx s
-    , HasOwnPubKey s
-    , HasEndpoint "pay-escrow" Value s
+    ( HasEndpoint "pay-escrow" Value s
     , AsEscrowError e
     )
     => EscrowParams Datum
@@ -241,9 +238,7 @@ payEp escrow = do
 -- | Pay some money into the escrow contract.
 pay ::
     forall w s e.
-    ( HasWriteTx s
-    , HasOwnPubKey s
-    , AsEscrowError e
+    ( AsEscrowError e
     )
     => TypedValidator Escrow
     -- ^ The instance
@@ -264,10 +259,7 @@ newtype RedeemSuccess = RedeemSuccess TxId
 -- | 'redeem' with an endpoint.
 redeemEp ::
     forall w s e.
-    ( HasUtxoAt s
-    , HasAwaitSlot s
-    , HasWriteTx s
-    , HasEndpoint "redeem-escrow" () s
+    ( HasEndpoint "redeem-escrow" () s
     , AsEscrowError e
     )
     => EscrowParams Datum
@@ -280,10 +272,7 @@ redeemEp escrow =
 --   has all the outputs defined in the contract's list of targets.
 redeem ::
     forall w s e.
-    ( HasUtxoAt s
-    , HasAwaitSlot s
-    , HasWriteTx s
-    , AsEscrowError e
+    ( AsEscrowError e
     )
     => TypedValidator Escrow
     -> EscrowParams Datum
@@ -310,10 +299,7 @@ newtype RefundSuccess = RefundSuccess TxId
 -- | 'refund' with an endpoint.
 refundEp ::
     forall w s.
-    ( HasUtxoAt s
-    , HasWriteTx s
-    , HasOwnPubKey s
-    , HasEndpoint "refund-escrow" () s
+    ( HasEndpoint "refund-escrow" () s
     )
     => EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
@@ -322,10 +308,7 @@ refundEp escrow = endpoint @"refund-escrow" >> refund (typedValidator escrow) es
 -- | Claim a refund of the contribution.
 refund ::
     forall w s.
-    ( HasUtxoAt s
-    , HasOwnPubKey s
-    , HasWriteTx s)
-    => TypedValidator Escrow
+    TypedValidator Escrow
     -> EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
 refund inst escrow = do
@@ -343,12 +326,7 @@ refund inst escrow = do
 --   or reclaim the contribution if the goal has not been met.
 payRedeemRefund ::
     forall w s.
-    ( HasUtxoAt s
-    , HasWriteTx s
-    , HasAwaitSlot s
-    , HasOwnPubKey s
-    )
-    => EscrowParams Datum
+    EscrowParams Datum
     -> Value
     -> Contract w s EscrowError (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
