@@ -27,12 +27,20 @@
       dataDir = ".";
       dataFiles = [
         "templates/*.tpl"
-        "validation/data/crowdfunding/*.plc"
-        "validation/data/future/*.plc"
-        "validation/data/multisigSM/*.plc"
-        "validation/data/vesting/*.plc"
-        "validation/data/marlowe/trustfund/*.plc"
-        "validation/data/marlowe/zerocoupon/*.plc"
+        "validation/data/crowdfunding/*.flat"
+        "validation/data/currency/*.flat"
+        "validation/data/escrow/*.flat"
+        "validation/data/future/*.flat"
+        "validation/data/game-sm/*.flat"
+        "validation/data/multisig-sm/*.flat"
+        "validation/data/ping-pong/*.flat"
+        "validation/data/prism/*.flat"
+        "validation/data/pubkey/*.flat"
+        "validation/data/stablecoin/*.flat"
+        "validation/data/token-account/*.flat"
+        "validation/data/vesting/*.flat"
+        "validation/data/marlowe/trustfund/*.flat"
+        "validation/data/marlowe/zerocoupon/*.flat"
         ];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -140,7 +148,11 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];

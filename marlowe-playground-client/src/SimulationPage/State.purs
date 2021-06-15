@@ -12,21 +12,20 @@ import BottomPanel.Types (Action(..), State, initialState) as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
-import Data.Array (snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_)
-import Data.Lens (_Just, assign, modifying, over, set, use)
+import Data.Lens (_Just, assign, modifying, use)
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty (last)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.NonEmptyList.Extra (extendWith, tailIfNotEmpty)
+import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
 import Data.String (splitAt)
 import Data.Tuple (Tuple(..))
@@ -55,7 +54,7 @@ import SessionStorage as SessionStorage
 import SimulationPage.Lenses (_bottomPanelState, _decorationIds, _helpContext, _showRightPanel)
 import SimulationPage.Types (Action(..), BottomPanelView(..), State)
 import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _currentContract, _currentMarloweState, _executionState, _initialSlot, _marloweState, _moveToAction, _possibleActions, _templateContent, _termContract)
-import Simulator.State (applyInput, emptyExecutionStateWithSlot, emptyMarloweState, inFuture, mapPartiesActionInput, moveToSlot, updateMarloweState, updatePossibleActions, applyPendingInputs)
+import Simulator.State (applyInput, emptyMarloweState, inFuture, moveToSlot, startSimulation, updateChoice)
 import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..))
 import StaticData (simulatorBufferLocalStorageKey)
 import Types (WebData)
@@ -104,23 +103,17 @@ handleAction (SetIntegerTemplateParam templateType key value) = do
 
 handleAction StartSimulation =
   void
+    {- The marloweState is a non empty list of an object that includes the ExecutionState (SimulationRunning | SimulationNotStarted)
+       Inside the SimulationNotStarted we can find the information needed to start the simulation. By running
+       this code inside of a maybeT, we make sure that the Head of the list has the state SimulationNotStarted -}
+    
     $ runMaybeT do
         initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
         termContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _termContract <<< _Just)
         templateContent <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent)
         let
           contract = fillTemplate templateContent termContract
-        -- The marloweState is a non empty list of an object that includes the ExecutionState (SimulationRunning | SimulationNotStarted)
-        -- Inside the SimulationNotStarted we can find the information needed to start the simulation. By running
-        -- this code inside of a maybeT, we make sure that the Head of the list has the state SimulationNotStarted
-        modifying
-          _marloweState
-          ( extendWith
-              ( updatePossibleActions
-                  <<< applyPendingInputs
-                  <<< (set _executionState (emptyExecutionStateWithSlot initialSlot contract))
-              )
-          )
+        startSimulation initialSlot contract
         lift $ updateOracleAndContractEditor
 
 handleAction (MoveSlot slot) = do
@@ -135,20 +128,14 @@ handleAction (SetSlot slot) = do
 
 handleAction (AddInput input bounds) = do
   when validInput do
-    applyInput ((flip snoc) input)
+    applyInput input
     updateOracleAndContractEditor
   where
   validInput = case input of
     (IChoice _ chosenNum) -> inBounds chosenNum bounds
     _ -> true
 
-handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (updateChoice choiceId)))
-  where
-  updateChoice :: ChoiceId -> ActionInput -> ActionInput
-  updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
-    | wantedChoiceId == currentChoiceId = ChoiceInput choiceId bounds chosenNum
-
-  updateChoice _ input = input
+handleAction (SetChoice choiceId chosenNum) = updateChoice choiceId chosenNum
 
 handleAction ResetSimulator = do
   modifying _marloweState (NEL.singleton <<< last)

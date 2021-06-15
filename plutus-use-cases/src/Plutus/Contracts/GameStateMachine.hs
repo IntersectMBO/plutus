@@ -90,12 +90,10 @@ data GuessArgs =
         } deriving stock (Haskell.Show, Generic)
           deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
--- | The schema of the contract. It consists of the usual
---   'BlockchainActions' plus the two endpoints @"lock"@
+-- | The schema of the contract. It consists of the two endpoints @"lock"@
 --   and @"guess"@ with their respective argument types.
 type GameStateMachineSchema =
-    BlockchainActions
-        .\/ Endpoint "lock" LockArgs
+        Endpoint "lock" LockArgs
         .\/ Endpoint "guess" GuessArgs
 
 data GameError =

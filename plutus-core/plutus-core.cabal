@@ -287,7 +287,7 @@ library
         semigroups -any,
         serialise -any,
         size-based -any,
-        some -any,
+        some < 1.0.3,
         sop-core -any,
         tasty -any,
         tasty-golden -any,

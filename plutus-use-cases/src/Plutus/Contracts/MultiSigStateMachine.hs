@@ -141,8 +141,7 @@ instance AsSMContractError MultiSigError where
     _SMContractError = _MSStateMachineError
 
 type MultiSigSchema =
-    BlockchainActions
-        .\/ Endpoint "propose-payment" Payment
+        Endpoint "propose-payment" Payment
         .\/ Endpoint "add-signature" ()
         .\/ Endpoint "cancel-payment" ()
         .\/ Endpoint "pay" ()

@@ -37,8 +37,6 @@ extra-deps:
 - Stream-0.4.7.2@sha256:ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53,1009
 - lazysmallcheck-0.6@sha256:dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc,1696
 # Other missing packages
-- aws-lambda-haskell-runtime-3.0.3
-- aws-lambda-haskell-runtime-wai-1.0.2@sha256:5ce655247461b562c8048011ddc022130135a03417def8203aad92366cc979ab,1965
 - composition-prelude-3.0.0.2
 - constraints-extras-0.3.0.2
 - dependent-map-0.4.0.0
@@ -130,7 +128,7 @@ extra-deps:
     - cardano-ledger-core
     - alonzo/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
+  commit: 34abfb7f4f5610cabb45396e0496472446a0b2ca
   subdirs:
     - contra-tracer
     - iohk-monitoring

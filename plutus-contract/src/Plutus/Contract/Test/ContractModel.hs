@@ -122,7 +122,7 @@ import           Data.Typeable
 
 import           Ledger.Slot
 import           Ledger.Value                          (Value)
-import           Plutus.Contract                       (Contract, HasBlockchainActions)
+import           Plutus.Contract                       (Contract)
 import           Plutus.Contract.Test
 import           Plutus.Trace.Emulator                 as Trace (ContractHandle, ContractInstanceTag, EmulatorTrace,
                                                                  activateContract, walletInstanceTag)
@@ -170,7 +170,6 @@ type SchemaConstraints w schema err =
         , Monoid w
         , JSON.ToJSON w
         , Typeable schema
-        , HasBlockchainActions schema
         , ContractConstraints schema
         , Show err
         , Typeable err

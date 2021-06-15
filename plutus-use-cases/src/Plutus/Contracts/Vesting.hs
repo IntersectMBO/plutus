@@ -45,7 +45,7 @@ import           Ledger.Typed.Scripts     (ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value)
 import qualified Ledger.Value             as Value
-import           Plutus.Contract          hiding (when)
+import           Plutus.Contract
 import qualified Plutus.Contract.Typed.Tx as Typed
 import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), fold)
@@ -70,8 +70,7 @@ import qualified Prelude                  as Haskell
 -}
 
 type VestingSchema =
-    BlockchainActions
-        .\/ Endpoint "vest funds" ()
+        Endpoint "vest funds" ()
         .\/ Endpoint "retrieve funds" Value
 
 data Vesting
@@ -185,8 +184,7 @@ payIntoContract :: Value -> TxConstraints () ()
 payIntoContract = mustPayToTheScript ()
 
 vestFundsC
-    :: ( HasWriteTx s
-       , AsVestingError e
+    :: ( AsVestingError e
        )
     => VestingParams
     -> Contract w s e ()
@@ -197,10 +195,7 @@ vestFundsC vesting = mapError (review _VestingError) $ do
 data Liveness = Alive | Dead
 
 retrieveFundsC
-    :: ( HasAwaitSlot s
-       , HasUtxoAt s
-       , HasWriteTx s
-       , AsVestingError e
+    :: ( AsVestingError e
        )
     => VestingParams
     -> Value

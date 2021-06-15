@@ -57,7 +57,7 @@ import           Data.Void                            (Void, absurd)
 import           GHC.Generics                         (Generic)
 import           Ledger                               (Slot, Value)
 import qualified Ledger
-import           Ledger.AddressMap                    (UtxoMap, outputsMapFromTxForAddress)
+import           Ledger.AddressMap                    (outputsMapFromTxForAddress)
 import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
 import           Ledger.Constraints.OffChain          (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain          as Constraints
@@ -184,7 +184,7 @@ mkStateMachineClient inst =
 getOnChainState ::
     ( AsSMContractError e
     , PlutusTx.IsData state
-    , HasUtxoAt schema)
+    )
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i, UtxoMap))
 getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SMContractError) $ do
@@ -214,8 +214,7 @@ waitForUpdateUntil ::
     ( AsSMContractError e
     , AsContractError e
     , PlutusTx.IsData state
-    , HasAwaitSlot schema
-    , HasWatchAddress schema)
+    )
     => StateMachineClient state i
     -> Slot
     -> Contract w schema e (WaitingResult state)
@@ -252,8 +251,7 @@ waitForUpdate ::
     ( AsSMContractError e
     , AsContractError e
     , PlutusTx.IsData state
-    , HasAwaitSlot schema
-    , HasWatchAddress schema)
+    )
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
@@ -272,10 +270,6 @@ runGuardedStep ::
     ( AsSMContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
-    , HasUtxoAt schema
-    , HasWriteTx schema
-    , HasOwnPubKey schema
-    , HasTxConfirmation schema
     )
     => StateMachineClient state input              -- ^ The state machine
     -> input                                       -- ^ The input to apply to the state machine
@@ -299,10 +293,6 @@ runStep ::
     ( AsSMContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
-    , HasUtxoAt schema
-    , HasWriteTx schema
-    , HasOwnPubKey schema
-    , HasTxConfirmation schema
     )
     => StateMachineClient state input
     -- ^ The state machine
@@ -319,8 +309,6 @@ runInitialise ::
     forall w e state schema input.
     ( PlutusTx.IsData state
     , PlutusTx.IsData input
-    , HasTxConfirmation schema
-    , HasWriteTx schema
     , AsSMContractError e
     )
     => StateMachineClient state input
@@ -353,7 +341,6 @@ data StateMachineTransition state input =
 mkStep ::
     forall w e state schema input.
     ( AsSMContractError e
-    , HasUtxoAt schema
     , PlutusTx.IsData state
     )
     => StateMachineClient state input

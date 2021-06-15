@@ -2,11 +2,10 @@ module Marlowe.ContractTests where
 
 import Prelude
 import Control.Monad.State (runState)
-import Data.Array (snoc)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_)
-import Data.Lens (over, preview, previewOn, set, (^.))
+import Data.Lens (preview, previewOn, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -27,8 +26,8 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Party(..), Token(..))
 import Marlowe.Template (TemplateContent(..), fillTemplate)
 import SimulationPage.State (mkState)
-import Simulator.Lenses (_SimulationRunning, _currentContract, _executionState, _marloweState, _pendingInputs, _transactionError)
-import Simulator.State (applyTransactions, updateMarloweState, emptyExecutionStateWithSlot)
+import Simulator.Lenses (_SimulationRunning, _currentContract, _executionState, _marloweState, _transactionError)
+import Simulator.State (applyInput, startSimulation)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assertFalse, equal)
 import Text.Pretty (pretty)
@@ -95,12 +94,10 @@ all =
         (Tuple _ finalState) =
           (flip runState mkState)
             $ for_ mFilledEscrow \filledEscrow -> do
-                updateMarloweState (set _executionState (emptyExecutionStateWithSlot zero filledEscrow))
-                updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) deposit))
-                applyTransactions
-                updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) choice1))
-                updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) choice2))
-                applyTransactions
+                startSimulation zero filledEscrow
+                applyInput deposit
+                applyInput choice1
+                applyInput choice2
 
         finalContract = previewOn finalState _currentContract
 

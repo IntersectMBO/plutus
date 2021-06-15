@@ -38,8 +38,7 @@ import           PlutusTx.Prelude         hiding (Semigroup (..), foldMap)
 import           Prelude                  as Haskell (Semigroup (..), Show, foldMap)
 
 type MultiSigSchema =
-    BlockchainActions
-        .\/ Endpoint "lock" (MultiSig, Value)
+        Endpoint "lock" (MultiSig, Value)
         .\/ Endpoint "unlock" (MultiSig, [PubKeyHash])
 
 data MultiSig =

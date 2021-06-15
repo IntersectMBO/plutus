@@ -28,10 +28,10 @@ module Plutus.PAB.Db.Eventful.Command
 import           Data.Aeson                   (Value)
 import           Eventful                     (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
 import qualified Ledger
+import           Plutus.Contract.Effects      (PABReq)
 import           Plutus.Contract.State        (ContractResponse)
 import           Plutus.PAB.Db.Eventful.Query (nullProjection)
 import           Plutus.PAB.Events            (PABEvent (..))
-import           Plutus.PAB.Events.Contract   (ContractPABRequest)
 import           Plutus.PAB.Webserver.Types   (ContractActivationArgs)
 import           Wallet.Types                 (ContractInstanceId)
 
@@ -53,7 +53,7 @@ installCommand = sendEvents (return . InstallContract)
 saveBalancedTxResult :: forall t. Aggregate () (PABEvent t) Ledger.Tx
 saveBalancedTxResult = sendEvents (return . SubmitTx)
 
-updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId, (ContractResponse Value Value Value ContractPABRequest))
+updateContractInstanceState :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId, (ContractResponse Value Value Value PABReq))
 updateContractInstanceState = sendEvents (\(x, y, z) -> return $ UpdateContractInstanceState x y z)
 
 startContractInstance :: forall t. Aggregate () (PABEvent t) (ContractActivationArgs t, ContractInstanceId)

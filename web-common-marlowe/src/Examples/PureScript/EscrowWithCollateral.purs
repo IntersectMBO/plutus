@@ -24,11 +24,11 @@ fixedTimeoutContract =
     ( TemplateContent
         { slotContent:
             Map.fromFoldable
-              [ "Collateral deposit by seller timeout" /\ fromInt 60
-              , "Deposit of collateral by buyer timeout" /\ fromInt 120
-              , "Deposit of price by buyer timeout" /\ fromInt 180
-              , "Dispute by buyer timeout" /\ fromInt 300
-              , "Seller's response timeout" /\ fromInt 360
+              [ "Collateral deposit by seller timeout" /\ fromInt 600
+              , "Deposit of collateral by buyer timeout" /\ fromInt 1200
+              , "Deposit of price by buyer timeout" /\ fromInt 1800
+              , "Dispute by buyer timeout" /\ fromInt 3000
+              , "Seller's response timeout" /\ fromInt 3600
               ]
         , valueContent: Map.empty
         }

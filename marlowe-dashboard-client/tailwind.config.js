@@ -77,6 +77,7 @@ module.exports = {
       gridTemplateRows: {
         main: "auto minmax(0, 1fr) auto",
         "contract-setup": "auto auto minmax(0, 1fr)",
+        "contract-step-card": "auto minmax(0, 1fr)",
       },
       gridTemplateColumns: {
         "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",

@@ -17,8 +17,7 @@ import           Data.Text                (Text)
 import qualified Data.Text                as T
 
 import           Playground.Contract
-import           Plutus.Contract          (AsContractError (_ContractError), ContractError, HasAwaitSlot, logInfo,
-                                           mapError, select)
+import           Plutus.Contract          (AsContractError (_ContractError), ContractError, logInfo, mapError, select)
 import           Prelude                  (Maybe (..), const, show, ($), (.), (<>), (>>), (>>=))
 
 -- Demonstrates how to deal with errors in Plutus contracts. We define a custom
@@ -29,8 +28,7 @@ import           Prelude                  (Maybe (..), const, show, ($), (.), (<
 -- to write tests for error conditions.
 
 type Schema =
-    BlockchainActions
-     .\/ Endpoint "throwError" Text
+    Endpoint "throwError" Text
      .\/ Endpoint "catchError" Text
      .\/ Endpoint "catchContractError" ()
 
@@ -70,7 +68,7 @@ throwAndCatch e =
 
 -- | Handle an error from 'awaitSlot' by wrapping it in the 'AContractError'
 --   constructor
-catchContractError :: (AsMyError e, HasAwaitSlot s) => Contract () s e ()
+catchContractError :: (AsMyError e) => Contract () s e ()
 catchContractError =
     catching _AContractError
         (void $ mapError (review _AContractError) $ awaitSlot 10)

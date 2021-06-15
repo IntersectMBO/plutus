@@ -157,9 +157,7 @@ instance AsPubKeyError CurrencyError where
 --   be forged afterwards.
 forgeContract
     :: forall w s e.
-    ( HasWriteTx s
-    , HasTxConfirmation s
-    , AsCurrencyError e
+    ( AsCurrencyError e
     )
     => PubKeyHash
     -> [(TokenName, Integer)]
@@ -188,8 +186,7 @@ data SimpleMPS =
         deriving anyclass (FromJSON, ToJSON, ToSchema)
 
 type CurrencySchema =
-    BlockchainActions
-        .\/ Endpoint "Create native token" SimpleMPS
+        Endpoint "Create native token" SimpleMPS
 
 -- | Use 'forgeContract' to create the currency specified by a 'SimpleMPS'
 forgeCurrency
@@ -202,13 +199,7 @@ forgeCurrency = do
     pure cur
 
 -- | Create a thread token for a state machine
-createThreadToken ::
-    forall s w.
-    ( HasOwnPubKey s
-    , HasTxConfirmation s
-    , HasWriteTx s
-    )
-    => Contract w s CurrencyError AssetClass
+createThreadToken :: forall s w. Contract w s CurrencyError AssetClass
 createThreadToken = do
     ownPK <- pubKeyHash <$> ownPubKey
     let tokenName :: TokenName = "thread token"

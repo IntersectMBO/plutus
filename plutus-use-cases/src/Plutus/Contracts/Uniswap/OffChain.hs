@@ -33,12 +33,12 @@ import qualified Data.Map                         as Map
 import           Data.Monoid                      (Last (..))
 import           Data.Proxy                       (Proxy (..))
 import           Data.Text                        (Text, pack)
-import           Data.Void                        (Void)
+import           Data.Void                        (Void, absurd)
 import           Ledger                           hiding (singleton)
 import           Ledger.Constraints               as Constraints
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Playground.Contract
-import           Plutus.Contract                  hiding (when)
+import           Plutus.Contract
 import qualified Plutus.Contracts.Currency        as Currency
 import           Plutus.Contracts.Uniswap.OnChain (mkUniswapValidator, validateLiquidityForging)
 import           Plutus.Contracts.Uniswap.Pool
@@ -54,14 +54,11 @@ instance Scripts.ValidatorTypes Uniswapping where
     type instance RedeemerType Uniswapping = UniswapAction
     type instance DatumType    Uniswapping = UniswapDatum
 
-type UniswapOwnerSchema =
-    BlockchainActions
-        .\/ Endpoint "start" ()
+type UniswapOwnerSchema = Endpoint "start" ()
 
 -- | Schema for the endpoints for users of Uniswap.
 type UniswapUserSchema =
-    BlockchainActions
-        .\/ Endpoint "create" CreateParams
+        Endpoint "create" CreateParams
         .\/ Endpoint "swap"   SwapParams
         .\/ Endpoint "close"  CloseParams
         .\/ Endpoint "remove" RemoveParams
@@ -172,7 +169,7 @@ data AddParams = AddParams
 
 -- | Creates a Uniswap "factory". This factory will keep track of the existing liquidity pools and enforce that there will be at most one liquidity pool
 -- for any pair of tokens at any given time.
-start :: HasBlockchainActions s => Contract w s Text Uniswap
+start :: forall w s. Contract w s Text Uniswap
 start = do
     pkh <- pubKeyHash <$> ownPubKey
     cs  <- fmap Currency.currencySymbol $
@@ -189,7 +186,7 @@ start = do
     return us
 
 -- | Creates a liquidity pool for a pair of coins. The creator provides liquidity for both coins and gets liquidity tokens in return.
-create :: HasBlockchainActions s => Uniswap -> CreateParams -> Contract w s Text ()
+create :: forall w s. Uniswap -> CreateParams -> Contract w s Text ()
 create us CreateParams{..} = do
     when (unCoin cpCoinA == unCoin cpCoinB) $ throwError "coins must be different"
     when (cpAmountA <= 0 || cpAmountB <= 0) $ throwError "amounts must be positive"
@@ -221,7 +218,7 @@ create us CreateParams{..} = do
     logInfo $ "created liquidity pool: " ++ show lp
 
 -- | Closes a liquidity pool by burning all remaining liquidity tokens in exchange for all liquidity remaining in the pool.
-close :: HasBlockchainActions s => Uniswap -> CloseParams -> Contract w s Text ()
+close :: forall w s. Uniswap -> CloseParams -> Contract w s Text ()
 close us CloseParams{..} = do
     ((oref1, o1, lps), (oref2, o2, lp, liquidity)) <- findUniswapFactoryAndPool us clpCoinA clpCoinB
     pkh                                            <- pubKeyHash <$> ownPubKey
@@ -254,7 +251,7 @@ close us CloseParams{..} = do
     logInfo $ "closed liquidity pool: " ++ show lp
 
 -- | Removes some liquidity from a liquidity pool in exchange for liquidity tokens.
-remove :: HasBlockchainActions s => Uniswap -> RemoveParams -> Contract w s Text ()
+remove :: forall w s. Uniswap -> RemoveParams -> Contract w s Text ()
 remove us RemoveParams{..} = do
     (_, (oref, o, lp, liquidity)) <- findUniswapFactoryAndPool us rpCoinA rpCoinB
     pkh                           <- pubKeyHash <$> ownPubKey
@@ -289,7 +286,7 @@ remove us RemoveParams{..} = do
     logInfo $ "removed liquidity from pool: " ++ show lp
 
 -- | Adds some liquidity to an existing liquidity pool in exchange for newly minted liquidity tokens.
-add :: HasBlockchainActions s => Uniswap -> AddParams -> Contract w s Text ()
+add :: forall w s. Uniswap -> AddParams -> Contract w s Text ()
 add us AddParams{..} = do
     pkh                           <- pubKeyHash <$> ownPubKey
     (_, (oref, o, lp, liquidity)) <- findUniswapFactoryAndPool us apCoinA apCoinB
@@ -334,7 +331,7 @@ add us AddParams{..} = do
     logInfo $ "added liquidity to pool: " ++ show lp
 
 -- | Uses a liquidity pool two swap one sort of coins in the pool against the other.
-swap :: HasBlockchainActions s => Uniswap -> SwapParams -> Contract w s Text ()
+swap :: forall w s. Uniswap -> SwapParams -> Contract w s Text ()
 swap us SwapParams{..} = do
     unless (spAmountA > 0 && spAmountB == 0 || spAmountA == 0 && spAmountB > 0) $ throwError "exactly one amount must be positive"
     (_, (oref, o, lp, liquidity)) <- findUniswapFactoryAndPool us spCoinA spCoinB
@@ -372,7 +369,7 @@ swap us SwapParams{..} = do
 
 -- | Finds all liquidity pools and their liquidity belonging to the Uniswap instance.
 -- This merely inspects the blockchain and does not issue any transactions.
-pools :: forall w s. HasBlockchainActions s => Uniswap -> Contract w s Text [((Coin A, Amount A), (Coin B, Amount B))]
+pools :: forall w s. Uniswap -> Contract w s Text [((Coin A, Amount A), (Coin B, Amount B))]
 pools us = do
     utxos <- utxoAt (uniswapAddress us)
     go $ snd <$> Map.toList utxos
@@ -401,7 +398,7 @@ pools us = do
         c = poolStateCoin us
 
 -- | Gets the caller's funds.
-funds :: HasBlockchainActions s => Contract w s Text Value
+funds :: forall w s. Contract w s Text Value
 funds = do
     pkh <- pubKeyHash <$> ownPubKey
     os  <- map snd . Map.toList <$> utxoAt (pubKeyHashAddress pkh)
@@ -416,7 +413,7 @@ getUniswapDatum o = case txOutDatumHash $ txOutTxOut o of
                 Nothing -> throwError "datum has wrong type"
                 Just d  -> return d
 
-findUniswapInstance :: HasBlockchainActions s => Uniswap -> Coin b -> (UniswapDatum -> Maybe a) -> Contract w s Text (TxOutRef, TxOutTx, a)
+findUniswapInstance :: forall a b w s. Uniswap -> Coin b -> (UniswapDatum -> Maybe a) -> Contract w s Text (TxOutRef, TxOutTx, a)
 findUniswapInstance us c f = do
     let addr = uniswapAddress us
     logInfo @String $ printf "looking for Uniswap instance at address %s containing coin %s " (show addr) (show c)
@@ -432,19 +429,19 @@ findUniswapInstance us c f = do
                 logInfo @String $ printf "found Uniswap instance with datum: %s" (show d)
                 return (oref, o, a)
 
-findUniswapFactory :: HasBlockchainActions s => Uniswap -> Contract w s Text (TxOutRef, TxOutTx, [LiquidityPool])
+findUniswapFactory :: forall w s. Uniswap -> Contract w s Text (TxOutRef, TxOutTx, [LiquidityPool])
 findUniswapFactory us@Uniswap{..} = findUniswapInstance us usCoin $ \case
     Factory lps -> Just lps
     Pool _ _    -> Nothing
 
-findUniswapPool :: HasBlockchainActions s => Uniswap -> LiquidityPool -> Contract w s Text (TxOutRef, TxOutTx, Amount Liquidity)
+findUniswapPool :: forall w s. Uniswap -> LiquidityPool -> Contract w s Text (TxOutRef, TxOutTx, Amount Liquidity)
 findUniswapPool us lp = findUniswapInstance us (poolStateCoin us) $ \case
         Pool lp' l
             | lp == lp' -> Just l
         _               -> Nothing
 
-findUniswapFactoryAndPool :: HasBlockchainActions s
-                          => Uniswap
+findUniswapFactoryAndPool :: forall w s.
+                          Uniswap
                           -> Coin A
                           -> Coin B
                           -> Contract w s Text ( (TxOutRef, TxOutTx, [LiquidityPool])
@@ -488,12 +485,11 @@ findSwapB oldA oldB inB = findSwapA (switch oldB) (switch oldA) (switch inB)
   where
     switch = Amount . unAmount
 
-ownerEndpoint :: Contract (Last (Either Text Uniswap)) BlockchainActions Void ()
+ownerEndpoint :: Contract (Last (Either Text Uniswap)) EmptySchema ContractError ()
 ownerEndpoint = do
-    e <- runError start
-    tell $ Last $ Just $ case e of
-        Left err -> Left err
-        Right us -> Right us
+    e <- mapError absurd $ runError start
+    tell $ Last $ Just e
+    void $ waitNSlots 10
 
 -- | Provides the following endpoints for users of a Uniswap instance:
 --
@@ -518,7 +514,7 @@ userEndpoints us =
       f (Proxy @"funds")  Funds           (\_us () -> funds))    >> userEndpoints us)
   where
     f :: forall l a p.
-         HasEndpoint l p UniswapUserSchema
+         (HasEndpoint l p UniswapUserSchema, FromJSON p)
       => Proxy l
       -> (a -> UserContractState)
       -> (Uniswap -> p -> Contract (Last (Either Text UserContractState)) UniswapUserSchema Text a)

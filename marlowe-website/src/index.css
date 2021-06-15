@@ -105,6 +105,11 @@ body {
   background-position: center 10px;
 }
 
+.faq a {
+  color: blue;
+  text-decoration: underline;
+}
+
 /* Similary to the FAQ expanded class, we use a with-buttons class in the header to simplify the JS
    and HTML */
 #header-try-buttons {
