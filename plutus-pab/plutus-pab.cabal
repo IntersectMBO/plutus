@@ -245,7 +245,6 @@ executable plutus-pab
 
 executable plutus-uniswap
     main-is: Main.hs
-    other-modules: Uniswap
     hs-source-dirs:  examples/uniswap
     other-modules:
     default-language: Haskell2010
