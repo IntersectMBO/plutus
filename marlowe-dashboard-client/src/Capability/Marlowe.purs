@@ -181,10 +181,9 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
       PAB pabType -> do
         let
           wallet = view (_walletInfo <<< _wallet) walletDetails
-        followAppId <- case pabType of
+        case pabType of
           Plain -> Contract.activateContract (plutusAppPath MarloweFollower) wallet
           WithMarloweContracts -> Contract.activateContract MarloweFollower wallet
-        pure followAppId
       LocalStorage -> do
         uuid <- liftEffect genUUID
         pure $ Right $ PlutusAppId uuid

@@ -21,6 +21,7 @@ import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (assign, modifying, over, set, to, toArrayOf, traversed, use, view, (^.))
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Newtype (unwrap)
@@ -52,7 +53,7 @@ import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.State (adaToken)
-import WalletData.Types (WalletDetails)
+import WalletData.Types (WalletDetails, WalletNickname)
 import Web.DOM.Element (getElementsByClassName)
 import Web.DOM.HTMLCollection as HTMLCollection
 import Web.Dom.ElementExtra (Alignment(..), ScrollBehavior(..), debouncedOnScroll, scrollIntoView, throttledOnScroll)
@@ -96,11 +97,7 @@ mkPlaceholderState followerAppId metaData contract =
   , followerAppId
   , selectedStep: 0
   , metadata: metaData
-  -- Note we filter out PK parties here. This is because we don't have a design for displaying
-  -- them anywhere, and because we are currently only using one in a special case (in the Escrow
-  -- with Collateral contract), where it doesn't make much sense to show it to the user anyway.
-  -- If we ever want to use PK parties for other purposes, we will need to rethink this.
-  , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) (getRoleParties contract)
+  , participants: getParticipants contract
   , userParties: mempty
   , namedActions: mempty
   }
@@ -131,11 +128,7 @@ mkInitialState walletDetails currentSlot followerAppId { chParams, chHistory } =
             , followerAppId
             , selectedStep: 0
             , metadata: template.metaData
-            -- Note we filter out PK parties here. This is because we don't have a design for displaying
-            -- them anywhere, and because we are currently only using one in a special case (in the Escrow
-            -- with Collateral contract), where it doesn't make much sense to show it to the user anyway.
-            -- If we ever want to use PK parties for other purposes, we will need to rethink this.
-            , participants: Map.fromFoldable $ map (\x -> x /\ Nothing) (getRoleParties contract)
+            , participants: getParticipants contract
             , userParties: getUserParties walletDetails marloweParams
             , namedActions: mempty
             }
@@ -146,6 +139,21 @@ mkInitialState walletDetails currentSlot followerAppId { chParams, chHistory } =
             # updateExecutionState
             # regenerateStepCards currentSlot
             # selectLastStep
+
+-- Note 1: We filter out PK parties from the participants of the contract. This is because
+-- we don't have a design for displaying them anywhere, and because we are currently only
+-- using one in a special case (in the Escrow with Collateral contract), where it doesn't
+-- make much sense to show it to the user anyway. If we ever want to use PK parties for
+-- other purposes, we will need to rethink this.
+-- Note 2: In general there is no way to map parties to wallet nicknames. It is possible
+-- for the user who created the contract and distributed the role tokens, but this
+-- information will be lost when the browser is closed. And other participants don't have
+-- this information in the first place. Also, in the future it could be possible to give
+-- role tokens to other wallets, and we wouldn't know about that either. Still, we're
+-- keeping the `Maybe WalletNickname` in here for now, in case a way of making it generally
+-- available (e.g. through the metadata server) ever becomes apparent.
+getParticipants :: Contract -> Map Party (Maybe WalletNickname)
+getParticipants contract = Map.fromFoldable $ map (\x -> x /\ Nothing) (getRoleParties contract)
 
 getRoleParties :: Contract -> Array Party
 getRoleParties contract = filter isRoleParty $ Set.toUnfoldable $ getParties contract
@@ -163,23 +171,31 @@ updateState walletDetails marloweParams currentSlot transactionInputs state =
 
     setMarloweParams = set _mMarloweParams (Just marloweParams)
 
+    setUserParties = set _userParties (getUserParties walletDetails marloweParams)
+
+    clearPendingTransaction = set _pendingTransaction Nothing
+
     updateExecutionState = over _executionState (applyTransactionInputs newTransactionInputs)
 
-    mMarloweParams = view _mMarloweParams state
-
-    baseState = case isNothing mMarloweParams, newTransactionInputs /= mempty of
+    -- If the `MarloweParams` are `Nothing`, that means this is the first update we've received for
+    -- a placeholder contract, so we need to set the `MarloweParams` now and also work out the
+    -- `userParties` (because these depend on the `MarloweParams`). Separately, if there are new
+    -- transaction inputs to apply, we need to clear the `pendingTransaction`. If we wanted to be
+    -- really careful, we could check that the new transaction input matches the pending one, but
+    -- I can't see how it wouldn't (and I don't think it matters anyway).
+    baseState = case isNothing $ state ^. _mMarloweParams, newTransactionInputs /= mempty of
       true, true ->
         state
-          # set _mMarloweParams (Just marloweParams)
-          # set _userParties (getUserParties walletDetails marloweParams)
-          # set _pendingTransaction Nothing
+          # setMarloweParams
+          # setUserParties
+          # clearPendingTransaction
       true, false ->
         state
-          # set _mMarloweParams (Just marloweParams)
-          # set _userParties (getUserParties walletDetails marloweParams)
+          # setMarloweParams
+          # setUserParties
       false, true ->
         state
-          # set _pendingTransaction Nothing
+          # clearPendingTransaction
       false, false -> state
   in
     baseState
