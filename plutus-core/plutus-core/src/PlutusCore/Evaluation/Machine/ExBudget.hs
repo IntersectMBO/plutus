@@ -140,7 +140,6 @@ module PlutusCore.Evaluation.Machine.ExBudget
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
     , enormousBudget
-    , multiplyBudget
     )
 where
 
@@ -192,9 +191,6 @@ instance Pretty ExBudget where
         , "| mem: ", pretty memory, line
         , "}"
         ]
-
-multiplyBudget :: CostingInteger -> ExBudget -> ExBudget
-multiplyBudget k (ExBudget cpu mem) = ExBudget (stimes k cpu) (stimes k mem)
 
 newtype ExRestrictingBudget = ExRestrictingBudget
     { unExRestrictingBudget :: ExBudget
