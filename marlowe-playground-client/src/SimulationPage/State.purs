@@ -106,7 +106,7 @@ handleAction StartSimulation =
     {- The marloweState is a non empty list of an object that includes the ExecutionState (SimulationRunning | SimulationNotStarted)
        Inside the SimulationNotStarted we can find the information needed to start the simulation. By running
        this code inside of a maybeT, we make sure that the Head of the list has the state SimulationNotStarted -}
-
+    
     $ runMaybeT do
         initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
         termContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _termContract <<< _Just)
