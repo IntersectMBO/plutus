@@ -48,16 +48,16 @@ giveCollateralToInvestor amount
 
 contract :: Contract
 contract = deposit (guaranteedAmount 3) guarantor investor
-                   30 Close
+                   300 Close
          $ transfer principal investor issuer
-                    60 (refundGuarantor (guaranteedAmount 3) Close)
+                    600 (refundGuarantor (guaranteedAmount 3) Close)
          $ transfer instalment issuer investor
-                    90 (giveCollateralToInvestor $ guaranteedAmount 3)
+                    900 (giveCollateralToInvestor $ guaranteedAmount 3)
          $ refundGuarantor instalment
          $ transfer instalment issuer investor
-                    120 (giveCollateralToInvestor $ guaranteedAmount 2)
+                    1200 (giveCollateralToInvestor $ guaranteedAmount 2)
          $ refundGuarantor instalment
          $ transfer lastInstalment issuer investor
-                    150 (giveCollateralToInvestor $ guaranteedAmount 1)
+                    1500 (giveCollateralToInvestor $ guaranteedAmount 1)
          $ refundGuarantor lastInstalment
            Close
