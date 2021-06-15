@@ -52,6 +52,7 @@
         "cereal".revision = (((hackage."cereal")."0.5.8.1").revisions).default;
         "cereal".flags.bytestring-builder = false;
         "exceptions".revision = (((hackage."exceptions")."0.10.4").revisions).default;
+        "generic-data".revision = (((hackage."generic-data")."0.9.2.0").revisions).default;
         "quiet".revision = (((hackage."quiet")."0.2").revisions).default;
         "ghc-paths".revision = (((hackage."ghc-paths")."0.1.0.12").revisions).default;
         "binary".revision = (((hackage."binary")."0.8.8.0").revisions).default;
@@ -235,6 +236,7 @@
         "errors".revision = (((hackage."errors")."2.3.0").revisions).default;
         "random".revision = (((hackage."random")."1.2.0").revisions).default;
         "temporary".revision = (((hackage."temporary")."1.3").revisions).default;
+        "pipes-safe".revision = (((hackage."pipes-safe")."2.3.3").revisions).default;
         "recursion-schemes".revision = (((hackage."recursion-schemes")."5.1.3").revisions).default;
         "recursion-schemes".flags.template-haskell = true;
         "optics-th".revision = (((hackage."optics-th")."0.3.0.2").revisions).default;
@@ -298,6 +300,8 @@
         "uniplate".revision = (((hackage."uniplate")."1.6.13").revisions).default;
         "parsec".revision = (((hackage."parsec")."3.1.14.0").revisions).default;
         "th-reify-many".revision = (((hackage."th-reify-many")."0.1.9").revisions).default;
+        "ap-normalize".revision = (((hackage."ap-normalize")."0.1.0.1").revisions).default;
+        "ap-normalize".flags.test-with-clang = false;
         "http-media".revision = (((hackage."http-media")."0.8.0.0").revisions).default;
         "reducers".revision = (((hackage."reducers")."3.12.3").revisions).default;
         "hsc2hs".revision = (((hackage."hsc2hs")."0.68.7").revisions).default;
@@ -458,6 +462,7 @@
         "typed-process".revision = (((hackage."typed-process")."0.2.6.0").revisions).default;
         "vault".revision = (((hackage."vault")."0.3.1.5").revisions).default;
         "vault".flags.useghc = true;
+        "libsystemd-journal".revision = (((hackage."libsystemd-journal")."1.4.5").revisions).default;
         "servant-foreign".revision = (((hackage."servant-foreign")."0.15.3").revisions).default;
         "mime-types".revision = (((hackage."mime-types")."0.1.0.9").revisions).default;
         "ieee754".revision = (((hackage."ieee754")."0.8.0").revisions).default;
@@ -492,6 +497,8 @@
         "sqlite-simple".revision = (((hackage."sqlite-simple")."0.4.18.0").revisions).default;
         "tasty-golden".revision = (((hackage."tasty-golden")."2.3.4").revisions).default;
         "tasty-golden".flags.build-example = false;
+        "hsyslog".revision = (((hackage."hsyslog")."5.0.2").revisions).default;
+        "hsyslog".flags.install-examples = false;
         "uuid".revision = (((hackage."uuid")."1.3.15").revisions).default;
         "tasty-expected-failure".revision = (((hackage."tasty-expected-failure")."0.12.3").revisions).default;
         "deriving-compat".revision = (((hackage."deriving-compat")."0.5.9").revisions).default;
@@ -632,6 +639,7 @@
         "resourcet".revision = (((hackage."resourcet")."1.2.4.2").revisions).default;
         "inline-r".revision = (((hackage."inline-r")."0.10.4").revisions).default;
         "pretty".revision = (((hackage."pretty")."1.1.3.6").revisions).default;
+        "hedgehog-corpus".revision = (((hackage."hedgehog-corpus")."0.2.0").revisions).default;
         "generic-lens-core".revision = (((hackage."generic-lens-core")."2.1.0.0").revisions).default;
         "cabal-doctest".revision = (((hackage."cabal-doctest")."1.0.8").revisions).default;
         "streaming-bytestring".revision = (((hackage."streaming-bytestring")."0.2.0").revisions).default;
@@ -673,11 +681,13 @@
         "bsb-http-chunked".revision = (((hackage."bsb-http-chunked")."0.0.0.4").revisions).default;
         "concurrent-output".revision = (((hackage."concurrent-output")."1.10.12").revisions).default;
         "array".revision = (((hackage."array")."0.5.4.0").revisions).default;
+        "show-combinators".revision = (((hackage."show-combinators")."0.2.0.0").revisions).default;
         "ekg".revision = (((hackage."ekg")."0.4.0.15").revisions).default;
         "loch-th".revision = (((hackage."loch-th")."0.2.2").revisions).default;
         "xml".revision = (((hackage."xml")."1.3.14").revisions).default;
         "conduit-extra".revision = (((hackage."conduit-extra")."1.3.5").revisions).default;
         "erf".revision = (((hackage."erf")."2.0.0.0").revisions).default;
+        "systemd".revision = (((hackage."systemd")."2.3.0").revisions).default;
         "simple-sendfile".revision = (((hackage."simple-sendfile")."0.2.30").revisions).default;
         "simple-sendfile".flags.allow-bsd = true;
         "integer-gmp".revision = (((hackage."integer-gmp")."1.0.3.0").revisions).default;
@@ -730,6 +740,7 @@
         flat = ./.plan.nix/flat.nix;
         plutus-playground-server = ./.plan.nix/plutus-playground-server.nix;
         shelley-spec-ledger = ./.plan.nix/shelley-spec-ledger.nix;
+        cardano-api-test = ./.plan.nix/cardano-api-test.nix;
         typed-protocols-examples = ./.plan.nix/typed-protocols-examples.nix;
         cardano-ledger-shelley-ma = ./.plan.nix/cardano-ledger-shelley-ma.nix;
         cardano-ledger-core = ./.plan.nix/cardano-ledger-core.nix;
@@ -747,15 +758,19 @@
         cardano-crypto-praos = ./.plan.nix/cardano-crypto-praos.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
         ouroboros-consensus-byron = ./.plan.nix/ouroboros-consensus-byron.nix;
+        cardano-config = ./.plan.nix/cardano-config.nix;
         quickcheck-dynamic = ./.plan.nix/quickcheck-dynamic.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
         shelley-spec-non-integral = ./.plan.nix/shelley-spec-non-integral.nix;
         lobemo-backend-ekg = ./.plan.nix/lobemo-backend-ekg.nix;
+        lobemo-backend-aggregation = ./.plan.nix/lobemo-backend-aggregation.nix;
         tracer-transformers = ./.plan.nix/tracer-transformers.nix;
         plutus-doc = ./.plan.nix/plutus-doc.nix;
         plutus-metatheory = ./.plan.nix/plutus-metatheory.nix;
+        lobemo-backend-monitoring = ./.plan.nix/lobemo-backend-monitoring.nix;
         cardano-binary = ./.plan.nix/cardano-binary.nix;
         cardano-api = ./.plan.nix/cardano-api.nix;
+        cardano-node = ./.plan.nix/cardano-node.nix;
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
         plutus-benchmark = ./.plan.nix/plutus-benchmark.nix;
         cardano-crypto-class = ./.plan.nix/cardano-crypto-class.nix;
@@ -769,18 +784,21 @@
         marlowe = ./.plan.nix/marlowe.nix;
         fake-pab = ./.plan.nix/fake-pab.nix;
         ouroboros-consensus-cardano = ./.plan.nix/ouroboros-consensus-cardano.nix;
+        cardano-cli = ./.plan.nix/cardano-cli.nix;
         ouroboros-network = ./.plan.nix/ouroboros-network.nix;
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         plutus-tx = ./.plan.nix/plutus-tx.nix;
         prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
         word-array = ./.plan.nix/word-array.nix;
         cardano-ledger-byron-test = ./.plan.nix/cardano-ledger-byron-test.nix;
+        lobemo-backend-trace-forwarder = ./.plan.nix/lobemo-backend-trace-forwarder.nix;
         plutus-pab = ./.plan.nix/plutus-pab.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
         plutus-chain-index = ./.plan.nix/plutus-chain-index.nix;
         byron-spec-ledger = ./.plan.nix/byron-spec-ledger.nix;
         small-steps-test = ./.plan.nix/small-steps-test.nix;
         marlowe-playground-server = ./.plan.nix/marlowe-playground-server.nix;
+        lobemo-scribe-systemd = ./.plan.nix/lobemo-scribe-systemd.nix;
         network-mux = ./.plan.nix/network-mux.nix;
         small-steps = ./.plan.nix/small-steps.nix;
         cardano-prelude = ./.plan.nix/cardano-prelude.nix;
@@ -822,6 +840,7 @@
           "shelley-spec-ledger" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "cardano-api-test" = { flags = {}; };
           "typed-protocols-examples" = { flags = {}; };
           "cardano-ledger-shelley-ma" = { flags = {}; };
           "cardano-ledger-core" = { flags = {}; };
@@ -860,21 +879,32 @@
           "ouroboros-consensus-byron" = {
             flags = { "asserts" = lib.mkOverride 900 false; };
             };
+          "cardano-config" = {
+            flags = { "systemd" = lib.mkOverride 900 true; };
+            };
           "quickcheck-dynamic" = { flags = {}; };
           "contra-tracer" = { flags = {}; };
           "shelley-spec-non-integral" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
           "lobemo-backend-ekg" = { flags = {}; };
+          "lobemo-backend-aggregation" = { flags = {}; };
           "tracer-transformers" = { flags = {}; };
           "plutus-doc" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
           "plutus-metatheory" = { flags = {}; };
+          "lobemo-backend-monitoring" = { flags = {}; };
           "cardano-binary" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
           "cardano-api" = { flags = {}; };
+          "cardano-node" = {
+            flags = {
+              "unexpected_thunks" = lib.mkOverride 900 false;
+              "systemd" = lib.mkOverride 900 true;
+              };
+            };
           "cardano-slotting" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
@@ -900,6 +930,9 @@
           "ouroboros-consensus-cardano" = {
             flags = { "asserts" = lib.mkOverride 900 false; };
             };
+          "cardano-cli" = {
+            flags = { "unexpected_thunks" = lib.mkOverride 900 false; };
+            };
           "ouroboros-network" = {
             flags = {
               "cddl" = lib.mkOverride 900 true;
@@ -919,6 +952,7 @@
           "cardano-ledger-byron-test" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "lobemo-backend-trace-forwarder" = { flags = {}; };
           "plutus-pab" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
@@ -933,6 +967,7 @@
             flags = { "development" = lib.mkOverride 900 false; };
             };
           "marlowe-playground-server" = { flags = {}; };
+          "lobemo-scribe-systemd" = { flags = {}; };
           "network-mux" = {
             flags = {
               "asserts" = lib.mkOverride 900 false;

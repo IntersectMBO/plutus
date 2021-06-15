@@ -11,14 +11,14 @@
     flags = {};
     package = {
       specVersion = "2.0";
-      identifier = { name = "lobemo-backend-ekg"; version = "0.1.0.1"; };
+      identifier = { name = "lobemo-scribe-systemd"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "2019 IOHK";
       maintainer = "operations@iohk.io";
       author = "Alexander Diemand";
       homepage = "https://github.com/input-output-hk/iohk-monitoring-framework";
       url = "";
-      synopsis = "provides a backend implementation to EKG";
+      synopsis = "provides a backend for logging to systemd/journal";
       description = "";
       buildType = "Simple";
       isLocal = true;
@@ -32,28 +32,26 @@
       };
     components = {
       "library" = {
-        depends = [
+        depends = ([
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-          (hsPkgs."async" or (errorHandler.buildDepError "async"))
-          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-          (hsPkgs."ekg" or (errorHandler.buildDepError "ekg"))
-          (hsPkgs."ekg-core" or (errorHandler.buildDepError "ekg-core"))
           (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
-          (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))
-          (hsPkgs."snap-core" or (errorHandler.buildDepError "snap-core"))
-          (hsPkgs."snap-server" or (errorHandler.buildDepError "snap-server"))
-          (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."katip" or (errorHandler.buildDepError "katip"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
-          (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
+          ] ++ (if system.isWindows
+          then [ (hsPkgs."Win32" or (errorHandler.buildDepError "Win32")) ]
+          else [
+            (hsPkgs."unix" or (errorHandler.buildDepError "unix"))
+            ])) ++ (pkgs.lib).optionals (system.isLinux) [
+          (hsPkgs."hsyslog" or (errorHandler.buildDepError "hsyslog"))
+          (hsPkgs."libsystemd-journal" or (errorHandler.buildDepError "libsystemd-journal"))
           ];
         buildable = true;
-        modules = [
-          "Cardano/BM/Backend/Prometheus"
-          "Cardano/BM/Backend/EKGView"
-          ];
+        modules = [ "Cardano/BM/Scribe/Systemd" ];
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/29; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/32; }

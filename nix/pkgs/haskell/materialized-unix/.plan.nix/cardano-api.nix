@@ -195,4 +195,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/43; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/48; }
