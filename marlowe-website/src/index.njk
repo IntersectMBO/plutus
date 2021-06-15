@@ -35,7 +35,7 @@
       </div>
 
     </header>
-    <section class="sm:bg-main bg-no-repeat bg-cover bg-center sm:h-main w-screen overflow-hidden">
+    <section class="sm:bg-main bg-no-repeat bg-cover bg-center sm:h-main w-full overflow-hidden">
       <div class="relative mx-6 md:ml-5vw xl:ml-10vw sm:w-full max-w-screen widest:mx-auto">
         <div class="sm:absolute sm:w-min inset-0 ">
           <h1 class="text-3xl md:text-4xl lg:text-5xl flex flex-col font-comfortaa-bolder leading-tight pt-28 lg:pt-40 pb-4">
@@ -99,7 +99,7 @@
               <img loading="lazy" src="{% static './static/img/marlowe-run-desktop.png' %}" alt="Marlowe run desktop screenshot">
             </div>
           </div>
-          <div class="absolute top-16 right-0 shadow-lg">
+          <div class="absolute top-16 right-0 shadow-lg rounded">
             <div class="bg-white rounded p-2 pt-3">
               <div class="rounded overflow-hidden">
                 <img loading="lazy" src="{% static './static/img/marlowe-run-mobile.jpg' %}" alt="Marlowe run mobile screenshot">
@@ -110,7 +110,7 @@
       </div>
 
     </section>
-    <section class="w-screen overflow-hidden">
+    <section class="w-full overflow-hidden">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 md:gap-x-5vw xl:gap-x-10vw mx-6 md:mx-5vw xl:mx-10vw widest:mx-auto max-w-screen">
         <div>
           <h4 class="text-lightpurple text-xl font-semibold mt-20 mb-8">Marlowe Playground</h4>
@@ -144,7 +144,7 @@
         </div>
       </div>
     </section>
-    <section class="bg-green h-banner-section-sm md:h-banner-section w-screen overflow-hidden">
+    <section class="bg-green h-banner-section-sm md:h-banner-section w-full overflow-hidden">
       {# For displaying this banner we use a background image in the second element if its small or a
       2 element grid if it's big. I tried to put them both as grid or as background image but I couldn't
       make it work that way. #}
@@ -199,7 +199,7 @@
       <h3 class="text-2xl font-comfortaa-bold  mb-6 md:text-center">Marlowe FAQ’s</h3>
       {% macro faqComponent(index, question, answer) %}
         <div class="faq border-t border-darkgray pt-5 mt-5">
-          <h4 class="text-lightpurple text-xl font-semibold flex ">
+          <h4 class="text-lightpurple text-xl font-semibold flex cursor-pointer">
             <span class="flex-grow">
               {{index}}.
               {{ question }}
