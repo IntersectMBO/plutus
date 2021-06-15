@@ -81,10 +81,11 @@ runNoConfigCommand trace = \case
 
 data ConfigCommandArgs =
     ConfigCommandArgs
-        { ccaTrace         :: Trace IO (LM.AppMsg ContractExe)  -- ^ PAB Tracer logging instance
-        , ccaLoggingConfig :: Configuration -- ^ Monitoring configuration
-        , ccaPABConfig     :: Config        -- ^ PAB Configuration
-        , ccaAvailability  :: Availability  -- ^ Token for signaling service availability
+        { ccaTrace          :: Trace IO (LM.AppMsg ContractExe)  -- ^ PAB Tracer logging instance
+        , ccaLoggingConfig  :: Configuration -- ^ Monitoring configuration
+        , ccaPABConfig      :: Config        -- ^ PAB Configuration
+        , ccaAvailability   :: Availability  -- ^ Token for signaling service availability
+        , ccaStorageBackend :: App.StorageBackend -- ^ Wheter to use the beam-sqlite or in-memory backend
         }
 
 -- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
@@ -119,9 +120,9 @@ runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {metadataServ
         ccaAvailability
 
 -- Run PAB webserver
-runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=config@Config{pabWebserverConfig}, ccaAvailability} PABWebserver =
+runConfigCommand ConfigCommandArgs{ccaTrace, ccaPABConfig=config@Config{pabWebserverConfig}, ccaAvailability, ccaStorageBackend} PABWebserver =
         fmap (either (error . show) id)
-        $ App.runApp (toPABMsg ccaTrace) config
+        $ App.runApp ccaStorageBackend (toPABMsg ccaTrace) config
         $ do
             App.AppEnv{App.walletClientEnv} <- Core.askUserEnv @ContractExe @App.AppEnv
             (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) ccaAvailability

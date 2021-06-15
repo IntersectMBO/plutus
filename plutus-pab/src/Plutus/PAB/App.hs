@@ -20,6 +20,7 @@ module Plutus.PAB.App(
     App,
     runApp,
     AppEnv(..),
+    StorageBackend(..),
     -- * App actions
     migrate,
     dbConnect,
@@ -82,8 +83,8 @@ data AppEnv =
         , appInMemContractStore :: InMemInstances ContractExe
         }
 
-appEffectHandlers :: Config -> Trace IO (PABLogMsg ContractExe) -> EffectHandlers ContractExe AppEnv
-appEffectHandlers config trace =
+appEffectHandlers :: StorageBackend -> Config -> Trace IO (PABLogMsg ContractExe) -> EffectHandlers ContractExe AppEnv
+appEffectHandlers storageBackend config trace =
     EffectHandlers
         { initialiseEnvironment = do
             env <- liftIO $ mkEnv trace config
@@ -102,12 +103,19 @@ appEffectHandlers config trace =
             . reinterpret (handleContractEffectContractExe @IO)
 
         , handleContractStoreEffect =
-            interpret (handleLogMsgTrace trace)
-            . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SMultiAgent)
-            . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . interpret (Core.handleMappedReader @AppEnv dbConnection)
-            . interpret (handleDbStore trace)
-            . reinterpretN @'[_, _, _, _] BeamEff.handleContractStore
+          case storageBackend of
+            InMemoryBackend ->
+              interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
+              . interpret (Core.handleMappedReader @AppEnv appInMemContractStore)
+              . reinterpret2 InMem.handleContractStore
+
+            BeamSqliteBackend ->
+              interpret (handleLogMsgTrace trace)
+              . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SMultiAgent)
+              . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
+              . interpret (Core.handleMappedReader @AppEnv dbConnection)
+              . interpret (handleDbStore trace)
+              . reinterpretN @'[_, _, _, _] BeamEff.handleContractStore
 
         , handleContractDefinitionStoreEffect =
             interpret (handleLogMsgTrace trace)
@@ -148,13 +156,17 @@ appEffectHandlers config trace =
 
 runApp ::
     forall a.
-    Trace IO (PABLogMsg ContractExe) -- ^ Top-level tracer
+    StorageBackend
+    -> Trace IO (PABLogMsg ContractExe) -- ^ Top-level tracer
     -> Config -- ^ Client configuration
     -> App a -- ^ Action
     -> IO (Either PABError a)
-runApp trace config@Config{endpointTimeout} = Core.runPAB (Timeout endpointTimeout) (appEffectHandlers config trace)
+runApp storageBackend trace config@Config{endpointTimeout} = Core.runPAB (Timeout endpointTimeout) (appEffectHandlers storageBackend config trace)
 
 type App a = PABAction ContractExe AppEnv a
+
+data StorageBackend = BeamSqliteBackend | InMemoryBackend
+  deriving (Eq, Ord, Show)
 
 mkEnv :: Trace IO (PABLogMsg ContractExe) -> Config -> IO AppEnv
 mkEnv appTrace appConfig@Config { dbConfig
