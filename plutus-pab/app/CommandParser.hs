@@ -52,7 +52,6 @@ commandLineParser =
                 <*> logConfigFileParser
                 <*> configFileParser
                 <*> ekgFlag
-                -- <*> dbKindParser
                 <*> commandParser
 
 configFileParser :: Parser (Maybe FilePath)

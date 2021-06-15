@@ -15,12 +15,26 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# options_ghc -Wno-missing-signatures #-}
 
+{-
+
+A beam-specific effect for writing to a beam database. Here we explicitly construct the
+database schema for the effects which we wish to store:
+
+- 'Pluts.PAB.Effects.Contract.ContractStore' effect
+- 'Pluts.PAB.Effects.Contract.ContractDefinitionStore' effect
+
+In particular this is specialised to 'Sqlite'; but it could be refactored to
+work over a more general type, or changed to Postgres.
+
+The schema we've opted for at present is a very simple one, with no ability to
+track changes over time.
+
+-}
+
 module Plutus.PAB.Effects.DbStore where
 
-import           Cardano.BM.Trace                        (Trace)
-import           Control.Monad.Freer                     (Eff, LastMember, Member, interpret, reinterpret, runM,
-                                                          type (~>))
-import           Control.Monad.Freer.Extras.Log          (logDebug, mapLog)
+import           Cardano.BM.Trace                        (Trace, logDebug)
+import           Control.Monad.Freer                     (Eff, LastMember, Member, type (~>))
 import           Control.Monad.Freer.Reader              (Reader, ask)
 import           Control.Monad.Freer.TH                  (makeEffect)
 import           Data.Text                               (Text)
@@ -31,7 +45,6 @@ import           Database.Beam.Schema.Tables
 import           Database.Beam.Sqlite
 import           Database.SQLite.Simple                  (Connection)
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
-import           Plutus.PAB.Monitoring.Monitoring        (handleLogMsgTrace)
 import           Plutus.PAB.Monitoring.PABLogMsg         (PABLogMsg (..), PABMultiAgentMsg (..))
 
 data ContractT f
@@ -132,12 +145,7 @@ handleDbStore ::
   ~> Eff effs
 handleDbStore trace eff = do
   connection <- ask @Connection
-
-  let traceSql s =
-          runM
-            . interpret (handleLogMsgTrace trace)
-            . reinterpret (mapLog @_ @(PABLogMsg ContractExe) SMultiAgent)
-          $ logDebug @(PABMultiAgentMsg ContractExe) $ SqlLog s
+  let traceSql = logDebug trace . SMultiAgent . SqlLog
 
   case eff of
     AddRow table record ->

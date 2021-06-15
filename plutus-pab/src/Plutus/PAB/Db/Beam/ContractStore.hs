@@ -92,8 +92,7 @@ handleContractStore = \case
     addRow (_contractInstances db)
       $ mkRow args instanceId
 
-  -- TODO: Should we use 'args' ?
-  PutState _args instanceId state ->
+  PutState _ instanceId state ->
     let encode' = Just . Text.decodeUtf8 . B.concat . LB.toChunks . encode
     in updateRow
         $ update (_contractInstances db)
@@ -129,5 +128,5 @@ handleContractStore = \case
       $ select
       $ do
           ci <- all_ (_contractInstances db)
-          guard_ ( ci ^. contractInstanceActive ==. val_ True )
+          guard_ ( ci ^. contractInstanceActive )
           pure ci
