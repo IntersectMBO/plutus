@@ -31,7 +31,6 @@ import           Data.Maybe            (catMaybes)
 import           Ledger                (Address, Datum (Datum), ScriptContext, TxOutTx, Validator, Value)
 import qualified Ledger
 import qualified Ledger.Ada            as Ada
-import           Ledger.AddressMap     (UtxoMap)
 import qualified Ledger.Constraints    as Constraints
 import qualified Ledger.Typed.Scripts  as Scripts
 import           Playground.Contract
