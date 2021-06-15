@@ -13,41 +13,39 @@
 module Spec.Contract(tests, loopCheckpointContract, initial, upd) where
 
 import           Control.Lens
-import           Control.Monad                          (forM, forever, void)
+import           Control.Monad                        (forM, forever, void)
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except                   (catchError, throwError)
-import           Control.Monad.Freer                    (Eff)
-import           Control.Monad.Freer.Extras.Log         (LogLevel (..))
-import qualified Control.Monad.Freer.Extras.Log         as Log
+import           Control.Monad.Except                 (catchError, throwError)
+import           Control.Monad.Freer                  (Eff)
+import           Control.Monad.Freer.Extras.Log       (LogLevel (..))
+import qualified Control.Monad.Freer.Extras.Log       as Log
 import           Test.Tasty
 
-import           Ledger                                 (Address, PubKey, Slot)
-import qualified Ledger                                 as Ledger
-import qualified Ledger.Ada                             as Ada
-import qualified Ledger.Constraints                     as Constraints
-import qualified Ledger.Crypto                          as Crypto
-import           Plutus.Contract                        as Con
-import qualified Plutus.Contract.State                  as State
+import           Ledger                               (Address, PubKey, Slot)
+import qualified Ledger                               as Ledger
+import qualified Ledger.Ada                           as Ada
+import qualified Ledger.Constraints                   as Constraints
+import qualified Ledger.Crypto                        as Crypto
+import           Plutus.Contract                      as Con
+import qualified Plutus.Contract.State                as State
 import           Plutus.Contract.Test
-import           Plutus.Contract.Types                  (ResumableResult (..), responses)
-import           Plutus.Contract.Util                   (loopM)
-import qualified Plutus.Trace                           as Trace
-import           Plutus.Trace.Emulator                  (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
-                                                         activeEndpoints, callEndpoint)
-import           Plutus.Trace.Emulator.Types            (ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                         ContractInstanceState (..), UserThreadMsg (..))
-import qualified PlutusTx                               as PlutusTx
+import           Plutus.Contract.Types                (ResumableResult (..), responses)
+import           Plutus.Contract.Util                 (loopM)
+import qualified Plutus.Trace                         as Trace
+import           Plutus.Trace.Emulator                (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
+                                                       activeEndpoints, callEndpoint)
+import           Plutus.Trace.Emulator.Types          (ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                       ContractInstanceState (..), UserThreadMsg (..))
+import qualified PlutusTx                             as PlutusTx
 import           PlutusTx.Lattice
-import           Prelude                                hiding (not)
-import qualified Prelude                                as P
-import qualified Wallet.Emulator                        as EM
+import           Prelude                              hiding (not)
+import qualified Prelude                              as P
+import qualified Wallet.Emulator                      as EM
 
-import           Plutus.Contract.Effects                (ActiveEndpoint (..))
-import qualified Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
-import qualified Plutus.Contract.Effects.ExposeEndpoint as Endpoint
-import qualified Plutus.Contract.Request                as Endpoint
-import           Plutus.Contract.Resumable              (IterationID, Response (..))
-import           Plutus.Contract.Trace.RequestHandler   (maybeToHandler)
+import           Plutus.Contract.Effects              (ActiveEndpoint (..))
+import qualified Plutus.Contract.Request              as Endpoint
+import           Plutus.Contract.Resumable            (IterationID, Response (..))
+import           Plutus.Contract.Trace.RequestHandler (maybeToHandler)
 
 tests :: TestTree
 tests =

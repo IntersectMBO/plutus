@@ -33,7 +33,6 @@ import           Language.PureScript.Bridge.TypeParameters  (A)
 import qualified PSGenerator.Common
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
 import           Plutus.Contract.Effects                    (TxConfirmed)
-import           Plutus.Contract.Effects.WriteTx            ()
 import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.PAB.Effects.Contract.ContractExe    (ContractExe)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)

@@ -34,14 +34,6 @@ library
         Data.Text.Extras
         Data.UUID.Extras
         Plutus.Contract
-        Plutus.Contract.Effects.AwaitSlot
-        Plutus.Contract.Effects.AwaitTxConfirmed
-        Plutus.Contract.Effects.Instance
-        Plutus.Contract.Effects.ExposeEndpoint
-        Plutus.Contract.Effects.OwnPubKey
-        Plutus.Contract.Effects.UtxoAt
-        Plutus.Contract.Effects.WatchAddress
-        Plutus.Contract.Effects.WriteTx
         Plutus.Contract.Effects
         Plutus.Contract.Request
         Plutus.Contract.Checkpoint
