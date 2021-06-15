@@ -86,7 +86,7 @@ import           Plutus.Contract.Types          (AsCheckpointError (..), AsContr
 import qualified Control.Monad.Freer.Extras.Log as L
 import qualified Control.Monad.Freer.Writer     as W
 import           Ledger.AddressMap              (UtxoMap)
-import           Prelude                        hiding (until)
+import           Prelude
 import           Wallet.API                     (WalletAPIError)
 import qualified Wallet.Types
 
