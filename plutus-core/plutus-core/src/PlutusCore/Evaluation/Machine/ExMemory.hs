@@ -13,7 +13,7 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
-, divideUpwards
+, uppperIntegerQuotient
 , Scalable (..)
 ) where
 
@@ -98,16 +98,17 @@ type CostingInteger =
 
 -- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
 
-{- | Divide one costing integer by another, "rounding upwards".  We want
-a <= (a `divideUpwards` b) * b < a+b.  This is needed when we expose
-costs to the ledger, which will use different (smaller) units.  Suppose
-one ledger unit is 1000 real cost units: then if a script costs 12345678
-real units we want that to be converted to 12346 ledger units, since 12345
-(as given by `div`) would convert to 12345000 real units, which wouldn't
-be enough to run the script.
+{- | Divide one costing integer by another, "rounding upwards".  This is needed
+when we expose costs to the ledger, which will use different (smaller) units.
+Suppose one ledger unit is 1000 real cost units: then if a script costs 12345678
+real units we want that to be converted to 12346 ledger units, since 12345 (as
+given by `div`) would convert to 12345000 real units, which wouldn't be enough
+to run the script.  We want a <= (a `uppperIntegerQuotient` b) * b < a+b for all
+a and for all b>0, except that we may get '==' instead of '<' when we're using
+SatInt and a+b == MaxBound.
 -}
-divideUpwards :: CostingInteger -> CostingInteger -> CostingInteger
-a `divideUpwards` b =
+uppperIntegerQuotient :: CostingInteger -> CostingInteger -> CostingInteger
+a `uppperIntegerQuotient` b =
     let (q,r) = a `divMod` b
     in if r==0 then q else q+1
 
@@ -119,7 +120,7 @@ class Scalable a where
 
 instance Scalable CostingInteger where
     scaleUp k n = (fromInteger k) * n
-    scaleDown k n = n `divideUpwards` (fromInteger k)
+    scaleDown k n = n `uppperIntegerQuotient` (fromInteger k)
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger

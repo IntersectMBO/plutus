@@ -123,7 +123,8 @@ anything, we're just going to create new versions.
 {- | Internally the evaluator uses costs which approximate execution times
 in picoseconds.  This gives huge numbers which are unsuitable for users
 so we expose microsecond-based costs to the ledger and scale them up and
-down to and from picoseconds for internal use. -}
+down to and from picoseconds for internal use.  The maximum possible cost
+from the viewpoint of the ledger will be 9223372036855 units. -}
 costScaleFactor :: Integer
 costScaleFactor = 1000 * 1000
 

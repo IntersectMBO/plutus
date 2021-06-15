@@ -185,21 +185,20 @@ propParser = property $ do
     Hedgehog.tripping prog (reprint . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError AlexPosn) p)
 
-
--- | Check that the `divideUpwards` function behaves sensibly.  This operates on
--- CostingIntegers (which are either SatInt or Integer), so we have to be a
--- little careful to use a generator which works for both and includes the
--- SatInt upper bound.
+-- | Check that the `uppperIntegerQuotient` function behaves sensibly.  This
+-- operates on CostingIntegers (which are either SatInt or Integer), so we have
+-- to be a little careful to use a generator which works for both and includes
+-- the SatInt upper bound.
 propDivideUpwards :: Property
-propDivideUpwards = withTests 10000 . property $ do
+propDivideUpwards = withTests 1000000 . property $ do  -- REDUCE THE LIMIT FOR THE REAL TEST
     a <- forAll $ fromIntegral <$> Gen.integral r
     b <- forAll $ fromIntegral <$> Gen.integral r
     if b <= 0 then success  -- What behaviour do we want if b < 0?
     else do
       let d = a `divideUpwards` b
       Hedgehog.assert $ a <= d*b
-      Hedgehog.assert $ d*b == m || d*b < a+b
-      -- We really want <, but that can fail at maxBound, eg if a=maxBound and b=1
+      Hedgehog.assert $ d*b < a+b || a+b == m  -- or d*b == m?
+      -- We really want <, but that can fail for large a, eg if a=maxBound and b=1
     where r = Range.linearBounded :: Range Int64
           m = fromIntegral (maxBound :: Int64)
 
