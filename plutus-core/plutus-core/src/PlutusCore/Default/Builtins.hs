@@ -3,9 +3,11 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -13,8 +15,8 @@
 
 module PlutusCore.Default.Builtins where
 
-import           PlutusCore.Constant.Dynamic.Emit
-import           PlutusCore.Constant.Meaning
+import           PlutusCore.Constant
+import           PlutusCore.Data
 import           PlutusCore.Default.Universe
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExMemory
@@ -35,6 +37,7 @@ import           Flat
 import           Flat.Decoder
 import           Flat.Encoder                                   as Flat
 
+-- See Note [Pattern matching on built-in types].
 -- For @n >= 24@, CBOR needs two bytes instead of one to encode @n@, so we want the commonest
 -- builtins at the front.
 -- | Default built-in functions.
@@ -67,9 +70,32 @@ data DefaultFun
     | EncodeUtf8
     | DecodeUtf8
     | Trace
-    | Nop1  -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
+    -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
+    | Nop1
     | Nop2
     | Nop3
+    | Fst
+    | Snd
+    | Null
+    | Head
+    | Tail
+    -- Functions somehow corresponding to constructors of Haskell data types has the @C@ suffix,
+    -- unless there's an established name for the projection function or the constructor does not
+    -- have an ASCII name (both conditions apply to 'Head' and 'Tail', for example).
+    | ConstrC
+    | MapC
+    | ListC
+    | IC
+    | BC
+    | UnConstrC
+    | UnMapC
+    | UnListC
+    | UnIC
+    | UnBC
+    -- It is convenient to have a "choosing" function for a data type that has more than two
+    -- constructors to get pattern matching over it and we may end up having multiple such data
+    -- types, hence we include the name of the data type as a suffix.
+    | ChooseData
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
 -- TODO: do we really want function names to be pretty-printed differently to what they are named as
@@ -106,6 +132,22 @@ instance Pretty DefaultFun where
     pretty Nop1                 = "nop1"
     pretty Nop2                 = "nop2"
     pretty Nop3                 = "nop3"
+    pretty Fst                  = "fst"
+    pretty Snd                  = "snd"
+    pretty Null                 = "null"
+    pretty Head                 = "head"
+    pretty Tail                 = "tail"
+    pretty ConstrC              = "constrC"
+    pretty MapC                 = "mapC"
+    pretty ListC                = "listC"
+    pretty IC                   = "iC"
+    pretty BC                   = "bC"
+    pretty UnConstrC            = "unConstrC"
+    pretty UnMapC               = "unMapC"
+    pretty UnListC              = "unListC"
+    pretty UnIC                 = "unIC"
+    pretty UnBC                 = "unBC"
+    pretty ChooseData           = "chooseData"
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = 1
@@ -119,6 +161,9 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
+    toBuiltinMeaning
+        :: forall term. HasConstantIn uni term
+        => DefaultFun -> BuiltinMeaning term BuiltinCostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
             ((+) @Integer)
@@ -233,15 +278,98 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             mempty  -- TODO: budget.
     toBuiltinMeaning Nop1 =
         makeBuiltinMeaning
-            (\(_::Integer) -> ())
+            @(Integer -> ())
+            mempty
             mempty
     toBuiltinMeaning Nop2 =
         makeBuiltinMeaning
-            (\(_::Integer) (_::Integer) -> ())
+            @(Integer -> Integer -> ())
+            mempty
             mempty
     toBuiltinMeaning Nop3 =
         makeBuiltinMeaning
-            (\(_::Integer) (_::Integer) (_::Integer) -> ())
+            @(Integer -> Integer -> Integer -> ())
+            mempty
+            mempty
+    toBuiltinMeaning Fst = makeBuiltinMeaning fstPlc mempty where
+        fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
+        fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
+            Opaque . fromConstant . Some $ ValueOf uniA x
+    toBuiltinMeaning Snd = makeBuiltinMeaning sndPlc mempty where
+        sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
+        sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
+            Opaque . fromConstant . Some $ ValueOf uniB y
+    toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
+        nullPlc :: SomeConstantOf uni [] '[a] -> Bool
+        nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
+    toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
+        headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
+        headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) = case xs of
+            x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
+            _     -> EvaluationFailure
+    toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
+        tailPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (SomeConstantOf uni [] '[a])
+        tailPlc (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) = case xs of
+            _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
+            _       -> EvaluationFailure
+    toBuiltinMeaning ConstrC =
+        makeBuiltinMeaning
+            Constr
+            mempty
+    toBuiltinMeaning MapC =
+        makeBuiltinMeaning
+            Map
+            mempty
+    toBuiltinMeaning ListC =
+        makeBuiltinMeaning
+            List
+            mempty
+    toBuiltinMeaning IC =
+        makeBuiltinMeaning
+            I
+            mempty
+    toBuiltinMeaning BC =
+        makeBuiltinMeaning
+            B
+            mempty
+    toBuiltinMeaning UnConstrC =
+        makeBuiltinMeaning
+            (\case
+                Constr i ds -> EvaluationSuccess (i, ds)
+                _           -> EvaluationFailure)
+            mempty
+    toBuiltinMeaning UnMapC =
+        makeBuiltinMeaning
+            (\case
+                Map es -> EvaluationSuccess es
+                _      -> EvaluationFailure)
+            mempty
+    toBuiltinMeaning UnListC =
+        makeBuiltinMeaning
+            (\case
+                List ds -> EvaluationSuccess ds
+                _       -> EvaluationFailure)
+            mempty
+    toBuiltinMeaning UnIC =
+        makeBuiltinMeaning
+            (\case
+                I i -> EvaluationSuccess i
+                _   -> EvaluationFailure)
+            mempty
+    toBuiltinMeaning UnBC =
+        makeBuiltinMeaning
+            (\case
+                B b -> EvaluationSuccess b
+                _   -> EvaluationFailure)
+            mempty
+    toBuiltinMeaning ChooseData =
+        makeBuiltinMeaning
+            (\xConstr xMap xList xI xB -> \case
+                Constr {} -> xConstr
+                Map    {} -> xMap
+                List   {} -> xList
+                I      {} -> xI
+                B      {} -> xB)
             mempty
 
 -- See Note [Stable encoding of PLC]
@@ -278,6 +406,22 @@ instance Serialise DefaultFun where
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
+              Fst                  -> 31
+              Snd                  -> 32
+              Null                 -> 33
+              Head                 -> 34
+              Tail                 -> 35
+              ConstrC              -> 36
+              MapC                 -> 37
+              ListC                -> 38
+              IC                   -> 39
+              BC                   -> 40
+              UnConstrC            -> 41
+              UnMapC               -> 42
+              UnListC              -> 43
+              UnIC                 -> 44
+              UnBC                 -> 45
+              ChooseData           -> 46
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -311,14 +455,30 @@ instance Serialise DefaultFun where
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
+              go 31 = pure Fst
+              go 32 = pure Snd
+              go 33 = pure Null
+              go 34 = pure Head
+              go 35 = pure Tail
+              go 36 = pure ConstrC
+              go 37 = pure MapC
+              go 38 = pure ListC
+              go 39 = pure IC
+              go 40 = pure BC
+              go 41 = pure UnConstrC
+              go 42 = pure UnMapC
+              go 43 = pure UnListC
+              go 44 = pure UnIC
+              go 45 = pure UnBC
+              go 46 = pure ChooseData
               go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
 -- out of space for tags (expanding the space would change the binary format for people who're
 -- implementing it manually). So we have to set it manually.
--- | Using 5 bits to encode builtin tags.
+-- | Using 6 bits to encode builtin tags.
 builtinTagWidth :: NumBits
-builtinTagWidth = 5
+builtinTagWidth = 6
 
 encodeBuiltin :: Word8 -> Flat.Encoding
 encodeBuiltin = eBits builtinTagWidth
@@ -360,6 +520,22 @@ instance Flat DefaultFun where
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
+              Fst                  -> 31
+              Snd                  -> 32
+              Null                 -> 33
+              Head                 -> 34
+              Tail                 -> 35
+              ConstrC              -> 36
+              MapC                 -> 37
+              ListC                -> 38
+              IC                   -> 39
+              BC                   -> 40
+              UnConstrC            -> 41
+              UnMapC               -> 42
+              UnListC              -> 43
+              UnIC                 -> 44
+              UnBC                 -> 45
+              ChooseData           -> 46
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -393,6 +569,22 @@ instance Flat DefaultFun where
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
+              go 31 = pure Fst
+              go 32 = pure Snd
+              go 33 = pure Null
+              go 34 = pure Head
+              go 35 = pure Tail
+              go 36 = pure ConstrC
+              go 37 = pure MapC
+              go 38 = pure ListC
+              go 39 = pure IC
+              go 40 = pure BC
+              go 41 = pure UnConstrC
+              go 42 = pure UnMapC
+              go 43 = pure UnListC
+              go 44 = pure UnIC
+              go 45 = pure UnBC
+              go 46 = pure ChooseData
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth

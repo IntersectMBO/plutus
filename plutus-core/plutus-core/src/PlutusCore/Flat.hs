@@ -13,17 +13,21 @@
 -- file.  Also see the Notes [Serialising unit annotations] and
 -- [Serialising Scripts] before using anything in this file.
 
-module PlutusCore.Flat ( encode
-                                , decode
-                                , safeEncodeBits
-                                ) where
+module PlutusCore.Flat
+    ( AsSerialize (..)
+    , encode
+    , decode
+    , safeEncodeBits
+    ) where
 
 import           PlutusCore.Core
+import           PlutusCore.Data
 import           PlutusCore.DeBruijn
 import           PlutusCore.Lexer.Type
 import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           PlutusCore.Name
 
+import           Codec.Serialise       (Serialise, deserialise, serialise)
 import           Data.Functor
 import           Data.Proxy
 import           Data.Word             (Word8)
@@ -63,10 +67,9 @@ tags and their used/available encoding possibilities.
 
 | Data type        | Function          | Used | Available |
 |------------------|-------------------|------|-----------|
-| default builtins | encodeBuiltin     | 22   | 32        |
+| default builtins | encodeBuiltin     | 46   | 64        |
 | Kinds            | encodeKind        | 2    | 2         |
 | Types            | encodeType        | 7    | 8         |
-| BuiltinNames     | encodeBuiltinName | 2    | 2         |
 | Terms            | encodeTerm        | 10   | 16        |
 
 For format stability we are manually assigning the tag values to the
@@ -85,6 +88,15 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
+newtype AsSerialize a = AsSerialize
+    { unAsSerialize :: a
+    }
+
+instance Serialise a => Flat (AsSerialize a) where
+    encode = encode . serialise . unAsSerialize
+    decode = AsSerialize . deserialise <$> decode
+    size = error "Implement me"
+
 safeEncodeBits :: NumBits -> Word8 -> Encoding
 safeEncodeBits n v =
   if 2 ^ n < v
@@ -100,6 +112,8 @@ encodeConstant = safeEncodeBits constantWidth
 
 decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
+
+deriving via AsSerialize Data instance Flat Data
 
 decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
 decodeKindedUniFlat =

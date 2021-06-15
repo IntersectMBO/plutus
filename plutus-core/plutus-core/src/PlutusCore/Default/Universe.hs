@@ -27,6 +27,7 @@ module PlutusCore.Default.Universe
     ) where
 
 import           PlutusCore.Core
+import           PlutusCore.Data
 import           PlutusCore.Parsable
 
 import           Control.Applicative
@@ -65,8 +66,8 @@ to juggle values of polymorphic built-in types instantiated with non-built-in ty
 such a 'Type').
 
 Finally, it is not necessarily the case that we need to allow embedding PLC terms into meta-constants.
-We already allow built-in names with polymorphic types. There might be a way to utilize this feature
-and have meta-constructors as builtin names.
+We already allow built-in functions with polymorphic types. There might be a way to utilize this
+feature and have meta-constructors as built-in functions.
 -}
 
 -- See Note [Representing polymorphism].
@@ -80,6 +81,7 @@ data DefaultUni a where
     DefaultUniProtoList  :: DefaultUni (Esc [])
     DefaultUniProtoPair  :: DefaultUni (Esc (,))
     DefaultUniApply      :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
+    DefaultUniData       :: DefaultUni (Esc Data)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -109,6 +111,7 @@ instance ToKind DefaultUni where
         -- but having @error@ should be fine.
         Type _            -> error "Panic: a type function can't be of type *"
         KindArrow _ _ cod -> cod
+    toKind DefaultUniData = kindOf DefaultUniData
 
 instance HasUniApply DefaultUni where
     matchUniApply (DefaultUniApply f a) _ h = h f a
@@ -130,6 +133,7 @@ instance Show (DefaultUni a) where
         DefaultUniProtoPair -> concat ["pair (", show uniB, ")"]
         DefaultUniProtoPair `DefaultUniApply` uniA -> concat ["pair (", show uniA, ") (", show uniB, ")"]
         uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
+    show DefaultUniData = "data"
 
 -- See Note [Parsing horribly broken].
 instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
@@ -168,6 +172,7 @@ instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
 instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoList
 instance DefaultUni `Contains` (,)           where knownUni = DefaultUniProtoPair
+instance DefaultUni `Contains` Data          where knownUni = DefaultUniData
 
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
     knownUni = knownUni `DefaultUniApply` knownUni
@@ -189,6 +194,7 @@ instance Closed DefaultUni where
         , constr `Permits` Bool
         , constr `Permits` []
         , constr `Permits` (,)
+        , constr `Permits` Data
         )
 
     -- See Note [Stable encoding of tags].
@@ -200,6 +206,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniProtoList         = [5]
     encodeUni DefaultUniProtoPair         = [6]
     encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
+    encodeUni DefaultUniData              = [8]
 
     -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
@@ -216,6 +223,7 @@ instance Closed DefaultUni where
                 withDecodedUni @DefaultUni $ \uniA ->
                     withApplicable uniF uniA $
                         k $ uniF `DefaultUniApply` uniA
+        8 -> k DefaultUniData
         _ -> empty
 
     bring
@@ -232,3 +240,4 @@ instance Closed DefaultUni where
         bring p uniA $ bring p uniB r
     bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
         noMoreTypeFunctions f
+    bring _ DefaultUniData r = r

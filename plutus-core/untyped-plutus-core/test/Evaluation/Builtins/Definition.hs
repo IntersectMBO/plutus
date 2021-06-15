@@ -20,7 +20,9 @@ import           PlutusCore.MkPlc                                hiding (error)
 import           PlutusCore.Examples.Builtins
 import           PlutusCore.StdLib.Data.Bool
 import qualified PlutusCore.StdLib.Data.Function                 as Plc
-import qualified PlutusCore.StdLib.Data.List                     as Plc
+import           PlutusCore.StdLib.Data.Integer
+import qualified PlutusCore.StdLib.Data.List                     as Builtin
+import qualified PlutusCore.StdLib.Data.ScottList                as Scott
 
 import           Evaluation.Builtins.Common
 
@@ -77,7 +79,6 @@ test_Id =
         let zer = mkConstant @Integer @DefaultUni () 0
             oneT = mkConstant @Integer @DefaultUni () 1
             oneU = mkConstant @Integer @DefaultUni () 1
-            integer = mkTyBuiltin @_ @Integer ()
             -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
             term =
                 mkIterApp () (tyInst () (builtin () $ Right Id) (TyFun () integer integer))
@@ -103,9 +104,9 @@ test_IdFInteger =
             res = mkConstant @Integer @DefaultUni () 55
             -- sum (idFInteger {list} (enumFromTo 1 10))
             term
-                = apply () (mapFun Left Plc.sum)
-                . apply () (tyInst () (builtin () $ Right IdFInteger) Plc.listTy)
-                $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
+                = apply () (mapFun Left Scott.sum)
+                . apply () (tyInst () (builtin () $ Right IdFInteger) Scott.listTy)
+                $ mkIterApp () (mapFun Left Scott.enumFromTo) [one, ten]
         typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess res)
 
 test_IdList :: TestTree
@@ -113,17 +114,16 @@ test_IdList =
     testCase "IdList" $ do
         let tyAct = typeOfBuiltinFunction @DefaultUni IdList
             tyExp = let a = TyName . Name "a" $ Unique 0
-                        listA = TyApp () Plc.listTy (TyVar () a)
+                        listA = TyApp () Scott.listTy (TyVar () a)
                     in TyForall () a (Type ()) $ TyFun () listA listA
             one = mkConstant @Integer @DefaultUni () 1
             ten = mkConstant @Integer @DefaultUni () 10
             res = mkConstant @Integer @DefaultUni () 55
-            integer = mkTyBuiltin @_ @Integer ()
             -- sum (idList {integer} (enumFromTo 1 10))
             term
-                = apply () (mapFun Left Plc.sum)
+                = apply () (mapFun Left Scott.sum)
                 . apply () (tyInst () (builtin () $ Right IdList) integer)
-                $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
+                $ mkIterApp () (mapFun Left Scott.enumFromTo) [one, ten]
         tyAct @?= tyExp
         typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess res)
 
@@ -156,11 +156,10 @@ test_IdRank2 :: TestTree
 test_IdRank2 =
     testCase "IdRank2" $ do
         let res = mkConstant @Integer @DefaultUni () 0
-            integer = mkTyBuiltin @_ @Integer ()
             -- sum (idRank2 {list} nil {integer})
             term
-                = apply () (mapFun Left Plc.sum)
-                . tyInst () (apply () (tyInst () (builtin () $ Right IdRank2) Plc.listTy) Plc.nil)
+                = apply () (mapFun Left Scott.sum)
+                . tyInst () (apply () (tyInst () (builtin () $ Right IdRank2) Scott.listTy) Scott.nil)
                 $ integer
         typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess res)
 
@@ -220,6 +219,86 @@ test_ExpensivePlus =
             traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
         typeErrOrEvalExcOrRes @?= Right (Right EvaluationFailure)
 
+-- | Test that @Null@, @Head@ and @Tail@ are enough to get pattern matching on built-in lists.
+test_BuiltinList :: TestTree
+test_BuiltinList =
+    testCase "BuiltinList" $ do
+        let xs  = [1..10]
+            res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
+            term
+                = mkIterApp () (mkIterInst () Builtin.foldrList [integer, integer])
+                    [ Builtin () SubtractInteger
+                    , mkConstant @Integer () 0
+                    , mkConstant @[Integer] () xs
+                    ]
+        typecheckEvaluateCekNoEmit defaultCekParameters term @?= Right (EvaluationSuccess res)
+
+-- | Test that right-folding a built-in list with built-in 'Cons' recreates that list.
+test_IdBuiltinList :: TestTree
+test_IdBuiltinList =
+    testCase "IdBuiltinList" $ do
+        let xsTerm :: TermLike term tyname name DefaultUni fun => term ()
+            xsTerm = mkConstant @[Integer] () [1..10]
+            listOfInteger = mkTyBuiltin @_ @[Integer] ()
+            term
+                = mkIterApp () (mkIterInst () (mapFun Left Builtin.foldrList) [integer, listOfInteger])
+                    [ tyInst () (builtin () $ Right Cons) integer
+                    , mkConstant @[Integer] () []
+                    , xsTerm
+                    ]
+        typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess xsTerm)
+
+test_BuiltinTuple :: TestTree
+test_BuiltinTuple =
+    testCase "BuiltinTuple" $ do
+        let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
+            inst efun = mkIterInst () (builtin () efun) [integer, bool]
+            swapped = apply () (inst $ Right Swap) arg
+            fsted   = apply () (inst $ Left Fst) arg
+            snded   = apply () (inst $ Left Snd) arg
+        -- Swap {integer} {bool} (1, False) ~> (False, 1)
+        typecheckEvaluateCekNoEmit defaultCekParametersExt swapped @?=
+            Right (EvaluationSuccess $ mkConstant @(Bool, Integer) () (False, 1))
+        -- Fst {integer} {bool} (1, False) ~> 1
+        typecheckEvaluateCekNoEmit defaultCekParametersExt fsted @?=
+            Right (EvaluationSuccess $ mkConstant @Integer () 1)
+        -- Snd {integer} {bool} (1, False) ~> False
+        typecheckEvaluateCekNoEmit defaultCekParametersExt snded @?=
+            Right (EvaluationSuccess $ mkConstant @Bool () False)
+
+test_SwapEls :: TestTree
+test_SwapEls =
+    testCase "SwapEls" $ do
+        let xs = zip [1..10] $ cycle [False, True]
+            res = mkConstant @Integer @DefaultUni () $
+                    foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
+            el = mkTyBuiltin @_ @(Integer, Bool) ()
+            instProj proj = mkIterInst () (builtin () proj) [integer, bool]
+            fun = runQuote $ do
+                    p <- freshName "p"
+                    r <- freshName "r"
+                    return
+                        . lamAbs () p el
+                        . lamAbs () r integer
+                        $ mkIterApp () (builtin () AddInteger)
+                            [ Var () r
+                            , mkIterApp () (builtin () MultiplyInteger)
+                                [ mkIterApp () (tyInst () (builtin () IfThenElse) integer)
+                                    [ apply () (instProj Snd) $ Var () p
+                                    , mkConstant @Integer () (-1)
+                                    , mkConstant @Integer () 1
+                                    ]
+                                , apply () (instProj Fst) $ Var () p
+                                ]
+                            ]
+            term
+                = mkIterApp () (mkIterInst () Builtin.foldrList [el, integer])
+                    [ fun
+                    , mkConstant @Integer () 0
+                    , mkConstant () xs
+                    ]
+        typecheckEvaluateCekNoEmit defaultCekParameters term @?= Right (EvaluationSuccess res)
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -233,4 +312,8 @@ test_definition =
         , test_ExpensiveSucc
         , test_FailingPlus
         , test_ExpensivePlus
+        , test_BuiltinList
+        , test_IdBuiltinList
+        , test_BuiltinTuple
+        , test_SwapEls
         ]

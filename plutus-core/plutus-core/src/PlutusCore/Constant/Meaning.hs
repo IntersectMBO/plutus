@@ -22,6 +22,7 @@ import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Constant.Function
 import           PlutusCore.Constant.Typed
 import           PlutusCore.Core
+import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.Name
@@ -214,6 +215,7 @@ type instance ToBinds Char          = '[]
 type instance ToBinds ()            = '[]
 type instance ToBinds Bool          = '[]
 type instance ToBinds Int           = '[]
+type instance ToBinds Data          = '[]
 type instance ToBinds []            = '[]
 type instance ToBinds (,)           = '[]
 type instance ToBinds [a]           = '[]  -- One can't directly put a PLC type variable into lists

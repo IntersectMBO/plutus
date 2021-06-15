@@ -45,6 +45,7 @@ import           PlutusPrelude
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Core
+import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
@@ -260,6 +261,42 @@ bad, but to get pattern matching on lists we need three built-in functions: `nul
 
     matchList :: [a] -> r -> (a -> [a] -> r) -> r
     matchList xs z f = if null xs then z else f (head xs) (tail xs)
+
+If a constructor stores more than one value, the corresponding projection function packs them
+into a (possibly nested) pair, for example for
+
+    data Data
+        = Constr Integer [Data]
+        | <...>
+
+we have (pseudocode):
+
+    unConstrC (Constr i ds) = (i, ds)
+
+In order to get pattern matching over 'Data' we need a projection function per constructor as well,
+but writing (where the @C@ suffix indicates that a function is a builtin that somehow corresponds
+to a constructor of a Haskell data type)
+
+    if isConstrC d
+        then uncurry fConstr $ unConstrC d
+        else if isMapC d
+            then fMap $ unMapC d
+            else if isListC d
+                then fList $ unListC d
+                else <...>
+
+is tedious and inefficient and so instead we have a single @chooseData@ builtin that matches on
+its @Data@ argument and chooses the appropriate branch (type instantiations and strictness concerns
+are omitted for clarity):
+
+     chooseData
+        (uncurry fConstr $ unConstrC d)
+        (fMap $ unMapC d)
+        (fList $ unListC d)
+        <...>
+        d
+
+which, for example, evaluates to @fMap es@ when @d@ is @Map es@
 
 On the bright side, this encoding of pattern matchers does work, so maybe it's indeed worth to
 prioritize performance over convenience, especially given the fact that performance is of a concern
@@ -625,6 +662,7 @@ instance uni `Contains` ()            => KnownTypeAst uni ()
 instance uni `Contains` Bool          => KnownTypeAst uni Bool
 instance uni `Contains` [a]           => KnownTypeAst uni [a]
 instance uni `Contains` (a, b)        => KnownTypeAst uni (a, b)
+instance uni `Contains` Data          => KnownTypeAst uni Data
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
@@ -633,6 +671,7 @@ instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool
 instance KnownBuiltinType term [a]           => KnownType term [a]
 instance KnownBuiltinType term (a, b)        => KnownType term (a, b)
+instance KnownBuiltinType term Data          => KnownType term Data
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when

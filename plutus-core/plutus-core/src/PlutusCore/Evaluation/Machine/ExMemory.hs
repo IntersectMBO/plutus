@@ -16,6 +16,7 @@ module PlutusCore.Evaluation.Machine.ExMemory
 ) where
 
 import           PlutusCore.Core
+import           PlutusCore.Data
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusPrelude
@@ -208,3 +209,4 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
 deriving via GenericExMemoryUsage [a] instance ExMemoryUsage a => ExMemoryUsage [a]
+deriving via GenericExMemoryUsage Data instance ExMemoryUsage Data
