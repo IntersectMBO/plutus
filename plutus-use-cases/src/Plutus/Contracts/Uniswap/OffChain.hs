@@ -33,7 +33,7 @@ import qualified Data.Map                         as Map
 import           Data.Monoid                      (Last (..))
 import           Data.Proxy                       (Proxy (..))
 import           Data.Text                        (Text, pack)
-import           Data.Void                        (Void)
+import           Data.Void                        (Void, absurd)
 import           Ledger                           hiding (singleton)
 import           Ledger.Constraints               as Constraints
 import qualified Ledger.Typed.Scripts             as Scripts
@@ -488,12 +488,11 @@ findSwapB oldA oldB inB = findSwapA (switch oldB) (switch oldA) (switch inB)
   where
     switch = Amount . unAmount
 
-ownerEndpoint :: Contract (Last (Either Text Uniswap)) BlockchainActions Void ()
+ownerEndpoint :: Contract (Last (Either Text Uniswap)) BlockchainActions ContractError ()
 ownerEndpoint = do
-    e <- runError start
-    tell $ Last $ Just $ case e of
-        Left err -> Left err
-        Right us -> Right us
+    e <- mapError absurd $ runError start
+    tell $ Last $ Just e
+    void $ waitNSlots 10
 
 -- | Provides the following endpoints for users of a Uniswap instance:
 --

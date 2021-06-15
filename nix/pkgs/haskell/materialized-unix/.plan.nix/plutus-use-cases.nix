@@ -83,6 +83,7 @@
           "Plutus/Contracts/Uniswap/OnChain"
           "Plutus/Contracts/Uniswap/OffChain"
           "Plutus/Contracts/Uniswap/Pool"
+          "Plutus/Contracts/Uniswap/Trace"
           "Plutus/Contracts/Uniswap/Types"
           "Plutus/Contracts/Vesting"
           ];
@@ -198,6 +199,7 @@
             "Spec/Prism"
             "Spec/Rollup"
             "Spec/Stablecoin"
+            "Spec/Uniswap"
             "Spec/TokenAccount"
             "Spec/Vesting"
             ];
