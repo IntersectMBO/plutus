@@ -2,10 +2,10 @@ module Data.Digest.CRC32 (
     CRC32, crc32, crc32Update
 ) where
 
+import Data.Word
+
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Lazy as L
-import qualified Data.ByteString.Lazy.Internal as LI
-import qualified System.IO.Unsafe as U
 
 -- | The class of values for which CRC32 may be computed
 class CRC32 a where
@@ -24,5 +24,5 @@ instance CRC32 S.ByteString where
 instance CRC32 L.ByteString where
     crc32Update = error "no ghcjs impl"
 
-instance CRC32 [Word8] where
-    crc32Update n = error "no ghcjs impl"
+-- instance CRC32 [Word8] where
+--     crc32Update n = error "no ghcjs impl"
