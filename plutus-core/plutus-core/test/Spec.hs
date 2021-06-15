@@ -198,8 +198,10 @@ propDivideUpwards = withTests 10000 . property $ do
     else do
       let d = a `divideUpwards` b
       Hedgehog.assert $ a <= d*b
-      Hedgehog.assert $ d*b <= a+b  -- We really want <, but that can fail at maxBound, eg if a=maxBound, b=1
+      Hedgehog.assert $ d*b == m || d*b < a+b
+      -- We really want <, but that can fail at maxBound, eg if a=maxBound and b=1
     where r = Range.linearBounded :: Range Int64
+          m = fromIntegral (maxBound :: Int64)
 
 propRename :: Property
 propRename = property $ do
