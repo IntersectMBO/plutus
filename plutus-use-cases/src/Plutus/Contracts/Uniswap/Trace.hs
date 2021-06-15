@@ -9,6 +9,7 @@ module Plutus.Contracts.Uniswap.Trace(
     --
     , setupTokens
     , tokenNames
+    , wallets
     ) where
 
 import           Control.Monad                     (forM_, void, when)
