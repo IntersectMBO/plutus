@@ -13,6 +13,8 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
+, divideUpwards
+, Scalable (..)
 ) where
 
 import           PlutusCore.Core
@@ -94,13 +96,35 @@ type CostingInteger =
     SatInt
 #endif
 
-
 -- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
+
+{- | Divide one costing integer by another, "rounding upwards".  We want
+a <= (a `divideUpwards` b) * b < a+b.  This is needed when we expose
+costs to the ledger, which will use different (smaller) units.  Suppose
+one ledger unit is 1000 real cost units: then if a script costs 12345678
+real units we want that to be converted to 12346 ledger units, since 12345
+(as given by `div`) would convert to 12345000 real units, which wouldn't
+be enough to run the script.
+-}
+divideUpwards :: CostingInteger -> CostingInteger -> CostingInteger
+a `divideUpwards` b =
+    let (q,r) = a `divMod` b
+    in if r==0 then q else q+1
+
+{- | A class which allows us to scale budget-related quantities upwards and
+   downwards by a given factor. -}
+class Scalable a where
+    scaleUp   :: Integer -> a -> a
+    scaleDown :: Integer -> a -> a
+
+instance Scalable CostingInteger where
+    scaleUp k n = (fromInteger k) * n
+    scaleDown k n = n `divideUpwards` (fromInteger k)
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
   deriving (Eq, Ord, Show, Lift)
-  deriving newtype (Num, NFData)
+  deriving newtype (Num, NFData, Scalable)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
 instance Pretty ExMemory where
@@ -112,7 +136,7 @@ instance PrettyBy config ExMemory where
 -- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
   deriving (Eq, Ord, Show, Lift)
-  deriving newtype (Num, NFData)
+  deriving newtype (Num, NFData, Scalable)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
 instance Pretty ExCPU where

@@ -8,33 +8,35 @@ module Main
 
 import           PlutusPrelude
 
-import qualified Check.Spec                        as Check
+import qualified Check.Spec                             as Check
 import           CostModelInterface.Spec
-import           Evaluation.Spec                   (test_evaluation)
+import           Evaluation.Spec                        (test_evaluation)
 import           Normalization.Check
 import           Normalization.Type
 import           Pretty.Readable
-import           TypeSynthesis.Spec                (test_typecheck)
+import           TypeSynthesis.Spec                     (test_typecheck)
 
 import           PlutusCore
 import           PlutusCore.DeBruijn
+import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Generators
-import           PlutusCore.Generators.AST         as AST
+import           PlutusCore.Generators.AST              as AST
 import           PlutusCore.Generators.Interesting
-import qualified PlutusCore.Generators.NEAT.Spec   as NEAT
+import qualified PlutusCore.Generators.NEAT.Spec        as NEAT
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy              as BSL
-import qualified Data.Text                         as T
-import           Data.Text.Encoding                (encodeUtf8)
-import           Flat                              (flat)
+import qualified Data.ByteString.Lazy                   as BSL
+import           Data.Int                               (Int64)
+import qualified Data.Text                              as T
+import           Data.Text.Encoding                     (encodeUtf8)
+import           Flat                                   (flat)
 import qualified Flat
-import           Hedgehog                          hiding (Var)
-import qualified Hedgehog.Gen                      as Gen
-import qualified Hedgehog.Range                    as Range
+import           Hedgehog                               hiding (Var)
+import qualified Hedgehog.Gen                           as Gen
+import qualified Hedgehog.Range                         as Range
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
@@ -183,6 +185,22 @@ propParser = property $ do
     Hedgehog.tripping prog (reprint . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError AlexPosn) p)
 
+
+-- | Check that the `divideUpwards` function behaves sensibly.  This operates on
+-- CostingIntegers (which are either SatInt or Integer), so we have to be a
+-- little careful to use a generator which works for both and includes the
+-- SatInt upper bound.
+propDivideUpwards :: Property
+propDivideUpwards = withTests 10000 . property $ do
+    a <- forAll $ fromIntegral <$> Gen.integral r
+    b <- forAll $ fromIntegral <$> Gen.integral r
+    if b <= 0 then success  -- What behaviour do we want if b < 0?
+    else do
+      let d = a `divideUpwards` b
+      Hedgehog.assert $ a <= d*b
+      Hedgehog.assert $ d*b <= a+b  -- We really want <, but that can fail at maxBound, eg if a=maxBound, b=1
+    where r = Range.linearBounded :: Range Int64
+
 propRename :: Property
 propRename = property $ do
     prog <- forAllPretty $ runAstGen genProgram
@@ -219,6 +237,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip (CBOR)" propCBOR
     , testProperty "serialization round-trip (Flat)" propFlat
+    , testProperty "divideUpwards behaves correctly" propDivideUpwards
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $
