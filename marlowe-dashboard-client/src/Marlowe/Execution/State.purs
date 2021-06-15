@@ -1,70 +1,25 @@
-module Marlowe.Execution where
+module Marlowe.Execution.State
+  ( initExecution
+  , nextState
+  , nextTimeout
+  , mkTx
+  , timeoutState
+  , isClosed
+  , getActionParticipant
+  , extractNamedActions
+  , expandBalances
+  ) where
 
 import Prelude
 import Data.Array as Array
-import Data.BigInteger (BigInteger, fromInt)
-import Data.Lens (Lens', Traversal', _Just, traversed, view, (^.))
-import Data.Lens.Record (prop)
+import Data.BigInteger (fromInt)
+import Data.Lens (view, (^.))
 import Data.List (List)
-import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, fromMaybe')
-import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
-import Marlowe.Semantics (AccountId, Accounts, Action(..), Bound, Case(..), ChoiceId(..), ChosenNum, Contract(..), Input, Observation, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), ValueId, _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
-
--- This represents a previous step in the execution. The state property corresponds to the state before the
--- txInput was applied and it's saved as an early optimization to calculate the balances at each step.
-type PreviousState
-  = { txInput :: TransactionInput
-    , state :: State
-    }
-
--- This represents the timeouts that hasn't been applied to the contract. When a step of a contract has timeout
--- nothing happens until the next InputTransaction. This could be an IDeposit or IChoose for the continuation
--- contract, or an empty transaction to advance or even close the contract. We store a separate contract and state
--- than the "current" contract/state because this is the predicted state that we would be in if we applied an
--- empty transaction, and this allow us to extract the NamedActions that needs to be applied next.
--- Also, we store the timeouts as an Array because it is possible that multiple continuations have timeouted
--- before we advance the contract.
-type PendingTimeouts
-  = { timeouts :: Array Slot
-    , contract :: Contract
-    , state :: State
-    }
-
-type ExecutionState
-  = { previous :: Array PreviousState
-    , current ::
-        { state :: State
-        , contract :: Contract
-        }
-    , mPendingTimeouts :: Maybe PendingTimeouts
-    , mNextTimeout :: Maybe Slot
-    }
-
-_previousState :: Lens' ExecutionState (Array PreviousState)
-_previousState = prop (SProxy :: SProxy "previous")
-
-_previousTransactions :: Traversal' ExecutionState TransactionInput
-_previousTransactions = prop (SProxy :: SProxy "previous") <<< traversed <<< prop (SProxy :: SProxy "txInput")
-
-_currentState :: Lens' ExecutionState State
-_currentState = prop (SProxy :: SProxy "current") <<< prop (SProxy :: SProxy "state")
-
-_currentContract :: Lens' ExecutionState Contract
-_currentContract = prop (SProxy :: SProxy "current") <<< prop (SProxy :: SProxy "contract")
-
-_mNextTimeout :: Lens' ExecutionState (Maybe Slot)
-_mNextTimeout = prop (SProxy :: SProxy "mNextTimeout")
-
-_pendingTimeouts :: Traversal' ExecutionState (Array Slot)
-_pendingTimeouts = prop (SProxy :: SProxy "mPendingTimeouts") <<< _Just <<< prop (SProxy :: SProxy "timeouts")
-
-isClosed :: ExecutionState -> Boolean
-isClosed { current: { contract: Close } } = true
-
-isClosed _ = false
+import Marlowe.Execution.Types (ExecutionState, NamedAction(..), PendingTimeouts)
+import Marlowe.Semantics (Accounts, Action(..), Case(..), ChoiceId(..), Contract(..), Input, Party, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
 
 initExecution :: Slot -> Contract -> ExecutionState
 initExecution currentSlot contract =
@@ -81,26 +36,6 @@ initExecution currentSlot contract =
     , mPendingTimeouts: Nothing
     , mNextTimeout: nextTimeout contract
     }
-
-nextTimeout :: Contract -> Maybe Slot
-nextTimeout = timeouts >>> \(Timeouts { minTime }) -> minTime
-
-mkInterval :: Slot -> Contract -> SlotInterval
-mkInterval currentSlot contract = case nextTimeout contract of
-  Nothing -> SlotInterval currentSlot (currentSlot + (Slot $ fromInt 10))
-  Just minTime
-    -- FIXME: I think this will fail in the PAB... we may need to return a Maybe SlotInterval and
-    -- show an error. But also, if you delay confirming the action it could also cause the same type
-    -- of failure, so maybe there is no need. Check after initial PAB integration.
-    | minTime < currentSlot -> SlotInterval currentSlot currentSlot
-    | otherwise -> SlotInterval currentSlot (minTime - (Slot $ fromInt 1))
-
-mkTx :: Slot -> Contract -> List Input -> TransactionInput
-mkTx currentSlot contract inputs =
-  let
-    interval = mkInterval currentSlot contract
-  in
-    TransactionInput { interval, inputs }
 
 -- FIXME: Change the order of the arguments to::  TransactionInput -> ExecutionState  -> ExecutionState
 nextState :: ExecutionState -> TransactionInput -> ExecutionState
@@ -125,6 +60,16 @@ nextState { previous, current } txInput =
     , mPendingTimeouts: Nothing
     , mNextTimeout: nextTimeout txOutContract
     }
+
+nextTimeout :: Contract -> Maybe Slot
+nextTimeout = timeouts >>> \(Timeouts { minTime }) -> minTime
+
+mkTx :: Slot -> Contract -> List Input -> TransactionInput
+mkTx currentSlot contract inputs =
+  let
+    interval = mkInterval currentSlot contract
+  in
+    TransactionInput { interval, inputs }
 
 timeoutState :: Slot -> ExecutionState -> ExecutionState
 timeoutState currentSlot { current, previous, mPendingTimeouts, mNextTimeout } =
@@ -179,28 +124,11 @@ timeoutState currentSlot { current, previous, mPendingTimeouts, mNextTimeout } =
     , mNextTimeout: advancedTimeouts.mNextTimeout
     }
 
--- Represents the possible buttons that can be displayed on a contract stage card
-data NamedAction
-  -- Equivalent to Semantics.Action(Deposit)
-  -- Creates IDeposit
-  = MakeDeposit AccountId Party Token BigInteger
-  -- Equivalent to Semantics.Action(Choice) but has ChosenNum since it is a stateful element that stores the users choice
-  -- Creates IChoice
-  | MakeChoice ChoiceId (Array Bound) (Maybe ChosenNum)
-  -- Equivalent to Semantics.Action(Notify) (can be applied by any user)
-  -- Creates INotify
-  | MakeNotify Observation
-  -- An empty transaction needs to be submitted in order to trigger a change in the contract
-  -- and we work out the details of what will happen when this occurs, currently we are interested
-  -- in any payments that will be made and new bindings that will be evaluated
-  -- Creates empty tx
-  | Evaluate { payments :: Array Payment, bindings :: Map ValueId BigInteger }
-  -- A special case of Evaluate where the only way the Contract can progress is to apply an empty
-  -- transaction which results in the contract being closed
-  -- Creates empty tx
-  | CloseContract
+------------------------------------------------------------
+isClosed :: ExecutionState -> Boolean
+isClosed { current: { contract: Close } } = true
 
-derive instance eqNamedAction :: Eq NamedAction
+isClosed _ = false
 
 getActionParticipant :: NamedAction -> Maybe Party
 getActionParticipant (MakeDeposit _ party _ _) = Just party
@@ -208,6 +136,13 @@ getActionParticipant (MakeDeposit _ party _ _) = Just party
 getActionParticipant (MakeChoice (ChoiceId _ party) _ _) = Just party
 
 getActionParticipant _ = Nothing
+
+extractNamedActions :: Slot -> ExecutionState -> Array NamedAction
+extractNamedActions _ { mPendingTimeouts: Just { contract: Close } } = [ CloseContract ]
+
+extractNamedActions currentSlot { mPendingTimeouts: Just { contract, state } } = extractActionsFromContract currentSlot state contract
+
+extractNamedActions currentSlot { current: { state, contract } } = extractActionsFromContract currentSlot state contract
 
 -- a When can only progress if it has timed out or has Cases
 extractActionsFromContract :: Slot -> State -> Contract -> Array NamedAction
@@ -259,13 +194,6 @@ extractActionsFromContract currentSlot state contract@(When cases timeout cont)
 -- and we would want to enable moving forward with Evaluate
 extractActionsFromContract _ _ _ = [ Evaluate mempty ]
 
-extractNamedActions :: Slot -> ExecutionState -> Array NamedAction
-extractNamedActions _ { mPendingTimeouts: Just { contract: Close } } = [ CloseContract ]
-
-extractNamedActions currentSlot { mPendingTimeouts: Just { contract, state } } = extractActionsFromContract currentSlot state contract
-
-extractNamedActions currentSlot { current: { state, contract } } = extractActionsFromContract currentSlot state contract
-
 -- This function expands the balances inside the Semantic.State to all participants and tokens, using zero if the participant
 -- does not have balance for that token.
 expandBalances :: Array Party -> Array Token -> State -> Accounts
@@ -281,3 +209,13 @@ expandBalances participants tokens state =
               key = party /\ token
             in
               key /\ (fromMaybe zero $ Map.lookup key stateAccounts)
+
+mkInterval :: Slot -> Contract -> SlotInterval
+mkInterval currentSlot contract = case nextTimeout contract of
+  Nothing -> SlotInterval currentSlot (currentSlot + (Slot $ fromInt 10))
+  Just minTime
+    -- FIXME: I think this will fail in the PAB... we may need to return a Maybe SlotInterval and
+    -- show an error. But also, if you delay confirming the action it could also cause the same type
+    -- of failure, so maybe there is no need. Check after initial PAB integration.
+    | minTime < currentSlot -> SlotInterval currentSlot currentSlot
+    | otherwise -> SlotInterval currentSlot (minTime - (Slot $ fromInt 1))

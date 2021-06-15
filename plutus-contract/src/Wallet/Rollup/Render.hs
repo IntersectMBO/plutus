@@ -30,7 +30,7 @@ import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayo
                                                         line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Ledger                                (Address, Blockchain, PubKey, PubKeyHash, Signature, Tx (Tx),
-                                                        TxId, TxIn (TxIn, txInRef, txInType),
+                                                        TxId, TxIn (TxIn),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
                                                         Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
@@ -260,8 +260,9 @@ instance Render DereferencedInput where
             [render refersTo, pure "Source:", indent 2 <$> render originalInput]
 
 instance Render TxIn where
-    render TxIn {txInRef, txInType} =
+    render (TxIn txInRef (Just txInType)) =
         vsep <$> sequence [render txInRef, render txInType]
+    render (TxIn txInRef Nothing) = render txInRef
 
 instance Render TxInType where
     render (ConsumeScriptAddress validator _ _) = render validator

@@ -179,7 +179,8 @@ instance Show (BuiltinRuntime (CekValue uni fun)) where
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun =
-    VCon (Some (ValueOf uni))
+    -- This bang gave us a 1-2% speed-up at the time of writing.
+    VCon !(Some (ValueOf uni))
   | VDelay (Term Name uni fun ()) (CekValEnv uni fun)
   | VLamAbs Name (Term Name uni fun ()) (CekValEnv uni fun)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
@@ -192,7 +193,8 @@ data CekValue uni fun =
                              -- is never achieved and a partial application needs to be returned
                              -- in the result. The laziness is important, because the arguments are
                              -- discharged values and discharging is expensive, so we don't want to
-                             -- do it unless we really have to.
+                             -- do it unless we really have to. Making this field strict resulted
+                             -- in a 3-4.5% slowdown at the time of writing.
       (CekValEnv uni fun)    -- For discharging.
       !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
                                             -- Check the docs of 'BuiltinRuntime' for details.
@@ -711,8 +713,10 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term Name uni fun ())
-    applyEvaluate !unbudgetedSteps ctx (VLamAbs name body env) arg = computeCek unbudgetedSteps ctx (extendEnv name arg env) body
-    -- TODO: check if annotating @f@ and @exF@ with bangs speeds anything up.
+    applyEvaluate !unbudgetedSteps ctx (VLamAbs name body env) arg =
+        computeCek unbudgetedSteps ctx (extendEnv name arg env) body
+    -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
+    -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
         let term' = Apply () term $ dischargeCekValue arg
         case sch of

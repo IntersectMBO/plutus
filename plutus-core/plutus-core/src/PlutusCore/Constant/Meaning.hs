@@ -14,6 +14,9 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 
+-- DO NOT enable @StrictData@ in this file as it makes the evaluator slower (even with @~@ put in
+-- 'BuiltinRuntime' in the places where it's necessary to have laziness for evaluators to work).
+
 module PlutusCore.Constant.Meaning where
 
 import           PlutusPrelude

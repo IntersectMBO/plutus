@@ -294,12 +294,12 @@ matchInputOutput :: ValidationMonad m
     -- ^ The unspent transaction output we are trying to unlock
     -> m InOutMatch
 matchInputOutput txid mp txin txo = case (txInType txin, txOutDatumHash txo, txOutAddress txo) of
-    (ConsumeScriptAddress v r d, Just dh, Address{addressCredential=ScriptCredential vh}) -> do
+    (Just (ConsumeScriptAddress v r d), Just dh, Address{addressCredential=ScriptCredential vh}) -> do
         unless (datumHash d == dh) $ throwError $ InvalidDatumHash d dh
         unless (validatorHash v == vh) $ throwError $ InvalidScriptHash v vh
 
         pure $ ScriptMatch (txInRef txin) v r d
-    (ConsumePublicKeyAddress, Nothing, Address{addressCredential=PubKeyCredential pkh}) ->
+    (Just ConsumePublicKeyAddress, Nothing, Address{addressCredential=PubKeyCredential pkh}) ->
         let sigMatches = flip fmap (Map.toList mp) $ \(pk,sig) ->
                 if pubKeyHash pk == pkh
                 then Just (PubKeyMatch txid pk sig)

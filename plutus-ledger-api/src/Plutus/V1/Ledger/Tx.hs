@@ -300,7 +300,7 @@ data TxInType =
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
     txInRef  :: !TxOutRef,
-    txInType :: !TxInType
+    txInType :: Maybe TxInType
     }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
@@ -309,9 +309,9 @@ instance Pretty TxIn where
     pretty TxIn{txInRef,txInType} =
                 let rest =
                         case txInType of
-                            ConsumeScriptAddress _ redeemer _ ->
+                            Just (ConsumeScriptAddress _ redeemer _) ->
                                 pretty redeemer
-                            ConsumePublicKeyAddress -> mempty
+                            _ -> mempty
                 in hang 2 $ vsep ["-" <+> pretty txInRef, rest]
 
 -- | The 'TxOutRef' spent by a transaction input.
@@ -320,7 +320,7 @@ inRef = lens txInRef s where
     s txi r = txi { txInRef = r }
 
 -- | The type of a transaction input.
-inType :: Lens' TxIn TxInType
+inType :: Lens' TxIn (Maybe TxInType)
 inType = lens txInType s where
     s txi t = txi { txInType = t }
 
@@ -328,24 +328,27 @@ inType = lens txInType s where
 --   "pay to script" output.
 inScripts :: TxIn -> Maybe (Validator, Redeemer, Datum)
 inScripts TxIn{ txInType = t } = case t of
-    ConsumeScriptAddress v r d -> Just (v, r, d)
-    ConsumePublicKeyAddress    -> Nothing
+    Just (ConsumeScriptAddress v r d) -> Just (v, r, d)
+    Just ConsumePublicKeyAddress      -> Nothing
+    Nothing                           -> Nothing
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
 pubKeyTxIn :: TxOutRef -> TxIn
-pubKeyTxIn r = TxIn r ConsumePublicKeyAddress
+pubKeyTxIn r = TxIn r (Just ConsumePublicKeyAddress)
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
 scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
-scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
+scriptTxIn ref v r d = TxIn ref . Just $ ConsumeScriptAddress v r d
 
 -- | Filter to get only the pubkey inputs.
 pubKeyTxIns :: Fold (Set.Set TxIn) TxIn
-pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == ConsumePublicKeyAddress))
+pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == Just ConsumePublicKeyAddress))
 
 -- | Filter to get only the script inputs.
 scriptTxIns :: Fold (Set.Set TxIn) TxIn
-scriptTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t /= ConsumePublicKeyAddress))
+scriptTxIns = folding . Set.filter $ \case
+    TxIn{ txInType = Just ConsumeScriptAddress{} } -> True
+    _                                              -> False
 
 -- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
 data TxOut = TxOut {
