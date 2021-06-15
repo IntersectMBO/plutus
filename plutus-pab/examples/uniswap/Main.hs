@@ -29,6 +29,7 @@ import           Ledger.Ada                          (adaSymbol, adaToken)
 import           Plutus.Contract
 import qualified Plutus.Contracts.Currency           as Currency
 import qualified Plutus.Contracts.Uniswap            as Uniswap
+import           Plutus.Contracts.Uniswap.Trace      as US
 import           Plutus.PAB.Effects.Contract         (ContractEffect (..))
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin, SomeBuiltin (..), type (.\\))
 import qualified Plutus.PAB.Effects.Contract.Builtin as Builtin
@@ -38,7 +39,6 @@ import qualified Plutus.PAB.Simulator                as Simulator
 import           Plutus.PAB.Types                    (PABError (..))
 import qualified Plutus.PAB.Webserver.Server         as PAB.Server
 import           Prelude                             hiding (init)
-import           Uniswap                             as US
 import           Wallet.Emulator.Types               (Wallet (..))
 
 main :: IO ()
@@ -63,7 +63,7 @@ main = void $ Simulator.runSimulationWith handlers $ do
                     _                                       -> Nothing
     logString @(Builtin UniswapContracts) $ "Uniswap instance created: " ++ show us
 
-    cids <- fmap Map.fromList $ forM wallets $ \w -> do
+    cids <- fmap Map.fromList $ forM US.wallets $ \w -> do
         cid <- Simulator.activateContract w $ UniswapUser us
         logString @(Builtin UniswapContracts) $ "Uniswap user contract started for " ++ show w
         Simulator.waitForEndpoint cid "funds"
@@ -111,7 +111,7 @@ handleUniswapContract = Builtin.handleBuiltin getSchema getContract where
   getContract = \case
     UniswapUser us -> SomeBuiltin $ Uniswap.userEndpoints us
     UniswapStart   -> SomeBuiltin Uniswap.ownerEndpoint
-    Init           -> SomeBuiltin US.initContract
+    Init           -> SomeBuiltin US.setupTokens
 
 handlers :: SimulatorEffectHandlers (Builtin UniswapContracts)
 handlers =

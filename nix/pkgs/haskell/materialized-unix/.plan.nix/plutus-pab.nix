@@ -245,7 +245,6 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "Uniswap" ];
           hsSourceDirs = [ "examples/uniswap" ];
           mainPath = [ "Main.hs" ];
           };
