@@ -207,7 +207,7 @@ mkValidatorScript = Validator . fromCompiledCode
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript :: CompiledCode (Data -> Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
 
 unMonetaryPolicyScript :: MonetaryPolicy -> Script
@@ -329,7 +329,7 @@ newtype Context = Context Data
     deriving stock (Generic, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
--- | Apply a validator script to its arguments
+-- | Apply a 'Validator' to its 'Context', 'Datum', and 'Redeemer'.
 applyValidator
     :: Context
     -> Validator
@@ -339,7 +339,7 @@ applyValidator
 applyValidator (Context valData) (Validator validator) (Datum datum) (Redeemer redeemer) =
     ((validator `applyScript` (fromCompiledCode $ liftCode datum)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
 
--- | Evaluate a validator script with the given arguments, returning the log.
+-- | Evaluate a 'Validator' with its 'Context', 'Datum', and 'Redeemer', returning the log.
 runScript
     :: (MonadError ScriptError m)
     => Context
@@ -350,22 +350,24 @@ runScript
 runScript context validator datum redeemer = do
     evaluateScript (applyValidator context validator datum redeemer)
 
--- | Apply a validation 'Context' to the 'MonetaryPolicy'
+-- | Apply 'MonetaryPolicy' to its 'Context' and 'Redeemer'.
 applyMonetaryPolicyScript
     :: Context
     -> MonetaryPolicy
+    -> Redeemer
     -> Script
-applyMonetaryPolicyScript (Context valData) (MonetaryPolicy validator) =
-    validator `applyScript` (fromCompiledCode $ liftCode valData)
+applyMonetaryPolicyScript (Context valData) (MonetaryPolicy validator) (Redeemer red) =
+    (validator `applyScript` (fromCompiledCode $ liftCode red)) `applyScript` (fromCompiledCode $ liftCode valData)
 
--- | Evaluate a monetary policy script with just the validation context, returning the log.
+-- | Evaluate a 'MonetaryPolicy' with its 'Context' and 'Redeemer', returning the log.
 runMonetaryPolicyScript
     :: (MonadError ScriptError m)
     => Context
     -> MonetaryPolicy
+    -> Redeemer
     -> m [Haskell.String]
-runMonetaryPolicyScript context mps = do
-    evaluateScript (applyMonetaryPolicyScript context mps)
+runMonetaryPolicyScript context mps red = do
+    evaluateScript (applyMonetaryPolicyScript context mps red)
 
 -- | @()@ as a datum.
 unitDatum :: Datum

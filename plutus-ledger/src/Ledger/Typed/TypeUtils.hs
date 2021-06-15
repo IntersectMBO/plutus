@@ -11,6 +11,8 @@ module Ledger.Typed.TypeUtils where
 
 import           Data.Kind
 
+data Any
+
 -- | A heterogeneous list where every element is wrapped with the given functor.
 data HListF (f :: Type -> Type) (l :: [Type]) where
     HNilF  :: HListF f '[]

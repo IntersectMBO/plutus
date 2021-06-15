@@ -21,8 +21,8 @@ key :: PubKeyHash
 key = error ()
 
 -- BLOCK1
-oneAtATimePolicy :: ScriptContext -> Bool
-oneAtATimePolicy ctx =
+oneAtATimePolicy :: () -> ScriptContext -> Bool
+oneAtATimePolicy _ ctx =
     -- 'ownCurrencySymbol' lets us get our own hash (= currency symbol)
     -- from the context
     let ownSymbol = ownCurrencySymbol ctx
@@ -35,7 +35,7 @@ oneAtATimePolicy ctx =
 -- We can use 'compile' to turn a forging policy into a compiled Plutus Core program,
 -- just as for validator scripts. We also provide a 'wrapMonetaryPolicy' function
 -- to handle the boilerplate.
-oneAtATimeCompiled :: CompiledCode (Data -> ())
+oneAtATimeCompiled :: CompiledCode (Data -> Data -> ())
 oneAtATimeCompiled = $$(compile [|| wrapMonetaryPolicy oneAtATimePolicy ||])
 -- BLOCK2
 singleSignerPolicy :: ScriptContext -> Bool

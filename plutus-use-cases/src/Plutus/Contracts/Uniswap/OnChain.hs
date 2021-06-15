@@ -280,8 +280,8 @@ mkUniswapValidator _  c (Pool lp a)   Add         ctx = validateAdd c lp a ctx
 mkUniswapValidator _  _ _             _           _   = False
 
 {-# INLINABLE validateLiquidityForging #-}
-validateLiquidityForging :: Uniswap -> TokenName -> ScriptContext -> Bool
-validateLiquidityForging Uniswap{..} tn ctx
+validateLiquidityForging :: Uniswap -> TokenName -> () -> ScriptContext -> Bool
+validateLiquidityForging Uniswap{..} tn _ ctx
   = case [ i
          | i <- txInfoInputs $ scriptContextTxInfo ctx
          , let v = valueWithin i

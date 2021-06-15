@@ -12,9 +12,6 @@ Forging policy arguments
 
 Forging policies, like validators, receive some information from the validating node:
 
-..
-    TODO: redeemers for policies aren't currently implemented in the mock version!
-
 - The :term:`redeemer`, which is some script-specific data specified by the party performing the forging.
 - The :term:`forging context`, which contains a representation of the spending transaction, as well as the hash of the forging policy which is currently being run.
 
