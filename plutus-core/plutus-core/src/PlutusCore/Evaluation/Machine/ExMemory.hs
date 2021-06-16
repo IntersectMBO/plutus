@@ -13,7 +13,7 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
-, uppperIntegerQuotient
+, uppperIntegerQuotient  -- Exported for testing
 , Scalable (..)
 ) where
 
@@ -105,7 +105,7 @@ real units we want that to be converted to 12346 ledger units, since 12345 (as
 given by `div`) would convert to 12345000 real units, which wouldn't be enough
 to run the script.  We want a <= (a `uppperIntegerQuotient` b) * b < a+b for all
 a and for all b>0, except that we may get '==' instead of '<' when we're using
-SatInt and a+b == MaxBound.
+SatInt and a+b == MaxBound.  The behaviour when b <= 0 is unspecified.
 -}
 uppperIntegerQuotient :: CostingInteger -> CostingInteger -> CostingInteger
 a `uppperIntegerQuotient` b =

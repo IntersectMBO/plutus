@@ -187,20 +187,29 @@ propParser = property $ do
 
 -- | Check that the `uppperIntegerQuotient` function behaves sensibly.  This
 -- operates on CostingIntegers (which are either SatInt or Integer), so we have
--- to be a little careful to use a generator which works for both and includes
+-- to be a little careful to use generators which work for both and include
 -- the SatInt upper bound.
-propDivideUpwards :: Property
-propDivideUpwards = withTests 1000000 . property $ do  -- REDUCE THE LIMIT FOR THE REAL TEST
-    a <- forAll $ fromIntegral <$> Gen.integral r
-    b <- forAll $ fromIntegral <$> Gen.integral r
-    if b <= 0 then success  -- What behaviour do we want if b < 0?
-    else do
-      let d = a `divideUpwards` b
-      Hedgehog.assert $ a <= d*b
-      Hedgehog.assert $ d*b < a+b || a+b == m  -- or d*b == m?
-      -- We really want <, but that can fail for large a, eg if a=maxBound and b=1
-    where r = Range.linearBounded :: Range Int64
-          m = fromIntegral (maxBound :: Int64)
+propUpperIntegerQuotient :: Property
+propUpperIntegerQuotient = withTests 100000 . property $ do
+    a <- forAll $ fromIntegral <$> Gen.choice [uniform, small, largePositive, largeNegative]
+    b <- forAll $ fromIntegral <$> Gen.choice [uniformPositive, smallPositive, largePositive]
+    -- ^ The behaviour isn't specified for b<=0, so we only check strictly positive b.
+    let d = a `uppperIntegerQuotient` b
+    Hedgehog.assert $ a <= d*b
+    Hedgehog.assert $ d*b < a+b || a+b == fromIntegral max64
+      -- We really want <, but that can fail for large a with SatInt, eg if a=maxBound and b=1.
+    where min64 = minBound :: Int64
+          max64 = maxBound :: Int64
+          -- A selection of generators to get good coverage including the centre and the extremes.
+          -- The 'constant' Range gives a uniform distribution.  For the default Size, 'linear...'
+          -- ranges appear to give distributions which only include the lower 30% or so of the
+          -- given interval.
+          uniform         = Gen.integral $ Range.constant min64 max64
+          small           = Gen.integral $ Range.constant (-10) 10
+          largeNegative   = Gen.integral $ Range.constant min64 (min64 + 100)
+          largePositive   = Gen.integral $ Range.constant (max64-100) max64
+          uniformPositive = Gen.integral $ Range.constant 1 max64
+          smallPositive   = Gen.integral $ Range.constant 1 10
 
 propRename :: Property
 propRename = property $ do
@@ -238,7 +247,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip (CBOR)" propCBOR
     , testProperty "serialization round-trip (Flat)" propFlat
-    , testProperty "divideUpwards behaves correctly" propDivideUpwards
+    , testProperty "upperIntegerQuotient behaves correctly" propUpperIntegerQuotient
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $
