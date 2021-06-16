@@ -165,6 +165,7 @@ handleAction input (OpenCard card) = do
       assign _remoteWalletInfo NotAsked
       handleAction input $ WalletNicknameInputAction InputField.Reset
       handleAction input $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
+      handleAction input $ WalletIdInputAction InputField.Reset
       handleAction input $ WalletIdInputAction $ InputField.SetValidator $ walletIdError NotAsked walletLibrary
     _ -> pure unit
   modify_

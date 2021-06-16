@@ -12,7 +12,7 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
-import InputField.Lenses (_pristine, _validator, _value)
+import InputField.Lenses (_dropdownOpen, _pristine, _validator, _value)
 import InputField.Types (class InputFieldError, Action(..), State)
 
 -- see note [dummyState] in MainFrame.State
@@ -24,6 +24,7 @@ initialState =
   { value: mempty
   , pristine: true
   , validator: const Nothing
+  , dropdownOpen: false
   }
 
 handleAction ::
@@ -39,11 +40,14 @@ handleAction (SetValue value) =
 
 handleAction (SetValidator validator) = assign _validator validator
 
+handleAction (SetDropdownOpen dropdownOpen) = assign _dropdownOpen dropdownOpen
+
 handleAction Reset =
   modify_
     $ set _value mempty
     <<< set _pristine true
     <<< set _validator (const Nothing)
+    <<< set _dropdownOpen false
 
 validate :: forall e. InputFieldError e => State e -> Maybe e
 validate state =

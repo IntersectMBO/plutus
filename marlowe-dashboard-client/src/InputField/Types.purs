@@ -13,6 +13,7 @@ type State error
   = { value :: String
     , pristine :: Boolean
     , validator :: String -> Maybe error
+    , dropdownOpen :: Boolean
     }
 
 class InputFieldError e where
@@ -25,11 +26,13 @@ type InputDisplayOptions
     , placeholder :: String
     , readOnly :: Boolean
     , datalistId :: Maybe String
+    , valueOptions :: Array String
     }
 
 data Action error
   = SetValue String
   | SetValidator (String -> Maybe error)
+  | SetDropdownOpen Boolean
   | Reset
 
 -- | Here we decide which top-level queries to track as GA events, and
@@ -37,4 +40,5 @@ data Action error
 instance actionIsEvent :: IsEvent (Action e) where
   toEvent (SetValue _) = Nothing
   toEvent (SetValidator _) = Nothing
+  toEvent (SetDropdownOpen _) = Nothing
   toEvent Reset = Nothing
