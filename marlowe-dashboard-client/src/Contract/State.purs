@@ -169,36 +169,30 @@ updateState walletDetails marloweParams currentSlot transactionInputs state =
 
     newTransactionInputs = difference transactionInputs previousTransactionInputs
 
-    setMarloweParams = set _mMarloweParams (Just marloweParams)
+    -- If the `MarloweParams` are `Nothing`, that means this is the first update we've received for
+    -- a placeholder contract, and we'll need to set the `MarloweParams` now and also work out the
+    -- `userParties` (because these depend on the `MarloweParams`).
+    mSetParamsAndParties =
+      if isNothing $ state ^. _mMarloweParams then
+        set _mMarloweParams (Just marloweParams)
+          <<< set _userParties (getUserParties walletDetails marloweParams)
+      else
+        identity
 
-    setUserParties = set _userParties (getUserParties walletDetails marloweParams)
-
-    clearPendingTransaction = set _pendingTransaction Nothing
+    -- If there are new transaction inputs to apply, we need to clear the `pendingTransaction`. If
+    -- we wanted to be really careful, we could check that the new transaction input matches the
+    -- pending one, but I can't see how it wouldn't (and I don't think it matters anyway).
+    mClearPendingTransaction =
+      if newTransactionInputs /= mempty then
+        set _pendingTransaction Nothing
+      else
+        identity
 
     updateExecutionState = over _executionState (applyTransactionInputs newTransactionInputs)
-
-    -- If the `MarloweParams` are `Nothing`, that means this is the first update we've received for
-    -- a placeholder contract, so we need to set the `MarloweParams` now and also work out the
-    -- `userParties` (because these depend on the `MarloweParams`). Separately, if there are new
-    -- transaction inputs to apply, we need to clear the `pendingTransaction`. If we wanted to be
-    -- really careful, we could check that the new transaction input matches the pending one, but
-    -- I can't see how it wouldn't (and I don't think it matters anyway).
-    baseState = case isNothing $ state ^. _mMarloweParams, newTransactionInputs /= mempty of
-      true, true ->
-        state
-          # setMarloweParams
-          # setUserParties
-          # clearPendingTransaction
-      true, false ->
-        state
-          # setMarloweParams
-          # setUserParties
-      false, true ->
-        state
-          # clearPendingTransaction
-      false, false -> state
   in
-    baseState
+    state
+      # mSetParamsAndParties
+      # mClearPendingTransaction
       # updateExecutionState
       # regenerateStepCards currentSlot
       # selectLastStep
