@@ -68,7 +68,7 @@ import           Ledger.Value                         (Value)
 
 import           Plutus.Trace.Emulator.Types          (EmulatedWalletEffects)
 import           Wallet.API                           (ChainIndexEffect)
-import           Wallet.Effects                       (ContractRuntimeEffect, WalletEffect, NodeClientEffect)
+import           Wallet.Effects                       (ContractRuntimeEffect, NodeClientEffect, WalletEffect)
 import           Wallet.Emulator                      (EmulatorState, Wallet)
 import qualified Wallet.Emulator                      as EM
 import qualified Wallet.Emulator.MultiAgent           as EM

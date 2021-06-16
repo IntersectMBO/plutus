@@ -166,7 +166,7 @@ walletFundsChangeTest = runScenario $ do
     let stream = WS.walletFundsChange defaultWallet env
     (initialValue, next) <- liftIO (WS.readOne stream)
     (wllt, pk) <- Simulator.addWallet
-    _ <- Simulator.handleAgentThread defaultWallet $ WAPI.payToPublicKey WAPI.defaultSlotRange payment pk
+    _ <- Simulator.payToPublicKey defaultWallet pk payment
     nextStream <- case next of { Nothing -> throwError (OtherError "no next value"); Just a -> pure a; }
     (finalValue, _) <- liftIO (WS.readOne nextStream)
     let difference = initialValue <> inv finalValue

@@ -55,7 +55,8 @@ import           Ledger.Constraints.OffChain    (UnbalancedTx (unBalancedTxTx))
 import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..))
 import qualified Plutus.Contract.Wallet         as Wallet
 import           Wallet.API                     (WalletAPIError)
-import           Wallet.Effects                 (ChainIndexEffect, ContractRuntimeEffect, WalletEffect, NodeClientEffect)
+import           Wallet.Effects                 (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
+                                                 WalletEffect)
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg (..))
 import           Wallet.Types                   (AddressChangeRequest (..), AddressChangeResponse, ContractInstanceId,

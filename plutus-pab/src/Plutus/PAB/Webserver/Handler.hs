@@ -40,10 +40,9 @@ import           Data.Proxy                              (Proxy (..))
 import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
 import qualified Data.UUID                               as UUID
-import Ledger.Constraints.OffChain (UnbalancedTx)
-import           Ledger                                  (Slot, Value, pubKeyHash)
-import           Ledger.AddressMap                       (UtxoMap)
-import           Ledger.Tx                               (Tx, TxOut (txOutValue), TxOutTx (txOutTxOut))
+import           Ledger                                  (Value, pubKeyHash)
+import           Ledger.Constraints.OffChain             (UnbalancedTx)
+import           Ledger.Tx                               (Tx)
 import           Plutus.Contract.Effects                 (PABReq, _ExposeEndpointReq)
 import           Plutus.PAB.Core                         (PABAction)
 import qualified Plutus.PAB.Core                         as Core

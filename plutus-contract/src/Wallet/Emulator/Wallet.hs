@@ -49,7 +49,8 @@ import qualified PlutusTx.Prelude               as PlutusTx
 import           Prelude                        as P
 import           Servant.API                    (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                     as WAPI
-import           Wallet.Effects                 (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
+import           Wallet.Effects                 (ChainIndexEffect, NodeClientEffect, WalletEffect (..),
+                                                 watchedAddresses)
 import qualified Wallet.Effects                 as W
 import           Wallet.Emulator.Chain          (ChainState (..))
 import           Wallet.Emulator.ChainIndex     (ChainIndexState, idxWatchedAddresses)
@@ -171,7 +172,7 @@ handleWallet = \case
         logInfo $ FinishedBalancing tx''
         pure tx''
     WalletAddSignature tx -> handleAddSignature tx
-    TotalFunds -> gets (foldMap (txOutValue . txOutTxOut) . ownOutputs)
+    TotalFunds -> foldMap (txOutValue . txOutTxOut) <$> (get >>= ownOutputs)
 
 handleAddSignature ::
     Member (State WalletState) effs
@@ -181,11 +182,10 @@ handleAddSignature tx = do
     privKey <- gets _ownPrivateKey
     pure (addSignature privKey tx)
 
--- | The wallet's own output
-ownOutputs :: WalletState -> Map.Map TxOutRef TxOutTx
-ownOutputs WalletState{_ownPrivateKey, _chainIndex} =
+ownOutputs :: forall effs. Member ChainIndexEffect effs => WalletState -> Eff effs (Map.Map TxOutRef TxOutTx)
+ownOutputs WalletState{_ownPrivateKey} = do
     let addr = pubKeyAddress $ toPublicKey _ownPrivateKey
-    in view (idxWatchedAddresses . at addr . non mempty) _chainIndex
+    fromMaybe mempty . view (at addr) <$> watchedAddresses
 
 validateTxAndAddFees ::
     ( Member (Error WAPI.WalletAPIError) effs
@@ -196,7 +196,7 @@ validateTxAndAddFees ::
     => UnbalancedTx
     -> Eff effs UnbalancedTx
 validateTxAndAddFees utx = do
-    ownTxOuts <- fmap txOutTxOut <$> gets ownOutputs
+    ownTxOuts <- fmap txOutTxOut <$> (get >>= ownOutputs)
     -- Balance and sign just for validation
     tx <- handleBalanceTx utx
     signedTx <- handleAddSignature tx
@@ -238,7 +238,7 @@ handleBalanceTx UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} = do
     let filteredUnbalancedTxTx = removeEmptyOutputs unBalancedTxTx
     let txInputs = Set.toList $ Tx.txInputs filteredUnbalancedTxTx
     ownPubKey <- gets (toPublicKey . view ownPrivateKey)
-    utxo <- gets ownOutputs
+    utxo <- get >>= ownOutputs
     inputValues <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txInputs filteredUnbalancedTxTx)
     collateral  <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txCollateral filteredUnbalancedTxTx)
     let fees = txFee filteredUnbalancedTxTx

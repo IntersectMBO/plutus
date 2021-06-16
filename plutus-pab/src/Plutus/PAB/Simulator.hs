@@ -31,6 +31,7 @@ module Plutus.PAB.Simulator(
     , logString
     -- ** Agent actions
     , payToWallet
+    , payToPublicKey
     , activateContract
     , callEndpointOnInstance
     , handleAgentThread
@@ -319,10 +320,6 @@ runWalletState wallet = \case
                 Just s' -> do
                     let newState = s' & walletState .~ s
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
-
--- | Make a payment to a wallet
-payToWallet :: (Member WalletEffect effs, Member (Error WAPI.WalletAPIError) effs) => Wallet -> Value -> Eff effs Tx
-payToWallet target amount = WAPI.payToPublicKey WAPI.defaultSlotRange amount (Emulator.walletPubKey target)
 
 -- | Start a new instance of a contract
 activateContract :: forall t. Contract.PABContract t => Wallet -> Contract.ContractDef t -> Simulation t ContractInstanceId
@@ -747,3 +744,14 @@ logBalances bs = do
 -- | Log some output to the console
 logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
 logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
+
+-- | Make a payment from one wallet to another
+payToWallet :: forall t. Wallet -> Wallet -> Value -> Simulation t Tx
+payToWallet source target = payToPublicKey source (Emulator.walletPubKey target)
+
+-- | Make a payment from one wallet to a public key address
+payToPublicKey :: forall t. Wallet -> PubKey -> Value -> Simulation t Tx
+payToPublicKey source target amount =
+    handleAgentThread source
+        $ flip (handleError @WAPI.WalletAPIError) (throwError . WalletError)
+        $ WAPI.payToPublicKey WAPI.defaultSlotRange amount target

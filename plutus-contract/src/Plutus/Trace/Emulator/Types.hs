@@ -163,11 +163,11 @@ data EmulatorRuntimeError =
 
 instance Pretty EmulatorRuntimeError where
     pretty = \case
-        ThreadIdNotFound i    -> "Thread ID not found:" <+> pretty i
-        InstanceIdNotFound w  -> "Instance ID not found:" <+> pretty w
+        ThreadIdNotFound i            -> "Thread ID not found:" <+> pretty i
+        InstanceIdNotFound w          -> "Instance ID not found:" <+> pretty w
         EmulatorJSONDecodingError e v -> "Emulator JSON decoding error:" <+> pretty e <+> parens (viaShow v)
-        GenericError e        -> pretty e
-        EmulatedWalletError e -> pretty e
+        GenericError e                -> pretty e
+        EmulatedWalletError e         -> pretty e
 
 -- | A user-defined tag for a contract instance. Used to find the instance's
 --   log messages in the emulator log.
