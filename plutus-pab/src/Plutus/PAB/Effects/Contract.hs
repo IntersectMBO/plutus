@@ -29,6 +29,8 @@ module Plutus.PAB.Effects.Contract(
     , getState
     , getDefinition
     , getActiveContracts
+    , putStartInstance
+    , putStopInstance
     -- * Storing and retrieving definitions of contracts
     , ContractDefinitionStore(..)
     , addDefinition
@@ -125,6 +127,27 @@ data ContractStore t r where
     GetState :: ContractInstanceId -> ContractStore t (State t) -- ^ Retrieve the last recorded state of the contract instance
     PutStopInstance :: ContractInstanceId -> ContractStore t () -- ^ Record the fact that a contract instance has stopped
     GetActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) -- ^ Get all active contracts with their activation args
+
+putStartInstance ::
+    forall t effs.
+    ( Member (ContractStore t) effs
+    )
+    => ContractActivationArgs (ContractDef t)
+    -> ContractInstanceId
+    -> Eff effs ()
+putStartInstance def i =
+    let command :: ContractStore t () = PutStartInstance def i
+    in send command
+
+putStopInstance ::
+    forall t effs.
+    ( Member (ContractStore t) effs
+    )
+    => ContractInstanceId
+    -> Eff effs ()
+putStopInstance i =
+    let command :: ContractStore t () = PutStopInstance i
+    in send command
 
 -- | Store the state of the contract instance
 putState ::

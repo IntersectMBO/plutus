@@ -86,6 +86,7 @@ activateContractSTM runAppBackend a@ContractActivationArgs{caID, caWallet} = do
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
     logDebug @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
     initialState <- Contract.initialState @t activeContractInstanceId caID
+    Contract.putStartInstance @t a activeContractInstanceId
     Contract.putState @t a activeContractInstanceId initialState
     s <- startSTMInstanceThread @t @m runAppBackend a activeContractInstanceId
     ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s

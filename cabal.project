@@ -41,7 +41,7 @@ package cardano-api
 -- newer version of persistent. See stack.yaml for the mirrored
 -- configuration.
 package eventful-sql-common
-  ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances
+  ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses
 
 allow-newer:
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
@@ -51,6 +51,10 @@ allow-newer:
            , eventful-sql-common:persistent
            , eventful-sql-common:persistent-template
            , ouroboros-consensus-byron:formatting
+           , beam-core:aeson
+           , beam-sqlite:aeson
+           , beam-sqlite:dlist
+           , beam-migrate:aeson
 
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
@@ -183,3 +187,5 @@ source-repository-package
   type: git
   location: https://github.com/input-output-hk/goblins
   tag: cde90a2b27f79187ca8310b6549331e59595e7ba
+
+

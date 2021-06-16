@@ -51,13 +51,10 @@ import           Plutus.Contracts.PingPong                (PingPongState (..))
 import           Plutus.PAB.Core                          as Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
 import           Plutus.PAB.Core.ContractInstance.STM     (BlockchainEnv (..))
-import           Plutus.PAB.Db.Eventful.Command           ()
-import qualified Plutus.PAB.Db.Eventful.Query             as Query
 import           Plutus.PAB.Effects.Contract              (ContractEffect, serialisableState)
 import           Plutus.PAB.Effects.Contract.Builtin      (Builtin)
 import qualified Plutus.PAB.Effects.Contract.Builtin      as Builtin
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
-import           Plutus.PAB.Effects.EventLog              (EventLogEffect)
 import           Plutus.PAB.Events.ContractInstanceState  (PartiallyDecodedResponse)
 import           Plutus.PAB.Simulator                     (Simulation, TxCounts (..))
 import qualified Plutus.PAB.Simulator                     as Simulator
