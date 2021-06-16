@@ -31,6 +31,7 @@ module Plutus.PAB.Simulator(
     , logString
     -- ** Agent actions
     , payToWallet
+    , payToPublicKey
     , activateContract
     , callEndpointOnInstance
     , handleAgentThread
@@ -78,6 +79,7 @@ import           Control.Monad.Freer                            (Eff, LastMember
                                                                  reinterpret2, reinterpretN, run, send, type (~>))
 import           Control.Monad.Freer.Delay                      (DelayEffect, delayThread, handleDelayEffect)
 import           Control.Monad.Freer.Error                      (Error, handleError, throwError)
+import qualified Control.Monad.Freer.Extras                     as Modify
 import           Control.Monad.Freer.Extras.Log                 (LogLevel (Info), LogMessage, LogMsg (..),
                                                                  handleLogWriter, logInfo, logLevel, mapLog)
 import           Control.Monad.Freer.Reader                     (Reader, ask, asks)
@@ -123,6 +125,7 @@ import qualified Wallet.Emulator                                as Emulator
 import           Wallet.Emulator.Chain                          (ChainControlEffect, ChainState (..))
 import qualified Wallet.Emulator.Chain                          as Chain
 import qualified Wallet.Emulator.ChainIndex                     as ChainIndex
+import           Wallet.Emulator.LogMessages                    (TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent                     (EmulatorEvent' (..), _singleton)
 import           Wallet.Emulator.NodeClient                     (ChainClientNotification (..))
 import qualified Wallet.Emulator.Stream                         as Emulator
@@ -276,10 +279,11 @@ handleServicesSimulator wallet =
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpretN @'[Reader (SimulatorState t), LogMsg _] (handleChainIndexEffect @t)
 
+        . interpret (mapLog @_ @(PABMultiAgentMsg t) (WalletBalancingMsg wallet))
         . flip (handleError @WAPI.WalletAPIError) (throwError @PABError . WalletError)
         . interpret (Core.handleUserEnvReader @t @(SimulatorState t))
         . reinterpret (runWalletState @t wallet)
-        . reinterpret2 @_ @(State Wallet.WalletState) @(Error WAPI.WalletAPIError) Wallet.handleWallet
+        . reinterpretN @'[State Wallet.WalletState, Error WAPI.WalletAPIError, LogMsg TxBalanceMsg] Wallet.handleWallet
 
 -- | Convenience for wrapping 'ContractEffectMsg' in 'PABMultiAgentMsg t'
 handleContractEffectMsg :: forall t x effs. Member (LogMsg (PABMultiAgentMsg t)) effs => Eff (LogMsg ContractEffectMsg ': effs) x -> Eff effs x
@@ -316,10 +320,6 @@ runWalletState wallet = \case
                 Just s' -> do
                     let newState = s' & walletState .~ s
                     STM.writeTVar _agentStates (Map.insert wallet newState mp)
-
--- | Make a payment to a wallet
-payToWallet :: Member WalletEffect effs => Wallet -> Value -> Eff effs Tx
-payToWallet target amount = WAPI.payToPublicKey WAPI.defaultSlotRange amount (Emulator.walletPubKey target)
 
 -- | Start a new instance of a contract
 activateContract :: forall t. Contract.PABContract t => Wallet -> Contract.ContractDef t -> Simulation t ContractInstanceId
@@ -716,7 +716,9 @@ addWallet = do
             newWallets = currentWallets & at newWallet .~ Just (AgentState (Wallet.emptyWalletStateFromPrivateKey privateKey) mempty)
         STM.writeTVar _agentStates newWallets
         pure (newWallet, publicKey)
-    _ <- handleAgentThread (Wallet 2) $ MockWallet.distributeNewWalletFunds publicKey
+    _ <- handleAgentThread (Wallet 2)
+            $ Modify.wrapError WalletError
+            $ MockWallet.distributeNewWalletFunds publicKey
     pure result
 
 
@@ -742,3 +744,14 @@ logBalances bs = do
 -- | Log some output to the console
 logString :: forall t effs. Member (LogMsg (PABMultiAgentMsg t)) effs => String -> Eff effs ()
 logString = logInfo @(PABMultiAgentMsg t) . UserLog . Text.pack
+
+-- | Make a payment from one wallet to another
+payToWallet :: forall t. Wallet -> Wallet -> Value -> Simulation t Tx
+payToWallet source target = payToPublicKey source (Emulator.walletPubKey target)
+
+-- | Make a payment from one wallet to a public key address
+payToPublicKey :: forall t. Wallet -> PubKey -> Value -> Simulation t Tx
+payToPublicKey source target amount =
+    handleAgentThread source
+        $ flip (handleError @WAPI.WalletAPIError) (throwError . WalletError)
+        $ WAPI.payToPublicKey WAPI.defaultSlotRange amount target

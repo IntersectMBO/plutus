@@ -9,40 +9,19 @@
 -- | Turn 'UnbalancedTx' values into transactions using the
 --   wallet API.
 module Plutus.Contract.Wallet(
-      balanceWallet
-    , balanceTx
+      balanceTx
     , handleTx
     , WAPI.startWatching
     ) where
 
-import           Control.Lens
-import           Control.Monad                  ((>=>))
-import           Control.Monad.Freer            (Eff, Member)
-import           Control.Monad.Freer.Error      (Error, throwError)
-import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo)
-import           Data.Bifunctor                 (second)
-import           Data.Foldable                  (fold, traverse_)
-import qualified Data.Map                       as Map
-import           Data.Maybe                     (isNothing)
-import           Data.Monoid                    (Sum (..))
-import qualified Data.Set                       as Set
-import           Data.String                    (IsString (fromString))
-import qualified Ledger                         as L
-import qualified Ledger.Ada                     as Ada
-import           Ledger.AddressMap              (UtxoMap)
-import qualified Ledger.AddressMap              as AM
-import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
-import qualified Ledger.Index                   as Index
-import           Ledger.Tx                      (Tx (..))
-import qualified Ledger.Tx                      as Tx
-import           Ledger.Value                   (Value)
-import qualified Ledger.Value                   as Value
-import qualified PlutusTx.Prelude               as P
-import           Wallet.API                     (PubKey, WalletAPIError)
-import qualified Wallet.API                     as WAPI
+import           Control.Monad               ((>=>))
+import           Control.Monad.Freer         (Eff, Member)
+import           Control.Monad.Freer.Error   (Error, throwError)
+import           Ledger.Constraints.OffChain (UnbalancedTx (..))
+import           Ledger.Tx                   (Tx (..))
+import qualified Wallet.API                  as WAPI
 import           Wallet.Effects
-import qualified Wallet.Emulator                as E
-import           Wallet.Emulator.LogMessages    (TxBalanceMsg (..))
+import           Wallet.Emulator.Error       (WalletAPIError)
 
 {- Note [Submitting transactions from Plutus contracts]
 
@@ -80,174 +59,11 @@ be submitted to the network, the contract backend needs to
 
 -}
 
--- | Balance an unbalanced transaction in a 'WalletEffects' context. See note
---   [Submitting transactions from Plutus contracts].
-balanceWallet ::
-    ( Member WalletEffect effs
-    , Member (Error WalletAPIError) effs
-    , Member ChainIndexEffect effs
-    , Member (LogMsg TxBalanceMsg) effs
-    )
-    => UnbalancedTx
-    -> Eff effs Tx
-balanceWallet utx = do
-    pk <- ownPubKey
-    outputs <- ownOutputs
-
-    utxWithFees <- validateTxAndAddFees outputs pk utx
-
-    logInfo $ BalancingUnbalancedTx utxWithFees
-    balanceTx outputs pk utxWithFees
-
-lookupValue ::
-    ( Member WalletEffect effs
-    , Member (Error WalletAPIError) effs
-    , Member ChainIndexEffect effs
-    )
-    => Tx.TxIn -> Eff effs Value
-lookupValue outputRef = do
-    walletIndex <- WAPI.ownOutputs
-    chainIndex <- AM.outRefMap <$> WAPI.watchedAddresses
-    let txout = (walletIndex <> chainIndex) ^. at (Tx.txInRef outputRef)
-    case txout of
-        Just out -> pure $ Tx.txOutValue $ Tx.txOutTxOut out
-        Nothing ->
-            WAPI.throwOtherError $ "Unable to find TxOut for " <> fromString (show outputRef)
-
--- | Balance an unbalanced transaction by adding public key inputs
---   and outputs and by adding enough collateral inputs.
-balanceTx ::
-    ( Member WalletEffect effs
-    , Member (Error WalletAPIError) effs
-    , Member ChainIndexEffect effs
-    , Member (LogMsg TxBalanceMsg) effs
-    )
-    => UtxoMap
-    -- ^ Unspent transaction outputs that may be used to balance the
-    --   left hand side (inputs) of the transaction.
-    -> PubKey
-    -- ^ Public key, used to balance the right hand side (outputs) of
-    --   the transaction.
-    -> UnbalancedTx
-    -- ^ The unbalanced transaction
-    -> Eff effs Tx
-balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
-    let filteredUnbalancedTxTx = removeEmptyOutputs unBalancedTxTx
-    let txInputs = Set.toList $ Tx.txInputs filteredUnbalancedTxTx
-    inputValues <- traverse lookupValue txInputs
-    collateral  <- traverse lookupValue (Set.toList $ Tx.txCollateral filteredUnbalancedTxTx)
-    let fees = L.txFee filteredUnbalancedTxTx
-        left = L.txForge filteredUnbalancedTxTx <> fold inputValues
-        right = fees <> foldMap (view Tx.outValue) (filteredUnbalancedTxTx ^. Tx.outputs)
-        remainingFees = fees P.- fold collateral -- TODO: add collateralPercent
-        balance = left P.- right
-        (neg, pos) = Value.split balance
-
-    tx' <- if Value.isZero pos
-           then do
-                logDebug NoOutputsAdded
-                pure filteredUnbalancedTxTx
-           else do
-                logDebug $ AddingPublicKeyOutputFor pos
-                pure $ addOutputs pk pos filteredUnbalancedTxTx
-
-    tx'' <- if Value.isZero neg
-            then do
-                logDebug NoInputsAdded
-                pure tx'
-            else do
-                logDebug $ AddingInputsFor neg
-                -- filter out inputs from utxo that are already in unBalancedTx
-                let inputsOutRefs = map Tx.txInRef txInputs
-                    filteredUtxo = flip Map.filterWithKey utxo $ \txOutRef _ ->
-                        txOutRef `notElem` inputsOutRefs
-                addInputs filteredUtxo pk neg tx'
-
-    if remainingFees `Value.leq` P.zero
-    then do
-        logDebug NoCollateralInputsAdded
-        pure tx''
-    else do
-        logDebug $ AddingCollateralInputsFor remainingFees
-        addCollateral utxo remainingFees tx''
-
-
--- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
---   @vl@ from the UTXO map @mp@ and adds them as inputs to @tx@. A public
---   key output for @pk@ is added containing any leftover change.
-addInputs
-    :: Member (Error WalletAPIError) effs
-    => UtxoMap
-    -> PubKey
-    -> Value
-    -> Tx
-    -> Eff effs Tx
-addInputs mp pk vl tx = do
-    (spend, change) <- E.selectCoin (second (Tx.txOutValue . Tx.txOutTxOut) <$> Map.toList mp) vl
-    let
-
-        addTxIns  =
-            let ins = Set.fromList (Tx.pubKeyTxIn . fst <$> spend)
-            in over Tx.inputs (Set.union ins)
-
-        addTxOuts = if Value.isZero change
-                    then id
-                    else addOutputs pk change
-
-    pure $ tx & addTxOuts & addTxIns
-
-addOutputs :: PubKey -> Value -> Tx -> Tx
-addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
-    pko = Tx.pubKeyTxOut vl pk
-
--- | Removes transaction outputs with empty datum and empty value.
-removeEmptyOutputs :: Tx -> Tx
-removeEmptyOutputs tx = tx & over Tx.outputs (filter (not . isEmpty)) where
-    isEmpty (Tx.TxOut{Tx.txOutValue, Tx.txOutDatumHash}) =
-        null (Value.flattenValue txOutValue) && isNothing txOutDatumHash
-
-addCollateral
-    :: Member (Error WalletAPIError) effs
-    => UtxoMap
-    -> Value
-    -> Tx
-    -> Eff effs Tx
-addCollateral mp vl tx = do
-    (spend, _) <- E.selectCoin (second (Tx.txOutValue . Tx.txOutTxOut) <$> Map.toList mp) vl
-    let addTxCollateral =
-            let ins = Set.fromList (Tx.pubKeyTxIn . fst <$> spend)
-            in over Tx.collateralInputs (Set.union ins)
-    pure $ tx & addTxCollateral
-
-validateTxAndAddFees ::
-    ( Member WalletEffect effs
-    , Member (Error WalletAPIError) effs
-    , Member ChainIndexEffect effs
-    , Member (LogMsg TxBalanceMsg) effs
-    )
-    => UtxoMap
-    -> PubKey
-    -> UnbalancedTx
-    -> Eff effs UnbalancedTx
-validateTxAndAddFees outputs pk utx = do
-    -- Balance and sign just for validation
-    tx <- balanceTx outputs pk utx
-    signedTx <- walletAddSignature tx
-    let utxoIndex        = Index.UtxoIndex $ unBalancedTxUtxoIndex utx <> fmap Tx.txOutTxOut outputs
-        ((e, _), events) = Index.runValidation (Index.validateTransactionOffChain signedTx) utxoIndex
-    traverse_ (throwError . WAPI.ValidationError . snd) e
-    let scriptsSize = getSum $ foldMap (Sum . L.scriptSize . Index.sveScript) events
-        fee = Index.minFee tx <> Ada.lovelaceValueOf scriptsSize -- TODO: use protocol parameters
-    pure $ utx{ unBalancedTxTx = (unBalancedTxTx utx){ txFee = fee }}
-
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
 handleTx ::
     ( Member WalletEffect effs
-    , Member ChainIndexEffect effs
-    , Member (LogMsg TxBalanceMsg) effs
     , Member (Error WalletAPIError) effs
     )
     => UnbalancedTx -> Eff effs Tx
-handleTx =
-    balanceWallet >=> WAPI.signTxAndSubmit
+handleTx = balanceTx >=> either throwError WAPI.signTxAndSubmit

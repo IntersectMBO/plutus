@@ -266,11 +266,11 @@ Balances Carried Forward:
     Ada:      Lovelace:  8
 
 ==== Slot #3, Tx #0 ====
-TxId:       359fd426392a6ef0e770033041df4fd7481cf365d401958f4aeb330a3e6176c1
+TxId:       113376042b9f68bc86455a7106abb2c2876dda86af0d3ba05878697c2f0a3ab0
 Fee:        Ada:      Lovelace:  10
 Forge:      -
 Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
-              Signature: 58401dd5cbbd25ce56de509436650409bef828d2...
+              Signature: 58403a45dc6fde314313ab9545d7badf4b4c401e...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 21fe31dfa154a261626bf854046fd2271b7bed4b... (Wallet 1)
@@ -295,15 +295,15 @@ Inputs:
 
 Outputs:
   ---- Output 0 ----
-  Destination:  PubKeyHash: 39f713d0a644253f04529421b9f51b9b08979d08... (Wallet 2)
-  Value:
-    42a8817ce0ffa47192c8a67e620841cabf7b556ab3b412a0910a9ac84d564dcd:  guess:    1
-
-  ---- Output 1 ----
   Destination:  PubKeyHash: 21fe31dfa154a261626bf854046fd2271b7bed4b... (Wallet 1)
   Value:
     Ada:      Lovelace:  99978976
     42a8817ce0ffa47192c8a67e620841cabf7b556ab3b412a0910a9ac84d564dcd:  guess:    0
+
+  ---- Output 1 ----
+  Destination:  PubKeyHash: 39f713d0a644253f04529421b9f51b9b08979d08... (Wallet 2)
+  Value:
+    42a8817ce0ffa47192c8a67e620841cabf7b556ab3b412a0910a9ac84d564dcd:  guess:    1
 
 
 Balances Carried Forward:
@@ -354,19 +354,19 @@ Balances Carried Forward:
     Ada:      Lovelace:  8
 
 ==== Slot #4, Tx #0 ====
-TxId:       69a6b06ee4128f16c8a240d9429dc557ee5debc97c00ed1afb90a11820622a1f
+TxId:       914abb777a0fb2f1cd1e8ca9853f388545a70aaed15265faceada95872cb1368
 Fee:        Ada:      Lovelace:  21661
 Forge:      42a8817ce0ffa47192c8a67e620841cabf7b556ab3b412a0910a9ac84d564dcd:  guess:    0
 Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
-              Signature: 5840c5cf61cde8f180997b8dd6631e1ec4e657dc...
+              Signature: 58404274f6b9b2eb8020697f83e1d6ede2760a19...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 39f713d0a644253f04529421b9f51b9b08979d08... (Wallet 2)
   Value:
     42a8817ce0ffa47192c8a67e620841cabf7b556ab3b412a0910a9ac84d564dcd:  guess:    1
   Source:
-    Tx:     359fd426392a6ef0e770033041df4fd7481cf365d401958f4aeb330a3e6176c1
-    Output #0
+    Tx:     113376042b9f68bc86455a7106abb2c2876dda86af0d3ba05878697c2f0a3ab0
+    Output #1
 
 
   ---- Input 1 ----

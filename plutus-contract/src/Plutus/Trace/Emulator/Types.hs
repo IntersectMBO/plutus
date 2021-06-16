@@ -71,7 +71,7 @@ import           Data.Text.Prettyprint.Doc      (Pretty (..), braces, colon, fil
 import           GHC.Generics                   (Generic)
 import           Ledger.Blockchain              (Block)
 import           Ledger.Slot                    (Slot (..))
-import           Plutus.Contract                (Contract (..))
+import           Plutus.Contract                (Contract (..), WalletAPIError)
 import           Plutus.Contract.Effects        (PABReq, PABResp)
 import           Plutus.Contract.Resumable      (Request (..), Requests (..), Response (..))
 import qualified Plutus.Contract.Resumable      as State
@@ -157,7 +157,8 @@ data EmulatorRuntimeError =
     | InstanceIdNotFound Wallet
     | EmulatorJSONDecodingError String JSON.Value
     | GenericError String
-    deriving stock (Eq, Ord, Show, Generic)
+    | EmulatedWalletError WalletAPIError
+    deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty EmulatorRuntimeError where
@@ -166,6 +167,7 @@ instance Pretty EmulatorRuntimeError where
         InstanceIdNotFound w          -> "Instance ID not found:" <+> pretty w
         EmulatorJSONDecodingError e v -> "Emulator JSON decoding error:" <+> pretty e <+> parens (viaShow v)
         GenericError e                -> pretty e
+        EmulatedWalletError e         -> pretty e
 
 -- | A user-defined tag for a contract instance. Used to find the instance's
 --   log messages in the emulator log.

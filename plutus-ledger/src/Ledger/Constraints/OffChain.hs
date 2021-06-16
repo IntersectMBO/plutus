@@ -27,6 +27,9 @@ module Ledger.Constraints.OffChain(
     -- * Constraints resolution
     , SomeLookupsAndConstraints(..)
     , UnbalancedTx(..)
+    , tx
+    , requiredSignatories
+    , utxoIndex
     , emptyUnbalancedTx
     , MkTxError(..)
     , mkTx
