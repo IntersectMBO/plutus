@@ -34,7 +34,6 @@ type InputDisplayOptions
     , id_ :: String
     , placeholder :: String
     , readOnly :: Boolean
-    , datalistId :: Maybe String
     , valueOptions :: Array String
     }
 

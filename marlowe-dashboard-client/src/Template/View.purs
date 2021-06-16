@@ -37,7 +37,6 @@ import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateC
 import WalletData.Lenses (_walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
-import WalletData.View (nicknamesDataList, nicknamesDataListId)
 
 contractSetupScreen :: forall p. WalletLibrary -> Slot -> State -> HTML p Action
 contractSetupScreen walletLibrary currentSlot state =
@@ -177,7 +176,6 @@ roleInputs walletLibrary metaData roleWalletInputs =
                 ]
                 [ icon_ AddCircle ]
             ]
-        , nicknamesDataList walletLibrary
         ]
 
   roleWalletInputDisplayOptions tokenName =
@@ -186,7 +184,6 @@ roleInputs walletLibrary metaData roleWalletInputs =
     , id_: tokenName
     , placeholder: "Choose any nickname"
     , readOnly: false
-    , datalistId: Just nicknamesDataListId
     , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
     }
 

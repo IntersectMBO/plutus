@@ -85,7 +85,6 @@ pickupNewWalletCard state =
       , id_: "walletNickname"
       , placeholder: "Choose any nickname"
       , readOnly: false
-      , datalistId: Nothing
       , valueOptions: mempty
       }
 
@@ -95,7 +94,6 @@ pickupNewWalletCard state =
       , id_: "walletId"
       , placeholder: "Wallet ID"
       , readOnly: true
-      , datalistId: Nothing
       , valueOptions: mempty
       }
   in
@@ -160,7 +158,6 @@ pickupWalletCard state =
       , id_: "walletNickname"
       , placeholder: "Nickname"
       , readOnly: true
-      , datalistId: Nothing
       , valueOptions: mempty
       }
 
@@ -170,7 +167,6 @@ pickupWalletCard state =
       , id_: "walletId"
       , placeholder: "Wallet ID"
       , readOnly: true
-      , datalistId: Nothing
       , valueOptions: mempty
       }
   in
