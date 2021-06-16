@@ -165,9 +165,10 @@ handleWallet = \case
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
     BalanceTx utx -> runError $ do
         logInfo $ BalancingUnbalancedTx utx
-        utxWithFees <- validateTxAndAddFees utx
+        utxo <- get >>= ownOutputs
+        utxWithFees <- validateTxAndAddFees utxo utx
         -- balance to add fees
-        tx' <- handleBalanceTx (utx & U.tx . fee .~ (utxWithFees ^. U.tx . fee))
+        tx' <- handleBalanceTx utxo (utx & U.tx . fee .~ (utxWithFees ^. U.tx . fee))
         tx'' <- handleAddSignature tx'
         logInfo $ FinishedBalancing tx''
         pure tx''
@@ -193,14 +194,14 @@ validateTxAndAddFees ::
     , Member (LogMsg TxBalanceMsg) effs
     , Member (State WalletState) effs
     )
-    => UnbalancedTx
+    => Map.Map TxOutRef TxOutTx
+    -> UnbalancedTx
     -> Eff effs UnbalancedTx
-validateTxAndAddFees utx = do
-    ownTxOuts <- fmap txOutTxOut <$> (get >>= ownOutputs)
+validateTxAndAddFees ownTxOuts utx = do
     -- Balance and sign just for validation
-    tx <- handleBalanceTx utx
+    tx <- handleBalanceTx ownTxOuts utx
     signedTx <- handleAddSignature tx
-    let utxoIndex        = Ledger.UtxoIndex $ unBalancedTxUtxoIndex utx <> ownTxOuts
+    let utxoIndex        = Ledger.UtxoIndex $ unBalancedTxUtxoIndex utx <> (fmap txOutTxOut ownTxOuts)
         ((e, _), events) = Ledger.runValidation (Ledger.validateTransactionOffChain signedTx) utxoIndex
     traverse_ (throwError . WAPI.ValidationError . snd) e
     let scriptsSize = getSum $ foldMap (Sum . scriptSize . Ledger.sveScript) events
@@ -232,13 +233,13 @@ handleBalanceTx ::
     , Member (Error WAPI.WalletAPIError) effs
     , Member (LogMsg TxBalanceMsg) effs
     )
-    => UnbalancedTx
+    => Map.Map TxOutRef TxOutTx
+    -> UnbalancedTx
     -> Eff effs Tx
-handleBalanceTx UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} = do
+handleBalanceTx utxo UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} = do
     let filteredUnbalancedTxTx = removeEmptyOutputs unBalancedTxTx
     let txInputs = Set.toList $ Tx.txInputs filteredUnbalancedTxTx
     ownPubKey <- gets (toPublicKey . view ownPrivateKey)
-    utxo <- get >>= ownOutputs
     inputValues <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txInputs filteredUnbalancedTxTx)
     collateral  <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txCollateral filteredUnbalancedTxTx)
     let fees = txFee filteredUnbalancedTxTx
