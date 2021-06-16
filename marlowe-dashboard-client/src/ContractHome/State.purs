@@ -10,11 +10,10 @@ import Contract.State (isContractClosed)
 import Contract.State (mkInitialState) as Contract
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_selectedContractIndex, _status)
-import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
+import ContractHome.Types (Action(..), ContractStatus(..), PartitionedContracts, State)
 import Data.Array (partition)
 import Data.Lens (assign)
-import Data.Map (Map, mapMaybeWithKey)
-import Data.Map as Map
+import Data.Map (Map, mapMaybeWithKey, toUnfoldableUnordered)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (snd)
 import Halogen (HalogenM)
@@ -46,7 +45,7 @@ handleAction (OpenContract ix) = assign _selectedContractIndex $ Just ix
 
 partitionContracts :: Map PlutusAppId Contract.State -> PartitionedContracts
 partitionContracts contracts =
-  Map.toUnfoldableUnordered contracts
+  toUnfoldableUnordered contracts
     # map snd
     # partition isContractClosed
     # \{ no, yes } -> { completed: yes, running: no }

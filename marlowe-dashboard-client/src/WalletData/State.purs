@@ -7,7 +7,7 @@ module WalletData.State
 import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Map (lookup)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.UUID (emptyUUID)
 import Marlowe.PAB (PlutusAppId(..))
@@ -21,6 +21,7 @@ defaultWalletDetails =
   , marloweAppId: PlutusAppId emptyUUID
   , walletInfo: defaultWalletInfo
   , assets: mempty
+  , previousCompanionAppState: Nothing
   }
 
 defaultWalletInfo :: WalletInfo

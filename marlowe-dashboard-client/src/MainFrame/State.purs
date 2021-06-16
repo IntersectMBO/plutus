@@ -7,7 +7,6 @@ import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_selectedStep)
 import Contract.State (mkInitialState, updateState) as Contract
 import Contract.Types (Action(..)) as Contract
-import ContractHome.Types (Action(..)) as ContractHome
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
@@ -134,7 +133,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               walletCompanionAppId = view (_walletDetails <<< _companionAppId) playState
 
               marloweAppId = view (_walletDetails <<< _marloweAppId) playState
-            -- if this is the wallet's WalletCompanionApp...
+            -- if this is the wallet's WalletCompanion app...
             if (plutusAppId == walletCompanionAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
               Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
               Right companionState -> handleAction $ PlayAction $ Play.UpdateRunningContracts companionState
@@ -149,11 +148,13 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
                 Right contractHistory@{ chParams, chHistory } ->
                   for_ chParams \(marloweParams /\ marloweData) -> do
+                    let
+                      walletDetails = view _walletDetails playState
                     currentSlot <- use _currentSlot
                     case lookup plutusAppId (view _allContracts playState) of
                       Just contractState -> do
                         selectedStep <- peruse $ _playState <<< _selectedContract <<< _selectedStep
-                        modifying (_playState <<< _allContracts) $ insert plutusAppId $ Contract.updateState currentSlot chHistory contractState
+                        modifying (_playState <<< _allContracts) $ insert plutusAppId $ Contract.updateState walletDetails marloweParams currentSlot chHistory contractState
                         -- if the modification changed the currently selected step, that means the card for the contract
                         -- that was changed is currently open, so we need to realign the step cards
                         selectedStep' <- peruse $ _playState <<< _selectedContract <<< _selectedStep
@@ -161,13 +162,10 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
                           $ for_ selectedStep' (handleAction <<< PlayAction <<< Play.ContractAction <<< Contract.MoveToStep)
                       Nothing -> do
                         let
-                          walletDetails = view _walletDetails playState
-
                           mContractState = Contract.mkInitialState walletDetails currentSlot plutusAppId contractHistory
                         case mContractState of
                           Just contractState -> do
                             modifying (_playState <<< _allContracts) $ insert plutusAppId contractState
-                            handleAction $ PlayAction $ Play.ContractHomeAction $ ContractHome.OpenContract plutusAppId
                             addToast $ successToast "You have been given a role in a new contract."
                           Nothing -> addToast $ errorToast "Could not determine contract type." $ Just "You have been given a role in a new contract, but we could not determine the type of the contract and therefore cannot display it."
         -- Plutus contracts in general can change in other ways, but the Marlowe contracts don't, so
