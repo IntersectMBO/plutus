@@ -20,10 +20,14 @@ module Plutus.Contract.Checkpoint(
     , CheckpointError(..)
     , AsCheckpointError(..)
     , CheckpointStore(..)
+    , CheckpointStoreItem(..)
     , CheckpointKey
     , CheckpointLogMsg(..)
     , jsonCheckpoint
+    , jsonCheckpointLoop
     , handleCheckpoint
+    , completedIntervals
+    , maxKey
     ) where
 
 import           Control.Lens
@@ -33,6 +37,8 @@ import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logError)
 import           Control.Monad.Freer.State      (State, get, gets, modify, put)
 import           Data.Aeson                     (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value)
 import qualified Data.Aeson.Types               as JSON
+import           Data.IntervalMap.Interval      (Interval (ClosedInterval))
+import qualified Data.IntervalSet               as IS
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import           Data.Text                      (Text)
@@ -68,7 +74,7 @@ instance Pretty CheckpointError where
 
 makeClassyPrisms ''CheckpointError
 
-newtype CheckpointStore = CheckpointStore { unCheckpointStore :: Map CheckpointKey Value }
+newtype CheckpointStore = CheckpointStore { unCheckpointStore :: Map CheckpointKey (CheckpointStoreItem Value) }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
     deriving newtype (Semigroup, Monoid)
@@ -78,15 +84,25 @@ instance Pretty CheckpointStore where
         let p k v = pretty k <> colon <+> (pretty . take 100 . show) v in
         vsep (uncurry p <$> Map.toList mp)
 
-_CheckpointStore :: Iso' CheckpointStore (Map CheckpointKey Value)
+_CheckpointStore :: Iso' CheckpointStore (Map CheckpointKey (CheckpointStoreItem Value))
 _CheckpointStore = iso unCheckpointStore CheckpointStore
+
+-- | Intervals of checkpoint keys that are completely covered by the
+--   checkpoint store.
+completedIntervals :: CheckpointStore -> IS.IntervalSet (Interval CheckpointKey)
+completedIntervals = IS.fromList . fmap (uncurry f) . Map.toList . unCheckpointStore where
+    f (from_ :: CheckpointKey) CheckpointStoreItem{csNewKey} = ClosedInterval from_ csNewKey
+
+-- | The maximum key that is present in the store
+maxKey :: CheckpointStore -> Maybe CheckpointKey
+maxKey = fmap fst . Map.lookupMax . unCheckpointStore
 
 data CheckpointStoreItem a =
     CheckpointStoreItem
         { csValue  :: a
         , csNewKey :: CheckpointKey
         }
-    deriving stock (Eq, Ord, Show, Generic)
+    deriving stock (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)
 
 data CheckpointLogMsg =
@@ -127,8 +143,8 @@ insert ::
     -> a
     -> Eff effs ()
 insert k k' v =
-    let vl = CheckpointStoreItem{csValue = v, csNewKey = k'}
-    in modify (over _CheckpointStore (Map.insert k (JSON.toJSON vl)))
+    let vl = CheckpointStoreItem{csValue = JSON.toJSON v, csNewKey = k'}
+    in modify (over _CheckpointStore (Map.insert k vl))
 
 {-| @restore k@ checks for an entry for @k@ in the checkpoint store,
     and parses the result if there is such an entry. It returns
@@ -150,7 +166,7 @@ restore ::
     -> Eff effs (Either CheckpointError (Maybe a))
 restore k = do
     value <- gets (view $ _CheckpointStore . at k)
-    let (result :: Maybe (Either String (CheckpointStoreItem a))) = fmap (JSON.parseEither JSON.parseJSON) value
+    let (result :: Maybe (Either String (CheckpointStoreItem a))) = fmap (traverse (JSON.parseEither JSON.parseJSON)) value
     case result of
         Nothing -> do
             logDebug (LogNoValueForKey k)
@@ -160,7 +176,8 @@ restore k = do
             pure $ Left (JSONDecodeError $ Text.pack err)
         Just (Right CheckpointStoreItem{csValue,csNewKey}) -> do
             logDebug $ LogFoundValueRestoringKey csNewKey
-            put csNewKey
+            let nk = succ csNewKey
+            put nk
             pure (Right (Just csValue))
 
 data Checkpoint r where
@@ -229,15 +246,43 @@ jsonCheckpoint ::
     )
     => Eff effs a -- ^ The @action@ that is checkpointed
     -> Eff effs a
-jsonCheckpoint action = do
+jsonCheckpoint action = jsonCheckpointLoop @err @() @a (\() -> Left <$> action) ()
+
+{-
+
+Create a checkpoint for an action that is run repeatedly.
+
+-}
+jsonCheckpointLoop ::
+    forall err a b effs.
+    ( Member Checkpoint effs
+    , Member (Error err) effs
+    , ToJSON a
+    , FromJSON a
+    , ToJSON b
+    , FromJSON b
+    , AsCheckpointError err
+    )
+    => (a -> Eff effs (Either b a)) -- ^ The action that is repeated until it returns a 'Left'. Only the accumulated result of the action will be stored.
+    -> a -- ^ Initial value
+    -> Eff effs b
+jsonCheckpointLoop action initial = do
     doCheckpoint
     k <- allocateKey
-    vl <- retrieve @_ k
-    case vl of
-        Left err -> throwError @err (review _CheckpointError err)
-        Right (Just a) -> return a
-        Right Nothing -> do
-            result <- action
-            k' <- allocateKey
-            store  @_ k k' result
-            pure result
+    current <- do
+                vl <- retrieve @_ k
+                case vl of
+                    Left err       -> do
+                        throwError @err (review _CheckpointError err)
+                    Right (Just a) -> do
+                        pure a
+                    Right Nothing  -> do
+                        pure (Right initial)
+    let go (Left b) = pure b
+        go (Right a) = do
+                actionResult <- action a
+                k' <- allocateKey
+                store @_ k k' actionResult
+                doCheckpoint
+                go actionResult
+    go current

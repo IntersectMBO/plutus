@@ -14,18 +14,24 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Halogen (RefLabel(..))
-import Marlowe.Execution (ExecutionState, NamedAction)
+import Marlowe.Execution.Types (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
-  = { tab :: Tab
+  = { tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
     , executionState :: ExecutionState
+    -- When the user submits a transaction, we save it here until we get confirmation from the PAB and
+    -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
+    , pendingTransaction :: Maybe TransactionInput
     , previousSteps :: Array PreviousStep
     , followerAppId :: PlutusAppId
-    , marloweParams :: MarloweParams
+    -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"
+    -- contracts when a user creates a contract, to show on the page until the blockchain settles and
+    -- we get the MarloweParams back from the PAB (through the MarloweFollower app).
+    , mMarloweParams :: Maybe MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
@@ -40,7 +46,8 @@ type State
 
 -- Represents a historical step in a contract's life.
 type PreviousStep
-  = { balances :: Accounts
+  = { tab :: Tab
+    , balances :: Accounts
     , state :: PreviousStepState
     }
 
@@ -62,12 +69,12 @@ type Input
 data Action
   = ConfirmAction NamedAction
   | ChangeChoice ChoiceId (Maybe ChosenNum)
-  | SelectTab Tab
+  | SelectTab Int Tab
   | AskConfirmation NamedAction
   | CancelConfirmation
   -- The SelectStep action is what changes the model and causes the card to seem bigger.
   | SelectStep Int
-  -- The MoveToStep action scrolls the step carousel so that the indicated step is at the center
+  -- The MoveToStep action scrolls the step carousel so that the indicated step is at the center (without changing the model).
   | MoveToStep Int
   | CarouselOpened
   | CarouselClosed
@@ -75,11 +82,11 @@ data Action
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
-  toEvent (SelectTab _) = Just $ defaultEvent "SelectTab"
+  toEvent (SelectTab _ _) = Just $ defaultEvent "SelectTab"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
   toEvent (SelectStep _) = Just $ defaultEvent "SelectStep"
-  toEvent (MoveToStep _) = Just $ defaultEvent "MoveToStep"
+  toEvent (MoveToStep _) = Nothing
   toEvent CarouselOpened = Just $ defaultEvent "CarouselOpened"
   toEvent CarouselClosed = Just $ defaultEvent "CarouselClosed"
 

@@ -16,15 +16,16 @@ module PlutusCore.StdLib.Data.Nat
 
 import           Prelude                         hiding (succ)
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Function
 import           PlutusCore.StdLib.Type
+
+import           Universe
 
 -- | @Nat@ as a PLC type.
 --
@@ -138,7 +139,7 @@ foldNat = runQuote $ do
 natToInteger :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
 natToInteger = runQuote $ do
     return $
-        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer ())
+        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @_ @Integer ())
           [ apply () (builtin () AddInteger) (mkConstant @Integer () 1)
           , mkConstant @Integer () 0
           ]

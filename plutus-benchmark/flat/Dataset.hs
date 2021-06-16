@@ -23,8 +23,8 @@ import qualified Plutus.Contracts.Escrow           as Escrow
 import qualified Plutus.Contracts.Future           as Future
 import qualified Plutus.Contracts.GameStateMachine as GameStateMachine
 import qualified Plutus.Contracts.Vesting          as Vesting
-import           PlutusCore                        (DefaultFun (..), runQuoteT)
-import           PlutusCore.Universe
+import           PlutusCore                        (runQuoteT)
+import           PlutusCore.Default
 import           UntypedPlutusCore
 
 wallet1, wallet2 :: Wallet
@@ -97,19 +97,19 @@ runQuote tm = do
 
 contractsWithNames :: [ (Text, Term Name DefaultUni DefaultFun ()) ]
 contractsWithNames = map (second (runQuote . nameDeBruijn . getTerm . Plutus.unScript . Plutus.unValidatorScript))
-  [ ("game-names", Plutus.validatorScript GameStateMachine.scriptInstance)
+  [ ("game-names", Plutus.validatorScript GameStateMachine.typedValidator)
   , ("crowdfunding-names", Crowdfunding.contributionScript Crowdfunding.theCampaign)
-  , ("marlowe-names", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
+  , ("marlowe-names", Plutus.validatorScript $ Marlowe.typedValidator Marlowe.defaultMarloweParams)
   , ("vesting-names", Vesting.vestingScript vesting)
-  , ("escrow-names", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
+  , ("escrow-names", Plutus.validatorScript $ Escrow.typedValidator escrowParams)
   , ("future-names", Future.validator theFuture Future.testAccounts) ]
 
 contractsWithIndices ::
   [ (Text, Term DeBruijn DefaultUni DefaultFun ()) ]
 contractsWithIndices = map (second (getTerm . Plutus.unScript . Plutus.unValidatorScript))
-  [ ("game-indices", Plutus.validatorScript GameStateMachine.scriptInstance)
+  [ ("game-indices", Plutus.validatorScript GameStateMachine.typedValidator)
   , ("crowdfunding-indices", Crowdfunding.contributionScript Crowdfunding.theCampaign)
-  , ("marlowe-indices", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
+  , ("marlowe-indices", Plutus.validatorScript $ Marlowe.typedValidator Marlowe.defaultMarloweParams)
   , ("vesting-indices", Vesting.vestingScript vesting)
-  , ("escrow-indices", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
+  , ("escrow-indices", Plutus.validatorScript $ Escrow.typedValidator escrowParams)
   , ("future-indices", Future.validator theFuture Future.testAccounts) ]

@@ -10,7 +10,7 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "byron-spec-chain"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -84,4 +84,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/23; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/29; }

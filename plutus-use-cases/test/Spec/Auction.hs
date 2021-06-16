@@ -18,7 +18,7 @@ import           Data.Monoid                        (Last (..))
 
 import           Ledger                             (Ada, Slot (..), Value, pubKeyHash)
 import qualified Ledger.Ada                         as Ada
-import           Plutus.Contract                    hiding (currentSlot, when)
+import           Plutus.Contract                    hiding (currentSlot)
 import           Plutus.Contract.Test               hiding (not)
 import qualified Streaming.Prelude                  as S
 import qualified Wallet.Emulator.Folds              as Folds
@@ -129,7 +129,7 @@ trace2FinalState =
 
 threadToken :: AssetClass
 threadToken =
-    let con = Currency.createThreadToken @BlockchainActions @()
+    let con = Currency.createThreadToken @EmptySchema @()
         fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
         getOutcome (Folds.Done a) = a
         getOutcome e              = error $ "not finished: " <> show e

@@ -25,6 +25,7 @@ import           Data.Default                          (Default (..))
 import           Data.Either                           (isRight)
 import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
+import           Data.Monoid                           (First (..))
 import           Data.Ratio                            ((%))
 import           Data.Set                              (Set)
 import qualified Data.Set                              as Set
@@ -42,7 +43,7 @@ import           Language.Marlowe.Util
 import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Constraints.TxConstraints      (TxConstraints)
-import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import qualified Ledger.Typed.Scripts                  as Scripts
 import qualified Ledger.Value                          as Val
 import           Plutus.Contract.Test                  hiding ((.&&.))
 import qualified Plutus.Contract.Test                  as T
@@ -138,8 +139,12 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     T..&&. walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
     T..&&. walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
     T..&&. assertAccumState marloweFollowContract "bob follow"
-        (\state@(History mp MarloweData{marloweContract} history) ->
-            mp == params && marloweContract == contract) "follower contract state"
+        (\state@ContractHistory{chParams, chHistory} ->
+            case chParams of
+                First (Just (mp, MarloweData{marloweContract})) -> mp == params && marloweContract == contract
+                _                                               -> False) "follower contract state"
+            --mp MarloweData{marloweContract} history
+            -- chParams == (_ params) && chParams == (_ contract))
     ) $ do
 
     -- Init a contract
@@ -212,16 +217,16 @@ uniqueContractHash = do
             { rolesCurrency = cs
             , rolePayoutValidatorHash = validatorHash (rolePayoutScript cs) }
 
-    let hash1 = scriptHash $ scriptInstance (params "11")
-    let hash2 = scriptHash $ scriptInstance (params "22")
-    let hash3 = scriptHash $ scriptInstance (params "22")
+    let hash1 = Scripts.validatorHash $ typedValidator (params "11")
+    let hash2 = Scripts.validatorHash $ typedValidator (params "22")
+    let hash3 = Scripts.validatorHash $ typedValidator (params "22")
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
 
 validatorSize :: IO ()
 validatorSize = do
-    let validator = validatorScript $ scriptInstance defaultMarloweParams
+    let validator = Scripts.validatorScript $ typedValidator defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
     assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
 

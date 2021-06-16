@@ -198,68 +198,47 @@
         (fun (all Q_i0 (type) (fun [F_i3 Q_i1] Q_i1)) (all Q_i0 (type) (fun [F_i3 Q_i1] Q_i1)))
         [
           {
-            {
-              (abs
-                a_i0
-                (type)
-                (abs
-                  b_i0
-                  (type)
+            (abs
+              b_i0
+              (type)
+              (lam
+                f_i0
+                (fun (fun (all Q_i0 (type) (fun [F_i5 Q_i1] [F_i5 Q_i1])) b_i2) (fun (all Q_i0 (type) (fun [F_i5 Q_i1] [F_i5 Q_i1])) b_i2))
+                [
                   (lam
-                    f_i0
-                    (fun (fun a_i3 b_i2) (fun a_i3 b_i2))
-                    [
-                      {
-                        (abs
-                          a_i0
-                          (type)
-                          (lam
-                            s_i0
-                            [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) a_i2]
-                            [ (unwrap s_i1) s_i1 ]
-                          )
-                        )
-                        (fun a_i3 b_i2)
-                      }
-                      (iwrap
-                        (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1)))
-                        (fun a_i3 b_i2)
-                        (lam
-                          s_i0
-                          [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) (fun a_i4 b_i3)]
-                          (lam
-                            x_i0
-                            a_i5
-                            [
-                              [
-                                f_i3
-                                [
-                                  {
-                                    (abs
-                                      a_i0
-                                      (type)
-                                      (lam
-                                        s_i0
-                                        [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) a_i2]
-                                        [ (unwrap s_i1) s_i1 ]
-                                      )
-                                    )
-                                    (fun a_i5 b_i4)
-                                  }
-                                  s_i2
-                                ]
-                              ]
-                              x_i1
-                            ]
-                          )
-                        )
-                      )
-                    ]
+                    s_i0
+                    [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) (fun (all Q_i0 (type) (fun [F_i6 Q_i1] [F_i6 Q_i1])) b_i3)]
+                    [ (unwrap s_i1) s_i1 ]
                   )
-                )
+                  (iwrap
+                    (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1)))
+                    (fun (all Q_i0 (type) (fun [F_i5 Q_i1] [F_i5 Q_i1])) b_i2)
+                    (lam
+                      s_i0
+                      [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) (fun (all Q_i0 (type) (fun [F_i6 Q_i1] [F_i6 Q_i1])) b_i3)]
+                      (lam
+                        x_i0
+                        (all Q_i0 (type) (fun [F_i7 Q_i1] [F_i7 Q_i1]))
+                        [
+                          [
+                            f_i3
+                            [
+                              (lam
+                                s_i0
+                                [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) (fun (all Q_i0 (type) (fun [F_i8 Q_i1] [F_i8 Q_i1])) b_i5)]
+                                [ (unwrap s_i1) s_i1 ]
+                              )
+                              s_i2
+                            ]
+                          ]
+                          x_i1
+                        ]
+                      )
+                    )
+                  )
+                ]
               )
-              (all Q_i0 (type) (fun [F_i3 Q_i1] [F_i3 Q_i1]))
-            }
+            )
             (all Q_i0 (type) (fun [F_i3 Q_i1] Q_i1))
           }
           (lam

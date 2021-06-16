@@ -53,12 +53,12 @@ tests = testGroup "crowdfunding"
         $ void (Trace.activateContractWallet w1 theContract)
 
     , checkPredicateOptions (defaultCheckOptions & maxSlot .~ 20) "make contribution"
-        (walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
-        $ let contribution = Ada.lovelaceValueOf 10
+        (walletFundsChange w1 (Ada.lovelaceValueOf (-100)))
+        $ let contribution = Ada.lovelaceValueOf 100
           in makeContribution w1 contribution >> void Trace.nextSlot
 
     , checkPredicate "make contributions and collect"
-        (walletFundsChange w1 (Ada.lovelaceValueOf 21))
+        (walletFundsChange w1 (Ada.lovelaceValueOf 225))
         $ successfulCampaign
 
     , checkPredicate "cannot collect money too late"
@@ -66,9 +66,9 @@ tests = testGroup "crowdfunding"
         .&&. assertNoFailedTransactions)
         $ do
             ContractHandle{chInstanceId} <- startCampaign
-            makeContribution w2 (Ada.lovelaceValueOf 10)
-            makeContribution w3 (Ada.lovelaceValueOf 10)
-            makeContribution w4 (Ada.lovelaceValueOf 1)
+            makeContribution w2 (Ada.lovelaceValueOf 100)
+            makeContribution w3 (Ada.lovelaceValueOf 100)
+            makeContribution w4 (Ada.lovelaceValueOf 25)
             Trace.freezeContractInstance chInstanceId
             -- Add some blocks to bring the total up to 31
             -- (that is, above the collection deadline)
@@ -81,9 +81,9 @@ tests = testGroup "crowdfunding"
         (walletFundsChange w1 PlutusTx.zero)
         $ do
             ContractHandle{chInstanceId} <- startCampaign
-            makeContribution w2 (Ada.lovelaceValueOf 10)
-            makeContribution w3 (Ada.lovelaceValueOf 10)
-            makeContribution w4 (Ada.lovelaceValueOf 1)
+            makeContribution w2 (Ada.lovelaceValueOf 100)
+            makeContribution w3 (Ada.lovelaceValueOf 100)
+            makeContribution w4 (Ada.lovelaceValueOf 25)
             Trace.freezeContractInstance chInstanceId
             -- The contributions could be collected now, but without
             -- the slot notifications, wallet 1 is not aware that the
@@ -91,21 +91,22 @@ tests = testGroup "crowdfunding"
             void $ Trace.waitUntilSlot 35
 
     , checkPredicate "can claim a refund"
-        (walletFundsChange w2 mempty
+        (walletFundsChange w1 mempty
+        .&&. walletFundsChange w2 mempty
         .&&. walletFundsChange w3 mempty)
         $ do
-            startCampaign
-            makeContribution w2 (Ada.lovelaceValueOf 5)
-            void $ makeContribution w3 (Ada.lovelaceValueOf 5)
+            ContractHandle{chInstanceId} <- startCampaign
+            makeContribution w2 (Ada.lovelaceValueOf 50)
+            void $ makeContribution w3 (Ada.lovelaceValueOf 50)
+            Trace.freezeContractInstance chInstanceId
             void $ Trace.waitUntilSlot 31
 
     , goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
     ,   let
             deadline = 10
-            target = Ada.lovelaceValueOf 1000
             collectionDeadline = 15
             owner = w1
-            cmp = mkCampaign deadline target collectionDeadline owner
+            cmp = mkCampaign deadline collectionDeadline owner
         in HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (contributionScript cmp) 30000
 
     , goldenVsString
@@ -118,7 +119,7 @@ tests = testGroup "crowdfunding"
         "test/Spec/crowdfundingEmulatorTestOutput.txt"
         (pure $ renderEmulatorLog successfulCampaign)
 
-    , let con :: Contract () BlockchainActions ContractError () = throwError "something went wrong" in
+    , let con :: Contract () EmptySchema ContractError () = throwError "something went wrong" in
         goldenVsString
         "renders an error sensibly"
         "test/Spec/contractError.txt"

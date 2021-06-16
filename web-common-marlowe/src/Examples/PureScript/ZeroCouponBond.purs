@@ -10,9 +10,9 @@ import Data.BigInteger (fromInt)
 import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import Examples.Metadata as Metadata
-import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), TemplateContent(..), Timeout(..), Value(..), fillTemplate)
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
@@ -24,8 +24,8 @@ fixedTimeoutContract =
     ( TemplateContent
         { slotContent:
             Map.fromFoldable
-              [ "Initial exchange deadline" /\ fromInt 60
-              , "Maturity exchange deadline" /\ fromInt 150
+              [ "Initial exchange deadline" /\ fromInt 600
+              , "Maturity exchange deadline" /\ fromInt 1500
               ]
         , valueContent:
             Map.empty
@@ -42,8 +42,8 @@ ada = Token "" ""
 discountedPrice :: Value
 discountedPrice = ConstantParam "Discounted price"
 
-notional :: Value
-notional = ConstantParam "Notional"
+notionalPrice :: Value
+notionalPrice = ConstantParam "Notional price"
 
 investor :: Party
 investor = Role "Investor"
@@ -69,5 +69,5 @@ transfer timeout from to amount continuation =
 fullExtendedContract :: Contract
 fullExtendedContract =
   transfer initialExchange investor issuer discountedPrice
-    $ transfer maturityExchangeTimeout issuer investor notional
+    $ transfer maturityExchangeTimeout issuer investor notionalPrice
         Close

@@ -17,9 +17,9 @@ import           UntypedPlutusCore.Core.Type
 import           PlutusCore.Core.Instance.Pretty.Common ()
 import           PlutusCore.Pretty.PrettyConst
 import           PlutusCore.Pretty.Readable
-import           PlutusCore.Universe
 
 import           Data.Text.Prettyprint.Doc
+import           Universe
 
 instance
         ( PrettyReadableBy configName name

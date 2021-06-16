@@ -19,23 +19,27 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShrink0, fontBold, fullHeight, fullWidth, grid, gridColsDescriptionLocation, group, justifyBetween, justifyCenter, justifyEnd, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingX, plusBtn, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, spanTextBreakWord, textSecondaryColor, textXs, uppercase, w30p)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
-import Marlowe.Extended (IntegerTemplateType(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
+import Marlowe.Template (IntegerTemplateType(..))
 import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings, otherActionsParty)
-import Simulator (hasHistory, inFuture)
+import SimulationPage.Lenses (_bottomPanelState)
+import SimulationPage.Types (Action(..), BottomPanelView(..), State)
+import Simulator.Lenses (_SimulationRunning, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings)
+import Simulator.State (hasHistory, inFuture)
+import Simulator.Types (ActionInput(..), ActionInputId, ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), otherActionsParty)
 import Text.Markdown.TrimmedInline (markdownToHTML)
 
 render ::
@@ -156,6 +160,7 @@ editSourceButton :: forall p. HTML p Action
 editSourceButton =
   button
     [ onClick $ const $ Just $ EditSource
+    , classNames [ "btn" ]
     ]
     [ text "Edit source" ]
 
@@ -348,7 +353,7 @@ participant ::
   Array ActionInput ->
   HTML p Action
 participant metadata state party actionInputs =
-  li [ classes [ ClassName "participant-a", noMargins ] ]
+  li [ classes [ noMargins ] ]
     ( [ title ]
         <> (map (inputItem metadata state partyName) actionInputs)
     )
@@ -383,7 +388,7 @@ inputItem metadata _ person (DepositInput accountId party token value) =
     [ renderDeposit metadata accountId party token value
     , div [ class_ (ClassName "align-top") ]
         [ button
-            [ classes [ plusBtn, smallBtn ]
+            [ classes [ plusBtn, smallBtn, btn ]
             , onClick $ const $ Just
                 $ AddInput (IDeposit accountId party token value) []
             ]
@@ -417,7 +422,7 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
   addButton =
     if inBounds chosenNum bounds then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
+          [ classes [ btn, plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
           , onClick $ const $ Just
               $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
@@ -441,7 +446,7 @@ inputItem _ _ person NotifyInput =
     [ classes [ ClassName "action", ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+        [ classes [ btn, plusBtn, smallBtn, ClassName "align-top" ]
         , onClick $ const $ Just
             $ AddInput INotify []
         ]
@@ -465,7 +470,7 @@ inputItem _ state person (MoveToSlot slot) =
   addButton =
     if inFuture state slot then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink", btn ]
           , onClick $ const $ Just $ MoveSlot slot
           ]
           [ text "+" ]

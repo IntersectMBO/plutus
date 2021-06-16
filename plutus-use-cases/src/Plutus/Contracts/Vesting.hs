@@ -4,7 +4,6 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE MonoLocalBinds     #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -39,15 +38,16 @@ import           Ledger.Constraints       (TxConstraints, mustBeSignedBy, mustPa
 import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
 import qualified Ledger.Contexts          as Validation
 import qualified Ledger.Interval          as Interval
-import qualified Ledger.Slot              as Slot
+import qualified Ledger.Time              as Time
+import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
-import           Ledger.Typed.Scripts     (ScriptType (..))
+import           Ledger.Typed.Scripts     (ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value)
 import qualified Ledger.Value             as Value
-import           Plutus.Contract          hiding (when)
+import           Plutus.Contract
 import qualified Plutus.Contract.Typed.Tx as Typed
-import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), fold)
 import qualified Prelude                  as Haskell
 
@@ -70,13 +70,12 @@ import qualified Prelude                  as Haskell
 -}
 
 type VestingSchema =
-    BlockchainActions
-        .\/ Endpoint "vest funds" ()
+        Endpoint "vest funds" ()
         .\/ Endpoint "retrieve funds" Value
 
 data Vesting
 
-instance ScriptType Vesting where
+instance ValidatorTypes Vesting where
     type instance RedeemerType Vesting = ()
     type instance DatumType Vesting = ()
 
@@ -106,10 +105,10 @@ totalAmount VestingParams{vestingTranche1,vestingTranche2} =
 
 {-# INLINABLE availableFrom #-}
 -- | The amount guaranteed to be available from a given tranche in a given slot range.
-availableFrom :: VestingTranche -> Slot.SlotRange -> Value
+availableFrom :: VestingTranche -> Time.POSIXTimeRange -> Value
 availableFrom (VestingTranche d v) range =
     -- The valid range is an open-ended range starting from the tranche vesting date
-    let validRange = Interval.from d
+    let validRange = Interval.from (TimeSlot.slotToPOSIXTime d)
     -- If the valid range completely contains the argument range (meaning in particular
     -- that the start slot of the argument range is after the tranche vesting date), then
     -- the money in the tranche is available, otherwise nothing is available.
@@ -123,7 +122,7 @@ availableAt VestingParams{vestingTranche1, vestingTranche2} sl =
 
 {-# INLINABLE remainingFrom #-}
 -- | The amount that has not been released from this tranche yet
-remainingFrom :: VestingTranche -> Slot.SlotRange -> Value
+remainingFrom :: VestingTranche -> Time.POSIXTimeRange -> Value
 remainingFrom t@VestingTranche{vestingTrancheAmount} range =
     vestingTrancheAmount - availableFrom t range
 
@@ -147,22 +146,22 @@ validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx
             -- please, potentially saving one transaction.
 
 vestingScript :: VestingParams -> Validator
-vestingScript = Scripts.validatorScript . scriptInstance
+vestingScript = Scripts.validatorScript . typedValidator
 
-scriptInstance :: VestingParams -> Scripts.ScriptInstance Vesting
-scriptInstance = Scripts.validatorParam @Vesting
+typedValidator :: VestingParams -> Scripts.TypedValidator Vesting
+typedValidator = Scripts.mkTypedValidatorParam @Vesting
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
-contractAddress :: VestingParams -> Ledger.Address
-contractAddress = Scripts.scriptAddress . scriptInstance
+contractAddress :: VestingParams -> Address
+contractAddress = Scripts.validatorAddress . typedValidator
 
 data VestingError =
     VContractError ContractError
     | InsufficientFundsError Value Value Value
-    deriving stock (Haskell.Eq, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''VestingError
@@ -182,32 +181,28 @@ vestingContract vesting = mapError (review _VestingError) (vest `select` retriev
             Dead  -> pure ()
 
 payIntoContract :: Value -> TxConstraints () ()
-payIntoContract value = mustPayToTheScript () value
+payIntoContract = mustPayToTheScript ()
 
 vestFundsC
-    :: ( HasWriteTx s
-       , AsVestingError e
+    :: ( AsVestingError e
        )
     => VestingParams
     -> Contract w s e ()
 vestFundsC vesting = mapError (review _VestingError) $ do
     let tx = payIntoContract (totalAmount vesting)
-    void $ submitTxConstraints (scriptInstance vesting) tx
+    void $ submitTxConstraints (typedValidator vesting) tx
 
 data Liveness = Alive | Dead
 
 retrieveFundsC
-    :: ( HasAwaitSlot s
-       , HasUtxoAt s
-       , HasWriteTx s
-       , AsVestingError e
+    :: ( AsVestingError e
        )
     => VestingParams
     -> Value
     -> Contract w s e Liveness
 retrieveFundsC vesting payment = mapError (review _VestingError) $ do
-    let inst = scriptInstance vesting
-        addr = Scripts.scriptAddress inst
+    let inst = typedValidator vesting
+        addr = Scripts.validatorAddress inst
     nextSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
     let

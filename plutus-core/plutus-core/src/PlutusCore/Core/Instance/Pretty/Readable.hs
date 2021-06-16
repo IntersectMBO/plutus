@@ -17,10 +17,10 @@ import           PlutusCore.Core.Instance.Pretty.Common ()
 import           PlutusCore.Core.Type
 import           PlutusCore.Pretty.PrettyConst
 import           PlutusCore.Pretty.Readable
-import           PlutusCore.Universe
 
 import           Control.Monad.Reader
 import           Data.Text.Prettyprint.Doc
+import           Universe
 
 -- | Pretty-print a binding at the type level.
 typeBinderDocM

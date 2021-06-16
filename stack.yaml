@@ -1,4 +1,4 @@
-resolver: lts-17.2
+resolver: lts-17.14
 
 packages:
 - doc
@@ -10,6 +10,7 @@ packages:
 - marlowe-symbolic
 - playground-common
 - plutus-benchmark
+- plutus-chain-index
 - plutus-contract
 - plutus-core
 - plutus-errors
@@ -24,6 +25,7 @@ packages:
 - prettyprinter-configurable
 - quickcheck-dynamic
 - web-ghc
+- word-array
 
 extra-deps:
 # Flat compression
@@ -35,12 +37,10 @@ extra-deps:
 - Stream-0.4.7.2@sha256:ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53,1009
 - lazysmallcheck-0.6@sha256:dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc,1696
 # Other missing packages
-- aws-lambda-haskell-runtime-3.0.3
-- aws-lambda-haskell-runtime-wai-1.0.2@sha256:5ce655247461b562c8048011ddc022130135a03417def8203aad92366cc979ab,1965
 - composition-prelude-3.0.0.2
 - constraints-extras-0.3.0.2
 - dependent-map-0.4.0.0
-- dependent-sum-0.6.2.0
+- dependent-sum-0.7.1.0
 - dependent-sum-template-0.1.0.3
 - eventful-memory-0.2.0
 - barbies-2.0.2.0
@@ -66,40 +66,52 @@ extra-deps:
 - witherable-0.4.1
 - canonical-json-0.6.0.0@sha256:9021f435ccb884a3b4c55bcc6b50eb19d5fc3cc3f29d5fcbdef016f5bbae23a2,3488
 - statistics-linreg-0.3@sha256:95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f,2544
+- partial-order-0.2.0.0@sha256:a0d6ddc9ebcfa965a5cbcff1d06d46a79d44ea5a0335c583c2a51bcb41334487,2275
+- streaming-binary-0.2.2.0@sha256:09b9a9b0291199c5808e88dcf9c93e7b336e740c71efeafd7c835b59794a8c90,1034
+- transformers-except-0.1.1@sha256:6c12ef8e632a10440968cd541e75074bd6ef4b5ff4012677f8f8189d7b2d0df6,1387
+
 # cabal.project is the source of truth for these pins, they are explained there
 # and need to be kept in sync.
+- git: https://github.com/Quid2/flat.git
+  commit: 95e5d7488451e43062ca84d5376b3adcc465f1cd
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
-- git: https://github.com/eskimor/servant-purescript.git
-  commit: 6454d5bcb9aa2a5d6e3a3dc935423b67b6f3993c
+- git: https://github.com/shmish111/servant-purescript.git
+  commit: a76104490499aa72d40c2790d10e9383e0dbde63
 - git: https://github.com/input-output-hk/cardano-crypto.git
-  commit: f73079303f663e028288f9f4a9e08bcca39a923e
+  commit: ce8f1934e4b6252084710975bd9bbc0a4648ece4
 - git: https://github.com/input-output-hk/ouroboros-network
-  commit: 6cb9052bde39472a0555d19ade8a42da63d3e904
+  commit: e50613562d6d4a0f933741fcf590b0f69a1eda67
   subdirs:
     - typed-protocols
     - typed-protocols-examples
     - ouroboros-network
+    - ouroboros-network-testing
     - ouroboros-network-framework
+    - ouroboros-consensus
+    - ouroboros-consensus-byron
+    - ouroboros-consensus-cardano
+    - ouroboros-consensus-shelley
     - io-sim
     - io-sim-classes
     - network-mux
-    - Win32-network
 - git: https://github.com/input-output-hk/cardano-prelude
-  commit: ee4e7b547a991876e6b05ba542f4e62909f4a571
+  commit: fd773f7a58412131512b9f694ab95653ac430852
   subdirs:
-    - cardano-prelude 
+    - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: 4251c0bb6e4f443f00231d28f5f70d42876da055
+  commit: a715c7f420770b70bbe95ca51d3dec83866cb1bd
   subdirs:
     - binary
+    - binary/test
+    - slotting
     - cardano-crypto-class
     - cardano-crypto-tests
     - cardano-crypto-praos
-    - slotting
+    - strict-containers
 - git: https://github.com/input-output-hk/cardano-ledger-specs
-  commit: 097890495cbb0e8b62106bcd090a5721c3f4b36f
+  commit: a3ef848542961079b7cd53d599e5385198a3035c
   subdirs:
     - byron/chain/executable-spec
     - byron/crypto
@@ -111,14 +123,25 @@ extra-deps:
     - semantics/small-steps-test
     - shelley/chain-and-ledger/dependencies/non-integer
     - shelley/chain-and-ledger/executable-spec
+    - shelley/chain-and-ledger/shelley-spec-ledger-test
     - shelley-ma/impl
+    - cardano-ledger-core
+    - alonzo/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: a89c38ed5825ba17ca79fddb85651007753d699d
+  commit: 34abfb7f4f5610cabb45396e0496472446a0b2ca
   subdirs:
     - contra-tracer
     - iohk-monitoring
     - tracer-transformers
     - plugins/backend-ekg
+- git: https://github.com/input-output-hk/cardano-node.git
+  commit: b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6
+  subdirs:
+    - cardano-api
+- git: https://github.com/input-output-hk/Win32-network
+  commit: 94153b676617f8f33abe8d8182c37377d2784bd1
+- git: https://github.com/input-output-hk/hedgehog-extras
+  commit: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
 
 allow-newer: true
 

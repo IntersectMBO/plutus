@@ -9,23 +9,45 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExBudgeting
 import           PlutusCore.Evaluation.Machine.ExMemory
 
-import           Foreign.R                                 hiding (unsafeCoerce)
-import           H.Prelude                                 (MonadR, Region, r)
-import           Language.R                                hiding (unsafeCoerce)
+import           Foreign.R                                      hiding (unsafeCoerce)
+import           H.Prelude                                      (MonadR, Region, r)
+import           Language.R                                     hiding (unsafeCoerce)
 
 import           Control.Applicative
 import           Control.Monad.Morph
 import           CostModelCreation
 import           Data.Coerce
 import           Hedgehog
-import qualified Hedgehog.Gen                              as Gen
+import qualified Hedgehog.Gen                                   as Gen
 import           Hedgehog.Main
-import qualified Hedgehog.Range                            as Range
-import           Unsafe.Coerce                             (unsafeCoerce)
+import qualified Hedgehog.Range                                 as Range
+import           Unsafe.Coerce                                  (unsafeCoerce)
+
+
+{- | This module is supposed to test that the R cost models for built-in functions
+   defined in BuiltinCostModel.hs produce the same results as the Haskell
+   versions. However there are a couple of subtleties.  (A) The R models use
+   floating point numbers and the Haskell versions use CostingIntegers, and
+   there will be some difference in precision because of this. (B) The R models
+   produce results in milliseconds and the Haskell versions produce results in
+   picoseconds. We deal with (B) by using the msToPs function from
+   CostModelCreation to convert R results to picoseconds expressed as
+   CostingIntegers.  To deal with (A), we don't check for exact equality of the
+   outputs but instead check that the R result and the Haskell result agreee to
+   within a factor of 1/10000 (one hundredth of a percent).
+-}
+
+
+-- Approximate equality
+(~=) :: Integral a => a -> a -> Bool
+x ~= y =
+    abs ((x'-y')/y')  < 1/10000
+        where x' = fromIntegral x :: Double
+              y' = fromIntegral y :: Double
 
 prop_addInteger :: Property
 prop_addInteger =
@@ -147,7 +169,7 @@ testPredictOne haskellModelFun modelFun = propertyR $ do
         xD = fromIntegral x :: Double
         model = modelFun modelR
       in
-        (\t -> toCostUnit (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs))[[1]]|]
+        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
     predictH x = coerce $ _exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
     sizeGen = do
@@ -156,7 +178,7 @@ testPredictOne haskellModelFun modelFun = propertyR $ do
   x <- forAll sizeGen
   byR <- lift $ predictR x
   diff byR (>) 0
-  byR === predictH x
+  diff byR (~=) (predictH x)
 
 testPredictTwo :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArguments))
   -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
@@ -172,7 +194,7 @@ testPredictTwo haskellModelFun modelFun = propertyR $ do
         yD = fromIntegral y :: Double
         model = modelFun modelR
       in
-        (\t -> toCostUnit (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
     predictH x y = coerce $ _exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
     sizeGen = do
@@ -182,7 +204,7 @@ testPredictTwo haskellModelFun modelFun = propertyR $ do
   (x, y) <- forAll sizeGen
   byR <- lift $ predictR x y
   diff byR (>) 0
-  byR === predictH x y
+  diff byR (~=) (predictH x y)
 
 testPredictThree :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelThreeArguments))
   -> ((BuiltinCostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
@@ -199,7 +221,7 @@ testPredictThree haskellModelFun modelFun = propertyR $ do
         -- zD = fromInteger z :: Double
         model = modelFun modelR
       in
-        (\t -> toCostUnit (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ _exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = do
@@ -210,7 +232,7 @@ testPredictThree haskellModelFun modelFun = propertyR $ do
   (x, y, z) <- forAll sizeGen
   byR <- lift $ predictR x y z
   diff byR (>) 0
-  byR === predictH x y z
+  diff byR (~=) (predictH x y z)
 
 main :: IO ()
 main =  withEmbeddedR defaultConfig $ defaultMain $ [checkSequential $$(discover)]

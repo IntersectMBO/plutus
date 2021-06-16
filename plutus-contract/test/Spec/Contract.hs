@@ -10,40 +10,42 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
-module Spec.Contract(tests) where
+module Spec.Contract(tests, loopCheckpointContract, initial, upd) where
 
 import           Control.Lens
-import           Control.Monad                          (forever, void)
+import           Control.Monad                        (forM, forever, void)
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except                   (catchError, throwError)
-import           Control.Monad.Freer                    (Eff)
-import           Control.Monad.Freer.Extras.Log         (LogLevel (..))
-import qualified Control.Monad.Freer.Extras.Log         as Log
+import           Control.Monad.Except                 (catchError, throwError)
+import           Control.Monad.Freer                  (Eff)
+import           Control.Monad.Freer.Extras.Log       (LogLevel (..))
+import qualified Control.Monad.Freer.Extras.Log       as Log
 import           Test.Tasty
 
-import           Ledger                                 (Address, PubKey, Slot)
-import qualified Ledger                                 as Ledger
-import qualified Ledger.Ada                             as Ada
-import qualified Ledger.Constraints                     as Constraints
-import qualified Ledger.Crypto                          as Crypto
-import           Plutus.Contract                        as Con
+import           Ledger                               (Address, PubKey, Slot)
+import qualified Ledger                               as Ledger
+import qualified Ledger.Ada                           as Ada
+import qualified Ledger.Constraints                   as Constraints
+import qualified Ledger.Crypto                        as Crypto
+import           Plutus.Contract                      as Con
+import qualified Plutus.Contract.State                as State
 import           Plutus.Contract.Test
-import           Plutus.Contract.Types                  (ResumableResult (..))
-import           Plutus.Contract.Util                   (loopM)
-import qualified Plutus.Trace                           as Trace
-import           Plutus.Trace.Emulator                  (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
-                                                         activeEndpoints, callEndpoint)
-import           Plutus.Trace.Emulator.Types            (ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                         ContractInstanceState (..), UserThreadMsg (..))
-import qualified PlutusTx                               as PlutusTx
+import           Plutus.Contract.Types                (ResumableResult (..), responses)
+import           Plutus.Contract.Util                 (loopM)
+import qualified Plutus.Trace                         as Trace
+import           Plutus.Trace.Emulator                (ContractInstanceTag, Emulator, EmulatorTrace, activateContract,
+                                                       activeEndpoints, callEndpoint)
+import           Plutus.Trace.Emulator.Types          (ContractInstanceLog (..), ContractInstanceMsg (..),
+                                                       ContractInstanceState (..), UserThreadMsg (..))
+import qualified PlutusTx                             as PlutusTx
 import           PlutusTx.Lattice
-import           Prelude                                hiding (not)
-import qualified Prelude                                as P
-import qualified Wallet.Emulator                        as EM
+import           Prelude                              hiding (not)
+import qualified Prelude                              as P
+import qualified Wallet.Emulator                      as EM
 
-import qualified Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
-import           Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..))
-import           Plutus.Contract.Trace.RequestHandler   (maybeToHandler)
+import           Plutus.Contract.Effects              (ActiveEndpoint (..))
+import qualified Plutus.Contract.Request              as Endpoint
+import           Plutus.Contract.Resumable            (IterationID, Response (..))
+import           Plutus.Contract.Trace.RequestHandler (maybeToHandler)
 
 tests :: TestTree
 tests =
@@ -62,9 +64,6 @@ tests =
             (waitingForSlot con tag 10)
 
         , check 1 "selectEither" (void $ selectEither (awaitSlot 10) (awaitSlot 5)) $ \con ->
-            (waitingForSlot con tag 5)
-
-        , check 1 "until" (void $ void $ awaitSlot 10 `Con.until` 5) $ \con ->
             (waitingForSlot con tag 5)
 
         , check 1 "both" (void $ Con.both (awaitSlot 10) (awaitSlot 20)) $ \con ->
@@ -146,12 +145,6 @@ tests =
                 (endpointAvailable @"1" theContract tag)
                 (void $ activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1)
 
-        , let theContract :: Contract () Schema ContractError () = void $ collectUntil (+) 0 (endpoint @"1") 10
-          in run 1 "collect until"
-                (endpointAvailable @"1" theContract tag
-                    .&&. waitingForSlot theContract tag 10)
-                (activateContract w1 theContract tag >>= \hdl -> callEndpoint @"1" hdl 1)
-
         , let theContract :: Contract () Schema ContractError () = void $ throwing Con._ContractError $ OtherError "error"
           in run 1 "throw an error"
                 (assertContractError theContract tag (\case { OtherError "error" -> True; _ -> False}) "failed to throw error")
@@ -182,11 +175,21 @@ tests =
             (assertDone errorContract tag (\i -> i == 11) "should finish")
             (void $ activateContract w1 (void errorContract) tag >>= \hdl -> callEndpoint @"1" hdl 1 >> callEndpoint @"2" hdl 10 >> callEndpoint @"3" hdl 11)
 
+        , run 1 "loop checkpoint"
+            (assertDone loopCheckpointContract tag (\i -> i == 4) "should finish"
+            .&&. assertResumableResult loopCheckpointContract tag DoShrink (null . view responses) "should collect garbage"
+            .&&. assertResumableResult loopCheckpointContract tag DontShrink ((==) 4 . length . view responses) "should keep everything"
+            )
+            $ do
+                hdl <- activateContract w1 loopCheckpointContract tag
+                forM [1..4] (\_ -> callEndpoint @"1" hdl 1)
+                pure ()
+
         , let theContract :: Contract () Schema ContractError () = logInfo @String "waiting for endpoint 1" >> endpoint @"1" >>= logInfo . (<>) "Received value: " . show
               matchLogs :: [EM.EmulatorTimeEvent ContractInstanceLog] -> Bool
               matchLogs lgs =
                   case (_cilMessage . EM._eteEvent <$> lgs) of
-                            [ Started, ContractLog "waiting for endpoint 1", CurrentRequests [_], ReceiveEndpointCall _, ContractLog "Received value: 27", HandledRequest _, CurrentRequests [], StoppedNoError] -> True
+                            [ Started, ContractLog "waiting for endpoint 1", CurrentRequests [_], ReceiveEndpointCall{}, ContractLog "Received value: 27", HandledRequest _, CurrentRequests [], StoppedNoError] -> True
                             _ -> False
 
           in run 1 "contract logs"
@@ -226,6 +229,19 @@ checkpointContract = void $ do
         endpoint @"1" @Int
         endpoint @"3" @Int
 
+loopCheckpointContract :: Contract () Schema ContractError Int
+loopCheckpointContract = do
+    -- repeatedly expose the "1" endpoint until we get a total
+    -- value greater than 3.
+    -- We can call "1" with different values to control whether
+    -- the left or right branch is chosen.
+    flip checkpointLoop (0 :: Int) $ \counter -> do
+        vl <- endpoint @"1" @Int
+        let newVal = counter + vl
+        if newVal > 3
+            then pure (Left newVal)
+            else pure (Right newVal)
+
 errorContract :: Contract () Schema ContractError Int
 errorContract = do
     catchError
@@ -237,10 +253,15 @@ someAddress = Ledger.scriptAddress $
     Ledger.mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
 
 type Schema =
-    BlockchainActions
-        .\/ Endpoint "1" Int
+    Endpoint "1" Int
         .\/ Endpoint "2" Int
         .\/ Endpoint "3" Int
         .\/ Endpoint "4" Int
         .\/ Endpoint "ep" ()
         .\/ Endpoint "5" [ActiveEndpoint]
+
+initial :: _
+initial = State.initialiseContract loopCheckpointContract
+
+upd :: _
+upd = State.insertAndUpdateContract loopCheckpointContract

@@ -7,6 +7,7 @@ import Demos.Types (Action(..), Demo)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (group, modalContent)
+import Halogen.Css (classNames)
 import Halogen.HTML (HTML, button, div, div_, h2_, hr_, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
@@ -40,10 +41,26 @@ demoFile key name description =
     , div [ class_ group ]
         [ span [ class_ (ClassName "description") ] [ text description ]
         , div [ classes [ group, ClassName "open-buttons" ] ]
-            [ button [ onClick $ const $ Just $ LoadDemo Haskell key ] [ text "Haskell" ]
-            , button [ onClick $ const $ Just $ LoadDemo Javascript key ] [ text "Javascript" ]
-            , button [ onClick $ const $ Just $ LoadDemo Marlowe key ] [ text "Marlowe" ]
-            , button [ onClick $ const $ Just $ LoadDemo Blockly key ] [ text "Blockly" ]
+            [ button
+                [ onClick $ const $ Just $ LoadDemo Haskell key
+                , classNames [ "btn" ]
+                ]
+                [ text "Haskell" ]
+            , button
+                [ onClick $ const $ Just $ LoadDemo Javascript key
+                , classNames [ "btn" ]
+                ]
+                [ text "Javascript" ]
+            , button
+                [ onClick $ const $ Just $ LoadDemo Marlowe key
+                , classNames [ "btn" ]
+                ]
+                [ text "Marlowe" ]
+            , button
+                [ onClick $ const $ Just $ LoadDemo Blockly key
+                , classNames [ "btn" ]
+                ]
+                [ text "Blockly" ]
             ]
         ]
     , hr_

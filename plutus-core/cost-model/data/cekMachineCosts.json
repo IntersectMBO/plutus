@@ -1,11 +1,11 @@
 {
-    "cek_startup_cost" : {"_ex_budget_cpu": 5e7,   "_ex_budget_memory": 0},
-    "cek_var_cost"     : {"_ex_budget_cpu": 70000, "_ex_budget_memory": 10},
-    "cek_const_cost"   : {"_ex_budget_cpu": 70000, "_ex_budget_memory": 10},
-    "cek_lam_cost"     : {"_ex_budget_cpu": 70000, "_ex_budget_memory": 10},
-    "cek_delay_cost"   : {"_ex_budget_cpu": 70000, "_ex_budget_memory": 10},
-    "cek_force_cost"   : {"_ex_budget_cpu": 70000, "_ex_budget_memory": 10},
-    "cek_apply_cost"   : {"_ex_budget_cpu": 70000, "_ex_budget_memory": 10},
-    "cek_builtin_cost" : {"_ex_budget_cpu": 70000, "_ex_budget_memory": 10}
+    "cek_startup_cost" : {"_ex_budget_cpu": 1000000, "_ex_budget_memory":  0},
+    "cek_var_cost"     : {"_ex_budget_cpu":   39000, "_ex_budget_memory": 10},
+    "cek_const_cost"   : {"_ex_budget_cpu":   39000, "_ex_budget_memory": 10},
+    "cek_lam_cost"     : {"_ex_budget_cpu":   39000, "_ex_budget_memory": 10},
+    "cek_delay_cost"   : {"_ex_budget_cpu":   39000, "_ex_budget_memory": 10},
+    "cek_force_cost"   : {"_ex_budget_cpu":   39000, "_ex_budget_memory": 10},
+    "cek_apply_cost"   : {"_ex_budget_cpu":   39000, "_ex_budget_memory": 10},
+    "cek_builtin_cost" : {"_ex_budget_cpu":   39000, "_ex_budget_memory": 10}
 }
 

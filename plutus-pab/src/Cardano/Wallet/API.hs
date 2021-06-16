@@ -5,13 +5,12 @@ module Cardano.Wallet.API
     ( API
     ) where
 
-import           Cardano.Wallet.Types (WalletInfo)
-import           Ledger               (Value)
-import           Ledger.AddressMap    (UtxoMap)
-import           Ledger.Slot          (Slot)
-import           Ledger.Tx            (Tx)
-import           Servant.API          (Capture, Get, JSON, NoContent, Post, ReqBody, (:<|>), (:>))
-import           Wallet.Effects       (Payment)
+import           Cardano.Wallet.Types        (WalletInfo)
+import           Ledger                      (Value)
+import           Ledger.Constraints.OffChain (UnbalancedTx)
+import           Ledger.Tx                   (Tx)
+import           Servant.API                 (Capture, Get, JSON, NoContent, Post, ReqBody, (:<|>), (:>))
+import           Wallet.Emulator.Error       (WalletAPIError)
 
 {- Note [WalletID type in wallet API]
 
@@ -38,8 +37,6 @@ type API walletId -- see note [WalletID type in wallet API]
     = "create" :> Post '[JSON] WalletInfo
       :<|> Capture "walletId" walletId :> "submit-txn" :> ReqBody '[JSON] Tx :> Post '[JSON] NoContent
       :<|> Capture "walletId" walletId :> "own-public-key" :> Get '[JSON] WalletInfo
-      :<|> Capture "walletId" walletId :> "update-payment-with-change" :> ReqBody '[JSON] (Value, Payment) :> Post '[JSON] Payment
-      :<|> Capture "walletId" walletId :> "wallet-slot" :> Get '[JSON] Slot
-      :<|> Capture "walletId" walletId :> "own-outputs" :> Get '[JSON] UtxoMap
+      :<|> Capture "walletId" walletId :> "balance-tx" :> ReqBody '[JSON] UnbalancedTx :> Post '[JSON] (Either WalletAPIError Tx)
       :<|> Capture "walletId" walletId :> "total-funds" :> Get '[JSON] Value
       :<|> Capture "walletId" walletId :> "sign" :> ReqBody '[JSON] Tx :> Post '[JSON] Tx

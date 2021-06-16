@@ -8,7 +8,8 @@ import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Symbol (SProxy(..))
-import Marlowe.Extended (Contract, ContractType(..), Placeholders(..), getChoiceNames, getPlaceholderIds)
+import Marlowe.Extended (Contract, ContractType(..), getChoiceNames)
+import Marlowe.Template (Placeholders(..), getPlaceholderIds)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics as S
 
@@ -101,3 +102,8 @@ getHintsFromMetadata { roleDescriptions
   , valueParameters: keys valueParameterDescriptions
   , choiceNames: keys choiceDescriptions
   }
+
+type ContractTemplate
+  = { metaData :: MetaData
+    , extendedContract :: Contract
+    }

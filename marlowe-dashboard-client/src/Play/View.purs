@@ -154,7 +154,7 @@ renderCard currentSlot state card =
       if hasCloseButton then
         [ a
             [ classNames [ "absolute", "top-4", "right-4" ]
-            , onClick_ CloseCard
+            , onClick_ $ CloseCard card
             ]
             [ icon_ Close ]
         ]

@@ -71,18 +71,6 @@
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "doctests" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."doctest" or (errorHandler.buildDepError "doctest"))
-            ];
-          build-tools = [
-            (hsPkgs.buildPackages.doctest-discover.components.exes.doctest-discover or (pkgs.buildPackages.doctest-discover or (errorHandler.buildToolDepError "doctest-discover:doctest-discover")))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "test" ];
-          mainPath = [ "DoctestDiscover.hs" ];
-          };
         "byron-spec-ledger-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -115,4 +103,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/26; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/32; }

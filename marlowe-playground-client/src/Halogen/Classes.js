@@ -1,7 +1,14 @@
 /*eslint-env node*/
 "use strict";
 
-exports.closeDrawerIcon = require("static/images/close-drawer-icon.svg");
+
+exports.arrowLeftUp = require("static/images/arrow-left-up.svg");
+
+exports.arrowLeftDown = require("static/images/arrow-left-down.svg");
+
+exports.arrowRightUp = require("static/images/arrow-right-up.svg");
+
+exports.arrowRightDown = require("static/images/arrow-right-down.svg");
 
 exports.closeDrawerArrowIcon = require("static/images/down-arrow-2.svg");
 
@@ -15,13 +22,13 @@ exports.blocklyIcon = require("static/images/blockly.svg");
 
 exports.blocklyIconColour = require("static/images/blockly-icon.svg");
 
-exports.infoIcon = require("static/images/info.svg");
-
 exports.readMoreIconWhite = require("static/images/read-more-icon-white.svg");
 
 exports.iohkIcon = require("static/images/iohk.svg");
 
 exports.simulationIcon = require("static/images/simulation-icon.svg");
+
+exports.simulationIconBlack = require("static/images/simulation.svg");
 
 exports.walletIcon = require("static/images/wallet-icon.svg");
 
@@ -39,18 +46,10 @@ exports.javascriptIcon = require("static/images/icons8-javascript.svg");
 
 exports.marloweLogo = require("static/images/marlowe-logo.svg");
 
-exports.marloweLogo2 = require("static/images/marlowe-logo-2.svg");
-
-exports.option1 = require("static/images/option1.svg");
-
-exports.option2 = require("static/images/option2.svg");
-
-exports.option3 = require("static/images/option3.svg");
+exports.marlowePlayLogo = require("static/images/marlowe-play.svg")
 
 exports.newProjectHaskellIcon = require("static/images/new-project-haskell-icon.svg");
 
 exports.newProjectJavascriptIcon = require("static/images/new-project-javascript-icon.svg");
-
-exports.newProjectMarloweIcon = require("static/images/new-project-marlowe-icon.svg");
 
 exports.newProjectBlocklyIcon = require("static/images/new-project-blockly-icon.svg");

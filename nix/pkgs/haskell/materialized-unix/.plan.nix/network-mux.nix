@@ -62,6 +62,7 @@
           "Network/Mux/Timeout"
           "Network/Mux/Types"
           "Network/Mux/Trace"
+          "Network/Mux/Bearer/AttenuatedChannel"
           "Network/Mux/Bearer/Pipe"
           "Network/Mux/Bearer/Queues"
           "Network/Mux/Bearer/Socket"
@@ -125,6 +126,7 @@
             (hsPkgs."io-sim" or (errorHandler.buildDepError "io-sim"))
             (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
             (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
+            (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
             (hsPkgs."array" or (errorHandler.buildDepError "array"))
             (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -141,10 +143,7 @@
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."time" or (errorHandler.buildDepError "time"))
-            ] ++ (pkgs.lib).optionals (system.isWindows) [
-            (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"))
-            (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
-            ];
+            ] ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"));
           buildable = true;
           modules = [ "Test/Mux" "Test/Mux/ReqResp" "Test/Mux/Timeout" ];
           hsSourceDirs = [ "test" ];
@@ -152,4 +151,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/17; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/24; }

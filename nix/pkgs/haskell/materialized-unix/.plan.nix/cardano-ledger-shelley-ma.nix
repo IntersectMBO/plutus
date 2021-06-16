@@ -33,15 +33,17 @@
     components = {
       "library" = {
         depends = [
-          (hsPkgs."array" or (errorHandler.buildDepError "array"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
+          (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."groups" or (errorHandler.buildDepError "groups"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -50,6 +52,7 @@
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
+          (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           ];
@@ -71,4 +74,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/33; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/40; }

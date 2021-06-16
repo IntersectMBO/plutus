@@ -42,5 +42,5 @@ endpointTimeout: 5
 
 # Optional EKG Server Config
 # ----
-# monitoringConfig:
-#   monitoringPort: 9090
+monitoringConfig:
+  monitoringPort: 9090

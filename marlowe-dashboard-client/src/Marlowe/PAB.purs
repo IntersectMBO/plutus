@@ -8,17 +8,18 @@ module Marlowe.PAB
   , MarloweParams(..)
   , ValidatorHash
   , MarloweData(..)
-  , History(..)
+  , ContractHistory(..)
   , CombinedWSStreamToServer(..)
   ) where
 
 import Prelude
+import API.Contract (class ContractActivationId, defaultActivateContract, defaultDeactivateContract, defaultGetContractInstanceClientState, defaultInvokeEndpoint, defaultGetWalletContractInstances, defaultGetAllContractInstances, defaultGetContractDefinitions)
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
-import Data.Tuple.Nested (Tuple3)
+import Data.Tuple (Tuple)
 import Data.UUID (UUID)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
@@ -36,20 +37,43 @@ to avoid confusion with *Marlowe* contracts:
    - "create" Marlowe contracts (i.e. to install them on the blockchain and distribute the role tokens)
    - "apply-inputs" to a Marlowe contract (i.e. perform an action to move that contract forward)
    - "redeem" payments made to a role token
-2. The `WalletCompanionApp`. Every wallet has one instance of this app installed in the PAB. It listens
+2. The `WalletCompanion`. Every wallet has one instance of this app installed in the PAB. It listens
    continuously for payments of role tokens to that wallet, and updates its observable state with an
    array of `(MarloweParams, MarloweData)`, one pair for each role token, hence one for each Marlowe
    contract for which this wallet has a role.
-3. The `WalletFollowerApp`. Every wallet has zero or more istances of this app installed in the PAB. We
+3. The `MarloweFollower`. Every wallet has zero or more istances of this app installed in the PAB. We
    use this to "follow" a Marlowe contract. Once a contract has been "created", and we have its
-   `MarloweParams`, we use an instance of the `WalletFollowerApp` to track its history and status. Once
+   `MarloweParams`, we use an instance of the `MarloweFollower` to track its history and status. Once
    we have called the "follow" endpoint of this app (passing it the `MarloweParams`), its observable
    state will tell us everything we need to know about the contract, and will be updated when it changes.
+
+Note: to use this type directly in the `marlowe-pab` (the PAB bundled with the Marlowe apps), these
+names need to match those in `marlowe/pab/Main.hs`. To use the ContractExe type with the paths to the
+executables (with the PAB *without* the Marlowe apps bundled), we can call them whatever we like.
 -}
 data PlutusApp
   = MarloweApp
-  | WalletCompanionApp
-  | WalletFollowerApp
+  | WalletCompanion
+  | MarloweFollower
+
+derive instance eqPlutusApp :: Eq PlutusApp
+
+derive instance genericPlutusApp :: Generic PlutusApp _
+
+instance encodePlutusApp :: Encode PlutusApp where
+  encode value = genericEncode defaultOptions value
+
+instance decodePlutusApp :: Decode PlutusApp where
+  decode value = genericDecode defaultOptions value
+
+instance plutusAppContractActivationId :: ContractActivationId PlutusApp where
+  activateContract = defaultActivateContract
+  deactivateContract = defaultDeactivateContract
+  getContractInstanceClientState = defaultGetContractInstanceClientState
+  invokeEndpoint = defaultInvokeEndpoint
+  getWalletContractInstances = defaultGetWalletContractInstances
+  getAllContractInstances = defaultGetAllContractInstances
+  getContractDefinitions = defaultGetContractDefinitions
 
 {-
 In order to activate instances of the Plutus "contracts" (or apps) in the PAB, we need to pass the path
@@ -59,26 +83,26 @@ paths (in the format that the PAB expects).
 -}
 foreign import marloweAppPath_ :: String
 
-foreign import walletCompanionAppPath_ :: String
+foreign import walletCompanionPath_ :: String
 
-foreign import walletFollowerAppPath_ :: String
+foreign import marloweFollowerPath_ :: String
 
 plutusAppPath :: PlutusApp -> ContractExe
 plutusAppPath MarloweApp = ContractExe { contractPath: marloweAppPath_ }
 
-plutusAppPath WalletCompanionApp = ContractExe { contractPath: walletCompanionAppPath_ }
+plutusAppPath WalletCompanion = ContractExe { contractPath: walletCompanionPath_ }
 
-plutusAppPath WalletFollowerApp = ContractExe { contractPath: walletFollowerAppPath_ }
+plutusAppPath MarloweFollower = ContractExe { contractPath: marloweFollowerPath_ }
 
 plutusAppType :: ContractExe -> Maybe PlutusApp
 plutusAppType exe
   | exe == plutusAppPath MarloweApp = Just MarloweApp
 
 plutusAppType exe
-  | exe == plutusAppPath WalletCompanionApp = Just WalletCompanionApp
+  | exe == plutusAppPath WalletCompanion = Just WalletCompanion
 
 plutusAppType exe
-  | exe == plutusAppPath WalletFollowerApp = Just WalletFollowerApp
+  | exe == plutusAppPath MarloweFollower = Just MarloweFollower
 
 plutusAppType _ = Nothing
 
@@ -139,22 +163,15 @@ type MarloweData
     , marloweState :: State
     }
 
--- This is the observable state of the `FollowerContract`. The `MarloweParams` identify the
+-- This is the observable state of the `MarloweFollower`. The `MarloweParams` identify the
 -- the Marlowe contract on the blockchain, the `MarloweData` represents the initial contract
--- and state, and the array of `TransactionInput` records all the transactions of the
--- contract so far.
-newtype History
-  = History (Tuple3 MarloweParams MarloweData (Array TransactionInput))
-
-derive instance newtypeHistory :: Newtype History _
-
-derive instance genericHistory :: Generic History _
-
-instance encodeHistory :: Encode History where
-  encode value = genericEncode defaultOptions value
-
-instance decodeHistory :: Decode History where
-  decode value = genericDecode defaultOptions value
+-- and state, and the array of `TransactionInput`s records all the transactions of the
+-- contract so far.  The value is `None` when the app is first activated, before the "follow"
+-- endpoint has been called (and the PAB has had time to settle).
+type ContractHistory
+  = { chParams :: Maybe (Tuple MarloweParams MarloweData)
+    , chHistory :: Array TransactionInput
+    }
 
 -- HACK: rolling my own websocket type to see if this helps
 data CombinedWSStreamToServer

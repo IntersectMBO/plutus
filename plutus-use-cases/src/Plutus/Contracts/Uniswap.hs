@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- | A decentralized exchange for arbitrary token pairs following the
 -- [Uniswap protocol](https://uniswap.org/whitepaper.pdf).
 --
@@ -13,9 +14,11 @@ module Plutus.Contracts.Uniswap
   , module OffChain
   , module Types
   , module Pool
+  , module Trace
   ) where
 
 import           Plutus.Contracts.Uniswap.OffChain as OffChain
 import           Plutus.Contracts.Uniswap.OnChain  as OnChain
 import           Plutus.Contracts.Uniswap.Pool     as Pool
+import           Plutus.Contracts.Uniswap.Trace    as Trace
 import           Plutus.Contracts.Uniswap.Types    as Types

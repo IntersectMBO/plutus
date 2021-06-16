@@ -113,7 +113,7 @@ genData =
     in
     Gen.recursive Gen.choice
         [ I <$> Gen.integral (Range.linear (-100000) 100000)
-        , B <$> Gen.bytes (Range.linear 0 1000) ]
+        , B <$> Gen.bytes (Range.linear 0 64) ]
         [ Constr <$> positiveInteger <*> constructorArgList
         , List <$> constructorArgList
         , Map <$> kvMapList

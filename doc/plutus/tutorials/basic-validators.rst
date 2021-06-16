@@ -84,7 +84,7 @@ Using the validation context
 .. Still have issues generating the haddock for plutus-ledger, unfortunately
 
 Validators have access to the :term:`validation context` as their third argument.
-This will always be a value of type ``Ledger.Validation.ValidatorCtx`` encoded as ``Data``.
+This will always be a value of type :hsobj:`Plutus.V1.Ledger.Contexts.ScriptContext` encoded as ``Data``.
 
 The validation context gives validators a great deal of power, because it allows them to inspect other inputs and outputs of the current transaction.
 For example, here is a validator that will only accept the transaction if a particular payment is made as part of it.
@@ -93,14 +93,41 @@ For example, here is a validator that will only accept the transaction if a part
    :start-after: BLOCK4
    :end-before: BLOCK5
 
-This makes use of some useful functions from ``Ledger.Validation`` for working with validation contexts.
+This makes use of some useful functions from :hsmod:`Ledger` for working with script contexts.
 
-Automatically wrapping validator functions
-------------------------------------------
+Using the typed interface
+-------------------------
 
-It is annoying to have to manually decode all the arguments from ``Data`` and call ``check`` at the end.
-Fortunately, we provide the ``Ledger.Typed.Scripts.wrapValidator`` function to do this for you.
+The interface we have used so far is quite low level:
+
+- You need to manually decode the arguments from ``Data``
+- You need to manually call ``check`` at the end.
+- You can accidentally get the arguments to your scripts wrong.
+
+There is a higher-level interface in :hsmod:`Ledger.Typed.Scripts` which handles some of this for you.
+
+To use it, we first need to define a datatype that we can use to identify the particular validator that we are working on.
+This data type is empty, because we're just going to use it as a "name": it helps the Haskell type system know what to look for.
+
+We then define an instance of :hsobj:`Ledger.Typed.Scripts.Validators.ValidatorTypes` for our "name".
+This tells the compiler what the Haskell types for the redeemer and datum are, so that the compiler can check whether we're using the right ones later.
 
 .. literalinclude:: BasicValidators.hs
    :start-after: BLOCK5
    :end-before: BLOCK6
+
+We can then write a nice version of our validator that *only* uses the Haskell types!
+This is what we would write if we completely forgot about all the concerns about ``Data``, returning errors, and so on.
+To turn this into a validator like we saw before, we can use :hsobj:`Ledger.Typed.Scripts.Validators.wrapValidator`.
+This takes advantage of the information we provided in our ``ScriptType`` instance to automatically work out how to decode the arguments.
+
+.. literalinclude:: BasicValidators.hs
+   :start-after: BLOCK6
+   :end-before: BLOCK7
+
+Finally, we can use the :hsobj:`Ledger.Typed.Scripts.Validators.mkTypedValidator` function to get a :hsobj:`Ledger.Typed.Scripts.Validators.TypedValidator`.
+This packages up the compiled validator for us, letting us pull out the compiled version, the hash, the address, and a few other useful things.
+
+.. literalinclude:: BasicValidators.hs
+   :start-after: BLOCK7
+   :end-before: BLOCK8

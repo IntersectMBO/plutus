@@ -1,6 +1,6 @@
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module GameSimulations where
 
@@ -22,9 +22,9 @@ simulations = [basicGame, badGuess]
         Simulation
             { simulationName = "Basic Game"
             , simulationId = 1
-            , simulationWallets = simulatorWallet registeredKnownCurrencies 100 <$> [wallet1, wallet2]
+            , simulationWallets = simulatorWallet registeredKnownCurrencies 100_000_000 <$> [wallet1, wallet2]
             , simulationActions =
-                  [ lock wallet1 "Plutus" 50
+                  [ lock wallet1 "Plutus" 50_000_000
                   , AddBlocks 1
                   , guess wallet2 "Plutus"
                   , AddBlocks 1
@@ -34,9 +34,9 @@ simulations = [basicGame, badGuess]
         Simulation
             { simulationName = "One Bad Guess"
             , simulationId = 2
-            , simulationWallets = simulatorWallet registeredKnownCurrencies 100 <$> [wallet1, wallet2, wallet3]
+            , simulationWallets = simulatorWallet registeredKnownCurrencies 100_000_000 <$> [wallet1, wallet2, wallet3]
             , simulationActions =
-                  [ lock wallet1 "Plutus" 50
+                  [ lock wallet1 "Plutus" 50_000_000
                   , AddBlocks 1
                   , guess wallet2 "Marlowe"
                   , AddBlocks 1

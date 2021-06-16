@@ -25,8 +25,18 @@
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = ".";
-      dataFiles = [];
-      extraSrcFiles = [ "ChangeLog.md" "test/messages.cddl" ];
+      dataFiles = [
+        "test-cddl/specs/handshake-node-to-node.cddl"
+        "test-cddl/specs/handshake-node-to-client.cddl"
+        "test-cddl/specs/chain-sync.cddl"
+        "test-cddl/specs/block-fetch.cddl"
+        "test-cddl/specs/tx-submission.cddl"
+        "test-cddl/specs/tx-submission2.cddl"
+        "test-cddl/specs/keep-alive.cddl"
+        "test-cddl/specs/local-tx-submission.cddl"
+        "test-cddl/specs/local-state-query.cddl"
+        ];
+      extraSrcFiles = [ "ChangeLog.md" ];
       extraTmpFiles = [];
       extraDocFiles = [];
       };
@@ -50,6 +60,7 @@
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."random" or (errorHandler.buildDepError "random"))
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+          (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
@@ -60,6 +71,7 @@
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           ];
         buildable = true;
         modules = [
@@ -79,6 +91,7 @@
           "Ouroboros/Network/BlockFetch/Decision"
           "Ouroboros/Network/BlockFetch/DeltaQ"
           "Ouroboros/Network/BlockFetch/State"
+          "Ouroboros/Network/Counter"
           "Ouroboros/Network/DeltaQ"
           "Ouroboros/Network/Diffusion"
           "Ouroboros/Network/KeepAlive"
@@ -90,8 +103,10 @@
           "Ouroboros/Network/Tracers"
           "Ouroboros/Network/Point"
           "Ouroboros/Network/PeerSelection/Types"
+          "Ouroboros/Network/PeerSelection/EstablishedPeers"
           "Ouroboros/Network/PeerSelection/KnownPeers"
           "Ouroboros/Network/PeerSelection/LedgerPeers"
+          "Ouroboros/Network/PeerSelection/LocalRootPeers"
           "Ouroboros/Network/PeerSelection/RootPeersDNS"
           "Ouroboros/Network/PeerSelection/Governor"
           "Ouroboros/Network/Protocol/ChainSync/Client"
@@ -151,6 +166,7 @@
             (hsPkgs."pipes" or (errorHandler.buildDepError "pipes"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -161,6 +177,7 @@
             (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
             (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
             (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
+            (hsPkgs."ouroboros-network-testing" or (errorHandler.buildDepError "ouroboros-network-testing"))
             (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
             ];
           buildable = true;
@@ -245,6 +262,7 @@
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."splitmix" or (errorHandler.buildDepError "splitmix"))
             (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+            (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
@@ -270,17 +288,21 @@
           modules = [
             "Ouroboros/Network/BlockFetch/Examples"
             "Ouroboros/Network/MockNode"
-            "Ouroboros/Network/PeerSelection/Test"
-            "Ouroboros/Network/NodeToNode/Version/Test"
-            "Ouroboros/Network/NodeToClient/Version/Test"
             "Test/AnchoredFragment"
             "Test/Chain"
             "Test/LedgerPeers"
-            "Test/Ouroboros/Network/Utils"
             "Test/Ouroboros/Network/BlockFetch"
             "Test/Ouroboros/Network/KeepAlive"
             "Test/Ouroboros/Network/MockNode"
             "Test/Ouroboros/Network/TxSubmission"
+            "Test/Ouroboros/Network/PeerSelection"
+            "Test/Ouroboros/Network/PeerSelection/Instances"
+            "Test/Ouroboros/Network/PeerSelection/LocalRootPeers"
+            "Test/Ouroboros/Network/PeerSelection/MockEnvironment"
+            "Test/Ouroboros/Network/PeerSelection/PeerGraph"
+            "Test/Ouroboros/Network/PeerSelection/Script"
+            "Test/Ouroboros/Network/NodeToNode/Version"
+            "Test/Ouroboros/Network/NodeToClient/Version"
             "Test/Mux"
             "Test/Pipe"
             "Test/Socket"
@@ -300,12 +322,16 @@
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
             (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."pipes" or (errorHandler.buildDepError "pipes"))
             (hsPkgs."process-extras" or (errorHandler.buildDepError "process-extras"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."temporary" or (errorHandler.buildDepError "temporary"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
             (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
@@ -324,4 +350,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/12; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/15; }

@@ -1,7 +1,8 @@
+-- TODO: Rename to Marlowe.Term
 module Marlowe.Holes where
 
 import Prelude
-import Data.Array (foldMap)
+import Data.Array (foldMap, mapMaybe)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
@@ -11,11 +12,13 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', over)
+import Data.Lens (Lens', over, to, view)
 import Data.Lens.Record (prop)
+import Data.List (List(..), fromFoldable, (:))
+import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set (Set)
 import Data.Set as Set
@@ -24,11 +27,14 @@ import Data.String.CodeUnits (dropRight)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\), type (/\))
 import Effect.Exception.Unsafe (unsafeThrow)
 import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
+import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
-import Marlowe.Semantics (PubKey, Rational(..), TokenName, CurrencySymbol)
+import Marlowe.Semantics (class HasTimeout, CurrencySymbol, IntervalResult(..), PubKey, Rational(..), Timeouts(..), TokenName, _slotInterval, fixInterval, ivFrom, ivTo, timeouts)
 import Marlowe.Semantics as S
+import Marlowe.Template (class Fillable, class Template, Placeholders(..), TemplateContent, fillTemplate, getPlaceholderIds)
 import Monaco (IRange)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
 import Text.Pretty as P
@@ -365,6 +371,18 @@ instance hasArgsTerm :: Args a => Args (Term a) where
   hasNestedArgs (Term a _) = hasNestedArgs a
   hasNestedArgs _ = false
 
+instance templateTerm :: (Template a b, Monoid b) => Template (Term a) b where
+  getPlaceholderIds (Term a _) = getPlaceholderIds a
+  getPlaceholderIds (Hole _ _ _) = mempty
+
+instance fillableTerm :: Fillable a b => Fillable (Term a) b where
+  fillTemplate b (Term a loc) = Term (fillTemplate b a) loc
+  fillTemplate b a = a
+
+instance hasTimeoutTerm :: HasTimeout a => HasTimeout (Term a) where
+  timeouts (Term a _) = timeouts a
+  timeouts (Hole _ _ _) = Timeouts { maxTime: zero, minTime: Nothing }
+
 mkHole :: forall a. String -> Location -> Term a
 mkHole name range = Hole name Proxy range
 
@@ -543,6 +561,18 @@ instance hasArgsTimeout :: Args Timeout where
   hasNestedArgs (Slot _) = false
   hasNestedArgs x = genericHasNestedArgs x
 
+instance templateTimeout :: Template Timeout Placeholders where
+  getPlaceholderIds (SlotParam slotParamId) = Placeholders (unwrap (mempty :: Placeholders)) { slotPlaceholderIds = Set.singleton slotParamId }
+  getPlaceholderIds (Slot x) = mempty
+
+instance fillableTimeout :: Fillable Timeout TemplateContent where
+  fillTemplate placeholders v@(SlotParam slotParamId) = maybe v Slot $ Map.lookup slotParamId (unwrap placeholders).slotContent
+  fillTemplate _ (Slot x) = Slot x
+
+instance hasTimeoutTimeout :: HasTimeout Timeout where
+  timeouts (Slot slot) = Timeouts { maxTime: (S.Slot slot), minTime: Just (S.Slot slot) }
+  timeouts (SlotParam _) = Timeouts { maxTime: zero, minTime: Nothing }
+
 instance timeoutFromTerm :: FromTerm Timeout EM.Timeout where
   fromTerm (Slot b) = pure $ EM.Slot b
   fromTerm (SlotParam b) = pure $ EM.SlotParam b
@@ -673,6 +703,20 @@ instance hasArgsAction :: Args Action where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateAction :: Template Action Placeholders where
+  getPlaceholderIds (Deposit accId party tok val) = getPlaceholderIds val
+  getPlaceholderIds (Choice choId bounds) = mempty
+  getPlaceholderIds (Notify obs) = getPlaceholderIds obs
+
+instance fillableAction :: Fillable Action TemplateContent where
+  fillTemplate placeholders action = case action of
+    Deposit accId party tok val -> Deposit accId party tok $ go val
+    Choice _ _ -> action
+    Notify obs -> Notify $ go obs
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
 instance actionFromTerm :: FromTerm Action EM.Action where
   fromTerm (Deposit a b c d) = EM.Deposit <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
   fromTerm (Choice a b) = EM.Choice <$> fromTerm a <*> (traverse fromTerm b)
@@ -739,8 +783,25 @@ instance hasArgsCase :: Args Case where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateCase :: Template Case Placeholders where
+  getPlaceholderIds (Case act c) = getPlaceholderIds act <> getPlaceholderIds c
+
+instance fillableCase :: Fillable Case TemplateContent where
+  fillTemplate placeholders (Case act c) = Case (go act) (go c)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
+instance hasTimeoutCase :: HasTimeout Case where
+  timeouts (Case _ contract) = timeouts contract
+
 instance caseFromTerm :: FromTerm Case EM.Case where
   fromTerm (Case a b) = EM.Case <$> fromTerm a <*> fromTerm b
+
+instance semanticCaseFromTerm :: FromTerm Case S.Case where
+  fromTerm termCase = do
+    (emCase :: EM.Case) <- fromTerm termCase
+    toCore emCase
 
 instance caseMarloweType :: IsMarloweType Case where
   marloweType _ = CaseType
@@ -779,6 +840,40 @@ instance hasArgsValue :: Args Value where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateValue :: Template Value Placeholders where
+  getPlaceholderIds (ConstantParam constantParamId) = Placeholders (unwrap (mempty :: Placeholders)) { valuePlaceholderIds = Set.singleton constantParamId }
+  getPlaceholderIds (Constant _) = mempty
+  getPlaceholderIds (AvailableMoney _ _) = mempty
+  getPlaceholderIds (NegValue v) = getPlaceholderIds v
+  getPlaceholderIds (AddValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (SubValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (MulValue lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (Scale _ v) = getPlaceholderIds v
+  getPlaceholderIds (ChoiceValue _) = mempty
+  getPlaceholderIds SlotIntervalStart = mempty
+  getPlaceholderIds SlotIntervalEnd = mempty
+  getPlaceholderIds (UseValue _) = mempty
+  getPlaceholderIds (Cond obs lhs rhs) = getPlaceholderIds obs <> getPlaceholderIds lhs <> getPlaceholderIds rhs
+
+instance fillableValue :: Fillable Value TemplateContent where
+  fillTemplate placeholders val = case val of
+    Constant _ -> val
+    ConstantParam constantParamId -> maybe val Constant $ Map.lookup constantParamId (unwrap placeholders).valueContent
+    AvailableMoney _ _ -> val
+    NegValue v -> NegValue $ go v
+    AddValue lhs rhs -> AddValue (go lhs) (go rhs)
+    SubValue lhs rhs -> SubValue (go lhs) (go rhs)
+    MulValue lhs rhs -> MulValue (go lhs) (go rhs)
+    Scale f v -> Scale f $ go v
+    ChoiceValue _ -> val
+    SlotIntervalStart -> val
+    SlotIntervalEnd -> val
+    UseValue _ -> val
+    Cond obs lhs rhs -> Cond (go obs) (go lhs) (go rhs)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
 instance valueFromTerm :: FromTerm Value EM.Value where
   fromTerm (AvailableMoney a b) = EM.AvailableMoney <$> fromTerm a <*> fromTerm b
   fromTerm (Constant a) = pure $ EM.Constant a
@@ -793,6 +888,11 @@ instance valueFromTerm :: FromTerm Value EM.Value where
   fromTerm SlotIntervalEnd = pure EM.SlotIntervalEnd
   fromTerm (UseValue a) = EM.UseValue <$> fromTerm a
   fromTerm (Cond c a b) = EM.Cond <$> fromTerm c <*> fromTerm a <*> fromTerm b
+
+instance semanticValueFromTerm :: FromTerm Value S.Value where
+  fromTerm val = do
+    (emVal :: EM.Value) <- fromTerm val
+    toCore emVal
 
 instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
@@ -837,6 +937,36 @@ instance hasArgsObservation :: Args Observation where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateObservation :: Template Observation Placeholders where
+  getPlaceholderIds (AndObs lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (OrObs lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (NotObs v) = getPlaceholderIds v
+  getPlaceholderIds (ChoseSomething _) = mempty
+  getPlaceholderIds (ValueGE lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueGT lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueLT lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueLE lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds (ValueEQ lhs rhs) = getPlaceholderIds lhs <> getPlaceholderIds rhs
+  getPlaceholderIds TrueObs = mempty
+  getPlaceholderIds FalseObs = mempty
+
+instance fillableObservation :: Fillable Observation TemplateContent where
+  fillTemplate placeholders obs = case obs of
+    AndObs lhs rhs -> AndObs (go lhs) (go rhs)
+    OrObs lhs rhs -> OrObs (go lhs) (go rhs)
+    NotObs v -> NotObs (go v)
+    ChoseSomething _ -> obs
+    ValueGE lhs rhs -> ValueGE (go lhs) (go rhs)
+    ValueGT lhs rhs -> ValueGT (go lhs) (go rhs)
+    ValueLT lhs rhs -> ValueLT (go lhs) (go rhs)
+    ValueLE lhs rhs -> ValueLE (go lhs) (go rhs)
+    ValueEQ lhs rhs -> ValueEQ (go lhs) (go rhs)
+    TrueObs -> obs
+    FalseObs -> obs
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
 instance observationFromTerm :: FromTerm Observation EM.Observation where
   fromTerm (AndObs a b) = EM.AndObs <$> fromTerm a <*> fromTerm b
   fromTerm (OrObs a b) = EM.OrObs <$> fromTerm a <*> fromTerm b
@@ -849,6 +979,11 @@ instance observationFromTerm :: FromTerm Observation EM.Observation where
   fromTerm (ValueEQ a b) = EM.ValueEQ <$> fromTerm a <*> fromTerm b
   fromTerm TrueObs = pure EM.TrueObs
   fromTerm FalseObs = pure EM.FalseObs
+
+instance semanticObservationFromTerm :: FromTerm Observation S.Observation where
+  fromTerm obs = do
+    (emObs :: EM.Observation) <- fromTerm obs
+    toCore emObs
 
 instance observationIsMarloweType :: IsMarloweType Observation where
   marloweType _ = ObservationType
@@ -887,6 +1022,39 @@ instance hasArgsContract :: Args Contract where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance templateContract :: Template Contract Placeholders where
+  getPlaceholderIds Close = mempty
+  getPlaceholderIds (Pay accId payee tok val cont) = getPlaceholderIds val <> getPlaceholderIds cont
+  getPlaceholderIds (If obs cont1 cont2) = getPlaceholderIds obs <> getPlaceholderIds cont1 <> getPlaceholderIds cont2
+  getPlaceholderIds (When cases tim cont) = foldMap getPlaceholderIds cases <> getPlaceholderIds tim <> getPlaceholderIds cont
+  getPlaceholderIds (Let varId val cont) = getPlaceholderIds val <> getPlaceholderIds cont
+  getPlaceholderIds (Assert obs cont) = getPlaceholderIds obs <> getPlaceholderIds cont
+
+instance fillableContract :: Fillable Contract TemplateContent where
+  fillTemplate placeholders contract = case contract of
+    Close -> Close
+    Pay accId payee tok val cont -> Pay accId payee tok (go val) (go cont)
+    If obs cont1 cont2 -> If (go obs) (go cont1) (go cont2)
+    When cases tim cont -> When (map go cases) (go tim) (go cont)
+    Let varId val cont -> Let varId (go val) (go cont)
+    Assert obs cont -> Assert (go obs) (go cont)
+    where
+    go :: forall a. (Fillable a TemplateContent) => a -> a
+    go = fillTemplate placeholders
+
+instance hasTimeoutContract :: HasTimeout Contract where
+  timeouts Close = Timeouts { maxTime: zero, minTime: Nothing }
+  timeouts (Pay _ _ _ _ contract) = timeouts contract
+  timeouts (If _ contractTrue contractFalse) = timeouts [ contractTrue, contractFalse ]
+  timeouts (When cases timeoutTerm contract) =
+    timeouts
+      [ timeouts cases
+      , timeouts timeoutTerm
+      , timeouts contract
+      ]
+  timeouts (Let _ _ contract) = timeouts contract
+  timeouts (Assert _ contract) = timeouts contract
+
 instance contractFromTerm :: FromTerm Contract EM.Contract where
   fromTerm Close = pure EM.Close
   fromTerm (Pay a b c d e) = EM.Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d <*> fromTerm e
@@ -894,6 +1062,11 @@ instance contractFromTerm :: FromTerm Contract EM.Contract where
   fromTerm (When as b c) = EM.When <$> (traverse fromTerm as) <*> fromTerm b <*> fromTerm c
   fromTerm (Let a b c) = EM.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
   fromTerm (Assert a b) = EM.Assert <$> fromTerm a <*> fromTerm b
+
+instance semanticContractFromTerm :: FromTerm Contract S.Contract where
+  fromTerm contract = do
+    (emContract :: EM.Contract) <- fromTerm contract
+    toCore emContract
 
 instance contractIsMarloweType :: IsMarloweType Contract where
   marloweType _ = ContractType
@@ -943,3 +1116,187 @@ termToValue _ = Nothing
 
 class FromTerm a b where
   fromTerm :: a -> Maybe b
+
+---------------------------------------------------------------------------------------------------
+--
+-- Semantic functions
+--
+-- These functions and data structures are a trimmed down version from the correspondig Marlowe.Semantics
+-- counterparts in order to work with Term contracts instead of actual contracts. The idea is to be able
+-- to use them in the context of the simulator, so we can know the location of the current step instead of just
+-- showing the continuation that needs to be evaluated.
+-- The algorithm chosen for this task is very naive and not the most performant. We just track the out-contract
+-- and rely on the original semantic implementation for the rest of the details (payments, warnings and state).
+-- This means that we are converting from Term -> Extended -> Contract and calling the original code more than
+-- once per transaction. In practice the added overhead should not matter as the simulation is run on the user
+-- machine, and you only simulate one contract at a time.
+--
+-- Other approaches that were considered and discarded:
+--  * Adapt a full copy-paste of the semantic code:
+--      The idea would be to implement all the semantic logic in this module so we don't need to call the original
+--      code. It would have better performance than the current approach but it would be harder to maintain. Currently
+--      the purescript semantic implementation is a copy of the haskell one, and we don't have any test to check that
+--      they behave the same. Using this approach would mean that we have a 3rd copy and whenever we change the
+--      semantics, we'd need to change all 3 implementations. Eventually, we could get rid of the purescript semantic
+--      implementation if we use a project like ghcjs or asterius to run the haskell version in JS/WASM. If we manage
+--      to do that, then this option would be viable, as it's easier to test that the implementations are in-sync.
+--  * Make the semantic more abstract:
+--      The idea would be to change the semantic implementation so we can make it work with the Term and the Semantic
+--      code using the same algorithm. At the moment of considering this, I don't know what type of abstraction should
+--      we use to solve this, and moreover, there is value on keeping the semantic code as "boring haskell/purescript".
+--
+-- TODO: create a module in web commons for Term similary how Extended is done, and put this into it's own file
+----
+-- This version of the TransactionOutput is similar to the Semantic version, but we've changed Error to SemanticError
+-- and added an InvalidContract for cases like when you are calling computeTransaction on a contract with holes or
+-- with template parameters
+data TransactionOutput
+  = TransactionOutput
+    { txOutWarnings :: List S.TransactionWarning
+    , txOutPayments :: List S.Payment
+    , txOutState :: S.State
+    , txOutContract :: Term Contract
+    }
+  | SemanticError S.TransactionError
+  | InvalidContract
+
+-- This function is like Semantics.computeTransaction,
+computeTransaction :: S.TransactionInput -> S.State -> Term Contract -> TransactionOutput
+computeTransaction tx state contract =
+  let
+    inputs = (unwrap tx).inputs
+
+    mSemanticContract = fromTerm contract
+  in
+    case mSemanticContract /\ fixInterval (unwrap tx).interval state of
+      Nothing /\ _ -> InvalidContract
+      _ /\ IntervalError error -> SemanticError (S.TEIntervalError error)
+      Just sContract /\ IntervalTrimmed env fixState ->
+        let
+          semanticResult = S.computeTransaction tx state sContract
+
+          termResult = applyAllInputs env fixState contract inputs
+        in
+          case semanticResult /\ termResult of
+            S.TransactionOutput o /\ Just txOutContract ->
+              TransactionOutput
+                { txOutWarnings: o.txOutWarnings
+                , txOutPayments: o.txOutPayments
+                , txOutState: o.txOutState
+                , txOutContract
+                }
+            S.Error error /\ _ -> SemanticError error
+            _ /\ Nothing -> InvalidContract
+
+applyAllInputs :: S.Environment -> S.State -> Term Contract -> (List S.Input) -> Maybe (Term Contract)
+applyAllInputs env state startContract inputs = do
+  (curState /\ cont) <- reduceContractUntilQuiescent env state startContract
+  semanticCont <- fromTerm cont
+  case inputs of
+    Nil -> Just cont
+    (input : rest) ->
+      let
+        semanticApplyResult = S.applyInput env curState input semanticCont
+
+        termsApplyResult = applyInput env curState input cont
+      in
+        case semanticApplyResult /\ termsApplyResult of
+          (S.Applied _ newState _) /\ (Just nextContract) -> applyAllInputs env newState nextContract rest
+          _ -> Nothing
+
+applyCases :: S.Environment -> S.State -> S.Input -> List Case -> Maybe (Term Contract)
+applyCases env state input cases = case input, cases of
+  S.IDeposit accId1 party1 tok1 amount, (Case (Term (Deposit accId2 party2 tok2 val) _) cont) : rest ->
+    let
+      val' = S.evalValue env state <$> fromTerm val
+    in
+      if Just accId1 == fromTerm accId2
+        && (Just party1 == fromTerm party2)
+        && (Just tok1 == fromTerm tok2)
+        && (Just amount == val') then
+        Just cont
+      else
+        applyCases env state input rest
+  S.IChoice choId1 choice, (Case (Term (Choice choId2 bounds) _) cont) : rest ->
+    let
+      bounds' = mapMaybe fromTerm bounds
+    in
+      if Just choId1 == fromTerm choId2 && S.inBounds choice bounds' then
+        Just cont
+      else
+        applyCases env state input rest
+  S.INotify, (Case (Term (Notify obs) _) cont) : rest ->
+    if Just true == (S.evalObservation env state <$> fromTerm obs) then
+      Just cont
+    else
+      applyCases env state input rest
+  _, _ : rest -> applyCases env state input rest
+  _, Nil -> Nothing
+
+applyInput :: S.Environment -> S.State -> S.Input -> Term Contract -> Maybe (Term Contract)
+applyInput env state input (Term (When cases _ _) _) = applyCases env state input (List.mapMaybe termToValue $ fromFoldable cases)
+
+applyInput _ _ _ _ = Nothing
+
+-- This function is a simplified version of Semantics.reduceContractUntilQuiescent, we don't care
+-- in here about the warnings or payments, but we do need to keep track of the real semantic state
+-- as some continuations could depend on previous payments.
+reduceContractUntilQuiescent :: S.Environment -> S.State -> Term Contract -> Maybe (S.State /\ Term Contract)
+reduceContractUntilQuiescent env startState term@(Term startContract _) = do
+  semanticContract <- fromTerm startContract
+  let
+    semanticStep = S.reduceContractStep env startState semanticContract
+
+    termsStep = reduceContractStep env startState startContract
+  case semanticStep /\ termsStep of
+    S.Reduced _ _ newState _ /\ Reduced newContract -> reduceContractUntilQuiescent env newState newContract
+    -- This case is thought for the Close contract, because in the semantic version, running a contract step
+    -- can do a payment (so the state is reduced), but in this version the close is never reduced
+    S.Reduced _ _ newState S.Close /\ NotReduced -> Just (startState /\ term)
+    S.NotReduced /\ NotReduced -> Just (startState /\ term)
+    _ -> Nothing
+
+reduceContractUntilQuiescent _ _ (Hole _ _ _) = Nothing
+
+-- This structure represents the result of doing a reduceContractStep and its a simplified view
+-- of the Semantic counterpart.
+-- We group all possible errors inside ReduceError with a string representation of the error
+-- that will never be shown, but it's useful when reading the code
+data ReduceStepResult
+  = Reduced (Term Contract)
+  | NotReduced
+  | ReduceError String
+
+-- This function is a simplified version of Semantics.reduceContractStep, but we don't calculate the
+-- new state, instead we rely on the original implementation.
+reduceContractStep :: S.Environment -> S.State -> Contract -> ReduceStepResult
+reduceContractStep env state contract = case contract of
+  Close -> NotReduced
+  Pay accId payee tok val cont -> Reduced cont
+  If obsTerm cont1 cont2 -> case fromTerm obsTerm of
+    Just obs ->
+      Reduced
+        if S.evalObservation env state obs then
+          cont1
+        else
+          cont2
+    Nothing -> ReduceError "this function should not be called in a contract with holes"
+  When _ (Hole _ _ _) _ -> ReduceError "this function should not be called in a contract with holes"
+  When _ (Term (SlotParam _) _) _ -> ReduceError "this function should not be called with slot params"
+  When _ (Term (Slot timeout) _) nextContract ->
+    let
+      sTimeout = S.Slot timeout
+
+      startSlot = view (_slotInterval <<< to ivFrom) env
+
+      endSlot = view (_slotInterval <<< to ivTo) env
+    in
+      if endSlot < sTimeout then
+        NotReduced
+      else
+        if sTimeout <= startSlot then
+          Reduced nextContract
+        else
+          ReduceError "AmbiguousSlotIntervalReductionError"
+  Let _ _ nextContract -> Reduced nextContract
+  Assert _ cont -> Reduced cont

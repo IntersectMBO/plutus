@@ -13,7 +13,7 @@
       specVersion = "2.2";
       identifier = { name = "cardano-prelude-test"; version = "0.1.0.0"; };
       license = "MIT";
-      copyright = "2018 IOHK";
+      copyright = "2018-2021 IOHK";
       maintainer = "operations@iohk.io";
       author = "IOHK";
       homepage = "";
@@ -90,4 +90,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/9; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/12; }

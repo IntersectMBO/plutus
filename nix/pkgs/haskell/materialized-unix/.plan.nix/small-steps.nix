@@ -10,7 +10,7 @@
   {
     flags = { development = false; sts_assert = false; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "small-steps"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -33,19 +33,21 @@
     components = {
       "library" = {
         depends = [
+          (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."ansi-wl-pprint" or (errorHandler.buildDepError "ansi-wl-pprint"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-          (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."formatting" or (errorHandler.buildDepError "formatting"))
           (hsPkgs."free" or (errorHandler.buildDepError "free"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
+          (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
@@ -61,6 +63,7 @@
           "Data/CanonicalMaps"
           "Data/MemoBytes"
           "Data/Coders"
+          "Data/Pulse"
           "Control/Provenance"
           "Control/Iterate/SetAlgebra"
           "Control/Iterate/Collect"
@@ -68,19 +71,5 @@
           ];
         hsSourceDirs = [ "src" ];
         };
-      tests = {
-        "doctests" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."doctest" or (errorHandler.buildDepError "doctest"))
-            ];
-          build-tools = [
-            (hsPkgs.buildPackages.doctest-discover.components.exes.doctest-discover or (pkgs.buildPackages.doctest-discover or (errorHandler.buildToolDepError "doctest-discover:doctest-discover")))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "test" ];
-          mainPath = [ "DoctestDiscover.hs" ];
-          };
-        };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/29; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/35; }

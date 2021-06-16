@@ -13,10 +13,9 @@ module PlutusCore.Examples.Everything
 
 import           PlutusPrelude
 
-import           PlutusCore.Builtins
+import           PlutusCore.Default
 import           PlutusCore.FsTree
 import           PlutusCore.MkPlc
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Type
 

@@ -20,6 +20,8 @@ module PlutusCore.Generators.NEAT.Spec
   , TestFail (..)
   , testCaseGen
   , bigTest
+  , bigTestTermG_NO_LIST
+  , bigTestTypeG_NO_LIST
   , packAssertion
   , tynames
   , names
@@ -34,12 +36,13 @@ import           PlutusCore.Generators.NEAT.Common
 import           PlutusCore.Generators.NEAT.Term
 import           PlutusCore.Normalize
 import           PlutusCore.Pretty
+
 import qualified UntypedPlutusCore                        as U
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as U
 
 import           Control.Monad.Except
 import           Control.Search                           (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                             (Cool, toCool, (!=>))
+import           Data.Coolean                             (Cool, false, toCool, true, (!=>), (&&&))
 import           Data.Either
 import           Data.Maybe
 import qualified Data.Stream                              as Stream
@@ -58,7 +61,7 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 13
+  { genDepth = 11
   , genMode  = OF
   }
 
@@ -134,7 +137,7 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
 -- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
@@ -152,14 +155,14 @@ prop_agree_termEval tyG tmG = do
 
   -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
 
   -- erase CK output
   let tmUCk = U.erase tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit U.defaultCekMachineCosts defBuiltinsRuntime (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekParameters (U.erase tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
@@ -455,3 +458,57 @@ bigTest s GenOptions{..} t f = testCaseInfo s $ do
   as <- search' genMode genDepth (\a ->  check t a)
   _  <- traverse (f t) as
   return $ show (length as)
+
+-- metatheory doesn't currently support the list builtin the ugly code
+-- below filters out types (and terms that contain types) that contain
+-- the list builtin
+
+-- does the type contain a list builtin?
+noListTypeG :: TypeG n -> Cool
+noListTypeG TyVarG{}             = false
+noListTypeG (TyFunG ty1 ty2)     = noListTypeG ty1 &&& noListTypeG ty2
+noListTypeG (TyIFixG ty1 _ ty2)  = noListTypeG ty1 &&& noListTypeG ty2
+noListTypeG (TyForallG _ ty)     = noListTypeG ty
+noListTypeG (TyBuiltinG TyListG) = false
+noListTypeG (TyBuiltinG _)       = true
+noListTypeG (TyLamG ty)          = noListTypeG ty
+noListTypeG (TyAppG ty1 ty2 _)   = noListTypeG ty1 &&& noListTypeG ty2
+
+-- does the term contain a list builtin?
+noListTermG :: TermG m n -> Cool
+noListTermG VarG{} = false
+noListTermG (LamAbsG tm) = noListTermG tm
+noListTermG (ApplyG tm1 tm2 ty) =
+  noListTermG tm1 &&& noListTermG tm2 &&& noListTypeG ty
+noListTermG (TyAbsG tm) = noListTermG tm
+noListTermG (TyInstG tm ty1 ty2 _) =
+  noListTermG tm &&& noListTypeG ty1 &&& noListTypeG ty2
+noListTermG ConstantG{} = true
+noListTermG BuiltinG{} = true
+noListTermG (WrapG tm) = noListTermG tm
+noListTermG (UnWrapG ty1 _ ty2 tm) =
+  noListTypeG ty1 &&& noListTypeG ty2 &&& noListTermG tm
+noListTermG (ErrorG ty) = noListTypeG ty
+
+-- below: special cases of bigTest that filter out builtin list types
+
+bigTestTermG_NO_LIST :: String
+                -> GenOptions
+                -> ClosedTypeG
+                -> (ClosedTypeG -> ClosedTermG -> Assertion)
+                -> TestTree
+bigTestTermG_NO_LIST s GenOptions{..} t f = testCaseInfo s $ do
+  as <- search' genMode genDepth (\a -> noListTypeG t &&& noListTermG a &&& check t a)
+  _  <- traverse (f t) as
+  return $ show (length as)
+
+bigTestTypeG_NO_LIST :: String
+                -> GenOptions
+                -> Kind ()
+                -> (Kind () -> ClosedTypeG -> Assertion)
+                -> TestTree
+bigTestTypeG_NO_LIST s GenOptions{..} t f = testCaseInfo s $ do
+  as <- search' genMode genDepth (\a -> noListTypeG a &&& check t a)
+  _  <- traverse (f t) as
+  return $ show (length as)
+

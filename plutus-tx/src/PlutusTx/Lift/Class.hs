@@ -30,9 +30,9 @@ import           PlutusIR.Compiler.Definitions
 import           PlutusIR.Compiler.Names
 import           PlutusIR.MkPir
 
+import qualified PlutusCore.Default            as PLC
 import qualified PlutusCore.MkPlc              as PLC
 import           PlutusCore.Quote
-import qualified PlutusCore.Universe           as PLC
 
 import           Control.Monad.Except          hiding (lift)
 import           Control.Monad.Reader          hiding (lift)

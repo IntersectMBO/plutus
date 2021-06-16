@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Ord (Ord(..), Max (..), Min (..)) where
+module PlutusTx.Ord (Ord(..), Max (..), Min (..), Ordering(..)) where
 
 import qualified PlutusTx.Builtins  as Builtins
 import           PlutusTx.Data

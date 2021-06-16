@@ -19,7 +19,7 @@ module Plutus.Contracts.MultiSig
     , MultiSigSchema
     , contract
     , lock
-    , scriptInstance
+    , typedValidator
     , validate
     ) where
 
@@ -35,11 +35,10 @@ import qualified Plutus.Contract.Typed.Tx as Tx
 import qualified PlutusTx                 as PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), foldMap)
 
-import           Prelude                  (Semigroup (..), foldMap)
+import           Prelude                  as Haskell (Semigroup (..), Show, foldMap)
 
 type MultiSigSchema =
-    BlockchainActions
-        .\/ Endpoint "lock" (MultiSig, Value)
+        Endpoint "lock" (MultiSig, Value)
         .\/ Endpoint "unlock" (MultiSig, [PubKeyHash])
 
 data MultiSig =
@@ -63,12 +62,12 @@ validate MultiSig{signatories, minNumSignatures} _ _ p =
     let present = length (filter (V.txSignedBy (scriptContextTxInfo p)) signatories)
     in traceIfFalse "not enough signatures" (present >= minNumSignatures)
 
-instance Scripts.ScriptType MultiSig where
+instance Scripts.ValidatorTypes MultiSig where
     type instance RedeemerType MultiSig = ()
     type instance DatumType MultiSig = ()
 
-scriptInstance :: MultiSig -> Scripts.ScriptInstance MultiSig
-scriptInstance = Scripts.validatorParam @MultiSig
+typedValidator :: MultiSig -> Scripts.TypedValidator MultiSig
+typedValidator = Scripts.mkTypedValidatorParam @MultiSig
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
@@ -80,7 +79,7 @@ lock :: AsContractError e => Contract () MultiSigSchema e ()
 lock = do
     (ms, vl) <- endpoint @"lock"
     let tx = Constraints.mustPayToTheScript () vl
-    let inst = scriptInstance ms
+    let inst = typedValidator ms
     void $ submitTxConstraints inst tx
 
 -- | The @"unlock"@ endpoint, unlocking some funds with a list
@@ -88,8 +87,8 @@ lock = do
 unlock :: AsContractError e => Contract () MultiSigSchema e ()
 unlock = do
     (ms, pks) <- endpoint @"unlock"
-    let inst = scriptInstance ms
-    utx <- utxoAt (Scripts.scriptAddress inst)
+    let inst = typedValidator ms
+    utx <- utxoAt (Scripts.validatorAddress inst)
     let tx = Tx.collectFromScript utx ()
                 <> foldMap Constraints.mustBeSignedBy pks
     void $ submitTxConstraintsSpending inst utx tx

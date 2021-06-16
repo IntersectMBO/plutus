@@ -33,10 +33,10 @@ runTermBench :: String -> PlainTerm -> Benchmark
 runTermBench name term = env
     (do
         (_result, budget) <-
-          pure $ (unsafeEvaluateCek defaultCekMachineCosts defBuiltinsRuntime) term
+          pure $ (unsafeEvaluateCek defaultCekParameters) term
         pure budget
         )
-    $ \_ -> bench name $ nf (unsafeEvaluateCek defaultCekMachineCosts defBuiltinsRuntime) term
+    $ \_ -> bench name $ nf (unsafeEvaluateCek defaultCekParameters) term
 
 
 ---------------- Constructing PLC terms for benchmarking ----------------
@@ -309,6 +309,19 @@ benchNop3 gen =
    run`) then the current directory will be `plutus-core`.  If you use nix it'll
    be the current shell directory, so you'll need to run it from `plutus-core`
    (NOT `plutus`, where `default.nix` is).  See SCP-2005. -}
+{- Experimentation and examination of implementations suggests that the cost
+   models for certain builtins can be re-used for others, and we do this in
+   models.R.  Specifically, we re-use the cost models for the functions on the
+   left below for the functions on the right as well.  Because of this we don't
+   benchmark the functions on the right; the benchmarks take a long time to run,
+   so this speeds things up a lot.
+
+   AddInteger:        SubtractInteger
+   DivideInteger:     RemainderInteger, QuotientInteger, ModInteger
+   LessThanInteger:   GreaterThanInteger
+   LessThanEqInteger: GreaterThanEqInteger
+   LtByteString:      GtByteString
+-}
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
@@ -322,24 +335,17 @@ main = do
   defaultMainWith (defaultConfig { C.csvFile = Just csvFile }) $
                          [benchNop1 gen, benchNop2 gen, benchNop3 gen]
                       <> (benchTwoIntegers gen <$> [ AddInteger
-                                                   , SubtractInteger
                                                    , MultiplyInteger
                                                    , DivideInteger
-                                                   , ModInteger
-                                                   , QuotientInteger
-                                                   , RemainderInteger
                                                    ])
                       <> (benchSameTwoIntegers gen <$> [ EqInteger
                                                        , LessThanInteger
-                                                       , GreaterThanInteger
                                                        , LessThanEqInteger
-                                                       , GreaterThanEqInteger
                                                        ])
                       <> (benchTwoByteStrings <$> [Concatenate])
                       <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
                       <> (benchHashOperations <$> [SHA2, SHA3])
                       <> (benchSameTwoByteStrings <$> [ EqByteString
                                                       , LtByteString
-                                                      , GtByteString
                                                       ])
                       <> [benchVerifySignature]

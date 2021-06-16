@@ -30,11 +30,11 @@ main = defaultMain $ allTests defaultGenOptions
 
 allTests :: GenOptions -> TestTree
 allTests genOpts = testGroup "NEAT"
-  [ bigTest "type-level"
+  [ bigTestTypeG_NO_LIST "type-level"
       genOpts {genDepth = 13}
       (Type ())
       (packAssertion prop_Type)
-  , bigTest "term-level"
+  , bigTestTermG_NO_LIST "term-level"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
@@ -101,7 +101,7 @@ prop_Term tyG tmG = do
 
   -- 2. run production CK against metatheory CK
   tmPlcCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
   tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ runCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK

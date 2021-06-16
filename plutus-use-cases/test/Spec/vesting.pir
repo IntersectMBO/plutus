@@ -2177,6 +2177,56 @@
                           (termbind
                             (strict)
                             (vardecl
+                              fSemigroupFirst_c
+                              (all a (type) (fun [(lam a (type) [Maybe a]) a] (fun [(lam a (type) [Maybe a]) a] [(lam a (type) [Maybe a]) a])))
+                            )
+                            (abs
+                              a
+                              (type)
+                              (lam
+                                ds
+                                [(lam a (type) [Maybe a]) a]
+                                (lam
+                                  b
+                                  [(lam a (type) [Maybe a]) a]
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ { Maybe_match a } ds ]
+                                          (fun Unit [(lam a (type) [Maybe a]) a])
+                                        }
+                                        (lam ipv a (lam thunk Unit ds))
+                                      ]
+                                      (lam thunk Unit b)
+                                    ]
+                                    Unit
+                                  ]
+                                )
+                              )
+                            )
+                          )
+                          (termbind
+                            (strict)
+                            (vardecl
+                              fMonoidFirst
+                              (all a (type) [Monoid [(lam a (type) [Maybe a]) a]])
+                            )
+                            (abs
+                              a
+                              (type)
+                              [
+                                [
+                                  { CConsMonoid [(lam a (type) [Maybe a]) a] }
+                                  { fSemigroupFirst_c a }
+                                ]
+                                { Nothing a }
+                              ]
+                            )
+                          )
+                          (termbind
+                            (strict)
+                            (vardecl
                               findOwnInput (fun ScriptContext [Maybe TxInInfo])
                             )
                             (lam
@@ -2283,126 +2333,79 @@
                                                                     [
                                                                       [
                                                                         {
-                                                                          [
-                                                                            {
-                                                                              Nil_match
-                                                                              TxInInfo
-                                                                            }
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    {
-                                                                                      foldr
-                                                                                      TxInInfo
-                                                                                    }
-                                                                                    [List TxInInfo]
-                                                                                  }
-                                                                                  (lam
-                                                                                    e
-                                                                                    TxInInfo
-                                                                                    (lam
-                                                                                      xs
-                                                                                      [List TxInInfo]
-                                                                                      [
-                                                                                        {
-                                                                                          [
-                                                                                            TxInInfo_match
-                                                                                            e
-                                                                                          ]
-                                                                                          [List TxInInfo]
-                                                                                        }
-                                                                                        (lam
-                                                                                          ds
-                                                                                          TxOutRef
-                                                                                          (lam
-                                                                                            ds
-                                                                                            TxOut
-                                                                                            [
-                                                                                              [
-                                                                                                [
-                                                                                                  {
-                                                                                                    [
-                                                                                                      Bool_match
-                                                                                                      [
-                                                                                                        [
-                                                                                                          fEqTxOutRef_c
-                                                                                                          ds
-                                                                                                        ]
-                                                                                                        txOutRef
-                                                                                                      ]
-                                                                                                    ]
-                                                                                                    (fun Unit [List TxInInfo])
-                                                                                                  }
-                                                                                                  (lam
-                                                                                                    thunk
-                                                                                                    Unit
-                                                                                                    [
-                                                                                                      [
-                                                                                                        {
-                                                                                                          Cons
-                                                                                                          TxInInfo
-                                                                                                        }
-                                                                                                        e
-                                                                                                      ]
-                                                                                                      xs
-                                                                                                    ]
-                                                                                                  )
-                                                                                                ]
-                                                                                                (lam
-                                                                                                  thunk
-                                                                                                  Unit
-                                                                                                  xs
-                                                                                                )
-                                                                                              ]
-                                                                                              Unit
-                                                                                            ]
-                                                                                          )
-                                                                                        )
-                                                                                      ]
-                                                                                    )
-                                                                                  )
-                                                                                ]
-                                                                                {
-                                                                                  Nil
-                                                                                  TxInInfo
-                                                                                }
-                                                                              ]
-                                                                              ds
-                                                                            ]
-                                                                          ]
-                                                                          (fun Unit [Maybe TxInInfo])
-                                                                        }
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
                                                                           {
-                                                                            Nothing
-                                                                            TxInInfo
+                                                                            fFoldableNil_cfoldMap
+                                                                            [(lam a (type) [Maybe a]) TxInInfo]
                                                                           }
-                                                                        )
+                                                                          TxInInfo
+                                                                        }
+                                                                        {
+                                                                          fMonoidFirst
+                                                                          TxInInfo
+                                                                        }
                                                                       ]
                                                                       (lam
                                                                         x
                                                                         TxInInfo
-                                                                        (lam
-                                                                          ds
-                                                                          [List TxInInfo]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
+                                                                        [
+                                                                          {
                                                                             [
-                                                                              {
-                                                                                Just
-                                                                                TxInInfo
-                                                                              }
+                                                                              TxInInfo_match
                                                                               x
                                                                             ]
+                                                                            [Maybe TxInInfo]
+                                                                          }
+                                                                          (lam
+                                                                            ds
+                                                                            TxOutRef
+                                                                            (lam
+                                                                              ds
+                                                                              TxOut
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    {
+                                                                                      [
+                                                                                        Bool_match
+                                                                                        [
+                                                                                          [
+                                                                                            fEqTxOutRef_c
+                                                                                            ds
+                                                                                          ]
+                                                                                          txOutRef
+                                                                                        ]
+                                                                                      ]
+                                                                                      (fun Unit [Maybe TxInInfo])
+                                                                                    }
+                                                                                    (lam
+                                                                                      thunk
+                                                                                      Unit
+                                                                                      [
+                                                                                        {
+                                                                                          Just
+                                                                                          TxInInfo
+                                                                                        }
+                                                                                        x
+                                                                                      ]
+                                                                                    )
+                                                                                  ]
+                                                                                  (lam
+                                                                                    thunk
+                                                                                    Unit
+                                                                                    {
+                                                                                      Nothing
+                                                                                      TxInInfo
+                                                                                    }
+                                                                                  )
+                                                                                ]
+                                                                                Unit
+                                                                              ]
+                                                                            )
                                                                           )
-                                                                        )
+                                                                        ]
                                                                       )
                                                                     ]
-                                                                    Unit
+                                                                    ds
                                                                   ]
                                                                 )
                                                               )
@@ -3055,7 +3058,7 @@
                           )
                           (termbind
                             (nonstrict)
-                            (vardecl fOrdSlot [Ord (con integer)])
+                            (vardecl fOrdPOSIXTime [Ord (con integer)])
                             [
                               [
                                 [
@@ -3158,15 +3161,7 @@
                                           fail (fun (all a (type) a) Ordering)
                                         )
                                         (lam
-                                          ds
-                                          (all a (type) a)
-                                          (let
-                                            (nonrec)
-                                            (typebind
-                                              (tyvardecl e (type)) Ordering
-                                            )
-                                            (error e)
-                                          )
+                                          ds (all a (type) a) (error Ordering)
                                         )
                                       )
                                       [
@@ -5132,6 +5127,95 @@
                           (termbind
                             (strict)
                             (vardecl
+                              wavailableFrom
+                              (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])))
+                            )
+                            (lam
+                              ww
+                              (con integer)
+                              (lam
+                                ww
+                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                (lam
+                                  w
+                                  [Interval (con integer)]
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [
+                                            Bool_match
+                                            [
+                                              [
+                                                [
+                                                  { contains (con integer) }
+                                                  fOrdPOSIXTime
+                                                ]
+                                                [
+                                                  [
+                                                    { Interval (con integer) }
+                                                    [
+                                                      [
+                                                        {
+                                                          LowerBound
+                                                          (con integer)
+                                                        }
+                                                        [
+                                                          {
+                                                            Finite (con integer)
+                                                          }
+                                                          [
+                                                            [
+                                                              (builtin
+                                                                addInteger
+                                                              )
+                                                              ww
+                                                            ]
+                                                            (con
+                                                              integer 1596059091
+                                                            )
+                                                          ]
+                                                        ]
+                                                      ]
+                                                      True
+                                                    ]
+                                                  ]
+                                                  [
+                                                    [
+                                                      {
+                                                        UpperBound (con integer)
+                                                      }
+                                                      { PosInf (con integer) }
+                                                    ]
+                                                    True
+                                                  ]
+                                                ]
+                                              ]
+                                              w
+                                            ]
+                                          ]
+                                          (fun Unit [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                                        }
+                                        (lam thunk Unit ww)
+                                      ]
+                                      (lam
+                                        thunk
+                                        Unit
+                                        {
+                                          Nil
+                                          [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                        }
+                                      )
+                                    ]
+                                    Unit
+                                  ]
+                                )
+                              )
+                            )
+                          )
+                          (termbind
+                            (strict)
+                            (vardecl
                               wremainingFrom
                               (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])))
                             )
@@ -5151,72 +5235,7 @@
                                         fAdditiveGroupValue_cscale
                                         (con integer -1)
                                       ]
-                                      [
-                                        [
-                                          [
-                                            {
-                                              [
-                                                Bool_match
-                                                [
-                                                  [
-                                                    [
-                                                      { contains (con integer) }
-                                                      fOrdSlot
-                                                    ]
-                                                    [
-                                                      [
-                                                        {
-                                                          Interval (con integer)
-                                                        }
-                                                        [
-                                                          [
-                                                            {
-                                                              LowerBound
-                                                              (con integer)
-                                                            }
-                                                            [
-                                                              {
-                                                                Finite
-                                                                (con integer)
-                                                              }
-                                                              ww
-                                                            ]
-                                                          ]
-                                                          True
-                                                        ]
-                                                      ]
-                                                      [
-                                                        [
-                                                          {
-                                                            UpperBound
-                                                            (con integer)
-                                                          }
-                                                          {
-                                                            PosInf (con integer)
-                                                          }
-                                                        ]
-                                                        True
-                                                      ]
-                                                    ]
-                                                  ]
-                                                  w
-                                                ]
-                                              ]
-                                              (fun Unit [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
-                                            }
-                                            (lam thunk Unit ww)
-                                          ]
-                                          (lam
-                                            thunk
-                                            Unit
-                                            {
-                                              Nil
-                                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                            }
-                                          )
-                                        ]
-                                        Unit
-                                      ]
+                                      [ [ [ wavailableFrom ww ] ww ] w ]
                                     ]
                                   ]
                                 )
@@ -5497,56 +5516,6 @@
                                   ]
                                 )
                               )
-                            )
-                          )
-                          (termbind
-                            (strict)
-                            (vardecl
-                              fSemigroupFirst_c
-                              (all a (type) (fun [(lam a (type) [Maybe a]) a] (fun [(lam a (type) [Maybe a]) a] [(lam a (type) [Maybe a]) a])))
-                            )
-                            (abs
-                              a
-                              (type)
-                              (lam
-                                ds
-                                [(lam a (type) [Maybe a]) a]
-                                (lam
-                                  b
-                                  [(lam a (type) [Maybe a]) a]
-                                  [
-                                    [
-                                      [
-                                        {
-                                          [ { Maybe_match a } ds ]
-                                          (fun Unit [(lam a (type) [Maybe a]) a])
-                                        }
-                                        (lam ipv a (lam thunk Unit ds))
-                                      ]
-                                      (lam thunk Unit b)
-                                    ]
-                                    Unit
-                                  ]
-                                )
-                              )
-                            )
-                          )
-                          (termbind
-                            (strict)
-                            (vardecl
-                              fMonoidFirst
-                              (all a (type) [Monoid [(lam a (type) [Maybe a]) a]])
-                            )
-                            (abs
-                              a
-                              (type)
-                              [
-                                [
-                                  { CConsMonoid [(lam a (type) [Maybe a]) a] }
-                                  { fSemigroupFirst_c a }
-                                ]
-                                { Nothing a }
-                              ]
                             )
                           )
                           (termbind

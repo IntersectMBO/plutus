@@ -10,10 +10,10 @@
   {
     flags = { development = false; external-libsodium-vrf = true; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "cardano-crypto-praos"; version = "2.0.0"; };
       license = "Apache-2.0";
-      copyright = "2019 IOHK";
+      copyright = "2019-2021 IOHK";
       maintainer = "operations@iohk.io";
       author = "IOHK";
       homepage = "";
@@ -52,6 +52,7 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
@@ -75,4 +76,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/7; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/8; }

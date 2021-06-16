@@ -70,6 +70,7 @@ executable web-ghc-server
         servant-server,
         servant,
         text,
+        time-units,
         wai-cors,
         wai-extra,
         wai,

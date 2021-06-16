@@ -13,7 +13,7 @@
       specVersion = "2.2";
       identifier = { name = "cardano-prelude"; version = "0.1.0.0"; };
       license = "MIT";
-      copyright = "2018-2020 IOHK";
+      copyright = "2018-2021 IOHK";
       maintainer = "operations@iohk.io";
       author = "IOHK";
       homepage = "";
@@ -46,15 +46,12 @@
           (hsPkgs."canonical-json" or (errorHandler.buildDepError "canonical-json"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-          (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."formatting" or (errorHandler.buildDepError "formatting"))
           (hsPkgs."ghc-heap" or (errorHandler.buildDepError "ghc-heap"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-          (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."protolude" or (errorHandler.buildDepError "protolude"))
-          (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
@@ -75,8 +72,6 @@
           "Cardano/Prelude/Orphans"
           "Cardano/Prelude/Strict"
           "Cardano/Prelude"
-          "Data/FingerTree/Strict"
-          "Data/Sequence/Strict"
           "Data/Semigroup/Action"
           ];
         cSources = [
@@ -87,4 +82,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/8; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/11; }

@@ -37,7 +37,7 @@ module Plutus.Contracts.Future(
     , futureAddress
     , tokenFor
     , initialState
-    , scriptInstance
+    , typedValidator
     , setupTokens
     -- * Test data
     , testAccounts
@@ -109,7 +109,7 @@ data Future =
 
 -- | The two roles involved in the contract.
 data Role = Long | Short
-    deriving stock (Generic, Show)
+    deriving stock (Generic, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Role where
@@ -140,7 +140,7 @@ data Margins =
         { ftsShortMargin :: Value
         , ftsLongMargin  :: Value
         }
-        deriving (Haskell.Eq, Show, Generic)
+        deriving (Haskell.Eq, Haskell.Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Margins where
@@ -152,7 +152,7 @@ data FutureState =
     -- ^ Ongoing contract, with the current margins.
     | Finished
     -- ^ Contract is finished.
-    deriving stock (Show, Generic, Haskell.Eq)
+    deriving stock (Haskell.Show, Generic, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq FutureState where
@@ -171,7 +171,7 @@ data FutureAction =
     -- ^ Close the contract early after a margin payment has been missed.
     --   The value of both margin accounts will be paid to the role that
     --   *didn't* violate the margin requirement
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data FutureError =
@@ -184,7 +184,7 @@ data FutureError =
     | EscrowRefunded RefundSuccess
     -- ^ The other party didn't make their payment in time so the contract never
     --   started.
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''FutureError
@@ -199,8 +199,7 @@ instance AsCheckpointError FutureError where
     _CheckpointError = _OtherFutureError . _CheckpointError
 
 type FutureSchema =
-    BlockchainActions
-        .\/ Endpoint "initialise-future" (FutureSetup, Role)
+        Endpoint "initialise-future" (FutureSetup, Role)
         .\/ Endpoint "join-future" (FutureAccounts, FutureSetup)
         .\/ Endpoint "increase-margin" (Value, Role)
         .\/ Endpoint "settle-early" (SignedMessage (Observation Value))
@@ -314,8 +313,8 @@ futureStateMachine ft fos = SM.mkStateMachine Nothing (transition ft fos) isFina
     isFinal Finished = True
     isFinal _        = False
 
-scriptInstance :: Future -> FutureAccounts -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
-scriptInstance future ftos =
+typedValidator :: Future -> FutureAccounts -> Scripts.TypedValidator (SM.StateMachine FutureState FutureAction)
+typedValidator future ftos =
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
                 PlutusTx.liftCode future
@@ -324,12 +323,12 @@ scriptInstance future ftos =
         validatorParam f g = SM.mkValidator (futureStateMachine f g)
         wrap = Scripts.wrapValidator @FutureState @FutureAction
 
-    in Scripts.validator @(SM.StateMachine FutureState FutureAction)
+    in Scripts.mkTypedValidator @(SM.StateMachine FutureState FutureAction)
         val
         $$(PlutusTx.compile [|| wrap ||])
 
 machineClient
-    :: Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
+    :: Scripts.TypedValidator (SM.StateMachine FutureState FutureAction)
     -> Future
     -> FutureAccounts
     -> SM.StateMachineClient FutureState FutureAction
@@ -338,7 +337,7 @@ machineClient inst future ftos =
     in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
 validator :: Future -> FutureAccounts -> Validator
-validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
+validator ft fos = Scripts.validatorScript (typedValidator ft fos)
 
 {-# INLINABLE verifyOracle #-}
 verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
@@ -464,7 +463,6 @@ violatingRole future margins spotPrice =
 --   * Paying the initial margin for the given role
 initialiseFuture
     :: ( HasEndpoint "initialise-future" (FutureSetup, Role) s
-       , HasBlockchainActions s
        , AsFutureError e
        )
     => Future
@@ -478,7 +476,7 @@ initialiseFuture future = mapError (review _FutureError) $ do
     -- tokens that we will use for the future contract. Now we use an escrow
     --  contract to initialise the future contract.
 
-    inst <- checkpoint $ pure (scriptInstance future ftos)
+    inst <- checkpoint $ pure (typedValidator future ftos)
 
     let
         client = machineClient inst future ftos
@@ -516,7 +514,6 @@ initialiseFuture future = mapError (review _FutureError) $ do
 --   the 'FutureAccounts' argument.
 settleFuture
     :: ( HasEndpoint "settle-future" (SignedMessage (Observation Value)) s
-       , HasBlockchainActions s
        , AsFutureError e
        )
     => SM.StateMachineClient FutureState FutureAction
@@ -532,7 +529,6 @@ settleFuture client = mapError (review _FutureError) $ do
 --   the spot price is within the margin range.
 settleEarly
     :: ( HasEndpoint "settle-early" (SignedMessage (Observation Value)) s
-       , HasBlockchainActions s
        , AsSMContractError e
        , AsContractError e
        )
@@ -546,10 +542,6 @@ settleEarly client = do
 --   the roles by an amount.
 increaseMargin
     :: ( HasEndpoint "increase-margin" (Value, Role) s
-       , HasUtxoAt s
-       , HasWriteTx s
-       , HasOwnPubKey s
-       , HasTxConfirmation s
        , AsSMContractError e
        , AsContractError e
        )
@@ -563,17 +555,16 @@ increaseMargin client = do
 --   margin to the escrow that initialises the contract.
 joinFuture
     :: ( HasEndpoint "join-future" (FutureAccounts, FutureSetup) s
-       , HasBlockchainActions s
        , AsFutureError e
        )
     => Future
     -> Contract w s e (SM.StateMachineClient FutureState FutureAction)
 joinFuture ft = mapError (review _FutureError) $ do
     (owners, stp) <- endpoint @"join-future" @(FutureAccounts, FutureSetup)
-    inst <- checkpoint $ pure (scriptInstance ft owners)
+    inst <- checkpoint $ pure (typedValidator ft owners)
     let client = machineClient inst ft owners
         escr = escrowParams client ft owners stp
-        payment = Escrow.pay (Escrow.scriptInstance escr) escr (initialMargin ft)
+        payment = Escrow.pay (Escrow.typedValidator escr) escr (initialMargin ft)
     void $ mapError EscrowFailed payment
     pure client
 
@@ -584,10 +575,7 @@ joinFuture ft = mapError (review _FutureError) $ do
 --   public key output belonging to the wallet that ran 'setupTokens'.
 setupTokens
     :: forall w s e.
-    ( HasWriteTx s
-    , HasOwnPubKey s
-    , HasTxConfirmation s
-    , AsFutureError e
+    ( AsFutureError e
     )
     => Contract w s e FutureAccounts
 setupTokens = mapError (review _FutureError) $ do
@@ -609,7 +597,7 @@ escrowParams
     -> EscrowParams Datum
 escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
-        address = Ledger.validatorHash $ Scripts.validatorScript $ SM.validatorInstance $ SM.scInstance client
+        address = Ledger.validatorHash $ Scripts.validatorScript $ SM.typedValidator $ SM.scInstance client
         dataScript  = Ledger.Datum $ PlutusTx.toData $ initialState future
         targets =
             [ Escrow.payToScriptTarget address
@@ -628,7 +616,7 @@ testAccounts =
     let con = setupTokens @() @FutureSchema @FutureError
         fld = Folds.instanceOutcome con (Trace.walletInstanceTag (Wallet.Wallet 1))
         getOutcome (Folds.Done a) = a
-        getOutcome e              = Haskell.error $ "not finished: " <> show e
+        getOutcome e              = Haskell.error $ "not finished: " <> Haskell.show e
     in
     either (Haskell.error . Haskell.show) (getOutcome . S.fst')
         $ Freer.run

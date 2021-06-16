@@ -18,5 +18,5 @@ run :: Int -> Maybe FilePath -> IO ()
 run port secrets = do
   appConfig <- initializeServerContext secrets
   handlers <- Server.mkHandlers appConfig
-  let server = handlers :<|> Webghc.server
+  let server = handlers :<|> Webghc.server 80
   Warp.run port (serve (Proxy @API) server)

@@ -74,6 +74,7 @@ data AnnotatedTx =
         , tx                 :: Tx
         , dereferencedInputs :: [DereferencedInput]
         , balances           :: Map BeneficialOwner Value
+        , valid              :: Bool
         }
     deriving (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)

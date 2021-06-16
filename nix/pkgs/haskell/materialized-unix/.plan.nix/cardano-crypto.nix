@@ -13,7 +13,7 @@
       specVersion = "1.10";
       identifier = { name = "cardano-crypto"; version = "1.1.0"; };
       license = "MIT";
-      copyright = "2016-2017 IOHK";
+      copyright = "2016-2021 IOHK";
       maintainer = "contact@typed.io";
       author = "Vincent Hanquez";
       homepage = "https://github.com/input-output-hk/cardano-crypto#readme";
@@ -139,4 +139,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/2; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/3; }

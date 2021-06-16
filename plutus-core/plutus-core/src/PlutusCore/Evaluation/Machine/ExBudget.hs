@@ -16,6 +16,7 @@ really required for ExBudget, but it's simpler if we jut make
 everything strict, and it doesn't seem to do any harm.
 -}
 
+-- TODO: revise this.
 {- Note [Budgeting]
 
 When running Plutus code on the chain, you're running code on other peoples
@@ -75,39 +76,80 @@ possible to adjust them at runtime.
 
 -}
 
+{-| Note [Budgeting units]
+
+ We use picoseconds for measuring times and words for measuring memory usage.
+ Some care is required with time units because different units are used in
+ different places.
+
+ * The basic data for models of execution time is produced by Criterion
+   benchmarks (run via plutus-core:cost-model-budgeting-bench) and saved in
+   'benching.csv'.  At this point the time units are seconds.
+
+ * The data in 'benching.csv' is used by plutus-core:update-cost-model to create
+   cost-prediction models for the built-in functions, and data describing these
+   is written to builtinCostModel.json.  This process involves several steps:
+
+     * The CostModelCreation module reads in the data from 'benching.csv' and
+       runs R code in 'models.R' to fit linear models to the benchmark results
+       for each builtin.  This process (and its results) necessarily invloves
+       the use of floating-point numbers.
+
+       Builtin execution times are typically of the order of 10^(-6) or 10^(-7)
+       seconds, and the benching data is converted to milliseconds in 'models.R'
+       because it's sometimes useful to work with the data interactively and this
+       makes the numbers a lot more human-readable.
+
+     * The coefficents from the R models are returned to the Haskell code in
+       CostModelCreation and written out to costModel.json.  To avoid the use of
+       floats in JSON and in cost prediction at runtime (which might be
+       machine-dependent if floats were used), numbers are multiplied by 10^6
+       and rounded to the nearest integer, shfting from the millisecond scale to
+       the picosecond scale.  This rescaling is safe because all of our models
+       are (currently) linear in their inputs.
+
+ * When the Plutus Core evaluator is compiled, the JSON data in
+   'builtinCostModel.json' is read in and used to create the defaultCostModel
+   object.  This also includes information about the costs of basic CEK machine
+   operations obtained from 'cekMachineCosts.json' (currently generated manually).
+
+ * When the Plutus Core evaluator is run, the code in
+   PlutusCore.Evaluation.Machine.BuiltinCostModel uses the data in
+   defaultCostModel to create Haskell versions of the cost models which estimate
+   the execution time of a built-in function given the sizes of its inputs.
+   This (and the memory usage) are fed into a budgeting process which measures
+   the ongoing resource consumption during script execution.
+
+   All budget calculations are (at least on 64-bit machines) done using the
+   'SatInt' type which deals with overflow by truncating excessivly large values
+   to the maximum 'SatInt' value, 2^63-1.  In picoseconds this is about 106
+   days, which should suffice for any code we expect to run.  Memory budgeting
+   is entirely in terms of machine words, and floating-point issues are
+   irrelevant.
+
+ Some precision is lost during the conversion from R's floating-point models to
+ the integral numbers used in the Haskell models.  However, experimentation
+ shows that the difference is very small.  The tests in plutus-core:
+ cost-model-test run the R models and the Haskell models with a large number of
+ random inputs and check that they agree to within one part in 10,000, which
+ is well within the accuracy we require for the cost model.
+-}
+
 module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
-    , ToExMemory(..)
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
-    , isNegativeBudget
-    , minusExCPU
-    , minusExMemory
-    , minusExBudget
+    , enormousBudget
     )
 where
 
 import           PlutusPrelude                          hiding (toList)
 
-import           PlutusCore.Core
-import           PlutusCore.Name
-
-import           Data.Semigroup.Generic
+import           Data.Semigroup
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
 import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
-
-class ToExMemory term where
-    -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
-    -- return something arbitrary just to fit such a term into the builtin application machinery.
-    toExMemory :: term -> ExMemory
-
-instance ToExMemory (Term TyName Name uni fun ()) where
-    toExMemory _ = 0
-
-instance ToExMemory (Term TyName Name uni fun ExMemory) where
-    toExMemory = termAnn
 
 -- | A class for injecting a 'Builtin' into an @exBudgetCat@.
 -- We need it, because the constant application machinery calls 'spendBudget' before reducing a
@@ -122,9 +164,19 @@ instance ExBudgetBuiltin fun () where
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
     deriving anyclass (PrettyBy config, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget
+
+-- These functions are performance critical, so we can't use GenericSemigroupMonoid, and we insist that they be inlined.
+instance Semigroup ExBudget where
+    {-# INLINE (<>) #-}
+    (ExBudget cpu1 mem1) <> (ExBudget cpu2 mem2) = ExBudget (cpu1 <> cpu2) (mem1 <> mem2)
+    -- This absolutely must be inlined so that the 'fromIntegral' calls can get optimized away, or it destroys performance
+    {-# INLINE stimes #-}
+    stimes r (ExBudget (ExCPU cpu) (ExMemory mem)) = ExBudget (ExCPU (fromIntegral r * cpu)) (ExMemory (fromIntegral r * mem))
+
+instance Monoid ExBudget where
+    mempty = ExBudget mempty mempty
 
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ fold
@@ -133,22 +185,14 @@ instance Pretty ExBudget where
         , "}"
         ]
 
-newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-    deriving newtype (Pretty, PrettyBy config, NFData)
+newtype ExRestrictingBudget = ExRestrictingBudget
+    { unExRestrictingBudget :: ExBudget
+    } deriving (Show, Eq)
+      deriving newtype (Semigroup, Monoid)
+      deriving newtype (Pretty, PrettyBy config, NFData)
 
-isNegativeBudget :: ExRestrictingBudget -> Bool
-isNegativeBudget (ExRestrictingBudget (ExBudget cpu mem)) = cpu < 0 || mem < 0
-
--- | @(-)@ on 'ExCPU'.
-minusExCPU :: ExCPU -> ExCPU -> ExCPU
-minusExCPU = coerce $ (-) @CostingInteger
-
--- | @(-)@ on 'ExMemory'.
-minusExMemory :: ExMemory -> ExMemory -> ExMemory
-minusExMemory = coerce $ (-) @CostingInteger
-
--- | Subtract an 'ExBudget' from an 'ExRestrictingBudget'.
-minusExBudget :: ExRestrictingBudget -> ExBudget -> ExRestrictingBudget
-ExRestrictingBudget (ExBudget cpuL memL) `minusExBudget` ExBudget cpuR memR =
-    ExRestrictingBudget $ ExBudget (cpuL `minusExCPU` cpuR) (memL `minusExMemory` memR)
+-- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
+-- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
+enormousBudget :: ExRestrictingBudget
+enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
+                 where maxInt = fromIntegral (maxBound ::Int)

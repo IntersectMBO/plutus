@@ -24,7 +24,6 @@ module Plutus.Contract.Test(
     , (.&&.)
     -- * Assertions
     , endpointAvailable
-    , interestingAddress
     , queryingUtxoAt
     , assertDone
     , assertNotDone
@@ -40,10 +39,14 @@ module Plutus.Contract.Test(
     , assertBlockchain
     , assertChainEvents
     , assertAccumState
+    , Shrinking(..)
+    , assertResumableResult
     , tx
     , anyTx
     , assertEvents
     , walletFundsChange
+    , walletFundsExactChange
+    , walletPaidFees
     , waitingForSlot
     , walletWatchingAddress
     , valueAtAddress
@@ -65,73 +68,68 @@ module Plutus.Contract.Test(
     , goldenPir
     ) where
 
-import           Control.Applicative                    (liftA2)
-import           Control.Foldl                          (FoldM)
-import qualified Control.Foldl                          as L
-import           Control.Lens                           (at, makeLenses, to, (&), (.~), (^.))
-import           Control.Monad                          (guard, unless)
-import           Control.Monad.Freer                    (Eff, reinterpret, runM, sendM)
-import           Control.Monad.Freer.Error              (Error, runError)
-import           Control.Monad.Freer.Extras.Log         (LogLevel (..), LogMessage (..))
+import           Control.Applicative                   (liftA2)
+import           Control.Foldl                         (FoldM)
+import qualified Control.Foldl                         as L
+import           Control.Lens                          (at, makeLenses, preview, to, (&), (.~), (^.))
+import           Control.Monad                         (unless)
+import           Control.Monad.Freer                   (Eff, reinterpret, runM, sendM)
+import           Control.Monad.Freer.Error             (Error, runError)
+import           Control.Monad.Freer.Extras.Log        (LogLevel (..), LogMessage (..))
 import           Control.Monad.Freer.Reader
-import           Control.Monad.Freer.Writer             (Writer (..), tell)
-import           Control.Monad.IO.Class                 (MonadIO (liftIO))
-import           Data.Default                           (Default (..))
-import           Data.Foldable                          (fold, toList, traverse_)
-import           Data.Maybe                             (fromJust, mapMaybe)
-import           Data.Proxy                             (Proxy (..))
-import           Data.Row                               (Forall, HasType)
-import           Data.String                            (IsString (..))
-import qualified Data.Text                              as Text
+import           Control.Monad.Freer.Writer            (Writer (..), tell)
+import           Control.Monad.IO.Class                (MonadIO (liftIO))
+import           Data.Default                          (Default (..))
+import           Data.Foldable                         (fold, toList, traverse_)
+import           Data.Maybe                            (fromJust, mapMaybe)
+import           Data.Proxy                            (Proxy (..))
+import           Data.String                           (IsString (..))
+import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text  (renderStrict)
+import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Data.Void
-import           GHC.TypeLits                           (KnownSymbol, Symbol, symbolVal)
+import           GHC.TypeLits                          (KnownSymbol, Symbol, symbolVal)
+import           Plutus.Contract.Effects               (ActiveEndpoint (..), PABReq, PABResp)
 
 
-import           Hedgehog                               (Property, forAll, property)
+import           Hedgehog                              (Property, forAll, property)
 import qualified Hedgehog
-import           Test.Tasty.Golden                      (goldenVsString)
-import qualified Test.Tasty.HUnit                       as HUnit
-import           Test.Tasty.Providers                   (TestTree)
+import           Test.Tasty.Golden                     (goldenVsString)
+import qualified Test.Tasty.HUnit                      as HUnit
+import           Test.Tasty.Providers                  (TestTree)
 
-import qualified Ledger.Ada                             as Ada
-import           Ledger.Constraints.OffChain            (UnbalancedTx)
-import           Ledger.Tx                              (Tx)
-import           Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
-import qualified Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
-import qualified Plutus.Contract.Effects.ExposeEndpoint as Endpoints
-import qualified Plutus.Contract.Effects.UtxoAt         as UtxoAt
-import qualified Plutus.Contract.Effects.WatchAddress   as WatchAddress
-import           Plutus.Contract.Effects.WriteTx        (HasWriteTx)
-import           Plutus.Contract.Resumable              (Request (..), Response (..))
-import qualified Plutus.Contract.Resumable              as State
-import           Plutus.Contract.Types                  (Contract (..))
-import           PlutusTx                               (CompiledCode, IsData (..), getPir)
-import qualified PlutusTx.Prelude                       as P
+import qualified Ledger.Ada                            as Ada
+import           Ledger.Constraints.OffChain           (UnbalancedTx)
+import           Ledger.Tx                             (Tx)
+import qualified Plutus.Contract.Effects               as Requests
+import qualified Plutus.Contract.Request               as Request
+import           Plutus.Contract.Resumable             (Request (..), Response (..))
+import qualified Plutus.Contract.Resumable             as State
+import           Plutus.Contract.Types                 (Contract (..), ResumableResult, shrinkResumableResult)
+import           PlutusTx                              (CompiledCode, IsData (..), getPir)
+import qualified PlutusTx.Prelude                      as P
 
-import           Ledger                                 (Validator)
+import           Ledger                                (Validator)
 import qualified Ledger
-import           Ledger.Address                         (Address)
-import           Ledger.Generators                      (GeneratorModel, Mockchain (..))
-import qualified Ledger.Generators                      as Gen
-import           Ledger.Index                           (ScriptValidationEvent, ValidationError)
-import           Ledger.Slot                            (Slot)
-import           Ledger.Value                           (Value)
-import           Wallet.Emulator                        (EmulatorEvent, EmulatorTimeEvent)
+import           Ledger.Address                        (Address)
+import           Ledger.Generators                     (GeneratorModel, Mockchain (..))
+import qualified Ledger.Generators                     as Gen
+import           Ledger.Index                          (ScriptValidationEvent, ValidationError)
+import           Ledger.Slot                           (Slot)
+import           Ledger.Value                          (Value)
+import           Wallet.Emulator                       (EmulatorEvent, EmulatorTimeEvent)
 
-import           Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
-import           Plutus.Contract.Trace                  as X
-import           Plutus.Trace.Emulator                  (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
-import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog, ContractInstanceTag,
-                                                         UserThreadMsg)
-import qualified Streaming                              as S
-import qualified Streaming.Prelude                      as S
-import           Wallet.Emulator.Chain                  (ChainEvent)
-import           Wallet.Emulator.Folds                  (EmulatorFoldErr, Outcome (..), postMapM)
-import qualified Wallet.Emulator.Folds                  as Folds
-import           Wallet.Emulator.Stream                 (filterLogLevel, foldEmulatorStreamM, initialChainState,
-                                                         initialDist, takeUntilSlot)
+import           Plutus.Contract.Trace                 as X
+import           Plutus.Trace.Emulator                 (EmulatorConfig (..), EmulatorTrace, runEmulatorStream)
+import           Plutus.Trace.Emulator.Types           (ContractConstraints, ContractInstanceLog,
+                                                        ContractInstanceState (..), ContractInstanceTag, UserThreadMsg)
+import qualified Streaming                             as S
+import qualified Streaming.Prelude                     as S
+import           Wallet.Emulator.Chain                 (ChainEvent)
+import           Wallet.Emulator.Folds                 (EmulatorFoldErr (..), Outcome (..), describeError, postMapM)
+import qualified Wallet.Emulator.Folds                 as Folds
+import           Wallet.Emulator.Stream                (filterLogLevel, foldEmulatorStreamM, initialChainState,
+                                                        initialDist, takeUntilSlot)
 
 type TracePredicate = FoldM (Eff '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]) EmulatorEvent Bool
 
@@ -214,6 +212,7 @@ checkPredicateInner CheckOptions{_minLogLevel, _maxSlot, _emulatorConfig} predic
         case result of
             Left err -> do
                 annot "Error:"
+                annot (describeError err)
                 annot (show err)
                 assert False
             Right _ -> assert False
@@ -226,8 +225,8 @@ checkPredicateGenOptions ::
     -> EmulatorTrace ()
     -> Property
 checkPredicateGenOptions options gm predicate action = property $ do
-    Mockchain{mockchainInitialBlock} <- forAll (Gen.genMockchain' gm)
-    let options' = options & emulatorConfig . initialChainState .~ Right mockchainInitialBlock
+    Mockchain{mockchainInitialTxPool} <- forAll (Gen.genMockchain' gm)
+    let options' = options & emulatorConfig . initialChainState .~ Right mockchainInitialTxPool
     checkPredicateInner options' predicate action Hedgehog.annotate Hedgehog.assert
 
 -- | A version of 'checkPredicate' with configurable 'CheckOptions'
@@ -243,50 +242,26 @@ checkPredicateOptions options nm predicate action = do
 
 endpointAvailable
     :: forall (l :: Symbol) w s e a.
-       ( HasType l Endpoints.ActiveEndpoint (Output s)
-       , KnownSymbol l
-       , ContractConstraints s
+       ( KnownSymbol l
        , Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
     -> TracePredicate
 endpointAvailable contract inst =
+    let desc = Request.endpointDescription (Proxy @l) in
     flip postMapM (Folds.instanceRequests contract inst) $ \rqs -> do
-        if any (Endpoints.isActive @l @s) (rqRequest <$> rqs)
+        let hks :: [Request ActiveEndpoint]
+            hks = mapMaybe (traverse (preview Requests._ExposeEndpointReq)) rqs
+        if any (\ActiveEndpoint{aeDescription} -> aeDescription == desc) (rqRequest <$> hks)
             then pure True
             else do
                 tell @(Doc Void) ("missing endpoint:" <+> fromString (symbolVal (Proxy :: Proxy l)))
                 pure False
 
-interestingAddress
-    :: forall w s e a.
-       ( WatchAddress.HasWatchAddress s
-       , ContractConstraints s
-       , Monoid w
-       )
-    => Contract w s e a
-    -> ContractInstanceTag
-    -> Address
-    -> TracePredicate
-interestingAddress contract inst addr =
-    flip postMapM (Folds.instanceRequests contract inst) $ \rqs -> do
-        let hks = mapMaybe WatchAddress.watchedAddress (rqRequest <$> rqs)
-        if any (== addr) hks
-        then pure True
-        else do
-            tell @(Doc Void) $ hsep
-                [ "Interesting addresses of " <+> pretty inst <> colon
-                    <+> nest 2 (concatWith (surround (comma <> space))  (viaShow <$> toList hks))
-                , "Missing address:", viaShow addr
-                ]
-            pure False
-
 queryingUtxoAt
     :: forall w s e a.
-       ( UtxoAt.HasUtxoAt s
-       , ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -294,8 +269,9 @@ queryingUtxoAt
     -> TracePredicate
 queryingUtxoAt contract inst addr =
     flip postMapM (Folds.instanceRequests contract inst) $ \rqs -> do
-        let hks = mapMaybe UtxoAt.utxoAtRequest (rqRequest <$> rqs)
-        if any (== addr) hks
+        let hks :: [Request Address]
+            hks = mapMaybe (traverse (preview Requests._UtxoAtReq)) rqs
+        if any (== addr) (rqRequest <$> hks)
         then pure True
         else do
             tell @(Doc Void) $ hsep
@@ -307,9 +283,7 @@ queryingUtxoAt contract inst addr =
 
 tx
     :: forall w s e a.
-       ( HasWriteTx s
-       , ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -335,13 +309,11 @@ walletWatchingAddress w addr = flip postMapM (L.generalize $ Folds.walletWatchin
 
 assertEvents
     :: forall w s e a.
-       ( Forall (Input s) Pretty
-       , ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
-    -> ([Event s] -> Bool)
+    -> ([PABResp] -> Bool)
     -> String
     -> TracePredicate
 assertEvents contract inst pr nm =
@@ -362,7 +334,7 @@ valueAtAddress address check =
     flip postMapM (L.generalize $ Folds.valueAtAddress address) $ \vl -> do
         let result = check vl
         unless result $ do
-            tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <> pretty vl)
+            tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <+> pretty vl)
         pure result
 
 dataAtAddress :: IsData a => Address -> (a -> Bool) -> TracePredicate
@@ -377,17 +349,17 @@ dataAtAddress address check =
 
 waitingForSlot
     :: forall w s e a.
-       ( HasType SlotSymbol AwaitSlot.WaitingForSlot (Output s)
-       , ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
     -> Slot
     -> TracePredicate
 waitingForSlot contract inst sl =
-    flip postMapM (Folds.instanceRequests contract inst) $ \rqs ->
-        case mapMaybe (\e -> AwaitSlot.request e >>= guard . (==) sl) (rqRequest <$> rqs) of
+    flip postMapM (Folds.instanceRequests contract inst) $ \rqs -> do
+        let hks :: [Request Slot]
+            hks = mapMaybe (traverse (preview Requests._AwaitSlotReq)) rqs
+        case filter ((==) sl) (rqRequest <$> hks) of
             [] -> do
                 tell @(Doc Void) $ pretty inst <+> "not waiting for any slot notifications. Expected:" <+>  viaShow sl
                 pure False
@@ -395,9 +367,7 @@ waitingForSlot contract inst sl =
 
 anyTx
     :: forall w s e a.
-       ( HasWriteTx s
-       , ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -406,13 +376,11 @@ anyTx contract inst = tx contract inst (const True) "anyTx"
 
 assertHooks
     :: forall w s e a.
-       ( Forall (Output s) Pretty
-       , ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
-    -> ([Handlers s] -> Bool)
+    -> ([PABReq] -> Bool)
     -> String
     -> TracePredicate
 assertHooks contract inst p nm =
@@ -430,13 +398,11 @@ assertHooks contract inst p nm =
 -- | Make an assertion about the responses provided to the contract instance.
 assertResponses
     :: forall w s e a.
-       ( Forall (Input s) Pretty
-       , ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
-    -> ([Response (Event s)] -> Bool)
+    -> ([Response PABResp] -> Bool)
     -> String
     -> TracePredicate
 assertResponses contract inst p nm =
@@ -450,12 +416,46 @@ assertResponses contract inst p nm =
                 ]
         pure result
 
+data Shrinking = DoShrink | DontShrink
+    deriving (Eq, Ord, Show)
+
+-- | make an assertion about the 'ContractInstanceState' of a contract
+--   instance
+assertResumableResult ::
+    forall w s e a.
+    ( Monoid w
+    , Show e
+    , Show a
+    , Show w
+    )
+    => Contract w s e a
+    -> ContractInstanceTag
+    -> Shrinking
+    -> (ResumableResult w e PABResp PABReq a -> Bool)
+    -> String
+    -> TracePredicate
+assertResumableResult contract inst shrinking p nm =
+    let f = case shrinking of { DontShrink -> id; DoShrink -> shrinkResumableResult } in
+    flip postMapM (Folds.instanceState contract inst) $ \case
+        Nothing -> do
+            tell @(Doc Void) $ "No state for " <+> pretty inst
+            pure False
+        Just ContractInstanceState{instContractState} -> do
+            let shrunkState = f instContractState
+                result = p shrunkState
+            unless result $ do
+                tell @(Doc Void) $ vsep
+                    [ "Resumable result for" <+> pretty inst
+                    , viaShow shrunkState
+                    , "Failed" <+> squotes (fromString nm)
+                    ]
+            pure result
+
 -- | A 'TracePredicate' checking that the wallet's contract instance finished
 --   without errors.
 assertDone
     :: forall w s e a.
-    ( ContractConstraints s
-    , Monoid w
+    ( Monoid w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -468,8 +468,7 @@ assertDone contract inst pr = assertOutcome contract inst (\case { Done a -> pr 
 --   waiting for input.
 assertNotDone
     :: forall w s e a.
-    ( ContractConstraints s
-    , Monoid w
+    ( Monoid w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -481,8 +480,7 @@ assertNotDone contract inst = assertOutcome contract inst (\case { NotDone -> Tr
 --   failed with an error.
 assertContractError
     :: forall w s e a.
-    ( ContractConstraints s
-    , Monoid w
+    ( Monoid w
     )
     => Contract w s e a
     -> ContractInstanceTag
@@ -493,8 +491,7 @@ assertContractError contract inst p = assertOutcome contract inst (\case { Faile
 
 assertOutcome
     :: forall w s e a.
-       ( ContractConstraints s
-       , Monoid w
+       ( Monoid w
        )
     => Contract w s e a
     -> ContractInstanceTag
@@ -514,23 +511,43 @@ assertOutcome contract inst p nm =
 
 -- | Check that the funds in the wallet have changed by the given amount, exluding fees.
 walletFundsChange :: Wallet -> Value -> TracePredicate
-walletFundsChange w dlt =
-    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue, fees) -> do
+walletFundsChange = walletFundsChangeImpl False
+
+-- | Check that the funds in the wallet have changed by the given amount, including fees.
+walletFundsExactChange :: Wallet -> Value -> TracePredicate
+walletFundsExactChange = walletFundsChangeImpl True
+
+walletFundsChangeImpl :: Bool -> Wallet -> Value -> TracePredicate
+walletFundsChangeImpl exact w dlt =
+    flip postMapM (L.generalize $ (,) <$> Folds.walletFunds w <*> Folds.walletFees w) $ \(finalValue', fees) -> do
         dist <- ask @InitialDistribution
         let initialValue = fold (dist ^. at w)
-            result = initialValue P.+ dlt == finalValue P.+ fees
+            finalValue = finalValue' P.+ if exact then mempty else fees
+            result = initialValue P.+ dlt == finalValue
         unless result $ do
             tell @(Doc Void) $ vsep $
                 [ "Expected funds of" <+> pretty w <+> "to change by"
-                , " " <+> viaShow dlt
-                , "  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ] ++
-                if initialValue == finalValue P.+ fees
+                , " " <+> viaShow dlt] ++
+                (if exact then [] else ["  (excluding" <+> viaShow (Ada.getLovelace (Ada.fromValue fees)) <+> "lovelace in fees)" ]) ++
+                if initialValue == finalValue
                 then ["but they did not change"]
-                else ["but they changed by", " " <+> viaShow (finalValue P.+ fees P.- initialValue)]
+                else ["but they changed by", " " <+> viaShow (finalValue P.- initialValue)]
+        pure result
+
+walletPaidFees :: Wallet -> Value -> TracePredicate
+walletPaidFees w val =
+    flip postMapM (L.generalize $ Folds.walletFees w) $ \fees -> do
+        let result = fees == val
+        unless result $ do
+            tell @(Doc Void) $ vsep $
+                [ "Expected" <+> pretty w <+> "to pay"
+                , " " <+> viaShow val
+                , "lovelace in fees, but they paid"
+                , " " <+> viaShow fees ]
         pure result
 
 -- | An assertion about the blockchain
-assertBlockchain :: ([[Tx]] -> Bool) -> TracePredicate
+assertBlockchain :: ([Ledger.Block] -> Bool) -> TracePredicate
 assertBlockchain predicate =
     flip postMapM (L.generalize Folds.blockchain) $ \chain -> do
         let passing = predicate chain
@@ -552,7 +569,7 @@ assertChainEvents predicate =
 --   transactions that failed meet the predicate.
 assertFailedTransaction :: (Tx -> ValidationError -> [ScriptValidationEvent] -> Bool) -> TracePredicate
 assertFailedTransaction predicate =
-    flip postMapM (L.generalize Folds.failedTransactions) $ \case
+    flip postMapM (L.generalize $ Folds.failedTransactions Nothing) $ \case
         [] -> do
             tell @(Doc Void) $ "No transactions failed to validate."
             pure False
@@ -561,7 +578,7 @@ assertFailedTransaction predicate =
 -- | Assert that no transaction failed to validate.
 assertNoFailedTransactions :: TracePredicate
 assertNoFailedTransactions =
-    flip postMapM (L.generalize Folds.failedTransactions) $ \case
+    flip postMapM (L.generalize $ Folds.failedTransactions Nothing) $ \case
         [] -> pure True
         xs -> do
             let prettyTxFail (i, _, err, _) = pretty i <> colon <+> pretty err
@@ -589,8 +606,7 @@ assertUserLog pred' = flip postMapM (L.generalize Folds.userLog) $ \lg -> do
 --   a contract instance.
 assertAccumState ::
     forall w s e a.
-    ( ContractConstraints s
-    , Monoid w
+    ( Monoid w
     , Show w
     )
     => Contract w s e a

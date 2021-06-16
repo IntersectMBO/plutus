@@ -10,15 +10,16 @@
 
 module PlutusCore.Examples.Data.Vec where
 
-import           PlutusCore.Builtins
 import           PlutusCore.Core
+import           PlutusCore.Default.Builtins
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Integer
 import           PlutusCore.StdLib.Data.Unit
+
+import           Universe
 
 -- |
 --
@@ -359,7 +360,9 @@ scottHead = runQuote $ do
 -- >                     x + scottHead {integer} {p} (coe ys))
 -- >             (\(coe : scottVec Integer n -> scottVec integer zero) -> 0)
 -- >             (/\(xs' :: scottVec Integer n) -> xs')
-scottSumHeadsOr0 :: uni `IncludesAll` '[Integer, ()] => Term TyName Name uni DefaultFun ()
+scottSumHeadsOr0
+    :: (uni `Includes` Integer, uni `Includes` ())
+    => Term TyName Name uni DefaultFun ()
 scottSumHeadsOr0 = runQuote $ do
     n <- freshTyName "n"
     p <- freshTyName "p"

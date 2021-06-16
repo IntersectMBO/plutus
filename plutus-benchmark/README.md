@@ -35,9 +35,9 @@ This directory contains two sets of benchmarks:
 * `validation`:  a number of Plutus Core scripts extracted from the `plutus-use-cases` tests which represent realistic on-chain
    transaction validations.
 
-   * The scripts are stored as Plutus Core source in `validation/data`, along with a description
-     of how to combine them to obtain executable applied validators.
-   * Benchmarking code is stored in `validation/Main.hs`.
+   * The scripts are stored in flat-encoded form in various subdirectories of `validation/data`.
+
+   * The benchmarking code is in `validation/Main.hs`.
 
    * To run the benchmarks using stack, type a command like this
        * `stack bench plutus-benchmark:validation` (run all benchmarks)

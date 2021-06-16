@@ -56,7 +56,7 @@ import           Ledger.Slot                             (Slot)
 import qualified Network.WebSockets                      as WS
 import           Network.WebSockets.Connection           (Connection, PendingConnection)
 import           Numeric.Natural                         (Natural)
-import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint (..))
+import           Plutus.Contract.Effects                 (ActiveEndpoint (..))
 import           Plutus.PAB.Core                         (PABAction)
 import qualified Plutus.PAB.Core                         as Core
 import           Plutus.PAB.Core.ContractInstance.STM    (BlockchainEnv, InstancesState, OpenEndpoint (..))

@@ -29,8 +29,8 @@ import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayoutOptions, fill, indent, layoutPretty,
                                                         line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Ledger                                (Address, PubKey, PubKeyHash, Signature, Tx (Tx), TxId,
-                                                        TxIn (TxIn, txInRef, txInType),
+import           Ledger                                (Address, Blockchain, PubKey, PubKeyHash, Signature, Tx (Tx),
+                                                        TxId, TxIn (TxIn),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
                                                         Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
@@ -51,7 +51,7 @@ import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx
                                                         BeneficialOwner (OwnedByPubKey, OwnedByScript),
                                                         DereferencedInput (DereferencedInput, InputNotFound, originalInput, refersTo),
                                                         SequenceId (SequenceId, slotIndex, txIndex), balances,
-                                                        dereferencedInputs, toBeneficialOwner, tx, txId)
+                                                        dereferencedInputs, toBeneficialOwner, tx, txId, valid)
 
 showBlockchainFold :: [(PubKeyHash, Wallet)] -> EmulatorEventFold (Either Text Text)
 showBlockchainFold walletKeys =
@@ -60,7 +60,7 @@ showBlockchainFold walletKeys =
             <$> runReaderT (render txns) (Map.fromList walletKeys)
     in fmap r Folds.annotatedBlockchain
 
-showBlockchain :: [(PubKeyHash, Wallet)] -> [[Tx]] -> Either Text Text
+showBlockchain :: [(PubKeyHash, Wallet)] -> Blockchain -> Either Text Text
 showBlockchain walletKeys blockchain =
     flip runReaderT (Map.fromList walletKeys) $ do
         annotatedBlockchain <- doAnnotateBlockchain blockchain
@@ -95,6 +95,7 @@ instance Render AnnotatedTx where
                        , tx = Tx {txOutputs, txForge, txFee, txSignatures}
                        , dereferencedInputs
                        , balances
+                       , valid = True
                        } =
         vsep <$>
         sequence
@@ -111,10 +112,21 @@ instance Render AnnotatedTx where
             , pure "Balances Carried Forward:"
             , indented balances
             ]
-      where
-        heading t x = do
-            r <- indented x
-            pure $ fill 10 t <> r
+    render AnnotatedTx { txId
+                       , tx = Tx { txFee }
+                       , valid = False
+                       } =
+        vsep <$>
+        sequence
+            [ pure "Invalid transaction"
+            , heading "TxId:" txId
+            , heading "Fee:" txFee
+            ]
+
+heading :: Render a => Doc ann -> a -> ReaderT (Map PubKeyHash Wallet) (Either Text) (Doc ann)
+heading t x = do
+    r <- indented x
+    pure $ fill 10 t <> r
 
 instance Render SequenceId where
     render SequenceId {..} =
@@ -248,8 +260,9 @@ instance Render DereferencedInput where
             [render refersTo, pure "Source:", indent 2 <$> render originalInput]
 
 instance Render TxIn where
-    render TxIn {txInRef, txInType} =
+    render (TxIn txInRef (Just txInType)) =
         vsep <$> sequence [render txInRef, render txInType]
+    render (TxIn txInRef Nothing) = render txInRef
 
 instance Render TxInType where
     render (ConsumeScriptAddress validator _ _) = render validator
@@ -258,9 +271,9 @@ instance Render TxInType where
 instance Render TxOutRef where
     render TxOutRef {txOutRefId, txOutRefIdx} =
         vsep <$>
-        sequence [heading "Tx:" txOutRefId, heading "Output #" txOutRefIdx]
+        sequence [heading' "Tx:" txOutRefId, heading' "Output #" txOutRefIdx]
       where
-        heading t x = do
+        heading' t x = do
             r <- render x
             pure $ fill 8 t <> r
 

@@ -2,27 +2,15 @@
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ../lib/unfree.nix).unfreePredicate; }
-, rev ? null
 , sources
 , enableHaskellProfiling
 }:
 let
   inherit (pkgs) stdenv;
 
-  iohkNix =
-    import sources.iohk-nix {
-      inherit system config;
-      # Make iohk-nix use our nixpkgs
-      sourcesOverride = { inherit (sources) nixpkgs; };
-    };
-
   gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
 
-  # The git revision comes from `rev` if available (Hydra), otherwise
-  # it is read using IFD and git, which is avilable on local builds.
-  git-rev = if isNull rev then pkgs.lib.commitIdFromGitRepo ../../.git else rev;
-
-  # { index-state, project, projectPackages, packages, extraPackages }
+  # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
@@ -36,6 +24,7 @@ let
   #
   exeFromExtras = x: haskell.extraPackages."${x}".components.exes."${x}";
   cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
+  cardano-repo-tool = exeFromExtras "cardano-repo-tool";
   stylish-haskell = exeFromExtras "stylish-haskell";
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
@@ -190,10 +179,10 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
+  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago spago2nix;
   inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix web-ghc;
+  inherit web-ghc;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib aws-mfa-login;
   inherit lib;

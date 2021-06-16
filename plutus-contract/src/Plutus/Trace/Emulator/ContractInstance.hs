@@ -46,10 +46,10 @@ import           Data.Aeson                           (object)
 import qualified Data.Aeson                           as JSON
 import           Data.Foldable                        (traverse_)
 import qualified Data.Text                            as T
-import           Plutus.Contract                      (Contract (..), HasBlockchainActions)
+import           Plutus.Contract                      (Contract (..))
+import           Plutus.Contract.Effects              (PABReq, PABResp, matches)
 import           Plutus.Contract.Resumable            (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable            as State
-import           Plutus.Contract.Schema               (Event (..), Handlers (..), eventName, handlerName)
 import           Plutus.Contract.Trace                (handleBlockchainQueries)
 import           Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, tryHandler,
                                                        wrapHandler)
@@ -103,7 +103,7 @@ handleContractRuntime = interpret $ \case
             Just threadId -> do
                 ownId <- ask @ThreadId
                 let Notification{notificationContractEndpoint=EndpointDescription ep, notificationContractArg} = n
-                    vl = object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
+                    vl = JSON.toJSON $ Right @() $ object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
                     e = Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
                 _ <- mkAgentSysCall @_ @EmulatorMessage Normal e
                 logInfo $ NotificationSuccess n
@@ -115,7 +115,6 @@ contractThread :: forall w s e effs.
     ( Member (State EmulatorThreads) effs
     , Member (Error EmulatorRuntimeError) effs
     , ContractConstraints s
-    , HasBlockchainActions s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -153,11 +152,11 @@ getThread t = do
     r <- gets (view $ instanceIdThreads . at t)
     maybe (throwError $ ThreadIdNotFound t) pure r
 
-logStopped :: forall w s e effs.
+logStopped :: forall w e effs.
     ( Member (LogMsg ContractInstanceMsg) effs
     , Show e
     )
-    => ResumableResult w e (Event s) (Handlers s) ()
+    => ResumableResult w e PABResp PABReq ()
     -> Eff effs ()
 logStopped ResumableResult{_finalState} =
     case _finalState of
@@ -167,7 +166,6 @@ logStopped ResumableResult{_finalState} =
 -- | Run an instance of a contract
 runInstance :: forall w s e effs.
     ( ContractConstraints s
-    , HasBlockchainActions s
     , Member (Error EmulatorRuntimeError) effs
     , Show e
     , JSON.ToJSON e
@@ -187,9 +185,9 @@ runInstance contract event = do
                 logInfo Freezing
                 -- freeze ourselves, see note [Freeze and Thaw]
                 mkAgentSysCall Frozen WaitForMessage >>= runInstance contract
-            Just (EndpointCall _ _ vl) -> do
-                logInfo $ ReceiveEndpointCall vl
-                e <- decodeEvent @s vl
+            Just (EndpointCall _ desc vl) -> do
+                logInfo $ ReceiveEndpointCall desc vl
+                e <- decodeEvent vl
                 _ <- respondToEvent @w @s @e e
                 mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             Just (ContractInstanceStateRequest sender) -> do
@@ -220,22 +218,21 @@ runInstance contract event = do
                 mkAgentSysCall prio WaitForMessage >>= runInstance contract
 
 decodeEvent ::
-    forall s effs.
-    ( ContractConstraints s
-    , Member (LogMsg ContractInstanceMsg) effs
+    forall effs.
+    ( Member (LogMsg ContractInstanceMsg) effs
     , Member (Error EmulatorRuntimeError) effs
     )
     => JSON.Value
-    -> Eff effs (Event s)
+    -> Eff effs PABResp
 decodeEvent vl =
-    case JSON.fromJSON @(Event s) vl of
+    case JSON.fromJSON @PABResp vl of
             JSON.Error e'       -> do
-                let msg = JSONDecodingError e'
+                let msg = EmulatorJSONDecodingError e' vl
                 logError $ InstErr msg
                 throwError msg
             JSON.Success event' -> pure event'
 
-getHooks :: forall w s e effs. Member (State (ContractInstanceStateInternal w s e ())) effs => Eff effs [Request (Handlers s)]
+getHooks :: forall w s e effs. Member (State (ContractInstanceStateInternal w s e ())) effs => Eff effs [Request PABReq]
 getHooks = gets @(ContractInstanceStateInternal w s e ()) (State.unRequests . view requests . view resumableResult . cisiSuspState)
 
 -- | Add a 'Response' to the contract instance state
@@ -245,7 +242,7 @@ addResponse
     , Member (LogMsg ContractInstanceMsg) effs
     , Monoid w
     )
-    => Response (Event s)
+    => Response PABResp
     -> Eff effs ()
 addResponse e = do
     oldState <- get @(ContractInstanceStateInternal w s e ())
@@ -266,15 +263,13 @@ respondToEvent ::
     , Member ContractRuntimeEffect effs
     , Member (Reader ContractInstanceId) effs
     , Member (LogMsg ContractInstanceMsg) effs
-    , ContractConstraints s
     , Monoid w
     )
-    => Event s
-    -> Eff effs (Maybe (Response (Event s)))
-respondToEvent e =
-    respondToRequest @w @s @e $ RequestHandler $ \h -> do
-        guard $ handlerName h == eventName e
-        pure e
+    => PABResp
+    -> Eff effs (Maybe (Response PABResp))
+respondToEvent e = respondToRequest @w @s @e $ RequestHandler $ \h -> do
+    guard $ h `matches` e
+    pure e
 
 -- | Inspect the open requests of a contract instance,
 --   and maybe respond to them. Returns the response that was provided to the
@@ -285,18 +280,17 @@ respondToRequest :: forall w s e effs.
     , Member (Reader ContractInstanceId) effs
     , Member (LogMsg ContractInstanceMsg) effs
     , Members EmulatedWalletEffects effs
-    , ContractConstraints s
     , Monoid w
     )
-    => RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Handlers s) (Event s)
+    => RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) PABReq PABResp
     -- ^ How to respond to the requests.
-    ->  Eff effs (Maybe (Response (Event s)))
+    ->  Eff effs (Maybe (Response PABResp))
 respondToRequest f = do
     hks <- getHooks @w @s @e
-    let hdl :: (Eff (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Maybe (Response (Event s)))) = tryHandler (wrapHandler f) hks
-        hdl' :: (Eff (ContractInstanceRequests effs) (Maybe (Response (Event s)))) = raiseEnd hdl
+    let hdl :: (Eff (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Maybe (Response PABResp))) = tryHandler (wrapHandler f) hks
+        hdl' :: (Eff (ContractInstanceRequests effs) (Maybe (Response PABResp))) = raiseEnd hdl
 
-        response_ :: Eff effs (Maybe (Response (Event s))) =
+        response_ :: Eff effs (Maybe (Response PABResp)) =
                 subsume @(LogMsg T.Text)
                     $ subsume @(LogMsg TxBalanceMsg)
                     $ subsume @(LogMsg RequestHandlerLogMsg)
@@ -317,11 +311,10 @@ respondToRequest f = do
 ---
 
 logResponse ::  forall w s e effs.
-    ( ContractConstraints s
-    , Member (LogMsg ContractInstanceMsg) effs
+    ( Member (LogMsg ContractInstanceMsg) effs
     , Member (State (ContractInstanceStateInternal w s e ())) effs
     )
-    => Maybe (Response (Event s))
+    => Maybe (Response PABResp)
     -> Eff effs ()
 logResponse = \case
     Nothing -> logDebug NoRequestsHandled
@@ -330,8 +323,7 @@ logResponse = \case
         logCurrentRequests @w @s @e
 
 logCurrentRequests :: forall w s e effs.
-    ( ContractConstraints s
-    , Member (State (ContractInstanceStateInternal w s e ())) effs
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
     , Member (LogMsg ContractInstanceMsg) effs
     )
     => Eff effs ()

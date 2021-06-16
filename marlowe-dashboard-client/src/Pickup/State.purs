@@ -26,7 +26,7 @@ import LocalStorage (setItem, removeItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
+import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletDropdownOpen, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
 import Pickup.Types (Action(..), Card(..), State)
 import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
 import Toast.Types (ajaxErrorToast, errorToast)
@@ -46,6 +46,7 @@ mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
   , walletNicknameOrId: mempty
+  , walletDropdownOpen: false
   , walletNicknameInput: InputField.initialState
   , walletIdInput: InputField.initialState
   , remoteWalletDetails: NotAsked
@@ -64,14 +65,16 @@ handleAction ::
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (OpenCard card) = assign _card $ Just card
 
-handleAction CloseCard = do
-  modify_
-    $ set _walletNicknameOrId mempty
-    <<< set _remoteWalletDetails NotAsked
-    <<< set _pickingUp false
-    <<< set _card Nothing
-  handleAction $ WalletNicknameInputAction $ InputField.Reset
-  handleAction $ WalletIdInputAction $ InputField.Reset
+handleAction (CloseCard card) = do
+  currentCard <- use _card
+  when (currentCard == Just card) do
+    modify_
+      $ set _walletNicknameOrId mempty
+      <<< set _remoteWalletDetails NotAsked
+      <<< set _pickingUp false
+      <<< set _card Nothing
+    handleAction $ WalletNicknameInputAction $ InputField.Reset
+    handleAction $ WalletIdInputAction $ InputField.Reset
 
 handleAction GenerateWallet = do
   walletLibrary <- use _walletLibrary
@@ -114,6 +117,8 @@ handleAction (SetWalletNicknameOrId string) = do
               handleAction $ OpenCard PickupNewWalletCard
     Nothing -> pure unit
 
+handleAction (SetWalletDropdownOpen walletDropdownOpen) = assign _walletDropdownOpen walletDropdownOpen
+
 handleAction (OpenPickupWalletCardWithDetails walletDetails) = do
   assign _remoteWalletDetails Loading
   ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
@@ -121,6 +126,7 @@ handleAction (OpenPickupWalletCardWithDetails walletDetails) = do
   case ajaxWalletDetails of
     Left ajaxError -> handleAction $ OpenCard LocalWalletMissingCard
     Right _ -> do
+      handleAction $ SetWalletDropdownOpen false
       handleAction $ WalletNicknameInputAction $ InputField.SetValue $ view _walletNickname walletDetails
       handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
       handleAction $ OpenCard PickupWalletCard
@@ -143,7 +149,8 @@ handleAction (PickupWallet walletNickname) = do
     _ -> do
       -- this should never happen (the "Pickup Wallet" button should be disabled unless remoteWalletDetails is Success),
       -- but let's add some sensible behaviour anyway just in case
-      handleAction CloseCard
+      handleAction $ CloseCard PickupWalletCard -- either of these cards could be open at
+      handleAction $ CloseCard PickupNewWalletCard -- this point, so we close both to be sure
       addToast $ errorToast "Unable to pick up wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage =

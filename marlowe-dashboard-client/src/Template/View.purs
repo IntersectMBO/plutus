@@ -17,16 +17,17 @@ import Data.String (null)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), for, id_, placeholder, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, readOnly, type_, value)
 import Humanize (humanizeValue)
 import InputField.Types (inputErrorToString)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
-import Marlowe.Extended (TemplateContent, _valueContent, contractTypeInitials)
+import Marlowe.Extended (contractTypeInitials)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Slot, TokenName)
+import Marlowe.Template (TemplateContent, _valueContent)
 import Material.Icons (Icon(..), icon_)
 import Template.Format (formatText)
 import Template.Lenses (_contractName, _contractNickname, _metaData, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
@@ -339,32 +340,43 @@ contractTitle metaData =
         [ text $ metaData.contractName ]
     ]
 
+-- TODO: This is a lot like the `actionConfirmationCard` in `Contract.View`. Consider factoring out a shared component.
 contractSetupConfirmationCard :: forall p. Assets -> HTML p Action
 contractSetupConfirmationCard assets =
-  div_
-    [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
-        [ span_ [ text "Demo wallet balance:" ]
-        , span_ [ text $ humanizeValue adaToken $ getAda assets ]
-        ]
-    , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
-        [ p
-            [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
-            [ text "Confirm payment of:" ]
-        , p
-            [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-            [ text $ humanizeValue adaToken contractCreationFee ]
-        , div
-            [ classNames [ "flex" ] ]
-            [ button
-                [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
-                , onClick_ CloseSetupConfirmationCard
-                ]
-                [ text "Cancel" ]
-            , button
-                [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , onClick_ StartContract
-                ]
-                [ text "Pay and run" ]
-            ]
-        ]
-    ]
+  let
+    hasSufficientFunds = getAda assets >= contractCreationFee
+  in
+    div_
+      [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
+          [ span_ [ text "Demo wallet balance:" ]
+          , span_ [ text $ humanizeValue adaToken $ getAda assets ]
+          ]
+      , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
+          [ p
+              [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
+              [ text "Confirm payment of:" ]
+          , p
+              [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
+              [ text $ humanizeValue adaToken contractCreationFee ]
+          , div
+              [ classNames [ "flex" ] ]
+              [ button
+                  [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
+                  , onClick_ CloseSetupConfirmationCard
+                  ]
+                  [ text "Cancel" ]
+              , button
+                  [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                  , onClick_ StartContract
+                  , enabled hasSufficientFunds
+                  ]
+                  [ text "Pay and run" ]
+              ]
+          , div
+              [ classNames [ "mt-4", "text-sm", "text-red" ] ]
+              if hasSufficientFunds then
+                []
+              else
+                [ text "You have insufficient funds to initialise this contract." ]
+          ]
+      ]

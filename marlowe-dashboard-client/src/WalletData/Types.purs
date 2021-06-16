@@ -11,10 +11,11 @@ import Prelude
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Foreign.Class (class Encode, class Decode)
 import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
-import Marlowe.PAB (PlutusAppId)
+import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
 import Marlowe.Semantics (Assets, PubKey)
 
 type WalletLibrary
@@ -26,8 +27,13 @@ type WalletNickname
 type WalletDetails
   = { walletNickname :: WalletNickname
     , companionAppId :: PlutusAppId
+    , marloweAppId :: PlutusAppId
     , walletInfo :: WalletInfo
     , assets :: Assets
+    -- this property shouldn't be necessary, but at the moment we are getting too many update notifications
+    -- through the PAB - so until that bug is fixed, we use this to check whether an update notification
+    -- really has changed anything
+    , previousCompanionAppState :: Maybe (Map MarloweParams MarloweData)
     }
 
 -- this is the data that the wallet API returns when creating a wallet and when subsequently requesting

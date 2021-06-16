@@ -122,10 +122,10 @@ import           Data.Typeable
 
 import           Ledger.Slot
 import           Ledger.Value                          (Value)
-import           Plutus.Contract                       (Contract, HasBlockchainActions)
+import           Plutus.Contract                       (Contract)
 import           Plutus.Contract.Test
-import           Plutus.Trace.Emulator                 as Trace (ContractHandle, EmulatorTrace, activateContractWallet,
-                                                                 walletInstanceTag)
+import           Plutus.Trace.Emulator                 as Trace (ContractHandle, ContractInstanceTag, EmulatorTrace,
+                                                                 activateContract, walletInstanceTag)
 import           PlutusTx.Monoid                       (inv)
 import qualified Test.QuickCheck.DynamicLogic.Monad    as DL
 import           Test.QuickCheck.DynamicLogic.Quantify (Quantifiable (..), Quantification, arbitraryQ, chooseQ,
@@ -170,12 +170,13 @@ type SchemaConstraints w schema err =
         , Monoid w
         , JSON.ToJSON w
         , Typeable schema
-        , HasBlockchainActions schema
         , ContractConstraints schema
         , Show err
         , Typeable err
         , JSON.ToJSON err
         , JSON.FromJSON err
+        , JSON.ToJSON w
+        , JSON.FromJSON w
         )
 
 -- | A `ContractInstanceSpec` associates a `ContractInstanceKey` with a concrete `Wallet` and
@@ -261,6 +262,11 @@ class ( Typeable state
     --   >      Buyer  :: Wallet -> ContractInstanceKey MyModel MyObsState MySchema MyError
     --   >      Seller :: ContractInstanceKey MyModel MyObsState MySchema MyError
     data ContractInstanceKey state :: * -> Row * -> * -> *
+
+    -- | The 'ContractInstanceTag' of an instance key for a wallet. Defaults to 'walletInstanceTag'.
+    --   You must override this if you have multiple instances per wallet.
+    instanceTag :: forall a b c. ContractInstanceKey state a b c -> Wallet -> ContractInstanceTag
+    instanceTag _ = walletInstanceTag
 
     -- | Given the current model state, provide a QuickCheck generator for a random next action.
     --   This is used in the `Arbitrary` instance for `Actions`s as well as by `anyAction` and
@@ -929,7 +935,7 @@ finalChecks opts predicate prop = do
 activateWallets :: forall state. ContractModel state => [ContractInstanceSpec state] -> EmulatorTrace (Handles state)
 activateWallets [] = return IMNil
 activateWallets (ContractInstanceSpec key wallet contract : spec) = do
-    h <- activateContractWallet wallet contract
+    h <- activateContract wallet contract (instanceTag key wallet)
     m <- activateWallets spec
     return $ IMCons key h m
 
@@ -1011,8 +1017,8 @@ propRunActionsWithOptions opts handleSpecs predicate actions' =
 checkBalances :: ModelState state -> TracePredicate
 checkBalances s = Map.foldrWithKey (\ w val p -> walletFundsChange w val .&&. p) (pure True) (s ^. balanceChanges)
 
-checkNoCrashes :: [ContractInstanceSpec state] -> TracePredicate
-checkNoCrashes = foldr (\ (ContractInstanceSpec _ w c) -> (assertOutcome c (walletInstanceTag w) notError "Contract instance stopped with error" .&&.))
+checkNoCrashes :: ContractModel state => [ContractInstanceSpec state] -> TracePredicate
+checkNoCrashes = foldr (\ (ContractInstanceSpec k w c) -> (assertOutcome c (instanceTag k w) notError "Contract instance stopped with error" .&&.))
                        (pure True)
     where
         notError Failed{}  = False

@@ -23,6 +23,7 @@ import           Data.Time.Clock                                    (UTCTime (..
                                                                      nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import           Data.Time.Units                                    (Second)
 import           Data.Time.Units.Extra                              ()
+import           Data.Word                                          (Word16)
 
 import           GHC.Generics
 import           NoThunks.Class                                     (NoThunks)
@@ -38,7 +39,8 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Codec as TxSubmiss
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmission
 import           Ouroboros.Network.Util.ShowProxy
 
-import           Ledger                                             (Block, Slot (..), Tx (..), TxId (..))
+import           Ledger                                             (Block, OnChainTx (..), Slot (..), Tx (..),
+                                                                     TxId (..))
 import           Ledger.Bytes                                       (LedgerBytes (..))
 
 -- | Tip of the block chain type (used by node protocols).
@@ -67,6 +69,7 @@ deriving instance StandardHash Tx
 -- TODO: Is this the best place for these instances?
 instance ShowProxy Char
 instance ShowProxy Tx where
+instance ShowProxy OnChainTx where
 instance ShowProxy a => ShowProxy [a] where
   showProxy _ = "[" ++ showProxy (Proxy @a) ++ "]"
 
@@ -80,26 +83,24 @@ maximumMiniProtocolLimits =
         maximumIngressQueue = maxBound
     }
 
--- | Packs up an application from the mini protocols we use.
--- This is used to build both a client and server application,
--- depending on the mini protocols passed as arguments.
-nodeApplication
-  :: RunMiniProtocol appType bytes m a b
-  -> RunMiniProtocol appType bytes m a b
+-- | Build an application from a set of protocol numbers and protocols.
+mkApplication
+  :: [ (Word16, RunMiniProtocol appType bytes m a b) ]
   -> OuroborosApplication appType addr bytes m a b
-nodeApplication chainSync txSubmission =
-    OuroborosApplication $ \_connectionId _shouldStopSTM -> [
-      MiniProtocol {
-        miniProtocolNum = MiniProtocolNum 2,
-        miniProtocolLimits = maximumMiniProtocolLimits,
-        miniProtocolRun = chainSync
-      },
-      MiniProtocol {
-        miniProtocolNum = MiniProtocolNum 3,
-        miniProtocolLimits = maximumMiniProtocolLimits,
-        miniProtocolRun = txSubmission
-      }
-    ]
+mkApplication protocols =
+  OuroborosApplication $ \_connectionId _shoudStomSTM ->
+    map (\(ix, protocol) -> MiniProtocol {
+                             miniProtocolNum = MiniProtocolNum ix,
+                             miniProtocolLimits = maximumMiniProtocolLimits,
+                             miniProtocolRun = protocol
+                            })
+    protocols
+
+chainSyncMiniProtocolNum :: Word16
+chainSyncMiniProtocolNum = 5
+
+txSubmissionMiniProtocolNum :: Word16
+txSubmissionMiniProtocolNum = 2
 
 type Offset = Integer
 

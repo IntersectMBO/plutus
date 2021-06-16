@@ -1,23 +1,29 @@
 ( (Right (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> z)))))))))))))))))))))))
-, ({ tally: ({ BVar causes ({ cpu: 9800000
+, ({ tally: ({ BStep BConst causes ({ cpu: 0
+| mem: 0
+})
+| BStep BVar causes ({ cpu: 5460000
 | mem: 1400
 })
-| BLamAbs causes ({ cpu: 6580000
+| BStep BLamAbs causes ({ cpu: 3666000
 | mem: 940
 })
-| BApply causes ({ cpu: 8540000
+| BStep BApply causes ({ cpu: 4758000
 | mem: 1220
 })
-| BDelay causes ({ cpu: 2590000
+| BStep BDelay causes ({ cpu: 1443000
 | mem: 370
 })
-| BForce causes ({ cpu: 1820000
+| BStep BForce causes ({ cpu: 1014000
 | mem: 260
 })
-| BStartup causes ({ cpu: 50000000
+| BStep BBuiltin causes ({ cpu: 0
+| mem: 0
+})
+| BStartup causes ({ cpu: 1000000
 | mem: 0
 })})
-| budget: ({ cpu: 79330000
+| budget: ({ cpu: 17341000
 | mem: 4190
 })
 }) )

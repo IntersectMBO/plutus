@@ -1,21 +1,21 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_followerAppId, _executionState, _metadata)
+import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _metadata)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_status)
 import ContractHome.State (partitionContracts)
-import ContractHome.Types (Action(..), ContractStatus(..), State, PartitionedContracts)
+import ContractHome.Types (Action(..), ContractStatus(..), PartitionedContracts, State)
 import Css (classNames)
 import Css as Css
 import Data.Array (length)
 import Data.Lens ((^.))
-import Data.Maybe (maybe')
+import Data.Maybe (Maybe(..), maybe')
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Humanize (humanizeDuration)
-import Marlowe.Execution (_mNextTimeout)
+import Marlowe.Execution.Lenses (_mNextTimeout)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
 import Marlowe.Semantics (Slot)
 import Marlowe.Slot (secondsDiff)
@@ -93,6 +93,8 @@ contractGrid currentSlot contracts =
 contractCard :: forall p. Slot -> Contract.State -> HTML p Action
 contractCard currentSlot contractState =
   let
+    mMarloweParams = contractState ^. _mMarloweParams
+
     metadata = contractState ^. _metadata
 
     longTitle = metadata.contractName
@@ -115,8 +117,7 @@ contractCard currentSlot contractState =
   in
     div
       -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
-      [ classNames
-          [ "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
+      [ classNames [ "flex", "flex-col", "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
       , onClick_ $ OpenContract contractInstanceId
       ]
       -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
@@ -125,11 +126,13 @@ contractCard currentSlot contractState =
           , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text contractType ]
           , icon ArrowRight [ "text-28px" ]
           ]
-      , div [ classNames [ "px-4", "py-2", "text-lg" ] ]
+      , div [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
           [ text longTitle
           ]
-      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ]
-          [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
-          , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
-          ]
+      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
+          Nothing -> [ text "pending confirmation" ]
+          _ ->
+            [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
+            , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
+            ]
       ]

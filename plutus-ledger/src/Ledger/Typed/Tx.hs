@@ -26,7 +26,7 @@
 module Ledger.Typed.Tx where
 
 import           Ledger.Typed.Scripts
-import           Plutus.V1.Ledger.Address  hiding (scriptAddress)
+import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Scripts
 import           Plutus.V1.Ledger.Tx
@@ -63,7 +63,7 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxIn a) where
 makeTypedScriptTxIn
     :: forall inn
     . (IsData (RedeemerType inn), IsData (DatumType inn))
-    => ScriptInstance inn
+    => TypedValidator inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
     -> TypedScriptTxIn inn
@@ -72,7 +72,7 @@ makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOut
         rs = Redeemer (toData r)
         ds = Datum (toData d)
         txInType = ConsumeScriptAddress vs rs ds
-    in TypedScriptTxIn @inn (TxIn ref txInType) tyRef
+    in TypedScriptTxIn @inn (TxIn ref (Just txInType)) tyRef
 
 txInValue :: TypedScriptTxIn a -> Value.Value
 txInValue = txOutValue . tyTxOutTxOut . tyTxOutRefOut . tyTxInOutRef
@@ -84,7 +84,7 @@ newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
 
 -- | Create a 'PubKeyTxIn'.
 makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
-makePubKeyTxIn ref = PubKeyTxIn $ TxIn ref ConsumePublicKeyAddress
+makePubKeyTxIn ref = PubKeyTxIn . TxIn ref . Just $ ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOut a = IsData (DatumType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DatumType a }
@@ -107,13 +107,13 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxOut a) where
 makeTypedScriptTxOut
     :: forall out
     . (IsData (DatumType out))
-    => ScriptInstance out
+    => TypedValidator out
     -> DatumType out
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
     let outTy = datumHash $ Datum $ toData d
-    in TypedScriptTxOut @out TxOut{txOutAddress = scriptAddress ct, txOutValue=value, txOutDatumHash = Just outTy} d
+    in TypedScriptTxOut @out TxOut{txOutAddress = validatorAddress ct, txOutValue=value, txOutDatumHash = Just outTy} d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOutRef a = TypedScriptTxOutRef { tyTxOutRefRef :: TxOutRef, tyTxOutRefOut :: TypedScriptTxOut a }
@@ -152,6 +152,7 @@ data ConnectionError =
     WrongValidatorAddress Address Address
     | WrongOutType WrongOutTypeError
     | WrongInType TxInType
+    | MissingInType
     | WrongValidatorType String
     | WrongRedeemerType
     | WrongDatumType
@@ -165,6 +166,7 @@ instance Pretty ConnectionError where
         WrongValidatorAddress a1 a2 -> "Wrong validator address. Expected:" <+> pretty a1 <+> "Actual:" <+> pretty a2
         WrongOutType t              -> "Wrong out type:" <+> viaShow t
         WrongInType t               -> "Wrong in type:" <+> viaShow t
+        MissingInType               -> "Missing in type"
         WrongValidatorType t        -> "Wrong validator type:" <+> pretty t
         WrongRedeemerType           -> "Wrong redeemer type"
         WrongDatumType              -> "Wrong datum type"
@@ -172,16 +174,16 @@ instance Pretty ConnectionError where
         UnknownRef                  -> "Unknown reference"
 
 -- | Checks that the given validator hash is consistent with the actual validator.
-checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> Address -> m ()
+checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => TypedValidator a -> Address -> m ()
 checkValidatorAddress ct actualAddr = do
-    let expectedAddr = scriptAddress ct
+    let expectedAddr = validatorAddress ct
     unless (expectedAddr == actualAddr) $ throwError $ WrongValidatorAddress expectedAddr actualAddr
 
 -- | Checks that the given redeemer script has the right type.
 checkRedeemer
     :: forall inn m
     . (IsData (RedeemerType inn), MonadError ConnectionError m)
-    => ScriptInstance inn
+    => TypedValidator inn
     -> Redeemer
     -> m (RedeemerType inn)
 checkRedeemer _ (Redeemer d) =
@@ -192,7 +194,7 @@ checkRedeemer _ (Redeemer d) =
 -- | Checks that the given datum has the right type.
 checkDatum
     :: forall a m . (IsData (DatumType a), MonadError ConnectionError m)
-    => ScriptInstance a
+    => TypedValidator a
     -> Datum
     -> m (DatumType a)
 checkDatum _ (Datum d) =
@@ -207,13 +209,14 @@ typeScriptTxIn
       , IsData (DatumType inn)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
-    -> ScriptInstance inn
+    -> TypedValidator inn
     -> TxIn
     -> m (TypedScriptTxIn inn)
 typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
     (rs, ds) <- case txInType of
-        ConsumeScriptAddress _ rs ds -> pure (rs, ds)
-        x                            -> throwError $ WrongInType x
+        Just (ConsumeScriptAddress _ rs ds) -> pure (rs, ds)
+        Just x                              -> throwError $ WrongInType x
+        Nothing                             -> throwError MissingInType
     -- It would be nice to typecheck the validator script here (we used to do that when we
     -- had typed on-chain code), but we can't do that with untyped code!
     rsVal <- checkRedeemer si rs
@@ -229,8 +232,10 @@ typePubKeyTxIn
     -> m PubKeyTxIn
 typePubKeyTxIn inn@TxIn{txInType} = do
     case txInType of
-        ConsumePublicKeyAddress -> pure ()
-        x                       -> throwError $ WrongInType x
+        Just ConsumePublicKeyAddress -> pure ()
+        Just x                       -> throwError $ WrongInType x
+        Nothing                      -> throwError MissingInType
+
     pure $ PubKeyTxIn inn
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
@@ -238,7 +243,7 @@ typeScriptTxOut
     :: forall out m
     . ( IsData (DatumType out)
       , MonadError ConnectionError m)
-    => ScriptInstance out
+    => TypedValidator out
     -> TxOutTx
     -> m (TypedScriptTxOut out)
 typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValue,txOutDatumHash}} = do
@@ -260,7 +265,7 @@ typeScriptTxOutRef
     . ( IsData (DatumType out)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
-    -> ScriptInstance out
+    -> TypedValidator out
     -> TxOutRef
     -> m (TypedScriptTxOutRef out)
 typeScriptTxOutRef lookupRef ct ref = do

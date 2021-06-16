@@ -9,11 +9,17 @@
 { system ? builtins.currentSystem
 , crossSystem ? null
 , config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
-  # Overrides for niv
 , sourcesOverride ? { }
-, packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization enableHaskellProfiling; }
+, sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
+, isInFlake ? false
+, haskellNix ? import sources."haskell.nix" {
+    sourcesOverride = {
+      hackage = sources."hackage.nix";
+      stackage = sources."stackage.nix";
+    };
+  }
+, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix isInFlake checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
-, rev ? null
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
   # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
@@ -23,7 +29,7 @@
 let
   inherit (packages) pkgs plutus sources;
   inherit (pkgs) lib haskell-nix;
-  inherit (plutus) haskell iohkNix agdaPackages;
+  inherit (plutus) haskell agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
@@ -94,7 +100,7 @@ rec {
   });
 
   tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix docs;
+    inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
     inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
     inherit (pkgs) terraform;

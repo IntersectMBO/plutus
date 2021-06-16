@@ -36,6 +36,7 @@ import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
+import qualified PlutusIR.Transform.Unwrap          as Unwrap
 import           PlutusIR.TypeCheck.Internal
 
 import qualified PlutusCore                         as PLC
@@ -47,7 +48,7 @@ import           PlutusPrelude
 
 -- | Actual simplifier
 simplify :: M.ToBuiltinMeaning uni fun => Term TyName Name uni fun b -> Term TyName Name uni fun b
-simplify = DeadCode.removeDeadBindings . Inline.inline . Beta.beta
+simplify = DeadCode.removeDeadBindings . Inline.inline . Beta.beta . Unwrap.unwrapCancel
 
 -- | Perform some simplification of a 'Term'.
 simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
@@ -104,4 +105,3 @@ compileReadableToPlc =
 compileTerm :: Compiling m e uni fun a
             => Term TyName Name uni fun a -> m (PLCTerm uni fun a)
 compileTerm = compileToReadable >=> compileReadableToPlc
-

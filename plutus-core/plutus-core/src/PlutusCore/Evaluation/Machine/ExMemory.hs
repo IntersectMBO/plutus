@@ -18,20 +18,20 @@ module PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Core
 import           PlutusCore.Name
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
 import           Data.Aeson
-import qualified Data.ByteString          as BS
+import qualified Data.ByteString            as BS
 import           Data.Proxy
 import           Data.SatInt
-import qualified Data.Text                as T
-import           Foreign.Storable
+import qualified Data.Text                  as T
 import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
+import           Language.Haskell.TH.Syntax (Lift)
+import           Universe
 
 #include "MachDeps.h"
 
@@ -71,18 +71,22 @@ So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithm
 'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know why that would be, apart from maybe
 just the overflow checks), but the wrapping behaviour of 'Int64' is unacceptable..
 
-One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer with platform-dependent
-size), rather than an 'Int64' since the primops that we need are only available for 'Int' until GHC 9.2
-or so. So on 32bit platforms, we have much less header
+One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
+with platform-dependent size), rather than an 'Int64' since the primops that we
+need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
+have much less headroom.
 
-However we mostly care about 64bit platforms, so this isn't too much of a problem. The only one where it could be a problem
-is GHCJS, which does present as a 32bit platform. However, we won't care about *performance* on GHCJS, since
-nobody will be running a node compiled to JS (and if they do, they deserve terrible performance). So:
-if we are not on a 64bit platform, then we can just fallback to the slower (but safe) 'Integer'.
+However we mostly care about 64bit platforms, so this isn't too much of a
+problem. The only one where it could be a problem is GHCJS, which does present
+as a 32bit platform. However, we won't care about *performance* on GHCJS, since
+nobody will be running a node compiled to JS (and if they do, they deserve
+terrible performance). So: if we are not on a 64bit platform, then we can just
+fallback to the slower (but safe) 'Integer'.
 
 -}
 
 -- See Note [Integer types for costing]
+-- See also Note [Budgeting units] in ExBudget.hs
 type CostingInteger =
 #if WORD_SIZE_IN_BITS < 64
     Integer
@@ -93,7 +97,7 @@ type CostingInteger =
 
 -- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
 
--- | Counts size in machine words (64bit for the near future)
+-- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
   deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
@@ -104,7 +108,8 @@ instance Pretty ExMemory where
 instance PrettyBy config ExMemory where
     prettyBy _ m = pretty m
 
--- | Counts CPU units - no fixed base, proportional.
+-- | Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
+-- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
   deriving (Eq, Ord, Show, Lift)
   deriving newtype (Num, NFData)
@@ -162,12 +167,13 @@ deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
     , Closed uni, uni `Everywhere` ExMemoryUsage, ExMemoryUsage fun
     ) => ExMemoryUsage (Term tyname name uni fun ann)
 deriving newtype instance ExMemoryUsage TyName
-deriving newtype instance ExMemoryUsage SatInt
+instance ExMemoryUsage SatInt where
+    memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
-instance ExMemoryUsage (Some (TypeIn uni)) where
+instance ExMemoryUsage (SomeTypeIn uni) where
   memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
@@ -201,5 +207,4 @@ instance ExMemoryUsage Char where
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
-instance ExMemoryUsage String where
-  memoryUsage string = ExMemory $ fromIntegral $ (sum $ fmap sizeOf string) `div` 8
+deriving via GenericExMemoryUsage [a] instance ExMemoryUsage a => ExMemoryUsage [a]

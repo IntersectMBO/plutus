@@ -34,16 +34,7 @@ library
         Data.Text.Extras
         Data.UUID.Extras
         Plutus.Contract
-        Plutus.Contract.Effects.AwaitSlot
-        Plutus.Contract.Effects.AwaitTxConfirmed
-        Plutus.Contract.Effects.Instance
-        Plutus.Contract.Effects.RPC
-        Plutus.Contract.Effects.ExposeEndpoint
-        Plutus.Contract.Effects.Notify
-        Plutus.Contract.Effects.OwnPubKey
-        Plutus.Contract.Effects.UtxoAt
-        Plutus.Contract.Effects.WatchAddress
-        Plutus.Contract.Effects.WriteTx
+        Plutus.Contract.Effects
         Plutus.Contract.Request
         Plutus.Contract.Checkpoint
         Plutus.Contract.Constraints
@@ -138,7 +129,8 @@ library
         random -any,
         unordered-containers -any,
         foldl -any,
-        streaming -any
+        streaming -any,
+        IntervalMap -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:

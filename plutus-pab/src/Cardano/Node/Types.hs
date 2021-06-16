@@ -221,7 +221,7 @@ type NodeServerEffects m
         , ChainEffect
         , State MockNodeServerChainState
         , LogMsg MockServerLogMsg
-        , Reader Client.ClientHandler
+        , Reader Client.TxSendHandle
         , State AppState
         , LogMsg MockServerLogMsg
         , m]

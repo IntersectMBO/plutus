@@ -66,6 +66,7 @@
             (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
             (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
             (hsPkgs."wai-extra" or (errorHandler.buildDepError "wai-extra"))
             (hsPkgs."wai" or (errorHandler.buildDepError "wai"))

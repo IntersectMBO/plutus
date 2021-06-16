@@ -52,6 +52,7 @@ library
         Plutus.V1.Ledger.Slot
         Plutus.V1.Ledger.Tx
         Plutus.V1.Ledger.TxId
+        Plutus.V1.Ledger.Time
         Plutus.V1.Ledger.Value
     build-depends:
         base >=4.9 && <5,
@@ -63,7 +64,6 @@ library
         cardano-crypto -any,
         flat -any,
         hashable -any,
-        hedgehog -any,
         plutus-core -any,
         memory -any,
         mtl -any,

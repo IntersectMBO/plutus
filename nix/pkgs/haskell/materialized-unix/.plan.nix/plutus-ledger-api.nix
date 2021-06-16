@@ -42,7 +42,6 @@
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
-          (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -78,6 +77,7 @@
           "Plutus/V1/Ledger/Slot"
           "Plutus/V1/Ledger/Tx"
           "Plutus/V1/Ledger/TxId"
+          "Plutus/V1/Ledger/Time"
           "Plutus/V1/Ledger/Value"
           ];
         hsSourceDirs = [ "src" ];

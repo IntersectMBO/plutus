@@ -64,10 +64,10 @@ import           PlutusTx.Lift            (makeLift)
 import           PlutusTx.Prelude         hiding (mapM, (<$>), (<*>), (<>))
 import           PlutusTx.Ratio           (denominator, numerator)
 import           Prelude                  (mapM, (<$>))
-import qualified Prelude                  as P
+import qualified Prelude                  as Haskell
 import           Text.PrettyPrint.Leijen  (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
-{-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
+{-# ANN module ("HLint: ignore Avoid restricted function" :: Haskell.String) #-}
 
 {- Functions that used in Plutus Core must be inlineable,
    so their code is available for PlutusTx compiler -}
@@ -93,14 +93,14 @@ import           Text.PrettyPrint.Leijen  (comma, hang, lbrace, line, rbrace, sp
 -- * Aliaces
 
 data Party = PK PubKeyHash | Role TokenName
-  deriving stock (Generic,P.Eq,P.Ord)
+  deriving stock (Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
-instance Show Party where
-  showsPrec p (PK pk) = showParen (p P.>= 11) $ showString "PK \""
-                                              . showsPrec 11 pk
-                                              . showString "\""
-  showsPrec _ (Role role) = showsPrec 11 $ unTokenName role
+instance Haskell.Show Party where
+  showsPrec p (PK pk) = Haskell.showParen (p Haskell.>= 11) $ Haskell.showString "PK \""
+                                              . Haskell.showsPrec 11 pk
+                                              . Haskell.showString "\""
+  showsPrec _ (Role role) = Haskell.showsPrec 11 $ unTokenName role
 
 type AccountId = Party
 type Timeout = Slot
@@ -115,7 +115,7 @@ type Accounts = Map (AccountId, Token) Integer
     which combines a name for the choice with the Party who had made the choice.
 -}
 data ChoiceId = ChoiceId ByteString Party
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
@@ -123,18 +123,18 @@ data ChoiceId = ChoiceId ByteString Party
     a pair of a currency symbol and token name.
 -}
 data Token = Token CurrencySymbol TokenName
-  deriving stock (Generic,P.Eq,P.Ord)
+  deriving stock (Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
-instance Show Token where
+instance Haskell.Show Token where
   showsPrec p (Token cs tn) =
-    showParen (p P.>= 11) (showString $ "Token \"" P.++ show cs P.++ "\" " P.++ show tn)
+    Haskell.showParen (p Haskell.>= 11) (Haskell.showString $ "Token \"" Haskell.++ Haskell.show cs Haskell.++ "\" " Haskell.++ Haskell.show tn)
 
 {-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
 -}
 newtype ValueId = ValueId ByteString
-  deriving stock (Show,P.Eq,P.Ord,Generic)
+  deriving stock (Haskell.Show,Haskell.Eq,Haskell.Ord,Generic)
   deriving anyclass (Newtype)
 
 
@@ -156,7 +156,7 @@ data Value a = AvailableMoney AccountId Token
            | SlotIntervalEnd
            | UseValue ValueId
            | Cond a (Value a) (Value a)
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
@@ -177,12 +177,12 @@ data Observation = AndObs Observation Observation
                  | ValueEQ (Value Observation) (Value Observation)
                  | TrueObs
                  | FalseObs
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
 data Bound = Bound Integer Integer
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
@@ -201,7 +201,7 @@ data Bound = Bound Integer Integer
 data Action = Deposit AccountId Party Token (Value Observation)
             | Choice ChoiceId [Bound]
             | Notify Observation
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
@@ -211,7 +211,7 @@ data Action = Deposit AccountId Party Token (Value Observation)
 -}
 data Payee = Account AccountId
            | Party Party
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
@@ -219,7 +219,7 @@ data Payee = Account AccountId
     datatype Case is mutually recurvive with @Contract@
 -}
 data Case a = Case Action a
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
@@ -236,7 +236,7 @@ data Contract = Close
               | When [Case Contract] Timeout Contract
               | Let ValueId (Value Observation) Contract
               | Assert Observation Contract
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
 
@@ -246,12 +246,12 @@ data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
-  deriving stock (Show,Generic)
+  deriving stock (Haskell.Show,Haskell.Eq,Generic)
 
 {-| Execution environment. Contains a slot interval of a transaction.
 -}
 newtype Environment = Environment { slotInterval :: SlotInterval }
-  deriving stock (Show,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Haskell.Eq,Haskell.Ord)
 
 
 {-| Input for a Marlowe contract. Correspond to expected 'Action's.
@@ -259,7 +259,7 @@ newtype Environment = Environment { slotInterval :: SlotInterval }
 data Input = IDeposit AccountId Party Token Integer
            | IChoice ChoiceId ChosenNum
            | INotify
-  deriving stock (Show,P.Eq,Generic)
+  deriving stock (Haskell.Show,Haskell.Eq,Generic)
   deriving anyclass (Pretty)
 
 instance FromJSON Input where
@@ -271,7 +271,7 @@ instance FromJSON Input where
                   <*> (v .: "that_deposits"))
     <|> (IChoice <$> (v .: "for_choice_id")
                  <*> (v .: "input_that_chooses_num"))
-  parseJSON _ = fail "Contract must be either an object or a the string \"close\""
+  parseJSON _ = Haskell.fail "Contract must be either an object or a the string \"close\""
 
 instance ToJSON Input where
   toJSON (IDeposit accId party tok amount) = object
@@ -295,27 +295,27 @@ instance ToJSON Input where
 -}
 data IntervalError = InvalidInterval SlotInterval
                    | IntervalInPastError Slot SlotInterval
-  deriving stock (Show, Generic)
+  deriving stock (Haskell.Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
 
 -- | Result of 'fixInterval'
 data IntervalResult = IntervalTrimmed Environment State
                     | IntervalError IntervalError
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 {-| Payment occurs during 'Pay' contract evaluation, and
     when positive balances are payed out on contract closure.
 -}
 data Payment = Payment Party Money
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Effect of 'reduceContractStep' computation
 data ReduceEffect = ReduceWithPayment Payment
                   | ReduceNoPayment
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Warning during 'reduceContractStep'
@@ -326,39 +326,39 @@ data ReduceWarning = ReduceNoWarning
                    | ReduceShadowing ValueId Integer Integer
 --                                     oldVal ^  newVal ^
                    | ReduceAssertionFailed
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Result of 'reduceContractStep'
 data ReduceStepResult = Reduced ReduceWarning ReduceEffect State Contract
                       | NotReduced
                       | AmbiguousSlotIntervalReductionError
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Result of 'reduceContractUntilQuiescent'
 data ReduceResult = ContractQuiescent [ReduceWarning] [Payment] State Contract
                   | RRAmbiguousSlotIntervalError
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Warning of 'applyCases'
 data ApplyWarning = ApplyNoWarning
                   | ApplyNonPositiveDeposit Party AccountId Token Integer
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Result of 'applyCases'
 data ApplyResult = Applied ApplyWarning State Contract
                  | ApplyNoMatchError
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Result of 'applyAllInputs'
 data ApplyAllResult = ApplyAllSuccess [TransactionWarning] [Payment] State Contract
                     | ApplyAllNoMatchError
                     | ApplyAllAmbiguousSlotIntervalError
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 -- | Warnings during transaction computation
@@ -369,7 +369,7 @@ data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Token In
                         | TransactionShadowing ValueId Integer Integer
 --                                                 oldVal ^  newVal ^
                         | TransactionAssertionFailed
-  deriving stock (Show, Generic, P.Eq)
+  deriving stock (Haskell.Show, Generic, Haskell.Eq)
   deriving anyclass (Pretty)
 
 
@@ -378,7 +378,7 @@ data TransactionError = TEAmbiguousSlotIntervalError
                       | TEApplyNoMatchError
                       | TEIntervalError IntervalError
                       | TEUselessTransaction
-  deriving stock (Show, Generic)
+  deriving stock (Haskell.Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
 
@@ -387,7 +387,7 @@ data TransactionError = TEAmbiguousSlotIntervalError
 data TransactionInput = TransactionInput
     { txInterval :: SlotInterval
     , txInputs   :: [Input] }
-  deriving stock (Show, P.Eq)
+  deriving stock (Haskell.Show, Haskell.Eq)
 
 instance Pretty TransactionInput where
     prettyFragment tInp = text "TransactionInput" <> space <> lbrace <> line <> txIntLine <> line <> txInpLine
@@ -405,7 +405,7 @@ data TransactionOutput =
         , txOutState    :: State
         , txOutContract :: Contract }
     | Error TransactionError
-  deriving stock (Show)
+  deriving stock (Haskell.Show)
 
 
 {-|
@@ -414,7 +414,7 @@ data TransactionOutput =
 data MarloweData = MarloweData {
         marloweState    :: State,
         marloweContract :: Contract
-    } deriving stock (Show, Generic)
+    } deriving stock (Haskell.Show, Haskell.Eq, Generic)
       deriving anyclass (ToJSON, FromJSON)
 
 
@@ -422,7 +422,7 @@ data MarloweParams = MarloweParams {
         rolePayoutValidatorHash :: ValidatorHash,
         rolesCurrency           :: CurrencySymbol
     }
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (FromJSON,ToJSON)
 
 
@@ -754,7 +754,7 @@ contractLifespanUpperBound contract = case contract of
         max (contractLifespanUpperBound contract1) (contractLifespanUpperBound contract2)
     When cases timeout subContract -> let
         contractsLifespans = fmap (\(Case _ cont) -> contractLifespanUpperBound cont) cases
-        in maximum (timeout : contractLifespanUpperBound subContract : contractsLifespans)
+        in Haskell.maximum (timeout : contractLifespanUpperBound subContract : contractsLifespans)
     Let _ _ cont -> contractLifespanUpperBound cont
     Assert _ cont -> contractLifespanUpperBound cont
 
@@ -781,9 +781,9 @@ customOptions = defaultOptions
                 }
 
 getInteger :: Scientific -> Parser Integer
-getInteger x = case (floatingOrInteger x :: Either Double Integer) of
+getInteger x = case (floatingOrInteger x :: Either Haskell.Double Integer) of
                  Right a -> return a
-                 Left _  -> fail "Account number is not an integer"
+                 Left _  -> Haskell.fail "Account number is not an integer"
 
 withInteger :: JSON.Value -> Parser Integer
 withInteger = withScientific "" getInteger
@@ -871,7 +871,7 @@ instance FromJSON (Value Observation) where
   parseJSON (String "slot_interval_start") = return SlotIntervalStart
   parseJSON (String "slot_interval_end") = return SlotIntervalEnd
   parseJSON (Number n) = Constant <$> getInteger n
-  parseJSON _ = fail "Value must be either an object or an integer"
+  parseJSON _ = Haskell.fail "Value must be either an object or an integer"
 instance ToJSON (Value Observation) where
   toJSON (AvailableMoney accountId token) = object
       [ "amount_of_token" .= token
@@ -932,7 +932,7 @@ instance FromJSON Observation where
                  <*> (v .: "le_than"))
     <|> (ValueEQ <$> (v .: "value")
                  <*> (v .: "equal_to"))
-  parseJSON _ = fail "Observation must be either an object or a boolean"
+  parseJSON _ = Haskell.fail "Observation must be either an object or a boolean"
 
 instance ToJSON Observation where
   toJSON (AndObs lhs rhs) = object
@@ -1054,7 +1054,7 @@ instance FromJSON Contract where
              <*> (v .: "then"))
     <|> (Assert <$> (v .: "assert")
                 <*> (v .: "then"))
-  parseJSON _ = fail "Contract must be either an object or a the string \"close\""
+  parseJSON _ = Haskell.fail "Contract must be either an object or a the string \"close\""
 
 instance ToJSON Contract where
   toJSON Close = JSON.String $ pack "close"
@@ -1097,7 +1097,7 @@ instance FromJSON TransactionInput where
                to <- Slot <$> (withInteger =<< (v .: "to"))
                return (from, to)
                                                       )
-  parseJSON _ = fail "TransactionInput must be an object"
+  parseJSON _ = Haskell.fail "TransactionInput must be an object"
 
 instance ToJSON TransactionInput where
   toJSON (TransactionInput (Slot from, Slot to) txInps) = object
@@ -1129,7 +1129,7 @@ instance FromJSON TransactionWarning where
     <|> (TransactionShadowing <$> (v .: "value_id")
                               <*> (v .: "had_value")
                               <*> (v .: "is_now_assigned"))
-  parseJSON _ = fail "Contract must be either an object or a the string \"close\""
+  parseJSON _ = Haskell.fail "Contract must be either an object or a the string \"close\""
 
 instance ToJSON TransactionWarning where
   toJSON (TransactionNonPositiveDeposit party accId tok amount) = object

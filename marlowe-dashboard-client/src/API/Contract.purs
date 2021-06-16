@@ -1,11 +1,19 @@
 module API.Contract
-  ( activateContract
+  ( class ContractActivationId
+  , activateContract
   , deactivateContract
   , getContractInstanceClientState
   , invokeEndpoint
   , getWalletContractInstances
   , getAllContractInstances
   , getContractDefinitions
+  , defaultActivateContract
+  , defaultDeactivateContract
+  , defaultGetContractInstanceClientState
+  , defaultInvokeEndpoint
+  , defaultGetWalletContractInstances
+  , defaultGetAllContractInstances
+  , defaultGetContractDefinitions
   ) where
 
 import Prelude
@@ -13,59 +21,94 @@ import API.Request (doGetRequest, doPostRequest, doPutRequest)
 import API.Url (toUrlPiece)
 import Control.Monad.Error.Class (class MonadError)
 import Effect.Aff.Class (class MonadAff)
-import Foreign.Generic (class Encode)
+import Foreign.Generic (class Decode, class Encode)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState, ContractSignatureResponse)
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Types (ContractInstanceId)
 
-activateContract ::
-  forall m.
-  MonadError AjaxError m =>
-  MonadAff m =>
-  ContractActivationArgs ContractExe -> m ContractInstanceId
-activateContract contractActivationArgs = doPostRequest "/api/new/contract/activate" contractActivationArgs
+-- PAB contracts can be activated either with a `ContractExe` (a wrapper around a path to the exe on disk), or
+-- some custom data type that identifies the contract (for versions of the plutus-pab that are bundled up with
+-- contracts). That value is also returned in the `ContractInstanceClientState`. The implementation of the API
+-- functions is the same regardless of this type, but for greater type safety we wrap them up in a class and
+-- provide an instance for the `ContractExe`. To create an alternative type to use instead, simply make it an
+-- instance of this class and give it all the default implementations.
+-- Note that the implementation of some API functions is also the same regardless of the value of the type in
+-- question that is passed, but we always have to pass one so that the compiler can determine the type of the
+-- function.
+class
+  (Decode a, Encode a) <= ContractActivationId a where
+  activateContract :: forall m. MonadError AjaxError m => MonadAff m => ContractActivationArgs a -> m ContractInstanceId
+  deactivateContract :: forall m. MonadError AjaxError m => MonadAff m => a -> ContractInstanceId -> m Unit
+  getContractInstanceClientState :: forall m. MonadError AjaxError m => MonadAff m => a -> ContractInstanceId -> m (ContractInstanceClientState a)
+  invokeEndpoint :: forall d m. MonadError AjaxError m => MonadAff m => Encode d => a -> ContractInstanceId -> String -> d -> m Unit
+  getWalletContractInstances :: forall m. MonadError AjaxError m => MonadAff m => a -> Wallet -> m (Array (ContractInstanceClientState a))
+  getAllContractInstances :: forall m. MonadError AjaxError m => MonadAff m => a -> m (Array (ContractInstanceClientState a))
+  getContractDefinitions :: forall m. MonadError AjaxError m => MonadAff m => a -> m (Array (ContractSignatureResponse a))
 
-deactivateContract ::
-  forall m.
-  MonadError AjaxError m =>
-  MonadAff m =>
-  ContractInstanceId -> m Unit
-deactivateContract contractInstanceId = doPutRequest $ "api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/stop"
+instance contractExeContractActivationId :: ContractActivationId ContractExe where
+  activateContract = defaultActivateContract
+  deactivateContract = defaultDeactivateContract
+  getContractInstanceClientState = defaultGetContractInstanceClientState
+  invokeEndpoint = defaultInvokeEndpoint
+  getWalletContractInstances = defaultGetWalletContractInstances
+  getAllContractInstances = defaultGetAllContractInstances
+  getContractDefinitions = defaultGetContractDefinitions
 
-getContractInstanceClientState ::
-  forall m.
+defaultActivateContract ::
+  forall a m.
+  ContractActivationId a =>
   MonadError AjaxError m =>
   MonadAff m =>
-  ContractInstanceId -> m (ContractInstanceClientState ContractExe)
-getContractInstanceClientState contractInstanceId = doGetRequest $ "/api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/status"
+  ContractActivationArgs a -> m ContractInstanceId
+defaultActivateContract contractActivationArgs = doPostRequest "/api/new/contract/activate" contractActivationArgs
 
-invokeEndpoint ::
-  forall d m.
+defaultDeactivateContract ::
+  forall a m.
+  ContractActivationId a =>
   MonadError AjaxError m =>
   MonadAff m =>
+  a -> ContractInstanceId -> m Unit
+defaultDeactivateContract contractActivationId contractInstanceId = doPutRequest $ "api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/stop"
+
+defaultGetContractInstanceClientState ::
+  forall a m.
+  ContractActivationId a =>
+  MonadError AjaxError m =>
+  MonadAff m =>
+  a -> ContractInstanceId -> m (ContractInstanceClientState a)
+defaultGetContractInstanceClientState contractActivationId contractInstanceId = doGetRequest $ "/api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/status"
+
+defaultInvokeEndpoint ::
+  forall a d m.
+  ContractActivationId a =>
   Encode d =>
-  ContractInstanceId -> String -> d -> m Unit
-invokeEndpoint contractInstanceId endpoint payload = doPostRequest ("/api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/endpoint/" <> endpoint) payload
-
-getWalletContractInstances ::
-  forall m.
   MonadError AjaxError m =>
   MonadAff m =>
-  Wallet -> m (Array (ContractInstanceClientState ContractExe))
-getWalletContractInstances wallet = doGetRequest $ "/api/new/contract/instances/wallet/" <> toUrlPiece wallet
+  a -> ContractInstanceId -> String -> d -> m Unit
+defaultInvokeEndpoint contractActivationId contractInstanceId endpoint payload = doPostRequest ("/api/new/contract/instance/" <> toUrlPiece contractInstanceId <> "/endpoint/" <> endpoint) payload
 
-getAllContractInstances ::
-  forall m.
+defaultGetWalletContractInstances ::
+  forall a m.
+  ContractActivationId a =>
   MonadError AjaxError m =>
   MonadAff m =>
-  m (Array (ContractInstanceClientState ContractExe))
-getAllContractInstances = doGetRequest "/api/new/contract/instances"
+  a -> Wallet -> m (Array (ContractInstanceClientState a))
+defaultGetWalletContractInstances contractActivationId wallet = doGetRequest $ "/api/new/contract/instances/wallet/" <> toUrlPiece wallet
 
-getContractDefinitions ::
-  forall m.
+defaultGetAllContractInstances ::
+  forall a m.
+  ContractActivationId a =>
   MonadError AjaxError m =>
   MonadAff m =>
-  m (Array (ContractSignatureResponse ContractExe))
-getContractDefinitions = doGetRequest "/api/new/contract/definitions"
+  a -> m (Array (ContractInstanceClientState a))
+defaultGetAllContractInstances contractActivationId = doGetRequest "/api/new/contract/instances"
+
+defaultGetContractDefinitions ::
+  forall a m.
+  ContractActivationId a =>
+  MonadError AjaxError m =>
+  MonadAff m =>
+  a -> m (Array (ContractSignatureResponse a))
+defaultGetContractDefinitions contractActivationId = doGetRequest "/api/new/contract/definitions"

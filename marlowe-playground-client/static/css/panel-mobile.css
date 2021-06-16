@@ -1,0 +1,26 @@
+@media (max-width: $breakpoint-wide) {
+  .github-gist-panel {
+    width: 29rem;
+    display: none;
+  }
+
+  .github-gist-panel.expanded {
+    display: inherit;
+    margin-top: -13px;
+  }
+
+  #publish-gist {
+    height: 30px;
+  }
+}
+
+@media (max-width: $breakpoint-mid - 1) {
+  .menu-bar a {
+    .long-text {
+      display: none;
+    }
+    .short-text {
+      display: contents;
+    }
+  }
+}

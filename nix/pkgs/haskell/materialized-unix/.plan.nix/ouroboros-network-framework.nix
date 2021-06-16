@@ -62,6 +62,7 @@
           ] ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"));
         buildable = true;
         modules = [
+          "Ouroboros/Network/Linger"
           "Ouroboros/Network/Codec"
           "Ouroboros/Network/CodecCBORTerm"
           "Ouroboros/Network/Channel"
@@ -172,4 +173,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/14; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/17; }

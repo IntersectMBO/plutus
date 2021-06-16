@@ -1,17 +1,17 @@
 module Pickup.View (renderPickupState) where
 
 import Prelude hiding (div)
-import Css (classNames)
+import Css (classNames, hideWhen)
 import Css as Css
-import Data.Array (take)
+import Data.Array (length)
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (filter, values)
 import Data.Maybe (Maybe(..), isJust, isNothing)
-import Data.String (Pattern(..), contains, null, toLower)
+import Data.String (Pattern(..), contains, toLower)
 import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
-import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
+import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), autocomplete, disabled, for, href, id_, placeholder, src, type_, value)
 import Images (arrowBack, marloweRunLogo)
 import InputField.Lenses (_value)
@@ -19,7 +19,7 @@ import InputField.State (validate)
 import InputField.View (renderInput)
 import Material.Icons (Icon(..), icon, icon_)
 import Network.RemoteData (isFailure, isSuccess)
-import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
+import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletDropdownOpen, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
@@ -99,7 +99,7 @@ pickupNewWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ CloseCard
+        , onClick_ $ CloseCard PickupNewWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
@@ -128,7 +128,7 @@ pickupNewWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ CloseCard
+                , onClick_ $ CloseCard PickupNewWalletCard
                 ]
                 [ text "Cancel" ]
             , button
@@ -172,7 +172,7 @@ pickupWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ CloseCard
+        , onClick_ $ CloseCard PickupWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
@@ -201,7 +201,7 @@ pickupWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ CloseCard
+                , onClick_ $ CloseCard PickupWalletCard
                 ]
                 [ text "Cancel" ]
             , button
@@ -218,7 +218,7 @@ localWalletMissingCard :: forall p. Array (HTML p Action)
 localWalletMissingCard =
   [ a
       [ classNames [ "absolute", "top-4", "right-4" ]
-      , onClick_ CloseCard
+      , onClick_ $ CloseCard LocalWalletMissingCard
       ]
       [ icon_ Close ]
   , div [ classNames [ "flex", "font-semibold", "px-5", "py-4", "bg-gray" ] ]
@@ -288,11 +288,11 @@ pickupWalletScreen state =
 
     walletNicknameOrId = view _walletNicknameOrId state
 
+    walletDropdownOpen = view _walletDropdownOpen state
+
     matches walletDetails = contains (Pattern $ toLower walletNicknameOrId) (toLower $ view _walletNickname walletDetails)
 
-    matchingWallets = if null walletNicknameOrId then mempty else filter matches walletLibrary
-
-    firstMatchingWallets = take 4 $ List.toUnfoldable $ values $ matchingWallets
+    matchingWallets = List.toUnfoldable $ values $ filter matches walletLibrary
   in
     main
       [ classNames [ "p-4", "max-w-sm", "mx-auto" ] ]
@@ -311,7 +311,7 @@ pickupWalletScreen state =
       , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
       , p
           [ classNames [ "mb-4", "text-center" ] ]
-          [ text "Or use an existing one by enering a wallet ID or nickname." ]
+          [ text "Or use an existing one by entering a wallet ID or nickname." ]
       , div
           [ classNames [ "relative" ] ]
           [ input
@@ -322,10 +322,14 @@ pickupWalletScreen state =
               , value walletNicknameOrId
               , autocomplete false
               , onValueInput_ SetWalletNicknameOrId
+              , onFocus_ $ SetWalletDropdownOpen true
               ]
           , div
-              [ classNames [ "absolute", "w-full", "overflow-hidden", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ] ]
-              (walletList <$> firstMatchingWallets)
+              [ classNames
+                  $ [ "absolute", "z-10", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-scroll", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
+                  <> (hideWhen $ not walletDropdownOpen || length matchingWallets == 0)
+              ]
+              (walletList <$> matchingWallets)
           , div
               [ classNames $ Css.inputError <> [ "absolute" ] ]
               $ if isFailure remoteWalletDetails then [ text "Wallet not found." ] else []

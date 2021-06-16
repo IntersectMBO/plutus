@@ -70,7 +70,7 @@ library
         prettyprinter -any,
         plutus-tx -any,
         purescript-bridge -any,
-        recursion-schemes -any,
+        recursion-schemes < 5.2,
         safe-exceptions -any,
         servant >= 0.16,
         servant-client -any,
@@ -120,6 +120,6 @@ test-suite playground-common-test
         playground-common -any,
         plutus-ledger -any,
         plutus-contract -any,
-        recursion-schemes -any,
+        recursion-schemes < 5.2,
         text -any,
         wl-pprint-text -any

@@ -23,7 +23,7 @@
 
 module Plutus.Contracts.GameStateMachine(
     contract
-    , scriptInstance
+    , typedValidator
     , GameToken
     , mkValidator
     , monetaryPolicy
@@ -52,16 +52,18 @@ import qualified Plutus.Contract.StateMachine as SM
 
 import           Plutus.Contract
 
+import qualified Prelude                      as Haskell
+
 newtype HashedString = HashedString ByteString
     deriving newtype (PlutusTx.IsData, Eq)
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''HashedString
 
 newtype ClearString = ClearString ByteString
     deriving newtype (PlutusTx.IsData, Eq)
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''ClearString
@@ -69,37 +71,35 @@ PlutusTx.makeLift ''ClearString
 -- | Arguments for the @"lock"@ endpoint
 data LockArgs =
     LockArgs
-        { lockArgsSecret :: String
+        { lockArgsSecret :: Haskell.String
         -- ^ The secret
         , lockArgsValue  :: Value
         -- ^ Value that is locked by the contract initially
-        } deriving stock (Show, Generic)
+        } deriving stock (Haskell.Show, Generic)
           deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
 -- | Arguments for the @"guess"@ endpoint
 data GuessArgs =
     GuessArgs
-        { guessArgsOldSecret     :: String
+        { guessArgsOldSecret     :: Haskell.String
         -- ^ The guess
-        , guessArgsNewSecret     :: String
+        , guessArgsNewSecret     :: Haskell.String
         -- ^ The new secret
         , guessArgsValueTakenOut :: Value
         -- ^ How much to extract from the contract
-        } deriving stock (Show, Generic)
+        } deriving stock (Haskell.Show, Generic)
           deriving anyclass (ToJSON, FromJSON, ToSchema, ToArgument)
 
--- | The schema of the contract. It consists of the usual
---   'BlockchainActions' plus the two endpoints @"lock"@
+-- | The schema of the contract. It consists of the two endpoints @"lock"@
 --   and @"guess"@ with their respective argument types.
 type GameStateMachineSchema =
-    BlockchainActions
-        .\/ Endpoint "lock" LockArgs
+        Endpoint "lock" LockArgs
         .\/ Endpoint "guess" GuessArgs
 
 data GameError =
     GameContractError ContractError
     | GameSMError SM.SMContractError
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Top-level contract, exposing both endpoints.
@@ -108,7 +108,7 @@ contract = (lock `select` guess) >> contract
 
 -- | The token that represents the right to make a guess
 newtype GameToken = GameToken { unGameToken :: Value }
-    deriving newtype (Eq, Show)
+    deriving newtype (Eq, Haskell.Show)
 
 token :: MonetaryPolicyHash -> TokenName -> Value
 token mps tn = V.singleton (V.mpsSymbol mps) tn 1
@@ -120,7 +120,7 @@ data GameState =
     | Locked MonetaryPolicyHash TokenName HashedString
     -- ^ Funds have been locked. In this state only the 'Guess' action is
     --   allowed.
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq GameState where
@@ -141,7 +141,7 @@ data GameInput =
     | Guess ClearString HashedString Value
     -- ^ Make a guess, extract the funds, and lock the remaining funds using a
     --   new secret word.
-    deriving stock (Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 {-# INLINABLE transition #-}
@@ -177,18 +177,18 @@ machine = SM.mkStateMachine Nothing transition isFinal where
 mkValidator :: Scripts.ValidatorType GameStateMachine
 mkValidator = SM.mkValidator machine
 
-scriptInstance :: Scripts.ScriptInstance GameStateMachine
-scriptInstance = Scripts.validator @GameStateMachine
+typedValidator :: Scripts.TypedValidator GameStateMachine
+typedValidator = Scripts.mkTypedValidator @GameStateMachine
     $$(PlutusTx.compile [|| mkValidator ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 monetaryPolicy :: Scripts.MonetaryPolicy
-monetaryPolicy = Scripts.monetaryPolicy scriptInstance
+monetaryPolicy = Scripts.forwardingMonetaryPolicy typedValidator
 
 client :: SM.StateMachineClient GameState GameInput
-client = SM.mkStateMachineClient $ SM.StateMachineInstance machine scriptInstance
+client = SM.mkStateMachineClient $ SM.StateMachineInstance machine typedValidator
 
 -- | The @"guess"@ endpoint.
 guess :: Contract () GameStateMachineSchema GameError ()
@@ -207,7 +207,7 @@ lock :: Contract () GameStateMachineSchema GameError ()
 lock = do
     LockArgs{lockArgsSecret, lockArgsValue} <- mapError GameContractError $ endpoint @"lock"
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
-        sym = Scripts.monetaryPolicyHash scriptInstance
+        sym = Scripts.forwardingMonetaryPolicyHash typedValidator
     _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
     void $ mapError GameSMError $ SM.runStep client ForgeToken
 

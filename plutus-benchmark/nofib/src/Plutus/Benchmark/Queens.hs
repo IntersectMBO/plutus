@@ -15,18 +15,17 @@ module Plutus.Benchmark.Queens where
 	See Proceedings of WAAAPL '99
 -}
 
-import           Control.DeepSeq     (NFData)
-import           Control.Monad       (forM_)
-import           Data.Char           (isSpace)
+import           Control.DeepSeq    (NFData)
+import           Control.Monad      (forM_)
+import           Data.Char          (isSpace)
 import           GHC.Generics
-import qualified Prelude
+import qualified Prelude            as Haskell
 import           System.Environment
 
-import           PlutusCore.Builtins
-import qualified PlutusCore.Pretty   as PLC
-import           PlutusCore.Universe
-import qualified PlutusTx            as Tx
-import           PlutusTx.Prelude    as TxPrelude hiding (head, notElem, tail)
+import           PlutusCore.Default
+import qualified PlutusCore.Pretty  as PLC
+import qualified PlutusTx           as Tx
+import           PlutusTx.Prelude   as TxPrelude
 import           UntypedPlutusCore
 
 
@@ -71,7 +70,7 @@ data Algorithm = Bt
                | Bjbt1
                | Bjbt2
                | Fc
-               deriving (Show, Read)
+               deriving (Haskell.Show, Haskell.Read)
 
 {-# INLINABLE lookupAlgorithm #-}
 lookupAlgorithm :: Algorithm -> Labeler
@@ -101,20 +100,20 @@ mkQueensTerm sz alg =
   in code
 
 
-main2 :: IO()  -- Haskell version
+main2 :: Haskell.IO ()  -- Haskell version
 main2 = do
   args <- getArgs
   case args of
-    [] -> putStrLn "Integer parameter expected"
+    [] -> Haskell.putStrLn "Integer parameter expected"
     arg:_ -> do
-              let n = read arg :: Integer
-                  try algorithm = print (nqueens n algorithm)
+              let n = Haskell.read arg :: Integer
+                  try algorithm = Haskell.print (nqueens n algorithm)
               forM_ [1..240::Integer] $ const $ do
-                sequence_ (map try allAlgorithms)
+                Haskell.sequence_ (map try allAlgorithms)
 
 -- % Only for textual output of PLC scripts
-unindent :: PLC.Doc ann -> [String]
-unindent d = map (dropWhile isSpace) $ (lines . show $ d)
+unindent :: PLC.Doc ann -> [Haskell.String]
+unindent d = map (dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
 
 
 -----------------------------------------------------------
@@ -127,22 +126,6 @@ iterateN :: Integer -> (a -> a) -> a -> [a]
 iterateN k f x =
     if k == 0 then []
     else x : iterateN (k-1) f (f x)
-
-{-# INLINABLE head #-}
-head :: [a] -> a
-head (x:_) =  x
-head []    =  TxPrelude.error ()
-
-{-# INLINABLE tail #-}
-tail :: [a] -> [a]
-tail (_:as) =  as
-tail []     =  TxPrelude.error ()
-
-infix 4 `notElem`
-
-{-# INLINABLE notElem #-}
-notElem :: (Eq a) => a -> [a] -> Bool
-notElem a as = not (a `elem` as)
 
 -- % Replacement for [a..b]
 {-# INLINABLE interval #-}
@@ -157,20 +140,6 @@ abs n = if n<0 then 0-n else n
 
 -- % Things needed for `union`
 
-{-# INLINABLE elem_by #-}
-elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
-elem_by _  _ []     =  False
-elem_by eq y (x:xs) =  x `eq` y || elem_by eq y xs
-
-{-# INLINABLE nubBy #-}
-nubBy :: (a -> a -> Bool) -> [a] -> [a]
-nubBy eq l              = nubBy' l []
-  where
-    nubBy' [] _         = []
-    nubBy' (y:ys) xs
-       | elem_by eq y xs = nubBy' ys xs
-       | otherwise       = y : nubBy' ys (y:xs)
-
 {-# INLINABLE deleteBy #-}
 deleteBy :: (a -> a -> Bool) -> a -> [a] -> [a]
 deleteBy _  _ []     = []
@@ -178,7 +147,7 @@ deleteBy eq x (y:ys) = if x `eq` y then ys else y : deleteBy eq x ys
 
 {-# INLINABLE unionBy #-}
 unionBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
-unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (TxPrelude.nubBy eq ys) xs
 
 {-# INLINABLE union #-}
 union :: (Eq a) => [a] -> [a] -> [a]
@@ -232,7 +201,7 @@ type Var = Integer
 type Value = Integer
 
 data Assign = Var := Value
-    deriving (Show, Prelude.Eq, Prelude.Ord, Generic, NFData)
+    deriving (Haskell.Show, Haskell.Eq, Haskell.Ord, Generic, NFData)
 instance TxPrelude.Eq Assign
     where (a := b) == (a' := b') = a==a' && b==b'
 instance TxPrelude.Ord Assign
@@ -419,8 +388,8 @@ btr seed csp = bt csp . hrandom seed
 random2 :: Integer -> Integer
 random2 n = if test > 0 then test else test + 2147483647
   where test = 16807 * lo - 2836 * hi
-        hi   = n `div` 127773
-        lo   = n `rem` 127773
+        hi   = n `Haskell.div` 127773
+        lo   = n `Haskell.rem` 127773
 
 {-# INLINABLE randoms #-}
 randoms :: Integer -> Integer -> [Integer]

@@ -8,8 +8,7 @@ import Prelude
 import Data.BigInteger (BigInteger, fromInt)
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Observation(..), Payee(..), Timeout(..), Value(..))
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ValueId(..))
 
 contractTemplate :: ContractTemplate
@@ -80,11 +79,11 @@ transferUpToDeposit from to amount = Pay from (Account to) ada (Cond (ValueLT am
 
 extendedContract :: Contract
 extendedContract =
-  initialDeposit party (Slot $ fromInt 30) Close
-    $ initialDeposit counterparty (Slot $ fromInt 60) Close
-    $ oracleInput priceBeginning (Slot $ fromInt 90) Close
-    $ wait (Slot $ fromInt 150)
-    $ oracleInput priceEnd (Slot $ fromInt 180) Close
+  initialDeposit party (Slot $ fromInt 300) Close
+    $ initialDeposit counterparty (Slot $ fromInt 600) Close
+    $ oracleInput priceBeginning (Slot $ fromInt 900) Close
+    $ wait (Slot $ fromInt 1500)
+    $ oracleInput priceEnd (Slot $ fromInt 1800) Close
     $ gtLtEq (ChoiceValue priceBeginning) (ChoiceValue priceEnd)
         ( recordDifference decreaseInPrice priceBeginning priceEnd
             $ transferUpToDeposit counterparty party (UseValue decreaseInPrice)

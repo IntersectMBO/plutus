@@ -19,19 +19,19 @@ import PlutusPrelude
 
 import PlutusCore.Parser.Internal
 
-import PlutusCore.Builtins
 import PlutusCore.Constant.Typed
 import PlutusCore.Core
 import PlutusCore.Core.Type
+import PlutusCore.Default
 import PlutusCore.Error
-import PlutusCore.Lexer.Type
 import PlutusCore.Lexer
+import PlutusCore.Lexer.Type
 import PlutusCore.Mark
 import PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
 import PlutusCore.Name
 import PlutusCore.Parsable
 import PlutusCore.Quote
-import PlutusCore.Universe
+import Universe
 
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.List.NonEmpty        as NE

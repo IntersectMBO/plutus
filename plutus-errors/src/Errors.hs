@@ -37,10 +37,12 @@ allErrors =
    , 'PIR.CompilationError
    , 'PIR.UnsupportedError
    , 'PIR.UnknownBuiltinType
+   , 'PIR.BuiltinTypeNotAStar
    , 'PIR.InvalidConstant
    , 'PLC.LexErr
    , 'PLC.Unexpected
    , 'PLC.UnknownBuiltinType
+   , 'PLC.BuiltinTypeNotAStar
    , 'PLC.UnknownBuiltinFunction
    , 'PLC.InvalidBuiltinConstant
    , 'PLC.MultiplyDefined
@@ -59,8 +61,6 @@ allErrors =
    , 'PLC.NonWrapUnwrappedMachineError
    , 'PLC.NonFunctionalApplicationMachineError
    , 'PLC.OpenTermEvaluatedMachineError
-   , 'PLC.TooFewArgumentsConstAppError
-   , 'PLC.TooManyArgumentsConstAppError
    , 'PLC.UnliftingErrorE
    , 'PLC.BuiltinTermArgumentExpectedMachineError
    , 'PLC.UnexpectedBuiltinTermArgumentMachineError

@@ -13,14 +13,14 @@ import Data.List as List
 import Data.List.NonEmpty (toList)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Halogen.Classes (spaceBottom, spaceRight, spaceTop, spanText)
+import Halogen.Classes (btn, spaceBottom, spaceRight, spaceTop, spanText)
 import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol, span_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
-import Marlowe.Extended (IntegerTemplateType(..))
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
+import Marlowe.Template (IntegerTemplateType(..))
 import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
@@ -34,7 +34,7 @@ analyzeButton isLoading isEnabled name action =
   button
     [ onClick $ const $ Just $ action
     , enabled isEnabled
-    , classes [ spaceTop, spaceBottom, spaceRight ]
+    , classes [ spaceTop, spaceBottom, spaceRight, btn ]
     ]
     [ text (if isLoading then "Analysing..." else name) ]
 
@@ -44,7 +44,7 @@ clearButton isEnabled name action =
   button
     [ onClick $ const $ Just $ action
     , enabled isEnabled
-    , classes [ spaceTop, spaceBottom, spaceRight ]
+    , classes [ spaceTop, spaceBottom, spaceRight, btn ]
     ]
     [ text name ]
 

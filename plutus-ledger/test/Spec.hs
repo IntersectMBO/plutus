@@ -6,7 +6,7 @@
 module Main(main) where
 
 import           Control.Lens
-import           Control.Monad               (forM_, guard, void)
+import           Control.Monad               (forM_, guard, replicateM, void)
 import           Control.Monad.Trans.Except  (runExcept)
 import qualified Data.Aeson                  as JSON
 import qualified Data.Aeson.Extras           as JSON
@@ -34,12 +34,12 @@ import qualified Ledger.Generators           as Gen
 import qualified Ledger.Index                as Index
 import qualified Ledger.Interval             as Interval
 import qualified Ledger.Scripts              as Scripts
+import qualified Ledger.TimeSlot             as TimeSlot
 import           Ledger.Value                (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                as Value
-import qualified PlutusCore.Builtins         as PLC
-import qualified PlutusCore.Universe         as PLC
+import qualified PlutusCore.Default          as PLC
 import           PlutusTx                    (CompiledCode, applyCode, liftCode)
-import qualified PlutusTx                    as PlutusTx
+import qualified PlutusTx
 import qualified PlutusTx.AssocMap           as AMap
 import qualified PlutusTx.AssocMap           as AssocMap
 import qualified PlutusTx.Builtins           as Builtins
@@ -93,6 +93,10 @@ tests = testGroup "all tests" [
                 in byteStringJson vlJson vlValue)),
     testGroup "Constraints" [
         testProperty "missing value spent" missingValueSpentProp
+        ],
+    testGroup "TimeSlot" [
+        initialSlotTime,
+        testProperty " inverse property" inverseProp
         ]
     ]
 
@@ -215,8 +219,8 @@ pubkeyHashOnChainAndOffChain = property $ do
     pk <- forAll $ PubKey . LedgerBytes <$> Gen.genSizedByteString 32 -- this won't generate a valid public key but that doesn't matter for the purposes of pubKeyHash
     let offChainHash = Crypto.pubKeyHash pk
         onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
-        onchainProg = $$(PlutusTx.compile [|| \pk expected -> if (expected PlutusTx.== Validation.pubKeyHash pk) then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
-        script = Scripts.fromCompiledCode $ onchainProg `applyCode` (liftCode pk) `applyCode` (liftCode offChainHash)
+        onchainProg = $$(PlutusTx.compile [|| \pk expected -> if expected PlutusTx.== Validation.pubKeyHash pk then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
+        script = Scripts.fromCompiledCode $ onchainProg `applyCode` liftCode pk `applyCode` liftCode offChainHash
         result = runExcept $ evaluateScript script
     Hedgehog.assert (result == Right ["correct"])
 
@@ -253,7 +257,7 @@ reduceByOne (Value.Value value) = do
             (tokenName, amount) <- AMap.toList rest
             guard (amount > 0)
             pure (currency, tokenName, pred amount)
-    if (null flat)
+    if null flat
         then pure Nothing
         else (\(cur, tok, amt) -> Just $ Value.singleton cur tok amt) <$> Gen.element flat
 
@@ -264,6 +268,18 @@ nonNegativeValue =
     let mpsHashes = ["ffff", "dddd", "cccc", "eeee", "1010"]
         tokenNames = ["a", "b", "c", "d"]
     in Value.singleton
-        <$> (Gen.element mpsHashes)
-        <*> (Gen.element tokenNames)
+        <$> Gen.element mpsHashes
+        <*> Gen.element tokenNames
         <*> Gen.integral (Range.linear 0 10000)
+
+initialSlotTime :: TestTree
+initialSlotTime = do
+  testCase "Initial slot to time" $
+    HUnit.assertBool "should be equal to Shelley launch date" $ TimeSlot.slotToPOSIXTime (Slot 0) == POSIXTime 1596059091
+
+inverseProp :: Property
+inverseProp = property $ do
+  [b, e] <- forAll $ sort <$> replicateM 2 (Gen.integral (fromIntegral <$> Range.linearBounded @Int))
+  let slotRange = Interval.interval (Slot b) (Slot e)
+  Hedgehog.assert $ slotRange == TimeSlot.posixTimeRangeToSlotRange (TimeSlot.slotRangeToPOSIXTimeRange slotRange)
+

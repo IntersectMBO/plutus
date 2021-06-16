@@ -25,7 +25,7 @@ module Ledger.Constraints(
     , ScriptLookups(..)
     , MkTxError(..)
     , UnbalancedTx
-    , scriptInstanceLookups
+    , typedValidatorLookups
     , unspentOutputs
     , monetaryPolicy
     , otherScript
@@ -39,7 +39,7 @@ module Ledger.Constraints(
 
 import           Ledger.Constraints.OffChain      (MkTxError (..), ScriptLookups (..), SomeLookupsAndConstraints (..),
                                                    UnbalancedTx, mkSomeTx, mkTx, monetaryPolicy, otherData, otherScript,
-                                                   ownPubKeyHash, scriptInstanceLookups, unspentOutputs)
+                                                   ownPubKeyHash, typedValidatorLookups, unspentOutputs)
 import           Ledger.Constraints.OnChain       (checkScriptContext)
 import           Ledger.Constraints.TxConstraints
 

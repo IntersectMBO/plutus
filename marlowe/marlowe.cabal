@@ -68,7 +68,8 @@ library
     sbv >= 8.4,
     scientific -any,
     wl-pprint -any,
-    freer-simple -any
+    freer-simple -any,
+    semigroups -any
   exposed-modules:
     Language.Marlowe
     Language.Marlowe.Extended
@@ -162,4 +163,5 @@ executable marlowe-pab
     prettyprinter -any,
     freer-extras -any,
     plutus-ledger -any,
-    plutus-tx -any
+    plutus-tx -any,
+    containers -any

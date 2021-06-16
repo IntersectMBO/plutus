@@ -1,16 +1,26 @@
 "use strict";
 
 module.exports = {
-  purge: ["./src/**/*.html", "./src/**/*.js"],
+  purge: ["./src/**/*.njk", "./src/**/*.js"],
   darkMode: false, // or 'media' or 'class'
   theme: {
+    screens: {
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      widest: "1440px",
+    },
     colors: {
       transparent: "transparent",
       current: "currentColor",
-      black: "#283346",
-      lightgray: "#eeeeee",
+      // FIXME: Marlowe run uses "#283346" but the website uses this, unify
+      black: "#273245",
+      // FIXME: Marlowe run uses "#eeeeee" but the website uses this, unify
+      lightgray: "#f6f9fc",
       gray: "#dfdfdf",
-      green: "#00a551",
+      // FIXME: Marlowe run uses "#00a551" but the website uses this, unify
+      green: "#00e39c",
       lightgreen: "#00e872",
       darkgray: "#b7b7b7",
       overlay: "rgba(10,10,10,0.4)",
@@ -18,18 +28,28 @@ module.exports = {
       purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
-      purple: "#4c41e5",
       red: "#e04b4c",
+      // NOTE: These colors correspond to the mac button colors
+      "mac-red": "#ec6a5e",
+      "mac-yellow": "#f3be50",
+      "mac-green": "#61c654",
     },
+    fontFamily: {
+      barlowe: ["barlowe", "sans-serif"],
+      comfortaa: ["comfortaa", "sans-serif"],
+    },
+    // FIXME: we should unify the font sizes
     fontSize: {
       xs: "12px",
       sm: "14px",
       base: "16px",
       lg: "18px",
-      xl: "24px",
-      "2xl": "34px",
-      "3xl": "46px",
-      "big-icon": "100px",
+      xl: "22px",
+      "27px": "27px",
+      "2xl": "24px",
+      "3xl": "36px",
+      "4xl": "48px",
+      "5xl": "68px",
     },
     borderRadius: {
       sm: "5px",
@@ -37,6 +57,7 @@ module.exports = {
       lg: "25px",
       full: "9999px",
     },
+
     boxShadow: {
       none: "none",
       sm: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
@@ -48,6 +69,32 @@ module.exports = {
     extend: {
       spacing: {
         "5pc": "5%",
+        "5vw": "5vw",
+        "10vw": "10vw",
+      },
+      height: {
+        // This corresponds to the height of the hero image
+        main: "700px",
+        "banner-section-sm": "308px",
+        "banner-section": "470px",
+        "play-img-sm": "100px",
+        "play-img-md": "200px",
+      },
+      maxWidth: {
+        // All content must be at most this size and centered if the screen is wider
+        screen: "1440px",
+      },
+      backgroundImage: (theme) => ({
+        main: "url('/static/img/hero-background.jpg')",
+        "play-banner": "url('/static/img/marlowe-play-banner-background-mobile.png')",
+        "market-banner": "url('/static/img/marlowe-market-banner-background-mobile.png')",
+      }),
+      backgroundPosition: {
+        "pos-play-banner-mobile": "-118px",
+        "pos-market-banner-mobile": "76px",
+      },
+      borderWidth: {
+        3: "3px",
       },
     },
   },
@@ -70,9 +117,9 @@ module.exports = {
     backgroundImage: true,
     gradientColorStops: true,
     backgroundOpacity: false,
-    backgroundPosition: false,
-    backgroundRepeat: false,
-    backgroundSize: false,
+    backgroundPosition: true,
+    backgroundRepeat: true,
+    backgroundSize: true,
     borderCollapse: false,
     borderColor: true,
     borderOpacity: false,
@@ -92,14 +139,14 @@ module.exports = {
     alignSelf: true,
     justifyItems: false,
     justifyContent: true,
-    justifySelf: false,
+    justifySelf: true,
     flex: true,
     flexGrow: true,
     flexShrink: true,
     order: false,
     float: true,
     clear: false,
-    fontFamily: false,
+    fontFamily: true,
     fontWeight: true,
     height: true,
     lineHeight: true,
@@ -107,7 +154,7 @@ module.exports = {
     listStyleType: false,
     maxHeight: true,
     maxWidth: true,
-    minHeight: false,
+    minHeight: true,
     minWidth: true,
     objectFit: false,
     objectPosition: false,
@@ -151,14 +198,14 @@ module.exports = {
     gridAutoFlow: false,
     gridTemplateColumns: true,
     gridAutoColumns: false,
-    gridColumn: false,
-    gridColumnStart: false,
-    gridColumnEnd: false,
+    gridColumn: true,
+    gridColumnStart: true,
+    gridColumnEnd: true,
     gridTemplateRows: true,
-    gridAutoRows: false,
-    gridRow: false,
-    gridRowStart: false,
-    gridRowEnd: false,
+    gridAutoRows: true,
+    gridRow: true,
+    gridRowStart: true,
+    gridRowEnd: true,
     transform: true,
     transformOrigin: true,
     scale: true,

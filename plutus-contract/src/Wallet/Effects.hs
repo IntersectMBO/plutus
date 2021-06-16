@@ -17,9 +17,8 @@ module Wallet.Effects(
     , Payment(..)
     , submitTxn
     , ownPubKey
-    , updatePaymentWithChange
-    , walletSlot
-    , ownOutputs
+    , balanceTx
+    , totalFunds
     , walletAddSignature
     -- * Node client
     , NodeClientEffect(..)
@@ -39,18 +38,19 @@ module Wallet.Effects(
     , sendNotification
     ) where
 
-import           Control.Monad.Freer.TH (makeEffect)
-import           Ledger                 (Address, PubKey, Slot, Tx, TxId, Value)
-import           Ledger.AddressMap      (AddressMap, UtxoMap)
-import           Wallet.Types           (AddressChangeRequest (..), AddressChangeResponse (..), Notification,
-                                         NotificationError, Payment (..))
+import           Control.Monad.Freer.TH      (makeEffect)
+import           Ledger                      (Address, Block, PubKey, Slot, Tx, TxId, Value)
+import           Ledger.AddressMap           (AddressMap)
+import           Ledger.Constraints.OffChain (UnbalancedTx)
+import           Wallet.Emulator.Error       (WalletAPIError)
+import           Wallet.Types                (AddressChangeRequest (..), AddressChangeResponse (..), Notification,
+                                              NotificationError, Payment (..))
 
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
     OwnPubKey :: WalletEffect PubKey
-    UpdatePaymentWithChange :: Value -> Payment -> WalletEffect Payment
-    WalletSlot :: WalletEffect Slot
-    OwnOutputs :: WalletEffect UtxoMap
+    BalanceTx :: UnbalancedTx -> WalletEffect (Either WalletAPIError Tx)
+    TotalFunds :: WalletEffect Value -- ^ Total of all funds that are in the wallet (incl. tokens)
     WalletAddSignature :: Tx -> WalletEffect Tx
 makeEffect ''WalletEffect
 
@@ -67,7 +67,7 @@ makeEffect ''NodeClientEffect
 data ChainIndexEffect r where
     StartWatching :: Address -> ChainIndexEffect ()
     WatchedAddresses :: ChainIndexEffect AddressMap
-    ConfirmedBlocks :: ChainIndexEffect [[Tx]]
+    ConfirmedBlocks :: ChainIndexEffect [Block]
     -- TODO: In the future we should have degrees of confirmation
     TransactionConfirmed :: TxId -> ChainIndexEffect Bool
     AddressChanged :: AddressChangeRequest -> ChainIndexEffect AddressChangeResponse

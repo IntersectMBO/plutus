@@ -49,7 +49,8 @@ import qualified Data.UUID.V4                     as UUID
 import           GHC.Generics                     (Generic)
 import qualified Language.Haskell.TH.Syntax       as TH
 
-import           Ledger                           (Address, Slot, SlotRange, Tx, TxIn, TxOut, interval, txId)
+import           Ledger                           (Address, OnChainTx, Slot, SlotRange, TxIn, TxOut, eitherTx, interval,
+                                                   txId)
 import           Ledger.Constraints.OffChain      (MkTxError)
 import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
 import           Wallet.Emulator.Error            (WalletAPIError)
@@ -198,7 +199,7 @@ data AddressChangeResponse =
     AddressChangeResponse
         { acrAddress   :: Address -- ^ The address
         , acrSlotRange :: SlotRange -- ^ The slot range
-        , acrTxns      :: [Tx] -- ^ Transactions that were validated in the slot range and spent or produced at least one output at the address.
+        , acrTxns      :: [OnChainTx] -- ^ Transactions that were validated in the slot range and spent or produced at least one output at the address.
         }
         deriving stock (Eq, Generic, Show)
         deriving anyclass (ToJSON, FromJSON)
@@ -208,7 +209,7 @@ instance Pretty AddressChangeResponse where
         hang 2 $ vsep
             [ "Address:" <+> pretty acrAddress
             , "Slot range:" <+> pretty acrSlotRange
-            , "Tx IDs:" <+> pretty (txId <$> acrTxns)
+            , "Tx IDs:" <+> pretty (eitherTx txId txId <$> acrTxns)
             ]
 
 -- | Request for information about transactions that spend or produce

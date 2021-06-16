@@ -23,10 +23,10 @@ import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
-import Marlowe.Extended (Contract, ContractType, TemplateContent)
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended (Contract, ContractType)
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
 import Marlowe.Semantics (TokenName)
+import Marlowe.Template (TemplateContent)
 import Template.Types (State)
 import Template.Validation (RoleError)
 

@@ -6,7 +6,13 @@ import Halogen (ClassName(..))
 import Halogen.HTML (HTML, IProp, div, span, text)
 import Halogen.HTML.Properties (classes)
 
-foreign import closeDrawerIcon :: String
+foreign import arrowLeftUp :: String
+
+foreign import arrowLeftDown :: String
+
+foreign import arrowRightUp :: String
+
+foreign import arrowRightDown :: String
 
 foreign import closeDrawerArrowIcon :: String
 
@@ -20,13 +26,13 @@ foreign import blocklyIcon :: String
 
 foreign import blocklyIconColour :: String
 
-foreign import infoIcon :: String
-
 foreign import readMoreIconWhite :: String
 
 foreign import iohkIcon :: String
 
 foreign import simulationIcon :: String
+
+foreign import simulationIconBlack :: String
 
 foreign import walletIcon :: String
 
@@ -44,24 +50,16 @@ foreign import javascriptIcon :: String
 
 foreign import marloweLogo :: String
 
-foreign import marloweLogo2 :: String
-
-foreign import option1 :: String
-
-foreign import option2 :: String
-
-foreign import option3 :: String
+foreign import marlowePlayLogo :: String
 
 foreign import newProjectHaskellIcon :: String
 
 foreign import newProjectJavascriptIcon :: String
 
-foreign import newProjectMarloweIcon :: String
-
 foreign import newProjectBlocklyIcon :: String
 
 fullWidth :: ClassName
-fullWidth = ClassName "full-width"
+fullWidth = ClassName "w-full"
 
 minW0 :: ClassName
 minW0 = ClassName "min-w-0"
@@ -69,8 +67,9 @@ minW0 = ClassName "min-w-0"
 w30p :: ClassName
 w30p = ClassName "w-30p"
 
+-- FIXME: rename to h-full
 fullHeight :: ClassName
-fullHeight = ClassName "full-height"
+fullHeight = ClassName "h-full"
 
 minH0 :: ClassName
 minH0 = ClassName "min-h-0"
@@ -78,14 +77,8 @@ minH0 = ClassName "min-h-0"
 maxH70p :: ClassName
 maxH70p = ClassName "max-h-70p"
 
-scroll :: ClassName
-scroll = ClassName "scroll"
-
 active :: ClassName
 active = ClassName "active"
-
-hide :: ClassName
-hide = ClassName "hide"
 
 noMargins :: ClassName
 noMargins = ClassName "no-margins"
@@ -93,68 +86,67 @@ noMargins = ClassName "no-margins"
 aHorizontal :: ClassName
 aHorizontal = ClassName "a-horizontal"
 
+-- FIXME: rename spaceXXX to mXXX
 spaceLeft :: ClassName
-spaceLeft = ClassName "space-left"
+spaceLeft = ClassName "ml-medium"
 
 spaceRight :: ClassName
-spaceRight = ClassName "space-right"
+spaceRight = ClassName "mr-medium"
 
 spaceX :: ClassName
-spaceX = ClassName "space-x"
+spaceX = ClassName "mx-medium"
 
 spaceBottom :: ClassName
-spaceBottom = ClassName "space-bottom"
+spaceBottom = ClassName "mb-medium"
 
 smallSpaceBottom :: ClassName
-smallSpaceBottom = ClassName "small-space-bottom"
-
-paddingRight :: ClassName
-paddingRight = ClassName "padding-right"
-
-smallPaddingRight :: ClassName
-smallPaddingRight = ClassName "small-padding-right"
-
-paddingLeft :: ClassName
-paddingLeft = ClassName "padding-left"
-
-smallPaddingLeft :: ClassName
-smallPaddingLeft = ClassName "small-padding-left"
-
-paddingX :: ClassName
-paddingX = ClassName "padding-x"
-
-smallPaddingX :: ClassName
-smallPaddingX = ClassName "small-padding-x"
-
-paddingTop :: ClassName
-paddingTop = ClassName "padding-top"
-
-smallPaddingTop :: ClassName
-smallPaddingTop = ClassName "small-padding-top"
-
-paddingBottom :: ClassName
-paddingBottom = ClassName "padding-bottom"
-
-smallPaddingBottom :: ClassName
-smallPaddingBottom = ClassName "small-padding-bottom"
-
-paddingY :: ClassName
-paddingY = ClassName "padding-y"
-
-smallPaddingY :: ClassName
-smallPaddingY = ClassName "small-padding-y"
+smallSpaceBottom = ClassName "mb-small"
 
 spaceTop :: ClassName
-spaceTop = ClassName "space-top"
+spaceTop = ClassName "mt-medium"
+
+-- FIXME: rename paddingXXX to pXXX
+paddingRight :: ClassName
+paddingRight = ClassName "pr-medium"
+
+smallPaddingRight :: ClassName
+smallPaddingRight = ClassName "pr-small"
+
+paddingLeft :: ClassName
+paddingLeft = ClassName "pl-medium"
+
+smallPaddingLeft :: ClassName
+smallPaddingLeft = ClassName "pl-small"
+
+paddingX :: ClassName
+paddingX = ClassName "px-medium"
+
+smallPaddingX :: ClassName
+smallPaddingX = ClassName "px-small"
+
+paddingTop :: ClassName
+paddingTop = ClassName "pt-medium"
+
+smallPaddingTop :: ClassName
+smallPaddingTop = ClassName "pt-small"
+
+paddingBottom :: ClassName
+paddingBottom = ClassName "pb-medium"
+
+smallPaddingBottom :: ClassName
+smallPaddingBottom = ClassName "pb-small"
+
+paddingY :: ClassName
+paddingY = ClassName "py-medium"
+
+smallPaddingY :: ClassName
+smallPaddingY = ClassName "py-small"
 
 uppercase :: ClassName
 uppercase = ClassName "uppercase"
 
 tabLink :: ClassName
 tabLink = ClassName "tab-link"
-
-aCenter :: ClassName
-aCenter = ClassName "a-center"
 
 tabIcon :: ClassName
 tabIcon = ClassName "tab-icon"
@@ -167,9 +159,6 @@ accentBorderBottom = ClassName "accent-border-bottom"
 
 accentBorderTop :: ClassName
 accentBorderTop = ClassName "accent-border-top"
-
-jFlexStart :: ClassName
-jFlexStart = ClassName "j-flex-start"
 
 smallBtn :: ClassName
 smallBtn = ClassName "small-btn"
@@ -194,12 +183,6 @@ bold = ClassName "bold"
 
 underline :: ClassName
 underline = ClassName "underline"
-
-mAlignCenter :: ClassName
-mAlignCenter = ClassName "m-align-center"
-
-tAlignCenter :: ClassName
-tAlignCenter = ClassName "t-align-center"
 
 activeClass :: forall a. (a -> Boolean) -> Getter' a (Array ClassName)
 activeClass p = to \x -> if p x then [ active ] else []
@@ -234,8 +217,8 @@ rTableEmptyRow = ClassName "RTable-empty-row"
 rTableDataRow :: ClassName
 rTableDataRow = ClassName "RTable-data-row"
 
-pointer :: ClassName
-pointer = ClassName "pointer"
+cursorPointer :: ClassName
+cursorPointer = ClassName "cursor-pointer"
 
 expanded :: Boolean -> ClassName
 expanded true = ClassName "expanded"
@@ -253,9 +236,6 @@ spanText s = span [] [ text s ]
 spanTextBreakWord :: forall p i. String -> HTML p i
 spanTextBreakWord s = span [ classes [ ClassName "break-word-span" ] ] [ text s ]
 
-sidebarComposer :: ClassName
-sidebarComposer = ClassName "sidebar-composer"
-
 minimizeIcon :: Boolean -> Array ClassName
 minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]
 
@@ -269,9 +249,6 @@ alignedButtonLast = ClassName "aligned-button-last"
 
 collapsed :: ClassName
 collapsed = ClassName "collapsed"
-
-horizontalFlip :: ClassName
-horizontalFlip = ClassName "flip"
 
 modalContent :: ClassName
 modalContent = ClassName "modal-content"
@@ -294,9 +271,6 @@ textSm = ClassName "text-sm"
 
 textLg :: ClassName
 textLg = ClassName "text-lg"
-
-text3xl :: ClassName
-text3xl = ClassName "text-3xl"
 
 fontSemibold :: ClassName
 fontSemibold = ClassName "font-semibold"
@@ -324,9 +298,6 @@ border = ClassName "border"
 
 borderBlue300 :: ClassName
 borderBlue300 = ClassName "border-blue-300"
-
-activeBorderBlue700 :: ClassName
-activeBorderBlue700 = ClassName "active:border-blue-700"
 
 flex :: ClassName
 flex = ClassName "flex"
@@ -421,14 +392,14 @@ grid = ClassName "grid"
 gridColsDescriptionLocation :: ClassName
 gridColsDescriptionLocation = ClassName "grid-cols-description-location"
 
-bgDark :: ClassName
-bgDark = ClassName "bg-dark"
+bgGrayDark :: ClassName
+bgGrayDark = ClassName "bg-gray-dark"
 
 bgWhite :: ClassName
 bgWhite = ClassName "bg-white"
 
 textInactive :: ClassName
-textInactive = ClassName "text-inactive"
+textInactive = ClassName "text-gray-darkest"
 
 textSecondary :: ClassName
 textSecondary = ClassName "text-secondary"
@@ -450,3 +421,45 @@ boxShadowInverted = ClassName "box-shadow-inverted"
 
 hidden :: ClassName
 hidden = ClassName "hidden"
+
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+-- FIXME These were copy and pasted from the dashboard and adapted to the defaults in this project.
+--       we need to use the same resets and unify these styles in a style guide.
+--- color gradients
+bgBlueGradient :: Array String
+bgBlueGradient = [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
+
+-- buttons
+button :: Array String
+button =
+  [ "px-6"
+  , "py-4"
+  , "rounded-full"
+  , "font-bold"
+  , "leading-none"
+  , "whitespace-nowrap"
+  , "transition-all"
+  , "duration-200"
+  , "outline-none"
+  , "focus:outline-none"
+  , "disabled:bg-none"
+  , "disabled:bg-lightgray"
+  , "disabled:text-darkgray"
+  , "disabled:shadow-none"
+  , "border-0"
+  ]
+
+withShadow :: Array String
+withShadow = [ "shadow", "hover:shadow-lg" ]
+
+primaryButton :: Array String
+primaryButton = button <> bgBlueGradient <> withShadow
+
+secondaryButton :: Array String
+secondaryButton = button <> [ "bg-lightgray", "text-black", "hover:shadow" ]
+
+whiteButton :: Array String
+whiteButton = button <> withShadow <> [ "bg-white" ]

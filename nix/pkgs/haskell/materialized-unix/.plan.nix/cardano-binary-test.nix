@@ -10,10 +10,10 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "1.10";
+      specVersion = "2.2";
       identifier = { name = "cardano-binary-test"; version = "1.3.0"; };
       license = "MIT";
-      copyright = "2019 IOHK";
+      copyright = "2019-2021 IOHK";
       maintainer = "operations@iohk.io";
       author = "IOHK";
       homepage = "";
@@ -34,6 +34,7 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
@@ -47,6 +48,7 @@
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           ];
         buildable = true;
@@ -59,4 +61,4 @@
           ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/4; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/5; }

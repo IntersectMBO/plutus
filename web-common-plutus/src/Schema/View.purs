@@ -31,12 +31,13 @@ import ValueEditor (valueForm)
 
 actionArgumentForm ::
   forall p i.
+  Int ->
   (FormEvent -> i) ->
   FormArgument ->
   HTML p i
-actionArgumentForm wrapper argument =
+actionArgumentForm index wrapper argument =
   div [ class_ wasValidated ]
-    [ wrapper <$> actionArgumentField [] false argument ]
+    [ wrapper <$> actionArgumentField [ show index ] false argument ]
 
 actionArgumentField ::
   forall p.

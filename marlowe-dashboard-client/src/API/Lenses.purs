@@ -11,29 +11,29 @@ module API.Lenses
   ) where
 
 import Prelude
+import API.Contract (class ContractActivationId)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
-import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, _ActiveEndpoint)
+import Plutus.Contract.Effects (ActiveEndpoint, _ActiveEndpoint)
 import Plutus.Contract.Resumable (Request, _Request)
-import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse, _PartiallyDecodedResponse)
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState, _ContractInstanceClientState)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Types (ContractInstanceId, EndpointDescription, _EndpointDescription)
 
-_cicContract :: Lens' (ContractInstanceClientState ContractExe) ContractInstanceId
+_cicContract :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) ContractInstanceId
 _cicContract = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicContract")
 
-_cicCurrentState :: Lens' (ContractInstanceClientState ContractExe) (PartiallyDecodedResponse ActiveEndpoint)
+_cicCurrentState :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) (PartiallyDecodedResponse ActiveEndpoint)
 _cicCurrentState = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicCurrentState")
 
 -- TODO: fix Haskell typo ("cicDefintion" instead of "cicDefinition")
-_cicDefinition :: Lens' (ContractInstanceClientState ContractExe) ContractExe
+_cicDefinition :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) a
 _cicDefinition = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicDefintion")
 
-_cicWallet :: Lens' (ContractInstanceClientState ContractExe) Wallet
+_cicWallet :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) Wallet
 _cicWallet = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicWallet")
 
 ----------

@@ -50,9 +50,6 @@
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           ];
-        build-tools = [
-          (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
-          ];
         buildable = true;
         modules = [
           "PlutusTx/IsData/Instances"
@@ -104,6 +101,9 @@
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
+            ];
+          build-tools = [
+            (hsPkgs.buildPackages.doctest.components.exes.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest:doctest")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];

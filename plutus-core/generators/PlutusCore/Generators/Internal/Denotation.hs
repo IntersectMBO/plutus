@@ -17,11 +17,10 @@ module PlutusCore.Generators.Internal.Denotation
 
 import           PlutusCore.Generators.Internal.Dependent
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           Data.Dependent.Map                       (DMap)
 import qualified Data.Dependent.Map                       as DMap

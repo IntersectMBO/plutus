@@ -13,6 +13,7 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (bgWhite, flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX, spaceBottom)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, section_, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
@@ -73,7 +74,6 @@ editorOptions state =
   div [ class_ (ClassName "editor-options") ]
     [ select
         [ HTML.id_ "editor-options"
-        , class_ (ClassName "dropdown-header")
         , HTML.value $ show $ state ^. _haskellEditorKeybindings
         , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
         ]
@@ -127,6 +127,7 @@ sendToSimulationButton state =
   button
     [ onClick $ const $ Just SendResultToSimulator
     , enabled enabled'
+    , classNames [ "btn" ]
     ]
     [ text "Send To Simulator" ]
   where
