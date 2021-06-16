@@ -127,6 +127,7 @@ let
           marlowe-actus.ghcOptions = [ "-Werror" ];
           marlowe-playground-server.ghcOptions = [ "-Werror" ];
           marlowe-dashboard-server.ghcOptions = [ "-Werror" ];
+          fake-pab.ghcOptions = [ "-Werror" ];
           playground-common.ghcOptions = [ "-Werror" ];
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";
