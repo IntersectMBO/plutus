@@ -1,17 +1,18 @@
 module InputField.View (renderInput) where
 
 import Prelude hiding (div)
-import Css (classNames, hideWhen)
+import Css (classNames, toggleWhen)
 import Css as Css
 import Data.Array (filter)
 import Data.Foldable (foldMap)
 import Data.Lens (view)
-import Data.Maybe (isJust)
+import Data.Maybe (Maybe(..), isJust)
 import Data.String (Pattern(..), contains, toLower)
 import Halogen.HTML (HTML, a, div, input, text)
+import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
 import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), autocomplete, list, id_, placeholder, readOnly, type_, value)
-import InputField.Lenses (_additionalCss, _baseCss, _datalistId, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value, _valueOptions)
+import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, type_, value)
+import InputField.Lenses (_additionalCss, _baseCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value, _valueOptions)
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
 
@@ -26,17 +27,17 @@ renderInput state options =
 
     dropdownOpen = view _dropdownOpen state
 
+    dropdownLocked = view _dropdownLocked state
+
     showError = not pristine && isJust mError
 
     baseCss = view _baseCss options
 
     additionalCss = view _additionalCss options
 
-    mDatalistId = view _datalistId options
-
     valueOptions = view _valueOptions options
 
-    matchingValueOptions = filter (\v -> contains (Pattern $ toLower currentValue) (toLower $ v)) valueOptions
+    matchingValueOptions = filter (\v -> contains (Pattern $ toLower currentValue) (toLower v)) valueOptions
   in
     div
       [ classNames [ "relative" ] ]
@@ -51,14 +52,18 @@ renderInput state options =
             , onValueInput_ SetValue
             ]
           <> if valueOptions /= mempty then
-              [ autocomplete false, onFocus_ $ SetDropdownOpen true ]
+              [ autocomplete false
+              , onFocus_ $ SetDropdownOpen true
+              , onBlur $ const $ if dropdownLocked then Nothing else Just $ SetDropdownOpen false
+              ]
             else
               []
-                <> foldMap (\datalistId -> [ list datalistId ]) mDatalistId
       , div
           [ classNames
-              $ [ "absolute", "z-10", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-scroll", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
-              <> (hideWhen $ not dropdownOpen || matchingValueOptions /= mempty)
+              $ [ "absolute", "z-20", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-auto", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b", "transition-all", "duration-200" ]
+              <> toggleWhen (not dropdownOpen || matchingValueOptions == mempty) [ "hidden", "opacity-0" ] [ "opacity-100" ]
+          , onMouseEnter $ const $ Just $ SetDropdownLocked true
+          , onMouseLeave $ const $ Just $ SetDropdownLocked false
           ]
           (valueOptionsList <$> matchingValueOptions)
       , div
@@ -69,6 +74,6 @@ renderInput state options =
   valueOptionsList valueOption =
     a
       [ classNames [ "block", "p-4", "hover:bg-black", "hover:text-white" ]
-      , onClick_ $ SetValue valueOption
+      , onClick_ $ SetValueFromDropdown valueOption
       ]
       [ text valueOption ]

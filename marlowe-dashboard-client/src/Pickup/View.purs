@@ -86,6 +86,7 @@ pickupNewWalletCard state =
       , placeholder: "Choose any nickname"
       , readOnly: false
       , datalistId: Nothing
+      , valueOptions: mempty
       }
 
     walletIdInputDisplayOptions =
@@ -95,6 +96,7 @@ pickupNewWalletCard state =
       , placeholder: "Wallet ID"
       , readOnly: true
       , datalistId: Nothing
+      , valueOptions: mempty
       }
   in
     [ a
@@ -159,6 +161,7 @@ pickupWalletCard state =
       , placeholder: "Nickname"
       , readOnly: true
       , datalistId: Nothing
+      , valueOptions: mempty
       }
 
     walletIdInputDisplayOptions =
@@ -168,6 +171,7 @@ pickupWalletCard state =
       , placeholder: "Wallet ID"
       , readOnly: true
       , datalistId: Nothing
+      , valueOptions: mempty
       }
   in
     [ a
@@ -326,7 +330,7 @@ pickupWalletScreen state =
               ]
           , div
               [ classNames
-                  $ [ "absolute", "z-10", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-scroll", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
+                  $ [ "absolute", "z-10", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-auto", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
                   <> (hideWhen $ not walletDropdownOpen || length matchingWallets == 0)
               ]
               (walletList <$> matchingWallets)

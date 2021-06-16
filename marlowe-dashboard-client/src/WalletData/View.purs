@@ -48,6 +48,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , placeholder: "Nickname"
       , readOnly: false
       , datalistId: Nothing
+      , valueOptions: mempty
       }
 
     walletIdInputDisplayOptions =
@@ -57,6 +58,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , placeholder: "Wallet ID"
       , readOnly: false
       , datalistId: Nothing
+      , valueOptions: mempty
       }
   in
     div
