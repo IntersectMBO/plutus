@@ -141,3 +141,6 @@ _currentMarloweState = _marloweState <<< _Head
 
 _currentContract :: forall s p. Strong p => Choice p => Optic' p { marloweState :: NonEmptyList MarloweState | s } (Term Contract)
 _currentContract = _currentMarloweState <<< _executionState <<< _SimulationRunning <<< _contract
+
+_currentPossibleActions :: forall s p. Strong p => Choice p => Optic' p { marloweState :: NonEmptyList MarloweState | s } Parties
+_currentPossibleActions = _currentMarloweState <<< _executionState <<< _SimulationRunning <<< _possibleActions
