@@ -9,6 +9,7 @@
 module UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
     , TPLC.Version (..)
+    , TPLC.Binder (..)
     , Term (..)
     , Program (..)
     , toTerm
