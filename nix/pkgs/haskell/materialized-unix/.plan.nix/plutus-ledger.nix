@@ -62,6 +62,8 @@
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
           (hsPkgs."http-api-data" or (errorHandler.buildDepError "http-api-data"))
+          (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
+          (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
@@ -80,6 +82,7 @@
           "Ledger/Oracle"
           "Ledger/Orphans"
           "Ledger/Index"
+          "Ledger/Scripts"
           "Ledger/TimeSlot"
           "Ledger/Tokens"
           "Ledger/Typed/Scripts"

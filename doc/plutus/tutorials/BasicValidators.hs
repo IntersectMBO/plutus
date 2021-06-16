@@ -17,13 +17,14 @@ import           Ledger.Ada
 import           Ledger.Typed.Scripts
 import           Ledger.Value
 
+import           Cardano.Api          (HasTextEnvelope, TextEnvelope, TextEnvelopeDescr, serialiseToTextEnvelope)
+
 import qualified Data.ByteString.Lazy as BSL
 
 import           Codec.Serialise
 
 import           Prelude              (IO, print, show)
 import qualified Prelude              as Haskell
-
 
 myKeyHash :: PubKeyHash
 myKeyHash = Haskell.undefined
@@ -113,6 +114,13 @@ dateValidator = validatorScript dateInstance
 serializedDateValidator :: BSL.ByteString
 serializedDateValidator = serialise dateValidator
 
+-- The module 'Ledger.Scripts' (also exported via 'Ledger') includes instances
+-- related to typeclass 'Cardano.Api.HasTextEnvelope'
+envelopeDateValidator :: TextEnvelope
+envelopeDateValidator = serialiseToTextEnvelope Nothing (getValidator dateValidator)
+
 main :: IO ()
-main = print serializedDateValidator
+main = do
+  print serializedDateValidator
+  print envelopeDateValidator
 -- BLOCK9

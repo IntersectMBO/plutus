@@ -53,6 +53,7 @@ executable doc-doctests
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
       bytestring -any,
+      cardano-api -any,
       plutus-core -any,
       plutus-tx -any,
       plutus-ledger -any,
