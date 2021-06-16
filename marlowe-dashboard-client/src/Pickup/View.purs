@@ -1,25 +1,23 @@
 module Pickup.View (renderPickupState) where
 
 import Prelude hiding (div)
-import Css (classNames, hideWhen)
+import Css (classNames)
 import Css as Css
-import Data.Array (length)
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
-import Data.Map (filter, values)
-import Data.Maybe (Maybe(..), isJust, isNothing)
-import Data.String (Pattern(..), contains, toLower)
-import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, input, label, main, p, span_, text)
-import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), autocomplete, disabled, for, href, id_, placeholder, src, type_, value)
+import Data.Map (values)
+import Data.Maybe (isJust, isNothing)
+import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, label, main, p, span_, text)
+import Halogen.HTML.Events.Extra (onClick_)
+import Halogen.HTML.Properties (disabled, for, href, src)
 import Images (arrowBack, marloweRunLogo)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.View (renderInput)
 import Material.Icons (Icon(..), icon, icon_)
-import Network.RemoteData (isFailure, isSuccess)
-import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletDropdownOpen, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrId)
+import Network.RemoteData (isSuccess)
+import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
@@ -286,13 +284,16 @@ pickupWalletScreen state =
 
     remoteWalletDetails = view _remoteWalletDetails state
 
-    walletNicknameOrId = view _walletNicknameOrId state
+    walletNicknameOrIdInput = view _walletNicknameOrIdInput state
 
-    walletDropdownOpen = view _walletDropdownOpen state
-
-    matches walletDetails = contains (Pattern $ toLower walletNicknameOrId) (toLower $ view _walletNickname walletDetails)
-
-    matchingWallets = List.toUnfoldable $ values $ filter matches walletLibrary
+    walletNicknameOrIdInputDisplayOptions =
+      { baseCss: Css.inputNoFocus
+      , additionalCss: [ "pr-9" ]
+      , id_: "existingWallet"
+      , placeholder: "Enter a wallet ID/nickname"
+      , readOnly: false
+      , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
+      }
   in
     main
       [ classNames [ "p-4", "max-w-sm", "mx-auto" ] ]
@@ -312,28 +313,7 @@ pickupWalletScreen state =
       , p
           [ classNames [ "mb-4", "text-center" ] ]
           [ text "Or use an existing one by entering a wallet ID or nickname." ]
-      , div
-          [ classNames [ "relative" ] ]
-          [ input
-              [ type_ InputText
-              , classNames $ Css.inputNoFocus (isFailure remoteWalletDetails)
-              , id_ "existingWallet"
-              , placeholder "Enter a wallet ID/nickname"
-              , value walletNicknameOrId
-              , autocomplete false
-              , onValueInput_ SetWalletNicknameOrId
-              , onFocus_ $ SetWalletDropdownOpen true
-              ]
-          , div
-              [ classNames
-                  $ [ "absolute", "z-10", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-auto", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b" ]
-                  <> (hideWhen $ not walletDropdownOpen || length matchingWallets == 0)
-              ]
-              (walletList <$> matchingWallets)
-          , div
-              [ classNames $ Css.inputError <> [ "absolute" ] ]
-              $ if isFailure remoteWalletDetails then [ text "Wallet not found." ] else []
-          ]
+      , WalletNicknameOrIdInputAction <$> renderInput walletNicknameOrIdInput walletNicknameOrIdInputDisplayOptions
       ]
   where
   walletList walletDetails =
