@@ -75,7 +75,7 @@ library
         text -any,
         transformers -any,
         plutus-tx -any
-    if(impl(ghcjs))
+    if(impl(ghcjs) || os(windows))
         build-depends: plutus-ghc-stub
     else
         if(flag(ghcjs-plugin))
@@ -86,7 +86,7 @@ library
 
 test-suite plutus-tx-tests
     if os(windows)
-        buildable: false
+        buildable: False
     type: exitcode-stdio-1.0
     hs-source-dirs: test
     main-is: Spec.hs

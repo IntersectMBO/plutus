@@ -39,7 +39,7 @@ common lang
 executable doc-doctests
     import: lang
     if(impl(ghcjs) || os(windows))
-      buildable: false
+      buildable: False
     hs-source-dirs: plutus/tutorials
     main-is: Main.hs
     ghc-options: -Wno-unused-imports

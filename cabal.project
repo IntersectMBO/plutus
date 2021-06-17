@@ -58,6 +58,12 @@ allow-newer:
 
            , stm:base
 
+           -- ghc-boot 8.10.4 is not in hackage, so haskell.nix needs consider 8.8.3
+           -- when cross compiling for windows or it will fail to find a solution including
+           -- a new Win32 version (ghc-boot depends on Win32 via directory)
+           , ghc-boot:base
+           , ghc-boot:ghc-boot-th
+
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
   singletons < 3.0

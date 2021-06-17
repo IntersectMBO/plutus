@@ -61,22 +61,12 @@ let
       "https://github.com/input-output-hk/hedgehog-extras"."8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187" = "12viwpahjdfvlqpnzdgjp40nw31rvyznnab1hml9afpaxd6ixh70";
     };
     modules = [
-        # { nonReinstallablePkgs = [
-        #   "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base"
-        #   "deepseq" "array" "ghc-boot-th" "pretty" "template-haskell"
-        #   # ghcjs custom packages
-        #   "ghcjs-prim" "ghcjs-th"
-        #   "ghc-boot"
-        #   "ghc" "Win32" "array" "binary" "bytestring" "containers"
-        #   "directory" "filepath" "ghc-boot" "ghc-compact" "ghc-prim"
-        #   # "ghci" "haskeline"
-        #   "hpc"
-        #   "mtl" "parsec" "process" "text" "time" "transformers"
-        #   "unix" "xhtml"
-        #   # "stm" "terminfo"
-        # ]; }
+      ({pkgs, ...}: {
+        reinstallableLibGhc = pkgs.stdenv.hostPlatform.isWindows;
+      } // lib.mkIf pkgs.stdenv.hostPlatform.isWindows {
+        packages.Win32.components.library.build-tools = lib.mkForce [];
+      })
       {
-        reinstallableLibGhc = false;
         packages = {
 
           ghcjs.components.library.build-tools = let alex = pkgs.haskell-nix.tool compiler-nix-name "alex" {
