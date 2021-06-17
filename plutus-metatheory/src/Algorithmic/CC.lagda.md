@@ -154,24 +154,14 @@ stepV V (inj₂ (_ ,, E ,, (-· N)))  = extEC E (V ·-) ▻ N
 stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-))) = E ▻ (M [ deval V ])
 stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = []} p q ·-))) =
   E ▻ BUILTIN' b (bubble p) (step p q V)
-stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = Term ∷ as'} p q ·-)))
-  with bappTermLem b _ (bubble p) (BApp2BAPP (step p q V))
-... | _ ,, _ ,, refl = E ◅ V-I⇒ b (bubble p) (step p q V) 
-stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = Type ∷ as'} p q ·-)))
-  with bappTypeLem b _ (bubble p) (BApp2BAPP (step p q V))
-... | _ ,, _ ,, refl = E ◅ V-IΠ b (bubble p) (step p q V) 
+stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = a ∷ as'} p q ·-))) =
+  E ◅ V-I b (bubble p) (step p q V)
 stepV V (inj₂ (_ ,, E ,, wrap-))   = E ◅ V-wrap V
 stepV (V-Λ M) (inj₂ (_ ,, E ,, -·⋆ A)) = E ▻ (M [ A ]⋆)
 stepV (V-IΠ b {as' = []} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
   E ▻ BUILTIN' b (bubble p) (step⋆ p q) 
-stepV (V-IΠ b {as' = Term ∷ as'} p q) (inj₂ (_ ,, E ,, -·⋆ A))
-  with bappTermLem b _ (bubble p) (BApp2BAPP (step⋆ p q {A}))
-... | _ ,, _ ,, X =
-  E ◅ convVal' X (V-I⇒ b (bubble p) (convBApp1 b X (step⋆ p q)))
-stepV (V-IΠ b {as' = Type ∷ as'} p q) (inj₂ (_ ,, E ,, -·⋆ A))
-  with bappTypeLem b _ (bubble p) (BApp2BAPP (step⋆ p q))
-... | _ ,, _ ,, X =
-  E ◅ convVal' X (V-IΠ b (bubble p) (convBApp1 b X (step⋆ p q)))
+stepV (V-IΠ b {as' = a ∷ as'} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
+  E ◅ V-I b (bubble p) (step⋆ p q)
 stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ◅ V 
 
 stepT : ∀{A} → State A → State A
@@ -661,7 +651,7 @@ lem62 L E (unwrap E') = step* refl (lem62 L (extEC E unwrap-) E')
 
 open import Data.Empty
 
-{-
+
 -- a sketch of unwind
 -- stepV needs to be refined to manage the unsat builtin cases
 unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
@@ -677,11 +667,16 @@ unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
 ... | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] = {!!}
 unwindVE .(ƛ M) .(E' [ ƛ M ]ᴱ) E E' refl (V-ƛ M) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (lemVβ (lemVE (ƛ M · M') E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (-· M') (ƛ M)) VN))))
 unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = []} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (valred (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (-· M') A) VN))) (β-sbuiltin b A p x M' (VALUE2Value (lemVE _ (extEC E'' (V ·-)) (Value2VALUE (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V ·-) M'))) VN))))))
-unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = Term ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] = {!!}
-unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = Type ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] = {!!}
--- the use of the with rule in stepV gets in the way of the above two cases.
--- Introducing some helper functions into the definition of stepV are
--- probably the way to go
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = a ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = step* (trans (cong (λ E → stepV (V-I⇒ b p x) (dissect E)) (compEC'-extEC E E'' (-· M'))) (cong (stepV (V-I⇒ b p x)) (dissect-lemma (compEC' E E'') (-· M')))) (step** (lemV M' (VALUE2Value (lemVE M' (extEC E'' (V-I⇒ b p x ·-)) (Value2VALUE (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) M'))) VN)))) (extEC (compEC' E E'') (V-I⇒ b p x ·-))) (step* (cong (stepV _) (dissect-lemma (compEC' E E'') (V-I⇒ b p x ·-))) ((unwindVE (A · M') _ E E'' (extEC-[]ᴱ E'' (-· M') A) (V-I b (bubble p)
+  (step p x
+   (VALUE2Value
+    (lemVE M' (extEC E'' (V-I⇒ b p x ·-))
+     (Value2VALUE
+      (subst Value
+       (trans (extEC-[]ᴱ E'' (-· M') A)
+        (sym (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) M')))
+       VN)))))) VN))))
+
 unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → N ≡ E' [ M ]ᴱ
       → (VN : Value N)
