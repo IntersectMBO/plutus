@@ -1,5 +1,7 @@
 module WalletData.Validation
-  ( WalletNicknameError(..)
+  ( WalletNicknameOrIdError(..)
+  , walletNicknameOrIdError
+  , WalletNicknameError(..)
   , walletNicknameError
   , WalletIdError(..)
   , walletIdError
@@ -17,7 +19,23 @@ import InputField.Types (class InputFieldError)
 import Marlowe.PAB (PlutusAppId(..))
 import Network.RemoteData (RemoteData(..))
 import Types (WebData)
-import WalletData.Types (WalletInfo, WalletNickname, WalletLibrary)
+import WalletData.Types (WalletInfo, WalletLibrary, WalletNickname, WalletDetails)
+
+data WalletNicknameOrIdError
+  = UnconfirmedWalletNicknameOrId
+  | NonexistentWalletNicknameOrId
+
+derive instance eqWalletNicknameOrIdError :: Eq WalletNicknameOrIdError
+
+instance inputFieldErrorWalletNicknameOrIdError :: InputFieldError WalletNicknameOrIdError where
+  inputErrorToString UnconfirmedWalletNicknameOrId = "Looking up wallet..."
+  inputErrorToString NonexistentWalletNicknameOrId = "Wallet not found"
+
+walletNicknameOrIdError :: WebData WalletDetails -> String -> Maybe WalletNicknameOrIdError
+walletNicknameOrIdError remoteWalletDetails _ = case remoteWalletDetails of
+  Loading -> Just UnconfirmedWalletNicknameOrId
+  Failure _ -> Just NonexistentWalletNicknameOrId
+  _ -> Nothing
 
 data WalletNicknameError
   = EmptyWalletNickname

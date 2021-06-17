@@ -13,6 +13,7 @@ module Css
   , input
   , inputNoFocus
   , inputCard
+  , inputCardNoFocus
   , inputError
   , hasNestedLabel
   , nestedLabel
@@ -120,6 +121,9 @@ withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
 inputCard :: Boolean -> Array String
 inputCard invalid = inputBaseFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
 
+inputCardNoFocus :: Boolean -> Array String
+inputCardNoFocus invalid = inputBaseNoFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
+
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]
 
@@ -127,7 +131,7 @@ hasNestedLabel :: Array String
 hasNestedLabel = [ "-mt-4" ]
 
 nestedLabel :: Array String
-nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", "font-semibold" ]
+nestedLabel = [ "relative", "z-10", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", "font-semibold" ]
 
 --- cards
 overlay :: Boolean -> Array String
