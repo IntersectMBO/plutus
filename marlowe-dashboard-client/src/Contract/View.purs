@@ -72,7 +72,7 @@ contractDetailsCard currentSlot state =
       --       we need the cards container to grow (hence the flex-grow).
       , div [ classNames [ "flex-grow", "w-full" ] ]
           [ div
-              [ classNames [ "flex", "overflow-x-scroll", "h-full", "scrollbar-width-none", "relative" ]
+              [ classNames [ "flex", "items-center", "overflow-x-scroll", "h-full", "scrollbar-width-none", "relative" ]
               , ref scrollContainerRef
               ]
               (paddingElement <> pastStepsCards <> currentStepCard <> paddingElement)
@@ -112,7 +112,7 @@ cardNavigationButtons state =
               ]
               [ text "Next" ]
   in
-    div [ classNames [ "absolute", "bottom-6", "flex", "items-center", "w-full", "px-6", "md:px-5pc" ] ]
+    div [ classNames [ "mb-6", "flex", "items-center", "w-full", "px-6", "md:px-5pc" ] ]
       $ Array.catMaybes
           [ leftButton (state ^. _selectedStep)
           , rightButton (state ^. _selectedStep)
