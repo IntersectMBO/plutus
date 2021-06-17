@@ -651,9 +651,7 @@ lem62 L E (unwrap E') = step* refl (lem62 L (extEC E unwrap-) E')
 
 open import Data.Empty
 
-
--- a sketch of unwind
--- stepV needs to be refined to manage the unsat builtin cases
+{-# TERMINATING #-}
 unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → N ≡ E' [ M ]ᴱ
       → (VM : Value M)
@@ -661,7 +659,10 @@ unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → (compEC' E E' ◅ VM) -→s (E ◅ VN) 
 unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
 ... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E' refl eq rewrite uniqueVal A VM VN = base
-... | inj₂ (_ ,, E'' ,, (M ·-)) | I[ eq ] = {!!}
+... | inj₂ (_ ,, E'' ,, (V-ƛ M ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-ƛ M ·-) eq = ⊥-elim (lemVβ (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (V-ƛ M ·-) A) VN))))
+unwindVE A .(E' [ A ]ᴱ) E E' refl VM VN | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b p x ·-) eq = ⊥-elim (valred (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) A) VN))) (β-sbuiltin b (deval (V-I⇒ b p x)) p x A VM))
+unwindVE A .(E' [ A ]ᴱ) E E' refl VM VN | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₁ ∷ as'} p x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b p x ·-) eq =
+  step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' (V-I⇒ b p x ·-))) (cong (stepV VM) (dissect-lemma (compEC' E E'') (V-I⇒ b p x ·-)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) A) (V-I b (bubble p) (step p x VM)) VN)
 ... | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] = {!!}
 ... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] = {!!}
 ... | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] = {!!}
