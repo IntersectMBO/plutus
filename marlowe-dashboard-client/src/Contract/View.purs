@@ -9,7 +9,7 @@ import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
 import Css as Css
-import Data.Array (foldr, intercalate)
+import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NonEmptyArray
@@ -500,7 +500,10 @@ renderTasks state =
         (Map.keys $ state ^. _participants)
         actions
   in
-    div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks state)
+    if length expandedActions > 0 then
+      div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks state)
+    else
+      div [ classNames [ "my-4" ] ] [ text "There are no tasks to perform at this step. The contract will progress automatically when the timeout has passed." ]
 
 participantWithNickname :: State -> Party -> String
 participantWithNickname state party =
