@@ -18,8 +18,6 @@ open import Data.List as List using (List; _∷_; []; _++_;reverse;length)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero;ℕ;_+_)
 open import Data.Unit using (tt)
-import Debug.Trace as Debug
-
 
 open import Type
 import Type.RenamingSubstitution as T
@@ -38,13 +36,55 @@ open import Builtin.Signature
 open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
+open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl;≡-to-≅;≅-to-≡) renaming (sym to hsym; trans to htrans; cong to hcong)
 ```
 
 ## Pragmas
 
 ```
-{-# INJECTIVE _⊢Nf⋆_ #-}
 {-# INJECTIVE _⊢_ #-}
+{-# INJECTIVE _⊢Nf⋆_ #-}
+```
+
+## Some syntactic lemmas about injectivity
+
+```
+lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
+  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
+  → M' _⊢_.·⋆ A' ≅ M _⊢_.·⋆ A
+  → M' ≅ M × A ≅ A' × B ≅ B'
+lem-·⋆' refl = refl ,, refl ,, refl
+
+-- these negative things can probably be most easily proved via a less
+-- rigid representation e.g, removing some green slime or even via
+-- extrinsic typing
+
+lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
+  → (o : K ≡ K')
+  → (p : substEq (∅ ⊢Nf⋆_) o A ≡ A')
+  → (q : Π B ≡ Π B')
+  → (r : B [ A ]Nf ≡ B' [ A' ]Nf)
+  → ∀{M}
+  → substEq (∅ ⊢_) q M ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
+lem-·⋆ refl refl refl refl = refl
+
+lem-·⋆wrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
+  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ _}
+  → M _⊢_.·⋆ A ≅ _⊢_.wrap A' B' M'
+  → ⊥
+lem-·⋆wrap ()
+
+lem-·⋆unwrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
+  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ μ A' B'}
+  → M _⊢_.·⋆ A ≅ _⊢_.unwrap M'
+  → ⊥
+lem-·⋆unwrap ()
+
+lem-unwrap : ∀{K K'}{A}{A'}{B : ∅ ⊢Nf⋆ K}{B' : ∅ ⊢Nf⋆ K'}
+  → ∀{M : ∅ ⊢ μ A B}{M' : ∅ ⊢ μ A' B'}
+  → _⊢_.unwrap M ≅ _⊢_.unwrap M'
+  → A ≅ A' × B ≅ B' × M ≅ M'
+lem-unwrap refl = refl ,, refl ,, refl 
 ```
 
 
@@ -265,6 +305,12 @@ data Value where
        → {t : ∅ ⊢ Π A}
        → BApp b p t
        → Value t
+
+
+
+-- I need a helper function that takes an application and a arity
+-- proof and then attaches the right constructor. This may save me
+-- from using with to determine this in lots of places
 
 deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u
@@ -490,6 +536,14 @@ _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 (E ·⋆ A) [ L ]ᴱ = E [ L ]ᴱ ·⋆ A
 (wrap   E) [ L ]ᴱ = wrap _ _ (E [ L ]ᴱ)
 (unwrap E) [ L ]ᴱ = unwrap (E [ L ]ᴱ)
+
+lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
+  → ∀{L : ∅ ,⋆ K ⊢ B}{X}{L' : ∅ ⊢ X}{Y}
+  → Y ≡ Π B
+  → (E : EC Y X)
+  → Λ L ≅ E [ L' ]ᴱ
+  → E ≅ EC.[] {A = Y} × Λ L ≅ L'
+lemΛE eq [] p = refl ,, p
 
 _[_]ᶠ : ∀{A B : ∅ ⊢Nf⋆ *} → Frame B A → ∅ ⊢ A → ∅ ⊢ B
 (-· M') [ L ]ᶠ = L · M' 
@@ -1008,6 +1062,17 @@ bappTypeLem trace {az = az} {as} M p q
   with <>>-cancel-both' az ([] ∷ Type) ([] ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 
+-- a smart constructor that looks at the arity and then puts on the right constructor
+V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
+       → (p : as <>> a ∷ as' ∈ arity b)
+       → {t : ∅ ⊢ A}
+       → BApp b p t
+       → Value t
+V-I b {a = Term} p q with bappTermLem b _ p (BApp2BAPP q)
+... | _ ,, _ ,, refl = V-I⇒ b p q
+V-I b {a = Type} p q  with bappTypeLem b _ p (BApp2BAPP q)
+... | _ ,, _ ,, refl = V-IΠ b p q
+
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 progress (ƛ M)        = done (V-ƛ M)
 progress (M · M')     with progress M
@@ -1022,12 +1087,8 @@ progress (.(ƛ M) · M') | done (V-ƛ M) | done VM' =
   step (ruleEC [] (β-ƛ VM') refl refl)
 progress (M · M') | done (V-I⇒ b {as' = []} p q) | done VM' =
   step (ruleEC [] (β-sbuiltin b M p q M' VM') refl refl)
-progress (M · M') | done (V-I⇒ b {as' = Term ∷ as'} p q) | done VM'
-  with bappTermLem b (M · M') (bubble p) (BApp2BAPP (step p q VM'))
-... | _ ,, _ ,, refl = done (V-I⇒ b (bubble p) (BApp.step p q VM'))
-progress (M · M') | done (V-I⇒ b {as' = Type ∷ as'} p q) | done VM'
-  with bappTypeLem b (M · M') (bubble p) (BApp2BAPP (step p q VM'))
-... | _ ,, _ ,, refl = done (V-IΠ b (bubble p) (BApp.step p q VM'))
+progress (M · M') | done (V-I⇒ b {as' = a ∷ as'} p q) | done VM' =
+  done (V-I b (bubble p) (step p q VM'))
 progress (Λ M)        = done (V-Λ M)
 progress (M ·⋆ A) with progress M
 ... | error E-error = step (ruleErr ([] ·⋆ A) refl)
@@ -1036,14 +1097,8 @@ progress (M ·⋆ A) with progress M
 ... | done (V-Λ M') = step (ruleEC [] β-Λ refl refl)
 progress (M ·⋆ A) | done (V-IΠ b {as' = []}         p q) =
   step (ruleEC [] (β-sbuiltin⋆ b M p q A) refl refl)
-progress (M ·⋆ A) | done (V-IΠ b {as' = Term ∷ as'} p q)
-  with bappTermLem b (M ·⋆ A) (bubble p) (BApp2BAPP (step⋆ p q))
-... | _ ,, _ ,, X =
-  done (convVal' X (V-I⇒ b (bubble p) (convBApp1 b X (step⋆ p q))))
-progress (M ·⋆ A) | done (V-IΠ b {as' = Type ∷ as'} p q)
-  with bappTypeLem b (M ·⋆ A) (bubble p) (BApp2BAPP (step⋆ p q))
-... | _ ,, _ ,, X =
-  done (convVal' X (V-IΠ b (bubble p) (convBApp1 b X (step⋆ p q))))
+progress (M ·⋆ A) | done (V-IΠ b {as' = a ∷ as'} p q) =
+  done (V-I b (bubble p) (step⋆ p q))
 progress (wrap A B M) with progress M
 ... | done V            = done (V-wrap V)
 ... | step (ruleEC E p refl refl) = step (ruleEC (wrap E) p refl refl)
@@ -1080,12 +1135,8 @@ lemma51 (.(ƛ M) · M') | inj₁ (V-ƛ M)      | inj₁ VM' =
   inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-ƛ VM') ,, refl)
 lemma51 (M · M') | inj₁ (V-I⇒ b {as' = []} p x) | inj₁ VM' =
   inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-sbuiltin b M p x M' VM') ,, refl)
-lemma51 (M · M') | inj₁ (V-I⇒ b {as' = Term ∷ as'} p x) | inj₁ VM'
-  with bappTermLem b (M · M') (bubble p) (BApp2BAPP (step p x VM'))
-... | _ ,, _ ,, refl = inj₁ (V-I⇒ b (bubble p) (step p x VM'))
-lemma51 (M · M') | inj₁ (V-I⇒ b {as' = Type ∷ as'} p x) | inj₁ VM'
-  with bappTypeLem b (M · M') (bubble p) (BApp2BAPP (step p x VM'))
-... | _ ,, _ ,, refl = inj₁ (V-IΠ b (bubble p) (step p x VM'))
+lemma51 (M · M') | inj₁ (V-I⇒ b {as' = a ∷ as'} p x) | inj₁ VM' =
+  inj₁ (V-I b (bubble p) (step p x VM'))
 lemma51 (Λ M) = inj₁ (V-Λ M)
 lemma51 (M ·⋆ A) with lemma51 M
 ... | inj₁ (V-Λ M') =
@@ -1094,14 +1145,8 @@ lemma51 (M ·⋆ A) with lemma51 M
   inj₂ (B ,, E ·⋆ A ,, L ,, p ,, cong (_·⋆ A) q)
 lemma51 (M ·⋆ A) | inj₁ (V-IΠ b {as' = []} p x) =
   inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-sbuiltin⋆ b M p x A) ,, refl)
-lemma51 (M ·⋆ A) | inj₁ (V-IΠ b {as' = Term ∷ as} p x)
-  with bappTermLem b (M ·⋆ A) (bubble p) (BApp2BAPP (step⋆ p x))
-... | _ ,, _ ,, q =
-  inj₁ (convVal' q (V-I⇒ b (bubble p) (convBApp1 b q (step⋆ p x))))
-lemma51 (M ·⋆ A) | inj₁ (V-IΠ b {as' = Type ∷ as} p x)
-  with bappTypeLem b (M ·⋆ A) (bubble p) (BApp2BAPP (step⋆ p x))
-... | _ ,, _ ,, q =
-  inj₁ (convVal' q (V-IΠ b (bubble p) (convBApp1 b q (step⋆ p x))))
+lemma51 (M ·⋆ A) | inj₁ (V-IΠ b {as' = a ∷ as} p x) =
+  inj₁ (V-I b (bubble p) (step⋆ p x))
 lemma51 (wrap A B M) with lemma51 M
 ... | inj₁ V = inj₁ (V-wrap V)
 ... | inj₂ (C ,, E ,, L ,, p ,, p') =
@@ -1324,56 +1369,8 @@ data RProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       -----------
     → RProgress M
 
--- these negative things can probably be most easily proved via a less
--- rigid representation e.g, removing some green slime or even via
--- extrinsic typing
-
-lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
-  → (o : K ≡ K')
-  → (p : substEq (∅ ⊢Nf⋆_) o A ≡ A')
-  → (q : Π B ≡ Π B')
-  → (r : B [ A ]Nf ≡ B' [ A' ]Nf)
-  → ∀{M}
-  → substEq (∅ ⊢_) q M ·⋆ A' ≡ substEq (∅ ⊢_) r (M ·⋆ A)
-lem-·⋆ refl refl refl refl = refl
-
-open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl;≡-to-≅;≅-to-≡) renaming (sym to hsym; trans to htrans; cong to hcong)
-
-lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ,⋆ K' ⊢Nf⋆ *}
-  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ Π B'}
-  → M' _⊢_.·⋆ A' ≅ M _⊢_.·⋆ A
-  → M' ≅ M × A ≅ A' × B ≅ B'
-lem-·⋆' refl = refl ,, refl ,, refl
-
-lem-·⋆wrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ _}
-  → M _⊢_.·⋆ A ≅ _⊢_.wrap A' B' M'
-  → ⊥
-lem-·⋆wrap ()
-
-lem-·⋆unwrap : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A'}{B : ∅ ,⋆ K ⊢Nf⋆ *}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ Π B}{M' : ∅ ⊢ μ A' B'}
-  → M _⊢_.·⋆ A ≅ _⊢_.unwrap M'
-  → ⊥
-lem-·⋆unwrap ()
-
-lem-unwrap : ∀{K K'}{A}{A'}{B : ∅ ⊢Nf⋆ K}{B' : ∅ ⊢Nf⋆ K'}
-  → ∀{M : ∅ ⊢ μ A B}{M' : ∅ ⊢ μ A' B'}
-  → _⊢_.unwrap M ≅ _⊢_.unwrap M'
-  → A ≅ A' × B ≅ B' × M ≅ M'
-lem-unwrap refl = refl ,, refl ,, refl 
-
-
-lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
-  → ∀{L : ∅ ,⋆ K ⊢ B}{X}{L' : ∅ ⊢ X}{Y}
-  → Y ≡ Π B
-  → (E : EC Y X)
-  → Λ L ≅ E [ L' ]ᴱ
-  → E ≅ EC.[] {A = Y} × Λ L ≅ L'
-lemΛE eq [] p = refl ,, p
 
 -- a beta⋆ reduction happened
-{-# INJECTIVE _⊢Nf⋆_ #-}
 
 U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  {B' : ∅ ⊢Nf⋆ *}
@@ -1572,12 +1569,8 @@ rlemma51! (M · M') | done (V-I⇒ b {as' = []}      p q) | done VM' = step
   λ { [] refl (β (β-sbuiltin b .M p bt .M' vu)) → refl ,, refl ,, refl
     ; (E l· x) refl p' → ⊥-elim (valredex (lemBE _ E q) p')
     ; (x ·r E) refl p' → ⊥-elim (valredex (lemVE _ E (Value2VALUE VM')) p')}
-rlemma51! (M · M') | done (V-I⇒ b {as' = Term ∷ as'} p q) | done VM'
-  with bappTermLem b (M · M') (bubble p) (BApp2BAPP (step p q VM'))
-... | _ ,, _ ,, refl = done (V-I⇒ b (bubble p) (step p q VM'))
-rlemma51! (M · M') | done (V-I⇒ b {as' = Type ∷ as'} p q) | done VM'
-  with bappTypeLem b (M · M') (bubble p) (BApp2BAPP (step p q VM'))
-... | _ ,, _ ,, refl = done (V-IΠ b (bubble p) (step p q VM'))
+rlemma51! (M · M') | done (V-I⇒ b {as' = a ∷ as'} p q) | done VM' =
+  done (V-I b (bubble p) (step p q VM'))
 rlemma51! (Λ M)        = done (V-Λ M)
 rlemma51! (M ·⋆ A)     with rlemma51! M
 ... | done (V-Λ L)      = step
@@ -1600,15 +1593,10 @@ rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = []} p x) = step
   (β (β-sbuiltin⋆ b M p x A))
   refl
   λ E p q → let X ,, Y ,, Y' = U·⋆3 refl E (V-IΠ b _ x) (≡-to-≅ p) q in
-    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y' 
-rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = Term ∷ as'} p x)
-  with bappTermLem b (M ·⋆ A) (bubble p) (BApp2BAPP (step⋆ p x))
-... | _ ,, _ ,, X =
-  done (convVal' X (V-I⇒ b (bubble p) (convBApp1 b X (step⋆ p x))))
-rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = Type ∷ as'} p x)
-  with bappTypeLem b (M ·⋆ A) (bubble p) (BApp2BAPP (step⋆ p x))
-... | _ ,, _ ,, X =
-  done (convVal' X (V-IΠ b (bubble p) (convBApp1 b X (step⋆ p x))))
+    X ,, ≅-to-≡ Y ,, ≅-to-≡ Y'
+    
+rlemma51! (M ·⋆ A) | done (V-IΠ b {as' = a ∷ as'} p x) =
+  done (V-I b (bubble p) (step⋆ p x))
 rlemma51! (wrap A B M) with rlemma51! M
 ... | done VM = done (V-wrap VM)
 ... | step ¬VM E p q U = step
