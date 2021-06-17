@@ -1,19 +1,20 @@
 name: Benchmarking
 on:
-  pull_request:
-    types: [opened]
   issue_comment:
     types: [created]
 jobs:
   bench:
     runs-on: ubuntu-latest
     steps:
-      - uses: khan/pull-request-comment-trigger@master
-        id: check
+      - name: Check for Command
+        id: command
+        uses: xt0rted/slash-command-action@v1
         with:
-          trigger: '@dudebenchplease'
-          reaction: rocket
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-      - run: 'echo "what the heck"'
-        if: steps.check.outputs.triggered == 'true'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          command: benchmark
+          reaction: "true"
+          reaction-type: "eyes"
+          allow-edits: "false"
+          permission-level: write
+      - name: Act on the command
+        run: echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
