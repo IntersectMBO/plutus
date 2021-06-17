@@ -11,9 +11,9 @@ jobs:
       - uses: khan/pull-request-comment-trigger@master
         id: check
         with:
-          trigger: '#bench'
+          trigger: '@dudebenchplease'
           reaction: rocket
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-      - run: 'curl -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" "https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds" -X "POST" -F "commit=HEAD" -F "branch=master" -F "message=First build :rocket:"'
+      - run: 'echo "what the heck"'
         if: steps.check.outputs.triggered == 'true'
