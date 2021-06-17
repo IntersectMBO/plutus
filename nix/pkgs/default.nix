@@ -34,9 +34,6 @@ let
   # These are needed to pull the cardano-cli and cardano-node in the nix-shell.
   inherit (haskell.project.hsPkgs.cardano-cli.components.exes) cardano-cli;
   inherit (haskell.project.hsPkgs.cardano-node.components.exes) cardano-node;
-  # cardano-node = haskell.project.hsPkgs.cardano-node.components.exes.cardano-node // {
-  #   deployments = pkgs.cardano-node-deployments;
-  # };
 
   # We want to keep control of which version of Agda we use, so we supply our own and override
   # the one from nixpkgs.
