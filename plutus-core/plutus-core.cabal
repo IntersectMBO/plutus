@@ -413,7 +413,7 @@ test-suite untyped-plutus-core-test
 executable plc
     import: lang
     main-is: Main.hs
-    hs-source-dirs: plc
+    hs-source-dirs: executables/plc
     build-depends:
         plutus-core -any,
         base <5,
@@ -427,6 +427,25 @@ executable plc
         split -any,
         text -any,
         transformers -any
+
+executable uplc
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: executables/uplc
+    build-depends:
+        plutus-core -any,
+        base <5,
+        bytestring -any,
+        deepseq -any,
+        flat -any,
+        monoidal-containers -any,
+        optparse-applicative -any,
+        prettyprinter -any,
+        serialise -any,
+        split -any,
+        text -any,
+        transformers -any
+
 
 -- This runs the microbenchmarks used to generate the cost models for built-in functions,
 -- saving the results in cost-model/data/benching.csv.  It will take several hours.
