@@ -194,7 +194,7 @@ propUpperIntegerQuotient = withTests 100000 . property $ do
     a <- forAll $ fromIntegral <$> Gen.choice [uniform, small, largePositive, largeNegative]
     b <- forAll $ fromIntegral <$> Gen.choice [uniformPositive, smallPositive, largePositive]
     -- ^ The behaviour isn't specified for b<=0, so we only check strictly positive b.
-    let d = a `uppperIntegerQuotient` b
+    let d = a `upperIntegerQuotient` b
     Hedgehog.assert $ a <= d*b
     Hedgehog.assert $ d*b < a+b || a+b == fromIntegral max64
       -- We really want <, but that can fail for large a with SatInt, eg if a=maxBound and b=1.

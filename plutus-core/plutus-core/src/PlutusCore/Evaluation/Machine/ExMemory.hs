@@ -13,7 +13,7 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExCPU(..)
 , GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
-, uppperIntegerQuotient  -- Exported for testing
+, upperIntegerQuotient  -- Exported for testing
 , Scalable (..)
 ) where
 
@@ -96,8 +96,6 @@ type CostingInteger =
     SatInt
 #endif
 
--- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
-
 {- | Divide one costing integer by another, "rounding upwards".  This is needed
 when we expose costs to the ledger, which will use different (smaller) units.
 Suppose one ledger unit is 1000 real cost units: then if a script costs 12345678
@@ -107,8 +105,8 @@ to run the script.  We want a <= (a `uppperIntegerQuotient` b) * b < a+b for all
 a and for all b>0, except that we may get '==' instead of '<' when we're using
 SatInt and a+b == MaxBound.  The behaviour when b <= 0 is unspecified.
 -}
-uppperIntegerQuotient :: CostingInteger -> CostingInteger -> CostingInteger
-a `uppperIntegerQuotient` b =
+upperIntegerQuotient :: CostingInteger -> CostingInteger -> CostingInteger
+a `upperIntegerQuotient` b =
     let (q,r) = a `divMod` b
     in if r==0 then q else q+1
 
@@ -120,12 +118,12 @@ class Scalable a where
 
 instance Scalable CostingInteger where
     scaleUp k n = (fromInteger k) * n
-    scaleDown k n = n `uppperIntegerQuotient` (fromInteger k)
+    scaleDown k n = n `upperIntegerQuotient` (fromInteger k)
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
   deriving (Eq, Ord, Show, Lift)
-  deriving newtype (Num, NFData, Scalable)
+  deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
 instance Pretty ExMemory where
