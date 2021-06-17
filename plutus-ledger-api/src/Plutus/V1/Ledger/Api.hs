@@ -120,13 +120,13 @@ internally. That means we don't lose anything by exposing all the details: we're
 anything, we're just going to create new versions.
 -}
 
-{- | Internally the evaluator uses costs which approximate execution times
-in picoseconds.  This gives huge numbers which are unsuitable for users
-so we expose microsecond-based costs to the ledger and scale them up and
-down to and from picoseconds for internal use.  The maximum possible cost
-from the viewpoint of the ledger will be 9223372036855 units. -}
+{- | Internally the evaluator uses costs which approximate execution times in
+picoseconds.  This gives huge numbers which are unsuitable for users so we
+expose nanosecond-based costs to the ledger and scale them up and down to and
+from picoseconds for internal use.  The maximum possible cost from the viewpoint
+of the ledger will be 9223372036854776 units. -}
 costScaleFactor :: Integer
-costScaleFactor = 1000 * 1000
+costScaleFactor = 1000
 
 -- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
