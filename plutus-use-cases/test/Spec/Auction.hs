@@ -24,6 +24,7 @@ import qualified Streaming.Prelude                  as S
 import qualified Wallet.Emulator.Folds              as Folds
 import qualified Wallet.Emulator.Stream             as Stream
 
+import qualified Ledger.TimeSlot                    as TimeSlot
 import           Ledger.Value                       (AssetClass)
 import qualified Ledger.Value                       as Value
 import           Plutus.Contract.Test.ContractModel
@@ -41,7 +42,7 @@ params =
     AuctionParams
         { apOwner   = pubKeyHash $ walletPubKey (Wallet 1)
         , apAsset   = theToken
-        , apEndTime = 100
+        , apEndTime = TimeSlot.slotToPOSIXTime 100
         }
 
 -- | The token that we are auctioning off.
@@ -80,7 +81,8 @@ auctionTrace1 = do
     hdl2 <- Trace.activateContractWallet w2 (buyer currency)
     _ <- Trace.waitNSlots 1
     Trace.callEndpoint @"bid" hdl2 trace1WinningBid
-    void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
+    void $ Trace.waitUntilTime $ apEndTime params
+    void $ Trace.waitNSlots 2
 
 trace2WinningBid :: Ada
 trace2WinningBid = 70
@@ -105,7 +107,7 @@ auctionTrace2 = do
     Trace.callEndpoint @"bid" hdl3 60
     _ <- Trace.waitNSlots 35
     Trace.callEndpoint @"bid" hdl2 trace2WinningBid
-    void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
+    void $ Trace.waitUntilSlot (succ $ succ $ TimeSlot.posixTimeToSlot $ apEndTime params)
 
 trace1FinalState :: AuctionOutput
 trace1FinalState =
@@ -172,7 +174,7 @@ instance ContractModel AuctionModel where
 
     initialState = AuctionModel { _currentBid = 0
                                 , _winner     = w1
-                                , _endSlot    = apEndTime params
+                                , _endSlot    = TimeSlot.posixTimeToSlot $ apEndTime params
                                 , _phase      = NotStarted }
 
     arbitraryAction s
@@ -228,8 +230,7 @@ instance ContractModel AuctionModel where
     shrinkAction _ Init      = []
     shrinkAction _ (WaitUntil (Slot n))  = [ WaitUntil (Slot n') | n' <- shrink n ]
     shrinkAction s (Bid w v) =
-        [ WaitUntil (s ^. currentSlot + 1) ] ++
-        [ Bid w v' | v' <- shrink v ]
+        WaitUntil (s ^. currentSlot + 1) : [ Bid w v' | v' <- shrink v ]
 
     monitoring _ _ = id
 

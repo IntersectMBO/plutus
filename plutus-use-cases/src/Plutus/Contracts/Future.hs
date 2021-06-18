@@ -52,7 +52,7 @@ import qualified Control.Monad.Freer.Error        as Freer
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Default                     (Default (..))
 import           GHC.Generics                     (Generic)
-import           Ledger                           (Address, Datum (..), PubKey, Slot (..), Validator, ValidatorHash,
+import           Ledger                           (Address, Datum (..), POSIXTime, PubKey, Validator, ValidatorHash,
                                                    pubKeyHash)
 import qualified Ledger
 import qualified Ledger.Constraints               as Constraints
@@ -66,7 +66,7 @@ import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Value                     as Value
 import           Plutus.Contract
 import           Plutus.Contract.Util             (loopM)
-import qualified PlutusTx                         as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude
 
 import           Plutus.Contract.StateMachine     (AsSMContractError, State (..), StateMachine (..), Void)
@@ -97,7 +97,7 @@ import qualified Prelude                          as Haskell
 --
 data Future =
     Future
-        { ftDeliveryDate  :: Slot
+        { ftDeliveryDate  :: POSIXTime
         , ftUnits         :: Integer
         , ftUnitPrice     :: Value
         , ftInitialMargin :: Value
@@ -220,7 +220,7 @@ data FutureSetup =
         -- ^ Initial owner of the short token
         , longPK        :: PubKey
         -- ^ Initial owner of the long token
-        , contractStart :: Slot
+        , contractStart :: POSIXTime
         -- ^ Start of the futures contract itself. By this time the setup code
         --   has to be finished, otherwise the contract is void.
         } deriving stock (Haskell.Show, Generic)
@@ -345,11 +345,11 @@ verifyOracle pubKey sm =
     either (const Nothing) pure
     $ Oracle.verifySignedMessageConstraints pubKey sm
 
-verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
+verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (POSIXTime, a)
 verifyOracleOffChain Future{ftPriceOracle} sm =
     case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
         Left _                               -> Nothing
-        Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
+        Right Observation{obsValue, obsTime} -> Just (obsTime, obsValue)
 
 {-# INLINABLE transition #-}
 transition :: Future -> FutureAccounts -> State FutureState -> FutureAction -> Maybe (TxConstraints Void Void, State FutureState)
@@ -363,7 +363,7 @@ transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s
                     }
                     )
         (Running accounts, Settle ov)
-            | Just (Observation{obsValue=spotPrice, obsSlot=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, ftDeliveryDate == oracleDate ->
+            | Just (Observation{obsValue=spotPrice, obsTime=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, ftDeliveryDate == oracleDate ->
                 let payment = payouts future accounts spotPrice
                     constraints =
                         Constraints.mustValidateIn (Interval.from ftDeliveryDate)
@@ -376,7 +376,7 @@ transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s
                             }
                         )
         (Running accounts, SettleEarly ov)
-            | Just (Observation{obsValue=spotPrice, obsSlot=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, Just vRole <- violatingRole future accounts spotPrice, ftDeliveryDate > oracleDate ->
+            | Just (Observation{obsValue=spotPrice, obsTime=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, Just vRole <- violatingRole future accounts spotPrice, ftDeliveryDate > oracleDate ->
                 let
                     total = totalMargin accounts
                     FutureAccounts{ftoLongAccount, ftoShortAccount} = owners

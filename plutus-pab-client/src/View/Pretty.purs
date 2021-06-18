@@ -62,6 +62,18 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show slot
       ]
+  pretty (AwaitTimeResp time) =
+    span_
+      [ text "AwaitTimeResponse:"
+      , nbsp
+      , text $ show time
+      ]
+  pretty (CurrentTimeResp time) =
+    span_
+      [ text "CurrentTimeResp:"
+      , nbsp
+      , text $ show time
+      ]
   pretty (AwaitTxConfirmedResp txConfirmed) =
     span_
       [ text "AwaitTxConfirmedResponse:"
@@ -121,6 +133,16 @@ instance prettyContractPABRequest :: Pretty PABReq where
   pretty CurrentSlotReq =
     span_
       [ text "CurrentSlotRequest"
+      ]
+  pretty (AwaitTimeReq time) =
+    span_
+      [ text "AwaitTimeRequest:"
+      , nbsp
+      , text $ show time
+      ]
+  pretty CurrentTimeReq =
+    span_
+      [ text "CurrentTimeRequest"
       ]
   pretty (AwaitTxConfirmedReq txId) =
     span_

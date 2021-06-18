@@ -489,7 +489,6 @@ ownerEndpoint :: Contract (Last (Either Text Uniswap)) EmptySchema ContractError
 ownerEndpoint = do
     e <- mapError absurd $ runError start
     tell $ Last $ Just e
-    void $ waitNSlots 10
 
 -- | Provides the following endpoints for users of a Uniswap instance:
 --

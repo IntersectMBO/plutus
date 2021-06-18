@@ -15,13 +15,13 @@ import qualified Test.Tasty.HUnit         as HUnit
 
 import qualified Ledger
 import qualified Ledger.Ada               as Ada
-import           Plutus.Contracts.Vesting
-import qualified PlutusTx                 as PlutusTx
-import qualified PlutusTx.Numeric         as Numeric
-
+import qualified Ledger.TimeSlot          as TimeSlot
 import           Plutus.Contract.Test
+import           Plutus.Contracts.Vesting
 import           Plutus.Trace.Emulator    (EmulatorTrace)
 import qualified Plutus.Trace.Emulator    as Trace
+import qualified PlutusTx
+import qualified PlutusTx.Numeric         as Numeric
 import           Prelude                  hiding (not)
 
 w1, w2 :: Wallet
@@ -78,8 +78,8 @@ tests =
 vesting :: VestingParams
 vesting =
     VestingParams
-        { vestingTranche1 = VestingTranche (Ledger.Slot 10) (Ada.lovelaceValueOf 20)
-        , vestingTranche2 = VestingTranche (Ledger.Slot 20) (Ada.lovelaceValueOf 40)
+        { vestingTranche1 = VestingTranche (TimeSlot.slotToPOSIXTime 10) (Ada.lovelaceValueOf 20)
+        , vestingTranche2 = VestingTranche (TimeSlot.slotToPOSIXTime 20) (Ada.lovelaceValueOf 40)
         , vestingOwner    = Ledger.pubKeyHash $ walletPubKey w1 }
 
 retrieveFundsTrace :: EmulatorTrace ()

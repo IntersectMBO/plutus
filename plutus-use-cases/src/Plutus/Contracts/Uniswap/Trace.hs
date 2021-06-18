@@ -12,7 +12,7 @@ module Plutus.Contracts.Uniswap.Trace(
     , wallets
     ) where
 
-import           Control.Monad                     (forM_, void, when)
+import           Control.Monad                     (forM_, when)
 import           Control.Monad.Freer.Error         (throwError)
 import qualified Data.Map                          as Map
 import qualified Data.Monoid                       as Monoid
@@ -73,7 +73,6 @@ setupTokens = do
             tx <- submitTx $ mustPayToPubKey pkh v
             awaitTxConfirmed $ txId tx
     tell $ Just $ Semigroup.Last cur
-    void $ waitNSlots 10
   where
     amount = 1000000
 

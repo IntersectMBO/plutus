@@ -35,7 +35,7 @@ import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.GameStateMachine  as G
 import           Plutus.Trace.Emulator              as Trace
-import qualified PlutusTx                           as PlutusTx
+import qualified PlutusTx
 
 -- * QuickCheck model
 
@@ -170,7 +170,7 @@ genValue :: Gen Integer
 genValue = getPositive <$> arbitrary
 
 delay :: Int -> EmulatorTrace ()
-delay n = void $ waitNSlots (fromIntegral n)
+delay n = void $ Trace.waitNSlots (fromIntegral n)
 
 -- Dynamic Logic ----------------------------------------------------------
 

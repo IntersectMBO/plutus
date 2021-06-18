@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveGeneric             #-}
-{-# LANGUAGE DerivingStrategies        #-}
 {-# LANGUAGE DerivingVia               #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts          #-}
@@ -62,6 +61,7 @@ import qualified PlutusTx.Numeric                 as N
 
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Orphans                   ()
+import qualified Ledger.TimeSlot                  as TimeSlot
 import           Ledger.Typed.Scripts             (TypedValidator, ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (ConnectionError)
@@ -314,7 +314,7 @@ addMissingValueSpent
        )
     => m ()
 addMissingValueSpent = do
-    missing <- totalMissingValue <$> get
+    missing <- gets totalMissingValue
 
     if Value.isZero missing
         then pure ()
@@ -450,8 +450,8 @@ processConstraint = \case
     MustIncludeDatum dv ->
         let theHash = datumHash dv in
         unbalancedTx . tx . Tx.datumWitnesses %= set (at theHash) (Just dv)
-    MustValidateIn slotRange ->
-        unbalancedTx . tx . Tx.validRange %= (slotRange /\)
+    MustValidateIn timeRange ->
+        unbalancedTx . tx . Tx.validRange %= (TimeSlot.posixTimeRangeToSlotRange timeRange /\)
     MustBeSignedBy pk ->
         unbalancedTx . requiredSignatories %= Set.insert pk
     MustSpendAtLeast vl -> valueSpentInputs <>= required vl

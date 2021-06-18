@@ -32,7 +32,7 @@ import           Ledger.Contexts          as V
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Plutus.Contract
 import qualified Plutus.Contract.Typed.Tx as Tx
-import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude         hiding (Semigroup (..), foldMap)
 
 import           Prelude                  as Haskell (Semigroup (..), Show, foldMap)
