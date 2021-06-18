@@ -1,5 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
-module Plutus.ChainIndex.Tx where
+{-| The chain index' version of a transaction
+-}
+module Plutus.ChainIndex.Tx(
+    ChainIndexTx(..)
+    , fromOnChainTx
+    ) where
 
 import           Data.Map (Map)
 import           Data.Set (Set)

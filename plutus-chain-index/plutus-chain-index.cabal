@@ -31,13 +31,16 @@ library
     import: lang
     exposed-modules:
         Plutus.ChainIndex
+        Plutus.ChainIndex.DiskState
+        Plutus.ChainIndex.Query
         Plutus.ChainIndex.Tx
+        Plutus.ChainIndex.Types
+        Plutus.ChainIndex.UtxoState
     hs-source-dirs: src
     build-depends:
         plutus-ledger -any,
         plutus-ledger-api -any,
         plutus-tx -any,
-        plutus-contract -any,
         freer-extras -any,
     build-depends:
         aeson -any,
@@ -48,6 +51,7 @@ library
         lens -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,
+        bytestring -any
 
 test-suite plutus-chain-index-test
     import: lang
