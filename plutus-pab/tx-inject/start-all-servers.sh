@@ -1,5 +1,5 @@
 #!/bin/bash
-rm -f ./primary.db ./node-server.sock
+rm -f ./primary.db
 cabal build all
 cabal exec plutus-pab -- --config=./config.yaml migrate primary.db
 cabal exec plutus-pab -- --config=./config.yaml contracts install --path "$(stack path --local-install-root)/bin/plutus-currency"

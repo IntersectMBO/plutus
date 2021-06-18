@@ -45,10 +45,10 @@ app trace clientHandler stateVar =
          (genRandomTx :<|>
           consumeEventHistory stateVar))
 
-data Ctx = Ctx { serverHandler :: Server.ServerHandler
-               , txSendHandle  :: Client.TxSendHandle
-               , serverState   :: MVar AppState
-               , mockTrace     :: Trace IO MockServerLogMsg
+data Ctx = Ctx { {-serverHandler :: Server.ServerHandler
+               , -}txSendHandle :: Client.TxSendHandle
+               , serverState    :: MVar AppState
+               , mockTrace      :: Trace IO MockServerLogMsg
                }
 
 main :: Trace IO MockServerLogMsg -> MockServerConfig -> Availability -> IO ()
@@ -66,14 +66,14 @@ main trace MockServerConfig { mscBaseUrl
             { _chainState = initialState
             , _eventHistory = mempty
             }
-    serverHandler <- liftIO $ Server.runServerNode trace mscSocketPath mscKeptBlocks (_chainState appState)
+    -- serverHandler <- liftIO $ Server.runServerNode trace mscSocketPath mscKeptBlocks (_chainState appState)
     serverState   <- liftIO $ newMVar appState
     handleDelayEffect $ delayThread (2 :: Second)
     clientHandler <- liftIO $ Client.runTxSender mscSocketPath
 
-    let ctx = Ctx serverHandler clientHandler serverState trace
+    let ctx = Ctx {-serverHandler-} clientHandler serverState trace
 
-    runSlotCoordinator ctx
+    -- runSlotCoordinator ctx
     maybe (logInfo NoRandomTxGeneration) (runRandomTxGeneration ctx) mscRandomTxInterval
 
     logInfo $ StartingMockServer $ baseUrlPort mscBaseUrl
@@ -86,7 +86,7 @@ main trace MockServerConfig { mscBaseUrl
                     logInfo StartingRandomTx
                     void $ liftIO $ forkIO $ transactionGenerator mockTrace randomTxInterval txSendHandle serverState
 
-            runSlotCoordinator Ctx { serverHandler } = do
-                let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig
-                logInfo $ StartingSlotCoordination scZeroSlotTime scSlotLength
-                void $ liftIO $ forkIO $ slotCoordinator mscSlotConfig serverHandler
+            -- runSlotCoordinator Ctx { serverHandler } = do
+            --     let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig
+            --     logInfo $ StartingSlotCoordination scZeroSlotTime scSlotLength
+            --     void $ liftIO $ forkIO $ slotCoordinator mscSlotConfig serverHandler
