@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
 import InputField.Types (Action, State) as InputField
 import Marlowe.Execution.Types (NamedAction)
-import Marlowe.PAB (MarloweData, MarloweParams)
+import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusAppId)
 import Marlowe.Semantics (Slot, TokenName)
 import Template.Types (Action, State) as Template
 import Types (WebData)
@@ -69,7 +69,8 @@ data Action
   | OpenCard Card
   | CloseCard Card
   | UpdateFromStorage
-  | UpdateRunningContracts (Map MarloweParams MarloweData)
+  | UpdateFollowerApps (Map MarloweParams MarloweData)
+  | UpdateContract PlutusAppId ContractHistory
   | AdvanceTimedoutSteps
   | TemplateAction Template.Action
   | ContractHomeAction ContractHome.Action
@@ -88,7 +89,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCard _) = Nothing
   toEvent (CloseCard _) = Nothing
   toEvent UpdateFromStorage = Nothing
-  toEvent (UpdateRunningContracts _) = Nothing
+  toEvent (UpdateFollowerApps _) = Nothing
+  toEvent (UpdateContract _ _) = Nothing
   toEvent AdvanceTimedoutSteps = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractHomeAction contractAction) = toEvent contractAction
