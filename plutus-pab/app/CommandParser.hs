@@ -145,9 +145,10 @@ migrationParser =
 mockNodeParser :: Mod CommandFields Command
 mockNodeParser =
     command "node-server" $
-    info
-        (pure $ WithConfig MockNode)
-        (fullDesc <> progDesc "Run a mock version of the Cardano node API server.")
+    flip info (fullDesc <> progDesc "Run a mock version of the Cardano node API server.") $ do
+        withoutMockServer <- flag WithMockServer WithoutMockServer
+                                  (long "without-mock-node")
+        pure $ WithConfig $ MockNode withoutMockServer
 
 mockWalletParser :: Mod CommandFields Command
 mockWalletParser =
@@ -170,15 +171,16 @@ metadataParser =
 allServersParser :: Mod CommandFields Command
 allServersParser =
     command "all-servers" $
-    info
-        (pure $ (WithConfig $ ForkCommands
-                    [ MockNode
-                    , ChainIndex
-                    , Metadata
-                    , MockWallet
-                    , PABWebserver
-                    ]))
-        (fullDesc <> progDesc "Run all the mock servers needed.")
+    flip info (fullDesc <> progDesc "Run all the mock servers needed.") $ do
+        withoutMockServer <- flag WithMockServer WithoutMockServer
+                                  (long "without-mock-node")
+        pure  (WithConfig $ ForkCommands
+                   [ MockNode withoutMockServer
+                   , ChainIndex
+                   , Metadata
+                   , MockWallet
+                   , PABWebserver
+                   ])
 
 clientServicesParser :: Mod CommandFields Command
 clientServicesParser =

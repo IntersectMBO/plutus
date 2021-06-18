@@ -45,19 +45,19 @@ app trace clientHandler stateVar =
          (genRandomTx :<|>
           consumeEventHistory stateVar))
 
-data Ctx = Ctx { {-serverHandler :: Server.ServerHandler
-               , -}txSendHandle :: Client.TxSendHandle
-               , serverState    :: MVar AppState
-               , mockTrace      :: Trace IO MockServerLogMsg
+data Ctx = Ctx { serverHandler :: Maybe Server.ServerHandler
+               , txSendHandle  :: Client.TxSendHandle
+               , serverState   :: MVar AppState
+               , mockTrace     :: Trace IO MockServerLogMsg
                }
 
-main :: Trace IO MockServerLogMsg -> MockServerConfig -> Availability -> IO ()
+main :: Trace IO MockServerLogMsg -> MockServerConfig -> MockServerMode -> Availability -> IO ()
 main trace MockServerConfig { mscBaseUrl
                             , mscRandomTxInterval
                             , mscKeptBlocks
                             , mscSlotConfig
                             , mscInitialTxWallets
-                            , mscSocketPath } availability = LM.runLogEffects trace $ do
+                            , mscSocketPath } withoutMockServer availability = LM.runLogEffects trace $ do
 
     -- make initial distribution of 1 billion Ada to all configured wallets
     let dist = Map.fromList $ zip mscInitialTxWallets (repeat (Ada.adaValueOf 1000_000_000))
@@ -66,14 +66,20 @@ main trace MockServerConfig { mscBaseUrl
             { _chainState = initialState
             , _eventHistory = mempty
             }
-    -- serverHandler <- liftIO $ Server.runServerNode trace mscSocketPath mscKeptBlocks (_chainState appState)
+    serverHandler <- case withoutMockServer of
+        WithoutMockServer -> pure Nothing
+        WithMockServer    -> Just <$> (liftIO $ Server.runServerNode trace mscSocketPath mscKeptBlocks (_chainState appState))
     serverState   <- liftIO $ newMVar appState
     handleDelayEffect $ delayThread (2 :: Second)
     clientHandler <- liftIO $ Client.runTxSender mscSocketPath
 
-    let ctx = Ctx {-serverHandler-} clientHandler serverState trace
+    let ctx = Ctx { serverHandler = serverHandler
+                  , txSendHandle  = clientHandler
+                  , serverState   = serverState
+                  , mockTrace     = trace
+                  }
 
-    -- runSlotCoordinator ctx
+    runSlotCoordinator ctx
     maybe (logInfo NoRandomTxGeneration) (runRandomTxGeneration ctx) mscRandomTxInterval
 
     logInfo $ StartingMockServer $ baseUrlPort mscBaseUrl
@@ -86,7 +92,9 @@ main trace MockServerConfig { mscBaseUrl
                     logInfo StartingRandomTx
                     void $ liftIO $ forkIO $ transactionGenerator mockTrace randomTxInterval txSendHandle serverState
 
-            -- runSlotCoordinator Ctx { serverHandler } = do
-            --     let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig
-            --     logInfo $ StartingSlotCoordination scZeroSlotTime scSlotLength
-            --     void $ liftIO $ forkIO $ slotCoordinator mscSlotConfig serverHandler
+            runSlotCoordinator (Ctx (Just serverHandler) _ _ _)  = do
+                let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig
+                logInfo $ StartingSlotCoordination scZeroSlotTime scSlotLength
+                void $ liftIO $ forkIO $ slotCoordinator mscSlotConfig serverHandler
+            -- Don't start the coordinator if we don't start the mock server.
+            runSlotCoordinator _ = pure ()
