@@ -109,7 +109,7 @@ genSlotInterval gen = do
   to <- suchThat gen (\v -> v > from)
   pure $ SlotInterval from to
 
-genBound :: forall m. MonadGen m => MonadRec m => MonadReader GenerationOptions m => m Bound
+genBound :: forall m. MonadGen m => MonadRec m => m Bound
 genBound = do
   from <- genBigInteger
   to <- suchThat genBigInteger (\v -> v > from)

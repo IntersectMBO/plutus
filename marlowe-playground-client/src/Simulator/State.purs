@@ -7,9 +7,11 @@ module Simulator.State
   , emptyMarloweState
   , startSimulation
   , updateChoice
+  , getAllActions
   ) where
 
 import Prelude
+import Control.Bind (bindFlipped)
 import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, snoc, sort, toUnfoldable, uncons)
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -25,7 +27,7 @@ import Data.Newtype (unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Holes (Contract(..), Term(..), TransactionOutput(..), computeTransaction, fromTerm, reduceContractUntilQuiescent)
 import Marlowe.Holes as T
@@ -351,3 +353,9 @@ nextTimeout state = do
 
 mapPartiesActionInput :: (ActionInput -> ActionInput) -> Parties -> Parties
 mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
+
+getAllActions :: Parties -> Array ActionInput
+getAllActions (Parties p) =
+  Map.toUnfoldable p
+    # map snd
+    # bindFlipped (map snd <<< Map.toUnfoldable)
