@@ -332,13 +332,3 @@ productSI l       = prod l 1
   "sum/SatInt"          sum = sumSI;
   "product/SatInt"      product = productSI
   #-}
-
-lcmSI :: SatInt -> SatInt -> SatInt
-lcmSI _      (SI 0) =  SI 0
-lcmSI (SI 0) _      =  SI 0
-lcmSI (SI x) (SI y) =  abs (SI (x `quot` (gcd x y)) * SI y)
-
-{-# RULES
-  "lcm/SatInt"          lcm = lcmSI;
-  "gcd/SatInt"          gcd = \ (SI a) (SI b) -> SI (gcd a b)
-  #-}
