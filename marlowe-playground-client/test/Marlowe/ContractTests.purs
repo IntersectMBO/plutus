@@ -50,10 +50,10 @@ all =
   suite "Contract Tests" do
     examplesMatch
     escrowSimpleFlow
-    exampleContractsDontHaveErrors
+    exampleContractsHaveNoErrors
 
 -- We don't currently have a function that goes from semantic contract to term contract, so for the purposes
--- of this test we print it and parse it.
+-- of these test we print it and parse it.
 toTerm :: EM.Contract -> Term T.Contract
 toTerm contract = unsafePartial $ fromJust $ hush $ parseContract $ show $ pretty contract
 
@@ -218,21 +218,21 @@ escrowSimpleFlow =
     pure unit
 
 --
-exampleContractsDontHaveErrors :: TestSuite
-exampleContractsDontHaveErrors =
+exampleContractsHaveNoErrors :: TestSuite
+exampleContractsHaveNoErrors =
   suite "Provided Examples don't throw errors nor have warnings" do
-    contractDontHaveErrors "Simple Escrow" filledEscrow
-    contractDontHaveErrors "Escrow with collateral" filledEscrowWithCollateral
-    contractDontHaveErrors "Zero coupon bond" filledZeroCouponBond
-    contractDontHaveErrors "Coupon bond guaranteed" filledCouponBondGuaranteed
-    contractDontHaveErrors "Swap" filledSwap
-    contractDontHaveErrors "Contract for differences" filledContractForDifferences
-    contractDontHaveErrors "Contract for differences with oracle" filledContractForDifferencesWithOracle
+    contractHasNoErrors "Simple Escrow" filledEscrow
+    contractHasNoErrors "Escrow with collateral" filledEscrowWithCollateral
+    contractHasNoErrors "Zero coupon bond" filledZeroCouponBond
+    contractHasNoErrors "Coupon bond guaranteed" filledCouponBondGuaranteed
+    contractHasNoErrors "Swap" filledSwap
+    contractHasNoErrors "Contract for differences" filledContractForDifferences
+    contractHasNoErrors "Contract for differences with oracle" filledContractForDifferencesWithOracle
 
 -- This is a property based test that checks that for a given contract, the possible actions available
 -- during the simulation don't throw errors nor warnings.
-contractDontHaveErrors :: String -> Term T.Contract -> TestSuite
-contractDontHaveErrors contractName contract =
+contractHasNoErrors :: String -> Term T.Contract -> TestSuite
+contractHasNoErrors contractName contract =
   test contractName
     $ quickCheck
     $ evalStateT property mkState
@@ -250,14 +250,14 @@ contractDontHaveErrors contractName contract =
   genValueInBound :: forall m. MonadGen m => MonadRec m => Bound -> m BigInteger
   genValueInBound (Bound from to) = BigInteger.fromInt <$> chooseInt (looselyToInt from) (looselyToInt to)
 
-  runContract :: Maybe (Term T.Contract) -> StateT Simulation.State Gen Result
-  runContract Nothing = pure Success
-
-  runContract (Just (Term T.Close _)) = pure Success
-
   -- TODO: For the moment it was not needed, as none of the examples triggered a warning nor an error
   --       but we should add an extra parameter to runContract that includes the current Action list
   --       and in case of a failure, we should print what is the list that causes the problem.
+  runContract :: Maybe (Term T.Contract) -> StateT Simulation.State Gen Result
+  runContract Nothing = pure $ Failed "Cant get contract to test"
+
+  runContract (Just (Term T.Close _)) = pure Success
+
   runContract (Just _) = do
     simulationState <- get
     let
@@ -282,7 +282,8 @@ contractDontHaveErrors contractName contract =
         (mWarnings :: Maybe (Array TransactionWarning)) <- gets $ preview (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _transactionWarnings)
         mContract <- gets (preview _currentContract)
         case mError, mWarnings of
+          -- TODO: If we run into this message, we'll need to implement the refactor described in runContract to know how to reach this state
+          Nothing, Just [] -> runContract mContract
           Just err, _ -> pure $ Failed "it has errors"
-          _, Just warnings
-            | length warnings > 0 -> pure $ Failed "it has warnings"
-          _, _ -> runContract mContract
+          _, Just warnings -> pure $ Failed "it has warnings"
+          _, _ -> pure $ Failed "Wrong simulation state"
