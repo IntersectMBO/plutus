@@ -105,6 +105,7 @@ data ExtensionFun
     | ExpensivePlus
     | Absurd
     | Cons
+    | BiconstPair
     | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
@@ -248,6 +249,24 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                     Just Refl ->
                         EvaluationSuccess . SomeConstantOfArg uniA $
                             SomeConstantOfRes uniListA $ x : xs
+
+    toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
+        biconstPairPlc
+            :: SomeConstant uni a
+            -> SomeConstant uni b
+            -> SomeConstantOf uni (,) '[a, b]
+            -> EvaluationResult (SomeConstantOf uni (,) '[a, b])
+        biconstPairPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstant (Some (ValueOf uniB y)))
+            (SomeConstantOfArg uniA' (SomeConstantOfArg uniB' (SomeConstantOfRes uniPairAB _))) =
+                case (,) <$> (uniA `geq` uniA') <*> (uniB `geq` uniB') of
+                    -- Should this rather be an 'UnliftingError'? For that we need
+                    -- https://github.com/input-output-hk/plutus/pull/3035
+                    Nothing           -> EvaluationFailure
+                    Just (Refl, Refl) ->
+                        EvaluationSuccess . SomeConstantOfArg uniA . SomeConstantOfArg uniB $
+                            SomeConstantOfRes uniPairAB (x, y)
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc :: SomeConstantOf uni (,) '[a, b] -> SomeConstantOf uni (,) '[b, a]

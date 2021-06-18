@@ -273,9 +273,9 @@ we have (pseudocode):
 
     unConstrC (Constr i ds) = (i, ds)
 
-In order to get pattern matching over 'Data' we need a projection function per constructor as well,
-but writing (where the @C@ suffix indicates that a function is a builtin that somehow corresponds
-to a constructor of a Haskell data type)
+In order to get pattern matching over 'Data' we need a projection function per constructor as well
+as with lists, but writing (where the @C@ suffix indicates that a function is a builtin that
+somehow corresponds to a constructor of a Haskell data type)
 
     if isConstrC d
         then uncurry fConstr $ unConstrC d

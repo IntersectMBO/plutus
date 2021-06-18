@@ -1,0 +1,1 @@
+/\(a :: *) -> \(f : a -> a) -> \(p : pair a a) -> (Right BiconstPair) {a} {a} (f ((Left fst) {a} {a} p)) (f ((Left snd) {a} {a} p)) p

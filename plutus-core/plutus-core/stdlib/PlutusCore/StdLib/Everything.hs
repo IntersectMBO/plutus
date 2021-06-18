@@ -68,8 +68,8 @@ stdLib =
                   , plcTermFile "FoldrList" Builtin.foldrList
                   ]
               , treeFolderContents "Data"
-                  [ plcTypeFile "Data"      dataTy
-                  , plcTermFile "matchData" matchData
+                  [ plcTypeFile "Data"     dataTy
+                  , plcTermFile "caseData" caseData
                   ]
               , treeFolderContents "ScottList"
                   [ plcTypeFile "List"       listTy

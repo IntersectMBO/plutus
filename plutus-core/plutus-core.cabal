@@ -60,6 +60,13 @@ library
         PlutusCore.Evaluation.Machine.MachineParameters
         PlutusCore.Evaluation.Result
         PlutusCore.Examples.Builtins
+        PlutusCore.Examples.Data.Data
+        PlutusCore.Examples.Data.InterList
+        PlutusCore.Examples.Data.List
+        PlutusCore.Examples.Data.Pair
+        PlutusCore.Examples.Data.Shad
+        PlutusCore.Examples.Data.TreeForest
+        PlutusCore.Examples.Data.Vec
         PlutusCore.Examples.Everything
         PlutusCore.Flat
         PlutusCore.FsTree
@@ -175,10 +182,6 @@ library
         PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Examples.Data.InterList
-        PlutusCore.Examples.Data.Shad
-        PlutusCore.Examples.Data.TreeForest
-        PlutusCore.Examples.Data.Vec
         PlutusCore.Generators.Internal.Denotation
         PlutusCore.Generators.Internal.Dependent
         PlutusCore.Generators.Internal.Entity

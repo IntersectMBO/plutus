@@ -66,11 +66,16 @@ testMemory name = nestedGoldenVsText name . fromString . show . memoryUsage
 
 test_memory :: TestTree
 test_memory =
-    runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
-        .  testNested "Memory"
-        .  foldPlcFolderContents testNested testMemory testMemory
-        $  stdLib
-        <> examples
+    testGroup "Bundles"
+        [ folder stdLib
+        , folder examples
+        ]
+  where
+    folder :: ExMemoryUsage fun => PlcFolderContents DefaultUni fun -> TestTree
+    folder
+        = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
+        . testNested "Memory"
+        . foldPlcFolderContents testNested testMemory testMemory
 
 testBudget
     :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
@@ -129,8 +134,7 @@ test_budget
     = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
-        [ folder Plc.defaultBuiltinsRuntime examples
-        , folder Plc.defaultBuiltinsRuntime bunchOfFibs
+        [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
         , folder (toBuiltinsRuntime ()) bunchOfIdNats
         , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
         ]
@@ -155,4 +159,4 @@ test_tallying =
         .  foldPlcFolderContents testNested
                                  (\name _ -> pure $ testGroup name [])
                                  (\name -> testTallying name . erase)
-        $ examples <> bunchOfFibs
+        $ bunchOfFibs

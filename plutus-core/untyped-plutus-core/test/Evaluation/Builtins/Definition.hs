@@ -13,11 +13,13 @@ module Evaluation.Builtins.Definition
 
 import           PlutusCore
 import           PlutusCore.Constant
+import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.MkPlc                                hiding (error)
 
 import           PlutusCore.Examples.Builtins
+import           PlutusCore.Examples.Data.Data
 import           PlutusCore.StdLib.Data.Bool
 import qualified PlutusCore.StdLib.Data.Function                 as Plc
 import           PlutusCore.StdLib.Data.Integer
@@ -299,6 +301,17 @@ test_SwapEls =
                     ]
         typecheckEvaluateCekNoEmit defaultCekParameters term @?= Right (EvaluationSuccess res)
 
+-- | Test that right-folding a built-in 'Data' with the constructors of 'Data' recreates the
+-- original value.
+test_IdBuiltinData :: TestTree
+test_IdBuiltinData =
+    testCase "IdBuiltinData" $ do
+        let dTerm :: TermLike term tyname name DefaultUni fun => term ()
+            dTerm = mkConstant @Data () $ Map [(I 42, Constr 4 [List [B "abc", Constr 2 []], I 0])]
+            emb = builtin () . Left
+            term = mkIterApp () ofoldrData [emb ConstrC, emb MapC, emb ListC, emb IC, emb BC, dTerm]
+        typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess dTerm)
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -316,4 +329,5 @@ test_definition =
         , test_IdBuiltinList
         , test_BuiltinTuple
         , test_SwapEls
+        , test_IdBuiltinData
         ]

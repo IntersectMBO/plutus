@@ -6,7 +6,7 @@
 
 module PlutusCore.StdLib.Data.Data
     ( dataTy
-    , matchData
+    , caseData
     ) where
 
 import           Prelude                        hiding (uncurry)
@@ -29,24 +29,24 @@ dataTy = mkTyBuiltin @_ @Data ()
 
 -- | Pattern matching over 'Data' inside PLC.
 --
--- > /\(r :: *) ->
--- >     \(fConstr : integer -> list data -> r)
--- >      (fMap : list (pair data data) -> r)
--- >      (fList : list data -> r)
--- >      (fI : integer -> r)
--- >      (fB : bytestring -> r)
--- >      (d : data) ->
--- >          chooseData
--- >              {unit -> r}
--- >              (\(u : unit) -> uncurry {integer} {list data} {r} fConstr (unConstrB d))
--- >              (\(u : unit) -> fMap (unMapB d))
--- >              (\(u : unit) -> fList (unListB d))
--- >              (\(u : unit) -> fI (unIB d))
--- >              (\(u : unit) -> fB (unBB d))
--- >              d
--- >              unitval
-matchData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-matchData = runQuote $ do
+-- > \(d : data) ->
+-- >     /\(r :: *) ->
+-- >      \(fConstr : integer -> list data -> r)
+-- >       (fMap : list (pair data data) -> r)
+-- >       (fList : list data -> r)
+-- >       (fI : integer -> r)
+-- >       (fB : bytestring -> r) ->
+-- >           chooseData
+-- >               {unit -> r}
+-- >               (\(u : unit) -> uncurry {integer} {list data} {r} fConstr (unConstrB d))
+-- >               (\(u : unit) -> fMap (unMapB d))
+-- >               (\(u : unit) -> fList (unListB d))
+-- >               (\(u : unit) -> fI (unIB d))
+-- >               (\(u : unit) -> fB (unBB d))
+-- >               d
+-- >               unitval
+caseData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+caseData = runQuote $ do
     r       <- freshTyName "r"
     fConstr <- freshName "fConstr"
     fMap    <- freshName "fMap"
@@ -57,13 +57,13 @@ matchData = runQuote $ do
     u       <- freshName "u"
     let listData = mkTyBuiltin @_ @[Data] ()
     return
+        . lamAbs () d dataTy
         . tyAbs () r (Type ())
         . lamAbs () fConstr (TyFun () integer . TyFun () listData $ TyVar () r)
         . lamAbs () fMap (TyFun () (mkTyBuiltin @_ @[(Data, Data)] ()) $ TyVar () r)
         . lamAbs () fList (TyFun () listData $ TyVar () r)
         . lamAbs () fI (TyFun () integer $ TyVar () r)
         . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) $ TyVar () r)
-        . lamAbs () d dataTy
         $ mkIterApp () (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
             [ lamAbs () u unit $ mkIterApp () (mkIterInst () uncurry [integer, listData, TyVar () r])
                 [ var () fConstr
