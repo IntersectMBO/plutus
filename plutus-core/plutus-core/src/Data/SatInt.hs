@@ -221,7 +221,7 @@ instance Integral SatInt where
 
     SI a `rem` SI b
      | b == 0                     = divZeroError
-     -- a/-1 = -a, exactly
+     -- a/-1 = -a, with no remainder
      -- We can't just fall though since `remInt` would overflow instead
      | a == minBound && b == (-1) = 0
      | otherwise                  = SI (a `remInt` b)
@@ -235,7 +235,7 @@ instance Integral SatInt where
 
     SI a `mod` SI b
      | b == 0                     = divZeroError
-     -- a/-1 = -a, exactly
+     -- a/-1 = -a, with no remainder
      -- We can't just fall though since `modInt` would overflow instead
      | a == minBound && b == (-1) = 0
      | otherwise                  = SI (a `modInt` b)
