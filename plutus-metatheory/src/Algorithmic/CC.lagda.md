@@ -663,7 +663,10 @@ unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
 unwindVE A .(E' [ A ]ᴱ) E E' refl VM VN | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b p x ·-) eq = ⊥-elim (valred (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) A) VN))) (β-sbuiltin b (deval (V-I⇒ b p x)) p x A VM))
 unwindVE A .(E' [ A ]ᴱ) E E' refl VM VN | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₁ ∷ as'} p x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b p x ·-) eq =
   step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' (V-I⇒ b p x ·-))) (cong (stepV VM) (dissect-lemma (compEC' E E'') (V-I⇒ b p x ·-)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) A) (V-I b (bubble p) (step p x VM)) VN)
-... | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] = {!!}
+unwindVE .(Λ M) .(E' [ Λ M ]ᴱ) E E' refl (V-Λ M) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq = ⊥-elim (lemVβ⋆ (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (-·⋆ C) (Λ M)) VN))))
+unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b {as' = []} p x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq = ⊥-elim (valred (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (-·⋆ C) A) VN))) (β-sbuiltin⋆ b A p x C))
+unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b {as' = a ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq =
+  step* (trans (cong (λ E → stepV _ (dissect E)) (compEC'-extEC E E'' (-·⋆ C))) (cong (stepV (V-IΠ b p x)) (dissect-lemma (compEC' E E'') (-·⋆ C)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (-·⋆ C) A) (V-I b (bubble p) (step⋆ p x)) VN)
 ... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] = {!!}
 ... | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] = {!!}
 unwindVE .(ƛ M) .(E' [ ƛ M ]ᴱ) E E' refl (V-ƛ M) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (lemVβ (lemVE (ƛ M · M') E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (-· M') (ƛ M)) VN))))
