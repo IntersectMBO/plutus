@@ -114,13 +114,25 @@ dateValidator = validatorScript dateInstance
 serializedDateValidator :: BSL.ByteString
 serializedDateValidator = serialise dateValidator
 
--- The module 'Ledger.Scripts' (also exported via 'Ledger') includes instances
--- related to typeclass 'Cardano.Api.HasTextEnvelope'
+-- The module 'Ledger.Scripts' includes instances related to typeclass
+-- 'Cardano.Api.HasTextEnvelope'
+
+-- Envelope of the PLC 'Script'.
 envelopeDateValidator :: TextEnvelope
 envelopeDateValidator = serialiseToTextEnvelope Nothing (getValidator dateValidator)
+
+-- Envelope of the 'Datum' representing the 'Date' datatype.
+envelopeDate :: Date -> TextEnvelope
+envelopeDate d = serialiseToTextEnvelope Nothing (Datum $ toData d)
+
+-- Envelope of the 'Redeemer' representing the 'EndDate' datatype.
+envelopeEndDate :: EndDate -> TextEnvelope
+envelopeEndDate d = serialiseToTextEnvelope Nothing (Redeemer $ toData d)
 
 main :: IO ()
 main = do
   print serializedDateValidator
   print envelopeDateValidator
+  print $ envelopeDate (Date 0)
+  print $ envelopeEndDate Never
 -- BLOCK9
