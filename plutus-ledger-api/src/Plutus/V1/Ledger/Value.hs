@@ -106,13 +106,13 @@ makeLift ''CurrencySymbol
 
 {-# INLINABLE mpsSymbol #-}
 -- | The currency symbol of a monetay policy hash
-mpsSymbol :: MonetaryPolicyHash -> CurrencySymbol
-mpsSymbol (MonetaryPolicyHash h) = CurrencySymbol h
+mpsSymbol :: MintingPolicyHash -> CurrencySymbol
+mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
 
 {-# INLINABLE currencyMPSHash #-}
 -- | The monetary policy hash of a currency symbol
-currencyMPSHash :: CurrencySymbol -> MonetaryPolicyHash
-currencyMPSHash (CurrencySymbol h) = MonetaryPolicyHash h
+currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
+currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 
 {-# INLINABLE currencySymbol #-}
 currencySymbol :: ByteString -> CurrencySymbol

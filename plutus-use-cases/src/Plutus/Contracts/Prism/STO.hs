@@ -34,7 +34,7 @@ import           Ledger.Ada           (Ada (..), fromValue)
 import           Ledger.Contexts      (ScriptContext (..), ScriptPurpose (..))
 import qualified Ledger.Contexts      as Validation
 import           Ledger.Crypto        (PubKeyHash)
-import           Ledger.Scripts       (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
+import           Ledger.Scripts       (MintingPolicy, mkMintingPolicyScript, monetaryPolicyHash)
 import qualified Ledger.Typed.Scripts as Scripts
 import           Ledger.Value         (TokenName, Value)
 import qualified Ledger.Value         as Value
@@ -63,9 +63,9 @@ validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} _ ScriptContext{s
     in tokenOK && forgeOK
 validateSTO _ _ _ = error ()
 
-policy :: STOData -> MonetaryPolicy
-policy stoData = mkMonetaryPolicyScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapMonetaryPolicy (validateSTO c) ||]) `PlutusTx.applyCode` PlutusTx.liftCode stoData
+policy :: STOData -> MintingPolicy
+policy stoData = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapMintingPolicy (validateSTO c) ||]) `PlutusTx.applyCode` PlutusTx.liftCode stoData
 
 -- | A 'Value' of a number of coins issued in the STO
 coins :: STOData -> Integer -> Value

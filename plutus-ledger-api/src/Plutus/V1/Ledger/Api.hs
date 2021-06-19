@@ -59,8 +59,8 @@ module Plutus.V1.Ledger.Api (
     -- *** Newtypes for script/datum types and hash types
     , Validator (..)
     , ValidatorHash (..)
-    , MonetaryPolicy (..)
-    , MonetaryPolicyHash (..)
+    , MintingPolicy (..)
+    , MintingPolicyHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)

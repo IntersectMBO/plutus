@@ -25,24 +25,24 @@ module Plutus.V1.Ledger.Scripts(
     ScriptError (..),
     evaluateScript,
     runScript,
-    runMonetaryPolicyScript,
+    runMintingPolicyScript,
     applyValidator,
-    applyMonetaryPolicyScript,
+    applyMintingPolicyScript,
     -- * Script wrappers
     mkValidatorScript,
     Validator (..),
     unValidatorScript,
     Redeemer(..),
     Datum(..),
-    mkMonetaryPolicyScript,
-    MonetaryPolicy (..),
-    unMonetaryPolicyScript,
+    mkMintingPolicyScript,
+    MintingPolicy (..),
+    unMintingPolicyScript,
     Context(..),
     -- * Hashes
     DatumHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
-    MonetaryPolicyHash (..),
+    MintingPolicyHash (..),
     datumHash,
     redeemerHash,
     validatorHash,
@@ -207,11 +207,11 @@ mkValidatorScript = Validator . fromCompiledCode
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript :: CompiledCode (Data -> Data -> ()) -> MonetaryPolicy
-mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
+mkMintingPolicyScript :: CompiledCode (Data -> Data -> ()) -> MintingPolicy
+mkMintingPolicyScript = MintingPolicy . fromCompiledCode
 
-unMonetaryPolicyScript :: MonetaryPolicy -> Script
-unMonetaryPolicyScript = getMonetaryPolicy
+unMintingPolicyScript :: MintingPolicy -> Script
+unMintingPolicyScript = getMintingPolicy
 
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
@@ -257,17 +257,17 @@ instance BA.ByteArrayAccess Redeemer where
     withByteArray =
         BA.withByteArray . BSL.toStrict . serialise
 
--- | 'MonetaryPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
-newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
+-- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
+newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, NFData)
-  deriving Pretty via (PrettyShow MonetaryPolicy)
+  deriving Pretty via (PrettyShow MintingPolicy)
 
-instance Haskell.Show MonetaryPolicy where
-    show = const "MonetaryPolicy { <script> }"
+instance Haskell.Show MintingPolicy where
+    show = const "MintingPolicy { <script> }"
 
-instance BA.ByteArrayAccess MonetaryPolicy where
+instance BA.ByteArrayAccess MintingPolicy where
     length =
         BA.length . BSL.toStrict . serialise
     withByteArray =
@@ -298,8 +298,8 @@ newtype RedeemerHash =
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 -- | Script runtime representation of a @Digest SHA256@.
-newtype MonetaryPolicyHash =
-    MonetaryPolicyHash Builtins.ByteString
+newtype MintingPolicyHash =
+    MintingPolicyHash Builtins.ByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
@@ -317,8 +317,8 @@ validatorHash vl = ValidatorHash $ BA.convert h' where
     h' :: Digest SHA256 = hash h
     e = serialise vl
 
-monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
-monetaryPolicyHash vl = MonetaryPolicyHash $ BA.convert h' where
+monetaryPolicyHash :: MintingPolicy -> MintingPolicyHash
+monetaryPolicyHash vl = MintingPolicyHash $ BA.convert h' where
     h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
     e = serialise vl
@@ -350,24 +350,24 @@ runScript
 runScript context validator datum redeemer = do
     evaluateScript (applyValidator context validator datum redeemer)
 
--- | Apply 'MonetaryPolicy' to its 'Context' and 'Redeemer'.
-applyMonetaryPolicyScript
+-- | Apply 'MintingPolicy' to its 'Context' and 'Redeemer'.
+applyMintingPolicyScript
     :: Context
-    -> MonetaryPolicy
+    -> MintingPolicy
     -> Redeemer
     -> Script
-applyMonetaryPolicyScript (Context valData) (MonetaryPolicy validator) (Redeemer red) =
+applyMintingPolicyScript (Context valData) (MintingPolicy validator) (Redeemer red) =
     (validator `applyScript` (fromCompiledCode $ liftCode red)) `applyScript` (fromCompiledCode $ liftCode valData)
 
--- | Evaluate a 'MonetaryPolicy' with its 'Context' and 'Redeemer', returning the log.
-runMonetaryPolicyScript
+-- | Evaluate a 'MintingPolicy' with its 'Context' and 'Redeemer', returning the log.
+runMintingPolicyScript
     :: (MonadError ScriptError m)
     => Context
-    -> MonetaryPolicy
+    -> MintingPolicy
     -> Redeemer
     -> m [Haskell.String]
-runMonetaryPolicyScript context mps red = do
-    evaluateScript (applyMonetaryPolicyScript context mps red)
+runMintingPolicyScript context mps red = do
+    evaluateScript (applyMintingPolicyScript context mps red)
 
 -- | @()@ as a datum.
 unitDatum :: Datum
@@ -381,7 +381,7 @@ makeLift ''ValidatorHash
 
 makeLift ''DatumHash
 
-makeLift ''MonetaryPolicyHash
+makeLift ''MintingPolicyHash
 
 makeLift ''RedeemerHash
 

@@ -127,7 +127,7 @@ data ValidationError =
     -- ^ The current slot is not covered by the transaction's validity slot range.
     | SignatureMissing PubKeyHash
     -- ^ The transaction is missing a signature
-    | ForgeWithoutScript Scripts.MonetaryPolicyHash
+    | ForgeWithoutScript Scripts.MintingPolicyHash
     -- ^ The transaction attempts to forge value of a currency without running
     --   the currency's monetary policy.
     | TransactionFeeTooLow V.Value V.Value
@@ -246,7 +246,7 @@ checkForgingAuthorised tx =
     let
         forgedCurrencies = V.symbols (txForge tx)
 
-        mpsScriptHashes = Scripts.MonetaryPolicyHash . V.unCurrencySymbol <$> forgedCurrencies
+        mpsScriptHashes = Scripts.MintingPolicyHash . V.unCurrencySymbol <$> forgedCurrencies
 
         lockingScripts = monetaryPolicyHash <$> Set.toList (txForgeScripts tx)
 
@@ -268,7 +268,7 @@ checkForgingScripts tx = do
             -- HACK: always pass unit as the redeemer. This means that any minting policy that uses a
             -- different type will fail. To fix this we need to properly track redeemers for minting policies.
             red = Redeemer $ toData ()
-        in case runExcept $ runMonetaryPolicyScript vd vl red of
+        in case runExcept $ runMintingPolicyScript vd vl red of
             Left e  -> do
                 tell [mpsValidationEvent vd vl red (Left e)]
                 throwError $ ScriptFailure e
@@ -389,7 +389,7 @@ mkIn TxIn{txInRef} = do
     txOut <- lkpTxOut txInRef
     pure $ Validation.TxInInfo{Validation.txInInfoOutRef = txInRef, Validation.txInInfoResolved=txOut}
 
-data ScriptType = ValidatorScript | MonetaryPolicyScript
+data ScriptType = ValidatorScript | MintingPolicyScript
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -411,10 +411,10 @@ validatorScriptValidationEvent ctx validator datum redeemer result =
         , sveType = ValidatorScript
         }
 
-mpsValidationEvent :: Context -> MonetaryPolicy -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+mpsValidationEvent :: Context -> MintingPolicy -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
 mpsValidationEvent ctx mps red result =
     ScriptValidationEvent
-        { sveScript = applyMonetaryPolicyScript ctx mps red
+        { sveScript = applyMintingPolicyScript ctx mps red
         , sveResult = result
-        , sveType = MonetaryPolicyScript
+        , sveType = MintingPolicyScript
         }

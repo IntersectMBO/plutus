@@ -29,7 +29,7 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
 import qualified Plutus.V1.Ledger.Interval as I
-import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
+import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MintingPolicyHash, Redeemer, ValidatorHash)
 import           Plutus.V1.Ledger.Time     (POSIXTimeRange)
 import           Plutus.V1.Ledger.Tx       (TxOutRef)
 import           Plutus.V1.Ledger.Value    (TokenName, Value, isZero)
@@ -46,7 +46,7 @@ data TxConstraint =
     | MustProduceAtLeast Value
     | MustSpendPubKeyOutput TxOutRef
     | MustSpendScriptOutput TxOutRef Redeemer
-    | MustForgeValue MonetaryPolicyHash TokenName Integer
+    | MustForgeValue MintingPolicyHash TokenName Integer
     | MustPayToPubKey PubKeyHash Value
     | MustPayToOtherScript ValidatorHash Datum Value
     | MustHashDatum DatumHash Datum
@@ -209,7 +209,7 @@ mustForgeValue = foldMap valueConstraint . (AssocMap.toList . Value.getValue) wh
 
 {-# INLINABLE mustForgeCurrency #-}
 -- | Create the given amount of the currency
-mustForgeCurrency :: forall i o. MonetaryPolicyHash -> TokenName -> Integer -> TxConstraints i o
+mustForgeCurrency :: forall i o. MintingPolicyHash -> TokenName -> Integer -> TxConstraints i o
 mustForgeCurrency mps tn = singleton . MustForgeValue mps tn
 
 {-# INLINABLE mustSpendAtLeast #-}
@@ -270,7 +270,7 @@ requiredSignatories = foldMap f . txConstraints where
     f _                   = []
 
 {-# INLINABLE requiredMonetaryPolicies #-}
-requiredMonetaryPolicies :: forall i o. TxConstraints i o -> [MonetaryPolicyHash]
+requiredMonetaryPolicies :: forall i o. TxConstraints i o -> [MintingPolicyHash]
 requiredMonetaryPolicies = foldMap f . txConstraints where
     f (MustForgeValue mps _ _) = [mps]
     f _                        = []

@@ -18,10 +18,10 @@ import           Language.PureScript.Bridge                (BridgePart, Language
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, OnChainTx,
-                                                            PubKey, PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn,
-                                                            TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
-                                                            ValidationPhase, Validator)
+import           Ledger                                    (Address, Datum, DatumHash, MintingPolicy, OnChainTx, PubKey,
+                                                            PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
+                                                            TxOut, TxOutRef, TxOutTx, UtxoIndex, ValidationPhase,
+                                                            Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError, UnbalancedTx)
 import           Ledger.Credential                         (Credential, StakingCredential)
@@ -196,7 +196,7 @@ validatorHashBridge = do
 
 mpsHashBridge :: BridgePart
 mpsHashBridge = do
-    typeName ^== "MonetaryPolicyHash"
+    typeName ^== "MintingPolicyHash"
     typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
@@ -253,7 +253,7 @@ ledgerTypes =
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
           (Proxy @(UpperBound A))
     , (genericShow <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @MonetaryPolicy)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @MintingPolicy)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Redeemer)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TokenName)

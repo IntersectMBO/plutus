@@ -21,7 +21,7 @@ import           Data.Hashable                 (Hashable)
 import           GHC.Generics                  (Generic)
 import           Ledger.Contexts               (ScriptContext (..), txSignedBy)
 import           Ledger.Crypto                 (PubKeyHash)
-import           Ledger.Scripts                (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
+import           Ledger.Scripts                (MintingPolicy, mkMintingPolicyScript, monetaryPolicyHash)
 import qualified Ledger.Typed.Scripts          as Scripts
 import           Ledger.Value                  (TokenName, Value)
 import qualified Ledger.Value                  as Value
@@ -56,9 +56,9 @@ validateForge CredentialAuthority{unCredentialAuthority} _ ScriptContext{scriptC
     -- tokens, so we just need to check the signature
     txinfo `txSignedBy` unCredentialAuthority
 
-policy :: CredentialAuthority -> MonetaryPolicy
-policy credential = mkMonetaryPolicyScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapMonetaryPolicy (validateForge c) ||])
+policy :: CredentialAuthority -> MintingPolicy
+policy credential = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapMintingPolicy (validateForge c) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode credential
 

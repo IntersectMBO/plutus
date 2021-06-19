@@ -88,7 +88,7 @@ import qualified Ledger.Constraints           as Constraints
 import           Ledger.Crypto                (PubKey)
 import qualified Ledger.Interval              as Interval
 import           Ledger.Oracle
-import           Ledger.Scripts               (MonetaryPolicyHash)
+import           Ledger.Scripts               (MintingPolicyHash)
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Typed.Tx              (TypedScriptTxOut (..))
 import           Ledger.Value                 (AssetClass, TokenName, Value)
@@ -143,7 +143,7 @@ data BankState =
         { bsReserves            :: BC Integer -- ^ Value of the bank's reserves in base currency
         , bsStablecoins         :: SC Integer -- ^ Amount of stablecoins in circulation
         , bsReservecoins        :: RC Integer -- ^ Amount of reservecoins currently in circulation
-        , bsForgingPolicyScript :: MonetaryPolicyHash -- ^ Hash of the forging policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
+        , bsForgingPolicyScript :: MintingPolicyHash -- ^ Hash of the forging policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
@@ -155,7 +155,7 @@ initialState StateMachineClient{scInstance=StateMachine.StateMachineInstance{Sta
         { bsReserves = 0
         , bsStablecoins = 0
         , bsReservecoins = 0
-        , bsForgingPolicyScript = Scripts.forwardingMonetaryPolicyHash typedValidator
+        , bsForgingPolicyScript = Scripts.forwardingMintingPolicyHash typedValidator
         }
 
 {-# INLINEABLE convert #-}
@@ -313,13 +313,13 @@ step sc@Stablecoin{scOracle} bs i@Input{inpConversionRate} = do
 -- | A 'Value' with the given number of reservecoins
 reserveCoins :: Stablecoin -> RC Integer -> Value
 reserveCoins sc@Stablecoin{scReservecoinTokenName} =
-    let sym = Scripts.forwardingMonetaryPolicyHash $ typedValidator sc
+    let sym = Scripts.forwardingMintingPolicyHash $ typedValidator sc
     in Value.singleton (Value.mpsSymbol sym) scReservecoinTokenName . unRC
 
 -- | A 'Value' with the given number of stablecoins
 stableCoins :: Stablecoin -> SC Integer -> Value
 stableCoins sc@Stablecoin{scStablecoinTokenName} =
-    let sym = Scripts.forwardingMonetaryPolicyHash $ typedValidator sc
+    let sym = Scripts.forwardingMintingPolicyHash $ typedValidator sc
     in Value.singleton (Value.mpsSymbol sym) scStablecoinTokenName . unSC
 
 {-# INLINEABLE isValidState #-}

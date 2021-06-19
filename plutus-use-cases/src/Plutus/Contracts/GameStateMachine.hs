@@ -110,14 +110,14 @@ contract = (lock `select` guess) >> contract
 newtype GameToken = GameToken { unGameToken :: Value }
     deriving newtype (Eq, Haskell.Show)
 
-token :: MonetaryPolicyHash -> TokenName -> Value
+token :: MintingPolicyHash -> TokenName -> Value
 token mps tn = V.singleton (V.mpsSymbol mps) tn 1
 
 -- | State of the guessing game
 data GameState =
-    Initialised MonetaryPolicyHash TokenName HashedString
+    Initialised MintingPolicyHash TokenName HashedString
     -- ^ Initial state. In this state only the 'ForgeTokens' action is allowed.
-    | Locked MonetaryPolicyHash TokenName HashedString
+    | Locked MintingPolicyHash TokenName HashedString
     -- ^ Funds have been locked. In this state only the 'Guess' action is
     --   allowed.
     deriving stock (Haskell.Show, Generic)
@@ -184,8 +184,8 @@ typedValidator = Scripts.mkTypedValidator @GameStateMachine
     where
         wrap = Scripts.wrapValidator
 
-monetaryPolicy :: Scripts.MonetaryPolicy
-monetaryPolicy = Scripts.forwardingMonetaryPolicy typedValidator
+monetaryPolicy :: Scripts.MintingPolicy
+monetaryPolicy = Scripts.forwardingMintingPolicy typedValidator
 
 client :: SM.StateMachineClient GameState GameInput
 client = SM.mkStateMachineClient $ SM.StateMachineInstance machine typedValidator
@@ -207,7 +207,7 @@ lock :: Contract () GameStateMachineSchema GameError ()
 lock = do
     LockArgs{lockArgsSecret, lockArgsValue} <- mapError GameContractError $ endpoint @"lock"
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
-        sym = Scripts.forwardingMonetaryPolicyHash typedValidator
+        sym = Scripts.forwardingMintingPolicyHash typedValidator
     _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
     void $ mapError GameSMError $ SM.runStep client ForgeToken
 

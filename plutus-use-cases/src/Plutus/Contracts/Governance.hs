@@ -38,7 +38,7 @@ import           Data.Semigroup               (Sum (..))
 import           Data.String                  (fromString)
 import           Data.Text                    (Text)
 import           GHC.Generics                 (Generic)
-import           Ledger                       (MonetaryPolicyHash, POSIXTime, PubKeyHash, TokenName)
+import           Ledger                       (MintingPolicyHash, POSIXTime, PubKeyHash, TokenName)
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
 import qualified Ledger.Interval              as Interval
@@ -78,7 +78,7 @@ data Voting = Voting
 
 data GovState = GovState
     { law    :: ByteString
-    , mph    :: MonetaryPolicyHash
+    , mph    :: MintingPolicyHash
     , voting :: Maybe Voting
     }
     deriving stock (Haskell.Show, Generic)
@@ -151,12 +151,12 @@ mkTokenName :: TokenName -> Integer -> TokenName
 mkTokenName base ix = fromString (Value.toString base ++ Haskell.show ix)
 
 {-# INLINABLE votingValue #-}
-votingValue :: MonetaryPolicyHash -> TokenName -> Value.Value
+votingValue :: MintingPolicyHash -> TokenName -> Value.Value
 votingValue mph tokenName =
     Value.singleton (Value.mpsSymbol mph) tokenName 1
 
 {-# INLINABLE ownsVotingToken #-}
-ownsVotingToken :: MonetaryPolicyHash -> TokenName -> TxConstraints Void Void
+ownsVotingToken :: MintingPolicyHash -> TokenName -> TxConstraints Void Void
 ownsVotingToken mph tokenName = Constraints.mustSpendAtLeast (votingValue mph tokenName)
 
 {-# INLINABLE transition #-}
@@ -200,7 +200,7 @@ contract params = forever $ mapError (review _GovError) endpoints where
 
     initLaw = do
         bsLaw <- endpoint @"new-law"
-        let mph = Scripts.forwardingMonetaryPolicyHash (typedValidator params)
+        let mph = Scripts.forwardingMintingPolicyHash (typedValidator params)
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
         let tokens = Haskell.zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
         SM.runStep theClient $ ForgeTokens tokens

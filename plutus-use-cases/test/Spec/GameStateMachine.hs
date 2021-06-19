@@ -298,5 +298,5 @@ failTrace = do
 
 gameTokenVal :: Value
 gameTokenVal =
-    let sym = Scripts.forwardingMonetaryPolicyHash G.typedValidator
+    let sym = Scripts.forwardingMintingPolicyHash G.typedValidator
     in G.token sym "guess"

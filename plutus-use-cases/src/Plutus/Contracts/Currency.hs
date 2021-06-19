@@ -110,9 +110,9 @@ validate c@(OneShotCurrency (refHash, refIdx) _) _ ctx@V.ScriptContext{V.scriptC
 
     in forgeOK && txOutputSpent
 
-curPolicy :: OneShotCurrency -> MonetaryPolicy
-curPolicy cur = mkMonetaryPolicyScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapMonetaryPolicy (validate c) ||])
+curPolicy :: OneShotCurrency -> MintingPolicy
+curPolicy cur = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapMintingPolicy (validate c) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode cur
 

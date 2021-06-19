@@ -69,7 +69,7 @@ import qualified Ledger.Typed.Tx                  as Typed
 import           Plutus.V1.Ledger.Address         (Address (..), pubKeyHashAddress)
 import qualified Plutus.V1.Ledger.Address         as Address
 import           Plutus.V1.Ledger.Crypto          (PubKeyHash)
-import           Plutus.V1.Ledger.Scripts         (Datum (..), DatumHash, MonetaryPolicy, MonetaryPolicyHash, Validator,
+import           Plutus.V1.Ledger.Scripts         (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash, Validator,
                                                    datumHash, monetaryPolicyHash)
 import           Plutus.V1.Ledger.Tx              (Tx, TxOut (..), TxOutRef, TxOutTx (..))
 import qualified Plutus.V1.Ledger.Tx              as Tx
@@ -78,7 +78,7 @@ import qualified Plutus.V1.Ledger.Value           as Value
 
 data ScriptLookups a =
     ScriptLookups
-        { slMPS            :: Map MonetaryPolicyHash MonetaryPolicy
+        { slMPS            :: Map MintingPolicyHash MintingPolicy
         -- ^ Monetary policies that the script interacts with
         , slTxOutputs      :: Map TxOutRef TxOutTx
         -- ^ Unspent outputs that the script may want to spend
@@ -116,7 +116,7 @@ instance Monoid (ScriptLookups a) where
 typedValidatorLookups :: TypedValidator a -> ScriptLookups a
 typedValidatorLookups inst =
     ScriptLookups
-        { slMPS = Map.singleton (Scripts.forwardingMonetaryPolicyHash inst) (Scripts.forwardingMonetaryPolicy inst)
+        { slMPS = Map.singleton (Scripts.forwardingMintingPolicyHash inst) (Scripts.forwardingMintingPolicy inst)
         , slTxOutputs = Map.empty
         , slOtherScripts = Map.empty
         , slOtherData = Map.empty
@@ -130,7 +130,7 @@ unspentOutputs :: Map TxOutRef TxOutTx -> ScriptLookups a
 unspentOutputs mp = mempty { slTxOutputs = mp }
 
 -- | A script lookups value with a monetary policy script
-monetaryPolicy :: MonetaryPolicy -> ScriptLookups a
+monetaryPolicy :: MintingPolicy -> ScriptLookups a
 monetaryPolicy pl =
     let hsh = monetaryPolicyHash pl in
     mempty { slMPS = Map.singleton hsh pl }
@@ -381,7 +381,7 @@ data MkTxError =
     | TxOutRefNotFound TxOutRef
     | TxOutRefWrongType TxOutRef
     | DatumNotFound DatumHash
-    | MonetaryPolicyNotFound MonetaryPolicyHash
+    | MintingPolicyNotFound MintingPolicyHash
     | ValidatorHashNotFound Address
     | OwnPubKeyMissing
     | TypedValidatorMissing
@@ -391,15 +391,15 @@ data MkTxError =
 
 instance Pretty MkTxError where
     pretty = \case
-        TypeCheckFailed e        -> "Type check failed:" <+> pretty e
-        TxOutRefNotFound t       -> "Tx out reference not found:" <+> pretty t
-        TxOutRefWrongType t      -> "Tx out reference wrong type:" <+> pretty t
-        DatumNotFound h          -> "No datum with hash" <+> pretty h <+> "was found"
-        MonetaryPolicyNotFound h -> "No monetary policy with hash" <+> pretty h <+> "was found"
-        ValidatorHashNotFound h  -> "No validator with hash" <+> pretty h <+> "was found"
-        OwnPubKeyMissing         -> "Own public key is missing"
-        TypedValidatorMissing    -> "Script instance is missing"
-        DatumWrongHash h d       -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
+        TypeCheckFailed e       -> "Type check failed:" <+> pretty e
+        TxOutRefNotFound t      -> "Tx out reference not found:" <+> pretty t
+        TxOutRefWrongType t     -> "Tx out reference wrong type:" <+> pretty t
+        DatumNotFound h         -> "No datum with hash" <+> pretty h <+> "was found"
+        MintingPolicyNotFound h -> "No monetary policy with hash" <+> pretty h <+> "was found"
+        ValidatorHashNotFound h -> "No validator with hash" <+> pretty h <+> "was found"
+        OwnPubKeyMissing        -> "Own public key is missing"
+        TypedValidatorMissing   -> "Script instance is missing"
+        DatumWrongHash h d      -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
 
 lookupTxOutRef
     :: ( MonadReader (ScriptLookups a) m
@@ -419,13 +419,13 @@ lookupDatum dvh =
     let err = throwError (DatumNotFound dvh) in
     asks slOtherData >>= maybe err pure . view (at dvh)
 
-lookupMonetaryPolicy
+lookupMintingPolicy
     :: ( MonadReader (ScriptLookups a) m
        , MonadError MkTxError m )
-    => MonetaryPolicyHash
-    -> m MonetaryPolicy
-lookupMonetaryPolicy mph =
-    let err = throwError (MonetaryPolicyNotFound mph) in
+    => MintingPolicyHash
+    -> m MintingPolicy
+lookupMintingPolicy mph =
+    let err = throwError (MintingPolicyNotFound mph) in
     asks slMPS >>= maybe err pure . view (at mph)
 
 lookupValidator
@@ -484,7 +484,7 @@ processConstraint = \case
             _                 -> throwError (TxOutRefWrongType txo)
 
     MustForgeValue mpsHash tn i -> do
-        monetaryPolicyScript <- lookupMonetaryPolicy mpsHash
+        monetaryPolicyScript <- lookupMintingPolicy mpsHash
         let value = Value.singleton (Value.mpsSymbol mpsHash) tn
         -- If i is negative we are burning tokens. The tokens burned must
         -- be provided as an input. So we add the value burnt to

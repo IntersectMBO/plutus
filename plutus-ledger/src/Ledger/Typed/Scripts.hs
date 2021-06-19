@@ -1,7 +1,7 @@
 module Ledger.Typed.Scripts(
     module Export
     , Validator
-    , MonetaryPolicy
+    , MintingPolicy
     ) where
 
 import           Plutus.V1.Ledger.Scripts              hiding (monetaryPolicyHash, validatorHash)

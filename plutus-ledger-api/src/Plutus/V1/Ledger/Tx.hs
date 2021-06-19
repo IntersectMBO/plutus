@@ -133,7 +133,7 @@ data Tx = Tx {
     -- ^ The fee for this transaction.
     txValidRange   :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
-    txForgeScripts :: Set.Set MonetaryPolicy,
+    txForgeScripts :: Set.Set MintingPolicy,
     -- ^ The scripts that must be run to check forging conditions.
     txSignatures   :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
@@ -217,7 +217,7 @@ forge = lens g s where
     g = txForge
     s tx v = tx { txForge = v }
 
-forgeScripts :: Lens' Tx (Set.Set MonetaryPolicy)
+forgeScripts :: Lens' Tx (Set.Set MintingPolicy)
 forgeScripts = lens g s where
     g = txForgeScripts
     s tx fs = tx { txForgeScripts = fs }

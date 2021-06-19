@@ -29,7 +29,7 @@ tests = testGroup "currency"
         currencyTrace
     , checkPredicate
         "script size is reasonable"
-        (assertDone theContract (Trace.walletInstanceTag w1) ((30000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
+        (assertDone theContract (Trace.walletInstanceTag w1) ((30000 >=) . Ledger.scriptSize . Ledger.unMintingPolicyScript . Cur.curPolicy) "script too large")
         currencyTrace
 
     ]

@@ -105,9 +105,9 @@ uniswapAddress = Ledger.scriptAddress . uniswapScript
 uniswap :: CurrencySymbol -> Uniswap
 uniswap cs = Uniswap $ mkCoin cs uniswapTokenName
 
-liquidityPolicy :: Uniswap -> MonetaryPolicy
-liquidityPolicy us = mkMonetaryPolicyScript $
-    $$(PlutusTx.compile [|| \u t -> Scripts.wrapMonetaryPolicy (validateLiquidityForging u t) ||])
+liquidityPolicy :: Uniswap -> MintingPolicy
+liquidityPolicy us = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| \u t -> Scripts.wrapMintingPolicy (validateLiquidityForging u t) ||])
         `PlutusTx.applyCode` PlutusTx.liftCode us
         `PlutusTx.applyCode` PlutusTx.liftCode poolStateTokenName
 
