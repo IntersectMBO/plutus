@@ -265,11 +265,14 @@ checkForgingScripts tx = do
             in ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
     forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
         let vd = Context $ toData ptx'
-        in case runExcept $ runMonetaryPolicyScript vd vl of
+            -- HACK: always pass unit as the redeemer. This means that any minting policy that uses a
+            -- different type will fail. To fix this we need to properly track redeemers for minting policies.
+            red = Redeemer $ toData ()
+        in case runExcept $ runMonetaryPolicyScript vd vl red of
             Left e  -> do
-                tell [mpsValidationEvent vd vl (Left e)]
+                tell [mpsValidationEvent vd vl red (Left e)]
                 throwError $ ScriptFailure e
-            res -> tell [mpsValidationEvent vd vl res]
+            res -> tell [mpsValidationEvent vd vl red res]
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -408,10 +411,10 @@ validatorScriptValidationEvent ctx validator datum redeemer result =
         , sveType = ValidatorScript
         }
 
-mpsValidationEvent :: Context -> MonetaryPolicy -> Either ScriptError [String] -> ScriptValidationEvent
-mpsValidationEvent ctx mps result =
+mpsValidationEvent :: Context -> MonetaryPolicy -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+mpsValidationEvent ctx mps red result =
     ScriptValidationEvent
-        { sveScript = applyMonetaryPolicyScript ctx mps
+        { sveScript = applyMonetaryPolicyScript ctx mps red
         , sveResult = result
         , sveType = MonetaryPolicyScript
         }

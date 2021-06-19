@@ -52,8 +52,8 @@ data STOData =
     deriving anyclass (ToJSON, FromJSON)
 
 {-# INLINABLE validateSTO #-}
-validateSTO :: STOData -> ScriptContext -> Bool
-validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} ScriptContext{scriptContextTxInfo=txInfo,scriptContextPurpose=Minting ownHash} =
+validateSTO :: STOData -> () -> ScriptContext -> Bool
+validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} _ ScriptContext{scriptContextTxInfo=txInfo,scriptContextPurpose=Minting ownHash} =
     let tokenOK = stoCredentialToken `Value.leq` Validation.valueSpent txInfo
         Lovelace paidToIssuer = fromValue (Validation.valuePaidTo txInfo stoIssuer)
         forgeOK =
@@ -61,7 +61,7 @@ validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} ScriptContext{scr
             -- 'stoTokenName' from being forged
             Value.valueOf (Validation.txInfoForge txInfo) ownHash stoTokenName == paidToIssuer
     in tokenOK && forgeOK
-validateSTO _ _ = error ()
+validateSTO _ _ _ = error ()
 
 policy :: STOData -> MonetaryPolicy
 policy stoData = mkMonetaryPolicyScript $

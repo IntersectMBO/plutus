@@ -50,8 +50,8 @@ data Credential =
 
 -- | The forging policy script validating the creation of credential tokens
 {-# INLINABLE validateForge #-}
-validateForge :: CredentialAuthority -> ScriptContext -> Bool
-validateForge CredentialAuthority{unCredentialAuthority} ScriptContext{scriptContextTxInfo=txinfo} =
+validateForge :: CredentialAuthority -> () -> ScriptContext -> Bool
+validateForge CredentialAuthority{unCredentialAuthority} _ ScriptContext{scriptContextTxInfo=txinfo} =
     -- the credential authority is allwoed to forge or destroy any number of
     -- tokens, so we just need to check the signature
     txinfo `txSignedBy` unCredentialAuthority

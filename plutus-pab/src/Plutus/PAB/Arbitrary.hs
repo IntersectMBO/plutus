@@ -36,7 +36,7 @@ acceptingValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| (\_ _ _ ->
 
 -- | A monetary policy that always succeeds.
 acceptingMonetaryPolicy :: Ledger.MonetaryPolicy
-acceptingMonetaryPolicy = Ledger.mkMonetaryPolicyScript $$(PlutusTx.compile [|| (\_ -> ()) ||])
+acceptingMonetaryPolicy = Ledger.mkMonetaryPolicyScript $$(PlutusTx.compile [|| (\_ _ -> ()) ||])
 
 instance Arbitrary LedgerBytes where
     arbitrary = LedgerBytes.fromBytes <$> arbitrary
