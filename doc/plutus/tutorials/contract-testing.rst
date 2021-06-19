@@ -36,9 +36,9 @@ The game is played as follows:
    changes.
 
 As an extra wrinkle, when the first player locks the prize, a new
-:term:`token` is also forged. Only the player currently holding the :term:`token` is
+:term:`token` is also minted. Only the player currently holding the :term:`token` is
 allowed to make a guess--which gives us an opportunity to illustrate
-forging and passing around :term:`tokens<token>`.
+minting and passing around :term:`tokens<token>`.
 
 The generated tests will exercise the contract by locking the prize,
 then moving the game :term:`token` and making guesses at random, checking that
@@ -87,7 +87,7 @@ We will also need a game :term:`token`. After importing the ``Scripts`` module
    :start-after: START import Scripts
    :end-before: END import Scripts
 
-we can define it as follows, applying a monetary policy defined in the code under test (imported as module ``G``):
+we can define it as follows, applying a minting policy defined in the code under test (imported as module ``G``):
 
 .. literalinclude:: GameModel.hs
    :start-after: START import Game
@@ -113,13 +113,13 @@ We can even construct a ``Value`` containing an Ada and a game :term:`token`:
 
 If you inspect the output closely, you will see that a ``Value``
 contains maps nested within another ``Map``. The outer ``Map`` is
-indexed by hashes of monetary policy :term:`scripts<script>`, so each inner ``Map``
+indexed by hashes of minting policy :term:`scripts<script>`, so each inner ``Map``
 contains a bag of :term:`tokens<token>` managed by the same policy. :term:`Token<token>` names can
 be chosen freely, and each policy can manage any number of its own
 :term:`token` types. In this case the game :term:`token` is called a "guess", and the
 :term:`script` managing game :term:`tokens<token>` has the hash f687... A little confusingly,
 the Ada :term:`token` name is displayed as an empty string, as is the hash of
-the corresponding monetary policy.
+the corresponding minting policy.
 
 Introducing contract models
 ---------------------------
@@ -351,7 +351,7 @@ and defines the expected effect of each operation.
 
 The ``Lock`` operation creates the contract, initializing the model
 contract state (using :hsobj:`Plutus.Contract.Test.ContractModel.$=` and generated ``Lens`` operations),
-forges the game :term:`token` (using :hsobj:`Plutus.Contract.Test.ContractModel.forge`), deposits it in the creator's
+mints the game :term:`token` (using :hsobj:`Plutus.Contract.Test.ContractModel.mint`), deposits it in the creator's
 wallet, and withdraws the Ada locked in the contract (using :hsobj:`Plutus.Contract.Test.ContractModel.deposit`
 and :hsobj:`Plutus.Contract.Test.ContractModel.withdraw`):
 
@@ -362,9 +362,9 @@ and :hsobj:`Plutus.Contract.Test.ContractModel.withdraw`):
 A :hsobj:`Plutus.Contract.Test.ContractModel.ContractModel` actually tracks not only the contract model state (in
 our case the ``GameModel`` type), but also the quantities of :term:`tokens<token>`
 expected to be in each wallet, which are checked at the end of each
-test. It is these expectations that are manipulated by :hsobj:`Plutus.Contract.Test.ContractModel.forge`,
+test. It is these expectations that are manipulated by :hsobj:`Plutus.Contract.Test.ContractModel.mint`,
 :hsobj:`Plutus.Contract.Test.ContractModel.deposit`, etc... don't confuse them with operations that *actually*
-forge or move :term:`tokens<token>` in the implementation. The :hsobj:`Plutus.Contract.Test.ContractModel.ModelState` type
+mint or move :term:`tokens<token>` in the implementation. The :hsobj:`Plutus.Contract.Test.ContractModel.ModelState` type
 contains all of this information.
 
 
@@ -405,7 +405,7 @@ the real contract. Doing so immediately reveals a problem:
 Looking at the last two lines, we see the generated test sequence, and
 the problem is evident: we generated a test *that only gives the game
 :term:`token`* to wallet 1, but this makes no sense because the game :term:`token` has
-not yet been forged--so the ``fromJust`` in the :hsobj:`Plutus.Contract.Test.ContractModel.nextState` function
+not yet been minted--so the ``fromJust`` in the :hsobj:`Plutus.Contract.Test.ContractModel.nextState` function
 fails. We will see how to prevent this in the next section.
 
 Restricting test cases with preconditions
@@ -417,7 +417,7 @@ this is *not* the same as restricting tests to 'the happy path': we
 *want* to test unexpected sequences of actions, and indeed, this is
 part of the strength of property-based testing. But there are some
 actions--like trying to give the game :term:`token` to a wallet before it has been
-forged--that are not even interesting to test. These are the cases
+minted--that are not even interesting to test. These are the cases
 that we rule out by defining preconditions for actions; the effect is
 to prevent such test cases ever being generated.
 
@@ -643,7 +643,7 @@ happen. To understand why, we need to study the emulator log. Here are the relev
                              outputs:
                                - Value (Map []) addressed to
                                  ScriptAddress: d1e1...
-                             forge: Value (Map [(f687...,Map [(guess,1)])])
+                             mint: Value (Map [(f687...,Map [(guess,1)])])
     ...
     [INFO] Slot 2: W1: TxSubmit: 2d66...
 
@@ -652,7 +652,7 @@ Here we see the :term:`endpoint` call to ``lock`` being received during slot
 to the contract :term:`script`. The transaction is balanced (which has no
 effect in this case), submitted, and validated by the emulator at
 slot 2. Then another transaction, ``1eba...``, is created, which
-forges the game :term:`token`. This transaction is in turn balanced (resulting
+mints the game :term:`token`. This transaction is in turn balanced (resulting
 in a new hash, ``2d66...``), and submitted without error--but although
 no errors are reported, *this transaction is not validated*.
 
@@ -1052,7 +1052,7 @@ guarantee that the actions it generates are valid; they will in any
 case have to pass the precondition before they are included in a test
 case. In fact, it is a little dangerous to define a generator so that
 *only* actions satisfying the precondition are generated, because we
-might later choose to weaken the precondition. If we do so, and forget
+might later choose to weaken the precondition. If we do so, and mintt
 to change the generator too, then we might end up with less thorough
 testing than we expect. So rather than generate guesses as we did above,
 it would be better to define
