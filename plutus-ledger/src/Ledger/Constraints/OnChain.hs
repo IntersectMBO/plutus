@@ -74,7 +74,7 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
         -- us the full redeemer
         $ isJust (V.findTxInByTxOutRef txOutRef scriptContextTxInfo)
     MustForgeValue mps tn v ->
-        traceIfFalse "Value forged not OK"
+        traceIfFalse "Value minted not OK"
         $ Value.valueOf (txInfoForge scriptContextTxInfo) (Value.mpsSymbol mps) tn == v
     MustPayToPubKey pk vl ->
         traceIfFalse "MustPayToPubKey"

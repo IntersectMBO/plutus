@@ -31,7 +31,7 @@ import           PlutusTx.Prelude
 import qualified Prelude                       as Haskell
 import           Schema                        (ToSchema)
 
--- | Entity that is authorised to forge credential tokens
+-- | Entity that is authorised to mint credential tokens
 newtype CredentialAuthority =
     CredentialAuthority
         { unCredentialAuthority :: PubKeyHash
@@ -52,7 +52,7 @@ data Credential =
 {-# INLINABLE validateForge #-}
 validateForge :: CredentialAuthority -> () -> ScriptContext -> Bool
 validateForge CredentialAuthority{unCredentialAuthority} _ ScriptContext{scriptContextTxInfo=txinfo} =
-    -- the credential authority is allwoed to forge or destroy any number of
+    -- the credential authority is allwoed to mint or destroy any number of
     -- tokens, so we just need to check the signature
     txinfo `txSignedBy` unCredentialAuthority
 

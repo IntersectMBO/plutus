@@ -115,7 +115,7 @@ genMockchain' gm = do
 genMockchain :: MonadGen m => m Mockchain
 genMockchain = genMockchain' generatorModel
 
--- | A transaction with no inputs that forges some value (to be used at the
+-- | A transaction with no inputs that mints some value (to be used at the
 --   beginning of a blockchain).
 genInitialTransaction ::
        GeneratorModel

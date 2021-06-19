@@ -70,7 +70,7 @@ instance Pretty TxConstraint where
         MustSpendScriptOutput ref red ->
             hang 2 $ vsep ["must spend script output:", pretty ref, pretty red]
         MustForgeValue mps tn i ->
-            hang 2 $ vsep ["must forge value:", pretty mps, pretty tn <+> pretty i]
+            hang 2 $ vsep ["must mint value:", pretty mps, pretty tn <+> pretty i]
         MustPayToPubKey pk v ->
             hang 2 $ vsep ["must pay to pubkey:", pretty pk, pretty v]
         MustPayToOtherScript vlh dv vl ->

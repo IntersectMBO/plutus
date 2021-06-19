@@ -257,7 +257,7 @@ instance BA.ByteArrayAccess Redeemer where
     withByteArray =
         BA.withByteArray . BSL.toStrict . serialise
 
--- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
+-- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for minting constraints.
 newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)

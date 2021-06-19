@@ -102,7 +102,7 @@ data TxInfo = TxInfo
     { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
-    , txInfoForge       :: Value -- ^ The 'Value' forged by this transaction.
+    , txInfoForge       :: Value -- ^ The 'Value' minted by this transaction.
     , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
     , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
     , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.

@@ -32,7 +32,7 @@ We have the following modules.
    some funds.
 
 We work with two different script hashes: The hash of the minting policy that
-forges the tokens (see 'policy'), and the hash of the state machine instance
+mints the tokens (see 'policy'), and the hash of the state machine instance
 that locks a specific credential token for a specific user, identified by their
 public key address.
 

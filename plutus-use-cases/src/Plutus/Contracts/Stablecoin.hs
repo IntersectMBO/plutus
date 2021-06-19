@@ -48,7 +48,7 @@ negative number of them.
 An oracle value with the current exchange rate of the base currency has to be
 provided with every transition.
 
-The two coins (stablecoin and reservecoin) are Plutus native token whose forging
+The two coins (stablecoin and reservecoin) are Plutus native token whose minting
 policy is the forwarding policy for the stablecoin's state machine.
 
 We use the 'Ratio' type for all calculations in the script, using 'round' to

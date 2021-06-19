@@ -128,7 +128,7 @@ data ValidationError =
     | SignatureMissing PubKeyHash
     -- ^ The transaction is missing a signature
     | ForgeWithoutScript Scripts.MintingPolicyHash
-    -- ^ The transaction attempts to forge value of a currency without running
+    -- ^ The transaction attempts to mint value of a currency without running
     --   the currency's minting policy.
     | TransactionFeeTooLow V.Value V.Value
     -- ^ The transaction fee is lower than the minimum acceptable fee.
@@ -228,7 +228,7 @@ lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t))
 
 {- note [Forging of Ada]
 
-'checkForgingAuthorised' will never allow a transaction that forges Ada.
+'checkForgingAuthorised' will never allow a transaction that mints Ada.
 Ada's currency symbol is the empty bytestring, and it can never be matched by a
 validator script whose hash is its symbol.
 
@@ -237,22 +237,22 @@ the blockchain.
 
 -}
 
--- | Check whether each currency forged by the transaction is matched by
+-- | Check whether each currency minted by the transaction is matched by
 --   a corresponding minting policy script (in the form of a pay-to-script
 --   output of the currency's address).
 --
 checkForgingAuthorised :: ValidationMonad m => Tx -> m ()
 checkForgingAuthorised tx =
     let
-        forgedCurrencies = V.symbols (txForge tx)
+        mintedCurrencies = V.symbols (txForge tx)
 
-        mpsScriptHashes = Scripts.MintingPolicyHash . V.unCurrencySymbol <$> forgedCurrencies
+        mpsScriptHashes = Scripts.MintingPolicyHash . V.unCurrencySymbol <$> mintedCurrencies
 
         lockingScripts = mintingPolicyHash <$> Set.toList (txForgeScripts tx)
 
-        forgedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
+        mintedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
     in
-        traverse_ (throwError . ForgeWithoutScript) forgedWithoutScript
+        traverse_ (throwError . ForgeWithoutScript) mintedWithoutScript
 
 checkForgingScripts :: forall m . ValidationMonad m => Tx -> m ()
 checkForgingScripts tx = do

@@ -13,7 +13,7 @@ import qualified Plutus.Trace.Emulator     as Trace
 
 import           Test.Tasty
 
--- | Runs 'Plutus.Contracts.Currency.forgeContract' for
+-- | Runs 'Plutus.Contracts.Currency.mintContract' for
 --   a sample currency.
 currencyTrace :: Trace.EmulatorTrace ()
 currencyTrace = do
@@ -40,4 +40,4 @@ w1 = Wallet 1
 theContract :: Contract () EmptySchema Cur.CurrencyError OneShotCurrency
 theContract =
     let amounts = [("my currency", 1000), ("my token", 1)] in
-    Cur.forgeContract (Ledger.pubKeyHash $ walletPubKey w1) amounts
+    Cur.mintContract (Ledger.pubKeyHash $ walletPubKey w1) amounts

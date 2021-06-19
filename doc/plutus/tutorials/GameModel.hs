@@ -116,7 +116,7 @@ instance ContractModel GameModel where
           hasToken      $= Just w
           currentSecret $= secret
           gameValue     $= val
-          forge gameTokenVal
+          mint gameTokenVal
           deposit  w gameTokenVal
         withdraw w $ Ada.lovelaceValueOf val
         wait 2
@@ -354,7 +354,7 @@ v1_model = ()
         hasToken      $= Just w
         currentSecret $= secret
         gameValue     $= val
-        forge gameTokenVal
+        mint gameTokenVal
         deposit  w gameTokenVal
         withdraw w $ Ada.lovelaceValueOf val
 -- END nextState Lock v1
@@ -410,7 +410,7 @@ v2_model = ()
         hasToken      $= Just w
         currentSecret $= secret
         gameValue     $= val
-        forge gameTokenVal
+        mint gameTokenVal
         deposit  w gameTokenVal
         withdraw w $ Ada.lovelaceValueOf val
         wait 2

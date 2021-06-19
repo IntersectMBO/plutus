@@ -42,7 +42,7 @@ wrapMintingPolicy f (fromData -> Just r) (fromData -> Just p) = check $ f r p
 wrapMintingPolicy _ _                    _                    = check False
 
 -- | A minting policy that checks whether the validator script was run
---   in the forging transaction.
+--   in the minting transaction.
 mkForwardingMintingPolicy :: ValidatorHash -> MintingPolicy
 mkForwardingMintingPolicy vshsh =
     mkMintingPolicyScript

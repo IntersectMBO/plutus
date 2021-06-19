@@ -494,8 +494,8 @@ processConstraint = \case
             then valueSpentInputs <>= provided (value (negate i))
             else valueSpentOutputs <>= provided (value i)
 
-        unbalancedTx . tx . Tx.forgeScripts %= Set.insert mintingPolicyScript
-        unbalancedTx . tx . Tx.forge <>= value i
+        unbalancedTx . tx . Tx.mintScripts %= Set.insert mintingPolicyScript
+        unbalancedTx . tx . Tx.mint <>= value i
     MustPayToPubKey pk vl -> do
         unbalancedTx . tx . Tx.outputs %= (Tx.TxOut{txOutAddress=pubKeyHashAddress pk,txOutValue=vl,txOutDatumHash=Nothing} :)
         valueSpentOutputs <>= provided vl

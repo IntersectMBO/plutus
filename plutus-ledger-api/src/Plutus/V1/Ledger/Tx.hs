@@ -25,13 +25,13 @@ module Plutus.V1.Ledger.Tx(
     updateUtxo,
     updateUtxoCollateral,
     validValuesTx,
-    forgeScripts,
+    mintScripts,
     signatures,
     datumWitnesses,
     lookupSignature,
     lookupDatum,
     addSignature,
-    forge,
+    mint,
     fee,
     -- ** Hashing transactions
     txId,
@@ -128,13 +128,13 @@ data Tx = Tx {
     txOutputs      :: [TxOut],
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
     txForge        :: !Value,
-    -- ^ The 'Value' forged by this transaction.
+    -- ^ The 'Value' minted by this transaction.
     txFee          :: !Value,
     -- ^ The fee for this transaction.
     txValidRange   :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
     txForgeScripts :: Set.Set MintingPolicy,
-    -- ^ The scripts that must be run to check forging conditions.
+    -- ^ The scripts that must be run to check minting conditions.
     txSignatures   :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
     txData         :: Map DatumHash Datum
@@ -148,7 +148,7 @@ instance Pretty Tx where
                 [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList txInputs)))
                 , hang 2 (vsep ("collateral inputs:" : fmap pretty (Set.toList txCollateral)))
                 , hang 2 (vsep ("outputs:" : fmap pretty txOutputs))
-                , "forge:" <+> pretty txForge
+                , "mint:" <+> pretty txForge
                 , "fee:" <+> pretty txFee
                 , hang 2 (vsep ("mps:": fmap pretty (Set.toList txForgeScripts)))
                 , hang 2 (vsep ("signatures:": fmap (pretty . fst) (Map.toList txSignatures)))
@@ -212,13 +212,13 @@ fee = lens g s where
     g = txFee
     s tx v = tx { txFee = v }
 
-forge :: Lens' Tx Value
-forge = lens g s where
+mint :: Lens' Tx Value
+mint = lens g s where
     g = txForge
     s tx v = tx { txForge = v }
 
-forgeScripts :: Lens' Tx (Set.Set MintingPolicy)
-forgeScripts = lens g s where
+mintScripts :: Lens' Tx (Set.Set MintingPolicy)
+mintScripts = lens g s where
     g = txForgeScripts
     s tx fs = tx { txForgeScripts = fs }
 
@@ -247,7 +247,7 @@ data TxStripped = TxStripped {
     txStrippedOutputs :: [TxOut],
     -- ^ The outputs of this transation.
     txStrippedForge   :: !Value,
-    -- ^ The 'Value' forged by this transaction.
+    -- ^ The 'Value' minted by this transaction.
     txStrippedFee     :: !Value
     -- ^ The fee for this transaction.
     } deriving (Show, Eq, Generic, Serialise)

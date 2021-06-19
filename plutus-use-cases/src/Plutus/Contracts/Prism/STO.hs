@@ -14,12 +14,12 @@ This module defines an STO that allocates coins to anyone who
 
 * Presents a specific credential token (one that has been issued by a specific
   credential authority with a specific name) and
-* Pays 1 Lovelace to a predefined public key address for every coin forged
+* Pays 1 Lovelace to a predefined public key address for every coin minted
 
 The supply (number of tokens created) of the STO is unlimited. This is done so
 that we do not need a state machine and can participate in the STO with a single
 transaction. In a more realistic setting we would also need constraints on the
-validity range of the forging transaction.
+validity range of the minting transaction.
 
 -}
 module Plutus.Contracts.Prism.STO(
@@ -56,11 +56,11 @@ validateSTO :: STOData -> () -> ScriptContext -> Bool
 validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} _ ScriptContext{scriptContextTxInfo=txInfo,scriptContextPurpose=Minting ownHash} =
     let tokenOK = stoCredentialToken `Value.leq` Validation.valueSpent txInfo
         Lovelace paidToIssuer = fromValue (Validation.valuePaidTo txInfo stoIssuer)
-        forgeOK =
+        mintOK =
             -- Note that this doesn't prevent any tokens with a name other than
-            -- 'stoTokenName' from being forged
+            -- 'stoTokenName' from being minted
             Value.valueOf (Validation.txInfoForge txInfo) ownHash stoTokenName == paidToIssuer
-    in tokenOK && forgeOK
+    in tokenOK && mintOK
 validateSTO _ _ _ = error ()
 
 policy :: STOData -> MintingPolicy
