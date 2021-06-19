@@ -309,7 +309,7 @@ of lists of integers (for some definition of @SomeTypeIn@):
     SomeTypeIn (URunTypeApp (UProtoList `UApply` UInt))
     SomeTypeIn (UProtoList `UApply` UInt)
 
-In practice it's not a big deal, we just need not to mintt to strip the 'URunTypeApp' constructor
+In practice it's not a big deal, we just need not to forget to strip the 'URunTypeApp' constructor
 off whenever that is important (for example, during type normalization).
 
 But a more serious problem with this representation is that we lose all the type safety discussed

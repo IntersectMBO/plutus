@@ -1,4 +1,4 @@
-.. highlight:: haskell
+.. hkghlight:: haskell
 .. _contract_testing_tutorial:
 
 Property-based testing of Plutus contracts
@@ -1052,7 +1052,7 @@ guarantee that the actions it generates are valid; they will in any
 case have to pass the precondition before they are included in a test
 case. In fact, it is a little dangerous to define a generator so that
 *only* actions satisfying the precondition are generated, because we
-might later choose to weaken the precondition. If we do so, and mintt
+might later choose to weaken the precondition. If we do so, and forget
 to change the generator too, then we might end up with less thorough
 testing than we expect. So rather than generate guesses as we did above,
 it would be better to define
