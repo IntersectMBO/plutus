@@ -19,7 +19,7 @@ module Ledger.Constraints.OffChain(
     ScriptLookups(..)
     , typedValidatorLookups
     , unspentOutputs
-    , monetaryPolicy
+    , mintingPolicy
     , otherScript
     , otherData
     , ownPubKeyHash
@@ -70,7 +70,7 @@ import           Plutus.V1.Ledger.Address         (Address (..), pubKeyHashAddre
 import qualified Plutus.V1.Ledger.Address         as Address
 import           Plutus.V1.Ledger.Crypto          (PubKeyHash)
 import           Plutus.V1.Ledger.Scripts         (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash, Validator,
-                                                   datumHash, monetaryPolicyHash)
+                                                   datumHash, mintingPolicyHash)
 import           Plutus.V1.Ledger.Tx              (Tx, TxOut (..), TxOutRef, TxOutTx (..))
 import qualified Plutus.V1.Ledger.Tx              as Tx
 import           Plutus.V1.Ledger.Value           (Value)
@@ -130,9 +130,9 @@ unspentOutputs :: Map TxOutRef TxOutTx -> ScriptLookups a
 unspentOutputs mp = mempty { slTxOutputs = mp }
 
 -- | A script lookups value with a monetary policy script
-monetaryPolicy :: MintingPolicy -> ScriptLookups a
-monetaryPolicy pl =
-    let hsh = monetaryPolicyHash pl in
+mintingPolicy :: MintingPolicy -> ScriptLookups a
+mintingPolicy pl =
+    let hsh = mintingPolicyHash pl in
     mempty { slMPS = Map.singleton hsh pl }
 
 -- | A script lookups value with a validator script
@@ -484,7 +484,7 @@ processConstraint = \case
             _                 -> throwError (TxOutRefWrongType txo)
 
     MustForgeValue mpsHash tn i -> do
-        monetaryPolicyScript <- lookupMintingPolicy mpsHash
+        mintingPolicyScript <- lookupMintingPolicy mpsHash
         let value = Value.singleton (Value.mpsSymbol mpsHash) tn
         -- If i is negative we are burning tokens. The tokens burned must
         -- be provided as an input. So we add the value burnt to
@@ -494,7 +494,7 @@ processConstraint = \case
             then valueSpentInputs <>= provided (value (negate i))
             else valueSpentOutputs <>= provided (value i)
 
-        unbalancedTx . tx . Tx.forgeScripts %= Set.insert monetaryPolicyScript
+        unbalancedTx . tx . Tx.forgeScripts %= Set.insert mintingPolicyScript
         unbalancedTx . tx . Tx.forge <>= value i
     MustPayToPubKey pk vl -> do
         unbalancedTx . tx . Tx.outputs %= (Tx.TxOut{txOutAddress=pubKeyHashAddress pk,txOutValue=vl,txOutDatumHash=Nothing} :)

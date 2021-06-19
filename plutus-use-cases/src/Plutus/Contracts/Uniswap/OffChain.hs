@@ -204,7 +204,7 @@ create us CreateParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
-                   Constraints.monetaryPolicy (liquidityPolicy us) <>
+                   Constraints.mintingPolicy (liquidityPolicy us) <>
                    Constraints.unspentOutputs (Map.singleton oref o)
 
         tx       = Constraints.mustPayToTheScript usDat1 usVal                                     <>
@@ -235,7 +235,7 @@ close us CloseParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
-                   Constraints.monetaryPolicy (liquidityPolicy us) <>
+                   Constraints.mintingPolicy (liquidityPolicy us) <>
                    Constraints.ownPubKeyHash pkh                   <>
                    Constraints.unspentOutputs (Map.singleton oref1 o1 <> Map.singleton oref2 o2)
 
@@ -272,7 +272,7 @@ remove us RemoveParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst          <>
                    Constraints.otherScript usScript                  <>
-                   Constraints.monetaryPolicy (liquidityPolicy us)   <>
+                   Constraints.mintingPolicy (liquidityPolicy us)   <>
                    Constraints.unspentOutputs (Map.singleton oref o) <>
                    Constraints.ownPubKeyHash pkh
 
@@ -313,7 +313,7 @@ add us AddParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst             <>
                    Constraints.otherScript usScript                     <>
-                   Constraints.monetaryPolicy (liquidityPolicy us)      <>
+                   Constraints.mintingPolicy (liquidityPolicy us)      <>
                    Constraints.ownPubKeyHash pkh                        <>
                    Constraints.unspentOutputs (Map.singleton oref o)
 

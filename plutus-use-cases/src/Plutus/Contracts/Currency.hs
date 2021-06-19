@@ -166,7 +166,7 @@ forgeContract pk amounts = mapError (review _CurrencyError) $ do
     (txOutRef, txOutTx, pkInst) <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
     let theCurrency = mkCurrency txOutRef amounts
         curVali     = curPolicy theCurrency
-        lookups     = Constraints.monetaryPolicy curVali
+        lookups     = Constraints.mintingPolicy curVali
                         <> Constraints.otherScript (Scripts.validatorScript pkInst)
                         <> Constraints.unspentOutputs (Map.singleton txOutRef txOutTx)
     let forgeTx = Constraints.mustSpendScriptOutput txOutRef unitRedeemer

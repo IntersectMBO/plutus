@@ -21,7 +21,7 @@ import           Data.Hashable                 (Hashable)
 import           GHC.Generics                  (Generic)
 import           Ledger.Contexts               (ScriptContext (..), txSignedBy)
 import           Ledger.Crypto                 (PubKeyHash)
-import           Ledger.Scripts                (MintingPolicy, mkMintingPolicyScript, monetaryPolicyHash)
+import           Ledger.Scripts                (MintingPolicy, mintingPolicyHash, mkMintingPolicyScript)
 import qualified Ledger.Typed.Scripts          as Scripts
 import           Ledger.Value                  (TokenName, Value)
 import qualified Ledger.Value                  as Value
@@ -69,13 +69,13 @@ token credential = tokens credential 1
 -- | A number of credentials of the given name
 tokens :: Credential -> Integer -> Value
 tokens Credential{credAuthority, credName} n =
-    let sym = Value.mpsSymbol (monetaryPolicyHash $ policy credAuthority)
+    let sym = Value.mpsSymbol (mintingPolicyHash $ policy credAuthority)
     in Value.singleton sym credName n
 
 -- | The 'Account' that can be spent by presenting the credential
 tokenAccount :: Credential -> Account
 tokenAccount Credential{credAuthority, credName} =
-    let sym = Value.mpsSymbol (monetaryPolicyHash $ policy credAuthority)
+    let sym = Value.mpsSymbol (mintingPolicyHash $ policy credAuthority)
     in Account $ Value.assetClass sym credName
 
 PlutusTx.makeLift ''CredentialAuthority

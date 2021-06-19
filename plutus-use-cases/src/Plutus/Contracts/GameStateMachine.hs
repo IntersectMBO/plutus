@@ -26,7 +26,7 @@ module Plutus.Contracts.GameStateMachine(
     , typedValidator
     , GameToken
     , mkValidator
-    , monetaryPolicy
+    , mintingPolicy
     , LockArgs(..)
     , GuessArgs(..)
     , GameStateMachineSchema, GameError
@@ -184,8 +184,8 @@ typedValidator = Scripts.mkTypedValidator @GameStateMachine
     where
         wrap = Scripts.wrapValidator
 
-monetaryPolicy :: Scripts.MintingPolicy
-monetaryPolicy = Scripts.forwardingMintingPolicy typedValidator
+mintingPolicy :: Scripts.MintingPolicy
+mintingPolicy = Scripts.forwardingMintingPolicy typedValidator
 
 client :: SM.StateMachineClient GameState GameInput
 client = SM.mkStateMachineClient $ SM.StateMachineInstance machine typedValidator

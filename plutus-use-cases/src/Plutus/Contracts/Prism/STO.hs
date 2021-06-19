@@ -34,7 +34,7 @@ import           Ledger.Ada           (Ada (..), fromValue)
 import           Ledger.Contexts      (ScriptContext (..), ScriptPurpose (..))
 import qualified Ledger.Contexts      as Validation
 import           Ledger.Crypto        (PubKeyHash)
-import           Ledger.Scripts       (MintingPolicy, mkMintingPolicyScript, monetaryPolicyHash)
+import           Ledger.Scripts       (MintingPolicy, mintingPolicyHash, mkMintingPolicyScript)
 import qualified Ledger.Typed.Scripts as Scripts
 import           Ledger.Value         (TokenName, Value)
 import qualified Ledger.Value         as Value
@@ -70,7 +70,7 @@ policy stoData = mkMintingPolicyScript $
 -- | A 'Value' of a number of coins issued in the STO
 coins :: STOData -> Integer -> Value
 coins d@STOData{stoTokenName} n =
-    let sym = Value.mpsSymbol (monetaryPolicyHash $ policy d)
+    let sym = Value.mpsSymbol (mintingPolicyHash $ policy d)
     in Value.singleton sym stoTokenName n
 
 PlutusTx.makeLift ''STOData

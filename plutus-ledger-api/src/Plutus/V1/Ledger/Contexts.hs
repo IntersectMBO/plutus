@@ -183,7 +183,7 @@ them from the correct types in Haskell, and for comparing them (in
 {-# INLINABLE scriptCurrencySymbol #-}
 -- | The 'CurrencySymbol' of a 'MintingPolicy'
 scriptCurrencySymbol :: MintingPolicy -> CurrencySymbol
-scriptCurrencySymbol scrpt = let (MintingPolicyHash hsh) = monetaryPolicyHash scrpt in Value.currencySymbol hsh
+scriptCurrencySymbol scrpt = let (MintingPolicyHash hsh) = mintingPolicyHash scrpt in Value.currencySymbol hsh
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.

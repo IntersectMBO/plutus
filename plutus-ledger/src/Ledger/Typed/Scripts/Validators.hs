@@ -104,7 +104,7 @@ mkTypedValidator vc wrapper =
         { tvValidator         = val
         , tvValidatorHash     = hsh
         , tvForwardingMPS     = mps
-        , tvForwardingMPSHash = Scripts.monetaryPolicyHash mps
+        , tvForwardingMPSHash = Scripts.mintingPolicyHash mps
         }
 
 -- | Make a 'TypedValidator' from the 'CompiledCode' of a paramaterized validator script and its wrapper.
@@ -142,7 +142,7 @@ unsafeMkTypedValidator vl =
         { tvValidator         = vl
         , tvValidatorHash     = vh
         , tvForwardingMPS     = mps
-        , tvForwardingMPSHash = Scripts.monetaryPolicyHash mps
+        , tvForwardingMPSHash = Scripts.mintingPolicyHash mps
         }
 
 -- | The monetary policy that forwards all checks to the instance's

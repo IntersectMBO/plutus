@@ -248,7 +248,7 @@ checkForgingAuthorised tx =
 
         mpsScriptHashes = Scripts.MintingPolicyHash . V.unCurrencySymbol <$> forgedCurrencies
 
-        lockingScripts = monetaryPolicyHash <$> Set.toList (txForgeScripts tx)
+        lockingScripts = mintingPolicyHash <$> Set.toList (txForgeScripts tx)
 
         forgedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
     in
@@ -261,7 +261,7 @@ checkForgingScripts tx = do
         mkVd :: Integer -> ScriptContext
         mkVd i =
             let cs :: V.CurrencySymbol
-                cs = V.mpsSymbol $ monetaryPolicyHash $ mpss !! fromIntegral i
+                cs = V.mpsSymbol $ mintingPolicyHash $ mpss !! fromIntegral i
             in ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
     forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
         let vd = Context $ toData ptx'

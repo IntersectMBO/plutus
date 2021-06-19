@@ -46,7 +46,7 @@ module Plutus.V1.Ledger.Scripts(
     datumHash,
     redeemerHash,
     validatorHash,
-    monetaryPolicyHash,
+    mintingPolicyHash,
     -- * Example scripts
     unitRedeemer,
     unitDatum,
@@ -317,8 +317,8 @@ validatorHash vl = ValidatorHash $ BA.convert h' where
     h' :: Digest SHA256 = hash h
     e = serialise vl
 
-monetaryPolicyHash :: MintingPolicy -> MintingPolicyHash
-monetaryPolicyHash vl = MintingPolicyHash $ BA.convert h' where
+mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
+mintingPolicyHash vl = MintingPolicyHash $ BA.convert h' where
     h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
     e = serialise vl

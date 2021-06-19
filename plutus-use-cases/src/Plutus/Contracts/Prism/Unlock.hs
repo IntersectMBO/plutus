@@ -81,7 +81,7 @@ subscribeSTO = forever $ handleError (const $ return ()) $ do
             <> Constraints.mustPayToPubKey wSTOIssuer (Ada.lovelaceValueOf wSTOAmount)
             <> credConstraints
         lookups =
-            Constraints.monetaryPolicy (STO.policy stoData)
+            Constraints.mintingPolicy (STO.policy stoData)
             <> credLookups
     mapError WithdrawTxError
         $ submitTxConstraintsWith lookups constraints >>= awaitTxConfirmed . txId

@@ -71,7 +71,7 @@ createTokens authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError IssueEndpointError $ endpoint @"issue"
     logInfo @String "Endpoint 'issue' called"
     let pk      = Credential.unCredentialAuthority authority
-        lookups = Constraints.monetaryPolicy (Credential.policy authority)
+        lookups = Constraints.mintingPolicy (Credential.policy authority)
                   <> Constraints.ownPubKeyHash pk
         theToken = Credential.token Credential{credAuthority=authority,credName=coTokenName}
         constraints =
@@ -92,7 +92,7 @@ revokeToken ::
 revokeToken authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError RevokeEndpointError $ endpoint @"revoke"
     let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
-        lookups = Constraints.monetaryPolicy (Credential.policy authority) <>
+        lookups = Constraints.mintingPolicy (Credential.policy authority) <>
                   Constraints.ownPubKeyHash  (Credential.unCredentialAuthority authority)
     t <- mapError StateMachineError $ mkStep stateMachine RevokeCredential
     case t of
