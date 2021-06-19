@@ -6,8 +6,8 @@ module Ledger.Constraints(
     -- * Defining constraints
     , mustPayToTheScript
     , mustPayToPubKey
-    , mustForgeCurrency
-    , mustForgeValue
+    , mustMintCurrency
+    , mustMintValue
     , mustSpendAtLeast
     , mustSpendPubKeyOutput
     , mustSpendScriptOutput

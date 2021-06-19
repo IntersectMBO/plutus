@@ -116,7 +116,7 @@ token mps tn = V.singleton (V.mpsSymbol mps) tn 1
 -- | State of the guessing game
 data GameState =
     Initialised MintingPolicyHash TokenName HashedString
-    -- ^ Initial state. In this state only the 'ForgeTokens' action is allowed.
+    -- ^ Initial state. In this state only the 'MintTokens' action is allowed.
     | Locked MintingPolicyHash TokenName HashedString
     -- ^ Funds have been locked. In this state only the 'Guess' action is
     --   allowed.
@@ -136,8 +136,8 @@ checkGuess (HashedString actual) (ClearString gss) = actual == (sha2_256 gss)
 
 -- | Inputs (actions)
 data GameInput =
-      ForgeToken
-    -- ^ Forge the "guess" token
+      MintToken
+    -- ^ Mint the "guess" token
     | Guess ClearString HashedString Value
     -- ^ Make a guess, extract the funds, and lock the remaining funds using a
     --   new secret word.
@@ -147,8 +147,8 @@ data GameInput =
 {-# INLINABLE transition #-}
 transition :: State GameState -> GameInput -> Maybe (TxConstraints Void Void, State GameState)
 transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, input) of
-    (Initialised mph tn s, ForgeToken) ->
-        let constraints = Constraints.mustForgeCurrency mph tn 1 in
+    (Initialised mph tn s, MintToken) ->
+        let constraints = Constraints.mustMintCurrency mph tn 1 in
         Just ( constraints
              , State
                 { stateData = Locked mph tn s
@@ -157,7 +157,7 @@ transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, 
              )
     (Locked mph tn currentSecret, Guess theGuess nextSecret takenOut)
         | checkGuess currentSecret theGuess ->
-        let constraints = Constraints.mustSpendAtLeast (token mph tn) <> Constraints.mustForgeCurrency mph tn 0 in
+        let constraints = Constraints.mustSpendAtLeast (token mph tn) <> Constraints.mustMintCurrency mph tn 0 in
         Just ( constraints
              , State
                 { stateData = Locked mph tn nextSecret
@@ -209,7 +209,7 @@ lock = do
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
         sym = Scripts.forwardingMintingPolicyHash typedValidator
     _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
-    void $ mapError GameSMError $ SM.runStep client ForgeToken
+    void $ mapError GameSMError $ SM.runStep client MintToken
 
 PlutusTx.unstableMakeIsData ''GameState
 PlutusTx.makeLift ''GameState

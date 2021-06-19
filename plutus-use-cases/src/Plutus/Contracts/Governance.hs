@@ -85,7 +85,7 @@ data GovState = GovState
     deriving anyclass (ToJSON, FromJSON)
 
 data GovInput
-    = ForgeTokens [TokenName]
+    = MintTokens [TokenName]
     | ProposeChange Proposal
     | AddVote TokenName Bool
     | FinishVoting
@@ -163,11 +163,11 @@ ownsVotingToken mph tokenName = Constraints.mustSpendAtLeast (votingValue mph to
 transition :: Params -> State GovState -> GovInput -> Maybe (TxConstraints Void Void, State GovState)
 transition Params{..} State{ stateData = s, stateValue} i = case (s, i) of
 
-    (GovState{mph}, ForgeTokens tokenNames) ->
+    (GovState{mph}, MintTokens tokenNames) ->
         let (total, constraints) = foldMap
                 (\(pk, nm) -> let v = votingValue mph nm in (v, Constraints.mustPayToPubKey pk v))
                 (zip initialHolders tokenNames)
-        in Just (constraints <> Constraints.mustForgeValue total, State s stateValue)
+        in Just (constraints <> Constraints.mustMintValue total, State s stateValue)
 
     (GovState law mph Nothing, ProposeChange proposal@Proposal{tokenName}) ->
         let constraints = ownsVotingToken mph tokenName
@@ -203,7 +203,7 @@ contract params = forever $ mapError (review _GovError) endpoints where
         let mph = Scripts.forwardingMintingPolicyHash (typedValidator params)
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
         let tokens = Haskell.zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
-        SM.runStep theClient $ ForgeTokens tokens
+        SM.runStep theClient $ MintTokens tokens
 
 -- | The contract for proposing changes to a law.
 proposalContract ::

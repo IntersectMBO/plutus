@@ -93,7 +93,7 @@ validate c@(OneShotCurrency (refHash, refIdx) _) _ ctx@V.ScriptContext{V.scriptC
         -- see note [Obtaining the currency symbol]
         ownSymbol = V.ownCurrencySymbol ctx
 
-        minted = V.txInfoForge txinfo
+        minted = V.txInfoMint txinfo
         expected = currencyValue ownSymbol c
 
         -- True if the pending transaction mints the amount of
@@ -170,7 +170,7 @@ mintContract pk amounts = mapError (review _CurrencyError) $ do
                         <> Constraints.otherScript (Scripts.validatorScript pkInst)
                         <> Constraints.unspentOutputs (Map.singleton txOutRef txOutTx)
     let mintTx = Constraints.mustSpendScriptOutput txOutRef unitRedeemer
-                    <> Constraints.mustForgeValue (mintedValue theCurrency)
+                    <> Constraints.mustMintValue (mintedValue theCurrency)
     tx <- submitTxConstraintsWith @Scripts.Any lookups mintTx
     _ <- awaitTxConfirmed (txId tx)
     pure theCurrency

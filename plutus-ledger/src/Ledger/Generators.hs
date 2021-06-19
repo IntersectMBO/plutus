@@ -126,7 +126,7 @@ genInitialTransaction GeneratorModel{..} =
         t = fold gmInitialBalance
     in (mempty {
         txOutputs = o,
-        txForge = t,
+        txMint = t,
         txValidRange = Interval.from 0
         }, o)
 

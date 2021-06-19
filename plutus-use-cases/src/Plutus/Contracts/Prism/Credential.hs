@@ -49,16 +49,16 @@ data Credential =
     deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema)
 
 -- | The minting policy script validating the creation of credential tokens
-{-# INLINABLE validateForge #-}
-validateForge :: CredentialAuthority -> () -> ScriptContext -> Bool
-validateForge CredentialAuthority{unCredentialAuthority} _ ScriptContext{scriptContextTxInfo=txinfo} =
+{-# INLINABLE validateMint #-}
+validateMint :: CredentialAuthority -> () -> ScriptContext -> Bool
+validateMint CredentialAuthority{unCredentialAuthority} _ ScriptContext{scriptContextTxInfo=txinfo} =
     -- the credential authority is allwoed to mint or destroy any number of
     -- tokens, so we just need to check the signature
     txinfo `txSignedBy` unCredentialAuthority
 
 policy :: CredentialAuthority -> MintingPolicy
 policy credential = mkMintingPolicyScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapMintingPolicy (validateForge c) ||])
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapMintingPolicy (validateMint c) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode credential
 

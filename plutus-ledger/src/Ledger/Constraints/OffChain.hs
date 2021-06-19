@@ -483,7 +483,7 @@ processConstraint = \case
                 valueSpentInputs <>= provided (Tx.txOutValue (txOutTxOut txOutTx))
             _                 -> throwError (TxOutRefWrongType txo)
 
-    MustForgeValue mpsHash tn i -> do
+    MustMintValue mpsHash tn i -> do
         mintingPolicyScript <- lookupMintingPolicy mpsHash
         let value = Value.singleton (Value.mpsSymbol mpsHash) tn
         -- If i is negative we are burning tokens. The tokens burned must

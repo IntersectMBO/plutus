@@ -77,7 +77,7 @@ subscribeSTO = forever $ handleError (const $ return ()) $ do
                 }
         stoCoins = STO.coins stoData wSTOAmount
         constraints =
-            Constraints.mustForgeValue stoCoins
+            Constraints.mustMintValue stoCoins
             <> Constraints.mustPayToPubKey wSTOIssuer (Ada.lovelaceValueOf wSTOAmount)
             <> credConstraints
         lookups =

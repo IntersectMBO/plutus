@@ -429,7 +429,7 @@ wait n = modState currentSlotL (+ Slot n)
 waitUntil :: Slot -> Spec state ()
 waitUntil n = modState currentSlotL (max n)
 
--- | Forge tokens. Forged tokens start out as `lockedValue` (i.e. owned by the contract) and can be
+-- | Mint tokens. Minted tokens start out as `lockedValue` (i.e. owned by the contract) and can be
 --   transferred to wallets using `deposit`.
 mint :: Value -> Spec state ()
 mint v = modState mintedL (<> v)

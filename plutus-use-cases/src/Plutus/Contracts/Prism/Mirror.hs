@@ -75,7 +75,7 @@ createTokens authority = do
                   <> Constraints.ownPubKeyHash pk
         theToken = Credential.token Credential{credAuthority=authority,credName=coTokenName}
         constraints =
-            Constraints.mustForgeValue theToken
+            Constraints.mustMintValue theToken
             <> Constraints.mustBeSignedBy pk
             <> Constraints.mustPayToPubKey pk (Ada.lovelaceValueOf 1)   -- Add self-spend to force an input
     _ <- mapError CreateTokenTxError $ do

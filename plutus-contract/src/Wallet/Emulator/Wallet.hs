@@ -243,7 +243,7 @@ handleBalanceTx utxo UnbalancedTx{unBalancedTxTx, unBalancedTxUtxoIndex} = do
     inputValues <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txInputs filteredUnbalancedTxTx)
     collateral  <- traverse (lookupValue unBalancedTxUtxoIndex) (Set.toList $ Tx.txCollateral filteredUnbalancedTxTx)
     let fees = txFee filteredUnbalancedTxTx
-        left = txForge filteredUnbalancedTxTx <> fold inputValues
+        left = txMint filteredUnbalancedTxTx <> fold inputValues
         right = fees <> foldMap (view Tx.outValue) (filteredUnbalancedTxTx ^. Tx.outputs)
         remainingFees = fees PlutusTx.- fold collateral -- TODO: add collateralPercent
         balance = left PlutusTx.- right

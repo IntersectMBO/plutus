@@ -143,7 +143,7 @@ data BankState =
         { bsReserves            :: BC Integer -- ^ Value of the bank's reserves in base currency
         , bsStablecoins         :: SC Integer -- ^ Amount of stablecoins in circulation
         , bsReservecoins        :: RC Integer -- ^ Amount of reservecoins currently in circulation
-        , bsForgingPolicyScript :: MintingPolicyHash -- ^ Hash of the minting policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
+        , bsMintingPolicyScript :: MintingPolicyHash -- ^ Hash of the minting policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
@@ -155,7 +155,7 @@ initialState StateMachineClient{scInstance=StateMachine.StateMachineInstance{Sta
         { bsReserves = 0
         , bsStablecoins = 0
         , bsReservecoins = 0
-        , bsForgingPolicyScript = Scripts.forwardingMintingPolicyHash typedValidator
+        , bsMintingPolicyScript = Scripts.forwardingMintingPolicyHash typedValidator
         }
 
 {-# INLINEABLE convert #-}
@@ -283,7 +283,7 @@ transition sc State{stateData=oldState} input =
 --   new state and tx constraints, without checking whether the new state
 --   is valid.
 applyInput :: forall i o. Stablecoin -> BankState -> Input -> Maybe (TxConstraints i o, BankState)
-applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@BankState{bsForgingPolicyScript} Input{inpSCAction, inpConversionRate} = do
+applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@BankState{bsMintingPolicyScript} Input{inpSCAction, inpConversionRate} = do
     (Observation{obsValue=rate, obsTime}, constraints) <- either (const Nothing) pure (verifySignedMessageConstraints scOracle inpConversionRate)
     let fees = calcFees sc bs rate inpSCAction
         (newState, newConstraints) = case inpSCAction of
@@ -292,13 +292,13 @@ applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} 
                 (bs
                 { bsStablecoins = bsStablecoins bs + sc'
                 , bsReserves = bsReserves bs + fmap round (fees + scValue)
-                }, Constraints.mustForgeCurrency bsForgingPolicyScript scStablecoinTokenName (unSC sc'))
+                }, Constraints.mustMintCurrency bsMintingPolicyScript scStablecoinTokenName (unSC sc'))
             MintReserveCoin rc ->
                 let rcValue = reservecoinNominalPrice sc bs rate * (BC $ fromInteger $ unRC rc) in
                 (bs
                 { bsReservecoins = bsReservecoins bs + rc
                 , bsReserves = bsReserves bs + fmap round (fees + rcValue)
-                }, Constraints.mustForgeCurrency bsForgingPolicyScript scReservecoinTokenName (unRC rc))
+                }, Constraints.mustMintCurrency bsMintingPolicyScript scReservecoinTokenName (unRC rc))
     let dateConstraints = Constraints.mustValidateIn $ Interval.from obsTime
     pure (constraints <> newConstraints <> dateConstraints, newState)
 

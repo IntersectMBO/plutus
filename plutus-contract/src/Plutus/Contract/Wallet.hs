@@ -32,11 +32,11 @@ fee payments. To turn an 'UnbalancedTx' value into a valid transaction that can
 be submitted to the network, the contract backend needs to
 
 * Balance it.
-  If the total value of 'txInputs' + the 'txForge' field is
+  If the total value of 'txInputs' + the 'txMint' field is
   greater than the total value of 'txOutputs', then one or more public key
   outputs need to be added. How many and what addresses they are is up
   to the wallet (probably configurable).
-  If the total balance 'txInputs' + the 'txForge' field is less than
+  If the total balance 'txInputs' + the 'txMint' field is less than
   the total value of 'txOutputs', then one or more public key inputs need
   to be added (and potentially some outputs for the change).
 
