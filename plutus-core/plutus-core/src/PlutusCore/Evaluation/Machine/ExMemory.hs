@@ -111,14 +111,23 @@ a `upperIntegerQuotient` b =
     in if r==0 then q else q+1
 
 {- | A class which allows us to scale budget-related quantities upwards and
-   downwards by a given factor. -}
+downwards by a strictly positive integer factor.  The operations are NOT
+required to be mutually inverse: in the instances for costing integers we
+always have `scaleDown k . scaleUp k = id`, but `scaleDown` loses information
+and so we don't have `scaleUp k (scaleDown k c) = c`; instead (and by design)
+we have `c <= scaleUp k (scaleDown k c) <= c+k` for all c and for all k > 0. -}
 class Scalable a where
     scaleUp   :: Integer -> a -> a
     scaleDown :: Integer -> a -> a
 
+checkPositive :: Integer -> a -> a
+checkPositive k r =
+    if k > 0 then r
+    else error $ "Scalable: strictly positive scale factor expected, but found " ++ show k
+
 instance Scalable CostingInteger where
-    scaleUp k n = (fromInteger k) * n
-    scaleDown k n = n `upperIntegerQuotient` (fromInteger k)
+    scaleUp   k c = checkPositive k $ (fromInteger k) * c
+    scaleDown k c = checkPositive k $ c `upperIntegerQuotient` (fromInteger k)
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
