@@ -4,13 +4,13 @@
 Writing basic minting policies
 ==============================
 
-:term:`Forging policy scripts<minting policy script>` are the programs that can be used to control the minting of new assets on the chain.
-Forging policy scripts are much like :term:`validator scripts<validator script>`, and they are written similarly, so check out the :ref:`basic validators tutorial<basic_validators_tutorial>` before reading this one .
+:term:`Minting policy scripts<minting policy script>` are the programs that can be used to control the minting of new assets on the chain.
+Minting policy scripts are much like :term:`validator scripts<validator script>`, and they are written similarly, so check out the :ref:`basic validators tutorial<basic_validators_tutorial>` before reading this one .
 
-Forging policy arguments
+Minting policy arguments
 ------------------------
 
-Forging policies, like validators, receive some information from the validating node:
+Minting policies, like validators, receive some information from the validating node:
 
 - The :term:`redeemer`, which is some script-specific data specified by the party performing the minting.
 - The :term:`minting context`, which contains a representation of the spending transaction, as well as the hash of the minting policy which is currently being run.
@@ -29,7 +29,7 @@ Validators have access to the :term:`minting context` as their second argument.
 This will always be a value of type ``Ledger.Validation.PolicyCtx`` encoded as ``Data``.
 
 The minting context is very similar to the :term:`validation context`, and allows access to all the same features of the transaction.
-Forging policies tend to be particularly interested in the ``mint`` field, since the point of a minting policy is to control which tokens are minted.
+Minting policies tend to be particularly interested in the ``mint`` field, since the point of a minting policy is to control which tokens are minted.
 
 It is also important for a minting policy to look at the tokens in the ``mint`` field that are part of its own asset group.
 This requires the policy to refer to its own hash -- fortunately this is provided for us in the minting context.
