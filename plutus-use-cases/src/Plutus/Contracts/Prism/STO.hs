@@ -59,7 +59,7 @@ validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} _ ScriptContext{s
         mintOK =
             -- Note that this doesn't prevent any tokens with a name other than
             -- 'stoTokenName' from being minted
-            Value.valueOf (Validation.txInfoMint txInfo) ownHash stoTokenName == paidToIssuer
+            Value.valueOf (Validation.txInfoForge txInfo) ownHash stoTokenName == paidToIssuer
     in tokenOK && mintOK
 validateSTO _ _ _ = error ()
 

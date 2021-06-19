@@ -75,7 +75,7 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
         $ isJust (V.findTxInByTxOutRef txOutRef scriptContextTxInfo)
     MustMintValue mps tn v ->
         traceIfFalse "Value minted not OK"
-        $ Value.valueOf (txInfoMint scriptContextTxInfo) (Value.mpsSymbol mps) tn == v
+        $ Value.valueOf (txInfoForge scriptContextTxInfo) (Value.mpsSymbol mps) tn == v
     MustPayToPubKey pk vl ->
         traceIfFalse "MustPayToPubKey"
         $ vl `leq` V.valuePaidTo scriptContextTxInfo pk
