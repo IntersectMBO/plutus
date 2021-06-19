@@ -34,7 +34,7 @@ import           Wallet.Types                      (EndpointDescription (..), En
 acceptingValidator :: Ledger.Validator
 acceptingValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| (\_ _ _ -> ()) ||])
 
--- | A monetary policy that always succeeds.
+-- | A minting policy that always succeeds.
 acceptingMintingPolicy :: Ledger.MintingPolicy
 acceptingMintingPolicy = Ledger.mkMintingPolicyScript $$(PlutusTx.compile [|| (\_ _ -> ()) ||])
 

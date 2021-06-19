@@ -143,7 +143,7 @@ data BankState =
         { bsReserves            :: BC Integer -- ^ Value of the bank's reserves in base currency
         , bsStablecoins         :: SC Integer -- ^ Amount of stablecoins in circulation
         , bsReservecoins        :: RC Integer -- ^ Amount of reservecoins currently in circulation
-        , bsForgingPolicyScript :: MintingPolicyHash -- ^ Hash of the forging policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
+        , bsForgingPolicyScript :: MintingPolicyHash -- ^ Hash of the minting policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)

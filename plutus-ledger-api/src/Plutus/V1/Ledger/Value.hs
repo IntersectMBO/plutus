@@ -110,7 +110,7 @@ mpsSymbol :: MintingPolicyHash -> CurrencySymbol
 mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
 
 {-# INLINABLE currencyMPSHash #-}
--- | The monetary policy hash of a currency symbol
+-- | The minting policy hash of a currency symbol
 currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
 currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 

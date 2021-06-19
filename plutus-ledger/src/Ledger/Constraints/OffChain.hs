@@ -111,7 +111,7 @@ instance Monoid (ScriptLookups a) where
     mempty  = ScriptLookups mempty mempty mempty mempty Nothing Nothing
 
 -- | A script lookups value with a script instance. For convenience this also
---   includes the monetary policy script that forwards all checks to the
+--   includes the minting policy script that forwards all checks to the
 --   instance's validator.
 typedValidatorLookups :: TypedValidator a -> ScriptLookups a
 typedValidatorLookups inst =
@@ -129,7 +129,7 @@ typedValidatorLookups inst =
 unspentOutputs :: Map TxOutRef TxOutTx -> ScriptLookups a
 unspentOutputs mp = mempty { slTxOutputs = mp }
 
--- | A script lookups value with a monetary policy script
+-- | A script lookups value with a minting policy script
 mintingPolicy :: MintingPolicy -> ScriptLookups a
 mintingPolicy pl =
     let hsh = mintingPolicyHash pl in
@@ -395,7 +395,7 @@ instance Pretty MkTxError where
         TxOutRefNotFound t      -> "Tx out reference not found:" <+> pretty t
         TxOutRefWrongType t     -> "Tx out reference wrong type:" <+> pretty t
         DatumNotFound h         -> "No datum with hash" <+> pretty h <+> "was found"
-        MintingPolicyNotFound h -> "No monetary policy with hash" <+> pretty h <+> "was found"
+        MintingPolicyNotFound h -> "No minting policy with hash" <+> pretty h <+> "was found"
         ValidatorHashNotFound h -> "No validator with hash" <+> pretty h <+> "was found"
         OwnPubKeyMissing        -> "Own public key is missing"
         TypedValidatorMissing   -> "Script instance is missing"

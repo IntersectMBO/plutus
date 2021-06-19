@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeOperators      #-}
 {-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
--- | Implements a custom currency with a monetary policy that allows
+-- | Implements a custom currency with a minting policy that allows
 --   the forging of a fixed amount of units.
 module Plutus.Contracts.Currency(
       OneShotCurrency(..)
@@ -23,7 +23,7 @@ module Plutus.Contracts.Currency(
     , forgeContract
     , forgedValue
     , currencySymbol
-    -- * Simple monetary policy currency
+    -- * Simple minting policy currency
     , SimpleMPS(..)
     , forgeCurrency
     -- * Creating thread tokens
@@ -152,7 +152,7 @@ instance AsPubKeyError CurrencyError where
 
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
---   If @k == 0@ then no value is forged. A one-shot monetary policy
+--   If @k == 0@ then no value is forged. A one-shot minting policy
 --   script is used to ensure that no more units of the currency can
 --   be forged afterwards.
 forgeContract
@@ -175,7 +175,7 @@ forgeContract pk amounts = mapError (review _CurrencyError) $ do
     _ <- awaitTxConfirmed (txId tx)
     pure theCurrency
 
--- | Monetary policy for a currency that has a fixed amount of tokens issued
+-- | Minting policy for a currency that has a fixed amount of tokens issued
 --   in one transaction
 data SimpleMPS =
     SimpleMPS

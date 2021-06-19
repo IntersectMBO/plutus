@@ -83,7 +83,7 @@ data TypedValidator (a :: Type) =
         , tvValidatorHash     :: Scripts.ValidatorHash
         , tvForwardingMPS     :: Scripts.MintingPolicy
         , tvForwardingMPSHash :: Scripts.MintingPolicyHash
-        -- ^ The hash of the monetary policy that checks whether the validator
+        -- ^ The hash of the minting policy that checks whether the validator
         --   is run in this transaction
         }
     deriving stock (Show, Eq, Generic)
@@ -145,12 +145,12 @@ unsafeMkTypedValidator vl =
         , tvForwardingMPSHash = Scripts.mintingPolicyHash mps
         }
 
--- | The monetary policy that forwards all checks to the instance's
+-- | The minting policy that forwards all checks to the instance's
 --   validator
 forwardingMintingPolicy :: TypedValidator a -> Scripts.MintingPolicy
 forwardingMintingPolicy = tvForwardingMPS
 
--- | Hash of the monetary policy that forwards all checks to the instance's
+-- | Hash of the minting policy that forwards all checks to the instance's
 --   validator
 forwardingMintingPolicyHash :: TypedValidator a -> Scripts.MintingPolicyHash
 forwardingMintingPolicyHash = tvForwardingMPSHash

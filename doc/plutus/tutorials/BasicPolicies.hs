@@ -32,7 +32,7 @@ oneAtATimePolicy _ ctx =
     -- will assume we've got from elsewhere for now.
     in valueOf forged ownSymbol tname == 1
 
--- We can use 'compile' to turn a forging policy into a compiled Plutus Core program,
+-- We can use 'compile' to turn a minting policy into a compiled Plutus Core program,
 -- just as for validator scripts. We also provide a 'wrapMintingPolicy' function
 -- to handle the boilerplate.
 oneAtATimeCompiled :: CompiledCode (Data -> Data -> ())

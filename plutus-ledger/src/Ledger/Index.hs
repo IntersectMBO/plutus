@@ -129,7 +129,7 @@ data ValidationError =
     -- ^ The transaction is missing a signature
     | ForgeWithoutScript Scripts.MintingPolicyHash
     -- ^ The transaction attempts to forge value of a currency without running
-    --   the currency's monetary policy.
+    --   the currency's minting policy.
     | TransactionFeeTooLow V.Value V.Value
     -- ^ The transaction fee is lower than the minimum acceptable fee.
     deriving (Eq, Show, Generic)
@@ -238,7 +238,7 @@ the blockchain.
 -}
 
 -- | Check whether each currency forged by the transaction is matched by
---   a corresponding monetary policy script (in the form of a pay-to-script
+--   a corresponding minting policy script (in the form of a pay-to-script
 --   output of the currency's address).
 --
 checkForgingAuthorised :: ValidationMonad m => Tx -> m ()

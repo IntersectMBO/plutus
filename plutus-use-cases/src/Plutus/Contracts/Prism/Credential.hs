@@ -6,7 +6,7 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
--- | Forging policy script for credential tokens.
+-- | Minting policy script for credential tokens.
 module Plutus.Contracts.Prism.Credential(
     CredentialAuthority(..)
     , Credential(..)
@@ -48,7 +48,7 @@ data Credential =
     deriving stock (Generic, Haskell.Eq, Haskell.Show, Haskell.Ord)
     deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema)
 
--- | The forging policy script validating the creation of credential tokens
+-- | The minting policy script validating the creation of credential tokens
 {-# INLINABLE validateForge #-}
 validateForge :: CredentialAuthority -> () -> ScriptContext -> Bool
 validateForge CredentialAuthority{unCredentialAuthority} _ ScriptContext{scriptContextTxInfo=txinfo} =
