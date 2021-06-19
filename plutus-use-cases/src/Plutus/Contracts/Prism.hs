@@ -16,7 +16,7 @@ There are two actors:
 
 We have the following modules.
 
-1. .Credential: Defines the 'Credential' type and a forging policy script
+1. .Credential: Defines the 'Credential' type and a minting policy script
    for creating and destroying credential tokens
 2. .StateMachine: Defines the state machine script that allows Users to
    present their credentials in transactions and Mirror to revoke/destroy
@@ -31,8 +31,8 @@ We have the following modules.
 6. .Unlock: Two Plutus applications that each present a credential to unlock
    some funds.
 
-We work with two different script hashes: The hash of the monetary policy that
-forges the tokens (see 'policy'), and the hash of the state machine instance
+We work with two different script hashes: The hash of the minting policy that
+mints the tokens (see 'policy'), and the hash of the state machine instance
 that locks a specific credential token for a specific user, identified by their
 public key address.
 

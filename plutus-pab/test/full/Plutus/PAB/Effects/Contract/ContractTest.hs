@@ -76,7 +76,7 @@ getContract = \case
     PingPong         -> SomeBuiltin pingPong
     where
         game = Contracts.GameStateMachine.contract
-        currency = Contracts.Currency.forgeCurrency
+        currency = Contracts.Currency.mintCurrency
         swp = first tshow Contracts.AtomicSwap.atomicSwap
         payToWallet = Contracts.PayToWallet.payToWallet
         pingPong = Contracts.PingPong.combined

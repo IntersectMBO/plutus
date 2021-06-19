@@ -33,7 +33,7 @@ import           Ledger                                (Address, Blockchain, Pub
                                                         TxId, TxIn (TxIn),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
+                                                        Value, txFee, txMint, txOutValue, txOutputs, txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (Datum (getDatum), Script, Validator,
@@ -92,7 +92,7 @@ instance Render [[AnnotatedTx]] where
 
 instance Render AnnotatedTx where
     render AnnotatedTx { txId
-                       , tx = Tx {txOutputs, txForge, txFee, txSignatures}
+                       , tx = Tx {txOutputs, txMint, txFee, txSignatures}
                        , dereferencedInputs
                        , balances
                        , valid = True
@@ -101,7 +101,7 @@ instance Render AnnotatedTx where
         sequence
             [ heading "TxId:" txId
             , heading "Fee:" txFee
-            , heading "Forge:" txForge
+            , heading "Mint:" txMint
             , heading "Signatures" txSignatures
             , pure "Inputs:"
             , indent 2 <$> numbered "----" "Input" dereferencedInputs

@@ -40,7 +40,7 @@ import qualified Ledger.Typed.Scripts             as Scripts
 import           Playground.Contract
 import           Plutus.Contract
 import qualified Plutus.Contracts.Currency        as Currency
-import           Plutus.Contracts.Uniswap.OnChain (mkUniswapValidator, validateLiquidityForging)
+import           Plutus.Contracts.Uniswap.OnChain (mkUniswapValidator, validateLiquidityMinting)
 import           Plutus.Contracts.Uniswap.Pool
 import           Plutus.Contracts.Uniswap.Types
 import qualified PlutusTx
@@ -105,9 +105,9 @@ uniswapAddress = Ledger.scriptAddress . uniswapScript
 uniswap :: CurrencySymbol -> Uniswap
 uniswap cs = Uniswap $ mkCoin cs uniswapTokenName
 
-liquidityPolicy :: Uniswap -> MonetaryPolicy
-liquidityPolicy us = mkMonetaryPolicyScript $
-    $$(PlutusTx.compile [|| \u t -> Scripts.wrapMonetaryPolicy (validateLiquidityForging u t) ||])
+liquidityPolicy :: Uniswap -> MintingPolicy
+liquidityPolicy us = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| \u t -> Scripts.wrapMintingPolicy (validateLiquidityMinting u t) ||])
         `PlutusTx.applyCode` PlutusTx.liftCode us
         `PlutusTx.applyCode` PlutusTx.liftCode poolStateTokenName
 
@@ -174,7 +174,7 @@ start = do
     pkh <- pubKeyHash <$> ownPubKey
     cs  <- fmap Currency.currencySymbol $
            mapError (pack . show @Currency.CurrencyError) $
-           Currency.forgeContract pkh [(uniswapTokenName, 1)]
+           Currency.mintContract pkh [(uniswapTokenName, 1)]
     let c    = mkCoin cs uniswapTokenName
         us   = uniswap cs
         inst = uniswapInstance us
@@ -204,12 +204,12 @@ create us CreateParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
-                   Constraints.monetaryPolicy (liquidityPolicy us) <>
+                   Constraints.mintingPolicy (liquidityPolicy us) <>
                    Constraints.unspentOutputs (Map.singleton oref o)
 
         tx       = Constraints.mustPayToTheScript usDat1 usVal                                     <>
                    Constraints.mustPayToTheScript usDat2 lpVal                                     <>
-                   Constraints.mustForgeValue (unitValue psC <> valueOf lC liquidity)              <>
+                   Constraints.mustMintValue (unitValue psC <> valueOf lC liquidity)              <>
                    Constraints.mustSpendScriptOutput oref (Redeemer $ PlutusTx.toData $ Create lp)
 
     ledgerTx <- submitTxConstraintsWith lookups tx
@@ -235,12 +235,12 @@ close us CloseParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst        <>
                    Constraints.otherScript usScript                <>
-                   Constraints.monetaryPolicy (liquidityPolicy us) <>
+                   Constraints.mintingPolicy (liquidityPolicy us) <>
                    Constraints.ownPubKeyHash pkh                   <>
                    Constraints.unspentOutputs (Map.singleton oref1 o1 <> Map.singleton oref2 o2)
 
         tx       = Constraints.mustPayToTheScript usDat usVal          <>
-                   Constraints.mustForgeValue (negate $ psVal <> lVal) <>
+                   Constraints.mustMintValue (negate $ psVal <> lVal) <>
                    Constraints.mustSpendScriptOutput oref1 redeemer    <>
                    Constraints.mustSpendScriptOutput oref2 redeemer    <>
                    Constraints.mustIncludeDatum (Datum $ PlutusTx.toData $ Pool lp liquidity)
@@ -272,12 +272,12 @@ remove us RemoveParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst          <>
                    Constraints.otherScript usScript                  <>
-                   Constraints.monetaryPolicy (liquidityPolicy us)   <>
+                   Constraints.mintingPolicy (liquidityPolicy us)   <>
                    Constraints.unspentOutputs (Map.singleton oref o) <>
                    Constraints.ownPubKeyHash pkh
 
         tx       = Constraints.mustPayToTheScript dat val          <>
-                   Constraints.mustForgeValue (negate lVal)        <>
+                   Constraints.mustMintValue (negate lVal)        <>
                    Constraints.mustSpendScriptOutput oref redeemer
 
     ledgerTx <- submitTxConstraintsWith lookups tx
@@ -313,12 +313,12 @@ add us AddParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst             <>
                    Constraints.otherScript usScript                     <>
-                   Constraints.monetaryPolicy (liquidityPolicy us)      <>
+                   Constraints.mintingPolicy (liquidityPolicy us)      <>
                    Constraints.ownPubKeyHash pkh                        <>
                    Constraints.unspentOutputs (Map.singleton oref o)
 
         tx       = Constraints.mustPayToTheScript dat val          <>
-                   Constraints.mustForgeValue lVal                 <>
+                   Constraints.mustMintValue lVal                 <>
                    Constraints.mustSpendScriptOutput oref redeemer
 
     logInfo @String $ printf "val = %s, inVal = %s" (show val) (show inVal)

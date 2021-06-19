@@ -361,7 +361,7 @@ setupMarloweParams owners contract = mapError (review _MarloweError) $ do
     else if roles `Set.isSubsetOf` Set.fromList (AssocMap.keys owners)
     then do
         let tokens = fmap (\role -> (role, 1)) $ Set.toList roles
-        cur <- mapError RolesCurrencyError $ Currency.forgeContract creator tokens
+        cur <- mapError RolesCurrencyError $ Currency.mintContract creator tokens
         let rolesSymbol = Currency.currencySymbol cur
         let giveToParty (role, pkh) = Constraints.mustPayToPubKey pkh (Val.singleton rolesSymbol role 1)
         let distributeRoleTokens = foldMap giveToParty (AssocMap.toList owners)

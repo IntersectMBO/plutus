@@ -285,10 +285,10 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
             { txInputs = mempty
             , txCollateral = mempty
             , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
-            , txForge = foldMap snd $ Map.toList mp
+            , txMint = foldMap snd $ Map.toList mp
             , txFee = mempty
             , txValidRange = WAPI.defaultSlotRange
-            , txForgeScripts = mempty
+            , txMintScripts = mempty
             , txSignatures = mempty
             , txData = mempty
             }

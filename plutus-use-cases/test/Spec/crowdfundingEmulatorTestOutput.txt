@@ -25,7 +25,7 @@ Slot 1: W2: Balancing an unbalanced transaction:
                   outputs:
                     - Value (Map [(,Map [("",100)])]) addressed to
                       addressed to ScriptCredential: 55aa9cddd1f504a892c55412984bbdcc854800af1ccd2ba7b5c188129a3fb9d8 (no staking credential)
-                  forge: Value (Map [])
+                  mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
                   signatures:
@@ -51,7 +51,7 @@ Slot 1: W3: Balancing an unbalanced transaction:
                   outputs:
                     - Value (Map [(,Map [("",100)])]) addressed to
                       addressed to ScriptCredential: 55aa9cddd1f504a892c55412984bbdcc854800af1ccd2ba7b5c188129a3fb9d8 (no staking credential)
-                  forge: Value (Map [])
+                  mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
                   signatures:
@@ -71,7 +71,7 @@ Slot 1: W4: Balancing an unbalanced transaction:
                   outputs:
                     - Value (Map [(,Map [("",25)])]) addressed to
                       addressed to ScriptCredential: 55aa9cddd1f504a892c55412984bbdcc854800af1ccd2ba7b5c188129a3fb9d8 (no staking credential)
-                  forge: Value (Map [])
+                  mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
                   signatures:
@@ -100,7 +100,7 @@ Slot 20: W1: Balancing an unbalanced transaction:
                         Redeemer: <>
                    collateral inputs:
                    outputs:
-                   forge: Value (Map [])
+                   mint: Value (Map [])
                    fee: Value (Map [])
                    mps:
                    signatures:

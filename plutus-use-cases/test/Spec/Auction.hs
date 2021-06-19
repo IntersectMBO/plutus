@@ -49,7 +49,7 @@ params =
 theToken :: Value
 theToken =
     -- "ffff" is not a valid MPS hash. But this doesn't matter because we
-    -- never try to forge any value of "ffff" using a script.
+    -- never try to mint any value of "ffff" using a script.
     -- This currency is created by the initial transaction.
     Value.singleton "ffff" "token" 1
 

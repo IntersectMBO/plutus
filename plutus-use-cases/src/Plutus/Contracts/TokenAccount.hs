@@ -230,7 +230,7 @@ newAccount
     -- ^ Public key of the token's initial owner
     -> Contract w s e Account
 newAccount tokenName pk = mapError (review _TokenAccountError) $ do
-    cur <- Currency.forgeContract pk [(tokenName, 1)]
+    cur <- Currency.mintContract pk [(tokenName, 1)]
     let sym = Currency.currencySymbol cur
     pure $ Account $ Value.assetClass sym tokenName
 

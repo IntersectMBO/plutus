@@ -39,9 +39,9 @@ Glossary
       actually distributed to users and run by the PAB.
 
     currency
-      A class of token whose forging is controlled by a particular monetary
+      A class of token whose minting is controlled by a particular monetary
       policy script. On the Cardano ledger there is a special currency
-      called Ada which can never be forged and which is controlled
+      called Ada which can never be minted and which is controlled
       separately.
 
     datum
@@ -57,18 +57,18 @@ Glossary
 
       See :ref:`what_is_a_ledger`.
 
-    forging
-      A transaction which forges tokens creates new tokens, providing that
-      the corresponding monetary policy script is satisfied. The amount
-      forged can be negative, in which case the tokens will be destroyed
+    minting
+      A transaction which mints tokens creates new tokens, providing that
+      the corresponding minting policy script is satisfied. The amount
+      minted can be negative, in which case the tokens will be destroyed
       instead of created.
 
-    forging context
+    minting context
       A data structure containing a summary of the transaction being
-      validated, and the current forging policy which is being run.
+      validated, and the current minting policy which is being run.
 
-    forging policy script
-      A script which must be satisfied in order for a transaction to forge
+    minting policy script
+      A script which must be satisfied in order for a transaction to mint
       tokens of the corresponding currency.
 
     Hydra

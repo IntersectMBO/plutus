@@ -583,7 +583,7 @@ setupTokens = mapError (review _FutureError) $ do
 
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
-    cur <- mapError TokenSetupFailed $ Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)]
+    cur <- mapError TokenSetupFailed $ Currency.mintContract (pubKeyHash pk) [("long", 1), ("short", 1)]
     let acc = Account . Value.assetClass (Currency.currencySymbol cur)
     pure $ mkAccounts (acc "long") (acc "short")
 

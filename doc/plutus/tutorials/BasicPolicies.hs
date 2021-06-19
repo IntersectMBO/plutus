@@ -27,16 +27,16 @@ oneAtATimePolicy _ ctx =
     -- from the context
     let ownSymbol = ownCurrencySymbol ctx
         txinfo = scriptContextTxInfo ctx
-        forged = txInfoForge txinfo
+        minted = txInfoForge txinfo
     -- Here we're looking at some specific token name, which we
     -- will assume we've got from elsewhere for now.
-    in valueOf forged ownSymbol tname == 1
+    in valueOf minted ownSymbol tname == 1
 
--- We can use 'compile' to turn a forging policy into a compiled Plutus Core program,
--- just as for validator scripts. We also provide a 'wrapMonetaryPolicy' function
+-- We can use 'compile' to turn a minting policy into a compiled Plutus Core program,
+-- just as for validator scripts. We also provide a 'wrapMintingPolicy' function
 -- to handle the boilerplate.
 oneAtATimeCompiled :: CompiledCode (Data -> Data -> ())
-oneAtATimeCompiled = $$(compile [|| wrapMonetaryPolicy oneAtATimePolicy ||])
+oneAtATimeCompiled = $$(compile [|| wrapMintingPolicy oneAtATimePolicy ||])
 -- BLOCK2
 singleSignerPolicy :: ScriptContext -> Bool
 singleSignerPolicy ctx = txSignedBy (scriptContextTxInfo ctx) key

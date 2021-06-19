@@ -91,7 +91,7 @@ instance ContractModel GameModel where
         hasToken      $= Just w
         currentSecret $= secret
         gameValue     $= val
-        forge gameTokenVal
+        mint gameTokenVal
         deposit  w gameTokenVal
         withdraw w $ Ada.lovelaceValueOf val
         wait 2
@@ -298,5 +298,5 @@ failTrace = do
 
 gameTokenVal :: Value
 gameTokenVal =
-    let sym = Scripts.forwardingMonetaryPolicyHash G.typedValidator
+    let sym = Scripts.forwardingMintingPolicyHash G.typedValidator
     in G.token sym "guess"

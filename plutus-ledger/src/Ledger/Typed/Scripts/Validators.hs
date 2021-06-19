@@ -10,7 +10,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Ledger.Typed.Scripts.Validators (ValidatorTypes(..), ValidatorType, WrappedValidatorType, wrapValidator, TypedValidator, mkTypedValidator, mkTypedValidatorParam, validatorHash, validatorAddress, validatorScript, unsafeMkTypedValidator, forwardingMonetaryPolicy, forwardingMonetaryPolicyHash) where
+module Ledger.Typed.Scripts.Validators (ValidatorTypes(..), ValidatorType, WrappedValidatorType, wrapValidator, TypedValidator, mkTypedValidator, mkTypedValidatorParam, validatorHash, validatorAddress, validatorScript, unsafeMkTypedValidator, forwardingMintingPolicy, forwardingMintingPolicyHash) where
 
 import           Data.Aeson                            (FromJSON, ToJSON)
 import           Data.Kind
@@ -81,9 +81,9 @@ data TypedValidator (a :: Type) =
     TypedValidator
         { tvValidator         :: Scripts.Validator
         , tvValidatorHash     :: Scripts.ValidatorHash
-        , tvForwardingMPS     :: Scripts.MonetaryPolicy
-        , tvForwardingMPSHash :: Scripts.MonetaryPolicyHash
-        -- ^ The hash of the monetary policy that checks whether the validator
+        , tvForwardingMPS     :: Scripts.MintingPolicy
+        , tvForwardingMPSHash :: Scripts.MintingPolicyHash
+        -- ^ The hash of the minting policy that checks whether the validator
         --   is run in this transaction
         }
     deriving stock (Show, Eq, Generic)
@@ -99,12 +99,12 @@ mkTypedValidator ::
 mkTypedValidator vc wrapper =
     let val = Scripts.mkValidatorScript $ wrapper `applyCode` vc
         hsh = Scripts.validatorHash val
-        mps = MPS.mkForwardingMonetaryPolicy hsh
+        mps = MPS.mkForwardingMintingPolicy hsh
     in TypedValidator
         { tvValidator         = val
         , tvValidatorHash     = hsh
         , tvForwardingMPS     = mps
-        , tvForwardingMPSHash = Scripts.monetaryPolicyHash mps
+        , tvForwardingMPSHash = Scripts.mintingPolicyHash mps
         }
 
 -- | Make a 'TypedValidator' from the 'CompiledCode' of a paramaterized validator script and its wrapper.
@@ -136,21 +136,21 @@ validatorScript = tvValidator
 unsafeMkTypedValidator :: Scripts.Validator -> TypedValidator Any
 unsafeMkTypedValidator vl =
     let vh = Scripts.validatorHash vl
-        mps = MPS.mkForwardingMonetaryPolicy vh
+        mps = MPS.mkForwardingMintingPolicy vh
     in
     TypedValidator
         { tvValidator         = vl
         , tvValidatorHash     = vh
         , tvForwardingMPS     = mps
-        , tvForwardingMPSHash = Scripts.monetaryPolicyHash mps
+        , tvForwardingMPSHash = Scripts.mintingPolicyHash mps
         }
 
--- | The monetary policy that forwards all checks to the instance's
+-- | The minting policy that forwards all checks to the instance's
 --   validator
-forwardingMonetaryPolicy :: TypedValidator a -> Scripts.MonetaryPolicy
-forwardingMonetaryPolicy = tvForwardingMPS
+forwardingMintingPolicy :: TypedValidator a -> Scripts.MintingPolicy
+forwardingMintingPolicy = tvForwardingMPS
 
--- | Hash of the monetary policy that forwards all checks to the instance's
+-- | Hash of the minting policy that forwards all checks to the instance's
 --   validator
-forwardingMonetaryPolicyHash :: TypedValidator a -> Scripts.MonetaryPolicyHash
-forwardingMonetaryPolicyHash = tvForwardingMPSHash
+forwardingMintingPolicyHash :: TypedValidator a -> Scripts.MintingPolicyHash
+forwardingMintingPolicyHash = tvForwardingMPSHash

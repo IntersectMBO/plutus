@@ -11,5 +11,5 @@ Tutorials
    basic-apps
    plutus-tx
    basic-validators
-   basic-forging-policies
+   basic-minting-policies
    contract-testing

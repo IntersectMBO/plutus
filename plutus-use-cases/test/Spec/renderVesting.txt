@@ -1,7 +1,7 @@
 ==== Slot #0, Tx #0 ====
 TxId:       af5e6d25b5ecb26185289a03d50786b7ac4425b21849143ed7e18bcd70dc4db8
 Fee:        -
-Forge:      Ada:      Lovelace:  1000000000
+Mint:       Ada:      Lovelace:  1000000000
 Signatures  -
 Inputs:
   
@@ -103,7 +103,7 @@ Balances Carried Forward:
 ==== Slot #1, Tx #0 ====
 TxId:       657fd71d36508feb2bc6747345bab6ee57353170df7053c14e521c1f40ff7434
 Fee:        Ada:      Lovelace:  10
-Forge:      -
+Mint:       -
 Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
               Signature: 584046b82b49630d176d7e531297c289f0142489...
 Inputs:
@@ -177,7 +177,7 @@ Balances Carried Forward:
 ==== Slot #2, Tx #0 ====
 TxId:       37555dbb27e0afd66706a79011b1b145015d545e651b9aab3c48276bb4db36a7
 Fee:        Ada:      Lovelace:  10187
-Forge:      -
+Mint:       -
 Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
               Signature: 5840a7172be0f52cde3bcbb47169325f10b24fc4...
 Inputs:

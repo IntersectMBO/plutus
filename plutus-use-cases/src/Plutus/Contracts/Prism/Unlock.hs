@@ -77,11 +77,11 @@ subscribeSTO = forever $ handleError (const $ return ()) $ do
                 }
         stoCoins = STO.coins stoData wSTOAmount
         constraints =
-            Constraints.mustForgeValue stoCoins
+            Constraints.mustMintValue stoCoins
             <> Constraints.mustPayToPubKey wSTOIssuer (Ada.lovelaceValueOf wSTOAmount)
             <> credConstraints
         lookups =
-            Constraints.monetaryPolicy (STO.policy stoData)
+            Constraints.mintingPolicy (STO.policy stoData)
             <> credLookups
     mapError WithdrawTxError
         $ submitTxConstraintsWith lookups constraints >>= awaitTxConfirmed . txId
