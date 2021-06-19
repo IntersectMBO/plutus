@@ -1,4 +1,4 @@
-.. hkghlight:: haskell
+.. highlight:: haskell
 .. _contract_testing_tutorial:
 
 Property-based testing of Plutus contracts
