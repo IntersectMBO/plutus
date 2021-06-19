@@ -102,6 +102,7 @@ data TxInfo = TxInfo
     { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
+    -- TODO: rename to txInfoMint, but this requires changes in cardano-ledger-specs
     , txInfoForge       :: Value -- ^ The 'Value' minted by this transaction.
     , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
     , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
