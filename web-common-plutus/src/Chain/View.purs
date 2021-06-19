@@ -136,7 +136,7 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
                         ]
                     ]
                 ]
-            , forgeView (view (_tx <<< _txForge) annotatedTx)
+            , forgeView (view (_tx <<< _txMint) annotatedTx)
             ]
         , col3_
             [ h2_ [ text "Outputs" ]
