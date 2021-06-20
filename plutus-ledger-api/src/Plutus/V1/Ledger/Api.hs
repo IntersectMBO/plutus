@@ -95,7 +95,7 @@ import qualified PlutusCore.DeBruijn                              as PLC
 import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
-import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
+import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..), Scalable (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import qualified PlutusCore.MkPlc                                 as PLC
 import           PlutusCore.Pretty
@@ -131,6 +131,14 @@ So we're going to end up with multiple versions of the types and functions that 
 internally. That means we don't lose anything by exposing all the details: we're never going to remove
 anything, we're just going to create new versions.
 -}
+
+{- | Internally the evaluator uses costs which approximate execution times in
+picoseconds.  This gives huge numbers which are unsuitable for users so we
+expose nanosecond-based costs to the ledger and scale them up and down to and
+from picoseconds for internal use.  The maximum possible cost from the viewpoint
+of the ledger will be 9223372036854776 units. -}
+costScaleFactor :: Integer
+costScaleFactor = 1000
 
 -- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
@@ -197,7 +205,7 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
     let (res, _, logs) =
             UPLC.runCek
                 (toMachineParameters model)
-                (UPLC.restricting $ PLC.ExRestrictingBudget budget)
+                (UPLC.restricting $ PLC.ExRestrictingBudget (scaleUp costScaleFactor budget))
                 (verbose == Verbose)
                 appliedTerm
 
@@ -227,4 +235,4 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
 
     tell $ Prelude.map Text.pack logs
     liftEither $ first CekError $ void res
-    pure final
+    pure $ scaleDown costScaleFactor final
