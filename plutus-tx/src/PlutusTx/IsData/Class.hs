@@ -12,7 +12,7 @@ import           Data.ByteString      as BS
 
 import           Prelude              (Int, Integer, Maybe (..), error)
 
-import           PlutusTx.Data
+import           PlutusCore.Data
 
 import           PlutusTx.Functor
 import           PlutusTx.Traversable
