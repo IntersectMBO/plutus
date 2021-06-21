@@ -37,6 +37,8 @@
           (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
+          (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
+          (hsPkgs."cardano-ledger-core" or (errorHandler.buildDepError "cardano-ledger-core"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -87,6 +89,7 @@
           "Data/Text/Extras"
           "Data/UUID/Extras"
           "Plutus/Contract"
+          "Plutus/Contract/CardanoAPI"
           "Plutus/Contract/Effects"
           "Plutus/Contract/Request"
           "Plutus/Contract/Checkpoint"
