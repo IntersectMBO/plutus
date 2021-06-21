@@ -90,12 +90,12 @@ By default, Flat does not use any space to serialise `()`.
 
 newtype AsSerialize a = AsSerialize
     { unAsSerialize :: a
-    }
+    } deriving newtype (Serialise)
 
 instance Serialise a => Flat (AsSerialize a) where
-    encode = encode . serialise . unAsSerialize
-    decode = AsSerialize . deserialise <$> decode
-    size = error "Implement me"
+    encode = encode . serialise
+    decode = deserialise <$> decode
+    size = size . serialise
 
 safeEncodeBits :: NumBits -> Word8 -> Encoding
 safeEncodeBits n v =
