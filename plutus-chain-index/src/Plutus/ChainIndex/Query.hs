@@ -34,7 +34,7 @@ data ChainIndexQueryEffect r where
     -- | Get the monetary policy from an MPS hash (if available)
     MonetaryPolicyFromHash :: MonetaryPolicyHash -> ChainIndexQueryEffect (Maybe MonetaryPolicy)
 
-    -- | Get the TxOut from a TxOutRef if available
+    -- | Get the TxOut from a TxOutRef (if available)
     TxOutFromRef :: TxOutRef -> ChainIndexQueryEffect (Maybe TxOut)
 
     -- | Get the transaction for a tx ID
