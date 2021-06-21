@@ -8,54 +8,53 @@ module Marlowe.Execution.State
   , getActionParticipant
   , extractNamedActions
   , expandBalances
+  , getAllPayments
   ) where
 
 import Prelude
 import Data.Array as Array
 import Data.BigInteger (fromInt)
 import Data.Lens (view, (^.))
-import Data.List (List)
+import Data.List (List, concat, fromFoldable, snoc)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, fromMaybe')
 import Data.Tuple.Nested ((/\))
+import Marlowe.Execution.Lenses (_currentPayments, _payments)
 import Marlowe.Execution.Types (ExecutionState, NamedAction(..), PendingTimeouts)
-import Marlowe.Semantics (Accounts, Action(..), Case(..), ChoiceId(..), Contract(..), Input, Party, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
+import Marlowe.Semantics (Accounts, Action(..), Case(..), ChoiceId(..), Contract(..), Input, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
 
 initExecution :: Slot -> Contract -> ExecutionState
 initExecution currentSlot contract =
-  let
-    previous = mempty
-
-    state = emptyState currentSlot
-  in
-    { previous
-    , current:
-        { state
-        , contract
-        }
-    , mPendingTimeouts: Nothing
-    , mNextTimeout: nextTimeout contract
-    }
+  { previousExecutionStates: mempty
+  , currentExecutionState:
+      { state: emptyState currentSlot
+      , contract
+      , payments: mempty
+      }
+  , mPendingTimeouts: Nothing
+  , mNextTimeout: nextTimeout contract
+  }
 
 -- FIXME: Change the order of the arguments to::  TransactionInput -> ExecutionState  -> ExecutionState
 nextState :: ExecutionState -> TransactionInput -> ExecutionState
-nextState { previous, current } txInput =
+nextState { previousExecutionStates, currentExecutionState } txInput =
   let
-    { state, contract } = current
+    { contract, state, payments } = currentExecutionState
 
     TransactionInput { interval: SlotInterval minSlot maxSlot } = txInput
 
-    { txOutState, txOutContract } = case computeTransaction txInput state contract of
-      (TransactionOutput { txOutState, txOutContract }) -> { txOutState, txOutContract }
+    { txOutState, txOutContract, txOutPayments } = case computeTransaction txInput state contract of
+      (TransactionOutput { txOutState, txOutContract, txOutPayments }) -> { txOutState, txOutContract, txOutPayments }
       -- We should not have contracts which cause errors in the dashboard so we will just ignore error cases for now
       -- FIXME: Change nextState to return an Either
       -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
-      (Error _) -> { txOutState: state, txOutContract: contract }
+      (Error _) -> { txOutState: state, txOutContract: contract, txOutPayments: payments }
   in
-    { previous: Array.snoc previous { txInput, state }
-    , current:
-        { state: txOutState
-        , contract: txOutContract
+    { previousExecutionStates: Array.snoc previousExecutionStates { contract, state, payments, txInput }
+    , currentExecutionState:
+        { contract: txOutContract
+        , state: txOutState
+        , payments: txOutPayments
         }
     , mPendingTimeouts: Nothing
     , mNextTimeout: nextTimeout txOutContract
@@ -72,7 +71,7 @@ mkTx currentSlot contract inputs =
     TransactionInput { interval, inputs }
 
 timeoutState :: Slot -> ExecutionState -> ExecutionState
-timeoutState currentSlot { current, previous, mPendingTimeouts, mNextTimeout } =
+timeoutState currentSlot { previousExecutionStates, currentExecutionState, mPendingTimeouts, mNextTimeout } =
   let
     Slot slot = currentSlot
 
@@ -109,24 +108,24 @@ timeoutState currentSlot { current, previous, mPendingTimeouts, mNextTimeout } =
                 }
         }
 
-    { state, contract, timeouts } =
+    { contract, state, timeouts } =
       fromMaybe'
         ( \_ ->
-            { contract: current.contract, state: current.state, timeouts: [] }
+            { contract: currentExecutionState.contract, state: currentExecutionState.state, timeouts: [] }
         )
         mPendingTimeouts
 
     advancedTimeouts = advanceAllTimeouts mNextTimeout timeouts state contract
   in
-    { previous
-    , current
+    { previousExecutionStates
+    , currentExecutionState
     , mPendingTimeouts: advancedTimeouts.mPendingTimeouts
     , mNextTimeout: advancedTimeouts.mNextTimeout
     }
 
 ------------------------------------------------------------
 isClosed :: ExecutionState -> Boolean
-isClosed { current: { contract: Close } } = true
+isClosed { currentExecutionState: { contract: Close } } = true
 
 isClosed _ = false
 
@@ -142,7 +141,7 @@ extractNamedActions _ { mPendingTimeouts: Just { contract: Close } } = [ CloseCo
 
 extractNamedActions currentSlot { mPendingTimeouts: Just { contract, state } } = extractActionsFromContract currentSlot state contract
 
-extractNamedActions currentSlot { current: { state, contract } } = extractActionsFromContract currentSlot state contract
+extractNamedActions currentSlot { currentExecutionState: { contract, state } } = extractActionsFromContract currentSlot state contract
 
 -- a When can only progress if it has timed out or has Cases
 extractActionsFromContract :: Slot -> State -> Contract -> Array NamedAction
@@ -219,3 +218,12 @@ mkInterval currentSlot contract = case nextTimeout contract of
     -- of failure, so maybe there is no need. Check after initial PAB integration.
     | minTime < currentSlot -> SlotInterval currentSlot currentSlot
     | otherwise -> SlotInterval currentSlot (minTime - (Slot $ fromInt 1))
+
+getAllPayments :: ExecutionState -> List Payment
+getAllPayments executionState@{ previousExecutionStates } =
+  let
+    previousPayments = fromFoldable $ map (view _payments) previousExecutionStates
+
+    currentPayments = view _currentPayments executionState
+  in
+    concat $ snoc previousPayments currentPayments

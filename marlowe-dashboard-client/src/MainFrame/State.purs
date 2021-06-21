@@ -146,7 +146,9 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               -- otherwise this should be one of the wallet's WalletFollowerApps
               else case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                Right contractHistory -> handleAction $ DashboardAction $ Dashboard.UpdateContract plutusAppId contractHistory
+                Right contractHistory -> do
+                  handleAction $ DashboardAction $ Dashboard.UpdateContract plutusAppId contractHistory
+                  handleAction $ DashboardAction $ Dashboard.RedeemPayments plutusAppId
         -- Plutus contracts in general can change in other ways, but the Marlowe contracts don't, so
         -- we can ignore these cases here
         _ -> pure unit

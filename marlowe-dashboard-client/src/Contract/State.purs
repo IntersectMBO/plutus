@@ -47,9 +47,9 @@ import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.Execution.Lenses (_currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions)
+import Marlowe.Execution.Lenses (_currentContract, _currentState, _pendingTimeouts, _previousExecutionStates, _previousTransactions)
 import Marlowe.Execution.State (expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
-import Marlowe.Execution.Types (ExecutionState, NamedAction(..), PreviousState)
+import Marlowe.Execution.Types (ExecutionState, NamedAction(..), PreviousExecutionState)
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
 import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
@@ -341,7 +341,7 @@ toInput (MakeNotify _) = Just $ Semantic.INotify
 
 toInput _ = Nothing
 
-transactionsToStep :: State -> PreviousState -> PreviousStep
+transactionsToStep :: State -> PreviousExecutionState -> PreviousStep
 transactionsToStep { participants } { txInput, state } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
@@ -382,7 +382,7 @@ regenerateStepCards currentSlot state =
   -- the Tasks tab). If any of them are showing the Balances tab, it would be nice to keep them that way.
   let
     confirmedSteps :: Array PreviousStep
-    confirmedSteps = toArrayOf (_executionState <<< _previousState <<< traversed <<< to (transactionsToStep state)) state
+    confirmedSteps = toArrayOf (_executionState <<< _previousExecutionStates <<< traversed <<< to (transactionsToStep state)) state
 
     pendingTimeoutSteps :: Array PreviousStep
     pendingTimeoutSteps = toArrayOf (_executionState <<< _pendingTimeouts <<< traversed <<< to (timeoutToStep state)) state

@@ -8,7 +8,7 @@ module Dashboard.State
 import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, lookupWalletInfo, subscribeToPlutusApp)
+import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, lookupWalletInfo, redeem, subscribeToPlutusApp)
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames, insertIntoWalletLibrary)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_mMarloweParams, _nickname, _selectedStep)
@@ -25,6 +25,7 @@ import Data.Foldable (for_)
 import Data.Lens (assign, filtered, modifying, over, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Traversal (traversed)
+import Data.List (filter, fromFoldable) as List
 import Data.Map (Map, alter, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable, toUnfoldableUnordered, values)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Time.Duration (Minutes(..))
@@ -42,9 +43,10 @@ import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
+import Marlowe.Execution.State (getAllPayments)
 import Marlowe.Extended.Metadata (_extendedContract, _metaData)
 import Marlowe.PAB (ContractHistory, MarloweParams, PlutusAppId(..), MarloweData)
-import Marlowe.Semantics (Slot(..))
+import Marlowe.Semantics (Party(..), Payee(..), Payment(..), Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Template.Lenses (_contractNickname, _roleWalletInputs, _template, _templateContent)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
@@ -292,6 +294,35 @@ handleAction input@{ currentSlot } (UpdateContract plutusAppId contractHistory@{
           $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
       Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot plutusAppId mempty contractHistory) (modifying _contracts <<< insert plutusAppId)
 
+-- This handler looks, in the given contract, for any payments to roles for which the current
+-- wallet holds the token, and then calls the "redeem" endpoint of the main marlowe app for each
+-- one, to make sure those funds reach the user's wallet (without the user having to do anything).
+-- The handler is called every time we receive a notification that the state of the contract's
+-- follower app has changed, so it will be called more often that is necessary. But there is no way
+-- to guard against that. (Well, we could keep track of payments redeemed in the application state,
+-- but that record would be lost when the browser is closed - and then those payments would all be
+-- redeemed again anyway the next time the user picks up the wallet. Since these duplicate requests
+-- will happen anyway, therefore, this extra complication doesn't seem worth the bother.
+handleAction input (RedeemPayments plutusAppId) = do
+  walletDetails <- use _walletDetails
+  contracts <- use _contracts
+  for_ (lookup plutusAppId contracts) \{ executionState, mMarloweParams, userParties } ->
+    for_ mMarloweParams \marloweParams ->
+      let
+        payments = getAllPayments executionState
+
+        isToParty party (Payment _ payee _) = case payee of
+          Party p -> p == party
+          _ -> false
+      in
+        for (List.fromFoldable userParties) \party ->
+          let
+            paymentsToParty = List.filter (isToParty party) payments
+          in
+            for paymentsToParty \payment -> case payment of
+              Payment _ (Party (Role tokenName)) _ -> void $ redeem walletDetails marloweParams tokenName
+              _ -> pure unit
+
 handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
   selectedStep <- peruse $ _selectedContract <<< _selectedStep
@@ -309,8 +340,9 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
     for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
     handleAction input $ ContractAction Contract.CancelConfirmation
 
--- TODO: we have to handle quite a lot of submodule actions here (mainly just because of the cards),
--- so there's probably a better way of structuring this - perhaps making cards work more like toasts
+-- TODO: We have to handle quite a lot of submodule actions here (mainly just because of the
+-- cards), so there's probably a better way of structuring this - perhaps making cards work more
+-- like toasts.
 handleAction input@{ currentSlot } (TemplateAction templateAction) = case templateAction of
   Template.SetTemplate template -> do
     mCurrentTemplate <- peruse (_templateState <<< _template)
