@@ -59,10 +59,21 @@ test-suite plutus-chain-index-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        Generators
+    build-depends:
+        plutus-ledger -any,
+        plutus-ledger-api -any,
+        plutus-tx -any,
+        plutus-chain-index -any
     build-depends:
         base >=4.9 && <5,
-        plutus-chain-index -any,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
-        tasty-hunit -any
+        tasty-hunit -any,
+        containers -any,
+        serialise -any,
+        bytestring -any,
+        freer-simple -any,
+        lens -any
+

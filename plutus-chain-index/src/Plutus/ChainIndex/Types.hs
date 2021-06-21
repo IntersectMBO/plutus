@@ -1,7 +1,7 @@
 {-| Misc. types used in this package
 -}
 module Plutus.ChainIndex.Types(
-    BlockId
+    BlockId(..)
     , Page
     ) where
 

@@ -11,7 +11,7 @@ import           Data.Set             (Set)
 import           GHC.Generics         (Generic)
 import           Ledger               (TxOutRef)
 import           Ledger.Credential    (Credential)
-import           Ledger.Scripts       (Datum, DatumHash, MonetaryPolicy, MonetaryPolicyHash, Validator, ValidatorHash)
+import           Ledger.Scripts       (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Validator, ValidatorHash)
 import           Ledger.TxId          (TxId)
 import           Plutus.ChainIndex.Tx (ChainIndexTx)
 
@@ -19,10 +19,10 @@ import           Plutus.ChainIndex.Tx (ChainIndexTx)
 --   other structures for the disk-backed storage)
 data ChainIndexDiskState =
     ChainIndexDiskState
-        { _ciDataMap           :: Map DatumHash Datum
-        , _ciValidatorMap      :: Map ValidatorHash Validator
-        , _ciMonetaryPolicyMap :: Map MonetaryPolicyHash MonetaryPolicy
-        , _ciTxMap             :: Map TxId ChainIndexTx
-        , _ciAddressMap        :: Map Credential (Set TxOutRef)
+        { _ciDataMap          :: Map DatumHash Datum
+        , _ciValidatorMap     :: Map ValidatorHash Validator
+        , _ciMintingPolicyMap :: Map MintingPolicyHash MintingPolicy
+        , _ciTxMap            :: Map TxId ChainIndexTx
+        , _ciAddressMap       :: Map Credential (Set TxOutRef)
         }
         deriving stock (Eq, Show, Generic)
