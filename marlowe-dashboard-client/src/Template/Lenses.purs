@@ -9,10 +9,8 @@ module Template.Lenses
   , _extendedContract
   , _contractType
   , _contractName
-  , _contractDescription
   , _slotParameterDescriptions
   , _valueParameterDescriptions
-  , _choiceInfo
   ) where
 
 import Prelude
@@ -73,9 +71,3 @@ _slotParameterDescriptions = prop (SProxy :: SProxy "slotParameterDescriptions")
 
 _valueParameterDescriptions :: Lens' MetaData (Map String String)
 _valueParameterDescriptions = prop (SProxy :: SProxy "valueParameterDescriptions")
-
-_choiceInfo :: Lens' MetaData (Map String ChoiceInfo)
-_choiceInfo = prop (SProxy :: SProxy "choiceInfo")
-
-_choiceDescription :: Lens' ChoiceInfo String
-_choiceDescription = prop (SProxy :: SProxy "choiceDescription")
