@@ -178,13 +178,6 @@ instance Semigroup ExBudget where
 instance Monoid ExBudget where
     mempty = ExBudget mempty mempty
 
-{- | Make budgets scalable.  We only want to scale the cpu costs because they're
-   in picoseconds, which are too big for general use.  Memory costs are in
-   bytes, which don't require scaling. -}
-instance Scalable ExBudget where
-    scaleUp   k (ExBudget cpu mem) = ExBudget (scaleUp   k cpu) mem
-    scaleDown k (ExBudget cpu mem) = ExBudget (scaleDown k cpu) mem
-
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ fold
         [ "{ cpu: ", pretty cpu, line
