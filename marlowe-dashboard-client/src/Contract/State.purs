@@ -11,11 +11,13 @@ module Contract.State
   ) where
 
 import Prelude
+import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
+import Control.Monad.Reader.Class (ask)
 import Data.Array (difference, filter, foldl, index, length, mapMaybe, modifyAt)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
@@ -36,10 +38,11 @@ import Effect (Effect)
 import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Exception.Unsafe (unsafeThrow)
-import Env (Env)
+import Env (DataProvider(..), Env)
 import Halogen (HalogenM, getHTMLElementRef, liftEffect, subscribe, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
+import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution.Lenses (_currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions)
@@ -50,6 +53,7 @@ import Marlowe.HasParties (getParties)
 import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
 import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _minSlot)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
+import Play.Types (Action(..)) as Play
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.State (adaToken)
@@ -216,6 +220,7 @@ handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
+  MainFrameLoop m =>
   ManageMarlowe m =>
   Toast m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
@@ -233,6 +238,8 @@ handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = 
       Right _ -> do
         assign _pendingTransaction $ Just txInput
         addToast $ successToast "Transaction submitted, awating confirmation."
+        { dataProvider } <- ask
+        when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.PlayAction $ Play.UpdateFromStorage)
 
 handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
   where

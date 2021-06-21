@@ -58,7 +58,7 @@ contractSetupScreen walletLibrary currentSlot state =
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
   in
     div
-      [ classNames [ "grid", "grid-rows-contract-setup", "max-h-full", "overflow-hidden" ] ]
+      [ classNames [ "grid", "grid-rows-contract-setup", "h-full", "overflow-hidden" ] ]
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
       , div -- the containing grid sets the height of this div

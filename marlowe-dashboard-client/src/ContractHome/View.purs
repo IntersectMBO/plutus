@@ -114,12 +114,18 @@ contractCard currentSlot contractState =
         (\_ -> if isContractClosed contractState then "Contract closed" else "Timed out")
         (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
         mNextTimeout
+
+    attributes = case mMarloweParams of
+      Just _ ->
+        -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
+        [ classNames [ "flex", "flex-col", "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
+        , onClick_ $ OpenContract contractInstanceId
+        ]
+      -- in this case the box shouldn't be clickable
+      Nothing -> [ classNames [ "flex", "flex-col", "shadow-sm", "bg-white", "rounded", "overflow-hidden" ] ]
   in
     div
-      -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
-      [ classNames [ "flex", "flex-col", "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
-      , onClick_ $ OpenContract contractInstanceId
-      ]
+      attributes
       -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
       [ div [ classNames [ "flex", "px-4", "pt-4", "items-center" ] ]
           [ span [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ] [ text contractAcronym ]
