@@ -13,6 +13,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Newtype (unwrap, wrap)
+import Data.String (trim)
 import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
@@ -412,13 +413,18 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
                             ([ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
                         ]
                     )
-                    $ Map.lookup choiceName metadata.choiceDescriptions
+                    (Map.lookup choiceName metadata.choiceInfo >>= mExtractDescription)
                 )
           )
       ]
         <> addButton
     )
   where
+  mExtractDescription { choiceDescription }
+    | trim choiceDescription /= "" = Just choiceDescription
+
+  mExtractDescription _ = Nothing
+
   addButton =
     if inBounds chosenNum bounds then
       [ button

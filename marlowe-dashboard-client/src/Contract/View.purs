@@ -21,6 +21,7 @@ import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
+import Data.String (trim)
 import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
@@ -605,9 +606,10 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
 
     ChoiceId choiceIdKey _ = choiceId
 
-    choiceDescription = case Map.lookup choiceIdKey metadata.choiceDescriptions of
-      Nothing -> div_ []
-      Just description -> shortDescription isActiveParticipant description
+    choiceDescription = case Map.lookup choiceIdKey metadata.choiceInfo of
+      Just { choiceDescription: description }
+        | trim description /= "" -> shortDescription isActiveParticipant description
+      _ -> div_ []
 
     isValid = maybe false (between minBound maxBound) mChosenNum
 

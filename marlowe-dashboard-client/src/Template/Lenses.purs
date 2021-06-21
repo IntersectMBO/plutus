@@ -12,7 +12,7 @@ module Template.Lenses
   , _contractDescription
   , _slotParameterDescriptions
   , _valueParameterDescriptions
-  , _choiceDescriptions
+  , _choiceInfo
   ) where
 
 import Prelude
@@ -24,7 +24,7 @@ import Data.Map (Map)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
 import Marlowe.Extended (Contract, ContractType)
-import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
+import Marlowe.Extended.Metadata (ContractTemplate, MetaData, ChoiceInfo)
 import Marlowe.Semantics (TokenName)
 import Marlowe.Template (TemplateContent)
 import Template.Types (State)
@@ -74,5 +74,8 @@ _slotParameterDescriptions = prop (SProxy :: SProxy "slotParameterDescriptions")
 _valueParameterDescriptions :: Lens' MetaData (Map String String)
 _valueParameterDescriptions = prop (SProxy :: SProxy "valueParameterDescriptions")
 
-_choiceDescriptions :: Lens' MetaData (Map String String)
-_choiceDescriptions = prop (SProxy :: SProxy "choiceDescriptions")
+_choiceInfo :: Lens' MetaData (Map String ChoiceInfo)
+_choiceInfo = prop (SProxy :: SProxy "choiceInfo")
+
+_choiceDescription :: Lens' ChoiceInfo String
+_choiceDescription = prop (SProxy :: SProxy "choiceDescription")
