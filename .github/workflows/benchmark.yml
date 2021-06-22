@@ -29,12 +29,14 @@ jobs:
               -F "branch=$PR_BRANCH" \
               -F "message=benchmark" > response.json
          export WEB_URL=$(jq ".jobs[0].web_url" response.json)
-         echo "::set-env name=WEB_URL::$WEB_URL"
+         echo "WEB_URL=$WEB_URL" >> $GITHUB_ENV
+
      - uses: mshick/add-pr-comment@v1
        with:
-         message: "Benchmarking started. Check $WEB_URL ${{ env.WEB_URL }}"
+         message: "Benchmarking started. Check ${{ env.WEB_URL }}"
          repo-token: ${{ secrets.GITHUB_TOKEN }}
          repo-token-user-login: 'github-actions[bot]'
+         allow-repeats: true
 
   #bench:
     #runs-on: ubuntu-latest
