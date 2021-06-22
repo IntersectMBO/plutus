@@ -521,11 +521,11 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
                     marloweState = txOutState }
 
             let (outputsConstraints, finalBalance) = case txOutContract of
-                    Close -> (payoutContraints txOutPayments, P.zero)
+                    Close -> (payoutConstraints txOutPayments, P.zero)
                     _ -> let
-                        outputsConstraints = payoutContraints txOutPayments
+                        outputsConstraints = payoutConstraints txOutPayments
                         totalIncome = P.foldMap collectDeposits inputs
-                        totalPayouts = P.foldMap (\(Payment _ v) -> v) txOutPayments
+                        totalPayouts = P.foldMap (\(Payment _ _ v) -> v) txOutPayments
                         finalBalance = totalIncome P.- totalPayouts
                         in (outputsConstraints, finalBalance)
             -- TODO Push this use of time further down the code
@@ -560,8 +560,8 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
     collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
     collectDeposits _                                     = P.zero
 
-    payoutContraints :: [Payment] -> TxConstraints i0 o0
-    payoutContraints payments = P.foldMap paymentToTxOut paymentsByParty
+    payoutConstraints :: [Payment] -> TxConstraints i0 o0
+    payoutConstraints payments = P.foldMap paymentToTxOut paymentsByParty
       where
         paymentsByParty = AssocMap.toList $ P.foldMap paymentByParty payments
 
@@ -571,7 +571,9 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
                 dataValue = Datum $ PlutusTx.toData role
                 in mustPayToOtherScript (rolePayoutValidatorHash params) dataValue value
 
-        paymentByParty (Payment party money) = AssocMap.singleton party money
+        paymentByParty (Payment _ (Party party) money) = AssocMap.singleton party money
+
+        paymentByParty (Payment _ (Account _) _)       = AssocMap.empty
 
 
 {-# INLINABLE isFinal #-}
