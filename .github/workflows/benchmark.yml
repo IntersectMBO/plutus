@@ -7,6 +7,8 @@ jobs:
   test-bench:
     runs-on: ubuntu-latest
     steps:
+    - name: benchmark test
+      id: benchmark
       - run: "curl -H \"Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN\" https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds -X \"POST\" -F \"commit=HEAD\" -F \"branch=${GITHUB_REF##*/}\" -F \"message=Running benchmark\""
 
   bench:
