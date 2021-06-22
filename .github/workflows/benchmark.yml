@@ -7,19 +7,19 @@ jobs:
   test-bench:
     runs-on: ubuntu-latest
     steps:
-     - run: "curl -H \"Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN\" https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds -X \"POST\" -F \"commit=HEAD\" -F \"branch=${GITHUB_REF##*/}\" -F \"message=Running benchmark\""
-  bench:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check for Command
-        id: command
-        uses: xt0rted/slash-command-action@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          command: benchmark
-          reaction: "true"
-          reaction-type: "eyes"
-          allow-edits: "true"
-          permission-level: write
-      - name: Act on the command
-        run: "curl -H \"Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN\" https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds -X \"POST\" -F \"commit=HEAD\" -F \"branch=${GITHUB_REF##*/}\" -F \"message=Running benchmark\""
+     - run: ./.github/trigger-buildkite.sh
+  #bench:
+    #runs-on: ubuntu-latest
+    #steps:
+      #- name: Check for Command
+        #id: command
+        #uses: xt0rted/slash-command-action@v1
+        #with:
+          #repo-token: ${{ secrets.GITHUB_TOKEN }}
+          #command: benchmark
+          #reaction: "true"
+          #reaction-type: "eyes"
+          #allow-edits: "true"
+          #permission-level: write
+      #- name: Act on the command
+        #run: "curl -H \"Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN\" https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds -X \"POST\" -F \"commit=HEAD\" -F \"branch=${GITHUB_REF##*/}\" -F \"message=Running benchmark\""
