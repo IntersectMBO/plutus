@@ -107,6 +107,11 @@ compEC' E (E' ·⋆ A)   = compEC' (extEC E (-·⋆ A)) E'
 compEC' E (wrap E')   = compEC' (extEC E wrap-) E'
 compEC' E (unwrap E') = compEC' (extEC E unwrap-) E'
 
+postulate
+  compEC-eq : ∀{A B C}(E : EC C B)(E' : EC B A) → compEC E E' ≡ compEC' E E'
+
+compEC'-[] : ∀{B C}(E : EC B C) → compEC' [] E ≡ E
+compEC'-[] E = sym (compEC-eq [] E)
 
 compEC'-extEC : ∀{A B C D}(E : EC A B)(E' : EC B C)(F : Frame C D)
   → compEC' E (extEC E' F) ≡ extEC (compEC' E E') F
@@ -162,7 +167,7 @@ stepV (V-IΠ b {as' = []} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
   E ▻ BUILTIN' b (bubble p) (step⋆ p q) 
 stepV (V-IΠ b {as' = a ∷ as'} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
   E ◅ V-I b (bubble p) (step⋆ p q)
-stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ◅ V 
+stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ▻ deval V -- E ◅ V 
 
 stepT : ∀{A} → State A → State A
 stepT (E ▻ ƛ M)        = E ◅ V-ƛ M 
@@ -688,3 +693,94 @@ unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
 unwindE M N E E' refl VN = step**
   (lemV M _ (compEC' E E'))
   (unwindVE M N E E' refl (VALUE2Value (lemVE M E' (Value2VALUE VN))) VN)
+
+open import Relation.Nullary
+
+data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
+  redex : ∀ {C}
+    → ¬ (Value M) 
+    → (E' : EC A C)
+    → (N : ∅ ⊢ C)
+    → M' ≡ E' [ N ]ᴱ
+    → (L : ∅ ⊢ C)
+    → E [ M ]ᴱ ≡ E' [ L ]ᴱ
+    → L —→⋆ N
+    -- different stuff
+    → (E'' : EC B C)
+    → M ≡ E'' [ L ]ᴱ
+    → CaseP M M' E
+  val : ∀ {C}
+    → (E' : EC A C)
+    → (N : ∅ ⊢ C)
+    → M' ≡ E' [ N ]ᴱ
+    → (L : ∅ ⊢ C)
+    → E [ M ]ᴱ ≡ E' [ L ]ᴱ
+    → L —→⋆ N
+    -- different stuff
+    → Value M
+    → CaseP M M' E
+  
+caseP : ∀{A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) → E [ M ]ᴱ —→ M'
+  → CaseP M M' E
+caseP M M' E (ruleEC E' x p p') with rlemma51! M
+-- E'  goes all the way from the outside to the redex
+-- E only goes as far as M
+-- E'' is inside M
+-- E''' goes all the way down to the redex
+
+... | done VM = val E' _ p' _ p x VM
+... | step ¬VM E'' q1 q2 X with rlemma51! (E [ M ]ᴱ)
+... | done VEM = ⊥-elim (¬VM (VALUE2Value (lemVE M E (Value2VALUE VEM))))
+... | step ¬VEM E''' q1' q2' X' with X' (compEC E E'') (trans (cong (λ M → E [ M ]ᴱ) q2) {!!}) q1
+... | refl ,, refl ,, refl with X' E' p (β x)
+... | refl ,, refl ,, refl = redex ¬VM (compEC E E'') _ p' _ p x E'' q2
+caseP M .(error _) E (ruleErr E₁ x) = {!!}
+
+lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
+lem-→s⋆ E (β-ƛ V) = step*
+  refl
+  (step** (lemV _ (V-ƛ _) (extEC E (-· _)))
+          (step* (cong (stepV (V-ƛ _)) (dissect-lemma E (-· _)))
+                 (step** (lemV _ V (extEC E (V-ƛ _ ·-)))
+                         (step* (cong (stepV V) (dissect-lemma E (V-ƛ _ ·-)))
+                                base))))
+lem-→s⋆ E β-Λ = step*
+  refl
+  (step** (lemV _ (V-Λ _) (extEC E (-·⋆ _)))
+          (step* (cong (stepV (V-Λ _)) (dissect-lemma E (-·⋆ _)))
+                 base))
+lem-→s⋆ E (β-wrap V) = step*
+  refl
+  (step** (lemV _ (V-wrap V) (extEC E unwrap-))
+          (step* (cong (stepV (V-wrap V)) (dissect-lemma E unwrap-))
+                 base))
+lem-→s⋆ E (β-sbuiltin b t p bt u vu) with bappTermLem b t p (BApp2BAPP bt)
+... | _ ,, _ ,, refl = step*
+  refl
+  (step** (lemV t (V-I⇒ b p bt) (extEC E (-· u)))
+          (step* (cong (stepV (V-I⇒ b p bt)) (dissect-lemma E (-· u)))
+                 (step** (lemV u vu (extEC E (V-I⇒ b p bt ·-)))
+                         (step* (cong (stepV vu) (dissect-lemma E (V-I⇒ b p bt ·-)))
+                                base))))
+lem-→s⋆ E (β-sbuiltin⋆ b t p bt A) with bappTypeLem b t p (BApp2BAPP bt)
+... | _ ,, _ ,, refl = step*
+  refl
+  (step** (lemV t (V-IΠ b p bt) (extEC E (-·⋆ A)))
+          (step* (cong (stepV (V-IΠ b p bt)) (dissect-lemma E (-·⋆ A))) base))
+
+thm1 : ∀{A B}(M : ∅ ⊢ A)(M' : ∅ ⊢ B)(E : EC B A)
+  → M' ≡ E [ M ]ᴱ → (O : ∅ ⊢ B)(V : Value O)
+  → M' —↠ O -> (E ▻ M) -→s ([] ◅ V)
+thm1 M M' E p .M' V refl—↠ = subst
+  (λ E → (E ▻ M) -→s ([] ◅ V))
+  (compEC'-[] E)
+  (unwindE M M' [] E p V)
+thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
+... | redex ¬VM E' N x L x₁ x₂ E'' refl = step**
+  (lem62 _ E E'')
+  (step**
+    (subst (λ E → (E ▻ L) -→s (E' ▻ N))
+      {!!}
+      (lem-→s⋆ E' x₂))
+    (thm1 _ _  E' x _ V q'))
+... | val E' N x L x₁ x₂ x₃ = {!!}
