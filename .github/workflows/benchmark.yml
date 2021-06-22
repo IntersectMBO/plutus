@@ -28,7 +28,7 @@ jobs:
               -F "commit=HEAD" \
               -F "branch=$PR_BRANCH" \
               -F "message=benchmark" > response.json
-         export WEB_URL=$(jq ".jobs[0].web_url" response.json)
+         export WEB_URL=$(jq -r ".jobs[0].web_url" response.json)
          echo "WEB_URL=$WEB_URL" >> $GITHUB_ENV
 
      - uses: mshick/add-pr-comment@v1
