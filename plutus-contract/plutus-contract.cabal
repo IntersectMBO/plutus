@@ -130,7 +130,8 @@ library
         unordered-containers -any,
         foldl -any,
         streaming -any,
-        IntervalMap -any
+        IntervalMap -any,
+        plutus-chain-index -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:
