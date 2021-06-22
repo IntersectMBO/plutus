@@ -2,6 +2,7 @@ module MetadataTab.View (metadataView) where
 
 import Prelude hiding (div)
 import Data.Array (concat, concatMap)
+import Data.Int as Int
 import Data.Lens (Lens', (^.))
 import Data.List (List)
 import Data.Map (Map)
@@ -12,9 +13,9 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Halogen.Classes (minusBtn, plusBtn, smallBtn, btn)
 import Halogen.HTML (ClassName(..), HTML, button, div, em_, h6_, input, option, select, text)
 import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), class_, classes, placeholder, selected, type_, value)
+import Halogen.HTML.Properties (InputType(..), class_, classes, min, placeholder, required, selected, type_, value)
 import Marlowe.Extended (contractTypeArray, contractTypeInitials, contractTypeName, initialsToContractType)
-import Marlowe.Extended.Metadata (ChoiceInfo, MetaData, MetadataHintInfo, _choiceDescription, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters)
+import Marlowe.Extended.Metadata (ChoiceFormat(..), ChoiceFormatType(..), ChoiceInfo, MetaData, MetadataHintInfo, _choiceDescription, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters, defaultForFormatType, fromString, getFormatType, isDecimalFormat, isDefaultFormat, toString)
 import MetadataTab.Types (MetadataAction(..))
 
 onlyDescriptionRenderer :: forall a b p. (String -> String -> b) -> (String -> b) -> String -> String -> Boolean -> (b -> a) -> String -> String -> Array (HTML p a)
@@ -41,10 +42,29 @@ onlyDescriptionRenderer setAction deleteAction key info needed metadataAction ty
     <> if needed then [] else [ div [ classes [ ClassName "metadata-error", ClassName "metadata-prop-not-used" ] ] [ text "Not used" ] ]
 
 choiceMetadataRenderer :: forall a p. String -> ChoiceInfo -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
-choiceMetadataRenderer key info needed metadataAction typeNameTitle typeNameSmall =
+choiceMetadataRenderer key info@{ choiceFormat } needed metadataAction typeNameTitle typeNameSmall =
   [ div [ class_ $ ClassName "metadata-prop-label" ]
       [ text $ typeNameTitle <> " " <> show key <> ": " ]
-  , div [ class_ $ ClassName "metadata-prop-edit" ]
+  , div [ class_ $ ClassName "metadata-prop-choice-col1" ]
+      [ select
+          [ class_ $ ClassName "metadata-input"
+          , onValueChange $ Just <<< metadataAction <<< SetChoiceFormat key <<< setChoiceFormatType
+          ]
+          [ option
+              [ value $ toString DefaultFormatType
+              , selected $ isDefaultFormat choiceFormat
+              ]
+              [ text $ "Default format"
+              ]
+          , option
+              [ value $ toString DecimalFormatType
+              , selected $ isDecimalFormat choiceFormat
+              ]
+              [ text $ "Fixed point amount"
+              ]
+          ]
+      ]
+  , div [ class_ $ ClassName "metadata-prop-choice-col2" ]
       [ input
           [ type_ InputText
           , placeholder $ "Description for " <> typeNameSmall <> " " <> show key
@@ -61,7 +81,48 @@ choiceMetadataRenderer key info needed metadataAction typeNameTitle typeNameSmal
           [ text "-" ]
       ]
   ]
-    <> if needed then [] else [ div [ classes [ ClassName "metadata-error", ClassName "metadata-prop-not-used" ] ] [ text "Not used" ] ]
+    <> (if needed then [] else [ div [ classes [ ClassName "metadata-error", ClassName "metadata-prop-not-used" ] ] [ text "Not used" ] ])
+    <> case choiceFormat of
+        DefaultFormat -> []
+        DecimalFormat numDecimals labelStr ->
+          [ div [ class_ $ ClassName "metadata-prop-choice-col1" ]
+              [ input
+                  [ type_ InputNumber
+                  , placeholder $ "Number of decimal digits for " <> typeNameSmall <> " " <> show key
+                  , class_ $ ClassName "metadata-input"
+                  , value $ if numDecimals == 0 then "" else show numDecimals
+                  , required true
+                  , min zero
+                  , onValueChange $ Just <<< metadataAction <<< SetChoiceFormat key <<< setDecimals labelStr
+                  ]
+              ]
+          , div [ class_ $ ClassName "metadata-prop-choice-col2" ]
+              [ input
+                  [ type_ InputText
+                  , placeholder $ "Currency label for " <> typeNameSmall <> " " <> show key
+                  , class_ $ ClassName "metadata-input"
+                  , value labelStr
+                  , onValueChange $ Just <<< metadataAction <<< SetChoiceFormat key <<< DecimalFormat numDecimals
+                  ]
+              ]
+          ]
+  where
+  setChoiceFormatType :: String -> ChoiceFormat
+  setChoiceFormatType str = case fromString str of
+    Just formatType
+      | formatType == getFormatType choiceFormat -> choiceFormat
+      | otherwise -> defaultForFormatType formatType
+    Nothing -> defaultForFormatType DefaultFormatType
+
+  setDecimals :: String -> String -> ChoiceFormat
+  setDecimals labelStr x =
+    DecimalFormat
+      ( case Int.fromString x of
+          Just y
+            | y >= 0 -> y
+          _ -> 0
+      )
+      labelStr
 
 metadataList ::
   forall a b c p.

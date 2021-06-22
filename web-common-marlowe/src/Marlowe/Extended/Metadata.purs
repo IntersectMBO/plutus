@@ -19,7 +19,7 @@ import Marlowe.Template (Placeholders(..), getPlaceholderIds)
 
 data ChoiceFormat
   = DefaultFormat
-  | Decimal Int String
+  | DecimalFormat Int String
 
 derive instance eqChoiceFormat :: Eq ChoiceFormat
 
@@ -35,13 +35,51 @@ instance showChoiceFormat :: Show ChoiceFormat where
   show = genericShow
 
 integerFormat :: ChoiceFormat
-integerFormat = Decimal 0 ""
+integerFormat = DecimalFormat 0 ""
 
 lovelaceFormat :: ChoiceFormat
-lovelaceFormat = Decimal 6 "₳"
+lovelaceFormat = DecimalFormat 6 "₳"
 
 oracleRatioFormat :: String -> ChoiceFormat
-oracleRatioFormat str = Decimal 8 str
+oracleRatioFormat str = DecimalFormat 8 str
+
+isDefaultFormat :: ChoiceFormat -> Boolean
+isDefaultFormat DefaultFormat = true
+
+isDefaultFormat _ = false
+
+isDecimalFormat :: ChoiceFormat -> Boolean
+isDecimalFormat (DecimalFormat _ _) = true
+
+isDecimalFormat _ = false
+
+data ChoiceFormatType
+  = DefaultFormatType
+  | DecimalFormatType
+
+derive instance eqChoiceFormatType :: Eq ChoiceFormatType
+
+toString :: ChoiceFormatType -> String
+toString DefaultFormatType = "DefaultFormatType"
+
+toString DecimalFormatType = "DecimalFormatType"
+
+fromString :: String -> Maybe ChoiceFormatType
+fromString "DefaultFormatType" = Just DefaultFormatType
+
+fromString "DecimalFormatType" = Just DecimalFormatType
+
+fromString _ = Nothing
+
+getFormatType :: ChoiceFormat -> ChoiceFormatType
+getFormatType DefaultFormat = DefaultFormatType
+
+getFormatType (DecimalFormat _ _) = DecimalFormatType
+
+defaultForFormatType :: ChoiceFormatType -> ChoiceFormat
+defaultForFormatType DefaultFormatType = DefaultFormat
+
+defaultForFormatType DecimalFormatType = DecimalFormat 0 ""
 
 type ChoiceInfo
   = { choiceFormat :: ChoiceFormat
