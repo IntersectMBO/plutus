@@ -20,11 +20,13 @@ jobs:
            exit 1
          fi
 
+         PR_BRANCH=${GITHUB_REF#refs/heads/}
+         echo "[trigger-buildkite]: Triggering build for $PR_BRANCH"
          curl -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
               "https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds" \
               -X "POST" \
               -F "commit=HEAD" \
-              -F "branch=${GITHUB_REF##*/}" \
+              -F "branch=$PR_BRANCH" \
               -F "message=benchmark"
   #bench:
     #runs-on: ubuntu-latest
