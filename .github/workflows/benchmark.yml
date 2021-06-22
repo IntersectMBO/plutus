@@ -1,0 +1,55 @@
+name: Benchmarking
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+
+       #
+       # Check for '/benchmark' comments on a PR
+       #
+      - uses: khan/pull-request-comment-trigger@master
+        id: check
+        with:
+          trigger: '/benchmark'
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+      #
+      # Trigger the buildkite pipeline IF the 'benchmark' command was found
+      #
+      - run: |
+         if [ -z "$BUILDKITE_API_ACCESS_TOKEN" ] ; then
+            echo "[trigger-buildkite]: 'BUILDKITE_API_ACCESS_TOKEN' is not set!"
+            exit 1
+         fi
+
+         if [ -z "$GITHUB_REF" ] ; then
+           echo "[trigger-buildkite]: 'GITHUB_REF' is not set!"
+           exit 1
+         fi
+         PR_BRANCH=${GITHUB_REF#refs/heads/}
+         echo "[trigger-buildkite]: Triggering build for $PR_BRANCH"
+         curl --silent -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
+              "https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds" \
+              -X "POST" \
+              -F "commit=HEAD" \
+              -F "branch=$PR_BRANCH" \
+              -F "message=benchmark" > response.json
+         export WEB_URL=$(jq -r ".jobs[0].web_url" response.json)
+         echo "WEB_URL=$WEB_URL" >> $GITHUB_ENV
+        if: steps.check.outputs.triggered == 'true'
+
+      #
+      # Add a comment linking to the benchmark job IF the 'benchmark' command was found
+      #
+      - uses: mshick/add-pr-comment@v1
+        with:
+          message: "Benchmarking started. Check ${{ env.WEB_URL }}"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token-user-login: 'github-actions[bot]'
+          allow-repeats: true
+        if: steps.check.outputs.triggered == 'true'
