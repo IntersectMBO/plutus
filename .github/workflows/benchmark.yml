@@ -22,15 +22,17 @@ jobs:
 
          PR_BRANCH=${GITHUB_REF#refs/heads/}
          echo "[trigger-buildkite]: Triggering build for $PR_BRANCH"
-         curl -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
+         curl --silent -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
               "https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds" \
               -X "POST" \
               -F "commit=HEAD" \
               -F "branch=$PR_BRANCH" \
-              -F "message=benchmark"
+              -F "message=benchmark" > response.json
+         export WEB_URL=$(jq ".jobs[0].web_url" response.json)
+         echo "::set-env name=WEB_URL::$WEB_URL"
      - uses: mshick/add-pr-comment@v1
        with:
-         message: "Benchmarking started. Check https://buildkite.com/input-output-hk/plutus-benchmark"
+         message: "Benchmarking started. Check $WEB_URL ${{ env.WEB_URL }}"
          repo-token: ${{ secrets.GITHUB_TOKEN }}
          repo-token-user-login: 'github-actions[bot]'
 
