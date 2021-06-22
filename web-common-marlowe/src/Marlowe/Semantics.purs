@@ -1401,7 +1401,7 @@ addMoneyToAccount accId token amount accounts =
 -}
 giveMoney :: AccountId -> Payee -> Token -> BigInteger -> Accounts -> Tuple ReduceEffect Accounts
 giveMoney accountId payee token@(Token cur tok) amount accounts = case payee of
-  Party party -> Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) accounts
+  Party _ -> Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) accounts
   Account accId ->
     let
       newAccs = addMoneyToAccount accId token amount accounts
