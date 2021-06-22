@@ -998,7 +998,7 @@ instance showIntervalResult :: Show IntervalResult where
   show v = genericShow v
 
 data Payment
-  = Payment Party Money
+  = Payment AccountId Payee Money
 
 derive instance genericPayment :: Generic Payment _
 
@@ -1399,9 +1399,9 @@ addMoneyToAccount accId token amount accounts =
 {-| Gives the given amount of money to the given payee.
     Returns the appropriate effect and updated accounts
 -}
-giveMoney :: Payee -> Token -> BigInteger -> Accounts -> Tuple ReduceEffect Accounts
-giveMoney payee token@(Token cur tok) amount accounts = case payee of
-  Party party -> Tuple (ReduceWithPayment (Payment party (asset cur tok amount))) accounts
+giveMoney :: AccountId -> Payee -> Token -> BigInteger -> Accounts -> Tuple ReduceEffect Accounts
+giveMoney accountId payee token@(Token cur tok) amount accounts = case payee of
+  Party party -> Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) accounts
   Account accId ->
     let
       newAccs = addMoneyToAccount accId token amount accounts
@@ -1418,7 +1418,7 @@ reduceContractStep env state contract = case contract of
 
         newState = wrap (oldState { accounts = newAccounts })
       in
-        Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
+        Reduced ReduceNoWarning (ReduceWithPayment (Payment party (Party party) money)) newState Close
     Nothing -> NotReduced
   Pay accId payee tok val cont ->
     let
@@ -1445,7 +1445,7 @@ reduceContractStep env state contract = case contract of
             else
               ReduceNoWarning
 
-          (Tuple payment finalAccs) = giveMoney payee tok paidAmount newAccs
+          (Tuple payment finalAccs) = giveMoney accId payee tok paidAmount newAccs
 
           newState = wrap ((unwrap state) { accounts = finalAccs })
         in
