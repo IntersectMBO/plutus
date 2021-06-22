@@ -6,6 +6,8 @@ on:
 jobs:
   test-bench:
     runs-on: ubuntu-latest
+    environment:
+      name: benchmarking
     steps:
      - run: |
          if [ -z "$BUILDKITE_API_ACCESS_TOKEN" ] ; then
