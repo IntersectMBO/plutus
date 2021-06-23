@@ -46,12 +46,14 @@ import           Control.Monad.Reader
 import           PlutusPrelude
 
 -- | Actual simplifier
-simplify :: M.ToBuiltinMeaning uni fun => Term TyName Name uni fun b -> Term TyName Name uni fun b
-simplify = DeadCode.removeDeadBindings . Inline.inline . Beta.beta
+simplify
+    :: (M.ToBuiltinMeaning uni fun, PLC.MonadQuote m)
+    => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+simplify = DeadCode.removeDeadBindings <=< Inline.inline . Beta.beta
 
 -- | Perform some simplification of a 'Term'.
 simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = PLC.rename >=> (runIfOpts $ pure . simplify)
+simplifyTerm = PLC.rename >=> runIfOpts simplify
 -- Note: There was a bug in renamer handling non-rec terms, so we need to rename
 -- again.
 -- https://jira.iohk.io/browse/SCP-2156
