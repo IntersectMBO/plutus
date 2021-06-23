@@ -274,7 +274,6 @@ library
         megaparsec -any,
         memory -any,
         mmorph -any,
-        mono-traversable -any,
         monoidal-containers,
         mtl -any,
         nonempty-containers -any,
