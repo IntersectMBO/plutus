@@ -29,17 +29,18 @@ module Plutus.Contract.StateMachine.OnChain(
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Void                        (Void)
 import           GHC.Generics                     (Generic)
+import qualified PlutusTx.AssocMap                as Map
 
 import           Ledger.Constraints
 import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
 import qualified PlutusTx                         as PlutusTx
 import           PlutusTx.Prelude                 hiding (check)
 
-import           Ledger                           (Address, Value)
-import           Ledger.Contexts                  (ScriptContext (..), TxInInfo (..), findOwnInput)
+import           Ledger                           (Address, ValidatorHash (..))
+import           Ledger.Contexts                  (ScriptContext (..), TxInInfo (..), findOwnInput, ownHash)
 import           Ledger.Tx                        (TxOut (..))
 import           Ledger.Typed.Scripts
-import           Ledger.Value                     (AssetClass, isZero)
+import           Ledger.Value                     (AssetClass (..), CurrencySymbol, TokenName (..), Value (..), isZero)
 import qualified Ledger.Value                     as Value
 import qualified Prelude                          as Haskell
 
@@ -65,18 +66,30 @@ data StateMachine s i = StateMachine {
 
       -- | The 'AssetClass' of the thread token that identifies the contract
       --   instance.
-      smThreadToken :: Maybe AssetClass
+      smThreadToken :: Maybe CurrencySymbol
     }
 
-{-# INLINABLE threadTokenValue #-}
+{-# INLINABLE threadTokenValueInner #-}
 -- | The 'Value' containing exactly the thread token, if one has been specified.
-threadTokenValue :: StateMachine s i -> Value
-threadTokenValue StateMachine{smThreadToken} = maybe mempty (\c -> Value.assetClassValue c 1) smThreadToken
+threadTokenValueInner :: Maybe CurrencySymbol -> ValidatorHash -> Value
+threadTokenValueInner currency (ValidatorHash vHash) = maybe mempty (\c -> Value.singleton c (TokenName vHash) 1) currency
+
+{-# INLINABLE threadTokenValue #-}
+threadTokenValue :: StateMachineInstance s i -> Value
+threadTokenValue StateMachineInstance{stateMachine,typedValidator} =
+    threadTokenValueInner (smThreadToken stateMachine) (validatorHash typedValidator)
+
+checkThreadToken :: Maybe CurrencySymbol -> ValidatorHash -> Value -> Bool
+checkThreadToken Nothing _ _ = True
+checkThreadToken (Just currency) (ValidatorHash vHash) (Value vl) =
+    case Map.toList <$> Map.lookup currency vl of
+        Just [(TokenName tHash, _)] -> tHash == vHash
+        _                           -> False
 
 -- | A state machine that does not perform any additional checks on the
 --   'ScriptContext' (beyond enforcing the constraints)
 mkStateMachine
-    :: Maybe AssetClass
+    :: Maybe CurrencySymbol
     -> (State s -> i -> Maybe (TxConstraints Void Void, State s))
     -> (s -> Bool)
     -> StateMachine s i
@@ -105,9 +118,11 @@ machineAddress = validatorAddress . typedValidator
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
-mkValidator sm@(StateMachine step isFinal check _) currentState input ptx =
+mkValidator (StateMachine step isFinal check currency) currentState input ptx =
     let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
-        checkOk = traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
+        checkOk =
+            traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
+            && traceIfFalse "Thread token hash mismatch" (checkThreadToken currency (ownHash ptx) vl)
         oldState = State{stateData=currentState, stateValue=vl}
         stateAndOutputsOk = case step oldState input of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})
@@ -120,7 +135,7 @@ mkValidator sm@(StateMachine step isFinal check _) currentState input ptx =
                                 { txOwnOutputs=
                                     [ OutputConstraint
                                         { ocDatum = newData
-                                        , ocValue = newValue <> threadTokenValue sm
+                                        , ocValue = newValue <> threadTokenValueInner currency (ownHash ptx)
                                         }
                                     ]
                                 }

@@ -921,7 +921,9 @@
           "cardano-api-test" = { flags = {}; };
           "hedgehog-extras" = { flags = {}; };
           "fake-pab" = { flags = {}; };
-          "plutus-contract" = { flags = {}; };
+          "plutus-contract" = {
+            flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
+            };
           "iohk-monitoring" = {
             flags = {
               "performance-test-queue" = lib.mkOverride 900 false;

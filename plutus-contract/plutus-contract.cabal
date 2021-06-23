@@ -27,6 +27,12 @@ common lang
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
 
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
 library
     import: lang
     exposed-modules:
@@ -46,6 +52,7 @@ library
         Plutus.Contract.Resumable
         Plutus.Contract.StateMachine
         Plutus.Contract.StateMachine.OnChain
+        Plutus.Contract.StateMachine.ThreadToken
         Plutus.Contract.Tx
         Plutus.Contract.Types
         Plutus.Contract.Util
@@ -132,6 +139,12 @@ library
         streaming -any,
         IntervalMap -any,
         plutus-chain-index -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
+
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:

@@ -43,37 +43,40 @@ module Plutus.Contract.StateMachine(
     , mkStep
     -- * Re-exports
     , Void
+    , currencySymbol
     ) where
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
-import           Data.Aeson                           (FromJSON, ToJSON)
-import           Data.Either                          (rights)
-import           Data.Map                             (Map)
-import qualified Data.Map                             as Map
-import           Data.Text                            (Text)
-import qualified Data.Text                            as Text
-import           Data.Void                            (Void, absurd)
-import           GHC.Generics                         (Generic)
-import           Ledger                               (POSIXTime, Slot, Value)
+import           Data.Aeson                               (FromJSON, ToJSON)
+import           Data.Either                              (rights)
+import           Data.Map                                 (Map)
+import qualified Data.Map                                 as Map
+import           Data.Text                                (Text)
+import qualified Data.Text                                as Text
+import           Data.Void                                (Void, absurd)
+import           GHC.Generics                             (Generic)
+import           Ledger                                   (POSIXTime, Slot, Value)
 import qualified Ledger
-import           Ledger.AddressMap                    (outputsMapFromTxForAddress)
-import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
-import           Ledger.Constraints.OffChain          (UnbalancedTx)
-import qualified Ledger.Constraints.OffChain          as Constraints
-import           Ledger.Constraints.TxConstraints     (InputConstraint (..), OutputConstraint (..))
-import           Ledger.Crypto                        (pubKeyHash)
-import qualified Ledger.TimeSlot                      as TimeSlot
-import           Ledger.Tx                            as Tx
-import qualified Ledger.Typed.Scripts                 as Scripts
-import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
-import qualified Ledger.Typed.Tx                      as Typed
-import           Ledger.Value                         (AssetClass)
-import qualified Ledger.Value                         as Value
+import           Ledger.AddressMap                        (outputsMapFromTxForAddress)
+import           Ledger.Constraints                       (ScriptLookups, TxConstraints (..), mintingPolicy,
+                                                           mustMintValue, mustPayToTheScript)
+import           Ledger.Constraints.OffChain              (UnbalancedTx)
+import qualified Ledger.Constraints.OffChain              as Constraints
+import           Ledger.Constraints.TxConstraints         (InputConstraint (..), OutputConstraint (..))
+import           Ledger.Crypto                            (pubKeyHash)
+import qualified Ledger.TimeSlot                          as TimeSlot
+import           Ledger.Tx                                as Tx
+import qualified Ledger.Typed.Scripts                     as Scripts
+import           Ledger.Typed.Tx                          (TypedScriptTxOut (..))
+import qualified Ledger.Typed.Tx                          as Typed
+import qualified Ledger.Value                             as Value
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
-import qualified Plutus.Contract.StateMachine.OnChain as SM
+import           Plutus.Contract.StateMachine.OnChain     (State (..), StateMachine (..), StateMachineInstance (..))
+import qualified Plutus.Contract.StateMachine.OnChain     as SM
+import           Plutus.Contract.StateMachine.ThreadToken (curPolicy, currencySymbol)
 import qualified PlutusTx
+import           PlutusTx.Monoid                          (inv)
 
 -- $statemachine
 -- To write your contract as a state machine you need
@@ -155,15 +158,15 @@ defaultChooser xs  =
 -- | A state chooser function that searches for an output with the thread token
 threadTokenChooser ::
     forall state input
-    . AssetClass
+    . Value
     -> [OnChainState state input]
     -> Either SMContractError (OnChainState state input)
-threadTokenChooser cur states =
-    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.assetClassValue cur 1 `Value.leq` txOutValue in
+threadTokenChooser val states =
+    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = val `Value.leq` txOutValue in
     case filter flt states of
         [x] -> Right x
         xs ->
-            let msg = unwords ["Found ", show (length xs), "outputs with thread token ", show cur, "expected 1"]
+            let msg = unwords ["Found", show (length xs), "outputs with thread token", show val, "expected 1"]
             in Left (ChooserError (Text.pack msg))
 
 -- | A state machine client with the 'defaultChooser' function
@@ -172,7 +175,8 @@ mkStateMachineClient ::
     . SM.StateMachineInstance state input
     -> StateMachineClient state input
 mkStateMachineClient inst =
-    let scChooser = maybe defaultChooser threadTokenChooser $ SM.smThreadToken $ SM.stateMachine inst in
+    let threadToken = SM.threadTokenValue inst
+        scChooser = maybe defaultChooser (\_ -> threadTokenChooser threadToken) $ SM.smThreadToken $ SM.stateMachine inst in
     StateMachineClient
         { scInstance = inst
         , scChooser
@@ -331,9 +335,11 @@ runInitialise ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{typedValidator, stateMachine} = scInstance
-        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine)
-    let lookups = Constraints.typedValidatorLookups typedValidator
+    let StateMachineInstance{typedValidator} = scInstance
+        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue scInstance)
+            <> mustMintValue (SM.threadTokenValue scInstance)
+        lookups = Constraints.typedValidatorLookups typedValidator
+            <> mintingPolicy curPolicy
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
     submitTxConfirmed utx
     pure initialState
@@ -371,18 +377,19 @@ mkStep client@StateMachineClient{scInstance} input = do
 
             case smTransition oldState input of
                 Just (newConstraints, newState)  ->
-                    let lookups =
+                    let isFinal = smFinal (SM.stateMachine scInstance) (stateData newState)
+                        lookups =
                             Constraints.typedValidatorLookups typedValidator
                             <> Constraints.unspentOutputs utxo
+                            <> (if isFinal then mintingPolicy curPolicy else mempty)
+                        unmint = if isFinal then mustMintValue (inv $ SM.threadTokenValue scInstance) else mempty
                         outputConstraints =
-                            if smFinal (SM.stateMachine scInstance) (stateData newState)
-                                then []
-                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValue stateMachine }]
+                            [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValue scInstance } | not isFinal]
                     in pure
                         $ Right
                         $ StateMachineTransition
                             { smtConstraints =
-                                newConstraints
+                                (newConstraints <> unmint)
                                     { txOwnInputs = inputConstraints
                                     , txOwnOutputs = outputConstraints
                                     }
