@@ -1303,8 +1303,6 @@ valred (V-IΠ b₁ .(bubble p₁) q (step⋆ p₁ x)) (β-sbuiltin⋆ b t p bt A
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
 
-
-
 bapperr : ∀{A}{L : ∅ ⊢ A}{b az as}{p : az <>> as ∈ arity b}
   → Error L → BApp b p L → ⊥
 bapperr () base

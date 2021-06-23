@@ -719,6 +719,10 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → (E'' : EC B C)
     → M ≡ E'' [ L ]ᴱ
     → CaseP M M' E
+  err : -- ¬ (Value M) -- not needed so far
+    M' ≡ error A
+    -- → M ≡ error B -- not needed so far
+    → CaseP M M' E
   val : ∀ {C}
     → (E' : EC A C)
     → (N : ∅ ⊢ C)
@@ -744,7 +748,7 @@ caseP M M' E (ruleEC E' x p p') with rlemma51! M
 ... | step ¬VEM E''' q1' q2' X' with X' (compEC E E'') (trans (cong (λ M → E [ M ]ᴱ) q2) (compEC-[]ᴱ E E'' _)) q1
 ... | refl ,, refl ,, refl with X' E' p (β x)
 ... | refl ,, refl ,, refl = redex ¬VM (compEC E E'') _ p' _ p x E'' q2
-caseP M .(error _) E (ruleErr E₁ x) = {!!}
+caseP M .(error _) E (ruleErr E' x) = err refl
 
 lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
 lem-→s⋆ E (β-ƛ V) = step*
@@ -778,6 +782,15 @@ lem-→s⋆ E (β-sbuiltin⋆ b t p bt A) with bappTypeLem b t p (BApp2BAPP bt)
   (step** (lemV t (V-IΠ b p bt) (extEC E (-·⋆ A)))
           (step* (cong (stepV (V-IΠ b p bt)) (dissect-lemma E (-·⋆ A))) base))
 
+err—→ : ∀{A}{M} → error A —→ M → M ≡ error A
+err—→ (ruleEC [] () refl refl)
+err—→ (ruleErr E x) = refl
+
+err—↠ : ∀{A}{M} → error A —↠ M → M ≡ error A
+err—↠ refl—↠        = refl
+err—↠ (trans—↠ x p) rewrite err—→ x = err—↠ p
+
+
 thm1 : ∀{A B}(M : ∅ ⊢ A)(M' : ∅ ⊢ B)(E : EC B A)
   → M' ≡ E [ M ]ᴱ → (O : ∅ ⊢ B)(V : Value O)
   → M' —↠ O -> (E ▻ M) -→s ([] ◅ V)
@@ -790,7 +803,8 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
   (lem62 _ E E'')
   (step**
     (subst (λ E → (E ▻ L) -→s (E' ▻ N))
-      (unique-EC E' (compEC' E E'') L (β x₂) {!!})
+      (unique-EC E' (compEC' E E'') L (β x₂) (trans (sym x₁) (trans (compEC-[]ᴱ E E'' L) (cong (_[ L ]ᴱ) (compEC-eq E E'')))))
       (lem-→s⋆ E' x₂))
     (thm1 _ _  E' x _ V q'))
 ... | val E' N x L x₁ x₂ x₃ = {!!}
+... | err refl rewrite err—↠ q' = ⊥-elim (valerr E-error V)
