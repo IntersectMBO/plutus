@@ -39,6 +39,7 @@ common lang
 
 library
     import: lang
+    build-tool-depends: cardano-node:cardano-node, cardano-cli:cardano-cli
     exposed-modules:
         Cardano.BM.Data.Tracer.Extras
         Cardano.Chain
