@@ -70,8 +70,8 @@ let
   localInputs = (with plutus; [
     aws-mfa-login
     cabal-install
-    cardano-cli
-    cardano-node
+    #cardano-cli
+    #cardano-node
     cardano-repo-tool
     fixPurty
     fixStylishHaskell
