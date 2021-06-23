@@ -10,7 +10,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Set (Set, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (minusBtn, plusBtn, smallBtn, btn)
+import Halogen.Classes (minusBtn, plusBtn, btn)
 import Halogen.HTML (ClassName(..), HTML, button, div, em_, h6_, input, option, select, text)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, min, placeholder, required, selected, type_, value)
@@ -33,7 +33,7 @@ onlyDescriptionRenderer setAction deleteAction key info needed metadataAction ty
       ]
   , div [ class_ $ ClassName "metadata-prop-delete" ]
       [ button
-          [ classes [ if needed then plusBtn else minusBtn, smallBtn, ClassName "align-top", btn ]
+          [ classes [ if needed then plusBtn else minusBtn, ClassName "align-top", btn ]
           , onClick $ const $ Just $ metadataAction $ deleteAction key
           ]
           [ text "-" ]
@@ -75,7 +75,7 @@ choiceMetadataRenderer key info@{ choiceFormat } needed metadataAction typeNameT
       ]
   , div [ class_ $ ClassName "metadata-prop-delete" ]
       [ button
-          [ classes [ if needed then plusBtn else minusBtn, smallBtn, ClassName "align-top", btn ]
+          [ classes [ if needed then plusBtn else minusBtn, ClassName "align-top", btn ]
           , onClick $ const $ Just $ metadataAction $ DeleteChoiceInfo key
           ]
           [ text "-" ]
@@ -147,7 +147,7 @@ metadataList metadataAction metadataMap hintSet metadataRenderer typeNameTitle t
                           [ text $ typeNameTitle <> " " <> show key <> " meta-data not defined" ]
                       , div [ class_ $ ClassName "metadata-prop-create" ]
                           [ button
-                              [ classes [ minusBtn, smallBtn, ClassName "align-top", btn ]
+                              [ classes [ minusBtn, ClassName "align-top", btn ]
                               , onClick $ const $ Just $ metadataAction (setEmptyMetadata key)
                               ]
                               [ text "+" ]
