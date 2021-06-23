@@ -1630,6 +1630,15 @@ rlemma51! (error _)    = step
   refl
   λ { [] p q → refl ,, refl ,, p}
 
+unique-EC : ∀{A B}(E E' : EC A B)(L : ∅ ⊢ B) → Redex L
+  → E [ L ]ᴱ ≡ E' [ L ]ᴱ → E ≡ E'
+unique-EC  E E' L p q with rlemma51! (E [ L ]ᴱ)
+... | done VEL = ⊥-elim (valredex (lemVE L E (Value2VALUE VEL)) p)
+... | step ¬VEL E'' r r' U with U E' q p
+... | refl ,, refl ,, refl with U E refl p
+... | refl ,, refl ,, refl = refl
+
+
 notVAL : ∀{A}{L N N' : ∅ ⊢ A} → Value L → L —→ N' → ⊥
 notVAL V (ruleEC E p refl r) = valred (lemVE _ E (Value2VALUE V)) p
 notVAL V (ruleErr E refl)    =

@@ -138,6 +138,16 @@ extEC-[]ᴱ (VL ·r E) F M = cong (deval VL ·_) (extEC-[]ᴱ E F M)
 extEC-[]ᴱ (E ·⋆ A) F M = cong (_·⋆ A) (extEC-[]ᴱ E F M)
 extEC-[]ᴱ (wrap E) F M = cong (wrap _ _) (extEC-[]ᴱ E F M)
 extEC-[]ᴱ (unwrap E) F M = cong unwrap (extEC-[]ᴱ E F M)
+
+-- 2nd functor law for []ᴱ
+compEC-[]ᴱ : ∀{A B C}(E : EC A B)(E' : EC B C)(L : ∅ ⊢ C)
+  → E [ E' [ L ]ᴱ ]ᴱ ≡ compEC E E' [ L ]ᴱ
+compEC-[]ᴱ []         E' L = refl
+compEC-[]ᴱ (E l· M')  E' L = cong (_· M') (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ (VM ·r E)  E' L = cong (deval VM ·_) (compEC-[]ᴱ E E' L) 
+compEC-[]ᴱ (E ·⋆ A)   E' L = cong (_·⋆ A) (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ (wrap E)   E' L = cong (wrap _ _) (compEC-[]ᴱ E E' L)
+compEC-[]ᴱ (unwrap E) E' L = cong unwrap (compEC-[]ᴱ E E' L)
 ```
 
 # the machine
@@ -731,7 +741,7 @@ caseP M M' E (ruleEC E' x p p') with rlemma51! M
 ... | done VM = val E' _ p' _ p x VM
 ... | step ¬VM E'' q1 q2 X with rlemma51! (E [ M ]ᴱ)
 ... | done VEM = ⊥-elim (¬VM (VALUE2Value (lemVE M E (Value2VALUE VEM))))
-... | step ¬VEM E''' q1' q2' X' with X' (compEC E E'') (trans (cong (λ M → E [ M ]ᴱ) q2) {!!}) q1
+... | step ¬VEM E''' q1' q2' X' with X' (compEC E E'') (trans (cong (λ M → E [ M ]ᴱ) q2) (compEC-[]ᴱ E E'' _)) q1
 ... | refl ,, refl ,, refl with X' E' p (β x)
 ... | refl ,, refl ,, refl = redex ¬VM (compEC E E'') _ p' _ p x E'' q2
 caseP M .(error _) E (ruleErr E₁ x) = {!!}
@@ -780,7 +790,7 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
   (lem62 _ E E'')
   (step**
     (subst (λ E → (E ▻ L) -→s (E' ▻ N))
-      {!!}
+      (unique-EC E' (compEC' E E'') L (β x₂) {!!})
       (lem-→s⋆ E' x₂))
     (thm1 _ _  E' x _ V q'))
 ... | val E' N x L x₁ x₂ x₃ = {!!}
