@@ -723,6 +723,40 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     M' ≡ error A
     -- → M ≡ error B -- not needed so far
     → CaseP M M' E
+ -- redex is in arg of application
+  arg : ∀{C D}{E' : EC C D}{L : ∅ ⊢ D}
+    → Value M
+    → (p : B ≡ C ⇒ A)
+    → subst (EC A) p E ≡ [] l· (E' [ L ]ᴱ)
+    → Redex L
+   → CaseP M M' E
+  -- M is lambda function in a beta redex 
+
+  β : ∀{C} L (E'' : EC A C)
+    → E ≡ extEC E'' (V-ƛ L ·-)
+    → M' ≡ E'' [ L [ M ] ]ᴱ
+    → Value M
+    → CaseP M M' E
+
+-- M is Lambda type function in beta* redex
+{-
+  β⋆ : M == Λ X
+     → E == [] ·⋆ A
+  -- M is nearly saturated builtin function
+  builtinβ :
+      → (p : az <>> (Term ∷ []) ∈ arity b)
+      → BApp b p t
+      → E == [] l· L
+      → Value L
+      → Case M M' E
+  builtinβ⋆ :
+      → (p : az <>> (Type ∷ []) ∈ arity b)
+      → BApp b p t
+      → E == [] ·⋆ A
+      → Case M M' E
+-}
+  -- it could be a wrap under and unwrap,
+  -- or it could under a wrap and and unwrap...
   val : ∀ {C}
     → (E' : EC A C)
     → (N : ∅ ⊢ C)
@@ -741,13 +775,32 @@ caseP M M' E (ruleEC E' x p p') with rlemma51! M
 -- E only goes as far as M
 -- E'' is inside M
 -- E''' goes all the way down to the redex
-
-... | done VM = val E' _ p' _ p x VM
 ... | step ¬VM E'' q1 q2 X with rlemma51! (E [ M ]ᴱ)
 ... | done VEM = ⊥-elim (¬VM (VALUE2Value (lemVE M E (Value2VALUE VEM))))
 ... | step ¬VEM E''' q1' q2' X' with X' (compEC E E'') (trans (cong (λ M → E [ M ]ᴱ) q2) (compEC-[]ᴱ E E'' _)) q1
 ... | refl ,, refl ,, refl with X' E' p (β x)
 ... | refl ,, refl ,, refl = redex ¬VM (compEC E E'') _ p' _ p x E'' q2
+caseP M M' E (ruleEC E' x p p') | done VM with dissect E | inspect dissect E
+... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq =
+  ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p VM))) x) 
+... | inj₂ (_ ,, E'' ,, (-· N)) | I[ eq ] rewrite dissect-inj₂ E E'' (-· N) eq = {!!}
+-- redex in arg somewhere
+-- trans (sym (trans (extEC-[]ᴱ E'' (-· N) M) (sym (extEC-[]ᴱ E'' (VM ·-) N)))) p : (extEC E'' (VM ·-) [ N ]ᴱ) ≡ (E' [ L ]ᴱ)
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] rewrite dissect-inj₂ E E'' (V-ƛ N ·-) eq with rlemma51! (extEC E'' (V-ƛ N ·-) [ M ]ᴱ)
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | done x₁ = {!!} -- impossible hopefully
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U with U E' p (β x)
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-ƛ N ·-) M) (β (β-ƛ VM))
+caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-ƛ x) p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ _ ·-)) | I[ eq ] | step x₁ .E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = {!!}
+
+-- beta redex
+-- trans (sym (extEC-[]ᴱ E'' (V-ƛ N ·-) M)) p : (E'' [ ƛ N · M ]ᴱ) ≡ (E' [ L ]ᴱ)
+
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] = {!!} -- builtin redex
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁ ·-)) | I[ eq ] = {!!} -- builtin value...
+
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] = {!!}
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] = {!!}
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] = {!!}
 caseP M .(error _) E (ruleErr E' x) = err refl
 
 lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
@@ -806,5 +859,17 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
       (unique-EC E' (compEC' E E'') L (β x₂) (trans (sym x₁) (trans (compEC-[]ᴱ E E'' L) (cong (_[ L ]ᴱ) (compEC-eq E E'')))))
       (lem-→s⋆ E' x₂))
     (thm1 _ _  E' x _ V q'))
-... | val E' N x L x₁ x₂ x₃ = {!!}
+... | val E' N x L x₁ x₂ x₃ = {!E!}
+-- what can it be
+-- there needs to be a next beta
+-- M could be a lambda function in an application
+-- M could be a builtin function with one arg left in an application
+-- M could be a argument in an application
+-- M could be under a unwrap-wrap
+-- there can't be any errors otherwise we wouldn't get a value in the end
 ... | err refl rewrite err—↠ q' = ⊥-elim (valerr E-error V)
+... | arg x p y z = {!!}
+... | β L E'' refl x VM = step**
+  (lemV M VM (extEC E'' (V-ƛ L ·-)))
+  (step* (cong (stepV VM) (dissect-lemma E'' (V-ƛ L ·-)))
+         (thm1 _ _ E'' x O V q'))
