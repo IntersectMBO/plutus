@@ -121,6 +121,7 @@ library
         PlutusIR.Transform.LetFloat
         PlutusIR.Transform.Inline
         PlutusIR.Transform.Beta
+        PlutusIR.Transform.Unwrap
         PlutusIR.TypeCheck
 
         UntypedPlutusCore
@@ -185,6 +186,7 @@ library
         PlutusCore.Mark
         PlutusCore.Parsable
         PlutusCore.Parser.Internal
+        PlutusCore.ParserCommon
         PlutusCore.Pretty.Classic
         PlutusCore.Pretty.ConfigName
         PlutusCore.Pretty.ConfigName
@@ -272,7 +274,6 @@ library
         megaparsec -any,
         memory -any,
         mmorph -any,
-        mono-traversable -any,
         monoidal-containers,
         mtl -any,
         nonempty-containers -any,
@@ -285,7 +286,7 @@ library
         semigroups -any,
         serialise -any,
         size-based -any,
-        some -any,
+        some < 1.0.3,
         sop-core -any,
         tasty -any,
         tasty-golden -any,

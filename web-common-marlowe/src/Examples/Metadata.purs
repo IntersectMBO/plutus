@@ -3,7 +3,7 @@ module Examples.Metadata where
 import Data.Map (fromFoldable, empty)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Extended (ContractType(..))
-import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
+import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData, emptyContractMetadata, lovelaceFormat, oracleRatioFormat)
 
 example :: MetaData
 example = emptyContractMetadata
@@ -13,13 +13,28 @@ escrow =
   { contractType: Escrow
   , contractName: "Simple escrow"
   , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller*. If there is a disagreement, an *Arbiter* will decide whether the money is refunded or paid to the *Seller*."
-  , choiceDescriptions:
+  , choiceInfo:
       ( fromFoldable
-          [ "Confirm problem" /\ "Acknowledge there was a problem and a refund must be granted."
-          , "Dismiss claim" /\ "The *Arbiter* does not see any problem with the exchange and the *Seller* must be paid."
-          , "Dispute problem" /\ "The *Seller* disagrees with the *Buyer* about the claim that something went wrong."
-          , "Everything is alright" /\ "The transaction was uneventful, *Buyer* agrees to pay the *Seller*."
-          , "Report problem" /\ "The *Buyer* claims not having received the product that was paid for as agreed and would like a refund."
+          [ "Confirm problem"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "Acknowledge there was a problem and a refund must be granted."
+                }
+          , "Dismiss claim"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "The *Arbiter* does not see any problem with the exchange and the *Seller* must be paid."
+                }
+          , "Dispute problem"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "The *Seller* disagrees with the *Buyer* about the claim that something went wrong."
+                }
+          , "Everything is alright"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "The transaction was uneventful, *Buyer* agrees to pay the *Seller*."
+                }
+          , "Report problem"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "The *Buyer* claims not having received the product that was paid for as agreed and would like a refund."
+                }
           ]
       )
   , roleDescriptions:
@@ -45,12 +60,24 @@ escrowWithCollateral =
   { contractType: Escrow
   , contractName: "Escrow with collateral"
   , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller* using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
-  , choiceDescriptions:
+  , choiceInfo:
       ( fromFoldable
-          [ "Confirm problem" /\ "Acknowledge that there was a problem and a refund must be granted."
-          , "Dispute problem" /\ "The *Seller* disagrees with the *Buyer* about the claim that something went wrong and the collateral will be burnt."
-          , "Everything is alright" /\ "The exchange was successful and the *Buyer* agrees to pay the *Seller*."
-          , "Report problem" /\ "The *Buyer* claims not having received the product that was paid for as agreed and would like a refund."
+          [ "Confirm problem"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "Acknowledge that there was a problem and a refund must be granted."
+                }
+          , "Dispute problem"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "The *Seller* disagrees with the *Buyer* about the claim that something went wrong and the collateral will be burnt."
+                }
+          , "Everything is alright"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "The exchange was successful and the *Buyer* agrees to pay the *Seller*."
+                }
+          , "Report problem"
+              /\ { choiceFormat: DefaultFormat
+                , choiceDescription: "The *Buyer* claims not having received the product that was paid for as agreed and would like a refund."
+                }
           ]
       )
   , roleDescriptions:
@@ -81,7 +108,7 @@ zeroCouponBond =
   { contractType: ZeroCouponBond
   , contractName: "Zero Coupon Bond"
   , contractDescription: "A simple loan. The *Investor* pays the *Issuer* the *Discounted price* at the start, and is repaid the full *Notional price* at the end."
-  , choiceDescriptions: empty
+  , choiceInfo: empty
   , roleDescriptions:
       ( fromFoldable
           [ "Investor" /\ "The party that buys the bond at a discounted price, i.e. makes the loan."
@@ -107,7 +134,7 @@ couponBondGuaranteed =
   { contractType: CouponBondGuaranteed
   , contractName: "Coupon Bond Guaranteed"
   , contractDescription: "Debt agreement between an *Investor* and an *Issuer*. *Investor* will advance the *Principal* amount at the beginning of the contract, and the *Issuer* will pay back *Interest instalment* every 30 slots and the *Principal* amount by the end of 3 instalments. The debt is backed by a collateral provided by the *Guarantor* which will be refunded as long as the *Issuer* pays back on time."
-  , choiceDescriptions: empty
+  , choiceInfo: empty
   , roleDescriptions:
       ( fromFoldable
           [ "Guarantor" /\ "Provides a collateral in case the *Issuer* defaults."
@@ -129,7 +156,7 @@ swap =
   { contractType: Swap
   , contractName: "Swap of Ada and dollar tokens"
   , contractDescription: "Takes Ada from one party and dollar tokens from another party, and it swaps them atomically."
-  , choiceDescriptions: empty
+  , choiceInfo: empty
   , roleDescriptions:
       ( fromFoldable
           [ "Ada provider" /\ "The party that provides the Ada."
@@ -155,10 +182,16 @@ contractForDifferences =
   { contractType: ContractForDifferences
   , contractName: "Contract for Differences"
   , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots is redistributed depending on the change in a given trade price reported by *Oracle*. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
-  , choiceDescriptions:
+  , choiceInfo:
       ( fromFoldable
-          [ "Price at beginning" /\ "Trade price at the beginning of the contract."
-          , "Price at end" /\ "Trade price at the end of the contract."
+          [ "Price at beginning"
+              /\ { choiceFormat: lovelaceFormat
+                , choiceDescription: "Trade price at the beginning of the contract."
+                }
+          , "Price at end"
+              /\ { choiceFormat: lovelaceFormat
+                , choiceDescription: "Trade price at the end of the contract."
+                }
           ]
       )
   , roleDescriptions:
@@ -177,10 +210,16 @@ contractForDifferencesWithOracle =
   { contractType: ContractForDifferences
   , contractName: "Contract for Differences with Oracle"
   , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots these assets are redistributed depending on the change in price of 100 Ada worth of dollars between the start and the end of the contract. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
-  , choiceDescriptions:
+  , choiceInfo:
       ( fromFoldable
-          [ "dir-adausd" /\ "Exchange rate ADA/USD at the beginning of the contract."
-          , "inv-adausd" /\ "Exchange rate USD/ADA at the end of the contract."
+          [ "dir-adausd"
+              /\ { choiceFormat: oracleRatioFormat "ADA/USD"
+                , choiceDescription: "Exchange rate ADA/USD at the beginning of the contract."
+                }
+          , "inv-adausd"
+              /\ { choiceFormat: oracleRatioFormat "USD/ADA"
+                , choiceDescription: "Exchange rate USD/ADA at the end of the contract."
+                }
           ]
       )
   , roleDescriptions:

@@ -1,17 +1,16 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE MonoLocalBinds     #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {- Stablecoin backed by a cryptocurrency.
 
@@ -49,7 +48,7 @@ negative number of them.
 An oracle value with the current exchange rate of the base currency has to be
 provided with every transition.
 
-The two coins (stablecoin and reservecoin) are Plutus native token whose forging
+The two coins (stablecoin and reservecoin) are Plutus native token whose minting
 policy is the forwarding policy for the stablecoin's state machine.
 
 We use the 'Ratio' type for all calculations in the script, using 'round' to
@@ -57,28 +56,28 @@ obtain 'Integer' values at the very end.
 
 -}
 module Plutus.Contracts.Stablecoin(
-    SC(..)
-    , RC(..)
-    , BC(..)
-    , PC(..)
-    , BankState(..)
-    , Stablecoin(..)
-    , Input(..)
-    , SCAction(..)
-    , ConversionRate
-    -- * State machine client
-    , typedValidator
-    , machineClient
-    , step
-    -- * Contract using the state machine
-    , contract
-    , StablecoinError
-    , StablecoinSchema
-    -- * Etc.
-    , stableCoins
-    , reserveCoins
-    , checkValidState
-    ) where
+  SC(..)
+  , RC(..)
+  , BC(..)
+  , PC(..)
+  , BankState(..)
+  , Stablecoin(..)
+  , Input(..)
+  , SCAction(..)
+  , ConversionRate
+  -- * State machine client
+  , typedValidator
+  , machineClient
+  , step
+  -- * Contract using the state machine
+  , contract
+  , StablecoinError
+  , StablecoinSchema
+  -- * Etc.
+  , stableCoins
+  , reserveCoins
+  , checkValidState
+  ) where
 
 import           Control.Monad                (forever, guard)
 import           Data.Aeson                   (FromJSON, ToJSON)
@@ -89,7 +88,7 @@ import qualified Ledger.Constraints           as Constraints
 import           Ledger.Crypto                (PubKey)
 import qualified Ledger.Interval              as Interval
 import           Ledger.Oracle
-import           Ledger.Scripts               (MonetaryPolicyHash)
+import           Ledger.Scripts               (MintingPolicyHash)
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Typed.Tx              (TypedScriptTxOut (..))
 import           Ledger.Value                 (AssetClass, TokenName, Value)
@@ -97,7 +96,7 @@ import qualified Ledger.Value                 as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine (SMContractError, State (..), StateMachine, StateMachineClient (..), Void)
 import qualified Plutus.Contract.StateMachine as StateMachine
-import qualified PlutusTx                     as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude
 import           PlutusTx.Ratio               as R
 import qualified Prelude                      as Haskell
@@ -144,7 +143,7 @@ data BankState =
         { bsReserves            :: BC Integer -- ^ Value of the bank's reserves in base currency
         , bsStablecoins         :: SC Integer -- ^ Amount of stablecoins in circulation
         , bsReservecoins        :: RC Integer -- ^ Amount of reservecoins currently in circulation
-        , bsForgingPolicyScript :: MonetaryPolicyHash -- ^ Hash of the forging policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
+        , bsMintingPolicyScript :: MintingPolicyHash -- ^ Hash of the minting policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
@@ -156,7 +155,7 @@ initialState StateMachineClient{scInstance=StateMachine.StateMachineInstance{Sta
         { bsReserves = 0
         , bsStablecoins = 0
         , bsReservecoins = 0
-        , bsForgingPolicyScript = Scripts.forwardingMonetaryPolicyHash typedValidator
+        , bsMintingPolicyScript = Scripts.forwardingMintingPolicyHash typedValidator
         }
 
 {-# INLINEABLE convert #-}
@@ -253,9 +252,9 @@ data SCAction
 calcFees :: Stablecoin -> BankState -> ConversionRate -> SCAction -> BC (Ratio Integer)
 calcFees sc@Stablecoin{scFee} bs conversionRate = \case
     MintStablecoin (SC i) ->
-        stablecoinNominalPrice bs conversionRate * (BC scFee) * (BC $ abs $ fromInteger i)
+        stablecoinNominalPrice bs conversionRate * BC scFee * (BC $ abs $ fromInteger i)
     MintReserveCoin (RC i) ->
-        reservecoinNominalPrice sc bs conversionRate * (BC scFee) * (BC $ abs $ fromInteger i)
+        reservecoinNominalPrice sc bs conversionRate * BC scFee * (BC $ abs $ fromInteger i)
 
 -- | Input to the stablecoin state machine
 data Input =
@@ -284,8 +283,8 @@ transition sc State{stateData=oldState} input =
 --   new state and tx constraints, without checking whether the new state
 --   is valid.
 applyInput :: forall i o. Stablecoin -> BankState -> Input -> Maybe (TxConstraints i o, BankState)
-applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@BankState{bsForgingPolicyScript} Input{inpSCAction, inpConversionRate} = do
-    (Observation{obsValue=rate, obsSlot}, constraints) <- either (const Nothing) pure (verifySignedMessageConstraints scOracle inpConversionRate)
+applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@BankState{bsMintingPolicyScript} Input{inpSCAction, inpConversionRate} = do
+    (Observation{obsValue=rate, obsTime}, constraints) <- either (const Nothing) pure (verifySignedMessageConstraints scOracle inpConversionRate)
     let fees = calcFees sc bs rate inpSCAction
         (newState, newConstraints) = case inpSCAction of
             MintStablecoin sc' ->
@@ -293,14 +292,14 @@ applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} 
                 (bs
                 { bsStablecoins = bsStablecoins bs + sc'
                 , bsReserves = bsReserves bs + fmap round (fees + scValue)
-                }, Constraints.mustForgeCurrency bsForgingPolicyScript scStablecoinTokenName (unSC sc'))
+                }, Constraints.mustMintCurrency bsMintingPolicyScript scStablecoinTokenName (unSC sc'))
             MintReserveCoin rc ->
                 let rcValue = reservecoinNominalPrice sc bs rate * (BC $ fromInteger $ unRC rc) in
                 (bs
                 { bsReservecoins = bsReservecoins bs + rc
                 , bsReserves = bsReserves bs + fmap round (fees + rcValue)
-                }, Constraints.mustForgeCurrency bsForgingPolicyScript scReservecoinTokenName (unRC rc))
-    let dateConstraints = Constraints.mustValidateIn $ Interval.from obsSlot
+                }, Constraints.mustMintCurrency bsMintingPolicyScript scReservecoinTokenName (unRC rc))
+    let dateConstraints = Constraints.mustValidateIn $ Interval.from obsTime
     pure (constraints <> newConstraints <> dateConstraints, newState)
 
 {-# INLINEABLE step #-}
@@ -314,13 +313,13 @@ step sc@Stablecoin{scOracle} bs i@Input{inpConversionRate} = do
 -- | A 'Value' with the given number of reservecoins
 reserveCoins :: Stablecoin -> RC Integer -> Value
 reserveCoins sc@Stablecoin{scReservecoinTokenName} =
-    let sym = Scripts.forwardingMonetaryPolicyHash $ typedValidator sc
+    let sym = Scripts.forwardingMintingPolicyHash $ typedValidator sc
     in Value.singleton (Value.mpsSymbol sym) scReservecoinTokenName . unRC
 
 -- | A 'Value' with the given number of stablecoins
 stableCoins :: Stablecoin -> SC Integer -> Value
 stableCoins sc@Stablecoin{scStablecoinTokenName} =
-    let sym = Scripts.forwardingMonetaryPolicyHash $ typedValidator sc
+    let sym = Scripts.forwardingMintingPolicyHash $ typedValidator sc
     in Value.singleton (Value.mpsSymbol sym) scStablecoinTokenName . unSC
 
 {-# INLINEABLE isValidState #-}
@@ -378,8 +377,7 @@ machineClient inst stablecoin =
     in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
 
 type StablecoinSchema =
-    BlockchainActions
-        .\/ Endpoint "run step" Input
+        Endpoint "run step" Input
         .\/ Endpoint "initialise" Stablecoin
 
 data StablecoinError =

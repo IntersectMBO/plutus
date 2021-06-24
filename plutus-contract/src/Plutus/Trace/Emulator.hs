@@ -33,7 +33,9 @@ module Plutus.Trace.Emulator(
     , EmulatedWalletAPI.payToWallet
     , Waiting.nextSlot
     , Waiting.waitUntilSlot
+    , Waiting.waitUntilTime
     , Waiting.waitNSlots
+    , Waiting.waitNSeconds
     , EmulatorControl.freezeContractInstance
     , EmulatorControl.thawContractInstance
     -- ** Inspecting the chain state
@@ -71,7 +73,7 @@ import           Control.Lens                            hiding ((:>))
 import           Control.Monad                           (forM_, void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Coroutine           (Yield)
-import           Control.Monad.Freer.Error               (Error, throwError)
+import           Control.Monad.Freer.Error               (Error, handleError, throwError)
 import           Control.Monad.Freer.Extras.Log          (LogMessage (..), LogMsg (..), mapLog)
 import           Control.Monad.Freer.Extras.Modify       (raiseEnd)
 import           Control.Monad.Freer.Reader              (Reader, runReader)
@@ -151,7 +153,8 @@ handleEmulatorTrace ::
 handleEmulatorTrace action = do
     _ <- subsume @(Error EmulatorRuntimeError)
             . interpret (mapLog (UserThreadEvent . UserLog))
-            . interpret handleEmulatedWalletAPI
+            . flip handleError (throwError . EmulatedWalletError)
+            . reinterpret handleEmulatedWalletAPI
             . interpret (handleEmulatorControl @_ @effs)
             . interpret (handleWaiting @_ @effs)
             . interpret (handleRunContract @_ @effs)

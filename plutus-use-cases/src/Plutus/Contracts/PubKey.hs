@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -23,11 +22,11 @@ import           Data.Aeson               (FromJSON, ToJSON)
 import qualified Data.Map                 as Map
 import           GHC.Generics             (Generic)
 
-import           Ledger                   as Ledger hiding (initialise, to)
+import           Ledger                   hiding (initialise, to)
 import           Ledger.Contexts          as V
 import           Ledger.Typed.Scripts     (TypedValidator)
 import qualified Ledger.Typed.Scripts     as Scripts
-import qualified PlutusTx                 as PlutusTx
+import qualified PlutusTx
 
 import qualified Ledger.Constraints       as Constraints
 import           Plutus.Contract          as Contract
@@ -64,9 +63,7 @@ instance AsContractError PubKeyError where
 --   and a 'TxIn' transaction input that can spend it.
 pubKeyContract
     :: forall w s e.
-    ( HasWriteTx s
-    , HasTxConfirmation s
-    , AsPubKeyError e
+    ( AsPubKeyError e
     )
     => PubKeyHash
     -> Value

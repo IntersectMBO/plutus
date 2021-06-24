@@ -42,7 +42,7 @@ If you find yourself building GHC, STOP and fix the cache.
 
 === User documentation
 
-The main documentation is located https://docs.cardano.org/projects/plutus/en/latest/[here].
+The main documentation is located https://plutus.readthedocs.io/en/latest/[here].
 
 === Talks
 

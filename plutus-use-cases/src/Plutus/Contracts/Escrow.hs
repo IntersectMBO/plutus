@@ -46,15 +46,14 @@ import           Control.Monad.Error.Lens (throwing)
 import           Data.Aeson               (FromJSON, ToJSON)
 import           GHC.Generics             (Generic)
 
-import           Ledger                   (Datum (..), DatumHash, PubKeyHash, Slot, TxId, TxOutTx (..), ValidatorHash,
-                                           interval, scriptOutputsAt, txId, txSignedBy, valuePaidTo)
+import           Ledger                   (Datum (..), DatumHash, POSIXTime, PubKeyHash, TxId, TxOutTx (..),
+                                           ValidatorHash, interval, scriptOutputsAt, txId, txSignedBy, valuePaidTo)
 import qualified Ledger
 import           Ledger.Constraints       (TxConstraints)
 import qualified Ledger.Constraints       as Constraints
 import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
 import           Ledger.Interval          (after, before, from)
 import qualified Ledger.Interval          as Interval
-import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
 import           Ledger.Typed.Scripts     (TypedValidator)
 import qualified Ledger.Typed.Scripts     as Scripts
@@ -69,8 +68,7 @@ import           Prelude                  (Semigroup (..), foldMap)
 import qualified Prelude                  as Haskell
 
 type EscrowSchema =
-    BlockchainActions
-        .\/ Endpoint "pay-escrow" Value
+        Endpoint "pay-escrow" Value
         .\/ Endpoint "redeem-escrow" ()
         .\/ Endpoint "refund-escrow" ()
 
@@ -133,7 +131,7 @@ payToScriptTarget = ScriptTarget
 -- | Definition of an escrow contract, consisting of a deadline and a list of targets
 data EscrowParams d =
     EscrowParams
-        { escrowDeadline :: Slot
+        { escrowDeadline :: POSIXTime
         -- ^ Latest point at which the outputs may be spent.
         , escrowTargets  :: [EscrowTarget d]
         -- ^ Where the money should go. For each target, the contract checks that
@@ -198,10 +196,10 @@ validate :: EscrowParams DatumHash -> PubKeyHash -> Action -> ScriptContext -> B
 validate EscrowParams{escrowDeadline, escrowTargets} contributor action ScriptContext{scriptContextTxInfo} =
     case action of
         Redeem ->
-            traceIfFalse "escrowDeadline-after" (TimeSlot.slotToPOSIXTime escrowDeadline `after` txInfoValidRange scriptContextTxInfo)
+            traceIfFalse "escrowDeadline-after" (escrowDeadline `after` txInfoValidRange scriptContextTxInfo)
             && traceIfFalse "meetsTarget" (all (meetsTarget scriptContextTxInfo) escrowTargets)
         Refund ->
-            traceIfFalse "escrowDeadline-before" (TimeSlot.slotToPOSIXTime escrowDeadline `before` txInfoValidRange scriptContextTxInfo)
+            traceIfFalse "escrowDeadline-before" (escrowDeadline `before` txInfoValidRange scriptContextTxInfo)
             && traceIfFalse "txSignedBy" (scriptContextTxInfo `txSignedBy` contributor)
 
 typedValidator :: EscrowParams Datum -> Scripts.TypedValidator Escrow
@@ -219,7 +217,7 @@ escrowContract escrow =
         payAndRefund = do
             vl <- endpoint @"pay-escrow"
             _ <- pay inst escrow vl
-            _ <- awaitSlot (escrowDeadline escrow)
+            _ <- awaitTime $ escrowDeadline escrow
             refund inst escrow
     in void payAndRefund `select` void (redeemEp escrow)
 
@@ -227,9 +225,7 @@ escrowContract escrow =
 --   contribution.
 payEp ::
     forall w s e.
-    ( HasWriteTx s
-    , HasOwnPubKey s
-    , HasEndpoint "pay-escrow" Value s
+    ( HasEndpoint "pay-escrow" Value s
     , AsEscrowError e
     )
     => EscrowParams Datum
@@ -241,9 +237,7 @@ payEp escrow = do
 -- | Pay some money into the escrow contract.
 pay ::
     forall w s e.
-    ( HasWriteTx s
-    , HasOwnPubKey s
-    , AsEscrowError e
+    ( AsEscrowError e
     )
     => TypedValidator Escrow
     -- ^ The instance
@@ -264,10 +258,7 @@ newtype RedeemSuccess = RedeemSuccess TxId
 -- | 'redeem' with an endpoint.
 redeemEp ::
     forall w s e.
-    ( HasUtxoAt s
-    , HasAwaitSlot s
-    , HasWriteTx s
-    , HasEndpoint "redeem-escrow" () s
+    ( HasEndpoint "redeem-escrow" () s
     , AsEscrowError e
     )
     => EscrowParams Datum
@@ -280,17 +271,14 @@ redeemEp escrow =
 --   has all the outputs defined in the contract's list of targets.
 redeem ::
     forall w s e.
-    ( HasUtxoAt s
-    , HasAwaitSlot s
-    , HasWriteTx s
-    , AsEscrowError e
+    ( AsEscrowError e
     )
     => TypedValidator Escrow
     -> EscrowParams Datum
     -> Contract w s e RedeemSuccess
 redeem inst escrow = mapError (review _EscrowError) $ do
     let addr = Scripts.validatorAddress inst
-    current <- currentSlot
+    current <- currentTime
     unspentOutputs <- utxoAt addr
     let
         valRange = Interval.to (Haskell.pred $ escrowDeadline escrow)
@@ -310,10 +298,7 @@ newtype RefundSuccess = RefundSuccess TxId
 -- | 'refund' with an endpoint.
 refundEp ::
     forall w s.
-    ( HasUtxoAt s
-    , HasWriteTx s
-    , HasOwnPubKey s
-    , HasEndpoint "refund-escrow" () s
+    ( HasEndpoint "refund-escrow" () s
     )
     => EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
@@ -322,10 +307,7 @@ refundEp escrow = endpoint @"refund-escrow" >> refund (typedValidator escrow) es
 -- | Claim a refund of the contribution.
 refund ::
     forall w s.
-    ( HasUtxoAt s
-    , HasOwnPubKey s
-    , HasWriteTx s)
-    => TypedValidator Escrow
+    TypedValidator Escrow
     -> EscrowParams Datum
     -> Contract w s EscrowError RefundSuccess
 refund inst escrow = do
@@ -343,19 +325,14 @@ refund inst escrow = do
 --   or reclaim the contribution if the goal has not been met.
 payRedeemRefund ::
     forall w s.
-    ( HasUtxoAt s
-    , HasWriteTx s
-    , HasAwaitSlot s
-    , HasOwnPubKey s
-    )
-    => EscrowParams Datum
+    EscrowParams Datum
     -> Value
     -> Contract w s EscrowError (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
     let inst = typedValidator params
     -- Pay the value 'vl' into the contract
     _ <- pay inst params vl
-    outcome <- selectEither (awaitSlot (escrowDeadline params)) (fundsAtAddressGeq (Scripts.validatorAddress inst) (targetTotal params))
+    outcome <- selectEither (awaitTime (escrowDeadline params)) (fundsAtAddressGeq (Scripts.validatorAddress inst) (targetTotal params))
     -- wait
     -- for the 'targetTotal' of the contract to appear at the address, or
     -- for the 'escrowDeadline' to pass, whichever happens first.

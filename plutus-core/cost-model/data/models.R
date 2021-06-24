@@ -160,14 +160,7 @@ modelFun <- function(path) {
         adjustModel (m, "AddInteger")
     }
 
-    subtractIntegerModel <- {
-        filtered <- data %>%
-            filter(BuiltinName == "SubtractInteger")  %>%
-            discard.upper.outliers("SubtractInteger") %>%
-            discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ pmax(x_mem , y_mem), filtered)
-        adjustModel (m, "SubtractInteger")
-    }
+    subtractIntegerModel <- addIntegerModel
 
     multiplyIntegerModel <- {
         filtered <- data %>%

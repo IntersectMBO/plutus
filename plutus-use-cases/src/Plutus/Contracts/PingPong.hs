@@ -38,7 +38,7 @@ import qualified Ledger.Ada                   as Ada
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Typed.Tx              (TypedScriptTxOut (..))
-import qualified PlutusTx                     as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude             hiding (Applicative (..), check)
 
 import           Plutus.Contract
@@ -60,8 +60,7 @@ data Input = Ping | Pong | Stop
     deriving anyclass (ToJSON, FromJSON)
 
 type PingPongSchema =
-    BlockchainActions
-        .\/ Endpoint "initialise" ()
+        Endpoint "initialise" ()
         .\/ Endpoint "ping" ()
         .\/ Endpoint "pong" ()
         .\/ Endpoint "stop" () -- Transition the state machine instance to the final state

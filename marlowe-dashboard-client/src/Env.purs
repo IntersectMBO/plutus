@@ -4,6 +4,7 @@ module Env
   , PABType(..)
   ) where
 
+import Prelude
 import Effect.AVar (AVar)
 import Halogen (SubscriptionId)
 import Plutus.PAB.Webserver (SPParams_)
@@ -33,6 +34,10 @@ data DataProvider
   = PAB PABType
   | LocalStorage
 
+derive instance eqDataProvider :: Eq DataProvider
+
 data PABType
   = Plain
   | WithMarloweContracts
+
+derive instance eqPABType :: Eq PABType

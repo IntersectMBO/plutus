@@ -6,6 +6,7 @@ import           Control.Monad           (void)
 
 import           Ledger                  (pubKeyHash)
 import qualified Ledger.Ada              as Ada
+import qualified Ledger.TimeSlot         as TimeSlot
 import qualified Ledger.Typed.Scripts    as Scripts
 import           Plutus.Contract
 import           Plutus.Contract.Test
@@ -79,7 +80,7 @@ w3 = Wallet 3
 escrowParams :: EscrowParams d
 escrowParams =
   EscrowParams
-    { escrowDeadline = 100
+    { escrowDeadline = TimeSlot.slotToPOSIXTime 100
     , escrowTargets  =
         [ payToPubKeyTarget (pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
         , payToPubKeyTarget (pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 20)

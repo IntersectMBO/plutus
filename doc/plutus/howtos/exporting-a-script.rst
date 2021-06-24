@@ -1,8 +1,8 @@
 .. highlight:: haskell
 .. _exporting_a_script:
 
-How to export a script
-======================
+How to export scripts, datums and redemmers
+===========================================
 
 .. note::
     This guide uses the scripts from the :ref:`basic validators tutorial <basic_validators_tutorial>`.
@@ -13,7 +13,7 @@ For example, you might want to submit it as part of a manually created transacti
 Fortunately, it is quite simple to do this.
 You can either translate directly into CBOR using the `Serialise` typeclass from the `serialise` package, or you can create an envelope of the sort used by the Cardano node CLI.
 
-.. TODO: include instructions on the latter once we have support for it
+The same can also be done with `Datum` and `Redeemer` datatypes.
 
 .. literalinclude:: ../tutorials/BasicValidators.hs
    :start-after: BLOCK8

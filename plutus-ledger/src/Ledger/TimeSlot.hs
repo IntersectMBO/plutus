@@ -18,7 +18,8 @@ import           PlutusTx.Prelude
 
 {-# INLINABLE shelleyLaunchDate #-}
 -- | 'shelleyLaunchDatePOSIXTime' corresponds to the time 2020-07-29T21:44:51Z
--- which is 1596059091 in POSIX time.
+-- which is 1596059091 in POSIX time (number of seconds since
+-- 1970-01-01T00:00:00Z).
 shelleyLaunchDate :: Integer
 shelleyLaunchDate = 1596059091
 

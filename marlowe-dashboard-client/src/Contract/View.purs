@@ -4,12 +4,12 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
 import Css as Css
-import Data.Array (foldr, intercalate)
+import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NonEmptyArray
@@ -18,9 +18,10 @@ import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
 import Data.Map (keys, lookup, toUnfoldable) as Map
-import Data.Maybe (Maybe(..), maybe, maybe')
+import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
+import Data.String (trim)
 import Data.String as String
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
@@ -30,7 +31,9 @@ import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, spa
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
-import Marlowe.Execution (NamedAction(..), _currentState, _mNextTimeout, expandBalances, getActionParticipant)
+import Marlowe.Execution.Lenses (_currentState, _mNextTimeout)
+import Marlowe.Execution.State (expandBalances, getActionParticipant)
+import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
 import Marlowe.PAB (transactionFee)
 import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval, Token, TransactionInput(..), getEncompassBound)
@@ -70,7 +73,7 @@ contractDetailsCard currentSlot state =
       --       we need the cards container to grow (hence the flex-grow).
       , div [ classNames [ "flex-grow", "w-full" ] ]
           [ div
-              [ classNames [ "flex", "overflow-x-scroll", "h-full", "scrollbar-width-none", "relative" ]
+              [ classNames [ "flex", "items-center", "overflow-x-scroll", "h-full", "scrollbar-width-none", "relative" ]
               , ref scrollContainerRef
               ]
               (paddingElement <> pastStepsCards <> currentStepCard <> paddingElement)
@@ -110,7 +113,7 @@ cardNavigationButtons state =
               ]
               [ text "Next" ]
   in
-    div [ classNames [ "absolute", "bottom-6", "flex", "items-center", "w-full", "px-6", "md:px-5pc" ] ]
+    div [ classNames [ "mb-6", "flex", "items-center", "w-full", "px-6", "md:px-5pc" ] ]
       $ Array.catMaybes
           [ leftButton (state ^. _selectedStep)
           , rightButton (state ^. _selectedStep)
@@ -234,7 +237,7 @@ renderContractCard stepNumber state currentTab cardBody =
       --       so the perceived margins are bigger than we'd want to. To solve this we add negative margin of 4
       --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
-      [ "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out" ]
+      [ "grid", "grid-rows-contract-step-card", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out" ]
         <> toggleWhen (state ^. _selectedStep /= stepNumber)
             -- Not selected card modifiers
             [ "shadow", "scale-77", "-mx-4" ]
@@ -242,7 +245,7 @@ renderContractCard stepNumber state currentTab cardBody =
             [ "shadow-lg", "mx-2" ]
   in
     div [ classNames contractCardCss ]
-      [ div [ classNames [ "flex", "overflow-hidden" ] ]
+      [ div [ classNames [ "flex" ] ]
           [ a
               [ classNames (tabSelector $ currentTab == Tasks)
               , onClick_ $ SelectTab stepNumber Tasks
@@ -254,7 +257,7 @@ renderContractCard stepNumber state currentTab cardBody =
               ]
               [ span_ $ [ text "Balances" ] ]
           ]
-      , div [ classNames [ "bg-white", "h-full" ] ] cardBody
+      , div [ classNames [ "bg-white", "grid", "grid-rows-contract-step-card" ] ] cardBody
       ]
 
 statusIndicator :: forall p a. Maybe Icon -> String -> Array String -> HTML p a
@@ -286,7 +289,7 @@ renderPastStep state stepNumber step =
               TimeoutStep _ -> statusIndicator (Just Timer) "Timed out" [ "bg-red", "text-white" ]
               TransactionStep _ -> statusIndicator (Just Done) "Completed" [ "bg-green", "text-white" ]
           ]
-      , div [ classNames [ "overflow-y-auto", "px-4", "h-full" ] ]
+      , div [ classNames [ "overflow-y-auto", "px-4" ] ]
           [ renderBody currentTab step
           ]
       ]
@@ -377,7 +380,7 @@ renderTimeout stepNumber timeoutSlot =
         (\dt -> formatDate dt <> " at " <> formatTime dt)
         (slotToDateTime timeoutSlot)
   in
-    div [ classNames [ "flex", "flex-col", "items-center", "h-full" ] ]
+    div [ classNames [ "flex", "flex-col", "items-center" ] ]
       -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
       --       centered and it has more space above than below.
       [ icon Timer [ "pb-2", "pt-16", "text-red", "text-big-icon" ]
@@ -391,6 +394,8 @@ renderCurrentStep currentSlot state =
     stepNumber = currentStep state
 
     currentTab = state ^. _tab
+
+    pendingTransaction = state ^. _pendingTransaction
 
     contractIsClosed = isContractClosed state
 
@@ -412,22 +417,23 @@ renderCurrentStep currentSlot state =
           [ span
               [ classNames [ "text-xl", "font-semibold", "flex-grow" ] ]
               [ text $ "Step " <> show (stepNumber + 1) ]
-          , if contractIsClosed then
-              statusIndicator Nothing "Contract closed" [ "bg-lightgray" ]
-            else
-              statusIndicator (Just Timer) timeoutStr [ "bg-lightgray" ]
+          , case contractIsClosed, isJust pendingTransaction of
+              true, _ -> statusIndicator Nothing "Contract closed" [ "bg-lightgray" ]
+              _, true -> statusIndicator Nothing "Awaiting confirmation" [ "bg-lightgray" ]
+              _, _ -> statusIndicator (Just Timer) timeoutStr [ "bg-lightgray" ]
           ]
-      , div [ classNames [ "overflow-y-auto", "px-4", "h-full" ] ]
-          [ case currentTab /\ contractIsClosed of
-              Tasks /\ false -> renderTasks state
-              Tasks /\ true -> renderContractClose
-              Balances /\ _ -> renderBalances state balances
+      , div [ classNames [ "overflow-y-auto", "px-4" ] ]
+          [ case currentTab, contractIsClosed, isJust pendingTransaction of
+              Tasks, true, _ -> renderContractClose
+              Tasks, _, true -> renderPendingStep
+              Tasks, _, _ -> renderTasks state
+              Balances, _, _ -> renderBalances state balances
           ]
       ]
 
 renderContractClose :: forall p a. HTML p a
 renderContractClose =
-  div [ classNames [ "flex", "flex-col", "items-center", "h-full" ] ]
+  div [ classNames [ "flex", "flex-col", "items-center" ] ]
     -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
     --       centered and it has more space above than below.
     [ icon TaskAlt [ "pb-2", "pt-16", "text-green", "text-big-icon" ]
@@ -438,6 +444,13 @@ renderContractClose =
         , div_ [ text "There are no tasks to complete" ]
         ]
     ]
+
+-- FIXME: when we have a design for this, we can include more information (probably making this look more like
+-- the past step card)
+renderPendingStep :: forall p a. HTML p a
+renderPendingStep =
+  div [ classNames [ "mt-4" ] ]
+    [ text "Your transaction has been submitted. You will be notified when confirmation is received." ]
 
 -- This helper function expands actions that can be taken by anybody,
 -- then groups by participant and sorts it so that the owner starts first and the rest go
@@ -488,7 +501,10 @@ renderTasks state =
         (Map.keys $ state ^. _participants)
         actions
   in
-    div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks state)
+    if length expandedActions > 0 then
+      div [ classNames [ "pb-4" ] ] $ expandedActions <#> uncurry (renderPartyTasks state)
+    else
+      div [ classNames [ "my-4" ] ] [ text "There are no tasks to perform at this step. The contract will progress automatically when the timeout has passed." ]
 
 participantWithNickname :: State -> Party -> String
 participantWithNickname state party =
@@ -590,9 +606,10 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
 
     ChoiceId choiceIdKey _ = choiceId
 
-    choiceDescription = case Map.lookup choiceIdKey metadata.choiceDescriptions of
-      Nothing -> div_ []
-      Just description -> shortDescription isActiveParticipant description
+    choiceDescription = case Map.lookup choiceIdKey metadata.choiceInfo of
+      Just { choiceDescription: description }
+        | trim description /= "" -> shortDescription isActiveParticipant description
+      _ -> div_ []
 
     isValid = maybe false (between minBound maxBound) mChosenNum
 

@@ -12,14 +12,14 @@ module Wallet.Emulator.LogMessages(
 import           Data.Aeson                  (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc   (Pretty (..), hang, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
-import           Ledger                      (Address)
+import           Ledger                      (Address, Tx, txId)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Ledger.Slot                 (Slot, SlotRange)
 import           Ledger.Value                (Value)
 import           Wallet.Emulator.Error       (WalletAPIError)
 
 data RequestHandlerLogMsg =
-    SlotNoficationTargetVsCurrent Slot Slot
+    SlotNoticationTargetVsCurrent Slot Slot
     | StartWatchingContractAddresses
     | HandleAddressChangedAt Slot SlotRange
     | HandleTxFailed WalletAPIError
@@ -29,7 +29,7 @@ data RequestHandlerLogMsg =
 
 instance Pretty RequestHandlerLogMsg where
     pretty = \case
-        SlotNoficationTargetVsCurrent target current ->
+        SlotNoticationTargetVsCurrent target current ->
             "target slot:" <+> pretty target <> "; current slot:" <+> pretty current
         StartWatchingContractAddresses -> "Start watching contract addresses"
         HandleTxFailed e -> "handleTx failed:" <+> viaShow e
@@ -48,6 +48,8 @@ data TxBalanceMsg =
     | AddingInputsFor Value
     | NoCollateralInputsAdded
     | AddingCollateralInputsFor Value
+    | FinishedBalancing Tx
+    | SubmittingTx Tx
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -60,3 +62,5 @@ instance Pretty TxBalanceMsg where
         AddingInputsFor vl           -> "Adding inputs for" <+> pretty vl
         NoCollateralInputsAdded      -> "No collateral inputs added"
         AddingCollateralInputsFor vl -> "Adding collateral inputs for" <+> pretty vl
+        FinishedBalancing tx         -> "Finished balancing." <+> pretty (txId tx)
+        SubmittingTx tx              -> "Submitting tx:" <+> pretty (txId tx)

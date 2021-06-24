@@ -15,7 +15,6 @@ import           PlutusTx                         (IsData (..))
 import           PlutusTx.Prelude
 
 import           Ledger.Constraints.TxConstraints
-import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Plutus.V1.Ledger.Address         as Address
 import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), TxInInfo (..), TxInfo (..))
 import qualified Plutus.V1.Ledger.Contexts        as V
@@ -55,7 +54,7 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
         $ dv `elem` fmap snd (txInfoData scriptContextTxInfo)
     MustValidateIn interval ->
         traceIfFalse "Wrong validation interval"
-        $ TimeSlot.slotRangeToPOSIXTimeRange interval `contains` txInfoValidRange scriptContextTxInfo
+        $ interval `contains` txInfoValidRange scriptContextTxInfo
     MustBeSignedBy pubKey ->
         traceIfFalse "Missing signature"
         $ scriptContextTxInfo `V.txSignedBy` pubKey
@@ -74,8 +73,8 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
         -- gives us the redeemer's hash, but 'MustSpendScriptOutput' gives
         -- us the full redeemer
         $ isJust (V.findTxInByTxOutRef txOutRef scriptContextTxInfo)
-    MustForgeValue mps tn v ->
-        traceIfFalse "Value forged not OK"
+    MustMintValue mps tn v ->
+        traceIfFalse "Value minted not OK"
         $ Value.valueOf (txInfoForge scriptContextTxInfo) (Value.mpsSymbol mps) tn == v
     MustPayToPubKey pk vl ->
         traceIfFalse "MustPayToPubKey"

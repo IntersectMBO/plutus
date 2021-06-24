@@ -52,6 +52,7 @@ data PABError
     | InstanceAlreadyStopped ContractInstanceId -- ^ Attempt to stop the instance failed because it was not running
     | WalletNotFound Wallet
     | MissingConfigFileOption
+    | ContractStateNotFound ContractInstanceId
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -74,6 +75,7 @@ instance Pretty PABError where
         InstanceAlreadyStopped i   -> "Instance already stopped:" <+> pretty i
         WalletNotFound w           -> "Wallet not found:" <+> pretty w
         MissingConfigFileOption    -> "The --config-file option is required"
+        ContractStateNotFound i    -> "State for contract instance not found:" <+> pretty i
 
 data DbConfig =
     DbConfig

@@ -1,6 +1,5 @@
 module Types where
 
-import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Prelude
 import Cardano.Metadata.Types (Property(..), PropertyKey(..))
 import Cardano.Metadata.Types as Metadata
@@ -31,7 +30,7 @@ import Network.RemoteData (RemoteData)
 import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
-import Plutus.PAB.Events.Contract (ContractPABRequest, _UserEndpointRequest)
+import Plutus.Contract.Effects (PABReq, ActiveEndpoint, _ExposeEndpointReq)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, _ChainReport, _ContractReport, _ContractSignatureResponse, CombinedWSStreamToClient, CombinedWSStreamToServer)
@@ -75,7 +74,7 @@ data HAction
   | InvokeContractEndpoint ContractInstanceId EndpointForm
 
 type ContractStates
-  = Map ContractInstanceId (WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm))
+  = Map ContractInstanceId (WebStreamData (PartiallyDecodedResponse PABReq /\ Array EndpointForm))
 
 type ContractSignatures
   = Array (ContractSignatureResponse ContractExe)
@@ -157,7 +156,7 @@ _utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
 _crAvailableContracts :: forall t. Lens' (ContractReport t) (Array (ContractSignatureResponse t))
 _crAvailableContracts = _ContractReport <<< prop (SProxy :: SProxy "crAvailableContracts")
 
-_crActiveContractStates :: forall t. Lens' (ContractReport t) (Array (JsonTuple ContractInstanceId (PartiallyDecodedResponse ContractPABRequest)))
+_crActiveContractStates :: forall t. Lens' (ContractReport t) (Array (JsonTuple ContractInstanceId (PartiallyDecodedResponse PABReq)))
 _crActiveContractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveContractStates")
 
 _csrDefinition :: forall t. Lens' (ContractSignatureResponse t) t
@@ -165,7 +164,7 @@ _csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefin
 
 -- _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 -- _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
--- _csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractPABRequest)
+-- _csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse PABReq)
 -- _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
 -- _csContractDefinition :: forall t. Lens' (ContractInstanceState t) t
 -- _csContractDefinition = _ContractInstanceState <<< prop (SProxy :: SProxy "csContractDefinition")
@@ -175,12 +174,12 @@ _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
 _activeEndpoint :: Lens' ActiveEndpoint EndpointDescription
 _activeEndpoint = _Newtype <<< prop (SProxy :: SProxy "aeDescription")
 
-_contractActiveEndpoints :: Traversal' (PartiallyDecodedResponse ContractPABRequest) EndpointDescription
+_contractActiveEndpoints :: Traversal' (PartiallyDecodedResponse PABReq) EndpointDescription
 _contractActiveEndpoints =
   _hooks
     <<< traversed
     <<< _rqRequest
-    <<< _UserEndpointRequest
+    <<< _ExposeEndpointReq
     <<< _activeEndpoint
 
 _rqRequest :: forall t. Lens' (Request t) t

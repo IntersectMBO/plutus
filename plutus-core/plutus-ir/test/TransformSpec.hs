@@ -18,6 +18,7 @@ import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
+import qualified PlutusIR.Transform.Unwrap          as Unwrap
 
 import           Control.Monad
 import           Text.Megaparsec.Pos
@@ -29,6 +30,7 @@ transform = testNested "transform" [
     , letFloat
     , inline
     , beta
+    , unwrapCancel
     , deadCode
     ]
 
@@ -105,6 +107,14 @@ beta =
     , "absapp"
     ]
 
+unwrapCancel :: TestNested
+unwrapCancel =
+    testNested "unwrapCancel"
+    $ map (goldenPir Unwrap.unwrapCancel $ term @PLC.DefaultUni @PLC.DefaultFun)
+    -- Note: these examples don't typecheck, but we don't care
+    [ "unwrapWrap"
+    , "wrapUnwrap"
+    ]
 
 deadCode :: TestNested
 deadCode =

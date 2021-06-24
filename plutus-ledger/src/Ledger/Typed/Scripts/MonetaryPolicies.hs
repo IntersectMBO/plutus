@@ -10,9 +10,11 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Typed.Scripts.MonetaryPolicies (
-    WrappedMonetaryPolicyType
-    , wrapMonetaryPolicy
-    , mkForwardingMonetaryPolicy
+    WrappedMintingPolicyType
+    , wrapMintingPolicy
+    , mkForwardingMintingPolicy
+    , forwardToValidator
+    , Any
     ) where
 
 import           PlutusTx
@@ -25,29 +27,32 @@ import           Plutus.V1.Ledger.Credential (Credential (..))
 import           Plutus.V1.Ledger.Scripts
 import           Plutus.V1.Ledger.Tx         (TxOut (..))
 
-type WrappedMonetaryPolicyType = Data -> ()
+import           Ledger.Typed.TypeUtils
 
--- TODO: in due course when we have monetary policies with redeemers we should add a TypedMonetaryPolicy interface here
+type WrappedMintingPolicyType = Data -> Data -> ()
 
-{-# INLINABLE wrapMonetaryPolicy #-}
-wrapMonetaryPolicy
-    :: (Validation.ScriptContext -> Bool)
-    -> WrappedMonetaryPolicyType
-wrapMonetaryPolicy f (fromData -> Just p) = check $ f p
-wrapMonetaryPolicy _ _                    = check False
+-- TODO: in due course when we have monetary policies with redeemers we should add a TypedMintingPolicy interface here
 
--- | A monetary policy that checks whether the validator script was run
---   in the forging transaction.
-mkForwardingMonetaryPolicy :: ValidatorHash -> MonetaryPolicy
-mkForwardingMonetaryPolicy vshsh =
-    mkMonetaryPolicyScript
-    $ ($$(PlutusTx.compile [|| \(hsh :: ValidatorHash) -> wrapMonetaryPolicy (forwardToValidator hsh) ||]))
+{-# INLINABLE wrapMintingPolicy #-}
+wrapMintingPolicy
+    :: IsData r
+    => (r -> Validation.ScriptContext -> Bool)
+    -> WrappedMintingPolicyType
+wrapMintingPolicy f (fromData -> Just r) (fromData -> Just p) = check $ f r p
+wrapMintingPolicy _ _                    _                    = check False
+
+-- | A minting policy that checks whether the validator script was run
+--   in the minting transaction.
+mkForwardingMintingPolicy :: ValidatorHash -> MintingPolicy
+mkForwardingMintingPolicy vshsh =
+    mkMintingPolicyScript
+    $ ($$(PlutusTx.compile [|| \(hsh :: ValidatorHash) -> wrapMintingPolicy (forwardToValidator hsh) ||]))
        `PlutusTx.applyCode` PlutusTx.liftCode vshsh
 
 {-# INLINABLE forwardToValidator #-}
-forwardToValidator :: ValidatorHash -> ScriptContext -> Bool
-forwardToValidator h ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scriptContextPurpose=Minting _} =
+forwardToValidator :: ValidatorHash -> () -> ScriptContext -> Bool
+forwardToValidator h _ ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scriptContextPurpose=Minting _} =
     let checkHash TxOut{txOutAddress=Address{addressCredential=ScriptCredential vh}} = vh == h
         checkHash _                                                                  = False
     in any (checkHash . Validation.txInInfoResolved) txInfoInputs
-forwardToValidator _ _ = False
+forwardToValidator _ _ _ = False

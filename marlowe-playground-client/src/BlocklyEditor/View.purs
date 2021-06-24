@@ -13,6 +13,7 @@ import Data.Maybe (Maybe(..), isJust)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Classes (flex, flexCol, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, div, section, slot, text)
 import Halogen.HTML.Events (onClick)
@@ -70,11 +71,13 @@ otherActions state =
     [ button
         [ onClick $ const $ Just ViewAsMarlowe
         , enabled hasCode
+        , classNames [ "btn" ]
         ]
         [ text "View as Marlowe" ]
     , button
         [ onClick $ const $ Just SendToSimulator
         , enabled (hasCode && not hasHoles)
+        , classNames [ "btn" ]
         ]
         [ text "Send To Simulator" ]
     ]

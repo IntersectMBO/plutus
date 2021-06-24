@@ -21,10 +21,11 @@ module Plutus.Contract.Schema(
     , initialise
     , Input
     , Output
+    , EmptySchema
     ) where
 
 import           Data.Aeson                (FromJSON, ToJSON (toJSON), Value)
-import           Data.Row
+import           Data.Row                  as Row
 import           Data.Row.Internal
 import qualified Data.Row.Variants         as Variants
 import           Data.Text.Prettyprint.Doc
@@ -52,6 +53,8 @@ submitted.
 In practice the schema is a type of the 'Data.Row.Row' kind.
 
 -}
+
+type EmptySchema = Row.Empty
 
 newtype Event s = Event { unEvent :: Var (Input s) }
 

@@ -10,13 +10,12 @@ import Data.Maybe (Maybe(..))
 import InputField.Types (Action, State) as InputField
 import Types (WebData)
 import WalletData.Types (WalletDetails, WalletLibrary, WalletNickname)
-import WalletData.Validation (WalletIdError, WalletNicknameError)
+import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError)
 
 type State
   = { card :: Maybe Card
     , walletLibrary :: WalletLibrary
-    , walletNicknameOrId :: String
-    , walletDropdownOpen :: Boolean
+    , walletNicknameOrIdInput :: InputField.State WalletNicknameOrIdError
     , walletNicknameInput :: InputField.State WalletNicknameError
     , walletIdInput :: InputField.State WalletIdError
     , remoteWalletDetails :: WebData WalletDetails
@@ -34,8 +33,7 @@ data Action
   = OpenCard Card
   | CloseCard Card
   | GenerateWallet
-  | SetWalletNicknameOrId String
-  | SetWalletDropdownOpen Boolean
+  | WalletNicknameOrIdInputAction (InputField.Action WalletNicknameOrIdError)
   | OpenPickupWalletCardWithDetails WalletDetails
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
   | WalletIdInputAction (InputField.Action WalletIdError)
@@ -48,8 +46,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCard _) = Nothing
   toEvent (CloseCard _) = Nothing
   toEvent GenerateWallet = Just $ defaultEvent "GenerateWallet"
-  toEvent (SetWalletNicknameOrId _) = Nothing
-  toEvent (SetWalletDropdownOpen _) = Nothing
+  toEvent (WalletNicknameOrIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (OpenPickupWalletCardWithDetails _) = Nothing
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction

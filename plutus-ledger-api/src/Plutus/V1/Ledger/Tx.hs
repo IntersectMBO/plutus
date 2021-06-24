@@ -25,13 +25,13 @@ module Plutus.V1.Ledger.Tx(
     updateUtxo,
     updateUtxoCollateral,
     validValuesTx,
-    forgeScripts,
+    mintScripts,
     signatures,
     datumWitnesses,
     lookupSignature,
     lookupDatum,
     addSignature,
-    forge,
+    mint,
     fee,
     -- ** Hashing transactions
     txId,
@@ -121,36 +121,36 @@ especially because we only need one direction (to binary).
 
 -- | A transaction, including witnesses for its inputs.
 data Tx = Tx {
-    txInputs       :: Set.Set TxIn,
+    txInputs      :: Set.Set TxIn,
     -- ^ The inputs to this transaction.
-    txCollateral   :: Set.Set TxIn,
+    txCollateral  :: Set.Set TxIn,
     -- ^ The collateral inputs to cover the fees in case validation of the transaction fails.
-    txOutputs      :: [TxOut],
+    txOutputs     :: [TxOut],
     -- ^ The outputs of this transaction, ordered so they can be referenced by index.
-    txForge        :: !Value,
-    -- ^ The 'Value' forged by this transaction.
-    txFee          :: !Value,
+    txMint        :: !Value,
+    -- ^ The 'Value' minted by this transaction.
+    txFee         :: !Value,
     -- ^ The fee for this transaction.
-    txValidRange   :: !SlotRange,
+    txValidRange  :: !SlotRange,
     -- ^ The 'SlotRange' during which this transaction may be validated.
-    txForgeScripts :: Set.Set MonetaryPolicy,
-    -- ^ The scripts that must be run to check forging conditions.
-    txSignatures   :: Map PubKey Signature,
+    txMintScripts :: Set.Set MintingPolicy,
+    -- ^ The scripts that must be run to check minting conditions.
+    txSignatures  :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
-    txData         :: Map DatumHash Datum
+    txData        :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 instance Pretty Tx where
-    pretty t@Tx{txInputs, txCollateral, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
+    pretty t@Tx{txInputs, txCollateral, txOutputs, txMint, txFee, txValidRange, txSignatures, txMintScripts, txData} =
         let lines' =
                 [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList txInputs)))
                 , hang 2 (vsep ("collateral inputs:" : fmap pretty (Set.toList txCollateral)))
                 , hang 2 (vsep ("outputs:" : fmap pretty txOutputs))
-                , "forge:" <+> pretty txForge
+                , "mint:" <+> pretty txMint
                 , "fee:" <+> pretty txFee
-                , hang 2 (vsep ("mps:": fmap pretty (Set.toList txForgeScripts)))
+                , hang 2 (vsep ("mps:": fmap pretty (Set.toList txMintScripts)))
                 , hang 2 (vsep ("signatures:": fmap (pretty . fst) (Map.toList txSignatures)))
                 , "validity range:" <+> viaShow txValidRange
                 , hang 2 (vsep ("data:": fmap (pretty . snd) (Map.toList txData) ))
@@ -163,10 +163,10 @@ instance Semigroup Tx where
         txInputs = txInputs tx1 <> txInputs tx2,
         txCollateral = txCollateral tx1 <> txCollateral tx2,
         txOutputs = txOutputs tx1 <> txOutputs tx2,
-        txForge = txForge tx1 <> txForge tx2,
+        txMint = txMint tx1 <> txMint tx2,
         txFee = txFee tx1 <> txFee tx2,
         txValidRange = txValidRange tx1 /\ txValidRange tx2,
-        txForgeScripts = txForgeScripts tx1 <> txForgeScripts tx2,
+        txMintScripts = txMintScripts tx1 <> txMintScripts tx2,
         txSignatures = txSignatures tx1 <> txSignatures tx2,
         txData = txData tx1 <> txData tx2
         }
@@ -212,15 +212,15 @@ fee = lens g s where
     g = txFee
     s tx v = tx { txFee = v }
 
-forge :: Lens' Tx Value
-forge = lens g s where
-    g = txForge
-    s tx v = tx { txForge = v }
+mint :: Lens' Tx Value
+mint = lens g s where
+    g = txMint
+    s tx v = tx { txMint = v }
 
-forgeScripts :: Lens' Tx (Set.Set MonetaryPolicy)
-forgeScripts = lens g s where
-    g = txForgeScripts
-    s tx fs = tx { txForgeScripts = fs }
+mintScripts :: Lens' Tx (Set.Set MintingPolicy)
+mintScripts = lens g s where
+    g = txMintScripts
+    s tx fs = tx { txMintScripts = fs }
 
 datumWitnesses :: Lens' Tx (Map DatumHash Datum)
 datumWitnesses = lens g s where
@@ -246,14 +246,14 @@ data TxStripped = TxStripped {
     -- ^ The inputs to this transaction, as transaction output references only.
     txStrippedOutputs :: [TxOut],
     -- ^ The outputs of this transation.
-    txStrippedForge   :: !Value,
-    -- ^ The 'Value' forged by this transaction.
+    txStrippedMint    :: !Value,
+    -- ^ The 'Value' minted by this transaction.
     txStrippedFee     :: !Value
     -- ^ The fee for this transaction.
     } deriving (Show, Eq, Generic, Serialise)
 
 strip :: Tx -> TxStripped
-strip Tx{..} = TxStripped i txOutputs txForge txFee where
+strip Tx{..} = TxStripped i txOutputs txMint txFee where
     i = Set.map txInRef txInputs
 
 -- | Compute the id of a transaction.
@@ -300,7 +300,7 @@ data TxInType =
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
     txInRef  :: !TxOutRef,
-    txInType :: !TxInType
+    txInType :: Maybe TxInType
     }
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
@@ -309,9 +309,9 @@ instance Pretty TxIn where
     pretty TxIn{txInRef,txInType} =
                 let rest =
                         case txInType of
-                            ConsumeScriptAddress _ redeemer _ ->
+                            Just (ConsumeScriptAddress _ redeemer _) ->
                                 pretty redeemer
-                            ConsumePublicKeyAddress -> mempty
+                            _ -> mempty
                 in hang 2 $ vsep ["-" <+> pretty txInRef, rest]
 
 -- | The 'TxOutRef' spent by a transaction input.
@@ -320,7 +320,7 @@ inRef = lens txInRef s where
     s txi r = txi { txInRef = r }
 
 -- | The type of a transaction input.
-inType :: Lens' TxIn TxInType
+inType :: Lens' TxIn (Maybe TxInType)
 inType = lens txInType s where
     s txi t = txi { txInType = t }
 
@@ -328,24 +328,27 @@ inType = lens txInType s where
 --   "pay to script" output.
 inScripts :: TxIn -> Maybe (Validator, Redeemer, Datum)
 inScripts TxIn{ txInType = t } = case t of
-    ConsumeScriptAddress v r d -> Just (v, r, d)
-    ConsumePublicKeyAddress    -> Nothing
+    Just (ConsumeScriptAddress v r d) -> Just (v, r, d)
+    Just ConsumePublicKeyAddress      -> Nothing
+    Nothing                           -> Nothing
 
 -- | A transaction input that spends a "pay to public key" output, given the witness.
 pubKeyTxIn :: TxOutRef -> TxIn
-pubKeyTxIn r = TxIn r ConsumePublicKeyAddress
+pubKeyTxIn r = TxIn r (Just ConsumePublicKeyAddress)
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
 scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
-scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
+scriptTxIn ref v r d = TxIn ref . Just $ ConsumeScriptAddress v r d
 
 -- | Filter to get only the pubkey inputs.
 pubKeyTxIns :: Fold (Set.Set TxIn) TxIn
-pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == ConsumePublicKeyAddress))
+pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == Just ConsumePublicKeyAddress))
 
 -- | Filter to get only the script inputs.
 scriptTxIns :: Fold (Set.Set TxIn) TxIn
-scriptTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t /= ConsumePublicKeyAddress))
+scriptTxIns = folding . Set.filter $ \case
+    TxIn{ txInType = Just ConsumeScriptAddress{} } -> True
+    _                                              -> False
 
 -- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
 data TxOut = TxOut {

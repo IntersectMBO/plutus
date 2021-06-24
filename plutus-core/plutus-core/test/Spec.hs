@@ -31,7 +31,7 @@ import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.Text                         as T
 import           Data.Text.Encoding                (encodeUtf8)
 import           Flat                              (flat)
-import qualified Flat                              as Flat
+import qualified Flat
 import           Hedgehog                          hiding (Var)
 import qualified Hedgehog.Gen                      as Gen
 import qualified Hedgehog.Range                    as Range

@@ -44,7 +44,7 @@ import           Plutus.V1.Ledger.Crypto   (PrivateKey, PubKey (..), Signature (
 import qualified Plutus.V1.Ledger.Crypto   as Crypto
 import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash (..))
 import qualified Plutus.V1.Ledger.Scripts  as Scripts
-import           Plutus.V1.Ledger.Slot     (Slot)
+import           Plutus.V1.Ledger.Time     (POSIXTime)
 
 import qualified Prelude                   as Haskell
 
@@ -71,14 +71,14 @@ import qualified Prelude                   as Haskell
 data Observation a = Observation
     { obsValue :: a
     -- ^ The value
-    , obsSlot  :: Slot
+    , obsTime  :: POSIXTime
     -- ^ The time at which the value was observed
     } deriving (Generic, Haskell.Show)
 
 instance Eq a => Eq (Observation a) where
     l == r =
         obsValue l == obsValue r
-        && obsSlot l == obsSlot r
+        && obsTime l == obsTime r
 
 -- | @SignedMessage a@ contains the signature of a hash of a 'Datum'.
 --   The 'Datum' can be decoded to a value of type @a@.
@@ -202,9 +202,9 @@ signMessage msg pk =
         , osmDatum = dt
         }
 
--- | Encode an observation of a value of type @a@ that was made at the given slot
-signObservation :: IsData a => Slot -> a -> PrivateKey -> SignedMessage (Observation a)
-signObservation sl vl = signMessage Observation{obsValue=vl, obsSlot=sl}
+-- | Encode an observation of a value of type @a@ that was made at the given time
+signObservation :: IsData a => POSIXTime -> a -> PrivateKey -> SignedMessage (Observation a)
+signObservation time vl = signMessage Observation{obsValue=vl, obsTime=time}
 
 makeLift ''SignedMessage
 makeIsDataIndexed ''SignedMessage [('SignedMessage,0)]
