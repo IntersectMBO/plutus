@@ -22,7 +22,7 @@ import Data.Tuple.Nested ((/\))
 import Marlowe.Execution.Lenses (_resultingPayments)
 import Marlowe.Execution.Types (NamedAction(..), PendingTimeouts, State)
 import Marlowe.Semantics (Accounts, Action(..), Case(..), ChoiceId(..), Contract(..), Input, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
-import Marlowe.Semantics (State) as Core
+import Marlowe.Semantics (State) as Semantic
 
 mkInitialState :: Slot -> Contract -> State
 mkInitialState currentSlot contract =
@@ -73,7 +73,7 @@ timeoutState currentSlot { semanticState, contract, history, mPendingTimeouts, m
     advanceAllTimeouts ::
       Maybe Slot ->
       Array Slot ->
-      Core.State ->
+      Semantic.State ->
       Contract ->
       { mNextTimeout :: Maybe Slot, mPendingTimeouts :: Maybe PendingTimeouts }
     advanceAllTimeouts mNextTimeout' newTimeouts state' contract'
@@ -138,21 +138,21 @@ extractNamedActions currentSlot { mPendingTimeouts: Just { nextSemanticState, co
 extractNamedActions currentSlot { semanticState, contract } = extractActionsFromContract currentSlot semanticState contract
 
 -- a When can only progress if it has timed out or has Cases
-extractActionsFromContract :: Slot -> Core.State -> Contract -> Array NamedAction
+extractActionsFromContract :: Slot -> Semantic.State -> Contract -> Array NamedAction
 extractActionsFromContract _ _ Close = mempty
 
-extractActionsFromContract currentSlot coreState contract@(When cases timeout cont)
+extractActionsFromContract currentSlot semanticState contract@(When cases timeout cont)
   -- in the case of a timeout we need to provide an Evaluate action to all users to "manually" progress the contract
   | currentSlot > timeout =
     let
-      minSlot = view _minSlot coreState
+      minSlot = view _minSlot semanticState
 
       emptyTx = TransactionInput { interval: SlotInterval minSlot minSlot, inputs: mempty }
 
-      outputs = case computeTransaction emptyTx coreState cont of
+      outputs = case computeTransaction emptyTx semanticState cont of
         TransactionOutput { txOutPayments, txOutState } ->
           let
-            oldBindings = view _boundValues coreState
+            oldBindings = view _boundValues semanticState
 
             newBindings = view _boundValues txOutState
 
@@ -174,7 +174,7 @@ extractActionsFromContract currentSlot coreState contract@(When cases timeout co
 
         env = makeEnvironment minSlot maxSlot
 
-        amount = evalValue env coreState v
+        amount = evalValue env semanticState v
       in
         MakeDeposit a p t amount
 
@@ -187,12 +187,12 @@ extractActionsFromContract currentSlot coreState contract@(When cases timeout co
 -- and we would want to enable moving forward with Evaluate
 extractActionsFromContract _ _ _ = [ Evaluate mempty ]
 
--- This function expands the balances inside the Core.State to all participants and tokens, using
--- zero if the participant does not have balance for that token.
-expandBalances :: Array Party -> Array Token -> Core.State -> Accounts
-expandBalances participants tokens coreState =
+-- This function expands the balances inside the Semantic.State to all participants and tokens,
+-- using zero if the participant does not have balance for that token.
+expandBalances :: Array Party -> Array Token -> Semantic.State -> Accounts
+expandBalances participants tokens semanticState =
   let
-    stateAccounts = coreState ^. _accounts
+    stateAccounts = semanticState ^. _accounts
   in
     Map.fromFoldable do
       party <- participants
