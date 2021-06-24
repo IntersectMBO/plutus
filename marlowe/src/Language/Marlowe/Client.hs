@@ -561,19 +561,19 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
     collectDeposits _                                     = P.zero
 
     payoutConstraints :: [Payment] -> TxConstraints i0 o0
-    payoutConstraints payments = P.foldMap paymentToTxOut paymentsByParty
+    payoutConstraints payments = P.foldMap payoutToTxOut payoutsByParty
       where
-        paymentsByParty = AssocMap.toList $ P.foldMap paymentByParty payments
+        payoutsByParty = AssocMap.toList $ P.foldMap payoutByParty payments
 
-        paymentToTxOut (party, value) = case party of
+        payoutToTxOut (party, value) = case party of
             PK pk  -> mustPayToPubKey pk value
             Role role -> let
                 dataValue = Datum $ PlutusTx.toData role
                 in mustPayToOtherScript (rolePayoutValidatorHash params) dataValue value
 
-        paymentByParty (Payment _ (Party party) money) = AssocMap.singleton party money
+        payoutByParty (Payment _ (Party party) money) = AssocMap.singleton party money
 
-        paymentByParty (Payment _ (Account _) _)       = AssocMap.empty
+        payoutByParty (Payment _ (Account _) _)       = AssocMap.empty
 
 
 {-# INLINABLE isFinal #-}
