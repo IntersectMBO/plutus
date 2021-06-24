@@ -51,7 +51,7 @@ import           Database.PostgreSQL.Simple.Errors (ConstraintViolation (..), ca
 import           Database.PostgreSQL.Simple.SqlQQ  (sql)
 import           GHC.Generics                      (Generic)
 import           Language.Marlowe                  (ChoiceId (ChoiceId), Contract (..), Input (..), Party (..),
-                                                    Payment (Payment), Slot (..), State, Token (Token),
+                                                    Payee (..), Payment (Payment), Slot (..), State, Token (Token),
                                                     TransactionInput (..), TransactionOutput (..), TransactionWarning,
                                                     computeTransaction, emptyState, extractContractRoles)
 import           Ledger                            (PubKeyHash (..))
@@ -308,7 +308,7 @@ extractPaymentsFromInputs :: [Input] -> AmountDiffSummary
 extractPaymentsFromInputs = foldl' extractPaymentFromInput (Map.empty, Map.empty)
   where
     extractPaymentFromInput :: AmountDiffSummary -> Input -> AmountDiffSummary
-    extractPaymentFromInput acc (IDeposit _ party (Token currSym tokName) amount) = addPaymentToParty acc party (fromCurrencySymbol currSym) (fromTokenName tokName) (-amount)
+    extractPaymentFromInput acc (IDeposit _ party (Token currSym tokName) amount) = addPaymentToParty acc (Party party) (fromCurrencySymbol currSym) (fromTokenName tokName) (-amount)
     extractPaymentFromInput acc (IChoice _ _) = acc
     extractPaymentFromInput acc INotify = acc
 
@@ -316,19 +316,20 @@ addPaymentsFromOutputs :: AmountDiffSummary -> [Payment] -> AmountDiffSummary
 addPaymentsFromOutputs = foldl' addPaymentFromOutput
   where
     addPaymentFromOutput :: AmountDiffSummary -> Payment -> AmountDiffSummary
-    addPaymentFromOutput acc (Payment party (Value value)) =
+    addPaymentFromOutput acc (Payment _ payee (Value value)) =
       Map.foldlWithKey' (\intermediateAcc currSym ->
         Map.foldlWithKey' (\innerAcc tokName ->
-          addPaymentToParty innerAcc party (fromCurrencySymbol currSym) (fromTokenName tokName)
+          addPaymentToParty innerAcc payee (fromCurrencySymbol currSym) (fromTokenName tokName)
                          ) intermediateAcc
                        ) acc (Map.map toStandardMap $ toStandardMap value)
 
 toStandardMap :: Ord a => AssocMap.Map a b -> Map a b
 toStandardMap = Map.fromList . AssocMap.toList
 
-addPaymentToParty :: AmountDiffSummary -> Party -> String -> String -> Integer -> AmountDiffSummary
-addPaymentToParty (mpk, mrol) (PK pk) currSym tokName amount = (Map.alter (addMaybeVal amount) (fromPubKeyHash pk, (currSym, tokName)) mpk, mrol)
-addPaymentToParty (mpk, mrol) (Role role) currSym tokName amount = (mpk, Map.alter (addMaybeVal amount) (fromTokenName role, (currSym, tokName)) mrol)
+addPaymentToParty :: AmountDiffSummary -> Payee -> String -> String -> Integer -> AmountDiffSummary
+addPaymentToParty (mpk, mrol) (Party (PK pk)) currSym tokName amount = (Map.alter (addMaybeVal amount) (fromPubKeyHash pk, (currSym, tokName)) mpk, mrol)
+addPaymentToParty (mpk, mrol) (Party (Role role)) currSym tokName amount = (mpk, Map.alter (addMaybeVal amount) (fromTokenName role, (currSym, tokName)) mrol)
+addPaymentToParty (mpk, mrol) _ _ _ _ = (mpk, mrol)
 
 addMaybeVal :: Integer -> Maybe Integer -> Maybe Integer
 addMaybeVal amount oldAmount = let newAmount = maybe amount (+ amount) oldAmount in
