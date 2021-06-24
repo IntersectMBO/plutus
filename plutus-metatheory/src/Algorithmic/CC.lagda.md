@@ -730,25 +730,27 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → subst (EC A) p E ≡ [] l· (E' [ L ]ᴱ)
     → Redex L
    → CaseP M M' E
-  -- M is lambda function in a beta redex 
 
+  -- M is lambda function in a beta redex 
   β : ∀{C} L (E'' : EC A C)
     → E ≡ extEC E'' (V-ƛ L ·-)
     → M' ≡ E'' [ L [ M ] ]ᴱ
     → Value M
     → CaseP M M' E
 
+  -- M is nearly saturated builtin function in a redex
+  builtinβ : ∀{C b az} L (VL : Value L) (E'' : EC A C)
+    → (p : az <>> (Term ∷ []) ∈ arity b)
+    → (bL : BApp b p L)
+    → E ≡ extEC E'' (V-I⇒ b p bL ·-)
+    → (VM : Value M)
+    → M' ≡ E'' [ BUILTIN' b (bubble p) (step p bL VM) ]ᴱ
+    → CaseP M M' E
+
 -- M is Lambda type function in beta* redex
 {-
   β⋆ : M == Λ X
      → E == [] ·⋆ A
-  -- M is nearly saturated builtin function
-  builtinβ :
-      → (p : az <>> (Term ∷ []) ∈ arity b)
-      → BApp b p t
-      → E == [] l· L
-      → Value L
-      → Case M M' E
   builtinβ⋆ :
       → (p : az <>> (Type ∷ []) ∈ arity b)
       → BApp b p t
@@ -787,15 +789,17 @@ caseP M M' E (ruleEC E' x p p') | done VM with dissect E | inspect dissect E
 -- redex in arg somewhere
 -- trans (sym (trans (extEC-[]ᴱ E'' (-· N) M) (sym (extEC-[]ᴱ E'' (VM ·-) N)))) p : (extEC E'' (VM ·-) [ N ]ᴱ) ≡ (E' [ L ]ᴱ)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] rewrite dissect-inj₂ E E'' (V-ƛ N ·-) eq with rlemma51! (extEC E'' (V-ƛ N ·-) [ M ]ᴱ)
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | done x₁ = {!!} -- impossible hopefully
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | done x₁ = ⊥-elim (lemVβ (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (V-ƛ N ·-) M) x₁))))
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U with U E' p (β x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-ƛ N ·-) M) (β (β-ƛ VM))
-caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-ƛ x) p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ _ ·-)) | I[ eq ] | step x₁ .E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = {!!}
+caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-ƛ x) p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ _ ·-)) | I[ eq ] | step x₁ .E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = β _ E'' refl p' VM
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] rewrite dissect-inj₂ E E'' (V-I⇒ b p₁ x₁ ·-) eq with rlemma51! (extEC E'' (V-I⇒ b p₁ x₁ ·-) [ M ]ᴱ) -- builtin redex
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | done x₂ = {!!}
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | step x₂ E₁ x₃ x₄ U with U E' p (β x)
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | step x₂ E₁ x₃ x₄ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-I⇒ b p₁ x₁ ·-) M) (β (β-sbuiltin b _ p₁ x₁ M VM))
+caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-sbuiltin b₁ _ p₂ bt .M vu) p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as = _} {[]} p₁ x₁ ·-)) | I[ eq ] | step x₂ .E'' x₃ x₄ U | refl ,, refl ,, refl | refl ,, refl ,, refl with uniqueVal _ (V-I⇒ b₁ p₂ bt) (V-I⇒ b p₁ x₁) | uniqueVal _ VM vu
+... | refl | refl = builtinβ _ (V-I⇒ b p₁ x₁) E'' p₁ x₁ refl VM p'
 
--- beta redex
--- trans (sym (extEC-[]ᴱ E'' (V-ƛ N ·-) M)) p : (E'' [ ƛ N · M ]ᴱ) ≡ (E' [ L ]ᴱ)
-
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] = {!!} -- builtin redex
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁ ·-)) | I[ eq ] = {!!} -- builtin value...
 
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] = {!!}
@@ -873,3 +877,7 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
   (lemV M VM (extEC E'' (V-ƛ L ·-)))
   (step* (cong (stepV VM) (dissect-lemma E'' (V-ƛ L ·-)))
          (thm1 _ _ E'' x O V q'))
+... | builtinβ L VL E'' p bL refl VM x₁ = step**
+  (lemV M VM (extEC E'' (V-I⇒ _ p bL  ·-)))
+  (step* (cong (stepV VM) (dissect-lemma E'' (V-I⇒ _ p bL ·-)))
+         (thm1 _ _ E'' x₁ O V q'))
