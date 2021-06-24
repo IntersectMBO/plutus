@@ -31,7 +31,7 @@ import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, p, span, span_, 
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
-import Marlowe.Execution.Lenses (_currentState, _mNextTimeout)
+import Marlowe.Execution.Lenses (_semanticState, _mNextTimeout)
 import Marlowe.Execution.State (expandBalances, getActionParticipant)
 import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
@@ -444,9 +444,9 @@ renderCurrentStep currentSlot state =
 
     participants = state ^. _participants
 
-    currentState = state ^. (_executionState <<< _currentState)
+    semanticState = state ^. (_executionState <<< _semanticState)
 
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] currentState
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] semanticState
 
     timeoutStr =
       maybe "timed out"

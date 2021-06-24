@@ -1,5 +1,5 @@
 module Marlowe.Execution.State
-  ( initExecution
+  ( mkInitialState
   , nextState
   , nextTimeout
   , mkTx
@@ -15,47 +15,40 @@ import Prelude
 import Data.Array as Array
 import Data.BigInteger (fromInt)
 import Data.Lens (view, (^.))
-import Data.List (List, concat, fromFoldable, snoc)
+import Data.List (List, concat, fromFoldable)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, fromMaybe')
 import Data.Tuple.Nested ((/\))
-import Marlowe.Execution.Lenses (_currentPayments, _payments)
-import Marlowe.Execution.Types (ExecutionState, NamedAction(..), PendingTimeouts)
-import Marlowe.Semantics (Accounts, Action(..), Case(..), ChoiceId(..), Contract(..), Input, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), State, Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
+import Marlowe.Execution.Lenses (_resultingPayments)
+import Marlowe.Execution.Types (NamedAction(..), PendingTimeouts, State)
+import Marlowe.Semantics (Accounts, Action(..), Case(..), ChoiceId(..), Contract(..), Input, Party, Payment, ReduceResult(..), Slot(..), SlotInterval(..), Timeouts(..), Token, TransactionInput(..), TransactionOutput(..), _accounts, _boundValues, _minSlot, computeTransaction, emptyState, evalValue, makeEnvironment, reduceContractUntilQuiescent, timeouts)
+import Marlowe.Semantics (State) as Core
 
-initExecution :: Slot -> Contract -> ExecutionState
-initExecution currentSlot contract =
-  { previousExecutionStates: mempty
-  , currentExecutionState:
-      { state: emptyState currentSlot
-      , contract
-      , payments: mempty
-      }
+mkInitialState :: Slot -> Contract -> State
+mkInitialState currentSlot contract =
+  { semanticState: emptyState currentSlot
+  , contract
+  , history: mempty
   , mPendingTimeouts: Nothing
   , mNextTimeout: nextTimeout contract
   }
 
--- FIXME: Change the order of the arguments to::  TransactionInput -> ExecutionState  -> ExecutionState
-nextState :: ExecutionState -> TransactionInput -> ExecutionState
-nextState { previousExecutionStates, currentExecutionState } txInput =
+-- FIXME: Change the order of the arguments to::  TransactionInput -> State  -> State
+nextState :: State -> TransactionInput -> State
+nextState { semanticState, contract, history } txInput =
   let
-    { contract, state, payments } = currentExecutionState
-
     TransactionInput { interval: SlotInterval minSlot maxSlot } = txInput
 
-    { txOutState, txOutContract, txOutPayments } = case computeTransaction txInput state contract of
+    { txOutState, txOutContract, txOutPayments } = case computeTransaction txInput semanticState contract of
       (TransactionOutput { txOutState, txOutContract, txOutPayments }) -> { txOutState, txOutContract, txOutPayments }
       -- We should not have contracts which cause errors in the dashboard so we will just ignore error cases for now
       -- FIXME: Change nextState to return an Either
       -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
-      (Error _) -> { txOutState: state, txOutContract: contract, txOutPayments: payments }
+      (Error _) -> { txOutState: semanticState, txOutContract: contract, txOutPayments: mempty }
   in
-    { previousExecutionStates: Array.snoc previousExecutionStates { contract, state, payments, txInput }
-    , currentExecutionState:
-        { contract: txOutContract
-        , state: txOutState
-        , payments: txOutPayments
-        }
+    { semanticState: txOutState
+    , contract: txOutContract
+    , history: Array.snoc history { initialSemanticState: semanticState, txInput, resultingPayments: txOutPayments }
     , mPendingTimeouts: Nothing
     , mNextTimeout: nextTimeout txOutContract
     }
@@ -70,8 +63,8 @@ mkTx currentSlot contract inputs =
   in
     TransactionInput { interval, inputs }
 
-timeoutState :: Slot -> ExecutionState -> ExecutionState
-timeoutState currentSlot { previousExecutionStates, currentExecutionState, mPendingTimeouts, mNextTimeout } =
+timeoutState :: Slot -> State -> State
+timeoutState currentSlot { semanticState, contract, history, mPendingTimeouts, mNextTimeout } =
   let
     Slot slot = currentSlot
 
@@ -80,7 +73,7 @@ timeoutState currentSlot { previousExecutionStates, currentExecutionState, mPend
     advanceAllTimeouts ::
       Maybe Slot ->
       Array Slot ->
-      State ->
+      Core.State ->
       Contract ->
       { mNextTimeout :: Maybe Slot, mPendingTimeouts :: Maybe PendingTimeouts }
     advanceAllTimeouts mNextTimeout' newTimeouts state' contract'
@@ -88,7 +81,7 @@ timeoutState currentSlot { previousExecutionStates, currentExecutionState, mPend
         let
           { txOutState, txOutContract } = case reduceContractUntilQuiescent env state' contract' of
             -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
-            ContractQuiescent warnings payments txOutState txOutContract -> { txOutState, txOutContract }
+            ContractQuiescent _ _ txOutState txOutContract -> { txOutState, txOutContract }
             -- FIXME: Change timeoutState to return an Either
             RRAmbiguousSlotIntervalError -> { txOutState: state', txOutContract: contract' }
 
@@ -102,30 +95,31 @@ timeoutState currentSlot { previousExecutionStates, currentExecutionState, mPend
               Nothing
             else
               Just
-                { timeouts: newTimeouts
-                , state: state'
-                , contract: contract'
+                { nextSemanticState: state'
+                , continuationContract: contract'
+                , timeouts: newTimeouts
                 }
         }
 
-    { contract, state, timeouts } =
+    { nextSemanticState, continuationContract, timeouts } =
       fromMaybe'
         ( \_ ->
-            { contract: currentExecutionState.contract, state: currentExecutionState.state, timeouts: [] }
+            { nextSemanticState: semanticState, continuationContract: contract, timeouts: [] }
         )
         mPendingTimeouts
 
-    advancedTimeouts = advanceAllTimeouts mNextTimeout timeouts state contract
+    advancedTimeouts = advanceAllTimeouts mNextTimeout timeouts nextSemanticState continuationContract
   in
-    { previousExecutionStates
-    , currentExecutionState
+    { semanticState
+    , contract
+    , history
     , mPendingTimeouts: advancedTimeouts.mPendingTimeouts
     , mNextTimeout: advancedTimeouts.mNextTimeout
     }
 
 ------------------------------------------------------------
-isClosed :: ExecutionState -> Boolean
-isClosed { currentExecutionState: { contract: Close } } = true
+isClosed :: State -> Boolean
+isClosed { contract: Close } = true
 
 isClosed _ = false
 
@@ -136,29 +130,29 @@ getActionParticipant (MakeChoice (ChoiceId _ party) _ _) = Just party
 
 getActionParticipant _ = Nothing
 
-extractNamedActions :: Slot -> ExecutionState -> Array NamedAction
-extractNamedActions _ { mPendingTimeouts: Just { contract: Close } } = [ CloseContract ]
+extractNamedActions :: Slot -> State -> Array NamedAction
+extractNamedActions _ { mPendingTimeouts: Just { continuationContract: Close } } = [ CloseContract ]
 
-extractNamedActions currentSlot { mPendingTimeouts: Just { contract, state } } = extractActionsFromContract currentSlot state contract
+extractNamedActions currentSlot { mPendingTimeouts: Just { nextSemanticState, continuationContract } } = extractActionsFromContract currentSlot nextSemanticState continuationContract
 
-extractNamedActions currentSlot { currentExecutionState: { contract, state } } = extractActionsFromContract currentSlot state contract
+extractNamedActions currentSlot { semanticState, contract } = extractActionsFromContract currentSlot semanticState contract
 
 -- a When can only progress if it has timed out or has Cases
-extractActionsFromContract :: Slot -> State -> Contract -> Array NamedAction
+extractActionsFromContract :: Slot -> Core.State -> Contract -> Array NamedAction
 extractActionsFromContract _ _ Close = mempty
 
-extractActionsFromContract currentSlot state contract@(When cases timeout cont)
+extractActionsFromContract currentSlot coreState contract@(When cases timeout cont)
   -- in the case of a timeout we need to provide an Evaluate action to all users to "manually" progress the contract
   | currentSlot > timeout =
     let
-      minSlot = view _minSlot state
+      minSlot = view _minSlot coreState
 
       emptyTx = TransactionInput { interval: SlotInterval minSlot minSlot, inputs: mempty }
 
-      outputs = case computeTransaction emptyTx state cont of
+      outputs = case computeTransaction emptyTx coreState cont of
         TransactionOutput { txOutPayments, txOutState } ->
           let
-            oldBindings = view _boundValues state
+            oldBindings = view _boundValues coreState
 
             newBindings = view _boundValues txOutState
 
@@ -180,7 +174,7 @@ extractActionsFromContract currentSlot state contract@(When cases timeout cont)
 
         env = makeEnvironment minSlot maxSlot
 
-        amount = evalValue env state v
+        amount = evalValue env coreState v
       in
         MakeDeposit a p t amount
 
@@ -193,12 +187,12 @@ extractActionsFromContract currentSlot state contract@(When cases timeout cont)
 -- and we would want to enable moving forward with Evaluate
 extractActionsFromContract _ _ _ = [ Evaluate mempty ]
 
--- This function expands the balances inside the Semantic.State to all participants and tokens, using zero if the participant
--- does not have balance for that token.
-expandBalances :: Array Party -> Array Token -> State -> Accounts
-expandBalances participants tokens state =
+-- This function expands the balances inside the Core.State to all participants and tokens, using
+-- zero if the participant does not have balance for that token.
+expandBalances :: Array Party -> Array Token -> Core.State -> Accounts
+expandBalances participants tokens coreState =
   let
-    stateAccounts = state ^. _accounts
+    stateAccounts = coreState ^. _accounts
   in
     Map.fromFoldable do
       party <- participants
@@ -219,11 +213,5 @@ mkInterval currentSlot contract = case nextTimeout contract of
     | minTime < currentSlot -> SlotInterval currentSlot currentSlot
     | otherwise -> SlotInterval currentSlot (minTime - (Slot $ fromInt 1))
 
-getAllPayments :: ExecutionState -> List Payment
-getAllPayments executionState@{ previousExecutionStates } =
-  let
-    previousPayments = fromFoldable $ map (view _payments) previousExecutionStates
-
-    currentPayments = view _currentPayments executionState
-  in
-    concat $ snoc previousPayments currentPayments
+getAllPayments :: State -> List Payment
+getAllPayments { history } = concat $ fromFoldable $ map (view _resultingPayments) history
