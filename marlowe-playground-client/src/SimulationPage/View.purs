@@ -5,7 +5,7 @@ import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
 import Data.Array (concatMap, intercalate, reverse, sortWith)
 import Data.Array as Array
-import Data.BigInteger (BigInteger, fromString, fromInt)
+import Data.BigInteger (BigInteger)
 import Data.Lens (has, only, previewOn, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -23,9 +23,9 @@ import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShr
 import Halogen.Css (classNames)
 import Halogen.CurrencyInput (currencyInput)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
-import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData)
@@ -222,7 +222,7 @@ startSimulationWidget metadata { initialSlot, templateContent } =
     $ div_
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
-            , marloweActionInput (SetInitialSlot <<< wrap) initialSlot
+            , marloweActionInput (SetInitialSlot <<< wrap) (unwrap initialSlot)
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
@@ -470,7 +470,7 @@ inputItem _ state person (MoveToSlot slot) =
     ( [ div [ classes [ ClassName "action" ] ]
           [ p [ class_ (ClassName "slot-input") ]
               [ spanTextBreakWord "Move to slot "
-              , marloweActionInput (SetSlot <<< wrap) slot
+              , marloweActionInput (SetSlot <<< wrap) (unwrap slot)
               ]
           , p [ class_ (ClassName "choice-error") ] error
           ]
@@ -496,23 +496,8 @@ inputItem _ state person (MoveToSlot slot) =
 marloweCurrencyInput :: forall p action. (BigInteger -> action) -> String -> Int -> BigInteger -> HTML p action
 marloweCurrencyInput f currencyLabel numDecimals current = currencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] current currencyLabel numDecimals (Just <<< f <<< fromMaybe zero)
 
-marloweActionInput :: forall p a action. Show a => (BigInteger -> action) -> a -> HTML p action
-marloweActionInput f current =
-  input
-    [ type_ InputNumber
-    , placeholder "BigInteger"
-    , class_ $ ClassName "action-input"
-    , value $ show current
-    , onValueChange
-        $ ( \x ->
-              Just
-                $ f
-                    ( case fromString x of
-                        Just y -> y
-                        Nothing -> fromInt 0
-                    )
-          )
-    ]
+marloweActionInput :: forall p action. (BigInteger -> action) -> BigInteger -> HTML p action
+marloweActionInput f current = marloweCurrencyInput f "" 0 current
 
 renderDeposit :: forall p. MetaData -> AccountId -> Party -> Token -> BigInteger -> HTML p Action
 renderDeposit metadata accountOwner party tok money =
