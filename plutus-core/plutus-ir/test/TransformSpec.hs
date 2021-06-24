@@ -20,6 +20,7 @@ import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
 import qualified PlutusIR.Transform.Unwrap          as Unwrap
 
+import           Control.Monad
 import           Text.Megaparsec.Pos
 
 transform :: TestNested
@@ -89,7 +90,7 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (Inline.inline . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . (Inline.inline <=< PLC.rename)) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "var"
     , "builtin"
     , "constant"
@@ -118,7 +119,7 @@ unwrapCancel =
 deadCode :: TestNested
 deadCode =
     testNested "deadCode"
-    $ map (goldenPir DeadCode.removeDeadBindings $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "typeLet"
     , "termLet"
     , "strictLet"

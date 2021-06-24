@@ -15,7 +15,6 @@ module PlutusIR.Transform.Inline (inline) where
 
 import           PlutusIR
 import qualified PlutusIR.Analysis.Dependencies as Deps
-import           PlutusIR.Mark
 import           PlutusIR.MkPir
 import           PlutusIR.Purity
 import           PlutusIR.Transform.Rename      ()
@@ -96,17 +95,18 @@ makeLenses ''TermEnv
 makeLenses ''TypeEnv
 makeLenses ''Subst
 
-type ExternalConstraints tyname name uni fun =
+type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
     , PLC.ToBuiltinMeaning uni fun
+    , MonadQuote m
     )
 
 type Inlining tyname name uni fun a m =
     ( MonadState (Subst tyname name uni fun a) m
     , MonadReader Deps.StrictnessMap m
     , MonadQuote m
-    , ExternalConstraints tyname name uni fun
+    , ExternalConstraints tyname name uni fun m
     )
 
 lookupTerm
@@ -151,18 +151,15 @@ and rename everything when we substitute in, which GHC considers too expensive b
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
-    :: ExternalConstraints tyname name uni fun
+    :: ExternalConstraints tyname name uni fun m
     => Term tyname name uni fun a
-    -> Term tyname name uni fun a
+    -> m (Term tyname name uni fun a)
 inline t =
     let
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
         deps = Deps.runTermDeps t
-    in flip runReader (snd deps) $ flip evalStateT mempty $ runQuoteT $ do
-        -- Ensure that we can safely rename inside that term
-        markNonFreshTerm t
-        processTerm t
+    in flip runReaderT (snd deps) $ flip evalStateT mempty $ processTerm t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
