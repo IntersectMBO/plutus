@@ -41,6 +41,7 @@ import           Prelude                          hiding (lookup)
 import           Codec.Serialise                  (Serialise)
 import           Control.DeepSeq                  (NFData)
 import           Control.Lens                     (toListOf, view, (^.))
+import           Control.Lens.Indexed             (iforM_)
 import           Control.Monad
 import           Control.Monad.Except             (ExceptT, MonadError (..), runExcept, runExceptT)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
@@ -113,6 +114,8 @@ data ValidationError =
     -- ^ For pay-to-script outputs: the validator script provided in the transaction input does not match the hash specified in the transaction output.
     | InvalidDatumHash Datum DatumHash
     -- ^ For pay-to-script outputs: the datum provided in the transaction input does not match the hash specified in the transaction output.
+    | MissingRedeemer RedeemerPtr
+    -- ^ For scripts that take redeemers: no redeemer was provided for this script.
     | InvalidSignature PubKey Signature
     -- ^ For pay-to-pubkey outputs: the signature of the transaction input does not match the public key of the transaction output.
     | ValueNotPreserved V.Value V.Value
@@ -257,22 +260,22 @@ checkMintingAuthorised tx =
 checkMintingScripts :: forall m . ValidationMonad m => Tx -> m ()
 checkMintingScripts tx = do
     txinfo <- mkTxInfo tx
-    let mpss = Set.toList (txMintScripts tx)
-        mkVd :: Integer -> ScriptContext
-        mkVd i =
-            let cs :: V.CurrencySymbol
-                cs = V.mpsSymbol $ mintingPolicyHash $ mpss !! fromIntegral i
-            in ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
-    forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
-        let vd = Context $ toData ptx'
-            -- HACK: always pass unit as the redeemer. This means that any minting policy that uses a
-            -- different type will fail. To fix this we need to properly track redeemers for minting policies.
-            red = Redeemer $ toData ()
-        in case runExcept $ runMintingPolicyScript vd vl red of
+    iforM_ (Set.toList (txMintScripts tx)) $ \i vl -> do
+        let cs :: V.CurrencySymbol
+            cs = V.mpsSymbol $ mintingPolicyHash vl
+            ctx :: Context
+            ctx = Context $ toData $ ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
+            ptr :: RedeemerPtr
+            ptr = RedeemerPtr Mint (fromIntegral i)
+        red <- case lookupRedeemer tx ptr of
+            Just r  -> pure r
+            Nothing -> throwError $ MissingRedeemer ptr
+
+        case runExcept $ runMintingPolicyScript ctx vl red of
             Left e  -> do
-                tell [mpsValidationEvent vd vl red (Left e)]
+                tell [mpsValidationEvent ctx vl red (Left e)]
                 throwError $ ScriptFailure e
-            res -> tell [mpsValidationEvent vd vl red res]
+            res -> tell [mpsValidationEvent ctx vl red res]
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =

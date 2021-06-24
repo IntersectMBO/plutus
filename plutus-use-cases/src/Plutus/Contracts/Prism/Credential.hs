@@ -52,7 +52,7 @@ data Credential =
 {-# INLINABLE validateMint #-}
 validateMint :: CredentialAuthority -> () -> ScriptContext -> Bool
 validateMint CredentialAuthority{unCredentialAuthority} _ ScriptContext{scriptContextTxInfo=txinfo} =
-    -- the credential authority is allwoed to mint or destroy any number of
+    -- the credential authority is allowed to mint or destroy any number of
     -- tokens, so we just need to check the signature
     txinfo `txSignedBy` unCredentialAuthority
 

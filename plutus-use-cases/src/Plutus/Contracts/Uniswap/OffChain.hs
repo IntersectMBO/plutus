@@ -313,12 +313,12 @@ add us AddParams{..} = do
 
         lookups  = Constraints.typedValidatorLookups usInst             <>
                    Constraints.otherScript usScript                     <>
-                   Constraints.mintingPolicy (liquidityPolicy us)      <>
+                   Constraints.mintingPolicy (liquidityPolicy us)       <>
                    Constraints.ownPubKeyHash pkh                        <>
                    Constraints.unspentOutputs (Map.singleton oref o)
 
         tx       = Constraints.mustPayToTheScript dat val          <>
-                   Constraints.mustMintValue lVal                 <>
+                   Constraints.mustMintValue lVal                  <>
                    Constraints.mustSpendScriptOutput oref redeemer
 
     logInfo @String $ printf "val = %s, inVal = %s" (show val) (show inVal)

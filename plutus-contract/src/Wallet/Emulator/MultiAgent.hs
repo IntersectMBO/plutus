@@ -290,6 +290,7 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
             , txValidRange = WAPI.defaultSlotRange
             , txMintScripts = mempty
             , txSignatures = mempty
+            , txRedeemers = mempty
             , txData = mempty
             }
 

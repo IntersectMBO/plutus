@@ -19,9 +19,9 @@ import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger                                    (Address, Datum, DatumHash, MintingPolicy, OnChainTx, PubKey,
-                                                            PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
-                                                            TxOut, TxOutRef, TxOutTx, UtxoIndex, ValidationPhase,
-                                                            Validator)
+                                                            PubKeyHash, Redeemer, RedeemerPtr, ScriptTag, Signature, Tx,
+                                                            TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
+                                                            ValidationPhase, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError, UnbalancedTx)
 import           Ledger.Credential                         (Credential, StakingCredential)
@@ -255,6 +255,8 @@ ledgerTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @MintingPolicy)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Redeemer)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerPtr)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @ScriptTag)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TokenName)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
