@@ -553,11 +553,11 @@ addMoneyToAccount accId token amount accounts = let
     Returns the appropriate effect and updated accounts
 -}
 giveMoney :: AccountId -> Payee -> Token -> Integer -> Accounts -> (ReduceEffect, Accounts)
-giveMoney accountId payee (Token cur tok) amount accounts = case payee of
-    Party _       -> (ReduceWithPayment (Payment accountId payee (Val.singleton cur tok amount)), accounts)
-    Account accId -> let
-        newAccs = addMoneyToAccount accId (Token cur tok) amount accounts
-        in (ReduceNoPayment, newAccs)
+giveMoney accountId payee (Token cur tok) amount accounts = let
+    newAccounts = case payee of
+        Party _       -> accounts
+        Account accId -> addMoneyToAccount accId (Token cur tok) amount accounts
+    in (ReduceWithPayment (Payment accountId payee (Val.singleton cur tok amount)), newAccounts)
 
 
 -- | Carry a step of the contract with no inputs

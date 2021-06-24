@@ -1400,13 +1400,13 @@ addMoneyToAccount accId token amount accounts =
     Returns the appropriate effect and updated accounts
 -}
 giveMoney :: AccountId -> Payee -> Token -> BigInteger -> Accounts -> Tuple ReduceEffect Accounts
-giveMoney accountId payee token@(Token cur tok) amount accounts = case payee of
-  Party _ -> Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) accounts
-  Account accId ->
-    let
-      newAccs = addMoneyToAccount accId token amount accounts
-    in
-      Tuple ReduceNoPayment newAccs
+giveMoney accountId payee token@(Token cur tok) amount accounts =
+  let
+    newAccounts = case payee of
+      Party _ -> accounts
+      Account accId -> addMoneyToAccount accId token amount accounts
+  in
+    Tuple (ReduceWithPayment (Payment accountId payee (asset cur tok amount))) accounts
 
 -- | Carry a step of the contract with no inputs
 reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
