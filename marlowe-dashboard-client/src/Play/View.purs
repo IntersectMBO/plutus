@@ -5,23 +5,30 @@ import Contract.View (actionConfirmationCard, contractDetailsCard)
 import ContractHome.View (contractsScreen)
 import Css (applyWhen, classNames, hideWhen, toggleWhen)
 import Css as Css
-import Data.Lens (preview, view)
+import Data.Lens (preview, view, (^.))
 import Data.Maybe (Maybe(..))
 import Data.String (take)
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ComponentHTML)
+import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (href, src)
+import Halogen.HTML.Properties (href, id_, src)
 import Images (marloweRunNavLogo, marloweRunNavLogoDark)
+import MainFrame.Types (ChildSlots)
 import Marlowe.Semantics (PubKey, Slot)
 import Material.Icons (Icon(..), icon_)
 import Play.Lenses (_cards, _contractsState, _menuOpen, _walletIdInput, _walletNicknameInput, _remoteWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletLibrary)
 import Play.Types (Action(..), Card(..), Screen(..), State)
+import Popper (Placement(..))
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
+import Tooltip.State (tooltip)
+import Tooltip.Types (RefferenceId(..))
 import WalletData.Lenses (_assets, _walletNickname)
 import WalletData.View (putdownWalletCard, saveWalletCard, walletDetailsCard, walletLibraryScreen)
 
-renderPlayState :: forall p. Slot -> State -> HTML p Action
+renderPlayState :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 renderPlayState currentSlot state =
   let
     walletNickname = view (_walletDetails <<< _walletNickname) state
@@ -36,13 +43,13 @@ renderPlayState currentSlot state =
       ]
 
 ------------------------------------------------------------
-renderHeader :: forall p. PubKey -> Boolean -> HTML p Action
+renderHeader :: forall m. MonadAff m => PubKey -> Boolean -> ComponentHTML Action ChildSlots m
 renderHeader walletNickname menuOpen =
   header
     [ classNames
         $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1", "px-4", "md:px-5pc" ]
         -- in case the menu is open when the user makes their window wider, we make sure the menuOpen styles only apply on small screens ...
-        
+
         <> toggleWhen menuOpen [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] [ "border-b", "border-gray" ]
     ]
     [ img
@@ -60,6 +67,7 @@ renderHeader walletNickname menuOpen =
         , navigation (SetScreen WalletLibraryScreen) Contacts "Contacts"
         , a
             [ classNames [ "ml-6", "font-bold", "text-sm" ]
+            , id_ "dropWalletHeader"
             , onClick_ $ OpenCard PutdownWalletCard
             ]
             [ span
@@ -73,6 +81,7 @@ renderHeader walletNickname menuOpen =
                 , span [ classNames [ "truncate", "max-w-16" ] ] [ text walletNickname ]
                 ]
             ]
+        , tooltip "Drop wallet" (RefId "dropWalletHeader") Bottom
         , a
             [ classNames [ "ml-4", "md:hidden" ]
             , onClick_ ToggleMenu
@@ -95,7 +104,7 @@ renderHeader walletNickname menuOpen =
       ]
 
 ------------------------------------------------------------
-renderMain :: forall p. Slot -> State -> HTML p Action
+renderMain :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 renderMain currentSlot state =
   let
     menuOpen = view _menuOpen state
@@ -183,24 +192,20 @@ renderCard currentSlot state card =
                 Nothing -> []
       ]
 
-renderScreen :: forall p. Slot -> State -> HTML p Action
+renderScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 renderScreen currentSlot state =
   let
     walletLibrary = view _walletLibrary state
-
-    screen = view _screen state
-
-    templateState = view _templateState state
-
-    contractsState = view _contractsState state
   in
     div
       -- TODO: Revisit the overflow-auto... I think the scrolling should be set at the screen level and not here.
       --       this should have overflow-hidden to avoid the main div to occupy more space than available.
-      [ classNames [ "absolute", "inset-0", "overflow-auto", "z-0" ] ] case screen of
-      ContractsScreen -> [ ContractHomeAction <$> contractsScreen currentSlot contractsState ]
-      WalletLibraryScreen -> [ walletLibraryScreen walletLibrary ]
-      TemplateScreen -> [ TemplateAction <$> contractSetupScreen walletLibrary currentSlot templateState ]
+      [ classNames [ "absolute", "inset-0", "overflow-auto", "z-0" ] ]
+      [ case state ^. _screen of
+          ContractsScreen -> renderSubmodule _contractsState ContractHomeAction (contractsScreen currentSlot) state
+          WalletLibraryScreen -> walletLibraryScreen walletLibrary
+          TemplateScreen -> renderSubmodule _templateState TemplateAction (contractSetupScreen walletLibrary currentSlot) state
+      ]
 
 ------------------------------------------------------------
 renderFooter :: forall p. HTML p Action
