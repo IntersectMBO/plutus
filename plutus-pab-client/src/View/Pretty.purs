@@ -2,6 +2,7 @@ module View.Pretty where
 
 import Prelude
 import Bootstrap (alertDanger_, nbsp)
+import ContractExample (ExampleContracts)
 import Data.Array (length)
 import Data.Either (Either(..))
 import Data.Lens (view)
@@ -16,7 +17,7 @@ import Plutus.V1.Ledger.Interval (Interval(..), Extended(..), LowerBound(..), Up
 import Plutus.V1.Ledger.Slot (Slot(..))
 import Plutus.V1.Ledger.Time (POSIXTime(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
-import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
+import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txId)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
 import Wallet.Types (EndpointDescription)
@@ -35,6 +36,9 @@ withHeading prefix content =
         ]
     , content
     ]
+
+instance prettyExampleContracts :: Pretty ExampleContracts where
+  pretty = text <<< show
 
 instance prettyResponse :: Pretty a => Pretty (Response a) where
   pretty (Response { rspRqID, rspItID, rspResponse }) =
