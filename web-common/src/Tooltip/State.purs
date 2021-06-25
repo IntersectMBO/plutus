@@ -6,13 +6,13 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Foldable (for_)
 import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
+import Data.Symbol (SProxy(..))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM, Slot, get, getHTMLElementRef, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.HTML (ComponentHTML, HTML, slot)
 import Halogen.Query.EventSource (eventListenerEventSource)
-import MainFrame.Types (_tooltipSlot)
 import Popper (OffsetOption(..), PaddingOption(..), Placement, PositioningStrategy(..), arrow, createPopper, defaultModifiers, defaultPreventOverflow, destroyPopper, forceUpdate, offset, pAll, preventOverflow)
 import Tooltip.Lenses (_active, _mPopperInstance, _message, _placement)
 import Tooltip.Types (Action(..), Input, RefferenceId(..), State, arrowRef, tooltipRef)
@@ -23,6 +23,9 @@ import Web.HTML (HTMLElement, window)
 import Web.HTML.HTMLDocument (toNonElementParentNode)
 import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.Window (document)
+
+_tooltipSlot :: SProxy "tooltipSlot"
+_tooltipSlot = SProxy
 
 tooltip ::
   forall slots m action.
