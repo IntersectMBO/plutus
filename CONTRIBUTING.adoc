@@ -64,15 +64,31 @@ bug workarounds.
 
 If you launch `nix-shell` with the `enableHaskellProfiling` argument set to true, you will get a shell where all the dependencies have been built with profiling.
 
-Like this: `nix-shell --arg enableHaskellProfiling true`
-
-Then you can do e.g. `cabal run --enableProfiling ...`, or put `profiling: true` in your `cabal.project.local`.
+Like this: `nix-shell --arg enableHaskellProfiling true`.
 
 [WARNING]
 ====
-This is not curently cached, so may result in you rebuilding all of our dependencies with profiling on your machine.
+The shell with profiling dependencies is not currently cached, so this will result in you rebuilding all of our dependencies with profiling on your machine.
 This will take a *long* time.
 ====
+
+Once you have a shell with profiling libraries for our dependencies, add `profiling: true` to `cabal.project.local`, which will tell cabal that you want profiling (in particular, that will cause it to build *our* libraries with profiling).
+Alternatively, you can pass the `--enable-profiling` option to `cabal` on an ad-hoc basis, but adding the option to `cabal.project.local` will make it apply to everything, which is probably what you want when you're doing profiling work.
+
+At this point you need to configure which cost centres you want GHC to insert.
+The https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/profiling.html[GHC user guide] explains this very well.
+A typical way of doing this is to add `-fprof-auto` to either the `ghc-options` in the `.cabal` file for the project, or in an `OPTIONS_GHC` pragma in the module you care about.
+
+[WARNING]
+====
+Do *not* set the `-prof` option yourself!
+This will enable profiling libraries unconditionally, which interferes with what `cabal` wants.
+Setting `profiling: true` already sorts this out properly.
+====
+
+Then you can use the RTS `-p` option to dump a profile e.g. `cabal run plc ... -- +RTS -p`.
+
+There are various tools for visualizing the resulting profile, e.g. https://hackage.haskell.org/package/ghc-prof-flamegraph.
 
 === How to setup `haskell-language-server`
 
