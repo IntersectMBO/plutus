@@ -30,7 +30,6 @@ import           Foreign.R
 import           H.Prelude                                      (MonadR, Region, r)
 import           Language.R
 
-
 -- | Convert milliseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 msToPs :: Double -> CostingInteger
@@ -75,6 +74,7 @@ costModelsR = do
     source("cost-model/data/models.R")
     modelFun("cost-model/data/benching.csv")
   |]
+  -- Unfortunately we can't use the paths defined in FilePaths inside [r|...].  The above code may not work on Windows.
   -- TODO use btraverse instead
   bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
 
