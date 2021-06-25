@@ -439,7 +439,6 @@ benchmark cost-model-budgeting-bench
         bytestring -any,
         criterion -any,
         directory -any,
-        filepath -any,
         hedgehog -any,
         random -any
 
