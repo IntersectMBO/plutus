@@ -28,14 +28,14 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
-import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData)
+import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData, getChoiceFormat)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Marlowe.Template (IntegerTemplateType(..))
 import Monaco (Editor)
 import Monaco as Monaco
-import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
+import Pretty (renderPrettyParty, renderPrettyToken, showPrettyChoice, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
 import SimulationPage.Lenses (_bottomPanelState)
 import SimulationPage.Types (Action(..), BottomPanelView(..), State)
@@ -554,7 +554,7 @@ inputToLine metadata (SlotInterval start end) (IChoice (ChoiceId choiceName choi
       [ text "Participant "
       , strong_ [ renderPrettyParty metadata choiceOwner ]
       , text " chooses the value "
-      , strong_ [ text (showPrettyMoney chosenNum) ]
+      , strong_ [ text (showPrettyChoice (getChoiceFormat metadata choiceName) chosenNum) ]
       , text " for choice with id "
       , strong_ [ text (show choiceName) ]
       ]
