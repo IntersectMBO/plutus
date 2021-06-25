@@ -1,6 +1,7 @@
-module Pickup.View (renderPickupState) where
+module Welcome.View (renderWelcomeState) where
 
 import Prelude hiding (div)
+
 import Css (classNames)
 import Css as Css
 import Data.Foldable (foldMap)
@@ -17,42 +18,100 @@ import InputField.State (validate)
 import InputField.View (renderInput)
 import Material.Icons (Icon(..), icon, icon_)
 import Network.RemoteData (isSuccess)
-import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
-import Pickup.Types (Action(..), Card(..), State)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
+import Welcome.Lenses (_card, _connecting, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Types (Action(..), Card(..), State)
 
-renderPickupState :: forall p. State -> HTML p Action
-renderPickupState state =
+renderWelcomeState :: forall p. State -> HTML p Action
+renderWelcomeState state =
   div
     [ classNames [ "grid", "h-full", "relative", "overflow-x-hidden" ] ]
     [ div
         [ classNames
-            $ [ "absolute", "top-0", "-left-32", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10", "transform", "rotate-180" ]
-            <> [ "md:-left-64", "md:w-256", "md:h-48" ]
-        ]
-        []
-    , div
-        [ classNames
-            $ [ "absolute", "bottom-0", "-right-64", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10" ]
-            <> [ "md:w-256", "md:h-56" ]
+            $ [ "absolute", "top-0", "-right-64", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10", "transform", "rotate-180" ]
+            <> [ "md:w-256", "md:h-48" ]
         ]
         []
     , main
         [ classNames [ "relative" ] ]
         -- In the Play view, there are potentially many cards all inside a containing div,
         -- and the last one has a semi-transparent overlay (using class "last:bg-overlay").
-        -- Here in the Pickup view there is at most one card, but we need to put it inside
+        -- Here in the Welcome view there is at most one card, but we need to put it inside
         -- a containing div as well, so that it's the last child, and has the bg-overlay
         -- applied.
-        [ div_ [ renderPickupCard state ]
-        , renderPickupScreen state
+        [ div_ [ renderWelcomeCard state ]
+        , renderWelcomeScreen state
         ]
     ]
 
 ------------------------------------------------------------
-renderPickupCard :: forall p. State -> HTML p Action
-renderPickupCard state =
+renderWelcomeScreen :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
+renderWelcomeScreen state =
+  div
+    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "grid", "gap-4", "grid-rows-welcome", "md:grid-cols-welcome" ] ]
+    [ useWallet state
+    , gettingStarted
+    ]
+
+useWallet :: forall p. State -> HTML p Action
+useWallet state =
+  let
+    walletLibrary = view _walletLibrary state
+
+    remoteWalletDetails = view _remoteWalletDetails state
+
+    walletNicknameOrIdInput = view _walletNicknameOrIdInput state
+
+    walletNicknameOrIdInputDisplayOptions =
+      { baseCss: Css.inputNoFocus
+      , additionalCss: [ "pr-9" ]
+      , id_: "existingWallet"
+      , placeholder: "Enter a wallet ID/nickname"
+      , readOnly: false
+      , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
+      }
+  in
+    main
+      [ classNames [ "row-start-2", "md:col-start-2", "bg-white", "rounded-lg", "shadow-lg", "p-4", "max-w-sm", "mx-auto" ] ]
+      [ img
+          [ classNames [ "w-4/5", "mx-auto", "mb-6", "text-center" ]
+          , src marloweRunLogo
+          ]
+      , p
+          [ classNames [ "mb-4", "text-center" ] ]
+          [ text "To use Marlowe Run, generate a new demo wallet." ]
+      , button
+          [ classNames $ Css.primaryButton <> [ "w-full", "mb-4", "text-center" ]
+          , onClick_ GenerateWallet
+          ]
+          [ text "Generate demo wallet" ]
+      , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
+      , p
+          [ classNames [ "mb-4", "text-center" ] ]
+          [ text "Or use an existing one by entering a wallet ID or nickname." ]
+      , WalletNicknameOrIdInputAction <$> renderInput walletNicknameOrIdInput walletNicknameOrIdInputDisplayOptions
+      ]
+  where
+  walletList walletDetails =
+    a
+      [ classNames [ "block", "p-4", "hover:bg-black", "hover:text-white" ]
+      , onClick_ $ OpenConnectWalletCardWithDetails walletDetails
+      ]
+      [ text $ view _walletNickname walletDetails ]
+
+gettingStarted :: forall p. HTML p Action
+gettingStarted =
+  div
+    [ classNames [ "row-start-3", "md:row-start-2", "md:col-start-3", "max-w-sm", "mx-auto", "flex", "flex-col", "justify-center" ] ]
+    [ a
+        [ classNames [ "text-purple" ] ]
+        [ text "Watch our get started tutorial"]
+    ]
+
+------------------------------------------------------------
+renderWelcomeCard :: forall p. State -> HTML p Action
+renderWelcomeCard state =
   let
     card = view _card state
   in
@@ -61,15 +120,15 @@ renderPickupCard state =
       [ div
           [ classNames $ Css.card $ isNothing card ]
           $ (flip foldMap card) \cardType -> case cardType of
-              PickupNewWalletCard -> pickupNewWalletCard state
-              PickupWalletCard -> pickupWalletCard state
+              ConnectNewWalletCard -> connectNewWalletCard state
+              ConnectWalletCard -> connectWalletCard state
               LocalWalletMissingCard -> localWalletMissingCard
       ]
 
-pickupNewWalletCard :: forall p. State -> Array (HTML p Action)
-pickupNewWalletCard state =
+connectNewWalletCard :: forall p. State -> Array (HTML p Action)
+connectNewWalletCard state =
   let
-    pickingUp = view _pickingUp state
+    connecting = view _connecting state
 
     remoteWalletDetails = view _remoteWalletDetails state
 
@@ -97,7 +156,7 @@ pickupNewWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ $ CloseCard PickupNewWalletCard
+        , onClick_ $ CloseCard ConnectNewWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
@@ -126,23 +185,23 @@ pickupNewWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ $ CloseCard PickupNewWalletCard
+                , onClick_ $ CloseCard ConnectNewWalletCard
                 ]
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , disabled $ isJust (validate walletNicknameInput) || pickingUp || not isSuccess remoteWalletDetails
-                , onClick_ $ PickupWallet $ view _value walletNicknameInput
+                , disabled $ isJust (validate walletNicknameInput) || connecting || not isSuccess remoteWalletDetails
+                , onClick_ $ ConnectWallet $ view _value walletNicknameInput
                 ]
-                [ text if pickingUp then "Picking up... " else "Pickup" ]
+                [ text if connecting then "Connecting... " else "Use" ]
             ]
         ]
     ]
 
-pickupWalletCard :: forall p. State -> Array (HTML p Action)
-pickupWalletCard state =
+connectWalletCard :: forall p. State -> Array (HTML p Action)
+connectWalletCard state =
   let
-    pickingUp = view _pickingUp state
+    connecting = view _connecting state
 
     remoteWalletDetails = view _remoteWalletDetails state
 
@@ -170,7 +229,7 @@ pickupWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ $ CloseCard PickupWalletCard
+        , onClick_ $ CloseCard ConnectWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
@@ -199,15 +258,15 @@ pickupWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ $ CloseCard PickupWalletCard
+                , onClick_ $ CloseCard ConnectWalletCard
                 ]
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , onClick_ $ PickupWallet $ view _value walletNicknameInput
-                , disabled $ pickingUp || not isSuccess remoteWalletDetails
+                , onClick_ $ ConnectWallet $ view _value walletNicknameInput
+                , disabled $ connecting || not isSuccess remoteWalletDetails
                 ]
-                [ text if pickingUp then "Picking up... " else "Pickup" ]
+                [ text if connecting then "Connecting... " else "Use" ]
             ]
         ]
     ]
@@ -238,87 +297,3 @@ localWalletMissingCard =
           ]
       ]
   ]
-
-------------------------------------------------------------
-renderPickupScreen :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
-renderPickupScreen state =
-  div
-    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "flex", "flex-col", "justify-between" ] ]
-    [ header
-        [ classNames [ "p-2" ] ]
-        [ a
-            [ classNames [ "flex", "p-2", "font-bold" ]
-            , href "https://marlowe-finance.io"
-            ]
-            [ img
-                [ classNames [ "mr-2" ]
-                , src arrowBack
-                ]
-            , text "marlowe-finance.io"
-            ]
-        , div
-            [ classNames [ "hidden", "md:block", "absolute", "top-20", "right-0", "p-8", "pt-6", "bg-white", "text-gray", "text-4xl", "font-semibold", "leading-none", "rounded-l-lg", "shadow-lg" ] ]
-            [ text "ES" ]
-        ]
-    , pickupWalletScreen state
-    , footer
-        -- we give the footer a fixed height and the div inside it absolute positioning, because otherwise
-        -- the div makes the `pickupWalletScreen` element above it too small
-        [ classNames [ "h-22", "flex", "justify-between" ] ]
-        [ div
-            [ classNames [ "absolute", "bottom-0", "left-0", "bg-white", "p-8", "rounded-tr-lg", "shadow-lg" ] ]
-            [ icon ArrowRight [ "hidden", "md:block", "text-medium-icon", "leading-none", "text-gray", "text-center", "mb-6" ]
-            , a
-                [ classNames [ "px-8", "py-4", "font-bold", "hover:bg-link-highlight", "bg-no-repeat", "bg-center" ]
-                , href ""
-                ]
-                [ text "Docs" ]
-            ]
-        ]
-    ]
-
-pickupWalletScreen :: forall p. State -> HTML p Action
-pickupWalletScreen state =
-  let
-    walletLibrary = view _walletLibrary state
-
-    remoteWalletDetails = view _remoteWalletDetails state
-
-    walletNicknameOrIdInput = view _walletNicknameOrIdInput state
-
-    walletNicknameOrIdInputDisplayOptions =
-      { baseCss: Css.inputNoFocus
-      , additionalCss: [ "pr-9" ]
-      , id_: "existingWallet"
-      , placeholder: "Enter a wallet ID/nickname"
-      , readOnly: false
-      , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
-      }
-  in
-    main
-      [ classNames [ "p-4", "max-w-sm", "mx-auto" ] ]
-      [ img
-          [ classNames [ "w-4/5", "mx-auto", "mb-6", "text-center" ]
-          , src marloweRunLogo
-          ]
-      , p
-          [ classNames [ "mb-4", "text-center" ] ]
-          [ text "To use Marlowe Run, generate a new demo wallet." ]
-      , button
-          [ classNames $ Css.primaryButton <> [ "w-full", "mb-4", "text-center" ]
-          , onClick_ GenerateWallet
-          ]
-          [ text "Generate demo wallet" ]
-      , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
-      , p
-          [ classNames [ "mb-4", "text-center" ] ]
-          [ text "Or use an existing one by entering a wallet ID or nickname." ]
-      , WalletNicknameOrIdInputAction <$> renderInput walletNicknameOrIdInput walletNicknameOrIdInputDisplayOptions
-      ]
-  where
-  walletList walletDetails =
-    a
-      [ classNames [ "block", "p-4", "hover:bg-black", "hover:text-white" ]
-      , onClick_ $ OpenPickupWalletCardWithDetails walletDetails
-      ]
-      [ text $ view _walletNickname walletDetails ]

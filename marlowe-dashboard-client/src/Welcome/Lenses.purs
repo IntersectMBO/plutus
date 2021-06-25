@@ -1,11 +1,11 @@
-module Pickup.Lenses
+module Welcome.Lenses
   ( _card
   , _walletLibrary
   , _walletNicknameOrIdInput
   , _walletNicknameInput
   , _walletIdInput
   , _remoteWalletDetails
-  , _pickingUp
+  , _connecting
   ) where
 
 import Data.Lens (Lens')
@@ -13,10 +13,10 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
-import Pickup.Types (Card, State)
 import Types (WebData)
 import WalletData.Types (WalletDetails, WalletLibrary)
 import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError)
+import Welcome.Types (Card, State)
 
 _card :: Lens' State (Maybe Card)
 _card = prop (SProxy :: SProxy "card")
@@ -36,5 +36,5 @@ _walletIdInput = prop (SProxy :: SProxy "walletIdInput")
 _remoteWalletDetails :: Lens' State (WebData WalletDetails)
 _remoteWalletDetails = prop (SProxy :: SProxy "remoteWalletDetails")
 
-_pickingUp :: Lens' State Boolean
-_pickingUp = prop (SProxy :: SProxy "pickingUp")
+_connecting :: Lens' State Boolean
+_connecting = prop (SProxy :: SProxy "connecting")

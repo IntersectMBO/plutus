@@ -92,7 +92,7 @@ handleAction _ PutdownWallet = do
   walletLibrary <- use _walletLibrary
   walletDetails <- use _walletDetails
   runningContracts <- use _allContracts
-  callMainFrameAction $ MainFrame.EnterPickupState walletLibrary walletDetails runningContracts
+  callMainFrameAction $ MainFrame.EnterWelcomeState walletLibrary walletDetails runningContracts
 
 handleAction _ (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 

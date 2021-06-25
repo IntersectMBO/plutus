@@ -1,4 +1,4 @@
-module Pickup.State
+module Welcome.State
   ( dummyState
   , mkInitialState
   , handleAction
@@ -26,8 +26,6 @@ import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
-import Pickup.Types (Action(..), Card(..), State)
 import Toast.Types (ajaxErrorToast, errorToast)
 import WalletData.Lenses (_companionAppId, _walletNickname)
 import WalletData.Types (WalletLibrary)
@@ -35,6 +33,8 @@ import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNickname
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
+import Welcome.Lenses (_card, _connecting, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Types (Action(..), Card(..), State)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -48,7 +48,7 @@ mkInitialState walletLibrary =
   , walletNicknameInput: InputField.initialState
   , walletIdInput: InputField.initialState
   , remoteWalletDetails: NotAsked
-  , pickingUp: false
+  , connecting: false
   }
 
 -- Some actions are handled in `MainFrame.State` because they involve
@@ -69,7 +69,7 @@ handleAction (CloseCard card) = do
   when (currentCard == Just card) do
     modify_
       $ set _remoteWalletDetails NotAsked
-      <<< set _pickingUp false
+      <<< set _connecting false
       <<< set _card Nothing
     handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
     handleAction $ WalletNicknameInputAction $ InputField.Reset
@@ -86,7 +86,7 @@ handleAction GenerateWallet = do
       handleAction $ WalletNicknameInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
       handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
-      handleAction $ OpenCard PickupNewWalletCard
+      handleAction $ OpenCard ConnectNewWalletCard
 
 handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
   toWalletNicknameOrIdInput $ InputField.handleAction inputFieldAction
@@ -107,24 +107,24 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
             walletLibrary <- use _walletLibrary
             case findMin $ filter (\details -> UUID.toString (unwrap (view _companionAppId details)) == walletNicknameOrId) walletLibrary of
               Just { key, value } -> do
-                -- if so, open the PickupWalletCard
+                -- if so, open the ConnectWalletCard
                 handleAction $ WalletNicknameInputAction $ InputField.SetValue key
                 handleAction $ WalletIdInputAction $ InputField.SetValue walletNicknameOrId
-                handleAction $ OpenCard PickupWalletCard
+                handleAction $ OpenCard ConnectWalletCard
               Nothing -> do
-                -- otherwise open the PickupNewWalletCard
+                -- otherwise open the ConnectNewWalletCard
                 handleAction $ WalletNicknameInputAction $ InputField.Reset
                 handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
                 handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
-                handleAction $ OpenCard PickupNewWalletCard
+                handleAction $ OpenCard ConnectNewWalletCard
     InputField.SetValueFromDropdown walletNicknameOrId -> do
-      -- in this case we know it's a wallet nickname, and we want to open the pickup card
+      -- in this case we know it's a wallet nickname, and we want to open the connect card
       -- for the corresponding wallet
       walletLibrary <- use _walletLibrary
-      for_ (lookup walletNicknameOrId walletLibrary) (handleAction <<< OpenPickupWalletCardWithDetails)
+      for_ (lookup walletNicknameOrId walletLibrary) (handleAction <<< OpenConnectWalletCardWithDetails)
     _ -> pure unit
 
-handleAction (OpenPickupWalletCardWithDetails walletDetails) = do
+handleAction (OpenConnectWalletCardWithDetails walletDetails) = do
   assign _remoteWalletDetails Loading
   ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
   assign _remoteWalletDetails $ fromEither ajaxWalletDetails
@@ -134,14 +134,14 @@ handleAction (OpenPickupWalletCardWithDetails walletDetails) = do
       handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValue $ view _walletNickname walletDetails
       handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
-      handleAction $ OpenCard PickupWalletCard
+      handleAction $ OpenCard ConnectWalletCard
 
 handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 
 handleAction (WalletIdInputAction inputFieldAction) = toWalletIdInput $ InputField.handleAction inputFieldAction
 
-handleAction (PickupWallet walletNickname) = do
-  assign _pickingUp true
+handleAction (ConnectWallet walletNickname) = do
+  assign _connecting true
   remoteWalletDetails <- use _remoteWalletDetails
   case remoteWalletDetails of
     Success walletDetails -> do
@@ -152,11 +152,11 @@ handleAction (PickupWallet walletNickname) = do
       walletLibrary <- use _walletLibrary
       callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetailsWithNickname
     _ -> do
-      -- this should never happen (the "Pickup Wallet" button should be disabled unless remoteWalletDetails is Success),
-      -- but let's add some sensible behaviour anyway just in case
-      handleAction $ CloseCard PickupWalletCard -- either of these cards could be open at
-      handleAction $ CloseCard PickupNewWalletCard -- this point, so we close both to be sure
-      addToast $ errorToast "Unable to pick up wallet." $ Just "Details for this wallet could not be loaded."
+      -- this should never happen (the button to connect a wallet should be disabled unless
+      -- remoteWalletDetails is Success), but let's add some sensible behaviour anyway just in case
+      handleAction $ CloseCard ConnectWalletCard -- either of these cards could be open at
+      handleAction $ CloseCard ConnectNewWalletCard -- this point, so we close both to be sure
+      addToast $ errorToast "Unable to connect to this wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage = do
   clearAllLocalStorage
