@@ -47,6 +47,7 @@ library
         PlutusCore.Constant
         PlutusCore.Constant.Dynamic.Emit
         PlutusCore.Core
+        PlutusCore.DataFilePaths
         PlutusCore.DeBruijn
         PlutusCore.Default
         PlutusCore.Error
@@ -437,7 +438,6 @@ benchmark cost-model-budgeting-bench
         bytestring -any,
         criterion -any,
         directory -any,
-        filepath -any,
         hedgehog -any,
         random -any
 
