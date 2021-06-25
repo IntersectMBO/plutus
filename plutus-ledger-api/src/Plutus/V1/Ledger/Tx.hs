@@ -28,11 +28,16 @@ module Plutus.V1.Ledger.Tx(
     mintScripts,
     signatures,
     datumWitnesses,
+    redeemers,
     lookupSignature,
     lookupDatum,
+    lookupRedeemer,
     addSignature,
     mint,
     fee,
+    ScriptTag (..),
+    RedeemerPtr (..),
+    Redeemers,
     -- ** Hashing transactions
     txId,
     -- ** Stripped transactions
@@ -137,6 +142,8 @@ data Tx = Tx {
     -- ^ The scripts that must be run to check minting conditions.
     txSignatures  :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
+    txRedeemers   :: Redeemers,
+    -- ^ Redeemers of the minting scripts.
     txData        :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
@@ -168,11 +175,12 @@ instance Semigroup Tx where
         txValidRange = txValidRange tx1 /\ txValidRange tx2,
         txMintScripts = txMintScripts tx1 <> txMintScripts tx2,
         txSignatures = txSignatures tx1 <> txSignatures tx2,
+        txRedeemers = txRedeemers tx1 <> txRedeemers tx2,
         txData = txData tx1 <> txData tx2
         }
 
 instance Monoid Tx where
-    mempty = Tx mempty mempty mempty mempty mempty top mempty mempty mempty
+    mempty = Tx mempty mempty mempty mempty mempty top mempty mempty mempty mempty
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
@@ -222,6 +230,11 @@ mintScripts = lens g s where
     g = txMintScripts
     s tx fs = tx { txMintScripts = fs }
 
+redeemers :: Lens' Tx Redeemers
+redeemers = lens g s where
+    g = txRedeemers
+    s tx reds = tx { txRedeemers = reds }
+
 datumWitnesses :: Lens' Tx (Map DatumHash Datum)
 datumWitnesses = lens g s where
     g = txData
@@ -232,6 +245,9 @@ lookupSignature s Tx{txSignatures} = Map.lookup s txSignatures
 
 lookupDatum :: Tx -> DatumHash -> Maybe Datum
 lookupDatum Tx{txData} h = Map.lookup h txData
+
+lookupRedeemer :: Tx -> RedeemerPtr -> Maybe Redeemer
+lookupRedeemer tx p = Map.lookup p (txRedeemers tx)
 
 -- | Check that all values in a transaction are non-negative.
 validValuesTx :: Tx -> Bool
@@ -264,6 +280,20 @@ txId tx = TxId $ BA.convert h' where
     h = hash $ Write.toStrictByteString $ encode $ strip tx
     h' :: Digest SHA256
     h' = hash h
+
+-- | A tag indicating the type of script that we are pointing to.
+-- NOTE: Cert/Reward are not supported right now.
+data ScriptTag = Spend | Mint | Cert | Reward
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
+
+-- | A redeemer pointer is a pair of a script type tag t and an index i, picking out the ith
+-- script of type t in the transaction.
+data RedeemerPtr = RedeemerPtr ScriptTag Integer
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+
+type Redeemers = Map RedeemerPtr Redeemer
 
 -- | A reference to a transaction output. This is a
 -- pair of a transaction reference, and an index indicating which of the outputs

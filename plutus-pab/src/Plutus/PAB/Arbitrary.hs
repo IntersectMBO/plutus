@@ -18,7 +18,7 @@ import qualified Ledger.Bytes                      as LedgerBytes
 import           Ledger.Crypto                     (PubKey, PubKeyHash, Signature)
 import           Ledger.Interval                   (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Slot                       (Slot)
-import           Ledger.Tx                         (Tx, TxIn, TxInType, TxOut, TxOutRef)
+import           Ledger.Tx                         (RedeemerPtr, ScriptTag, Tx, TxIn, TxInType, TxOut, TxOutRef)
 import           Ledger.TxId                       (TxId)
 import           Plutus.Contract.Effects           (ActiveEndpoint (..), PABReq (..), PABResp (..))
 import qualified PlutusTx                          as PlutusTx
@@ -77,6 +77,14 @@ instance Arbitrary TxOutRef where
     shrink = genericShrink
 
 instance Arbitrary TxInType where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
+instance Arbitrary ScriptTag where
+    arbitrary = genericArbitrary
+    shrink = genericShrink
+
+instance Arbitrary RedeemerPtr where
     arbitrary = genericArbitrary
     shrink = genericShrink
 

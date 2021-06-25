@@ -282,7 +282,7 @@
                 (vardecl MustIncludeDatum (fun Data TxConstraint))
                 (vardecl
                   MustMintValue
-                  (fun (con bytestring) (fun (con bytestring) (fun (con integer) TxConstraint)))
+                  (fun (con bytestring) (fun Data (fun (con bytestring) (fun (con integer) TxConstraint))))
                 )
                 (vardecl
                   MustPayToOtherScript

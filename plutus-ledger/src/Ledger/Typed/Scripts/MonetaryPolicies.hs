@@ -9,6 +9,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Ledger.Typed.Scripts.MonetaryPolicies (
     WrappedMintingPolicyType
     , wrapMintingPolicy
@@ -31,7 +32,7 @@ import           Ledger.Typed.TypeUtils
 
 type WrappedMintingPolicyType = Data -> Data -> ()
 
--- TODO: in due course when we have monetary policies with redeemers we should add a TypedMintingPolicy interface here
+-- TODO: we should add a TypedMintingPolicy interface here
 
 {-# INLINABLE wrapMintingPolicy #-}
 wrapMintingPolicy

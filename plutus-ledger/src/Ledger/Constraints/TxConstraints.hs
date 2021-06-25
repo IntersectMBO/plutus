@@ -29,7 +29,7 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
 import qualified Plutus.V1.Ledger.Interval as I
-import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MintingPolicyHash, Redeemer, ValidatorHash)
+import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash, MintingPolicyHash, Redeemer (..), ValidatorHash)
 import           Plutus.V1.Ledger.Time     (POSIXTimeRange)
 import           Plutus.V1.Ledger.Tx       (TxOutRef)
 import           Plutus.V1.Ledger.Value    (TokenName, Value, isZero)
@@ -46,7 +46,7 @@ data TxConstraint =
     | MustProduceAtLeast Value
     | MustSpendPubKeyOutput TxOutRef
     | MustSpendScriptOutput TxOutRef Redeemer
-    | MustMintValue MintingPolicyHash TokenName Integer
+    | MustMintValue MintingPolicyHash Redeemer TokenName Integer
     | MustPayToPubKey PubKeyHash Value
     | MustPayToOtherScript ValidatorHash Datum Value
     | MustHashDatum DatumHash Datum
@@ -69,8 +69,8 @@ instance Pretty TxConstraint where
             hang 2 $ vsep ["must spend pubkey output:", pretty ref]
         MustSpendScriptOutput ref red ->
             hang 2 $ vsep ["must spend script output:", pretty ref, pretty red]
-        MustMintValue mps tn i ->
-            hang 2 $ vsep ["must mint value:", pretty mps, pretty tn <+> pretty i]
+        MustMintValue mps red tn i ->
+            hang 2 $ vsep ["must mint value:", pretty mps, pretty red, pretty tn <+> pretty i]
         MustPayToPubKey pk v ->
             hang 2 $ vsep ["must pay to pubkey:", pretty pk, pretty v]
         MustPayToOtherScript vlh dv vl ->
@@ -202,15 +202,25 @@ mustPayToOtherScript vh dv vl =
 {-# INLINABLE mustMintValue #-}
 -- | Create the given value
 mustMintValue :: forall i o. Value -> TxConstraints i o
-mustMintValue = foldMap valueConstraint . (AssocMap.toList . Value.getValue) where
+mustMintValue = mustMintValueWithRedeemer (Redeemer $ PlutusTx.toData ())
+
+{-# INLINABLE mustMintValueWithRedeemer #-}
+-- | Create the given value
+mustMintValueWithRedeemer :: forall i o. Redeemer -> Value -> TxConstraints i o
+mustMintValueWithRedeemer red = foldMap valueConstraint . (AssocMap.toList . Value.getValue) where
     valueConstraint (currencySymbol, mp) =
         let hs = Value.currencyMPSHash currencySymbol in
-        foldMap (Haskell.uncurry (mustMintCurrency hs)) (AssocMap.toList mp)
+        foldMap (Haskell.uncurry (mustMintCurrencyWithRedeemer hs red)) (AssocMap.toList mp)
 
 {-# INLINABLE mustMintCurrency #-}
 -- | Create the given amount of the currency
 mustMintCurrency :: forall i o. MintingPolicyHash -> TokenName -> Integer -> TxConstraints i o
-mustMintCurrency mps tn = singleton . MustMintValue mps tn
+mustMintCurrency mps = mustMintCurrencyWithRedeemer mps (Redeemer $ PlutusTx.toData ())
+
+{-# INLINABLE mustMintCurrencyWithRedeemer #-}
+-- | Create the given amount of the currency
+mustMintCurrencyWithRedeemer :: forall i o. MintingPolicyHash -> Redeemer -> TokenName -> Integer -> TxConstraints i o
+mustMintCurrencyWithRedeemer mps red tn = singleton . MustMintValue mps red tn
 
 {-# INLINABLE mustSpendAtLeast #-}
 -- | Requirement to spend inputs with at least the given value
@@ -272,8 +282,8 @@ requiredSignatories = foldMap f . txConstraints where
 {-# INLINABLE requiredMonetaryPolicies #-}
 requiredMonetaryPolicies :: forall i o. TxConstraints i o -> [MintingPolicyHash]
 requiredMonetaryPolicies = foldMap f . txConstraints where
-    f (MustMintValue mps _ _) = [mps]
-    f _                       = []
+    f (MustMintValue mps _ _ _) = [mps]
+    f _                         = []
 
 {-# INLINABLE requiredDatums #-}
 requiredDatums :: forall i o. TxConstraints i o -> [Datum]

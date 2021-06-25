@@ -73,7 +73,7 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
         -- gives us the redeemer's hash, but 'MustSpendScriptOutput' gives
         -- us the full redeemer
         $ isJust (V.findTxInByTxOutRef txOutRef scriptContextTxInfo)
-    MustMintValue mps tn v ->
+    MustMintValue mps _ tn v ->
         traceIfFalse "Value minted not OK"
         $ Value.valueOf (txInfoForge scriptContextTxInfo) (Value.mpsSymbol mps) tn == v
     MustPayToPubKey pk vl ->
