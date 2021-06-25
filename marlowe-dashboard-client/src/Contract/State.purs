@@ -14,7 +14,7 @@ import Prelude
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _nickname, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Control.Monad.Reader.Class (ask)
@@ -68,7 +68,8 @@ import Web.HTML.HTMLElement as HTMLElement
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
 dummyState =
-  { tab: Tasks
+  { nickname: mempty
+  , tab: Tasks
   , executionState: initExecution zero contract
   , pendingTransaction: Nothing
   , previousSteps: mempty
@@ -91,9 +92,10 @@ dummyState =
 
 -- this is for making a placeholder state for the user who created the contract, used for displaying
 -- something before we get the MarloweParams back from the WalletCompanion app
-mkPlaceholderState :: PlutusAppId -> MetaData -> Contract -> State
-mkPlaceholderState followerAppId metaData contract =
-  { tab: Tasks
+mkPlaceholderState :: PlutusAppId -> String -> MetaData -> Contract -> State
+mkPlaceholderState followerAppId nickname metaData contract =
+  { nickname
+  , tab: Tasks
   , executionState: initExecution zero contract
   , pendingTransaction: Nothing
   , previousSteps: mempty
@@ -109,8 +111,8 @@ mkPlaceholderState followerAppId metaData contract =
 -- this is for making a fully fleshed out state from nothing, used when someone who didn't create the
 -- contract is given a role in it, and gets the MarloweParams at the same time as they hear about
 -- everything else
-mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> ContractHistory -> Maybe State
-mkInitialState walletDetails currentSlot followerAppId { chParams, chHistory } =
+mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> String -> ContractHistory -> Maybe State
+mkInitialState walletDetails currentSlot followerAppId nickname { chParams, chHistory } =
   bind chParams \(marloweParams /\ marloweData) ->
     let
       contract = marloweData.marloweContract
@@ -124,7 +126,8 @@ mkInitialState walletDetails currentSlot followerAppId { chParams, chHistory } =
       flip map mTemplate \template ->
         let
           initialState =
-            { tab: Tasks
+            { nickname
+            , tab: Tasks
             , executionState: initialExecutionState
             , pendingTransaction: Nothing
             , previousSteps: mempty
@@ -224,6 +227,8 @@ handleAction ::
   ManageMarlowe m =>
   Toast m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
+handleAction _ (SetNickname nickname) = assign _nickname nickname
+
 handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
   currentExeState <- use _executionState
   mMarloweParams <- use _mMarloweParams

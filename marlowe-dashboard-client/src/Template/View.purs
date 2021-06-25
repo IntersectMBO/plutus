@@ -7,7 +7,7 @@ module Template.View
 import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
-import Data.Array (filter, mapWithIndex)
+import Data.Array (mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
@@ -18,20 +18,20 @@ import Data.String (null)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, type_, value)
 import Humanize (humanizeValue)
 import InputField.Types (State) as InputField
 import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
 import Marlowe.Extended (contractTypeInitials)
-import Marlowe.Extended.Metadata (MetaData)
+import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Slot, TokenName)
 import Marlowe.Template (TemplateContent, _valueContent)
 import Material.Icons (Icon(..), icon_)
 import Template.Format (formatText)
-import Template.Lenses (_contractName, _contractNickname, _metaData, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
+import Template.Lenses (_contractNickname, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
 import WalletData.Lenses (_walletNickname)
@@ -102,21 +102,10 @@ contractNicknameDisplay contractName contractNickname =
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames
-                    -- TODO: Once we remove the readOnly, remove this filter. I tried adding "text-black" to the end of the array
-                    
-                    --       but the browser does not respect ordering and for some reason "text-darkgray was winning"
-                    
-                    $ filter (not <<< eq "text-darkgray")
-                    $ (Css.input $ null contractNickname)
-                    <> [ "font-semibold" ]
+                [ classNames $ (Css.input $ null contractNickname) <> [ "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
-                -- TODO: We can allow users to provide custom contract nicknames when we are connecting to the
-                -- metadata server. For now, however, we have no way of sharing this information, so we just
-                -- make it readonly (it is set to equal the contract name initially).
-                , readOnly true
                 , onValueInput_ SetContractNickname
                 ]
             ]

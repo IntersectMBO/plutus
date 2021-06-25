@@ -21,7 +21,8 @@ import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Ac
 import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
-  = { tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
+  = { nickname :: String
+    , tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
     , executionState :: ExecutionState
     -- When the user submits a transaction, we save it here until we get confirmation from the PAB and
     -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
@@ -67,7 +68,8 @@ type Input
     }
 
 data Action
-  = ConfirmAction NamedAction
+  = SetNickname String
+  | ConfirmAction NamedAction
   | ChangeChoice ChoiceId (Maybe ChosenNum)
   | SelectTab Int Tab
   | AskConfirmation NamedAction
@@ -81,6 +83,7 @@ data Action
 
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
+  toEvent (SetNickname _) = Just $ defaultEvent "SetNickname"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
   toEvent (SelectTab _ _) = Just $ defaultEvent "SelectTab"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"

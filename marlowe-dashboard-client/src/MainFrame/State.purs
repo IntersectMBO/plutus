@@ -3,6 +3,7 @@ module MainFrame.State (mkMainFrame, handleAction) where
 import Prelude
 import Bridge (toFront)
 import Capability.Marlowe (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
+import Capability.MarloweStorage (class ManageMarloweStorage, getContractNicknames, getWalletLibrary)
 import Capability.Toast (class Toast, addToast)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
@@ -19,12 +20,11 @@ import Data.Traversable (for)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Now (getTimezoneOffset)
 import Env (DataProvider(..), Env)
-import Foreign.Generic (decodeJSON, encodeJSON)
+import Foreign.Generic (decodeJSON)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.LocalStorage (localStorageEvents)
-import LocalStorage (getItem, removeItem, setItem)
 import MainFrame.Lenses (_currentSlot, _pickupState, _playState, _subState, _toast, _webSocketStatus)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
@@ -36,7 +36,6 @@ import Play.Lenses (_allContracts, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
-import StaticData (walletDetailsLocalStorageKey, walletLibraryLocalStorageKey)
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast)
@@ -171,21 +170,14 @@ handleAction ::
   MonadAff m =>
   MonadAsk Env m =>
   ManageMarlowe m =>
+  ManageMarloweStorage m =>
   Toast m =>
   Action ->
   HalogenM State Action ChildSlots Msg m Unit
 -- mainframe actions
 handleAction Init = do
-  -- maybe load wallet library from localStorage
-  mWalletLibraryJson <- liftEffect $ getItem walletLibraryLocalStorageKey
-  for_ mWalletLibraryJson \json ->
-    for_ (runExcept $ decodeJSON json) \wallets ->
-      assign (_pickupState <<< _walletLibrary) wallets
-  -- maybe load picked up wallet from localStorage and show prompt to pick it up again
-  mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
-  for_ mWalletDetailsJson \json ->
-    for_ (runExcept $ decodeJSON json) \walletDetails -> do
-      handleAction $ PickupAction $ Pickup.OpenPickupWalletCardWithDetails walletDetails
+  walletLibrary <- getWalletLibrary
+  assign (_pickupState <<< _walletLibrary) walletLibrary
   { dataProvider } <- ask
   when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage)
 
@@ -198,7 +190,6 @@ handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromPlutusApp dataProvider $ view _companionAppId walletDetails
   for_ followerAppIds $ unsubscribeFromPlutusApp dataProvider
   assign _subState $ Left $ Pickup.mkInitialState walletLibrary
-  liftEffect $ removeItem walletDetailsLocalStorageKey
 
 handleAction (EnterPlayState walletLibrary walletDetails) = do
   ajaxFollowerApps <- getFollowerApps walletDetails
@@ -217,8 +208,8 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       subscribeToPlutusApp dataProvider $ view _companionAppId walletDetails
       for_ followerAppIds $ subscribeToPlutusApp dataProvider
       timezoneOffset <- liftEffect getTimezoneOffset
-      assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails followerApps currentSlot timezoneOffset
-      liftEffect $ setItem walletDetailsLocalStorageKey $ encodeJSON walletDetails
+      contractNicknames <- getContractNicknames
+      assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot timezoneOffset
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
       -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
       ajaxRoleContracts <- getRoleContracts walletDetails

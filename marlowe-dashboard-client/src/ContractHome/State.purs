@@ -13,8 +13,8 @@ import ContractHome.Lenses (_selectedContractIndex, _status)
 import ContractHome.Types (Action(..), ContractStatus(..), PartitionedContracts, State)
 import Data.Array (partition)
 import Data.Lens (assign)
-import Data.Map (Map, mapMaybeWithKey, toUnfoldableUnordered)
-import Data.Maybe (Maybe(..))
+import Data.Map (Map, lookup, mapMaybeWithKey, toUnfoldableUnordered)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (snd)
 import Halogen (HalogenM)
 import MainFrame.Types (ChildSlots, Msg)
@@ -25,14 +25,21 @@ import WalletData.Types (WalletDetails)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState defaultWalletDetails zero mempty
+dummyState = mkInitialState defaultWalletDetails zero mempty mempty
 
-mkInitialState :: WalletDetails -> Slot -> Map PlutusAppId ContractHistory -> State
-mkInitialState walletDetails currentSlot contracts =
-  { status: Running
-  , contracts: mapMaybeWithKey (Contract.mkInitialState walletDetails currentSlot) contracts
-  , selectedContractIndex: Nothing
-  }
+mkInitialState :: WalletDetails -> Slot -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> State
+mkInitialState walletDetails currentSlot contracts contractNicknames =
+  let
+    mkInitialContractState followerAppId contractHistory =
+      let
+        nickname = fromMaybe mempty $ lookup followerAppId contractNicknames
+      in
+        Contract.mkInitialState walletDetails currentSlot followerAppId nickname contractHistory
+  in
+    { status: Running
+    , contracts: mapMaybeWithKey mkInitialContractState contracts
+    , selectedContractIndex: Nothing
+    }
 
 handleAction ::
   forall m.

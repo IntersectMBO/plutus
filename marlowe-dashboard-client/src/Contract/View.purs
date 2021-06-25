@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
@@ -49,6 +49,8 @@ import WalletData.State (adaToken, getAda)
 contractDetailsCard :: forall p. Slot -> State -> HTML p Action
 contractDetailsCard currentSlot state =
   let
+    nickname = state ^. _nickname
+
     metadata = state ^. _metadata
 
     pastStepsCards = mapWithIndex (renderPastStep state) (state ^. _previousSteps)
@@ -66,7 +68,7 @@ contractDetailsCard currentSlot state =
       [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
       , lifeCycleEvent { onInit: Just CarouselOpened, onFinilize: Just CarouselClosed }
       ]
-      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
+      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text nickname ]
       , h2 [ classNames [ "mb-5", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
       --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow

@@ -1,7 +1,7 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _metadata)
+import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _metadata, _nickname)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_status)
@@ -93,11 +93,11 @@ contractGrid currentSlot contracts =
 contractCard :: forall p. Slot -> Contract.State -> HTML p Action
 contractCard currentSlot contractState =
   let
+    nickname = contractState ^. _nickname
+
     mMarloweParams = contractState ^. _mMarloweParams
 
     metadata = contractState ^. _metadata
-
-    longTitle = metadata.contractName
 
     contractType = contractTypeName metadata.contractType
 
@@ -133,7 +133,7 @@ contractCard currentSlot contractState =
           , icon ArrowRight [ "text-28px" ]
           ]
       , div [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
-          [ text longTitle
+          [ text nickname
           ]
       , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
           Nothing -> [ text "pending confirmation" ]
