@@ -723,13 +723,25 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     M' ≡ error A
     -- → M ≡ error B -- not needed so far
     → CaseP M M' E
- -- redex is in arg of application
-  arg : ∀{C D}{E' : EC C D}{L : ∅ ⊢ D}
+  -- arg of application is a value
+  -- the application may be a redex, or...not.
+  argV : ∀{C D}{E' : EC A D}{L : ∅ ⊢ C}
     → Value M
-    → (p : B ≡ C ⇒ A)
-    → subst (EC A) p E ≡ [] l· (E' [ L ]ᴱ)
-    → Redex L
-   → CaseP M M' E
+    → (p : B ≡ C ⇒ D)
+    → subst (EC A) p E ≡ extEC E' (-· L)
+    → Value L -- wrong: there can be a redex `inside` L somewhere
+    → CaseP M M' E
+  -- redex is inside arg of application
+  argE : ∀{C C' D}{E' : EC A D}{L : ∅ ⊢ C}{E'' : EC C C'}{L' N : ∅ ⊢ C'}
+    → Value M
+    → (p : B ≡ C ⇒ D)
+    → subst (EC A) p E ≡ extEC E' (-· L)
+    → L ≡ (E'' [ L' ]ᴱ)
+    → L' —→⋆ N
+    → M' ≡ extEC E' (-· (E'' [ N ]ᴱ)) [ subst (∅ ⊢_) p M ]ᴱ
+    → CaseP M M' E
+
+
 
   -- M is lambda function in a beta redex 
   β : ∀{C} L (E'' : EC A C)
@@ -747,8 +759,12 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → M' ≡ E'' [ BUILTIN' b (bubble p) (step p bL VM) ]ᴱ
     → CaseP M M' E
 
--- M is Lambda type function in beta* redex
-{-
+  -- what do I do with an unsaturated builtin?
+  -- there cannot be a redex inside
+  -- but, can it be inside a wrap or something?
+
+  -- M is Lambda type function in beta* redex
+  {-
   β⋆ : M == Λ X
      → E == [] ·⋆ A
   builtinβ⋆ :
@@ -756,7 +772,7 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
       → BApp b p t
       → E == [] ·⋆ A
       → Case M M' E
--}
+  -}
   -- it could be a wrap under and unwrap,
   -- or it could under a wrap and and unwrap...
   val : ∀ {C}
@@ -785,22 +801,27 @@ caseP M M' E (ruleEC E' x p p') with rlemma51! M
 caseP M M' E (ruleEC E' x p p') | done VM with dissect E | inspect dissect E
 ... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq =
   ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p VM))) x) 
-... | inj₂ (_ ,, E'' ,, (-· N)) | I[ eq ] rewrite dissect-inj₂ E E'' (-· N) eq = {!!}
--- redex in arg somewhere
--- trans (sym (trans (extEC-[]ᴱ E'' (-· N) M) (sym (extEC-[]ᴱ E'' (VM ·-) N)))) p : (extEC E'' (VM ·-) [ N ]ᴱ) ≡ (E' [ L ]ᴱ)
+... | inj₂ (_ ,, E'' ,, (-· N)) | I[ eq ] rewrite dissect-inj₂ E E'' (-· N) eq with rlemma51! (E [ M ]ᴱ)
+... | done VEM = {!!} --impossible I hope
+... | step x₁ E₁ x₂ x₃ U rewrite dissect-inj₂ E E'' (-· N) eq with U E' p (β x)
+... | refl ,, refl ,, refl with rlemma51! N
+... | done x₄ = {!!} -- argV
+... | step x₄ E₂ x₅ refl x₇ with U (compEC' (extEC E'' (VM ·-)) E₂) (trans (trans (extEC-[]ᴱ E'' (-· (E₂ [ _ ]ᴱ)) M) (sym (extEC-[]ᴱ E'' (VM ·-) (E₂ [ _ ]ᴱ)))) (trans (compEC-[]ᴱ (extEC E'' (VM ·-)) E₂ _) (cong (_[ _ ]ᴱ) (compEC-eq (extEC E'' (VM ·-)) E₂)))) x₅
+... | refl ,, refl ,, refl = argE VM refl refl refl x (trans p' (trans (sym (cong (_[ _ ]ᴱ) (compEC-eq (extEC E'' (VM ·-)) E₂))) (trans (sym (compEC-[]ᴱ (extEC E'' (VM ·-)) E₂ _)) (trans (extEC-[]ᴱ E'' (VM ·-) (E₂ [ _ ]ᴱ)) (sym (extEC-[]ᴱ E'' (-· (E₂ [ _ ]ᴱ)) M))))))
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] rewrite dissect-inj₂ E E'' (V-ƛ N ·-) eq with rlemma51! (extEC E'' (V-ƛ N ·-) [ M ]ᴱ)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | done x₁ = ⊥-elim (lemVβ (lemVE _ E'' (Value2VALUE (subst Value (extEC-[]ᴱ E'' (V-ƛ N ·-) M) x₁))))
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U with U E' p (β x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-ƛ N ·-) M) (β (β-ƛ VM))
 caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-ƛ x) p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ _ ·-)) | I[ eq ] | step x₁ .E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = β _ E'' refl p' VM
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] rewrite dissect-inj₂ E E'' (V-I⇒ b p₁ x₁ ·-) eq with rlemma51! (extEC E'' (V-I⇒ b p₁ x₁ ·-) [ M ]ᴱ) -- builtin redex
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | done x₂ = {!!}
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | done x₂ = {!!} -- impossible???
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | step x₂ E₁ x₃ x₄ U with U E' p (β x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | step x₂ E₁ x₃ x₄ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-I⇒ b p₁ x₁ ·-) M) (β (β-sbuiltin b _ p₁ x₁ M VM))
 caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-sbuiltin b₁ _ p₂ bt .M vu) p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as = _} {[]} p₁ x₁ ·-)) | I[ eq ] | step x₂ .E'' x₃ x₄ U | refl ,, refl ,, refl | refl ,, refl ,, refl with uniqueVal _ (V-I⇒ b₁ p₂ bt) (V-I⇒ b p₁ x₁) | uniqueVal _ VM vu
 ... | refl | refl = builtinβ _ (V-I⇒ b p₁ x₁) E'' p₁ x₁ refl VM p'
 
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁ ·-)) | I[ eq ] = {!!} -- builtin value...
+-- this is a dead end, how do we deal with that...
 
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] = {!!}
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] = {!!}
@@ -863,7 +884,7 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
       (unique-EC E' (compEC' E E'') L (β x₂) (trans (sym x₁) (trans (compEC-[]ᴱ E E'' L) (cong (_[ L ]ᴱ) (compEC-eq E E'')))))
       (lem-→s⋆ E' x₂))
     (thm1 _ _  E' x _ V q'))
-... | val E' N x L x₁ x₂ x₃ = {!E!}
+... | val E' N x L x₁ x₂ x₃ = {!!}
 -- what can it be
 -- there needs to be a next beta
 -- M could be a lambda function in an application
@@ -872,7 +893,6 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
 -- M could be under a unwrap-wrap
 -- there can't be any errors otherwise we wouldn't get a value in the end
 ... | err refl rewrite err—↠ q' = ⊥-elim (valerr E-error V)
-... | arg x p y z = {!!}
 ... | β L E'' refl x VM = step**
   (lemV M VM (extEC E'' (V-ƛ L ·-)))
   (step* (cong (stepV VM) (dissect-lemma E'' (V-ƛ L ·-)))
@@ -881,3 +901,10 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
   (lemV M VM (extEC E'' (V-I⇒ _ p bL  ·-)))
   (step* (cong (stepV VM) (dissect-lemma E'' (V-I⇒ _ p bL ·-)))
          (thm1 _ _ E'' x₁ O V q'))
+... | argE {E' = E'}{L = L}{E''}{L'} VM refl refl refl z' z'' = step**
+  (lemV M VM (extEC E' (-· L)))
+  (step* (cong (stepV VM) (dissect-lemma E' (-· L)))
+         (step** (lem62 L' (extEC E' (VM ·-)) E'') (step** (lem-→s⋆ _ z') (thm1 _ _ (compEC' (extEC E' (VM ·-)) E'') (trans z'' (trans (trans (trans (extEC-[]ᴱ E' (-· (E'' [ _ ]ᴱ)) M) (sym (extEC-[]ᴱ E' (VM ·-) (E'' [ _ ]ᴱ)))) (compEC-[]ᴱ (extEC E' (VM ·-)) E'' _)) (cong (_[ _ ]ᴱ) (compEC-eq (extEC E' (VM ·-)) E'')))) O V q'))))
+... | argV {L = L} VM refl y z = {!!}
+-- the problem here is this doesn't yield a redex necessarily, it
+-- could still be an unsat builtin
