@@ -5,8 +5,8 @@
 module Main (main) where
 
 import           PlutusCore                               as PLC
+import qualified PlutusCore.DataFilePaths                 as DFP
 import           PlutusCore.Evaluation.Machine.ExMemory
-import qualified PlutusCore.FilePaths                     as FP
 import           PlutusCore.MkPlc
 import           UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
@@ -325,11 +325,11 @@ benchNop3 gen =
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
-  createDirectoryIfMissing True FP.costModelDataDir
-  csvExists <- doesFileExist FP.benchingResultsFile
-  if csvExists then renameFile FP.benchingResultsFile FP.backupBenchingResultsFile else pure ()
+  createDirectoryIfMissing True DFP.costModelDataDir
+  csvExists <- doesFileExist DFP.benchingResultsFile
+  if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
-  defaultMainWith (defaultConfig { C.csvFile = Just FP.benchingResultsFile }) $
+  defaultMainWith (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
                          [benchNop1 gen, benchNop2 gen, benchNop3 gen]
                       <> (benchTwoIntegers gen <$> [ AddInteger
                                                    , MultiplyInteger

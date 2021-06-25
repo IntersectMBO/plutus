@@ -74,9 +74,11 @@ costModelsR = do
     source("cost-model/data/models.R")
     modelFun("cost-model/data/benching.csv")
   |]
-  -- Unfortunately we can't use the paths defined in FilePaths inside [r|...].  The above code may not work on Windows.
-  -- TODO use btraverse instead
+  -- Unfortunately we can't use the paths defined in DataFilePaths inside [r|...].
+  -- The above code may not work on Windows because of that, but we only ever
+  -- want to run this on a Linux reference machine anyway.
   bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
+  -- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files
 createBuiltinCostModel :: IO BuiltinCostModel

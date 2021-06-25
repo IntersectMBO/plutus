@@ -19,13 +19,13 @@ import           Data.Aeson.THReader
 
 import           PlutusCore.Constant
 
+import qualified PlutusCore.DataFilePaths                                 as DFP
 import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.CostModelInterface
 import           PlutusCore.Evaluation.Machine.ExBudget                   ()
 import           PlutusCore.Evaluation.Machine.ExMemory                   ()
 import           PlutusCore.Evaluation.Machine.MachineParameters
-import qualified PlutusCore.FilePaths                                     as FP
 
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
@@ -33,7 +33,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 -- | The default cost model for built-in functions.
 defaultBuiltinCostModel :: BuiltinCostModel
 defaultBuiltinCostModel =
-  $$(readJSONFromFile FP.builtinCostModelFile)
+  $$(readJSONFromFile DFP.builtinCostModelFile)
 
 -- Use this one when you've changed the type of `CostModel` and you can't load the json.
 -- Then rerun
@@ -45,7 +45,7 @@ defaultBuiltinCostModel =
 -- | Default costs for CEK machine instructions.
 defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
-  $$(readJSONFromFile FP.cekMachineCostsFile)
+  $$(readJSONFromFile DFP.cekMachineCostsFile)
 
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel

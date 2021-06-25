@@ -47,6 +47,7 @@ library
         PlutusCore.Constant
         PlutusCore.Constant.Dynamic.Emit
         PlutusCore.Core
+        PlutusCore.DataFilePaths
         PlutusCore.DeBruijn
         PlutusCore.Default
         PlutusCore.Error
@@ -60,7 +61,6 @@ library
         PlutusCore.Evaluation.Result
         PlutusCore.Examples.Builtins
         PlutusCore.Examples.Everything
-        PlutusCore.FilePaths
         PlutusCore.Flat
         PlutusCore.FsTree
         PlutusCore.Generators

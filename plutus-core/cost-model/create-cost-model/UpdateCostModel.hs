@@ -1,6 +1,6 @@
 module Main where
 
-import           PlutusCore.FilePaths
+import           PlutusCore.DataFilePaths
 
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy     as BSL
