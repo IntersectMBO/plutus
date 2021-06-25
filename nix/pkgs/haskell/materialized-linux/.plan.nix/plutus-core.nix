@@ -158,10 +158,8 @@
           "PlutusIR/Normalize"
           "PlutusIR/TypeCheck/Internal"
           "UntypedPlutusCore/Analysis/Definitions"
-          "UntypedPlutusCore/Check/Uniques"
           "UntypedPlutusCore/Core"
           "UntypedPlutusCore/Core/Instance"
-          "UntypedPlutusCore/Core/Instance/CBOR"
           "UntypedPlutusCore/Core/Instance/Eq"
           "UntypedPlutusCore/Core/Instance/Flat"
           "UntypedPlutusCore/Core/Instance/Pretty"
@@ -171,7 +169,6 @@
           "UntypedPlutusCore/Core/Instance/Pretty/Readable"
           "UntypedPlutusCore/Core/Instance/Recursive"
           "UntypedPlutusCore/Core/Plated"
-          "UntypedPlutusCore/Core/Type"
           "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
@@ -285,6 +282,9 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
+          "UntypedPlutusCore/Check/Uniques"
+          "UntypedPlutusCore/Core/Type"
+          "UntypedPlutusCore/Core/Instance/CBOR"
           "Common"
           "Crypto"
           "Data/ByteString/Hash"
@@ -327,6 +327,7 @@
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
@@ -335,8 +336,30 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          hsSourceDirs = [ "plc" ];
-          mainPath = [ "Main.hs" ];
+          modules = [ "Common" ];
+          hsSourceDirs = [ "executables" ];
+          mainPath = [ "plc/Main.hs" ];
+          };
+        "uplc" = {
+          depends = [
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."split" or (errorHandler.buildDepError "split"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            ];
+          buildable = true;
+          modules = [ "Common" ];
+          hsSourceDirs = [ "executables" ];
+          mainPath = [ "uplc/Main.hs" ];
           };
         };
       tests = {
