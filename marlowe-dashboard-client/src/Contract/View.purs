@@ -21,12 +21,12 @@ import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (null, take, trim)
+import Data.String (take, trim)
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
 import Halogen.Extra (lifeCycleEvent)
-import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
@@ -67,8 +67,12 @@ contractDetailsCard currentSlot state =
       [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
       , lifeCycleEvent { onInit: Just CarouselOpened, onFinilize: Just CarouselClosed }
       ]
-      -- TODO: make (new) nicknames editable - needs designing
-      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text if null nickname then "My new contract" else nickname ]
+      [ input
+          [ classNames [ "text-xl", "font-semibold", "text-center", "bg-transparent" ]
+          , placeholder "Please rename"
+          , value nickname
+          , onValueInput_ SetNickname
+          ]
       , h2 [ classNames [ "mb-5", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
       --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow

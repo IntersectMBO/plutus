@@ -136,7 +136,7 @@ contractCard currentSlot contractState =
           ]
       , div
           [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
-          -- TODO: make (new) nicknames editable - needs designing
+          -- TODO: make (new) nicknames editable directly from here
           [ text if null nickname then "My new contract" else nickname ]
       , div
           [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
