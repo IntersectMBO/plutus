@@ -62,11 +62,12 @@ class
   insertWalletRoleContracts :: String -> MarloweParams -> MarloweData -> m Unit
 
 instance manageMarloweStorageAppM :: ManageMarloweStorage AppM where
-  clearAllLocalStorage = do
-    liftEffect $ removeItem walletLibraryLocalStorageKey
-    liftEffect $ removeItem contractNicknamesLocalStorageKey
-    liftEffect $ removeItem contractsLocalStorageKey
-    liftEffect $ removeItem walletRoleContractsLocalStorageKey
+  clearAllLocalStorage =
+    liftEffect do
+      removeItem walletLibraryLocalStorageKey
+      removeItem contractNicknamesLocalStorageKey
+      removeItem contractsLocalStorageKey
+      removeItem walletRoleContractsLocalStorageKey
   -- wallet library
   getWalletLibrary = do
     mWalletLibraryJson <- liftEffect $ getItem walletLibraryLocalStorageKey
