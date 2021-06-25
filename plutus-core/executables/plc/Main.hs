@@ -1,10 +1,20 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
 import           Common
-import qualified PlutusCore          as PLC
+import qualified PlutusCore                       as PLC
+import qualified PlutusCore.Evaluation.Machine.Ck as Ck
+import qualified PlutusCore.Pretty                as PP
 
-import           Options.Applicative
+import           Data.Foldable                    (traverse_)
+import           Data.Function                    ((&))
+import           Data.Functor                     (void)
+import qualified Data.Text.IO                     as T
+
+import           Control.DeepSeq                  (rnf)
+import           Options.Applicative              (ParserInfo, customExecParser, prefs, showHelpOnEmpty)
 
 plcHelpText :: String
 plcHelpText = helpText "Typed Plutus Core"
@@ -24,6 +34,37 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
           progAndargs -> foldl1 PLC.applyProgram progAndargs
   writeProgram outp ofmt mode appliedScript
 
+---------------- Evaluation ----------------
+
+runEval :: EvalOptions -> IO ()
+runEval (EvalOptions inp ifmt evalMode printMode budgetMode timingMode _) =
+  case evalMode of
+      CEK -> errorWithoutStackTrace "There is no CEK machine for Typed Plutus Core"
+      CK  -> do
+              let !_ = case budgetMode of
+                          Silent    -> ()
+                          Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
+              prog <- getProgram ifmt inp
+              let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
+                  term = void . PLC.toTerm $ prog
+                  !_ = rnf term
+                  -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+                  -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
+              case timingMode of
+                NoTiming -> evaluate term & handleEResult printMode
+                Timing n -> timeEval n evaluate term >>= handleTimingResults term
+
+----------------- Print examples -----------------------
+
+runPrintExample :: ExampleOptions -> IO ()
+runPrintExample (ExampleOptions ExampleAvailable) = do
+    examples <- getPlcExamples
+    traverse_ (T.putStrLn . PP.render . uncurry prettySignature) examples
+runPrintExample (ExampleOptions (ExampleSingle name)) = do
+    examples <- getPlcExamples
+    T.putStrLn $ case lookup name examples of
+        Nothing -> "Unknown name: " <> name
+        Just ex -> PP.render $ prettyExample ex
 
 
 ---------------- Parse and print a PLC source file ----------------

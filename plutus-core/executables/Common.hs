@@ -14,7 +14,6 @@ import qualified PlutusCore                               as PLC
 import qualified PlutusCore.CBOR                          as PLC
 import           PlutusCore.Check.Uniques                 as PLC (checkProgram)
 import           PlutusCore.Error                         (AsParseError, AsUniqueError, UniqueError)
-import qualified PlutusCore.Evaluation.Machine.Ck         as Ck
 import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
 import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
 import qualified PlutusCore.Generators                    as Gen
@@ -38,7 +37,6 @@ import           Control.Monad.Except
 import           Data.Bifunctor                           (second)
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (asum, traverse_)
-import           Data.Function                            ((&))
 import qualified Data.HashMap.Monoidal                    as H
 import           Data.List                                (nub)
 import qualified Data.List                                as List
@@ -80,11 +78,15 @@ type UplcProg =
   UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 class Executable a where
+
+  -- | Parse a program.
   parseProgram ::
     (AsParseError e PLC.AlexPosn, MonadError e m, PLC.MonadQuote m) =>
     BSL.ByteString ->
       m (a PLC.AlexPosn)
 
+  -- | Check a program for unique names.
+  -- Throws a @UniqueError@ when not all names are unique.
   checkProgram ::
      (Ord ann, AsUniqueError e ann,
        MonadError e m)
@@ -135,11 +137,9 @@ instance Executable UplcProg where
 -- We don't support de Bruijn names for typed programs because we really only
 -- want serialisation for on-chain programs (and some of the functionality we'd
 -- need isn't available anyway).
-typedDeBruijnNotSupportedError ::
-  IO a
+typedDeBruijnNotSupportedError :: IO a
 typedDeBruijnNotSupportedError =
     errorWithoutStackTrace "De-Bruijn-named ASTs are not supported for typed Plutus Core"
-
 
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
 toDeBruijn :: UplcProg b -> IO (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun b)
@@ -205,7 +205,6 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
         totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
-
 class PrintBudgetState cost where
     printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
     -- TODO: Tidy this up.  We're passing in the term and the CEK cost model
@@ -240,9 +239,9 @@ data EvalMode    = CK | CEK deriving (Show, Read)
 data BudgetMode  = Silent
                  | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
                      Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
--- | PLC doesn't support de Bruijn indices when (de)serialising ASTs,
--- so it's always @Named@.
--- UPLC supports name or de Bruijn indices.
+-- | @Name@ can be @Name@s or de Bruijn indices when we (de)serialise the ASTs.
+-- PLC doesn't support de Bruijn indices when (de)serialising ASTs.
+-- UPLC supports @Name@ or de Bruijn indices.
 data AstNameType =
   Named
   | DeBruijn
@@ -314,7 +313,8 @@ stdOutput = flag' StdOutput
   <> help "Write to stdout (default)" )
 
 formatHelp :: String
-formatHelp = "plc, cbor (de Bruijn indices), cbor-named (names), flat (de Bruijn indices), or flat-named (names)"
+formatHelp =
+  "plc, cbor (de Bruijn indices), cbor-named (names), flat (de Bruijn indices), or flat-named (names)"
 
 formatReader :: String -> Maybe Format
 formatReader =
@@ -345,7 +345,6 @@ outputformat = option (maybeReader formatReader)
   <> value Plc
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
-
 
 -- Reader for budget.  The --restricting option requires two integer arguments
 -- and the easiest way to do this is to supply a colon-separated pair of
@@ -490,7 +489,7 @@ helpText ::
 helpText lang =
        "This program provides a number of utilities for dealing with "
     ++ lang
-    ++ "programs, including typechecking, evaluation, and conversion between a "
+    ++ " programs, including typechecking, evaluation, and conversion between a "
     ++ "number of different formats.  The program also provides a number of example "
     ++ "programs.  Some commands read or write Plutus Core abstract "
     ++ "syntax trees serialised in CBOR or Flat format: ASTs are always written with "
@@ -498,10 +497,10 @@ helpText lang =
     ++ "equipped with unit annotations.  Attempting to read a serialised AST with any "
     ++ "non-unit annotation type will cause an error."
 
-
 plutus ::
   -- | Either "Untyped Plutus Core Tool" or "Typed Plutus Core Tool"
   String ->
+  -- | The @helpfText@ for the respective frontend
   String ->
   ParserInfo Command
 plutus lang langHelpText =
@@ -517,7 +516,7 @@ plutusOpts = hsubparser (
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
     <> command "convert"
-           (info (Convert <$> convertOpts) -- TODO check if it can only do PLC
+           (info (Convert <$> convertOpts)
             (progDesc "Convert PLC programs between various formats"))
     <> command "example"
            (info (Example <$> exampleOpts)
@@ -526,7 +525,7 @@ plutusOpts = hsubparser (
                      ++ "then request a particular example by the name of a term. "
                      ++ "Note that evaluating a generated example may result in 'Failure'."))
     <> command "typecheck"
-           (info (Typecheck <$> typecheckOpts) --TODO probably only applies to PLC
+           (info (Typecheck <$> typecheckOpts)
             (progDesc "Typecheck a typed Plutus Core program."))
     <> command "erase"
            (info (Erase <$> eraseOpts)
@@ -549,13 +548,13 @@ parseInput ::
   (Executable a, PLC.Rename (a PLC.AlexPosn) ) =>
   -- | The source program
   Input ->
-  -- | The output is either a UPLC or PLC program
+  -- | The output is either a UPLC or PLC program with annotation
   IO (a PLC.AlexPosn)
 parseInput inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getInput inp
     -- parse the UPLC program
     case PLC.runQuoteT $ parseProgram bsContents of
-      -- when it's failed, pretty print parse errors.
+      -- when fail, pretty print the parse errors.
       Left (err :: PLC.ParseError PLC.AlexPosn) ->
         errorWithoutStackTrace $ PP.render $ pretty err
       -- otherwise,
@@ -788,30 +787,42 @@ simpleExamples =
     , ("churchSucc" , SomeTypedTermExample $ toTypedTermExample StdLib.churchSucc)
     ]
 
+getInterestingExamples ::
+  ([(ExampleName, SomeTypedExample)] -> [(ExampleName, SomeExample)]) ->
+  IO [(ExampleName, SomeExample)]
+getInterestingExamples res = do
+    interesting <- getInteresting
+    let examples =
+          simpleExamples ++
+          map (second $ SomeTypedTermExample . toTypedTermExample) interesting
+    pure $ res examples
 
--- TODO: This supplies both typed and untyped examples.  Currently the untyped
+-- | Get available typed examples.
+getPlcExamples :: IO [(ExampleName, SomeExample)]
+getPlcExamples = getInterestingExamples $ map (fmap SomeTypedExample)
+
+-- | Get available untyped examples. Currently the untyped
 -- examples are obtained by erasing typed ones, but it might be useful to have
 -- some untyped ones that can't be obtained by erasure.
-getAvailableExamples :: IO [(ExampleName, SomeExample)]
-getAvailableExamples = do
-    interesting <- getInteresting
-    let examples = simpleExamples ++ map (second $ SomeTypedTermExample . toTypedTermExample) interesting
-    pure $ map (fmap SomeTypedExample) examples
+getUplcExamples :: IO [(ExampleName, SomeExample)]
+getUplcExamples =
+  getInterestingExamples $
+    mapMaybeSnd convert
+      where convert =
+                \case
+                  SomeTypeExample _ -> Nothing
+                  SomeTypedTermExample (TypedTermExample _ e) ->
+                      Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $ UPLC.erase e
+            mapMaybeSnd _ []     = []
+            mapMaybeSnd f ((a,b):r) =
+                case f b of
+                  Nothing -> mapMaybeSnd f r
+                  Just b' -> (a,b') : mapMaybeSnd f r
+
 
 -- The implementation is a little hacky: we generate interesting examples when the list of examples
 -- is requested and at each lookup of a particular example. I.e. each time we generate distinct
 -- terms. But types of those terms must not change across requests, so we're safe.
-
-runPrintExample :: ExampleOptions -> IO ()
-runPrintExample (ExampleOptions ExampleAvailable) = do
-    examples <- getAvailableExamples
-    traverse_ (T.putStrLn . PP.render . uncurry prettySignature) examples
-runPrintExample (ExampleOptions (ExampleSingle name)) = do
-    examples <- getAvailableExamples
-    T.putStrLn $ case lookup name examples of
-        Nothing -> "Unknown name: " <> name
-        Just ex -> PP.render $ prettyExample ex
-
 
 ---------------- Timing ----------------
 
@@ -859,34 +870,20 @@ runTypecheck (TypecheckOptions inp fmt) = do
         T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
 
----------------- Evaluation ----------------
+------------ Aux functions for @runEval@ ------------------
 
-runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt evalMode printMode budgetMode timingMode _) =
-  case evalMode of
-      CEK -> errorWithoutStackTrace "There is no CEK machine for Typed Plutus Core"
-      CK  -> do
-              let !_ = case budgetMode of
-                          Silent    -> ()
-                          Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
-              prog <- getProgram ifmt inp
-              let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
-                  term = void . PLC.toTerm $ prog
-                  !_ = rnf term
-                  -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
-                  -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-              case timingMode of
-                NoTiming -> evaluate term & handleResult
-                Timing n -> timeEval n evaluate term >>= handleTimingResults term
-    where handleResult result =
-              case result of
-                Right v  -> print (getPrintMethod printMode v) >> exitSuccess
-                Left err -> print err *> exitFailure
-          handleTimingResults _ results =
-              case nub results of
-                [Right _]  -> exitSuccess -- We don't want to see the result here
-                [Left err] -> print err >> exitFailure
-                _          -> error "Timing evaluations returned inconsistent results" -- Should never happen
+handleEResult :: (PP.PrettyBy PP.PrettyConfigPlc a1, Show a2) =>
+  PrintMode -> Either a2 a1 -> IO b
+handleEResult printMode result =
+  case result of
+    Right v  -> print (getPrintMethod printMode v) >> exitSuccess
+    Left err -> print err *> exitFailure
+handleTimingResults :: (Eq a1, Eq b, Show a1) => p -> [Either a1 b] -> IO a2
+handleTimingResults _ results =
+    case nub results of
+      [Right _]  -> exitSuccess -- We don't want to see the result here
+      [Left err] -> print err >> exitFailure
+      _          -> error "Timing evaluations returned inconsistent results" -- Should never happen
 
 ---------------- Erasure ----------------
 
