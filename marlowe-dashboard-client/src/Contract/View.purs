@@ -21,8 +21,7 @@ import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (trim)
-import Data.String as String
+import Data.String (null, take, trim)
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
@@ -68,7 +67,8 @@ contractDetailsCard currentSlot state =
       [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
       , lifeCycleEvent { onInit: Just CarouselOpened, onFinilize: Just CarouselClosed }
       ]
-      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text nickname ]
+      -- TODO: make (new) nicknames editable - needs designing
+      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text if null nickname then "My new contract" else nickname ]
       , h2 [ classNames [ "mb-5", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
       --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
@@ -529,7 +529,7 @@ renderParty state party =
   in
     -- FIXME: mb-2 should not belong here
     div [ classNames [ "text-xs", "flex", "mb-2" ] ]
-      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1", "font-semibold" ] ] [ text $ String.take 1 participantName ]
+      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1", "font-semibold" ] ] [ text $ take 1 participantName ]
       , div [ classNames [ "font-semibold" ] ] [ text participantName ]
       ]
 

@@ -13,8 +13,9 @@ module Contract.State
 import Prelude
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
+import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _nickname, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _namedActions, _nickname, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Control.Monad.Reader.Class (ask)
@@ -225,9 +226,13 @@ handleAction ::
   MonadAsk Env m =>
   MainFrameLoop m =>
   ManageMarlowe m =>
+  ManageMarloweStorage m =>
   Toast m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction _ (SetNickname nickname) = assign _nickname nickname
+handleAction _ (SetNickname nickname) = do
+  assign _nickname nickname
+  followerAppId <- use _followerAppId
+  insertIntoContractNicknames followerAppId nickname
 
 handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
   currentExeState <- use _executionState
