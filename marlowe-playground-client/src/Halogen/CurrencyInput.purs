@@ -1,7 +1,7 @@
 module Halogen.CurrencyInput where
 
 import Prelude hiding (div)
-import Data.Array (concat, drop, dropWhile, filter, length, replicate, take)
+import Data.Array (filter)
 import Data.BigInteger (BigInteger, fromString)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
@@ -15,6 +15,7 @@ import Halogen.Css (classNames)
 import Halogen.HTML (HTML, div, input, text)
 import Halogen.HTML.Events (onChange, onFocus, onInput, onKeyDown)
 import Halogen.HTML.Properties (InputType(..), type_, value)
+import Pretty (showBigIntegerAsCurrency)
 import Web.Event.Event (currentTarget)
 import Web.Event.Internal.Types (EventTarget)
 import Web.UIEvent.FocusEvent as FocusEvent
@@ -85,7 +86,7 @@ currencyInput classList number prefix rawNumDecimals onValueChangeHandler =
                                   res <- onChangeHandler target numDecimals
                                   let
                                     mObtainedBigNumStr = fromString $ filterPoint res
-                                  void $ for mObtainedBigNumStr (\x -> setValue target $ renderBigIntegerAsCurrency x numDecimals)
+                                  void $ for mObtainedBigNumStr (\x -> setValue target $ showBigIntegerAsCurrency x numDecimals)
                                   pure $ onValueChangeHandler $ mObtainedBigNumStr
                         )
                         (currentTarget ev)
@@ -102,7 +103,7 @@ currencyInput classList number prefix rawNumDecimals onValueChangeHandler =
                         (currentTarget ev)
                   )
               , type_ InputText
-              , value (renderBigIntegerAsCurrency number numDecimals)
+              , value (showBigIntegerAsCurrency number numDecimals)
               ]
           ]
     )
@@ -112,22 +113,3 @@ currencyInput classList number prefix rawNumDecimals onValueChangeHandler =
   hasPrefix = trim prefix /= ""
 
   filterPoint = fromCharArray <<< filter (\x -> x /= '.') <<< toCharArray
-
-renderBigIntegerAsCurrency :: BigInteger -> Int -> String
-renderBigIntegerAsCurrency number numDecimals = fromCharArray numberStr
-  where
-  absValStr = replicate (numDecimals + 1) '0' <> toCharArray (show (if number < zero then -number else number))
-
-  numDigits = length absValStr
-
-  numDigitsBeforeSeparator = numDigits - numDecimals
-
-  prefixStr = if number < zero then [ '-' ] else []
-
-  digitsNoZeros = dropWhile (\x -> x == '0') $ take numDigitsBeforeSeparator absValStr
-
-  digitsBeforeSeparator = if digitsNoZeros == [] then [ '0' ] else digitsNoZeros
-
-  digitsAfterSeparator = take numDecimals $ drop numDigitsBeforeSeparator (concat [ absValStr, replicate numDecimals '0' ])
-
-  numberStr = concat ([ prefixStr, digitsBeforeSeparator ] <> if digitsAfterSeparator /= [] then [ [ '.' ], digitsAfterSeparator ] else [])
