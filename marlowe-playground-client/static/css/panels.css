@@ -28,14 +28,16 @@
 }
 
 button.plus-btn {
-  padding: 0.25rem 0.5rem;
-  margin-left: 0.5rem;
+  padding: 0;
+  width: 25px;
+  height: 25px;
 }
 
 button.minus-btn {
   background: var(--error-color);
-  padding: 0.3rem 0.5rem;
-  margin-left: 0.5rem;
+  padding: 0;
+  width: 25px;
+  height: 25px;
 }
 
 button.minus-btn.disabled {
@@ -307,8 +309,8 @@ button.minus-btn:hover {
 
 .metadata-form {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: 0.5rem 0px;
+  grid-template-columns: auto 1fr 2fr auto auto;
+  gap: 0.5rem;
   width: clamp(calc(100% - 3rem), 75rem, 100%);
   box-sizing: border-box;
   align-items: center;
@@ -316,12 +318,14 @@ button.minus-btn:hover {
   padding: 1rem;
 }
 
-.metadata-mainprop-label { padding-right: 1rem; grid-column-start: 1; grid-column-end: 2; }
-.metadata-mainprop-edit { grid-column-start: 2; grid-column-end: 4; }
-.metadata-group-title { grid-column-start: 1; grid-column-end: 5; }
-.metadata-prop-label { padding: 0rem 1rem; grid-column-start: 1; grid-column-end: 2; }
-.metadata-prop-edit { grid-column-start: 2; grid-column-end: 3; }
-.metadata-prop-delete { grid-column-start: 3; grid-column-end: 4; }
-.metadata-prop-not-used { padding-left: 1rem; grid-column-start: 4; grid-column-end: 5; }
-.metadata-prop-not-defined { padding-left: 1rem; grid-column-start: 1; grid-column-end: 3; }
-.metadata-prop-create { grid-column-start: 3; grid-column-end: 4; }
+.metadata-mainprop-label { grid-column-start: 1; grid-column-end: 2; }
+.metadata-mainprop-edit { grid-column-start: 2; grid-column-end: 5; }
+.metadata-group-title { grid-column-start: 1; grid-column-end: 6; }
+.metadata-prop-label { margin-left: 1rem; grid-column-start: 1; grid-column-end: 2; }
+.metadata-prop-edit { grid-column-start: 2; grid-column-end: 4; }
+.metadata-prop-choice-col1 { grid-column-start: 2; grid-column-end: 3; }
+.metadata-prop-choice-col2 { grid-column-start: 3; grid-column-end: 4; }
+.metadata-prop-delete { grid-column-start: 4; grid-column-end: 5; }
+.metadata-prop-not-used { grid-column-start: 5; grid-column-end: 6; }
+.metadata-prop-not-defined { margin-left: 1rem; grid-column-start: 1; grid-column-end: 4; }
+.metadata-prop-create { grid-column-start: 4; grid-column-end: 5; }

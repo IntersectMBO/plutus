@@ -67,8 +67,7 @@ starterInstance = Scripts.mkTypedValidator @Starter
 
 -- | The schema of the contract, with two endpoints.
 type Schema =
-    BlockchainActions
-        .\/ Endpoint "publish" (Integer, Value)
+        Endpoint "publish" (Integer, Value)
         .\/ Endpoint "redeem" Integer
 
 contract :: AsContractError e => Contract () Schema e ()

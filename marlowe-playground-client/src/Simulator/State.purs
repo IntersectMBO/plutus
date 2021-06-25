@@ -1,20 +1,19 @@
 module Simulator.State
   ( applyInput
-  , applyTransactions
-  , updateMarloweState
   , hasHistory
-  , applyPendingInputs
-  , updatePossibleActions
   , inFuture
   , moveToSlot
   , emptyExecutionStateWithSlot
   , emptyMarloweState
-  , mapPartiesActionInput
+  , startSimulation
+  , updateChoice
+  , getAllActions
   ) where
 
 import Prelude
+import Control.Bind (bindFlipped)
 import Control.Monad.State (class MonadState)
-import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
+import Data.Array (fromFoldable, mapMaybe, snoc, sort, toUnfoldable, uncons)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (has, modifying, nearly, over, previewOn, set, to, use, (^.))
 import Data.Lens.NonEmptyList (_Head)
@@ -28,7 +27,7 @@ import Data.Newtype (unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Holes (Contract(..), Term(..), TransactionOutput(..), computeTransaction, fromTerm, reduceContractUntilQuiescent)
 import Marlowe.Holes as T
@@ -262,19 +261,53 @@ updateMarloweState ::
   m Unit
 updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
 
--- TODO: This is only being used in the ContractTests, revisit.
-applyTransactions ::
-  forall s m.
-  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
-  m Unit
-applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< applyPendingInputs))
-
-applyInput ::
+applyInputTransformation ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   (Array Input -> Array Input) ->
   m Unit
-applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< applyPendingInputs <<< (over (_executionState <<< _SimulationRunning <<< _pendingInputs) inputs)))
+applyInputTransformation inputTransformation =
+  updateMarloweState
+    ( applyPendingInputs
+        <<< (over (_executionState <<< _SimulationRunning <<< _pendingInputs) inputTransformation)
+    )
+
+applyInput ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  Input ->
+  m Unit
+applyInput input = applyInputTransformation $ flip snoc $ input
+
+updateChoice ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  ChoiceId ->
+  ChosenNum ->
+  m Unit
+updateChoice choiceId chosenNum = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (doUpdate choiceId)))
+  where
+  doUpdate :: ChoiceId -> ActionInput -> ActionInput
+  doUpdate wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
+    | wantedChoiceId == currentChoiceId = ChoiceInput choiceId bounds chosenNum
+
+  doUpdate _ input = input
+
+startSimulation ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  Slot ->
+  Term Contract ->
+  m Unit
+startSimulation initialSlot contract =
+  updateMarloweState
+    ( {- This code was taken/adapted from the SimulationPage, we should revisit if applyPendingInputs is necesary
+      when we are starting a simulation, as there should not be any prior pending input. The only reason
+      that I think it might be useful is if the contract starts with something other than a When clause.
+      TODO: revisit this
+      -} applyPendingInputs
+        <<< (set _executionState (emptyExecutionStateWithSlot initialSlot contract))
+    )
 
 moveToSlot ::
   forall s m.
@@ -284,19 +317,14 @@ moveToSlot ::
 moveToSlot slot = do
   mSignificantSlot <- use (_marloweState <<< _Head <<< to nextTimeout)
   let
-    mApplyPendingTransactions =
+    -- We only apply pending inputs if the new slot is "significant", in other
+    -- words, if it would trigger a timeout
+    mApplyPendingInputs =
       if slot >= (fromMaybe zero mSignificantSlot) then
         applyPendingInputs
       else
         identity
-  modifying
-    _marloweState
-    ( extendWith
-        ( updatePossibleActions
-            <<< mApplyPendingTransactions
-            <<< updateSlot slot
-        )
-    )
+  updateMarloweState (mApplyPendingInputs <<< updateSlot slot)
 
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
 hasHistory state = case state ^. (_marloweState <<< _Tail) of
@@ -325,3 +353,9 @@ nextTimeout state = do
 
 mapPartiesActionInput :: (ActionInput -> ActionInput) -> Parties -> Parties
 mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
+
+getAllActions :: Parties -> Array ActionInput
+getAllActions (Parties p) =
+  Map.toUnfoldable p
+    # map snd
+    # bindFlipped (map snd <<< Map.toUnfoldable)

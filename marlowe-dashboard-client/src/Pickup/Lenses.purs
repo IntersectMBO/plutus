@@ -1,8 +1,7 @@
 module Pickup.Lenses
   ( _card
   , _walletLibrary
-  , _walletNicknameOrId
-  , _walletDropdownOpen
+  , _walletNicknameOrIdInput
   , _walletNicknameInput
   , _walletIdInput
   , _remoteWalletDetails
@@ -17,7 +16,7 @@ import InputField.Types (State) as InputField
 import Pickup.Types (Card, State)
 import Types (WebData)
 import WalletData.Types (WalletDetails, WalletLibrary)
-import WalletData.Validation (WalletIdError, WalletNicknameError)
+import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError)
 
 _card :: Lens' State (Maybe Card)
 _card = prop (SProxy :: SProxy "card")
@@ -25,11 +24,8 @@ _card = prop (SProxy :: SProxy "card")
 _walletLibrary :: Lens' State WalletLibrary
 _walletLibrary = prop (SProxy :: SProxy "walletLibrary")
 
-_walletNicknameOrId :: Lens' State String
-_walletNicknameOrId = prop (SProxy :: SProxy "walletNicknameOrId")
-
-_walletDropdownOpen :: Lens' State Boolean
-_walletDropdownOpen = prop (SProxy :: SProxy "walletDropdownOpen")
+_walletNicknameOrIdInput :: Lens' State (InputField.State WalletNicknameOrIdError)
+_walletNicknameOrIdInput = prop (SProxy :: SProxy "walletNicknameOrIdInput")
 
 _walletNicknameInput :: Lens' State (InputField.State WalletNicknameError)
 _walletNicknameInput = prop (SProxy :: SProxy "walletNicknameInput")

@@ -78,8 +78,7 @@ data LockArgs =
     deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 type SplitSchema =
-    BlockchainActions
-        .\/ Endpoint "lock" LockArgs
+        Endpoint "lock" LockArgs
         .\/ Endpoint "unlock" LockArgs
 
 -- BLOCK5

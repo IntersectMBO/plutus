@@ -78,6 +78,7 @@ runChainSync socketPath slotConfig onNewBlock = do
           (connectToNode
             (localSnocket iocp socketPath)
             unversionedHandshakeCodec
+            noTimeLimitsHandshake
             (cborTermVersionDataCodec unversionedProtocolDataCodec)
             nullNetworkConnectTracers
             acceptableVersion
@@ -148,6 +149,7 @@ runTxSender socketPath = do
           (connectToNode
             (localSnocket iocp socketPath)
             unversionedHandshakeCodec
+            noTimeLimitsHandshake
             (cborTermVersionDataCodec unversionedProtocolDataCodec)
             nullNetworkConnectTracers
             acceptableVersion

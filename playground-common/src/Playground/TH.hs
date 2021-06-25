@@ -15,18 +15,14 @@ module Playground.TH
     , mkKnownCurrencies
     ) where
 
-import           Data.Row                               (type (.\\))
-import           Language.Haskell.TH                    (Body (NormalB), Clause (Clause),
-                                                         Dec (FunD, SigD, TySynD, ValD), Exp (ListE, VarE),
-                                                         Info (TyConI, VarI), Name, Pat (VarP), Q,
-                                                         Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT),
-                                                         lookupValueName, mkName, nameBase, normalB, reify, sigD, valD,
-                                                         varP)
-import           Playground.Schema                      (endpointsToSchemas)
-import           Playground.Types                       (FunctionSchema (FunctionSchema), adaCurrency)
-import           Plutus.Contract                        (BlockchainActions)
-import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Schema                                 (FormSchema, toSchema)
+import           Language.Haskell.TH (Body (NormalB), Clause (Clause), Dec (FunD, SigD, TySynD, ValD),
+                                      Exp (ListE, VarE), Info (TyConI, VarI), Name, Pat (VarP), Q,
+                                      Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT), lookupValueName, mkName,
+                                      nameBase, normalB, reify, sigD, valD, varP)
+import           Playground.Schema   (endpointsToSchemas)
+import           Playground.Types    (FunctionSchema (FunctionSchema), adaCurrency)
+import           Schema              (FormSchema, toSchema)
+import           Wallet.Types        (EndpointDescription (EndpointDescription))
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -64,7 +60,7 @@ mkSchemaDefinitions ts = do
     info <- reify ts
     case info of
         TyConI (TySynD _ [] t) -> do
-            schemas <- [|endpointsToSchemas @($(pure t) .\\ BlockchainActions)|]
+            schemas <- [|endpointsToSchemas @($(pure t)) |]
             unlessBound schemaBindingName $ \name -> do
                 sig <- sigD name [t|[FunctionSchema FormSchema]|]
                 body <- valD (varP name) (normalB (pure schemas)) []

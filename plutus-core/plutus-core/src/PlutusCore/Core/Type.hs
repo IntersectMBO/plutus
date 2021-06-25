@@ -21,6 +21,7 @@ module PlutusCore.Core.Type
     , HasUniques
     , KnownKind (..)
     , ToKind (..)
+    , Binder (..)
     , kindOf
     , defaultVersion
     -- * Helper functions
@@ -174,3 +175,10 @@ mapFun f = go where
     go (Var ann name)             = Var ann name
     go (Constant ann con)         = Constant ann con
     go (Builtin ann fun)          = Builtin ann (f fun)
+
+-- | This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
+-- and not where it is actually used (TyVar/Var..).
+-- This marking allows us to skip the (de)serialization of binders at LamAbs/TyAbs positions
+-- iff 'name' is DeBruijn-encoded (level or index). See for example the instance of  'UntypedPlutusCore.Core.Instance.Flat'
+newtype Binder name = Binder { unBinder :: name }
+

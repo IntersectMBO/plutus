@@ -19,6 +19,13 @@ module.exports = {
       secondary: "#1746a0",
       success: "#2cbb69",
       error: "#ff0000",
+      // FIXME: We need to unify the way we define grays (the "lightgray" and "darkgray"
+      // are used by the buttons class)
+      lightgray: "#eeeeee",
+      darkgray: "#b7b7b7",
+      purple: "#4700c3",
+      lightpurple: "#8701fc",
+
       gray: {
         light: "#f8f8f8",
         dark: "#e7e7e9",
@@ -97,7 +104,7 @@ module.exports = {
     borderColor: true,
     borderOpacity: false,
     borderRadius: true,
-    borderStyle: false,
+    borderStyle: true,
     borderWidth: true,
     boxSizing: false,
     cursor: true,

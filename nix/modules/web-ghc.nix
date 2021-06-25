@@ -32,6 +32,13 @@ in
         ghc-web package to execute.
       '';
     };
+    timeout = mkOption {
+      type = types.int;
+      default = 80;
+      description = ''
+        Interpretation timeout in seconds.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -45,7 +52,7 @@ in
         TimeoutStopSec = 5;
         CapabilityBoundingSet = "~CAP_SYS_ADMIN";
         Restart = "always";
-        ExecStart = "${cfg.web-ghc-package}/bin/web-ghc-server webserver -b ${cfg.ipAddress} -p ${builtins.toString cfg.port}";
+        ExecStart = "${cfg.web-ghc-package}/bin/web-ghc-server webserver -b ${cfg.ipAddress} -p ${builtins.toString cfg.port} -t ${builtins.toString cfg.timeout}";
 
         # allow binding on port 80
         AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];

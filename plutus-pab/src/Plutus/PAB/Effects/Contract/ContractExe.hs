@@ -35,15 +35,13 @@ import qualified Data.HashMap.Strict                              as HM
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc                        (Pretty, pretty, (<+>))
 import           GHC.Generics                                     (Generic)
+import           Plutus.Contract.Effects                          (PABReq, PABResp)
 import           Plutus.Contract.Resumable                        (Response)
 import           Plutus.Contract.State                            (ContractRequest (..), ContractResponse)
 import qualified Plutus.Contract.State                            as ContractState
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog))
 import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Events.Contract                       (ContractHandlerRequest (..),
-                                                                   ContractHandlersResponse (..),
-                                                                   ContractInstanceId (..), ContractPABRequest)
-import qualified Plutus.PAB.Events.Contract                       as Events.Contract
+import           Plutus.PAB.Events.Contract                       (ContractInstanceId (..))
 import           Plutus.PAB.Monitoring.PABLogMsg                  (ContractExeLogMsg (..), PABMultiAgentMsg (..))
 import           Plutus.PAB.Types                                 (PABError (ContractCommandError))
 import           System.Exit                                      (ExitCode (ExitFailure, ExitSuccess))
@@ -51,7 +49,7 @@ import           System.Process                                   (readProcessWi
 
 instance PABContract ContractExe where
     type ContractDef ContractExe = ContractExe
-    type State ContractExe = ContractResponse Value Value Value ContractPABRequest
+    type State ContractExe = ContractResponse Value Value Value PABReq
 
     serialisableState _ = id
 
@@ -83,15 +81,15 @@ handleContractEffectContractExe =
     \case
         InitialState i (ContractExe contractPath) -> do
             logDebug $ InitContractMsg contractPath
-            result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["init"] ""
+            result <- liftProcess $ readProcessWithExitCode contractPath ["init"] ""
             logNewMessages i result
             pure result
-        UpdateContract i (ContractExe contractPath) (oldState :: ContractResponse Value Value Value ContractPABRequest) (input :: Response Events.Contract.ContractPABResponse) -> do
+        UpdateContract i (ContractExe contractPath) (oldState :: ContractResponse Value Value Value PABReq) (input :: Response PABResp) -> do
             let req :: ContractRequest Value Value
-                req = ContractRequest{oldState = ContractState.newState oldState, event = toJSON . ContractHandlersResponse <$> input}
+                req = ContractRequest{oldState = ContractState.newState oldState, event = toJSON <$> input}
                 encodedRequest = JSON.encodePretty req
                 pl = BSL8.unpack encodedRequest
-            result <- fmap (fmap unContractHandlerRequest) <$> liftProcess $ readProcessWithExitCode contractPath ["update"] pl
+            result <- liftProcess $ readProcessWithExitCode contractPath ["update"] pl
             logNewMessages i result
             pure result
         ExportSchema (ContractExe contractPath) -> do
@@ -121,7 +119,7 @@ logNewMessages ::
     forall effs.
     Member (LogMsg (PABMultiAgentMsg ContractExe)) effs
     => ContractInstanceId
-    -> ContractResponse Value Value Value ContractPABRequest
+    -> ContractResponse Value Value Value PABReq
     -> Eff effs ()
 logNewMessages i ContractState.ContractResponse{ContractState.lastLogs} =
     traverse_ (send @(LogMsg (PABMultiAgentMsg ContractExe)) . LMessage . fmap (ContractInstanceLog . ContractLog i)) lastLogs

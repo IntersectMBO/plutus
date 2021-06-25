@@ -81,7 +81,7 @@ genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..
         cfs = genProjectedCashflows terms
 
         dateToYearFraction :: Day -> Double
-        dateToYearFraction dt = _y ct_DCC ct_SD dt ct_MD
+        dateToYearFraction dt = _y (fromJust ct_DCC) ct_SD dt ct_MD
 
         dateToDiscountFactor dt =  (1 - zeroRiskInterest) ** (dateToYearFraction dt)
 

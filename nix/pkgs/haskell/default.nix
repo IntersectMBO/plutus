@@ -60,6 +60,6 @@ let
 
 in
 rec {
-  inherit index-state project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
+  inherit index-state compiler-nix-name project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
   inherit extraPackages;
 }

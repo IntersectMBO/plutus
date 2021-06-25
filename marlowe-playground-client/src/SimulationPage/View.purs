@@ -13,12 +13,14 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Newtype (unwrap, wrap)
+import Data.String (trim)
 import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShrink0, fontBold, fullHeight, fullWidth, grid, gridColsDescriptionLocation, group, justifyBetween, justifyCenter, justifyEnd, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingX, plusBtn, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, spanTextBreakWord, textSecondaryColor, textXs, uppercase, w30p)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
@@ -159,6 +161,7 @@ editSourceButton :: forall p. HTML p Action
 editSourceButton =
   button
     [ onClick $ const $ Just $ EditSource
+    , classNames [ "btn" ]
     ]
     [ text "Edit source" ]
 
@@ -386,7 +389,7 @@ inputItem metadata _ person (DepositInput accountId party token value) =
     [ renderDeposit metadata accountId party token value
     , div [ class_ (ClassName "align-top") ]
         [ button
-            [ classes [ plusBtn, smallBtn ]
+            [ classes [ plusBtn, smallBtn, btn ]
             , onClick $ const $ Just
                 $ AddInput (IDeposit accountId party token value) []
             ]
@@ -410,17 +413,22 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
                             ([ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
                         ]
                     )
-                    $ Map.lookup choiceName metadata.choiceDescriptions
+                    (Map.lookup choiceName metadata.choiceInfo >>= mExtractDescription)
                 )
           )
       ]
         <> addButton
     )
   where
+  mExtractDescription { choiceDescription }
+    | trim choiceDescription /= "" = Just choiceDescription
+
+  mExtractDescription _ = Nothing
+
   addButton =
     if inBounds chosenNum bounds then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
+          [ classes [ btn, plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
           , onClick $ const $ Just
               $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
@@ -444,7 +452,7 @@ inputItem _ _ person NotifyInput =
     [ classes [ ClassName "action", ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+        [ classes [ btn, plusBtn, smallBtn, ClassName "align-top" ]
         , onClick $ const $ Just
             $ AddInput INotify []
         ]
@@ -468,7 +476,7 @@ inputItem _ state person (MoveToSlot slot) =
   addButton =
     if inFuture state slot then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink", btn ]
           , onClick $ const $ Just $ MoveSlot slot
           ]
           [ text "+" ]

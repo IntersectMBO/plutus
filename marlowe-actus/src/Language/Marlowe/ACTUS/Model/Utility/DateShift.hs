@@ -7,6 +7,7 @@ module Language.Marlowe.ACTUS.Model.Utility.DateShift
 where
 
 import qualified Data.List                                        as L
+import           Data.Maybe                                       (fromJust)
 import           Data.Time                                        (Day, addDays, toGregorian)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (BDC (..), ScheduleConfig (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (..))
@@ -14,7 +15,7 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (.
 {- Business Day Convention -}
 
 applyBDCWithCfg :: ScheduleConfig -> Day -> ShiftedDay
-applyBDCWithCfg ScheduleConfig {..} = applyBDC bdc calendar
+applyBDCWithCfg ScheduleConfig {..} = applyBDC (fromJust bdc) calendar
 
 applyBDC :: BDC -> [Day] -> Day -> ShiftedDay
 applyBDC BDC_NULL _ date =
@@ -95,4 +96,3 @@ maybeShiftToPreceedingBusinessDay date calendar =
   in  if isHoliday date
         then maybeShiftToPreceedingBusinessDay preceedingDay calendar
         else date
-

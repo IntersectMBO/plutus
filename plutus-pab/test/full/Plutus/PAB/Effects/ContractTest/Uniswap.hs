@@ -18,14 +18,14 @@ import qualified Data.Semigroup            as Semigroup
 import           Ledger
 import           Ledger.Constraints
 import           Ledger.Value              as Value
-import           Plutus.Contract           hiding (when)
+import           Plutus.Contract
 import qualified Plutus.Contracts.Currency as Currency
 import           Wallet.Emulator.Types     (Wallet (..), walletPubKey)
 
 initContract :: Contract (Maybe (Semigroup.Last Currency.OneShotCurrency)) Currency.CurrencySchema Currency.CurrencyError ()
 initContract = do
     ownPK <- pubKeyHash <$> ownPubKey
-    cur   <- Currency.forgeContract ownPK [(tn, fromIntegral (length wallets) * amount) | tn <- tokenNames]
+    cur   <- Currency.mintContract ownPK [(tn, fromIntegral (length wallets) * amount) | tn <- tokenNames]
     let cs = Currency.currencySymbol cur
         v  = mconcat [Value.singleton cs tn amount | tn <- tokenNames]
     forM_ wallets $ \w -> do

@@ -1,14 +1,12 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE MonoLocalBinds     #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 module Plutus.Contract.Trace.RequestHandler(
     RequestHandler(..)
     , RequestHandlerLogMsg(..)
@@ -17,9 +15,13 @@ module Plutus.Contract.Trace.RequestHandler(
     , wrapHandler
     , extract
     , maybeToHandler
+    , generalise
     -- * handlers for common requests
     , handleOwnPubKey
     , handleSlotNotifications
+    , handleCurrentSlot
+    , handleTimeNotifications
+    , handleCurrentTime
     , handlePendingTransactions
     , handleUtxoQueries
     , handleTxConfirmedQueries
@@ -28,40 +30,38 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleContractNotifications
     ) where
 
-import           Control.Applicative                      (Alternative (empty, (<|>)))
-import           Control.Arrow                            (Arrow, Kleisli (..))
-import           Control.Category                         (Category)
+import           Control.Applicative            (Alternative (empty, (<|>)))
+import           Control.Arrow                  (Arrow, Kleisli (..))
+import           Control.Category               (Category)
 import           Control.Lens
-import           Control.Monad                            (foldM, guard, join)
+import           Control.Monad                  (foldM, guard, join)
 import           Control.Monad.Freer
-import qualified Control.Monad.Freer.Error                as Eff
-import           Control.Monad.Freer.NonDet               (NonDet)
-import qualified Control.Monad.Freer.NonDet               as NonDet
-import           Control.Monad.Freer.Reader               (Reader, ask)
-import           Data.Foldable                            (traverse_)
-import qualified Data.Map                                 as Map
-import           Data.Monoid                              (Alt (..), Ap (..))
-import           Data.Text                                (Text)
-import qualified Ledger.AddressMap                        as AM
+import qualified Control.Monad.Freer.Error      as Eff
+import           Control.Monad.Freer.NonDet     (NonDet)
+import qualified Control.Monad.Freer.NonDet     as NonDet
+import           Control.Monad.Freer.Reader     (Reader, ask)
+import           Data.Foldable                  (traverse_)
+import qualified Data.Map                       as Map
+import           Data.Monoid                    (Alt (..), Ap (..))
+import           Data.Text                      (Text)
+import qualified Ledger.AddressMap              as AM
 
-import           Plutus.Contract.Resumable                (Request (..), Response (..))
+import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
-import           Control.Monad.Freer.Extras.Log           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
-                                                           surroundDebug)
-import           Ledger                                   (Address, OnChainTx (..), PubKey, Slot, Tx, TxId)
-import           Ledger.AddressMap                        (AddressMap (..))
-import           Ledger.Constraints.OffChain              (UnbalancedTx (unBalancedTxTx))
-import           Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Plutus.Contract.Effects.Instance         (OwnIdRequest)
-import           Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
-import qualified Plutus.Contract.Wallet                   as Wallet
-import           Wallet.API                               (WalletAPIError)
-import           Wallet.Effects                           (ChainIndexEffect, ContractRuntimeEffect, WalletEffect)
+import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
+import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, PubKey, Slot, Tx, TxId)
+import           Ledger.AddressMap              (AddressMap (..))
+import           Ledger.Constraints.OffChain    (UnbalancedTx (unBalancedTxTx))
+import qualified Ledger.TimeSlot                as TimeSlot
+import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..))
+import qualified Plutus.Contract.Wallet         as Wallet
+import           Wallet.API                     (WalletAPIError)
+import           Wallet.Effects                 (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
+                                                 WalletEffect)
 import qualified Wallet.Effects
-import           Wallet.Emulator.LogMessages              (RequestHandlerLogMsg (..), TxBalanceMsg)
-import           Wallet.Types                             (AddressChangeRequest (..), AddressChangeResponse,
-                                                           ContractInstanceId, Notification, NotificationError,
-                                                           slotRange, targetSlot)
+import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg (..))
+import           Wallet.Types                   (AddressChangeRequest (..), AddressChangeResponse, ContractInstanceId,
+                                                 Notification, NotificationError, slotRange, targetSlot)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -92,6 +92,18 @@ tryHandler' (RequestHandler h) requests =
 extract :: Alternative f => Prism' a b -> a -> f b
 extract p = maybe empty pure . preview p
 
+-- | Generalise a request handler
+generalise ::
+    forall effs req req' resp resp'
+    . (req' -> Maybe req)
+    -> (resp -> resp')
+    -> RequestHandler effs req resp
+    -> RequestHandler effs req' resp'
+generalise rq rsp (RequestHandler h) = RequestHandler $ \k -> do
+    case rq k of
+        Nothing -> empty
+        Just k' -> rsp <$> h k'
+
 wrapHandler :: RequestHandler effs req resp -> RequestHandler effs (Request req) (Response resp)
 wrapHandler (RequestHandler h) = RequestHandler $ \Request{rqID, itID, rqRequest} -> do
     r <- h rqRequest
@@ -114,7 +126,7 @@ handleOwnPubKey =
 
 handleSlotNotifications ::
     forall effs.
-    ( Member WalletEffect effs
+    ( Member NodeClientEffect effs
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
@@ -122,17 +134,54 @@ handleSlotNotifications ::
 handleSlotNotifications =
     RequestHandler $ \targetSlot_ ->
         surroundDebug @Text "handleSlotNotifications" $ do
-            currentSlot <- Wallet.Effects.walletSlot
-            logDebug $ SlotNoficationTargetVsCurrent targetSlot_ currentSlot
+            currentSlot <- Wallet.Effects.getClientSlot
+            logDebug $ SlotNoticationTargetVsCurrent targetSlot_ currentSlot
             guard (currentSlot >= targetSlot_)
             pure currentSlot
+
+handleTimeNotifications ::
+    forall effs.
+    ( Member NodeClientEffect effs
+    , Member (LogObserve (LogMessage Text)) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
+    )
+    => RequestHandler effs POSIXTime POSIXTime
+handleTimeNotifications =
+    RequestHandler $ \targetTime_ ->
+        surroundDebug @Text "handleTimeNotifications" $ do
+            currentSlot <- Wallet.Effects.getClientSlot
+            let targetSlot_ = TimeSlot.posixTimeToSlot targetTime_
+            logDebug $ SlotNoticationTargetVsCurrent targetSlot_ currentSlot
+            guard (currentSlot >= targetSlot_)
+            pure $ TimeSlot.slotToPOSIXTime currentSlot
+
+handleCurrentSlot ::
+    forall effs a.
+    ( Member NodeClientEffect effs
+    , Member (LogObserve (LogMessage Text)) effs
+    )
+    => RequestHandler effs a Slot
+handleCurrentSlot =
+    RequestHandler $ \_ ->
+        surroundDebug @Text "handleCurrentSlot" $ do
+            Wallet.Effects.getClientSlot
+
+handleCurrentTime ::
+    forall effs a.
+    ( Member NodeClientEffect effs
+    , Member (LogObserve (LogMessage Text)) effs
+    )
+    => RequestHandler effs a POSIXTime
+handleCurrentTime =
+    RequestHandler $ \_ ->
+        surroundDebug @Text "handleCurrentTime" $ do
+            TimeSlot.slotToPOSIXTime <$> Wallet.Effects.getClientSlot
 
 handlePendingTransactions ::
     forall effs.
     ( Member WalletEffect effs
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member (LogMsg TxBalanceMsg) effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs UnbalancedTx (Either WalletAPIError Tx)
@@ -177,13 +226,13 @@ handleAddressChangedAtQueries ::
     forall effs.
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member WalletEffect effs
     , Member ChainIndexEffect effs
+    , Member NodeClientEffect effs
     )
     => RequestHandler effs AddressChangeRequest AddressChangeResponse
 handleAddressChangedAtQueries = RequestHandler $ \req ->
     surroundDebug @Text "handleAddressChangedAtQueries" $ do
-        current <- Wallet.Effects.walletSlot
+        current <- Wallet.Effects.getClientSlot
         let target = targetSlot req
         logDebug $ HandleAddressChangedAt current (slotRange req)
         -- If we ask the chain index for transactions that were confirmed in
@@ -195,11 +244,11 @@ handleAddressChangedAtQueries = RequestHandler $ \req ->
         Wallet.Effects.addressChanged req
 
 handleOwnInstanceIdQueries ::
-    forall effs.
+    forall effs a.
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (Reader ContractInstanceId) effs
     )
-    => RequestHandler effs OwnIdRequest ContractInstanceId
+    => RequestHandler effs a ContractInstanceId
 handleOwnInstanceIdQueries = RequestHandler $ \_ ->
     surroundDebug @Text "handleOwnInstanceIdQueries" ask
 

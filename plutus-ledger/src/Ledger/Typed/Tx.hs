@@ -72,7 +72,7 @@ makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOut
         rs = Redeemer (toData r)
         ds = Datum (toData d)
         txInType = ConsumeScriptAddress vs rs ds
-    in TypedScriptTxIn @inn (TxIn ref txInType) tyRef
+    in TypedScriptTxIn @inn (TxIn ref (Just txInType)) tyRef
 
 txInValue :: TypedScriptTxIn a -> Value.Value
 txInValue = txOutValue . tyTxOutTxOut . tyTxOutRefOut . tyTxInOutRef
@@ -84,7 +84,7 @@ newtype PubKeyTxIn = PubKeyTxIn { unPubKeyTxIn :: TxIn }
 
 -- | Create a 'PubKeyTxIn'.
 makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
-makePubKeyTxIn ref = PubKeyTxIn $ TxIn ref ConsumePublicKeyAddress
+makePubKeyTxIn ref = PubKeyTxIn . TxIn ref . Just $ ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOut a = IsData (DatumType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DatumType a }
@@ -152,6 +152,7 @@ data ConnectionError =
     WrongValidatorAddress Address Address
     | WrongOutType WrongOutTypeError
     | WrongInType TxInType
+    | MissingInType
     | WrongValidatorType String
     | WrongRedeemerType
     | WrongDatumType
@@ -165,6 +166,7 @@ instance Pretty ConnectionError where
         WrongValidatorAddress a1 a2 -> "Wrong validator address. Expected:" <+> pretty a1 <+> "Actual:" <+> pretty a2
         WrongOutType t              -> "Wrong out type:" <+> viaShow t
         WrongInType t               -> "Wrong in type:" <+> viaShow t
+        MissingInType               -> "Missing in type"
         WrongValidatorType t        -> "Wrong validator type:" <+> pretty t
         WrongRedeemerType           -> "Wrong redeemer type"
         WrongDatumType              -> "Wrong datum type"
@@ -212,8 +214,9 @@ typeScriptTxIn
     -> m (TypedScriptTxIn inn)
 typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
     (rs, ds) <- case txInType of
-        ConsumeScriptAddress _ rs ds -> pure (rs, ds)
-        x                            -> throwError $ WrongInType x
+        Just (ConsumeScriptAddress _ rs ds) -> pure (rs, ds)
+        Just x                              -> throwError $ WrongInType x
+        Nothing                             -> throwError MissingInType
     -- It would be nice to typecheck the validator script here (we used to do that when we
     -- had typed on-chain code), but we can't do that with untyped code!
     rsVal <- checkRedeemer si rs
@@ -229,8 +232,10 @@ typePubKeyTxIn
     -> m PubKeyTxIn
 typePubKeyTxIn inn@TxIn{txInType} = do
     case txInType of
-        ConsumePublicKeyAddress -> pure ()
-        x                       -> throwError $ WrongInType x
+        Just ConsumePublicKeyAddress -> pure ()
+        Just x                       -> throwError $ WrongInType x
+        Nothing                      -> throwError MissingInType
+
     pure $ PubKeyTxIn inn
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.

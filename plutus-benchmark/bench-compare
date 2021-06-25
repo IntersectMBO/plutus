@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Compare the output from two runs of some Criterion benchmarks and print the
+# increase/decrease in execution time for each benchmark.
+
+# Do something like
+#    `stack bench plutus-benchmarks:validation >results1 2>&1`
+# in one branch and then 
+#    `stack bench plutus-benchmarks:validation >results2 2>&1`
+# in another, then
+#    `bench-compare results1 results2`
+# to see the comparison.
+#
+# You probably want to do this on a quiet machine, with things like Slack and
+# browsers turned off.
+
+if [[ $# -lt 2 ]]
+then
+  echo -n "Usage: $0 <file1> <file2>"
+  exit 1
+fi
+
+tmp1=/tmp/bc1
+tmp2=/tmp/bc2
+
+trap 'rm -f $tmp1 $tmp2' EXIT
+
+
+awk '/^bench/ {printf ("%-40s ", $2)}
+     /^time/ {printf ("%8s %-2s\n", $2, $3)}' "$1" > $tmp1  # %-2s to get the units properly aligned
+awk '/^time/ {printf ("%8s %-2s\n", $2, $3)}' "$2" > $tmp2
+paste $tmp1 $tmp2 |
+  awk 'BEGIN {
+       ps["s"]  = 12  # 1 s = 10^12 ps
+       ps["ms"] = 9 
+       ps["µs"] = 6   # 0xb5; Criterion uses this
+       ps["μs"] = 6   # 0x03bc
+       ps["ns"] = 3
+       ps["ps"] = 0
+   }
+   {
+   time1 = $2
+   time2 = $4 * 10^(ps[$5]-ps[$3]) # Adjust for different units
+   d = (time2-time1)/time1 * 100
+   sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
+   printf ("%s       %s%.1f%%\n", $0, sign, d)
+ }' 
+
+

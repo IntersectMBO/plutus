@@ -88,11 +88,11 @@ transferUpToDeposit from to amount = Pay from (Account to) ada (Cond (ValueLT am
 
 extendedContract :: Contract
 extendedContract =
-  initialDeposit party (Slot $ fromInt 30) Close
-    $ initialDeposit counterparty (Slot $ fromInt 60) Close
-    $ oracleInput exchangeBeginning (Slot $ fromInt 90) Close
-    $ wait (Slot $ fromInt 150)
-    $ oracleInput exchangeEnd (Slot $ fromInt 180) Close
+  initialDeposit party (Slot $ fromInt 300) Close
+    $ initialDeposit counterparty (Slot $ fromInt 600) Close
+    $ oracleInput exchangeBeginning (Slot $ fromInt 900) Close
+    $ wait (Slot $ fromInt 1500)
+    $ oracleInput exchangeEnd (Slot $ fromInt 1800) Close
     $ recordEndPrice priceEnd exchangeBeginning exchangeEnd
     $ gtLtEq priceBeginning (UseValue priceEnd)
         ( recordDifference decreaseInPrice priceBeginning (UseValue priceEnd)

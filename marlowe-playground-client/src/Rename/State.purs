@@ -6,6 +6,7 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (modalContent)
+import Halogen.Css (classNames)
 import Halogen.HTML (button, div, div_, input, text)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
@@ -31,7 +32,11 @@ render state =
     [ modalHeader "Rename Project" Nothing
     , div [ classes [ modalContent ] ]
         [ input [ class_ (ClassName "project-name-input"), value (state ^. _projectName), onValueChange (Just <<< ChangeInput) ]
-        , button [ onClick $ const $ Just SaveProject ] [ text "Save" ]
+        , button
+            [ onClick $ const $ Just SaveProject
+            , classNames [ "btn" ]
+            ]
+            [ text "Save" ]
         , renderError (state ^. _error)
         ]
     ]

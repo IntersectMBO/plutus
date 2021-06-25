@@ -107,6 +107,8 @@ gh-pages
 *.db-wal
 hie.yaml
 node-server.sock
+node.sock
+**/node?/db
 .pre-commit-config.yaml
 secrets/*/.gpg-id
 ghcid.txt

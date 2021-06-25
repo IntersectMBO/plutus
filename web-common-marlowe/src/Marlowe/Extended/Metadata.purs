@@ -1,17 +1,111 @@
 module Marlowe.Extended.Metadata where
 
 import Prelude
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map, keys)
-import Data.Maybe (Maybe(..))
+import Data.Map as Map
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Symbol (SProxy(..))
+import Foreign.Generic (class Decode, class Encode, defaultOptions, genericDecode, genericEncode)
 import Marlowe.Extended (Contract, ContractType(..), getChoiceNames)
-import Marlowe.Template (Placeholders(..), getPlaceholderIds)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics as S
+import Marlowe.Template (Placeholders(..), getPlaceholderIds)
+
+data ChoiceFormat
+  = DefaultFormat
+  | DecimalFormat Int String
+
+derive instance eqChoiceFormat :: Eq ChoiceFormat
+
+derive instance genericChoiceFormat :: Generic ChoiceFormat _
+
+instance encodeChoiceFormat :: Encode ChoiceFormat where
+  encode value = genericEncode defaultOptions value
+
+instance decodeChoiceFormat :: Decode ChoiceFormat where
+  decode value = genericDecode defaultOptions value
+
+instance showChoiceFormat :: Show ChoiceFormat where
+  show = genericShow
+
+integerFormat :: ChoiceFormat
+integerFormat = DecimalFormat 0 ""
+
+lovelaceFormat :: ChoiceFormat
+lovelaceFormat = DecimalFormat 6 "₳"
+
+oracleRatioFormat :: String -> ChoiceFormat
+oracleRatioFormat str = DecimalFormat 8 str
+
+isDefaultFormat :: ChoiceFormat -> Boolean
+isDefaultFormat DefaultFormat = true
+
+isDefaultFormat _ = false
+
+isDecimalFormat :: ChoiceFormat -> Boolean
+isDecimalFormat (DecimalFormat _ _) = true
+
+isDecimalFormat _ = false
+
+data ChoiceFormatType
+  = DefaultFormatType
+  | DecimalFormatType
+
+derive instance eqChoiceFormatType :: Eq ChoiceFormatType
+
+toString :: ChoiceFormatType -> String
+toString DefaultFormatType = "DefaultFormatType"
+
+toString DecimalFormatType = "DecimalFormatType"
+
+fromString :: String -> Maybe ChoiceFormatType
+fromString "DefaultFormatType" = Just DefaultFormatType
+
+fromString "DecimalFormatType" = Just DecimalFormatType
+
+fromString _ = Nothing
+
+getFormatType :: ChoiceFormat -> ChoiceFormatType
+getFormatType DefaultFormat = DefaultFormatType
+
+getFormatType (DecimalFormat _ _) = DecimalFormatType
+
+defaultForFormatType :: ChoiceFormatType -> ChoiceFormat
+defaultForFormatType DefaultFormatType = DefaultFormat
+
+defaultForFormatType DecimalFormatType = DecimalFormat 0 ""
+
+type ChoiceInfo
+  = { choiceFormat :: ChoiceFormat
+    , choiceDescription :: String
+    }
+
+_choiceFormat :: Lens' ChoiceInfo ChoiceFormat
+_choiceFormat = prop (SProxy :: SProxy "choiceFormat")
+
+_choiceDescription :: Lens' ChoiceInfo String
+_choiceDescription = prop (SProxy :: SProxy "choiceDescription")
+
+emptyChoiceInfo :: ChoiceInfo
+emptyChoiceInfo =
+  { choiceFormat: DefaultFormat
+  , choiceDescription: mempty
+  }
+
+getChoiceInfo :: String -> Map String ChoiceInfo -> ChoiceInfo
+getChoiceInfo str = fromMaybe emptyChoiceInfo <<< Map.lookup str
+
+updateChoiceInfo :: (ChoiceInfo -> ChoiceInfo) -> String -> Map String ChoiceInfo -> Map String ChoiceInfo
+updateChoiceInfo f = Map.alter updateChoiceInfoEntry
+  where
+  updateChoiceInfoEntry :: Maybe ChoiceInfo -> Maybe ChoiceInfo
+  updateChoiceInfoEntry mChoiceInfo = Just $ f $ fromMaybe emptyChoiceInfo mChoiceInfo
 
 type MetaData
   = { contractType :: ContractType
@@ -20,7 +114,7 @@ type MetaData
     , roleDescriptions :: Map S.TokenName String
     , slotParameterDescriptions :: Map String String
     , valueParameterDescriptions :: Map String String
-    , choiceDescriptions :: Map String String
+    , choiceInfo :: Map String ChoiceInfo
     }
 
 _contractName :: Lens' MetaData String
@@ -41,8 +135,8 @@ _slotParameterDescriptions = prop (SProxy :: SProxy "slotParameterDescriptions")
 _valueParameterDescriptions :: Lens' MetaData (Map String String)
 _valueParameterDescriptions = prop (SProxy :: SProxy "valueParameterDescriptions")
 
-_choiceDescriptions :: Lens' MetaData (Map String String)
-_choiceDescriptions = prop (SProxy :: SProxy "choiceDescriptions")
+_choiceInfo :: Lens' MetaData (Map String ChoiceInfo)
+_choiceInfo = prop (SProxy :: SProxy "choiceInfo")
 
 emptyContractMetadata :: MetaData
 emptyContractMetadata =
@@ -52,7 +146,7 @@ emptyContractMetadata =
   , roleDescriptions: mempty
   , slotParameterDescriptions: mempty
   , valueParameterDescriptions: mempty
-  , choiceDescriptions: mempty
+  , choiceInfo: mempty
   }
 
 type MetadataHintInfo
@@ -95,12 +189,12 @@ getHintsFromMetadata :: MetaData -> MetadataHintInfo
 getHintsFromMetadata { roleDescriptions
 , slotParameterDescriptions
 , valueParameterDescriptions
-, choiceDescriptions
+, choiceInfo
 } =
   { roles: keys roleDescriptions
   , slotParameters: keys slotParameterDescriptions
   , valueParameters: keys valueParameterDescriptions
-  , choiceNames: keys choiceDescriptions
+  , choiceNames: keys choiceInfo
   }
 
 type ContractTemplate

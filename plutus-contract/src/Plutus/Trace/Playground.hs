@@ -26,9 +26,9 @@ module Plutus.Trace.Playground(
 
 import           Control.Lens
 import           Control.Monad                              (void)
-import           Control.Monad.Freer                        (Eff, Member, interpret, raise, subsume)
+import           Control.Monad.Freer                        (Eff, Member, interpret, raise, reinterpret, subsume)
 import           Control.Monad.Freer.Coroutine              (Yield)
-import           Control.Monad.Freer.Error                  (Error)
+import           Control.Monad.Freer.Error                  (Error, handleError, throwError)
 import           Control.Monad.Freer.Extras.Log             (LogMessage, LogMsg (..), mapLog)
 import           Control.Monad.Freer.Extras.Modify          (raiseEnd)
 import           Control.Monad.Freer.Reader                 (Reader)
@@ -39,7 +39,7 @@ import           Data.Map                                   (Map)
 import qualified Data.Map                                   as Map
 import           Data.Maybe                                 (fromMaybe)
 
-import           Plutus.Contract                            (Contract (..), HasBlockchainActions)
+import           Plutus.Contract                            (Contract (..))
 import           Plutus.Trace.Effects.ContractInstanceId    (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI     (EmulatedWalletAPI, handleEmulatedWalletAPI)
 import qualified Plutus.Trace.Effects.EmulatedWalletAPI     as EmulatedWalletAPI
@@ -49,8 +49,9 @@ import           Plutus.Trace.Effects.Waiting               (Waiting, handleWait
 import qualified Plutus.Trace.Effects.Waiting               as Waiting
 import           Plutus.Trace.Emulator.ContractInstance     (EmulatorRuntimeError)
 import           Plutus.Trace.Emulator.System               (launchSystemThreads)
-import           Plutus.Trace.Emulator.Types                (ContractConstraints, EmulatorMessage (..), EmulatorThreads,
-                                                             walletInstanceTag)
+import           Plutus.Trace.Emulator.Types                (ContractConstraints, EmulatorMessage (..),
+                                                             EmulatorRuntimeError (EmulatedWalletError),
+                                                             EmulatorThreads, walletInstanceTag)
 import           Plutus.Trace.Scheduler                     (EmSystemCall, ThreadId, exit, runThreads)
 import           Streaming                                  (Stream)
 import           Streaming.Prelude                          (Of)
@@ -93,8 +94,7 @@ type PlaygroundTrace a =
 
 handlePlaygroundTrace ::
     forall w s e effs a.
-    ( HasBlockchainActions s
-    , ContractConstraints s
+    ( ContractConstraints s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -110,7 +110,8 @@ handlePlaygroundTrace ::
     -> PlaygroundTrace a
     -> Eff (Reader ThreadId ': Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
 handlePlaygroundTrace contract action = do
-    _ <- interpret handleEmulatedWalletAPI
+    _ <- flip handleError (throwError . EmulatedWalletError)
+            . reinterpret handleEmulatedWalletAPI
             . interpret (handleWaiting @_ @effs)
             . subsume
             . interpret (handleRunContractPlayground @w @s @e @_ @effs contract)
@@ -119,8 +120,7 @@ handlePlaygroundTrace contract action = do
 
 -- | Run a 'Trace Playground', streaming the log messages as they arrive
 runPlaygroundStream :: forall w s e effs a.
-    ( HasBlockchainActions s
-    , ContractConstraints s
+    ( ContractConstraints s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -140,7 +140,6 @@ interpretPlaygroundTrace :: forall w s e effs a.
     , Member (Error EmulatorRuntimeError) effs
     , Member ChainControlEffect effs
     , Member (LogMsg EmulatorEvent') effs
-    , HasBlockchainActions s
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e

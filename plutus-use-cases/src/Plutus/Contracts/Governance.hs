@@ -38,7 +38,7 @@ import           Data.Semigroup               (Sum (..))
 import           Data.String                  (fromString)
 import           Data.Text                    (Text)
 import           GHC.Generics                 (Generic)
-import           Ledger                       (MonetaryPolicyHash, PubKeyHash, Slot (..), TokenName)
+import           Ledger                       (MintingPolicyHash, POSIXTime, PubKeyHash, TokenName)
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
 import qualified Ledger.Interval              as Interval
@@ -63,8 +63,8 @@ data Proposal = Proposal
     -- ^ The new contents of the law
     , tokenName      :: TokenName
     -- ^ The name of the voting tokens. Only voting token owners are allowed to propose changes.
-    , votingDeadline :: Slot
-    -- ^ The slot when voting ends and the votes are tallied.
+    , votingDeadline :: POSIXTime
+    -- ^ The time when voting ends and the votes are tallied.
     }
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -78,14 +78,14 @@ data Voting = Voting
 
 data GovState = GovState
     { law    :: ByteString
-    , mph    :: MonetaryPolicyHash
+    , mph    :: MintingPolicyHash
     , voting :: Maybe Voting
     }
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 data GovInput
-    = ForgeTokens [TokenName]
+    = MintTokens [TokenName]
     | ProposeChange Proposal
     | AddVote TokenName Bool
     | FinishVoting
@@ -97,8 +97,7 @@ data GovInput
 -- * @new-law@ to create a new law and distribute voting tokens
 -- * @add-vote@ to vote on a proposal with the name of the voting token and a boolean to vote in favor or against.
 type Schema =
-    BlockchainActions
-        .\/ Endpoint "new-law" ByteString
+    Endpoint "new-law" ByteString
         .\/ Endpoint "add-vote" (TokenName, Bool)
 
 -- | The governace contract parameters.
@@ -152,23 +151,23 @@ mkTokenName :: TokenName -> Integer -> TokenName
 mkTokenName base ix = fromString (Value.toString base ++ Haskell.show ix)
 
 {-# INLINABLE votingValue #-}
-votingValue :: MonetaryPolicyHash -> TokenName -> Value.Value
+votingValue :: MintingPolicyHash -> TokenName -> Value.Value
 votingValue mph tokenName =
     Value.singleton (Value.mpsSymbol mph) tokenName 1
 
 {-# INLINABLE ownsVotingToken #-}
-ownsVotingToken :: MonetaryPolicyHash -> TokenName -> TxConstraints Void Void
+ownsVotingToken :: MintingPolicyHash -> TokenName -> TxConstraints Void Void
 ownsVotingToken mph tokenName = Constraints.mustSpendAtLeast (votingValue mph tokenName)
 
 {-# INLINABLE transition #-}
 transition :: Params -> State GovState -> GovInput -> Maybe (TxConstraints Void Void, State GovState)
 transition Params{..} State{ stateData = s, stateValue} i = case (s, i) of
 
-    (GovState{mph}, ForgeTokens tokenNames) ->
+    (GovState{mph}, MintTokens tokenNames) ->
         let (total, constraints) = foldMap
                 (\(pk, nm) -> let v = votingValue mph nm in (v, Constraints.mustPayToPubKey pk v))
                 (zip initialHolders tokenNames)
-        in Just (constraints <> Constraints.mustForgeValue total, State s stateValue)
+        in Just (constraints <> Constraints.mustMintValue total, State s stateValue)
 
     (GovState law mph Nothing, ProposeChange proposal@Proposal{tokenName}) ->
         let constraints = ownsVotingToken mph tokenName
@@ -201,24 +200,24 @@ contract params = forever $ mapError (review _GovError) endpoints where
 
     initLaw = do
         bsLaw <- endpoint @"new-law"
-        let mph = Scripts.forwardingMonetaryPolicyHash (typedValidator params)
+        let mph = Scripts.forwardingMintingPolicyHash (typedValidator params)
         void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
         let tokens = Haskell.zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
-        SM.runStep theClient $ ForgeTokens tokens
+        SM.runStep theClient $ MintTokens tokens
 
 -- | The contract for proposing changes to a law.
 proposalContract ::
     AsGovError e
     => Params
     -> Proposal
-    -> Contract () BlockchainActions e ()
+    -> Contract () EmptySchema e ()
 proposalContract params proposal = mapError (review _GovError) propose where
     theClient = client params
     propose = do
         void $ SM.runStep theClient (ProposeChange proposal)
 
         logInfo @Text "Voting started. Waiting for the voting deadline to count the votes."
-        void $ awaitSlot (votingDeadline proposal)
+        void $ awaitTime $ votingDeadline proposal
 
         logInfo @Text "Voting finished. Counting the votes."
         void $ SM.runStep theClient FinishVoting

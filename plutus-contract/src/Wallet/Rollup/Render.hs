@@ -30,10 +30,10 @@ import           Data.Text.Prettyprint.Doc             (Doc, Pretty, defaultLayo
                                                         line, parens, pretty, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Ledger                                (Address, Blockchain, PubKey, PubKeyHash, Signature, Tx (Tx),
-                                                        TxId, TxIn (TxIn, txInRef, txInType),
+                                                        TxId, TxIn (TxIn),
                                                         TxInType (ConsumePublicKeyAddress, ConsumeScriptAddress),
                                                         TxOut (TxOut), TxOutRef (TxOutRef, txOutRefId, txOutRefIdx),
-                                                        Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
+                                                        Value, txFee, txMint, txOutValue, txOutputs, txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Scripts                        (Datum (getDatum), Script, Validator,
@@ -92,7 +92,7 @@ instance Render [[AnnotatedTx]] where
 
 instance Render AnnotatedTx where
     render AnnotatedTx { txId
-                       , tx = Tx {txOutputs, txForge, txFee, txSignatures}
+                       , tx = Tx {txOutputs, txMint, txFee, txSignatures}
                        , dereferencedInputs
                        , balances
                        , valid = True
@@ -101,7 +101,7 @@ instance Render AnnotatedTx where
         sequence
             [ heading "TxId:" txId
             , heading "Fee:" txFee
-            , heading "Forge:" txForge
+            , heading "Mint:" txMint
             , heading "Signatures" txSignatures
             , pure "Inputs:"
             , indent 2 <$> numbered "----" "Input" dereferencedInputs
@@ -260,8 +260,9 @@ instance Render DereferencedInput where
             [render refersTo, pure "Source:", indent 2 <$> render originalInput]
 
 instance Render TxIn where
-    render TxIn {txInRef, txInType} =
+    render (TxIn txInRef (Just txInType)) =
         vsep <$> sequence [render txInRef, render txInType]
+    render (TxIn txInRef Nothing) = render txInRef
 
 instance Render TxInType where
     render (ConsumeScriptAddress validator _ _) = render validator

@@ -115,7 +115,7 @@ validTx :: Tx -> Ledger -> Bool
 validTx t ledger = inputsAreValid && valueIsPreserved && validValuesTx t
   where
     inputsAreValid    = all (`validatesIn` unspentOutputs ledger) (inputsTX t)
-    valueIsPreserved  = forgeTX t + sum (map (fromJust . value ledger) (map refTI $ inputsTX t))
+    valueIsPreserved  = mintTX t + sum (map (fromJust . value ledger) (map refTI $ inputsTX t))
                         == feeTX t + sum (map valueTO (outputsTX t))
                            -- NB: the 'fromMaybe' is safe as 'inputsAreUnspent' holds if we get here
 

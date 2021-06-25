@@ -19,6 +19,7 @@ import           Control.Monad               (void)
 import           Data.Foldable               (traverse_)
 
 import qualified Ledger
+import qualified Ledger.TimeSlot             as TimeSlot
 import qualified Ledger.Typed.Scripts        as Scripts
 import qualified Wallet.Emulator             as EM
 
@@ -26,7 +27,7 @@ import           Plutus.Contract.Test
 import qualified Plutus.Contracts.Governance as Gov
 import           Plutus.Trace.Emulator       (EmulatorTrace)
 import qualified Plutus.Trace.Emulator       as Trace
-import qualified PlutusTx                    as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude            (ByteString)
 
 tests :: TestTree
@@ -74,7 +75,7 @@ doVoting :: Int -> Int -> Integer -> EmulatorTrace ()
 doVoting ayes nays rounds = do
     let activate w = (Gov.mkTokenName baseName w,) <$> Trace.activateContractWallet (EM.Wallet w) (Gov.contract @Gov.GovError params)
     namesAndHandles <- traverse activate [1..numberOfHolders]
-    let handle1 = snd (namesAndHandles !! 0)
+    let handle1 = snd (head namesAndHandles)
     let token2 = fst (namesAndHandles !! 1)
     void $ Trace.callEndpoint @"new-law" handle1 lawv1
     void $ Trace.waitNSlots 10
@@ -82,7 +83,7 @@ doVoting ayes nays rounds = do
             now <- view Trace.currentSlot <$> Trace.chainState
             void $ Trace.activateContractWallet (EM.Wallet 2)
                 (Gov.proposalContract @Gov.GovError params
-                    Gov.Proposal{ Gov.newLaw = law, Gov.votingDeadline = now + 20, Gov.tokenName = token2 })
+                    Gov.Proposal{ Gov.newLaw = law, Gov.votingDeadline = TimeSlot.slotToPOSIXTime $ now + 20, Gov.tokenName = token2 })
             void $ Trace.waitNSlots 1
             traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, True)  >> Trace.waitNSlots 1) (take ayes namesAndHandles)
             traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, False) >> Trace.waitNSlots 1) (take nays $ drop ayes namesAndHandles)

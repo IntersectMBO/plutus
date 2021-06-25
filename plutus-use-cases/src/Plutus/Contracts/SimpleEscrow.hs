@@ -24,13 +24,12 @@ import           Control.Monad.Error.Lens (throwing)
 import           Data.Aeson               (FromJSON, ToJSON)
 import           GHC.Generics             (Generic)
 
-import           Ledger                   (PubKeyHash, Slot, TxId, txId, txSignedBy, valuePaidTo)
+import           Ledger                   (POSIXTime, PubKeyHash, TxId, txId, txSignedBy, valuePaidTo)
 import qualified Ledger
 import qualified Ledger.Constraints       as Constraints
 import           Ledger.Contexts          (ScriptContext (..), TxInfo (..))
 import           Ledger.Interval          (after, before)
 import qualified Ledger.Interval          as Interval
-import qualified Ledger.TimeSlot          as TimeSlot
 import qualified Ledger.Tx                as Tx
 import qualified Ledger.Typed.Scripts     as Scripts
 import           Ledger.Value             (Value, geq)
@@ -51,15 +50,14 @@ data EscrowParams =
     -- ^ Value to be paid out to the redeemer.
     , expecting :: Value
     -- ^ Value to be received by the payee.
-    , deadline  :: Slot
-    -- ^ Slot after which the contract expires.
+    , deadline  :: POSIXTime
+    -- ^ Time after which the contract expires.
     }
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 type EscrowSchema =
-    BlockchainActions
-        .\/ Endpoint "lock"   EscrowParams
+        Endpoint "lock"   EscrowParams
         .\/ Endpoint "refund" EscrowParams
         .\/ Endpoint "redeem" EscrowParams
 
@@ -110,7 +108,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
   case action of
     Redeem ->
           -- Can't redeem after the deadline
-      let notLapsed = TimeSlot.slotToPOSIXTime (deadline params) `after` txInfoValidRange txInfo
+      let notLapsed = deadline params `after` txInfoValidRange txInfo
           -- Payee has to have been paid
           paid      = valuePaidTo txInfo (payee params) `geq` expecting params
        in traceIfFalse "escrow-deadline-lapsed" notLapsed
@@ -119,7 +117,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
           -- Has to be the person that locked value requesting the refund
       let signed = txInfo `txSignedBy` payee params
           -- And we only refund after the deadline has passed
-          lapsed = TimeSlot.slotToPOSIXTime (deadline params) `before` txInfoValidRange txInfo
+          lapsed = deadline params `before` txInfoValidRange txInfo
        in traceIfFalse "escrow-not-signed" signed
           && traceIfFalse "refund-too-early" lapsed
 
@@ -128,9 +126,9 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
 lockEp :: Contract () EscrowSchema EscrowError ()
 lockEp = do
   params <- endpoint @"lock"
-  let tx = Constraints.mustPayToTheScript params (paying params)
+  let valRange = Interval.to (Haskell.pred $ deadline params)
+      tx = Constraints.mustPayToTheScript params (paying params)
             <> Constraints.mustValidateIn valRange
-      valRange = Interval.to (Haskell.pred $ deadline params)
   void $ submitTxConstraints escrowInstance tx
 
 -- | Attempts to redeem the 'Value' locked into this script by paying in from
@@ -139,7 +137,7 @@ redeemEp :: Contract () EscrowSchema EscrowError RedeemSuccess
 redeemEp = mapError (review _EscrowError) $ endpoint @"redeem" >>= redeem
   where
     redeem params = do
-      slot <- currentSlot
+      time <- currentTime
       pk <- ownPubKey
       unspentOutputs <- utxoAt escrowAddress
 
@@ -151,7 +149,7 @@ redeemEp = mapError (review _EscrowError) $ endpoint @"redeem" >>= redeem
                       -- Pay the payee their due
                       <> Constraints.mustPayToPubKey (payee params) (expecting params)
 
-      if slot >= deadline params
+      if time >= deadline params
       then throwing _RedeemFailed DeadlinePassed
       else RedeemSuccess . txId <$> do submitTxConstraintsSpending escrowInstance unspentOutputs tx
 

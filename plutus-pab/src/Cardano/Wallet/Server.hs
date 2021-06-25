@@ -35,21 +35,19 @@ import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
 import           Ledger.Crypto                    (pubKeyHash)
-import           Ledger.Tx                        (TxOut (txOutValue), TxOutTx (txOutTxOut))
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           Plutus.PAB.Arbitrary             ()
 import qualified Plutus.PAB.Monitoring.Monitoring as LM
 import           Servant                          (Application, NoContent (..), hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                   (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
-import           Wallet.Effects                   (ownOutputs, ownPubKey, startWatching, submitTxn,
-                                                   updatePaymentWithChange, walletAddSignature, walletSlot)
+import           Wallet.Effects                   (balanceTx, ownPubKey, startWatching, submitTxn, totalFunds,
+                                                   walletAddSignature)
 import           Wallet.Emulator.Wallet           (Wallet (..), emptyWalletState)
 import qualified Wallet.Emulator.Wallet           as Wallet
 
 app :: Trace IO WalletMsg -> Client.TxSendHandle -> Client.ChainSyncHandle -> ClientEnv -> MVar Wallets -> Application
 app trace txSendHandle chainSyncHandle chainIndexEnv mVarState =
-    let totalFunds w = fmap (foldMap (txOutValue . txOutTxOut)) (multiWallet (Wallet w) ownOutputs) in
     serve (Proxy @(API Integer)) $
     hoistServer
         (Proxy @(API Integer))
@@ -57,10 +55,8 @@ app trace txSendHandle chainSyncHandle chainIndexEnv mVarState =
             createWallet :<|>
             (\w tx -> multiWallet (Wallet w) (submitTxn tx) >>= const (pure NoContent)) :<|>
             (\w -> (\pk -> WalletInfo{wiWallet = Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}) <$> multiWallet (Wallet w) ownPubKey) :<|>
-            (\w -> multiWallet (Wallet w) . uncurry updatePaymentWithChange) :<|>
-            (\w -> multiWallet (Wallet w) walletSlot) :<|>
-            (\w -> multiWallet (Wallet w) ownOutputs) :<|>
-            totalFunds :<|>
+            (\w -> multiWallet (Wallet w) . balanceTx) :<|>
+            (\w -> multiWallet (Wallet w) totalFunds) :<|>
             (\w tx -> multiWallet (Wallet w) (walletAddSignature tx))
 
 main :: Trace IO WalletMsg -> WalletConfig -> FilePath -> SlotConfig -> ChainIndexUrl -> Availability -> IO ()

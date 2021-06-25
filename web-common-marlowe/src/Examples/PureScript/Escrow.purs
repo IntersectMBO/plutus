@@ -24,10 +24,10 @@ fixedTimeoutContract =
     ( TemplateContent
         { slotContent:
             Map.fromFoldable
-              [ "Buyer's deposit timeout" /\ fromInt 60
-              , "Buyer's dispute timeout" /\ fromInt 180
-              , "Seller's response timeout" /\ fromInt 240
-              , "Timeout for arbitrage" /\ fromInt 360
+              [ "Buyer's deposit timeout" /\ fromInt 600
+              , "Buyer's dispute timeout" /\ fromInt 1800
+              , "Seller's response timeout" /\ fromInt 2400
+              , "Timeout for arbitrage" /\ fromInt 3600
               ]
         , valueContent: Map.empty
         }

@@ -45,6 +45,7 @@
           (hsPkgs."async" or (errorHandler.buildDepError "async"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
           (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
@@ -54,10 +55,6 @@
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."errors" or (errorHandler.buildDepError "errors"))
-          (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-          (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
-          (hsPkgs."eventful-sql-common" or (errorHandler.buildDepError "eventful-sql-common"))
-          (hsPkgs."eventful-sqlite" or (errorHandler.buildDepError "eventful-sqlite"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."generic-arbitrary" or (errorHandler.buildDepError "generic-arbitrary"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -75,8 +72,6 @@
           (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
           (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
           (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
-          (hsPkgs."persistent" or (errorHandler.buildDepError "persistent"))
-          (hsPkgs."persistent-sqlite" or (errorHandler.buildDepError "persistent-sqlite"))
           (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."process" or (errorHandler.buildDepError "process"))
@@ -113,6 +108,10 @@
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          (hsPkgs."beam-core" or (errorHandler.buildDepError "beam-core"))
+          (hsPkgs."beam-sqlite" or (errorHandler.buildDepError "beam-sqlite"))
+          (hsPkgs."beam-migrate" or (errorHandler.buildDepError "beam-migrate"))
+          (hsPkgs."sqlite-simple" or (errorHandler.buildDepError "sqlite-simple"))
           ];
         buildable = true;
         modules = [
@@ -154,21 +153,18 @@
           "Plutus/PAB/Core/ContractInstance/BlockchainEnv"
           "Plutus/PAB/Core/ContractInstance/RequestHandlers"
           "Plutus/PAB/Core/ContractInstance/STM"
-          "Plutus/PAB/Db/Eventful"
-          "Plutus/PAB/Db/Eventful/Command"
-          "Plutus/PAB/Db/Eventful/ContractDefinitionStore"
-          "Plutus/PAB/Db/Eventful/ContractStore"
-          "Plutus/PAB/Db/Eventful/Query"
+          "Plutus/PAB/Db/Beam"
+          "Plutus/PAB/Db/Beam/ContractStore"
+          "Plutus/PAB/Db/Beam/ContractDefinitionStore"
           "Plutus/PAB/Db/Memory/ContractStore"
           "Plutus/PAB/Effects/Contract"
           "Plutus/PAB/Effects/Contract/Builtin"
           "Plutus/PAB/Effects/Contract/ContractExe"
           "Plutus/PAB/Effects/ContractRuntime"
-          "Plutus/PAB/Effects/EventLog"
+          "Plutus/PAB/Effects/DbStore"
           "Plutus/PAB/Effects/UUID"
           "Plutus/PAB/Effects/TimeEffect"
           "Plutus/PAB/Instances"
-          "Plutus/PAB/Monitoring/MonadLoggerBridge"
           "Plutus/PAB/Monitoring/Monitoring"
           "Plutus/PAB/Monitoring/PABLogMsg"
           "Plutus/PAB/Monitoring/Config"
@@ -244,7 +240,6 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "Uniswap" ];
           hsSourceDirs = [ "examples/uniswap" ];
           mainPath = [ "Main.hs" ];
           };
@@ -312,8 +307,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-            (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -437,8 +430,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-            (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
@@ -477,8 +468,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
-            (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))

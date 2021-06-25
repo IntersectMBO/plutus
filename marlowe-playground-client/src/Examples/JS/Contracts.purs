@@ -259,17 +259,17 @@ couponBondGuaranteed =
 
     const contract: Contract =
         deposit(guaranteedAmount(3n), guarantor, investor,
-            30n, Close,
+            300n, Close,
             transfer(principal, investor, issuer,
-                60n, refundGuarantor(guaranteedAmount(3n), Close),
+                600n, refundGuarantor(guaranteedAmount(3n), Close),
                 transfer(instalment, issuer, investor,
-                    90n, giveCollateralToInvestor(guaranteedAmount(3n)),
+                    900n, giveCollateralToInvestor(guaranteedAmount(3n)),
                     refundGuarantor(instalment,
                         transfer(instalment, issuer, investor,
-                            120n, giveCollateralToInvestor(guaranteedAmount(2n)),
+                            1200n, giveCollateralToInvestor(guaranteedAmount(2n)),
                             refundGuarantor(instalment,
                                 transfer(lastInstalment, issuer, investor,
-                                    150n, giveCollateralToInvestor(guaranteedAmount(1n)),
+                                    1500n, giveCollateralToInvestor(guaranteedAmount(1n)),
                                     refundGuarantor(lastInstalment,
                                         Close))))))));
 
@@ -434,11 +434,11 @@ contractForDifferences =
     }
 
     const contract: Contract =
-        initialDeposit(party, 30n, Close,
-            initialDeposit(counterparty, 60n, refund(party, deposit, Close),
-                oracleInput(priceBeginning, 90n, refundBoth,
-                    wait(150n,
-                        oracleInput(priceEnd, 180n, refundBoth,
+        initialDeposit(party, 300n, Close,
+            initialDeposit(counterparty, 600n, refund(party, deposit, Close),
+                oracleInput(priceBeginning, 900n, refundBoth,
+                    wait(1500n,
+                        oracleInput(priceEnd, 1800n, refundBoth,
                             gtLtEq(ChoiceValue(priceBeginning), ChoiceValue(priceEnd),
                                 recordDifference(decreaseInPrice, priceBeginning, priceEnd,
                                     transferUpToDeposit(counterparty, party, UseValue(decreaseInPrice),
@@ -552,11 +552,11 @@ contractForDifferencesWithOracle =
     }
 
     const contract: Contract =
-        initialDeposit(party, 30n, Close,
-            initialDeposit(counterparty, 60n, refund(party, deposit, Close),
-                oracleInput(exchangeBeginning, 90n, refundBoth,
-                    wait(150n,
-                        oracleInput(exchangeEnd, 180n, refundBoth,
+        initialDeposit(party, 300n, Close,
+            initialDeposit(counterparty, 600n, refund(party, deposit, Close),
+                oracleInput(exchangeBeginning, 900n, refundBoth,
+                    wait(1500n,
+                        oracleInput(exchangeEnd, 1800n, refundBoth,
                             recordDelta(priceEnd, exchangeBeginning, exchangeEnd,
                                 gtLtEq(priceBeginning, UseValue(priceEnd),
                                     recordDifference(decreaseInPrice, priceBeginning, UseValue(priceEnd),

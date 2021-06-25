@@ -10,7 +10,8 @@ import Css as Css
 import Data.Array (filter, mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
-import Data.Map (Map, lookup)
+import Data.List (toUnfoldable) as List
+import Data.Map (Map, lookup, values)
 import Data.Map (toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String (null)
@@ -19,8 +20,8 @@ import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, 
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, readOnly, type_, value)
 import Humanize (humanizeValue)
-import InputField.Types (inputErrorToString)
 import InputField.Types (State) as InputField
+import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
 import Marlowe.Extended (contractTypeInitials)
 import Marlowe.Extended.Metadata (MetaData)
@@ -33,9 +34,9 @@ import Template.Format (formatText)
 import Template.Lenses (_contractName, _contractNickname, _metaData, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import WalletData.Lenses (_walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
-import WalletData.View (nicknamesDataList, nicknamesDataListId)
 
 contractSetupScreen :: forall p. WalletLibrary -> Slot -> State -> HTML p Action
 contractSetupScreen walletLibrary currentSlot state =
@@ -57,7 +58,7 @@ contractSetupScreen walletLibrary currentSlot state =
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
   in
     div
-      [ classNames [ "grid", "grid-rows-contract-setup", "max-h-full", "overflow-hidden" ] ]
+      [ classNames [ "grid", "grid-rows-contract-setup", "h-full", "overflow-hidden" ] ]
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
       , div -- the containing grid sets the height of this div
@@ -175,16 +176,15 @@ roleInputs walletLibrary metaData roleWalletInputs =
                 ]
                 [ icon_ AddCircle ]
             ]
-        , nicknamesDataList walletLibrary
         ]
 
   roleWalletInputDisplayOptions tokenName =
-    { baseCss: Css.inputCard
+    { baseCss: Css.inputCardNoFocus
     , additionalCss: [ "pr-9" ]
     , id_: tokenName
     , placeholder: "Choose any nickname"
     , readOnly: false
-    , datalistId: Just nicknamesDataListId
+    , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
     }
 
 parameterInputs :: forall p. Slot -> MetaData -> TemplateContent -> Map String String -> Boolean -> HTML p Action

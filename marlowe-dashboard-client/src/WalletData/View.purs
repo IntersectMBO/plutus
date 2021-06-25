@@ -3,8 +3,6 @@ module WalletData.View
   , walletDetailsCard
   , putdownWalletCard
   , walletLibraryScreen
-  , nicknamesDataList
-  , nicknamesDataListId
   ) where
 
 import Prelude hiding (div)
@@ -18,9 +16,9 @@ import Data.Newtype (unwrap)
 import Data.String (null)
 import Data.Tuple (Tuple(..))
 import Data.UUID (toString) as UUID
-import Halogen.HTML (HTML, button, datalist, div, h2, h3, h4, input, label, li, option, p, p_, text, ul_)
+import Halogen.HTML (HTML, button, div, h2, h3, h4, input, label, li, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (InputType(..), disabled, for, id_, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), disabled, for, readOnly, type_, value)
 import Humanize (humanizeValue)
 import InputField.Lenses (_value)
 import InputField.State (validate)
@@ -47,7 +45,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletNickname"
       , placeholder: "Nickname"
       , readOnly: false
-      , datalistId: Nothing
+      , valueOptions: mempty
       }
 
     walletIdInputDisplayOptions =
@@ -56,7 +54,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletId"
       , placeholder: "Wallet ID"
       , readOnly: false
-      , datalistId: Nothing
+      , valueOptions: mempty
       }
   in
     div
@@ -198,15 +196,3 @@ walletLibraryScreen library =
       , onClick_ $ OpenCard $ ViewWalletCard walletDetails
       ]
       [ text nickname ]
-
-nicknamesDataList :: forall p a. WalletLibrary -> HTML p a
-nicknamesDataList library =
-  datalist
-    [ id_ nicknamesDataListId ]
-    $ walletOption
-    <$> toUnfoldable library
-  where
-  walletOption (Tuple nickname _) = option [ value nickname ] []
-
-nicknamesDataListId :: String
-nicknamesDataListId = "walletNicknames"

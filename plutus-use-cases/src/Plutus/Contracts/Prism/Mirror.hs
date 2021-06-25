@@ -48,13 +48,11 @@ data CredentialOwnerReference =
     deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 type MirrorSchema =
-    BlockchainActions
-        .\/ Endpoint "issue" CredentialOwnerReference -- lock a single credential token in a state machine tied to the credential token owner
+        Endpoint "issue" CredentialOwnerReference -- lock a single credential token in a state machine tied to the credential token owner
         .\/ Endpoint "revoke" CredentialOwnerReference -- revoke a credential token token from its owner by calling 'Revoke' on the state machine instance
 
 mirror ::
-    ( HasBlockchainActions s
-    , HasEndpoint "revoke" CredentialOwnerReference s
+    ( HasEndpoint "revoke" CredentialOwnerReference s
     , HasEndpoint "issue" CredentialOwnerReference s
     )
     => Contract w s MirrorError ()
@@ -65,7 +63,6 @@ mirror = do
 
 createTokens ::
     ( HasEndpoint "issue" CredentialOwnerReference s
-    , HasBlockchainActions s
     )
     => CredentialAuthority
     -> Contract w s MirrorError ()
@@ -74,11 +71,11 @@ createTokens authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError IssueEndpointError $ endpoint @"issue"
     logInfo @String "Endpoint 'issue' called"
     let pk      = Credential.unCredentialAuthority authority
-        lookups = Constraints.monetaryPolicy (Credential.policy authority)
+        lookups = Constraints.mintingPolicy (Credential.policy authority)
                   <> Constraints.ownPubKeyHash pk
         theToken = Credential.token Credential{credAuthority=authority,credName=coTokenName}
         constraints =
-            Constraints.mustForgeValue theToken
+            Constraints.mustMintValue theToken
             <> Constraints.mustBeSignedBy pk
             <> Constraints.mustPayToPubKey pk (Ada.lovelaceValueOf 1)   -- Add self-spend to force an input
     _ <- mapError CreateTokenTxError $ do
@@ -88,15 +85,14 @@ createTokens authority = do
     void $ mapError StateMachineError $ runInitialise stateMachine Active theToken
 
 revokeToken ::
-    ( HasBlockchainActions s
-    , HasEndpoint "revoke" CredentialOwnerReference s
+    ( HasEndpoint "revoke" CredentialOwnerReference s
     )
     => CredentialAuthority
     -> Contract w s MirrorError ()
 revokeToken authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError RevokeEndpointError $ endpoint @"revoke"
     let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
-        lookups = Constraints.monetaryPolicy (Credential.policy authority) <>
+        lookups = Constraints.mintingPolicy (Credential.policy authority) <>
                   Constraints.ownPubKeyHash  (Credential.unCredentialAuthority authority)
     t <- mapError StateMachineError $ mkStep stateMachine RevokeCredential
     case t of

@@ -18,6 +18,8 @@ let
       (import ./overlays/r.nix)
     ];
 
+  iohkNixMain = import sources.iohk-nix { };
+
   # haskell-nix has to be used differently in flakes/no-flakes scenarios:
   # - When imported from flakes, 'haskellNix.overlay' needs to be passed here.
   # - When imported from default.nix without flakes, default to haskellNix.overlays
@@ -27,7 +29,13 @@ let
   # attribute paths when imported as flake/non-flake.
   haskellNixConfig = if isInFlake then haskellNix.internal.config else haskellNix.config;
 
-  extraOverlays = haskellNixOverlays ++ ownOverlays;
+  extraOverlays =
+    # Haskell.nix (https://github.com/input-output-hk/haskell.nix)
+    haskellNixOverlays
+    # our own overlays:
+    # needed for cardano-api wich uses a patched libsodium
+    ++ iohkNixMain.overlays.crypto
+    ++ ownOverlays;
 
   pkgs = import sources.nixpkgs {
     inherit system crossSystem;

@@ -201,7 +201,7 @@ validTrace = property $ do
 invalidTrace :: Property
 invalidTrace = property $ do
     (Mockchain m _, txn) <- forAll genChainTxn
-    let invalidTxn = txn { txForge = Ada.adaValueOf 1 }
+    let invalidTxn = txn { txMint = Ada.adaValueOf 1 }
         options = defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Right m
         trace = Trace.liftWallet wallet1 (submitTxn invalidTxn)
         pred = \case

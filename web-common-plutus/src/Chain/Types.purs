@@ -94,8 +94,8 @@ _tx = _Newtype <<< prop (SProxy :: SProxy "tx")
 _txFee :: Lens' Tx Value
 _txFee = _Newtype <<< prop (SProxy :: SProxy "txFee")
 
-_txForge :: Lens' Tx Value
-_txForge = _Newtype <<< prop (SProxy :: SProxy "txForge")
+_txMint :: Lens' Tx Value
+_txMint = _Newtype <<< prop (SProxy :: SProxy "txMint")
 
 _txValidRange :: Lens' Tx (Interval Slot)
 _txValidRange = _Newtype <<< prop (SProxy :: SProxy "txValidRange")
