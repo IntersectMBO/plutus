@@ -210,6 +210,7 @@
           "PlutusCore/Evaluation/Result"
           "PlutusCore/Examples/Builtins"
           "PlutusCore/Examples/Everything"
+          "PlutusCore/FilePaths"
           "PlutusCore/Flat"
           "PlutusCore/FsTree"
           "PlutusCore/Generators"
