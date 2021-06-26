@@ -49,7 +49,7 @@ renderHeader walletNickname menuOpen =
     [ classNames
         $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1", "px-4", "md:px-5pc" ]
         -- in case the menu is open when the user makes their window wider, we make sure the menuOpen styles only apply on small screens ...
-
+        
         <> toggleWhen menuOpen [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] [ "border-b", "border-gray" ]
     ]
     [ img
