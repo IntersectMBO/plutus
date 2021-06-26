@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TypeApplications   #-}
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're NOINLINE!
@@ -14,6 +15,7 @@ import           Data.ByteString      as BS
 import qualified Data.ByteString.Hash as Hash
 import           Data.Coerce
 import           Data.Maybe           (fromMaybe)
+import qualified PlutusCore.Data      as PLC
 import           PlutusTx.Utils
 
 {- Note [Builtin name definitions]
@@ -229,6 +231,10 @@ fst (BuiltinPair (a, _)) = a
 snd :: BuiltinPair a b -> b
 snd (BuiltinPair (_, b)) = b
 
+{-# NOINLINE mkPairData #-}
+mkPairData :: BuiltinData -> BuiltinData -> BuiltinPair BuiltinData BuiltinData
+mkPairData d1 d2 = BuiltinPair (d1, d2)
+
 {-
 LIST
 -}
@@ -249,3 +255,84 @@ head (BuiltinList [])    = Prelude.error "empty list"
 tail :: BuiltinList a -> BuiltinList a
 tail (BuiltinList (_:xs)) = coerce xs
 tail (BuiltinList [])     = Prelude.error "empty list"
+
+{-# NOINLINE mkNilData #-}
+mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
+mkNilData _ = BuiltinList []
+
+{-# NOINLINE mkConsData #-}
+mkConsData :: BuiltinData -> BuiltinList BuiltinData -> BuiltinList BuiltinData
+mkConsData d (BuiltinList ds) = BuiltinList (d:ds)
+
+{-# NOINLINE mkNilPairData #-}
+mkNilPairData :: BuiltinUnit -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+mkNilPairData _ = BuiltinList []
+
+{-# NOINLINE mkConsPairData #-}
+mkConsPairData :: BuiltinPair BuiltinData BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData) -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+mkConsPairData d (BuiltinList ds) = BuiltinList (d:ds)
+
+{-
+DATA
+-}
+
+newtype BuiltinData = BuiltinData { unsafeGetData :: PLC.Data }
+    deriving newtype (Show, Eq, Ord)
+
+{-# NOINLINE chooseData #-}
+chooseData :: forall a . a -> a -> a -> a -> a -> BuiltinData -> a
+chooseData constrCase mapCase listCase iCase bCase (BuiltinData d) = case d of
+    PLC.Constr{} -> constrCase
+    PLC.Map{}    -> mapCase
+    PLC.List{}   -> listCase
+    PLC.I{}      -> iCase
+    PLC.B{}      -> bCase
+
+{-# NOINLINE mkConstr #-}
+mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData
+mkConstr i args = BuiltinData (PLC.Constr i (coerce args))
+
+{-# NOINLINE mkMap #-}
+mkMap :: BuiltinList (BuiltinPair BuiltinData BuiltinData) -> BuiltinData
+mkMap es = BuiltinData (PLC.Map (coerce es))
+
+{-# NOINLINE mkList #-}
+mkList :: BuiltinList BuiltinData -> BuiltinData
+mkList l = BuiltinData (PLC.List (coerce l))
+
+{-# NOINLINE mkI #-}
+mkI :: BuiltinInteger -> BuiltinData
+mkI i = BuiltinData (PLC.I i)
+
+{-# NOINLINE mkB #-}
+mkB :: BuiltinByteString -> BuiltinData
+mkB b = BuiltinData (PLC.B b)
+
+{-# NOINLINE unsafeDataAsConstr #-}
+unsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
+unsafeDataAsConstr (BuiltinData (PLC.Constr i args)) = BuiltinPair (i, coerce args)
+unsafeDataAsConstr _                                 = Prelude.error "not a Constr"
+
+{-# NOINLINE unsafeDataAsMap #-}
+unsafeDataAsMap :: BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+unsafeDataAsMap (BuiltinData (PLC.Map m)) = coerce m
+unsafeDataAsMap _                         = Prelude.error "not a Map"
+
+{-# NOINLINE unsafeDataAsList #-}
+unsafeDataAsList :: BuiltinData -> BuiltinList BuiltinData
+unsafeDataAsList (BuiltinData (PLC.List l)) = coerce l
+unsafeDataAsList _                          = Prelude.error "not a List"
+
+{-# NOINLINE unsafeDataAsI #-}
+unsafeDataAsI :: BuiltinData -> BuiltinInteger
+unsafeDataAsI (BuiltinData (PLC.I i)) = i
+unsafeDataAsI _                       = Prelude.error "not an I"
+
+{-# NOINLINE unsafeDataAsB #-}
+unsafeDataAsB :: BuiltinData -> BuiltinByteString
+unsafeDataAsB (BuiltinData (PLC.B b)) = b
+unsafeDataAsB _                       = Prelude.error "not a B"
+
+{-# NOINLINE equalsData #-}
+equalsData :: BuiltinData -> BuiltinData -> BuiltinBool
+equalsData (BuiltinData b1) (BuiltinData b2) = coerce $ b1 Prelude.== b2

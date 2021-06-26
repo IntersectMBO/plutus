@@ -78,10 +78,11 @@ module PlutusTx.Prelude (
     fromInteger,
     round,
     divMod,
-    quotRem,
+    quotRem
     ) where
 
 import           Data.String          (IsString (..))
+import           PlutusCore.Data      (Data (..))
 import           PlutusTx.Applicative as Applicative
 import           PlutusTx.Bool        as Bool
 import           PlutusTx.Builtins    (BuiltinString, ByteString, appendString, charToString, concatenate,
@@ -94,6 +95,7 @@ import           PlutusTx.Enum        as Enum
 import           PlutusTx.Eq          as Eq
 import           PlutusTx.Foldable    as Foldable
 import           PlutusTx.Functor     as Functor
+import           PlutusTx.IsData
 import           PlutusTx.Lattice     as Lattice
 import           PlutusTx.List        as List hiding (foldr)
 import           PlutusTx.Maybe       as Maybe

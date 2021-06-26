@@ -91,6 +91,13 @@ data DefaultFun
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
     | ChooseUnit
+    -- Monomorphic constructors that we need for constructing e.g. Data, since polymorphic builtin
+    -- constructors are still problematic (See note [Representable built-in functions over polymorphic built-in types])
+    | MkPairData
+    | MkNilData
+    | MkConsData
+    | MkNilPairData
+    | MkConsPairData
     -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
     | Nop1
     | Nop2
@@ -333,6 +340,28 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() a -> a)
             mempty
+    toBuiltinMeaning MkPairData =
+        makeBuiltinMeaning
+            ((,) :: Data -> Data -> (Data, Data))
+            mempty
+    toBuiltinMeaning MkNilData =
+        -- Nullary builtins don't work, so we need a unit argument
+        makeBuiltinMeaning
+            ((\() -> []) :: () -> [Data])
+            mempty
+    toBuiltinMeaning MkConsData =
+        makeBuiltinMeaning
+            ((:) :: Data -> [Data] -> [Data])
+            mempty
+    toBuiltinMeaning MkNilPairData =
+        -- Nullary builtins don't work, so we need a unit argument
+        makeBuiltinMeaning
+            ((\() -> []) :: () -> [(Data,Data)])
+            mempty
+    toBuiltinMeaning MkConsPairData =
+        makeBuiltinMeaning
+            ((:) :: (Data, Data) -> [(Data, Data)] -> [(Data, Data)])
+            mempty
 
 -- See Note [Stable encoding of PLC]
 instance Serialise DefaultFun where
@@ -386,6 +415,11 @@ instance Serialise DefaultFun where
               EqualsData               -> 46
               ChooseData               -> 47
               ChooseUnit               -> 48
+              MkPairData               -> 49
+              MkNilData                -> 50
+              MkConsData               -> 51
+              MkNilPairData            -> 52
+              MkConsPairData           -> 53
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -437,6 +471,11 @@ instance Serialise DefaultFun where
               go 46 = pure EqualsData
               go 47 = pure ChooseData
               go 48 = pure ChooseUnit
+              go 49 = pure MkPairData
+              go 50 = pure MkNilData
+              go 51 = pure MkConsData
+              go 52 = pure MkNilPairData
+              go 53 = pure MkConsPairData
               go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
@@ -504,6 +543,11 @@ instance Flat DefaultFun where
               EqualsData               -> 46
               ChooseData               -> 47
               ChooseUnit               -> 48
+              MkPairData               -> 49
+              MkNilData                -> 50
+              MkConsData               -> 51
+              MkNilPairData            -> 52
+              MkConsPairData           -> 53
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -555,6 +599,11 @@ instance Flat DefaultFun where
               go 46 = pure EqualsData
               go 47 = pure ChooseData
               go 48 = pure ChooseUnit
+              go 49 = pure MkPairData
+              go 50 = pure MkNilData
+              go 51 = pure MkConsData
+              go 52 = pure MkNilPairData
+              go 53 = pure MkConsPairData
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth

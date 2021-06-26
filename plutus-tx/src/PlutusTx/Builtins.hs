@@ -1,4 +1,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+-- DON'T turn on -fno-specialise if you can avoid id, see Note [Specializing recursive FromBuiltin instances]
+
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
                                 -- * Bytestring builtins
@@ -30,7 +33,20 @@ module PlutusTx.Builtins (
                                 -- * Error
                                 , error
                                 -- * Data
-                                , Data (..)
+                                , BuiltinData
+                                , chooseData
+                                , matchData
+                                , equalsData
+                                , mkConstr
+                                , mkMap
+                                , mkList
+                                , mkI
+                                , mkB
+                                , unsafeDataAsConstr
+                                , unsafeDataAsMap
+                                , unsafeDataAsList
+                                , unsafeDataAsI
+                                , unsafeDataAsB
                                 -- * Strings
                                 , BuiltinString
                                 , appendString
@@ -45,10 +61,8 @@ module PlutusTx.Builtins (
 import           Data.ByteString            as BS
 import           Prelude                    hiding (String, error)
 
-import           PlutusCore.Data
-
 import           PlutusTx.Builtins.Class
-import           PlutusTx.Builtins.Internal (BuiltinString)
+import           PlutusTx.Builtins.Internal (BuiltinData, BuiltinString)
 import qualified PlutusTx.Builtins.Internal as BI
 
 {-# INLINABLE concatenate #-}
@@ -190,7 +204,6 @@ charToString c = BI.charToString (toBuiltin c)
 -- | Check if two strings are equal
 equalsString :: BuiltinString -> BuiltinString -> Bool
 equalsString x y = fromBuiltin (BI.equalsString x y)
-
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
 trace :: BuiltinString -> a -> a
@@ -200,3 +213,70 @@ trace s = BI.chooseUnit (BI.trace s)
 -- | Convert a String into a ByteString.
 encodeUtf8 :: BuiltinString -> ByteString
 encodeUtf8 s = fromBuiltin (BI.encodeUtf8 s)
+
+{-# INLINABLE chooseData #-}
+chooseData :: forall a . a -> a -> a -> a -> a -> BuiltinData -> a
+chooseData = BI.chooseData
+
+{-# INLINABLE mkConstr #-}
+mkConstr :: Integer -> [BuiltinData] -> BuiltinData
+mkConstr i args = BI.mkConstr (toBuiltin i) (toBuiltin args)
+
+{-# INLINABLE mkMap #-}
+mkMap :: [(BuiltinData, BuiltinData)] -> BuiltinData
+mkMap es = BI.mkMap (toBuiltin es)
+
+{-# INLINABLE mkList #-}
+mkList :: [BuiltinData] -> BuiltinData
+mkList l = BI.mkList (toBuiltin l)
+
+{-# INLINABLE mkI #-}
+mkI :: Integer -> BuiltinData
+mkI i = BI.mkI (toBuiltin i)
+
+{-# INLINABLE mkB #-}
+mkB :: ByteString -> BuiltinData
+mkB b = BI.mkB (toBuiltin b)
+
+{-# INLINABLE unsafeDataAsConstr #-}
+unsafeDataAsConstr :: BuiltinData -> (Integer, [BuiltinData])
+unsafeDataAsConstr d = fromBuiltin (BI.unsafeDataAsConstr d)
+
+{-# INLINABLE unsafeDataAsMap #-}
+unsafeDataAsMap :: BuiltinData -> [(BuiltinData, BuiltinData)]
+unsafeDataAsMap d = fromBuiltin (BI.unsafeDataAsMap d)
+
+{-# INLINABLE unsafeDataAsList #-}
+unsafeDataAsList :: BuiltinData -> [BuiltinData]
+unsafeDataAsList d = fromBuiltin (BI.unsafeDataAsList d)
+
+{-# INLINABLE unsafeDataAsI #-}
+unsafeDataAsI :: BuiltinData -> Integer
+unsafeDataAsI d = fromBuiltin (BI.unsafeDataAsI d)
+
+{-# INLINABLE unsafeDataAsB #-}
+unsafeDataAsB :: BuiltinData -> ByteString
+unsafeDataAsB d = fromBuiltin (BI.unsafeDataAsB d)
+
+{-# INLINABLE equalsData #-}
+equalsData :: BuiltinData -> BuiltinData -> Bool
+equalsData d1 d2 = fromBuiltin (BI.equalsData d1 d2)
+
+{-# INLINABLE matchData #-}
+matchData
+    :: BuiltinData
+    -> (Integer -> [BuiltinData] -> r)
+    -> ([(BuiltinData, BuiltinData)] -> r)
+    -> ([BuiltinData] -> r)
+    -> (Integer -> r)
+    -> (BS.ByteString -> r)
+    -> r
+matchData d constrCase mapCase listCase iCase bCase =
+   chooseData
+   (\() -> uncurry constrCase (unsafeDataAsConstr d))
+   (\() -> mapCase (unsafeDataAsMap d))
+   (\() -> listCase (unsafeDataAsList d))
+   (\() -> iCase (unsafeDataAsI d))
+   (\() -> bCase (unsafeDataAsB d))
+   d
+   ()

@@ -32,6 +32,10 @@ instance Eq Builtins.ByteString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsByteString
 
+instance Eq Builtins.BuiltinData where
+    {-# INLINABLE (==) #-}
+    (==) = Builtins.equalsData
+
 instance Eq Builtins.BuiltinString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsString
