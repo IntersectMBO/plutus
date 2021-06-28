@@ -24,7 +24,7 @@ import MarloweEditor.BottomPanel (panelContents)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, contractHasErrors, contractHasHoles)
 import Popper (Placement(..))
 import Tooltip.State (tooltip)
-import Tooltip.Types (RefferenceId(..))
+import Tooltip.Types (ReferenceId(..))
 
 render ::
   forall m.

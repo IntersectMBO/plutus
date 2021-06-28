@@ -27,7 +27,7 @@ import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon)
 import Popper (Placement(..))
 import Tooltip.State (tooltip)
-import Tooltip.Types (RefferenceId(..))
+import Tooltip.Types (ReferenceId(..))
 
 contractsScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 contractsScreen currentSlot state =

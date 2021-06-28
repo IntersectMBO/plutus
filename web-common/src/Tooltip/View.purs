@@ -22,6 +22,5 @@ render state =
         , classNames [ "tooltip-arrow" ]
         ]
         []
-    , text
-        $ state.message
+    , text state.message
     ]

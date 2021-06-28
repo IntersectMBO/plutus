@@ -6,26 +6,26 @@ import Data.Newtype (class Newtype)
 import Halogen (RefLabel(..))
 import Popper (Placement, PopperInstance)
 
-newtype RefferenceId
+newtype ReferenceId
   = RefId String
 
-derive instance newtypeRefferenceId :: Newtype RefferenceId _
+derive instance newtypeReferenceId :: Newtype ReferenceId _
 
-derive newtype instance eqRefferenceId :: Eq RefferenceId
+derive newtype instance eqReferenceId :: Eq ReferenceId
 
-derive newtype instance ordRefferenceId :: Ord RefferenceId
+derive newtype instance ordReferenceId :: Ord ReferenceId
 
 type State
   = { message :: String
     , active :: Boolean
-    , reference :: RefferenceId
+    , reference :: ReferenceId
     , placement :: Placement
     , mPopperInstance :: Maybe PopperInstance
     }
 
 type Input
   = { message :: String
-    , reference :: RefferenceId
+    , reference :: ReferenceId
     , placement :: Placement
     }
 

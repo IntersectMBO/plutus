@@ -38,7 +38,7 @@ import Rename.Types as Rename
 import Router (Route)
 import SaveAs.Types as SaveAs
 import SimulationPage.Types as Simulation
-import Tooltip.Types (RefferenceId)
+import Tooltip.Types (ReferenceId)
 import Types (WebData)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 
@@ -147,7 +147,7 @@ type ChildSlots
     , simulationSlot :: H.Slot Simulation.Query Blockly.Message Unit
     , simulatorEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , marloweEditorPageSlot :: H.Slot Monaco.Query Monaco.Message Unit
-    , tooltipSlot :: forall query. H.Slot query Void RefferenceId
+    , tooltipSlot :: forall query. H.Slot query Void ReferenceId
     )
 
 _haskellEditorSlot :: SProxy "haskellEditorSlot"
@@ -173,9 +173,6 @@ _marloweEditorPageSlot = SProxy
 
 _walletSlot :: SProxy "walletSlot"
 _walletSlot = SProxy
-
-_tooltipSlot :: SProxy "tooltipSlot"
-_tooltipSlot = SProxy
 
 -----------------------------------------------------------
 type State

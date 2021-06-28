@@ -5,7 +5,6 @@ module MainFrame.Types
   , Query(..)
   , Msg(..)
   , Action(..)
-  , _tooltipSlot
   ) where
 
 import Prelude
@@ -15,7 +14,6 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Data.Symbol (SProxy(..))
 import Halogen as H
 import Marlowe.PAB (PlutusAppId, CombinedWSStreamToServer)
 import Marlowe.Semantics (Slot)
@@ -23,7 +21,7 @@ import Pickup.Types (Action, State) as Pickup
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Toast.Types (Action, State) as Toast
-import Tooltip.Types (RefferenceId)
+import Tooltip.Types (ReferenceId)
 import WalletData.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
@@ -51,11 +49,8 @@ instance showWebSocketStatus :: Show WebSocketStatus where
 
 ------------------------------------------------------------
 type ChildSlots
-  = ( tooltipSlot :: forall query. H.Slot query Void RefferenceId
+  = ( tooltipSlot :: forall query. H.Slot query Void ReferenceId
     )
-
-_tooltipSlot :: SProxy "tooltipSlot"
-_tooltipSlot = SProxy
 
 ------------------------------------------------------------
 data Query a

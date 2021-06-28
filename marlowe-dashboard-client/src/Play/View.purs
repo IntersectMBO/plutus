@@ -24,7 +24,7 @@ import Popper (Placement(..))
 import Prim.TypeError (class Warn, Text)
 import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
 import Tooltip.State (tooltip)
-import Tooltip.Types (RefferenceId(..))
+import Tooltip.Types (ReferenceId(..))
 import WalletData.Lenses (_assets, _walletNickname)
 import WalletData.View (putdownWalletCard, saveWalletCard, walletDetailsCard, walletLibraryScreen)
 

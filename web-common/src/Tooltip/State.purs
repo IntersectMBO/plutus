@@ -15,7 +15,7 @@ import Halogen.HTML (ComponentHTML, HTML, slot)
 import Halogen.Query.EventSource (eventListenerEventSource)
 import Popper (OffsetOption(..), PaddingOption(..), Placement, PositioningStrategy(..), arrow, createPopper, defaultModifiers, defaultPreventOverflow, destroyPopper, forceUpdate, offset, pAll, preventOverflow)
 import Tooltip.Lenses (_active, _mPopperInstance, _message, _placement)
-import Tooltip.Types (Action(..), Input, RefferenceId(..), State, arrowRef, tooltipRef)
+import Tooltip.Types (Action(..), Input, ReferenceId(..), State, arrowRef, tooltipRef)
 import Tooltip.View (render)
 import Web.DOM.NonElementParentNode (getElementById)
 import Web.Event.Event (EventType(..))
@@ -31,9 +31,9 @@ tooltip ::
   forall slots m action.
   MonadAff m =>
   String ->
-  RefferenceId ->
+  ReferenceId ->
   Placement ->
-  ComponentHTML action ( tooltipSlot :: forall query. Slot query Void RefferenceId | slots ) m
+  ComponentHTML action ( tooltipSlot :: forall query. Slot query Void ReferenceId | slots ) m
 tooltip message reference placement = slot _tooltipSlot reference component { message, reference, placement } absurd
 
 initialState :: Input -> State
