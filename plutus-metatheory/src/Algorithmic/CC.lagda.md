@@ -802,7 +802,8 @@ caseP M M' E (ruleEC E' x p p') | done VM with dissect E | inspect dissect E
 ... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq =
   ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p VM))) x) 
 ... | inj₂ (_ ,, E'' ,, (-· N)) | I[ eq ] rewrite dissect-inj₂ E E'' (-· N) eq with rlemma51! (E [ M ]ᴱ)
-... | done VEM = {!!} --impossible I hope
+... | done VEM rewrite dissect-inj₂ E E'' (-· N) eq =
+  ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p VEM))) x) 
 ... | step x₁ E₁ x₂ x₃ U rewrite dissect-inj₂ E E'' (-· N) eq with U E' p (β x)
 ... | refl ,, refl ,, refl with rlemma51! N
 ... | done x₄ = {!!} -- argV

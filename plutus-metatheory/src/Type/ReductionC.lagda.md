@@ -947,6 +947,8 @@ dissect'-lemma (μl E B) E' F p with dissect' E | inspect dissect' E
 dissect'-lemma (μl .[] B) .[] .(μ- B) refl | inj₁ (refl , refl) | r = refl
 dissect'-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (λ E → μl E B) (dissect'-lemma E E'' F' eq)
 
+-- this handles the case analysis for the main theorem but it stops
+-- short of handling the change of direction I think.
 lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
     (L : ∅ ⊢⋆ I ⇒ J') N
   → (VM : Value⋆ M) → (VL : Value⋆ L) → Value⋆ N
@@ -1019,6 +1021,9 @@ lemmaX M E E' L N VM VL VN p | inj₂ (I , E'' , (x ·-)) | I[_] eq | (refl , re
 
 variable J'' : Kind
 
+-- this lemma handles the change of direction necessary to go looking
+-- looking in `B` for the redex when we are currently looking in `A`
+-- in `A => B` for example.
 {-# TERMINATING #-}
 case2 : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)
   → (VM : Value⋆ M)

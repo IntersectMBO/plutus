@@ -324,6 +324,11 @@ unwind A A' E p VA' = subst-step*
 open import Data.Empty
 open import Relation.Nullary
 
+
+-- I think this gets around the issue that the CC machine slightl
+-- optimises the treatment of function application and doesn't put the
+-- application back in focus as reduction does. This is handled by a
+-- variation on the machine the text book.
 lemmaF : ∀ (M : ∅ ⊢⋆ J)(F : Frame K J)(E : EvalCtx K' K)
       → ∀ (E' : EvalCtx K J')(L : ∅ ⊢⋆ I ⇒ J') N (V : Value⋆ M)
       → (VL : Value⋆ L) → (VN : Value⋆ N)
