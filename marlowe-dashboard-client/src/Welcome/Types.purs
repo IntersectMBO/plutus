@@ -23,7 +23,9 @@ type State
     }
 
 data Card
-  = ConnectNewWalletCard
+  = GetStartedHelpCard
+  | GenerateWalletHelpCard
+  | ConnectNewWalletCard
   | ConnectWalletCard
   | LocalWalletMissingCard
 

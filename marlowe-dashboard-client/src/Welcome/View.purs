@@ -1,18 +1,17 @@
 module Welcome.View (renderWelcomeState) where
 
 import Prelude hiding (div)
-
-import Css (classNames)
+import Css (bgBlueGradient, classNames)
 import Css as Css
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
 import Data.Maybe (isJust, isNothing)
-import Halogen.HTML (HTML, a, button, div, div_, footer, header, hr, img, label, main, p, span_, text)
+import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, img, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (disabled, for, href, src)
-import Images (arrowBack, marloweRunLogo)
+import Images (backgroundShape, marloweRunLogo)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.View (renderInput)
@@ -28,11 +27,8 @@ renderWelcomeState state =
   div
     [ classNames [ "grid", "h-full", "relative", "overflow-x-hidden" ] ]
     [ div
-        [ classNames
-            $ [ "absolute", "top-0", "-right-64", "w-160", "h-32", "bg-link-highlight", "bg-cover", "opacity-10", "transform", "rotate-180" ]
-            <> [ "md:w-256", "md:h-48" ]
-        ]
-        []
+        [ classNames $ [ "hidden", "lg:block", "absolute", "top-0", "right-0" ] ]
+        [ img [ src backgroundShape ] ]
     , main
         [ classNames [ "relative" ] ]
         -- In the Play view, there are potentially many cards all inside a containing div,
@@ -49,13 +45,13 @@ renderWelcomeState state =
 renderWelcomeScreen :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
 renderWelcomeScreen state =
   div
-    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "z-0", "grid", "gap-4", "grid-rows-welcome", "md:grid-cols-welcome" ] ]
-    [ useWallet state
-    , gettingStarted
+    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "p-4", "z-0", "grid", "gap-8", "grid-rows-welcome", "lg:grid-cols-welcome" ] ]
+    [ useWalletBox state
+    , gettingStartedBox
     ]
 
-useWallet :: forall p. State -> HTML p Action
-useWallet state =
+useWalletBox :: forall p. State -> HTML p Action
+useWalletBox state =
   let
     walletLibrary = view _walletLibrary state
 
@@ -65,32 +61,52 @@ useWallet state =
 
     walletNicknameOrIdInputDisplayOptions =
       { baseCss: Css.inputNoFocus
-      , additionalCss: [ "pr-9" ]
+      , additionalCss: mempty
       , id_: "existingWallet"
-      , placeholder: "Enter a wallet ID/nickname"
+      , placeholder: "Choose wallet or paste key"
       , readOnly: false
       , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
       }
   in
     main
-      [ classNames [ "row-start-2", "md:col-start-2", "bg-white", "rounded-lg", "shadow-lg", "p-4", "max-w-sm", "mx-auto" ] ]
+      [ classNames [ "row-start-2", "lg:col-start-2", "bg-white", "rounded-lg", "shadow-lg", "p-8", "pt-12", "lg:px-12", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box" ] ]
       [ img
-          [ classNames [ "w-4/5", "mx-auto", "mb-6", "text-center" ]
+          [ classNames [ "mx-auto", "mb-6", "text-center" ]
           , src marloweRunLogo
           ]
       , p
           [ classNames [ "mb-4", "text-center" ] ]
-          [ text "To use Marlowe Run, generate a new demo wallet." ]
+          [ text "To being using the Marlowe Run demo, generate a new demo wallet." ]
       , button
           [ classNames $ Css.primaryButton <> [ "w-full", "mb-4", "text-center" ]
           , onClick_ GenerateWallet
           ]
           [ text "Generate demo wallet" ]
+      , a
+          [ classNames [ "block", "text-purple", "text-center", "font-semibold", "mb-4" ]
+          , onClick_ $ OpenCard GenerateWalletHelpCard
+          ]
+          [ text "Why do I need to do this?" ]
       , hr [ classNames [ "mb-4", "max-w-xs", "mx-auto" ] ]
       , p
           [ classNames [ "mb-4", "text-center" ] ]
-          [ text "Or use an existing one by entering a wallet ID or nickname." ]
+          [ text "Or select an existing demo wallet from the list or paste in a demo wallet key." ]
       , WalletNicknameOrIdInputAction <$> renderInput walletNicknameOrIdInput walletNicknameOrIdInputDisplayOptions
+      , div
+          [ classNames [ "mt-6", "flex", "justify-between" ] ]
+          [ a
+              [ classNames [ "flex", "font-bold" ]
+              , href "https://staging.marlowe-web.iohkdev.io"
+              ]
+              [ icon_ Previous
+              , text "Back to home page"
+              ]
+          , a
+              [ classNames [ "font-bold" ]
+              , href "docs"
+              ]
+              [ text "Docs" ]
+          ]
       ]
   where
   walletList walletDetails =
@@ -100,13 +116,32 @@ useWallet state =
       ]
       [ text $ view _walletNickname walletDetails ]
 
-gettingStarted :: forall p. HTML p Action
-gettingStarted =
+gettingStartedBox :: forall p. HTML p Action
+gettingStartedBox =
   div
-    [ classNames [ "row-start-3", "md:row-start-2", "md:col-start-3", "max-w-sm", "mx-auto", "flex", "flex-col", "justify-center" ] ]
+    [ classNames [ "row-start-3", "lg:row-start-2", "lg:col-start-3", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box", "flex", "flex-col", "justify-center" ] ]
     [ a
-        [ classNames [ "text-purple" ] ]
-        [ text "Watch our get started tutorial"]
+        [ classNames [ "text-purple", "text-center", "lg:hidden" ]
+        , onClick_ $ OpenCard GetStartedHelpCard
+        ]
+        [ icon Play $ bgBlueGradient <> [ "text-3xl", "text-white", "rounded-full" ]
+        , br_
+        , text "Watch our get started tutorial"
+        ]
+    , div
+        [ classNames [ "hidden", "lg:block" ] ]
+        [ a
+            [ classNames [ "block", "relative", "rounded-lg", "shadow-lg", "bg-get-started-thumbnail", "bg-cover", "w-full", "h-welcome-box", "mb-6" ]
+            , onClick_ $ OpenCard GetStartedHelpCard
+            ]
+            [ icon Play $ bgBlueGradient <> [ "absolute", "bottom-4", "right-4", "text-3xl", "text-white", "rounded-full" ] ]
+        , p
+            [ classNames [ "font-semibold", "text-lg", "text-center" ] ]
+            [ text "New to Marlowe Run?" ]
+        , p
+            [ classNames [ "text-lg", "text-center" ] ]
+            [ text "Watch our get started tutorial" ]
+        ]
     ]
 
 ------------------------------------------------------------
@@ -120,10 +155,54 @@ renderWelcomeCard state =
       [ div
           [ classNames $ Css.card $ isNothing card ]
           $ (flip foldMap card) \cardType -> case cardType of
+              GetStartedHelpCard -> getStartedHelpCard
+              GenerateWalletHelpCard -> generateWalletHelpCard
               ConnectNewWalletCard -> connectNewWalletCard state
               ConnectWalletCard -> connectWalletCard state
               LocalWalletMissingCard -> localWalletMissingCard
       ]
+
+getStartedHelpCard :: forall p. Array (HTML p Action)
+getStartedHelpCard =
+  [ a
+      [ classNames [ "absolute", "top-4", "right-4" ]
+      , onClick_ $ CloseCard GetStartedHelpCard
+      ]
+      [ icon_ Close ]
+  , div_
+      -- FIXME: embed the get started video
+      [ text "[video goes here]" ]
+  ]
+
+generateWalletHelpCard :: forall p. Array (HTML p Action)
+generateWalletHelpCard =
+  [ div
+      [ classNames [ "text-white", "bg-black", "p-4" ] ]
+      -- FIXME: embed the generate wallet video
+      [ text "[video goes here]" ]
+  , div
+      [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
+      [ h2
+          [ classNames [ "font-semibold", "mb-4" ] ]
+          [ text "Why generate a demo wallet?" ]
+      , p
+          [ classNames [ "mb-4" ] ]
+          [ text "Demo wallets are used so you can play around with the app and all its incredible features without using your own tokens from your real wallet." ]
+      , div
+          [ classNames [ "flex" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              , onClick_ $ CloseCard GenerateWalletHelpCard
+              ]
+              [ text "Cancel" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1" ]
+              , onClick_ $ CloseCard GenerateWalletHelpCard
+              ]
+              [ text "Got it" ]
+          ]
+      ]
+  ]
 
 connectNewWalletCard :: forall p. State -> Array (HTML p Action)
 connectNewWalletCard state =
@@ -159,7 +238,7 @@ connectNewWalletCard state =
         , onClick_ $ CloseCard ConnectNewWalletCard
         ]
         [ icon_ Close ]
-    , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
+    , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
         [ p
             [ classNames [ "font-bold", "mb-4" ] ]
             [ text $ "Demo wallet generated" ]
@@ -232,7 +311,7 @@ connectWalletCard state =
         , onClick_ $ CloseCard ConnectWalletCard
         ]
         [ icon_ Close ]
-    , div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
+    , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
         [ p
             [ classNames [ "font-bold", "mb-4", "truncate", "w-11/12" ] ]
             [ text $ "Play wallet " <> view _value walletNicknameInput ]
@@ -283,7 +362,7 @@ localWalletMissingCard =
       , span_ [ text "Wallet not found" ]
       ]
   , div
-      [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
+      [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
       [ p
           [ classNames [ "mb-4" ] ]
           [ text "A wallet that you have previously used is no longer available in our demo server. This is probably because the demo server has been updated. (Note that this demo is in continuous development, and data is not preserved between updates.) We recommend that you use the button below to clear your browser's cache for this site and start again." ]

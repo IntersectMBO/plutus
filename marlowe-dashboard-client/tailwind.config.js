@@ -62,6 +62,7 @@ module.exports = {
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
       backgroundImage: theme => ({
+        "get-started-thumbnail": "url('/static/images/get-started-thumbnail.jpg')",
         "link-highlight": "url('/static/images/link-highlight.svg')",
       }),
       keyframes: {
@@ -95,12 +96,14 @@ module.exports = {
         sm: "375px",
         md: "640px",
         lg: "768px",
+        "welcome-box": "400px",
         "contract-card": "264px",
         /* This width is used by a padding element in both sides of the carousel and is enough
            to push the first and last card to the center */
         "carousel-padding-element": "calc(50% - 264px / 2)",
       },
       height: {
+        "welcome-box": "227px",
         "contract-card": "467px",
       },
 
