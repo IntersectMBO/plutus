@@ -5,6 +5,7 @@
 {-# LANGUAGE ViewPatterns    #-}
 module Data.RandomAccessList.SkewBinary ( RAList(Cons,Nil)
                  , index
+                 , safeIndex
                  , Data.RandomAccessList.SkewBinary.null
                  , Data.RandomAccessList.SkewBinary.head
                  , Data.RandomAccessList.SkewBinary.tail
@@ -101,4 +102,19 @@ index (BHead w t ts) !i  =
            then indexTree halfSize (offset - 1) t1
            else indexTree halfSize (offset - 1 - halfSize) t2
 
--- TODO: safeIndex
+safeIndex :: RAList a -> Word -> Maybe a
+safeIndex Nil _  = Nothing
+safeIndex (BHead w t ts) !i  =
+    if i < w
+    then indexTree w i t
+    else safeIndex ts (i-w)
+  where
+    indexTree :: Word -> Word -> Tree a -> Maybe a
+    indexTree 1 0 (Leaf x) = Just x
+    indexTree _ _ (Leaf _) = Nothing
+    indexTree _ 0 (Node x _ _) = Just x
+    indexTree treeSize offset (Node _ t1 t2 ) =
+        let halfSize = unsafeShiftR treeSize 1 -- probably faster than `div w 2`
+        in if offset <= halfSize
+           then indexTree halfSize (offset - 1) t1
+           else indexTree halfSize (offset - 1 - halfSize) t2

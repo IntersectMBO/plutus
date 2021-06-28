@@ -281,7 +281,6 @@
           "Common"
           "Crypto"
           "Data/ByteString/Hash"
-          "Data/RandomAccessList/SkewBinary"
           "Data/SatInt"
           "Data/Text/Prettyprint/Doc/Custom"
           "ErrorCode"
@@ -299,6 +298,18 @@
           "prelude"
           "common"
           ];
+        };
+      sublibs = {
+        "index-envs" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
+            ];
+          buildable = true;
+          modules = [ "Data/DeBruijnEnv" "Data/RandomAccessList/SkewBinary" ];
+          hsSourceDirs = [ "index-envs/src" ];
+          };
         };
       exes = {
         "plc" = {
@@ -418,16 +429,16 @@
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
           };
-        "bral-test" = {
+        "index-envs-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             ];
           buildable = true;
-          hsSourceDirs = [ "untyped-plutus-core/test" ];
+          hsSourceDirs = [ "index-envs/test" ];
           mainPath = [ "TestRAList.hs" ];
           };
         };
@@ -502,17 +513,17 @@
           modules = [ "CostModelCreation" ];
           hsSourceDirs = [ "cost-model/test" "cost-model/create-cost-model" ];
           };
-        "bral-bench" = {
+        "index-envs-bench" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;
-          hsSourceDirs = [ "untyped-plutus-core/bench" ];
+          hsSourceDirs = [ "index-envs/bench" ];
           };
         };
       };
