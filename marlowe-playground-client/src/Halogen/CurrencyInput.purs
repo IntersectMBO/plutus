@@ -47,14 +47,14 @@ onChangeHandler = runEffectFn2 onChangeHandler_
 
 currencyInput :: forall p a. Array String -> BigInteger -> String -> Int -> (Maybe BigInteger -> Maybe a) -> HTML p a
 currencyInput classList number prefix rawNumDecimals onValueChangeHandler =
-  div [ classNames ([ "bg-gray-light", "flex", "items-center", "p-0", "m-0", "border-solid", "border", "rounded-sm", "overflow-hidden", "box-border", "focus-within:ring-1", "focus-within:ring-black" ] <> classList) ]
+  div [ classNames ([ "bg-gray-light", "flex", "items-center", "border-solid", "border", "rounded-sm", "overflow-hidden", "box-border", "focus-within:ring-1", "focus-within:ring-black" ] <> classList) ]
     ( ( guard hasPrefix
           [ div [ classNames [ "flex-none", "px-2", "py-0", "box-border", "self-center" ] ]
               [ text prefix ]
           ]
       )
         <> [ input
-              [ classNames [ "flex-1", "text-center", "box-border", "self-stretch", "border-0", "outline-none" ]
+              [ classNames [ "flex-1", "px-1", "box-border", "self-stretch", "border-0", "outline-none" ]
               , onFocus
                   ( \ev ->
                       maybe Nothing

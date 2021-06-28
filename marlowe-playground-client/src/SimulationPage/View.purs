@@ -222,7 +222,7 @@ startSimulationWidget metadata { initialSlot, templateContent } =
     $ div_
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
-            , marloweActionInput (SetInitialSlot <<< wrap) (unwrap initialSlot)
+            , marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetInitialSlot <<< wrap) (unwrap initialSlot)
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
@@ -254,7 +254,7 @@ integerTemplateParameters explanations actionGen typeName title prefix content =
                                 , strong_ [ text key ]
                                 , text ":"
                                 ]
-                            , marloweActionInput (actionGen typeName key) value
+                            , marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
                             ]
                               <> [ div [ classes [ ClassName "action-group-explanation" ] ]
                                     $ maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
@@ -405,8 +405,8 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
           ( [ div [ class_ (ClassName "choice-input") ]
                 [ span [ class_ (ClassName "break-word-span") ] [ text "Choice ", b_ [ text (show choiceName <> ": ") ] ]
                 , case mChoiceInfo of
-                    Just { choiceFormat: DecimalFormat numDecimals currencyLabel } -> marloweCurrencyInput (SetChoice choiceId) currencyLabel numDecimals chosenNum
-                    _ -> marloweCurrencyInput (SetChoice choiceId) "" 0 chosenNum
+                    Just { choiceFormat: DecimalFormat numDecimals currencyLabel } -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) currencyLabel numDecimals chosenNum
+                    _ -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) "" 0 chosenNum
                 ]
             , div [ class_ (ClassName "choice-error") ] error
             ]
@@ -470,7 +470,7 @@ inputItem _ state person (MoveToSlot slot) =
     ( [ div [ classes [ ClassName "action" ] ]
           [ p [ class_ (ClassName "slot-input") ]
               [ spanTextBreakWord "Move to slot "
-              , marloweActionInput (SetSlot <<< wrap) (unwrap slot)
+              , marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetSlot <<< wrap) (unwrap slot)
               ]
           , p [ class_ (ClassName "choice-error") ] error
           ]
@@ -493,11 +493,11 @@ inputItem _ state person (MoveToSlot slot) =
 
   boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
 
-marloweCurrencyInput :: forall p action. (BigInteger -> action) -> String -> Int -> BigInteger -> HTML p action
-marloweCurrencyInput f currencyLabel numDecimals current = currencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] current currencyLabel numDecimals (Just <<< f <<< fromMaybe zero)
+marloweCurrencyInput :: forall p action. Array String -> (BigInteger -> action) -> String -> Int -> BigInteger -> HTML p action
+marloweCurrencyInput classes f currencyLabel numDecimals current = currencyInput classes current currencyLabel numDecimals (Just <<< f <<< fromMaybe zero)
 
-marloweActionInput :: forall p action. (BigInteger -> action) -> BigInteger -> HTML p action
-marloweActionInput f current = marloweCurrencyInput f "" 0 current
+marloweActionInput :: forall p action. Array String -> (BigInteger -> action) -> BigInteger -> HTML p action
+marloweActionInput classes f current = marloweCurrencyInput classes f "" 0 current
 
 renderDeposit :: forall p. MetaData -> AccountId -> Party -> Token -> BigInteger -> HTML p Action
 renderDeposit metadata accountOwner party tok money =
