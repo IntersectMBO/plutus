@@ -40,7 +40,7 @@ import SimulationPage.Lenses (_bottomPanelState)
 import SimulationPage.Types (Action(..), BottomPanelView(..), State)
 import Simulator.Lenses (_SimulationRunning, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings)
 import Simulator.State (hasHistory, inFuture)
-import Simulator.Types (ActionInput(..), ActionInputId, ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), otherActionsParty)
+import Simulator.Types (ActionInput(..), ActionInputId, ExecutionState(..), InitialConditionsRecord, LogEntry(..), otherActionsParty)
 import Text.Markdown.TrimmedInline (markdownToHTML)
 
 render ::
@@ -536,10 +536,20 @@ logWidget metadata state =
   where
   inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap (logToLines metadata) <<< reverse))
 
-logToLines :: forall p a. MetaData -> MarloweEvent -> Array (HTML p a)
+logToLines :: forall p a. MetaData -> LogEntry -> Array (HTML p a)
+logToLines metadata (StartEvent slot) =
+  [ span_ [ text "Contract started" ]
+  , span [ class_ justifyEnd ] [ text $ show slot ]
+  ]
+
 logToLines metadata (InputEvent (TransactionInput { interval, inputs })) = inputToLine metadata interval =<< Array.fromFoldable inputs
 
 logToLines metadata (OutputEvent interval payment) = paymentToLines metadata interval payment
+
+logToLines metadata (CloseEvent (SlotInterval start end)) =
+  [ span_ [ text $ "Contract ended" ]
+  , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
+  ]
 
 inputToLine :: forall p a. MetaData -> SlotInterval -> Input -> Array (HTML p a)
 inputToLine metadata (SlotInterval start end) (IDeposit accountOwner party token money) =

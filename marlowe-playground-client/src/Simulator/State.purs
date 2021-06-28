@@ -35,7 +35,7 @@ import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Enviro
 import Marlowe.Semantics as S
 import Marlowe.Template (getPlaceholderIds, initializeTemplateContent)
 import Simulator.Lenses (_SimulationRunning, _contract, _currentMarloweState, _executionState, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings)
-import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties(..), otherActionsParty)
+import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, LogEntry(..), MarloweState, Parties(..), otherActionsParty)
 
 emptyExecutionStateWithSlot :: Slot -> Term T.Contract -> ExecutionState
 emptyExecutionStateWithSlot sn cont =
@@ -210,12 +210,17 @@ applyPendingInputs oldState@{ executionState: SimulationRunning executionState }
   newState = case computeTransaction txInput (executionState ^. _state) (executionState ^. _contract) of
     TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract } ->
       let
+        mContractCloseLog = case txOutContract of
+          Term Close _ -> over _log (append [ CloseEvent txIn.interval ])
+          _ -> identity
+
         newExecutionState =
           ( set _transactionError Nothing
               <<< set _transactionWarnings (fromFoldable txOutWarnings)
               <<< set _pendingInputs mempty
               <<< set _state txOutState
               <<< set _moneyInContract (moneyInContract txOutState)
+              <<< mContractCloseLog
               <<< over _log (append (fromFoldable (map (OutputEvent txIn.interval) txOutPayments)))
               <<< over _log (append [ InputEvent txInput ])
           )
@@ -229,9 +234,9 @@ applyPendingInputs oldState@{ executionState: SimulationRunning executionState }
         newExecutionState =
           ( set _transactionError (Just txError)
               -- apart from setting the error, we also removing the pending inputs
-              
+
               -- otherwise there can be hidden pending inputs in the simulation
-              
+
               <<< set _pendingInputs mempty
           )
             executionState
@@ -300,14 +305,19 @@ startSimulation ::
   Term Contract ->
   m Unit
 startSimulation initialSlot contract =
-  updateMarloweState
-    ( {- This code was taken/adapted from the SimulationPage, we should revisit if applyPendingInputs is necesary
+  let
+    initialExecutionState =
+      emptyExecutionStateWithSlot initialSlot contract
+        # over (_SimulationRunning <<< _log) (append [ StartEvent initialSlot ])
+  in
+    updateMarloweState
+      ( {- This code was taken/adapted from the SimulationPage, we should revisit if applyPendingInputs is necesary
       when we are starting a simulation, as there should not be any prior pending input. The only reason
       that I think it might be useful is if the contract starts with something other than a When clause.
       TODO: revisit this
       -} applyPendingInputs
-        <<< (set _executionState (emptyExecutionStateWithSlot initialSlot contract))
-    )
+          <<< (set _executionState initialExecutionState)
+      )
 
 moveToSlot ::
   forall s m.
