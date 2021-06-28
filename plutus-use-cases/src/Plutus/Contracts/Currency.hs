@@ -26,8 +26,6 @@ module Plutus.Contracts.Currency(
     -- * Simple minting policy currency
     , SimpleMPS(..)
     , mintCurrency
-    -- * Creating thread tokens
-    , createThreadToken
     ) where
 
 import           Control.Lens
@@ -87,8 +85,8 @@ mkCurrency (TxOutRef h i) amts =
         , curAmounts              = AssocMap.fromList amts
         }
 
-validate :: OneShotCurrency -> () -> V.ScriptContext -> Bool
-validate c@(OneShotCurrency (refHash, refIdx) _) _ ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
+checkPolicy :: OneShotCurrency -> () -> V.ScriptContext -> Bool
+checkPolicy c@(OneShotCurrency (refHash, refIdx) _) _ ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
     let
         -- see note [Obtaining the currency symbol]
         ownSymbol = V.ownCurrencySymbol ctx
@@ -112,7 +110,7 @@ validate c@(OneShotCurrency (refHash, refIdx) _) _ ctx@V.ScriptContext{V.scriptC
 
 curPolicy :: OneShotCurrency -> MintingPolicy
 curPolicy cur = mkMintingPolicyScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapMintingPolicy (validate c) ||])
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapMintingPolicy (checkPolicy c) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode cur
 
@@ -197,11 +195,3 @@ mintCurrency = do
     cur <- mintContract ownPK [(tokenName, amount)]
     tell (Just (Last cur))
     pure cur
-
--- | Create a thread token for a state machine
-createThreadToken :: forall s w. Contract w s CurrencyError AssetClass
-createThreadToken = do
-    ownPK <- pubKeyHash <$> ownPubKey
-    let tokenName :: TokenName = "thread token"
-    s <- mintContract ownPK [(tokenName, 1)]
-    pure $ Value.assetClass (currencySymbol s) tokenName

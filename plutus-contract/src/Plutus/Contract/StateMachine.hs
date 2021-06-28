@@ -60,7 +60,7 @@ import           Ledger                                   (POSIXTime, Slot, Valu
 import qualified Ledger
 import           Ledger.AddressMap                        (outputsMapFromTxForAddress)
 import           Ledger.Constraints                       (ScriptLookups, TxConstraints (..), mintingPolicy,
-                                                           mustMintValue, mustPayToTheScript)
+                                                           mustMintValueWithRedeemer, mustPayToTheScript)
 import           Ledger.Constraints.OffChain              (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain              as Constraints
 import           Ledger.Constraints.TxConstraints         (InputConstraint (..), OutputConstraint (..))
@@ -336,8 +336,9 @@ runInitialise ::
     -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
     let StateMachineInstance{typedValidator} = scInstance
+        red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, False))
         tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue scInstance)
-            <> mustMintValue (SM.threadTokenValue scInstance)
+            <> mustMintValueWithRedeemer red (SM.threadTokenValue scInstance)
         lookups = Constraints.typedValidatorLookups typedValidator
             <> mintingPolicy curPolicy
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
@@ -382,7 +383,8 @@ mkStep client@StateMachineClient{scInstance} input = do
                             Constraints.typedValidatorLookups typedValidator
                             <> Constraints.unspentOutputs utxo
                             <> (if isFinal then mintingPolicy curPolicy else mempty)
-                        unmint = if isFinal then mustMintValue (inv $ SM.threadTokenValue scInstance) else mempty
+                        red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, True))
+                        unmint = if isFinal then mustMintValueWithRedeemer red (inv $ SM.threadTokenValue scInstance) else mempty
                         outputConstraints =
                             [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValue scInstance } | not isFinal]
                     in pure
