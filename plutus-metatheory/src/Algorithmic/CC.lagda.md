@@ -774,6 +774,16 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → M' ≡ E'' [  L [ C ]⋆ ]ᴱ
     → CaseP M M' E
 
+  builtinβ⋆ : ∀{K}{C : ∅ ⊢Nf⋆ K}{D : ∅ ,⋆ K ⊢Nf⋆ *}{b az} L (E'' : EC A (D [ C ]Nf))
+    → (p : az <>> (Type ∷ []) ∈ arity b)
+    → (q : B ≡ Π D)
+    → subst (∅ ⊢_) q M ≡ L
+    → (bL : BApp b p L)
+    → subst (EC A) q E ≡ extEC E'' (-·⋆ C)
+    → M' ≡ E'' [ BUILTIN' b (bubble p) (step⋆ p bL) ]ᴱ
+    → CaseP M M' E
+
+
   wrapβ : ∀{K C}{D : ∅ ⊢Nf⋆ K}{L}{E''}
         → (p : B ≡ μ C D)
         → subst (∅ ⊢_) p M ≡ wrap C D L 
@@ -784,8 +794,6 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
 
   -- M is Lambda type function in beta* redex
   {-
-  β⋆ : M == Λ X
-     → E == [] ·⋆ A
   builtinβ⋆ :
       → (p : az <>> (Type ∷ []) ∈ arity b)
       → BApp b p t
@@ -847,9 +855,13 @@ caseP .(Λ M) M' E (ruleEC E' x p p') | done (V-Λ M) | inj₂ (_ ,, E'' ,, -·�
 ... | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (-·⋆ A) (Λ M)) (β β-Λ)
 caseP (Λ M) M' E (ruleEC .(subst (EC _) refl E'') β-Λ p p') | done (V-Λ M) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = β⋆ M E'' refl refl refl p'
 -- this case is a beta⋆ redex
-caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = []} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
+caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = []} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ U rewrite dissect-inj₂ E E'' (-·⋆ A) eq with U E' p (β x)
+caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = []} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (-·⋆ A) M) (β (β-sbuiltin⋆ b _ p₁ x₅ A))
+caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-sbuiltin⋆ b₁ .M p₂ bt .A) p p') | done (V-IΠ b {as = _} {[]} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ .E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl with uniqueVal _ (V-IΠ b p₁ x₅) (V-IΠ b₁ p₂ bt)
+... | refl = builtinβ⋆ M E'' p₁ refl refl x₅ refl p' 
 -- this case is a sbuiltin⋆ redex
-caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = x₆ ∷ as'} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
+
+caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = x₆ ∷ as'} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!} -- unsat builtin
 -- this case is an unsat builtin
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (μ A B ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E'' wrap- eq = wrapV {C = A}{D = B} VM refl refl
 caseP (wrap A B M) M' E (ruleEC E' x p p') | done (V-wrap VM) | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E'' unwrap- eq with rlemma51! (extEC E'' unwrap- [ wrap A B M ]ᴱ)
@@ -936,7 +948,7 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
   (step* (cong (stepV VM) (dissect-lemma E' (-· L)))
          (step** (lem62 L' (extEC E' (VM ·-)) E'') (step** (lem-→s⋆ _ z') (thm1 _ _ (compEC' (extEC E' (VM ·-)) E'') (trans z'' (trans (trans (trans (extEC-[]ᴱ E' (-· (E'' [ _ ]ᴱ)) M) (sym (extEC-[]ᴱ E' (VM ·-) (E'' [ _ ]ᴱ)))) (compEC-[]ᴱ (extEC E' (VM ·-)) E'' _)) (cong (_[ _ ]ᴱ) (compEC-eq (extEC E' (VM ·-)) E'')))) O V q'))))
 ... | wrapβ {E'' = E''} refl refl VL refl refl = step** (lemV M (V-wrap VL) (extEC E'' unwrap-)) (step* (cong (stepV (V-wrap VL)) (dissect-lemma E'' unwrap-)) (thm1 _ _ E'' refl O V q'))
-
+... | β⋆ L E'' refl refl refl refl = step** (lemV (Λ L) (V-Λ L) (extEC E'' (-·⋆ _))) (step* (cong (stepV (V-Λ L)) (dissect-lemma E'' (-·⋆ _))) (thm1 _ _ E'' refl O V q'))
 ... | argV {L = L} VM refl y z = {!!}
 ... | wrapV x y z = {!!}
 ... | val E' N x L x₁ x₂ x₃ = {!!}
