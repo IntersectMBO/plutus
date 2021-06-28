@@ -706,6 +706,8 @@ unwindE M N E E' refl VN = step**
 
 open import Relation.Nullary
 open import Type.BetaNBE
+open import Type.BetaNBE.RenamingSubstitution
+
 data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
   redex : ∀ {C}
     → ¬ (Value M) 
@@ -765,9 +767,12 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → M' ≡ E'' [ BUILTIN' b (bubble p) (step p bL VM) ]ᴱ
     → CaseP M M' E
 
-  -- what do I do with an unsaturated builtin?
-  -- there cannot be a redex inside
-  -- but, can it be inside a wrap or something?
+  β⋆ : ∀{K}{C : ∅ ⊢Nf⋆ K}{D} L (E'' : EC A (D [ C ]Nf))
+    → (p : B ≡ Π D)
+    → subst (EC A) p E ≡ extEC E'' (-·⋆ C)
+    → subst (∅ ⊢_) p M ≡ Λ L
+    → M' ≡ E'' [  L [ C ]⋆ ]ᴱ
+    → CaseP M M' E
 
   wrapβ : ∀{K C}{D : ∅ ⊢Nf⋆ K}{L}{E''}
         → (p : B ≡ μ C D)
@@ -837,13 +842,15 @@ caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-sbuiltin b₁ _ p₂ bt .M vu)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁ ·-)) | I[ eq ] = {!!} -- unsat builtin
 
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E'' (-·⋆ A) eq with rlemma51! (extEC E'' (-·⋆ A) [ M ]ᴱ)
-caseP .(Λ M) M' E (ruleEC E' x p p') | done (V-Λ M) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
+... | done x₁ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₁))) x)
+caseP .(Λ M) M' E (ruleEC E' x p p') | done (V-Λ M) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ U with U E' p (β x)
+... | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (-·⋆ A) (Λ M)) (β β-Λ)
+caseP (Λ M) M' E (ruleEC .(subst (EC _) refl E'') β-Λ p p') | done (V-Λ M) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = β⋆ M E'' refl refl refl p'
 -- this case is a beta⋆ redex
 caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = []} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
 -- this case is a sbuiltin⋆ redex
 caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = x₆ ∷ as'} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
 -- this case is an unsat builtin
-... | done x₁ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₁))) x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (μ A B ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E'' wrap- eq = wrapV {C = A}{D = B} VM refl refl
 caseP (wrap A B M) M' E (ruleEC E' x p p') | done (V-wrap VM) | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E'' unwrap- eq with rlemma51! (extEC E'' unwrap- [ wrap A B M ]ᴱ)
 ... | done x₁ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₁))) x)
