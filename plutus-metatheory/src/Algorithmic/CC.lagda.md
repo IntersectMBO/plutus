@@ -814,8 +814,8 @@ caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | 
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U with U E' p (β x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ N ·-)) | I[ eq ] | step x₁ E₁ x₂ x₃ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-ƛ N ·-) M) (β (β-ƛ VM))
 caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-ƛ x) p p') | done VM | inj₂ (_ ,, E'' ,, (V-ƛ _ ·-)) | I[ eq ] | step x₁ .E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = β _ E'' refl p' VM
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] rewrite dissect-inj₂ E E'' (V-I⇒ b p₁ x₁ ·-) eq with rlemma51! (extEC E'' (V-I⇒ b p₁ x₁ ·-) [ M ]ᴱ) -- builtin redex
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | done x₂ = {!!} -- impossible???
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] rewrite dissect-inj₂ E E'' (V-I⇒ b p₁ x₁ ·-) eq with rlemma51! (extEC E'' (V-I⇒ b p₁ x₁ ·-) [ M ]ᴱ)
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | done x₂ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₂))) x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | step x₂ E₁ x₃ x₄ U with U E' p (β x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | step x₂ E₁ x₃ x₄ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-I⇒ b p₁ x₁ ·-) M) (β (β-sbuiltin b _ p₁ x₁ M VM))
 caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-sbuiltin b₁ _ p₂ bt .M vu) p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as = _} {[]} p₁ x₁ ·-)) | I[ eq ] | step x₂ .E'' x₃ x₄ U | refl ,, refl ,, refl | refl ,, refl ,, refl with uniqueVal _ (V-I⇒ b₁ p₂ bt) (V-I⇒ b p₁ x₁) | uniqueVal _ VM vu
