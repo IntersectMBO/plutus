@@ -839,7 +839,7 @@ caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' =
 -- this is a dead end, how do we deal with that...
 
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] = {!!}
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] = {!!}
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (μ A B ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E'' wrap- eq = wrapV {C = A}{D = B} VM refl refl
 caseP (wrap A B M) M' E (ruleEC E' x p p') | done (V-wrap VM) | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E'' unwrap- eq with rlemma51! (extEC E'' unwrap- [ wrap A B M ]ᴱ)
 ... | done x₁ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₁))) x)
 ... | step x₁ E₁ x₂ x₃ U with U E' p (β x)
