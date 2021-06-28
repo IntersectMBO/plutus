@@ -8,9 +8,9 @@ import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, lookupWalletInfo, subscribeToPlutusApp)
-import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary)
+import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames, insertIntoWalletLibrary)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_mMarloweParams, _selectedStep)
+import Contract.Lenses (_mMarloweParams, _nickname, _selectedStep)
 import Contract.State (applyTimeout)
 import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderState, updateState) as Contract
 import Contract.Types (Action(..), State) as Contract
@@ -25,7 +25,7 @@ import Data.Foldable (for_)
 import Data.Lens (assign, filtered, modifying, over, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Traversal (traversed)
-import Data.Map (Map, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, toUnfoldable, values)
+import Data.Map (Map, alter, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, toUnfoldable, values)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes(..))
 import Data.Traversable (for)
@@ -34,24 +34,22 @@ import Data.Tuple.Nested ((/\))
 import Data.UUID (emptyUUID)
 import Effect.Aff.Class (class MonadAff)
 import Env (DataProvider(..), Env)
-import Foreign.Generic (encodeJSON)
-import Halogen (HalogenM, liftEffect, modify_)
+import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import InputField.Lenses (_value)
 import InputField.State (handleAction, initialState) as InputField
 import InputField.Types (Action(..), State) as InputField
-import LocalStorage (setItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution.Types (NamedAction(..))
+import Marlowe.Extended.Metadata (_extendedContract, _metaData)
 import Marlowe.PAB (ContractHistory, MarloweParams, PlutusAppId(..), MarloweData)
 import Marlowe.Semantics (Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
 import Play.Lenses (_allContracts, _cards, _contractsState, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
 import Play.Types (Action(..), Card(..), Input, Screen(..), State)
-import StaticData (walletLibraryLocalStorageKey)
-import Template.Lenses (_extendedContract, _metaData, _roleWalletInputs, _template, _templateContent)
+import Template.Lenses (_contractNickname, _roleWalletInputs, _template, _templateContent)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
@@ -63,10 +61,10 @@ import WalletData.Validation (WalletIdError, WalletNicknameError, parsePlutusApp
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState mempty defaultWalletDetails mempty (Slot zero) (Minutes zero)
+dummyState = mkInitialState mempty defaultWalletDetails mempty mempty (Slot zero) (Minutes zero)
 
-mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Slot -> Minutes -> State
-mkInitialState walletLibrary walletDetails contracts currentSlot timezoneOffset =
+mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> Slot -> Minutes -> State
+mkInitialState walletLibrary walletDetails contracts contractNicknames currentSlot timezoneOffset =
   { walletLibrary
   , walletDetails
   , menuOpen: false
@@ -77,7 +75,7 @@ mkInitialState walletLibrary walletDetails contracts currentSlot timezoneOffset 
   , remoteWalletInfo: NotAsked
   , timezoneOffset
   , templateState: Template.dummyState
-  , contractsState: ContractHome.mkInitialState walletDetails currentSlot contracts
+  , contractsState: ContractHome.mkInitialState walletDetails currentSlot contracts contractNicknames
   }
 
 handleAction ::
@@ -140,8 +138,8 @@ handleAction input (SaveNewWallet mTokenName) = do
           , previousCompanionAppState: Nothing
           }
       modifying _walletLibrary (insert walletNickname walletDetails)
+      insertIntoWalletLibrary walletDetails
       newWalletLibrary <- use _walletLibrary
-      liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON newWalletLibrary
       -- if a tokenName was also passed, we need to update the contract setup data
       for_ mTokenName \tokenName -> do
         handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators newWalletLibrary
@@ -265,11 +263,16 @@ handleAction input (UpdateFollowerApps companionAppState) = do
         { dataProvider } <- ask
         case dataProvider of
           LocalStorage -> do
-            for_ mPendingContract \{ key } -> modifying _allContracts $ delete key
             ajaxFollowerApp <- followContract walletDetails marloweParams
             case ajaxFollowerApp of
               Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-              Right (followerAppId /\ contractHistory) -> handleAction input $ UpdateContract followerAppId contractHistory
+              Right (followerAppId /\ contractHistory) -> do
+                handleAction input $ UpdateContract followerAppId contractHistory
+                for_ mPendingContract \{ key, value } -> do
+                  modifying _allContracts
+                    $ delete key
+                    <<< alter (map (set _nickname value.nickname)) followerAppId
+                  insertIntoContractNicknames followerAppId value.nickname
           PAB _ -> do
             ajaxFollowerApp <- case mPendingContract of
               Just { key: followerAppId } -> followContractWithPendingFollowerApp walletDetails marloweParams followerAppId
@@ -294,7 +297,7 @@ handleAction input@{ currentSlot } (UpdateContract plutusAppId contractHistory@{
         selectedStep' <- peruse $ _selectedContract <<< _selectedStep
         when (selectedStep /= selectedStep')
           $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
-      Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot plutusAppId contractHistory) (modifying _allContracts <<< insert plutusAppId)
+      Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot plutusAppId mempty contractHistory) (modifying _allContracts <<< insert plutusAppId)
 
 handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
@@ -346,13 +349,15 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
           Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
           _ -> do
             -- We create a follower app now with no MarloweParams; when the next notification of a new contract
-            -- notification comes in, a follower app with now MarloweParams but the right metadata will be used.
+            -- notification comes in, a follower app with no MarloweParams but the right metadata will be used.
             ajaxPendingFollowerApp <- createPendingFollowerApp walletDetails
             case ajaxPendingFollowerApp of
               Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
               Right followerAppId -> do
+                contractNickname <- use (_templateState <<< _contractNickname)
+                insertIntoContractNicknames followerAppId contractNickname
                 metaData <- use (_templateState <<< _template <<< _metaData)
-                modifying _allContracts $ insert followerAppId $ Contract.mkPlaceholderState followerAppId metaData contract
+                modifying _allContracts $ insert followerAppId $ Contract.mkPlaceholderState followerAppId contractNickname metaData contract
                 handleAction input $ SetScreen ContractsScreen
                 addToast $ successToast "The request to initialise this contract has been submitted."
                 { dataProvider } <- ask

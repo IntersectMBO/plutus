@@ -4,7 +4,7 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
@@ -21,13 +21,12 @@ import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (trim)
-import Data.String as String
+import Data.String (take, trim)
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
 import Halogen.Extra (lifeCycleEvent)
-import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
@@ -49,6 +48,8 @@ import WalletData.State (adaToken, getAda)
 contractDetailsCard :: forall p. Slot -> State -> HTML p Action
 contractDetailsCard currentSlot state =
   let
+    nickname = state ^. _nickname
+
     metadata = state ^. _metadata
 
     pastStepsCards = mapWithIndex (renderPastStep state) (state ^. _previousSteps)
@@ -66,7 +67,12 @@ contractDetailsCard currentSlot state =
       [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
       , lifeCycleEvent { onInit: Just CarouselOpened, onFinilize: Just CarouselClosed }
       ]
-      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
+      [ input
+          [ classNames [ "text-xl", "font-semibold", "text-center", "bg-transparent" ]
+          , placeholder "Please rename"
+          , value nickname
+          , onValueInput_ SetNickname
+          ]
       , h2 [ classNames [ "mb-5", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
       --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
@@ -527,7 +533,7 @@ renderParty state party =
   in
     -- FIXME: mb-2 should not belong here
     div [ classNames [ "text-xs", "flex", "mb-2" ] ]
-      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1", "font-semibold" ] ] [ text $ String.take 1 participantName ]
+      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1", "font-semibold" ] ] [ text $ take 1 participantName ]
       , div [ classNames [ "font-semibold" ] ] [ text participantName ]
       ]
 

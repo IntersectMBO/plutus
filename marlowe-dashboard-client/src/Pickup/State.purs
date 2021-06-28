@@ -7,6 +7,7 @@ module Pickup.State
 import Prelude
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
+import Capability.MarloweStorage (class ManageMarloweStorage, clearAllLocalStorage, insertIntoWalletLibrary)
 import Capability.Toast (class Toast, addToast)
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
@@ -18,18 +19,15 @@ import Data.Newtype (unwrap)
 import Data.UUID (toString) as UUID
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
-import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM, liftEffect, modify_)
 import Halogen.Extra (mapSubmodule)
 import InputField.State (handleAction, initialState) as InputField
 import InputField.Types (Action(..), State) as InputField
-import LocalStorage (setItem, removeItem)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
 import Pickup.Lenses (_card, _pickingUp, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
 import Pickup.Types (Action(..), Card(..), State)
-import StaticData (walletLibraryLocalStorageKey, walletDetailsLocalStorageKey)
 import Toast.Types (ajaxErrorToast, errorToast)
 import WalletData.Lenses (_companionAppId, _walletNickname)
 import WalletData.Types (WalletLibrary)
@@ -61,6 +59,7 @@ handleAction ::
   MonadAsk Env m =>
   MainFrameLoop m =>
   ManageMarlowe m =>
+  ManageMarloweStorage m =>
   Toast m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (OpenCard card) = assign _card $ Just card
@@ -149,8 +148,8 @@ handleAction (PickupWallet walletNickname) = do
       let
         walletDetailsWithNickname = set _walletNickname walletNickname walletDetails
       modifying _walletLibrary (insert walletNickname walletDetailsWithNickname)
+      insertIntoWalletLibrary walletDetailsWithNickname
       walletLibrary <- use _walletLibrary
-      liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON walletLibrary
       callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetailsWithNickname
     _ -> do
       -- this should never happen (the "Pickup Wallet" button should be disabled unless remoteWalletDetails is Success),
@@ -159,10 +158,9 @@ handleAction (PickupWallet walletNickname) = do
       handleAction $ CloseCard PickupNewWalletCard -- this point, so we close both to be sure
       addToast $ errorToast "Unable to pick up wallet." $ Just "Details for this wallet could not be loaded."
 
-handleAction ClearLocalStorage =
+handleAction ClearLocalStorage = do
+  clearAllLocalStorage
   liftEffect do
-    removeItem walletLibraryLocalStorageKey
-    removeItem walletDetailsLocalStorageKey
     location_ <- location =<< window
     reload location_
 

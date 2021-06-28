@@ -1,7 +1,7 @@
 module ContractHome.View where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _metadata)
+import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _metadata, _nickname)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (State) as Contract
 import ContractHome.Lenses (_status)
@@ -12,6 +12,7 @@ import Css as Css
 import Data.Array (length)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), maybe')
+import Data.String (null)
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Humanize (humanizeDuration)
@@ -93,11 +94,11 @@ contractGrid currentSlot contracts =
 contractCard :: forall p. Slot -> Contract.State -> HTML p Action
 contractCard currentSlot contractState =
   let
+    nickname = contractState ^. _nickname
+
     mMarloweParams = contractState ^. _mMarloweParams
 
     metadata = contractState ^. _metadata
-
-    longTitle = metadata.contractName
 
     contractType = contractTypeName metadata.contractType
 
@@ -127,15 +128,18 @@ contractCard currentSlot contractState =
     div
       attributes
       -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
-      [ div [ classNames [ "flex", "px-4", "pt-4", "items-center" ] ]
+      [ div
+          [ classNames [ "flex", "px-4", "pt-4", "items-center" ] ]
           [ span [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ] [ text contractAcronym ]
           , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text contractType ]
           , icon ArrowRight [ "text-28px" ]
           ]
-      , div [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
-          [ text longTitle
-          ]
-      , div [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
+      , div
+          [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
+          -- TODO: make (new) nicknames editable directly from here
+          [ text if null nickname then "My new contract" else nickname ]
+      , div
+          [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
           Nothing -> [ text "pending confirmation" ]
           _ ->
             [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]

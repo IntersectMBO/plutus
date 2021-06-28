@@ -201,3 +201,9 @@ type ContractTemplate
   = { metaData :: MetaData
     , extendedContract :: Contract
     }
+
+_metaData :: Lens' ContractTemplate MetaData
+_metaData = prop (SProxy :: SProxy "metaData")
+
+_extendedContract :: Lens' ContractTemplate Contract
+_extendedContract = prop (SProxy :: SProxy "extendedContract")
