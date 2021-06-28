@@ -13,16 +13,23 @@ import Data.Array (length)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), maybe')
 import Data.String (null)
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ComponentHTML)
 import Halogen.HTML (HTML, a, div, h2, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
+import Halogen.HTML.Properties (id_)
 import Humanize (humanizeDuration)
+import MainFrame.Types (ChildSlots)
 import Marlowe.Execution.Lenses (_mNextTimeout)
 import Marlowe.Extended (contractTypeName, contractTypeInitials)
 import Marlowe.Semantics (Slot)
 import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon)
+import Popper (Placement(..))
+import Tooltip.State (tooltip)
+import Tooltip.Types (ReferenceId(..))
 
-contractsScreen :: forall p. Slot -> State -> HTML p Action
+contractsScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 contractsScreen currentSlot state =
   let
     buttonClasses = [ "w-40", "text-center" ]
@@ -40,13 +47,17 @@ contractsScreen currentSlot state =
         [ a
             [ classNames $ (selectorButton $ state ^. _status == Running) <> [ "mr-4" ]
             , onClick_ $ SelectView Running
+            , id_ "runningContractsFilter"
             ]
             [ text "What's running" ]
+        , tooltip "View running contracts" (RefId "runningContractsFilter") Bottom
         , a
             [ classNames $ selectorButton $ state ^. _status == Completed
             , onClick_ $ SelectView Completed
+            , id_ "completedContractsFilter"
             ]
             [ text "History" ]
+        , tooltip "View completed contracts" (RefId "completedContractsFilter") Bottom
         ]
   in
     div
