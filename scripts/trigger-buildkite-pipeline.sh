@@ -24,7 +24,7 @@ curl --silent -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
      -d "{
          \"commit\": \"HEAD\",
          \"branch\": \"$BRANCH\",
-         \"message": "Running benchmarks\",
+         \"message\": \"Running benchmarks\",
            \"env\": {
              \"PR_NUMBER\": \"$PR\"
            }
