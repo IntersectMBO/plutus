@@ -834,11 +834,16 @@ caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' =
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x₁ ·-)) | I[ eq ] | step x₂ E₁ x₃ x₄ U | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' (V-I⇒ b p₁ x₁ ·-) M) (β (β-sbuiltin b _ p₁ x₁ M VM))
 caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-sbuiltin b₁ _ p₂ bt .M vu) p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as = _} {[]} p₁ x₁ ·-)) | I[ eq ] | step x₂ .E'' x₃ x₄ U | refl ,, refl ,, refl | refl ,, refl ,, refl with uniqueVal _ (V-I⇒ b₁ p₂ bt) (V-I⇒ b p₁ x₁) | uniqueVal _ VM vu
 ... | refl | refl = builtinβ _ (V-I⇒ b p₁ x₁) E'' p₁ x₁ refl VM p'
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁ ·-)) | I[ eq ] = {!!} -- unsat builtin
 
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁ ·-)) | I[ eq ] = {!!} -- builtin value...
--- this is a dead end, how do we deal with that...
-
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] = {!!}
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E'' (-·⋆ A) eq with rlemma51! (extEC E'' (-·⋆ A) [ M ]ᴱ)
+caseP .(Λ M) M' E (ruleEC E' x p p') | done (V-Λ M) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
+-- this case is a beta⋆ redex
+caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = []} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
+-- this case is a sbuiltin⋆ redex
+caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = x₆ ∷ as'} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!}
+-- this case is an unsat builtin
+... | done x₁ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₁))) x)
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (μ A B ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E'' wrap- eq = wrapV {C = A}{D = B} VM refl refl
 caseP (wrap A B M) M' E (ruleEC E' x p p') | done (V-wrap VM) | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E'' unwrap- eq with rlemma51! (extEC E'' unwrap- [ wrap A B M ]ᴱ)
 ... | done x₁ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₁))) x)
@@ -903,7 +908,6 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
       (unique-EC E' (compEC' E E'') L (β x₂) (trans (sym x₁) (trans (compEC-[]ᴱ E E'' L) (cong (_[ L ]ᴱ) (compEC-eq E E'')))))
       (lem-→s⋆ E' x₂))
     (thm1 _ _  E' x _ V q'))
-... | val E' N x L x₁ x₂ x₃ = {!!}
 -- what can it be
 -- there needs to be a next beta
 -- M could be a lambda function in an application
@@ -924,8 +928,8 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
   (lemV M VM (extEC E' (-· L)))
   (step* (cong (stepV VM) (dissect-lemma E' (-· L)))
          (step** (lem62 L' (extEC E' (VM ·-)) E'') (step** (lem-→s⋆ _ z') (thm1 _ _ (compEC' (extEC E' (VM ·-)) E'') (trans z'' (trans (trans (trans (extEC-[]ᴱ E' (-· (E'' [ _ ]ᴱ)) M) (sym (extEC-[]ᴱ E' (VM ·-) (E'' [ _ ]ᴱ)))) (compEC-[]ᴱ (extEC E' (VM ·-)) E'' _)) (cong (_[ _ ]ᴱ) (compEC-eq (extEC E' (VM ·-)) E'')))) O V q'))))
-... | argV {L = L} VM refl y z = {!!}
 ... | wrapβ {E'' = E''} refl refl VL refl refl = step** (lemV M (V-wrap VL) (extEC E'' unwrap-)) (step* (cong (stepV (V-wrap VL)) (dissect-lemma E'' unwrap-)) (thm1 _ _ E'' refl O V q'))
+
+... | argV {L = L} VM refl y z = {!!}
 ... | wrapV x y z = {!!}
--- the problem here is this doesn't yield a redex necessarily, it
--- could still be an unsat builtin
+... | val E' N x L x₁ x₂ x₃ = {!!}
