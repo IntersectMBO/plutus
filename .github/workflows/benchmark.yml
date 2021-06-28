@@ -1,0 +1,53 @@
+name: Benchmarking
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    env:
+      BUILDKITE_API_ACCESS_TOKEN: ${{ secrets.BUILDKITE_API_ACCESS_TOKEN }}
+    steps:
+
+       #
+       # Check for '/benchmark' comments on a PR
+       #
+      - uses: khan/pull-request-comment-trigger@master
+        id: check
+        with:
+          trigger: '/benchmark'
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+      #
+      # Extract the branch of that the PR the comment was added to belongs to
+      #
+      - uses: xt0rted/pull-request-comment-branch@v1
+        if: steps.check.outputs.triggered == 'true'
+        id: comment-branch
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+      #
+      # Trigger the buildkite pipeline IF the 'benchmark' command was found
+      #
+      - run: |
+         if [ -z "$BUILDKITE_API_ACCESS_TOKEN" ] ; then
+            echo "[trigger-buildkite]: 'BUILDKITE_API_ACCESS_TOKEN' is not set!"
+            exit 1
+         fi
+
+         echo "[trigger-buildkite]: Triggering build for $PR_BRANCH"
+         curl --silent -H "Authorization: Bearer $BUILDKITE_API_ACCESS_TOKEN" \
+              -X POST "https://api.buildkite.com/v2/organizations/input-output-hk/pipelines/plutus-benchmark/builds"\
+              -d '{
+                  "commit": "HEAD",
+                  "branch": "${{ steps.comment-branch.outputs.head_ref }}",
+                  "message": "Running benchmarks",
+                    "env": {
+                      "PR_NUMBER": "${{ github.event.issue.number }}"
+                    }
+                  }'
+        if: steps.check.outputs.triggered == 'true'
