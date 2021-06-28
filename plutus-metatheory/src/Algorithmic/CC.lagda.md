@@ -705,7 +705,7 @@ unwindE M N E E' refl VN = step**
   (unwindVE M N E E' refl (VALUE2Value (lemVE M E' (Value2VALUE VN))) VN)
 
 open import Relation.Nullary
-
+open import Type.BetaNBE
 data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
   redex : ∀ {C}
     → ¬ (Value M) 
@@ -739,6 +739,12 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → L ≡ (E'' [ L' ]ᴱ)
     → L' —→⋆ N
     → M' ≡ extEC E' (-· (E'' [ N ]ᴱ)) [ subst (∅ ⊢_) p M ]ᴱ
+    → CaseP M M' E
+    
+  wrapV : ∀{K C}{D : ∅ ⊢Nf⋆ K}{E' : EC A (μ C D)}
+    → Value M
+    → (p : B ≡ nf (embNf C · ƛ (μ (embNf (weakenNf C)) (` Z)) · embNf D))
+    → subst (EC A) p E ≡ extEC E' wrap-
     → CaseP M M' E
 
 
@@ -834,7 +840,11 @@ caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' =
 
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] = {!!}
 caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] = {!!}
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E'' unwrap- eq = {!!}
+caseP (wrap A B M) M' E (ruleEC E' x p p') | done (V-wrap VM) | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E'' unwrap- eq with rlemma51! (extEC E'' unwrap- [ wrap A B M ]ᴱ)
+... | done x₁ = {!!} -- impossible
+... | step x₁ E₁ x₂ x₃ U with U E' p (β x)
+... | refl ,, refl ,, refl with U E'' (extEC-[]ᴱ E'' unwrap- (wrap A B M)) (β (β-wrap VM))
+caseP (wrap A B M) M' E (ruleEC .(subst (EC _) refl E'') (β-wrap x) p p') | done (V-wrap VM) | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] | step x₁ .E'' x₂ x₃ U | refl ,, refl ,, refl | refl ,, refl ,, refl = wrapβ refl refl VM refl p' 
 caseP M .(error _) E (ruleErr E' x) = err refl
 
 lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
@@ -916,5 +926,6 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
          (step** (lem62 L' (extEC E' (VM ·-)) E'') (step** (lem-→s⋆ _ z') (thm1 _ _ (compEC' (extEC E' (VM ·-)) E'') (trans z'' (trans (trans (trans (extEC-[]ᴱ E' (-· (E'' [ _ ]ᴱ)) M) (sym (extEC-[]ᴱ E' (VM ·-) (E'' [ _ ]ᴱ)))) (compEC-[]ᴱ (extEC E' (VM ·-)) E'' _)) (cong (_[ _ ]ᴱ) (compEC-eq (extEC E' (VM ·-)) E'')))) O V q'))))
 ... | argV {L = L} VM refl y z = {!!}
 ... | wrapβ {E'' = E''} refl refl VL refl refl = step** (lemV M (V-wrap VL) (extEC E'' unwrap-)) (step* (cong (stepV (V-wrap VL)) (dissect-lemma E'' unwrap-)) (thm1 _ _ E'' refl O V q'))
+... | wrapV x y z = {!!}
 -- the problem here is this doesn't yield a redex necessarily, it
 -- could still be an unsat builtin
