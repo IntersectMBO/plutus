@@ -949,6 +949,7 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
          (step** (lem62 L' (extEC E' (VM ·-)) E'') (step** (lem-→s⋆ _ z') (thm1 _ _ (compEC' (extEC E' (VM ·-)) E'') (trans z'' (trans (trans (trans (extEC-[]ᴱ E' (-· (E'' [ _ ]ᴱ)) M) (sym (extEC-[]ᴱ E' (VM ·-) (E'' [ _ ]ᴱ)))) (compEC-[]ᴱ (extEC E' (VM ·-)) E'' _)) (cong (_[ _ ]ᴱ) (compEC-eq (extEC E' (VM ·-)) E'')))) O V q'))))
 ... | wrapβ {E'' = E''} refl refl VL refl refl = step** (lemV M (V-wrap VL) (extEC E'' unwrap-)) (step* (cong (stepV (V-wrap VL)) (dissect-lemma E'' unwrap-)) (thm1 _ _ E'' refl O V q'))
 ... | β⋆ L E'' refl refl refl refl = step** (lemV (Λ L) (V-Λ L) (extEC E'' (-·⋆ _))) (step* (cong (stepV (V-Λ L)) (dissect-lemma E'' (-·⋆ _))) (thm1 _ _ E'' refl O V q'))
+... | builtinβ⋆ L E'' p refl refl bL refl refl = step** (lemV M (V-IΠ _ p bL) E) (step* (cong (stepV (V-IΠ _ p bL)) (dissect-lemma E'' (-·⋆ _))) (thm1 _ _ E'' refl O V q'))
 ... | argV {L = L} VM refl y z = {!!}
 ... | wrapV x y z = {!!}
 ... | val E' N x L x₁ x₂ x₃ = {!!}
