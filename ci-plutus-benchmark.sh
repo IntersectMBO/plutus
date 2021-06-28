@@ -11,10 +11,17 @@
 # the PR. The command will be acknowledged with a :rocket: reaction and when done a bot will
 # add the results as comment to the same PR.
 #
-# NOTE:
-# In order to post a comment to GitHub the buildkite runner needs to provide a
-# GitHub token with permissions to add comments in '/run/keys/buildkite-github-token'
-# otherwise this will fail.
+# NOTES:
+# (1) In order to post a comment to GitHub the buildkite runner needs to provide a
+#     GitHub token with permissions to add comments in '/run/keys/buildkite-github-token'
+#     otherwise this will fail.
+# (2) The `cabal update` command below is neccessary because while the whole script
+#     is executed inside a nix-shell, this environment does not provide the hackage
+#     record inside .cabal and we have to fetch/build this each time since we want
+#     to run this in a clean environment.
+# (3) The `jq` invocation below is necessary because we have to POST the PR comment
+#     as JSON data (see the curl command) meaning the script output has to be escaped
+#     first before we can insert it.
 
 set -e
 
