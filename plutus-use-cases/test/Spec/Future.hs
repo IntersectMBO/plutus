@@ -71,7 +71,7 @@ setup :: FutureSetup
 setup =
     FutureSetup
         { shortPK = walletPubKey w1
-        , longPK = walletPubKey (Wallet 2)
+        , longPK = walletPubKey w2
         , contractStart = TimeSlot.slotToPOSIXTime 15
         }
 
@@ -80,6 +80,9 @@ w1 = Wallet 1
 
 w2 :: Wallet
 w2 = Wallet 2
+
+w10 :: Wallet
+w10 = Wallet 10
 
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,
 --   due at slot #100.
@@ -157,9 +160,7 @@ units :: Integer
 units = 187
 
 oracleKeys :: (PrivateKey, PubKey)
-oracleKeys =
-    let wllt = Wallet 10 in
-        (walletPrivKey wllt, walletPubKey wllt)
+oracleKeys = (walletPrivKey w10, walletPubKey w10)
 
 -- | Increase the margin of the 'Long' role by 100 lovelace
 increaseMargin :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
