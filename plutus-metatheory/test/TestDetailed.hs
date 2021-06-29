@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module TestDetailed where
 import           Control.Exception
 import qualified Data.Text                  as T
@@ -31,50 +32,45 @@ catchOutput act = do
   removeFile tmpFP
   return str
 
-modeType :: Maybe String -> [String]
-modeType (Just "U") = []
-modeType _          = ["-t"]
-
 compareResult :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> IO Progress
 compareResult eq mode test = do
-  example <- readProcess "plc" ["example","-t","-s",test] []
+  example <- readProcess "cabal" ["run", "uplc", "example", "--", "-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
-  let mode' = if mode == "evaluate" then [mode,"-t"] else [mode]
-  plcOutput <- readProcess "plc" (mode' ++ ["--input","tmp"]) []
+  plcOutput <- readProcess "cabal" ["exec", "uplc", mode, "--", "--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
     (withArgs [mode,"--file","tmp"]  M.main)
-    (\ e -> case e of
+    (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ()) -- does this ever happen?
   return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
 
 compareResultU :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResultU eq test = do
-  example <- readProcess "plc" ["example","-s",test] []
-  writeFile "tmp" example
+  example <- readProcess "cabal" ["run", "uplc", "example","--", "-s",test] []
+  writeFile "tmp" (tail $ dropWhile (/= '\n') example)
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" ["evaluate","--input","tmp"] []
+  plcOutput <- readProcess "cabal" ["exec", "uplc", "evaluate", "--", "--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
     (withArgs ["evaluate","-mU","--file","tmp"]  M.main)
-    (\ e -> case e of
+    (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
 
 compareResultMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResultMode mode1 mode2 eq test = do
-  example <- readProcess "plc" ["example","-t","-s",test] []
+  example <- readProcess "cabal" ["run", "uplc", "example", "--", "-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
   plcAgdaOutput1 <- catchOutput $ catch
     (withArgs ["evaluate","--file","tmp","--mode",mode1]  M.main)
-    (\ e -> case e of
+    (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   plcAgdaOutput2 <- catchOutput $ catch
     (withArgs ["evaluate","--file","tmp","--mode",mode2]  M.main)
-    (\ e -> case e of
+    (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ mode1 ++ ": '" ++ plcAgdaOutput1 ++ "' " ++ mode2 ++ ": '" ++ plcAgdaOutput2 ++ "'" ++ " === "++ T.unpack (M.blah (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2))
