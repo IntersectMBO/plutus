@@ -1,12 +1,14 @@
 module Main(main) where
 
 import qualified Control.Foldl                  as L
+import           Control.Lens
 import           Control.Monad.Freer            (run)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Default                   (Default (..))
 import           Data.Foldable                  (traverse_)
 import           Flat                           (flat)
 import           Ledger.Index                   (ScriptValidationEvent (sveScript))
+import           Plutus.Contract.Test           (Wallet (Wallet), defaultDist)
 import           Plutus.Trace.Emulator          (EmulatorTrace)
 import qualified Plutus.Trace.Emulator          as Trace
 import           Plutus.V1.Ledger.Scripts       (Script (..))
@@ -19,6 +21,7 @@ import           Wallet.Emulator.Stream         (foldEmulatorStreamM)
 
 import qualified Plutus.Contracts.Crowdfunding  as Crowdfunding
 import qualified Plutus.Contracts.Uniswap.Trace as Uniswap
+import qualified Spec.Auction                   as Auction
 import qualified Spec.Currency                  as Currency
 import qualified Spec.Escrow                    as Escrow
 import qualified Spec.Future                    as Future
@@ -46,7 +49,9 @@ writeScripts :: FilePath -> IO ()
 writeScripts fp = do
     putStrLn $ "Writing scripts to: " <> fp
     traverse_ (uncurry (writeScriptsTo fp))
-        [ ("crowdfunding-success", Crowdfunding.successfulCampaign)
+        [ ("auction_1", Auction.auctionTrace1)
+        , ("auction_2", Auction.auctionTrace2)
+        , ("crowdfunding-success", Crowdfunding.successfulCampaign)
         , ("currency", Currency.currencyTrace)
         , ("escrow-redeem_1", Escrow.redeemTrace)
         , ("escrow-redeem_2", Escrow.redeem2Trace)
@@ -79,11 +84,15 @@ writeScripts fp = do
 -}
 writeScriptsTo :: FilePath -> String -> EmulatorTrace a -> IO ()
 writeScriptsTo fp prefix trace = do
-    let events =
+    -- The token used for the auction needs to be part of the initial
+    -- distribution.
+    let initialDistribution = defaultDist & over (ix (Wallet 1)) ((<>) Auction.theToken)
+        emulatorCfg = def & Trace.initialChainState .~ Left initialDistribution
+        events =
             S.fst'
             $ run
             $ foldEmulatorStreamM (L.generalize Folds.scriptEvents)
-            $ Trace.runEmulatorStream def trace
+            $ Trace.runEmulatorStream emulatorCfg trace
         writeScript idx script = do
             let filename = fp </> prefix <> "-" <> show idx <> ".flat"
             putStrLn $ "Writing script: " <> filename

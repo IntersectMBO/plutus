@@ -6,7 +6,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
-module Spec.Auction(tests, auctionTrace1, auctionTrace2,
+module Spec.Auction(tests, theToken, auctionTrace1, auctionTrace2,
                     prop_Auction, prop_FinishAuction) where
 
 import           Control.Lens
@@ -107,7 +107,8 @@ auctionTrace2 = do
     Trace.callEndpoint @"bid" hdl3 60
     _ <- Trace.waitNSlots 35
     Trace.callEndpoint @"bid" hdl2 trace2WinningBid
-    void $ Trace.waitUntilSlot (succ $ succ $ TimeSlot.posixTimeToSlot $ apEndTime params)
+    void $ Trace.waitUntilTime $ apEndTime params
+    void $ Trace.waitNSlots 2
 
 trace1FinalState :: AuctionOutput
 trace1FinalState =
