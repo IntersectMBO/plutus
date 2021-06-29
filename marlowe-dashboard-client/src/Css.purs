@@ -21,6 +21,9 @@ module Css
   , overlay
   , card
   , largeCard
+  , videoCard
+  , embeddedVideoContainer
+  , embeddedVideo
   , iconCircle
   , fixedBottomRight
   , funds
@@ -142,6 +145,16 @@ card invisible = [ "overflow-hidden", "bg-white", "flex-grow", "max-w-sm", "mx-2
 
 largeCard :: Boolean -> Array String
 largeCard invisible = [ "bg-grayblue", "shadow", "overflow-auto", "flex-grow", "mt-2", "md:mb-2", "mx-2", "lg:my-4", "md:mx-5pc", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
+
+videoCard :: Boolean -> Array String
+videoCard invisible = [ "relative", "bg-white", "flex-grow", "max-w-sm", "lg:max-w-md", "mx-2", "shadow", "rounded", "transform", "transition-transform", "duration-400", "self-center" ] <> applyWhen invisible [ "translate-y-20" ]
+
+-- embedded videos
+embeddedVideoContainer :: Array String
+embeddedVideoContainer = [ "relative", "pb-16:9" ]
+
+embeddedVideo :: Array String
+embeddedVideo = [ "absolute", "top-0", "left-0", "w-full", "h-full" ]
 
 --- miscellaneous
 iconCircle :: Boolean -> Array String

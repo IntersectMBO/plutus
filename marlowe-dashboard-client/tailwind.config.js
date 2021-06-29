@@ -91,6 +91,7 @@ module.exports = {
         "160": "40rem",
         "256": "64rem",
         "5pc": "5%",
+        "16:9": "56.25%", // this is used for video containers to maintain a 16:9 aspect ratio
       },
       width: {
         sm: "375px",
