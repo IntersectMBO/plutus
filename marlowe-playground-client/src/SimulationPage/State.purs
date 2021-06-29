@@ -286,13 +286,16 @@ updateOracleAndContractEditor ::
 updateOracleAndContractEditor = do
   mContract <- peruse _currentContract
   -- Update the decorations around the current part of the running contract
+  oldDecorationIds <- use _decorationIds
   case getLocation <$> mContract of
     Just (Range r) -> do
       let
         decorationOptions = { isWholeLine: false, className: "monaco-simulation-text-decoration", linesDecorationsClassName: "monaco-simulation-line-decoration" }
-      oldDecorationIds <- use _decorationIds
       mNewDecorationIds <- query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations oldDecorationIds [ { range: r, options: decorationOptions } ] identity
       for_ mNewDecorationIds (assign _decorationIds)
       void $ query _simulatorEditorSlot unit $ tell $ Monaco.RevealRange r
-    _ -> pure unit
+    _ -> do
+      void $ query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations oldDecorationIds [] identity
+      assign _decorationIds []
+      void $ query _simulatorEditorSlot unit $ tell $ Monaco.SetPosition { column: 1, lineNumber: 1 }
   setOraclePrice
