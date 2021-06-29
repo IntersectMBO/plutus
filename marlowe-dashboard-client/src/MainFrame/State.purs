@@ -25,13 +25,10 @@ import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.LocalStorage (localStorageEvents)
-import MainFrame.Lenses (_currentSlot, _pickupState, _playState, _subState, _toast, _webSocketStatus)
+import MainFrame.Lenses (_currentSlot, _playState, _subState, _toast, _webSocketStatus, _welcomeState)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.PAB (PlutusAppId)
-import Pickup.Lenses (_walletLibrary)
-import Pickup.State (handleAction, dummyState, mkInitialState) as Pickup
-import Pickup.Types (Action(..), Card(..), State) as Pickup
 import Play.Lenses (_allContracts, _walletDetails)
 import Play.State (dummyState, handleAction, mkInitialState) as Play
 import Play.Types (Action(..), State) as Play
@@ -41,6 +38,9 @@ import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast)
 import WalletData.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo)
 import WebSocket.Support as WS
+import Welcome.Lenses (_walletLibrary)
+import Welcome.State (handleAction, dummyState, mkInitialState) as Welcome
+import Welcome.Types (Action(..), Card(..), State) as Welcome
 
 mkMainFrame ::
   forall m.
@@ -67,7 +67,7 @@ initialState :: State
 initialState =
   { webSocketStatus: WebSocketClosed Nothing
   , currentSlot: zero -- this will be updated as soon as the websocket connection is working
-  , subState: Left Pickup.dummyState
+  , subState: Left Welcome.dummyState
   , toast: Toast.defaultState
   }
 
@@ -177,11 +177,11 @@ handleAction ::
 -- mainframe actions
 handleAction Init = do
   walletLibrary <- getWalletLibrary
-  assign (_pickupState <<< _walletLibrary) walletLibrary
+  assign (_welcomeState <<< _walletLibrary) walletLibrary
   { dataProvider } <- ask
   when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage)
 
-handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
+handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
   { dataProvider } <- ask
   let
     followerAppIds :: Array PlutusAppId
@@ -189,15 +189,15 @@ handleAction (EnterPickupState walletLibrary walletDetails followerApps) = do
   unsubscribeFromWallet dataProvider $ view (_walletInfo <<< _wallet) walletDetails
   unsubscribeFromPlutusApp dataProvider $ view _companionAppId walletDetails
   for_ followerAppIds $ unsubscribeFromPlutusApp dataProvider
-  assign _subState $ Left $ Pickup.mkInitialState walletLibrary
+  assign _subState $ Left $ Welcome.mkInitialState walletLibrary
 
 handleAction (EnterPlayState walletLibrary walletDetails) = do
   ajaxFollowerApps <- getFollowerApps walletDetails
   currentSlot <- use _currentSlot
   case ajaxFollowerApps of
     Left decodedAjaxError -> do
-      handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupWalletCard
-      handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupNewWalletCard
+      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseWalletCard
+      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseNewWalletCard
       addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
       { dataProvider } <- ask
@@ -215,12 +215,12 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       ajaxRoleContracts <- getRoleContracts walletDetails
       case ajaxRoleContracts of
         Left decodedAjaxError -> do
-          handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupWalletCard
-          handleAction $ PickupAction $ Pickup.CloseCard Pickup.PickupNewWalletCard
+          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseWalletCard
+          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseNewWalletCard
           addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
         Right companionState -> handleAction $ PlayAction $ Play.UpdateFollowerApps companionState
 
-handleAction (PickupAction pickupAction) = toPickup $ Pickup.handleAction pickupAction
+handleAction (WelcomeAction welcomeAction) = toWelcome $ Welcome.handleAction welcomeAction
 
 handleAction (PlayAction playAction) = do
   currentSlot <- use _currentSlot
@@ -235,12 +235,12 @@ handleAction (ToastAction toastAction) = toToast $ Toast.handleAction toastActio
 -- to provide a dummyState for that submodule. Halogen would use this dummyState to play
 -- with if we ever tried to call one of these handlers when the submodule state does not
 -- exist. In practice this should never happen.
-toPickup ::
+toWelcome ::
   forall m msg slots.
   Functor m =>
-  HalogenM Pickup.State Pickup.Action slots msg m Unit ->
+  HalogenM Welcome.State Welcome.Action slots msg m Unit ->
   HalogenM State Action slots msg m Unit
-toPickup = mapMaybeSubmodule _pickupState PickupAction Pickup.dummyState
+toWelcome = mapMaybeSubmodule _welcomeState WelcomeAction Welcome.dummyState
 
 toPlay ::
   forall m msg slots.

@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(..))
 import Halogen as H
 import Marlowe.PAB (PlutusAppId, CombinedWSStreamToServer)
 import Marlowe.Semantics (Slot)
-import Pickup.Types (Action, State) as Pickup
+import Welcome.Types (Action, State) as Welcome
 import Play.Types (Action, State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Toast.Types (Action, State) as Toast
@@ -26,13 +26,13 @@ import WalletData.Types (WalletDetails, WalletLibrary)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
--- The app exists in one of two main subStates: the "pickup" state for when you have
--- no wallet, and all you can do is pick one up or generate a new one; and the "play"
--- state for when you have picked up a wallet, and can do all of the things.
+-- The app exists in one of two main subStates: the "welcome" state for when you have
+-- no wallet, and all you can do is generate one or create a new one; and the "play"
+-- state for when you have selected a wallet, and can do all of the things.
 type State
   = { webSocketStatus :: WebSocketStatus
     , currentSlot :: Slot
-    , subState :: Either Pickup.State Play.State
+    , subState :: Either Welcome.State Play.State
     , toast :: Toast.State
     }
 
@@ -64,9 +64,9 @@ data Msg
 ------------------------------------------------------------
 data Action
   = Init
-  | EnterPickupState WalletLibrary WalletDetails (Map PlutusAppId Contract.State)
+  | EnterWelcomeState WalletLibrary WalletDetails (Map PlutusAppId Contract.State)
   | EnterPlayState WalletLibrary WalletDetails
-  | PickupAction Pickup.Action
+  | WelcomeAction Welcome.Action
   | PlayAction Play.Action
   | ToastAction Toast.Action
 
@@ -74,8 +74,8 @@ data Action
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (EnterPickupState _ _ _) = Just $ defaultEvent "EnterPickupState"
+  toEvent (EnterWelcomeState _ _ _) = Just $ defaultEvent "EnterWelcomeState"
   toEvent (EnterPlayState _ _) = Just $ defaultEvent "EnterPlayState"
-  toEvent (PickupAction pickupAction) = toEvent pickupAction
+  toEvent (WelcomeAction welcomeAction) = toEvent welcomeAction
   toEvent (PlayAction playAction) = toEvent playAction
   toEvent (ToastAction toastAction) = toEvent toastAction

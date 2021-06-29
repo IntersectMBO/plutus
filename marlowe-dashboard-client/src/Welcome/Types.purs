@@ -1,4 +1,4 @@
-module Pickup.Types
+module Welcome.Types
   ( State
   , Card(..)
   , Action(..)
@@ -19,12 +19,14 @@ type State
     , walletNicknameInput :: InputField.State WalletNicknameError
     , walletIdInput :: InputField.State WalletIdError
     , remoteWalletDetails :: WebData WalletDetails
-    , pickingUp :: Boolean -- true when we are in the process of picking up a wallet
+    , enteringPlayState :: Boolean
     }
 
 data Card
-  = PickupNewWalletCard
-  | PickupWalletCard
+  = GetStartedHelpCard
+  | GenerateWalletHelpCard
+  | UseNewWalletCard
+  | UseWalletCard
   | LocalWalletMissingCard
 
 derive instance eqCard :: Eq Card
@@ -34,10 +36,10 @@ data Action
   | CloseCard Card
   | GenerateWallet
   | WalletNicknameOrIdInputAction (InputField.Action WalletNicknameOrIdError)
-  | OpenPickupWalletCardWithDetails WalletDetails
+  | OpenUseWalletCardWithDetails WalletDetails
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
   | WalletIdInputAction (InputField.Action WalletIdError)
-  | PickupWallet WalletNickname
+  | UseWallet WalletNickname
   | ClearLocalStorage
 
 -- | Here we decide which top-level queries to track as GA events, and
@@ -47,8 +49,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (CloseCard _) = Nothing
   toEvent GenerateWallet = Just $ defaultEvent "GenerateWallet"
   toEvent (WalletNicknameOrIdInputAction inputFieldAction) = toEvent inputFieldAction
-  toEvent (OpenPickupWalletCardWithDetails _) = Nothing
+  toEvent (OpenUseWalletCardWithDetails _) = Nothing
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction
-  toEvent (PickupWallet _) = Just $ defaultEvent "PickupWallet"
+  toEvent (UseWallet _) = Just $ defaultEvent "UseWallet"
   toEvent ClearLocalStorage = Just $ defaultEvent "ClearLocalStorage"
