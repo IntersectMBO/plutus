@@ -70,18 +70,18 @@ derive newtype instance decodeParties :: Decode Parties
 otherActionsParty :: Party
 otherActionsParty = Role "marlowe_other_actions"
 
--- TODO: Maybe rename to LogEntry
--- TODO: Add an Event/Entry for contract start and for contract close
-data MarloweEvent
-  = InputEvent TransactionInput
+data LogEntry
+  = StartEvent Slot
+  | InputEvent TransactionInput
   | OutputEvent SlotInterval Payment
+  | CloseEvent SlotInterval
 
-derive instance genericMarloweEvent :: Generic MarloweEvent _
+derive instance genericLogEntry :: Generic LogEntry _
 
-instance encodeMarloweEvent :: Encode MarloweEvent where
+instance encodeLogEntry :: Encode LogEntry where
   encode a = genericEncode aesonCompatibleOptions a
 
-instance decodeMarloweEvent :: Decode MarloweEvent where
+instance decodeLogEntry :: Decode LogEntry where
   decode = genericDecode aesonCompatibleOptions
 
 type ExecutionStateRecord
@@ -89,7 +89,7 @@ type ExecutionStateRecord
     , pendingInputs :: Array Input
     , transactionError :: Maybe TransactionError
     , transactionWarnings :: Array TransactionWarning
-    , log :: Array MarloweEvent
+    , log :: Array LogEntry
     , state :: S.State
     , slot :: Slot
     , moneyInContract :: Assets
