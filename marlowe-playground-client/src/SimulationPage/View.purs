@@ -450,7 +450,10 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
     else
       "Choice must be between " <> intercalate " or " (map boundError bounds)
 
-  boundError (Bound from to) = show from <> " and " <> show to
+  boundError (Bound from to) = showPretty from <> " and " <> showPretty to
+
+  showPretty :: BigInteger -> String
+  showPretty = showPrettyChoice (getChoiceFormat metadata choiceName)
 
 inputItem _ _ person NotifyInput =
   li
