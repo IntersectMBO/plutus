@@ -7,7 +7,7 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map (Map, keys)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Symbol (SProxy(..))
@@ -148,6 +148,9 @@ emptyContractMetadata =
   , valueParameterDescriptions: mempty
   , choiceInfo: mempty
   }
+
+getChoiceFormat :: MetaData -> String -> ChoiceFormat
+getChoiceFormat { choiceInfo } choiceName = maybe DefaultFormat (\choiceInfoVal -> choiceInfoVal.choiceFormat) $ Map.lookup choiceName choiceInfo
 
 type MetadataHintInfo
   = { roles :: Set S.TokenName
