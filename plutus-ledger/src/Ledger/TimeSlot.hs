@@ -35,12 +35,12 @@ import           PlutusTx.Prelude          hiding (Eq, (<$>))
 import           Prelude                   (Eq, IO, Show, (<$>))
 import qualified Prelude                   as Haskell
 
--- | Datatype to configure the length of one slot and the beginning of the
+-- | Datatype to configure the length (ms) of one slot and the beginning of the
 -- first slot.
 data SlotConfig =
     SlotConfig
-        { scSlotLength   :: Integer -- ^ Length (number of seconds) of 1 slot
-        , scZeroSlotTime :: POSIXTime -- ^ Beginning of the first slot
+        { scSlotLength   :: Integer -- ^ Length (number of milliseconds) of one slot
+        , scZeroSlotTime :: POSIXTime -- ^ Beginning of the first slot (in milliseconds)
         }
     deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
@@ -48,14 +48,14 @@ makeLift ''SlotConfig
 
 instance Default SlotConfig where
   {-# INLINABLE def #-}
-  def = SlotConfig{ scSlotLength = 1, scZeroSlotTime = POSIXTime beginningOfTime }
+  def = SlotConfig{ scSlotLength = 1000, scZeroSlotTime = POSIXTime beginningOfTime }
 
 {-# INLINABLE beginningOfTime #-}
 -- | 'beginningOfTime' corresponds to the Shelley launch date
--- (2020-07-29T21:44:51Z) which is 1596059091 in POSIX time
--- (number of seconds since 1970-01-01T00:00:00Z).
+-- (2020-07-29T21:44:51Z) which is 1596059091000 in POSIX time
+-- (number of milliseconds since 1970-01-01T00:00:00Z).
 beginningOfTime :: Integer
-beginningOfTime = 1596059091
+beginningOfTime = 1596059091000
 
 {-# INLINABLE slotRangeToPOSIXTimeRange #-}
 -- | Convert a 'SlotRange' to a 'POSIXTimeRange' given a 'SlotConfig'. The
@@ -78,8 +78,8 @@ slotToPOSIXTimeRange sc slot =
 -- | Get the starting 'POSIXTime' of a 'Slot' given a 'SlotConfig'.
 slotToBeginPOSIXTime :: SlotConfig -> Slot -> POSIXTime
 slotToBeginPOSIXTime SlotConfig{scSlotLength, scZeroSlotTime} (Slot n) =
-  let secondsAfterBegin = n * scSlotLength
-   in POSIXTime $ getPOSIXTime scZeroSlotTime + secondsAfterBegin
+  let msAfterBegin = n * scSlotLength
+   in POSIXTime $ getPOSIXTime scZeroSlotTime + msAfterBegin
 
 {-# INLINABLE slotToEndPOSIXTime #-}
 -- | Get the ending 'POSIXTime' of a 'Slot' given a 'SlotConfig'.
@@ -107,6 +107,7 @@ currentSlot sc = timeToSlot <$> Time.getPOSIXTime
     where
       timeToSlot = posixTimeToEnclosingSlot sc
                  . POSIXTime
+                 . (* 1000) -- Convert to ms
                  . Haskell.floor
                  . Time.nominalDiffTimeToSeconds
 
