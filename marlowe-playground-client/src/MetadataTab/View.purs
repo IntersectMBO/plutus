@@ -1,6 +1,6 @@
 module MetadataTab.View (metadataView) where
 
-import Prelude hiding (div)
+import Prelude hiding (div, min)
 import Data.Array (concat, concatMap)
 import Data.Int as Int
 import Data.Lens (Lens', (^.))
@@ -15,7 +15,7 @@ import Halogen.HTML (ClassName(..), HTML, button, div, em_, h6_, input, option, 
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, min, placeholder, required, selected, type_, value)
 import Marlowe.Extended (contractTypeArray, contractTypeInitials, contractTypeName, initialsToContractType)
-import Marlowe.Extended.Metadata (ChoiceFormat(..), ChoiceFormatType(..), ChoiceInfo, MetaData, MetadataHintInfo, _choiceDescription, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters, defaultForFormatType, fromString, getFormatType, isDecimalFormat, isDefaultFormat, toString)
+import Marlowe.Extended.Metadata (NumberFormat(..), NumberFormatType(..), ChoiceInfo, MetaData, MetadataHintInfo, _choiceDescription, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters, defaultForFormatType, fromString, getFormatType, isDecimalFormat, isDefaultFormat, toString)
 import MetadataTab.Types (MetadataAction(..))
 
 onlyDescriptionRenderer :: forall a b p. (String -> String -> b) -> (String -> b) -> String -> String -> Boolean -> (b -> a) -> String -> String -> Array (HTML p a)
@@ -107,14 +107,14 @@ choiceMetadataRenderer key info@{ choiceFormat } needed metadataAction typeNameT
               ]
           ]
   where
-  setChoiceFormatType :: String -> ChoiceFormat
+  setChoiceFormatType :: String -> NumberFormat
   setChoiceFormatType str = case fromString str of
     Just formatType
       | formatType == getFormatType choiceFormat -> choiceFormat
       | otherwise -> defaultForFormatType formatType
     Nothing -> defaultForFormatType DefaultFormatType
 
-  setDecimals :: String -> String -> ChoiceFormat
+  setDecimals :: String -> String -> NumberFormat
   setDecimals labelStr x =
     DecimalFormat
       ( case Int.fromString x of

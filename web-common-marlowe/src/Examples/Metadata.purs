@@ -3,7 +3,7 @@ module Examples.Metadata where
 import Data.Map (fromFoldable, empty)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Extended (ContractType(..))
-import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData, emptyContractMetadata, lovelaceFormat, oracleRatioFormat)
+import Marlowe.Extended.Metadata (NumberFormat(..), MetaData, emptyContractMetadata, lovelaceFormat, oracleRatioFormat)
 
 example :: MetaData
 example = emptyContractMetadata

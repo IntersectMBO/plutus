@@ -1,7 +1,7 @@
 module MetadataTab.Types where
 
 import Marlowe.Extended (ContractType)
-import Marlowe.Extended.Metadata (ChoiceFormat)
+import Marlowe.Extended.Metadata (NumberFormat)
 import Marlowe.Semantics as S
 
 class ShowConstructor a where
@@ -18,7 +18,7 @@ data MetadataAction
   | SetValueParameterDescription String String
   | DeleteValueParameterDescription String
   | SetChoiceDescription String String
-  | SetChoiceFormat String ChoiceFormat
+  | SetChoiceFormat String NumberFormat
   | DeleteChoiceInfo String
 
 instance metadataActionShowConstructor :: ShowConstructor MetadataAction where

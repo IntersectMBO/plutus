@@ -28,7 +28,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
-import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData, getChoiceFormat)
+import Marlowe.Extended.Metadata (NumberFormat(..), MetaData, getChoiceFormat)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)

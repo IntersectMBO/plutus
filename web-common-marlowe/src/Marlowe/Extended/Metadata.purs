@@ -17,76 +17,76 @@ import Marlowe.HasParties (getParties)
 import Marlowe.Semantics as S
 import Marlowe.Template (Placeholders(..), getPlaceholderIds)
 
-data ChoiceFormat
+data NumberFormat
   = DefaultFormat
   | DecimalFormat Int String
 
-derive instance eqChoiceFormat :: Eq ChoiceFormat
+derive instance eqNumberFormat :: Eq NumberFormat
 
-derive instance genericChoiceFormat :: Generic ChoiceFormat _
+derive instance genericNumberFormat :: Generic NumberFormat _
 
-instance encodeChoiceFormat :: Encode ChoiceFormat where
+instance encodeNumberFormat :: Encode NumberFormat where
   encode value = genericEncode defaultOptions value
 
-instance decodeChoiceFormat :: Decode ChoiceFormat where
+instance decodeNumberFormat :: Decode NumberFormat where
   decode value = genericDecode defaultOptions value
 
-instance showChoiceFormat :: Show ChoiceFormat where
+instance showNumberFormat :: Show NumberFormat where
   show = genericShow
 
-integerFormat :: ChoiceFormat
+integerFormat :: NumberFormat
 integerFormat = DecimalFormat 0 ""
 
-lovelaceFormat :: ChoiceFormat
+lovelaceFormat :: NumberFormat
 lovelaceFormat = DecimalFormat 6 "₳"
 
-oracleRatioFormat :: String -> ChoiceFormat
+oracleRatioFormat :: String -> NumberFormat
 oracleRatioFormat str = DecimalFormat 8 str
 
-isDefaultFormat :: ChoiceFormat -> Boolean
+isDefaultFormat :: NumberFormat -> Boolean
 isDefaultFormat DefaultFormat = true
 
 isDefaultFormat _ = false
 
-isDecimalFormat :: ChoiceFormat -> Boolean
+isDecimalFormat :: NumberFormat -> Boolean
 isDecimalFormat (DecimalFormat _ _) = true
 
 isDecimalFormat _ = false
 
-data ChoiceFormatType
+data NumberFormatType
   = DefaultFormatType
   | DecimalFormatType
 
-derive instance eqChoiceFormatType :: Eq ChoiceFormatType
+derive instance eqNumberFormatType :: Eq NumberFormatType
 
-toString :: ChoiceFormatType -> String
+toString :: NumberFormatType -> String
 toString DefaultFormatType = "DefaultFormatType"
 
 toString DecimalFormatType = "DecimalFormatType"
 
-fromString :: String -> Maybe ChoiceFormatType
+fromString :: String -> Maybe NumberFormatType
 fromString "DefaultFormatType" = Just DefaultFormatType
 
 fromString "DecimalFormatType" = Just DecimalFormatType
 
 fromString _ = Nothing
 
-getFormatType :: ChoiceFormat -> ChoiceFormatType
+getFormatType :: NumberFormat -> NumberFormatType
 getFormatType DefaultFormat = DefaultFormatType
 
 getFormatType (DecimalFormat _ _) = DecimalFormatType
 
-defaultForFormatType :: ChoiceFormatType -> ChoiceFormat
+defaultForFormatType :: NumberFormatType -> NumberFormat
 defaultForFormatType DefaultFormatType = DefaultFormat
 
 defaultForFormatType DecimalFormatType = DecimalFormat 0 ""
 
 type ChoiceInfo
-  = { choiceFormat :: ChoiceFormat
+  = { choiceFormat :: NumberFormat
     , choiceDescription :: String
     }
 
-_choiceFormat :: Lens' ChoiceInfo ChoiceFormat
+_choiceFormat :: Lens' ChoiceInfo NumberFormat
 _choiceFormat = prop (SProxy :: SProxy "choiceFormat")
 
 _choiceDescription :: Lens' ChoiceInfo String
@@ -149,7 +149,7 @@ emptyContractMetadata =
   , choiceInfo: mempty
   }
 
-getChoiceFormat :: MetaData -> String -> ChoiceFormat
+getChoiceFormat :: MetaData -> String -> NumberFormat
 getChoiceFormat { choiceInfo } choiceName = maybe DefaultFormat (\choiceInfoVal -> choiceInfoVal.choiceFormat) $ Map.lookup choiceName choiceInfo
 
 type MetadataHintInfo

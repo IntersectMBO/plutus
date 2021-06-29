@@ -8,7 +8,7 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen.Query (HalogenM)
 import MainFrame.Types (Action, ChildSlots, State, _contractMetadata, _hasUnsavedChanges)
-import Marlowe.Extended.Metadata (ChoiceFormat, ChoiceInfo, _choiceInfo, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, updateChoiceInfo)
+import Marlowe.Extended.Metadata (NumberFormat, ChoiceInfo, _choiceInfo, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions, updateChoiceInfo)
 import MetadataTab.Types (MetadataAction(..))
 
 carryMetadataAction ::
@@ -36,5 +36,5 @@ carryMetadataAction action = do
   setChoiceDescription :: String -> ChoiceInfo -> ChoiceInfo
   setChoiceDescription newDescription x = x { choiceDescription = newDescription }
 
-  setChoiceFormat :: ChoiceFormat -> ChoiceInfo -> ChoiceInfo
+  setChoiceFormat :: NumberFormat -> ChoiceInfo -> ChoiceInfo
   setChoiceFormat newChoiceFormat x = x { choiceFormat = newChoiceFormat }
