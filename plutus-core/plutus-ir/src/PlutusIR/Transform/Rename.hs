@@ -18,14 +18,16 @@ import           PlutusPrelude
 import           PlutusIR
 import           PlutusIR.Mark
 
-import qualified PlutusCore                 as PLC
-import qualified PlutusCore.Name            as PLC
-import qualified PlutusCore.Rename.Internal as PLC
+import qualified PlutusCore                  as PLC
+import qualified PlutusCore.Name             as PLC
+import qualified PlutusCore.Rename.Internal  as PLC
 
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Cont   (ContT (..))
+import           Control.Monad.Trans.Cont    (ContT (..))
 
-import           Data.Set
+import           Control.Monad.Except
+import           Data.Set                    as Set
+import           PlutusCore.StdLib.Data.List
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring
@@ -158,29 +160,167 @@ captureContext k = do
 -- checkScopes = undefined
 
 data Scope name = Scope
-   { inScope    :: Set name
-   , notInScope :: Set name
+   { _inScope    :: Set name
+   , _notInScope :: Set name
    }
 
 data Scopes = Scopes
-    { scopesType :: Scope TyName
-    , scopesTerm :: Scope Name
+    { _scopesType :: Scope TyName
+    , _scopesTerm :: Scope Name
     }
 
-class a `ScopedIn` b where
-    scopedIn :: Bool -> a -> b -> b
+emptyScope :: Scope name
+emptyScope = Scope Set.empty Set.empty
 
-visibleIn :: a `ScopedIn` b => a -> b -> b
-visibleIn = scopedIn True
+emptyScopes :: Scopes
+emptyScopes = Scopes emptyScope emptyScope
 
-notVisibleIn :: a `ScopedIn` b => a -> b -> b
-notVisibleIn = scopedIn False
+-- class a `ScopedIn` b where
+--     scopedIn :: Bool -> a -> b -> b
 
-instance tyname1 ~ tyname2 => tyname1 `ScopedIn` Type tyname2 uni Scopes where
-    scopedIn = undefined
+-- visibleIn :: a `ScopedIn` b => a -> b -> b
+-- visibleIn = scopedIn False
 
-instance name1 ~ name2 => name1 `ScopedIn` Term tyname name2 uni fun Scopes where
-    scopedIn = undefined
+-- notVisibleIn :: a `ScopedIn` b => a -> b -> b
+-- notVisibleIn = scopedIn True
+
+-- instance tyname1 ~ tyname2 => tyname1 `ScopedIn` Type tyname2 uni Scopes where
+--     scopedIn = undefined
+
+-- instance name1 ~ name2 => name1 `ScopedIn` Term tyname name2 uni fun Scopes where
+--     scopedIn = undefined
+
+-- class Scoping t where
+--     scoping :: t () -> (Scopes, t Scopes)
+
+-- instance Semigroup Scopes where
+--     _ <> _ = undefined
+
+-- instance Monoid Scopes where
+--     mempty = undefined
+
+-- -- nonrec: List_0 `notVisibleIn` constrs => List_0 `staysIn` constrs
+-- -- rec:    List_0 `visibleIn` constrs    => List_0 `notStaysIn` constrs
+
+-- addNotInScope :: tyname -> Scopes -> Scopes
+-- addNotInScope = undefined
+
+-- addFree :: tyname -> Scopes -> Scopes
+-- addFree = undefined
+
+-- addBound :: tyname -> Scopes -> Scopes
+-- addBound = undefined
+
+-- reannotate :: (Scopes, Type tyname uni Scopes) -> (Scopes, Type tyname uni Scopes)
+-- reannotate = undefined
+
+-- -- free stays
+-- -- bound disappears
+-- -- invisible added as free stays
+-- instance Scoping (Type tyname uni) where
+--     scoping (TyLam _ name kind ty) = do
+--         tyS <- scoping ty
+--         pure $ TyLam (name `addBound` PLC.typeAnn tyS) name (mempty <$ kind) tyS
+--     scoping (TyForall _ name kind ty) = do
+--         tyS <- scoping ty
+--         pure $ TyForall (name `addBound` PLC.typeAnn tyS) name (mempty <$ kind) tyS
+--     scoping (TyIFix _ pat arg) = reannotate $ TyIFix mempty <$> scoping pat <*> scoping arg
+--     scoping (TyApp _ fun arg) = reannotate $ TyApp mempty <$> scoping fun <*> scoping arg
+--     scoping (TyFun _ dom cod) = reannotate $ TyFun mempty <$> scoping dom <*> scoping cod
+--     scoping (TyVar _ name) = pure $ TyVar (name `addFree` mempty) name
+--     scoping (TyBuiltin _ fun) = pure $ TyBuiltin mempty fun
+
+data ScopeDelta
+    = Stays (Either TyName Name)
+    | Disappears (Either TyName Name)
+    | NoChange
+
+
+
+class Scoping t where
+    scoping :: t () -> t ScopeDelta
+
+registerBound :: Either TyName Name -> ScopeDelta
+registerBound = Disappears
+
+registerFree :: Either TyName Name -> ScopeDelta
+registerFree = Stays
+
+-- free stays
+-- bound disappears
+-- invisible added as free stays
+instance tyname ~ TyName => Scoping (Type tyname uni) where
+    scoping (TyLam _ name kind ty) =
+        TyLam (registerBound $ Left name) name (NoChange <$ kind) $ scoping ty
+    scoping (TyForall _ name kind ty) =
+        TyForall (registerBound $ Left name) name (NoChange <$ kind) $ scoping ty
+    scoping (TyIFix _ pat arg) = TyIFix NoChange (scoping pat) (scoping arg)
+    scoping (TyApp _ fun arg) = TyApp NoChange (scoping fun) (scoping arg)
+    scoping (TyFun _ dom cod) = TyFun NoChange (scoping dom) (scoping cod)
+    scoping (TyVar _ name) = TyVar (registerFree $ Left name) name
+    scoping (TyBuiltin _ fun) = TyBuiltin NoChange fun
+
+data ScopingError = ScopingError (Either TyName Name)
+
+type ScopeM = ReaderT Scopes (Either ScopingError)
+
+class CheckScoping t where
+    checkScoping :: t ScopeDelta -> ScopeM ()
+
+applyStays :: Ord name => name -> Scope name -> Scope name
+applyStays name (Scope inScope notInScope) = Scope (Set.insert name inScope) notInScope
+
+applyDisappears :: Ord name => name -> Scope name -> Scope name
+applyDisappears name (Scope inScope notInScope) = Scope inScope (Set.insert name notInScope)
+
+pickScopeAnd
+    :: (forall name. Ord name => name -> Scope name -> Scope name)
+    -> Either TyName Name
+    -> Scopes
+    -> Scopes
+pickScopeAnd f (Left tyname) (Scopes typeScope termScope) = Scopes (f tyname typeScope) termScope
+pickScopeAnd f (Right name)  (Scopes typeScope termScope) = Scopes typeScope (f name termScope)
+
+applyScopeDelta :: ScopeDelta -> Scopes -> Scopes
+applyScopeDelta (Stays      ename) = pickScopeAnd applyStays      ename
+applyScopeDelta (Disappears ename) = pickScopeAnd applyDisappears ename
+applyScopeDelta NoChange           = id
+
+withScopeDelta :: ScopeDelta -> ScopeM a -> ScopeM a
+withScopeDelta = withReaderT . applyScopeDelta
+
+-- if appears then in scope VS has to appear
+
+-- bound => notInScope => can't appear
+-- stays => free => annotation equals name
+
+checkScopingName :: Ord name => (name -> Either TyName Name) -> name -> Scope name -> ScopeM ()
+checkScopingName emb name (Scope inScope notInScope) = do
+    unless (name `Set.member` inScope) $ throwError . ScopingError $ emb name
+    unless (name `Set.notMember` notInScope) $ throwError . ScopingError $ emb name
+
+checkScopingVar :: ScopeDelta -> Either TyName Name -> ScopeM ()
+checkScopingVar delta ename = do
+    Scopes typeScope termScope <- ask
+    case ename of
+        Left tyname -> checkScopingName Left  tyname typeScope
+        Right name  -> checkScopingName Right name   termScope
+    case delta of
+        -- One free variable was renamed to another one.
+        Stays ename'      -> unless (ename == ename') . throwError $ ScopingError ename
+        -- This should be caught via checking the not-in-scope part, but whatever.
+        Disappears ename2 -> unless (ename /= ename2) $ error "Something horribly wrong has happened: a variable is verified not to be in scope, yet it somehow equals the original in-scope variable"
+        NoChange          -> pure ()
+
+instance tyname ~ TyName => CheckScoping (Type tyname uni) where
+    checkScoping ty0 = withScopeDelta (PLC.typeAnn ty0) $ case ty0 of
+        TyLam _ _ _ ty    -> checkScoping ty
+        TyForall _ _ _ ty -> checkScoping ty
+        TyIFix _ pat arg  -> checkScoping pat *> checkScoping arg
+        TyApp _ fun arg   -> checkScoping fun *> checkScoping arg
+        TyFun _ dom cod   -> checkScoping dom *> checkScoping cod
+        TyVar delta name  -> checkScopingVar delta $ Left name
+        TyBuiltin _ _     -> pure ()
 
 renameConstrTypeM
     :: (PLC.HasRenaming ren PLC.TypeUnique, PLC.HasUniques (Type tyname uni ann), PLC.MonadQuote m)
