@@ -16,7 +16,8 @@ data MetadataAction
   | SetSlotParameterDescription String String
   | DeleteSlotParameterDescription String
   | SetValueParameterDescription String String
-  | DeleteValueParameterDescription String
+  | SetValueParameterFormat String NumberFormat
+  | DeleteValueParameterInfo String
   | SetChoiceDescription String String
   | SetChoiceFormat String NumberFormat
   | DeleteChoiceInfo String
@@ -30,7 +31,8 @@ instance metadataActionShowConstructor :: ShowConstructor MetadataAction where
   showConstructor (SetSlotParameterDescription _ _) = "SetSlotParameterDescription"
   showConstructor (DeleteSlotParameterDescription _) = "DeleteSlotParameterDescription"
   showConstructor (SetValueParameterDescription _ _) = "SetValueParameterDescription"
-  showConstructor (DeleteValueParameterDescription _) = "DeleteValueParameterDescription"
+  showConstructor (SetValueParameterFormat _ _) = "SetValueParameterFormat"
+  showConstructor (DeleteValueParameterInfo _) = "DeleteValueParameterInfo"
   showConstructor (SetChoiceDescription _ _) = "SetChoiceDescription"
   showConstructor (SetChoiceFormat _ _) = "SetChoiceFormat"
   showConstructor (DeleteChoiceInfo _) = "DeleteChoiceInfo"

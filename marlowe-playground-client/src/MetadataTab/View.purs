@@ -15,7 +15,7 @@ import Halogen.HTML (ClassName(..), HTML, button, div, em_, h6_, input, option, 
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, min, placeholder, required, selected, type_, value)
 import Marlowe.Extended (contractTypeArray, contractTypeInitials, contractTypeName, initialsToContractType)
-import Marlowe.Extended.Metadata (NumberFormat(..), NumberFormatType(..), ChoiceInfo, MetaData, MetadataHintInfo, _choiceDescription, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterDescriptions, _valueParameters, defaultForFormatType, fromString, getFormatType, isDecimalFormat, isDefaultFormat, toString)
+import Marlowe.Extended.Metadata (ChoiceInfo, MetaData, MetadataHintInfo, NumberFormat(..), NumberFormatType(..), ValueParameterInfo, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterInfo, _valueParameters, defaultForFormatType, fromString, getFormatType, isDecimalFormat, isDefaultFormat, toString)
 import MetadataTab.Types (MetadataAction(..))
 
 onlyDescriptionRenderer :: forall a b p. (String -> String -> b) -> (String -> b) -> String -> String -> Boolean -> (b -> a) -> String -> String -> Array (HTML p a)
@@ -41,51 +41,57 @@ onlyDescriptionRenderer setAction deleteAction key info needed metadataAction ty
   ]
     <> if needed then [] else [ div [ classes [ ClassName "metadata-error", ClassName "metadata-prop-not-used" ] ] [ text "Not used" ] ]
 
-choiceMetadataRenderer :: forall a p. String -> ChoiceInfo -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
-choiceMetadataRenderer key info@{ choiceFormat } needed metadataAction typeNameTitle typeNameSmall =
+type FormattedNumberActions
+  = { setFormat :: String -> NumberFormat -> MetadataAction
+    , setDescription :: String -> String -> MetadataAction
+    , deleteInfo :: String -> MetadataAction
+    }
+
+formattedNumberMetadataRenderer :: forall a p. String -> String -> NumberFormat -> FormattedNumberActions -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
+formattedNumberMetadataRenderer key description format { setFormat, setDescription, deleteInfo } needed metadataAction typeNameTitle typeNameSmall =
   [ div [ class_ $ ClassName "metadata-prop-label" ]
       [ text $ typeNameTitle <> " " <> show key <> ": " ]
-  , div [ class_ $ ClassName "metadata-prop-choice-col1" ]
+  , div [ class_ $ ClassName "metadata-prop-formattednum-col1" ]
       [ select
           [ class_ $ ClassName "metadata-input"
-          , onValueChange $ Just <<< metadataAction <<< SetChoiceFormat key <<< setChoiceFormatType
+          , onValueChange $ Just <<< metadataAction <<< setFormat key <<< setNumberFormatType
           ]
           [ option
               [ value $ toString DefaultFormatType
-              , selected $ isDefaultFormat choiceFormat
+              , selected $ isDefaultFormat format
               ]
               [ text $ "Default format"
               ]
           , option
               [ value $ toString DecimalFormatType
-              , selected $ isDecimalFormat choiceFormat
+              , selected $ isDecimalFormat format
               ]
               [ text $ "Fixed point amount"
               ]
           ]
       ]
-  , div [ class_ $ ClassName "metadata-prop-choice-col2" ]
+  , div [ class_ $ ClassName "metadata-prop-formattednum-col2" ]
       [ input
           [ type_ InputText
           , placeholder $ "Description for " <> typeNameSmall <> " " <> show key
           , class_ $ ClassName "metadata-input"
-          , value (info ^. _choiceDescription)
-          , onValueChange $ Just <<< metadataAction <<< SetChoiceDescription key
+          , value description
+          , onValueChange $ Just <<< metadataAction <<< setDescription key
           ]
       ]
   , div [ class_ $ ClassName "metadata-prop-delete" ]
       [ button
           [ classes [ if needed then plusBtn else minusBtn, ClassName "align-top", btn ]
-          , onClick $ const $ Just $ metadataAction $ DeleteChoiceInfo key
+          , onClick $ const $ Just $ metadataAction $ deleteInfo key
           ]
           [ text "-" ]
       ]
   ]
     <> (if needed then [] else [ div [ classes [ ClassName "metadata-error", ClassName "metadata-prop-not-used" ] ] [ text "Not used" ] ])
-    <> case choiceFormat of
+    <> case format of
         DefaultFormat -> []
         DecimalFormat numDecimals labelStr ->
-          [ div [ class_ $ ClassName "metadata-prop-choice-col1" ]
+          [ div [ class_ $ ClassName "metadata-prop-formattednum-col1" ]
               [ input
                   [ type_ InputNumber
                   , placeholder $ "Number of decimal digits for " <> typeNameSmall <> " " <> show key
@@ -93,24 +99,24 @@ choiceMetadataRenderer key info@{ choiceFormat } needed metadataAction typeNameT
                   , value $ if numDecimals == 0 then "" else show numDecimals
                   , required true
                   , min zero
-                  , onValueChange $ Just <<< metadataAction <<< SetChoiceFormat key <<< setDecimals labelStr
+                  , onValueChange $ Just <<< metadataAction <<< setFormat key <<< setDecimals labelStr
                   ]
               ]
-          , div [ class_ $ ClassName "metadata-prop-choice-col2" ]
+          , div [ class_ $ ClassName "metadata-prop-formattednum-col2" ]
               [ input
                   [ type_ InputText
                   , placeholder $ "Currency label for " <> typeNameSmall <> " " <> show key
                   , class_ $ ClassName "metadata-input"
                   , value labelStr
-                  , onValueChange $ Just <<< metadataAction <<< SetChoiceFormat key <<< DecimalFormat numDecimals
+                  , onValueChange $ Just <<< metadataAction <<< setFormat key <<< DecimalFormat numDecimals
                   ]
               ]
           ]
   where
-  setChoiceFormatType :: String -> NumberFormat
-  setChoiceFormatType str = case fromString str of
+  setNumberFormatType :: String -> NumberFormat
+  setNumberFormatType str = case fromString str of
     Just formatType
-      | formatType == getFormatType choiceFormat -> choiceFormat
+      | formatType == getFormatType format -> format
       | otherwise -> defaultForFormatType formatType
     Nothing -> defaultForFormatType DefaultFormatType
 
@@ -123,6 +129,22 @@ choiceMetadataRenderer key info@{ choiceFormat } needed metadataAction typeNameT
           _ -> 0
       )
       labelStr
+
+choiceMetadataRenderer :: forall a p. String -> ChoiceInfo -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
+choiceMetadataRenderer key { choiceDescription, choiceFormat } =
+  formattedNumberMetadataRenderer key choiceDescription choiceFormat
+    { setFormat: SetChoiceFormat
+    , setDescription: SetChoiceDescription
+    , deleteInfo: DeleteChoiceInfo
+    }
+
+valueParameterMetadataRenderer :: forall a p. String -> ValueParameterInfo -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
+valueParameterMetadataRenderer key { valueParameterDescription, valueParameterFormat } =
+  formattedNumberMetadataRenderer key valueParameterDescription valueParameterFormat
+    { setFormat: SetValueParameterFormat
+    , setDescription: SetValueParameterDescription
+    , deleteInfo: DeleteValueParameterInfo
+    }
 
 metadataList ::
   forall a b c p.
@@ -221,7 +243,7 @@ metadataView metadataHints metadata metadataAction =
         , generateMetadataList _roleDescriptions _roles (onlyDescriptionRenderer SetRoleDescription DeleteRoleDescription) "Role" "role" (\x -> SetRoleDescription x mempty)
         , generateMetadataList _choiceInfo _choiceNames choiceMetadataRenderer "Choice" "choice" (\x -> SetChoiceDescription x mempty)
         , generateMetadataList _slotParameterDescriptions _slotParameters (onlyDescriptionRenderer SetSlotParameterDescription DeleteSlotParameterDescription) "Slot parameter" "slot parameter" (\x -> SetSlotParameterDescription x mempty)
-        , generateMetadataList _valueParameterDescriptions _valueParameters (onlyDescriptionRenderer SetValueParameterDescription DeleteValueParameterDescription) "Value parameter" "value parameter" (\x -> SetValueParameterDescription x mempty)
+        , generateMetadataList _valueParameterInfo _valueParameters valueParameterMetadataRenderer "Value parameter" "value parameter" (\x -> SetValueParameterDescription x mempty)
         ]
     )
   where

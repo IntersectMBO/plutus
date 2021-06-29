@@ -81,6 +81,32 @@ defaultForFormatType DefaultFormatType = DefaultFormat
 
 defaultForFormatType DecimalFormatType = DecimalFormat 0 ""
 
+type ValueParameterInfo
+  = { valueParameterFormat :: NumberFormat
+    , valueParameterDescription :: String
+    }
+
+_valueParameterFormat :: Lens' ValueParameterInfo NumberFormat
+_valueParameterFormat = prop (SProxy :: SProxy "valueParameterFormat")
+
+_valueParameterDescription :: Lens' ValueParameterInfo String
+_valueParameterDescription = prop (SProxy :: SProxy "valueParameterDescription")
+
+emptyValueParameterInfo :: ValueParameterInfo
+emptyValueParameterInfo =
+  { valueParameterFormat: DefaultFormat
+  , valueParameterDescription: mempty
+  }
+
+getValueParameterInfo :: String -> Map String ValueParameterInfo -> ValueParameterInfo
+getValueParameterInfo str = fromMaybe emptyValueParameterInfo <<< Map.lookup str
+
+updateValueParameterInfo :: (ValueParameterInfo -> ValueParameterInfo) -> String -> Map String ValueParameterInfo -> Map String ValueParameterInfo
+updateValueParameterInfo f = Map.alter updateValueParameterInfoEntry
+  where
+  updateValueParameterInfoEntry :: Maybe ValueParameterInfo -> Maybe ValueParameterInfo
+  updateValueParameterInfoEntry mValueParameterInfo = Just $ f $ fromMaybe emptyValueParameterInfo mValueParameterInfo
+
 type ChoiceInfo
   = { choiceFormat :: NumberFormat
     , choiceDescription :: String
@@ -113,7 +139,7 @@ type MetaData
     , contractDescription :: String
     , roleDescriptions :: Map S.TokenName String
     , slotParameterDescriptions :: Map String String
-    , valueParameterDescriptions :: Map String String
+    , valueParameterInfo :: Map String ValueParameterInfo
     , choiceInfo :: Map String ChoiceInfo
     }
 
@@ -132,8 +158,8 @@ _roleDescriptions = prop (SProxy :: SProxy "roleDescriptions")
 _slotParameterDescriptions :: Lens' MetaData (Map String String)
 _slotParameterDescriptions = prop (SProxy :: SProxy "slotParameterDescriptions")
 
-_valueParameterDescriptions :: Lens' MetaData (Map String String)
-_valueParameterDescriptions = prop (SProxy :: SProxy "valueParameterDescriptions")
+_valueParameterInfo :: Lens' MetaData (Map String ValueParameterInfo)
+_valueParameterInfo = prop (SProxy :: SProxy "valueParameterInfo")
 
 _choiceInfo :: Lens' MetaData (Map String ChoiceInfo)
 _choiceInfo = prop (SProxy :: SProxy "choiceInfo")
@@ -145,7 +171,7 @@ emptyContractMetadata =
   , contractDescription: ""
   , roleDescriptions: mempty
   , slotParameterDescriptions: mempty
-  , valueParameterDescriptions: mempty
+  , valueParameterInfo: mempty
   , choiceInfo: mempty
   }
 
@@ -191,12 +217,12 @@ getMetadataHintInfo contract =
 getHintsFromMetadata :: MetaData -> MetadataHintInfo
 getHintsFromMetadata { roleDescriptions
 , slotParameterDescriptions
-, valueParameterDescriptions
+, valueParameterInfo
 , choiceInfo
 } =
   { roles: keys roleDescriptions
   , slotParameters: keys slotParameterDescriptions
-  , valueParameters: keys valueParameterDescriptions
+  , valueParameters: keys valueParameterInfo
   , choiceNames: keys choiceInfo
   }
 

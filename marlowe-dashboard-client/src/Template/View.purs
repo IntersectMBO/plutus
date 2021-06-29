@@ -12,9 +12,9 @@ import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (Map, lookup, values)
-import Data.Map (toUnfoldable) as Map
+import Data.Map (lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.String (null)
+import Data.String (null, trim)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
@@ -24,7 +24,7 @@ import InputField.Types (State) as InputField
 import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
 import Marlowe.Extended (contractTypeInitials)
-import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData)
+import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData, _valueParameterDescription)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Slot, TokenName)
@@ -223,7 +223,13 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
 
   valueInput index (key /\ parameterValue) =
     let
-      description = fromMaybe "no description available" $ lookup key metaData.valueParameterDescriptions
+      description =
+        fromMaybe "no description available"
+          ( case Map.lookup key metaData.valueParameterInfo of
+              Just { valueParameterDescription: description }
+                | trim description /= "" -> Just description
+              _ -> Nothing
+          )
 
       mParameterError = valueError parameterValue
     in

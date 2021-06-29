@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Newtype (unwrap, wrap)
 import Data.String (trim)
 import Data.Tuple (Tuple(..), snd)
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
@@ -28,7 +28,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
-import Marlowe.Extended.Metadata (NumberFormat(..), MetaData, getChoiceFormat)
+import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
@@ -226,8 +226,8 @@ startSimulationWidget metadata { initialSlot, templateContent } =
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters metadata.slotParameterDescriptions SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                    <> integerTemplateParameters metadata.valueParameterDescriptions SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                ( integerTemplateParameters (const Nothing) (Map.lookup) metadata.slotParameterDescriptions SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
+                    <> integerTemplateParameters extractValueParameterNuberFormat lookupDescription metadata.valueParameterInfo SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -238,9 +238,20 @@ startSimulationWidget metadata { initialSlot, templateContent } =
                 [ text "Start simulation" ]
             ]
         ]
+  where
+  extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
+    Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
+    _ -> Nothing
 
-integerTemplateParameters :: forall action p. Map String String -> (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
-integerTemplateParameters explanations actionGen typeName title prefix content =
+  lookupDescription k m =
+    ( case Map.lookup k m of
+        Just { valueParameterDescription: description }
+          | trim description /= "" -> Just description
+        _ -> Nothing
+    )
+
+integerTemplateParameters :: forall a action p. (String -> Maybe (String /\ Int)) -> (String -> Map String a -> Maybe String) -> Map String a -> (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters extractFormat lookupDefinition explanations actionGen typeName title prefix content =
   [ li_
       if Map.isEmpty content then
         []
@@ -254,11 +265,13 @@ integerTemplateParameters explanations actionGen typeName title prefix content =
                                 , strong_ [ text key ]
                                 , text ":"
                                 ]
-                            , marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
+                            , case extractFormat key of
+                                Just (currencyLabel /\ numDecimals) -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) currencyLabel numDecimals value
+                                Nothing -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
                             ]
                               <> [ div [ classes [ ClassName "action-group-explanation" ] ]
                                     $ maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
-                                    $ Map.lookup key explanations
+                                    $ lookupDefinition key explanations
                                 ]
                           )
                       )
@@ -406,7 +419,7 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
                 [ span [ class_ (ClassName "break-word-span") ] [ text "Choice ", b_ [ text (show choiceName <> ": ") ] ]
                 , case mChoiceInfo of
                     Just { choiceFormat: DecimalFormat numDecimals currencyLabel } -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) currencyLabel numDecimals chosenNum
-                    _ -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) "" 0 chosenNum
+                    _ -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) chosenNum
                 ]
             , div [ class_ (ClassName "choice-error") ] error
             ]

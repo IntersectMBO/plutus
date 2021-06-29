@@ -52,7 +52,14 @@ escrow =
           , "Timeout for arbitrage" /\ "Deadline by which, if the *Arbiter* has not resolved the dispute, the *Buyer* will be refunded."
           ]
       )
-  , valueParameterDescriptions: (fromFoldable [ "Price" /\ "Amount of Lovelace to be paid by the *Buyer* for the item." ])
+  , valueParameterInfo:
+      ( fromFoldable
+          [ "Price"
+              /\ { valueParameterFormat: lovelaceFormat
+                , valueParameterDescription: "Amount of Lovelace to be paid by the *Buyer* for the item."
+                }
+          ]
+      )
   }
 
 escrowWithCollateral :: MetaData
@@ -95,10 +102,16 @@ escrowWithCollateral =
           , "Seller's response timeout" /\ "The deadline by which, if the *Seller* has not responded to the dispute, the *Buyer* will be refunded."
           ]
       )
-  , valueParameterDescriptions:
+  , valueParameterInfo:
       ( fromFoldable
-          [ "Collateral amount" /\ "The amount of Lovelace to be deposited by both parties at the start of the contract to serve as an incentive for collaboration."
-          , "Price" /\ "The amount of Lovelace to be paid by the *Buyer* as part of the exchange."
+          [ "Collateral amount"
+              /\ { valueParameterFormat: lovelaceFormat
+                , valueParameterDescription: "The amount of Lovelace to be deposited by both parties at the start of the contract to serve as an incentive for collaboration."
+                }
+          , "Price"
+              /\ { valueParameterFormat: lovelaceFormat
+                , valueParameterDescription: "The amount of Lovelace to be paid by the *Buyer* as part of the exchange."
+                }
           ]
       )
   }
@@ -121,10 +134,16 @@ zeroCouponBond =
           , "Maturity exchange deadline" /\ "The *Issuer* must deposit the full price of the bond before this deadline or it will default."
           ]
       )
-  , valueParameterDescriptions:
+  , valueParameterInfo:
       ( fromFoldable
-          [ "Discounted price" /\ "The price in Lovelace of the Zero Coupon Bond at the start date."
-          , "Notional price" /\ "The full price in Lovelace of the Zero Coupon Bond."
+          [ "Discounted price"
+              /\ { valueParameterFormat: lovelaceFormat
+                , valueParameterDescription: "The price in Lovelace of the Zero Coupon Bond at the start date."
+                }
+          , "Notional price"
+              /\ { valueParameterFormat: lovelaceFormat
+                , valueParameterDescription: "The full price in Lovelace of the Zero Coupon Bond."
+                }
           ]
       )
   }
@@ -143,10 +162,16 @@ couponBondGuaranteed =
           ]
       )
   , slotParameterDescriptions: empty
-  , valueParameterDescriptions:
+  , valueParameterInfo:
       ( fromFoldable
-          [ "Interest instalment" /\ "Amount of Lovelace that will be paid by the *Issuer* every 30 slots for 3 iterations."
-          , "Principal" /\ "Amount of Lovelace that will be borrowed by the *Issuer*."
+          [ "Interest instalment"
+              /\ { valueParameterFormat: lovelaceFormat
+                , valueParameterDescription: "Amount of Lovelace that will be paid by the *Issuer* every 30 slots for 3 iterations."
+                }
+          , "Principal"
+              /\ { valueParameterFormat: lovelaceFormat
+                , valueParameterDescription: "Amount of Lovelace that will be borrowed by the *Issuer*."
+                }
           ]
       )
   }
@@ -169,10 +194,16 @@ swap =
           , "Timeout for dollar deposit" /\ "Deadline by which dollar tokens must be deposited (must be after the deadline for Ada deposit)."
           ]
       )
-  , valueParameterDescriptions:
+  , valueParameterInfo:
       ( fromFoldable
-          [ "Amount of Ada" /\ "Amount of Ada to be exchanged for dollars."
-          , "Amount of dollars" /\ "Amount of dollar tokens to be exchanged for Ada."
+          [ "Amount of Ada"
+              /\ { valueParameterFormat: DecimalFormat 0 "₳"
+                , valueParameterDescription: "Amount of Ada to be exchanged for dollars."
+                }
+          , "Amount of dollars"
+              /\ { valueParameterFormat: DecimalFormat 0 "$"
+                , valueParameterDescription: "Amount of dollar tokens to be exchanged for Ada."
+                }
           ]
       )
   }
@@ -202,7 +233,7 @@ contractForDifferences =
           ]
       )
   , slotParameterDescriptions: empty
-  , valueParameterDescriptions: empty
+  , valueParameterInfo: empty
   }
 
 contractForDifferencesWithOracle :: MetaData
@@ -230,5 +261,5 @@ contractForDifferencesWithOracle =
           ]
       )
   , slotParameterDescriptions: empty
-  , valueParameterDescriptions: empty
+  , valueParameterInfo: empty
   }
