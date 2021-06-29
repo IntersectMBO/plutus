@@ -1,7 +1,8 @@
-module Play.State
+module Dashboard.State
   ( dummyState
   , mkInitialState
   , handleAction
+  , partitionContracts
   ) where
 
 import Prelude
@@ -11,25 +12,24 @@ import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFol
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames, insertIntoWalletLibrary)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_mMarloweParams, _nickname, _selectedStep)
-import Contract.State (applyTimeout)
+import Contract.State (applyTimeout, isContractClosed)
 import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderState, updateState) as Contract
 import Contract.Types (Action(..), State) as Contract
-import ContractHome.Lenses (_contracts)
-import ContractHome.State (handleAction, mkInitialState) as ContractHome
-import ContractHome.Types (Action(..), State) as ContractHome
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Data.Array (elem, head, init, reverse, snoc)
+import Dashboard.Lenses (_cards, _contracts, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _selectedContractIndex, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
+import Dashboard.Types (Action(..), Card(..), ContractStatus(..), Input, PartitionedContracts, Screen(..), State)
+import Data.Array (elem, head, init, partition, reverse, snoc)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, filtered, modifying, over, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Traversal (traversed)
-import Data.Map (Map, alter, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, toUnfoldable, values)
-import Data.Maybe (Maybe(..))
+import Data.Map (Map, alter, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable, toUnfoldableUnordered, values)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Time.Duration (Minutes(..))
 import Data.Traversable (for)
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple, snd)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (emptyUUID)
 import Effect.Aff.Class (class MonadAff)
@@ -47,8 +47,6 @@ import Marlowe.Extended.Metadata (_extendedContract, _metaData)
 import Marlowe.PAB (ContractHistory, MarloweParams, PlutusAppId(..), MarloweData)
 import Marlowe.Semantics (Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
-import Play.Lenses (_allContracts, _cards, _contractsState, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
-import Play.Types (Action(..), Card(..), Input, Screen(..), State)
 import Template.Lenses (_contractNickname, _roleWalletInputs, _template, _templateContent)
 import Template.State (dummyState, handleAction, mkInitialState) as Template
 import Template.State (instantiateExtendedContract)
@@ -65,18 +63,27 @@ dummyState = mkInitialState mempty defaultWalletDetails mempty mempty (Slot zero
 
 mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> Slot -> Minutes -> State
 mkInitialState walletLibrary walletDetails contracts contractNicknames currentSlot timezoneOffset =
-  { walletLibrary
-  , walletDetails
-  , menuOpen: false
-  , screen: ContractsScreen
-  , cards: mempty
-  , walletNicknameInput: InputField.initialState
-  , walletIdInput: InputField.initialState
-  , remoteWalletInfo: NotAsked
-  , timezoneOffset
-  , templateState: Template.dummyState
-  , contractsState: ContractHome.mkInitialState walletDetails currentSlot contracts contractNicknames
-  }
+  let
+    mkInitialContractState followerAppId contractHistory =
+      let
+        nickname = fromMaybe mempty $ lookup followerAppId contractNicknames
+      in
+        Contract.mkInitialState walletDetails currentSlot followerAppId nickname contractHistory
+  in
+    { walletLibrary
+    , walletDetails
+    , menuOpen: false
+    , screen: ContractsScreen
+    , cards: mempty
+    , status: Running
+    , contracts: mapMaybeWithKey mkInitialContractState contracts
+    , selectedContractIndex: Nothing
+    , walletNicknameInput: InputField.initialState
+    , walletIdInput: InputField.initialState
+    , remoteWalletInfo: NotAsked
+    , timezoneOffset
+    , templateState: Template.dummyState
+    }
 
 handleAction ::
   forall m.
@@ -91,8 +98,8 @@ handleAction ::
 handleAction _ PutdownWallet = do
   walletLibrary <- use _walletLibrary
   walletDetails <- use _walletDetails
-  runningContracts <- use _allContracts
-  callMainFrameAction $ MainFrame.EnterWelcomeState walletLibrary walletDetails runningContracts
+  contracts <- use _contracts
+  callMainFrameAction $ MainFrame.EnterWelcomeState walletLibrary walletDetails contracts
 
 handleAction _ (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 
@@ -184,6 +191,10 @@ handleAction _ (CloseCard card) = do
     $ for_ (init cards) \remainingCards ->
         assign _cards remainingCards
 
+handleAction _ (SelectView view) = assign _status view
+
+handleAction _ (OpenContract ix) = assign _selectedContractIndex $ Just ix
+
 -- Until everything is working in the PAB, we are simulating persistent and shared data using localStorage; this
 -- action updates the state to match the localStorage, and should be called whenever the stored data changes.
 -- It's not very subtle or efficient - it just updates everything in one go.
@@ -216,7 +227,7 @@ handleAction input@{ currentSlot } UpdateFromStorage = do
 -- apps or activates pending ones for any contracts that aren't yet being followed
 handleAction input (UpdateFollowerApps companionAppState) = do
   walletDetails <- use _walletDetails
-  existingContracts <- use _allContracts
+  existingContracts <- use _contracts
   let
     contractExists marloweParams = elem (Just marloweParams) (view _mMarloweParams <$> values existingContracts)
 
@@ -269,7 +280,7 @@ handleAction input (UpdateFollowerApps companionAppState) = do
               Right (followerAppId /\ contractHistory) -> do
                 handleAction input $ UpdateContract followerAppId contractHistory
                 for_ mPendingContract \{ key, value } -> do
-                  modifying _allContracts
+                  modifying _contracts
                     $ delete key
                     <<< alter (map (set _nickname value.nickname)) followerAppId
                   insertIntoContractNicknames followerAppId value.nickname
@@ -287,24 +298,24 @@ handleAction input@{ currentSlot } (UpdateContract plutusAppId contractHistory@{
   -- another notification through the websocket as soon as they are set
   for_ chParams \(marloweParams /\ marloweData) -> do
     walletDetails <- use _walletDetails
-    allContracts <- use _allContracts
-    case lookup plutusAppId allContracts of
+    contracts <- use _contracts
+    case lookup plutusAppId contracts of
       Just contractState -> do
         selectedStep <- peruse $ _selectedContract <<< _selectedStep
-        modifying _allContracts $ insert plutusAppId $ Contract.updateState walletDetails marloweParams currentSlot chHistory contractState
+        modifying _contracts $ insert plutusAppId $ Contract.updateState walletDetails marloweParams currentSlot chHistory contractState
         -- if the modification changed the currently selected step, that means the card for the contract
         -- that was changed is currently open, so we need to realign the step cards
         selectedStep' <- peruse $ _selectedContract <<< _selectedStep
         when (selectedStep /= selectedStep')
           $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
-      Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot plutusAppId mempty contractHistory) (modifying _allContracts <<< insert plutusAppId)
+      Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot plutusAppId mempty contractHistory) (modifying _contracts <<< insert plutusAppId)
 
 handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
   selectedStep <- peruse $ _selectedContract <<< _selectedStep
   modify_
     $ over
-        (_contractsState <<< _contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot))
+        (_contracts <<< traversed <<< filtered (\contract -> contract.executionState.mNextTimeout /= Nothing && contract.executionState.mNextTimeout <= Just currentSlot))
         (applyTimeout currentSlot)
   -- If the modification changed the currently selected step, that means the card for the contract
   -- that was changed is currently open, so we need to realign the step cards. We also call the
@@ -357,20 +368,12 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
                 contractNickname <- use (_templateState <<< _contractNickname)
                 insertIntoContractNicknames followerAppId contractNickname
                 metaData <- use (_templateState <<< _template <<< _metaData)
-                modifying _allContracts $ insert followerAppId $ Contract.mkPlaceholderState followerAppId contractNickname metaData contract
+                modifying _contracts $ insert followerAppId $ Contract.mkPlaceholderState followerAppId contractNickname metaData contract
                 handleAction input $ SetScreen ContractsScreen
                 addToast $ successToast "The request to initialise this contract has been submitted."
                 { dataProvider } <- ask
                 when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
   _ -> toTemplate $ Template.handleAction templateAction
-
-handleAction input (ContractHomeAction contractHomeAction) = case contractHomeAction of
-  ContractHome.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
-  a@(ContractHome.OpenContract _) -> do
-    walletDetails <- use _walletDetails
-    toContractHome $ ContractHome.handleAction a
-    handleAction input $ OpenCard ContractCard
-  _ -> toContractHome $ ContractHome.handleAction contractHomeAction
 
 handleAction input@{ currentSlot } (ContractAction contractAction) = do
   walletDetails <- use _walletDetails
@@ -383,6 +386,14 @@ handleAction input@{ currentSlot } (ContractAction contractAction) = do
       handleAction input $ CloseCard $ ContractActionConfirmationCard CloseContract
     Contract.CancelConfirmation -> handleAction input $ CloseCard $ ContractActionConfirmationCard CloseContract
     _ -> toContract $ Contract.handleAction contractInput contractAction
+
+------------------------------------------------------------
+partitionContracts :: Map PlutusAppId Contract.State -> PartitionedContracts
+partitionContracts contracts =
+  toUnfoldableUnordered contracts
+    # map snd
+    # partition isContractClosed
+    # \{ no, yes } -> { completed: yes, running: no }
 
 ------------------------------------------------------------
 toWalletNicknameInput ::
@@ -405,13 +416,6 @@ toTemplate ::
   HalogenM Template.State Template.Action slots msg m Unit ->
   HalogenM State Action slots msg m Unit
 toTemplate = mapSubmodule _templateState TemplateAction
-
-toContractHome ::
-  forall m msg slots.
-  Functor m =>
-  HalogenM ContractHome.State ContractHome.Action slots msg m Unit ->
-  HalogenM State Action slots msg m Unit
-toContractHome = mapSubmodule _contractsState ContractHomeAction
 
 -- see note [dummyState] in MainFrame.State
 toContract ::

@@ -8,6 +8,7 @@ module WalletData.View
 import Prelude hiding (div)
 import Css (applyWhen, classNames, hideWhen)
 import Css as Css
+import Dashboard.Types (Action(..), Card(..))
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Map (isEmpty, toUnfoldable)
@@ -25,7 +26,6 @@ import InputField.State (validate)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
 import Material.Icons (Icon(..))
-import Play.Types (Action(..), Card(..))
 import Types (WebData)
 import WalletData.Lenses (_assets, _companionAppId, _walletNickname)
 import WalletData.State (adaToken, getAda)

@@ -8,6 +8,9 @@ import Capability.Toast (class Toast, addToast)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
+import Dashboard.Lenses (_contracts, _walletDetails)
+import Dashboard.State (dummyState, handleAction, mkInitialState) as Dashboard
+import Dashboard.Types (Action(..), State) as Dashboard
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, use, view)
@@ -25,13 +28,10 @@ import Halogen (Component, HalogenM, liftEffect, mkComponent, mkEval, subscribe)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.LocalStorage (localStorageEvents)
-import MainFrame.Lenses (_currentSlot, _playState, _subState, _toast, _webSocketStatus, _welcomeState)
+import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _webSocketStatus, _welcomeState)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
 import Marlowe.PAB (PlutusAppId)
-import Play.Lenses (_allContracts, _walletDetails)
-import Play.State (dummyState, handleAction, mkInitialState) as Play
-import Play.Types (Action(..), State) as Play
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
@@ -83,13 +83,13 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
     WS.WebSocketOpen -> do
       assign _webSocketStatus WebSocketOpen
       -- potentially renew websocket subscriptions
-      mPlayState <- peruse _playState
-      for_ mPlayState \playState -> do
+      mDashboardState <- peruse _dashboardState
+      for_ mDashboardState \dashboardState -> do
         let
-          wallet = view (_walletDetails <<< _walletInfo <<< _wallet) playState
+          wallet = view (_walletDetails <<< _walletInfo <<< _wallet) dashboardState
 
           followAppIds :: Array PlutusAppId
-          followAppIds = Set.toUnfoldable $ keys $ view _allContracts playState
+          followAppIds = Set.toUnfoldable $ keys $ view _contracts dashboardState
         { dataProvider } <- ask
         subscribeToWallet dataProvider wallet
         for followAppIds $ subscribeToPlutusApp dataProvider
@@ -103,16 +103,16 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       -- update the current slot
       SlotChange slot -> do
         assign _currentSlot $ toFront slot
-        handleAction $ PlayAction Play.AdvanceTimedoutSteps
+        handleAction $ DashboardAction Dashboard.AdvanceTimedoutSteps
       -- update the wallet funds (if the change is to the current wallet)
       -- note: we should only ever be notified of changes to the current wallet, since we subscribe to
       -- this update when we pick it up, and unsubscribe when we put it down - but we check here
       -- anyway in case
       WalletFundsChange wallet value -> do
-        mCurrentWallet <- peruse (_playState <<< _walletDetails <<< _walletInfo <<< _wallet)
+        mCurrentWallet <- peruse (_dashboardState <<< _walletDetails <<< _walletInfo <<< _wallet)
         for_ mCurrentWallet \currentWallet -> do
           when (currentWallet == toFront wallet)
-            $ assign (_playState <<< _walletDetails <<< _assets) (toFront value)
+            $ assign (_dashboardState <<< _walletDetails <<< _assets) (toFront value)
       -- update the state when a contract instance changes
       -- note: we should be subsribed to updates from all (and only) the current wallet's contract
       -- instances, including its wallet companion contract
@@ -120,24 +120,24 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
         NewObservableState rawJson -> do
           let
             plutusAppId = toFront contractInstanceId
-          mPlayState <- peruse _playState
-          -- these updates should only ever be coming when we are in the Play state (and if
+          mDashboardState <- peruse _dashboardState
+          -- these updates should only ever be coming when we are in the Dashboard state (and if
           -- we're not, we don't care about them anyway)
-          for_ mPlayState \playState -> do
+          for_ mDashboardState \dashboardState -> do
             let
-              walletCompanionAppId = view (_walletDetails <<< _companionAppId) playState
+              walletCompanionAppId = view (_walletDetails <<< _companionAppId) dashboardState
             -- if this is the wallet's WalletCompanion app...
             if (plutusAppId == walletCompanionAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
               Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
               Right companionAppState ->
                 -- this check shouldn't be necessary, but at the moment we are getting too many update notifications
                 -- through the PAB - so until that bug is fixed, this will have to mask it
-                when (view (_walletDetails <<< _previousCompanionAppState) playState /= Just companionAppState) do
-                  assign (_playState <<< _walletDetails <<< _previousCompanionAppState) (Just companionAppState)
-                  handleAction $ PlayAction $ Play.UpdateFollowerApps companionAppState
+                when (view (_walletDetails <<< _previousCompanionAppState) dashboardState /= Just companionAppState) do
+                  assign (_dashboardState <<< _walletDetails <<< _previousCompanionAppState) (Just companionAppState)
+                  handleAction $ DashboardAction $ Dashboard.UpdateFollowerApps companionAppState
             else do
               let
-                marloweAppId = view (_walletDetails <<< _marloweAppId) playState
+                marloweAppId = view (_walletDetails <<< _marloweAppId) dashboardState
               -- if this is the wallet's MarloweApp...
               if (plutusAppId == marloweAppId) then
                 -- TODO: in the future the Marlowe app's state will change when there is an error, and we can
@@ -146,7 +146,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               -- otherwise this should be one of the wallet's WalletFollowerApps
               else case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
-                Right contractHistory -> handleAction $ PlayAction $ Play.UpdateContract plutusAppId contractHistory
+                Right contractHistory -> handleAction $ DashboardAction $ Dashboard.UpdateContract plutusAppId contractHistory
         -- Plutus contracts in general can change in other ways, but the Marlowe contracts don't, so
         -- we can ignore these cases here
         _ -> pure unit
@@ -179,7 +179,7 @@ handleAction Init = do
   walletLibrary <- getWalletLibrary
   assign (_welcomeState <<< _walletLibrary) walletLibrary
   { dataProvider } <- ask
-  when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ PlayAction $ Play.UpdateFromStorage)
+  when (dataProvider == LocalStorage) (void $ subscribe $ localStorageEvents $ const $ DashboardAction $ Dashboard.UpdateFromStorage)
 
 handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
   { dataProvider } <- ask
@@ -191,7 +191,7 @@ handleAction (EnterWelcomeState walletLibrary walletDetails followerApps) = do
   for_ followerAppIds $ unsubscribeFromPlutusApp dataProvider
   assign _subState $ Left $ Welcome.mkInitialState walletLibrary
 
-handleAction (EnterPlayState walletLibrary walletDetails) = do
+handleAction (EnterDashboardState walletLibrary walletDetails) = do
   ajaxFollowerApps <- getFollowerApps walletDetails
   currentSlot <- use _currentSlot
   case ajaxFollowerApps of
@@ -209,7 +209,7 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       for_ followerAppIds $ subscribeToPlutusApp dataProvider
       timezoneOffset <- liftEffect getTimezoneOffset
       contractNicknames <- getContractNicknames
-      assign _subState $ Right $ Play.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot timezoneOffset
+      assign _subState $ Right $ Dashboard.mkInitialState walletLibrary walletDetails followerApps contractNicknames currentSlot timezoneOffset
       -- we now have all the running contracts for this wallet, but if new role tokens have been given to the
       -- wallet since we last picked it up, we have to create FollowerApps for those contracts here
       ajaxRoleContracts <- getRoleContracts walletDetails
@@ -218,15 +218,15 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
           handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseWalletCard
           handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseNewWalletCard
           addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
-        Right companionState -> handleAction $ PlayAction $ Play.UpdateFollowerApps companionState
+        Right companionState -> handleAction $ DashboardAction $ Dashboard.UpdateFollowerApps companionState
 
 handleAction (WelcomeAction welcomeAction) = toWelcome $ Welcome.handleAction welcomeAction
 
-handleAction (PlayAction playAction) = do
+handleAction (DashboardAction dashboardAction) = do
   currentSlot <- use _currentSlot
   let
     inputs = { currentSlot }
-  toPlay $ Play.handleAction inputs playAction
+  toDashboard $ Dashboard.handleAction inputs dashboardAction
 
 handleAction (ToastAction toastAction) = toToast $ Toast.handleAction toastAction
 
@@ -242,12 +242,12 @@ toWelcome ::
   HalogenM State Action slots msg m Unit
 toWelcome = mapMaybeSubmodule _welcomeState WelcomeAction Welcome.dummyState
 
-toPlay ::
+toDashboard ::
   forall m msg slots.
   Functor m =>
-  HalogenM Play.State Play.Action slots msg m Unit ->
+  HalogenM Dashboard.State Dashboard.Action slots msg m Unit ->
   HalogenM State Action slots msg m Unit
-toPlay = mapMaybeSubmodule _playState PlayAction Play.dummyState
+toDashboard = mapMaybeSubmodule _dashboardState DashboardAction Dashboard.dummyState
 
 toToast ::
   forall m msg slots.
