@@ -24,6 +24,7 @@ module Plutus.PAB.Core.ContractInstance(
     , updateState
     -- * STM instances
     , startSTMInstanceThread
+    , startContractInstanceThread'
     , AppBackendConstraints
     -- * Calling endpoints
     , callEndpointOnInstance
@@ -94,10 +95,28 @@ activateContractSTM' ::
     -> (Eff appBackend ~> IO)
     -> ContractActivationArgs (ContractDef t)
     -> Eff effs ContractInstanceId
-activateContractSTM' ContractInstanceState{contractState,stmState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID, caWallet} = do
-  logDebug @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
+activateContractSTM' c@ContractInstanceState{contractState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID} = do
+  logInfo @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
   Contract.putStartInstance @t a activeContractInstanceId
   Contract.putState @t a activeContractInstanceId contractState
+  startContractInstanceThread' c activeContractInstanceId runAppBackend a
+
+-- | Spin up the STM Instance thread for the provided contract.
+startContractInstanceThread' ::
+    forall t m appBackend effs.
+    ( Member (LogMsg (ContractInstanceMsg t)) effs
+    , Member (Reader InstancesState) effs
+    , Contract.PABContract t
+    , AppBackendConstraints t m appBackend
+    , LastMember m (Reader ContractInstanceId ': appBackend)
+    , LastMember m effs
+    )
+    => ContractInstanceState t
+    -> ContractInstanceId
+    -> (Eff appBackend ~> IO)
+    -> ContractActivationArgs (ContractDef t)
+    -> Eff effs ContractInstanceId
+startContractInstanceThread' ContractInstanceState{stmState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID, caWallet} = do
   s <- startSTMInstanceThread' @t @m stmState runAppBackend a activeContractInstanceId
   ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
   logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID caWallet activeContractInstanceId

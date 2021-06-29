@@ -1,0 +1,46 @@
+dbConfig:
+    dbConfigFile: "file::memory:?mode=memory&cache=shared"
+    dbConfigPoolSize: 20
+
+pabWebserverConfig:
+  baseUrl: http://localhost:9080
+  staticDir: plutus-pab-client/dist
+  permissiveCorsPolicy: False
+
+walletServerConfig:
+  baseUrl: http://localhost:9081
+  wallet:
+    getWallet: 1
+
+nodeServerConfig:
+  mscBaseUrl: http://localhost:9082
+  mscSocketPath: ./node-server.sock
+  mscKeptBlocks: 100
+  mscNetworkId: "1"
+  mscSlotConfig:
+    scSlotZeroTime: 1591566291000 # Wednesday, July 29, 2020 21:44:51 - shelley launch time in milliseconds
+    scSlotLength: 1000 # In milliseconds
+  mscFeeConfig:
+    fcConstantFee:
+      getLovelace: 10 # Constant fee per transaction in lovelace
+    fcScriptsFeeFactor: 1.0 # Factor by which to multiply size-dependent scripts fee in lovelace
+  mscRandomTxInterval: 20
+  mscInitialTxWallets:
+    - getWallet: 1
+    - getWallet: 2
+    - getWallet: 3
+
+chainIndexConfig:
+  ciBaseUrl: http://localhost:9083
+  ciWatchedAddresses: []
+
+requestProcessingConfig:
+  requestProcessingInterval: 1
+
+metadataServerConfig:
+  mdBaseUrl: http://localhost:9085
+
+# Optional timeout (in seconds) for calls to endpoints that are not currently
+# available. If this is not set, calls to unavailable endpoints fail
+# immediately.
+endpointTimeout: 30

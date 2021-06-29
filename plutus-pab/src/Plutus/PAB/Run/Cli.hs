@@ -165,15 +165,17 @@ runConfigCommand contractHandler ConfigCommandArgs{ccaTrace, ccaPABConfig=config
         result <- App.runApp ccaStorageBackend (toPABMsg ccaTrace) contractHandler config
           $ do
               env <- ask @(Core.PABEnvironment (Builtin a) (App.AppEnv a))
+
               -- But first, spin up all the previous contracts
+              -- logInfo @(LM.AppMsg (Builtin a)) LM.RestoringPABState
               case previousContracts of
-                -- TODO: Log this error a bit better? Or handle it earlier?
                 Left err -> throwError err
                 Right ts -> do
                     forM_ ts $ \(s, cid, args) -> do
                       action <- buildPABAction @a @(App.AppEnv a) s cid args
-                      liftIO $ Core.runPAB' env action
+                      liftIO . async $ Core.runPAB' env action
                       pure ()
+                    -- logInfo @(LM.AppMsg (Builtin a)) LM.PABStateRestored
 
               -- then, actually start the server.
               let walletClientEnv = App.walletClientEnv (Core.appEnv env)

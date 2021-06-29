@@ -109,11 +109,12 @@ handleContractStore = \case
       $ mkRow args instanceId
 
   PutState _ instanceId state ->
-    let encode' = Just . Text.decodeUtf8 . B.concat . LB.toChunks . encode . getResponse
-    in updateRow
-        $ update (_contractInstances db)
-            (\ci -> ci ^. contractInstanceState <-. val_ (encode' state))
-            (\ci -> ci ^. contractInstanceId ==. val_ (uuidStr instanceId))
+    let encode' = Text.decodeUtf8 . B.concat . LB.toChunks . encode . getResponse
+    in do
+        updateRow
+          $ update (_contractInstances db)
+              (\ci -> ci ^. contractInstanceState <-. val_ (Just $ encode' state))
+              (\ci -> ci ^. contractInstanceId ==. val_ (uuidStr instanceId))
 
   GetState instanceId -> do
     let decodeText = decode . toLazyByteString . encodeUtf8Builder
