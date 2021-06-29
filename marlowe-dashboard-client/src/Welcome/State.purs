@@ -33,7 +33,7 @@ import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNickname
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
-import Welcome.Lenses (_card, _connecting, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _enteringPlayState, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 -- see note [dummyState] in MainFrame.State
@@ -48,7 +48,7 @@ mkInitialState walletLibrary =
   , walletNicknameInput: InputField.initialState
   , walletIdInput: InputField.initialState
   , remoteWalletDetails: NotAsked
-  , connecting: false
+  , enteringPlayState: false
   }
 
 -- Some actions are handled in `MainFrame.State` because they involve
@@ -69,7 +69,7 @@ handleAction (CloseCard card) = do
   when (currentCard == Just card) do
     modify_
       $ set _remoteWalletDetails NotAsked
-      <<< set _connecting false
+      <<< set _enteringPlayState false
       <<< set _card Nothing
     handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
     handleAction $ WalletNicknameInputAction $ InputField.Reset
@@ -86,7 +86,7 @@ handleAction GenerateWallet = do
       handleAction $ WalletNicknameInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
       handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
-      handleAction $ OpenCard ConnectNewWalletCard
+      handleAction $ OpenCard UseNewWalletCard
 
 handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
   toWalletNicknameOrIdInput $ InputField.handleAction inputFieldAction
@@ -107,24 +107,24 @@ handleAction (WalletNicknameOrIdInputAction inputFieldAction) = do
             walletLibrary <- use _walletLibrary
             case findMin $ filter (\details -> UUID.toString (unwrap (view _companionAppId details)) == walletNicknameOrId) walletLibrary of
               Just { key, value } -> do
-                -- if so, open the ConnectWalletCard
+                -- if so, open the UseWalletCard
                 handleAction $ WalletNicknameInputAction $ InputField.SetValue key
                 handleAction $ WalletIdInputAction $ InputField.SetValue walletNicknameOrId
-                handleAction $ OpenCard ConnectWalletCard
+                handleAction $ OpenCard UseWalletCard
               Nothing -> do
-                -- otherwise open the ConnectNewWalletCard
+                -- otherwise open the UseNewWalletCard
                 handleAction $ WalletNicknameInputAction $ InputField.Reset
                 handleAction $ WalletNicknameInputAction $ InputField.SetValidator $ walletNicknameError walletLibrary
                 handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
-                handleAction $ OpenCard ConnectNewWalletCard
+                handleAction $ OpenCard UseNewWalletCard
     InputField.SetValueFromDropdown walletNicknameOrId -> do
-      -- in this case we know it's a wallet nickname, and we want to open the connect card
+      -- in this case we know it's a wallet nickname, and we want to open the use card
       -- for the corresponding wallet
       walletLibrary <- use _walletLibrary
-      for_ (lookup walletNicknameOrId walletLibrary) (handleAction <<< OpenConnectWalletCardWithDetails)
+      for_ (lookup walletNicknameOrId walletLibrary) (handleAction <<< OpenUseWalletCardWithDetails)
     _ -> pure unit
 
-handleAction (OpenConnectWalletCardWithDetails walletDetails) = do
+handleAction (OpenUseWalletCardWithDetails walletDetails) = do
   assign _remoteWalletDetails Loading
   ajaxWalletDetails <- lookupWalletDetails $ view _companionAppId walletDetails
   assign _remoteWalletDetails $ fromEither ajaxWalletDetails
@@ -134,14 +134,14 @@ handleAction (OpenConnectWalletCardWithDetails walletDetails) = do
       handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
       handleAction $ WalletNicknameInputAction $ InputField.SetValue $ view _walletNickname walletDetails
       handleAction $ WalletIdInputAction $ InputField.SetValue $ UUID.toString (unwrap (view _companionAppId walletDetails))
-      handleAction $ OpenCard ConnectWalletCard
+      handleAction $ OpenCard UseWalletCard
 
 handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 
 handleAction (WalletIdInputAction inputFieldAction) = toWalletIdInput $ InputField.handleAction inputFieldAction
 
-handleAction (ConnectWallet walletNickname) = do
-  assign _connecting true
+handleAction (UseWallet walletNickname) = do
+  assign _enteringPlayState true
   remoteWalletDetails <- use _remoteWalletDetails
   case remoteWalletDetails of
     Success walletDetails -> do
@@ -152,11 +152,11 @@ handleAction (ConnectWallet walletNickname) = do
       walletLibrary <- use _walletLibrary
       callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetailsWithNickname
     _ -> do
-      -- this should never happen (the button to connect a wallet should be disabled unless
+      -- this should never happen (the button to use a wallet should be disabled unless
       -- remoteWalletDetails is Success), but let's add some sensible behaviour anyway just in case
-      handleAction $ CloseCard ConnectWalletCard -- either of these cards could be open at
-      handleAction $ CloseCard ConnectNewWalletCard -- this point, so we close both to be sure
-      addToast $ errorToast "Unable to connect to this wallet." $ Just "Details for this wallet could not be loaded."
+      handleAction $ CloseCard UseWalletCard -- either of these cards could be open at
+      handleAction $ CloseCard UseNewWalletCard -- this point, so we close both to be sure
+      addToast $ errorToast "Unable to use this wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage = do
   clearAllLocalStorage

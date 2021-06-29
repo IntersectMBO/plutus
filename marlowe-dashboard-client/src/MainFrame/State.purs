@@ -196,8 +196,8 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
   currentSlot <- use _currentSlot
   case ajaxFollowerApps of
     Left decodedAjaxError -> do
-      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.ConnectWalletCard
-      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.ConnectNewWalletCard
+      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseWalletCard
+      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseNewWalletCard
       addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
       { dataProvider } <- ask
@@ -215,8 +215,8 @@ handleAction (EnterPlayState walletLibrary walletDetails) = do
       ajaxRoleContracts <- getRoleContracts walletDetails
       case ajaxRoleContracts of
         Left decodedAjaxError -> do
-          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.ConnectWalletCard
-          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.ConnectNewWalletCard
+          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseWalletCard
+          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseNewWalletCard
           addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
         Right companionState -> handleAction $ PlayAction $ Play.UpdateFollowerApps companionState
 

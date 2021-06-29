@@ -5,7 +5,7 @@ module Welcome.Lenses
   , _walletNicknameInput
   , _walletIdInput
   , _remoteWalletDetails
-  , _connecting
+  , _enteringPlayState
   ) where
 
 import Data.Lens (Lens')
@@ -36,5 +36,5 @@ _walletIdInput = prop (SProxy :: SProxy "walletIdInput")
 _remoteWalletDetails :: Lens' State (WebData WalletDetails)
 _remoteWalletDetails = prop (SProxy :: SProxy "remoteWalletDetails")
 
-_connecting :: Lens' State Boolean
-_connecting = prop (SProxy :: SProxy "connecting")
+_enteringPlayState :: Lens' State Boolean
+_enteringPlayState = prop (SProxy :: SProxy "enteringPlayState")

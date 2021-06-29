@@ -20,7 +20,7 @@ import Material.Icons (Icon(..), icon, icon_)
 import Network.RemoteData (isSuccess)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
-import Welcome.Lenses (_card, _connecting, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _enteringPlayState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 renderWelcomeState :: forall p. State -> HTML p Action
@@ -114,7 +114,7 @@ useWalletBox state =
   walletList walletDetails =
     a
       [ classNames [ "block", "p-4", "hover:bg-black", "hover:text-white" ]
-      , onClick_ $ OpenConnectWalletCardWithDetails walletDetails
+      , onClick_ $ OpenUseWalletCardWithDetails walletDetails
       ]
       [ text $ view _walletNickname walletDetails ]
 
@@ -161,8 +161,8 @@ renderWelcomeCard state =
           $ (flip foldMap card) \cardType -> case cardType of
               GetStartedHelpCard -> getStartedHelpCard
               GenerateWalletHelpCard -> generateWalletHelpCard
-              ConnectNewWalletCard -> connectNewWalletCard state
-              ConnectWalletCard -> connectWalletCard state
+              UseNewWalletCard -> useNewWalletCard state
+              UseWalletCard -> useWalletCard state
               LocalWalletMissingCard -> localWalletMissingCard
       ]
 
@@ -219,10 +219,10 @@ generateWalletHelpCard =
       ]
   ]
 
-connectNewWalletCard :: forall p. State -> Array (HTML p Action)
-connectNewWalletCard state =
+useNewWalletCard :: forall p. State -> Array (HTML p Action)
+useNewWalletCard state =
   let
-    connecting = view _connecting state
+    enteringPlayState = view _enteringPlayState state
 
     remoteWalletDetails = view _remoteWalletDetails state
 
@@ -232,7 +232,7 @@ connectNewWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ $ CloseCard ConnectNewWalletCard
+        , onClick_ $ CloseCard UseNewWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
@@ -262,23 +262,23 @@ connectNewWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ $ CloseCard ConnectNewWalletCard
+                , onClick_ $ CloseCard UseNewWalletCard
                 ]
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , disabled $ isJust (validate walletNicknameInput) || connecting || not isSuccess remoteWalletDetails
-                , onClick_ $ ConnectWallet $ view _value walletNicknameInput
+                , disabled $ isJust (validate walletNicknameInput) || enteringPlayState || not isSuccess remoteWalletDetails
+                , onClick_ $ UseWallet $ view _value walletNicknameInput
                 ]
-                [ text if connecting then "Connecting... " else "Use" ]
+                [ text if enteringPlayState then "Loading..." else "Use" ]
             ]
         ]
     ]
 
-connectWalletCard :: forall p. State -> Array (HTML p Action)
-connectWalletCard state =
+useWalletCard :: forall p. State -> Array (HTML p Action)
+useWalletCard state =
   let
-    connecting = view _connecting state
+    enteringPlayState = view _enteringPlayState state
 
     remoteWalletDetails = view _remoteWalletDetails state
 
@@ -288,7 +288,7 @@ connectWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ $ CloseCard ConnectWalletCard
+        , onClick_ $ CloseCard UseWalletCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
@@ -318,15 +318,15 @@ connectWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ $ CloseCard ConnectWalletCard
+                , onClick_ $ CloseCard UseWalletCard
                 ]
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , onClick_ $ ConnectWallet $ view _value walletNicknameInput
-                , disabled $ connecting || not isSuccess remoteWalletDetails
+                , onClick_ $ UseWallet $ view _value walletNicknameInput
+                , disabled $ enteringPlayState || not isSuccess remoteWalletDetails
                 ]
-                [ text if connecting then "Connecting... " else "Use" ]
+                [ text if enteringPlayState then "Loading..." else "Use" ]
             ]
         ]
     ]
