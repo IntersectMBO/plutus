@@ -399,9 +399,26 @@ ownPubKey = pabReq OwnPublicKeyReq E._OwnPublicKeyResp
 --    error if balancing or signing failed.
 submitUnbalancedTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e Tx
 -- See Note [Injecting errors into the user's error type]
-submitUnbalancedTx t =
-  let req = pabReq (WriteTxReq t) E._WriteTxResp in
-  req >>= either (throwError . review _WalletError) pure . view E.writeTxResponse
+submitUnbalancedTx utx = do
+  tx <- balanceTx utx
+  submitBalancedTx tx
+
+-- | Send an unbalanced transaction to be balanced. Returns the balanced transaction.
+--    Throws an error if balancing failed.
+balanceTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e Tx
+-- See Note [Injecting errors into the user's error type]
+balanceTx t =
+  let req = pabReq (BalanceTxReq t) E._BalanceTxResp in
+  req >>= either (throwError . review _WalletError) pure . view E.balanceTxResponse
+
+-- | Send an balanced transaction to be signed. Returns the ID
+--    of the final transaction when the transaction was submitted. Throws an
+--    error if signing failed.
+submitBalancedTx :: forall w s e. (AsContractError e) => Tx -> Contract w s e Tx
+-- See Note [Injecting errors into the user's error type]
+submitBalancedTx t =
+  let req = pabReq (WriteBalancedTxReq t) E._WriteBalancedTxResp in
+  req >>= either (throwError . review _WalletError) pure . view E.writeBalancedTxResponse
 
 -- | Build a transaction that satisfies the constraints, then submit it to the
 --   network. The constraints do not refer to any typed script inputs or

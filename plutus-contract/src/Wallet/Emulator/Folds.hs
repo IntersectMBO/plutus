@@ -69,7 +69,7 @@ import           Ledger.Index                           (ScriptValidationEvent, 
 import           Ledger.Tx                              (Address, Tx, TxOut (..), TxOutTx (..))
 import           Ledger.Value                           (Value)
 import           Plutus.Contract                        (Contract)
-import           Plutus.Contract.Effects                (PABReq, PABResp, _WriteTxReq)
+import           Plutus.Contract.Effects                (PABReq, PABResp, _BalanceTxReq)
 import           Plutus.Contract.Resumable              (Request, Response)
 import qualified Plutus.Contract.Resumable              as State
 import           Plutus.Contract.Types                  (ResumableResult (..))
@@ -157,7 +157,7 @@ instanceTransactions ::
     -> EmulatorEventFoldM effs [UnbalancedTx]
 instanceTransactions con = fmap g . instanceState @w @s @e @a @effs con where
     g :: Maybe (ContractInstanceState w s e a) -> [UnbalancedTx]
-    g = fromMaybe [] . fmap (mapMaybe (preview _WriteTxReq . State.rqRequest) . concat . toList . instHandlersHistory)
+    g = fromMaybe [] . fmap (mapMaybe (preview _BalanceTxReq . State.rqRequest) . concat . toList . instHandlersHistory)
 
 
 -- | The reponses received by the contract instance

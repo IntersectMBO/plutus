@@ -12,6 +12,7 @@ module Plutus.Contract.Wallet(
       balanceTx
     , handleTx
     , WAPI.startWatching
+    , WAPI.signTxAndSubmit
     ) where
 
 import           Control.Monad               ((>=>))

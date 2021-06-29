@@ -30,6 +30,7 @@ module Plutus.Contract.Trace
     , handleOwnPubKeyQueries
     , handleCurrentSlotQueries
     , handleCurrentTimeQueries
+    , handleUnbalancedTransactions
     , handlePendingTransactions
     , handleUtxoQueries
     , handleTxConfirmedQueries
@@ -147,7 +148,8 @@ handleBlockchainQueries ::
         PABReq
         PABResp
 handleBlockchainQueries =
-    handlePendingTransactions
+    handleUnbalancedTransactions
+    <> handlePendingTransactions
     <> handleUtxoQueries
     <> handleTxConfirmedQueries
     <> handleOwnPubKeyQueries
@@ -157,6 +159,19 @@ handleBlockchainQueries =
     <> handleCurrentSlotQueries
     <> handleTimeNotifications
     <> handleCurrentTimeQueries
+
+handleUnbalancedTransactions ::
+    ( Member (LogObserve (LogMessage Text)) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
+    , Member WalletEffect effs
+    , Member ChainIndexEffect effs
+    )
+    => RequestHandler effs PABReq PABResp
+handleUnbalancedTransactions =
+    generalise
+        (preview E._BalanceTxReq)
+        (E.BalanceTxResp . either E.BalanceTxFailed E.BalanceTxSuccess)
+        RequestHandler.handleUnbalancedTransactions
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions and respond to
@@ -169,7 +184,10 @@ handlePendingTransactions ::
     )
     => RequestHandler effs PABReq PABResp
 handlePendingTransactions =
-    generalise (preview E._WriteTxReq) (E.WriteTxResp . either E.WriteTxFailed E.WriteTxSuccess) RequestHandler.handlePendingTransactions
+    generalise
+        (preview E._WriteBalancedTxReq)
+        (E.WriteBalancedTxResp . either E.WriteBalancedTxFailed E.WriteBalancedTxSuccess)
+        RequestHandler.handlePendingTransactions
 
 -- | Look at the "utxo-at" requests of the contract and respond to all of them
 --   with the current UTXO set at the given address.
