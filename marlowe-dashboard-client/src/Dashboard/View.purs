@@ -1,10 +1,9 @@
 module Dashboard.View (renderDashboardState) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _metadata, _nickname)
-import Contract.State (currentStep, isContractClosed)
+import Contract.Lenses (_followerAppId, _mMarloweParams, _metadata)
 import Contract.Types (State) as Contract
-import Contract.View (actionConfirmationCard, contractDetailsCard)
+import Contract.View (actionConfirmationCard, contractDetailsCard, contractInnerBox)
 import Css (applyWhen, classNames, hideWhen, toggleWhen)
 import Css as Css
 import Dashboard.Lenses (_cards, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
@@ -12,21 +11,18 @@ import Dashboard.State (partitionContracts)
 import Dashboard.Types (Action(..), Card(..), ContractStatus(..), Screen(..), State, PartitionedContracts)
 import Data.Array (length)
 import Data.Lens (preview, view, (^.))
-import Data.Maybe (Maybe(..), maybe')
-import Data.String (null, take)
+import Data.Maybe (Maybe(..))
+import Data.String (take)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, div, div_, footer, h2, header, img, main, nav, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, id_, src)
-import Humanize (humanizeDuration)
 import Images (marloweRunNavLogo, marloweRunNavLogoDark)
 import MainFrame.Types (ChildSlots)
-import Marlowe.Execution.Lenses (_mNextTimeout)
 import Marlowe.Extended (contractTypeInitials, contractTypeName)
 import Marlowe.Semantics (PubKey, Slot)
-import Marlowe.Slot (secondsDiff)
 import Material.Icons (Icon(..), icon, icon_)
 import Popper (Placement(..))
 import Prim.TypeError (class Warn, Text)
@@ -260,27 +256,11 @@ contractGrid currentSlot contracts =
 contractBox :: forall p. Slot -> Contract.State -> HTML p Action
 contractBox currentSlot contractState =
   let
-    nickname = contractState ^. _nickname
-
     mMarloweParams = contractState ^. _mMarloweParams
 
     metadata = contractState ^. _metadata
 
-    contractType = contractTypeName metadata.contractType
-
-    contractAcronym = contractTypeInitials metadata.contractType
-
-    stepNumber = currentStep contractState + 1
-
-    mNextTimeout = contractState ^. (_executionState <<< _mNextTimeout)
-
     contractInstanceId = contractState ^. _followerAppId
-
-    timeoutStr =
-      maybe'
-        (\_ -> if isContractClosed contractState then "Contract closed" else "Timed out")
-        (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
-        mNextTimeout
 
     attributes = case mMarloweParams of
       Just _ ->
@@ -296,21 +276,11 @@ contractBox currentSlot contractState =
       -- TODO: This part is really similar to contractTitle in Template.View, see if it makes sense to factor a component out
       [ div
           [ classNames [ "flex", "px-4", "pt-4", "items-center" ] ]
-          [ span [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ] [ text contractAcronym ]
-          , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text contractType ]
+          [ span [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ] [ text $ contractTypeInitials metadata.contractType ]
+          , span [ classNames [ "flex-grow", "ml-2", "self-start", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
           , icon ArrowRight [ "text-28px" ]
           ]
-      , div
-          [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
-          -- TODO: make (new) nicknames editable directly from here
-          [ text if null nickname then "My new contract" else nickname ]
-      , div
-          [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
-          Nothing -> [ text "pending confirmation" ]
-          _ ->
-            [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
-            , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
-            ]
+      , ContractAction <$> contractInnerBox currentSlot contractState
       ]
 
 ------------------------------------------------------------

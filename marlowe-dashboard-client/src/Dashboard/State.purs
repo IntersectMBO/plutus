@@ -193,7 +193,9 @@ handleAction _ (CloseCard card) = do
 
 handleAction _ (SelectView view) = assign _status view
 
-handleAction _ (OpenContract ix) = assign _selectedContractIndex $ Just ix
+handleAction input (OpenContract ix) = do
+  assign _selectedContractIndex $ Just ix
+  handleAction input $ OpenCard ContractCard
 
 -- Until everything is working in the PAB, we are simulating persistent and shared data using localStorage; this
 -- action updates the state to match the localStorage, and should be called whenever the stored data changes.
