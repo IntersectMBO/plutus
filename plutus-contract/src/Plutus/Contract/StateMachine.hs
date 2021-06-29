@@ -290,17 +290,7 @@ runGuardedStep ::
     -> input                                       -- ^ The input to apply to the state machine
     -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
     -> Contract w schema e (Either a (TransitionResult state input))
-runGuardedStep smc input guard = mapError (review _SMContractError) $ mkStep smc input >>= \case
-    Right (StateMachineTransition{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups}) -> do
-        pk <- ownPubKey
-        let lookups = smtLookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
-        utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups smtConstraints)
-        case guard utx os ns of
-            Nothing -> do
-                submitTxConfirmed utx
-                pure $ Right $ TransitionSuccess ns
-            Just a  -> pure $ Left a
-    Left e -> pure $ Right $ TransitionFailure e
+runGuardedStep = runGuardedStepWith mempty mempty
 
 -- | Run one step of a state machine, returning the new state.
 runStep ::
@@ -314,10 +304,7 @@ runStep ::
     -> input
     -- ^ The input to apply to the state machine
     -> Contract w schema e (TransitionResult state input)
-runStep smc input =
-    runGuardedStep smc input (\_ _ _ -> Nothing) >>= pure . \case
-        Left a  -> absurd a
-        Right a -> a
+runStep = runStepWith mempty mempty
 
 -- | Initialise a state machine
 runInitialise ::
@@ -333,13 +320,7 @@ runInitialise ::
     -> Value
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
-runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{typedValidator, stateMachine} = scInstance
-        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine)
-    let lookups = Constraints.typedValidatorLookups typedValidator
-    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
-    submitTxConfirmed utx
-    pure initialState
+runInitialise = runInitialiseWith mempty mempty
 
 -- | Constraints & lookups needed to transition a state machine instance
 data StateMachineTransition state input =
