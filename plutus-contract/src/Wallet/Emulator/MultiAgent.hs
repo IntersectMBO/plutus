@@ -107,6 +107,9 @@ walletClientEvent w = prism' (ClientEvent w) (\case { ClientEvent w' c | w == w'
 walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent' Wallet.WalletEvent
 walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Just c; _ -> Nothing })
 
+walletEvent' :: Prism' EmulatorEvent' (Wallet.Wallet, Wallet.WalletEvent)
+walletEvent' = prism' (uncurry WalletEvent) (\case { WalletEvent w c -> Just (w, c); _ -> Nothing })
+
 chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
