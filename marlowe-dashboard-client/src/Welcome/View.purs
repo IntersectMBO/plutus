@@ -4,6 +4,7 @@ import Prelude hiding (div)
 import Css (bgBlueGradient, classNames)
 import Css as Css
 import Data.Lens (view)
+import Data.List (foldMap)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
 import Data.Maybe (Maybe(..), isJust, isNothing)
@@ -150,34 +151,35 @@ renderWelcomeCard :: forall p. State -> HTML p Action
 renderWelcomeCard state =
   let
     card = view _card state
+
+    cardClasses = if card == Just GetStartedHelpCard then Css.videoCard else Css.card
   in
     div
-      [ classNames $ Css.overlay $ isNothing card ] case card of
-      Just GetStartedHelpCard -> getStartedHelpCard
-      Just GenerateWalletHelpCard -> generateWalletHelpCard
-      Just ConnectNewWalletCard -> connectNewWalletCard state
-      Just ConnectWalletCard -> connectWalletCard state
-      Just LocalWalletMissingCard -> localWalletMissingCard
-      -- we render a div in the Nothing case for the animation
-      Nothing -> [ div [ classNames $ Css.card true ] [] ]
+      [ classNames $ Css.overlay $ isNothing card ]
+      [ div
+          [ classNames $ cardClasses $ isNothing card ]
+          $ (flip foldMap card) \cardType -> case cardType of
+              GetStartedHelpCard -> getStartedHelpCard
+              GenerateWalletHelpCard -> generateWalletHelpCard
+              ConnectNewWalletCard -> connectNewWalletCard state
+              ConnectWalletCard -> connectWalletCard state
+              LocalWalletMissingCard -> localWalletMissingCard
+      ]
 
 getStartedHelpCard :: forall p. Array (HTML p Action)
 getStartedHelpCard =
-  [ div
-      [ classNames $ Css.videoCard false ]
-      [ a
-          [ classNames [ "absolute", "-top-10", "right-0", "lg:-right-10" ]
-          , onClick_ $ CloseCard GetStartedHelpCard
-          ]
-          [ icon Close [ "text-lg", "rounded-full", "bg-white", "p-2" ] ]
-      , div
-          [ classNames $ Css.embeddedVideoContainer <> [ "rounded", "overflow-hidden" ] ]
-          [ iframe
-              [ classNames Css.embeddedVideo
-              -- FIXME: add link to the right video (when it's ready)
-              , src "https://www.youtube.com/embed/WB-bYHleFYY"
-              , title "Get started video"
-              ]
+  [ a
+      [ classNames [ "absolute", "-top-10", "right-0", "lg:-right-10" ]
+      , onClick_ $ CloseCard GetStartedHelpCard
+      ]
+      [ icon Close [ "text-lg", "rounded-full", "bg-white", "p-2" ] ]
+  , div
+      [ classNames $ Css.embeddedVideoContainer <> [ "rounded", "overflow-hidden" ] ]
+      [ iframe
+          [ classNames Css.embeddedVideo
+          -- FIXME: add link to the right video (when it's ready)
+          , src "https://www.youtube.com/embed/WB-bYHleFYY"
+          , title "Get started video"
           ]
       ]
   ]
@@ -185,37 +187,34 @@ getStartedHelpCard =
 generateWalletHelpCard :: forall p. Array (HTML p Action)
 generateWalletHelpCard =
   [ div
-      [ classNames $ Css.card false ]
-      [ div
-          [ classNames Css.embeddedVideoContainer ]
-          [ iframe
-              [ classNames Css.embeddedVideo
-              -- FIXME: add link to the right video (when it's ready)
-              , src "https://www.youtube.com/embed/WB-bYHleFYY"
-              , title "YouTube video player"
-              ]
+      [ classNames Css.embeddedVideoContainer ]
+      [ iframe
+          [ classNames Css.embeddedVideo
+          -- FIXME: add link to the right video (when it's ready)
+          , src "https://www.youtube.com/embed/WB-bYHleFYY"
+          , title "YouTube video player"
           ]
+      ]
+  , div
+      [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
+      [ h2
+          [ classNames [ "font-semibold", "mb-4" ] ]
+          [ text "Why generate a demo wallet?" ]
+      , p
+          [ classNames [ "mb-4" ] ]
+          [ text "Demo wallets are used so you can play around with the app and all its incredible features without using your own tokens from your real wallet." ]
       , div
-          [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
-          [ h2
-              [ classNames [ "font-semibold", "mb-4" ] ]
-              [ text "Why generate a demo wallet?" ]
-          , p
-              [ classNames [ "mb-4" ] ]
-              [ text "Demo wallets are used so you can play around with the app and all its incredible features without using your own tokens from your real wallet." ]
-          , div
-              [ classNames [ "flex" ] ]
-              [ button
-                  [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                  , onClick_ $ CloseCard GenerateWalletHelpCard
-                  ]
-                  [ text "Cancel" ]
-              , button
-                  [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                  , onClick_ $ CloseCard GenerateWalletHelpCard
-                  ]
-                  [ text "Got it" ]
+          [ classNames [ "flex" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              , onClick_ $ CloseCard GenerateWalletHelpCard
               ]
+              [ text "Cancel" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1" ]
+              , onClick_ $ CloseCard GenerateWalletHelpCard
+              ]
+              [ text "Got it" ]
           ]
       ]
   ]
@@ -231,50 +230,47 @@ connectNewWalletCard state =
 
     walletIdInput = view _walletIdInput state
   in
-    [ div
-        [ classNames $ Css.card false ]
-        [ a
-            [ classNames [ "absolute", "top-4", "right-4" ]
-            , onClick_ $ CloseCard ConnectNewWalletCard
-            ]
-            [ icon_ Close ]
-        , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
-            [ h2
-                [ classNames [ "font-bold", "my-4" ] ]
-                [ text $ "Demo wallet generated" ]
-            , div
-                [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
-                $ [ label
-                      [ classNames $ Css.nestedLabel
-                      , for "walletNickname"
-                      ]
-                      [ text "Nickname" ]
-                  , WalletNicknameInputAction <$> renderInput walletNicknameInput (walletNicknameInputDisplayOptions false)
+    [ a
+        [ classNames [ "absolute", "top-4", "right-4" ]
+        , onClick_ $ CloseCard ConnectNewWalletCard
+        ]
+        [ icon_ Close ]
+    , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
+        [ h2
+            [ classNames [ "font-bold", "my-4" ] ]
+            [ text $ "Demo wallet generated" ]
+        , div
+            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+            $ [ label
+                  [ classNames $ Css.nestedLabel
+                  , for "walletNickname"
                   ]
-            , div
-                [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
-                [ label
-                    [ classNames Css.nestedLabel
-                    , for "walletID"
-                    ]
-                    [ text "Wallet ID" ]
-                , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
-                , walletIdTip
+                  [ text "Nickname" ]
+              , WalletNicknameInputAction <$> renderInput walletNicknameInput (walletNicknameInputDisplayOptions false)
+              ]
+        , div
+            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+            [ label
+                [ classNames Css.nestedLabel
+                , for "walletID"
                 ]
-            , div
-                [ classNames [ "flex" ] ]
-                [ button
-                    [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                    , onClick_ $ CloseCard ConnectNewWalletCard
-                    ]
-                    [ text "Cancel" ]
-                , button
-                    [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                    , disabled $ isJust (validate walletNicknameInput) || connecting || not isSuccess remoteWalletDetails
-                    , onClick_ $ ConnectWallet $ view _value walletNicknameInput
-                    ]
-                    [ text if connecting then "Connecting... " else "Use" ]
+                [ text "Wallet ID" ]
+            , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
+            , walletIdTip
+            ]
+        , div
+            [ classNames [ "flex" ] ]
+            [ button
+                [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+                , onClick_ $ CloseCard ConnectNewWalletCard
                 ]
+                [ text "Cancel" ]
+            , button
+                [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                , disabled $ isJust (validate walletNicknameInput) || connecting || not isSuccess remoteWalletDetails
+                , onClick_ $ ConnectWallet $ view _value walletNicknameInput
+                ]
+                [ text if connecting then "Connecting... " else "Use" ]
             ]
         ]
     ]
@@ -290,50 +286,47 @@ connectWalletCard state =
 
     walletIdInput = view _walletIdInput state
   in
-    [ div
-        [ classNames $ Css.card false ]
-        [ a
-            [ classNames [ "absolute", "top-4", "right-4" ]
-            , onClick_ $ CloseCard ConnectWalletCard
-            ]
-            [ icon_ Close ]
-        , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
-            [ h2
-                [ classNames [ "font-bold", "my-4", "truncate", "w-11/12" ] ]
-                [ text $ "Demo wallet " <> view _value walletNicknameInput ]
-            , div
-                [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
-                $ [ label
-                      [ classNames $ Css.nestedLabel
-                      , for "walletNickname"
-                      ]
-                      [ text "Nickname" ]
-                  , WalletNicknameInputAction <$> renderInput walletNicknameInput (walletNicknameInputDisplayOptions true)
+    [ a
+        [ classNames [ "absolute", "top-4", "right-4" ]
+        , onClick_ $ CloseCard ConnectWalletCard
+        ]
+        [ icon_ Close ]
+    , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
+        [ h2
+            [ classNames [ "font-bold", "my-4", "truncate", "w-11/12" ] ]
+            [ text $ "Demo wallet " <> view _value walletNicknameInput ]
+        , div
+            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+            $ [ label
+                  [ classNames $ Css.nestedLabel
+                  , for "walletNickname"
                   ]
-            , div
-                [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
-                [ label
-                    [ classNames Css.nestedLabel
-                    , for "walletId"
-                    ]
-                    [ text "Wallet ID" ]
-                , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
-                , walletIdTip
+                  [ text "Nickname" ]
+              , WalletNicknameInputAction <$> renderInput walletNicknameInput (walletNicknameInputDisplayOptions true)
+              ]
+        , div
+            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
+            [ label
+                [ classNames Css.nestedLabel
+                , for "walletId"
                 ]
-            , div
-                [ classNames [ "flex" ] ]
-                [ button
-                    [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                    , onClick_ $ CloseCard ConnectWalletCard
-                    ]
-                    [ text "Cancel" ]
-                , button
-                    [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                    , onClick_ $ ConnectWallet $ view _value walletNicknameInput
-                    , disabled $ connecting || not isSuccess remoteWalletDetails
-                    ]
-                    [ text if connecting then "Connecting... " else "Use" ]
+                [ text "Wallet ID" ]
+            , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
+            , walletIdTip
+            ]
+        , div
+            [ classNames [ "flex" ] ]
+            [ button
+                [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+                , onClick_ $ CloseCard ConnectWalletCard
                 ]
+                [ text "Cancel" ]
+            , button
+                [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                , onClick_ $ ConnectWallet $ view _value walletNicknameInput
+                , disabled $ connecting || not isSuccess remoteWalletDetails
+                ]
+                [ text if connecting then "Connecting... " else "Use" ]
             ]
         ]
     ]
