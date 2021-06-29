@@ -219,7 +219,9 @@ addressChangeRequest ::
     )
     => AddressChangeRequest
     -> Contract w s e AddressChangeResponse
-addressChangeRequest r = pabReq (AddressChangeReq r) E._AddressChangeResp
+addressChangeRequest r = do
+  _ <- awaitSlot (targetSlot r)
+  pabReq (AddressChangeReq r) E._AddressChangeResp
 
 -- | Call 'addresssChangeRequest' for the address in each slot, until at least one
 --   transaction is returned that modifies the address.
