@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 
 module Interpreter where
 
@@ -12,15 +10,12 @@ import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Control.Newtype.Generics     as Newtype
 import           Data.Text                    (Text)
 import qualified Data.Text.IO                 as Text
-import           Data.Time.Units              (Second, TimeUnit)
+import           Data.Time.Units              (TimeUnit)
 import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, avoidUnsafe, runghc)
 import           System.FilePath              ((</>))
 import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
 import           System.IO.Extras             (withFile)
 import           System.IO.Temp               (withSystemTempDirectory)
-
-maxInterpretationTime :: Second
-maxInterpretationTime = 80
 
 runscript ::
   ( Show t,
@@ -82,4 +77,4 @@ runghcOpts implicitPrelude =
     "-fno-ignore-interface-pragmas",
     "-fobject-code"
   ]
-    <> if implicitPrelude then [] else ["-XNoImplicitPrelude"]
+    <> ["-XNoImplicitPrelude" | not implicitPrelude]

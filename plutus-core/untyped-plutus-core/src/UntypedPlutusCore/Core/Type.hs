@@ -9,6 +9,7 @@
 module UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
     , TPLC.Version (..)
+    , TPLC.Binder (..)
     , Term (..)
     , Program (..)
     , toTerm
@@ -30,6 +31,22 @@ import           PlutusCore.MkPlc
 import qualified PlutusCore.Name                        as TPLC
 import           Universe
 
+{- Note [Term constructor ordering and numbers]
+Ordering of constructors has a small but real effect on efficiency.
+It's slightly more efficient to hit the earlier constructors, so it's better to put the more
+common ones first.
+
+The current ordering is based on their *empirically observed* frequency. We should check this
+occasionally.
+
+Additionally, the first 7 (or 3 on 32-bit systems) constructors will get *pointer tags*, which allows
+more efficient access when casing on them. So we ideally want to keep the number of constructors
+at 7 or fewer.
+
+We've got 8 constructors, *but* the last one is Error, which is only going to be seen at most
+once per program, so it's not too big a deal if it doesn't get a tag.
+-}
+
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
 
 1. all types are removed
@@ -45,14 +62,17 @@ of an erased program to match with the semantics of the original typed one). 'De
 serve exactly this purpose.
 -}
 -- Making all the fields strict gives us a couple of percent in benchmarks
+-- See Note [Term constructor ordering and numbers]
 data Term name uni fun ann
-    = Constant !ann !(Some (ValueOf uni))
-    | Builtin !ann !fun
-    | Var !ann !name
+    = Var !ann !name
     | LamAbs !ann !name !(Term name uni fun ann)
     | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
-    | Delay !ann !(Term name uni fun ann)
     | Force !ann !(Term name uni fun ann)
+    | Delay !ann !(Term name uni fun ann)
+    | Constant !ann !(Some (ValueOf uni))
+    | Builtin !ann !fun
+    -- This is the cutoff at which constructors won't get pointer tags
+    -- See Note [Term constructor ordering and numbers]
     | Error !ann
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
@@ -72,7 +92,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     constant = Constant
     builtin  = Builtin
     tyInst   = \ann term _ -> Force ann term
-    unwrap   = \_ -> id
+    unwrap   = const id
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
 

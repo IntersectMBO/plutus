@@ -88,6 +88,7 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
+-- | For deriving 'Flat' instances via 'Serialize'.
 newtype AsSerialize a = AsSerialize
     { unAsSerialize :: a
     } deriving newtype (Serialise)
@@ -300,12 +301,8 @@ instance (Flat ann, Flat tyname)  => Flat (TyVarDecl tyname ann) where
     encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
     decode = TyVarDecl <$> decode <*> decode <*> decode
 
-instance ( Closed uni
-         , uni `Everywhere` Flat
-         , Flat fun
-         , Flat ann
-         , Flat tyname
-         , Flat name
+instance ( Flat ann
+         , Flat (Term tyname name uni fun ann)
          ) => Flat (Program tyname name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
@@ -334,3 +331,18 @@ instance Flat TyDeBruijn where
 instance Flat NamedTyDeBruijn where
     encode (NamedTyDeBruijn n) = encode n
     decode = NamedTyDeBruijn <$> decode
+
+instance Flat (Binder DeBruijn) where
+    size _ = id -- zero cost
+    encode _ = mempty
+    decode = pure $ Binder (DeBruijn 0)
+
+-- (Binder TyDeBruin) could similarly have a flat instance, but we don't need it.
+
+deriving newtype instance Flat (Binder Name)
+deriving newtype instance Flat (Binder TyName)
+-- We could use an alternative, manual Flat-serialization of Named(Ty)DeBruijn
+-- where we store the name only at the binder and the index only at the use-site (Var/TyVar).
+-- That would be more compact, but we don't need it at the moment.
+deriving newtype instance Flat (Binder NamedDeBruijn)
+deriving newtype instance Flat (Binder NamedTyDeBruijn)

@@ -250,9 +250,9 @@ test_IdBuiltinList =
                     ]
         typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess xsTerm)
 
-test_BuiltinTuple :: TestTree
-test_BuiltinTuple =
-    testCase "BuiltinTuple" $ do
+test_BuiltinPair :: TestTree
+test_BuiltinPair =
+    testCase "BuiltinPair" $ do
         let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
             inst efun = mkIterInst () (builtin () efun) [integer, bool]
             swapped = apply () (inst $ Right Swap) arg
@@ -327,7 +327,7 @@ test_definition =
         , test_ExpensivePlus
         , test_BuiltinList
         , test_IdBuiltinList
-        , test_BuiltinTuple
+        , test_BuiltinPair
         , test_SwapEls
         , test_IdBuiltinData
         ]

@@ -86,11 +86,11 @@ refundAfterDifference payer payee difference =
     Close
 
 contract :: Contract
-contract = initialDeposit party 30 Close
-         $ initialDeposit counterparty 60 (refund party deposit Close)
-         $ oracleInput priceBeginning 90 refundBoth
-         $ wait 150
-         $ oracleInput priceEnd 180 refundBoth
+contract = initialDeposit party 300 Close
+         $ initialDeposit counterparty 600 (refund party deposit Close)
+         $ oracleInput priceBeginning 900 refundBoth
+         $ wait 1500
+         $ oracleInput priceEnd 1800 refundBoth
          $ gtLtEq (ChoiceValue priceBeginning) (ChoiceValue priceEnd)
                   ( recordDifference decreaseInPrice priceBeginning priceEnd
                   $ transferUpToDeposit counterparty party (UseValue decreaseInPrice)

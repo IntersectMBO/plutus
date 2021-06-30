@@ -34,13 +34,12 @@ import           Control.Lens                 (makeClassyPrisms)
 import           Control.Monad                (forever)
 import           Data.Aeson                   (FromJSON, ToJSON)
 import           GHC.Generics                 (Generic)
-import           Ledger                       (PubKeyHash, Slot, pubKeyHash)
+import           Ledger                       (POSIXTime, PubKeyHash, pubKeyHash)
 import           Ledger.Constraints           (TxConstraints)
 import qualified Ledger.Constraints           as Constraints
 import           Ledger.Contexts              (ScriptContext (..), TxInfo (..))
 import qualified Ledger.Contexts              as Validation
 import qualified Ledger.Interval              as Interval
-import qualified Ledger.TimeSlot              as TimeSlot
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
@@ -74,7 +73,7 @@ data Payment = Payment
     -- ^ How much to pay out
     , paymentRecipient :: PubKeyHash
     -- ^ Address to pay the value to
-    , paymentDeadline  :: Slot
+    , paymentDeadline  :: POSIXTime
     -- ^ Time until the required amount of signatures has to be collected.
     }
     deriving stock (Haskell.Show, Generic)
@@ -141,8 +140,7 @@ instance AsSMContractError MultiSigError where
     _SMContractError = _MSStateMachineError
 
 type MultiSigSchema =
-    BlockchainActions
-        .\/ Endpoint "propose-payment" Payment
+        Endpoint "propose-payment" Payment
         .\/ Endpoint "add-signature" ()
         .\/ Endpoint "cancel-payment" ()
         .\/ Endpoint "pay" ()
@@ -168,7 +166,7 @@ isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: TxInfo -> Payment -> Bool
 proposalExpired TxInfo{txInfoValidRange} Payment{paymentDeadline} =
-    TimeSlot.slotToPOSIXTime paymentDeadline `Interval.before` txInfoValidRange
+    paymentDeadline `Interval.before` txInfoValidRange
 
 {-# INLINABLE proposalAccepted #-}
 -- | Check whether enough signatories (represented as a list of public keys)

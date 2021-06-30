@@ -61,7 +61,7 @@ pkgs.recurseIntoAttrs {
   multi-currency = import ../notes/multi-currency { inherit buildLatexDoc; };
   extended-utxo-spec = import ../extended-utxo-spec { inherit buildLatexDoc; };
   lazy-machine = import ../notes/fomega/lazy-machine { inherit buildLatexDoc; };
-  plutus-report = import ../notes/plutus-report { inherit buildLatexDoc; };
+  plutus-report = import ../plutus-report { inherit buildLatexDoc; };
   cost-model-notes = import ../notes/cost-model-notes { inherit buildLatexDoc; };
 
   site = pkgs.callPackage ../doc {

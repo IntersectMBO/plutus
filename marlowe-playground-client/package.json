@@ -24,7 +24,7 @@
     "monaco-vim": "^0.1.7",
     "moo": "^0.5.1",
     "nearley": "^2.19.1",
-    "popper.js": "^1.14.4",
+    "@popperjs/core": "^2.9.2",
     "safe-eval": "^0.4.0",
     "xhr2": "^0.1.4"
   },

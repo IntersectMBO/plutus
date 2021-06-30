@@ -13,6 +13,7 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (bgWhite, flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX, spaceBottom)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, section_, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
@@ -126,6 +127,7 @@ sendToSimulationButton state =
   button
     [ onClick $ const $ Just SendResultToSimulator
     , enabled enabled'
+    , classNames [ "btn" ]
     ]
     [ text "Send To Simulator" ]
   where

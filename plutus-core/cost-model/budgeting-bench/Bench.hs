@@ -5,6 +5,7 @@
 module Main (main) where
 
 import           PlutusCore                               as PLC
+import qualified PlutusCore.DataFilePaths                 as DFP
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
 import           UntypedPlutusCore                        as UPLC
@@ -19,7 +20,6 @@ import qualified Hedgehog.Internal.Gen                    as HH
 import qualified Hedgehog.Internal.Tree                   as HH
 import qualified Hedgehog.Range                           as HH.Range
 import           System.Directory
-import           System.FilePath
 import           System.Random                            (StdGen, getStdGen, randomR)
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
@@ -309,37 +309,41 @@ benchNop3 gen =
    run`) then the current directory will be `plutus-core`.  If you use nix it'll
    be the current shell directory, so you'll need to run it from `plutus-core`
    (NOT `plutus`, where `default.nix` is).  See SCP-2005. -}
+{- Experimentation and examination of implementations suggests that the cost
+   models for certain builtins can be re-used for others, and we do this in
+   models.R.  Specifically, we re-use the cost models for the functions on the
+   left below for the functions on the right as well.  Because of this we don't
+   benchmark the functions on the right; the benchmarks take a long time to run,
+   so this speeds things up a lot.
+
+   AddInteger:        SubtractInteger
+   DivideInteger:     RemainderInteger, QuotientInteger, ModInteger
+   LessThanInteger:   GreaterThanInteger
+   LessThanEqInteger: GreaterThanEqInteger
+   LtByteString:      GtByteString
+-}
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
-  let dataDir = "cost-model" </> "data"
-      csvFile = dataDir </> "benching.csv"
-      backupFile = dataDir </> "benching.csv.backup"
-  createDirectoryIfMissing True dataDir
-  csvExists <- doesFileExist csvFile
-  if csvExists then renameFile csvFile backupFile else pure ()
+  createDirectoryIfMissing True DFP.costModelDataDir
+  csvExists <- doesFileExist DFP.benchingResultsFile
+  if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
-  defaultMainWith (defaultConfig { C.csvFile = Just csvFile }) $
+  defaultMainWith (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
                          [benchNop1 gen, benchNop2 gen, benchNop3 gen]
                       <> (benchTwoIntegers gen <$> [ AddInteger
-                                                   , SubtractInteger
                                                    , MultiplyInteger
                                                    , DivideInteger
-                                                   , ModInteger
-                                                   , QuotientInteger
-                                                   , RemainderInteger
                                                    ])
                       <> (benchSameTwoIntegers gen <$> [ EqInteger
                                                        , LessThanInteger
-                                                       , GreaterThanInteger
                                                        , LessThanEqInteger
-                                                       , GreaterThanEqInteger
                                                        ])
                       <> (benchTwoByteStrings <$> [Concatenate])
                       <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
                       <> (benchHashOperations <$> [SHA2, SHA3])
                       <> (benchSameTwoByteStrings <$> [ EqByteString
                                                       , LtByteString
-                                                      , GtByteString
                                                       ])
                       <> [benchVerifySignature]
+

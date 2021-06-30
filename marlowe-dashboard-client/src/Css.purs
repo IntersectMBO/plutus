@@ -13,6 +13,7 @@ module Css
   , input
   , inputNoFocus
   , inputCard
+  , inputCardNoFocus
   , inputError
   , hasNestedLabel
   , nestedLabel
@@ -20,6 +21,9 @@ module Css
   , overlay
   , card
   , largeCard
+  , videoCard
+  , embeddedVideoContainer
+  , embeddedVideo
   , iconCircle
   , fixedBottomRight
   , funds
@@ -37,6 +41,8 @@ classNames = classes <<< map ClassName
 toggleWhen :: Boolean -> Array String -> Array String -> Array String
 toggleWhen condition classes1 classes2 = if condition then classes1 else classes2
 
+-- TODO: classNames, applyWhen and hideWhen were copy-pasted to Halogen.Css web-common.
+--       In a future PR we should remove them from here.
 applyWhen :: Boolean -> Array String -> Array String
 applyWhen condition classes = toggleWhen condition classes []
 
@@ -118,6 +124,9 @@ withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
 inputCard :: Boolean -> Array String
 inputCard invalid = inputBaseFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
 
+inputCardNoFocus :: Boolean -> Array String
+inputCardNoFocus invalid = inputBaseNoFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
+
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]
 
@@ -125,7 +134,7 @@ hasNestedLabel :: Array String
 hasNestedLabel = [ "-mt-4" ]
 
 nestedLabel :: Array String
-nestedLabel = [ "relative", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", "font-semibold" ]
+nestedLabel = [ "relative", "z-10", "left-2", "top-2.5", "px-1", "bg-white", "text-xs", "font-semibold" ]
 
 --- cards
 overlay :: Boolean -> Array String
@@ -136,6 +145,16 @@ card invisible = [ "overflow-hidden", "bg-white", "flex-grow", "max-w-sm", "mx-2
 
 largeCard :: Boolean -> Array String
 largeCard invisible = [ "bg-grayblue", "shadow", "overflow-auto", "flex-grow", "mt-2", "md:mb-2", "mx-2", "lg:my-4", "md:mx-5pc", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
+
+videoCard :: Boolean -> Array String
+videoCard invisible = [ "relative", "bg-white", "flex-grow", "max-w-sm", "lg:max-w-md", "mx-2", "shadow", "rounded", "transform", "transition-transform", "duration-400", "self-center" ] <> applyWhen invisible [ "translate-y-20" ]
+
+-- embedded videos
+embeddedVideoContainer :: Array String
+embeddedVideoContainer = [ "relative", "pb-16:9" ]
+
+embeddedVideo :: Array String
+embeddedVideo = [ "absolute", "top-0", "left-0", "w-full", "h-full" ]
 
 --- miscellaneous
 iconCircle :: Boolean -> Array String

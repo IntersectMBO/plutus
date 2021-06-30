@@ -198,9 +198,8 @@ instance Eq a => Eq (Interval a) where
     l == r = ivFrom l == ivFrom r && ivTo l == ivTo r
 
 {-# INLINABLE interval #-}
--- | @interval a b@ includes all values that are greater than or equal
---   to @a@ and smaller than @b@. Therefore it includes @a@ but not it
---   does not include @b@.
+-- | @interval a b@ includes all values that are greater than or equal to @a@
+-- and smaller than or equal to @b@. Therefore it includes @a@ and @b@.
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
 

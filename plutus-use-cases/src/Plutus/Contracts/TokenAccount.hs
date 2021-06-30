@@ -1,16 +1,15 @@
-{-# LANGUAGE ConstraintKinds    #-}
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 -- | Plutus implementation of an account that can be unlocked with a token.
 --   Whoever owns the token can spend the outputs locked by the contract.
 --   (A suitable token can be created with the 'Plutus.Contracts.Currency'
@@ -76,14 +75,12 @@ instance ValidatorTypes TokenAccount where
     type DatumType TokenAccount = ()
 
 type TokenAccountSchema =
-    BlockchainActions
-        .\/ Endpoint "redeem" (Account, PubKeyHash)
+        Endpoint "redeem" (Account, PubKeyHash)
         .\/ Endpoint "pay" (Account, Value)
         .\/ Endpoint "new-account" (TokenName, PubKeyHash)
 
 type HasTokenAccountSchema s =
-    ( HasBlockchainActions s
-    , HasEndpoint "redeem" (Account, PubKeyHash) s
+    ( HasEndpoint "redeem" (Account, PubKeyHash) s
     , HasEndpoint "pay" (Account, Value) s
     , HasEndpoint "new-account" (TokenName, PubKeyHash) s
     )
@@ -153,8 +150,7 @@ payTx vl = Constraints.mustPayToTheScript () vl
 
 -- | Pay some money to the given token account
 pay
-    :: ( HasWriteTx s
-       , AsTokenAccountError e
+    :: ( AsTokenAccountError e
        )
     => Account
     -> Value
@@ -172,8 +168,7 @@ pay account vl = do
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx :: forall w s e.
-    ( HasUtxoAt s
-    , AsTokenAccountError e
+    ( AsTokenAccountError e
     )
     => Account
     -> PubKeyHash
@@ -199,9 +194,7 @@ redeemTx account pk = mapError (review _TAContractError) $ do
 
 -- | Empty the account by spending all outputs belonging to the 'Account'.
 redeem
-  :: ( HasWriteTx s
-     , HasUtxoAt s
-     , AsTokenAccountError e
+  :: ( AsTokenAccountError e
      )
   => PubKeyHash
   -- ^ Where the token should go after the transaction
@@ -216,8 +209,7 @@ redeem pk account = mapError (review _TokenAccountError) $ do
 -- | @balance account@ returns the value of all unspent outputs that can be
 --   unlocked with @accountToken account@
 balance
-    :: ( HasUtxoAt s
-       , AsTokenAccountError e
+    :: ( AsTokenAccountError e
        )
     => Account
     -> Contract w s e Value
@@ -230,17 +222,15 @@ balance account = mapError (review _TAContractError) $ do
 
 -- | Create a new token and return its 'Account' information.
 newAccount
-    :: ( HasWriteTx s
-       , HasTxConfirmation s
-       , AsTokenAccountError e
-       )
+    :: forall w s e.
+    (AsTokenAccountError e)
     => TokenName
     -- ^ Name of the token
     -> PubKeyHash
     -- ^ Public key of the token's initial owner
     -> Contract w s e Account
 newAccount tokenName pk = mapError (review _TokenAccountError) $ do
-    cur <- Currency.forgeContract pk [(tokenName, 1)]
+    cur <- Currency.mintContract pk [(tokenName, 1)]
     let sym = Currency.currencySymbol cur
     pure $ Account $ Value.assetClass sym tokenName
 

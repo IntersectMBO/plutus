@@ -72,7 +72,6 @@
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-          (hsPkgs."mono-traversable" or (errorHandler.buildDepError "mono-traversable"))
           (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."nonempty-containers" or (errorHandler.buildDepError "nonempty-containers"))
@@ -140,6 +139,7 @@
           "PlutusCore/Mark"
           "PlutusCore/Parsable"
           "PlutusCore/Parser/Internal"
+          "PlutusCore/ParserCommon"
           "PlutusCore/Pretty/Classic"
           "PlutusCore/Pretty/ConfigName"
           "PlutusCore/Pretty/Default"
@@ -269,6 +269,7 @@
           "PlutusIR/Transform/LetFloat"
           "PlutusIR/Transform/Inline"
           "PlutusIR/Transform/Beta"
+          "PlutusIR/Transform/Unwrap"
           "PlutusIR/TypeCheck"
           "UntypedPlutusCore"
           "UntypedPlutusCore/DeBruijn"

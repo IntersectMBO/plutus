@@ -29,7 +29,7 @@ import           Plutus.Contract.Test
 import           Plutus.Contracts.Crowdfunding
 import           Plutus.Trace.Emulator                 (ContractHandle (..), EmulatorTrace)
 import qualified Plutus.Trace.Emulator                 as Trace
-import qualified PlutusTx                              as PlutusTx
+import qualified PlutusTx
 import qualified PlutusTx.Prelude                      as PlutusTx
 import qualified Streaming.Prelude                     as S
 import qualified Wallet.Emulator.Folds                 as Folds
@@ -119,7 +119,7 @@ tests = testGroup "crowdfunding"
         "test/Spec/crowdfundingEmulatorTestOutput.txt"
         (pure $ renderEmulatorLog successfulCampaign)
 
-    , let con :: Contract () BlockchainActions ContractError () = throwError "something went wrong" in
+    , let con :: Contract () EmptySchema ContractError () = throwError "something went wrong" in
         goldenVsString
         "renders an error sensibly"
         "test/Spec/contractError.txt"

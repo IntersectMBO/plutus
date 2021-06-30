@@ -10,10 +10,11 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (flex, flexCol, flexGrow, fullHeight, group, maxH70p, minH0, overflowHidden, paddingX)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, div, option, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (class_, classes, disabled, title)
+import Halogen.HTML.Properties (class_, classes, disabled, id_, title)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
@@ -21,7 +22,9 @@ import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.Monaco as MM
 import MarloweEditor.BottomPanel (panelContents)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, contractHasErrors, contractHasHoles)
-import Prim.TypeError (class Warn, Text)
+import Popper (Placement(..))
+import Tooltip.State (tooltip)
+import Tooltip.Types (ReferenceId(..))
 
 render ::
   forall m.
@@ -57,7 +60,7 @@ render metadata state =
 
   wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state metadata panelView
 
-otherActions :: forall p. State -> HTML p Action
+otherActions :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
 otherActions state =
   div [ classes [ group ] ]
     [ editorOptions state
@@ -66,37 +69,35 @@ otherActions state =
     ]
 
 sendToSimulatorButton ::
-  forall p.
-  Warn (Text "Create a custom tooltip element") =>
+  forall m.
+  MonadAff m =>
   State ->
-  HTML p Action
+  ComponentHTML Action ChildSlots m
 sendToSimulatorButton state =
-  button
-    ( [ onClick $ const $ Just SendToSimulator
-      , disabled disabled'
-      ]
-        <> disabledTooltip
-    )
-    [ text "Send To Simulator" ]
+  div [ id_ "marloweSendToSimulator" ]
+    [ button
+        [ onClick $ const $ Just SendToSimulator
+        , disabled disabled'
+        , classNames [ "btn" ]
+        ]
+        [ text "Send To Simulator" ]
+    , tooltip tooltipMessage (RefId "marloweSendToSimulator") Bottom
+    ]
   where
   disabled' = contractHasErrors state || contractHasHoles state
 
-  disabledTooltip =
+  tooltipMessage =
     if disabled' then
-      {-
-        TODO: The title property generates a native tooltip in the browser, but it takes a couple
-        of seconds to appear, we should ask for a design and then implement a custom tooltip element.
-      -}
-      [ title "A contract can only be sent to the simulator if it has no errors and no holes"
-      ]
+      "A contract can only be sent to the simulator if it has no errors and no holes"
     else
-      []
+      "Execute this contract in the Marlowe simulator"
 
 viewAsBlocklyButton :: forall p. State -> HTML p Action
 viewAsBlocklyButton state =
   button
     ( [ onClick $ const $ Just ViewAsBlockly
       , disabled disabled'
+      , classNames [ "btn" ]
       ]
         <> disabledTooltip
     )

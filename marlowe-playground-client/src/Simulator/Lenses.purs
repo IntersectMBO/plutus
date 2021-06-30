@@ -1,9 +1,8 @@
 module Simulator.Lenses where
 
 import Prelude
-import Data.Array (mapMaybe)
 import Data.Either (Either(..))
-import Data.Lens (Getter', Lens', Prism', Traversal', Optic', lens, preview, prism, set, to)
+import Data.Lens (Lens', Optic', Prism', Traversal', lens, preview, prism, set)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -17,8 +16,8 @@ import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Strong (class Strong)
 import Data.Symbol (SProxy(..))
 import Marlowe.Holes (Contract, Term)
-import Marlowe.Semantics (Party, Payment)
-import Simulator.Types (ActionInput, ActionInputId(..), ExecutionState(..), ExecutionStateRecord, InitialConditionsRecord, MarloweEvent(..), Parties, MarloweState, otherActionsParty)
+import Marlowe.Semantics (Party)
+import Simulator.Types (ActionInput, ActionInputId(..), ExecutionState(..), ExecutionStateRecord, InitialConditionsRecord, MarloweState, Parties, otherActionsParty)
 
 --------------------------------------------------------------------------
 -- ActionInput and ActionInputId Lenses
@@ -73,13 +72,6 @@ _contract = prop (SProxy :: SProxy "contract")
 
 _log :: forall s a. Lens' { log :: a | s } a
 _log = prop (SProxy :: SProxy "log")
-
-_payments :: forall s. Getter' { log :: Array MarloweEvent | s } (Array Payment)
-_payments = _log <<< to (mapMaybe f)
-  where
-  f (InputEvent _) = Nothing
-
-  f (OutputEvent _ payment) = Just payment
 
 --------------------------------------------------------------------------
 -- InitialConditionsRecord Lenses
@@ -141,3 +133,6 @@ _currentMarloweState = _marloweState <<< _Head
 
 _currentContract :: forall s p. Strong p => Choice p => Optic' p { marloweState :: NonEmptyList MarloweState | s } (Term Contract)
 _currentContract = _currentMarloweState <<< _executionState <<< _SimulationRunning <<< _contract
+
+_currentPossibleActions :: forall s p. Strong p => Choice p => Optic' p { marloweState :: NonEmptyList MarloweState | s } Parties
+_currentPossibleActions = _currentMarloweState <<< _executionState <<< _SimulationRunning <<< _possibleActions

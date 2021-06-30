@@ -6,7 +6,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
-module Spec.Auction(tests, auctionTrace1, auctionTrace2,
+module Spec.Auction(tests, theToken, auctionTrace1, auctionTrace2,
                     prop_Auction, prop_FinishAuction) where
 
 import           Control.Lens
@@ -18,12 +18,13 @@ import           Data.Monoid                        (Last (..))
 
 import           Ledger                             (Ada, Slot (..), Value, pubKeyHash)
 import qualified Ledger.Ada                         as Ada
-import           Plutus.Contract                    hiding (currentSlot, when)
+import           Plutus.Contract                    hiding (currentSlot)
 import           Plutus.Contract.Test               hiding (not)
 import qualified Streaming.Prelude                  as S
 import qualified Wallet.Emulator.Folds              as Folds
 import qualified Wallet.Emulator.Stream             as Stream
 
+import qualified Ledger.TimeSlot                    as TimeSlot
 import           Ledger.Value                       (AssetClass)
 import qualified Ledger.Value                       as Value
 import           Plutus.Contract.Test.ContractModel
@@ -41,14 +42,14 @@ params =
     AuctionParams
         { apOwner   = pubKeyHash $ walletPubKey (Wallet 1)
         , apAsset   = theToken
-        , apEndTime = 100
+        , apEndTime = TimeSlot.slotToPOSIXTime 100
         }
 
 -- | The token that we are auctioning off.
 theToken :: Value
 theToken =
     -- "ffff" is not a valid MPS hash. But this doesn't matter because we
-    -- never try to forge any value of "ffff" using a script.
+    -- never try to mint any value of "ffff" using a script.
     -- This currency is created by the initial transaction.
     Value.singleton "ffff" "token" 1
 
@@ -80,7 +81,8 @@ auctionTrace1 = do
     hdl2 <- Trace.activateContractWallet w2 (buyer currency)
     _ <- Trace.waitNSlots 1
     Trace.callEndpoint @"bid" hdl2 trace1WinningBid
-    void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
+    void $ Trace.waitUntilTime $ apEndTime params
+    void $ Trace.waitNSlots 2
 
 trace2WinningBid :: Ada
 trace2WinningBid = 70
@@ -105,7 +107,8 @@ auctionTrace2 = do
     Trace.callEndpoint @"bid" hdl3 60
     _ <- Trace.waitNSlots 35
     Trace.callEndpoint @"bid" hdl2 trace2WinningBid
-    void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
+    void $ Trace.waitUntilTime $ apEndTime params
+    void $ Trace.waitNSlots 2
 
 trace1FinalState :: AuctionOutput
 trace1FinalState =
@@ -129,7 +132,7 @@ trace2FinalState =
 
 threadToken :: AssetClass
 threadToken =
-    let con = Currency.createThreadToken @BlockchainActions @()
+    let con = Currency.createThreadToken @EmptySchema @()
         fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
         getOutcome (Folds.Done a) = a
         getOutcome e              = error $ "not finished: " <> show e
@@ -172,7 +175,7 @@ instance ContractModel AuctionModel where
 
     initialState = AuctionModel { _currentBid = 0
                                 , _winner     = w1
-                                , _endSlot    = apEndTime params
+                                , _endSlot    = TimeSlot.posixTimeToSlot $ apEndTime params
                                 , _phase      = NotStarted }
 
     arbitraryAction s
@@ -228,8 +231,7 @@ instance ContractModel AuctionModel where
     shrinkAction _ Init      = []
     shrinkAction _ (WaitUntil (Slot n))  = [ WaitUntil (Slot n') | n' <- shrink n ]
     shrinkAction s (Bid w v) =
-        [ WaitUntil (s ^. currentSlot + 1) ] ++
-        [ Bid w v' | v' <- shrink v ]
+        WaitUntil (s ^. currentSlot + 1) : [ Bid w v' | v' <- shrink v ]
 
     monitoring _ _ = id
 

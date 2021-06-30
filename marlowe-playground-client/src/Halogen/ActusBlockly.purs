@@ -6,6 +6,7 @@ import Blockly.Internal (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly.Internal as Blockly
 import Blockly.Toolbox (Toolbox)
 import Blockly.Types as BT
+import Bootstrap (btn)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
@@ -26,6 +27,7 @@ import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mk
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, detectCodeChanges)
 import Halogen.Classes (aHorizontal, alignedButtonInTheMiddle, alignedButtonLast, expanded, flex, flexCol, flexGrow, fontBold, fullHeight, hidden, smallPaddingLeft, smallPaddingY, textInactive)
+import Halogen.Css (classNames)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Events (onClick)
@@ -246,6 +248,7 @@ toCodeButton :: forall p. String -> HTML p Action
 toCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms FS
+    , classNames [ "btn" ]
     ]
     [ text key ]
 
@@ -253,7 +256,7 @@ toStaticCodeButton :: forall p. String -> HTML p Action
 toStaticCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms F
-    , classes ([ alignedButtonInTheMiddle ])
+    , classes ([ alignedButtonInTheMiddle, btn ])
     ]
     [ text key ]
 

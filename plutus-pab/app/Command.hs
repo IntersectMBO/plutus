@@ -8,8 +8,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
-module Command (Command (..), ConfigCommand(..), NoConfigCommand(..)) where
+module Command
+    ( Command (..)
+    , ConfigCommand(..)
+    , NoConfigCommand(..)
+    , MockServerMode(..)
+    ) where
 
+import           Cardano.Node.Types                      (MockServerMode (..))
 import qualified Data.Aeson                              as JSON
 import           GHC.Generics                            (Generic)
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
@@ -17,7 +23,7 @@ import           Wallet.Types                            (ContractInstanceId)
 
 -- | A command for which a config.yaml file is required
 data ConfigCommand =
-    MockNode -- ^ Run the mock node service
+    MockNode MockServerMode -- ^ Run the mock node service without starting the server
     | MockWallet -- ^ Run the mock wallet service
     | ChainIndex -- ^ Run the chain index service
     | Metadata -- ^ Run the mock meta-data service

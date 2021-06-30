@@ -14,7 +14,7 @@ import           PlutusCore.MkPlc                        hiding (error)
 import           PlutusCore.Pretty
 import           PlutusCore.StdLib.Data.Unit
 
-import           UntypedPlutusCore                       as UPLC
+import           UntypedPlutusCore                       as UPLC (Name, Term, TyName)
 
 import           Evaluation.Builtins.Common
 

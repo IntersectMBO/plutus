@@ -62,6 +62,10 @@
   content: "credit_score";
 }
 
+.with-icon-play::after {
+  content: "play";
+}
+
 .with-icon-previous::after {
   content: "chevron_left";
 }

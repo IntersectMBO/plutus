@@ -70,7 +70,7 @@ transition UserCredential{ucAddress, ucCredential, ucToken} State{stateData=stat
         (Active, RevokeCredential) ->
             Just
                 ( Constraints.mustBeSignedBy (unCredentialAuthority $ credAuthority ucCredential)
-                <> Constraints.mustForgeValue (inv ucToken) -- Destroy the token
+                <> Constraints.mustMintValue (inv ucToken) -- Destroy the token
                 , State{stateData=Revoked, stateValue=mempty}
                 )
         _ -> Nothing

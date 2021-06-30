@@ -31,8 +31,7 @@ data PayToWalletParams =
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON, ToSchema)
 
-type PayToWalletSchema =
-  BlockchainActions .\/ Endpoint "Pay to wallet" PayToWalletParams
+type PayToWalletSchema = Endpoint "Pay to wallet" PayToWalletParams
 
 payToWallet :: Contract () PayToWalletSchema ContractError ()
 payToWallet = do

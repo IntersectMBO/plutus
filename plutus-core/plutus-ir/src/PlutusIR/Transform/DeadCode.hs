@@ -28,12 +28,12 @@ import qualified Data.List.NonEmpty             as NE
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
-       PLC.ToBuiltinMeaning uni fun)
+       PLC.ToBuiltinMeaning uni fun, PLC.MonadQuote m)
     => Term tyname name uni fun a
-    -> Term tyname name uni fun a
-removeDeadBindings t =
-    let tRen = PLC.runQuote $ PLC.rename t
-    in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness tRen)
+    -> m (Term tyname name uni fun a)
+removeDeadBindings t = do
+    tRen <- PLC.rename t
+    runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness tRen)
 
 type Liveness = Set.Set Deps.Node
 

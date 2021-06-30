@@ -48,6 +48,7 @@ library
         PlutusCore.Constant.Dynamic.Emit
         PlutusCore.Core
         PlutusCore.Data
+        PlutusCore.DataFilePaths
         PlutusCore.DeBruijn
         PlutusCore.Default
         PlutusCore.Error
@@ -132,6 +133,7 @@ library
         PlutusIR.Transform.LetFloat
         PlutusIR.Transform.Inline
         PlutusIR.Transform.Beta
+        PlutusIR.Transform.Unwrap
         PlutusIR.TypeCheck
 
         UntypedPlutusCore
@@ -144,7 +146,6 @@ library
         Common
         Crypto
         Data.ByteString.Hash
-        Data.RandomAccessList.SkewBinary
         Data.SatInt
         Data.Text.Prettyprint.Doc.Custom
         ErrorCode
@@ -192,6 +193,7 @@ library
         PlutusCore.Mark
         PlutusCore.Parsable
         PlutusCore.Parser.Internal
+        PlutusCore.ParserCommon
         PlutusCore.Pretty.Classic
         PlutusCore.Pretty.ConfigName
         PlutusCore.Pretty.ConfigName
@@ -279,7 +281,6 @@ library
         megaparsec -any,
         memory -any,
         mmorph -any,
-        mono-traversable -any,
         monoidal-containers,
         mtl -any,
         nonempty-containers -any,
@@ -292,7 +293,7 @@ library
         semigroups -any,
         serialise -any,
         size-based -any,
-        some -any,
+        some < 1.0.3,
         sop-core -any,
         tasty -any,
         tasty-golden -any,
@@ -443,7 +444,6 @@ benchmark cost-model-budgeting-bench
         bytestring -any,
         criterion -any,
         directory -any,
-        filepath -any,
         hedgehog -any,
         random -any
 
@@ -522,26 +522,40 @@ benchmark cost-model-test
     other-modules:
         CostModelCreation
 
-benchmark bral-bench
+library index-envs
+    hs-source-dirs: index-envs/src
+    default-language: Haskell2010
+    exposed-modules:
+      Data.DeBruijnEnv
+      Data.RandomAccessList.SkewBinary
+    build-depends:
+        base -any,
+        containers -any,
+        -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
+        ral == 0.1
+
+benchmark index-envs-bench
     type: exitcode-stdio-1.0
-    hs-source-dirs:      untyped-plutus-core/bench
+    hs-source-dirs: index-envs/bench
+    default-language: Haskell2010
     main-is: Main.hs
     build-depends:
         base -any,
-        plutus-core -any,
+        index-envs -any,
         criterion >= 1.5.9.0,
         random >= 1.2.0,
         containers -any,
         -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
         ral == 0.1
 
-test-suite bral-test
+test-suite index-envs-test
     type: exitcode-stdio-1.0
-    hs-source-dirs:      untyped-plutus-core/test
+    hs-source-dirs: index-envs/test
+    default-language: Haskell2010
     main-is: TestRAList.hs
     build-depends:
         base -any,
-        plutus-core -any,
+        index-envs -any,
         tasty -any,
         tasty-hunit -any,
         tasty-quickcheck -any

@@ -220,7 +220,7 @@
                   (termbind
                     (strict)
                     (vardecl b (con bool))
-                    [ [ (builtin equalsInteger) arg ] arg ]
+                    [ [ (builtin eqInteger) arg ] arg ]
                   )
                   [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                 )
@@ -243,7 +243,7 @@
                   (termbind
                     (strict)
                     (vardecl b (con bool))
-                    [ [ (builtin lessThanEqualsInteger) arg ] arg ]
+                    [ [ (builtin lessThanEqInteger) arg ] arg ]
                   )
                   [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                 )
@@ -376,7 +376,7 @@
                   (termbind
                     (strict)
                     (vardecl b (con bool))
-                    [ [ (builtin greaterThanEqualsInteger) arg ] arg ]
+                    [ [ (builtin greaterThanEqInteger) arg ] arg ]
                   )
                   [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                 )
@@ -442,7 +442,7 @@
           )
           (termbind
             (nonstrict)
-            (vardecl fOrdSlot [Ord (con integer)])
+            (vardecl fOrdPOSIXTime [Ord (con integer)])
             [
               [
                 [
@@ -2274,141 +2274,6 @@
           (termbind
             (strict)
             (vardecl
-              posixTimeRangeToSlotRange
-              (fun [Interval (con integer)] [Interval (con integer)])
-            )
-            (lam
-              ptr
-              [Interval (con integer)]
-              [
-                {
-                  [ { Interval_match (con integer) } ptr ]
-                  [Interval (con integer)]
-                }
-                (lam
-                  from
-                  [LowerBound (con integer)]
-                  (lam
-                    to
-                    [UpperBound (con integer)]
-                    [
-                      [
-                        { Interval (con integer) }
-                        [
-                          {
-                            [ { LowerBound_match (con integer) } from ]
-                            [LowerBound (con integer)]
-                          }
-                          (lam
-                            e
-                            [Extended (con integer)]
-                            (lam
-                              c
-                              Bool
-                              [
-                                [
-                                  { LowerBound (con integer) }
-                                  [
-                                    [
-                                      [
-                                        [
-                                          {
-                                            [
-                                              { Extended_match (con integer) } e
-                                            ]
-                                            (fun Unit [Extended (con integer)])
-                                          }
-                                          (lam
-                                            a
-                                            (con integer)
-                                            (lam
-                                              thunk
-                                              Unit
-                                              [
-                                                { Finite (con integer) }
-                                                [
-                                                  [
-                                                    (builtin subtractInteger) a
-                                                  ]
-                                                  (con integer 1596059091)
-                                                ]
-                                              ]
-                                            )
-                                          )
-                                        ]
-                                        (lam thunk Unit { NegInf (con integer) }
-                                        )
-                                      ]
-                                      (lam thunk Unit { PosInf (con integer) })
-                                    ]
-                                    Unit
-                                  ]
-                                ]
-                                c
-                              ]
-                            )
-                          )
-                        ]
-                      ]
-                      [
-                        {
-                          [ { UpperBound_match (con integer) } to ]
-                          [UpperBound (con integer)]
-                        }
-                        (lam
-                          e
-                          [Extended (con integer)]
-                          (lam
-                            c
-                            Bool
-                            [
-                              [
-                                { UpperBound (con integer) }
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          [ { Extended_match (con integer) } e ]
-                                          (fun Unit [Extended (con integer)])
-                                        }
-                                        (lam
-                                          a
-                                          (con integer)
-                                          (lam
-                                            thunk
-                                            Unit
-                                            [
-                                              { Finite (con integer) }
-                                              [
-                                                [ (builtin subtractInteger) a ]
-                                                (con integer 1596059091)
-                                              ]
-                                            ]
-                                          )
-                                        )
-                                      ]
-                                      (lam thunk Unit { NegInf (con integer) })
-                                    ]
-                                    (lam thunk Unit { PosInf (con integer) })
-                                  ]
-                                  Unit
-                                ]
-                              ]
-                              c
-                            ]
-                          )
-                        )
-                      ]
-                    ]
-                  )
-                )
-              ]
-            )
-          )
-          (termbind
-            (strict)
-            (vardecl
               equalsByteString
               (fun (con bytestring) (fun (con bytestring) Bool))
             )
@@ -2423,7 +2288,7 @@
                   (termbind
                     (strict)
                     (vardecl b (con bool))
-                    [ [ (builtin equalsByteString) arg ] arg ]
+                    [ [ (builtin eqByteString) arg ] arg ]
                   )
                   [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                 )
@@ -2762,7 +2627,7 @@
                               Bool_match
                               [
                                 [
-                                  [ { contains (con integer) } fOrdSlot ]
+                                  [ { contains (con integer) } fOrdPOSIXTime ]
                                   [
                                     [
                                       { Interval (con integer) }
@@ -2849,14 +2714,7 @@
                                                   (lam
                                                     ds
                                                     [List [[Tuple2 (con bytestring)] Data]]
-                                                    (lam
-                                                      ds
-                                                      (con bytestring)
-                                                      [
-                                                        posixTimeRangeToSlotRange
-                                                        ds
-                                                      ]
-                                                    )
+                                                    (lam ds (con bytestring) ds)
                                                   )
                                                 )
                                               )
@@ -2921,7 +2779,7 @@
                                 Bool_match
                                 [
                                   [
-                                    [ { contains (con integer) } fOrdSlot ]
+                                    [ { contains (con integer) } fOrdPOSIXTime ]
                                     [
                                       [
                                         { Interval (con integer) }
@@ -2992,12 +2850,7 @@
                                                       ds
                                                       [List [[Tuple2 (con bytestring)] Data]]
                                                       (lam
-                                                        ds
-                                                        (con bytestring)
-                                                        [
-                                                          posixTimeRangeToSlotRange
-                                                          ds
-                                                        ]
+                                                        ds (con bytestring) ds
                                                       )
                                                     )
                                                   )

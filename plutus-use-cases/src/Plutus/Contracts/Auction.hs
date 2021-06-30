@@ -1,15 +1,14 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 module Plutus.Contracts.Auction(
     AuctionState(..),
     AuctionInput(..),
@@ -28,12 +27,13 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Monoid                      (Last (..))
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           GHC.Generics                     (Generic)
-import           Ledger                           (Ada, PubKeyHash, Slot, Value)
+import           Ledger                           (Ada, POSIXTime, PubKeyHash, Value)
 import qualified Ledger
 import qualified Ledger.Ada                       as Ada
 import qualified Ledger.Constraints               as Constraints
 import           Ledger.Constraints.TxConstraints (TxConstraints)
 import qualified Ledger.Interval                  as Interval
+import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (TypedScriptTxOut (..))
 import           Ledger.Value                     (AssetClass)
@@ -43,7 +43,7 @@ import           Plutus.Contract.StateMachine     (State (..), StateMachine (..)
 import qualified Plutus.Contract.StateMachine     as SM
 import           Plutus.Contract.Util             (loopM)
 import qualified Plutus.Contracts.Currency        as Currency
-import qualified PlutusTx                         as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude                          as Haskell
 
@@ -52,7 +52,7 @@ data AuctionParams
     = AuctionParams
         { apOwner   :: PubKeyHash -- ^ Current owner of the asset. This is where the proceeds of the auction will be sent.
         , apAsset   :: Value -- ^ The asset itself. This value is going to be locked by the auction script output.
-        , apEndTime :: Slot -- ^ When the time window for bidding ends.
+        , apEndTime :: POSIXTime -- ^ When the time window for bidding ends.
         }
         deriving stock (Haskell.Eq, Haskell.Show, Generic)
         deriving anyclass (ToJSON, FromJSON)
@@ -178,8 +178,8 @@ machineClient inst threadToken auctionParams =
     let machine = auctionStateMachine threadToken auctionParams
     in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
-type BuyerSchema = BlockchainActions .\/ Endpoint "bid" Ada
-type SellerSchema = BlockchainActions -- Don't need any endpoints: the contract runs automatically until the auction is finished.
+type BuyerSchema = Endpoint "bid" Ada
+type SellerSchema = EmptySchema -- Don't need any endpoints: the contract runs automatically until the auction is finished.
 
 data AuctionLog =
     AuctionStarted AuctionParams
@@ -207,13 +207,13 @@ instance SM.AsSMContractError AuctionError where
     _SMContractError = _StateMachineContractError . SM._SMContractError
 
 -- | Client code for the seller
-auctionSeller :: Value -> Slot -> Contract AuctionOutput SellerSchema AuctionError ()
-auctionSeller value slot = do
+auctionSeller :: Value -> POSIXTime -> Contract AuctionOutput SellerSchema AuctionError ()
+auctionSeller value time = do
     threadToken <- mapError ThreadTokenError Currency.createThreadToken
     logInfo $ "Obtained thread token: " <> Haskell.show threadToken
     tell $ threadTokenOut threadToken
     self <- Ledger.pubKeyHash <$> ownPubKey
-    let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = slot }
+    let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = time }
         inst         = typedValidator threadToken params
         client       = machineClient inst threadToken params
 
@@ -222,7 +222,7 @@ auctionSeller value slot = do
             (SM.runInitialise client (initialState self) value)
 
     logInfo $ AuctionStarted params
-    _ <- awaitSlot slot
+    _ <- awaitTime time
 
     r <- SM.runStep client Payout
     case r of
@@ -265,20 +265,21 @@ data BuyerEvent =
 
 waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract AuctionOutput BuyerSchema AuctionError BuyerEvent
 waitForChange AuctionParams{apEndTime} client lastHighestBid = do
-    s <- currentSlot
+    t <- currentTime
     let
-        auctionOver = awaitSlot apEndTime >> pure (AuctionIsOver lastHighestBid)
+        auctionOver = awaitTime apEndTime >> pure (AuctionIsOver lastHighestBid)
         submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
         otherBid = do
             let address = Scripts.validatorAddress (SM.typedValidator (SM.scInstance client))
-                targetSlot = Haskell.succ (Haskell.succ s) -- FIXME (jm): There is some off-by-one thing going on that requires us to
-                                           -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
-                                           -- to wait for the next slot to begin.
-                                           -- I don't have the time to look into that atm though :(
+                -- FIXME (jm): There is some off-by-one thing going on that requires us to
+                -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
+                -- to wait for the next time to begin.
+                -- I don't have the time to look into that atm though :(
+                targetTime = Haskell.succ (Haskell.succ t)
             AddressChangeResponse{acrTxns} <- addressChangeRequest
                 AddressChangeRequest
-                { acreqSlotRangeFrom = targetSlot
-                , acreqSlotRangeTo = targetSlot
+                { acreqSlotRangeFrom = TimeSlot.posixTimeToSlot targetTime
+                , acreqSlotRangeTo = TimeSlot.posixTimeToSlot targetTime
                 , acreqAddress = address
                 }
             case acrTxns of
@@ -296,8 +297,11 @@ handleEvent client lastHighestBid change =
     in case change of
         AuctionIsOver s -> tell (auctionStateOut $ Finished s) >> stop
         SubmitOwnBid ada -> do
+            logInfo @Haskell.String "Submitting bid"
             self <- Ledger.pubKeyHash <$> ownPubKey
+            logInfo @Haskell.String "Received pubkey"
             r <- SM.runStep client Bid{newBid = ada, newBidder = self}
+            logInfo @Haskell.String "SM: runStep done"
             case r of
                 SM.TransitionFailure i -> logError (TransitionFailed i) >> continue lastHighestBid
                 SM.TransitionSuccess (Ongoing newHighestBid) -> logInfo (BidSubmitted newHighestBid) >> continue newHighestBid
@@ -323,6 +327,6 @@ auctionBuyer currency params = do
         Just s -> loop s
 
         -- If the state can't be found we wait for it to appear.
-        Nothing -> SM.waitForUpdateUntil client (apEndTime params) >>= \case
+        Nothing -> SM.waitForUpdateUntilTime client (apEndTime params) >>= \case
             WaitingResult (Ongoing s) -> loop s
             _                         -> logWarn CurrentStateNotFound

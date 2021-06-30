@@ -11,10 +11,10 @@ import           Control.Monad                 (void)
 
 import           Ledger                        (Value, pubKeyHash)
 import qualified Ledger.Ada                    as Ada
+import qualified Ledger.TimeSlot               as TimeSlot
+import qualified Ledger.Value                  as Value
 import           Plutus.Contract.Test
 import           Plutus.Contracts.SimpleEscrow
-
-import qualified Ledger.Value                  as Value
 import qualified Plutus.Trace.Emulator         as Trace
 
 import           Test.Tasty
@@ -104,7 +104,7 @@ mkEscrowParams p e =
     { payee     = pubKeyHash $ walletPubKey w1
     , paying    = p
     , expecting = e
-    , deadline  = 100
+    , deadline  = TimeSlot.slotToPOSIXTime 100
     }
 
 w1, w2 :: Wallet

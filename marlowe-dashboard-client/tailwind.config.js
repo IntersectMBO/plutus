@@ -62,6 +62,7 @@ module.exports = {
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
       backgroundImage: theme => ({
+        "get-started-thumbnail": "url('/static/images/get-started-thumbnail.jpg')",
         "link-highlight": "url('/static/images/link-highlight.svg')",
       }),
       keyframes: {
@@ -75,10 +76,13 @@ module.exports = {
         },
       },
       gridTemplateRows: {
+        welcome: "1fr auto auto 1fr",
         main: "auto minmax(0, 1fr) auto",
         "contract-setup": "auto auto minmax(0, 1fr)",
+        "contract-step-card": "auto minmax(0, 1fr)",
       },
       gridTemplateColumns: {
+        welcome: "1fr auto auto 1fr",
         "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",
         "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
       },
@@ -87,17 +91,20 @@ module.exports = {
         "160": "40rem",
         "256": "64rem",
         "5pc": "5%",
+        "16:9": "56.25%", // this is used for video containers to maintain a 16:9 aspect ratio
       },
       width: {
         sm: "375px",
         md: "640px",
         lg: "768px",
+        "welcome-box": "400px",
         "contract-card": "264px",
         /* This width is used by a padding element in both sides of the carousel and is enough
            to push the first and last card to the center */
         "carousel-padding-element": "calc(50% - 264px / 2)",
       },
       height: {
+        "welcome-box": "227px",
         "contract-card": "467px",
       },
 
@@ -228,12 +235,12 @@ module.exports = {
     gridTemplateColumns: true,
     gridAutoColumns: false,
     gridColumn: false,
-    gridColumnStart: false,
+    gridColumnStart: true,
     gridColumnEnd: false,
     gridTemplateRows: true,
     gridAutoRows: false,
     gridRow: false,
-    gridRowStart: false,
+    gridRowStart: true,
     gridRowEnd: false,
     transform: true,
     transformOrigin: true,

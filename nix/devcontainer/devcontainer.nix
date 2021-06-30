@@ -111,7 +111,7 @@ let
       # and because docker won't let us map a volume not as root
       # (see: https://github.com/moby/moby/issues/2259 link), we have to make the
       # folder first and chown it ...
-      mkdir /home/${nonRootUser}/.cabal
+      mkdir -p /home/${nonRootUser}/.cabal/packages
 
       chown -R ${nonRootUser}:${nonRootUser} /home/${nonRootUser}
     '';

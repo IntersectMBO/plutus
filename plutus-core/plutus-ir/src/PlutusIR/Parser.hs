@@ -2,9 +2,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module PlutusIR.Parser
     ( topSourcePos
@@ -21,233 +19,50 @@ module PlutusIR.Parser
     , SourcePos
     ) where
 
+import           PlutusPrelude
 import           Prelude                            hiding (fail)
 
-import           Control.Applicative                hiding (many, some)
-import           Control.Monad.State                hiding (fail)
 
 import qualified PlutusCore                         as PLC
 import qualified PlutusCore.Parsable                as PLC
+import           PlutusCore.ParserCommon
 import           PlutusIR                           as PIR
 import qualified PlutusIR.MkPir                     as PIR
-import           PlutusPrelude                      (Pretty, display)
-import           Text.Megaparsec                    hiding (ParseError, State, parse)
-import qualified Text.Megaparsec                    as Parsec
-
-import           Data.Char
-import           Data.Foldable
-import qualified Data.Map                           as M
-import           Data.Proxy
-import qualified Data.Text                          as T
+import           Text.Megaparsec                    hiding (ParseError, State, many, parse, some)
 
 import qualified Control.Monad.Combinators.NonEmpty as NE
-import           ErrorCode
-import           Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer         as Lex
 
-
-
-newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
-    deriving (Show)
-
-data ParseError = UnknownBuiltinType T.Text
-                | BuiltinTypeNotAStar T.Text
-                | InvalidConstant T.Text T.Text
-                deriving (Eq, Ord, Show)
-
-instance HasErrorCode ParseError where
-      errorCode UnknownBuiltinType {}  = ErrorCode 5
-      errorCode BuiltinTypeNotAStar {} = ErrorCode 52
-      errorCode InvalidConstant {}     = ErrorCode 4
-
-type Error = Parsec.ParseError Char ParseError
-
-instance ShowErrorComponent ParseError where
-    showErrorComponent (UnknownBuiltinType ty) = "Unknown built-in type: " ++ T.unpack ty
-    showErrorComponent (BuiltinTypeNotAStar ty) =
-        "Expected a type of kind star (to later parse a constant), but got: " ++ T.unpack ty
-    showErrorComponent (InvalidConstant ty con) =
-        "Invalid constant: " ++ T.unpack con ++ " of type " ++ T.unpack ty
-
-topSourcePos :: SourcePos
-topSourcePos = initialPos "top"
-
-initial :: ParserState
-initial = ParserState M.empty
-
-intern :: (MonadState ParserState m, PLC.MonadQuote m) => T.Text -> m PLC.Unique
-intern n = do
-    st <- get
-    case M.lookup n (identifiers st) of
-        Just u -> return u
-        Nothing -> do
-            fresh <- PLC.freshUnique
-            let identifiers' = M.insert n fresh $ identifiers st
-            put $ ParserState identifiers'
-            return fresh
-
-type Parser = ParsecT ParseError T.Text (StateT ParserState PLC.Quote)
-instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
-
-parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParseError) a
-parse p file str = PLC.runQuote $ parseQuoted p file str
-
-parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote (Either (ParseErrorBundle T.Text ParseError) a)
-parseQuoted p file str = flip evalStateT initial $ runParserT p file str
-
-whitespace :: Parser ()
-whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
-
--- Tokens
--- TODO: move this to separate module?
-
-lexeme :: Parser a -> Parser a
-lexeme = Lex.lexeme whitespace
-
-symbol :: T.Text -> Parser T.Text
-symbol = Lex.symbol whitespace
-
-lparen :: Parser T.Text
-lparen = symbol "("
-rparen :: Parser T.Text
-rparen = symbol ")"
-
-lbracket :: Parser T.Text
-lbracket = symbol "["
-rbracket :: Parser T.Text
-rbracket = symbol "]"
-
-lbrace :: Parser T.Text
-lbrace = symbol "{"
-rbrace :: Parser T.Text
-rbrace = symbol "}"
-
-inParens :: Parser a -> Parser a
-inParens = between lparen rparen
-
-inBrackets :: Parser a -> Parser a
-inBrackets = between lbracket rbracket
-
-inBraces :: Parser a -> Parser a
-inBraces = between lbrace rbrace
-
-isIdentifierChar :: Char -> Bool
-isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
-
-reservedWord :: T.Text -> Parser SourcePos
-reservedWord w = lexeme $ try $ do
-    p <- getSourcePos
-    void $ string w
-    notFollowedBy (satisfy isIdentifierChar)
-    return p
-
-builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
-builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
-    where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
-
-name :: Parser Name
-name = lexeme $ try $ do
-    void $ lookAhead letterChar
-    str <- takeWhileP (Just "identifier") isIdentifierChar
-    Name str <$> intern str
-
-var :: Parser Name
-var = name
-
-tyVar :: Parser TyName
-tyVar = TyName <$> name
-
-version :: Parser (PLC.Version SourcePos)
-version = lexeme $ do
-    p <- getSourcePos
-    x <- Lex.decimal
-    void $ char '.'
-    y <- Lex.decimal
-    void $ char '.'
-    PLC.Version p x y <$> Lex.decimal
 
 recursivity :: Parser Recursivity
-recursivity = inParens $ (reservedWord "rec" >> return Rec) <|> (reservedWord "nonrec" >> return NonRec)
+recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> return NonRec)
 
 strictness :: Parser Strictness
-strictness = inParens $ (reservedWord "strict" >> return Strict) <|> (reservedWord "nonstrict" >> return NonStrict)
+strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
 
 funType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-funType = TyFun <$> reservedWord "fun" <*> typ <*> typ
+funType = TyFun <$> wordPos "fun" <*> typ <*> typ
 
 allType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-allType = TyForall <$> reservedWord "all" <*> tyVar <*> kind <*> typ
+allType = TyForall <$> wordPos "all" <*> tyName <*> kind <*> typ
 
 lamType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-lamType = TyLam <$> reservedWord "lam" <*> tyVar <*> kind <*> typ
+lamType = TyLam <$> wordPos "lam" <*> tyName <*> kind <*> typ
 
 ifixType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-ifixType = TyIFix <$> reservedWord "ifix" <*> typ <*> typ
+ifixType = TyIFix <$> wordPos "ifix" <*> typ <*> typ
 
 conType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-conType = reservedWord "con" >> builtinType
-
--- | Turn a parser that can succeed without consuming any input into one that fails in this case.
-enforce :: Parser a -> Parser a
-enforce p = do
-    (input, x) <- match p
-    guard . not $ T.null input
-    pure x
-
--- | Consume a chunk of text and either stop on whitespace (and consume it) or on a \')\' (without
--- consuming it). We need this for collecting a @Text@ to pass it to 'PLC.parse' in order to
--- parse a built-in type or a constant. This is neither efficient (because of @manyTill anySingle@),
--- nor future-proof (what if some future built-in type has parens in its syntax?). A good way of
--- resolving this would be to turn 'PLC.parse' into a proper parser rather than just a function
--- from @Text@, but PLC's parser also uses 'PLC.parse' and it's currently not @megaparsec@-based,
--- and so mixing two distinct parsing machines doesn't sound too exciting.
---
--- Note that this also fails on @(con string \"yes (no)\")@ as well as @con unit ()@, so it really
--- should be fixed somehow.
-closedChunk :: Parser T.Text
-closedChunk = T.pack <$> manyTill anySingle end where
-    end = enforce whitespace <|> void (lookAhead $ char ')')
-
--- | Parse a type tag by feeding the output of 'closedChunk' to 'PLC.parse'.
-builtinTypeTag
-    :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-    => Parser (PLC.SomeTypeIn (PLC.Kinded uni))
-builtinTypeTag = do
-    uniText <- closedChunk
-    case PLC.parse uniText of
-        Nothing  -> customFailure $ UnknownBuiltinType uniText
-        Just uni -> pure uni
-
--- | Parse a constant by parsing a type tag first and using the type-specific parser of constants.
--- Uses 'PLC.parse' under the hood for both types and constants.
-constant
-    :: forall uni.
-       ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
-       , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
-       )
-    => Parser (PLC.Some (PLC.ValueOf uni))
-constant = do
-    -- We use 'match' for remembering the textual representation of the parsed type tag,
-    -- so that we can show it in the error message if the constant fails to parse.
-    (uniText, PLC.SomeTypeIn (PLC.Kinded uni)) <- match builtinTypeTag
-    -- See Note [Decoding universes].
-    case PLC.checkStar @uni uni of
-        Nothing -> customFailure $ BuiltinTypeNotAStar uniText
-        Just PLC.Refl -> do
-            conText <- closedChunk
-            case PLC.bring (Proxy @PLC.Parsable) uni $ PLC.parse conText of
-                Nothing  -> customFailure $ InvalidConstant uniText conText
-                Just con -> pure . PLC.Some $ PLC.ValueOf uni con
+conType = wordPos "con" >> builtinType
 
 builtinType
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
@@ -269,31 +84,31 @@ appType = do
 kind :: Parser (Kind SourcePos)
 kind = inParens (typeKind <|> funKind)
     where
-        typeKind = Type <$> reservedWord "type"
-        funKind  = KindArrow <$> reservedWord "fun" <*> kind <*> kind
+        typeKind = Type <$> wordPos "type"
+        funKind  = KindArrow <$> wordPos "fun" <*> kind <*> kind
 
 typ
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Type TyName uni SourcePos)
-typ = (tyVar >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
+typ = (tyName >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
     <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
     <|> inBrackets appType
 
 varDecl
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (VarDecl TyName Name uni fun SourcePos)
-varDecl = inParens $ VarDecl <$> reservedWord "vardecl" <*> var <*> typ
+varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> typ
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
-tyVarDecl = inParens $ TyVarDecl <$> reservedWord "tyvardecl" <*> tyVar <*> kind
+tyVarDecl = inParens $ TyVarDecl <$> wordPos "tyvardecl" <*> tyName <*> kind
 
 datatype
     :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
     => Parser (Datatype TyName Name uni fun SourcePos)
-datatype = inParens $ Datatype <$> reservedWord "datatype"
+datatype = inParens $ Datatype <$> wordPos "datatype"
     <*> tyVarDecl
     <*> many tyVarDecl
-    <*> var
+    <*> name
     <*> many varDecl
 
 binding
@@ -303,9 +118,9 @@ binding
        )
     => Parser (Binding TyName Name uni fun SourcePos)
 binding = inParens $
-    (try $ reservedWord "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
-    <|> (reservedWord "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
-    <|> (reservedWord "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
+    (try $ wordPos "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
+    <|> (wordPos "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
+    <|> (wordPos "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 
 -- A small type wrapper for parsers that are parametric in the type of term they parse
 type Parametric uni fun
@@ -314,29 +129,29 @@ type Parametric uni fun
     -> Parser (term SourcePos)
 
 absTerm :: Parametric uni fun
-absTerm tm = PIR.tyAbs <$> reservedWord "abs" <*> tyVar <*> kind <*> tm
+absTerm tm = PIR.tyAbs <$> wordPos "abs" <*> tyName <*> kind <*> tm
 
 lamTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
-lamTerm tm = PIR.lamAbs <$> reservedWord "lam" <*> name <*> typ <*> tm
+lamTerm tm = PIR.lamAbs <$> wordPos "lam" <*> name <*> typ <*> tm
 
 conTerm
     :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
        , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
        )
     => Parametric uni fun
-conTerm _tm = PIR.constant <$> reservedWord "con" <*> constant
+conTerm _tm = PIR.constant <$> wordPos "con" <*> constant
 
 iwrapTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
-iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
+iwrapTerm tm = PIR.iWrap <$> wordPos "iwrap" <*> typ <*> typ <*> tm
 
 builtinTerm :: (Bounded fun, Enum fun, Pretty fun) => Parametric uni fun
-builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinFunction
+builtinTerm _term = PIR.builtin <$> wordPos "builtin" <*> builtinFunction
 
 unwrapTerm :: Parametric uni fun
-unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
+unwrapTerm tm = PIR.unwrap <$> wordPos "unwrap" <*> tm
 
 errorTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
-errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
+errorTerm _tm = PIR.error <$> wordPos "error" <*> typ
 
 letTerm
     :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
@@ -344,7 +159,7 @@ letTerm
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parser (Term TyName Name uni fun SourcePos)
-letTerm = Let <$> reservedWord "let" <*> recursivity <*> NE.some (try binding) <*> term
+letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> term
 
 appTerm :: Parametric uni fun
 appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
@@ -358,7 +173,7 @@ term'
        , Bounded fun, Enum fun, Pretty fun
        )
     => Parametric uni fun
-term' other = (var >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
+term' other = (name >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
     <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
     <|> inBraces (tyInstTerm self)
     <|> inBrackets (appTerm self)
@@ -390,7 +205,7 @@ program
     => Parser (Program TyName Name uni fun SourcePos)
 program = whitespace >> do
     prog <- inParens $ do
-        p <- reservedWord "program"
+        p <- wordPos "program"
         option () $ void version
         Program p <$> term
     notFollowedBy anySingle
@@ -403,6 +218,6 @@ plcProgram
        )
     => Parser (PLC.Program TyName Name uni fun SourcePos)
 plcProgram = whitespace >> do
-    prog <- inParens $ PLC.Program <$> reservedWord "program" <*> version <*> plcTerm
+    prog <- inParens $ PLC.Program <$> wordPos "program" <*> version <*> plcTerm
     notFollowedBy anySingle
     return prog

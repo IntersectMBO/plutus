@@ -31,6 +31,7 @@ import           Crypto
 import qualified Data.ByteString                                as BS
 import qualified Data.ByteString.Char8                          as BSC
 import qualified Data.ByteString.Hash                           as Hash
+import           Data.Char
 import           Data.Ix
 import           Data.Word                                      (Word8)
 import           Flat
@@ -38,8 +39,7 @@ import           Flat.Decoder
 import           Flat.Encoder                                   as Flat
 
 -- See Note [Pattern matching on built-in types].
--- For @n >= 24@, CBOR needs two bytes instead of one to encode @n@, so we want the commonest
--- builtins at the front.
+-- TODO: should we have the commonest builtins at the front to have more compact encoding?
 -- | Default built-in functions.
 data DefaultFun
     = AddInteger
@@ -70,10 +70,6 @@ data DefaultFun
     | EncodeUtf8
     | DecodeUtf8
     | Trace
-    -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
-    | Nop1
-    | Nop2
-    | Nop3
     | Fst
     | Snd
     | Null
@@ -92,62 +88,21 @@ data DefaultFun
     | UnListC
     | UnIC
     | UnBC
+    | EqualsData
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
+    -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
+    | Nop1
+    | Nop2
+    | Nop3
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
--- TODO: do we really want function names to be pretty-printed differently to what they are named as
--- constructors of 'DefaultFun'?
 instance Pretty DefaultFun where
-    pretty AddInteger           = "addInteger"
-    pretty SubtractInteger      = "subtractInteger"
-    pretty MultiplyInteger      = "multiplyInteger"
-    pretty DivideInteger        = "divideInteger"
-    pretty QuotientInteger      = "quotientInteger"
-    pretty ModInteger           = "modInteger"
-    pretty RemainderInteger     = "remainderInteger"
-    pretty LessThanInteger      = "lessThanInteger"
-    pretty LessThanEqInteger    = "lessThanEqualsInteger"
-    pretty GreaterThanInteger   = "greaterThanInteger"
-    pretty GreaterThanEqInteger = "greaterThanEqualsInteger"
-    pretty EqInteger            = "equalsInteger"
-    pretty Concatenate          = "concatenate"
-    pretty TakeByteString       = "takeByteString"
-    pretty DropByteString       = "dropByteString"
-    pretty EqByteString         = "equalsByteString"
-    pretty LtByteString         = "lessThanByteString"
-    pretty GtByteString         = "greaterThanByteString"
-    pretty SHA2                 = "sha2_256"
-    pretty SHA3                 = "sha3_256"
-    pretty VerifySignature      = "verifySignature"
-    pretty IfThenElse           = "ifThenElse"
-    pretty CharToString         = "charToString"
-    pretty Append               = "append"
-    pretty EqualsString         = "equalsString"
-    pretty EncodeUtf8           = "encodeUtf8"
-    pretty DecodeUtf8           = "decodeUtf8"
-    pretty Trace                = "trace"
-    pretty Nop1                 = "nop1"
-    pretty Nop2                 = "nop2"
-    pretty Nop3                 = "nop3"
-    pretty Fst                  = "fst"
-    pretty Snd                  = "snd"
-    pretty Null                 = "null"
-    pretty Head                 = "head"
-    pretty Tail                 = "tail"
-    pretty ConstrC              = "constrC"
-    pretty MapC                 = "mapC"
-    pretty ListC                = "listC"
-    pretty IC                   = "iC"
-    pretty BC                   = "bC"
-    pretty UnConstrC            = "unConstrC"
-    pretty UnMapC               = "unMapC"
-    pretty UnListC              = "unListC"
-    pretty UnIC                 = "unIC"
-    pretty UnBC                 = "unBC"
-    pretty ChooseData           = "chooseData"
+    pretty fun = case show fun of
+        ""    -> error "Panic: 'show' is not supposed to return an empty string"
+        c : s -> pretty $ toLower c : s
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = 1
@@ -362,6 +317,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 B b -> EvaluationSuccess b
                 _   -> EvaluationFailure)
             mempty
+    toBuiltinMeaning EqualsData =
+        makeBuiltinMeaning
+            ((==) @Data)
+            mempty
     toBuiltinMeaning ChooseData =
         makeBuiltinMeaning
             (\xConstr xMap xList xI xB -> \case
@@ -421,7 +380,8 @@ instance Serialise DefaultFun where
               UnListC              -> 43
               UnIC                 -> 44
               UnBC                 -> 45
-              ChooseData           -> 46
+              EqualsData           -> 46
+              ChooseData           -> 47
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -470,15 +430,16 @@ instance Serialise DefaultFun where
               go 43 = pure UnListC
               go 44 = pure UnIC
               go 45 = pure UnBC
-              go 46 = pure ChooseData
+              go 46 = pure EqualsData
+              go 47 = pure ChooseData
               go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
 -- out of space for tags (expanding the space would change the binary format for people who're
 -- implementing it manually). So we have to set it manually.
--- | Using 6 bits to encode builtin tags.
+-- | Using 7 bits to encode builtin tags.
 builtinTagWidth :: NumBits
-builtinTagWidth = 6
+builtinTagWidth = 7
 
 encodeBuiltin :: Word8 -> Flat.Encoding
 encodeBuiltin = eBits builtinTagWidth
@@ -535,7 +496,8 @@ instance Flat DefaultFun where
               UnListC              -> 43
               UnIC                 -> 44
               UnBC                 -> 45
-              ChooseData           -> 46
+              EqualsData           -> 46
+              ChooseData           -> 47
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -584,7 +546,8 @@ instance Flat DefaultFun where
               go 43 = pure UnListC
               go 44 = pure UnIC
               go 45 = pure UnBC
-              go 46 = pure ChooseData
+              go 46 = pure EqualsData
+              go 47 = pure ChooseData
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth

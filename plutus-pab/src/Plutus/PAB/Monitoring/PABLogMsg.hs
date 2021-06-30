@@ -38,19 +38,20 @@ import           Cardano.Node.Types                      (MockServerLogMsg)
 import           Cardano.Wallet.Types                    (WalletMsg)
 import           Data.Aeson.Text                         (encodeToLazyText)
 import qualified Data.Text                               as T
+import           Plutus.Contract.Effects                 (PABReq)
 import           Plutus.Contract.Resumable               (Response)
 import           Plutus.Contract.State                   (ContractRequest, ContractResponse)
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg (..))
 import           Plutus.PAB.Effects.Contract             (PABContract (..))
 import           Plutus.PAB.Effects.ContractRuntime      (ContractRuntimeMsg)
-import           Plutus.PAB.Events.Contract              (ContractInstanceId, ContractPABRequest)
+import           Plutus.PAB.Events.Contract              (ContractInstanceId)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Plutus.PAB.Instances                    ()
-import           Plutus.PAB.Monitoring.MonadLoggerBridge (MonadLoggerMsg (..))
 import           Plutus.PAB.ParseStringifiedJSON         (UnStringifyJSONLog (..))
 import           Plutus.PAB.Types                        (PABError)
+import           Wallet.Emulator.LogMessages             (TxBalanceMsg)
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent)
-import           Wallet.Emulator.Wallet                  (WalletEvent (..))
+import           Wallet.Emulator.Wallet                  (Wallet, WalletEvent (..))
 
 data AppMsg t =
     InstalledContractsMsg
@@ -82,7 +83,6 @@ data PABLogMsg t =
     | SCoreMsg (CoreMsg t)
     | SUnstringifyJSON UnStringifyJSONLog
     | SWalletEvent Wallet.Emulator.Wallet.WalletEvent
-    | SLoggerBridge MonadLoggerMsg
     | SContractRuntimeMsg ContractRuntimeMsg
     | SChainIndexServerMsg ChainIndexServerMsg
     | SWalletMsg WalletMsg
@@ -102,7 +102,6 @@ instance Pretty (ContractDef t) => Pretty (PABLogMsg t) where
         SCoreMsg m             -> pretty m
         SUnstringifyJSON m     -> pretty m
         SWalletEvent w         -> pretty w
-        SLoggerBridge m        -> pretty m
         SContractRuntimeMsg m  -> pretty m
         SChainIndexServerMsg m -> pretty m
         SWalletMsg m           -> pretty m
@@ -153,7 +152,6 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         SCoreMsg m             -> toObject v m
         SUnstringifyJSON m     -> toObject v m
         SWalletEvent e         -> toObject v e
-        SLoggerBridge e        -> toObject v e
         SContractRuntimeMsg e  -> toObject v e
         SChainIndexServerMsg m -> toObject v m
         SWalletMsg m           -> toObject v m
@@ -171,8 +169,10 @@ data PABMultiAgentMsg t =
     | CoreLog (CoreMsg t)
     | RuntimeLog ContractRuntimeMsg
     | UserLog T.Text
+    | SqlLog String
     | StartingPABBackendServer Int
     | StartingMetadataServer Int
+    | WalletBalancingMsg Wallet TxBalanceMsg
     deriving stock Generic
 
 instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PABMultiAgentMsg t) where
@@ -185,8 +185,10 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         CoreLog m                  -> toObject v m
         RuntimeLog m               -> toObject v m
         UserLog t                  -> toObject v t
+        SqlLog s                   -> toObject v s
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
         StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
+        WalletBalancingMsg w m     -> mkObjectStr "balancing" (Tagged @"wallet" w, Tagged @"message" m)
 
 deriving stock instance (Show (ContractDef t)) => Show (PABMultiAgentMsg t)
 deriving anyclass instance (ToJSON (ContractDef t)) => ToJSON (PABMultiAgentMsg t)
@@ -202,16 +204,18 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         CoreLog m             -> pretty m
         RuntimeLog m          -> pretty m
         UserLog m             -> pretty m
+        SqlLog m              -> pretty m
         StartingPABBackendServer port ->
             "Starting PAB backend server on port:" <+> pretty port
         StartingMetadataServer port ->
             "Starting metadata server on port:" <+> pretty port
+        WalletBalancingMsg w m -> pretty w <> colon <+> pretty m
 
 data CoreMsg t =
     Installing (ContractDef t)
     | Installed
     | FindingContract ContractInstanceId
-    | FoundContract (Maybe (ContractResponse Value Value Value ContractPABRequest))
+    | FoundContract (Maybe (ContractResponse Value Value Value PABReq))
     deriving stock Generic
 
 deriving stock instance (Show (ContractDef t)) => Show (CoreMsg t)
@@ -241,7 +245,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (Co
 
 data ContractEffectMsg =
     SendContractRequest (ContractRequest JSON.Value JSON.Value)
-    | ReceiveContractResponse (PartiallyDecodedResponse ContractPABRequest)
+    | ReceiveContractResponse (PartiallyDecodedResponse PABReq)
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 

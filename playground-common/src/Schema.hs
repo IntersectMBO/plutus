@@ -57,11 +57,13 @@ import qualified Data.Text              as Text
 import           Data.UUID              (UUID)
 import           GHC.Generics           (C1, Constructor, D1, Generic, K1 (K1), M1 (M1), Rec0, Rep, S1, Selector, U1,
                                          conIsRecord, conName, from, selName, (:*:) ((:*:)), (:+:) (L1, R1))
-import           Ledger                 (Ada, AssetClass, CurrencySymbol, DatumHash, Interval, PubKey, PubKeyHash,
-                                         RedeemerHash, Signature, Slot, SlotRange, TokenName, ValidatorHash, Value)
+import           Ledger                 (Ada, AssetClass, CurrencySymbol, DatumHash, Interval, POSIXTime,
+                                         POSIXTimeRange, PubKey, PubKeyHash, RedeemerHash, Signature, TokenName,
+                                         ValidatorHash, Value)
 import           Ledger.Bytes           (LedgerBytes)
 import qualified PlutusTx.AssocMap
 import qualified PlutusTx.Prelude       as P
+import qualified PlutusTx.Ratio         as P
 import           Wallet.Emulator.Wallet (Wallet)
 import           Wallet.Types           (ContractInstanceId)
 
@@ -86,7 +88,7 @@ data FormSchema
     | FormSchemaObject [(String, FormSchema)]
     -- Blessed types that get their own special UI widget.
     | FormSchemaValue
-    | FormSchemaSlotRange
+    | FormSchemaPOSIXTimeRange
     -- Exceptions.
     | FormSchemaUnsupported String
     deriving (Show, Eq, Generic)
@@ -108,7 +110,7 @@ data FormArgumentF a
     | FormTupleF a a
     | FormObjectF [(String, a)]
     | FormValueF Value
-    | FormSlotRangeF (Interval Slot)
+    | FormPOSIXTimeRangeF (Interval POSIXTime)
     | FormUnsupportedF String
     deriving (Show, Generic, Eq, Functor)
     deriving anyclass (ToJSON, FromJSON)
@@ -136,7 +138,7 @@ formArgumentToJson = cata algebra
         JSON.Object . HashMap.fromList . map (first Text.pack) <$>
         traverse sequence vs
     algebra (FormValueF v) = justJSON v
-    algebra (FormSlotRangeF v) = justJSON v
+    algebra (FormPOSIXTimeRangeF v) = justJSON v
     algebra (FormUnsupportedF _) = Nothing
     justJSON ::
            forall a. ToJSON a
@@ -217,6 +219,12 @@ instance ToSchema Integer where
 
 instance ToArgument Integer where
     toArgument = Fix . FormIntegerF . Just
+
+instance ToSchema P.Rational where
+    toSchema = FormSchemaTuple FormSchemaInteger FormSchemaInteger
+
+instance ToArgument P.Rational where
+    toArgument r = Fix $ FormTupleF (toArgument $ P.numerator r) (toArgument $ P.denominator r)
 
 instance ToSchema Text where
     toSchema = FormSchemaString
@@ -366,8 +374,8 @@ instance ToSchema LedgerBytes where
 instance ToSchema UUID where
     toSchema = toSchema @String
 
-instance ToSchema SlotRange where
-    toSchema = FormSchemaSlotRange
+instance ToSchema POSIXTimeRange where
+    toSchema = FormSchemaPOSIXTimeRange
 
 deriving anyclass instance ToSchema Ada
 
@@ -383,7 +391,7 @@ deriving anyclass instance ToSchema RedeemerHash
 
 deriving anyclass instance ToSchema Signature
 
-deriving anyclass instance ToSchema Slot
+deriving anyclass instance ToSchema POSIXTime
 
 deriving anyclass instance ToSchema TokenName
 

@@ -14,18 +14,25 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Halogen (RefLabel(..))
-import Marlowe.Execution (ExecutionState, NamedAction)
+import Marlowe.Execution.Types (ExecutionState, NamedAction)
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
-  = { tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
+  = { nickname :: String
+    , tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
     , executionState :: ExecutionState
+    -- When the user submits a transaction, we save it here until we get confirmation from the PAB and
+    -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
+    , pendingTransaction :: Maybe TransactionInput
     , previousSteps :: Array PreviousStep
     , followerAppId :: PlutusAppId
-    , marloweParams :: MarloweParams
+    -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"
+    -- contracts when a user creates a contract, to show on the page until the blockchain settles and
+    -- we get the MarloweParams back from the PAB (through the MarloweFollower app).
+    , mMarloweParams :: Maybe MarloweParams
     -- Which step is selected. This index is 0 based and should be between [0, previousSteps.length]
     -- (both sides inclusive). This is because the array represent the past steps and the
     -- executionState has the current state and visually we can select any one of them.
@@ -61,7 +68,8 @@ type Input
     }
 
 data Action
-  = ConfirmAction NamedAction
+  = SetNickname String
+  | ConfirmAction NamedAction
   | ChangeChoice ChoiceId (Maybe ChosenNum)
   | SelectTab Int Tab
   | AskConfirmation NamedAction
@@ -75,6 +83,7 @@ data Action
 
 instance actionIsEvent :: IsEvent Action where
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
+  toEvent (SetNickname _) = Just $ defaultEvent "SetNickname"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
   toEvent (SelectTab _ _) = Just $ defaultEvent "SelectTab"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"

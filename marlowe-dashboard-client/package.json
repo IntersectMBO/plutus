@@ -18,12 +18,14 @@
   "resolutions": {},
   "license": "Apache-2.0",
   "dependencies": {
+    "@popperjs/core": "^2.9.2",
     "json-bigint": "^1.0.0",
     "uuid": "^8.3.2",
     "xhr2": "^0.2.1"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.2",
+    "@webpack-cli/serve": "^1.5.1",
     "autoprefixer": "^10.2.5",
     "css-loader": "^5.2.4",
     "cssnano": "^5.0.2",

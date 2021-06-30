@@ -18,10 +18,7 @@ ul {
   padding: 0;
 }
 
- /* TODO: it is preferred to stye classes than actual html components. At the moment I add
- the btn class, but later on we should make sure all buttons have that class and remove this global
- style */
-button, .btn {
+.btn {
   cursor: pointer;
   position: relative;
   background: var(--btn-primary-color);
@@ -32,15 +29,15 @@ button, .btn {
   z-index: 1;
 }
 
-button:hover, .btn:hover {
+.btn:hover {
   background: var(--btn-primary-color-hover);
 }
 
-button:active, .btn:active {
+.btn:active {
   background: var(--btn-primary-color-active);
 }
 
-button:disabled, .btn:disabled {
+.btn:disabled {
   background: var(--btn-primary-color-disabled);
   cursor: default;
 }
@@ -53,7 +50,7 @@ button:disabled, .btn:disabled {
   background-color: var(--error-color);
 }
 
-button.small-btn {
+.btn.small-btn {
   padding: 0rem;
   width: 32px;
   height: 30px;
