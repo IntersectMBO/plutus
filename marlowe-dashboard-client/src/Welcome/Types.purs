@@ -19,7 +19,7 @@ type State
     , walletNicknameInput :: InputField.State WalletNicknameError
     , walletIdInput :: InputField.State WalletIdError
     , remoteWalletDetails :: WebData WalletDetails
-    , enteringPlayState :: Boolean
+    , enteringDashboardState :: Boolean
     }
 
 data Card

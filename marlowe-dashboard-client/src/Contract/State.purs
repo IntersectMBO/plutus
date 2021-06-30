@@ -19,6 +19,7 @@ import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _named
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Control.Monad.Reader.Class (ask)
+import Dashboard.Types (Action(..)) as Dashboard
 import Data.Array (difference, filter, foldl, index, length, mapMaybe, modifyAt)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
@@ -54,7 +55,6 @@ import Marlowe.HasParties (getParties)
 import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
 import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _minSlot)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
-import Play.Types (Action(..)) as Play
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
 import WalletData.State (adaToken)
@@ -249,7 +249,7 @@ handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = 
         assign _pendingTransaction $ Just txInput
         addToast $ successToast "Transaction submitted, awating confirmation."
         { dataProvider } <- ask
-        when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.PlayAction $ Play.UpdateFromStorage)
+        when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.UpdateFromStorage)
 
 handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
   where
@@ -266,9 +266,9 @@ handleAction _ (SelectTab stepNumber tab) = do
     -- otherwise we update the tab of the current step
     Nothing -> assign _tab tab
 
-handleAction _ (AskConfirmation action) = pure unit -- Managed by Play.State
+handleAction _ (AskConfirmation action) = pure unit -- Managed by Dashboard.State
 
-handleAction _ CancelConfirmation = pure unit -- Managed by Play.State
+handleAction _ CancelConfirmation = pure unit -- Managed by Dashboard.State
 
 handleAction _ (SelectStep stepNumber) = assign _selectedStep stepNumber
 

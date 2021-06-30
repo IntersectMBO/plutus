@@ -1,10 +1,11 @@
 module Contract.View
-  ( contractDetailsCard
+  ( contractInnerBox
+  , contractDetailsCard
   , actionConfirmationCard
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _mMarloweParams, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css (applyWhen, classNames, toggleWhen)
@@ -21,7 +22,7 @@ import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (take, trim)
+import Data.String (null, take, trim)
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
@@ -39,6 +40,39 @@ import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Input(..), 
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
 import WalletData.State (adaToken, getAda)
+
+-- I'm moving this view here so that we can easily call Contract.Actions from inside it. I'm not
+-- actually calling any Contract.Actions from here yet, but that's a TODO for the next PR...
+contractInnerBox :: forall p. Slot -> State -> HTML p Action
+contractInnerBox currentSlot state =
+  let
+    nickname = state ^. _nickname
+
+    mMarloweParams = state ^. _mMarloweParams
+
+    stepNumber = currentStep state + 1
+
+    mNextTimeout = state ^. (_executionState <<< _mNextTimeout)
+
+    timeoutStr =
+      maybe'
+        (\_ -> if isContractClosed state then "Contract closed" else "Timed out")
+        (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
+        mNextTimeout
+  in
+    div_
+      [ div
+          [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
+          -- TODO: make (new) nicknames editable directly from here
+          [ text if null nickname then "My new contract" else nickname ]
+      , div
+          [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
+          Nothing -> [ text "pending confirmation" ]
+          _ ->
+            [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
+            , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
+            ]
+      ]
 
 -- NOTE: Currently, the horizontal scrolling for this element does not match the exact desing. In the designs, the active card is always centered and you
 -- can change which card is active via scrolling or the navigation buttons. To implement this we would probably need to add snap scrolling to the center of the

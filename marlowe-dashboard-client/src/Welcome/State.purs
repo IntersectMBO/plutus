@@ -33,7 +33,7 @@ import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNickname
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
-import Welcome.Lenses (_card, _enteringPlayState, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _enteringDashboardState, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 -- see note [dummyState] in MainFrame.State
@@ -48,7 +48,7 @@ mkInitialState walletLibrary =
   , walletNicknameInput: InputField.initialState
   , walletIdInput: InputField.initialState
   , remoteWalletDetails: NotAsked
-  , enteringPlayState: false
+  , enteringDashboardState: false
   }
 
 -- Some actions are handled in `MainFrame.State` because they involve
@@ -69,7 +69,7 @@ handleAction (CloseCard card) = do
   when (currentCard == Just card) do
     modify_
       $ set _remoteWalletDetails NotAsked
-      <<< set _enteringPlayState false
+      <<< set _enteringDashboardState false
       <<< set _card Nothing
     handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
     handleAction $ WalletNicknameInputAction $ InputField.Reset
@@ -141,7 +141,7 @@ handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInpu
 handleAction (WalletIdInputAction inputFieldAction) = toWalletIdInput $ InputField.handleAction inputFieldAction
 
 handleAction (UseWallet walletNickname) = do
-  assign _enteringPlayState true
+  assign _enteringDashboardState true
   remoteWalletDetails <- use _remoteWalletDetails
   case remoteWalletDetails of
     Success walletDetails -> do
@@ -150,7 +150,7 @@ handleAction (UseWallet walletNickname) = do
       modifying _walletLibrary (insert walletNickname walletDetailsWithNickname)
       insertIntoWalletLibrary walletDetailsWithNickname
       walletLibrary <- use _walletLibrary
-      callMainFrameAction $ MainFrame.EnterPlayState walletLibrary walletDetailsWithNickname
+      callMainFrameAction $ MainFrame.EnterDashboardState walletLibrary walletDetailsWithNickname
     _ -> do
       -- this should never happen (the button to use a wallet should be disabled unless
       -- remoteWalletDetails is Success), but let's add some sensible behaviour anyway just in case

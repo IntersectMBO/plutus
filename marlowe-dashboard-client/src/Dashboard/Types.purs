@@ -1,15 +1,16 @@
-module Play.Types
+module Dashboard.Types
   ( State
   , Screen(..)
   , Card(..)
+  , ContractStatus(..)
+  , PartitionedContracts
   , Input
   , Action(..)
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
-import Contract.Types (Action) as Contract
-import ContractHome.Types (Action, State) as ContractHome
+import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
@@ -28,12 +29,14 @@ type State
     , menuOpen :: Boolean
     , screen :: Screen
     , cards :: Array Card
+    , status :: ContractStatus
+    , contracts :: Map PlutusAppId Contract.State
+    , selectedContractIndex :: Maybe PlutusAppId
     , walletNicknameInput :: InputField.State WalletNicknameError
     , walletIdInput :: InputField.State WalletIdError
     , remoteWalletInfo :: WebData WalletInfo
     , timezoneOffset :: Minutes
     , templateState :: Template.State
-    , contractsState :: ContractHome.State
     }
 
 data Screen
@@ -54,6 +57,15 @@ data Card
 
 derive instance eqCard :: Eq Card
 
+data ContractStatus
+  = Running
+  | Completed
+
+derive instance eqContractStatus :: Eq ContractStatus
+
+type PartitionedContracts
+  = { completed :: Array Contract.State, running :: Array Contract.State }
+
 type Input
   = { currentSlot :: Slot
     }
@@ -68,12 +80,13 @@ data Action
   | SetScreen Screen
   | OpenCard Card
   | CloseCard Card
+  | SelectView ContractStatus
+  | OpenContract PlutusAppId
   | UpdateFromStorage
   | UpdateFollowerApps (Map MarloweParams MarloweData)
   | UpdateContract PlutusAppId ContractHistory
   | AdvanceTimedoutSteps
   | TemplateAction Template.Action
-  | ContractHomeAction ContractHome.Action
   | ContractAction Contract.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
@@ -88,10 +101,11 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (OpenCard _) = Nothing
   toEvent (CloseCard _) = Nothing
+  toEvent (SelectView _) = Just $ defaultEvent "SelectView"
+  toEvent (OpenContract _) = Just $ defaultEvent "OpenContract"
   toEvent UpdateFromStorage = Nothing
   toEvent (UpdateFollowerApps _) = Nothing
   toEvent (UpdateContract _ _) = Nothing
   toEvent AdvanceTimedoutSteps = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
-  toEvent (ContractHomeAction contractAction) = toEvent contractAction
   toEvent (ContractAction contractAction) = toEvent contractAction

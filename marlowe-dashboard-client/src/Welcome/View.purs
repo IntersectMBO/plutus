@@ -20,7 +20,7 @@ import Material.Icons (Icon(..), icon, icon_)
 import Network.RemoteData (isSuccess)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
-import Welcome.Lenses (_card, _enteringPlayState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 renderWelcomeState :: forall p. State -> HTML p Action
@@ -32,7 +32,7 @@ renderWelcomeState state =
         [ img [ src backgroundShape ] ]
     , main
         [ classNames [ "relative" ] ]
-        -- In the Play view, there are potentially many cards all inside a containing div,
+        -- In the Dashboard view, there are potentially many cards all inside a containing div,
         -- and the last one has a semi-transparent overlay (using class "last:bg-overlay").
         -- Here in the Welcome view there is at most one card, but we need to put it inside
         -- a containing div as well, so that it's the last child, and has the bg-overlay
@@ -222,7 +222,7 @@ generateWalletHelpCard =
 useNewWalletCard :: forall p. State -> Array (HTML p Action)
 useNewWalletCard state =
   let
-    enteringPlayState = view _enteringPlayState state
+    enteringDashboardState = view _enteringDashboardState state
 
     remoteWalletDetails = view _remoteWalletDetails state
 
@@ -267,10 +267,10 @@ useNewWalletCard state =
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , disabled $ isJust (validate walletNicknameInput) || enteringPlayState || not isSuccess remoteWalletDetails
+                , disabled $ isJust (validate walletNicknameInput) || enteringDashboardState || not isSuccess remoteWalletDetails
                 , onClick_ $ UseWallet $ view _value walletNicknameInput
                 ]
-                [ text if enteringPlayState then "Loading..." else "Use" ]
+                [ text if enteringDashboardState then "Loading..." else "Use" ]
             ]
         ]
     ]
@@ -278,7 +278,7 @@ useNewWalletCard state =
 useWalletCard :: forall p. State -> Array (HTML p Action)
 useWalletCard state =
   let
-    enteringPlayState = view _enteringPlayState state
+    enteringDashboardState = view _enteringDashboardState state
 
     remoteWalletDetails = view _remoteWalletDetails state
 
@@ -324,9 +324,9 @@ useWalletCard state =
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
                 , onClick_ $ UseWallet $ view _value walletNicknameInput
-                , disabled $ enteringPlayState || not isSuccess remoteWalletDetails
+                , disabled $ enteringDashboardState || not isSuccess remoteWalletDetails
                 ]
-                [ text if enteringPlayState then "Loading..." else "Use" ]
+                [ text if enteringDashboardState then "Loading..." else "Use" ]
             ]
         ]
     ]
