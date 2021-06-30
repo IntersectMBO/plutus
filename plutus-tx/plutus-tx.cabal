@@ -97,6 +97,7 @@ test-suite plutus-tx-test
     build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,
+        plutus-core -any,
         plutus-tx -any,
         hedgehog -any,
         tasty -any,

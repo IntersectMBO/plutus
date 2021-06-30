@@ -31,7 +31,7 @@ obothPair = runQuote $ do
         . lamAbs () f (TyFun () (TyVar () a) $ TyVar () a)
         . lamAbs () p (mkIterTyApp () pair [TyVar () a, TyVar () a])
         $ mkIterApp () (atAA $ Right BiconstPair)
-            [ apply () (var () f) . apply () (atAA $ Left Fst) $ var () p
-            , apply () (var () f) . apply () (atAA $ Left Snd) $ var () p
+            [ apply () (var () f) . apply () (atAA $ Left FstPair) $ var () p
+            , apply () (var () f) . apply () (atAA $ Left SndPair) $ var () p
             , var () p
             ]

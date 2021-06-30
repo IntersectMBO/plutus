@@ -256,8 +256,8 @@ which fits perfectly well into the builtins machinery.
 
 Although that becomes annoying for more complex data types. For tuples we need to provide two
 projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too
-bad, but to get pattern matching on lists we need three built-in functions: `null`, `head` and
-`tail` and to require `Bool` to be in the universe to be able to define a PLC equivalent of
+bad, but to get pattern matching on lists we need three built-in functions: @null@, @head@ and
+@tail@ and to require `Bool` to be in the universe to be able to define a PLC equivalent of
 
     matchList :: [a] -> r -> (a -> [a] -> r) -> r
     matchList xs z f = if null xs then z else f (head xs) (tail xs)
@@ -271,18 +271,18 @@ into a (possibly nested) pair, for example for
 
 we have (pseudocode):
 
-    unConstrC (Constr i ds) = (i, ds)
+    unConstrData (Constr i ds) = (i, ds)
 
 In order to get pattern matching over 'Data' we need a projection function per constructor as well
-as with lists, but writing (where the @C@ suffix indicates that a function is a builtin that
-somehow corresponds to a constructor of a Haskell data type)
+as with lists, but writing (where the @Data@ suffix indicates that a function is a builtin that
+somehow corresponds to a constructor of 'Data')
 
-    if isConstrC d
-        then uncurry fConstr $ unConstrC d
-        else if isMapC d
-            then fMap $ unMapC d
-            else if isListC d
-                then fList $ unListC d
+    if isConstrData d
+        then uncurry fConstr $ unConstrData d
+        else if isMapData d
+            then fMap $ unMapData d
+            else if isListData d
+                then fList $ unListData d
                 else <...>
 
 is tedious and inefficient and so instead we have a single @chooseData@ builtin that matches on
@@ -290,9 +290,9 @@ its @Data@ argument and chooses the appropriate branch (type instantiations and 
 are omitted for clarity):
 
      chooseData
-        (uncurry fConstr $ unConstrC d)
-        (fMap $ unMapC d)
-        (fList $ unListC d)
+        (uncurry fConstr $ unConstrData d)
+        (fMap $ unMapData d)
+        (fList $ unListData d)
         <...>
         d
 

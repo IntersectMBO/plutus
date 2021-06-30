@@ -58,8 +58,8 @@ stdLib =
                   ]
               , treeFolderContents "Pair"
                   [ plcTypeFile "Pair"    pair
-                  , plcTermFile "Fst"     Builtin.fst
-                  , plcTermFile "Snd"     Builtin.snd
+                  , plcTermFile "Fst"     Builtin.fstPair
+                  , plcTermFile "Snd"     Builtin.sndPair
                   , plcTermFile "Uncurry" Builtin.uncurry
                   ]
               , treeFolderContents "List"

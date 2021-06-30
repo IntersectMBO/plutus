@@ -67,7 +67,7 @@ tags and their used/available encoding possibilities.
 
 | Data type        | Function          | Used | Available |
 |------------------|-------------------|------|-----------|
-| default builtins | encodeBuiltin     | 46   | 64        |
+| default builtins | encodeBuiltin     | 47   | 128       |
 | Kinds            | encodeKind        | 2    | 2         |
 | Types            | encodeType        | 7    | 8         |
 | Terms            | encodeTerm        | 10   | 16        |

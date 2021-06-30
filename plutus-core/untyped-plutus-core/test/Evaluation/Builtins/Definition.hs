@@ -256,8 +256,8 @@ test_BuiltinPair =
         let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
             inst efun = mkIterInst () (builtin () efun) [integer, bool]
             swapped = apply () (inst $ Right Swap) arg
-            fsted   = apply () (inst $ Left Fst) arg
-            snded   = apply () (inst $ Left Snd) arg
+            fsted   = apply () (inst $ Left FstPair) arg
+            snded   = apply () (inst $ Left SndPair) arg
         -- Swap {integer} {bool} (1, False) ~> (False, 1)
         typecheckEvaluateCekNoEmit defaultCekParametersExt swapped @?=
             Right (EvaluationSuccess $ mkConstant @(Bool, Integer) () (False, 1))
@@ -286,11 +286,11 @@ test_SwapEls =
                             [ Var () r
                             , mkIterApp () (builtin () MultiplyInteger)
                                 [ mkIterApp () (tyInst () (builtin () IfThenElse) integer)
-                                    [ apply () (instProj Snd) $ Var () p
+                                    [ apply () (instProj SndPair) $ Var () p
                                     , mkConstant @Integer () (-1)
                                     , mkConstant @Integer () 1
                                     ]
-                                , apply () (instProj Fst) $ Var () p
+                                , apply () (instProj FstPair) $ Var () p
                                 ]
                             ]
             term
@@ -309,7 +309,14 @@ test_IdBuiltinData =
         let dTerm :: TermLike term tyname name DefaultUni fun => term ()
             dTerm = mkConstant @Data () $ Map [(I 42, Constr 4 [List [B "abc", Constr 2 []], I 0])]
             emb = builtin () . Left
-            term = mkIterApp () ofoldrData [emb ConstrC, emb MapC, emb ListC, emb IC, emb BC, dTerm]
+            term = mkIterApp () ofoldrData
+                [ emb ConstrData
+                , emb MapData
+                , emb ListData
+                , emb IData
+                , emb BData
+                , dTerm
+                ]
         typecheckEvaluateCekNoEmit defaultCekParametersExt term @?= Right (EvaluationSuccess dTerm)
 
 test_definition :: TestTree

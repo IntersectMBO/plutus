@@ -1,1 +1,1 @@
-/\(a :: *) -> /\(b :: *) -> /\(c :: *) -> \(f : a -> b -> c) -> \(p : pair a b) -> f (fst {a} {b} p) (snd {a} {b} p)
+/\(a :: *) -> /\(b :: *) -> /\(c :: *) -> \(f : a -> b -> c) -> \(p : pair a b) -> f (fstPair {a} {b} p) (sndPair {a} {b} p)

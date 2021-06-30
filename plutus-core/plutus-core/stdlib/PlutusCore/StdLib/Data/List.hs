@@ -51,9 +51,9 @@ caseList = runQuote $ do
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         $ mkIterApp () (tyInst () ifThenElse $ TyVar () r)
-            [ funAtXs Null
+            [ funAtXs NullList
             , lamAbs () u unit $ var () z
-            , lamAbs () u unit $ mkIterApp () (var () f) [funAtXs Head, funAtXs Tail]
+            , lamAbs () u unit $ mkIterApp () (var () f) [funAtXs HeadList, funAtXs TailList]
             ]
 
 -- |  @foldr@ over built-in lists.

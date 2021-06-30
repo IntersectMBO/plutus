@@ -6,8 +6,8 @@
 
 module PlutusCore.StdLib.Data.Pair
     ( pair
-    , fst
-    , snd
+    , fstPair
+    , sndPair
     , uncurry
     ) where
 
@@ -26,14 +26,14 @@ pair = mkTyBuiltin @_ @(,) ()
 -- | @fst@ as a PLC term.
 --
 -- > /\(a :: *) (b :: *) -> \(p : pair a b) -> fst {a} {b} p
-fst :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-fst = builtin () Fst
+fstPair :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+fstPair = builtin () FstPair
 
 -- | @snd@ as a PLC term.
 --
 -- > /\(a :: *) (b :: *) -> \(p : pair a b) -> snd {a} {b} p
-snd :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-snd = builtin () Snd
+sndPair :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+sndPair = builtin () SndPair
 
 -- | @uncurry@ as a PLC term.
 --
@@ -53,6 +53,6 @@ uncurry = runQuote $ do
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () (TyVar () b) $ TyVar () c)
         . lamAbs () p (mkIterTyApp () pair [TyVar () a, TyVar () b])
         $ mkIterApp () (var () f)
-            [ apply () (mkIterInst () fst [TyVar () a, TyVar () b]) $ var () p
-            , apply () (mkIterInst () snd [TyVar () a, TyVar () b]) $ var () p
+            [ apply () (mkIterInst () fstPair [TyVar () a, TyVar () b]) $ var () p
+            , apply () (mkIterInst () sndPair [TyVar () a, TyVar () b]) $ var () p
             ]

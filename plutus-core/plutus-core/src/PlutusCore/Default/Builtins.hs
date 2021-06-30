@@ -70,24 +70,21 @@ data DefaultFun
     | EncodeUtf8
     | DecodeUtf8
     | Trace
-    | Fst
-    | Snd
-    | Null
-    | Head
-    | Tail
-    -- Functions somehow corresponding to constructors of Haskell data types has the @C@ suffix,
-    -- unless there's an established name for the projection function or the constructor does not
-    -- have an ASCII name (both conditions apply to 'Head' and 'Tail', for example).
-    | ConstrC
-    | MapC
-    | ListC
-    | IC
-    | BC
-    | UnConstrC
-    | UnMapC
-    | UnListC
-    | UnIC
-    | UnBC
+    | FstPair
+    | SndPair
+    | NullList
+    | HeadList
+    | TailList
+    | ConstrData
+    | MapData
+    | ListData
+    | IData
+    | BData
+    | UnConstrData
+    | UnMapData
+    | UnListData
+    | UnIData
+    | UnBData
     | EqualsData
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
@@ -246,72 +243,72 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             @(Integer -> Integer -> Integer -> ())
             mempty
             mempty
-    toBuiltinMeaning Fst = makeBuiltinMeaning fstPlc mempty where
+    toBuiltinMeaning FstPair = makeBuiltinMeaning fstPlc mempty where
         fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
         fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
             Opaque . fromConstant . Some $ ValueOf uniA x
-    toBuiltinMeaning Snd = makeBuiltinMeaning sndPlc mempty where
+    toBuiltinMeaning SndPair = makeBuiltinMeaning sndPlc mempty where
         sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
         sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
             Opaque . fromConstant . Some $ ValueOf uniB y
-    toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
+    toBuiltinMeaning NullList = makeBuiltinMeaning nullPlc mempty where
         nullPlc :: SomeConstantOf uni [] '[a] -> Bool
         nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
-    toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
+    toBuiltinMeaning HeadList = makeBuiltinMeaning headPlc mempty where
         headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
         headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) = case xs of
             x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
             _     -> EvaluationFailure
-    toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
+    toBuiltinMeaning TailList = makeBuiltinMeaning tailPlc mempty where
         tailPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (SomeConstantOf uni [] '[a])
         tailPlc (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) = case xs of
             _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
             _       -> EvaluationFailure
-    toBuiltinMeaning ConstrC =
+    toBuiltinMeaning ConstrData =
         makeBuiltinMeaning
             Constr
             mempty
-    toBuiltinMeaning MapC =
+    toBuiltinMeaning MapData =
         makeBuiltinMeaning
             Map
             mempty
-    toBuiltinMeaning ListC =
+    toBuiltinMeaning ListData =
         makeBuiltinMeaning
             List
             mempty
-    toBuiltinMeaning IC =
+    toBuiltinMeaning IData =
         makeBuiltinMeaning
             I
             mempty
-    toBuiltinMeaning BC =
+    toBuiltinMeaning BData =
         makeBuiltinMeaning
             B
             mempty
-    toBuiltinMeaning UnConstrC =
+    toBuiltinMeaning UnConstrData =
         makeBuiltinMeaning
             (\case
                 Constr i ds -> EvaluationSuccess (i, ds)
                 _           -> EvaluationFailure)
             mempty
-    toBuiltinMeaning UnMapC =
+    toBuiltinMeaning UnMapData =
         makeBuiltinMeaning
             (\case
                 Map es -> EvaluationSuccess es
                 _      -> EvaluationFailure)
             mempty
-    toBuiltinMeaning UnListC =
+    toBuiltinMeaning UnListData =
         makeBuiltinMeaning
             (\case
                 List ds -> EvaluationSuccess ds
                 _       -> EvaluationFailure)
             mempty
-    toBuiltinMeaning UnIC =
+    toBuiltinMeaning UnIData =
         makeBuiltinMeaning
             (\case
                 I i -> EvaluationSuccess i
                 _   -> EvaluationFailure)
             mempty
-    toBuiltinMeaning UnBC =
+    toBuiltinMeaning UnBData =
         makeBuiltinMeaning
             (\case
                 B b -> EvaluationSuccess b
@@ -365,21 +362,21 @@ instance Serialise DefaultFun where
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
-              Fst                  -> 31
-              Snd                  -> 32
-              Null                 -> 33
-              Head                 -> 34
-              Tail                 -> 35
-              ConstrC              -> 36
-              MapC                 -> 37
-              ListC                -> 38
-              IC                   -> 39
-              BC                   -> 40
-              UnConstrC            -> 41
-              UnMapC               -> 42
-              UnListC              -> 43
-              UnIC                 -> 44
-              UnBC                 -> 45
+              FstPair              -> 31
+              SndPair              -> 32
+              NullList             -> 33
+              HeadList             -> 34
+              TailList             -> 35
+              ConstrData           -> 36
+              MapData              -> 37
+              ListData             -> 38
+              IData                -> 39
+              BData                -> 40
+              UnConstrData         -> 41
+              UnMapData            -> 42
+              UnListData           -> 43
+              UnIData              -> 44
+              UnBData              -> 45
               EqualsData           -> 46
               ChooseData           -> 47
 
@@ -415,21 +412,21 @@ instance Serialise DefaultFun where
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
-              go 31 = pure Fst
-              go 32 = pure Snd
-              go 33 = pure Null
-              go 34 = pure Head
-              go 35 = pure Tail
-              go 36 = pure ConstrC
-              go 37 = pure MapC
-              go 38 = pure ListC
-              go 39 = pure IC
-              go 40 = pure BC
-              go 41 = pure UnConstrC
-              go 42 = pure UnMapC
-              go 43 = pure UnListC
-              go 44 = pure UnIC
-              go 45 = pure UnBC
+              go 31 = pure FstPair
+              go 32 = pure SndPair
+              go 33 = pure NullList
+              go 34 = pure HeadList
+              go 35 = pure TailList
+              go 36 = pure ConstrData
+              go 37 = pure MapData
+              go 38 = pure ListData
+              go 39 = pure IData
+              go 40 = pure BData
+              go 41 = pure UnConstrData
+              go 42 = pure UnMapData
+              go 43 = pure UnListData
+              go 44 = pure UnIData
+              go 45 = pure UnBData
               go 46 = pure EqualsData
               go 47 = pure ChooseData
               go _  = fail "Failed to decode BuiltinName"
@@ -481,21 +478,21 @@ instance Flat DefaultFun where
               Nop1                 -> 25
               Nop2                 -> 26
               Nop3                 -> 27
-              Fst                  -> 31
-              Snd                  -> 32
-              Null                 -> 33
-              Head                 -> 34
-              Tail                 -> 35
-              ConstrC              -> 36
-              MapC                 -> 37
-              ListC                -> 38
-              IC                   -> 39
-              BC                   -> 40
-              UnConstrC            -> 41
-              UnMapC               -> 42
-              UnListC              -> 43
-              UnIC                 -> 44
-              UnBC                 -> 45
+              FstPair              -> 31
+              SndPair              -> 32
+              NullList             -> 33
+              HeadList             -> 34
+              TailList             -> 35
+              ConstrData           -> 36
+              MapData              -> 37
+              ListData             -> 38
+              IData                -> 39
+              BData                -> 40
+              UnConstrData         -> 41
+              UnMapData            -> 42
+              UnListData           -> 43
+              UnIData              -> 44
+              UnBData              -> 45
               EqualsData           -> 46
               ChooseData           -> 47
 
@@ -531,21 +528,21 @@ instance Flat DefaultFun where
               go 25 = pure Nop1
               go 26 = pure Nop2
               go 27 = pure Nop3
-              go 31 = pure Fst
-              go 32 = pure Snd
-              go 33 = pure Null
-              go 34 = pure Head
-              go 35 = pure Tail
-              go 36 = pure ConstrC
-              go 37 = pure MapC
-              go 38 = pure ListC
-              go 39 = pure IC
-              go 40 = pure BC
-              go 41 = pure UnConstrC
-              go 42 = pure UnMapC
-              go 43 = pure UnListC
-              go 44 = pure UnIC
-              go 45 = pure UnBC
+              go 31 = pure FstPair
+              go 32 = pure SndPair
+              go 33 = pure NullList
+              go 34 = pure HeadList
+              go 35 = pure TailList
+              go 36 = pure ConstrData
+              go 37 = pure MapData
+              go 38 = pure ListData
+              go 39 = pure IData
+              go 40 = pure BData
+              go 41 = pure UnConstrData
+              go 42 = pure UnMapData
+              go 43 = pure UnListData
+              go 44 = pure UnIData
+              go 45 = pure UnBData
               go 46 = pure EqualsData
               go 47 = pure ChooseData
               go _  = fail "Failed to decode BuiltinName"

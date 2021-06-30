@@ -67,12 +67,12 @@ caseData = runQuote $ do
         $ mkIterApp () (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
             [ lamAbs () u unit $ mkIterApp () (mkIterInst () uncurry [integer, listData, TyVar () r])
                 [ var () fConstr
-                , apply () (builtin () UnConstrC) $ var () d
+                , apply () (builtin () UnConstrData) $ var () d
                 ]
-            , lamAbs () u unit . apply () (var () fMap)  . apply () (builtin () UnMapC)  $ var () d
-            , lamAbs () u unit . apply () (var () fList) . apply () (builtin () UnListC) $ var () d
-            , lamAbs () u unit . apply () (var () fI)    . apply () (builtin () UnIC)    $ var () d
-            , lamAbs () u unit . apply () (var () fB)    . apply () (builtin () UnBC)    $ var () d
+            , lamAbs () u unit . apply () (var () fMap)  . apply () (builtin () UnMapData)  $ var () d
+            , lamAbs () u unit . apply () (var () fList) . apply () (builtin () UnListData) $ var () d
+            , lamAbs () u unit . apply () (var () fI)    . apply () (builtin () UnIData)    $ var () d
+            , lamAbs () u unit . apply () (var () fB)    . apply () (builtin () UnBData)    $ var () d
             , var () d
             , unitval
             ]
