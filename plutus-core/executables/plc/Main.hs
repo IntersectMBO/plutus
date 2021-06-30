@@ -1,17 +1,13 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase   #-}
 module Main (main) where
 
 import           Common
 import qualified PlutusCore                       as PLC
 import qualified PlutusCore.Evaluation.Machine.Ck as Ck
-import qualified PlutusCore.Pretty                as PP
 
-import           Data.Foldable                    (traverse_)
 import           Data.Function                    ((&))
 import           Data.Functor                     (void)
-import qualified Data.Text.IO                     as T
 
 import           Control.DeepSeq                  (rnf)
 import           Options.Applicative              (ParserInfo, customExecParser, prefs, showHelpOnEmpty)
@@ -56,15 +52,10 @@ runEval (EvalOptions inp ifmt evalMode printMode budgetMode timingMode _) =
 
 ----------------- Print examples -----------------------
 
-runPrintExample :: ExampleOptions -> IO ()
-runPrintExample (ExampleOptions ExampleAvailable) = do
-    examples <- getPlcExamples
-    traverse_ (T.putStrLn . PP.render . uncurry prettySignature) examples
-runPrintExample (ExampleOptions (ExampleSingle name)) = do
-    examples <- getPlcExamples
-    T.putStrLn $ case lookup name examples of
-        Nothing -> "Unknown name: " <> name
-        Just ex -> PP.render $ prettyExample ex
+
+runPlcPrintExample ::
+    ExampleOptions -> IO ()
+runPlcPrintExample = runPrintExample getPlcExamples
 
 
 ---------------- Parse and print a PLC source file ----------------
@@ -93,7 +84,7 @@ main = do
         Apply     opts -> runApply        opts
         Typecheck opts -> runTypecheck    opts
         Eval      opts -> runEval         opts
-        Example   opts -> runPrintExample opts
+        Example   opts -> runPlcPrintExample opts
         Erase     opts -> runErase        opts
         Print     opts -> runPrint        opts
         Convert   opts -> runConvert      opts

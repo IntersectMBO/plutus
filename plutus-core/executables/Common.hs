@@ -896,3 +896,18 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Plc           -> writeToFileOrStd outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
+
+
+----------------- Print examples -----------------------
+
+runPrintExample ::
+    IO [(ExampleName, SomeExample)] ->
+    ExampleOptions -> IO ()
+runPrintExample getFn (ExampleOptions ExampleAvailable) = do
+    examples <- getFn
+    traverse_ (T.putStrLn . PP.render . uncurry prettySignature) examples
+runPrintExample getFn (ExampleOptions (ExampleSingle name)) = do
+    examples <- getFn
+    T.putStrLn $ case lookup name examples of
+        Nothing -> "Unknown name: " <> name
+        Just ex -> PP.render $ prettyExample ex

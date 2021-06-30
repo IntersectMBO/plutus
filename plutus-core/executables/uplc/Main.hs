@@ -1,23 +1,18 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase   #-}
 
 module Main (main) where
 
 
 import           Common
 import qualified PlutusCore                               as PLC
-import qualified PlutusCore.Pretty                        as PP
 
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import           Data.Foldable                            (traverse_)
 import           Data.Function                            ((&))
 import           Data.Functor                             (void)
 import           Data.List                                (nub)
-import qualified Data.Text.IO                             as T
 
 import           Control.DeepSeq                          (rnf)
 import           Options.Applicative                      (ParserInfo, customExecParser, prefs, showHelpOnEmpty)
@@ -72,16 +67,9 @@ runEval (EvalOptions inp ifmt evalMode printMode budgetMode timingMode cekModel)
                 _                                   -> error "Timing evaluations returned inconsistent results"
 
 ----------------- Print examples -----------------------
-
-runPrintExample :: ExampleOptions -> IO ()
-runPrintExample (ExampleOptions ExampleAvailable) = do
-    examples <- getUplcExamples
-    traverse_ (T.putStrLn . PP.render . uncurry prettySignature) examples
-runPrintExample (ExampleOptions (ExampleSingle name)) = do
-    examples <- getUplcExamples
-    T.putStrLn $ case lookup name examples of
-        Nothing -> "Unknown name: " <> name
-        Just ex -> PP.render $ prettyExample ex
+runUplcPrintExample ::
+    ExampleOptions -> IO ()
+runUplcPrintExample = runPrintExample getUplcExamples
 
 ---------------- Parse and print a UPLC source file ----------------
 
@@ -108,7 +96,7 @@ main = do
         Apply     _opts -> errorWithoutStackTrace "Not supported in Untyped plutus core." --runApply        opts
         Typecheck opts  -> runTypecheck    opts
         Eval      opts  -> runEval         opts
-        Example   opts  -> runPrintExample opts
+        Example   opts  -> runUplcPrintExample opts
         Erase     opts  -> runErase        opts
         Print     opts  -> runPrint        opts
         Convert   opts  -> runConvert      opts
