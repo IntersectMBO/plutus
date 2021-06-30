@@ -3,7 +3,6 @@ module Popper.Types where
 import Prelude
 import Control.Alt ((<|>))
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
 import Web.HTML (HTMLElement)
 
 data Placement
@@ -131,4 +130,14 @@ type PreventOverflowOptions
     , rootBoundary :: RootBoundary
     , tether :: Boolean
     , tetherOffset :: TetherOffsetOption
+    }
+
+type FlipOptions
+  = { padding :: Padding
+    , boundary :: Boundary
+    , rootBoundary :: RootBoundary
+    , flipVariations :: Boolean
+    , allowedAutoPlacements :: Array Placement
+    -- TODO: need to come up with a constructor for Placement or oppositePlacement
+    -- fallbackPlacements: Array<Placement>, // [oppositePlacement]
     }

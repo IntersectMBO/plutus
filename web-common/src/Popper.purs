@@ -3,11 +3,12 @@ module Popper
   , module ExportedInternal
   , defaultModifiers
   , defaultPreventOverflow
+  , defaultFlip
   ) where
 
 import Popper.Types
 import Prelude
-import Popper.Internal (createPopper, forceUpdate, destroyPopper, arrow, computeStyles, applyStyles, eventListeners, popperOffsets, offset, preventOverflow) as ExportedInternal
+import Popper.Internal (createPopper, forceUpdate, destroyPopper, arrow, computeStyles, applyStyles, eventListeners, popperOffsets, offset, preventOverflow, flipPlacement) as ExportedInternal
 
 defaultModifiers :: Array Modifier
 defaultModifiers =
@@ -34,4 +35,26 @@ defaultPreventOverflow =
   , rootBoundary: ViewportBoundary
   , tether: true
   , tetherOffset: TetherOffset 0.0
+  }
+
+defaultFlip :: FlipOptions
+defaultFlip =
+  { padding: pAll 0.0
+  , boundary: ClippinParents
+  , rootBoundary: ViewportBoundary
+  , flipVariations: true
+  , allowedAutoPlacements:
+      [ Top
+      , TopStart
+      , TopEnd
+      , Bottom
+      , BottomStart
+      , BottomEnd
+      , Right
+      , RightStart
+      , RightEnd
+      , Left
+      , LeftStart
+      , LeftEnd
+      ]
   }

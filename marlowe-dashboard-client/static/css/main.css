@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap");
 
-@import "icons.css";
 @import "tabs.css";
-@import "../../web-common/static/tooltip.css";
+@import "../../web-common/static/icons.css";
+@import "../../web-common/static/popover.css";
 
 @tailwind base;
 @tailwind components;

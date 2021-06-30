@@ -31,6 +31,7 @@ data Icon
   | DoneWithCircle
   | ErrorOutline
   | Help
+  | HelpOutline
   | Home
   | Menu
   | Next
@@ -67,6 +68,8 @@ content DoneWithCircle = "check_circle_outline"
 content ErrorOutline = "error_outline"
 
 content Help = "help"
+
+content HelpOutline = "help_outline"
 
 content Home = "home"
 
@@ -116,6 +119,8 @@ iconClass DoneWithCircle = "check-circle-outline"
 iconClass ErrorOutline = "error-outline"
 
 iconClass Help = "help"
+
+iconClass HelpOutline = "help-outline"
 
 iconClass Home = "home"
 

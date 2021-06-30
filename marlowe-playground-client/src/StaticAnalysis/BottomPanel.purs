@@ -15,10 +15,13 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Tuple.Nested ((/\))
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ComponentHTML)
 import Halogen.Classes (btn, spaceBottom, spaceRight, spaceTop, spanText)
 import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol, span_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
+import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _valueParameterDescription)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
@@ -50,7 +53,13 @@ clearButton isEnabled name action =
     ]
     [ text name ]
 
-analysisResultPane :: forall action p state. MetaData -> (IntegerTemplateType -> String -> BigInteger -> action) -> { analysisState :: AnalysisState | state } -> HTML p action
+analysisResultPane ::
+  forall action m state.
+  MonadAff m =>
+  MetaData ->
+  (IntegerTemplateType -> String -> BigInteger -> action) ->
+  { analysisState :: AnalysisState | state } ->
+  ComponentHTML action ChildSlots m
 analysisResultPane metadata actionGen state =
   let
     templateContent = state ^. (_analysisState <<< _templateContent)
