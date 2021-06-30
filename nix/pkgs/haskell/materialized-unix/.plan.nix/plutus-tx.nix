@@ -81,7 +81,6 @@
           "PlutusTx/AssocMap"
           "PlutusTx/These"
           "PlutusTx/Code"
-          "PlutusTx/Data"
           "PlutusTx/Lift"
           "PlutusTx/Lift/Class"
           "PlutusTx/Builtins"
