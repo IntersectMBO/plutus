@@ -5,12 +5,17 @@ module Main (main) where
 import           Common
 import qualified PlutusCore                       as PLC
 import qualified PlutusCore.Evaluation.Machine.Ck as Ck
+import qualified PlutusCore.Pretty                as PP
+
+import qualified UntypedPlutusCore                as UPLC (eraseProgram)
 
 import           Data.Function                    ((&))
 import           Data.Functor                     (void)
+import qualified Data.Text.IO                     as T
 
 import           Control.DeepSeq                  (rnf)
 import           Options.Applicative              (ParserInfo, customExecParser, prefs, showHelpOnEmpty)
+import           System.Exit                      (exitSuccess)
 
 plcHelpText :: String
 plcHelpText = helpText "Typed Plutus Core"
@@ -29,6 +34,20 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
           []          -> errorWithoutStackTrace "No input files"
           progAndargs -> foldl1 PLC.applyProgram progAndargs
   writeProgram outp ofmt mode appliedScript
+
+---------------- Typechecking ----------------
+
+runTypecheck :: TypecheckOptions -> IO ()
+runTypecheck (TypecheckOptions inp fmt) = do
+  prog <- getProgram fmt inp
+  case PLC.runQuoteT $ do
+    tcConfig <- PLC.getDefTypeCheckConfig ()
+    PLC.typecheckPipeline tcConfig (void prog)
+    of
+      Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
+        errorWithoutStackTrace $ PP.displayPlcDef e
+      Right ty                                               ->
+        T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
 ---------------- Evaluation ----------------
 
@@ -56,6 +75,19 @@ runEval (EvalOptions inp ifmt evalMode printMode budgetMode timingMode _) =
 runPlcPrintExample ::
     ExampleOptions -> IO ()
 runPlcPrintExample = runPrintExample getPlcExamples
+
+---------------- Erasure ----------------
+
+-- | Input a program, erase the types, then output it
+runErase :: EraseOptions -> IO ()
+runErase (EraseOptions inp ifmt outp ofmt mode) = do
+  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
+  let untypedProg = () <$ UPLC.eraseProgram typedProg
+  case ofmt of
+    Textual       -> writeToFileOrStd outp mode untypedProg
+    Cbor cborMode -> writeCBOR outp cborMode untypedProg
+    Flat flatMode -> writeFlat outp flatMode untypedProg
+
 
 
 ---------------- Parse and print a PLC source file ----------------

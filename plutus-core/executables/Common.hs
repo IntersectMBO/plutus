@@ -850,20 +850,6 @@ timeEval n evaluate prog
             end <- getCPUTime
             pure (result, end - start)
 
----------------- Typechecking ----------------
-
-runTypecheck :: TypecheckOptions -> IO ()
-runTypecheck (TypecheckOptions inp fmt) = do
-  prog <- getProgram fmt inp
-  case PLC.runQuoteT $ do
-    tcConfig <- PLC.getDefTypeCheckConfig ()
-    PLC.typecheckPipeline tcConfig (void prog)
-    of
-      Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
-        errorWithoutStackTrace $ PP.displayPlcDef e
-      Right ty                                               ->
-        T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
-
 
 ------------ Aux functions for @runEval@ ------------------
 
@@ -879,19 +865,6 @@ handleTimingResults _ results =
       [Right _]  -> exitSuccess -- We don't want to see the result here
       [Left err] -> print err >> exitFailure
       _          -> error "Timing evaluations returned inconsistent results" -- Should never happen
-
----------------- Erasure ----------------
-
--- | Input a program, erase the types, then output it
-runErase :: EraseOptions -> IO ()
-runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
-  let untypedProg = () <$ UPLC.eraseProgram typedProg
-  case ofmt of
-    Textual       -> writeToFileOrStd outp mode untypedProg
-    Cbor cborMode -> writeCBOR outp cborMode untypedProg
-    Flat flatMode -> writeFlat outp flatMode untypedProg
-
 
 ----------------- Print examples -----------------------
 

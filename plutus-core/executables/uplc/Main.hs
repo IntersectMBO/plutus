@@ -24,6 +24,19 @@ uplcHelpText = helpText "Untyped Plutus Core"
 uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus "Untyped Plutus Core Tool" uplcHelpText
 
+---------------- Script application ----------------
+
+-- | Apply one script to a list of others.
+runApply :: ApplyOptions -> IO ()
+runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
+  scripts <- mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.AlexPosn)) . FileInput) inputfiles
+  let appliedScript =
+        case map (\case p -> () <$ p) scripts of
+          []          -> errorWithoutStackTrace "No input files"
+          progAndargs -> foldl1 UPLC.applyProgram progAndargs
+  writeProgram outp ofmt mode appliedScript
+
+
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt evalMode printMode budgetMode timingMode cekModel) =
     case evalMode of
@@ -93,10 +106,10 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply     _opts -> errorWithoutStackTrace "Not supported in Untyped plutus core." --runApply        opts
-        Typecheck opts  -> runTypecheck    opts
-        Eval      opts  -> runEval         opts
-        Example   opts  -> runUplcPrintExample opts
-        Erase     opts  -> runErase        opts
-        Print     opts  -> runPrint        opts
-        Convert   opts  -> runConvert      opts
+        Apply     opts -> runApply        opts
+        Typecheck _    -> errorWithoutStackTrace "Not supported in Untyped plutus core."
+        Eval      opts -> runEval         opts
+        Example   opts -> runUplcPrintExample opts
+        Erase     _    -> errorWithoutStackTrace "Not supported in Untyped plutus core."
+        Print     opts -> runPrint        opts
+        Convert   opts -> runConvert      opts
