@@ -31,9 +31,9 @@ renderExpanded ::
   HTML p Action
 renderExpanded toast =
   div
-    [ classNames $ Css.overlay false ]
+    [ classNames $ Css.overlay true ]
     [ div
-        [ classNames $ Css.card false ]
+        [ classNames $ Css.card true ]
         [ a
             [ classNames [ "absolute", "top-4", "right-4", toast.textColor ]
             , onClick_ CloseToast

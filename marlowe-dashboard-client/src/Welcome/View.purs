@@ -6,7 +6,7 @@ import Data.Lens (view)
 import Data.List (foldMap)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
-import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Maybe (Maybe(..), isJust)
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, iframe, img, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
@@ -155,9 +155,9 @@ renderWelcomeCard state =
     cardClasses = if card == Just GetStartedHelpCard then Css.videoCard else Css.card
   in
     div
-      [ classNames $ Css.overlay $ isNothing card ]
+      [ classNames $ Css.overlay $ isJust card ]
       [ div
-          [ classNames $ cardClasses $ isNothing card ]
+          [ classNames $ cardClasses $ isJust card ]
           $ (flip foldMap card) \cardType -> case cardType of
               GetStartedHelpCard -> getStartedHelpCard
               GenerateWalletHelpCard -> generateWalletHelpCard
@@ -360,7 +360,7 @@ walletIdTip =
 localWalletMissingCard :: forall p. Array (HTML p Action)
 localWalletMissingCard =
   [ div
-      [ classNames $ Css.card false ]
+      [ classNames $ Css.card true ]
       [ a
           [ classNames [ "absolute", "top-4", "right-4" ]
           , onClick_ $ CloseCard LocalWalletMissingCard

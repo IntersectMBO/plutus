@@ -11,9 +11,9 @@ import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (Map, lookup, values)
-import Data.Map (lookup, toUnfoldable) as Map
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.String (null, trim)
+import Data.Map (toUnfoldable) as Map
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
+import Data.String (trim)
 import Data.Tuple.Nested ((/\))
 import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
@@ -24,7 +24,7 @@ import InputField.Types (State) as InputField
 import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
 import Marlowe.Extended (contractTypeInitials)
-import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData, _valueParameterDescription)
+import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Slot, TokenName)
@@ -208,7 +208,7 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
             , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.inputCard (isJust mParameterError)
+            [ classNames $ Css.inputCard (isNothing mParameterError)
             , id_ $ "slot-" <> key
             , type_ InputDatetimeLocal
             , onValueInput_ $ SetSlotContent key
@@ -225,9 +225,9 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
     let
       description =
         fromMaybe "no description available"
-          ( case Map.lookup key metaData.valueParameterInfo of
-              Just { valueParameterDescription: description }
-                | trim description /= "" -> Just description
+          ( case lookup key metaData.valueParameterInfo of
+              Just { valueParameterDescription }
+                | trim valueParameterDescription /= "" -> Just valueParameterDescription
               _ -> Nothing
           )
 
@@ -246,7 +246,7 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
             , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.inputCard (isJust mParameterError)
+            [ classNames $ Css.inputCard (isNothing mParameterError)
             , id_ $ "value-" <> key
             , type_ InputNumber
             , onValueInput_ $ SetValueContent key <<< BigInteger.fromString

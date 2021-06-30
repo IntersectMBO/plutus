@@ -114,7 +114,7 @@ walletDetailsCard walletDetails =
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input false <> [ "mb-4" ]
+              , classNames $ Css.input true <> [ "mb-4" ]
               , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]
@@ -141,7 +141,7 @@ putdownWalletCard walletDetails =
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input false <> [ "mb-4" ]
+              , classNames $ Css.input true <> [ "mb-4" ]
               , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]

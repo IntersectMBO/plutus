@@ -302,9 +302,9 @@ renderCard currentSlot state card =
     mSelectedContractState = preview _selectedContract state
 
     cardClasses = case card of
-      TemplateLibraryCard -> Css.largeCard false
-      ContractCard -> Css.largeCard false
-      _ -> Css.card false
+      TemplateLibraryCard -> Css.largeCard true
+      ContractCard -> Css.largeCard true
+      _ -> Css.card true
 
     hasCloseButton = case card of
       (ContractActionConfirmationCard _) -> false
@@ -323,7 +323,7 @@ renderCard currentSlot state card =
         []
   in
     div
-      [ classNames $ Css.overlay false ]
+      [ classNames $ Css.overlay true ]
       [ div
           [ classNames cardClasses ]
           $ closeButton

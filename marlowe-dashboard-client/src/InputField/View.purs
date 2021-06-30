@@ -43,7 +43,7 @@ renderInput state options =
       [ classNames [ "relative" ] ]
       [ input
           $ [ type_ InputText
-            , classNames $ (baseCss showError) <> additionalCss
+            , classNames $ (baseCss $ not showError) <> additionalCss
             , id_ $ view _id_ options
             , placeholder $ view _placeholder options
             , value currentValue

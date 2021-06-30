@@ -93,19 +93,19 @@ inputBaseNoFocus :: Array String
 inputBaseNoFocus = inputBase <> [ "focus:ring-0" ]
 
 input :: Boolean -> Array String
-input invalid = inputBaseFocus <> [ "border", "bg-transparent" ] <> if invalid then [ "border-red" ] else [ "border-black", "focus:border-black" ]
+input valid = inputBaseFocus <> [ "border", "bg-transparent" ] <> if valid then [ "border-black", "focus:border-black" ] else [ "border-red" ]
 
 inputNoFocus :: Boolean -> Array String
-inputNoFocus invalid = inputBaseNoFocus <> if invalid then [ "border-red" ] else [ "border-transparent" ]
+inputNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
 
 withNestedLabel :: Array String
 withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
 
 inputCard :: Boolean -> Array String
-inputCard invalid = inputBaseFocus <> if invalid then [ "border-red" ] else [ "border-transparent" ]
+inputCard valid = inputBaseFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
 
 inputCardNoFocus :: Boolean -> Array String
-inputCardNoFocus invalid = inputBaseNoFocus <> if invalid then [ "border-red" ] else [ "border-transparent" ]
+inputCardNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
 
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]
@@ -118,16 +118,16 @@ nestedLabel = [ "relative", "z-10", "left-2", "top-2.5", "px-1", "bg-white", "te
 
 --- cards
 overlay :: Boolean -> Array String
-overlay invisible = [ "overflow-hidden", "absolute", "inset-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "last:bg-overlay", "transition-opacity", "duration-400" ] <> if invisible then [ "opacity-0", "pointer-events-none" ] else [ "opacity-1" ]
+overlay visible = [ "overflow-hidden", "absolute", "inset-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "last:bg-overlay", "transition-opacity", "duration-400" ] <> if visible then [ "opacity-1" ] else [ "opacity-0", "pointer-events-none" ]
 
 card :: Boolean -> Array String
-card invisible = [ "overflow-hidden", "bg-white", "flex-grow", "max-w-sm", "mx-2", "shadow", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400", "self-end", "md:self-center" ] <> applyWhen invisible [ "translate-y-20" ]
+card visible = [ "overflow-hidden", "bg-white", "flex-grow", "max-w-sm", "mx-2", "shadow", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400", "self-end", "md:self-center" ] <> applyWhen (not visible) [ "translate-y-20" ]
 
 largeCard :: Boolean -> Array String
-largeCard invisible = [ "bg-grayblue", "shadow", "overflow-auto", "flex-grow", "mt-2", "md:mb-2", "mx-2", "lg:my-4", "md:mx-5pc", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen invisible [ "translate-y-20" ]
+largeCard visible = [ "bg-grayblue", "shadow", "overflow-auto", "flex-grow", "mt-2", "md:mb-2", "mx-2", "lg:my-4", "md:mx-5pc", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400" ] <> applyWhen (not visible) [ "translate-y-20" ]
 
 videoCard :: Boolean -> Array String
-videoCard invisible = [ "relative", "bg-white", "flex-grow", "max-w-sm", "lg:max-w-md", "mx-2", "shadow", "rounded", "transform", "transition-transform", "duration-400", "self-center" ] <> applyWhen invisible [ "translate-y-20" ]
+videoCard visible = [ "relative", "bg-white", "flex-grow", "max-w-sm", "lg:max-w-md", "mx-2", "shadow", "rounded", "transform", "transition-transform", "duration-400", "self-center" ] <> applyWhen (not visible) [ "translate-y-20" ]
 
 -- embedded videos
 embeddedVideoContainer :: Array String
