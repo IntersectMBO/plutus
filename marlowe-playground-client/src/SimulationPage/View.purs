@@ -18,7 +18,6 @@ import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShrink0, fontBold, fullHeight, fullWidth, grid, gridColsDescriptionLocation, group, justifyBetween, justifyCenter, justifyEnd, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingX, plusBtn, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, spanTextBreakWord, textSecondaryColor, textXs, uppercase, w30p)
 import Halogen.Css (classNames)
 import Halogen.CurrencyInput (currencyInput)
@@ -26,14 +25,13 @@ import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
-import Halogen.Monaco (Settings, monacoComponent)
+import Halogen.Monaco (monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Marlowe.Template (IntegerTemplateType(..))
-import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyChoice, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
@@ -171,35 +169,11 @@ marloweEditor ::
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
-marloweEditor state = slot _simulatorEditorSlot unit component unit (const Nothing)
+marloweEditor state = slot _simulatorEditorSlot unit component unit (Just <<< HandleEditorMessage)
   where
-  setup editor = do
-    model <- liftEffect $ Monaco.getModel editor
-    liftEffect do
-      -- Since the Simulation Tab is viewed before the Haskell tab we need to set the correct editor theme when things have been loaded
-      monaco <- Monaco.getMonaco
-      Monaco.setTheme monaco MM.daylightTheme.name
-      Monaco.setReadOnly editor true
+  setup editor = liftEffect $ Monaco.setReadOnly editor true
 
-  component = monacoComponent $ settings setup
-
-refLabel :: RefLabel
-refLabel = RefLabel "simulatorEditor"
-
-settings :: forall m. (Editor -> m Unit) -> Settings m
-settings setup =
-  { languageExtensionPoint
-  , theme: Just daylightTheme
-  , monarchTokensProvider: Nothing
-  , tokensProvider: Nothing
-  , hoverProvider: Nothing
-  , completionItemProvider: Nothing
-  , codeActionProvider: Nothing
-  , documentFormattingEditProvider: Nothing
-  , refLabel
-  , owner: "marloweEditor"
-  , setup
-  }
+  component = monacoComponent $ MM.settings setup
 
 ------------------------------------------------------------
 sidebar ::

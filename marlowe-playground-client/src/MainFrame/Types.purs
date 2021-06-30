@@ -130,7 +130,6 @@ data View
   | Simulation
   | BlocklyEditor
   | ActusBlocklyEditor
-  | WalletEmulator
 
 derive instance eqView :: Eq View
 

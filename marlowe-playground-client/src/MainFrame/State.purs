@@ -45,9 +45,8 @@ import HaskellEditor.Types (Action(..), State, _ContractString, _metadataHintInf
 import JavascriptEditor.State as JavascriptEditor
 import JavascriptEditor.Types (Action(..), State, _ContractString, _metadataHintInfo, initialState) as JS
 import JavascriptEditor.Types (CompilationState(..))
-import Language.Haskell.Monaco as HM
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _workflow, sessionToState, stateToSession)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _contractMetadata, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
 import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
@@ -215,8 +214,6 @@ handleSubRoute Router.Blockly = selectView BlocklyEditor
 
 handleSubRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
-handleSubRoute Router.Wallets = selectView WalletEmulator
-
 -- This route is supposed to be called by the github oauth flow after a succesful login flow
 -- It is supposed to be run inside a popup window
 handleSubRoute Router.GithubAuthCallback = do
@@ -298,10 +295,6 @@ handleAction Init = do
   document <- liftEffect $ Web.document =<< Web.window
   subscribe' \sid ->
     eventListenerEventSource keyup (toEventTarget document) (map (HandleKey sid) <<< KE.fromEvent)
-  toSimulation $ Simulation.handleAction ST.Init
-  toHaskellEditor $ HaskellEditor.handleAction HE.Init
-  toMarloweEditor $ MarloweEditor.handleAction ME.Init
-  toBlocklyEditor $ BlocklyEditor.handleAction BE.Init
   checkAuthStatus
   -- Load session data if available
   void
@@ -460,13 +453,8 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
         <<< set _createGistResult NotAsked
         <<< set _contractMetadata emptyContractMetadata
     )
+  -- TODO: Remove gistIdLocalStorageKey and use global session management (MainFrame.stateToSession)
   liftEffect $ SessionStorage.setItem gistIdLocalStorageKey mempty
-  -- We reset all editors and then initialize the selected language.
-  toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty mempty
-  toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty mempty
-  toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject mempty
-  toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject true mempty
-  -- TODO: implement ActusBlockly.SetCode
   case lang of
     Haskell ->
       for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
@@ -491,6 +479,15 @@ handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
 handleAction (NewProjectAction NewProject.Cancel) = fullHandleAction CloseModal
 
 handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
+  modify_
+    ( set _showModal Nothing
+        <<< set _workflow (Just lang)
+        <<< set _hasUnsavedChanges false
+        <<< set _gistId Nothing
+        <<< set _projectName metadata.contractName
+        <<< set _contractMetadata metadata
+    )
+  selectView $ selectLanguageView lang
   case lang of
     Haskell ->
       for_ (Map.lookup key StaticData.demoFiles) \contents ->
@@ -505,15 +502,6 @@ handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject true contents
     Actus -> pure unit
-  modify_
-    ( set _showModal Nothing
-        <<< set _workflow (Just lang)
-        <<< set _hasUnsavedChanges false
-        <<< set _gistId Nothing
-        <<< set _projectName metadata.contractName
-        <<< set _contractMetadata metadata
-    )
-  selectView $ selectLanguageView lang
   where
   metadata = fromMaybe emptyContractMetadata $ Map.lookup key StaticData.demoFilesMetadata
 
@@ -617,7 +605,6 @@ routeToView { subroute } = case subroute of
   Router.JSEditor -> Just JSEditor
   Router.ActusBlocklyEditor -> Just ActusBlocklyEditor
   Router.Blockly -> Just BlocklyEditor
-  Router.Wallets -> Just WalletEmulator
   Router.GithubAuthCallback -> Nothing
 
 viewToRoute :: View -> Router.SubRoute
@@ -628,7 +615,6 @@ viewToRoute = case _ of
   HaskellEditor -> Router.HaskellEditor
   JSEditor -> Router.JSEditor
   BlocklyEditor -> Router.Blockly
-  WalletEmulator -> Router.Wallets
   ActusBlocklyEditor -> Router.ActusBlocklyEditor
 
 ------------------------------------------------------------
@@ -886,18 +872,9 @@ selectView view = do
     Window.scroll 0 0 window
   case view of
     HomePage -> modify_ (set _workflow Nothing <<< set _hasUnsavedChanges false)
-    Simulation -> do
-      Simulation.editorSetTheme
-    MarloweEditor -> do
-      MarloweEditor.editorSetTheme
-    HaskellEditor -> do
-      HaskellEditor.editorSetTheme
-    JSEditor -> do
-      void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
-    BlocklyEditor -> pure unit
-    WalletEmulator -> pure unit
     ActusBlocklyEditor -> do
       void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
+    _ -> pure unit
 
 ------------------------------------------------------------
 withSessionStorage ::

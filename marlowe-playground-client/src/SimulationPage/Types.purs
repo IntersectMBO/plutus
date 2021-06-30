@@ -10,6 +10,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.List.Types (NonEmptyList)
 import Data.Maybe (Maybe(..))
+import Halogen.Monaco as Monaco
 import Help (HelpContext)
 import Marlowe.Template (IntegerTemplateType)
 import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Input, Slot)
@@ -28,7 +29,7 @@ type State
     }
 
 data Action
-  = Init
+  = HandleEditorMessage Monaco.Message
   -- marlowe actions
   | SetInitialSlot Slot
   | SetIntegerTemplateParam IntegerTemplateType String BigInteger
@@ -54,7 +55,6 @@ defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Simulation." <> s
 
 instance isEventAction :: IsEvent Action where
-  toEvent Init = Just $ defaultEvent "Init"
   toEvent (SetInitialSlot _) = Just $ defaultEvent "SetInitialSlot"
   toEvent (SetIntegerTemplateParam templateType key value) = Just $ defaultEvent "SetIntegerTemplateParam"
   toEvent StartSimulation = Just $ defaultEvent "StartSimulation"
@@ -69,6 +69,7 @@ instance isEventAction :: IsEvent Action where
   toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
   toEvent (BottomPanelAction action) = A.toEvent action
   toEvent EditSource = Just $ defaultEvent "EditSource"
+  toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
 
 data Query a
   = WebsocketResponse (RemoteData String Result) a

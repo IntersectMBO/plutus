@@ -51,7 +51,7 @@ handleAction ::
   MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction Init = do
+handleAction (HandleBlocklyMessage Blockly.BlocklyReady) = do
   mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
   handleAction $ InitBlocklyProject true $ fromMaybe ME.example mContents
 
@@ -67,7 +67,6 @@ handleAction (HandleBlocklyMessage (Blockly.BlockSelection selection)) = case mB
 
 handleAction (InitBlocklyProject clearUndoStack code) = do
   void $ query _blocklySlot unit $ H.tell (Blockly.SetCode clearUndoStack code)
-  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey code
   processBlocklyCode
   -- Reset the toolbox
   void $ query _blocklySlot unit $ H.tell (Blockly.SetToolbox MB.toolbox)

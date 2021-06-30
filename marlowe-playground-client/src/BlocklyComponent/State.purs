@@ -22,7 +22,6 @@ import Halogen (Component, HalogenM, getHTMLElementRef, liftEffect, mkComponent,
 import Halogen as H
 import Halogen.BlocklyCommons (blocklyEvents, runWithoutEventSubscription, detectCodeChanges)
 import Halogen.ElementResize (elementResize)
-import Halogen.ElementVisible (elementVisible)
 import Halogen.HTML (HTML)
 import Marlowe.Blockly (buildBlocks)
 import Marlowe.Holes (Term(..), Location(..))
@@ -49,7 +48,7 @@ blocklyComponent rootBlockName blockDefinitions toolbox =
           { handleQuery
           , handleAction
           , initialize: Just $ Inject rootBlockName blockDefinitions toolbox
-          , finalize: Nothing
+          , finalize: Just Finalize
           , receive: Just <<< SetData
           }
     }
@@ -152,8 +151,6 @@ handleAction (Inject rootBlockName blockDefinitions toolbox) = do
       pure state
   -- Subscribe to the resize events on the main section to resize blockly automatically.
   for_ mElement $ H.subscribe <<< elementResize ContentBox (const ResizeWorkspace)
-  -- Subscribe to events triggered when blockly becames visible or hidden.
-  for_ mElement $ H.subscribe <<< elementVisible VisibilityChanged
   -- Subscribe to blockly events to see when the code has changed.
   eventSubscription <- H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
   modify_
@@ -173,6 +170,8 @@ handleAction (BlocklyEvent (BT.Select event)) = case newElementId event of
           blockType <- MaybeT $ map pure $ liftEffect $ getBlockType block
           MaybeT $ map pure $ raise $ BlockSelection $ Just { blockId, blockType }
 
+handleAction (BlocklyEvent (BT.FinishLoading _)) = raise BlocklyReady
+
 handleAction (BlocklyEvent event) = detectCodeChanges CodeChange event
 
 handleAction ResizeWorkspace = do
@@ -182,7 +181,7 @@ handleAction ResizeWorkspace = do
 
 -- When blockly becames visible or unvisible, we call hideChaff to avoid a visual glitch
 -- See PR https://github.com/input-output-hk/plutus/pull/2787
-handleAction (VisibilityChanged _) = do
+handleAction Finalize = do
   mState <- use _blocklyState
   for_ mState \{ blockly } ->
     liftEffect $ Blockly.hideChaff blockly

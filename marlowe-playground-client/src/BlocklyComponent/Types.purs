@@ -51,11 +51,12 @@ data Action
   | SetData Unit
   | BlocklyEvent BT.BlocklyEvent
   | ResizeWorkspace
-  | VisibilityChanged Boolean
+  | Finalize
 
 data Message
   = CodeChange
   | BlockSelection (Maybe { blockId :: String, blockType :: String })
+  | BlocklyReady
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
