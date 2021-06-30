@@ -50,7 +50,7 @@ succeedingTCTests = ["succInteger"
 
 runTest :: String -> String -> String -> IO ()
 runTest command mode test = do
-  example <- readProcess "cabal" ["exec", mode, "example","--", "-s",test] []
+  example <- readProcess mode ["example", "-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
   withArgs [command,"--file","tmp"]  M.main
@@ -82,16 +82,16 @@ putStrLn "running succ L..."
   putStrLn "running fail CK"
   runFailingTests "evaluate" (Just "CK") failingEvalTests
 -}
-  -- putStrLn "running succ TCK"
-  -- runSucceedingTests "evaluate" "TCK" succeedingEvalTests
-  -- putStrLn "running fail TCK"
-  -- runFailingTests "evaluate" "TCK" failingEvalTests
-  -- putStrLn "running succ TCEK"
-  -- runSucceedingTests "evaluate" "TCEK" succeedingEvalTests
-  -- putStrLn "running fail TCEK"
-  -- runFailingTests "evaluate" "TCEK" failingEvalTests
-  putStrLn "running succ U..."
-  runSucceedingTests "evaluate" "uplc" succeedingEvalTests
+  putStrLn "running succ TCK"
+  runSucceedingTests "evaluate" "plc" succeedingEvalTests
+  putStrLn "running fail TCK"
+  runFailingTests "evaluate" "plc" failingEvalTests
+  putStrLn "running succ TCEK"
+  runSucceedingTests "evaluate" "plc" succeedingEvalTests
+  putStrLn "running fail TCEK"
+  runFailingTests "evaluate" "plc" failingEvalTests
+  -- putStrLn "running succ U..."
+  -- runSucceedingTests "evaluate" "uplc" succeedingEvalTests
   putStrLn "running fail U..."
   runFailingTests "evaluate" "uplc" failingEvalTests
   putStrLn "running succ TC"

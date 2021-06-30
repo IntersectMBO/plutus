@@ -34,10 +34,11 @@ catchOutput act = do
 
 compareResult :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> IO Progress
 compareResult eq mode test = do
-  example <- readProcess "cabal" ["run", "uplc", "example", "--", "-s",test] []
+  example <- readProcess "uplc" ["example", "-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "cabal" ["exec", "uplc", mode, "--", "--input","tmp"] []
+  let mode' = if mode == "evaluate" then "plc" else "uplc"
+  plcOutput <- readProcess mode' [mode, "--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
     (withArgs [mode,"--file","tmp"]  M.main)
     (\case
@@ -47,10 +48,10 @@ compareResult eq mode test = do
 
 compareResultU :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResultU eq test = do
-  example <- readProcess "cabal" ["run", "uplc", "example","--", "-s",test] []
+  example <- readProcess "uplc" ["example","-s",test] []
   writeFile "tmp" (tail $ dropWhile (/= '\n') example)
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "cabal" ["exec", "uplc", "evaluate", "--", "--input","tmp"] []
+  plcOutput <- readProcess "uplc" ["evaluate", "--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
     (withArgs ["evaluate","-mU","--file","tmp"]  M.main)
     (\case
@@ -60,7 +61,7 @@ compareResultU eq test = do
 
 compareResultMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResultMode mode1 mode2 eq test = do
-  example <- readProcess "cabal" ["run", "uplc", "example", "--", "-s",test] []
+  example <- readProcess "uplc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
   plcAgdaOutput1 <- catchOutput $ catch
