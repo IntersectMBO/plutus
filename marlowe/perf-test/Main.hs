@@ -139,14 +139,13 @@ marloweSteps = do
     mp <- Simulator.waitForState @(Builtin Marlowe) extractMarloweParams walletCompanionId
     Simulator.logString @(Builtin Marlowe) $ "Found marlowe params: " <> show mp
 
-    -- TODO: Try with follow stuff too?
-    -- _ <- Simulator.waitForEndpoint followerId "follow"
-    -- Simulator.logString @(Builtin Marlowe) $ "Calling endpoint on marlowe follow"
-    -- _ <- Simulator.callEndpointOnInstance followerId "follow" mp
+    _ <- Simulator.waitForEndpoint followerId "follow"
+    Simulator.logString @(Builtin Marlowe) $ "Calling endpoint on marlowe follow"
+    _ <- Simulator.callEndpointOnInstance followerId "follow" mp
 
-    -- followState <- Simulator.waitForState @(Builtin Marlowe) extractFollowState followerId
+    followState <- Simulator.waitForState @(Builtin Marlowe) extractFollowState followerId
 
-    -- Simulator.logString @(Builtin Marlowe) $ "Follow state: " <> show followState
+    Simulator.logString @(Builtin Marlowe) $ "Follow state: " <> show followState
 
 timeIt :: MonadIO m => m a -> m (Double, a)
 timeIt io = do
