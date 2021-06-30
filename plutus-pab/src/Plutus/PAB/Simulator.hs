@@ -171,7 +171,7 @@ makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''S
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
     let wallets = Wallet <$> [1..10]
-        initialDistribution = Map.fromList $ fmap (\w -> (w, Ada.adaValueOf 100_000)) wallets
+        initialDistribution = Map.fromList $ fmap (\w -> (w, Ada.adaValueOf 100_000_000_000)) wallets
         Emulator.EmulatorState{Emulator._chainState} = Emulator.initialState (def & Emulator.initialChainState .~ Left initialDistribution)
         initialWallets = Map.fromList $ fmap (\w -> (w, initialAgentState w)) wallets
     STM.atomically $

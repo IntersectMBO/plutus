@@ -170,8 +170,11 @@ marloweFollowContract = do
                 logDebug @String ("Contract finished " <> show params)
                 pure $ Left () -- close the contract
             InProgress ->
-                let next = succ ito in
-                pure $ Right (next, next, params)
+                -- NOTE: Changing the polling time to every 10 slots, instead
+                --       of _every_ slot.
+                let a = succ ito
+                    b = ito + 10
+                  in pure $ Right (a, b, params)
 
     updateHistoryFromTx StateMachineClient{scInstance, scChooser} params tx = do
         logInfo @String $ "Updating history from tx" <> show (Ledger.eitherTx Ledger.txId Ledger.txId tx)

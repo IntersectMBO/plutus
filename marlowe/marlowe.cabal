@@ -165,3 +165,25 @@ executable marlowe-pab
     plutus-ledger -any,
     plutus-tx -any,
     containers -any
+
+
+-- | An binary simply for testing a persistent performance issue.
+executable marlowe-pab-perf-test
+  import: lang
+  main-is: Main.hs
+  hs-source-dirs: perf-test
+  ghc-options:
+    -threaded
+  build-depends:
+    base >= 4.9 && < 5,
+    plutus-pab -any,
+    plutus-contract -any,
+    marlowe,
+    aeson -any,
+    freer-simple -any,
+    prettyprinter -any,
+    freer-extras -any,
+    plutus-ledger -any,
+    plutus-tx -any,
+    containers -any
+

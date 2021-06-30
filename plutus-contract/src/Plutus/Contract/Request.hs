@@ -233,15 +233,18 @@ nextTransactionsAt ::
     -> Contract w s e [OnChainTx]
 nextTransactionsAt addr = do
     initial <- currentSlot
-    let go :: Slot -> Contract w s ContractError (Either [OnChainTx] Slot)
-        go sl = do
-            let request = AddressChangeRequest{acreqSlotRangeFrom = sl, acreqSlotRangeTo = sl, acreqAddress=addr}
+    -- NOTE: Changing the polling time to every 10 slots, instead
+    --       of _every_ slot.
+    let wait = 10
+    let go :: (Slot, Slot) -> Contract w s ContractError (Either [OnChainTx] (Slot, Slot))
+        go (slFrom, slTo) = do
+            let request = AddressChangeRequest{acreqSlotRangeFrom = slFrom, acreqSlotRangeTo = slTo, acreqAddress=addr}
             _ <- awaitSlot (targetSlot request)
             txns <- acrTxns <$> addressChangeRequest request
             if null txns
-                then pure $ Right (succ sl)
+                then pure $ Right (succ slTo, slFrom + wait)
                 else pure $ Left txns
-    mapError (review _ContractError) (checkpointLoop go initial)
+    mapError (review _ContractError) (checkpointLoop go (initial, initial + wait))
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
