@@ -151,8 +151,8 @@ toDeBruijn prog =
 
 ---------------- Printing budgets and costs ----------------
 
-printBudgetStateBudget :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> ExBudget -> IO ()
-printBudgetStateBudget _ model b =
+printBudgetStateBudget :: CekModel -> ExBudget -> IO ()
+printBudgetStateBudget model b =
     case model of
       Unit -> pure ()
       _ ->  let ExCPU cpu = _exBudgetCPU b
@@ -213,17 +213,17 @@ class PrintBudgetState cost where
     -- much information we're going to print out).
 
 instance PrintBudgetState Cek.CountingSt where
-    printBudgetState term model (Cek.CountingSt budget) = printBudgetStateBudget term model budget
+    printBudgetState _term model (Cek.CountingSt budget) = printBudgetStateBudget model budget
 
 instance (Eq fun, Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
     printBudgetState term model (Cek.TallyingSt tally budget) = do
-        printBudgetStateBudget term model budget
+        printBudgetStateBudget model budget
         putStrLn ""
         printBudgetStateTally term model tally
 
 instance PrintBudgetState Cek.RestrictingSt where
-    printBudgetState term model (Cek.RestrictingSt (ExRestrictingBudget budget)) =
-        printBudgetStateBudget term model budget
+    printBudgetState _term model (Cek.RestrictingSt (ExRestrictingBudget budget)) =
+        printBudgetStateBudget model budget
 
 
 ---------------- Types for commands and arguments ----------------
@@ -250,11 +250,11 @@ type Files       = [FilePath]
 
 -- | Input/output format for programs
 data Format =
-  Plc
+  Textual
   | Cbor AstNameType
   | Flat AstNameType
 instance Show Format where
-    show Plc             = "plc"
+    show Textual         = "textual"
     show (Cbor Named)    = "cbor-named"
     show (Cbor DeBruijn) = "cbor-deBruijn"
     show (Flat Named)    = "flat-named"
@@ -319,7 +319,7 @@ formatHelp =
 formatReader :: String -> Maybe Format
 formatReader =
     \case
-         "plc"           -> Just Plc
+         "textual"       -> Just Textual
          "cbor-named"    -> Just (Cbor Named)
          "cbor"          -> Just (Cbor DeBruijn)
          "cbor-deBruijn" -> Just (Cbor DeBruijn)
@@ -333,7 +333,7 @@ inputformat = option (maybeReader formatReader)
   (  long "if"
   <> long "input-format"
   <> metavar "FORMAT"
-  <> value Plc
+  <> value Textual
   <> showDefault
   <> help ("Input format: " ++ formatHelp))
 
@@ -342,7 +342,7 @@ outputformat = option (maybeReader formatReader)
   (  long "of"
   <> long "output-format"
   <> metavar "FORMAT"
-  <> value Plc
+  <> value Textual
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
@@ -582,11 +582,6 @@ getBinaryInput (FileInput file) = BSL.readFile file
 -- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
 -- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
 -- support for this is lacking elsewhere at the moment.
--- | Untyped AST with names consisting solely of De Bruijn indices. This is
--- currently only used for intermediate values during CBOR/Flat
--- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
--- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
--- support for this is lacking elsewhere at the moment.
 type UntypedProgramDeBruijn a = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun a
 
 -- | Convert an untyped de-Bruijn-indexed program to one with standard names.
@@ -659,7 +654,7 @@ getProgram ::
   Format -> Input -> IO (a PLC.AlexPosn)
 getProgram fmt inp =
     case fmt of
-      Plc  -> parseInput inp
+      Textual  -> parseInput inp
       Cbor cborMode -> do
                prog <- loadASTfromCBOR cborMode inp
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
@@ -684,7 +679,7 @@ writeCBOR outp cborMode prog = do
 ---------------- Serialise a program using Flat ----------------
 
 serialiseProgramFlat ::
-  (Flat (a b)) => a b -> BSL.ByteString
+  (Flat a) => a -> BSL.ByteString
 serialiseProgramFlat p = BSL.fromStrict $ flat p
 
 writeFlat ::
@@ -714,7 +709,7 @@ writeProgram ::
    Flat (a ()),
    PP.PrettyBy PP.PrettyConfigPlc (a b)) =>
    Output -> Format -> PrintMode -> a b -> IO ()
-writeProgram outp Plc mode prog          = writeToFileOrStd outp mode prog
+writeProgram outp Textual mode prog      = writeToFileOrStd outp mode prog
 writeProgram outp (Cbor cborMode) _ prog = writeCBOR outp cborMode prog
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
@@ -893,7 +888,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
   let untypedProg = () <$ UPLC.eraseProgram typedProg
   case ofmt of
-    Plc           -> writeToFileOrStd outp mode untypedProg
+    Textual       -> writeToFileOrStd outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
