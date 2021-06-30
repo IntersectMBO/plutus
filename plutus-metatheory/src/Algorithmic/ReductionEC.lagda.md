@@ -1637,7 +1637,7 @@ unique-EC  E E' L p q with rlemma51! (E [ L ]ᴱ)
 ... | refl ,, refl ,, refl = refl
 
 
-notVAL : ∀{A}{L N N' : ∅ ⊢ A} → Value L → L —→ N' → ⊥
+notVAL : ∀{A}{L N : ∅ ⊢ A} → Value L → L —→ N → ⊥
 notVAL V (ruleEC E p refl r) = valred (lemVE _ E (Value2VALUE V)) p
 notVAL V (ruleErr E refl)    =
   valerr E-error (VALUE2Value (lemVE _ E (Value2VALUE V)))

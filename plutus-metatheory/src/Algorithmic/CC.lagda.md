@@ -708,6 +708,86 @@ open import Relation.Nullary
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution
 
+data Focussing {A B}(M : ∅ ⊢ A)(E : EC B A) M' (p : E [ M ]ᴱ —→ M') : Set
+  where
+  -- there is some duplication here
+  -- I am not sure if it's worth adding another type though
+  -- or, I could make it a record containing a sum
+  local : ∀{A'}(E' : EC B A')(L : ∅ ⊢ A')
+    → Redex L
+    → E [ M ]ᴱ ≡ E' [ L ]ᴱ
+    -- the redex is inside M
+    → ∀{E'' : EC A A'}
+    → M ≡ E'' [ L ]ᴱ
+    → Focussing M E M' p
+  nonlocal : ∀{A'}(E' : EC B A')(L : ∅ ⊢ A')
+    → Redex L
+    → E [ M ]ᴱ ≡ E' [ L ]ᴱ
+    -- M is a value, so the redex must be somewhere else
+    → Value M
+    → Focussing M E M' p
+
+focus : ∀{A B}(M : ∅ ⊢ A)(E : EC B A) M' (p : E [ M ]ᴱ —→ M')
+  → Focussing M E M' p
+focus M E M' p with rlemma51! (E [ M ]ᴱ)
+focus M E M' p | done VEM = ⊥-elim (notVAL VEM p)
+focus M E M' p | step ¬VEM E' r q U with rlemma51! M
+focus M E M' p | step ¬VEM E' r q U | step ¬VM E'' r' q' U' with U _ (trans (cong (E [_]ᴱ) q') (compEC-[]ᴱ E E'' _)) r'
+... | refl ,, refl ,, refl = local (compEC E E'') _ r q q'
+focus M E M' p | step ¬VEM E' r q U | done VM = nonlocal E' _ r q VM
+
+-- we can recover that M' == whatever I think
+-- storing it in Focussing made things complicated
+
+data ReFocussing {A B}(E : EC B A)(M : ∅ ⊢ A)(VM : Value M)
+  {A'}(E₁ : EC B A')(L : ∅ ⊢ A')(r : Redex L)(p : E [ M ]ᴱ ≡ E₁ [ L ]ᴱ)
+  : Set where
+  locate : ∀{C C'}(E₂ : EC B C)(F : Frame C C')(E₃ : EC C' A)
+    → compEC' (extEC E₂ F) E₃ ≡ E
+    → Value (E₃ [ M ]ᴱ) -- the point at which we still have a value
+    → ¬ (Value (F [ E₃ [ M ]ᴱ ]ᶠ)) -- the point at which we do not
+    → (E₄ : EC C A') -- not sure if this is needed, it may always be []?
+    → compEC' E₂ E₄ [ L ]ᴱ ≡ E [ M ]ᴱ
+    → ReFocussing E M VM E₁ L r p
+
+refocus : ∀{A B}(E : EC B A)(M : ∅ ⊢ A)(VM : Value M){A'}(E₁ : EC B A')
+  (L : ∅ ⊢ A')(r : Redex L)(p : E [ M ]ᴱ ≡ E₁ [ L ]ᴱ)
+  → ReFocussing E M VM E₁ L r p
+refocus E M VM E₁ L r p with dissect E | inspect dissect E
+refocus E M VM E₁ L r p | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq =
+  ⊥-elim (valredex (lemVE L E₁ (Value2VALUE (subst Value p VM))) r)
+refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] with rlemma51! N
+refocus E M VM E₁ L r p | inj₂ (C ,, E₂ ,, (-· N)) | I[ eq ] | step ¬VN E₃ r' p' U with rlemma51! (E [ M ]ᴱ)
+... | done VEM = ⊥-elim (valredex (lemVE _ E₁ (Value2VALUE (subst Value p VEM))) r)
+... | step ¬VEM E₄ r'' p'' U'  rewrite dissect-inj₂ E E₂ (-· N) eq with U' _ p r
+... | refl ,, refl ,, refl with U' (compEC' (extEC E₂ (VM ·-)) E₃) (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))) r'
+... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl VM (lemV'· (λ VN → valredex (lemVE L _ (Value2VALUE (subst Value p' VN))) r')) ((VM EC.·r E₃)) (sym (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))))
+-- same proof twice
+refocus E .(ƛ M) (V-ƛ M) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN = {!!}
+refocus E M (V-I⇒ b {as' = []} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN = {!!}
+refocus E M (V-I⇒ b {as' = x₁ ∷ as'} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN rewrite dissect-inj₂ E E₂ (-· N) eq with refocus E₂ (M · N) (V-I b (bubble p₁) (step p₁ x VN)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-· N) M)) p)
+... | locate E₃ F E₄ x₂ x₃ x₄ E₅ x₅ = locate
+  E₃
+  F
+  (extEC E₄ (-· N))
+  (trans (compEC'-extEC (extEC E₃ F) E₄ (-· N)) (cong (λ E → extEC E (-· N)) x₂))
+  (subst Value (sym (extEC-[]ᴱ E₄ (-· N) M)) x₃)
+  (subst (λ M → ¬ Value (F [ M ]ᶠ))
+  (sym (extEC-[]ᴱ E₄ (-· N) M)) x₄)
+  E₅
+  (trans x₅ (sym (extEC-[]ᴱ E₂ (-· N) M)))
+  -- unsat builtin case :)
+refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, (VN ·-)) | I[ eq ] = {!!}
+refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ] = {!!}
+refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, wrap-) | I[ eq ] = {!!}
+refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, unwrap-) | I[ eq ] = {!!}
+
+{-
+data Refocussing
+
+reforcus : Refocus
+-}
+{-
 data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
   redex : ∀ {C}
     → ¬ (Value M) 
@@ -731,7 +811,7 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → Value M
     → (p : B ≡ C ⇒ D)
     → subst (EC A) p E ≡ extEC E' (-· L)
-    → Value L -- wrong: there can be a redex `inside` L somewhere
+    → Value L
     → CaseP M M' E
   -- redex is inside arg of application
   argE : ∀{C C' D}{E' : EC A D}{L : ∅ ⊢ C}{E'' : EC C C'}{L' N : ∅ ⊢ C'}
@@ -747,8 +827,33 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → Value M
     → (p : B ≡ nf (embNf C · ƛ (μ (embNf (weakenNf C)) (` Z)) · embNf D))
     → subst (EC A) p E ≡ extEC E' wrap-
+
+    → Value (wrap- {A = C}{B = D} [ subst (∅ ⊢_) p M ]ᶠ) -- this is obvious
+    → ∀{B'}{L : ∅ ⊢ B'}{L'}{E''}
+    → extEC E' (wrap- {A = C}{B = D}) [ subst (∅ ⊢_) p M ]ᴱ ≡ E'' [ L ]ᴱ
+    → L —→⋆ L'
+    → M' ≡ E'' [ L' ]ᴱ
+    → ∀{A'}{E''' : EC A' (μ C D)}
+    → Value (extEC E''' wrap- [ subst (∅ ⊢_) p M  ]ᴱ)
+    → ∀{A''}{F : Frame A'' A'}
+    → ¬ (Value (F [ (extEC E''' wrap- [ subst (∅ ⊢_) p M  ]ᴱ) ]ᶠ))
+    → ∀{E'''' : EC A A''}{E''''' : EC A'' B'}
+    → subst (EC A) p E ≡ compEC' (extEC E'''' F) (extEC E''' wrap-)
+    → E'''' [ F [ E''' [ wrap C D (subst (∅ ⊢_) p M) ]ᴱ ]ᶠ ]ᴱ
+      ≡ E'''' [ E''''' [ L ]ᴱ ]ᴱ
     → CaseP M M' E
 
+
+  -- Value (wrap- [ M ]ᴱ)
+  -- extEC E'' wrap- [ M ]ᴱ) ≡ (E' [ L ]ᴱ
+  -- L ->* L'
+  -- M' = E' [ L' ]
+  -- there exists an E'' such that Value (E'' [ wrap M ])
+  -- and then there must be a frame F where it stops being a value
+  -- and then a prefix above that E''' such that
+  -- there exists a E''''
+  -- such that
+  -- E''' (F (E'' [ wrap M ])) == E''' (E'''' [ L ])
 
 
   -- M is lambda function in a beta redex 
@@ -783,7 +888,6 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     → M' ≡ E'' [ BUILTIN' b (bubble p) (step⋆ p bL) ]ᴱ
     → CaseP M M' E
 
-
   wrapβ : ∀{K C}{D : ∅ ⊢Nf⋆ K}{L}{E''}
         → (p : B ≡ μ C D)
         → subst (∅ ⊢_) p M ≡ wrap C D L 
@@ -802,6 +906,7 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
   -}
   -- it could be a wrap under and unwrap,
   -- or it could under a wrap and and unwrap...
+{-
   val : ∀ {C}
     → (E' : EC A C)
     → (N : ∅ ⊢ C)
@@ -812,7 +917,7 @@ data CaseP {A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) : Set where
     -- different stuff
     → Value M
     → CaseP M M' E
-  
+-}  
 caseP : ∀{A B}(M : ∅ ⊢ B)(M' : ∅ ⊢ A)(E : EC A B) → E [ M ]ᴱ —→ M'
   → CaseP M M' E
 caseP M M' E (ruleEC E' x p p') with rlemma51! M
@@ -863,7 +968,8 @@ caseP M M' E (ruleEC .(subst (EC _) refl E'') (β-sbuiltin⋆ b₁ .M p₂ bt .A
 
 caseP M M' E (ruleEC E' x p p') | done (V-IΠ b {as' = x₆ ∷ as'} p₁ x₅) | inj₂ (_ ,, E'' ,, -·⋆ A) | I[ eq ] | step x₁ E₁ x₂ x₃ x₄ = {!!} -- unsat builtin
 -- this case is an unsat builtin
-caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (μ A B ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E'' wrap- eq = wrapV {C = A}{D = B} VM refl refl
+caseP M M' E (ruleEC E' x p p') | done VM | inj₂ (μ A B ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E'' wrap- eq = {!!}
+ -- wrapV {C = A}{D = B} VM refl refl
 caseP (wrap A B M) M' E (ruleEC E' x p p') | done (V-wrap VM) | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E'' unwrap- eq with rlemma51! (extEC E'' unwrap- [ wrap A B M ]ᴱ)
 ... | done x₁ = ⊥-elim (valred (lemVE _ E' (Value2VALUE (subst Value p x₁))) x)
 ... | step x₁ E₁ x₂ x₃ U with U E' p (β x)
@@ -927,13 +1033,6 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
       (unique-EC E' (compEC' E E'') L (β x₂) (trans (sym x₁) (trans (compEC-[]ᴱ E E'' L) (cong (_[ L ]ᴱ) (compEC-eq E E'')))))
       (lem-→s⋆ E' x₂))
     (thm1 _ _  E' x _ V q'))
--- what can it be
--- there needs to be a next beta
--- M could be a lambda function in an application
--- M could be a builtin function with one arg left in an application
--- M could be a argument in an application
--- M could be under a unwrap-wrap
--- there can't be any errors otherwise we wouldn't get a value in the end
 ... | err refl rewrite err—↠ q' = ⊥-elim (valerr E-error V)
 ... | β L E'' refl x VM = step**
   (lemV M VM (extEC E'' (V-ƛ L ·-)))
@@ -951,5 +1050,38 @@ thm1 M _ E refl O V (trans—↠ q q') with caseP M _ E q
 ... | β⋆ L E'' refl refl refl refl = step** (lemV (Λ L) (V-Λ L) (extEC E'' (-·⋆ _))) (step* (cong (stepV (V-Λ L)) (dissect-lemma E'' (-·⋆ _))) (thm1 _ _ E'' refl O V q'))
 ... | builtinβ⋆ L E'' p refl refl bL refl refl = step** (lemV M (V-IΠ _ p bL) E) (step* (cong (stepV (V-IΠ _ p bL)) (dissect-lemma E'' (-·⋆ _))) (thm1 _ _ E'' refl O V q'))
 ... | argV {L = L} VM refl y z = {!!}
-... | wrapV x y z = {!!}
-... | val E' N x L x₁ x₂ x₃ = {!!}
+... | wrapV {E' = E'} VM refl x2 x3 {L = L} x4 x5 x6 {E''' = E'''} VE'wrapM {F = F} x8 {E'''' = E''''}{E'''''} refl x10 = 
+  step** (unwindE M _ (extEC E'''' F) _ refl VE'wrapM)
+         {!lem62!}
+-}
+
+-- what should I do now?
+
+-- the type version has:
+--
+-- 1. lemmaE' which does the basic case analysis of a step E M -> E
+-- B a redex inside M or M is a value and the redex is elsewhere
+--
+-- 2. case2 which does is the general case of a redex being elsewhere,
+-- with possible change of direction.
+
+-- 3. lemmaF which does the actual refocussing of the machine.
+
+-- 4. thm1 doesn't do much case analsis, most of the action is in
+-- case2 and lemmaF
+
+-- in the term version i tried to put this into one big view...
+-- but it doesn't support the change of direction part...
+
+
+-- there are several steps:
+--
+-- 1. the basic splitting into basic cases: at minimum, the splitting
+--    into M is a value, or not and possibly splitting into the
+--    terminal cases.
+--
+-- 2. There is the identification of a redex higher up, which must be
+-- done recursively.
+
+-- 3. there is the actual moving to a different branch as a CC step.
+

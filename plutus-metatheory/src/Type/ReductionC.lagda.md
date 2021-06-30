@@ -949,6 +949,7 @@ dissect'-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | I[_] eq
 
 -- this handles the case analysis for the main theorem but it stops
 -- short of handling the change of direction I think.
+-- TODO: check that this is not used and then remove it
 lemmaX : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx K J')
     (L : ∅ ⊢⋆ I ⇒ J') N
   → (VM : Value⋆ M) → (VL : Value⋆ L) → Value⋆ N
@@ -1023,7 +1024,8 @@ variable J'' : Kind
 
 -- this lemma handles the change of direction necessary to go looking
 -- looking in `B` for the redex when we are currently looking in `A`
--- in `A => B` for example.
+-- in `A => B` for example.  it should be terminating on depth / shape
+-- (you sometimes switch to the left branch)  of the context
 {-# TERMINATING #-}
 case2 : ∀ (M : ∅ ⊢⋆ J)(E : EvalCtx K J)
   → (VM : Value⋆ M)
