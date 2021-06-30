@@ -49,6 +49,8 @@ module Plutus.Contract.Request(
     , ownPubKey
     -- ** Submitting transactions
     , submitUnbalancedTx
+    , submitBalancedTx
+    , balanceTx
     , submitTx
     , submitTxConstraints
     , submitTxConstraintsSpending

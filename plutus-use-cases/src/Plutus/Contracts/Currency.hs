@@ -44,7 +44,7 @@ import           Ledger.Scripts
 import qualified PlutusTx                as PlutusTx
 
 import qualified Ledger.Typed.Scripts    as Scripts
-import           Ledger.Value            (AssetClass, TokenName, Value)
+import           Ledger.Value            (TokenName, Value)
 import qualified Ledger.Value            as Value
 
 import           Data.Aeson              (FromJSON, ToJSON)

@@ -26,6 +26,7 @@ module Plutus.Contract.StateMachine(
     -- * Constructing the machine instance
     , SM.mkValidator
     , SM.mkStateMachine
+    , SM.mkStateMachineTT
     -- * Constructing the state machine client
     , mkStateMachineClient
     , defaultChooser
@@ -34,6 +35,7 @@ module Plutus.Contract.StateMachine(
     , runGuardedStep
     , runStep
     , runInitialise
+    , getTxOutRef
     , getOnChainState
     , waitForUpdate
     , waitForUpdateUntilSlot
@@ -52,15 +54,18 @@ import           Data.Aeson                               (FromJSON, ToJSON)
 import           Data.Either                              (rights)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
+import qualified Data.Set                                 as Set
 import           Data.Text                                (Text)
 import qualified Data.Text                                as Text
 import           Data.Void                                (Void, absurd)
 import           GHC.Generics                             (Generic)
 import           Ledger                                   (POSIXTime, Slot, Value)
 import qualified Ledger
+import qualified Ledger.Ada                               as Ada
 import           Ledger.AddressMap                        (outputsMapFromTxForAddress)
 import           Ledger.Constraints                       (ScriptLookups, TxConstraints (..), mintingPolicy,
-                                                           mustMintValueWithRedeemer, mustPayToTheScript)
+                                                           mustMintValueWithRedeemer, mustPayToPubKey,
+                                                           mustPayToTheScript, mustSpendPubKeyOutput)
 import           Ledger.Constraints.OffChain              (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain              as Constraints
 import           Ledger.Constraints.TxConstraints         (InputConstraint (..), OutputConstraint (..))
@@ -316,9 +321,20 @@ runStep ::
     -- ^ The input to apply to the state machine
     -> Contract w schema e (TransitionResult state input)
 runStep smc input =
-    runGuardedStep smc input (\_ _ _ -> Nothing) >>= pure . \case
+    runGuardedStep smc input (\_ _ _ -> Nothing) <&> \case
         Left a  -> absurd a
         Right a -> a
+
+getTxOutRef :: AsSMContractError e => Contract w schema e TxOutRef
+getTxOutRef = mapError (review _SMContractError) $ do
+    ownPK <- ownPubKey
+    let constraints = mustPayToPubKey (pubKeyHash ownPK) (Ada.lovelaceValueOf 1)
+    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void mempty constraints)
+    tx <- balanceTx utx
+    let txOutRef = case Set.lookupMin (Tx.txInputs tx) of
+            Just inp -> txInRef inp
+            Nothing  -> error "Balanced transaction has no inputs" -- TODO
+    pure txOutRef
 
 -- | Initialise a state machine
 runInitialise ::
@@ -335,13 +351,17 @@ runInitialise ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{typedValidator} = scInstance
+    ownPK <- ownPubKey
+    utxo <- utxoAt (Ledger.pubKeyAddress ownPK)
+    let StateMachineInstance{stateMachine, typedValidator} = scInstance
         red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, False))
-        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue scInstance)
+        constraints = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue scInstance)
             <> mustMintValueWithRedeemer red (SM.threadTokenValue scInstance)
+            <> maybe mempty mustSpendPubKeyOutput (smTxOutRef stateMachine)
         lookups = Constraints.typedValidatorLookups typedValidator
-            <> mintingPolicy curPolicy
-    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
+            <> maybe mempty (mintingPolicy . curPolicy) (smTxOutRef stateMachine)
+            <> Constraints.unspentOutputs utxo
+    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups constraints)
     submitTxConfirmed utx
     pure initialState
 
@@ -378,11 +398,11 @@ mkStep client@StateMachineClient{scInstance} input = do
 
             case smTransition oldState input of
                 Just (newConstraints, newState)  ->
-                    let isFinal = smFinal (SM.stateMachine scInstance) (stateData newState)
+                    let isFinal = smFinal stateMachine (stateData newState)
                         lookups =
                             Constraints.typedValidatorLookups typedValidator
                             <> Constraints.unspentOutputs utxo
-                            <> (if isFinal then mintingPolicy curPolicy else mempty)
+                            <> (if isFinal then maybe mempty (mintingPolicy . curPolicy) (smTxOutRef stateMachine) else mempty)
                         red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, True))
                         unmint = if isFinal then mustMintValueWithRedeemer red (inv $ SM.threadTokenValue scInstance) else mempty
                         outputConstraints =

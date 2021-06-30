@@ -327,7 +327,7 @@
                 StateMachine_match
                 (vardecl
                   StateMachine
-                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] [[StateMachine s] i]))))
+                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe (con bytestring)] (fun [Maybe TxOutRef] [[StateMachine s] i])))))
                 )
               )
             )
@@ -6577,41 +6577,43 @@
                                   [
                                     [
                                       [
-                                        {
-                                          { StateMachine FutureState }
-                                          FutureAction
-                                        }
-                                        [ [ transition ft ] fos ]
-                                      ]
-                                      (lam
-                                        ds
-                                        FutureState
                                         [
+                                          {
+                                            { StateMachine FutureState }
+                                            FutureAction
+                                          }
+                                          [ [ transition ft ] fos ]
+                                        ]
+                                        (lam
+                                          ds
+                                          FutureState
                                           [
                                             [
-                                              {
-                                                [ FutureState_match ds ]
-                                                (fun Unit Bool)
-                                              }
-                                              (lam thunk Unit True)
+                                              [
+                                                {
+                                                  [ FutureState_match ds ]
+                                                  (fun Unit Bool)
+                                                }
+                                                (lam thunk Unit True)
+                                              ]
+                                              (lam
+                                                ipv
+                                                Margins
+                                                (lam thunk Unit False)
+                                              )
                                             ]
-                                            (lam
-                                              ipv Margins (lam thunk Unit False)
-                                            )
+                                            Unit
                                           ]
-                                          Unit
-                                        ]
-                                      )
+                                        )
+                                      ]
+                                      {
+                                        { mkStateMachine FutureState }
+                                        FutureAction
+                                      }
                                     ]
-                                    {
-                                      { mkStateMachine FutureState }
-                                      FutureAction
-                                    }
+                                    { Nothing (con bytestring) }
                                   ]
-                                  {
-                                    Nothing
-                                    [[Tuple2 (con bytestring)] (con bytestring)]
-                                  }
+                                  { Nothing TxOutRef }
                                 ]
                               )
                             )

@@ -164,7 +164,6 @@ handleUnbalancedTransactions ::
     ( Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member WalletEffect effs
-    , Member ChainIndexEffect effs
     )
     => RequestHandler effs PABReq PABResp
 handleUnbalancedTransactions =

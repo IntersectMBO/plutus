@@ -13,38 +13,26 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Plutus.Contract.StateMachine.ThreadToken where
 
-import           Control.Lens
 import           PlutusTx.Prelude     hiding (Monoid (..), Semigroup (..))
 
-import           Plutus.Contract      as Contract
-
-import           Ledger               (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), ValidatorHash, pubKeyHash,
-                                       scriptCurrencySymbol, txId)
-import qualified Ledger.Ada           as Ada
-import qualified Ledger.Constraints   as Constraints
+import           Ledger               (CurrencySymbol, TxOutRef (..), scriptCurrencySymbol)
 import qualified Ledger.Contexts      as V
 import           Ledger.Scripts
 import qualified PlutusTx             as PlutusTx
 
 import qualified Ledger.Typed.Scripts as Scripts
-import           Ledger.Value         (AssetClass, TokenName (..), Value)
+import           Ledger.Value         (TokenName (..), Value)
 import qualified Ledger.Value         as Value
 
-import           Data.Aeson           (FromJSON, ToJSON)
-import qualified Data.Map             as Map
-import           Data.Semigroup       (Last (..))
-import           GHC.Generics         (Generic)
-import qualified PlutusTx.AssocMap    as AssocMap
-import           Prelude              (Semigroup (..))
-import qualified Prelude              as Haskell
-
-validate :: (ValidatorHash, Bool) -> V.ScriptContext -> Bool
-validate (vHash, burn) ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
+validate :: TxOutRef -> (ValidatorHash, Bool) -> V.ScriptContext -> Bool
+validate (TxOutRef refHash refIdx) (vHash, burn) ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
     let
         ownSymbol = V.ownCurrencySymbol ctx
 
         minted = V.txInfoForge txinfo
-        expected = if burn then inv (threadTokenValue ownSymbol vHash) else threadTokenValue ownSymbol vHash
+        expected = if burn
+            then inv (threadTokenValue ownSymbol vHash)
+            else      threadTokenValue ownSymbol vHash
 
         -- True if the pending transaction mints the amount of
         -- currency that we expect
@@ -52,15 +40,23 @@ validate (vHash, burn) ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
             let v = expected == minted
             in traceIfFalse "Value minted different from expected" v
 
-    in mintOK
+        -- True if the pending transaction spends the output
+        -- identified by @(refHash, refIdx)@
+        txOutputSpent =
+            let v = V.spendsOutput txinfo refHash refIdx
+            in  traceIfFalse "Pending transaction does not spend the designated transaction output" v
+
+    in mintOK && (burn || txOutputSpent)
 
 
-curPolicy :: MintingPolicy
-curPolicy = mkMintingPolicyScript $
-    $$(PlutusTx.compile [|| Scripts.wrapMintingPolicy validate ||])
+curPolicy :: TxOutRef -> MintingPolicy
+curPolicy outRef = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| \r -> Scripts.wrapMintingPolicy (validate r) ||])
+        `PlutusTx.applyCode`
+            PlutusTx.liftCode outRef
 
-currencySymbol :: CurrencySymbol
-currencySymbol = scriptCurrencySymbol curPolicy
+currencySymbol :: TxOutRef -> CurrencySymbol
+currencySymbol outRef = scriptCurrencySymbol (curPolicy outRef)
 
 {-# INLINABLE threadTokenValue #-}
 -- | The 'Value' containing exactly the thread token.

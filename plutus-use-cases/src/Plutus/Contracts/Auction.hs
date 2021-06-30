@@ -21,16 +21,15 @@ module Plutus.Contracts.Auction(
     auctionSeller,
     AuctionOutput(..),
     AuctionError(..),
-    currencySymbol
+    SM.getTxOutRef
     ) where
 
 import           Control.Lens                     (makeClassyPrisms)
 import           Data.Aeson                       (FromJSON, ToJSON)
-import qualified Data.Aeson.Extras                as JSON
 import           Data.Monoid                      (Last (..))
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           GHC.Generics                     (Generic)
-import           Ledger                           (Ada, CurrencySymbol, POSIXTime, PubKeyHash, Value)
+import           Ledger                           (Ada, CurrencySymbol, POSIXTime, PubKeyHash, TxOutRef, Value)
 import qualified Ledger
 import qualified Ledger.Ada                       as Ada
 import qualified Ledger.Constraints               as Constraints
@@ -47,6 +46,7 @@ import           Plutus.Contract.Util             (loopM)
 import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude                          as Haskell
+
 
 -- | Definition of an auction
 data AuctionParams
@@ -82,7 +82,7 @@ data AuctionState
 data AuctionOutput =
     AuctionOutput
         { auctionState       :: Last AuctionState
-        , auctionThreadToken :: Last CurrencySymbol
+        , auctionThreadToken :: Last TxOutRef
         }
         deriving stock (Generic, Haskell.Show, Haskell.Eq)
         deriving anyclass (ToJSON, FromJSON)
@@ -93,7 +93,7 @@ deriving via (GenericSemigroupMonoid AuctionOutput) instance (Haskell.Monoid Auc
 auctionStateOut :: AuctionState -> AuctionOutput
 auctionStateOut s = Haskell.mempty { auctionState = Last (Just s) }
 
-threadTokenOut :: CurrencySymbol -> AuctionOutput
+threadTokenOut :: TxOutRef -> AuctionOutput
 threadTokenOut t = Haskell.mempty { auctionThreadToken = Last (Just t) }
 
 -- | Initial 'AuctionState'. In the beginning the highest bid is 0 and the
@@ -145,22 +145,23 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
 
 
 {-# INLINABLE auctionStateMachine #-}
-auctionStateMachine :: CurrencySymbol -> AuctionParams -> StateMachine AuctionState AuctionInput
-auctionStateMachine threadToken auctionParams = SM.mkStateMachine (Just threadToken) (auctionTransition auctionParams) isFinal where
+auctionStateMachine :: (TxOutRef, CurrencySymbol) -> AuctionParams -> StateMachine AuctionState AuctionInput
+auctionStateMachine (outRef, cur) auctionParams = SM.mkStateMachineTT outRef cur (auctionTransition auctionParams) isFinal where
     isFinal Finished{} = True
     isFinal _          = False
 
 
 -- | The script instance of the auction state machine. It contains the state
 --   machine compiled to a Plutus core validator script.
-typedValidator :: CurrencySymbol -> AuctionParams -> Scripts.TypedValidator (StateMachine AuctionState AuctionInput)
-typedValidator currency auctionParams =
+typedValidator :: TxOutRef -> AuctionParams -> Scripts.TypedValidator (StateMachine AuctionState AuctionInput)
+typedValidator outRef auctionParams =
     let val = $$(PlutusTx.compile [|| validatorParam ||])
             `PlutusTx.applyCode`
-                PlutusTx.liftCode currency
+                PlutusTx.liftCode (outRef, cur)
                 `PlutusTx.applyCode`
                     PlutusTx.liftCode auctionParams
         validatorParam c f = SM.mkValidator (auctionStateMachine c f)
+        cur = currencySymbol outRef
         wrap = Scripts.wrapValidator @AuctionState @AuctionInput
 
     in Scripts.mkTypedValidator @(StateMachine AuctionState AuctionInput)
@@ -172,11 +173,12 @@ typedValidator currency auctionParams =
 --   off-chain use.
 machineClient
     :: Scripts.TypedValidator (StateMachine AuctionState AuctionInput)
-    -> CurrencySymbol -- ^ Thread token of the instance
+    -> TxOutRef -- ^ Thread token of the instance
     -> AuctionParams
     -> StateMachineClient AuctionState AuctionInput
-machineClient inst threadToken auctionParams =
-    let machine = auctionStateMachine threadToken auctionParams
+machineClient inst outRef auctionParams =
+    let cur = currencySymbol outRef
+        machine = auctionStateMachine (outRef, cur) auctionParams
     in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
 type BuyerSchema = Endpoint "bid" Ada
@@ -194,7 +196,6 @@ data AuctionLog =
 
 data AuctionError =
     StateMachineContractError SM.SMContractError -- ^ State machine operation failed
-    -- | ThreadTokenError Currency.CurrencyError -- ^ Thread token could not be created
     | AuctionContractError ContractError -- ^ Endpoint, coin selection, etc. failed
     deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -210,13 +211,12 @@ instance SM.AsSMContractError AuctionError where
 -- | Client code for the seller
 auctionSeller :: Value -> POSIXTime -> Contract AuctionOutput SellerSchema AuctionError ()
 auctionSeller value time = do
-    let threadToken = currencySymbol
-    logInfo $ "Obtained thread token: " <> Haskell.show threadToken
-    tell $ threadTokenOut threadToken
+    txOutRef <- SM.getTxOutRef
+    tell $ threadTokenOut txOutRef
     self <- Ledger.pubKeyHash <$> ownPubKey
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = time }
-        inst         = typedValidator threadToken params
-        client       = machineClient inst threadToken params
+        inst         = typedValidator txOutRef params
+        client       = machineClient inst txOutRef params
 
     _ <- handleError
             (\e -> do { logError (AuctionFailed e); throwError (StateMachineContractError e) })
@@ -315,7 +315,7 @@ handleEvent client lastHighestBid change =
             continue s
         NoChange s -> continue s
 
-auctionBuyer :: CurrencySymbol -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
+auctionBuyer :: TxOutRef -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
 auctionBuyer currency params = do
     let inst         = typedValidator currency params
         client       = machineClient inst currency params

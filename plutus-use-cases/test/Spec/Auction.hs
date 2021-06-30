@@ -16,7 +16,7 @@ import qualified Control.Monad.Freer.Error          as Freer
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
 import           Data.Monoid                        (Last (..))
 
-import           Ledger                             (Ada, Slot (..), Value, pubKeyHash)
+import           Ledger                             (Ada, Slot (..), TxOutRef, Value, pubKeyHash)
 import qualified Ledger.Ada                         as Ada
 import           Plutus.Contract                    hiding (currentSlot)
 import           Plutus.Contract.Test               hiding (not)
@@ -25,11 +25,9 @@ import qualified Wallet.Emulator.Folds              as Folds
 import qualified Wallet.Emulator.Stream             as Stream
 
 import qualified Ledger.TimeSlot                    as TimeSlot
-import           Ledger.Value                       (CurrencySymbol)
 import qualified Ledger.Value                       as Value
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.Auction           hiding (Bid)
-import qualified Plutus.Contracts.Currency          as Currency
 import qualified Plutus.Trace.Emulator              as Trace
 import           PlutusTx.Monoid                    (inv)
 
@@ -62,7 +60,7 @@ options =
 seller :: Contract AuctionOutput SellerSchema AuctionError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
-buyer :: CurrencySymbol -> Contract AuctionOutput BuyerSchema AuctionError ()
+buyer :: TxOutRef -> Contract AuctionOutput BuyerSchema AuctionError ()
 buyer cur = auctionBuyer cur params
 
 w1, w2, w3 :: Wallet
@@ -87,7 +85,7 @@ auctionTrace1 = do
 trace2WinningBid :: Ada
 trace2WinningBid = 70
 
-extractAssetClass :: Trace.ContractHandle AuctionOutput SellerSchema AuctionError -> Trace.EmulatorTrace CurrencySymbol
+extractAssetClass :: Trace.ContractHandle AuctionOutput SellerSchema AuctionError -> Trace.EmulatorTrace TxOutRef
 extractAssetClass handle = do
     t <- auctionThreadToken <$> Trace.observableState handle
     case t of
@@ -129,22 +127,22 @@ trace2FinalState =
         , auctionThreadToken = Last $ Just threadToken
         }
 
-threadToken :: CurrencySymbol
-threadToken = currencySymbol
-    -- let con = Currency.createThreadTokenCurrency @EmptySchema @() tokenName
-    --     fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
-    --     getOutcome (Folds.Done a) = a
-    --     getOutcome e              = error $ "not finished: " <> show e
-    -- in
-    -- either (error . show) (getOutcome . S.fst')
-    --     $ Freer.run
-    --     $ Freer.runError @Folds.EmulatorFoldErr
-    --     $ Stream.foldEmulatorStreamM fld
-    --     $ Stream.takeUntilSlot 10
-    --     $ Trace.runEmulatorStream (options ^. emulatorConfig)
-    --     $ do
-    --         void $ Trace.activateContractWallet w1 (void con)
-    --         Trace.waitNSlots 3
+threadToken :: TxOutRef
+threadToken =
+    let con = getTxOutRef :: Contract AuctionOutput SellerSchema AuctionError TxOutRef
+        fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
+        getOutcome (Folds.Done a) = a
+        getOutcome e              = error $ "not finished: " <> show e
+    in
+    either (error . show) (getOutcome . S.fst')
+        $ Freer.run
+        $ Freer.runError @Folds.EmulatorFoldErr
+        $ Stream.foldEmulatorStreamM fld
+        $ Stream.takeUntilSlot 10
+        $ Trace.runEmulatorStream (options ^. emulatorConfig)
+        $ do
+            void $ Trace.activateContractWallet w1 (void con)
+            Trace.waitNSlots 3
 
 -- * QuickCheck model
 

@@ -35,10 +35,10 @@ Slot 1: W2: Balancing an unbalanced transaction:
               Requires signatures:
               Utxo index:
 Slot 1: W2: Finished balancing. 7ee3d9bf574809c5c4a1c370daf0decd78a17bab55584b08b33ed39e037def53
-Slot 1: W2: Submitting tx: 7ee3d9bf574809c5c4a1c370daf0decd78a17bab55584b08b33ed39e037def53
-Slot 1: W2: TxSubmit: 7ee3d9bf574809c5c4a1c370daf0decd78a17bab55584b08b33ed39e037def53
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Contract instance started
+Slot 1: W2: Submitting tx: 7ee3d9bf574809c5c4a1c370daf0decd78a17bab55584b08b33ed39e037def53
+Slot 1: W2: TxSubmit: 7ee3d9bf574809c5c4a1c370daf0decd78a17bab55584b08b33ed39e037def53
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Receive endpoint call on 'contribute' for Object (fromList [("contents",Array [Object (fromList [("getEndpointDescription",String "contribute")]),Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 25.0]]]])]))]))])]),("tag",String "ExposeEndpointResp")])
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
