@@ -1,13 +1,13 @@
 module Welcome.View (renderWelcomeState) where
 
 import Prelude hiding (div)
-import Css (bgBlueGradient, classNames)
 import Css as Css
 import Data.Lens (view)
 import Data.List (foldMap)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, iframe, img, label, main, p, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (disabled, for, href, src, title)
@@ -126,7 +126,7 @@ gettingStartedBox =
         [ classNames [ "text-purple", "text-center", "lg:hidden" ]
         , onClick_ $ OpenCard GetStartedHelpCard
         ]
-        [ icon Play $ bgBlueGradient <> [ "text-3xl", "text-white", "rounded-full" ]
+        [ icon Play $ Css.bgBlueGradient <> [ "text-3xl", "text-white", "rounded-full" ]
         , br_
         , text "Watch our get started tutorial"
         ]
@@ -136,7 +136,7 @@ gettingStartedBox =
             [ classNames [ "block", "relative", "rounded-lg", "shadow-lg", "bg-get-started-thumbnail", "bg-cover", "w-full", "h-welcome-box", "mb-6" ]
             , onClick_ $ OpenCard GetStartedHelpCard
             ]
-            [ icon Play $ bgBlueGradient <> [ "absolute", "bottom-4", "right-4", "text-3xl", "text-white", "rounded-full" ] ]
+            [ icon Play $ Css.bgBlueGradient <> [ "absolute", "bottom-4", "right-4", "text-3xl", "text-white", "rounded-full" ] ]
         , p
             [ classNames [ "font-semibold", "text-lg", "text-center" ] ]
             [ text "New to Marlowe Run?" ]

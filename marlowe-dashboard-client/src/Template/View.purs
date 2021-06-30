@@ -5,7 +5,6 @@ module Template.View
   ) where
 
 import Prelude hiding (div)
-import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Array (mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
@@ -16,6 +15,7 @@ import Data.Map (lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String (null, trim)
 import Data.Tuple.Nested ((/\))
+import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, type_, value)
@@ -102,7 +102,7 @@ contractNicknameDisplay contractName contractNickname =
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames $ (Css.input $ null contractNickname) <> [ "font-semibold" ]
+                [ classNames $ (Css.input $ contractNickname /= mempty) <> [ "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname

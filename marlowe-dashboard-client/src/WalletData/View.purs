@@ -6,7 +6,6 @@ module WalletData.View
   ) where
 
 import Prelude hiding (div)
-import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Dashboard.Types (Action(..), Card(..))
 import Data.Foldable (foldMap)
@@ -17,6 +16,7 @@ import Data.Newtype (unwrap)
 import Data.String (null)
 import Data.Tuple (Tuple(..))
 import Data.UUID (toString) as UUID
+import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, button, div, h2, h3, h4, input, label, li, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, readOnly, type_, value)

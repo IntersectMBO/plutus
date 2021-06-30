@@ -1,12 +1,12 @@
 module MainFrame.View where
 
 import Prelude hiding (div)
-import Css (classNames)
 import Dashboard.View (renderDashboardState)
 import Data.Either (Either(..))
 import Data.Lens (view)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
+import Halogen.Css (classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (div)
 import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _welcomeState)

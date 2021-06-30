@@ -8,7 +8,6 @@ import Prelude hiding (div)
 import Contract.Lenses (_executionState, _mMarloweParams, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
-import Css (applyWhen, classNames, toggleWhen)
 import Css as Css
 import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
@@ -26,6 +25,7 @@ import Data.String (null, take, trim)
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
+import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (lifeCycleEvent)
 import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
@@ -278,9 +278,10 @@ renderContractCard stepNumber state currentTab cardBody =
       --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
       [ "grid", "grid-rows-contract-step-card", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out" ]
-        <> toggleWhen (state ^. _selectedStep /= stepNumber)
+        <> if (state ^. _selectedStep /= stepNumber) then
             -- Not selected card modifiers
             [ "shadow", "scale-77", "-mx-4" ]
+          else
             -- Selected card modifiers
             [ "shadow-lg", "mx-2" ]
   in

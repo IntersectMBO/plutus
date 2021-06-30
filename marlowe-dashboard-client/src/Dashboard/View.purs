@@ -4,7 +4,6 @@ import Prelude hiding (div)
 import Contract.Lenses (_followerAppId, _mMarloweParams, _metadata)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractDetailsCard, contractInnerBox)
-import Css (applyWhen, classNames, hideWhen, toggleWhen)
 import Css as Css
 import Dashboard.Lenses (_cards, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
 import Dashboard.State (partitionContracts)
@@ -15,6 +14,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
+import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, div, div_, footer, h2, header, img, main, nav, p_, span, text)
 import Halogen.HTML.Events.Extra (onClick_)
@@ -63,7 +63,7 @@ renderHeader walletNickname menuOpen =
         $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1", "px-4", "md:px-5pc" ]
         -- in case the menu is open when the user makes their window wider, we make sure the menuOpen styles only apply on small screens ...
         
-        <> toggleWhen menuOpen [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] [ "border-b", "border-gray" ]
+        <> if menuOpen then [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] else [ "border-b", "border-gray" ]
     ]
     [ img
         [ classNames [ "w-16", "md:hidden" ]

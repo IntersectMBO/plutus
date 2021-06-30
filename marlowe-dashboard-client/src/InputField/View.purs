@@ -1,13 +1,13 @@
 module InputField.View (renderInput) where
 
 import Prelude hiding (div)
-import Css (classNames, toggleWhen)
 import Css as Css
 import Data.Array (filter)
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String (Pattern(..), contains, toLower)
+import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, input, text)
 import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
 import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
@@ -61,7 +61,7 @@ renderInput state options =
       , div
           [ classNames
               $ [ "absolute", "z-20", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-auto", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b", "transition-all", "duration-200" ]
-              <> toggleWhen (not dropdownOpen || matchingValueOptions == mempty) [ "hidden", "opacity-0" ] [ "opacity-100" ]
+              <> if (not dropdownOpen || matchingValueOptions == mempty) then [ "hidden", "opacity-0" ] else [ "opacity-100" ]
           , onMouseEnter $ const $ Just $ SetDropdownLocked true
           , onMouseLeave $ const $ Just $ SetDropdownLocked false
           ]

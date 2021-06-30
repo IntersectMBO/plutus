@@ -1,9 +1,5 @@
 module Css
-  ( classNames
-  , toggleWhen
-  , applyWhen
-  , hideWhen
-  , bgBlueGradient
+  ( bgBlueGradient
   , button
   , withIcon
   , withShadow
@@ -30,24 +26,8 @@ module Css
   ) where
 
 import Prelude
-import Halogen (ClassName(ClassName))
-import Halogen.HTML.Properties (IProp, classes)
+import Halogen.Css (applyWhen)
 import Material.Icons (Icon, iconClass)
-
-classNames :: forall r i. Array String -> IProp ( class :: String | r ) i
-classNames = classes <<< map ClassName
-
---- utilities
-toggleWhen :: Boolean -> Array String -> Array String -> Array String
-toggleWhen condition classes1 classes2 = if condition then classes1 else classes2
-
--- TODO: classNames, applyWhen and hideWhen were copy-pasted to Halogen.Css web-common.
---       In a future PR we should remove them from here.
-applyWhen :: Boolean -> Array String -> Array String
-applyWhen condition classes = toggleWhen condition classes []
-
-hideWhen :: Boolean -> Array String
-hideWhen = flip applyWhen [ "hidden" ]
 
 --- color gradients
 bgBlueGradient :: Array String
@@ -113,19 +93,19 @@ inputBaseNoFocus :: Array String
 inputBaseNoFocus = inputBase <> [ "focus:ring-0" ]
 
 input :: Boolean -> Array String
-input invalid = inputBaseFocus <> [ "border" ] <> [ "bg-transparent" ] <> toggleWhen invalid [ "border-red" ] [ "border-black", "focus:border-black" ]
+input invalid = inputBaseFocus <> [ "border", "bg-transparent" ] <> if invalid then [ "border-red" ] else [ "border-black", "focus:border-black" ]
 
 inputNoFocus :: Boolean -> Array String
-inputNoFocus invalid = inputBaseNoFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
+inputNoFocus invalid = inputBaseNoFocus <> if invalid then [ "border-red" ] else [ "border-transparent" ]
 
 withNestedLabel :: Array String
 withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
 
 inputCard :: Boolean -> Array String
-inputCard invalid = inputBaseFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
+inputCard invalid = inputBaseFocus <> if invalid then [ "border-red" ] else [ "border-transparent" ]
 
 inputCardNoFocus :: Boolean -> Array String
-inputCardNoFocus invalid = inputBaseNoFocus <> toggleWhen invalid [ "border-red" ] [ "border-transparent" ]
+inputCardNoFocus invalid = inputBaseNoFocus <> if invalid then [ "border-red" ] else [ "border-transparent" ]
 
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]
@@ -138,7 +118,7 @@ nestedLabel = [ "relative", "z-10", "left-2", "top-2.5", "px-1", "bg-white", "te
 
 --- cards
 overlay :: Boolean -> Array String
-overlay invisible = [ "overflow-hidden", "absolute", "inset-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "last:bg-overlay", "transition-opacity", "duration-400" ] <> toggleWhen invisible [ "opacity-0", "pointer-events-none" ] [ "opacity-1" ]
+overlay invisible = [ "overflow-hidden", "absolute", "inset-0", "z-20", "flex", "justify-center", "content-end", "md:content-center", "last:bg-overlay", "transition-opacity", "duration-400" ] <> if invisible then [ "opacity-0", "pointer-events-none" ] else [ "opacity-1" ]
 
 card :: Boolean -> Array String
 card invisible = [ "overflow-hidden", "bg-white", "flex-grow", "max-w-sm", "mx-2", "shadow", "rounded-t", "md:rounded-b", "transform", "transition-transform", "duration-400", "self-end", "md:self-center" ] <> applyWhen invisible [ "translate-y-20" ]
@@ -158,7 +138,7 @@ embeddedVideo = [ "absolute", "top-0", "left-0", "w-full", "h-full" ]
 
 --- miscellaneous
 iconCircle :: Boolean -> Array String
-iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full" ] <> toggleWhen enabled bgBlueGradient [ "bg-lightgray", "text-darkgray" ]
+iconCircle enabled = [ "inline-flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full" ] <> if enabled then bgBlueGradient else [ "bg-lightgray", "text-darkgray" ]
 
 fixedBottomRight :: Array String
 fixedBottomRight = [ "absolute", "bottom-4", "right-4", "md:right-5pc" ]
