@@ -36,14 +36,14 @@ echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-cabal bench plutus-benchmark:validation >bench-PR.log 2>&1
+nix-shell --run "cabal bench plutus-benchmark:validation >bench-PR.log 2>&1"
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD master)"
 BASE_BRANCH_REF=$(git show-ref -s HEAD)
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-cabal bench plutus-benchmark:validation >bench-base.log 2>&1
+nix-shell --run "cabal bench plutus-benchmark:validation >bench-base.log 2>&1"
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 echo -e "Comparing benchmark results of '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
