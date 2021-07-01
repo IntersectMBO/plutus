@@ -47,7 +47,7 @@ cabal bench plutus-benchmark:validation >bench-base.log 2>&1
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 echo -e "Comparing benchmark results of '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
-./plutus-benchmark/bench-compare bench-base.log bench-PR.log >>bench-compare-result.log
+./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "$BASE_BRANCH_REF" "$PR_BRANCH_REF" >>bench-compare-result.log
 nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
