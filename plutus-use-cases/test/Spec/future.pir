@@ -56,7 +56,7 @@
                 (termbind
                   (strict)
                   (vardecl b (con bool))
-                  [ [ (builtin equalsInteger) arg ] arg ]
+                  [ [ (builtin eqInteger) arg ] arg ]
                 )
                 [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
               )
@@ -560,7 +560,7 @@
                         (termbind
                           (strict)
                           (vardecl b (con bool))
-                          [ [ (builtin equalsByteString) arg ] arg ]
+                          [ [ (builtin eqByteString) arg ] arg ]
                         )
                         [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                       )

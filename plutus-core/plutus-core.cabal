@@ -47,19 +47,27 @@ library
         PlutusCore.Constant
         PlutusCore.Constant.Dynamic.Emit
         PlutusCore.Core
+        PlutusCore.Data
         PlutusCore.DataFilePaths
         PlutusCore.DeBruijn
         PlutusCore.Default
         PlutusCore.Error
-        PlutusCore.Evaluation.Machine.Ck
         PlutusCore.Evaluation.Machine.BuiltinCostModel
+        PlutusCore.Evaluation.Machine.Ck
         PlutusCore.Evaluation.Machine.CostModelInterface
         PlutusCore.Evaluation.Machine.ExBudget
-        PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.ExMemory
+        PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.MachineParameters
         PlutusCore.Evaluation.Result
         PlutusCore.Examples.Builtins
+        PlutusCore.Examples.Data.Data
+        PlutusCore.Examples.Data.InterList
+        PlutusCore.Examples.Data.List
+        PlutusCore.Examples.Data.Pair
+        PlutusCore.Examples.Data.Shad
+        PlutusCore.Examples.Data.TreeForest
+        PlutusCore.Examples.Data.Vec
         PlutusCore.Examples.Everything
         PlutusCore.Flat
         PlutusCore.FsTree
@@ -84,10 +92,13 @@ library
         PlutusCore.Rename.Monad
         PlutusCore.StdLib.Data.Bool
         PlutusCore.StdLib.Data.ChurchNat
+        PlutusCore.StdLib.Data.Data
         PlutusCore.StdLib.Data.Function
         PlutusCore.StdLib.Data.Integer
         PlutusCore.StdLib.Data.List
         PlutusCore.StdLib.Data.Nat
+        PlutusCore.StdLib.Data.Pair
+        PlutusCore.StdLib.Data.ScottList
         PlutusCore.StdLib.Data.ScottUnit
         PlutusCore.StdLib.Data.Sum
         PlutusCore.StdLib.Data.Unit
@@ -172,10 +183,6 @@ library
         PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Examples.Data.InterList
-        PlutusCore.Examples.Data.Shad
-        PlutusCore.Examples.Data.TreeForest
-        PlutusCore.Examples.Data.Vec
         PlutusCore.Generators.Internal.Denotation
         PlutusCore.Generators.Internal.Dependent
         PlutusCore.Generators.Internal.Entity

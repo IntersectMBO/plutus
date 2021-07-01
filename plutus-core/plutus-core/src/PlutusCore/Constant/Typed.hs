@@ -45,6 +45,7 @@ import           PlutusPrelude
 
 import           PlutusCore.Constant.Dynamic.Emit
 import           PlutusCore.Core
+import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.ExBudget
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
@@ -255,11 +256,47 @@ which fits perfectly well into the builtins machinery.
 
 Although that becomes annoying for more complex data types. For tuples we need to provide two
 projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too
-bad, but to get pattern matching on lists we need three built-in functions: `null`, `head` and
-`tail` and to require `Bool` to be in the universe to be able to define a PLC equivalent of
+bad, but to get pattern matching on lists we need three built-in functions: @null@, @head@ and
+@tail@ and to require `Bool` to be in the universe to be able to define a PLC equivalent of
 
     matchList :: [a] -> r -> (a -> [a] -> r) -> r
     matchList xs z f = if null xs then z else f (head xs) (tail xs)
+
+If a constructor stores more than one value, the corresponding projection function packs them
+into a (possibly nested) pair, for example for
+
+    data Data
+        = Constr Integer [Data]
+        | <...>
+
+we have (pseudocode):
+
+    unConstrData (Constr i ds) = (i, ds)
+
+In order to get pattern matching over 'Data' we need a projection function per constructor as well
+as with lists, but writing (where the @Data@ suffix indicates that a function is a builtin that
+somehow corresponds to a constructor of 'Data')
+
+    if isConstrData d
+        then uncurry fConstr $ unConstrData d
+        else if isMapData d
+            then fMap $ unMapData d
+            else if isListData d
+                then fList $ unListData d
+                else <...>
+
+is tedious and inefficient and so instead we have a single @chooseData@ builtin that matches on
+its @Data@ argument and chooses the appropriate branch (type instantiations and strictness concerns
+are omitted for clarity):
+
+     chooseData
+        (uncurry fConstr $ unConstrData d)
+        (fMap $ unMapData d)
+        (fList $ unListData d)
+        <...>
+        d
+
+which, for example, evaluates to @fMap es@ when @d@ is @Map es@
 
 On the bright side, this encoding of pattern matchers does work, so maybe it's indeed worth to
 prioritize performance over convenience, especially given the fact that performance is of a concern
@@ -625,6 +662,7 @@ instance uni `Contains` ()            => KnownTypeAst uni ()
 instance uni `Contains` Bool          => KnownTypeAst uni Bool
 instance uni `Contains` [a]           => KnownTypeAst uni [a]
 instance uni `Contains` (a, b)        => KnownTypeAst uni (a, b)
+instance uni `Contains` Data          => KnownTypeAst uni Data
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
@@ -633,6 +671,7 @@ instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool
 instance KnownBuiltinType term [a]           => KnownType term [a]
 instance KnownBuiltinType term (a, b)        => KnownType term (a, b)
+instance KnownBuiltinType term Data          => KnownType term Data
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when

@@ -53,7 +53,8 @@ import qualified Data.ByteString.Hash as Hash
 import           Data.Maybe           (fromMaybe)
 import           Prelude              hiding (String, error)
 
-import           PlutusTx.Data
+import           PlutusCore.Data
+
 import           PlutusTx.Utils       (mustBeReplaced)
 
 {- Note [Builtin name definitions]

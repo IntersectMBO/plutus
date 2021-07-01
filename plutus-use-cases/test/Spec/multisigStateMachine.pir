@@ -140,7 +140,7 @@
                   (termbind
                     (strict)
                     (vardecl b (con bool))
-                    [ [ (builtin equalsInteger) arg ] arg ]
+                    [ [ (builtin eqInteger) arg ] arg ]
                   )
                   [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                 )
@@ -164,7 +164,7 @@
                   (termbind
                     (strict)
                     (vardecl b (con bool))
-                    [ [ (builtin equalsByteString) arg ] arg ]
+                    [ [ (builtin eqByteString) arg ] arg ]
                   )
                   [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                 )
@@ -5348,10 +5348,7 @@
                                           (strict)
                                           (vardecl b (con bool))
                                           [
-                                            [
-                                              (builtin lessThanEqualsInteger)
-                                              arg
-                                            ]
+                                            [ (builtin lessThanEqInteger) arg ]
                                             arg
                                           ]
                                         )
@@ -5434,8 +5431,7 @@
                                           (vardecl b (con bool))
                                           [
                                             [
-                                              (builtin greaterThanEqualsInteger)
-                                              arg
+                                              (builtin greaterThanEqInteger) arg
                                             ]
                                             arg
                                           ]
