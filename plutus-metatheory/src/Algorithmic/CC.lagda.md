@@ -751,6 +751,7 @@ data ReFocussing {A B}(E : EC B A)(M : ∅ ⊢ A)(VM : Value M)
     → ReFocussing E M VM E₁ L r p
 
 {-# TERMINATING #-}
+-- it should be terminating on the depth of E
 refocus : ∀{A B}(E : EC B A)(M : ∅ ⊢ A)(VM : Value M){A'}(E₁ : EC B A')
   (L : ∅ ⊢ A')(r : Redex L)(p : E [ M ]ᴱ ≡ E₁ [ L ]ᴱ)
   → ReFocussing E M VM E₁ L r p
@@ -844,6 +845,72 @@ refocus E (wrap A B M) (V-wrap VM) E₁ L r p | inj₂ (_ ,, E₂ ,, unwrap-) | 
   with U E₁ p r
 ... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ unwrap- (wrap A B M)) (β (β-wrap VM))
 ... | refl ,, refl ,, refl = locate E₂ unwrap- [] refl (V-wrap VM) (λ V → valred (Value2VALUE V) (β-wrap VM)) [] (sym (extEC-[]ᴱ E₂ unwrap- (wrap A B M)))
+
+
+lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
+      → ∀ (E' : EC B A')(L : ∅ ⊢ A')
+      → (V : Value M)
+      → Redex L
+      → ¬ (Value (F [ M ]ᶠ))
+      → extEC E F [ M ]ᴱ ≡ (compEC' E E') [ L ]ᴱ
+      → (extEC E F ◅ V) -→s (compEC' E E' ▻ L)
+lemmaF M F E E' L V x x₁ x₂ = {!!}
+
+lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
+lem-→s⋆ E (β-ƛ V) = step*
+  refl
+  (step** (lemV _ (V-ƛ _) (extEC E (-· _)))
+          (step* (cong (stepV (V-ƛ _)) (dissect-lemma E (-· _)))
+                 (step** (lemV _ V (extEC E (V-ƛ _ ·-)))
+                         (step* (cong (stepV V) (dissect-lemma E (V-ƛ _ ·-)))
+                                base))))
+lem-→s⋆ E β-Λ = step*
+  refl
+  (step** (lemV _ (V-Λ _) (extEC E (-·⋆ _)))
+          (step* (cong (stepV (V-Λ _)) (dissect-lemma E (-·⋆ _)))
+                 base))
+lem-→s⋆ E (β-wrap V) = step*
+  refl
+  (step** (lemV _ (V-wrap V) (extEC E unwrap-))
+          (step* (cong (stepV (V-wrap V)) (dissect-lemma E unwrap-))
+                 base))
+lem-→s⋆ E (β-sbuiltin b t p bt u vu) with bappTermLem b t p (BApp2BAPP bt)
+... | _ ,, _ ,, refl = step*
+  refl
+  (step** (lemV t (V-I⇒ b p bt) (extEC E (-· u)))
+          (step* (cong (stepV (V-I⇒ b p bt)) (dissect-lemma E (-· u)))
+                 (step** (lemV u vu (extEC E (V-I⇒ b p bt ·-)))
+                         (step* (cong (stepV vu) (dissect-lemma E (V-I⇒ b p bt ·-)))
+                                base))))
+lem-→s⋆ E (β-sbuiltin⋆ b t p bt A) with bappTypeLem b t p (BApp2BAPP bt)
+... | _ ,, _ ,, refl = step*
+  refl
+  (step** (lemV t (V-IΠ b p bt) (extEC E (-·⋆ A)))
+          (step* (cong (stepV (V-IΠ b p bt)) (dissect-lemma E (-·⋆ A))) base))
+
+err—→ : ∀{A}{M} → error A —→ M → M ≡ error A
+err—→ (ruleEC [] () refl refl)
+err—→ (ruleErr E x) = refl
+
+err—↠ : ∀{A}{M} → error A —↠ M → M ≡ error A
+err—↠ refl—↠        = refl
+err—↠ (trans—↠ x p) rewrite err—→ x = err—↠ p
+
+
+
+thm1 : ∀{A B}(M : ∅ ⊢ A)(M' : ∅ ⊢ B)(E : EC B A)
+  → M' ≡ E [ M ]ᴱ → (O : ∅ ⊢ B)(V : Value O)
+  → M' —↠ O -> (E ▻ M) -→s ([] ◅ V)
+thm1 M M' E p .M' V refl—↠ = subst
+  (λ E → (E ▻ M) -→s ([] ◅ V))
+  (compEC'-[] E)
+  (unwindE M M' [] E p V)
+thm1 M _ E refl O V (trans—↠ q q') with focus M E _ q
+... | local E' L (β r) x₁ {E'' = E''} refl = step** (lem62 L E E'') (step** (lem-→s⋆ (compEC' E E'') r) (thm1 _ _ (compEC' E E'') (determinism q (ruleEC (compEC' E E'') r (trans (compEC-[]ᴱ E E'' L) (cong (_[ L ]ᴱ) (compEC-eq E E'')) ) refl)) O V q'))
+... | local E' L err x₁ refl rewrite determinism q (ruleErr E' x₁) = ⊥-elim (valerr E-error (subst Value (err—↠ q') V))
+... | nonlocal E' L err p VM rewrite determinism q (ruleErr E' p) = ⊥-elim (valerr E-error (subst Value (err—↠ q') V))
+... | nonlocal E' L (β r) p VM with refocus E M VM E' L (β r) p
+... | locate E₂ F E₃ refl VE₃M x₂ E₄ x₃ = step** (unwindE M (E₃ [ M ]ᴱ) (extEC E₂ F) E₃ refl VE₃M) (step** (lemmaF (E₃ [ M ]ᴱ) F E₂ E₄ L VE₃M (β r) x₂ (trans (trans (compEC-[]ᴱ (extEC E₂ F) E₃ M) (cong (_[ M ]ᴱ) (compEC-eq (extEC E₂ F) E₃))) (sym x₃))) (step** (lem-→s⋆ (compEC' E₂ E₄) r) ((thm1 _ _ (compEC' E₂ E₄) (determinism q (ruleEC (compEC' E₂ E₄) r (sym x₃) refl)) O V q'))))
 
 {-
 data Refocussing
