@@ -763,7 +763,12 @@ refocus E M VM E₁ L r p | inj₂ (C ,, E₂ ,, (-· N)) | I[ eq ] | step ¬VN 
 ... | refl ,, refl ,, refl with U' (compEC' (extEC E₂ (VM ·-)) E₃) (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))) r'
 ... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl VM (lemV'· (λ VN → valredex (lemVE L _ (Value2VALUE (subst Value p' VN))) r')) ((VM EC.·r E₃)) (sym (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))))
 -- same proof twice
-refocus E .(ƛ M) (V-ƛ M) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN = {!!}
+refocus E .(ƛ M) (V-ƛ M) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN with rlemma51! (E [ ƛ M ]ᴱ)
+... | done VEƛM = ⊥-elim (valredex (lemVE L E₁ (Value2VALUE (subst Value p VEƛM))) r) 
+... | step ¬VEƛM E₃ x₁ x₂ U rewrite dissect-inj₂ E E₂ (-· N) eq with U E₁ p r
+... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-· N) (ƛ M)) (β (β-ƛ VN))
+... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl (V-ƛ M) (λ V → lemVβ (Value2VALUE V)) [] (sym (extEC-[]ᴱ E₂ (-· N) (ƛ M)))
+
 refocus E M (V-I⇒ b {as' = []} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN = {!!}
 refocus E M (V-I⇒ b {as' = x₁ ∷ as'} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN rewrite dissect-inj₂ E E₂ (-· N) eq with refocus E₂ (M · N) (V-I b (bubble p₁) (step p₁ x VN)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-· N) M)) p)
 ... | locate E₃ F E₄ x₂ x₃ x₄ E₅ x₅ = locate
