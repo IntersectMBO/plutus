@@ -5,6 +5,8 @@
 module Language.Marlowe.ACTUS.Definitions.BusinessEvents where
 
 import           Data.Aeson.Types (ToJSON)
+import           Data.Map
+import           Data.Time
 import           GHC.Generics     (Generic)
 
 data EventType =
@@ -19,3 +21,17 @@ data RiskFactors = RiskFactors
     }
     deriving stock (Generic)
     deriving (Show, ToJSON)
+
+type DataObserved = Map String ValuesObserved
+
+data ValuesObserved = ValuesObserved
+  { identifier :: String
+  , values     :: [ValueObserved]
+  }
+  deriving (Show)
+
+data ValueObserved = ValueObserved
+  { timestamp :: Day
+  , value     :: Double
+  }
+  deriving (Show)

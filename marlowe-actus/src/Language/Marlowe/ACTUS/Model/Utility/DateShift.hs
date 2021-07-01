@@ -6,7 +6,6 @@ module Language.Marlowe.ACTUS.Model.Utility.DateShift
   )
 where
 
-import qualified Data.List                                        as L
 import           Data.Maybe                                       (fromJust)
 import           Data.Time                                        (Day, addDays, toGregorian)
 import           Data.Time.Calendar.WeekDate                      (toWeekDate)

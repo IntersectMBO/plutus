@@ -58,7 +58,7 @@ cyclePeriodFreq = frequency [ (1, return P_D)
                             ]
 
 datecycle :: Gen Cycle
-datecycle = Cycle <$> sized (\n -> choose (0, maxDate `div` (toInteger n * secondsPerYear))) <*> cyclePeriodFreq <*> elements [ShortStub, LongStub]
+datecycle = Cycle <$> sized (\n -> choose (0, maxDate `div` (toInteger n * secondsPerYear))) <*> cyclePeriodFreq <*> elements [ShortStub, LongStub] <*> elements [True, False]
 
 contractTermsGen :: Gen ContractTerms
 contractTermsGen = do
@@ -77,7 +77,6 @@ contractTermsGen = do
     penaltyrate <- zeroOr percentage
     cpyrt <- zeroOr percentage
 
-    includeendday <- elements [True, False]
     eomc <- elements [EOMC_EOM, EOMC_SD]
     bdc <- elements [BDC_NULL, BDC_SCF, BDC_SCMF, BDC_CSF, BDC_CSMF, BDC_SCP, BDC_SCMP, BDC_CSP, BDC_CSMP]
     calendar <- elements [CLDR_MF, CLDR_NC]
@@ -149,7 +148,6 @@ contractTermsGen = do
         , ct_PRF       = Just PRF_PF
         , scfg         = ScheduleConfig {
             calendar = Just calendar
-            , includeEndDay = includeendday
             , eomc = Just eomc
             , bdc = Just bdc
         }
@@ -194,8 +192,13 @@ contractTermsGen = do
         , ct_FEAC      = feeAccrued
         , ct_FEB       = Just feebasis
         , ct_FER       = Just feerate
+
+        , ct_CURS      = Nothing
+        , ct_SCMO      = Nothing
+        , ct_RRMO      = Nothing
+
         -- enable settlement currency
-        , ct_CURS      = False
+        , enableSettlement      = False
         , constraints  = Nothing
         , collateralAmount = 0
     }
@@ -206,7 +209,7 @@ riskAtTGen = RiskFactors <$> percentage <*> percentage <*> percentage <*> smalla
 
 riskFactorsGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
 riskFactorsGen ct = do
-    let days = cashCalculationDay <$> genProjectedCashflows ct
+    let days = cashCalculationDay <$> genProjectedCashflows (M.empty) ct
     rf <- vectorOf (L.length days) riskAtTGen
     return $ M.fromList $ L.zip days rf
 

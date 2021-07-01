@@ -5,7 +5,7 @@
 module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
 import           Data.Aeson.Types (FromJSON, ToJSON)
-import           Data.Maybe       (isNothing)
+import           Data.Maybe       (fromMaybe)
 import           Data.Time        (Day)
 import           GHC.Generics     (Generic)
 
@@ -62,10 +62,9 @@ data Calendar = CLDR_MF -- monday to friday
               deriving (Show, Read, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data ScheduleConfig = ScheduleConfig
-  { calendar      :: Maybe Calendar
-  , includeEndDay :: Bool
-  , eomc          :: Maybe EOMC
-  , bdc           :: Maybe BDC
+  { calendar :: Maybe Calendar
+  , eomc     :: Maybe EOMC
+  , bdc      :: Maybe BDC
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
@@ -135,9 +134,10 @@ data Stub = ShortStub -- short last stub
 
  -- Cycle
 data Cycle = Cycle
-  { n    :: Integer
-  , p    :: Period
-  , stub :: Stub
+  { n             :: Integer
+  , p             :: Period
+  , stub          :: Stub
+  , includeEndDay :: Bool
   }
   deriving (Show, Eq, Ord, Generic)
   deriving anyclass (FromJSON, ToJSON)
@@ -179,6 +179,7 @@ data ContractTerms = ContractTerms
     contractId       :: String
   , contractType     :: CT
   , ct_CNTRL         :: CR
+  , ct_CURS          :: Maybe String
 
   -- Calendar
   , ct_IED           :: Maybe Day      -- Initial Exchange Date
@@ -225,6 +226,7 @@ data ContractTerms = ContractTerms
   , ct_SCCL          :: Maybe Cycle    -- Cycle Of Scaling Index
   , ct_SCEF          :: Maybe SCEF     -- Scaling Effect
   , ct_SCCDD         :: Maybe Double   -- Scaling Index At Contract Deal Date
+  , ct_SCMO          :: Maybe String   -- Market Object Code Of Scaling Index
 
   -- Optionality
   , ct_OPCL          :: Maybe Cycle    -- Cycle Of Optionality
@@ -244,9 +246,10 @@ data ContractTerms = ContractTerms
   , ct_RRPC          :: Maybe Double   -- Period Cap
   , ct_RRLC          :: Maybe Double   -- Life Cap
   , ct_RRLF          :: Maybe Double   -- Life Floor
+  , ct_RRMO          :: Maybe String   -- Market Object Code Of Rate Reset
 
   -- enable settlement currency
-  , ct_CURS          :: Bool
+  , enableSettlement :: Bool
   , constraints      :: Maybe Assertions
   , collateralAmount :: Integer
   }
@@ -265,55 +268,70 @@ defaultRRSP = 0
 defaultRRMLT :: Double
 defaultRRMLT = 1.0
 
+infinity :: Double
+infinity = 1/0 :: Double
+
 setDefaultContractTermValues :: ContractTerms -> ContractTerms
 setDefaultContractTermValues ct@ContractTerms{..} =
   let
       ScheduleConfig{..} = scfg
 
-      eomc'     | isNothing eomc     = Just EOMC_SD
-                | otherwise          = eomc
+      eomc'     = Just $ fromMaybe EOMC_SD eomc
 
-      bdc'      | isNothing bdc      = Just BDC_NULL
-                | otherwise          = bdc
+      bdc'      = Just $ fromMaybe BDC_NULL bdc
 
-      calendar' | isNothing calendar = Just CLDR_NC
-                | otherwise          = calendar
+      calendar' = Just $ fromMaybe CLDR_NC calendar
 
-      ct_PRF'   | isNothing ct_PRF   = Just PRF_PF
-                | otherwise          = ct_PRF
+      ct_PRF'   = Just $ fromMaybe PRF_PF ct_PRF
 
-      ct_IPCB'  | isNothing ct_IPCB  = Just IPCB_NT
-                | otherwise          = ct_IPCB
+      ct_IPCB'  = Just $ fromMaybe IPCB_NT ct_IPCB
 
-      ct_PDIED' | isNothing ct_PDIED = Just defaultPDIED
-                | otherwise          = ct_PDIED
+      ct_PDIED' = Just $ fromMaybe defaultPDIED ct_PDIED
 
-      ct_SCEF'  | isNothing ct_SCEF  = Just SE_000
-                | otherwise          = ct_SCEF
+      ct_SCEF'  = Just $ fromMaybe SE_000 ct_SCEF
 
-      ct_PYRT'  | isNothing ct_PYRT  = Just defaultPYRT
-                | otherwise          = ct_PYRT
+      ct_PYRT'  = Just $ fromMaybe defaultPYRT ct_PYRT
 
-      ct_PYTP'  | isNothing ct_PYTP  = Just PYTP_O
-                | otherwise          = ct_PYTP
+      ct_PYTP'  = Just $ fromMaybe PYTP_O ct_PYTP
 
-      ct_PPEF'  | isNothing ct_PPEF  = Just PPEF_N
-                | otherwise          = ct_PPEF
+      ct_PPEF'  = Just $ fromMaybe PPEF_N ct_PPEF
 
-      ct_RRSP'  | isNothing ct_RRSP  = Just defaultRRSP
-                | otherwise          = ct_RRSP
+      ct_RRSP'  = Just $ fromMaybe defaultRRSP ct_RRSP
 
-      ct_RRMLT' | isNothing ct_RRMLT = Just defaultRRMLT
-                | otherwise          = ct_RRMLT
-  in ct {
-    scfg     = scfg { eomc = eomc', bdc = bdc', calendar = calendar' },
-    ct_PRF   = ct_PRF',
-    ct_IPCB  = ct_IPCB',
-    ct_PDIED = ct_PDIED',
-    ct_SCEF  = ct_SCEF',
-    ct_PYRT  = ct_PYRT',
-    ct_PYTP  = ct_PYTP',
-    ct_PPEF  = ct_PPEF',
-    ct_RRSP  = ct_RRSP',
-    ct_RRMLT = ct_RRMLT'
-  }
+      ct_RRMLT' = Just $ fromMaybe defaultRRMLT ct_RRMLT
+
+      ct' =
+        case contractType of
+          PAM ->
+            ct {
+              ct_FEAC          = Just $ fromMaybe 0.0 ct_FEAC
+            , ct_FER           = Just $ fromMaybe 0.0 ct_FER
+
+            , ct_IPAC          = Just $ fromMaybe 0.0 ct_IPAC
+            , ct_IPNR          = Just $ fromMaybe 0.0 ct_IPNR
+
+            , ct_PPRD          = Just $ fromMaybe 0.0 ct_PPRD
+            , ct_PTD           = Just $ fromMaybe 0.0 ct_PTD
+            , ct_SCCDD         = Just $ fromMaybe 0.0 ct_SCCDD
+
+            , ct_RRPF          = Just $ fromMaybe (-infinity) ct_RRPF
+            , ct_RRPC          = Just $ fromMaybe infinity ct_RRPC
+            , ct_RRLC          = Just $ fromMaybe infinity ct_RRLC
+            , ct_RRLF          = Just $ fromMaybe (-infinity) ct_RRLF
+            }
+
+          _ ->
+            ct
+  in
+    ct' {
+      scfg     = scfg { eomc = eomc', bdc = bdc', calendar = calendar' }
+    , ct_PRF   = ct_PRF'
+    , ct_IPCB  = ct_IPCB'
+    , ct_PDIED = ct_PDIED'
+    , ct_SCEF  = ct_SCEF'
+    , ct_PYRT  = ct_PYRT'
+    , ct_PYTP  = ct_PYTP'
+    , ct_PPEF  = ct_PPEF'
+    , ct_RRSP  = ct_RRSP'
+    , ct_RRMLT = ct_RRMLT'
+    }
