@@ -64,7 +64,7 @@ paste $tmp1 $tmp2 |
        ps["ps"] = 0
        # Print markdown table headers, attempting to make the output reasonably well aligned even in raw form.
        printf ("| %-40s | %-10s | %-10s | %-8s |\n", "Script", hdr1, hdr2, "Change")
-       printf ("| %-40s | %-10s | %-10s | %-8s |\n", ":----", ":-----:", ":-----:", ":-----:")
+       printf ("| %-40s | %-10s | %-10s | %-8s |\n", ":-----", ":-----:", ":-----:", ":-----:")
    }
    {
    time1 = $2
