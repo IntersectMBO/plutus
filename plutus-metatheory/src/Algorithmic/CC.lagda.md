@@ -768,8 +768,12 @@ refocus E .(ƛ M) (V-ƛ M) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] 
 ... | step ¬VEƛM E₃ x₁ x₂ U rewrite dissect-inj₂ E E₂ (-· N) eq with U E₁ p r
 ... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-· N) (ƛ M)) (β (β-ƛ VN))
 ... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl (V-ƛ M) (λ V → lemVβ (Value2VALUE V)) [] (sym (extEC-[]ᴱ E₂ (-· N) (ƛ M)))
-
-refocus E M (V-I⇒ b {as' = []} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN = {!!}
+refocus E M V@(V-I⇒ b {as' = []} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN with rlemma51! (E [ M ]ᴱ)
+... | done VEM =
+  ⊥-elim (valredex (lemVE L E₁ (Value2VALUE (subst Value p VEM))) r) 
+... | step ¬VEM E₃ x₂ x₃ U rewrite dissect-inj₂ E E₂ (-· N) eq with U E₁ p r
+... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-· N) M) (β (β-sbuiltin b M p₁ x N VN))
+... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl V (λ V → valred (Value2VALUE V) (β-sbuiltin b M p₁ x N VN)) [] (sym (extEC-[]ᴱ E₂ (-· N) M))
 refocus E M (V-I⇒ b {as' = x₁ ∷ as'} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN rewrite dissect-inj₂ E E₂ (-· N) eq with refocus E₂ (M · N) (V-I b (bubble p₁) (step p₁ x VN)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-· N) M)) p)
 ... | locate E₃ F E₄ x₂ x₃ x₄ E₅ x₅ = locate
   E₃
