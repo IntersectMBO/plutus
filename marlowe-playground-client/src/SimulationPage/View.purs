@@ -216,6 +216,14 @@ sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState)
     ]
 
 ------------------------------------------------------------
+type TemplateFormDisplayInfo a action
+  = { lookupFormat :: String -> Maybe (String /\ Int) -- Gets the format for a given key
+    , lookupDefinition :: String -> Maybe String -- Gets the definition for a given key
+    , typeName :: IntegerTemplateType -- Identifier for the type of template we are displaying
+    , title :: String -- Title of the section of the template type
+    , prefix :: String -- Prefix for the explanation of the template
+    }
+
 startSimulationWidget :: forall p. MetaData -> InitialConditionsRecord -> HTML p Action
 startSimulationWidget metadata { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
@@ -226,8 +234,8 @@ startSimulationWidget metadata { initialSlot, templateContent } =
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters (const Nothing) (Map.lookup) metadata.slotParameterDescriptions SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                    <> integerTemplateParameters extractValueParameterNuberFormat lookupDescription metadata.valueParameterInfo SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                ( integerTemplateParameters SetIntegerTemplateParam slotParameterDisplayInfo (unwrap templateContent).slotContent
+                    <> integerTemplateParameters SetIntegerTemplateParam valueParameterDisplayInfo (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -239,6 +247,22 @@ startSimulationWidget metadata { initialSlot, templateContent } =
             ]
         ]
   where
+  slotParameterDisplayInfo =
+    { lookupFormat: const Nothing
+    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , typeName: SlotContent
+    , title: "Timeout template parameters"
+    , prefix: "Slot for"
+    }
+
+  valueParameterDisplayInfo =
+    { lookupFormat: extractValueParameterNuberFormat
+    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , typeName: ValueContent
+    , title: "Value template parameters"
+    , prefix: "Constant for"
+    }
+
   extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
@@ -250,8 +274,8 @@ startSimulationWidget metadata { initialSlot, templateContent } =
         _ -> Nothing
     )
 
-integerTemplateParameters :: forall a action p. (String -> Maybe (String /\ Int)) -> (String -> Map String a -> Maybe String) -> Map String a -> (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
-integerTemplateParameters extractFormat lookupDefinition explanations actionGen typeName title prefix content =
+integerTemplateParameters :: forall a action p. (IntegerTemplateType -> String -> BigInteger -> action) -> TemplateFormDisplayInfo a action -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, title, prefix } content =
   [ li_
       if Map.isEmpty content then
         []
@@ -265,13 +289,13 @@ integerTemplateParameters extractFormat lookupDefinition explanations actionGen 
                                 , strong_ [ text key ]
                                 , text ":"
                                 ]
-                            , case extractFormat key of
+                            , case lookupFormat key of
                                 Just (currencyLabel /\ numDecimals) -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) currencyLabel numDecimals value
                                 Nothing -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
                             ]
                               <> [ div [ classes [ ClassName "action-group-explanation" ] ]
                                     $ maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
-                                    $ lookupDefinition key explanations
+                                    $ lookupDefinition key
                                 ]
                           )
                       )

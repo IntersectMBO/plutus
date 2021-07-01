@@ -41,14 +41,17 @@ onlyDescriptionRenderer setAction deleteAction key info needed metadataAction ty
   ]
     <> if needed then [] else [ div [ classes [ ClassName "metadata-error", ClassName "metadata-prop-not-used" ] ] [ text "Not used" ] ]
 
-type FormattedNumberActions
-  = { setFormat :: String -> NumberFormat -> MetadataAction
+type FormattedNumberInfo
+  = { key :: String
+    , description :: String
+    , format :: NumberFormat
+    , setFormat :: String -> NumberFormat -> MetadataAction
     , setDescription :: String -> String -> MetadataAction
     , deleteInfo :: String -> MetadataAction
     }
 
-formattedNumberMetadataRenderer :: forall a p. String -> String -> NumberFormat -> FormattedNumberActions -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
-formattedNumberMetadataRenderer key description format { setFormat, setDescription, deleteInfo } needed metadataAction typeNameTitle typeNameSmall =
+formattedNumberMetadataRenderer :: forall a p. FormattedNumberInfo -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
+formattedNumberMetadataRenderer { key, description, format, setFormat, setDescription, deleteInfo } needed metadataAction typeNameTitle typeNameSmall =
   [ div [ class_ $ ClassName "metadata-prop-label" ]
       [ text $ typeNameTitle <> " " <> show key <> ": " ]
   , div [ class_ $ ClassName "metadata-prop-formattednum-col1" ]
@@ -132,16 +135,22 @@ formattedNumberMetadataRenderer key description format { setFormat, setDescripti
 
 choiceMetadataRenderer :: forall a p. String -> ChoiceInfo -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
 choiceMetadataRenderer key { choiceDescription, choiceFormat } =
-  formattedNumberMetadataRenderer key choiceDescription choiceFormat
-    { setFormat: SetChoiceFormat
+  formattedNumberMetadataRenderer
+    { key: key
+    , description: choiceDescription
+    , format: choiceFormat
+    , setFormat: SetChoiceFormat
     , setDescription: SetChoiceDescription
     , deleteInfo: DeleteChoiceInfo
     }
 
 valueParameterMetadataRenderer :: forall a p. String -> ValueParameterInfo -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)
 valueParameterMetadataRenderer key { valueParameterDescription, valueParameterFormat } =
-  formattedNumberMetadataRenderer key valueParameterDescription valueParameterFormat
-    { setFormat: SetValueParameterFormat
+  formattedNumberMetadataRenderer
+    { key: key
+    , description: valueParameterDescription
+    , format: valueParameterFormat
+    , setFormat: SetValueParameterFormat
     , setDescription: SetValueParameterDescription
     , deleteInfo: DeleteValueParameterInfo
     }

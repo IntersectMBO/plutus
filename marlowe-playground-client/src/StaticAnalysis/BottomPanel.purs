@@ -64,8 +64,8 @@ analysisResultPane metadata actionGen state =
         explanation
           [ text ""
           , ul [ class_ (ClassName "templates") ]
-              ( integerTemplateParameters (const Nothing) (Map.lookup) metadata.slotParameterDescriptions actionGen SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                  <> integerTemplateParameters extractValueParameterNuberFormat lookupDescription metadata.valueParameterInfo actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+              ( integerTemplateParameters actionGen slotParameterDisplayInfo (unwrap templateContent).slotContent
+                  <> integerTemplateParameters actionGen valueParameterDisplayInfo (unwrap templateContent).valueContent
               )
           ]
       WarningAnalysis staticSubResult -> case staticSubResult of
@@ -232,6 +232,22 @@ analysisResultPane metadata actionGen state =
             , text "None of the Close constructs refunds any money, all refunds are explicit."
             ]
   where
+  slotParameterDisplayInfo =
+    { lookupFormat: const Nothing
+    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , typeName: SlotContent
+    , title: "Timeout template parameters"
+    , prefix: "Slot for"
+    }
+
+  valueParameterDisplayInfo =
+    { lookupFormat: extractValueParameterNuberFormat
+    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , typeName: ValueContent
+    , title: "Value template parameters"
+    , prefix: "Constant for"
+    }
+
   extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
