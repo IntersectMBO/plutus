@@ -27,7 +27,7 @@ import           PlutusCore.Lexer.Type
 import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           PlutusCore.Name
 
-import           Codec.Serialise       (Serialise, deserialise, serialise)
+import           Codec.Serialise       (Serialise, deserialiseOrFail, serialise)
 import           Data.Functor
 import           Data.Proxy
 import           Data.Word             (Word8)
@@ -95,7 +95,11 @@ newtype AsSerialize a = AsSerialize
 
 instance Serialise a => Flat (AsSerialize a) where
     encode = encode . serialise
-    decode = deserialise <$> decode
+    decode = do
+        errOrX <- deserialiseOrFail <$> decode
+        case errOrX of
+            Left err -> fail $ show err  -- Here we embed a 'Serialise' error into a 'Flat' one.
+            Right x  -> pure x
     size = size . serialise
 
 safeEncodeBits :: NumBits -> Word8 -> Encoding

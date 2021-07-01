@@ -97,9 +97,10 @@ data DefaultFun
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
 instance Pretty DefaultFun where
-    pretty fun = case show fun of
-        ""    -> error "Panic: 'show' is not supposed to return an empty string"
-        c : s -> pretty $ toLower c : s
+    pretty fun = pretty $ case show fun of
+        ""    -> ""  -- It's really weird to have a function's name displayed as an empty string,
+                     -- but if it's what the 'Show' instance does, the user has asked for it.
+        c : s -> toLower c : s
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = 1
