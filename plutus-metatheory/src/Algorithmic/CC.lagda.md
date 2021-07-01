@@ -835,7 +835,8 @@ refocus E M (V-IΠ b {as' = _ ∷ as'} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,,
   (sym (extEC-[]ᴱ E₄ (-·⋆ A) M)) x₄)
   E₅
   (trans x₅ (sym (extEC-[]ᴱ E₂ (-·⋆ A) M)))
-refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, wrap-) | I[ eq ] = {!!}
+refocus E M VM E₁ L r p | inj₂ (μ A B ,, E₂ ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E₂ wrap- eq with refocus E₂ (wrap _ _ M) (V-wrap VM) E₁ L r (trans (sym (extEC-[]ᴱ E₂ wrap- M)) p)
+... | locate E₃ F E₄ x x₁ x₂ E₅ x₃ = locate E₃ F (extEC E₄ wrap-) ((trans (compEC'-extEC (extEC E₃ F) E₄ wrap-) (cong (λ E → extEC E wrap-) x))) (subst Value (sym (extEC-[]ᴱ E₄ wrap- M)) x₁) (λ V → x₂ (subst Value (cong (F [_]ᶠ) (extEC-[]ᴱ E₄ wrap- M)) V)) E₅ (trans x₃ (sym (extEC-[]ᴱ E₂ wrap- M)))
 refocus E (wrap A B M) (V-wrap VM) E₁ L r p | inj₂ (_ ,, E₂ ,, unwrap-) | I[ eq ] with rlemma51! (E [ wrap A B M ]ᴱ)
 ... | done VEM =
   ⊥-elim (valredex (lemVE L E₁ (Value2VALUE (subst Value p VEM))) r) 
