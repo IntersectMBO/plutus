@@ -9,7 +9,7 @@ import Data.String as String
 import Data.String.CodeUnits (fromCharArray, toCharArray)
 import Halogen.HTML (HTML, abbr, text)
 import Halogen.HTML.Properties (title)
-import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData)
+import Marlowe.Extended.Metadata (NumberFormat(..), MetaData)
 import Marlowe.Semantics (Party(..), Payee(..), Token(..))
 
 renderPrettyToken :: forall p i. Token -> HTML p i
@@ -63,7 +63,7 @@ showBigIntegerAsCurrency number numDecimals = fromCharArray numberStr
 
   numberStr = concat ([ prefixStr, digitsBeforeSeparator ] <> if digitsAfterSeparator /= [] then [ [ '.' ], digitsAfterSeparator ] else [])
 
-showPrettyChoice :: ChoiceFormat -> BigInteger -> String
+showPrettyChoice :: NumberFormat -> BigInteger -> String
 showPrettyChoice DefaultFormat num = showBigIntegerAsCurrency num 0
 
 showPrettyChoice (DecimalFormat numDecimals strLabel) num = strLabel <> " " <> showBigIntegerAsCurrency num numDecimals
