@@ -65,6 +65,26 @@
         )
         (datatypebind
           (datatype
+            (tyvardecl TxOutRef (type))
+
+            TxOutRef_match
+            (vardecl
+              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl ThreadToken (type))
+
+            ThreadToken_match
+            (vardecl
+              ThreadToken (fun TxOutRef (fun (con bytestring) ThreadToken))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
             (tyvardecl StakingCredential (type))
 
             StakingCredential_match
@@ -94,16 +114,6 @@
             )
             (vardecl
               DCertPoolRetire (fun (con bytestring) (fun (con integer) DCert))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxOutRef (type))
-
-            TxOutRef_match
-            (vardecl
-              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
             )
           )
         )
@@ -327,7 +337,7 @@
                 StateMachine_match
                 (vardecl
                   StateMachine
-                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe (con bytestring)] (fun [Maybe TxOutRef] [[StateMachine s] i])))))
+                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] [[StateMachine s] i]))))
                 )
               )
             )
@@ -6577,43 +6587,38 @@
                                   [
                                     [
                                       [
+                                        {
+                                          { StateMachine FutureState }
+                                          FutureAction
+                                        }
+                                        [ [ transition ft ] fos ]
+                                      ]
+                                      (lam
+                                        ds
+                                        FutureState
                                         [
-                                          {
-                                            { StateMachine FutureState }
-                                            FutureAction
-                                          }
-                                          [ [ transition ft ] fos ]
-                                        ]
-                                        (lam
-                                          ds
-                                          FutureState
                                           [
                                             [
-                                              [
-                                                {
-                                                  [ FutureState_match ds ]
-                                                  (fun Unit Bool)
-                                                }
-                                                (lam thunk Unit True)
-                                              ]
-                                              (lam
-                                                ipv
-                                                Margins
-                                                (lam thunk Unit False)
-                                              )
+                                              {
+                                                [ FutureState_match ds ]
+                                                (fun Unit Bool)
+                                              }
+                                              (lam thunk Unit True)
                                             ]
-                                            Unit
+                                            (lam
+                                              ipv Margins (lam thunk Unit False)
+                                            )
                                           ]
-                                        )
-                                      ]
-                                      {
-                                        { mkStateMachine FutureState }
-                                        FutureAction
-                                      }
+                                          Unit
+                                        ]
+                                      )
                                     ]
-                                    { Nothing (con bytestring) }
+                                    {
+                                      { mkStateMachine FutureState }
+                                      FutureAction
+                                    }
                                   ]
-                                  { Nothing TxOutRef }
+                                  { Nothing ThreadToken }
                                 ]
                               )
                             )

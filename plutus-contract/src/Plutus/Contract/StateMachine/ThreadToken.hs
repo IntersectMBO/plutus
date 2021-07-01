@@ -1,28 +1,41 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE MonoLocalBinds     #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeOperators      #-}
-{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Plutus.Contract.StateMachine.ThreadToken where
 
 import           PlutusTx.Prelude     hiding (Monoid (..), Semigroup (..))
 
-import           Ledger               (CurrencySymbol, TxOutRef (..), scriptCurrencySymbol)
+import           Data.Aeson           (FromJSON, ToJSON)
+import           GHC.Generics         (Generic)
+import           Ledger               (CurrencySymbol, TxOutRef (..))
 import qualified Ledger.Contexts      as V
 import           Ledger.Scripts
-import qualified PlutusTx             as PlutusTx
-
 import qualified Ledger.Typed.Scripts as Scripts
-import           Ledger.Value         (TokenName (..), Value)
+import           Ledger.Value         (TokenName (..), Value (..))
 import qualified Ledger.Value         as Value
+import qualified PlutusTx
+import qualified PlutusTx.AssocMap    as Map
+import qualified Prelude              as Haskell
+
+data ThreadToken = ThreadToken
+    { ttOutRef         :: TxOutRef
+    , ttCurrencySymbol :: CurrencySymbol
+    }
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+PlutusTx.makeLift ''ThreadToken
 
 validate :: TxOutRef -> (ValidatorHash, Bool) -> V.ScriptContext -> Bool
 validate (TxOutRef refHash refIdx) (vHash, burn) ctx@V.ScriptContext{V.scriptContextTxInfo=txinfo} =
@@ -48,17 +61,21 @@ validate (TxOutRef refHash refIdx) (vHash, burn) ctx@V.ScriptContext{V.scriptCon
 
     in mintOK && (burn || txOutputSpent)
 
-
 curPolicy :: TxOutRef -> MintingPolicy
 curPolicy outRef = mkMintingPolicyScript $
     $$(PlutusTx.compile [|| \r -> Scripts.wrapMintingPolicy (validate r) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode outRef
 
-currencySymbol :: TxOutRef -> CurrencySymbol
-currencySymbol outRef = scriptCurrencySymbol (curPolicy outRef)
-
 {-# INLINABLE threadTokenValue #-}
 -- | The 'Value' containing exactly the thread token.
 threadTokenValue :: CurrencySymbol -> ValidatorHash -> Value
-threadTokenValue cur (ValidatorHash vHash) = Value.singleton cur (TokenName vHash) 1
+threadTokenValue currency (ValidatorHash vHash) = Value.singleton currency (TokenName vHash) 1
+
+{-# INLINABLE checkThreadToken #-}
+checkThreadToken :: Maybe ThreadToken -> ValidatorHash -> Value -> Bool
+checkThreadToken Nothing _ _ = True
+checkThreadToken (Just threadToken) (ValidatorHash vHash) (Value vl) =
+    case Map.toList <$> Map.lookup (ttCurrencySymbol threadToken) vl of
+        Just [(TokenName tHash, _)] -> tHash == vHash
+        _                           -> False

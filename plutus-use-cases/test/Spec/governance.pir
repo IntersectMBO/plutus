@@ -3808,6 +3808,17 @@
                           )
                           (datatypebind
                             (datatype
+                              (tyvardecl ThreadToken (type))
+
+                              ThreadToken_match
+                              (vardecl
+                                ThreadToken
+                                (fun TxOutRef (fun (con bytestring) ThreadToken))
+                              )
+                            )
+                          )
+                          (datatypebind
+                            (datatype
                               (tyvardecl State (fun (type) (type)))
                               (tyvardecl s (type))
                               State_match
@@ -3912,7 +3923,7 @@
                               StateMachine_match
                               (vardecl
                                 StateMachine
-                                (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe (con bytestring)] (fun [Maybe TxOutRef] [[StateMachine s] i])))))
+                                (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] [[StateMachine s] i]))))
                               )
                             )
                           )
@@ -9597,23 +9608,20 @@
                                             [
                                               [
                                                 [
-                                                  [
-                                                    {
-                                                      { StateMachine GovState }
-                                                      GovInput
-                                                    }
-                                                    [ transition params ]
-                                                  ]
-                                                  (lam ds GovState False)
+                                                  {
+                                                    { StateMachine GovState }
+                                                    GovInput
+                                                  }
+                                                  [ transition params ]
                                                 ]
-                                                {
-                                                  { mkStateMachine GovState }
-                                                  GovInput
-                                                }
+                                                (lam ds GovState False)
                                               ]
-                                              { Nothing (con bytestring) }
+                                              {
+                                                { mkStateMachine GovState }
+                                                GovInput
+                                              }
                                             ]
-                                            { Nothing TxOutRef }
+                                            { Nothing ThreadToken }
                                           ]
                                         )
                                       )
@@ -17065,11 +17073,11 @@
                                         (strict)
                                         (vardecl
                                           checkThreadToken
-                                          (fun [Maybe (con bytestring)] (fun (con bytestring) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] Bool)))
+                                          (fun [Maybe ThreadToken] (fun (con bytestring) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] Bool)))
                                         )
                                         (lam
                                           ds
-                                          [Maybe (con bytestring)]
+                                          [Maybe ThreadToken]
                                           (lam
                                             ds
                                             (con bytestring)
@@ -17083,15 +17091,15 @@
                                                       [
                                                         {
                                                           Maybe_match
-                                                          (con bytestring)
+                                                          ThreadToken
                                                         }
                                                         ds
                                                       ]
                                                       (fun Unit Bool)
                                                     }
                                                     (lam
-                                                      currency
-                                                      (con bytestring)
+                                                      threadToken
+                                                      ThreadToken
                                                       (lam
                                                         thunk
                                                         Unit
@@ -17206,6 +17214,30 @@
                                                               ]
                                                             )
                                                           )
+                                                          (termbind
+                                                            (nonstrict)
+                                                            (vardecl
+                                                              c (con bytestring)
+                                                            )
+                                                            [
+                                                              {
+                                                                [
+                                                                  ThreadToken_match
+                                                                  threadToken
+                                                                ]
+                                                                (con bytestring)
+                                                              }
+                                                              (lam
+                                                                ds
+                                                                TxOutRef
+                                                                (lam
+                                                                  ds
+                                                                  (con bytestring)
+                                                                  ds
+                                                                )
+                                                              )
+                                                            ]
+                                                          )
                                                           (let
                                                             (rec)
                                                             (termbind
@@ -17276,7 +17308,7 @@
                                                                                               equalsByteString
                                                                                               c
                                                                                             ]
-                                                                                            currency
+                                                                                            c
                                                                                           ]
                                                                                         ]
                                                                                         (fun Unit Bool)
@@ -17718,106 +17750,140 @@
                                       (termbind
                                         (strict)
                                         (vardecl
-                                          threadTokenValueInner
-                                          (fun [Maybe (con bytestring)] (fun (con bytestring) [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
+                                          b
+                                          (fun (con bytestring) [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
                                         )
                                         (lam
-                                          currency
-                                          [Maybe (con bytestring)]
-                                          (lam
-                                            ds
-                                            (con bytestring)
+                                          ds
+                                          (con bytestring)
+                                          {
+                                            Nil
+                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                          }
+                                        )
+                                      )
+                                      (termbind
+                                        (nonstrict)
+                                        (vardecl
+                                          threadTokenValueInner
+                                          (fun [Maybe ThreadToken] (fun (con bytestring) [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
+                                        )
+                                        (lam
+                                          m
+                                          [Maybe ThreadToken]
+                                          [
                                             [
                                               [
-                                                [
-                                                  {
-                                                    [
-                                                      {
-                                                        Maybe_match
-                                                        (con bytestring)
-                                                      }
-                                                      currency
-                                                    ]
-                                                    (fun Unit [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
-                                                  }
+                                                {
+                                                  [
+                                                    { Maybe_match ThreadToken }
+                                                    m
+                                                  ]
+                                                  (fun Unit (fun (con bytestring) [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
+                                                }
+                                                (lam
+                                                  a
+                                                  ThreadToken
                                                   (lam
-                                                    a
-                                                    (con bytestring)
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      [
+                                                    thunk
+                                                    Unit
+                                                    (let
+                                                      (nonrec)
+                                                      (termbind
+                                                        (nonstrict)
+                                                        (vardecl
+                                                          currency
+                                                          (con bytestring)
+                                                        )
                                                         [
                                                           {
-                                                            Cons
-                                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                          }
-                                                          [
                                                             [
-                                                              {
-                                                                {
-                                                                  Tuple2
-                                                                  (con bytestring)
-                                                                }
-                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                              }
+                                                              ThreadToken_match
                                                               a
                                                             ]
+                                                            (con bytestring)
+                                                          }
+                                                          (lam
+                                                            ds
+                                                            TxOutRef
+                                                            (lam
+                                                              ds
+                                                              (con bytestring)
+                                                              ds
+                                                            )
+                                                          )
+                                                        ]
+                                                      )
+                                                      (lam
+                                                        ds
+                                                        (con bytestring)
+                                                        [
+                                                          [
+                                                            {
+                                                              Cons
+                                                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                            }
                                                             [
                                                               [
                                                                 {
-                                                                  Cons
+                                                                  {
+                                                                    Tuple2
+                                                                    (con bytestring)
+                                                                  }
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                }
+                                                                currency
+                                                              ]
+                                                              [
+                                                                [
+                                                                  {
+                                                                    Cons
+                                                                    [[Tuple2 (con bytestring)] (con integer)]
+                                                                  }
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        {
+                                                                          Tuple2
+                                                                          (con bytestring)
+                                                                        }
+                                                                        (con integer)
+                                                                      }
+                                                                      ds
+                                                                    ]
+                                                                    (con
+                                                                      integer 1
+                                                                    )
+                                                                  ]
+                                                                ]
+                                                                {
+                                                                  Nil
                                                                   [[Tuple2 (con bytestring)] (con integer)]
                                                                 }
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      {
-                                                                        Tuple2
-                                                                        (con bytestring)
-                                                                      }
-                                                                      (con integer)
-                                                                    }
-                                                                    ds
-                                                                  ]
-                                                                  (con integer 1
-                                                                  )
-                                                                ]
                                                               ]
-                                                              {
-                                                                Nil
-                                                                [[Tuple2 (con bytestring)] (con integer)]
-                                                              }
                                                             ]
                                                           ]
+                                                          {
+                                                            Nil
+                                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                          }
                                                         ]
-                                                        {
-                                                          Nil
-                                                          [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                        }
-                                                      ]
+                                                      )
                                                     )
                                                   )
-                                                ]
-                                                (lam
-                                                  thunk
-                                                  Unit
-                                                  {
-                                                    Nil
-                                                    [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                  }
                                                 )
                                               ]
-                                              Unit
+                                              (lam thunk Unit b)
                                             ]
-                                          )
+                                            Unit
+                                          ]
                                         )
                                       )
                                       (termbind
                                         (strict)
                                         (vardecl
                                           wmkValidator
-                                          (all s (type) (all i (type) (fun [IsData s] (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe (con bytestring)] (fun s (fun i (fun ScriptContext Bool))))))))))
+                                          (all s (type) (all i (type) (fun [IsData s] (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] (fun s (fun i (fun ScriptContext Bool))))))))))
                                         )
                                         (abs
                                           s
@@ -17839,7 +17905,7 @@
                                                     (fun s (fun i (fun ScriptContext Bool)))
                                                     (lam
                                                       ww
-                                                      [Maybe (con bytestring)]
+                                                      [Maybe ThreadToken]
                                                       (lam
                                                         w
                                                         s
@@ -18511,10 +18577,8 @@
                                                               (fun s (fun i (fun ScriptContext Bool)))
                                                               (lam
                                                                 ww
-                                                                [Maybe (con bytestring)]
-                                                                (lam
-                                                                  ww
-                                                                  [Maybe TxOutRef]
+                                                                [Maybe ThreadToken]
+                                                                [
                                                                   [
                                                                     [
                                                                       [
@@ -18522,17 +18586,14 @@
                                                                           [
                                                                             [
                                                                               [
-                                                                                [
+                                                                                {
                                                                                   {
-                                                                                    {
-                                                                                      wmkValidator
-                                                                                      s
-                                                                                    }
-                                                                                    i
+                                                                                    wmkValidator
+                                                                                    s
                                                                                   }
-                                                                                  w
-                                                                                ]
-                                                                                ww
+                                                                                  i
+                                                                                }
+                                                                                w
                                                                               ]
                                                                               ww
                                                                             ]
@@ -18540,13 +18601,14 @@
                                                                           ]
                                                                           ww
                                                                         ]
-                                                                        w
+                                                                        ww
                                                                       ]
                                                                       w
                                                                     ]
                                                                     w
                                                                   ]
-                                                                )
+                                                                  w
+                                                                ]
                                                               )
                                                             )
                                                           )

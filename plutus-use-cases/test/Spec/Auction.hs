@@ -16,7 +16,7 @@ import qualified Control.Monad.Freer.Error          as Freer
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
 import           Data.Monoid                        (Last (..))
 
-import           Ledger                             (Ada, Slot (..), TxOutRef, Value, pubKeyHash)
+import           Ledger                             (Ada, Slot (..), Value, pubKeyHash)
 import qualified Ledger.Ada                         as Ada
 import           Plutus.Contract                    hiding (currentSlot)
 import           Plutus.Contract.Test               hiding (not)
@@ -60,7 +60,7 @@ options =
 seller :: Contract AuctionOutput SellerSchema AuctionError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
-buyer :: TxOutRef -> Contract AuctionOutput BuyerSchema AuctionError ()
+buyer :: ThreadToken -> Contract AuctionOutput BuyerSchema AuctionError ()
 buyer cur = auctionBuyer cur params
 
 w1, w2, w3 :: Wallet
@@ -85,7 +85,7 @@ auctionTrace1 = do
 trace2WinningBid :: Ada
 trace2WinningBid = 70
 
-extractAssetClass :: Trace.ContractHandle AuctionOutput SellerSchema AuctionError -> Trace.EmulatorTrace TxOutRef
+extractAssetClass :: Trace.ContractHandle AuctionOutput SellerSchema AuctionError -> Trace.EmulatorTrace ThreadToken
 extractAssetClass handle = do
     t <- auctionThreadToken <$> Trace.observableState handle
     case t of
@@ -127,9 +127,9 @@ trace2FinalState =
         , auctionThreadToken = Last $ Just threadToken
         }
 
-threadToken :: TxOutRef
+threadToken :: ThreadToken
 threadToken =
-    let con = getTxOutRef :: Contract AuctionOutput SellerSchema AuctionError TxOutRef
+    let con = getThreadToken :: Contract AuctionOutput SellerSchema AuctionError ThreadToken
         fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
         getOutcome (Folds.Done a) = a
         getOutcome e              = error $ "not finished: " <> show e
