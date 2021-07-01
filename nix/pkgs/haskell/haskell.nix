@@ -161,8 +161,6 @@ let
           # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
           plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
           # Relies on cabal-doctest, just turn it off in the Nix build
@@ -222,6 +220,19 @@ let
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
           # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
           ieee.components.library.libs = lib.mkForce [ ];
+
+          # By default haskell.nix chooses the `buildPackages` versions of these `build-tool-depeends`, but
+          # when cross compiling we want the cross compiled version.
+          plutus-pab.components.library.build-tools = lib.mkForce [
+            config.hsPkgs.cardano-node.components.exes.cardano-node
+            config.hsPkgs.cardano-cli.components.exes.cardano-cli
+          ];
+          plutus-metatheory.components.tests.test1.build-tools = lib.mkForce [
+            config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          ];
+          plutus-metatheory.components.tests.test2.build-tools = lib.mkForce [
+            config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          ];
         };
       }
     ] ++ lib.optional enableHaskellProfiling {
