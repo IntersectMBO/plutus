@@ -10,12 +10,14 @@ import           Control.Monad.Freer         (Eff, Member, runM, sendM)
 import           Control.Monad.Freer.Error   (Error, runError, throwError)
 import           Data.Bifunctor              (Bifunctor (..))
 import           Data.Either                 (isRight)
-import           Data.Foldable               (fold)
+import           Data.Foldable               (fold, toList)
+import           Data.List                   (sort)
 import qualified Data.Set                    as Set
 import qualified Generators                  as Gen
 import           Hedgehog                    (Property, annotateShow, assert, failure, forAll, property, (===))
 import qualified Hedgehog.Gen                as Gen
 import qualified Hedgehog.Range              as Range
+import           Plutus.ChainIndex.Types     (Tip (..))
 import           Plutus.ChainIndex.UtxoState (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance (..))
 import qualified Plutus.ChainIndex.UtxoState as UtxoState
 import           Test.Tasty
@@ -37,7 +39,8 @@ tests =
         ],
         testGroup "operations" [
             testProperty "insert new blocks at end" insert_at_end,
-            testProperty "rollback" rollback
+            testProperty "rollback" rollback,
+            testProperty "block number ascending order" block_number_ascending
         ]
     ]
 
@@ -110,3 +113,22 @@ rollback = property $ do
         sendM $ UtxoState.tip (UtxoState.utxoState ix4') === Just (fst block4)
     annotateShow result
     assert $ isRight result
+
+-- | The items of the finger tree are always in ascending order
+--   regardless of insertion order
+block_number_ascending :: Property
+block_number_ascending = property $ do
+    numBlocks <- forAll $ Gen.integral (Range.linear 0 500)
+    blocks <- forAll $ Gen.evalUtxoGenState $ replicateM numBlocks Gen.genNonEmptyBlock
+    shuffledBlocks <- forAll $ Gen.shuffle blocks
+    let result = foldM
+                    (\InsertUtxoSuccess{newIndex} (tip, txns) -> UtxoState.insert (UtxoState.fromBlock tip txns) newIndex)
+                    InsertUtxoSuccess{newIndex=mempty, insertPosition=UtxoState.InsertAtEnd}
+                    shuffledBlocks
+    case result of
+        Left e                                  -> do
+            annotateShow e
+            failure
+        Right InsertUtxoSuccess{newIndex} -> do
+            let items = fmap tipBlockNo . UtxoState.tip <$> toList newIndex
+            items === sort items
