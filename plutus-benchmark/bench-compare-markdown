@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Compare the output from two runs of some Criterion benchmarks and print the
-# increase/decrease in execution time for each benchmark.
+# Compare the output from two runs of some Criterion benchmarks and produce a
+# markdown table showing the increase/decrease in execution time for each
+# benchmark.
 
 # Do something like
 #    `stack bench plutus-benchmarks:validation >results1 2>&1`
