@@ -890,6 +890,9 @@ lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
       -- this would work for the textbook CC machine
       -- but not our CC machine which is technically the SCC machine
 -}
+
+-- here we do the change of direction in the CC machine but note, we
+-- are already at the fork in the road, we don't have to look for it
 lemmaF' : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
       → ∀ (E' : EC B A')(L L' : ∅ ⊢ A')
       → (V : Value M)
@@ -913,7 +916,7 @@ lemmaF' .(ƛ M) (-· N) E E' L _ (V-ƛ M) (β-ƛ _) ¬VFM x₁ | done VN | step 
           (step* (cong (stepV VN) (dissect-lemma E (V-ƛ M ·-))) (subst (λ E' →  (E ▻ (M [ N ])) -→s (E' ▻ (M [ N ]))) x base)))
 
 lemmaF' M (-· N) E E' L L' V@(V-I⇒ b {as' = []} p x) r ¬VFM x₁ | done VN with rlemma51! (extEC E (-· N) [ M ]ᴱ)
-... | done VMN = {!!}
+... | done VMN = ⊥-elim (valred (lemVE _ E (Value2VALUE (subst Value (extEC-[]ᴱ E (-· N) M) VMN))) (β-sbuiltin b M p x N VN))
 ... | step ¬VMN E₁ x₃ x₄ U with U E (extEC-[]ᴱ E (-· N) M) (β (β-sbuiltin b M p x N VN))
 ... | refl ,, refl ,, refl with U (compEC' E E') x₁ (β r)
 lemmaF' M (-· N) E E' .(M · N) _ V@(V-I⇒ b {as' = []} p x) (β-sbuiltin b₁ .M p₁ bt .N vu) ¬VFM x₁ | done VN | step ¬VMN E x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl with uniqueVal N VN vu | uniqueVal M V (V-I⇒ b₁ p₁ bt)
@@ -924,7 +927,17 @@ lemmaF' M (-· N) E E' .(M · N) _ V@(V-I⇒ b {as' = []} p x) (β-sbuiltin b₁
 lemmaF' M (-· N) E E' L L' (V-I⇒ b {as' = x₂ ∷ as'} p x) r ¬VFM x₁ | done VN =
   ⊥-elim (¬VFM (V-I b (bubble p) (step p x VN)))
 
-lemmaF' M (VN ·-) E E' L L' V ¬VFM x₁ x₂ = {!!}
+lemmaF' M (VN ·-) E E' L L' V x x₁ x₂ with rlemma51! (extEC E (VN ·-) [ M ]ᴱ)
+... | done VNM = ⊥-elim (x₁ (VALUE2Value (lemVE (deval VN · M) E (Value2VALUE (subst Value (extEC-[]ᴱ E (VN ·-) M) VNM)))))
+lemmaF' M (V-ƛ M₁ ·-) E E' L L' V x x₁ x₂ | step ¬VƛM₁M E₁ x₃ x₄ U with U (compEC' E E') x₂ (β x)
+... | refl ,, refl ,, refl with U E (extEC-[]ᴱ E (V-ƛ M₁ ·-) M) (β (β-ƛ V))
+lemmaF' M (V-ƛ M₁ ·-) E E' L L' V (β-ƛ _) x₁ x₂ | step ¬VƛM₁M E₁ x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl = step* (cong (stepV V) (dissect-lemma E (V-ƛ M₁ ·-))) ((subst (λ E' → (E ▻ _) -→s (E' ▻ _)) (sym q) base))
+lemmaF' M (V-I⇒ b {as' = x₇ ∷ as'} p x₃ ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ x₆ = ⊥-elim (x₁ (V-I b (bubble p) (step p x₃ V)))
+lemmaF' M (VN@(V-I⇒ b {as' = []} p x₃) ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ U with U E (extEC-[]ᴱ E (VN ·-) M) (β (β-sbuiltin b _ p x₃ M V))
+... | refl ,, refl ,, refl with U (compEC' E E') x₂ (β x)
+lemmaF' M (VN@(V-I⇒ b {as' = []} p x₃) ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ U | refl ,, refl ,, refl | refl ,, q ,, refl rewrite determinism⋆ x (β-sbuiltin b _ p x₃ M V) = step*
+  (cong (stepV V) (dissect-lemma E (VN ·-)))
+  (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) q base)
 lemmaF' M (-·⋆ A) E E' L L' V ¬VFM x₁ x₂ = {!!}
 lemmaF' M wrap- E E' L L' V ¬VFM x₁ x₂ = {!!}
 lemmaF' M unwrap- E E' L L' V ¬VFM x₁ x₂ = {!!}
