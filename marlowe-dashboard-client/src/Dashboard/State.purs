@@ -17,9 +17,9 @@ import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderSt
 import Contract.Types (Action(..), State) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Dashboard.Lenses (_cards, _contracts, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _selectedContractIndex, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
-import Dashboard.Types (Action(..), Card(..), ContractStatus(..), Input, PartitionedContracts, Screen(..), State)
-import Data.Array (elem, head, init, partition, reverse, snoc)
+import Dashboard.Lenses (_card, _cardOpen, _contracts, _menuOpen, _remoteWalletInfo, _selectedContract, _selectedContractIndex, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
+import Dashboard.Types (Action(..), Card(..), ContractStatus(..), Input, PartitionedContracts, State)
+import Data.Array (elem, partition)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, filtered, modifying, over, set, use, view)
@@ -42,7 +42,6 @@ import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended.Metadata (_extendedContract, _metaData)
 import Marlowe.PAB (ContractHistory, MarloweParams, PlutusAppId(..), MarloweData)
 import Marlowe.Semantics (Slot(..))
@@ -73,8 +72,8 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
     { walletLibrary
     , walletDetails
     , menuOpen: false
-    , screen: ContractsScreen
-    , cards: mempty
+    , card: Nothing
+    , cardOpen: false
     , status: Running
     , contracts: mapMaybeWithKey mkInitialContractState contracts
     , selectedContractIndex: Nothing
@@ -132,7 +131,7 @@ handleAction input (SaveNewWallet mTokenName) = do
     mWalletId = parsePlutusAppId walletIdString
   case remoteWalletInfo, mWalletId of
     Success walletInfo, Just walletId -> do
-      handleAction input $ CloseCard $ SaveWalletCard Nothing
+      handleAction input CloseCard
       let
         -- note the empty properties are fine for saved wallets - these will be fetched if/when
         -- this wallet is picked up
@@ -157,12 +156,6 @@ handleAction input (SaveNewWallet mTokenName) = do
 
 handleAction _ ToggleMenu = modifying _menuOpen not
 
-handleAction _ (SetScreen screen) =
-  modify_
-    $ set _menuOpen false
-    <<< set _cards mempty
-    <<< set _screen screen
-
 handleAction input (OpenCard card) = do
   case card of
     SaveWalletCard _ -> do
@@ -173,29 +166,16 @@ handleAction input (OpenCard card) = do
       handleAction input $ WalletIdInputAction InputField.Reset
       handleAction input $ WalletIdInputAction $ InputField.SetValidator $ walletIdError NotAsked walletLibrary
     _ -> pure unit
+  assign _card $ Just card -- explain
   modify_
-    $ over _cards (flip snoc card)
+    $ set _cardOpen true
     <<< set _menuOpen false
 
-handleAction _ (CloseCard card) = do
-  cards <- use _cards
-  let
-    topCard = head $ reverse cards
-
-    cardsMatch = case topCard, card of
-      Just (SaveWalletCard _), SaveWalletCard _ -> true
-      Just (ViewWalletCard _), ViewWalletCard _ -> true
-      Just (ContractActionConfirmationCard _), ContractActionConfirmationCard _ -> true
-      _, _ -> topCard == Just card
-  when cardsMatch $ void
-    $ for_ (init cards) \remainingCards ->
-        assign _cards remainingCards
+handleAction _ CloseCard = assign _cardOpen false
 
 handleAction _ (SelectView view) = assign _status view
 
-handleAction input (OpenContract ix) = do
-  assign _selectedContractIndex $ Just ix
-  handleAction input $ OpenCard ContractCard
+handleAction input (SelectContract mFollowerAppId) = assign _selectedContractIndex mFollowerAppId
 
 -- Until everything is working in the PAB, we are simulating persistent and shared data using localStorage; this
 -- action updates the state to match the localStorage, and should be called whenever the stored data changes.
@@ -337,11 +317,11 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
     when (mCurrentTemplate /= Just template) $ assign _templateState $ Template.mkInitialState template
     walletLibrary <- use _walletLibrary
     handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators walletLibrary
-    handleAction input $ SetScreen TemplateScreen
+    handleAction input $ OpenCard ContractSetupCard
   Template.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
   Template.OpenCreateWalletCard tokenName -> handleAction input $ OpenCard $ SaveWalletCard $ Just tokenName
   Template.OpenSetupConfirmationCard -> handleAction input $ OpenCard ContractSetupConfirmationCard
-  Template.CloseSetupConfirmationCard -> handleAction input $ CloseCard ContractSetupConfirmationCard
+  Template.CloseSetupConfirmationCard -> handleAction input CloseCard
   Template.StartContract -> do
     extendedContract <- use (_templateState <<< _template <<< _extendedContract)
     templateContent <- use (_templateState <<< _templateContent)
@@ -371,7 +351,7 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
                 insertIntoContractNicknames followerAppId contractNickname
                 metaData <- use (_templateState <<< _template <<< _metaData)
                 modifying _contracts $ insert followerAppId $ Contract.mkPlaceholderState followerAppId contractNickname metaData contract
-                handleAction input $ SetScreen ContractsScreen
+                handleAction input CloseCard
                 addToast $ successToast "The request to initialise this contract has been submitted."
                 { dataProvider } <- ask
                 when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
@@ -385,8 +365,8 @@ handleAction input@{ currentSlot } (ContractAction contractAction) = do
     Contract.AskConfirmation action -> handleAction input $ OpenCard $ ContractActionConfirmationCard action
     Contract.ConfirmAction action -> do
       void $ toContract $ Contract.handleAction contractInput contractAction
-      handleAction input $ CloseCard $ ContractActionConfirmationCard CloseContract
-    Contract.CancelConfirmation -> handleAction input $ CloseCard $ ContractActionConfirmationCard CloseContract
+      handleAction input CloseCard
+    Contract.CancelConfirmation -> handleAction input CloseCard
     _ -> toContract $ Contract.handleAction contractInput contractAction
 
 ------------------------------------------------------------

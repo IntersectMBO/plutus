@@ -2,8 +2,8 @@ module Dashboard.Lenses
   ( _walletLibrary
   , _walletDetails
   , _menuOpen
-  , _screen
-  , _cards
+  , _card
+  , _cardOpen
   , _status
   , _contracts
   , _selectedContractIndex
@@ -16,7 +16,7 @@ module Dashboard.Lenses
 
 import Prelude
 import Contract.Types (State) as Contract
-import Dashboard.Types (Card, ContractStatus, Screen, State)
+import Dashboard.Types (Card, ContractStatus, State)
 import Data.Lens (Lens', Traversal', set, wander)
 import Data.Lens.Record (prop)
 import Data.Map (Map, insert, lookup)
@@ -38,11 +38,11 @@ _walletDetails = prop (SProxy :: SProxy "walletDetails")
 _menuOpen :: Lens' State Boolean
 _menuOpen = prop (SProxy :: SProxy "menuOpen")
 
-_screen :: Lens' State Screen
-_screen = prop (SProxy :: SProxy "screen")
+_card :: Lens' State (Maybe Card)
+_card = prop (SProxy :: SProxy "card")
 
-_cards :: Lens' State (Array Card)
-_cards = prop (SProxy :: SProxy "cards")
+_cardOpen :: Lens' State Boolean
+_cardOpen = prop (SProxy :: SProxy "cardOpen")
 
 _status :: Lens' State ContractStatus
 _status = prop (SProxy :: SProxy "status")

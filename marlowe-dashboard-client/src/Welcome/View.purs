@@ -1,4 +1,7 @@
-module Welcome.View (renderWelcomeState) where
+module Welcome.View
+  ( welcomeScreen
+  , welcomeCard
+  ) where
 
 import Prelude hiding (div)
 import Css as Css
@@ -8,10 +11,10 @@ import Data.List (toUnfoldable) as List
 import Data.Map (values)
 import Data.Maybe (Maybe(..), isJust)
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, iframe, img, label, main, p, span_, text)
+import Halogen.HTML (HTML, a, br_, button, div, h2, hr, iframe, img, label, main, p, section, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (disabled, for, href, src, title)
-import Images (backgroundShape, marloweRunLogo)
+import Images (marloweRunLogo)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (InputDisplayOptions)
@@ -20,38 +23,53 @@ import Material.Icons (Icon(..), icon, icon_)
 import Network.RemoteData (isSuccess)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
-import Welcome.Lenses (_card, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
-renderWelcomeState :: forall p. State -> HTML p Action
-renderWelcomeState state =
-  div
-    [ classNames [ "grid", "h-full", "relative", "overflow-x-hidden" ] ]
-    [ div
-        [ classNames $ [ "hidden", "lg:block", "absolute", "top-0", "right-0" ] ]
-        [ img [ src backgroundShape ] ]
-    , main
-        [ classNames [ "relative" ] ]
-        -- In the Dashboard view, there are potentially many cards all inside a containing div,
-        -- and the last one has a semi-transparent overlay (using class "last:bg-overlay").
-        -- Here in the Welcome view there is at most one card, but we need to put it inside
-        -- a containing div as well, so that it's the last child, and has the bg-overlay
-        -- applied.
-        [ div_ [ renderWelcomeCard state ]
-        , renderWelcomeScreen state
+welcomeScreen :: forall p. State -> HTML p Action
+welcomeScreen state =
+  main
+    [ classNames
+        [ "h-full"
+        , "overflow-x-hidden"
+        , "grid"
+        , "gap-8"
+        , "grid-rows-welcome"
+        , "lg:grid-rows-welcome-lg"
+        , "lg:grid-cols-welcome"
+        , "bg-background-shape"
+        , "bg-right-top"
+        , "bg-no-repeat"
+        , "p-4"
         ]
     ]
-
-------------------------------------------------------------
-renderWelcomeScreen :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
-renderWelcomeScreen state =
-  div
-    [ classNames [ "absolute", "top-0", "bottom-0", "left-0", "right-0", "overflow-auto", "p-4", "z-0", "grid", "gap-8", "grid-rows-welcome", "lg:grid-cols-welcome" ] ]
     [ useWalletBox state
     , gettingStartedBox
     ]
 
-useWalletBox :: forall p. State -> HTML p Action
+welcomeCard :: forall p. State -> HTML p Action
+welcomeCard state =
+  let
+    card = view _card state
+
+    cardOpen = view _cardOpen state
+
+    cardClasses = if card == Just GetStartedHelpCard then Css.videoCard else Css.card
+  in
+    div
+      [ classNames $ Css.cardOverlay cardOpen ]
+      [ div
+          [ classNames $ cardClasses cardOpen ]
+          $ (flip foldMap card) \cardType -> case cardType of
+              GetStartedHelpCard -> getStartedHelpCard
+              GenerateWalletHelpCard -> generateWalletHelpCard
+              UseNewWalletCard -> useNewWalletCard state
+              UseWalletCard -> useWalletCard state
+              LocalWalletMissingCard -> localWalletMissingCard
+      ]
+
+------------------------------------------------------------
+useWalletBox :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
 useWalletBox state =
   let
     walletLibrary = view _walletLibrary state
@@ -69,7 +87,7 @@ useWalletBox state =
       , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
       }
   in
-    main
+    section
       [ classNames [ "row-start-2", "lg:col-start-2", "bg-white", "rounded-lg", "shadow-lg", "p-8", "pt-12", "lg:px-12", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box" ] ]
       [ img
           [ classNames [ "mx-auto", "mb-6", "text-center" ]
@@ -120,7 +138,7 @@ useWalletBox state =
 
 gettingStartedBox :: forall p. HTML p Action
 gettingStartedBox =
-  div
+  section
     [ classNames [ "row-start-3", "lg:row-start-2", "lg:col-start-3", "max-w-sm", "mx-auto", "lg:max-w-none", "lg:w-welcome-box", "flex", "flex-col", "justify-center" ] ]
     [ a
         [ classNames [ "text-purple", "text-center", "lg:hidden" ]
@@ -147,30 +165,11 @@ gettingStartedBox =
     ]
 
 ------------------------------------------------------------
-renderWelcomeCard :: forall p. State -> HTML p Action
-renderWelcomeCard state =
-  let
-    card = view _card state
-
-    cardClasses = if card == Just GetStartedHelpCard then Css.videoCard else Css.card
-  in
-    div
-      [ classNames $ Css.overlay $ isJust card ]
-      [ div
-          [ classNames $ cardClasses $ isJust card ]
-          $ (flip foldMap card) \cardType -> case cardType of
-              GetStartedHelpCard -> getStartedHelpCard
-              GenerateWalletHelpCard -> generateWalletHelpCard
-              UseNewWalletCard -> useNewWalletCard state
-              UseWalletCard -> useWalletCard state
-              LocalWalletMissingCard -> localWalletMissingCard
-      ]
-
 getStartedHelpCard :: forall p. Array (HTML p Action)
 getStartedHelpCard =
   [ a
       [ classNames [ "absolute", "-top-10", "right-0", "lg:-right-10" ]
-      , onClick_ $ CloseCard GetStartedHelpCard
+      , onClick_ CloseCard
       ]
       [ icon Close [ "text-lg", "rounded-full", "bg-white", "p-2" ] ]
   , div
@@ -207,12 +206,12 @@ generateWalletHelpCard =
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ $ CloseCard GenerateWalletHelpCard
+              , onClick_ CloseCard
               ]
               [ text "Cancel" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , onClick_ $ CloseCard GenerateWalletHelpCard
+              , onClick_ CloseCard
               ]
               [ text "Got it" ]
           ]
@@ -232,7 +231,7 @@ useNewWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ $ CloseCard UseNewWalletCard
+        , onClick_ CloseCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
@@ -262,7 +261,7 @@ useNewWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ $ CloseCard UseNewWalletCard
+                , onClick_ CloseCard
                 ]
                 [ text "Cancel" ]
             , button
@@ -288,7 +287,7 @@ useWalletCard state =
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
-        , onClick_ $ CloseCard UseWalletCard
+        , onClick_ CloseCard
         ]
         [ icon_ Close ]
     , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
@@ -318,7 +317,7 @@ useWalletCard state =
             [ classNames [ "flex" ] ]
             [ button
                 [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-                , onClick_ $ CloseCard UseWalletCard
+                , onClick_ CloseCard
                 ]
                 [ text "Cancel" ]
             , button
@@ -363,7 +362,7 @@ localWalletMissingCard =
       [ classNames $ Css.card true ]
       [ a
           [ classNames [ "absolute", "top-4", "right-4" ]
-          , onClick_ $ CloseCard LocalWalletMissingCard
+          , onClick_ CloseCard
           ]
           [ icon_ Close ]
       , div [ classNames [ "flex", "font-semibold", "px-5", "py-4", "bg-gray" ] ]

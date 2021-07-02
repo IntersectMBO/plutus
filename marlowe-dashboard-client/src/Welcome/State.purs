@@ -33,7 +33,7 @@ import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNickname
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
-import Welcome.Lenses (_card, _enteringDashboardState, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 -- see note [dummyState] in MainFrame.State
@@ -44,6 +44,7 @@ mkInitialState :: WalletLibrary -> State
 mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
+  , cardOpen: false
   , walletNicknameOrIdInput: InputField.initialState
   , walletNicknameInput: InputField.initialState
   , walletIdInput: InputField.initialState
@@ -62,18 +63,19 @@ handleAction ::
   ManageMarloweStorage m =>
   Toast m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction (OpenCard card) = assign _card $ Just card
+handleAction (OpenCard card) =
+  modify_
+    $ set _card (Just card)
+    <<< set _cardOpen true
 
-handleAction (CloseCard card) = do
-  currentCard <- use _card
-  when (currentCard == Just card) do
-    modify_
-      $ set _remoteWalletDetails NotAsked
-      <<< set _enteringDashboardState false
-      <<< set _card Nothing
-    handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
-    handleAction $ WalletNicknameInputAction $ InputField.Reset
-    handleAction $ WalletIdInputAction $ InputField.Reset
+handleAction CloseCard = do
+  modify_
+    $ set _remoteWalletDetails NotAsked
+    <<< set _enteringDashboardState false
+    <<< set _cardOpen false
+  handleAction $ WalletNicknameOrIdInputAction $ InputField.Reset
+  handleAction $ WalletNicknameInputAction $ InputField.Reset
+  handleAction $ WalletIdInputAction $ InputField.Reset
 
 handleAction GenerateWallet = do
   walletLibrary <- use _walletLibrary
@@ -154,8 +156,7 @@ handleAction (UseWallet walletNickname) = do
     _ -> do
       -- this should never happen (the button to use a wallet should be disabled unless
       -- remoteWalletDetails is Success), but let's add some sensible behaviour anyway just in case
-      handleAction $ CloseCard UseWalletCard -- either of these cards could be open at
-      handleAction $ CloseCard UseNewWalletCard -- this point, so we close both to be sure
+      handleAction CloseCard
       addToast $ errorToast "Unable to use this wallet." $ Just "Details for this wallet could not be loaded."
 
 handleAction ClearLocalStorage = do

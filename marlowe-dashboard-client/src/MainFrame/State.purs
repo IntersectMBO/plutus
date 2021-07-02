@@ -40,7 +40,7 @@ import WalletData.Lenses (_assets, _companionAppId, _marloweAppId, _previousComp
 import WebSocket.Support as WS
 import Welcome.Lenses (_walletLibrary)
 import Welcome.State (handleAction, dummyState, mkInitialState) as Welcome
-import Welcome.Types (Action(..), Card(..), State) as Welcome
+import Welcome.Types (Action(..), State) as Welcome
 
 mkMainFrame ::
   forall m.
@@ -195,10 +195,7 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
   ajaxFollowerApps <- getFollowerApps walletDetails
   currentSlot <- use _currentSlot
   case ajaxFollowerApps of
-    Left decodedAjaxError -> do
-      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseWalletCard
-      handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseNewWalletCard
-      addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
+    Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
     Right followerApps -> do
       { dataProvider } <- ask
       let
@@ -215,8 +212,7 @@ handleAction (EnterDashboardState walletLibrary walletDetails) = do
       ajaxRoleContracts <- getRoleContracts walletDetails
       case ajaxRoleContracts of
         Left decodedAjaxError -> do
-          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseWalletCard
-          handleAction $ WelcomeAction $ Welcome.CloseCard Welcome.UseNewWalletCard
+          handleAction $ WelcomeAction Welcome.CloseCard
           addToast $ decodedAjaxErrorToast "Failed to load wallet contracts." decodedAjaxError
         Right companionState -> handleAction $ DashboardAction $ Dashboard.UpdateFollowerApps companionState
 

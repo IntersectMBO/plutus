@@ -153,7 +153,7 @@ cardNavigationButtons state =
               ]
               [ text "Next" ]
   in
-    div [ classNames [ "mb-6", "flex", "items-center", "w-full", "px-6", "md:px-5pc" ] ]
+    div [ classNames [ "mb-6", "flex", "items-center", "w-full", "px-6" ] ]
       $ Array.catMaybes
           [ leftButton (state ^. _selectedStep)
           , rightButton (state ^. _selectedStep)

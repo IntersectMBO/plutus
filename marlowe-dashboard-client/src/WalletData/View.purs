@@ -84,7 +84,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ $ CloseCard $ SaveWalletCard Nothing
+              , onClick_ CloseCard
               ]
               [ text "Cancel" ]
           , button
@@ -159,7 +159,7 @@ putdownWalletCard walletDetails =
           [ classNames [ "flex" ] ]
           [ button
               [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ $ CloseCard PutdownWalletCard
+              , onClick_ CloseCard
               ]
               [ text "Cancel" ]
           , button
@@ -173,7 +173,7 @@ putdownWalletCard walletDetails =
 walletLibraryScreen :: forall p. WalletLibrary -> HTML p Action
 walletLibraryScreen library =
   div
-    [ classNames [ "p-4", "md:px-5pc" ] ]
+    [ classNames [ "p-4" ] ]
     [ h2
         [ classNames [ "font-semibold", "text-lg", "mb-4" ] ]
         [ text "Contacts" ]
