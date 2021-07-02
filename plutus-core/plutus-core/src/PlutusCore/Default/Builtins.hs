@@ -90,6 +90,7 @@ data DefaultFun
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
+    | ChooseUnit
     -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
     | Nop1
     | Nop2
@@ -328,6 +329,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 I      {} -> xI
                 B      {} -> xB)
             mempty
+    toBuiltinMeaning ChooseUnit =
+        makeBuiltinMeaning
+            (\() a -> a)
+            mempty
 
 -- See Note [Stable encoding of PLC]
 instance Serialise DefaultFun where
@@ -380,6 +385,7 @@ instance Serialise DefaultFun where
               UnBData                  -> 45
               EqualsData               -> 46
               ChooseData               -> 47
+              ChooseUnit               -> 48
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -430,6 +436,7 @@ instance Serialise DefaultFun where
               go 45 = pure UnBData
               go 46 = pure EqualsData
               go 47 = pure ChooseData
+              go 48 = pure ChooseUnit
               go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
@@ -496,6 +503,7 @@ instance Flat DefaultFun where
               UnBData                  -> 45
               EqualsData               -> 46
               ChooseData               -> 47
+              ChooseUnit               -> 48
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -546,6 +554,7 @@ instance Flat DefaultFun where
               go 45 = pure UnBData
               go 46 = pure EqualsData
               go 47 = pure ChooseData
+              go 48 = pure ChooseUnit
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth

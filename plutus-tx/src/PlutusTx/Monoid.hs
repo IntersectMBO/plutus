@@ -33,7 +33,7 @@ instance Monoid Builtins.ByteString where
     {-# INLINABLE mempty #-}
     mempty = Builtins.emptyByteString
 
-instance Monoid Builtins.String where
+instance Monoid Builtins.BuiltinString where
     {-# INLINABLE mempty #-}
     mempty = Builtins.emptyString
 

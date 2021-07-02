@@ -22,7 +22,7 @@ instance Semigroup Builtins.ByteString where
     {-# INLINABLE (<>) #-}
     (<>) = Builtins.concatenate
 
-instance Semigroup Builtins.String where
+instance Semigroup Builtins.BuiltinString where
     {-# INLINABLE (<>) #-}
     (<>) = Builtins.appendString
 

@@ -63,9 +63,10 @@ library
         PlutusTx.Lift
         PlutusTx.Lift.Class
         PlutusTx.Builtins
+        PlutusTx.Builtins.Class
+        PlutusTx.Builtins.Internal
         PlutusTx.Plugin.Utils
         PlutusTx.Utils
-        PlutusTx.String
     other-modules:
         PlutusTx.IsData.Instances
         PlutusTx.IsData.TH
@@ -74,7 +75,6 @@ library
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
-        cborg -any,
         deepseq -any,
         template-haskell >=2.13.0.0,
         th-abstraction -any,
@@ -83,7 +83,6 @@ library
         mtl -any,
         containers -any,
         flat -any,
-        serialise -any,
         plutus-core -any,
         lens -any,
         ghc-prim -any,
