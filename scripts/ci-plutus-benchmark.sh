@@ -31,7 +31,7 @@ if [ -z "$PR_NUMBER" ] ; then
 fi
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for PR $PR_NUMBER"
 PR_BRANCH_REF=$(git show-ref -s HEAD)
-echo "PR_BRANCH_REF=$PR_BRANCH_REF"
+echo "### PR_BRANCH_REF=$PR_BRANCH_REF"
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
@@ -42,7 +42,7 @@ cabal bench plutus-benchmark:validation --benchmark-option stablecoin >bench-PR.
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD master)"
 BASE_BRANCH_REF=$(git show-ref -s HEAD)
-echo "BASE_BRANCH_REF=$BASE_BRANCH_REF"
+echo "### BASE_BRANCH_REF=$BASE_BRANCH_REF"
 
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
