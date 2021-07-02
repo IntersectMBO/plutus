@@ -153,13 +153,6 @@ unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (TxPrelude.nubBy eq ys) xs
 union :: (Eq a) => [a] -> [a] -> [a]
 union                   = unionBy (==)
 
--- % Things needed for `sortBy`
-instance TxPrelude.Eq Ordering where
-    LT == LT = True
-    EQ == EQ = True
-    GT == GT = True
-    _ == _   = False
-
 {-# INLINABLE sortBy #-}
 -- % Stolen from Data.List
 sortBy :: (a -> a -> Ordering) -> [a] -> [a]
