@@ -847,6 +847,7 @@ refocus E (wrap A B M) (V-wrap VM) E₁ L r p | inj₂ (_ ,, E₂ ,, unwrap-) | 
 ... | refl ,, refl ,, refl = locate E₂ unwrap- [] refl (V-wrap VM) (λ V → valred (Value2VALUE V) (β-wrap VM)) [] (sym (extEC-[]ᴱ E₂ unwrap- (wrap A B M)))
 
 
+{-
 lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
       → ∀ (E' : EC B A')(L : ∅ ⊢ A')
       → (V : Value M)
@@ -854,7 +855,17 @@ lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
       → ¬ (Value (F [ M ]ᶠ))
       → extEC E F [ M ]ᴱ ≡ (compEC' E E') [ L ]ᴱ
       → (extEC E F ◅ V) -→s (compEC' E E' ▻ L)
-lemmaF M F E E' L V x x₁ x₂ = {!!}
+      -- idea change this to put the output of a primitive redex in
+      -- focus, not the input
+-}
+lemmaF' : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
+      → ∀ (E' : EC B A')(L L' : ∅ ⊢ A')
+      → (V : Value M)
+      → L —→⋆ L'
+      → ¬ (Value (F [ M ]ᶠ))
+      → extEC E F [ M ]ᴱ ≡ (compEC' E E') [ L ]ᴱ
+      → (extEC E F ◅ V) -→s (compEC' E E' ▻ L')
+lemmaF' M F E E' L L' V x x₁ x₂ = {!!}
 
 lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
 lem-→s⋆ E (β-ƛ V) = step*
@@ -910,7 +921,11 @@ thm1 M _ E refl O V (trans—↠ q q') with focus M E _ q
 ... | local E' L err x₁ refl rewrite determinism q (ruleErr E' x₁) = ⊥-elim (valerr E-error (subst Value (err—↠ q') V))
 ... | nonlocal E' L err p VM rewrite determinism q (ruleErr E' p) = ⊥-elim (valerr E-error (subst Value (err—↠ q') V))
 ... | nonlocal E' L (β r) p VM with refocus E M VM E' L (β r) p
-... | locate E₂ F E₃ refl VE₃M x₂ E₄ x₃ = step** (unwindE M (E₃ [ M ]ᴱ) (extEC E₂ F) E₃ refl VE₃M) (step** (lemmaF (E₃ [ M ]ᴱ) F E₂ E₄ L VE₃M (β r) x₂ (trans (trans (compEC-[]ᴱ (extEC E₂ F) E₃ M) (cong (_[ M ]ᴱ) (compEC-eq (extEC E₂ F) E₃))) (sym x₃))) (step** (lem-→s⋆ (compEC' E₂ E₄) r) ((thm1 _ _ (compEC' E₂ E₄) (determinism q (ruleEC (compEC' E₂ E₄) r (sym x₃) refl)) O V q'))))
+... | locate E₂ F E₃ refl VE₃M x₂ E₄ x₃ = step** (unwindE M (E₃ [ M ]ᴱ) (extEC E₂ F) E₃ refl VE₃M) (step** (lemmaF' (E₃ [ M ]ᴱ) F E₂ E₄ L _ VE₃M r x₂ (trans (trans (compEC-[]ᴱ (extEC E₂ F) E₃ M) (cong (_[ M ]ᴱ) (compEC-eq (extEC E₂ F) E₃))) (sym x₃))) (thm1 _ _ (compEC' E₂ E₄) (determinism q (ruleEC (compEC' E₂ E₄) r (sym x₃) refl)) O V q'))
+
+{-
+step** (unwindE M (E₃ [ M ]ᴱ) (extEC E₂ F) E₃ refl VE₃M) (step** (lemmaF (E₃ [ M ]ᴱ) F E₂ E₄ L VE₃M (β r) x₂ (trans (trans (compEC-[]ᴱ (extEC E₂ F) E₃ M) (cong (_[ M ]ᴱ) (compEC-eq (extEC E₂ F) E₃))) (sym x₃))) (step** (lem-→s⋆ (compEC' E₂ E₄) r) ((thm1 _ _ (compEC' E₂ E₄) (determinism q (ruleEC (compEC' E₂ E₄) r (sym x₃) refl)) O V q'))))
+-}
 
 {-
 data Refocussing
