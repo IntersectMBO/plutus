@@ -950,9 +950,14 @@ lemmaF' M (-·⋆ A) E E' L L' VM@(V-IΠ b {as' = []} p x₅) x x₁ x₂ | step
   (cong (stepV VM) (dissect-lemma E (-·⋆ A)))
   (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) (sym q) base)
 lemmaF' M (-·⋆ A) E E' L L' (V-IΠ b {as' = x₆ ∷ as'} p x₅) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl = ⊥-elim (x₁ (V-I b (bubble p) (step⋆ p x₅)))
-
-lemmaF' M wrap- E E' L L' V x x₁ x₂ = {!!}
-lemmaF' M unwrap- E E' L L' V x x₁ x₂ = {!!}
+lemmaF' M wrap- E E' L L' V x x₁ x₂ = ⊥-elim (x₁ (V-wrap V))
+lemmaF' (wrap A B M) unwrap- E E' L L' (V-wrap V) x x₁ x₂ with rlemma51! (extEC E unwrap- [ wrap A B M ]ᴱ)
+... | done VEunwrapwrapV = ⊥-elim (x₁ (VALUE2Value (lemVE (unwrap (wrap A B M)) E (Value2VALUE (subst Value (extEC-[]ᴱ E unwrap- (wrap A B M)) VEunwrapwrapV)))))
+... | step ¬VEunwrapwrapV E₁ x₄ x₅ U with U (compEC' E E') x₂ (β x)
+lemmaF' (wrap A B M) unwrap- E E' L L' (V-wrap V) x x₁ x₂ | step ¬VEunwrapwrapV E₁ x₄ x₅ U | refl ,, refl ,, refl with U E (extEC-[]ᴱ E unwrap- (wrap A B M)) (β (β-wrap V))
+lemmaF' (wrap A B M) unwrap- E E' L L' (V-wrap V) x x₁ x₂ | step ¬VEunwrapwrapV E₁ x₄ x₅ U | refl ,, refl ,, refl | refl ,, q ,, refl rewrite determinism⋆ x (β-wrap V) = step*
+  (cong (stepV (V-wrap V)) (dissect-lemma E unwrap-))
+  (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) (sym q) base)
 
 err—→ : ∀{A}{M} → error A —→ M → M ≡ error A
 err—→ (ruleEC [] () refl refl)
@@ -975,3 +980,6 @@ thm1 M _ E refl O V (trans—↠ q q') with focus M E _ q
 ... | nonlocal E' L err p VM rewrite determinism q (ruleErr E' p) = ⊥-elim (valerr E-error (subst Value (err—↠ q') V))
 ... | nonlocal E' L (β r) p VM with refocus E M VM E' L (β r) p
 ... | locate E₂ F E₃ refl VE₃M x₂ E₄ x₃ = step** (unwindE M (E₃ [ M ]ᴱ) (extEC E₂ F) E₃ refl VE₃M) (step** (lemmaF' (E₃ [ M ]ᴱ) F E₂ E₄ L _ VE₃M r x₂ (trans (trans (compEC-[]ᴱ (extEC E₂ F) E₃ M) (cong (_[ M ]ᴱ) (compEC-eq (extEC E₂ F) E₃))) (sym x₃))) (thm1 _ _ (compEC' E₂ E₄) (determinism q (ruleEC (compEC' E₂ E₄) r (sym x₃) refl)) O V q'))
+
+thm2 : ∀{A}(M N : ∅ ⊢ A)(V : Value N) → M —↠ N → ([] ▻ M) -→s ([] ◅ V)
+thm2 M N V p = thm1 M M [] refl N V p
