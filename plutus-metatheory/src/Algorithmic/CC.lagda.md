@@ -847,26 +847,6 @@ refocus E (wrap A B M) (V-wrap VM) E₁ L r p | inj₂ (_ ,, E₂ ,, unwrap-) | 
 ... | refl ,, refl ,, refl = locate E₂ unwrap- [] refl (V-wrap VM) (λ V → valred (Value2VALUE V) (β-wrap VM)) [] (sym (extEC-[]ᴱ E₂ unwrap- (wrap A B M)))
 
 
-{-
-lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
-      → ∀ (E' : EC B A')(L : ∅ ⊢ A')
-      → (V : Value M)
-      → Redex L
-      → ¬ (Value (F [ M ]ᶠ))
-      → extEC E F [ M ]ᴱ ≡ (compEC' E E') [ L ]ᴱ
-      → (extEC E F ◅ V) -→s (compEC' E E' ▻ L)
-      -- idea change this to put the output of a primitive redex in
-      -- focus, not the input
--}
-lemmaF' : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
-      → ∀ (E' : EC B A')(L L' : ∅ ⊢ A')
-      → (V : Value M)
-      → L —→⋆ L'
-      → ¬ (Value (F [ M ]ᶠ))
-      → extEC E F [ M ]ᴱ ≡ (compEC' E E') [ L ]ᴱ
-      → (extEC E F ◅ V) -→s (compEC' E E' ▻ L')
-lemmaF' M F E E' L L' V x x₁ x₂ = {!!}
-
 lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
 lem-→s⋆ E (β-ƛ V) = step*
   refl
@@ -899,6 +879,56 @@ lem-→s⋆ E (β-sbuiltin⋆ b t p bt A) with bappTypeLem b t p (BApp2BAPP bt)
   (step** (lemV t (V-IΠ b p bt) (extEC E (-·⋆ A)))
           (step* (cong (stepV (V-IΠ b p bt)) (dissect-lemma E (-·⋆ A))) base))
 
+{-
+lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
+      → ∀ (E' : EC B A')(L : ∅ ⊢ A')
+      → (V : Value M)
+      → Redex L
+      → ¬ (Value (F [ M ]ᶠ))
+      → extEC E F [ M ]ᴱ ≡ (compEC' E E') [ L ]ᴱ
+      → (extEC E F ◅ V) -→s (compEC' E E' ▻ L)
+      -- this would work for the textbook CC machine
+      -- but not our CC machine which is technically the SCC machine
+-}
+lemmaF' : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
+      → ∀ (E' : EC B A')(L L' : ∅ ⊢ A')
+      → (V : Value M)
+      → L —→⋆ L'
+      → ¬ (Value (F [ M ]ᶠ))
+      → extEC E F [ M ]ᴱ ≡ (compEC' E E') [ L ]ᴱ
+      → (extEC E F ◅ V) -→s (compEC' E E' ▻ L')
+lemmaF' M (-· N) E E' L L' V r ¬VFM x₁ with rlemma51! N
+... | step ¬VN  E₁ x₃ refl U with rlemma51! (extEC E (-· N) [ M ]ᴱ)
+... | done VMN = ⊥-elim (¬VFM (VALUE2Value (lemVE (M · E₁ [ _ ]ᴱ) E (Value2VALUE (subst Value (extEC-[]ᴱ E (-· (E₁ [ _ ]ᴱ)) M) VMN))) ))
+... | step ¬VEMN E₂ x₆ x₇ U' with U' (compEC' E E') x₁ (β r)
+... | refl ,, refl ,, refl with U' (compEC' (extEC E (V ·-)) E₁) (trans (extEC-[]ᴱ E (-· N) M) (trans (trans (sym (extEC-[]ᴱ E (V ·-) _)) (compEC-[]ᴱ (extEC E (V ·-)) E₁ _)) (cong (_[ _ ]ᴱ) (compEC-eq (extEC E (V ·-)) E₁)))) x₃
+... | refl ,, x ,, refl rewrite x = step* (cong (stepV V) (dissect-lemma E (-· (E₁ [ L ]ᴱ)))) (step** (lem62 L (extEC E (V ·-)) E₁) (lem-→s⋆ _ r)) 
+lemmaF' .(ƛ M) (-· N) E E' L L' (V-ƛ M) r ¬VFM x₁ | done VN with rlemma51! (extEC E (-· N) [ ƛ M ]ᴱ)
+... | done VƛMN = ⊥-elim (lemVβ (lemVE _ E (Value2VALUE (subst Value (extEC-[]ᴱ E (-· N) (ƛ M)) VƛMN))))
+... | step ¬VƛMN E₁ x₂ x₃ U with U E (extEC-[]ᴱ E (-· N) (ƛ M)) (β (β-ƛ VN))
+... | refl ,, refl ,, refl with U (compEC' E E') x₁ (β r)
+lemmaF' .(ƛ M) (-· N) E E' L _ (V-ƛ M) (β-ƛ _) ¬VFM x₁ | done VN | step ¬VƛMN E₁ x₂ x₃ U | refl ,, refl ,, refl | refl ,, x ,, refl = step*
+  (cong (stepV (V-ƛ M)) (dissect-lemma E (-· N)))
+  (step** (lemV N VN (extEC E (V-ƛ M ·-)))
+          (step* (cong (stepV VN) (dissect-lemma E (V-ƛ M ·-))) (subst (λ E' →  (E ▻ (M [ N ])) -→s (E' ▻ (M [ N ]))) x base)))
+
+lemmaF' M (-· N) E E' L L' V@(V-I⇒ b {as' = []} p x) r ¬VFM x₁ | done VN with rlemma51! (extEC E (-· N) [ M ]ᴱ)
+... | done VMN = {!!}
+... | step ¬VMN E₁ x₃ x₄ U with U E (extEC-[]ᴱ E (-· N) M) (β (β-sbuiltin b M p x N VN))
+... | refl ,, refl ,, refl with U (compEC' E E') x₁ (β r)
+lemmaF' M (-· N) E E' .(M · N) _ V@(V-I⇒ b {as' = []} p x) (β-sbuiltin b₁ .M p₁ bt .N vu) ¬VFM x₁ | done VN | step ¬VMN E x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl with uniqueVal N VN vu | uniqueVal M V (V-I⇒ b₁ p₁ bt)
+... | refl | refl = step*
+  (cong (stepV V) (dissect-lemma E (-· N)))
+  (step** (lemV N VN (extEC E (V ·-)))
+          (step* (cong (stepV VN) (dissect-lemma E (V ·-))) (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) q base)))
+lemmaF' M (-· N) E E' L L' (V-I⇒ b {as' = x₂ ∷ as'} p x) r ¬VFM x₁ | done VN =
+  ⊥-elim (¬VFM (V-I b (bubble p) (step p x VN)))
+
+lemmaF' M (VN ·-) E E' L L' V ¬VFM x₁ x₂ = {!!}
+lemmaF' M (-·⋆ A) E E' L L' V ¬VFM x₁ x₂ = {!!}
+lemmaF' M wrap- E E' L L' V ¬VFM x₁ x₂ = {!!}
+lemmaF' M unwrap- E E' L L' V ¬VFM x₁ x₂ = {!!}
+
 err—→ : ∀{A}{M} → error A —→ M → M ≡ error A
 err—→ (ruleEC [] () refl refl)
 err—→ (ruleErr E x) = refl
@@ -906,8 +936,6 @@ err—→ (ruleErr E x) = refl
 err—↠ : ∀{A}{M} → error A —↠ M → M ≡ error A
 err—↠ refl—↠        = refl
 err—↠ (trans—↠ x p) rewrite err—→ x = err—↠ p
-
-
 
 thm1 : ∀{A B}(M : ∅ ⊢ A)(M' : ∅ ⊢ B)(E : EC B A)
   → M' ≡ E [ M ]ᴱ → (O : ∅ ⊢ B)(V : Value O)
