@@ -21,11 +21,11 @@ excludedTestCases =
   ]
 
 
-pathToTests :: IO String
-pathToTests = do
+pathToTestData :: IO String
+pathToTestData = do
   getEnv "ACTUS_TEST_DATA_DIR"
 
 pamStaticFromFile :: IO ()
 pamStaticFromFile = do
-  testPath <- pathToTests
-  assertTestResultsFromFile excludedTestCases (testPath ++ "actus-tests-pam.json")
+  testDataPath <- pathToTestData
+  assertTestResultsFromFile excludedTestCases (testDataPath ++ "actus-tests-pam.json")
