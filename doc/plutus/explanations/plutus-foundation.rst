@@ -18,7 +18,7 @@ Plutus Core is a variant of the lambda calculus, a well-studied formalism for co
     Dealing with that is the compiler's job.
 
 Plutus Core is designed for simplicity, determinism, and to allow careful cost control of program execution.
-Using a the lambda calculus makes it an easy compilation target for functional programming languages, and allows us to have a simple, formally verified evaluator.
+Using the lambda calculus makes it an easy compilation target for functional programming languages, and allows us to have a simple, formally verified evaluator.
 
 Plutus Tx
 ---------
