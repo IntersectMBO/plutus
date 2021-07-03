@@ -8,12 +8,10 @@
 @import './header.css';
 @import './panels.css';
 @import './panel-mobile.css';
-@import './wallet.css';
 @import './main-tabs.css';
 @import './table.css';
 @import './animations.css';
 @import './github-input.css';
-@import './home.css';
 @import './projects.css';
 @import './new-project.css';
 @import './demos.css';
@@ -21,6 +19,7 @@
 @import './confirm_unsaved_navigation.css';
 @import './simulation.css';
 @import './save-as-modal.css';
+@import './../../web-common/static/tooltip.css';
 
 /* @tailwind base; */
 @tailwind components;
@@ -155,4 +154,14 @@ a:hover {
 
 .monaco-readonly-decoration {
     background-color: #fafafa;
+}
+
+.monaco-simulation-text-decoration {
+  background-color: rgba(173, 216, 230, 0.3)
+}
+
+.monaco-simulation-line-decoration {
+  background: lightblue;
+  width: 5px !important;
+  margin-left: 3px;
 }

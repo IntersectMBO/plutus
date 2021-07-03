@@ -9,9 +9,16 @@
 { system ? builtins.currentSystem
 , crossSystem ? null
 , config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
-  # Overrides for niv
 , sourcesOverride ? { }
-, packages ? import ./nix { inherit system crossSystem config sourcesOverride checkMaterialization enableHaskellProfiling; }
+, sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
+, isInFlake ? false
+, haskellNix ? import sources."haskell.nix" {
+    sourcesOverride = {
+      hackage = sources."hackage.nix";
+      stackage = sources."stackage.nix";
+    };
+  }
+, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix isInFlake checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
   # false, generally, since it does more work, but we set it to true in the CI
@@ -68,6 +75,14 @@ rec {
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit webCommon webCommonMarlowe;
     }) client server-invoker generated-purescript generate-purescript contractsJSON install-marlowe-contracts;
+  };
+
+  marlowe-dashboard-fake-pab = pkgs.recurseIntoAttrs rec {
+    inherit (pkgs.callPackage ./fake-pab {
+      inherit plutus-pab marlowe-app marlowe-companion-app marlowe-follow-app;
+      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
+      inherit haskell webCommon webCommonMarlowe;
+    }) client fake-pab-exe fake-pab-generated-purescript;
   };
 
   marlowe-marketplace = pkgs.recurseIntoAttrs rec {

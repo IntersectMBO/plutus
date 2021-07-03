@@ -1,19 +1,23 @@
 { pkgs, gitignore-nix, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules, filterNpm }:
 let
   server-invoker = haskell.packages.plutus-pab.components.exes.plutus-pab;
+  test-generator = haskell.packages.plutus-pab.components.exes.plutus-pab-test-psgenerator;
 
   generated-purescript = pkgs.runCommand "plutus-pab-purescript" { } ''
     mkdir $out
     ln -s ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
     ${server-invoker}/bin/plutus-pab psgenerator $out
+    ${test-generator}/bin/plutus-pab-test-psgenerator $out
   '';
 
   # For dev usage
   generate-purescript = pkgs.writeShellScriptBin "plutus-pab-generate-purs" ''
-    rm -rf ./generated
+    generatedDir=./generated
+    rm -rf $generatedDir
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator generated
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator $generatedDir
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.test-generator)/bin/plutus-pab-test-psgenerator $generatedDir
   '';
 
   # For dev usage
@@ -86,5 +90,5 @@ let
 
 in
 {
-  inherit client demo-scripts server-invoker generated-purescript generate-purescript migrate start-backend start-all-servers start-all-servers-m mkConf pab-exes;
+  inherit client demo-scripts server-invoker test-generator generated-purescript generate-purescript migrate start-backend start-all-servers start-all-servers-m mkConf pab-exes;
 }

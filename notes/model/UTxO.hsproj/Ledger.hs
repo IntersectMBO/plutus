@@ -33,7 +33,7 @@ data Tx
   = Tx
     { inputsTX  :: [TxIn]
     , outputsTX :: [TxOut]
-    , forgeTX   :: Value
+    , mintTX    :: Value
     , feeTX     :: Value
     }
     deriving (Show)
@@ -42,7 +42,7 @@ data TxStripped
   = TxStripped
     { inputsTXS  :: Set TxOutRef
     , outputsTXS :: [TxOut]
-    , forgeTXS   :: Value
+    , mintTXS    :: Value
     , feeTXS     :: Value
     }
     deriving (Show)
@@ -53,7 +53,7 @@ stripTx Tx{..}
   where
     inputsTXS   = Set.fromList . map refTI $ inputsTX
     outputsTXS  = outputsTX
-    forgeTXS    = forgeTX
+    mintTXS    = mintTX
     feeTXS      = feeTX
 
 -- |Hash (double) the given transaction *without* witnesses.
@@ -70,7 +70,7 @@ preHashTx tx = hash (stripTx tx)
 --
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
-  = all ((>= 0) . valueTO) outputsTX && forgeTX >= 0 && feeTX >= 0
+  = all ((>= 0) . valueTO) outputsTX && mintTX >= 0 && feeTX >= 0
 
 data TxOutRef
   = TxOutRef

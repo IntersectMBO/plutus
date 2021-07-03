@@ -12,11 +12,10 @@ module Evaluation.ApplyBuiltinName
 import           PlutusCore                              (defaultBuiltinCostModel)
 import           UntypedPlutusCore
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Generators
-import           PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Data.Proxy

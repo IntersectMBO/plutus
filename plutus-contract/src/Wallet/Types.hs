@@ -1,11 +1,10 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 -- | Defines a number of types that are used in Wallet.XXX modules
 module Wallet.Types(
     ContractInstanceId(..)
@@ -223,6 +222,13 @@ data AddressChangeRequest =
         deriving stock (Eq, Generic, Show, Ord)
         deriving anyclass (ToJSON, FromJSON)
 
+instance Pretty AddressChangeRequest where
+    pretty AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo, acreqAddress} =
+        hang 2 $ vsep
+            [ "From " <+> pretty acreqSlotRangeFrom <+> "to" <+> pretty acreqSlotRangeTo
+            , "Address:" <+> pretty acreqAddress
+            ]
+
 -- | The earliest slot in which we can respond to an 'AddressChangeRequest'.
 targetSlot :: AddressChangeRequest -> Slot
 targetSlot = succ . acreqSlotRangeTo
@@ -231,10 +237,3 @@ targetSlot = succ . acreqSlotRangeTo
 slotRange :: AddressChangeRequest -> SlotRange
 slotRange AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo} =
     interval acreqSlotRangeFrom acreqSlotRangeTo
-
-instance Pretty AddressChangeRequest where
-    pretty AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo, acreqAddress} =
-        hang 2 $ vsep
-            [ "From " <+> pretty acreqSlotRangeFrom <+> "to" <+> pretty acreqSlotRangeTo
-            , "Address:" <+> pretty acreqAddress
-            ]

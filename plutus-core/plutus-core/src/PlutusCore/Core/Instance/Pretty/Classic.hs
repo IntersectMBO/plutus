@@ -19,11 +19,11 @@ import           PlutusCore.Core.Instance.Recursive
 import           PlutusCore.Core.Type
 import           PlutusCore.Pretty.Classic
 import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Universe
 
 import           Data.Functor.Foldable
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Custom
+import           Universe
 
 instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
     prettyBy _ = cata a where
@@ -66,7 +66,7 @@ instance
         prettyName = prettyBy config
 
         prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc ann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ TypeIn uni
+        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
 
 instance PrettyClassicBy configName (Term tyname name uni fun a) =>

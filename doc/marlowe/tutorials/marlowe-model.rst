@@ -158,10 +158,10 @@ interchangeable with other tokens), and more exotic mixed cases:
 -  Mixed tokens are those with several ``TokenName``\ s *and* quantities
    greater than one.
 
-Cardano provides a simple way to introduce a new currency by *forging*
-it using *monetary policy scripts*. This effectively embeds Ethereum
+Cardano provides a simple way to introduce a new currency by *minting*
+it using *minting policy scripts*. This effectively embeds Ethereum
 ERC-20/ERC-721 standards as primitive values in Cardano. We use custom
-tokens to represents participants in Marlowe contracts executing on
+tokens to represent participants in Marlowe contracts executing on
 chain.
 
 Executing a Marlowe contract

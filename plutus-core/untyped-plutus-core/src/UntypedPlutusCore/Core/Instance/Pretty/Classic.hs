@@ -17,10 +17,10 @@ import           UntypedPlutusCore.Core.Type
 import           PlutusCore.Core.Instance.Pretty.Common ()
 import           PlutusCore.Pretty.Classic
 import           PlutusCore.Pretty.PrettyConst
-import           PlutusCore.Universe
 
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Custom
+import           Universe
 
 instance
         ( PrettyClassicBy configName name
@@ -40,7 +40,7 @@ instance
         prettyName = prettyBy config
 
         prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc ann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ TypeIn uni
+        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
 instance PrettyClassicBy configName (Term name uni fun a) =>
         PrettyBy (PrettyConfigClassic configName) (Program name uni fun a) where

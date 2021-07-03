@@ -8,7 +8,7 @@ import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArgumen
 import Data.Maybe (Maybe(..))
 import Data.Symbol (class IsSymbol)
 import Marlowe.Extended as EM
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (ContractTemplate)
 import Marlowe.Market (contractTemplates)
 import Marlowe.Semantics as S
 

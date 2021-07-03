@@ -7,9 +7,9 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
-import Marlowe.Extended (TemplateContent)
-import Marlowe.Extended as EM
-import Marlowe.Holes (Holes)
+import Marlowe.Template (TemplateContent)
+import Marlowe.Holes (Holes, Term)
+import Marlowe.Holes as T
 import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
@@ -70,18 +70,18 @@ derive newtype instance decodeParties :: Decode Parties
 otherActionsParty :: Party
 otherActionsParty = Role "marlowe_other_actions"
 
--- TODO: Maybe rename to LogEntry
--- TODO: Add an Event/Entry for contract start and for contract close
-data MarloweEvent
-  = InputEvent TransactionInput
+data LogEntry
+  = StartEvent Slot
+  | InputEvent TransactionInput
   | OutputEvent SlotInterval Payment
+  | CloseEvent SlotInterval
 
-derive instance genericMarloweEvent :: Generic MarloweEvent _
+derive instance genericLogEntry :: Generic LogEntry _
 
-instance encodeMarloweEvent :: Encode MarloweEvent where
+instance encodeLogEntry :: Encode LogEntry where
   encode a = genericEncode aesonCompatibleOptions a
 
-instance decodeMarloweEvent :: Decode MarloweEvent where
+instance decodeLogEntry :: Decode LogEntry where
   decode = genericDecode aesonCompatibleOptions
 
 type ExecutionStateRecord
@@ -89,17 +89,19 @@ type ExecutionStateRecord
     , pendingInputs :: Array Input
     , transactionError :: Maybe TransactionError
     , transactionWarnings :: Array TransactionWarning
-    , log :: Array MarloweEvent
+    , log :: Array LogEntry
     , state :: S.State
     , slot :: Slot
     , moneyInContract :: Assets
     -- This is the remaining of the contract to be executed
-    , contract :: S.Contract
+    , contract :: Term T.Contract
     }
 
 type InitialConditionsRecord
   = { initialSlot :: Slot
-    , extendedContract :: Maybe EM.Contract
+    -- TODO: Should we remove the Maybe and just not set InitialConditionsRecord if we cannot
+    --       parse the contract?
+    , termContract :: Maybe (Term T.Contract)
     , templateContent :: TemplateContent
     }
 

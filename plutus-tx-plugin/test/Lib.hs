@@ -19,7 +19,6 @@ import           PlutusTx.TH
 
 import qualified PlutusCore                 as PLC
 import           PlutusCore.Pretty          (PrettyConst)
-import qualified PlutusCore.Universe        as PLC
 import qualified UntypedPlutusCore          as UPLC
 import qualified UntypedPlutusCore.DeBruijn as UPLC
 

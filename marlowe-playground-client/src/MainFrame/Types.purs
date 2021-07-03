@@ -38,8 +38,8 @@ import Rename.Types as Rename
 import Router (Route)
 import SaveAs.Types as SaveAs
 import SimulationPage.Types as Simulation
+import Tooltip.Types (ReferenceId)
 import Types (WebData)
-import WalletSimulation.Types as Wallet
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 
 data ModalView
@@ -83,8 +83,6 @@ data Action
   | ConfirmUnsavedNavigationAction Action ConfirmUnsavedNavigation.Action
   -- blockly
   | HandleActusBlocklyMessage AB.Message
-  -- Wallet Actions
-  | HandleWalletMessage Wallet.Message
   | ProjectsAction Projects.Action
   | NewProjectAction NewProject.Action
   | DemosAction Demos.Action
@@ -108,7 +106,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (BlocklyEditorAction action) = toEvent action
   toEvent (JavascriptAction action) = toEvent action
   toEvent (MarloweEditorAction action) = toEvent action
-  toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
   toEvent (HandleActusBlocklyMessage _) = Just $ (defaultEvent "HandleActusBlocklyMessage") { category = Just "ActusBlockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
@@ -150,7 +147,7 @@ type ChildSlots
     , simulationSlot :: H.Slot Simulation.Query Blockly.Message Unit
     , simulatorEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , marloweEditorPageSlot :: H.Slot Monaco.Query Monaco.Message Unit
-    , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
+    , tooltipSlot :: forall query. H.Slot query Void ReferenceId
     )
 
 _haskellEditorSlot :: SProxy "haskellEditorSlot"

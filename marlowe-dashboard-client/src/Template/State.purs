@@ -24,9 +24,10 @@ import Halogen.Extra (mapMaybeSubmodule)
 import InputField.State (dummyState, handleAction, initialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (ChildSlots, Msg)
-import Marlowe.Extended (TemplateContent, _slotContent, _valueContent, fillTemplate, getPlaceholderIds, initializeTemplateContent, resolveRelativeTimes, toCore)
+import Marlowe.Extended (resolveRelativeTimes, toCore)
 import Marlowe.Extended (Contract) as Extended
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (ContractTemplate)
+import Marlowe.Template (TemplateContent, fillTemplate, getPlaceholderIds, _slotContent, _valueContent, initializeTemplateContent)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot(..), TokenName)
@@ -61,22 +62,22 @@ mkRoleWalletInputs contract = Map.fromFoldable $ mapMaybe getRoleInput (Set.toUn
 
   getRoleInput (Role tokenName) = Just (Tuple tokenName InputField.initialState)
 
--- Some actions are handled in `Play.State` because they involve
+-- Some actions are handled in `Dashboard.State` because they involve
 -- modifications of that state. See Note [State] in MainFrame.State.
 handleAction ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction (SetTemplate contractTemplate) = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+handleAction (SetTemplate contractTemplate) = pure unit -- handled in Dashboard.State (see note [State] in MainFrame.State)
 
-handleAction OpenTemplateLibraryCard = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+handleAction OpenTemplateLibraryCard = pure unit -- handled in Dashboard.State (see note [State] in MainFrame.State)
 
-handleAction (OpenCreateWalletCard tokenName) = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+handleAction (OpenCreateWalletCard tokenName) = pure unit -- handled in Dashboard.State (see note [State] in MainFrame.State)
 
-handleAction OpenSetupConfirmationCard = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+handleAction OpenSetupConfirmationCard = pure unit -- handled in Dashboard.State (see note [State] in MainFrame.State)
 
-handleAction CloseSetupConfirmationCard = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+handleAction CloseSetupConfirmationCard = pure unit -- handled in Dashboard.State (see note [State] in MainFrame.State)
 
 handleAction (SetContractNickname nickname) = assign _contractNickname nickname
 
@@ -100,7 +101,7 @@ handleAction (SetSlotContent key dateTimeString) = do
 
 handleAction (SetValueContent key mValue) = modifying (_templateContent <<< _valueContent) $ insert key $ fromMaybe zero mValue
 
-handleAction StartContract = pure unit -- handled in Play.State (see note [State] in MainFrame.State)
+handleAction StartContract = pure unit -- handled in Dashboard.State (see note [State] in MainFrame.State)
 
 instantiateExtendedContract :: Slot -> Extended.Contract -> TemplateContent -> Maybe Semantic.Contract
 instantiateExtendedContract currentSlot extendedContract templateContent =

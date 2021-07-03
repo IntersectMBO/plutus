@@ -16,34 +16,33 @@ module PlutusCore.Generators.Interesting
     , genNaiveFib
     , genNatRoundtrip
     , natSum
-    , genListSum
+    , genScottListSum
     , genIfIntegers
     , fromInterestingTermGens
     ) where
 
-import           PlutusCore.Builtins
 import           PlutusCore.Constant
 import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Result
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 import           PlutusCore.Quote
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.StdLib.Data.Function as Function
-import           PlutusCore.StdLib.Data.List     as List
+import           PlutusCore.StdLib.Data.Function  as Function
 import           PlutusCore.StdLib.Data.Nat
+import           PlutusCore.StdLib.Data.ScottList as ScottList
 import           PlutusCore.StdLib.Data.Unit
 import           PlutusCore.StdLib.Meta
 import           PlutusCore.StdLib.Type
 
 import           PlutusCore.Generators
 
-import           Data.List                       (genericIndex)
-import           Hedgehog                        hiding (Size, Var)
-import qualified Hedgehog.Gen                    as Gen
-import qualified Hedgehog.Range                  as Range
+import           Data.List                        (genericIndex)
+import           Hedgehog                         hiding (Size, Var)
+import qualified Hedgehog.Gen                     as Gen
+import qualified Hedgehog.Range                   as Range
 
 -- | The type of terms-and-their-values generators.
 type TermGen a = Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a)
@@ -75,11 +74,11 @@ genOverapplication = do
 factorial :: Term TyName Name DefaultUni DefaultFun ()
 factorial = runQuote $ do
     i <- freshName "i"
-    let int = mkTyBuiltin @Integer ()
+    let int = mkTyBuiltin @_ @Integer ()
     return
         . LamAbs () i int
-        . apply () List.product
-        $ mkIterApp () List.enumFromTo
+        . apply () ScottList.product
+        $ mkIterApp () ScottList.enumFromTo
             [ mkConstant @Integer () 1
             , Var () i
             ]
@@ -103,7 +102,7 @@ naiveFib iv = runQuote $ do
     i   <- freshName "i"
     u   <- freshName "u"
     let
-      intS = mkTyBuiltin @Integer ()
+      intS = mkTyBuiltin @_ @Integer ()
       fib = LamAbs () i0 intS
         $ mkIterApp () (mkIterInst () fix [intS, intS])
             [   LamAbs () rec (TyFun () intS intS)
@@ -155,7 +154,7 @@ genNatRoundtrip = do
 -- | @sumNat@ as a PLC term.
 natSum :: Term TyName Name DefaultUni DefaultFun ()
 natSum = runQuote $ do
-    let int = mkTyBuiltin @Integer ()
+    let int = mkTyBuiltin @_ @Integer ()
         nat = _recursiveType natData
         add = Builtin () AddInteger
     acc <- freshName "acc"
@@ -173,13 +172,13 @@ natSum = runQuote $ do
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'List'),
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
-genListSum :: TermGen Integer
-genListSum = do
+genScottListSum :: TermGen Integer
+genScottListSum = do
     let typedInt = AsKnownType
         intS = toTypeAst typedInt
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedInt
-    let list = metaListToList intS $ Prelude.map _termOfTerm ps
-        term = apply () List.sum list
+    let list = metaListToScottList intS $ Prelude.map _termOfTerm ps
+        term = apply () ScottList.sum list
     let haskSum = Prelude.sum $ Prelude.map _termOfValue ps
     return $ TermOf term haskSum
 
@@ -260,7 +259,7 @@ fromInterestingTermGens f =
     , f "factorial"        genFactorial
     , f "fibonacci"        genNaiveFib
     , f "NatRoundTrip"     genNatRoundtrip
-    , f "ListSum"          genListSum
+    , f "ScottListSum"     genScottListSum
     , f "IfIntegers"       genIfIntegers
     , f "ApplyAdd1"        genApplyAdd1
     , f "ApplyAdd2"        genApplyAdd2

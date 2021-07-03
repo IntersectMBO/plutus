@@ -10,11 +10,12 @@ import PlutusTx.AssocMap as AssocMap
 import Plutus.V1.Ledger.Ada (Ada(..))
 import Plutus.V1.Ledger.Interval (Extended(..), Interval, LowerBound(..), UpperBound(..), _Interval)
 import Plutus.V1.Ledger.Slot (Slot(..))
+import Plutus.V1.Ledger.Time (POSIXTime(..))
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Prelude (show, (+), (<<<), (<>))
 
-humaniseInterval :: Interval Slot -> String
-humaniseInterval interval = case from, to of
+humaniseSlotInterval :: Interval Slot -> String
+humaniseSlotInterval interval = case from, to of
   LowerBound NegInf true, UpperBound PosInf true -> "All time"
   _, _ -> "From " <> humaniseSlot from <> " to " <> humaniseSlot to
   where
@@ -28,6 +29,27 @@ humaniseSlot bound = start <> " " <> end
   start = case hasBound bound of
     NegInf -> "the start of time"
     Finite (Slot slot) -> "Slot " <> show slot.getSlot
+    PosInf -> "the end of time"
+
+  end = case isInclusive bound of
+    true -> "(inclusive)"
+    false -> "(exclusive)"
+
+humaniseTimeInterval :: Interval POSIXTime -> String
+humaniseTimeInterval interval = case from, to of
+  LowerBound NegInf true, UpperBound PosInf true -> "All time"
+  _, _ -> "From " <> humaniseTime from <> " to " <> humaniseTime to
+  where
+  from = view (_Interval <<< _ivFrom) interval
+
+  to = view (_Interval <<< _ivTo) interval
+
+humaniseTime :: forall a. HasBound a POSIXTime => a -> String
+humaniseTime bound = start <> " " <> end
+  where
+  start = case hasBound bound of
+    NegInf -> "the start of time"
+    Finite (POSIXTime time) -> "POSIXTime " <> show time.getPOSIXTime
     PosInf -> "the end of time"
 
   end = case isInclusive bound of

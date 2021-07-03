@@ -1,8 +1,0 @@
-#!/bin/bash
-stack run plc -- apply Validator01.plc Datum01.plc Redeemer01.plc Context01.plc -o validation1.plc
-stack run plc -- apply Validator02.plc Datum02.plc Redeemer01.plc Context02.plc -o validation2.plc
-stack run plc -- apply Validator02.plc Datum03.plc Redeemer01.plc Context03.plc -o validation3.plc
-stack run plc -- apply Validator03.plc Datum04.plc Redeemer02.plc Context04.plc -o validation4.plc
-stack run plc -- apply Validator03.plc Datum05.plc Redeemer03.plc Context05.plc -o validation5.plc
-stack run plc -- apply Validator03.plc Datum04.plc Redeemer04.plc Context06.plc -o validation6.plc
-stack run plc -- apply Validator03.plc Datum04.plc Redeemer03.plc Context07.plc -o validation7.plc

@@ -14,6 +14,7 @@ module Cardano.Wallet.Mock
     , newKeyPair
     , walletPubKey
     , pubKeyHashWallet
+    , distributeNewWalletFunds
     ) where
 
 import           Cardano.BM.Data.Trace            (Trace)
@@ -62,6 +63,7 @@ import           Wallet.API                       (PubKey, WalletAPIError (..))
 import qualified Wallet.API                       as WAPI
 import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect)
 import qualified Wallet.Effects                   as WalletEffects
+import           Wallet.Emulator.LogMessages      (TxBalanceMsg)
 import           Wallet.Emulator.NodeClient       (emptyNodeClientState)
 import           Wallet.Emulator.Wallet           (Wallet (..), WalletState (..), defaultSigningProcess)
 import qualified Wallet.Emulator.Wallet           as Wallet
@@ -84,8 +86,7 @@ integer2ByteString32 :: Integer -> BS.ByteString
 integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` l'), l' - 8)) (31*8)
 {-# INLINE integer2ByteString32 #-}
 
-
-distributeNewWalletFunds :: PubKey -> Eff '[WAPI.WalletEffect] Tx
+distributeNewWalletFunds :: forall effs. (Member WAPI.WalletEffect effs, Member (Error WalletAPIError) effs) => PubKey -> Eff effs Tx
 distributeNewWalletFunds = WAPI.payToPublicKey WAPI.defaultSlotRange (Ada.adaValueOf 10000)
 
 newKeyPair :: forall m effs. (LastMember m effs, MonadIO m) => Eff effs (PubKey, PrivateKey)
@@ -118,46 +119,55 @@ handleMultiWallet :: forall m effs.
     , Member ChainIndexEffect effs
     , Member (State Wallets) effs
     , Member (Error WAPI.WalletAPIError) effs
-    , LastMember m effs, MonadIO m
-    ) => Eff (MultiWalletEffect ': effs) ~> Eff effs
-handleMultiWallet = do
-    interpret $ \case
-        MultiWallet wallet action -> do
-            wallets <- get @Wallets
-            case Map.lookup wallet wallets of
-                Just walletState -> do
-                    (x, newState) <- runState walletState $ action & raiseEnd & interpret Wallet.handleWallet
-                    put @Wallets (wallets & at wallet .~ Just newState)
-                    pure x
-                Nothing -> throwError $ WAPI.OtherError "Wallet not found"
-        CreateWallet -> do
-            wallets <- get @Wallets
-            (pubKey, privateKey) <- newKeyPair
-            let wallet = pubKeyHashWallet $ pubKeyHash pubKey
-                newState = Wallet.emptyWalletStateFromPrivateKey privateKey
-            let wallets' = Map.insert wallet newState wallets
-            put wallets'
-            -- For some reason this doesn't work with (Wallet 1)/privateKey1,
-            -- works just fine with (Wallet 2)/privateKey2
-            -- ¯\_(ツ)_/¯
-            let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
-            _ <- evalState walletState $ interpret Wallet.handleWallet (raiseEnd $ distributeNewWalletFunds pubKey)
-            WalletEffects.startWatching (pubKeyAddress pubKey)
-            return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
+    , Member (LogMsg WalletMsg) effs
+    , LastMember m effs
+    , MonadIO m
+    ) => MultiWalletEffect ~> Eff effs
+handleMultiWallet = \case
+    MultiWallet wallet action -> do
+        wallets <- get @Wallets
+        case Map.lookup wallet wallets of
+            Just walletState -> do
+                (x, newState) <- runState walletState
+                    $ action
+                        & raiseEnd
+                        & interpret Wallet.handleWallet
+                        & interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
+                put @Wallets (wallets & at wallet .~ Just newState)
+                pure x
+            Nothing -> throwError $ WAPI.OtherError "Wallet not found"
+    CreateWallet -> do
+        wallets <- get @Wallets
+        (pubKey, privateKey) <- newKeyPair
+        let wallet = pubKeyHashWallet $ pubKeyHash pubKey
+            newState = Wallet.emptyWalletStateFromPrivateKey privateKey
+        let wallets' = Map.insert wallet newState wallets
+        put wallets'
+        -- For some reason this doesn't work with (Wallet 1)/privateKey1,
+        -- works just fine with (Wallet 2)/privateKey2
+        -- ¯\_(ツ)_/¯
+        let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
+        _ <- evalState walletState $
+            interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
+            $ interpret Wallet.handleWallet
+            $ distributeNewWalletFunds pubKey
+        WalletEffects.startWatching (pubKeyAddress pubKey)
+        return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
 
 -- | Process wallet effects. Retain state and yield HTTP400 on error
 --   or set new state on success.
 processWalletEffects ::
     (MonadIO m, MonadError ServerError m)
     => Trace IO WalletMsg -- ^ trace for logging
-    -> Client.ClientHandler -- ^ node client
+    -> Client.TxSendHandle -- ^ node client
+    -> Client.ChainSyncHandle -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> m a
-processWalletEffects trace clientHandler chainIndexEnv mVarState action = do
+processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState action = do
     oldState <- liftIO $ takeMVar mVarState
-    result <- liftIO $ runWalletEffects trace clientHandler chainIndexEnv oldState action
+    result <- liftIO $ runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv oldState action
     case result of
         Left e -> do
             liftIO $ putMVar mVarState oldState
@@ -168,17 +178,19 @@ processWalletEffects trace clientHandler chainIndexEnv mVarState action = do
 
 -- | Interpret wallet effects
 runWalletEffects ::
-     MonadIO m
-    => Trace m WalletMsg -- ^ trace for logging
-    -> Client.ClientHandler -- ^ node client
+    Trace IO WalletMsg -- ^ trace for logging
+    -> Client.TxSendHandle -- ^ node client
+    -> Client.ChainSyncHandle -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
-    -> Eff (WalletEffects m) a -- ^ wallet effect
-    -> m (Either ServerError (a, Wallets))
-runWalletEffects trace clientHandler chainIndexEnv wallets action =
-    handleMultiWallet action
-    & reinterpret NodeClient.handleNodeClientClient
-    & runReader clientHandler
+    -> Eff (WalletEffects IO) a -- ^ wallet effect
+    -> IO (Either ServerError (a, Wallets))
+runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets action =
+    reinterpret handleMultiWallet action
+    & interpret (LM.handleLogMsgTrace trace)
+    & reinterpret2 NodeClient.handleNodeClientClient
+    & runReader chainSyncHandle
+    & runReader txSendHandle
     & reinterpret ChainIndexClient.handleChainIndexClient
     & runReader chainIndexEnv
     & runState wallets

@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -8,12 +9,12 @@ module UntypedPlutusCore.Core.Instance.Flat where
 import           UntypedPlutusCore.Core.Type
 
 import           PlutusCore.Flat
-import           PlutusCore.Universe
 
 import           Data.Word                   (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder
+import           Universe
 
 {-
 The definitions in this file rely on some Flat instances defined for typed plutus core.
@@ -84,11 +85,12 @@ instance ( Closed uni
          , Flat fun
          , Flat ann
          , Flat name
+         , Flat (Binder name)
          ) => Flat (Term name uni fun ann) where
     encode = \case
         Var      ann n    -> encodeTerm 0 <> encode ann <> encode n
         Delay    ann t    -> encodeTerm 1 <> encode ann <> encode t
-        LamAbs   ann n t  -> encodeTerm 2 <> encode ann <> encode n <> encode t
+        LamAbs   ann n t  -> encodeTerm 2 <> encode ann <> encode (Binder n) <> encode t
         Apply    ann t t' -> encodeTerm 3 <> encode ann <> encode t <> encode t'
         Constant ann c    -> encodeTerm 4 <> encode ann <> encode c
         Force    ann t    -> encodeTerm 5 <> encode ann <> encode t
@@ -98,7 +100,7 @@ instance ( Closed uni
     decode = go =<< decodeTerm
         where go 0 = Var      <$> decode <*> decode
               go 1 = Delay    <$> decode <*> decode
-              go 2 = LamAbs   <$> decode <*> decode <*> decode
+              go 2 = LamAbs   <$> decode <*> (unBinder <$> decode) <*> decode
               go 3 = Apply    <$> decode <*> decode <*> decode
               go 4 = Constant <$> decode <*> decode
               go 5 = Force    <$> decode <*> decode
@@ -116,11 +118,8 @@ instance ( Closed uni
         Error    ann      -> getSize ann
         Builtin  ann bn   -> getSize ann + getSize bn
 
-instance ( Closed uni
-         , uni `Everywhere` Flat
-         , Flat fun
-         , Flat ann
-         , Flat name
+instance ( Flat ann
+         , Flat (Term name uni fun ann)
          ) => Flat (Program name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode

@@ -102,7 +102,8 @@ data TxInfo = TxInfo
     { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
-    , txInfoForge       :: Value -- ^ The 'Value' forged by this transaction.
+    -- TODO: rename to txInfoMint, but this requires changes in cardano-ledger-specs
+    , txInfoForge       :: Value -- ^ The 'Value' minted by this transaction.
     , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
     , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
     , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.
@@ -181,9 +182,9 @@ them from the correct types in Haskell, and for comparing them (in
 -}
 
 {-# INLINABLE scriptCurrencySymbol #-}
--- | The 'CurrencySymbol' of a 'MonetaryPolicy'
-scriptCurrencySymbol :: MonetaryPolicy -> CurrencySymbol
-scriptCurrencySymbol scrpt = let (MonetaryPolicyHash hsh) = monetaryPolicyHash scrpt in Value.currencySymbol hsh
+-- | The 'CurrencySymbol' of a 'MintingPolicy'
+scriptCurrencySymbol :: MintingPolicy -> CurrencySymbol
+scriptCurrencySymbol scrpt = let (MintingPolicyHash hsh) = mintingPolicyHash scrpt in Value.currencySymbol hsh
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.

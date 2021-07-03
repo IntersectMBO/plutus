@@ -10,9 +10,9 @@ import Data.BigInteger (BigInteger, fromInt)
 import Data.Map as Map
 import Data.Tuple.Nested (type (/\), (/\))
 import Examples.Metadata as Metadata
-import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), TemplateContent(..), Timeout(..), Value(..), fillTemplate)
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ChoiceName)
 
 contractTemplate :: ContractTemplate
@@ -24,10 +24,10 @@ fixedTimeoutContract =
     ( TemplateContent
         { slotContent:
             Map.fromFoldable
-              [ "Buyer's deposit timeout" /\ fromInt 60
-              , "Buyer's dispute timeout" /\ fromInt 180
-              , "Seller's response timeout" /\ fromInt 240
-              , "Timeout for arbitrage" /\ fromInt 360
+              [ "Buyer's deposit timeout" /\ fromInt 600
+              , "Buyer's dispute timeout" /\ fromInt 1800
+              , "Seller's response timeout" /\ fromInt 2400
+              , "Timeout for arbitrage" /\ fromInt 3600
               ]
         , valueContent: Map.empty
         }

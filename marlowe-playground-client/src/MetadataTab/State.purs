@@ -8,7 +8,7 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen.Query (HalogenM)
 import MainFrame.Types (Action, ChildSlots, State, _contractMetadata, _hasUnsavedChanges)
-import Marlowe.Extended.Metadata (_choiceDescriptions, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterDescriptions)
+import Marlowe.Extended.Metadata (ChoiceInfo, NumberFormat, ValueParameterInfo, _choiceInfo, _contractDescription, _contractName, _contractType, _roleDescriptions, _slotParameterDescriptions, _valueParameterInfo, updateChoiceInfo, updateValueParameterInfo)
 import MetadataTab.Types (MetadataAction(..))
 
 carryMetadataAction ::
@@ -26,8 +26,22 @@ carryMetadataAction action = do
     DeleteRoleDescription tokenName -> over _roleDescriptions $ Map.delete tokenName
     SetSlotParameterDescription slotParam description -> over _slotParameterDescriptions $ Map.insert slotParam description
     DeleteSlotParameterDescription slotParam -> over _slotParameterDescriptions $ Map.delete slotParam
-    SetValueParameterDescription valueParam description -> over _valueParameterDescriptions $ Map.insert valueParam description
-    DeleteValueParameterDescription valueParam -> over _valueParameterDescriptions $ Map.delete valueParam
-    SetChoiceDescription choiceName description -> over _choiceDescriptions $ Map.insert choiceName description
-    DeleteChoiceDescription choiceName -> over _choiceDescriptions $ Map.delete choiceName
+    SetValueParameterDescription valueParameterName description -> over _valueParameterInfo $ updateValueParameterInfo (setValueParameterDescription description) valueParameterName
+    SetValueParameterFormat valueParameterName format -> over _valueParameterInfo $ updateValueParameterInfo (setValueParameterFormat format) valueParameterName
+    DeleteValueParameterInfo valueParameterName -> over _valueParameterInfo $ Map.delete valueParameterName
+    SetChoiceDescription choiceName description -> over _choiceInfo $ updateChoiceInfo (setChoiceDescription description) choiceName
+    SetChoiceFormat choiceName format -> over _choiceInfo $ updateChoiceInfo (setChoiceFormat format) choiceName
+    DeleteChoiceInfo choiceName -> over _choiceInfo $ Map.delete choiceName
   assign (_hasUnsavedChanges) true
+  where
+  setChoiceDescription :: String -> ChoiceInfo -> ChoiceInfo
+  setChoiceDescription newDescription x = x { choiceDescription = newDescription }
+
+  setChoiceFormat :: NumberFormat -> ChoiceInfo -> ChoiceInfo
+  setChoiceFormat newChoiceFormat x = x { choiceFormat = newChoiceFormat }
+
+  setValueParameterDescription :: String -> ValueParameterInfo -> ValueParameterInfo
+  setValueParameterDescription newDescription x = x { valueParameterDescription = newDescription }
+
+  setValueParameterFormat :: NumberFormat -> ValueParameterInfo -> ValueParameterInfo
+  setValueParameterFormat newValueParameterFormat x = x { valueParameterFormat = newValueParameterFormat }

@@ -48,6 +48,7 @@ module Wallet.Emulator.Folds (
     , postMapM
     ) where
 
+import           Control.Applicative                    ((<|>))
 import           Control.Foldl                          (Fold (..), FoldM (..))
 import qualified Control.Foldl                          as L
 import           Control.Lens                           hiding (Empty, Fold)
@@ -69,23 +70,23 @@ import           Ledger.Index                           (ScriptValidationEvent, 
 import           Ledger.Tx                              (Address, Tx, TxOut (..), TxOutTx (..))
 import           Ledger.Value                           (Value)
 import           Plutus.Contract                        (Contract)
-import           Plutus.Contract.Effects.WriteTx        (HasWriteTx, pendingTransaction)
+import           Plutus.Contract.Effects                (PABReq, PABResp, _WriteTxReq)
 import           Plutus.Contract.Resumable              (Request, Response)
 import qualified Plutus.Contract.Resumable              as State
-import           Plutus.Contract.Schema                 (Event (..), Handlers)
 import           Plutus.Contract.Types                  (ResumableResult (..))
 import           Plutus.Trace.Emulator.ContractInstance (ContractInstanceState, addEventInstanceState,
                                                          emptyInstanceState, instContractState, instEvents,
                                                          instHandlersHistory)
-import           Plutus.Trace.Emulator.Types            (ContractConstraints, ContractInstanceLog, ContractInstanceTag,
-                                                         UserThreadMsg, _HandledRequest, cilMessage, cilTag,
-                                                         toInstanceState)
+import           Plutus.Trace.Emulator.Types            (ContractInstanceLog, ContractInstanceTag, UserThreadMsg,
+                                                         _HandledRequest, cilMessage, cilTag, toInstanceState)
 import           Wallet.Emulator.Chain                  (ChainEvent (..), _TxnValidate, _TxnValidationFail)
 import           Wallet.Emulator.ChainIndex             (_AddressStartWatching)
+import           Wallet.Emulator.LogMessages            (_ValidationFailed)
 import           Wallet.Emulator.MultiAgent             (EmulatorEvent, EmulatorTimeEvent, chainEvent, chainIndexEvent,
-                                                         eteEvent, instanceEvent, userThreadEvent, walletClientEvent)
+                                                         eteEvent, instanceEvent, userThreadEvent, walletClientEvent,
+                                                         walletEvent')
 import           Wallet.Emulator.NodeClient             (_TxSubmit)
-import           Wallet.Emulator.Wallet                 (Wallet, walletAddress)
+import           Wallet.Emulator.Wallet                 (Wallet, _TxBalanceLog, walletAddress)
 import qualified Wallet.Rollup                          as Rollup
 import           Wallet.Rollup.Types                    (AnnotatedTx)
 
@@ -96,8 +97,10 @@ type EmulatorEventFoldM effs a = FoldM (Eff effs) EmulatorEvent a
 
 -- | Transactions that failed to validate, in the given validation phase (if specified).
 failedTransactions :: Maybe ValidationPhase -> EmulatorEventFold [(TxId, Tx, ValidationError, [ScriptValidationEvent])]
-failedTransactions phase = preMapMaybe (preview (eteEvent . chainEvent . _TxnValidationFail) >=> filterPhase phase) L.list
+failedTransactions phase = preMapMaybe (f >=> filterPhase phase) L.list
     where
+        f e = preview (eteEvent . chainEvent . _TxnValidationFail) e
+          <|> preview (eteEvent . walletEvent' . _2 . _TxBalanceLog . _ValidationFailed) e
         filterPhase Nothing (_, i, t, v, e)   = Just (i, t, v, e)
         filterPhase (Just p) (p', i, t, v, e) = if p == p' then Just (i, t, v, e) else Nothing
 
@@ -117,8 +120,7 @@ scriptEvents = preMapMaybe (preview (eteEvent . chainEvent) >=> getEvent) (conca
 -- | The state of a contract instance, recovered from the emulator log.
 instanceState ::
     forall w s e a effs.
-    ( ContractConstraints s
-    , Member (Error EmulatorFoldErr) effs
+    ( Member (Error EmulatorFoldErr) effs
     , Monoid w
     )
     => Contract w s e a
@@ -127,13 +129,12 @@ instanceState ::
 instanceState con tag =
     let flt :: EmulatorEvent -> Maybe (Response JSON.Value)
         flt = preview (eteEvent . instanceEvent . filtered ((==) tag . view cilTag) . cilMessage . _HandledRequest)
-        decode :: forall effs'. Member (Error EmulatorFoldErr) effs' => EmulatorEvent -> Eff effs' (Maybe (Response (Event s)))
+        decode :: forall effs'. Member (Error EmulatorFoldErr) effs' => EmulatorEvent -> Eff effs' (Maybe (Response PABResp))
         decode e = do
             case flt e of
                 Nothing -> pure Nothing
-                Just response -> case traverse (JSON.fromJSON @(Event s)) response of
-                    JSON.Error e'   ->
-                        throwError $ InstanceStateJSONDecodingError e' response
+                Just response -> case traverse (JSON.fromJSON @PABResp) response of
+                    JSON.Error e'   -> throwError $ InstanceStateJSONDecodingError e' response
                     JSON.Success e' -> pure (Just e')
 
     in preMapMaybeM decode $ L.generalize $ Fold (\s r -> s >>= addEventInstanceState r) (Just $ emptyInstanceState con) (fmap toInstanceState)
@@ -141,47 +142,44 @@ instanceState con tag =
 -- | The list of open requests of the contract instance at its latest iteration
 instanceRequests ::
     forall w s e a effs.
-    ( ContractConstraints s
-    , Member (Error EmulatorFoldErr) effs
+    ( Member (Error EmulatorFoldErr) effs
     , Monoid w
     )
     => Contract w s e a
     -> ContractInstanceTag
-    -> EmulatorEventFoldM effs [Request (Handlers s)]
+    -> EmulatorEventFoldM effs [Request PABReq]
 instanceRequests con = fmap g . instanceState con where
     g = fromMaybe [] . fmap (State.unRequests . _requests . instContractState)
 
 -- | The unbalanced transactions generated by the contract instance.
 instanceTransactions ::
     forall w s e a effs.
-    ( ContractConstraints s
-    , HasWriteTx s
-    , Member (Error EmulatorFoldErr) effs
+    ( Member (Error EmulatorFoldErr) effs
     , Monoid w
     )
     => Contract w s e a
     -> ContractInstanceTag
     -> EmulatorEventFoldM effs [UnbalancedTx]
-instanceTransactions con = fmap g . instanceState con where
-    g = fromMaybe [] . fmap (concat . fmap (mapMaybe (pendingTransaction @s . State.rqRequest)) . toList . instHandlersHistory)
+instanceTransactions con = fmap g . instanceState @w @s @e @a @effs con where
+    g :: Maybe (ContractInstanceState w s e a) -> [UnbalancedTx]
+    g = fromMaybe [] . fmap (mapMaybe (preview _WriteTxReq . State.rqRequest) . concat . toList . instHandlersHistory)
+
 
 -- | The reponses received by the contract instance
 instanceResponses ::
     forall w s e a effs.
-    ( ContractConstraints s
-    , Member (Error EmulatorFoldErr) effs
+    ( Member (Error EmulatorFoldErr) effs
     , Monoid w
     )
     => Contract w s e a
     -> ContractInstanceTag
-    -> EmulatorEventFoldM effs [Response (Event s)]
+    -> EmulatorEventFoldM effs [Response PABResp]
 instanceResponses con = fmap (fromMaybe [] . fmap (toList . instEvents)) . instanceState con
 
 -- | Accumulated state of the contract instance
 instanceAccumState ::
     forall w s e a effs.
-    ( ContractConstraints s
-    , Member (Error EmulatorFoldErr) effs
+    ( Member (Error EmulatorFoldErr) effs
     , Monoid w
     )
     => Contract w s e a
@@ -218,8 +216,7 @@ fromResumableResult = either Failed (maybe NotDone Done) . _finalState
 -- | The final state of the instance
 instanceOutcome ::
     forall w s e a effs.
-    ( ContractConstraints s
-    , Member (Error EmulatorFoldErr) effs
+    ( Member (Error EmulatorFoldErr) effs
     , Monoid w
     )
     => Contract w s e a
@@ -282,7 +279,7 @@ blockchain =
             TxnValidationFail Phase2 _ txn _ _ -> (Invalid txn : currentBlock, otherBlocks)
         initial = ([], [])
         extract (currentBlock, otherBlocks) =
-            reverse (currentBlock : otherBlocks)
+            (currentBlock : otherBlocks)
     in preMapMaybe (preview (eteEvent . chainEvent))
         $ Fold step initial extract
 

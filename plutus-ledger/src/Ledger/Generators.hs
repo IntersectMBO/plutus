@@ -115,7 +115,7 @@ genMockchain' gm = do
 genMockchain :: MonadGen m => m Mockchain
 genMockchain = genMockchain' generatorModel
 
--- | A transaction with no inputs that forges some value (to be used at the
+-- | A transaction with no inputs that mints some value (to be used at the
 --   beginning of a blockchain).
 genInitialTransaction ::
        GeneratorModel
@@ -126,7 +126,7 @@ genInitialTransaction GeneratorModel{..} =
         t = fold gmInitialBalance
     in (mempty {
         txOutputs = o,
-        txForge = t,
+        txMint = t,
         txValidRange = Interval.from 0
         }, o)
 
@@ -169,16 +169,16 @@ genValidTransactionSpending' :: MonadGen m
     -> Ada
     -> m Tx
 genValidTransactionSpending' g f ins totalVal = do
-    let fee = estimateFee f (fromIntegral $ length ins) 3
+    let fee' = estimateFee f (fromIntegral $ length ins) 3
         numOut = Set.size $ gmPubKeys g
-    if fee < totalVal
+    if fee' < totalVal
         then do
-            let sz = totalVal - fee
+            let sz = totalVal - fee'
             outVals <- fmap Ada.toValue <$> splitVal numOut sz
             let tx = mempty
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
-                        , txFee = Ada.toValue fee
+                        , txFee = Ada.toValue fee'
                         }
 
                 -- sign the transaction with all three known wallets

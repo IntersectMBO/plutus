@@ -18,8 +18,8 @@ import           Ledger.Ada                  (adaSymbol, adaToken)
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Address              (Address)
 import           Ledger.Oracle               (Observation, SignedMessage, signObservation)
-import           Ledger.Slot                 (Slot (..))
-import           Ledger.Typed.Scripts        (scriptAddress)
+import qualified Ledger.TimeSlot             as TimeSlot
+import           Ledger.Typed.Scripts        (validatorAddress)
 import           Ledger.Value                (Value)
 import qualified Ledger.Value                as Value
 import           Plutus.Contract.Test
@@ -59,10 +59,10 @@ coin = Stablecoin
     }
 
 signConversionRate :: ConversionRate -> SignedMessage (Observation ConversionRate)
-signConversionRate rate = signObservation (Slot 0) rate (walletPrivKey oracle)
+signConversionRate rate = signObservation (TimeSlot.slotToPOSIXTime 0) rate (walletPrivKey oracle)
 
 stablecoinAddress :: Address
-stablecoinAddress = scriptAddress $ Stablecoin.scriptInstance coin
+stablecoinAddress = validatorAddress $ Stablecoin.typedValidator coin
 
 initialDeposit :: Value
 initialDeposit = Ada.lovelaceValueOf 100

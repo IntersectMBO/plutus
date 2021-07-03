@@ -6,7 +6,7 @@ import           Data.Maybe                                        (fromJust)
 import           Data.Time                                         (Day)
 import           Language.Marlowe                                  (Observation, Value)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (FP, IED, IP, MD, PP, PR, PRD, PY, TD))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (ContractTerms (..), ContractType (LAM, NAM, PAM))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (CT (LAM, NAM, PAM), ContractTerms (..))
 import           Language.Marlowe.ACTUS.MarloweCompat              (constnt, enum, useval)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel
 import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
@@ -16,12 +16,12 @@ import           Prelude                                           hiding (Fract
 payoffFs :: EventType -> ContractTerms -> Integer -> Integer -> Day -> Day -> Maybe (Value Observation)
 payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
     let __NT              = constnt (fromJust ct_NT)
-        __PDIED           = constnt ct_PDIED
-        __PYTP            = enum ct_PYTP
-        __FEB             = enum ct_FEB
-        __FER             = constnt ct_FER
+        __PDIED           = constnt (fromJust ct_PDIED)
+        __PYTP            = enum (fromJust ct_PYTP)
+        __FEB             = enum (fromJust ct_FEB)
+        __FER             = constnt (fromJust ct_FER)
         (__PPRD, __PTD  ) = (constnt (fromJust ct_PPRD), constnt (fromJust ct_PTD))
-        (__PYRT, __cPYRT) = (constnt ct_PYRT, constnt ct_cPYRT)
+        (__PYRT, __cPYRT) = (constnt (fromJust ct_PYRT), constnt ct_cPYRT)
 
 
         __o_rf_CURS       = useval "o_rf_CURS" t
@@ -37,9 +37,9 @@ payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
         __ipcb            = useval "ipcb" t_minus
         __prnxt           = useval "prnxt" t_minus
 
-        y_sd_t            = constnt $ _y ct_DCC prevDate curDate ct_MD
+        y_sd_t            = constnt $ _y (fromJust ct_DCC) prevDate curDate ct_MD
 
-        pof = case fromJust contractType of
+        pof = case contractType of
             PAM -> case ev of
                 IED -> Just $ _POF_IED_PAM __o_rf_CURS ct_CNTRL __NT __PDIED
                 MD  -> Just $ _POF_MD_PAM __o_rf_CURS __nsc __nt __isc __ipac __feac

@@ -9,8 +9,8 @@ module Plutus.PAB.Effects.UUID where
 import           Control.Monad.Freer
 import           Control.Monad.Freer.TH (makeEffect)
 import           Control.Monad.IO.Class (MonadIO (..))
-import           Eventful.UUID          (UUID)
-import qualified Eventful.UUID          as UUID
+import           Data.UUID              (UUID)
+import           Data.UUID.V4           (nextRandom)
 
 data UUIDEffect r where
     UuidNextRandom :: UUIDEffect UUID
@@ -22,4 +22,5 @@ handleUUIDEffect ::
     => Eff (UUIDEffect ': effs)
     ~> Eff effs
 handleUUIDEffect = interpret $ \case
-    UuidNextRandom -> sendM $ liftIO UUID.uuidNextRandom
+    UuidNextRandom ->
+      sendM $ liftIO nextRandom

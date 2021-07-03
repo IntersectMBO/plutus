@@ -13,18 +13,18 @@
 
 module Plutus.Benchmark.Prime where
 
-import           Control.DeepSeq     (NFData)
-import           Data.Char           (isSpace)
+import           Control.DeepSeq    (NFData)
+import           Data.Char          (isSpace)
 import           GHC.Generics
-import qualified Prelude             as Haskell
 
-import           PlutusCore.Builtins (DefaultFun)
-import qualified PlutusCore.Pretty   as PLC
-import           PlutusCore.Universe
-import qualified PlutusTx            as Tx
-import           PlutusTx.Builtins   (divideInteger, modInteger)
-import           PlutusTx.Prelude    as Tx hiding (divMod, even)
-import           PlutusTx.Ratio      (divMod)
+import qualified Prelude            as Haskell
+
+import           PlutusCore.Default (DefaultFun, DefaultUni)
+import qualified PlutusCore.Pretty  as PLC
+import qualified PlutusTx           as Tx
+import           PlutusTx.Builtins  (divideInteger, modInteger)
+import           PlutusTx.Prelude   as Tx hiding (divMod, even)
+import           PlutusTx.Ratio     (divMod)
 import           UntypedPlutusCore
 
 ---------------- Extras ----------------

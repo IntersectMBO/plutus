@@ -37,8 +37,7 @@ import qualified Ledger.Scripts              as Scripts
 import qualified Ledger.TimeSlot             as TimeSlot
 import           Ledger.Value                (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                as Value
-import qualified PlutusCore.Builtins         as PLC
-import qualified PlutusCore.Universe         as PLC
+import qualified PlutusCore.Default          as PLC
 import           PlutusTx                    (CompiledCode, applyCode, liftCode)
 import qualified PlutusTx
 import qualified PlutusTx.AssocMap           as AMap

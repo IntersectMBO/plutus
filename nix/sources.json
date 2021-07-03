@@ -1,4 +1,16 @@
 {
+    "cardano-repo-tool": {
+        "branch": "master",
+        "description": "A tool for handling the update of Cardano related git repos",
+        "homepage": "",
+        "owner": "input-output-hk",
+        "repo": "cardano-repo-tool",
+        "rev": "71b1333552989093a89e6b04c5397f0b7bb9d0d0",
+        "sha256": "0fxk26dhi9y00sil9kkhf7yqsp3ydy4xi64rnws77881rlxhyqhc",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/cardano-repo-tool/archive/71b1333552989093a89e6b04c5397f0b7bb9d0d0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "easy-purescript-nix": {
         "branch": "master",
         "builtin": false,
@@ -31,10 +43,10 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "c63c196d3f72ed29840b0ac7605eeb4408c1bc6c",
-        "sha256": "0qnmqnvsvk94b7lrm788pdcwswjhzk6cfaawq4cnanalmg2976pw",
+        "rev": "6dba3997f6a39d51fe814d312b1a4b52838a8055",
+        "sha256": "0c41a066jm2j1lvg5x75193x1sy8i5p4s2a2qmdfxd2csghgi02w",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/c63c196d3f72ed29840b0ac7605eeb4408c1bc6c.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/6dba3997f6a39d51fe814d312b1a4b52838a8055.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell-language-server": {
@@ -56,36 +68,22 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "87084d65a476cc826a0e8c5d281d494254f5bc7a",
-        "sha256": "168vj5zswhxvvgp39ksr400gl2szih9sjbcdz2wsb7r7rnwp42xp",
+        "rev": "3856d2d24dca0ecc71fcfc314253a2a2d07a3c4f",
+        "sha256": "0s69nasqhkv8n0qmdv075k83p3z584ja9vkzdnp2291mymghvx87",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/87084d65a476cc826a0e8c5d281d494254f5bc7a.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/3856d2d24dca0ecc71fcfc314253a2a2d07a3c4f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "mvn2nix": {
+    "iohk-nix": {
         "branch": "master",
-        "builtin": false,
-        "description": "Easily package your Maven Java application with the Nix package manager.",
-        "homepage": "",
-        "owner": "fzakaria",
-        "repo": "mvn2nix",
-        "rev": "3af3a7e02bce9cccc77c582a589d742e4fb8540e",
-        "sha256": "0v5jv129a8wg7hgpcjgkvi8kadmh4x8gm9vacb35jlwyvhf00kal",
+        "description": "nix scripts shared across projects",
+        "homepage": null,
+        "owner": "input-output-hk",
+        "repo": "iohk-nix",
+        "rev": "7f57f750e27c84def8e0ed2492eea01ea957cbf2",
+        "sha256": "0dpcibd0sn4a5687nywhd9j5pg6qpcwgjn6qxannj6isiv932m8a",
         "type": "tarball",
-        "url": "https://github.com/fzakaria/mvn2nix/archive/3af3a7e02bce9cccc77c582a589d742e4fb8540e.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "nixops": {
-        "branch": "master",
-        "builtin": false,
-        "description": "NixOps is a tool for deploying to NixOS machines in a network or cloud.",
-        "homepage": "https://nixos.org/nixops",
-        "owner": "NixOS",
-        "repo": "nixops",
-        "rev": "45256745cef246dabe1ae8a7d109988f190cd7ef",
-        "sha256": "0ni1v8ppg5cf35gq7nzd50kajxzp5zkbzhf022in0fgbjcprlzr2",
-        "type": "tarball",
-        "url": "https://github.com/NixOS/nixops/archive/45256745cef246dabe1ae8a7d109988f190cd7ef.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/7f57f750e27c84def8e0ed2492eea01ea957cbf2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -102,16 +100,16 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "npmlock2nix": {
-        "branch": "restricted-mode-support",
+        "branch": "master",
         "builtin": false,
         "description": null,
         "homepage": null,
         "owner": "tweag",
         "repo": "npmlock2nix",
-        "rev": "32d6c291422cb1569debafe203aaed32ab72b158",
-        "sha256": "0gg2dyizz4qgpznybd3izm31bjdqb6g5zyqkchja7bqr386gdlrg",
+        "rev": "9d71a0fc7a7450e740dba1bcdaed1eb9faa57bc2",
+        "sha256": "1qivxvm9shqi44pv1fbhmbb605nnrp8sirs8slbv0d1idrvsdyq5",
         "type": "tarball",
-        "url": "https://github.com/tweag/npmlock2nix/archive/32d6c291422cb1569debafe203aaed32ab72b158.tar.gz",
+        "url": "https://github.com/tweag/npmlock2nix/archive/9d71a0fc7a7450e740dba1bcdaed1eb9faa57bc2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {

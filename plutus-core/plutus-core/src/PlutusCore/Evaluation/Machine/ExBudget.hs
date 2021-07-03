@@ -137,33 +137,19 @@ possible to adjust them at runtime.
 
 module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
-    , ToExMemory(..)
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
+    , enormousBudget
     )
 where
 
 import           PlutusPrelude                          hiding (toList)
 
-import           PlutusCore.Core
-import           PlutusCore.Name
-
-import           Data.Semigroup.Generic
+import           Data.Semigroup
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
 import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
-
-class ToExMemory term where
-    -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
-    -- return something arbitrary just to fit such a term into the builtin application machinery.
-    toExMemory :: term -> ExMemory
-
-instance ToExMemory (Term TyName Name uni fun ()) where
-    toExMemory _ = 0
-
-instance ToExMemory (Term TyName Name uni fun ExMemory) where
-    toExMemory = termAnn
 
 -- | A class for injecting a 'Builtin' into an @exBudgetCat@.
 -- We need it, because the constant application machinery calls 'spendBudget' before reducing a
@@ -178,9 +164,19 @@ instance ExBudgetBuiltin fun () where
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
     deriving anyclass (PrettyBy config, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget
+
+-- These functions are performance critical, so we can't use GenericSemigroupMonoid, and we insist that they be inlined.
+instance Semigroup ExBudget where
+    {-# INLINE (<>) #-}
+    (ExBudget cpu1 mem1) <> (ExBudget cpu2 mem2) = ExBudget (cpu1 <> cpu2) (mem1 <> mem2)
+    -- This absolutely must be inlined so that the 'fromIntegral' calls can get optimized away, or it destroys performance
+    {-# INLINE stimes #-}
+    stimes r (ExBudget (ExCPU cpu) (ExMemory mem)) = ExBudget (ExCPU (fromIntegral r * cpu)) (ExMemory (fromIntegral r * mem))
+
+instance Monoid ExBudget where
+    mempty = ExBudget mempty mempty
 
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ fold
@@ -189,6 +185,14 @@ instance Pretty ExBudget where
         , "}"
         ]
 
-newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
-    deriving newtype (Pretty, PrettyBy config, NFData)
+newtype ExRestrictingBudget = ExRestrictingBudget
+    { unExRestrictingBudget :: ExBudget
+    } deriving (Show, Eq)
+      deriving newtype (Semigroup, Monoid)
+      deriving newtype (Pretty, PrettyBy config, NFData)
+
+-- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
+-- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
+enormousBudget :: ExRestrictingBudget
+enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
+                 where maxInt = fromIntegral (maxBound ::Int)

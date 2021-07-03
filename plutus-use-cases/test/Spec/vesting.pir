@@ -58,7 +58,7 @@
                 (termbind
                   (strict)
                   (vardecl b (con bool))
-                  [ [ (builtin equalsByteString) arg ] arg ]
+                  [ [ (builtin eqByteString) arg ] arg ]
                 )
                 [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
               )
@@ -1880,7 +1880,7 @@
                               (termbind
                                 (strict)
                                 (vardecl b (con bool))
-                                [ [ (builtin equalsInteger) arg ] arg ]
+                                [ [ (builtin eqInteger) arg ] arg ]
                               )
                               [
                                 [ [ { (builtin ifThenElse) Bool } b ] True ]
@@ -2829,10 +2829,7 @@
                                   (termbind
                                     (strict)
                                     (vardecl b (con bool))
-                                    [
-                                      [ (builtin lessThanEqualsInteger) arg ]
-                                      arg
-                                    ]
+                                    [ [ (builtin lessThanEqInteger) arg ] arg ]
                                   )
                                   [
                                     [ [ { (builtin ifThenElse) Bool } b ] True ]
@@ -2979,8 +2976,7 @@
                                     (strict)
                                     (vardecl b (con bool))
                                     [
-                                      [ (builtin greaterThanEqualsInteger) arg ]
-                                      arg
+                                      [ (builtin greaterThanEqInteger) arg ] arg
                                     ]
                                   )
                                   [
@@ -5127,95 +5123,6 @@
                           (termbind
                             (strict)
                             (vardecl
-                              wavailableFrom
-                              (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])))
-                            )
-                            (lam
-                              ww
-                              (con integer)
-                              (lam
-                                ww
-                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                (lam
-                                  w
-                                  [Interval (con integer)]
-                                  [
-                                    [
-                                      [
-                                        {
-                                          [
-                                            Bool_match
-                                            [
-                                              [
-                                                [
-                                                  { contains (con integer) }
-                                                  fOrdPOSIXTime
-                                                ]
-                                                [
-                                                  [
-                                                    { Interval (con integer) }
-                                                    [
-                                                      [
-                                                        {
-                                                          LowerBound
-                                                          (con integer)
-                                                        }
-                                                        [
-                                                          {
-                                                            Finite (con integer)
-                                                          }
-                                                          [
-                                                            [
-                                                              (builtin
-                                                                addInteger
-                                                              )
-                                                              ww
-                                                            ]
-                                                            (con
-                                                              integer 1596059091
-                                                            )
-                                                          ]
-                                                        ]
-                                                      ]
-                                                      True
-                                                    ]
-                                                  ]
-                                                  [
-                                                    [
-                                                      {
-                                                        UpperBound (con integer)
-                                                      }
-                                                      { PosInf (con integer) }
-                                                    ]
-                                                    True
-                                                  ]
-                                                ]
-                                              ]
-                                              w
-                                            ]
-                                          ]
-                                          (fun Unit [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
-                                        }
-                                        (lam thunk Unit ww)
-                                      ]
-                                      (lam
-                                        thunk
-                                        Unit
-                                        {
-                                          Nil
-                                          [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                        }
-                                      )
-                                    ]
-                                    Unit
-                                  ]
-                                )
-                              )
-                            )
-                          )
-                          (termbind
-                            (strict)
-                            (vardecl
                               wremainingFrom
                               (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])))
                             )
@@ -5235,7 +5142,72 @@
                                         fAdditiveGroupValue_cscale
                                         (con integer -1)
                                       ]
-                                      [ [ [ wavailableFrom ww ] ww ] w ]
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [
+                                                Bool_match
+                                                [
+                                                  [
+                                                    [
+                                                      { contains (con integer) }
+                                                      fOrdPOSIXTime
+                                                    ]
+                                                    [
+                                                      [
+                                                        {
+                                                          Interval (con integer)
+                                                        }
+                                                        [
+                                                          [
+                                                            {
+                                                              LowerBound
+                                                              (con integer)
+                                                            }
+                                                            [
+                                                              {
+                                                                Finite
+                                                                (con integer)
+                                                              }
+                                                              ww
+                                                            ]
+                                                          ]
+                                                          True
+                                                        ]
+                                                      ]
+                                                      [
+                                                        [
+                                                          {
+                                                            UpperBound
+                                                            (con integer)
+                                                          }
+                                                          {
+                                                            PosInf (con integer)
+                                                          }
+                                                        ]
+                                                        True
+                                                      ]
+                                                    ]
+                                                  ]
+                                                  w
+                                                ]
+                                              ]
+                                              (fun Unit [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                                            }
+                                            (lam thunk Unit ww)
+                                          ]
+                                          (lam
+                                            thunk
+                                            Unit
+                                            {
+                                              Nil
+                                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                            }
+                                          )
+                                        ]
+                                        Unit
+                                      ]
                                     ]
                                   ]
                                 )

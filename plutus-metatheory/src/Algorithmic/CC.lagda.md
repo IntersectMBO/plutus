@@ -700,6 +700,7 @@ unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → N ≡ E' [ M ]ᴱ
       → (VN : Value N)
       → (compEC' E E' ▻ M) -→s (E ◅ VN) 
+
 unwindE M N E E' refl VN = step**
   (lemV M _ (compEC' E E'))
   (unwindVE M N E E' refl (VALUE2Value (lemVE M E' (Value2VALUE VN))) VN)

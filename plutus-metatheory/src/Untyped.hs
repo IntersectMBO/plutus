@@ -2,13 +2,13 @@
 
 module Untyped where
 
-import           PlutusCore.Builtins
-import           PlutusCore.Universe
+import           PlutusCore.Default
 import           UntypedPlutusCore
 
-import           Data.ByteString     as BS
-import           Data.Text           as T
+import           Data.ByteString    as BS
+import           Data.Text          as T
 import           GHC.Natural
+import           Universe
 
 
 -- Untyped (Raw) syntax
@@ -44,6 +44,7 @@ convC (Some (ValueOf DefaultUniString     s)) = UConStr (T.pack s)
 convC (Some (ValueOf DefaultUniChar       c)) = UConChar c
 convC (Some (ValueOf DefaultUniUnit       u)) = UConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = UConBool b
+convC (Some (ValueOf uni                  _)) = error $ "convC: " ++ show uni ++ " is not supported"
 
 conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 conv (Var _ x)      = UVar (unIndex (ndbnIndex x) - 1)

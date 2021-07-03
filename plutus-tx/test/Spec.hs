@@ -8,7 +8,7 @@ import qualified Codec.Serialise     as Serialise
 import           Hedgehog            (MonadGen, Property, annotateShow, assert, forAll, property, tripping)
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
-import           PlutusTx.Data       (Data (..))
+import           PlutusCore.Data     (Data (..))
 import           PlutusTx.Ratio      (Rational, denominator, numerator, (%))
 import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
 import           Prelude             hiding (Rational)

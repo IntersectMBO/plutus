@@ -17,8 +17,7 @@ import qualified PlutusTx.Builtins         as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Plugin
 
-import qualified PlutusCore.Builtins       as PLC
-import qualified PlutusCore.Universe       as PLC
+import qualified PlutusCore.Default        as PLC
 
 import           Data.Proxy
 import           Data.String

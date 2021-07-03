@@ -1,49 +1,8 @@
-.marlowe-logo {
-  width: 35px;
-  height: 26px;
-  cursor: pointer;
-
-  svg {
-    fill: url(#marlowe__linear-gradient) var(--primary-color);
-  }
-}
-
-
-.marlowe-title-group {
-  flex: 1;
-  justify-content: start;
-
-  h2 {
-    line-height: 1;
-    font-size: 1.4em;
-  }
-}
-
-.marlowe-links-group {
-  flex: 1;
-  text-align: end;
-
-  a {
-    margin-left: var(--medium-margin);
-
-  }
-}
-
-@media(max-width: $breakpoint-tablet - 1) {
-  .marlowe-title-group {
-    h2 {
-      display: none;
-    }
-  }
-}
-
 .project-title {
   text-align: center;
-  flex: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-
   h1 {
     max-width: 200px;
     white-space: nowrap;
@@ -54,7 +13,6 @@
   @apply text-gray-darkest;
   margin-left: var(--very-small-margin);
 }
-
 
 /* Spinner icon when saving */
 .project-title i {
@@ -68,11 +26,6 @@
   height: 1em;
   width: 1em;
   margin-left: 1rem;
-}
-
-.external-links {
-  flex: 1;
-  text-align: right;
 }
 
 .menu-bar {
@@ -112,16 +65,6 @@
   height: 2em;
   padding: 0.4em 0em;
   min-width: 8em;
-}
-
-.save-button-group {
-  display: flex;
-  align-items: center;
-}
-
-.save-button-group .error {
-  color: var(--error-color);
-  padding: 0em 1em;
 }
 
 .global-actions .group {

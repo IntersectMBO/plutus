@@ -3,13 +3,11 @@ module WalletData.View
   , walletDetailsCard
   , putdownWalletCard
   , walletLibraryScreen
-  , nicknamesDataList
-  , nicknamesDataListId
   ) where
 
 import Prelude hiding (div)
-import Css (applyWhen, classNames, hideWhen)
 import Css as Css
+import Dashboard.Types (Action(..), Card(..))
 import Data.Foldable (foldMap)
 import Data.Lens (view)
 import Data.Map (isEmpty, toUnfoldable)
@@ -18,16 +16,16 @@ import Data.Newtype (unwrap)
 import Data.String (null)
 import Data.Tuple (Tuple(..))
 import Data.UUID (toString) as UUID
-import Halogen.HTML (HTML, button, datalist, div, h2, h3, h4, input, label, li, option, p, p_, text, ul_)
+import Halogen.Css (applyWhen, classNames, hideWhen)
+import Halogen.HTML (HTML, button, div, h2, h3, h4, input, label, li, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (InputType(..), disabled, for, id_, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), disabled, for, readOnly, type_, value)
 import Humanize (humanizeValue)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
 import Material.Icons (Icon(..))
-import Play.Types (Action(..), Card(..))
 import Types (WebData)
 import WalletData.Lenses (_assets, _companionAppId, _walletNickname)
 import WalletData.State (adaToken, getAda)
@@ -47,7 +45,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletNickname"
       , placeholder: "Nickname"
       , readOnly: false
-      , datalistId: Nothing
+      , valueOptions: mempty
       }
 
     walletIdInputDisplayOptions =
@@ -56,7 +54,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletId"
       , placeholder: "Wallet ID"
       , readOnly: false
-      , datalistId: Nothing
+      , valueOptions: mempty
       }
   in
     div
@@ -116,7 +114,7 @@ walletDetailsCard walletDetails =
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input false <> [ "mb-4" ]
+              , classNames $ Css.input true <> [ "mb-4" ]
               , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]
@@ -143,7 +141,7 @@ putdownWalletCard walletDetails =
               [ text "Wallet ID" ]
           , input
               [ type_ InputText
-              , classNames $ Css.input false <> [ "mb-4" ]
+              , classNames $ Css.input true <> [ "mb-4" ]
               , value $ UUID.toString $ unwrap companionAppId
               , readOnly true
               ]
@@ -175,7 +173,7 @@ putdownWalletCard walletDetails =
 walletLibraryScreen :: forall p. WalletLibrary -> HTML p Action
 walletLibraryScreen library =
   div
-    [ classNames [ "p-4", "md:px-5pc" ] ]
+    [ classNames [ "p-4" ] ]
     [ h2
         [ classNames [ "font-semibold", "text-lg", "mb-4" ] ]
         [ text "Contacts" ]
@@ -198,15 +196,3 @@ walletLibraryScreen library =
       , onClick_ $ OpenCard $ ViewWalletCard walletDetails
       ]
       [ text nickname ]
-
-nicknamesDataList :: forall p a. WalletLibrary -> HTML p a
-nicknamesDataList library =
-  datalist
-    [ id_ nicknamesDataListId ]
-    $ walletOption
-    <$> toUnfoldable library
-  where
-  walletOption (Tuple nickname _) = option [ value nickname ] []
-
-nicknamesDataListId :: String
-nicknamesDataListId = "walletNicknames"

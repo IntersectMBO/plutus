@@ -13,7 +13,7 @@ import Data.Tuple (Tuple(..))
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Halogen (ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, getHTMLElementRef)
-import Halogen.HTML (IProp)
+import Halogen.HTML (IProp, div_)
 import Halogen.HTML.Core (Prop)
 import Halogen.HTML.Core as Core
 import Halogen.Query (HalogenM)
@@ -64,14 +64,24 @@ mapSubmodule ::
     ~> HalogenM state action slots msg m
 mapSubmodule lens wrapper halogen = (imapState lens <<< mapAction wrapper) halogen
 
+-- Allows you to render a submodule changing the state with the provided optic and
+-- wrapping the action. If the optic cant produce a value, an empty div is inserted instead
 renderSubmodule ::
   forall m action action' state state' slots.
-  Lens' state state' ->
+  Traversal' state state' ->
   (action' -> action) ->
   (state' -> ComponentHTML action' slots m) ->
   state ->
   ComponentHTML action slots m
-renderSubmodule lens wrapper renderer state = bimap (map wrapper) wrapper (renderer (view lens state))
+renderSubmodule optic actionWrapper render state =
+  let
+    mSubState = preview optic state
+
+    rendered = case mSubState of
+      Nothing -> div_ []
+      Just subState -> render subState
+  in
+    bimap (map actionWrapper) actionWrapper rendered
 
 -- | This lets you map the state of a submodule that may not exist,
 -- | given an affine traversal into that optional substate. It's

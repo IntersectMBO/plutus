@@ -15,11 +15,10 @@ module PlutusIR.Generators.AST
 
 import           PlutusIR
 
-import qualified PlutusCore.Builtins       as PLC
+import qualified PlutusCore.Default        as PLC
 import           PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, genKind, genVersion, runAstGen,
                                                       simpleRecursive)
 import qualified PlutusCore.Generators.AST as PLC
-import qualified PlutusCore.Universe       as PLC
 
 import           Hedgehog                  hiding (Var)
 import qualified Hedgehog.Gen              as Gen

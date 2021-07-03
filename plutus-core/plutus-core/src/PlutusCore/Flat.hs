@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -12,23 +13,28 @@
 -- file.  Also see the Notes [Serialising unit annotations] and
 -- [Serialising Scripts] before using anything in this file.
 
-module PlutusCore.Flat ( encode
-                                , decode
-                                , safeEncodeBits
-                                ) where
+module PlutusCore.Flat
+    ( AsSerialize (..)
+    , encode
+    , decode
+    , safeEncodeBits
+    ) where
 
 import           PlutusCore.Core
+import           PlutusCore.Data
 import           PlutusCore.DeBruijn
 import           PlutusCore.Lexer.Type
 import           PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
+import           Codec.Serialise       (Serialise, deserialiseOrFail, serialise)
+import           Data.Functor
 import           Data.Proxy
 import           Data.Word             (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder
+import           Universe
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -61,10 +67,9 @@ tags and their used/available encoding possibilities.
 
 | Data type        | Function          | Used | Available |
 |------------------|-------------------|------|-----------|
-| default builtins | encodeBuiltin     | 22   | 32        |
+| default builtins | encodeBuiltin     | 47   | 128       |
 | Kinds            | encodeKind        | 2    | 2         |
 | Types            | encodeType        | 7    | 8         |
-| BuiltinNames     | encodeBuiltinName | 2    | 2         |
 | Terms            | encodeTerm        | 10   | 16        |
 
 For format stability we are manually assigning the tag values to the
@@ -83,6 +88,20 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
+-- | For deriving 'Flat' instances via 'Serialize'.
+newtype AsSerialize a = AsSerialize
+    { unAsSerialize :: a
+    } deriving newtype (Serialise)
+
+instance Serialise a => Flat (AsSerialize a) where
+    encode = encode . serialise
+    decode = do
+        errOrX <- deserialiseOrFail <$> decode
+        case errOrX of
+            Left err -> fail $ show err  -- Here we embed a 'Serialise' error into a 'Flat' one.
+            Right x  -> pure x
+    size = size . serialise
+
 safeEncodeBits :: NumBits -> Word8 -> Encoding
 safeEncodeBits n v =
   if 2 ^ n < v
@@ -99,33 +118,43 @@ encodeConstant = safeEncodeBits constantWidth
 decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
 
--- See Note [The G, the Tag and the Auto].
-instance Closed uni => Flat (Some (TypeIn uni)) where
-    encode (Some (TypeIn uni)) =
-      encodeListWith encodeConstant .
-        map (fromIntegral :: Int -> Word8) $ encodeUni uni
+deriving via AsSerialize Data instance Flat Data
 
-    decode = go . decodeUni . map (fromIntegral :: Word8 -> Int)
-                =<< decodeListWith decodeConstant
+decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
+decodeKindedUniFlat =
+    go . decodeKindedUni . map (fromIntegral :: Word8 -> Int)
+        =<< decodeListWith decodeConstant
         where
         go Nothing    = fail "Failed to decode a universe"
         go (Just uni) = pure uni
 
+-- See Note [The G, the Tag and the Auto].
+instance Closed uni => Flat (SomeTypeIn uni) where
+    encode (SomeTypeIn uni) =
+      encodeListWith encodeConstant .
+        map (fromIntegral :: Int -> Word8) $ encodeUni uni
+
+    decode = decodeKindedUniFlat <&> \(SomeTypeIn (Kinded uni)) -> SomeTypeIn uni
+
     -- Encode a view of the universe, not the universe itself.
-    size (Some (TypeIn uni)) acc =
+    size (SomeTypeIn uni) acc =
       acc +
       length (encodeUni uni) * (1 + constantWidth) + -- List Cons (1 bit) + constant
       1 -- List Nil (1 bit)
 
 -- See Note [The G, the Tag and the Auto].
 instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
-    encode (Some (ValueOf uni x)) = encode (Some $ TypeIn uni) <> bring (Proxy @Flat) uni (encode x)
+    encode (Some (ValueOf uni x)) = encode (SomeTypeIn uni) <> bring (Proxy @Flat) uni (encode x)
 
-    decode = go =<< decode where
-        go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
+    decode =
+        decodeKindedUniFlat @uni >>= \(SomeTypeIn (Kinded uni)) ->
+            -- See Note [Decoding universes].
+            case checkStar uni of
+                Nothing   -> fail "A non-star type can't have a value to decode"
+                Just Refl -> Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
 
     -- We need to get the flat instance in scope.
-    size (Some (ValueOf uni x)) acc = size (Some $ TypeIn uni) acc
+    size (Some (ValueOf uni x)) acc = size (SomeTypeIn uni) acc
                                         + bring (Proxy @Flat) uni (size x 0)
 
 instance Flat Unique where
@@ -276,12 +305,8 @@ instance (Flat ann, Flat tyname)  => Flat (TyVarDecl tyname ann) where
     encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
     decode = TyVarDecl <$> decode <*> decode <*> decode
 
-instance ( Closed uni
-         , uni `Everywhere` Flat
-         , Flat fun
-         , Flat ann
-         , Flat tyname
-         , Flat name
+instance ( Flat ann
+         , Flat (Term tyname name uni fun ann)
          ) => Flat (Program tyname name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
@@ -310,3 +335,18 @@ instance Flat TyDeBruijn where
 instance Flat NamedTyDeBruijn where
     encode (NamedTyDeBruijn n) = encode n
     decode = NamedTyDeBruijn <$> decode
+
+instance Flat (Binder DeBruijn) where
+    size _ = id -- zero cost
+    encode _ = mempty
+    decode = pure $ Binder (DeBruijn 0)
+
+-- (Binder TyDeBruin) could similarly have a flat instance, but we don't need it.
+
+deriving newtype instance Flat (Binder Name)
+deriving newtype instance Flat (Binder TyName)
+-- We could use an alternative, manual Flat-serialization of Named(Ty)DeBruijn
+-- where we store the name only at the binder and the index only at the use-site (Var/TyVar).
+-- That would be more compact, but we don't need it at the moment.
+deriving newtype instance Flat (Binder NamedDeBruijn)
+deriving newtype instance Flat (Binder NamedTyDeBruijn)

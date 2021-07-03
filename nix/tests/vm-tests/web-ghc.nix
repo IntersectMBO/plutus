@@ -17,6 +17,7 @@ let
 in
 makeTest {
   name = "web-ghc";
+  skipLint = true;
   machine = { pkgs, ... }:
     {
       imports = [ ../../modules/web-ghc.nix ];
@@ -25,6 +26,7 @@ makeTest {
         enable = true;
         port = 80;
         web-ghc-package = web-ghc;
+        timeout = 180;
       };
     };
   testScript = ''
@@ -32,8 +34,14 @@ makeTest {
     machine.start()
     machine.wait_for_unit("web-ghc.service")
     machine.wait_for_open_port(80)
-    machine.succeed("curl -sSfL -H 'Content-Type: application/json' --request POST --data @${validCompileRequest} http://localhost:80/runghc 2>&1 | grep Right")
-    machine.succeed("curl -sSfL -H 'Content-Type: application/json' --request POST --data @${invalidCompileRequest} http://localhost:80/runghc 2>&1 | grep Left")
+
+    with subtest("********************************************************************************************* TEST: Can process a valid compilation request"):
+      response = machine.succeed("curl -sSfL -H 'Content-Type: application/json' --request POST --data @${validCompileRequest} http://localhost:80/runghc")
+      assert "Right" in response, "Expected response wrapped in 'Right'. Actual: {}".format(response)
+
+    with subtest("********************************************************************************************* TEST: Can process a invalid compilation request"):
+      response = machine.succeed("curl -sSfL -H 'Content-Type: application/json' --request POST --data @${invalidCompileRequest} http://localhost:80/runghc")
+      assert "Left" in response, "Expected response wrapped in 'Left'. Actual: {}".format(response)
   '';
 
 }

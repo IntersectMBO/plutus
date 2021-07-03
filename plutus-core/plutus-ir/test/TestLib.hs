@@ -20,7 +20,6 @@ import           Control.Monad.Morph
 import           Control.Monad.Reader as Reader
 
 import qualified PlutusCore           as PLC
-import qualified PlutusCore.Constant  as PLC
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 import           PlutusCore.Quote
@@ -36,13 +35,13 @@ import qualified Data.Text            as T
 import qualified Data.Text.IO         as T
 
 
-instance ( PLC.GShow uni, PLC.GEq uni, PLC.ToBuiltinMeaning uni fun
+instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
          , Typeable a, Typeable uni, Typeable fun, Ord a
          ) => ToTPlc (PIR.Term TyName Name uni fun a) uni fun where
     toTPlc = asIfThrown . fmap (PLC.Program () (PLC.defaultVersion ()) . void) . compileAndMaybeTypecheck True
 
-instance ( PLC.GShow uni, PLC.GEq uni, PLC.ToBuiltinMeaning uni fun
+instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
          , Typeable a, Typeable uni, Typeable fun, Ord a
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
@@ -58,7 +57,7 @@ asIfThrown
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
 compileAndMaybeTypecheck
-    :: (PLC.GShow uni, PLC.GEq uni, PLC.ToBuiltinMeaning uni fun, Ord a)
+    :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a)
     => Bool
     -> Term TyName Name uni fun a
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))

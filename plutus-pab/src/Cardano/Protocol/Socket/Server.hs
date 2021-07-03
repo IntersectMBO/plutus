@@ -38,7 +38,8 @@ import           Cardano.Slotting.Slot                               (SlotNo (..
 import           Ouroboros.Network.Block                             (Point (..), pointSlot)
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux
-import           Ouroboros.Network.NodeToNode
+import           Ouroboros.Network.NodeToNode                        hiding (chainSyncMiniProtocolNum,
+                                                                      txSubmissionMiniProtocolNum)
 import qualified Ouroboros.Network.Point                             as OP (Block (..))
 import           Ouroboros.Network.Protocol.Handshake.Codec
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
@@ -394,6 +395,7 @@ protocolLoop socketPath internalState = liftIO $ withIOManager $ \iocp -> do
       (AcceptedConnectionsLimit maxBound maxBound 0)
       (localAddressFromPath socketPath)
       unversionedHandshakeCodec
+      noTimeLimitsHandshake
       (cborTermVersionDataCodec unversionedProtocolDataCodec)
       acceptableVersion
       (unversionedProtocol (SomeResponderApplication (application internalState)))
@@ -407,7 +409,8 @@ application ::
                          LBS.ByteString
                          IO Void ()
 application mvChainState =
-    nodeApplication chainSync txSubmission
+    mkApplication [ (chainSyncMiniProtocolNum   , chainSync)
+                  , (txSubmissionMiniProtocolNum, txSubmission) ]
     where
         chainSync :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
         chainSync =

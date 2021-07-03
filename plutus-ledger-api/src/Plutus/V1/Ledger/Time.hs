@@ -17,6 +17,8 @@
 module Plutus.V1.Ledger.Time(
       POSIXTime(..)
     , POSIXTimeRange
+    , DiffSeconds(..)
+    , fromSeconds
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
@@ -33,11 +35,19 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Interval
 
+-- | This is a length of time, as measured by a number of seconds.
+newtype DiffSeconds = DiffSeconds Integer
+  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
+  deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
+  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Serialise, Hashable, PlutusTx.IsData)
+
+makeLift ''DiffSeconds
+
 -- | POSIX time is measured as the number of seconds since 1970-01-01 00:00 UTC
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
-  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.IsData)
+  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Serialise, Hashable, PlutusTx.IsData)
 
 makeLift ''POSIXTime
 
@@ -49,3 +59,8 @@ instance Pretty (Interval POSIXTime) where
 
 -- | An 'Interval' of 'POSIXTime's.
 type POSIXTimeRange = Interval POSIXTime
+
+-- | Simple conversion from 'DiffSeconds' to 'POSIXTime'.
+{-# INLINABLE fromSeconds #-}
+fromSeconds :: DiffSeconds -> POSIXTime
+fromSeconds (DiffSeconds s) = POSIXTime s

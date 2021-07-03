@@ -1,8 +1,0 @@
-( (Right (/\(a :: *) -> iwrap (\(rec :: * -> *) -> \(i :: *) -> a -> (all (a :: * -> *). a i -> integer)) a (\(x : a) -> /\(f :: * -> *) -> \(y : f a) -> 0)))
-, ({ tally: ({ BAST causes ({ cpu: 0
-| mem: 16
-})})
-| budget: ({ cpu: 0
-| mem: 16
-})
-}) )

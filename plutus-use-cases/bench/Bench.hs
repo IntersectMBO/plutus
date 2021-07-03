@@ -220,22 +220,22 @@ multisig :: Benchmark
 multisig = bgroup "multisig" [
         bench "1of1" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
+            , Scripts.validatorScript $ MS.typedValidator msScen1of1
             , unitDatum
             , unitRedeemer),
         bench "1of2" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen1of2
+            , Scripts.validatorScript $ MS.typedValidator msScen1of2
             , unitDatum
             , unitRedeemer),
         bench "2of2" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen2of2
+            , Scripts.validatorScript $ MS.typedValidator msScen2of2
             , unitDatum
             , unitRedeemer),
         bench "typecheck" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
+            , Scripts.validatorScript $ MS.typedValidator msScen1of1
             , unitDatum
             , unitRedeemer)
     ]
@@ -298,17 +298,17 @@ mockCtx = ScriptContext
 scriptHashes :: Benchmark
 scriptHashes = bgroup "script hashes" [
     let ac = assetClass "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" "my token"
-        si = TA.scriptInstance (TA.Account ac) in
+        si = TA.typedValidator (TA.Account ac) in
     bench "token account" $ nf Scripts.validatorScript si
-    , bench "public key" $ nf (Scripts.validatorScript . PK.scriptInstance) (pubKeyHash $ walletPubKey $ Wallet 2)
-    , bench "future" $ nf (Scripts.validatorScript . FT.scriptInstance theFuture) accounts
+    , bench "public key" $ nf (Scripts.validatorScript . PK.typedValidator) (pubKeyHash $ walletPubKey $ Wallet 2)
+    , bench "future" $ nf (Scripts.validatorScript . FT.typedValidator theFuture) accounts
     ]
 
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,
 --   due at slot #100.
 theFuture :: FT.Future
 theFuture = FT.Future {
-    FT.ftDeliveryDate  = Ledger.Slot 100,
+    FT.ftDeliveryDate  = TimeSlot.slotToPOSIXTime 100,
     FT.ftUnits         = 187,
     FT.ftUnitPrice     = Ada.lovelaceValueOf 1123,
     FT.ftInitialMargin = Ada.lovelaceValueOf 800,

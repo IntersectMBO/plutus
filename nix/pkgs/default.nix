@@ -10,7 +10,7 @@ let
 
   gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
 
-  # { index-state, project, projectPackages, packages, extraPackages }
+  # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
@@ -24,11 +24,16 @@ let
   #
   exeFromExtras = x: haskell.extraPackages."${x}".components.exes."${x}";
   cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
+  cardano-repo-tool = exeFromExtras "cardano-repo-tool";
   stylish-haskell = exeFromExtras "stylish-haskell";
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
   hie-bios = exeFromExtras "hie-bios";
   haskellNixAgda = haskell.extraPackages.Agda;
+
+  # These are needed to pull the cardano-cli and cardano-node in the nix-shell.
+  inherit (haskell.project.hsPkgs.cardano-cli.components.exes) cardano-cli;
+  inherit (haskell.project.hsPkgs.cardano-node.components.exes) cardano-node;
 
   # We want to keep control of which version of Agda we use, so we supply our own and override
   # the one from nixpkgs.
@@ -72,6 +77,7 @@ let
 
     # Update the linux files (will do for all unixes atm).
     $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-darwin)
 
     # This updates the sha files for the extra packages
     $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-linux)
@@ -178,7 +184,7 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
+  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server hie-bios cardano-cli cardano-node;
   inherit purty purty-pre-commit purs spago spago2nix;
   inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
   inherit web-ghc;

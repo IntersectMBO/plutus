@@ -18,10 +18,7 @@ ul {
   padding: 0;
 }
 
- /* TODO: it is preferred to stye classes than actual html components. At the moment I add
- the btn class, but later on we should make sure all buttons have that class and remove this global
- style */
-button, .btn {
+.btn {
   cursor: pointer;
   position: relative;
   background: var(--btn-primary-color);
@@ -32,15 +29,15 @@ button, .btn {
   z-index: 1;
 }
 
-button:hover, .btn:hover {
+.btn:hover {
   background: var(--btn-primary-color-hover);
 }
 
-button:active, .btn:active {
+.btn:active {
   background: var(--btn-primary-color-active);
 }
 
-button:disabled, .btn:disabled {
+.btn:disabled {
   background: var(--btn-primary-color-disabled);
   cursor: default;
 }
@@ -53,7 +50,7 @@ button:disabled, .btn:disabled {
   background-color: var(--error-color);
 }
 
-button.small-btn {
+.btn.small-btn {
   padding: 0rem;
   width: 32px;
   height: 30px;
@@ -74,3 +71,42 @@ button.small-btn {
   background: var(--btn-secondary-color-active);
 }
 
+select {
+  display: block;
+  padding: 0.3rem 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, .04);
+  border-radius: .3em;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  background-image: url(../images/select-button.svg);
+  background-repeat: no-repeat, repeat;
+  background-position: right -15px top 50%, 0 0;
+  background-size: 55px auto, 100%;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+select:hover {
+  border-color: #888;
+}
+
+select:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 1px 3px rgba(59, 153, 252, .7);
+  box-shadow: 0 0 0 3px -moz-mac-focusring;
+  color: #222;
+  outline: none;
+}
+
+select option {
+  font-weight: normal;
+}

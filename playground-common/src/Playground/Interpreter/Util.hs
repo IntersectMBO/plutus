@@ -14,48 +14,48 @@ module Playground.Interpreter.Util
     , renderInstanceTrace
     ) where
 
-import qualified Control.Foldl                          as L
-import           Control.Lens                           (Traversal', preview)
-import           Control.Monad                          (void)
-import           Control.Monad.Freer                    (run)
-import           Control.Monad.Freer.Error              (Error, runError, throwError)
-import           Data.Aeson                             (FromJSON, eitherDecode)
-import qualified Data.Aeson                             as JSON
-import           Data.Bifunctor                         (first)
-import           Data.ByteString.Lazy                   (ByteString)
-import qualified Data.ByteString.Lazy.Char8             as BSL
-import           Data.Foldable                          (traverse_)
-import           Data.Map                               (Map)
-import qualified Data.Map                               as Map
-import           Data.Maybe                             (isJust)
-import           Data.Text                              (Text)
+import qualified Control.Foldl                         as L
+import           Control.Lens                          (Traversal', preview)
+import           Control.Monad                         (void)
+import           Control.Monad.Freer                   (run)
+import           Control.Monad.Freer.Error             (Error, runError, throwError)
+import           Data.Aeson                            (FromJSON, eitherDecode)
+import qualified Data.Aeson                            as JSON
+import           Data.Bifunctor                        (first)
+import           Data.ByteString.Lazy                  (ByteString)
+import qualified Data.ByteString.Lazy.Char8            as BSL
+import           Data.Foldable                         (traverse_)
+import           Data.Map                              (Map)
+import qualified Data.Map                              as Map
+import           Data.Maybe                            (isJust)
+import           Data.Text                             (Text)
 
-import qualified Data.Text.Encoding                     as Text
-import           Data.Text.Prettyprint.Doc              (defaultLayoutOptions, layoutPretty, pretty, vsep)
-import           Data.Text.Prettyprint.Doc.Render.Text  (renderStrict)
-import           Ledger.Crypto                          (pubKeyHash)
-import           Ledger.Value                           (Value)
-import           Playground.Types                       (ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
-                                                         EvaluationResult, Expression, FunctionSchema (FunctionSchema),
-                                                         PlaygroundError (JsonDecodingError, OtherError),
-                                                         SimulatorWallet (SimulatorWallet), amount, argument,
-                                                         argumentValues, caller, decodingError, endpointDescription,
-                                                         expected, input, recipient, sender, simulatorWalletWallet)
+import qualified Data.Text.Encoding                    as Text
+import           Data.Text.Prettyprint.Doc             (defaultLayoutOptions, layoutPretty, pretty, vsep)
+import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import           Ledger.Crypto                         (pubKeyHash)
+import           Ledger.Value                          (Value)
+import           Playground.Types                      (ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
+                                                        EvaluationResult, Expression, FunctionSchema (FunctionSchema),
+                                                        PlaygroundError (JsonDecodingError, OtherError),
+                                                        SimulatorWallet (SimulatorWallet), amount, argument,
+                                                        argumentValues, caller, decodingError, endpointDescription,
+                                                        expected, input, recipient, sender, simulatorWalletWallet)
 import qualified Playground.Types
-import           Plutus.Contract                        (Contract, HasBlockchainActions)
-import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (getEndpointDescription))
-import           Plutus.Trace                           (ContractConstraints, ContractInstanceTag)
-import           Plutus.Trace.Emulator.Types            (EmulatorRuntimeError (JSONDecodingError), _ContractLog,
-                                                         _ReceiveEndpointCall, cilMessage)
-import           Plutus.Trace.Playground                (PlaygroundTrace, runPlaygroundStream, walletInstanceTag)
+import           Plutus.Contract                       (Contract)
+import           Plutus.Trace                          (ContractConstraints, ContractInstanceTag)
+import           Plutus.Trace.Emulator.Types           (EmulatorRuntimeError (EmulatorJSONDecodingError), _ContractLog,
+                                                        _ReceiveEndpointCall, cilMessage)
+import           Plutus.Trace.Playground               (PlaygroundTrace, runPlaygroundStream, walletInstanceTag)
 import qualified Plutus.Trace.Playground
-import qualified Plutus.Trace.Playground                as Trace
-import           Streaming.Prelude                      (fst')
-import           Wallet.Emulator.Folds                  (EmulatorEventFoldM)
-import qualified Wallet.Emulator.Folds                  as Folds
-import           Wallet.Emulator.MultiAgent             (EmulatorEvent, chainEvent, eteEvent, instanceEvent)
-import           Wallet.Emulator.Stream                 (foldEmulatorStreamM)
-import           Wallet.Emulator.Types                  (Wallet, walletPubKey)
+import qualified Plutus.Trace.Playground               as Trace
+import           Streaming.Prelude                     (fst')
+import           Wallet.Emulator.Folds                 (EmulatorEventFoldM)
+import qualified Wallet.Emulator.Folds                 as Folds
+import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent, eteEvent, instanceEvent)
+import           Wallet.Emulator.Stream                (foldEmulatorStreamM)
+import           Wallet.Emulator.Types                 (Wallet, walletPubKey)
+import           Wallet.Types                          (EndpointDescription (getEndpointDescription))
 
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
@@ -110,8 +110,7 @@ evaluationResultFold wallets =
 -- | Evaluate a JSON payload from the Playground frontend against a given contract schema.
 stage ::
        forall w s a.
-       ( HasBlockchainActions s
-       , ContractConstraints s
+       ( ContractConstraints s
        , JSON.ToJSON w
        , Monoid w
        )
@@ -151,9 +150,15 @@ expressionToTrace = \case
             Just string ->
                 case JSON.eitherDecode string of
                     Left errs ->
-                        throwError $ JSONDecodingError $
-                        "Error extracting JSON from arguments. Expected an array of JSON strings. " <>
-                        show errs
+                        throwError
+                            $ EmulatorJSONDecodingError
+                              ("Error extracting JSON from arguments. Expected an array of JSON strings. " <>
+                        show errs)
+                              rawArgument
                     Right argument -> do
                         Trace.callEndpoint caller (getEndpointDescription endpointDescription) argument
-            Nothing -> throwError $ JSONDecodingError $ "Expected a String, but got: " <> show rawArgument
+            Nothing ->
+                throwError
+                    $ EmulatorJSONDecodingError
+                      ("Expected a String, but got: " <> show rawArgument)
+                      rawArgument

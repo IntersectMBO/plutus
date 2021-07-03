@@ -6,7 +6,13 @@ import Halogen (ClassName(..))
 import Halogen.HTML (HTML, IProp, div, span, text)
 import Halogen.HTML.Properties (classes)
 
-foreign import closeDrawerIcon :: String
+foreign import arrowLeftUp :: String
+
+foreign import arrowLeftDown :: String
+
+foreign import arrowRightUp :: String
+
+foreign import arrowRightDown :: String
 
 foreign import closeDrawerArrowIcon :: String
 
@@ -20,13 +26,13 @@ foreign import blocklyIcon :: String
 
 foreign import blocklyIconColour :: String
 
-foreign import infoIcon :: String
-
 foreign import readMoreIconWhite :: String
 
 foreign import iohkIcon :: String
 
 foreign import simulationIcon :: String
+
+foreign import simulationIconBlack :: String
 
 foreign import walletIcon :: String
 
@@ -44,19 +50,11 @@ foreign import javascriptIcon :: String
 
 foreign import marloweLogo :: String
 
-foreign import marloweLogo2 :: String
-
-foreign import option1 :: String
-
-foreign import option2 :: String
-
-foreign import option3 :: String
+foreign import marlowePlayLogo :: String
 
 foreign import newProjectHaskellIcon :: String
 
 foreign import newProjectJavascriptIcon :: String
-
-foreign import newProjectMarloweIcon :: String
 
 foreign import newProjectBlocklyIcon :: String
 
@@ -238,9 +236,6 @@ spanText s = span [] [ text s ]
 spanTextBreakWord :: forall p i. String -> HTML p i
 spanTextBreakWord s = span [ classes [ ClassName "break-word-span" ] ] [ text s ]
 
-sidebarComposer :: ClassName
-sidebarComposer = ClassName "sidebar-composer"
-
 minimizeIcon :: Boolean -> Array ClassName
 minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]
 
@@ -276,9 +271,6 @@ textSm = ClassName "text-sm"
 
 textLg :: ClassName
 textLg = ClassName "text-lg"
-
-text3xl :: ClassName
-text3xl = ClassName "text-3xl"
 
 fontSemibold :: ClassName
 fontSemibold = ClassName "font-semibold"
@@ -429,3 +421,45 @@ boxShadowInverted = ClassName "box-shadow-inverted"
 
 hidden :: ClassName
 hidden = ClassName "hidden"
+
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+-- FIXME These were copy and pasted from the dashboard and adapted to the defaults in this project.
+--       we need to use the same resets and unify these styles in a style guide.
+--- color gradients
+bgBlueGradient :: Array String
+bgBlueGradient = [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ]
+
+-- buttons
+button :: Array String
+button =
+  [ "px-6"
+  , "py-4"
+  , "rounded-full"
+  , "font-bold"
+  , "leading-none"
+  , "whitespace-nowrap"
+  , "transition-all"
+  , "duration-200"
+  , "outline-none"
+  , "focus:outline-none"
+  , "disabled:bg-none"
+  , "disabled:bg-lightgray"
+  , "disabled:text-darkgray"
+  , "disabled:shadow-none"
+  , "border-0"
+  ]
+
+withShadow :: Array String
+withShadow = [ "shadow", "hover:shadow-lg" ]
+
+primaryButton :: Array String
+primaryButton = button <> bgBlueGradient <> withShadow
+
+secondaryButton :: Array String
+secondaryButton = button <> [ "bg-lightgray", "text-black", "hover:shadow" ]
+
+whiteButton :: Array String
+whiteButton = button <> withShadow <> [ "bg-white" ]

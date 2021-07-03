@@ -4,6 +4,13 @@ module.exports = {
   purge: ["./src/**/*.njk", "./src/**/*.js"],
   darkMode: false, // or 'media' or 'class'
   theme: {
+    screens: {
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      widest: "1440px",
+    },
     colors: {
       transparent: "transparent",
       current: "currentColor",
@@ -55,7 +62,6 @@ module.exports = {
       none: "none",
       sm: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
       DEFAULT: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
-      "top-left": "-10px -10px 15px -3px rgba(0,0,0,0.2), 0 -5px 6px -2px rgba(0,0,0,0.04)",
       lg: "0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.04)",
       xl: "0 25px 50px -12px rgba(0,0,0,0.25)",
       deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
@@ -66,18 +72,27 @@ module.exports = {
         "5vw": "5vw",
         "10vw": "10vw",
       },
-      padding: {
-        /* This value was obtained from a "hack" to make the div occupy the height of
-           its background image
-           https://stackoverflow.com/questions/600743/how-to-get-div-height-to-auto-adjust-to-background-size
-           */
-        /* (img-height / img-width * container-width) */
-        /* (927 / 1440 * 100) */
-        "main-bg": "64.37%",
+      height: {
+        // This corresponds to the height of the hero image
+        main: "700px",
+        "banner-section-sm": "308px",
+        "banner-section": "470px",
+        "play-img-sm": "100px",
+        "play-img-md": "200px",
+      },
+      maxWidth: {
+        // All content must be at most this size and centered if the screen is wider
+        screen: "1440px",
       },
       backgroundImage: (theme) => ({
-        main: "url('/static/img/woman-using-cellphone.jpg')",
+        main: "url('/static/img/hero-background.jpg')",
+        "play-banner": "url('/static/img/marlowe-play-banner-background-mobile.png')",
+        "market-banner": "url('/static/img/marlowe-market-banner-background-mobile.png')",
       }),
+      backgroundPosition: {
+        "pos-play-banner-mobile": "-118px",
+        "pos-market-banner-mobile": "76px",
+      },
       borderWidth: {
         3: "3px",
       },
@@ -102,7 +117,7 @@ module.exports = {
     backgroundImage: true,
     gradientColorStops: true,
     backgroundOpacity: false,
-    backgroundPosition: false,
+    backgroundPosition: true,
     backgroundRepeat: true,
     backgroundSize: true,
     borderCollapse: false,
@@ -124,7 +139,7 @@ module.exports = {
     alignSelf: true,
     justifyItems: false,
     justifyContent: true,
-    justifySelf: false,
+    justifySelf: true,
     flex: true,
     flexGrow: true,
     flexShrink: true,

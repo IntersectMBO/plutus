@@ -17,32 +17,30 @@ module Spec.Prism (tests, prismTrace, prop_Prism) where
 
 import           Control.Lens
 import           Control.Monad
-import           Data.Map                                 (Map)
-import qualified Data.Map                                 as Map
-import qualified Ledger.Ada                               as Ada
-import           Ledger.Crypto                            (pubKeyHash)
-import           Ledger.Value                             (TokenName)
-import           Plutus.Contract.Test                     hiding (not)
-import           Plutus.Contract.Test.ContractModel       as ContractModel
+import           Data.Map                           (Map)
+import qualified Data.Map                           as Map
+import qualified Ledger.Ada                         as Ada
+import           Ledger.Crypto                      (pubKeyHash)
+import           Ledger.Value                       (TokenName)
+import           Plutus.Contract.Test               hiding (not)
+import           Plutus.Contract.Test.ContractModel as ContractModel
 
-import           Test.QuickCheck                          as QC hiding ((.&&.))
+import           Test.QuickCheck                    as QC hiding ((.&&.))
 import           Test.Tasty
-import           Test.Tasty.QuickCheck                    (testProperty)
+import           Test.Tasty.QuickCheck              (testProperty)
 
-import           Plutus.Contracts.Prism                   hiding (credentialManager, mirror)
-import qualified Plutus.Contracts.Prism.Credential        as Credential
-import qualified Plutus.Contracts.Prism.CredentialManager as C
-import qualified Plutus.Contracts.Prism.Mirror            as C
-import           Plutus.Contracts.Prism.STO               (STOData (..))
-import qualified Plutus.Contracts.Prism.STO               as STO
-import qualified Plutus.Contracts.Prism.Unlock            as C
-import qualified Plutus.Trace.Emulator                    as Trace
+import           Plutus.Contracts.Prism             hiding (mirror)
+import qualified Plutus.Contracts.Prism.Credential  as Credential
+import qualified Plutus.Contracts.Prism.Mirror      as C
+import           Plutus.Contracts.Prism.STO         (STOData (..))
+import qualified Plutus.Contracts.Prism.STO         as STO
+import qualified Plutus.Contracts.Prism.Unlock      as C
+import qualified Plutus.Trace.Emulator              as Trace
 
-user, credentialManager, mirror, issuer :: Wallet
+user, mirror, issuer :: Wallet
 user = Wallet 1
 mirror = Wallet 2
-credentialManager = Wallet 3
-issuer = Wallet 4
+issuer = Wallet 3
 
 kyc :: TokenName
 kyc = "KYC"
@@ -82,11 +80,9 @@ prismTrace :: Trace.EmulatorTrace ()
 prismTrace = do
     uhandle <- Trace.activateContractWallet user contract
     mhandle <- Trace.activateContractWallet mirror contract
-    chandle <- Trace.activateContractWallet credentialManager contract
 
     Trace.callEndpoint @"role" uhandle UnlockSTO
     Trace.callEndpoint @"role" mhandle Mirror
-    Trace.callEndpoint @"role" chandle CredMan
     _ <- Trace.waitNSlots 2
 
     -- issue a KYC credential to a user
@@ -95,8 +91,6 @@ prismTrace = do
 
     -- participate in STO presenting the token
     Trace.callEndpoint @"sto" uhandle stoSubscriber
-    _ <- Trace.waitNSlots 2 -- needed?
-    Trace.callEndpoint @"credential manager" uhandle (Trace.chInstanceId chandle)
     void $ Trace.waitNSlots 2
 
 -- * QuickCheck model
@@ -107,7 +101,7 @@ data STOState = STOReady | STOPending | STODone
 data IssueState = NoIssue | Revoked | Issued
     deriving (Eq, Ord, Show)
 
-data PrismModel = PrismModel
+newtype PrismModel = PrismModel
     { _walletState :: Map Wallet (IssueState, STOState)
     }
     deriving (Show)
@@ -129,26 +123,25 @@ doRevoke Revoked = Revoked
 doRevoke Issued  = Revoked
 
 waitSlots :: Integer
-waitSlots = 2
+waitSlots = 10
 
 users :: [Wallet]
-users = [user, Wallet 5]
+users = [user, Wallet 4]
 
 deriving instance Eq   (ContractInstanceKey PrismModel w s e)
 deriving instance Show (ContractInstanceKey PrismModel w s e)
 
 instance ContractModel PrismModel where
 
-    data Action PrismModel = Delay | Issue Wallet | Revoke Wallet | Call Wallet | Present Wallet
+    data Action PrismModel = Delay | Issue Wallet | Revoke Wallet | Call Wallet
         deriving (Eq, Show)
 
     data ContractInstanceKey PrismModel w s e where
         MirrorH  ::           ContractInstanceKey PrismModel () C.MirrorSchema            C.MirrorError
         UserH    :: Wallet -> ContractInstanceKey PrismModel () C.STOSubscriberSchema     C.UnlockError
-        ManagerH ::           ContractInstanceKey PrismModel () C.CredentialManagerSchema C.CredentialManagerError
 
     arbitraryAction _ = QC.oneof [pure Delay, genUser Revoke, genUser Issue,
-                                  genUser Call, genUser Present]
+                                  genUser Call]
         where genUser f = f <$> QC.elements users
 
     initialState = PrismModel { _walletState = Map.empty }
@@ -162,22 +155,18 @@ instance ContractModel PrismModel where
             Delay     -> wait 1
             Revoke w  -> isIssued w $~ doRevoke
             Issue w   -> isIssued w $= Issued
-            Call w    -> stoState w $~ \ case STOReady -> STOPending; st -> st
-            Present w -> do
-                iss  <- (== Issued)     <$> viewContractState (isIssued w)
-                pend <- (== STOPending) <$> viewContractState (stoState w)
-                stoState w $= STOReady
-                when (iss && pend) $ do
-                    transfer w issuer (Ada.lovelaceValueOf numTokens)
-                    deposit w $ STO.coins stoData numTokens
-                return ()
+            Call w    -> do
+              iss  <- (== Issued)     <$> viewContractState (isIssued w)
+              pend <- (== STOReady) <$> viewContractState (stoState w)
+              when (iss && pend) $ do
+                transfer w issuer (Ada.lovelaceValueOf numTokens)
+                deposit w $ STO.coins stoData numTokens
 
     perform handle _ cmd = case cmd of
         Delay     -> wrap $ delay 1
-        Issue w   -> wrap $ Trace.callEndpoint @"issue"              (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
+        Issue w   -> wrap $ delay 1 >> Trace.callEndpoint @"issue"              (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
         Revoke w  -> wrap $ Trace.callEndpoint @"revoke"             (handle MirrorH) CredentialOwnerReference{coTokenName=kyc, coOwner=w}
         Call w    -> wrap $ Trace.callEndpoint @"sto"                (handle $ UserH w) stoSubscriber
-        Present w -> wrap $ Trace.callEndpoint @"credential manager" (handle $ UserH w) (Trace.chInstanceId $ handle ManagerH)
         where                     -- v Wait a generous amount of blocks between calls
             wrap m   = m *> delay waitSlots
 
@@ -192,15 +181,13 @@ delay n = void $ Trace.waitNSlots $ fromIntegral n
 finalPredicate :: ModelState PrismModel -> TracePredicate
 finalPredicate _ =
     assertNotDone @() @C.STOSubscriberSchema     C.subscribeSTO      (Trace.walletInstanceTag user)              "User stopped"               .&&.
-    assertNotDone @() @C.MirrorSchema            C.mirror            (Trace.walletInstanceTag mirror)            "Mirror stopped"             .&&.
-    assertNotDone @() @C.CredentialManagerSchema C.credentialManager (Trace.walletInstanceTag credentialManager) "Credential manager stopped"
+    assertNotDone @() @C.MirrorSchema            C.mirror            (Trace.walletInstanceTag mirror)            "Mirror stopped"
 
 prop_Prism :: Actions PrismModel -> Property
 prop_Prism = propRunActions @PrismModel spec finalPredicate
     where
         spec = [ ContractInstanceSpec (UserH w) w                 C.subscribeSTO | w <- users ] ++
-               [ ContractInstanceSpec MirrorH   mirror            C.mirror
-               , ContractInstanceSpec ManagerH  credentialManager C.credentialManager ]
+               [ ContractInstanceSpec MirrorH   mirror            C.mirror ]
 
 tests :: TestTree
 tests = testGroup "PRISM"

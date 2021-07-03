@@ -56,7 +56,7 @@
                 (termbind
                   (strict)
                   (vardecl b (con bool))
-                  [ [ (builtin equalsInteger) arg ] arg ]
+                  [ [ (builtin eqInteger) arg ] arg ]
                 )
                 [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
               )
@@ -277,13 +277,13 @@
                 TxConstraint_match
                 (vardecl MustBeSignedBy (fun (con bytestring) TxConstraint))
                 (vardecl
-                  MustForgeValue
-                  (fun (con bytestring) (fun (con bytestring) (fun (con integer) TxConstraint)))
-                )
-                (vardecl
                   MustHashDatum (fun (con bytestring) (fun Data TxConstraint))
                 )
                 (vardecl MustIncludeDatum (fun Data TxConstraint))
+                (vardecl
+                  MustMintValue
+                  (fun (con bytestring) (fun Data (fun (con bytestring) (fun (con integer) TxConstraint))))
+                )
                 (vardecl
                   MustPayToOtherScript
                   (fun (con bytestring) (fun Data (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)))
@@ -560,7 +560,7 @@
                         (termbind
                           (strict)
                           (vardecl b (con bool))
-                          [ [ (builtin equalsByteString) arg ] arg ]
+                          [ [ (builtin eqByteString) arg ] arg ]
                         )
                         [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                       )

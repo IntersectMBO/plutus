@@ -50,7 +50,9 @@ module PlutusCore.Pretty
     , botPrettyConfigReadable
     -- * Utils
     , prettyBytes
-    , PrettyConst (..)
+    , ConstConfig (..)
+    , PrettyConst
+    , prettyConst
     ) where
 
 import           PlutusCore.Pretty.Classic

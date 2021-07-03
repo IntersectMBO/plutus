@@ -5,36 +5,38 @@ module Template.View
   ) where
 
 import Prelude hiding (div)
-import Css (applyWhen, classNames, hideWhen)
 import Css as Css
-import Data.Array (filter, mapWithIndex)
+import Data.Array (mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
-import Data.Map (Map, lookup)
+import Data.List (toUnfoldable) as List
+import Data.Map (Map, lookup, values)
 import Data.Map (toUnfoldable) as Map
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.String (null)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
+import Data.String (trim)
 import Data.Tuple.Nested ((/\))
+import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), for, id_, placeholder, readOnly, type_, value)
+import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, type_, value)
 import Humanize (humanizeValue)
-import InputField.Types (inputErrorToString)
 import InputField.Types (State) as InputField
+import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
-import Marlowe.Extended (TemplateContent, _valueContent, contractTypeInitials)
-import Marlowe.Extended.Metadata (MetaData)
+import Marlowe.Extended (contractTypeInitials)
+import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Slot, TokenName)
+import Marlowe.Template (TemplateContent, _valueContent)
 import Material.Icons (Icon(..), icon_)
 import Template.Format (formatText)
-import Template.Lenses (_contractName, _contractNickname, _metaData, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
+import Template.Lenses (_contractNickname, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import WalletData.Lenses (_walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
-import WalletData.View (nicknamesDataList, nicknamesDataListId)
 
 contractSetupScreen :: forall p. WalletLibrary -> Slot -> State -> HTML p Action
 contractSetupScreen walletLibrary currentSlot state =
@@ -56,11 +58,11 @@ contractSetupScreen walletLibrary currentSlot state =
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
   in
     div
-      [ classNames [ "grid", "grid-rows-contract-setup", "max-h-full", "overflow-hidden" ] ]
+      [ classNames [ "grid", "grid-rows-contract-setup", "h-full", "overflow-hidden" ] ]
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
       , div -- the containing grid sets the height of this div
-          [ classNames [ "px-4", "md:px-5pc" ] ]
+          [ classNames [ "px-4" ] ]
           [ div -- and then this fills that height fully
               [ classNames [ "h-full", "overflow-y-auto" ] ]
               [ subHeader "top-0" true Roles "Roles" true
@@ -76,7 +78,7 @@ contractSetupScreen walletLibrary currentSlot state =
 navigationBar :: forall p. String -> HTML p Action
 navigationBar contractName =
   div
-    [ classNames [ "flex", "justify-between", "items-center", "px-4", "py-2", "border-b", "border-gray", "md:px-5pc" ] ]
+    [ classNames [ "flex", "justify-between", "items-center", "px-4", "py-2", "border-b", "border-gray" ] ]
     [ a
         -- "-ml-1" makes the icon line up properly
         [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
@@ -94,27 +96,16 @@ navigationBar contractName =
 contractNicknameDisplay :: forall p. String -> String -> HTML p Action
 contractNicknameDisplay contractName contractNickname =
   div
-    [ classNames [ "px-4", "md:px-5pc" ] ]
+    [ classNames [ "px-4" ] ]
     [ div
         [ classNames [ "ml-5", "border-l", "border-gray", "pt-2" ] ]
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames
-                    -- TODO: Once we remove the readOnly, remove this filter. I tried adding "text-black" to the end of the array
-                    
-                    --       but the browser does not respect ordering and for some reason "text-darkgray was winning"
-                    
-                    $ filter (not <<< eq "text-darkgray")
-                    $ (Css.input $ null contractNickname)
-                    <> [ "font-semibold" ]
+                [ classNames $ (Css.input $ contractNickname /= mempty) <> [ "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
-                -- TODO: We can allow users to provide custom contract nicknames when we are connecting to the
-                -- metadata server. For now, however, we have no way of sharing this information, so we just
-                -- make it readonly (it is set to equal the contract name initially).
-                , readOnly true
                 , onValueInput_ SetContractNickname
                 ]
             ]
@@ -174,16 +165,15 @@ roleInputs walletLibrary metaData roleWalletInputs =
                 ]
                 [ icon_ AddCircle ]
             ]
-        , nicknamesDataList walletLibrary
         ]
 
   roleWalletInputDisplayOptions tokenName =
-    { baseCss: Css.inputCard
+    { baseCss: Css.inputCardNoFocus
     , additionalCss: [ "pr-9" ]
     , id_: tokenName
     , placeholder: "Choose any nickname"
     , readOnly: false
-    , datalistId: Just nicknamesDataListId
+    , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
     }
 
 parameterInputs :: forall p. Slot -> MetaData -> TemplateContent -> Map String String -> Boolean -> HTML p Action
@@ -218,7 +208,7 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
             , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.inputCard (isJust mParameterError)
+            [ classNames $ Css.inputCard (isNothing mParameterError)
             , id_ $ "slot-" <> key
             , type_ InputDatetimeLocal
             , onValueInput_ $ SetSlotContent key
@@ -233,7 +223,13 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
 
   valueInput index (key /\ parameterValue) =
     let
-      description = fromMaybe "no description available" $ lookup key metaData.valueParameterDescriptions
+      description =
+        fromMaybe "no description available"
+          ( case lookup key metaData.valueParameterInfo of
+              Just { valueParameterDescription }
+                | trim valueParameterDescription /= "" -> Just valueParameterDescription
+              _ -> Nothing
+          )
 
       mParameterError = valueError parameterValue
     in
@@ -250,7 +246,7 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
             , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.inputCard (isJust mParameterError)
+            [ classNames $ Css.inputCard (isNothing mParameterError)
             , id_ $ "value-" <> key
             , type_ InputNumber
             , onValueInput_ $ SetValueContent key <<< BigInteger.fromString
@@ -302,13 +298,11 @@ subSection accessible border content =
 templateLibraryCard :: forall p. HTML p Action
 templateLibraryCard =
   div
-    [ classNames [ "md:px-5pc", "p-4" ] ]
+    [ classNames [ "p-4", "h-full", "overflow-y-auto" ] ]
     [ h2
         [ classNames [ "text-lg", "font-semibold", "mb-4" ] ]
         [ text "Choose a contract template" ]
-    , div
-        [ classNames [ "grid", "gap-4", "md:grid-cols-2", "xl:grid-cols-3" ] ]
-        (templateBox <$> contractTemplates)
+    , div_ (templateBox <$> contractTemplates)
     ]
   where
   templateBox template =
@@ -339,32 +333,43 @@ contractTitle metaData =
         [ text $ metaData.contractName ]
     ]
 
+-- TODO: This is a lot like the `actionConfirmationCard` in `Contract.View`. Consider factoring out a shared component.
 contractSetupConfirmationCard :: forall p. Assets -> HTML p Action
 contractSetupConfirmationCard assets =
-  div_
-    [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
-        [ span_ [ text "Demo wallet balance:" ]
-        , span_ [ text $ humanizeValue adaToken $ getAda assets ]
-        ]
-    , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
-        [ p
-            [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
-            [ text "Confirm payment of:" ]
-        , p
-            [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-            [ text $ humanizeValue adaToken contractCreationFee ]
-        , div
-            [ classNames [ "flex" ] ]
-            [ button
-                [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
-                , onClick_ CloseSetupConfirmationCard
-                ]
-                [ text "Cancel" ]
-            , button
-                [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , onClick_ StartContract
-                ]
-                [ text "Pay and run" ]
-            ]
-        ]
-    ]
+  let
+    hasSufficientFunds = getAda assets >= contractCreationFee
+  in
+    div_
+      [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
+          [ span_ [ text "Demo wallet balance:" ]
+          , span_ [ text $ humanizeValue adaToken $ getAda assets ]
+          ]
+      , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
+          [ p
+              [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
+              [ text "Confirm payment of:" ]
+          , p
+              [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
+              [ text $ humanizeValue adaToken contractCreationFee ]
+          , div
+              [ classNames [ "flex" ] ]
+              [ button
+                  [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
+                  , onClick_ CloseSetupConfirmationCard
+                  ]
+                  [ text "Cancel" ]
+              , button
+                  [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                  , onClick_ StartContract
+                  , enabled hasSufficientFunds
+                  ]
+                  [ text "Pay and run" ]
+              ]
+          , div
+              [ classNames [ "mt-4", "text-sm", "text-red" ] ]
+              if hasSufficientFunds then
+                []
+              else
+                [ text "You have insufficient funds to initialise this contract." ]
+          ]
+      ]

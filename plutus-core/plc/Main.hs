@@ -469,7 +469,7 @@ loadASTfromFlat language flatMode inp =
          (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
-               Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure:" ++ show e
+               Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure: " ++ show e
                Right r -> return $ wrapper r
 
 
@@ -763,14 +763,13 @@ printBudgetStateBudget _ model b =
 printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun)
        => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
-  putStrLn $ "Const      " ++ pbudget Cek.BConst
-  putStrLn $ "Var        " ++ pbudget Cek.BVar
-  putStrLn $ "LamAbs     " ++ pbudget Cek.BLamAbs
-  putStrLn $ "Apply      " ++ pbudget Cek.BApply
-  putStrLn $ "Delay      " ++ pbudget Cek.BDelay
-  putStrLn $ "Force      " ++ pbudget Cek.BForce
-  putStrLn $ "Error      " ++ pbudget Cek.BError
-  putStrLn $ "Builtin    " ++ pbudget Cek.BBuiltin
+  putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
+  putStrLn $ "Var        " ++ pbudget (Cek.BStep Cek.BVar)
+  putStrLn $ "LamAbs     " ++ pbudget (Cek.BStep Cek.BLamAbs)
+  putStrLn $ "Apply      " ++ pbudget (Cek.BStep Cek.BApply)
+  putStrLn $ "Delay      " ++ pbudget (Cek.BStep Cek.BDelay)
+  putStrLn $ "Force      " ++ pbudget (Cek.BStep Cek.BForce)
+  putStrLn $ "Builtin    " ++ pbudget (Cek.BStep Cek.BBuiltin)
   putStrLn ""
   putStrLn $ "startup    " ++ pbudget Cek.BStartup
   putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeCost)
@@ -792,7 +791,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
             case H.lookup k costs of
               Just v  -> v
               Nothing -> ExBudget 0 0
-        allNodeTags = [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BError, Cek.BBuiltin]
+        allNodeTags = fmap Cek.BStep [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BBuiltin]
         totalComputeCost = mconcat $ map getSpent allNodeTags  -- For unitCekCosts this will be the total number of compute steps
         budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
             printf "%15s  %15s" (show cpu) (show mem) :: String -- Not %d: doesn't work when CostingInteger is SatInt.

@@ -38,6 +38,7 @@ module Cardano.Node.Types
     -- * Config types
     , MockServerConfig (..)
     , BlockReaperConfig (..)
+    , MockServerMode (..)
 
     -- ** Slot / timing
     , SlotConfig(..)
@@ -101,6 +102,14 @@ We use this approach for the "proper" pab executable.
 
 newtype NodeUrl = NodeUrl BaseUrl
     deriving (Show, Eq) via BaseUrl
+
+-- | The mock node server can be replaced with a cardano node, in which case
+--   we don't want to start it.
+data MockServerMode =
+      WithMockServer
+    | WithoutMockServer
+    deriving (Show, Eq, Generic)
+    deriving anyclass ToJSON
 
 -- | Mock Node server configuration
 data MockServerConfig =
@@ -221,7 +230,7 @@ type NodeServerEffects m
         , ChainEffect
         , State MockNodeServerChainState
         , LogMsg MockServerLogMsg
-        , Reader Client.ClientHandler
+        , Reader Client.TxSendHandle
         , State AppState
         , LogMsg MockServerLogMsg
         , m]

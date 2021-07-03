@@ -16,25 +16,25 @@
 
 module Playground.Types where
 
-import           Control.Lens                           (makeLenses)
-import           Data.Aeson                             (FromJSON, ToJSON)
-import qualified Data.Aeson                             as JSON
-import           Data.Functor.Foldable                  (Fix)
-import           Data.List.NonEmpty                     (NonEmpty ((:|)))
-import           Data.Text                              (Text)
-import           GHC.Generics                           (Generic)
-import           Language.Haskell.Interpreter           (CompilationError, SourceCode)
-import qualified Language.Haskell.Interpreter           as HI
-import           Ledger                                 (PubKeyHash, fromSymbol, pubKeyHash)
-import qualified Ledger.Ada                             as Ada
-import           Ledger.Scripts                         (ValidatorHash)
-import           Ledger.Slot                            (Slot)
-import           Ledger.Value                           (TokenName)
-import qualified Ledger.Value                           as V
-import           Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
-import           Schema                                 (FormArgumentF, FormSchema, ToArgument, ToSchema)
-import           Wallet.Emulator.Types                  (EmulatorEvent, Wallet, walletPubKey)
-import           Wallet.Rollup.Types                    (AnnotatedTx)
+import           Control.Lens                 (makeLenses)
+import           Data.Aeson                   (FromJSON, ToJSON)
+import qualified Data.Aeson                   as JSON
+import           Data.Functor.Foldable        (Fix)
+import           Data.List.NonEmpty           (NonEmpty ((:|)))
+import           Data.Text                    (Text)
+import           GHC.Generics                 (Generic)
+import           Language.Haskell.Interpreter (CompilationError, SourceCode)
+import qualified Language.Haskell.Interpreter as HI
+import           Ledger                       (PubKeyHash, fromSymbol, pubKeyHash)
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Scripts               (ValidatorHash)
+import           Ledger.Slot                  (Slot)
+import           Ledger.Value                 (TokenName)
+import qualified Ledger.Value                 as V
+import           Schema                       (FormArgumentF, FormSchema, ToArgument, ToSchema)
+import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
+import           Wallet.Rollup.Types          (AnnotatedTx)
+import           Wallet.Types                 (EndpointDescription)
 
 data KnownCurrency =
     KnownCurrency

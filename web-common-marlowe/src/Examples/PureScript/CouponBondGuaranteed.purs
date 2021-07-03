@@ -8,8 +8,7 @@ import Prelude
 import Data.BigInteger (BigInteger, fromInt)
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
 import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
@@ -60,21 +59,21 @@ transfer amount from to timeout timeoutContinuation continuation =
 extendedContract :: Contract
 extendedContract =
   deposit (guaranteedAmount (fromInt 3)) guarantor investor
-    (Slot $ fromInt 30)
+    (Slot $ fromInt 300)
     Close
     $ transfer principal investor issuer
-        (Slot $ fromInt 60)
+        (Slot $ fromInt 600)
         (refundGuarantor (guaranteedAmount (fromInt 3)) Close)
     $ transfer instalment issuer investor
-        (Slot $ fromInt 90)
+        (Slot $ fromInt 900)
         Close
     $ refundGuarantor instalment
     $ transfer instalment issuer investor
-        (Slot $ fromInt 120)
+        (Slot $ fromInt 1200)
         Close
     $ refundGuarantor instalment
     $ transfer lastInstalment issuer investor
-        (Slot $ fromInt 150)
+        (Slot $ fromInt 1500)
         Close
     $ refundGuarantor lastInstalment
         Close

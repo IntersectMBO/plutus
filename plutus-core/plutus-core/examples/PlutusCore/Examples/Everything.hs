@@ -13,29 +13,41 @@ module PlutusCore.Examples.Everything
 
 import           PlutusPrelude
 
-import           PlutusCore.Builtins
+import           PlutusCore.Core
+import           PlutusCore.Default
 import           PlutusCore.FsTree
 import           PlutusCore.MkPlc
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Type
 
 import           PlutusCore.Examples.Builtins
+import           PlutusCore.Examples.Data.Data
 import           PlutusCore.Examples.Data.InterList
+import           PlutusCore.Examples.Data.List
+import           PlutusCore.Examples.Data.Pair
 import           PlutusCore.Examples.Data.Shad
 import           PlutusCore.Examples.Data.TreeForest
 import           PlutusCore.Examples.Data.Vec
 
 -- | All examples exported as a single value.
-examples :: PlcFolderContents DefaultUni DefaultFun
+examples :: PlcFolderContents DefaultUni (Either DefaultFun ExtensionFun)
 examples =
     FolderContents
       [ treeFolderContents "Examples"
-          [ treeFolderContents "InterList"
+          [ treeFolderContents "Data"
+              [ plcTermFile "ofoldrData" ofoldrData
+              ]
+          , treeFolderContents "InterList"
               [ plcTypeFile "InterList"      $ _recursiveType interListData
               , plcTermFile "InterNil"       interNil
               , plcTermFile "InterCons"      interCons
               , plcTermFile "FoldrInterList" foldrInterList
+              ]
+          , treeFolderContents "List"
+              [ plcTermFile "omapList" omapList
+              ]
+          , treeFolderContents "Pair"
+              [ plcTermFile "obothPair" obothPair
               ]
           , treeFolderContents "TreeForest"
               [ plcTypeFile "Tree"       $ _recursiveType treeData
@@ -56,7 +68,7 @@ examples =
               , plcTermFile "scottNil"         scottNil
               , plcTermFile "scottCons"        scottCons
               , plcTermFile "scottHead"        scottHead
-              , plcTermFile "scottSumHeadsOr0" scottSumHeadsOr0
+              , plcTermFile "scottSumHeadsOr0" $ mapFun Left scottSumHeadsOr0
               ]
           , treeFolderContents "Shad"
               [ plcTypeFile "shad"   shad

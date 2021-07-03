@@ -88,19 +88,19 @@ mkStateMachine smThreadToken smTransition smFinal =
         , smThreadToken
         }
 
-instance ScriptType (StateMachine s i) where
+instance ValidatorTypes (StateMachine s i) where
     type instance RedeemerType (StateMachine s i) = i
     type instance DatumType (StateMachine s i) = s
 
 data StateMachineInstance s i = StateMachineInstance {
     -- | The state machine specification.
-    stateMachine      :: StateMachine s i,
+    stateMachine   :: StateMachine s i,
     -- | The validator code for this state machine.
-    validatorInstance :: ScriptInstance (StateMachine s i)
+    typedValidator :: TypedValidator (StateMachine s i)
     }
 
 machineAddress :: StateMachineInstance s i -> Address
-machineAddress = scriptAddress . validatorInstance
+machineAddress = validatorAddress . typedValidator
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.

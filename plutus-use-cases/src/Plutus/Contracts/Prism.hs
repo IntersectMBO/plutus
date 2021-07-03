@@ -16,7 +16,7 @@ There are two actors:
 
 We have the following modules.
 
-1. .Credential: Defines the 'Credential' type and a forging policy script
+1. .Credential: Defines the 'Credential' type and a minting policy script
    for creating and destroying credential tokens
 2. .StateMachine: Defines the state machine script that allows Users to
    present their credentials in transactions and Mirror to revoke/destroy
@@ -31,8 +31,8 @@ We have the following modules.
 6. .Unlock: Two Plutus applications that each present a credential to unlock
    some funds.
 
-We work with two different script hashes: The hash of the monetary policy that
-forges the tokens (see 'policy'), and the hash of the state machine instance
+We work with two different script hashes: The hash of the minting policy that
+mints the tokens (see 'policy'), and the hash of the state machine instance
 that locks a specific credential token for a specific user, identified by their
 public key address.
 
@@ -55,9 +55,6 @@ module Plutus.Contracts.Prism(
     , Credential(..)
     , UserCredential(..)
     , CredentialAuthority(..)
-    , CredentialManagerSchema
-    , CredentialManagerError(..)
-    , credentialManager
     -- * all-in-one
     , Role(..)
     , PrismSchema
@@ -65,10 +62,9 @@ module Plutus.Contracts.Prism(
     , contract
     ) where
 
-import           Data.Aeson                               (FromJSON, ToJSON)
-import           GHC.Generics                             (Generic)
+import           Data.Aeson                          (FromJSON, ToJSON)
+import           GHC.Generics                        (Generic)
 import           Plutus.Contracts.Prism.Credential
-import           Plutus.Contracts.Prism.CredentialManager
 import           Plutus.Contracts.Prism.Mirror
 import           Plutus.Contracts.Prism.StateMachine
 import           Plutus.Contracts.Prism.Unlock
@@ -77,27 +73,21 @@ import           Plutus.Contract
 
 -- | The roles that we pass to 'contract'.
 data Role
-    = CredMan -- ^ The 'credentialManager' contract
-    | Mirror -- ^ The 'mirror' contract
+    = Mirror -- ^ The 'mirror' contract
     | UnlockSTO -- ^ The 'subscribeSTO' contract
     | UnlockExchange -- ^ The 'unlockExchange' contract
     deriving stock (Eq, Generic, Show)
     deriving anyclass (ToJSON, FromJSON)
 
 type PrismSchema =
-    CredentialManagerSchema
-    .\/ MirrorSchema
+    MirrorSchema
     .\/ STOSubscriberSchema
     .\/ UnlockExchangeSchema
     .\/ Endpoint "role" Role
 
-{- With the implementation of .\/ from row-types, GHC chokes on the above type because of the four
-   repeated BlockchainActions. Using our own implementation from Data.Row.Extras everything is fine. -}
-
 data PrismError =
     UnlockSTOErr UnlockError
     | MirrorErr MirrorError
-    | CredManErr CredentialManagerError
     | EPError ContractError
     | UnlockExchangeErr UnlockError
     deriving stock (Eq, Generic, Show)
@@ -111,7 +101,6 @@ contract :: Contract () PrismSchema PrismError ()
 contract = do
     r <- mapError EPError $ endpoint @"role"
     case r of
-        CredMan        -> mapError CredManErr credentialManager
         Mirror         -> mapError MirrorErr mirror
         UnlockSTO      -> mapError UnlockSTOErr subscribeSTO
         UnlockExchange -> mapError UnlockExchangeErr unlockExchange

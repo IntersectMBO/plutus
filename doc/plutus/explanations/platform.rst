@@ -35,7 +35,7 @@ Very few "smart" blockchain systems encourage their users to interact directly w
 Rather, the users interact with some *application* that presents the world in a form that they can understand and interact with.
 
 Of course, such an application must want to do something with the ledger, otherwise you wouldn't need anything new!
-Simple applications might do nothing more than submit basic transactions that transfer assets - imagine an simple "regular payments" application.
+Simple applications might do nothing more than submit basic transactions that transfer assets - imagine a simple "regular payments" application.
 However, our main focus is applications that *do* use smart features in order to have a kernel of trusted code that is validated as part of the ledger.
 
 This enables applications that are not possible otherwise.

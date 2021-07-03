@@ -34,7 +34,7 @@ import           Servant                         (Application, hoistServer, serv
 
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
-import           Cardano.Protocol.Socket.Client  (runClientNode)
+import           Cardano.Protocol.Socket.Client  (runChainSync)
 import           Control.Concurrent.Availability (Availability, available)
 import           Ledger.Slot                     (Slot (..))
 
@@ -55,7 +55,7 @@ main trace ChainIndexConfig{ciBaseUrl} socketPath slotConfig availability = runL
     mVarState <- liftIO $ newMVar initialAppState
 
     logInfo StartingNodeClientThread
-    _ <- liftIO $ runClientNode socketPath slotConfig $ updateChainState mVarState
+    _ <- liftIO $ runChainSync socketPath slotConfig $ updateChainState mVarState
 
     logInfo $ StartingChainIndex servicePort
     liftIO $ Warp.runSettings warpSettings $ app trace mVarState

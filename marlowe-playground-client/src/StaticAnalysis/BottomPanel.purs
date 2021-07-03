@@ -7,20 +7,22 @@ module StaticAnalysis.BottomPanel
 import Prelude hiding (div)
 import Data.BigInteger (BigInteger)
 import Data.Foldable (foldMap)
-import Data.Lens ((^.))
+import Data.Lens (view, (^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Halogen.Classes (spaceBottom, spaceRight, spaceTop, spanText)
+import Data.Tuple.Nested ((/\))
+import Halogen.Classes (btn, spaceBottom, spaceRight, spaceTop, spanText)
 import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol, span_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
-import Marlowe.Extended (IntegerTemplateType(..))
-import Marlowe.Extended.Metadata (MetaData)
+import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _valueParameterDescription)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
+import Marlowe.Template (IntegerTemplateType(..))
 import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
@@ -34,7 +36,7 @@ analyzeButton isLoading isEnabled name action =
   button
     [ onClick $ const $ Just $ action
     , enabled isEnabled
-    , classes [ spaceTop, spaceBottom, spaceRight ]
+    , classes [ spaceTop, spaceBottom, spaceRight, btn ]
     ]
     [ text (if isLoading then "Analysing..." else name) ]
 
@@ -44,7 +46,7 @@ clearButton isEnabled name action =
   button
     [ onClick $ const $ Just $ action
     , enabled isEnabled
-    , classes [ spaceTop, spaceBottom, spaceRight ]
+    , classes [ spaceTop, spaceBottom, spaceRight, btn ]
     ]
     [ text name ]
 
@@ -62,8 +64,8 @@ analysisResultPane metadata actionGen state =
         explanation
           [ text ""
           , ul [ class_ (ClassName "templates") ]
-              ( integerTemplateParameters metadata.slotParameterDescriptions actionGen SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                  <> integerTemplateParameters metadata.valueParameterDescriptions actionGen ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+              ( integerTemplateParameters actionGen slotParameterDisplayInfo (unwrap templateContent).slotContent
+                  <> integerTemplateParameters actionGen valueParameterDisplayInfo (unwrap templateContent).valueContent
               )
           ]
       WarningAnalysis staticSubResult -> case staticSubResult of
@@ -229,6 +231,28 @@ analysisResultPane metadata actionGen state =
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Close Refund Analysis Result: No implicit refunds" ]
             , text "None of the Close constructs refunds any money, all refunds are explicit."
             ]
+  where
+  slotParameterDisplayInfo =
+    { lookupFormat: const Nothing
+    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , typeName: SlotContent
+    , title: "Timeout template parameters"
+    , prefix: "Slot for"
+    }
+
+  valueParameterDisplayInfo =
+    { lookupFormat: extractValueParameterNuberFormat
+    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , typeName: ValueContent
+    , title: "Value template parameters"
+    , prefix: "Constant for"
+    }
+
+  extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
+    Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
+    _ -> Nothing
+
+  lookupDescription k m = view _valueParameterDescription <$> Map.lookup k m
 
 displayTransactionList :: forall p action. Array TransactionInput -> HTML p action
 displayTransactionList transactionList =
