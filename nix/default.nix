@@ -16,7 +16,15 @@ let
       (import ./overlays/nixpkgs-overrides.nix)
       # fix r-modules
       (import ./overlays/r.nix)
-    ];
+    ]
+    ++ (if enableHaskellProfiling then [] else [
+      # Disable profiling in GHC itself to reduce the size of the GHC derivation
+      (final: prev: {
+        haskell-nix = prev.haskell-nix // {
+          compiler = final.lib.mapAttrs (_: c: c.override ({ enableLibraryProfiling = false; })) prev.haskell-nix.compiler;
+        };
+      })
+    ]);
 
   iohkNixMain = import sources.iohk-nix { };
 
