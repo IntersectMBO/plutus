@@ -5,17 +5,17 @@ module Template.View
   ) where
 
 import Prelude hiding (div)
-import Css (applyWhen, classNames, hideWhen)
 import Css as Css
 import Data.Array (mapWithIndex)
 import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (Map, lookup, values)
-import Data.Map (lookup, toUnfoldable) as Map
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.String (null, trim)
+import Data.Map (toUnfoldable) as Map
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
+import Data.String (trim)
 import Data.Tuple.Nested ((/\))
+import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, type_, value)
@@ -24,7 +24,7 @@ import InputField.Types (State) as InputField
 import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
 import Marlowe.Extended (contractTypeInitials)
-import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData, _valueParameterDescription)
+import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Slot, TokenName)
@@ -62,7 +62,7 @@ contractSetupScreen walletLibrary currentSlot state =
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
       , div -- the containing grid sets the height of this div
-          [ classNames [ "px-4", "md:px-5pc" ] ]
+          [ classNames [ "px-4" ] ]
           [ div -- and then this fills that height fully
               [ classNames [ "h-full", "overflow-y-auto" ] ]
               [ subHeader "top-0" true Roles "Roles" true
@@ -78,7 +78,7 @@ contractSetupScreen walletLibrary currentSlot state =
 navigationBar :: forall p. String -> HTML p Action
 navigationBar contractName =
   div
-    [ classNames [ "flex", "justify-between", "items-center", "px-4", "py-2", "border-b", "border-gray", "md:px-5pc" ] ]
+    [ classNames [ "flex", "justify-between", "items-center", "px-4", "py-2", "border-b", "border-gray" ] ]
     [ a
         -- "-ml-1" makes the icon line up properly
         [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
@@ -96,13 +96,13 @@ navigationBar contractName =
 contractNicknameDisplay :: forall p. String -> String -> HTML p Action
 contractNicknameDisplay contractName contractNickname =
   div
-    [ classNames [ "px-4", "md:px-5pc" ] ]
+    [ classNames [ "px-4" ] ]
     [ div
         [ classNames [ "ml-5", "border-l", "border-gray", "pt-2" ] ]
         [ div
             [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
             [ input
-                [ classNames $ (Css.input $ null contractNickname) <> [ "font-semibold" ]
+                [ classNames $ (Css.input $ contractNickname /= mempty) <> [ "font-semibold" ]
                 , type_ InputText
                 , placeholder "Contract name *"
                 , value contractNickname
@@ -208,7 +208,7 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
             , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.inputCard (isJust mParameterError)
+            [ classNames $ Css.inputCard (isNothing mParameterError)
             , id_ $ "slot-" <> key
             , type_ InputDatetimeLocal
             , onValueInput_ $ SetSlotContent key
@@ -225,9 +225,9 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
     let
       description =
         fromMaybe "no description available"
-          ( case Map.lookup key metaData.valueParameterInfo of
-              Just { valueParameterDescription: description }
-                | trim description /= "" -> Just description
+          ( case lookup key metaData.valueParameterInfo of
+              Just { valueParameterDescription }
+                | trim valueParameterDescription /= "" -> Just valueParameterDescription
               _ -> Nothing
           )
 
@@ -246,7 +246,7 @@ parameterInputs currentSlot metaData templateContent slotContentStrings accessib
             , span_ $ formatText description
             ]
         , input
-            [ classNames $ Css.inputCard (isJust mParameterError)
+            [ classNames $ Css.inputCard (isNothing mParameterError)
             , id_ $ "value-" <> key
             , type_ InputNumber
             , onValueInput_ $ SetValueContent key <<< BigInteger.fromString
@@ -298,13 +298,11 @@ subSection accessible border content =
 templateLibraryCard :: forall p. HTML p Action
 templateLibraryCard =
   div
-    [ classNames [ "md:px-5pc", "p-4" ] ]
+    [ classNames [ "p-4", "h-full", "overflow-y-auto" ] ]
     [ h2
         [ classNames [ "text-lg", "font-semibold", "mb-4" ] ]
         [ text "Choose a contract template" ]
-    , div
-        [ classNames [ "grid", "gap-4", "md:grid-cols-2", "xl:grid-cols-3" ] ]
-        (templateBox <$> contractTemplates)
+    , div_ (templateBox <$> contractTemplates)
     ]
   where
   templateBox template =

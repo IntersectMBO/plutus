@@ -1,5 +1,6 @@
 module Welcome.Lenses
   ( _card
+  , _cardOpen
   , _walletLibrary
   , _walletNicknameOrIdInput
   , _walletNicknameInput
@@ -20,6 +21,9 @@ import Welcome.Types (Card, State)
 
 _card :: Lens' State (Maybe Card)
 _card = prop (SProxy :: SProxy "card")
+
+_cardOpen :: Lens' State Boolean
+_cardOpen = prop (SProxy :: SProxy "cardOpen")
 
 _walletLibrary :: Lens' State WalletLibrary
 _walletLibrary = prop (SProxy :: SProxy "walletLibrary")
