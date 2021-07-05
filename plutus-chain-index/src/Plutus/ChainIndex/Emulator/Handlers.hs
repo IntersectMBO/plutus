@@ -21,7 +21,7 @@ module Plutus.ChainIndex.Emulator.Handlers(
 import           Control.Lens                         (at, ix, makeLenses, over, preview, set, to, view, (&))
 import           Control.Monad.Freer                  (Eff, Member, type (~>))
 import           Control.Monad.Freer.Error            (Error, throwError)
-import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logError)
+import           Control.Monad.Freer.Extras.Log       (LogMsg, logDebug, logError, logWarn)
 import           Control.Monad.Freer.State            (State, get, gets, modify, put)
 import           Data.Default                         (Default (..))
 import           Data.FingerTree                      (Measured (..))
@@ -49,22 +49,35 @@ makeLenses ''ChainIndexEmulatorState
 -- | Get the 'ChainIndexTx' for a transaction ID
 getTxFromTxId ::
     forall effs.
-    (Member (State ChainIndexEmulatorState) effs)
-    => TxId
+    (Member (State ChainIndexEmulatorState) effs
+    , Member (LogMsg ChainIndexLog) effs
+    ) => TxId
     -> Eff effs (Maybe ChainIndexTx)
-getTxFromTxId i = gets (view $ diskState . txMap . at i)
+getTxFromTxId i = do
+    result <- gets (view $ diskState . txMap . at i)
+    case result of
+        Nothing -> logWarn (TxNotFound i) >> pure Nothing
+        _       -> pure result
 
 handleQuery ::
     forall effs.
     ( Member (State ChainIndexEmulatorState) effs
     , Member (Error ChainIndexError) effs
+    , Member (LogMsg ChainIndexLog) effs
     ) => ChainIndexQueryEffect
     ~> Eff effs
 handleQuery = \case
     DatumFromHash h -> gets (view $ diskState . dataMap . at h)
     ValidatorFromHash h -> gets (view $ diskState . validatorMap . at h)
     MintingPolicyFromHash h -> gets (view $ diskState . mintingPolicyMap . at h)
-    TxOutFromRef TxOutRef{txOutRefId, txOutRefIdx} -> gets @ChainIndexEmulatorState (preview $ diskState . txMap . ix txOutRefId . citxOutputs . ix (fromIntegral txOutRefIdx))
+    TxOutFromRef TxOutRef{txOutRefId, txOutRefIdx} ->
+        gets @ChainIndexEmulatorState
+            (preview $ diskState
+                . txMap
+                . ix txOutRefId
+                . citxOutputs
+                . ix (fromIntegral txOutRefIdx)
+            )
     TxFromTxId i -> getTxFromTxId i
     UtxoSetMembership r -> do
         utxoState <- gets (measure . view utxoIndex)
@@ -116,7 +129,12 @@ handleControl = \case
     CollectGarbage -> do
         -- Rebuild the index using only transactions that still have at
         -- least one output in the UTXO set
-        utxos <- gets (Set.toList . Set.map txOutRefId . UtxoState.unspentOutputs . UtxoState.utxoState . view utxoIndex)
+        utxos <- gets $
+            Set.toList
+            . Set.map txOutRefId
+            . UtxoState.unspentOutputs
+            . UtxoState.utxoState
+            . view utxoIndex
         newDiskState <- foldMap DiskState.fromTx . catMaybes <$> mapM getTxFromTxId utxos
         modify $ set diskState newDiskState
 
@@ -129,3 +147,4 @@ data ChainIndexLog =
     InsertionSuccess Tip InsertUtxoPosition
     | RollbackSuccess Tip
     | Err ChainIndexError
+    | TxNotFound TxId

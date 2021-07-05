@@ -49,7 +49,11 @@ data ChainIndexQueryEffect r where
     -- | Whether a tx output is part of the UTXO set
     UtxoSetMembership :: TxOutRef -> ChainIndexQueryEffect (Tip, Bool)
 
-    -- | Unspent outputs located at addresses with the given credential
+    -- | Unspent outputs located at addresses with the given credential.
+    --   This returns at most 10 unspent outputs. There is currently no
+    --   way to ask for more pages and it is uncertain whether this query
+    --   will be part of the final API (because it is easy to clog up clients
+    --   by producing a large number of trash UTXOs at the address)
     UtxoSetAtAddress :: Credential -> ChainIndexQueryEffect (Tip, Page TxOutRef)
 
     -- | Get the tip of the chain index
