@@ -90,9 +90,9 @@ putStrLn "running succ L..."
   runSucceedingTests "evaluate" "plc" succeedingEvalTests
   putStrLn "running fail TCEK"
   runFailingTests "evaluate" "plc" failingEvalTests
-  -- putStrLn "running succ U..."
-  -- runSucceedingTests "evaluate" "uplc" succeedingEvalTests
-  putStrLn "running fail U..."
-  runFailingTests "evaluate" "uplc" failingEvalTests
+  putStrLn "running succ U..."
+  runSucceedingTests "evaluate" "uplc" succeedingEvalTests
+  -- putStrLn "running fail U..."
+  -- runFailingTests "evaluate" "uplc" failingEvalTests
   putStrLn "running succ TC"
   runSucceedingTests "typecheck" "plc" succeedingTCTests

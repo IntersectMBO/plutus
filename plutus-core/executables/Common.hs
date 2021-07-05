@@ -235,7 +235,6 @@ data CekModel    = Default | Unit   -- Which cost model should we use for CEK ma
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
-data EvalMode    = CK | CEK deriving (Show, Read)
 data BudgetMode  = Silent
                  | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
                      Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
@@ -260,25 +259,12 @@ instance Show Format where
     show (Flat Named)    = "flat-named"
     show (Flat DeBruijn) = "flat-deBruijn"
 
-data TypecheckOptions = TypecheckOptions Input Format
 data ConvertOptions   = ConvertOptions Input Format Output Format PrintMode
 data PrintOptions     = PrintOptions Input PrintMode
 newtype ExampleOptions   = ExampleOptions ExampleMode
-data EraseOptions     = EraseOptions Input Format Output Format PrintMode
-data EvalOptions      = EvalOptions Input Format EvalMode PrintMode BudgetMode TimingMode CekModel
 data ApplyOptions     = ApplyOptions Files Format Output Format PrintMode
 
--- Main commands
-data Command = Apply     ApplyOptions
-             | Typecheck TypecheckOptions
-             | Convert   ConvertOptions
-             | Print     PrintOptions
-             | Example   ExampleOptions
-             | Erase     EraseOptions
-             | Eval      EvalOptions
-
-
----------------- Option parsers ----------------
+---------------- Common option parsers ----------------
 
 -- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
 input :: Parser Input
@@ -415,21 +401,11 @@ timing2 = Timing <$> option auto
 timingmode :: Parser TimingMode
 timingmode = timing1 <|> timing2
 
-cekmodel :: Parser CekModel
-cekmodel = flag Default Unit
-           (  short '1'
-           <> long "unit-cek-model"
-           <> help "Use unit AST node costs for CEK cost model (tallying mode only)"
-           )
-
 files :: Parser Files
 files = some (argument str (metavar "[FILES...]"))
 
 applyOpts :: Parser ApplyOptions
 applyOpts = ApplyOptions <$>  files <*> inputformat <*> output <*> outputformat <*> printmode
-
-typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> inputformat
 
 printmode :: Parser PrintMode
 printmode = option auto
@@ -468,72 +444,19 @@ exampleSingle = ExampleSingle <$> exampleName
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
-eraseOpts :: Parser EraseOptions
-eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
-
-evalmode :: Parser EvalMode
-evalmode = option auto
-  (  long "mode"
-  <> short 'm'
-  <> metavar "MODE"
-  <> value CEK
-  <> showDefault
-  <> help "Evaluation mode (CK or CEK)" )
-
-evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> input <*> inputformat <*> evalmode <*> printmode <*> budgetmode <*> timingmode <*> cekmodel
-
 helpText ::
   -- | Either "Untyped Plutus Core" or "Typed Plutus Core"
   String -> String
 helpText lang =
        "This program provides a number of utilities for dealing with "
     ++ lang
-    ++ " programs, including typechecking, evaluation, and conversion between a "
+    ++ " programs, including application, evaluation, and conversion between a "
     ++ "number of different formats.  The program also provides a number of example "
     ++ "programs.  Some commands read or write Plutus Core abstract "
     ++ "syntax trees serialised in CBOR or Flat format: ASTs are always written with "
     ++ "unit annotations, and any CBOR/Flat-encoded AST supplied as input must also be "
     ++ "equipped with unit annotations.  Attempting to read a serialised AST with any "
     ++ "non-unit annotation type will cause an error."
-
-plutus ::
-  -- | Either "Untyped Plutus Core Tool" or "Typed Plutus Core Tool"
-  String ->
-  -- | The @helpfText@ for the respective frontend
-  String ->
-  ParserInfo Command
-plutus lang langHelpText =
-    info (plutusOpts <**> helper) (fullDesc <> header lang <> progDesc langHelpText)
-
-plutusOpts :: Parser Command
-plutusOpts = hsubparser (
-       command "apply"
-           (info (Apply <$> applyOpts)
-            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
-            ++ "for example, 'plc apply --if cbor Validator.cbor Datum.cbor Redeemer.cbor Context.cbor --of cbor -o Script.cbor'"))
-    <> command "print"
-           (info (Print <$> printOpts)
-            (progDesc "Parse a program then prettyprint it."))
-    <> command "convert"
-           (info (Convert <$> convertOpts)
-            (progDesc "Convert PLC programs between various formats"))
-    <> command "example"
-           (info (Example <$> exampleOpts)
-            (progDesc $ "Show a program example. "
-                     ++ "Usage: first request the list of available examples (optional step), "
-                     ++ "then request a particular example by the name of a term. "
-                     ++ "Note that evaluating a generated example may result in 'Failure'."))
-    <> command "typecheck"
-           (info (Typecheck <$> typecheckOpts)
-            (progDesc "Typecheck a typed Plutus Core program."))
-    <> command "erase"
-           (info (Erase <$> eraseOpts)
-            (progDesc "Convert a typed Plutus Core program to an untyped one."))
-    <> command "evaluate"
-           (info (Eval <$> evalOpts)
-            (progDesc "Evaluate a Plutus Core program."))
-  )
 
 
 ---------------- Reading programs from files ----------------

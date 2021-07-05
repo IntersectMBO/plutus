@@ -14,14 +14,80 @@ import           Data.Functor                     (void)
 import qualified Data.Text.IO                     as T
 
 import           Control.DeepSeq                  (rnf)
-import           Options.Applicative              (ParserInfo, customExecParser, prefs, showHelpOnEmpty)
+import           Options.Applicative
 import           System.Exit                      (exitSuccess)
 
 plcHelpText :: String
 plcHelpText = helpText "Typed Plutus Core"
 
 plcInfoCommand :: ParserInfo Command
-plcInfoCommand = plutus "Typed Plutus Core Tool" plcHelpText
+plcInfoCommand = plutus plcHelpText
+
+data TypecheckOptions = TypecheckOptions Input Format
+data EvalOptions      = EvalOptions Input Format PrintMode BudgetMode TimingMode
+data EraseOptions     = EraseOptions Input Format Output Format PrintMode
+
+
+-- Main commands
+data Command = Apply     ApplyOptions
+             | Typecheck TypecheckOptions
+             | Convert   ConvertOptions
+             | Print     PrintOptions
+             | Example   ExampleOptions
+             | Erase     EraseOptions
+             | Eval      EvalOptions
+
+---------------- Option parsers ----------------
+
+typecheckOpts :: Parser TypecheckOptions
+typecheckOpts = TypecheckOptions <$> input <*> inputformat
+
+
+eraseOpts :: Parser EraseOptions
+eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+
+evalOpts :: Parser EvalOptions
+evalOpts =
+  EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> timingmode
+
+plutus ::
+  -- | The @helpfText@
+  String ->
+  ParserInfo Command
+plutus langHelpText =
+    info
+      (plutusOpts <**> helper)
+      (fullDesc <> header "Typed Plutus Core Tool" <> progDesc langHelpText)
+
+plutusOpts :: Parser Command
+plutusOpts = hsubparser (
+       command "apply"
+           (info (Apply <$> applyOpts)
+            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
+            ++ "for example, 'plc apply --if cbor Validator.cbor Datum.cbor Redeemer.cbor Context.cbor --of cbor -o Script.cbor'"))
+    <> command "print"
+           (info (Print <$> printOpts)
+            (progDesc "Parse a program then prettyprint it."))
+    <> command "convert"
+           (info (Convert <$> convertOpts)
+            (progDesc "Convert a program between various formats"))
+    <> command "example"
+           (info (Example <$> exampleOpts)
+            (progDesc $ "Show a program example. "
+                     ++ "Usage: first request the list of available examples (optional step), "
+                     ++ "then request a particular example by the name of a term. "
+                     ++ "Note that evaluating a generated example may result in 'Failure'."))
+    <> command "typecheck"
+           (info (Typecheck <$> typecheckOpts)
+            (progDesc "Typecheck a typed Plutus Core program."))
+    <> command "erase"
+           (info (Erase <$> eraseOpts)
+            (progDesc "Convert a typed Plutus Core program to an untyped one."))
+    <> command "evaluate"
+           (info (Eval <$> evalOpts)
+            (progDesc "Evaluate a Plutus Core program."))
+  )
+
 
 ---------------- Script application ----------------
 
@@ -52,22 +118,19 @@ runTypecheck (TypecheckOptions inp fmt) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt evalMode printMode budgetMode timingMode _) =
-  case evalMode of
-      CEK -> errorWithoutStackTrace "There is no CEK machine for Typed Plutus Core"
-      CK  -> do
-              let !_ = case budgetMode of
-                          Silent    -> ()
-                          Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
-              prog <- getProgram ifmt inp
-              let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
-                  term = void . PLC.toTerm $ prog
-                  !_ = rnf term
-                  -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
-                  -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-              case timingMode of
-                NoTiming -> evaluate term & handleEResult printMode
-                Timing n -> timeEval n evaluate term >>= handleTimingResults term
+runEval (EvalOptions inp ifmt printMode budgetMode timingMode) = do
+  let !_ = case budgetMode of
+              Silent    -> ()
+              Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
+  prog <- getProgram ifmt inp
+  let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
+      term = void . PLC.toTerm $ prog
+      !_ = rnf term
+      -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+      -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
+  case timingMode of
+    NoTiming -> evaluate term & handleEResult printMode
+    Timing n -> timeEval n evaluate term >>= handleTimingResults term
 
 ----------------- Print examples -----------------------
 
@@ -108,7 +171,6 @@ runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     writeProgram outp ofmt mode program
 
 ---------------- Driver ----------------
--- TODO will be done via type instance?
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plcInfoCommand
