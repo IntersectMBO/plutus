@@ -261,19 +261,19 @@ defineBuiltinTerms = do
         let term = mkBuiltin PLC.DropByteString
         defineBuiltinTerm 'Builtins.dropByteString term [int, bs]
     do
-        let term = mkBuiltin PLC.SHA2
+        let term = mkBuiltin PLC.Sha2_256
         defineBuiltinTerm 'Builtins.sha2_256 term [bs]
     do
-        let term = mkBuiltin PLC.SHA3
+        let term = mkBuiltin PLC.Sha3_256
         defineBuiltinTerm 'Builtins.sha3_256 term [bs]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.EqByteString
+        term <- wrapRel bsTy 2 $ mkBuiltin PLC.EqualsByteString
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.LtByteString
+        term <- wrapRel bsTy 2 $ mkBuiltin PLC.LessThanByteString
         defineBuiltinTerm 'Builtins.lessThanByteString term [bs, bool]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.GtByteString
+        term <- wrapRel bsTy 2 $ mkBuiltin PLC.GreaterThanByteString
         defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
     do
         let term = PIR.mkConstant () BS.empty
@@ -308,16 +308,16 @@ defineBuiltinTerms = do
         term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanInteger
         defineBuiltinTerm 'Builtins.greaterThanInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanEqInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanEqualsInteger
         defineBuiltinTerm 'Builtins.greaterThanEqInteger term [int, bool]
     do
         term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanInteger
         defineBuiltinTerm 'Builtins.lessThanInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanEqInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanEqualsInteger
         defineBuiltinTerm 'Builtins.lessThanEqInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.EqInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.EqualsInteger
         defineBuiltinTerm 'Builtins.equalsInteger term [int, bool]
 
     -- Blockchain builtins

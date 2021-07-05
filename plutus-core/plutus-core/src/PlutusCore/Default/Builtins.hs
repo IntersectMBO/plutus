@@ -50,19 +50,19 @@ data DefaultFun
     | RemainderInteger
     | ModInteger
     | LessThanInteger
-    | LessThanEqInteger
+    | LessThanEqualsInteger
     | GreaterThanInteger
-    | GreaterThanEqInteger
-    | EqInteger
+    | GreaterThanEqualsInteger
+    | EqualsInteger
     | Concatenate
     | TakeByteString
     | DropByteString
-    | SHA2
-    | SHA3
+    | Sha2_256
+    | Sha3_256
     | VerifySignature
-    | EqByteString
-    | LtByteString
-    | GtByteString
+    | EqualsByteString
+    | LessThanByteString
+    | GreaterThanByteString
     | IfThenElse
     | CharToString
     | Append
@@ -149,7 +149,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((<) @Integer)
             (runCostingFunTwoArguments . paramLessThanInteger)
-    toBuiltinMeaning LessThanEqInteger =
+    toBuiltinMeaning LessThanEqualsInteger =
         makeBuiltinMeaning
             ((<=) @Integer)
             (runCostingFunTwoArguments . paramLessThanEqInteger)
@@ -157,11 +157,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((>) @Integer)
             (runCostingFunTwoArguments . paramGreaterThanInteger)
-    toBuiltinMeaning GreaterThanEqInteger =
+    toBuiltinMeaning GreaterThanEqualsInteger =
         makeBuiltinMeaning
             ((>=) @Integer)
             (runCostingFunTwoArguments . paramGreaterThanEqInteger)
-    toBuiltinMeaning EqInteger =
+    toBuiltinMeaning EqualsInteger =
         makeBuiltinMeaning
             ((==) @Integer)
             (runCostingFunTwoArguments . paramEqInteger)
@@ -177,11 +177,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             BS.drop
             (runCostingFunTwoArguments . paramDropByteString)
-    toBuiltinMeaning SHA2 =
+    toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
             Hash.sha2
             (runCostingFunOneArgument . paramSHA2)
-    toBuiltinMeaning SHA3 =
+    toBuiltinMeaning Sha3_256 =
         makeBuiltinMeaning
             Hash.sha3
             (runCostingFunOneArgument . paramSHA3)
@@ -189,15 +189,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (verifySignature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifySignature)
-    toBuiltinMeaning EqByteString =
+    toBuiltinMeaning EqualsByteString =
         makeBuiltinMeaning
             ((==) @BS.ByteString)
             (runCostingFunTwoArguments . paramEqByteString)
-    toBuiltinMeaning LtByteString =
+    toBuiltinMeaning LessThanByteString =
         makeBuiltinMeaning
             ((<) @BS.ByteString)
             (runCostingFunTwoArguments . paramLtByteString)
-    toBuiltinMeaning GtByteString =
+    toBuiltinMeaning GreaterThanByteString =
         makeBuiltinMeaning
             ((>) @BS.ByteString)
             (runCostingFunTwoArguments . paramGtByteString)
@@ -332,54 +332,54 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 -- See Note [Stable encoding of PLC]
 instance Serialise DefaultFun where
     encode = encodeWord . \case
-              AddInteger           -> 0
-              SubtractInteger      -> 1
-              MultiplyInteger      -> 2
-              DivideInteger        -> 3
-              RemainderInteger     -> 4
-              LessThanInteger      -> 5
-              LessThanEqInteger    -> 6
-              GreaterThanInteger   -> 7
-              GreaterThanEqInteger -> 8
-              EqInteger            -> 9
-              Concatenate          -> 10
-              TakeByteString       -> 11
-              DropByteString       -> 12
-              SHA2                 -> 13
-              SHA3                 -> 14
-              VerifySignature      -> 15
-              EqByteString         -> 16
-              QuotientInteger      -> 17
-              ModInteger           -> 18
-              LtByteString         -> 19
-              GtByteString         -> 20
-              IfThenElse           -> 21
-              CharToString         -> 22
-              Append               -> 23
-              EqualsString         -> 28
-              EncodeUtf8           -> 29
-              DecodeUtf8           -> 30
-              Trace                -> 24
-              Nop1                 -> 25
-              Nop2                 -> 26
-              Nop3                 -> 27
-              FstPair              -> 31
-              SndPair              -> 32
-              NullList             -> 33
-              HeadList             -> 34
-              TailList             -> 35
-              ConstrData           -> 36
-              MapData              -> 37
-              ListData             -> 38
-              IData                -> 39
-              BData                -> 40
-              UnConstrData         -> 41
-              UnMapData            -> 42
-              UnListData           -> 43
-              UnIData              -> 44
-              UnBData              -> 45
-              EqualsData           -> 46
-              ChooseData           -> 47
+              AddInteger               -> 0
+              SubtractInteger          -> 1
+              MultiplyInteger          -> 2
+              DivideInteger            -> 3
+              RemainderInteger         -> 4
+              LessThanInteger          -> 5
+              LessThanEqualsInteger    -> 6
+              GreaterThanInteger       -> 7
+              GreaterThanEqualsInteger -> 8
+              EqualsInteger            -> 9
+              Concatenate              -> 10
+              TakeByteString           -> 11
+              DropByteString           -> 12
+              Sha2_256                 -> 13
+              Sha3_256                 -> 14
+              VerifySignature          -> 15
+              EqualsByteString         -> 16
+              QuotientInteger          -> 17
+              ModInteger               -> 18
+              LessThanByteString       -> 19
+              GreaterThanByteString    -> 20
+              IfThenElse               -> 21
+              CharToString             -> 22
+              Append                   -> 23
+              EqualsString             -> 28
+              EncodeUtf8               -> 29
+              DecodeUtf8               -> 30
+              Trace                    -> 24
+              Nop1                     -> 25
+              Nop2                     -> 26
+              Nop3                     -> 27
+              FstPair                  -> 31
+              SndPair                  -> 32
+              NullList                 -> 33
+              HeadList                 -> 34
+              TailList                 -> 35
+              ConstrData               -> 36
+              MapData                  -> 37
+              ListData                 -> 38
+              IData                    -> 39
+              BData                    -> 40
+              UnConstrData             -> 41
+              UnMapData                -> 42
+              UnListData               -> 43
+              UnIData                  -> 44
+              UnBData                  -> 45
+              EqualsData               -> 46
+              ChooseData               -> 47
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -388,21 +388,21 @@ instance Serialise DefaultFun where
               go 3  = pure DivideInteger
               go 4  = pure RemainderInteger
               go 5  = pure LessThanInteger
-              go 6  = pure LessThanEqInteger
+              go 6  = pure LessThanEqualsInteger
               go 7  = pure GreaterThanInteger
-              go 8  = pure GreaterThanEqInteger
-              go 9  = pure EqInteger
+              go 8  = pure GreaterThanEqualsInteger
+              go 9  = pure EqualsInteger
               go 10 = pure Concatenate
               go 11 = pure TakeByteString
               go 12 = pure DropByteString
-              go 13 = pure SHA2
-              go 14 = pure SHA3
+              go 13 = pure Sha2_256
+              go 14 = pure Sha3_256
               go 15 = pure VerifySignature
-              go 16 = pure EqByteString
+              go 16 = pure EqualsByteString
               go 17 = pure QuotientInteger
               go 18 = pure ModInteger
-              go 19 = pure LtByteString
-              go 20 = pure GtByteString
+              go 19 = pure LessThanByteString
+              go 20 = pure GreaterThanByteString
               go 21 = pure IfThenElse
               go 22 = pure CharToString
               go 23 = pure Append
@@ -448,54 +448,54 @@ decodeBuiltin = dBEBits8 builtinTagWidth
 -- See Note [Stable encoding of PLC]
 instance Flat DefaultFun where
     encode = encodeBuiltin . \case
-              AddInteger           -> 0
-              SubtractInteger      -> 1
-              MultiplyInteger      -> 2
-              DivideInteger        -> 3
-              RemainderInteger     -> 4
-              LessThanInteger      -> 5
-              LessThanEqInteger    -> 6
-              GreaterThanInteger   -> 7
-              GreaterThanEqInteger -> 8
-              EqInteger            -> 9
-              Concatenate          -> 10
-              TakeByteString       -> 11
-              DropByteString       -> 12
-              SHA2                 -> 13
-              SHA3                 -> 14
-              VerifySignature      -> 15
-              EqByteString         -> 16
-              QuotientInteger      -> 17
-              ModInteger           -> 18
-              LtByteString         -> 19
-              GtByteString         -> 20
-              IfThenElse           -> 21
-              CharToString         -> 22
-              Append               -> 23
-              EqualsString         -> 28
-              EncodeUtf8           -> 29
-              DecodeUtf8           -> 30
-              Trace                -> 24
-              Nop1                 -> 25
-              Nop2                 -> 26
-              Nop3                 -> 27
-              FstPair              -> 31
-              SndPair              -> 32
-              NullList             -> 33
-              HeadList             -> 34
-              TailList             -> 35
-              ConstrData           -> 36
-              MapData              -> 37
-              ListData             -> 38
-              IData                -> 39
-              BData                -> 40
-              UnConstrData         -> 41
-              UnMapData            -> 42
-              UnListData           -> 43
-              UnIData              -> 44
-              UnBData              -> 45
-              EqualsData           -> 46
-              ChooseData           -> 47
+              AddInteger               -> 0
+              SubtractInteger          -> 1
+              MultiplyInteger          -> 2
+              DivideInteger            -> 3
+              RemainderInteger         -> 4
+              LessThanInteger          -> 5
+              LessThanEqualsInteger    -> 6
+              GreaterThanInteger       -> 7
+              GreaterThanEqualsInteger -> 8
+              EqualsInteger            -> 9
+              Concatenate              -> 10
+              TakeByteString           -> 11
+              DropByteString           -> 12
+              Sha2_256                 -> 13
+              Sha3_256                 -> 14
+              VerifySignature          -> 15
+              EqualsByteString         -> 16
+              QuotientInteger          -> 17
+              ModInteger               -> 18
+              LessThanByteString       -> 19
+              GreaterThanByteString    -> 20
+              IfThenElse               -> 21
+              CharToString             -> 22
+              Append                   -> 23
+              EqualsString             -> 28
+              EncodeUtf8               -> 29
+              DecodeUtf8               -> 30
+              Trace                    -> 24
+              Nop1                     -> 25
+              Nop2                     -> 26
+              Nop3                     -> 27
+              FstPair                  -> 31
+              SndPair                  -> 32
+              NullList                 -> 33
+              HeadList                 -> 34
+              TailList                 -> 35
+              ConstrData               -> 36
+              MapData                  -> 37
+              ListData                 -> 38
+              IData                    -> 39
+              BData                    -> 40
+              UnConstrData             -> 41
+              UnMapData                -> 42
+              UnListData               -> 43
+              UnIData                  -> 44
+              UnBData                  -> 45
+              EqualsData               -> 46
+              ChooseData               -> 47
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -504,21 +504,21 @@ instance Flat DefaultFun where
               go 3  = pure DivideInteger
               go 4  = pure RemainderInteger
               go 5  = pure LessThanInteger
-              go 6  = pure LessThanEqInteger
+              go 6  = pure LessThanEqualsInteger
               go 7  = pure GreaterThanInteger
-              go 8  = pure GreaterThanEqInteger
-              go 9  = pure EqInteger
+              go 8  = pure GreaterThanEqualsInteger
+              go 9  = pure EqualsInteger
               go 10 = pure Concatenate
               go 11 = pure TakeByteString
               go 12 = pure DropByteString
-              go 13 = pure SHA2
-              go 14 = pure SHA3
+              go 13 = pure Sha2_256
+              go 14 = pure Sha3_256
               go 15 = pure VerifySignature
-              go 16 = pure EqByteString
+              go 16 = pure EqualsByteString
               go 17 = pure QuotientInteger
               go 18 = pure ModInteger
-              go 19 = pure LtByteString
-              go 20 = pure GtByteString
+              go 19 = pure LessThanByteString
+              go 20 = pure GreaterThanByteString
               go 21 = pure IfThenElse
               go 22 = pure CharToString
               go 23 = pure Append
