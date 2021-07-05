@@ -24,6 +24,7 @@
 #     first before we can insert it.
 
 set -e
+set -x
 
 if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
@@ -58,7 +59,7 @@ git checkout "$BASE_BRANCH_REF" # At this point, 'git rev-parse HEAD' should be 
 
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-cabal bench plutus-benchmark:validation --benchmark-option stablecoin >"BASE_LOG" 2>&1
+cabal bench plutus-benchmark:validation --benchmark-option stablecoin >"$BASE_LOG" 2>&1
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
