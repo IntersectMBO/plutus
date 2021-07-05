@@ -42,9 +42,8 @@ open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removab
 ## Pragmas
 
 ```
-{-# INJECTIVE _⊢Nf⋆_ #-}
 {-# INJECTIVE _⊢_ #-}
-
+{-# INJECTIVE _⊢Nf⋆_ #-}
 ```
 
 ## Some syntactic lemmas about injectivity
@@ -55,10 +54,6 @@ lem-·⋆' : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B : ∅ ,⋆ K 
   → M' _⊢_.·⋆ A' ≅ M _⊢_.·⋆ A
   → M' ≅ M × A ≅ A' × B ≅ B'
 lem-·⋆' refl = refl ,, refl ,, refl
-
--- these negative things can probably be most easily proved via a less
--- rigid representation e.g, removing some green slime or even via
--- extrinsic typing
 
 lem-·⋆ : ∀{K K'}{A : ∅ ⊢Nf⋆ K}{A' : ∅ ⊢Nf⋆ K'}{B B'}
   → (o : K ≡ K')
@@ -159,7 +154,7 @@ bwd-length : ∀{A} → Bwd A → ℕ
 bwd-length [] = 0
 bwd-length (az ∷ a) = Data.Nat.suc (bwd-length az)
 
-open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m)
+open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm)
 
 <>>-length : ∀{A}(az : Bwd A)(as : List A)
   → List.length (az <>> as) ≡ bwd-length az Data.Nat.+ List.length as
@@ -442,10 +437,32 @@ BUILTIN equalsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(sta
   with i ≟ j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
+BUILTIN concatenate (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) = 
+  con (bytestring (concat b b'))
+BUILTIN takeByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (bytestring b))) = 
+  con (bytestring (take i b))
+BUILTIN dropByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (bytestring b))) = 
+  con (bytestring (drop i b))
+BUILTIN lessThanByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) = 
+  con (bool (B< b b'))
+BUILTIN greaterThanByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) = 
+  con (bool (B> b b'))
+BUILTIN sha2-256 (step .(start (Term ∷ [])) base (V-con (bytestring b))) =
+  con (bytestring (SHA2-256 b))
+BUILTIN sha3-256 (step .(start (Term ∷ [])) base (V-con (bytestring b))) =
+  con (bytestring (SHA3-256 b))
+BUILTIN verifySignature (step .(bubble (bubble (start (Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))  with verifySig k d c
+... | just b = con (bool b)
+... | nothing = error _
+BUILTIN equalsByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) = 
+  con (bool (equals b b'))
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool true))) t) f) = deval t
-
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool false))) t) f) = deval f
-BUILTIN _ p = error _
+BUILTIN charToString (step .(start (Term ∷ [])) base (V-con (char c))) =
+  con (string (primStringFromList List.[ c ]))
+BUILTIN append (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) = 
+  con (string (primStringAppend s s'))
+BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)
   → BApp b p t
@@ -457,7 +474,6 @@ BUILTIN' b {t = t}{az = az} p q
 ```
 
 ```
-{-
 voidVal : Value (con unit)
 voidVal = V-con unit
 ```
@@ -512,6 +528,8 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   unwrap : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}{C}
     → EC (μ A B) C
     → EC (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) C
+
+{-# INJECTIVE EC #-}
 
 data EC' : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   []   : {A : ∅ ⊢Nf⋆ *} → EC' A A
