@@ -82,7 +82,7 @@ step ((s , (-· M)) ◅ V)           = ((s , V ·-) ▻ M)
 step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
-step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
+step ((s , unwrap-) ◅ V-wrap V)   = s ▻ deval V
 step (s ▻ ibuiltin b) = s ◅ ival b
 step ((s , (V-I⇒ b {as' = []} p bt ·-)) ◅ vu) =
   s ▻ BUILTIN' b (bubble p) (app p bt vu)
@@ -124,6 +124,10 @@ Stack2EvalCtx : ∀ {A B} → Stack A B → EC A B
 Stack2EvalCtx ε       = []
 Stack2EvalCtx (s , F) = CC.extEC (Stack2EvalCtx s) F
 
+lemmaH : ∀{I J K}(E : EC K J)(F : Frame J I)
+  → (helper (CC.dissect E) , F) ≡ helper (CC.dissect (CC.extEC E F))
+lemmaH E F rewrite CC.dissect-lemma E F = refl
+
 cc2ck : ∀ {I} → CC.State I → State I
 cc2ck (x CC.▻ x₁) = EvalCtx2Stack x ▻ x₁
 cc2ck (x CC.◅ x₁) = EvalCtx2Stack x ◅ x₁
@@ -135,3 +139,51 @@ ck2cc (x ▻ x₁) = Stack2EvalCtx x CC.▻ x₁
 ck2cc (x ◅ x₁) = Stack2EvalCtx x CC.◅ x₁
 ck2cc (□ x) = CC.□ x
 ck2cc (◆ x) = CC.◆ x
+
+data _-→s_ {A : ∅ ⊢Nf⋆ *} : State A → State A → Set where
+  base  : {s : State A} → s -→s s
+  step* : {s s' s'' : State A}
+        → step s ≡ s'
+        → s' -→s s''
+        → s -→s s''
+
+step** : ∀{A}{s : State A}{s' : State A}{s'' : State A}
+        → s -→s s'
+        → s' -→s s''
+        → s -→s s''
+step** base q = q
+step** (step* x p) q = step* x (step** p q)
+
+thm64 : ∀{A}(E : CC.State A)(s' : CC.State A)
+  → E CC.-→s s' → cc2ck E -→s cc2ck s'
+thm64 E .E CC.base = base
+thm64 (E CC.▻ ƛ M) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (E CC.▻ (M · N)) s' (CC.step* refl p) =
+  step* (cong (λ E → E ▻ M) (lemmaH E (-· N))) (thm64 _ s' p)
+thm64 (E CC.▻ Λ M) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (E CC.▻ (M ·⋆ A)) s' (CC.step* refl p) =
+  step* (cong (λ E → E ▻ M) (lemmaH E (-·⋆ A))) (thm64 _ s' p)
+thm64 (E CC.▻ wrap A B M) s' (CC.step* refl p) =
+  step* (cong (λ E → E ▻ M) (lemmaH E wrap-)) (thm64 _ s' p)
+thm64 (E CC.▻ unwrap M) s' (CC.step* refl p) =
+  step* (cong (λ E → E ▻ M) (lemmaH E unwrap-)) (thm64 _ s' p)
+thm64 (E CC.▻ con M) s' (CC.step* refl p) =
+  step* refl (thm64 _ s' p)
+thm64 (E CC.▻ ibuiltin b) s' (CC.step* refl p) =
+  step* refl (thm64 _ s' p)
+thm64 (E CC.▻ error _) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (E CC.◅ V) s' (CC.step* refl p) with CC.dissect E | inspect CC.dissect E
+... | inj₁ refl | [[ eq ]] rewrite CC.dissect-inj₁ E refl eq =
+  step* refl (thm64 _ s' p)
+... | inj₂ (_ ,, E' ,, (-· N)) | [[ eq ]] =
+  step* (cong (λ p → p ▻ N) (lemmaH E' (V ·-))) (thm64 _ s' p)
+... | inj₂ (_ ,, E' ,, (V-ƛ M ·-)) | [[ eq ]] = step* refl (thm64 _ s' p)
+thm64 (E CC.◅ V) s' (CC.step* refl p) | inj₂ (_ ,, E' ,, (V-I⇒ b {as' = []} p₁ x ·-)) | [[ eq ]] = step* refl (thm64 _ s' p)
+thm64 (E CC.◅ V) s' (CC.step* refl p) | inj₂ (_ ,, E' ,, (V-I⇒ b {as' = x₁ ∷ as'} p₁ x ·-)) | [[ eq ]] = step* refl (thm64 _ s' p)
+thm64 (E CC.◅ V-Λ M) s' (CC.step* refl p) | inj₂ (_ ,, E' ,, -·⋆ A) | [[ eq ]] = step* refl (thm64 _ s' p)
+thm64 (E CC.◅ V-IΠ b {as' = []} p₁ x) s' (CC.step* refl p) | inj₂ (_ ,, E' ,, -·⋆ A) | [[ eq ]] = step* refl (thm64 _ s' p)
+thm64 (E CC.◅ V-IΠ b {as' = x₁ ∷ as'} p₁ x) s' (CC.step* refl p) | inj₂ (_ ,, E' ,, -·⋆ A) | [[ eq ]] = step* refl (thm64 _ s' p)
+... | inj₂ (_ ,, E' ,, wrap-) | [[ eq ]] = step* refl (thm64 _ s' p)
+thm64 (E CC.◅ V-wrap V) s' (CC.step* refl p) | inj₂ (_ ,, E' ,, unwrap-) | [[ eq ]] = step* refl (thm64 _ s' p)
+thm64 (CC.□ V) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
+thm64 (CC.◆ A) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
