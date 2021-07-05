@@ -45,7 +45,7 @@ echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-cabal bench plutus-benchmark:validation --benchmark-option stablecoin >"$PR_LOG" 2>&1
+cabal bench plutus-benchmark:validation >"$PR_LOG" 2>&1
 
 echo "[ci-plutus-benchmark]: Updating master ..."
 git checkout master
@@ -59,13 +59,13 @@ git checkout "$BASE_BRANCH_REF" # At this point, 'git rev-parse HEAD' should be 
 
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-cabal bench plutus-benchmark:validation --benchmark-option stablecoin >"$BASE_LOG" 2>&1
+cabal bench plutus-benchmark:validation >"$BASE_LOG" 2>&1
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 echo -e "Comparing benchmark results of '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
-./plutus-benchmark/bench-compare-markdown "$BASE_LOG" "$PR_LOG" "${BASE_BRANCH_REF:1:7}" "${PR_BRANCH_REF:1:7}" >>bench-compare-result.log
+./plutus-benchmark/bench-compare-markdown "$BASE_LOG" "$PR_LOG" "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}" >>bench-compare-result.log
 nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
