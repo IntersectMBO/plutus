@@ -29,32 +29,29 @@ module Plutus.Contracts.Currency(
     ) where
 
 import           Control.Lens
-import           Plutus.Contracts.PubKey (AsPubKeyError (..), PubKeyError)
-import qualified Plutus.Contracts.PubKey as PK
-import           PlutusTx.Prelude        hiding (Monoid (..), Semigroup (..))
+import           PlutusTx.Prelude       hiding (Monoid (..), Semigroup (..))
 
-import           Plutus.Contract         as Contract
+import           Plutus.Contract        as Contract
+import           Plutus.Contract.Wallet (getUnspentOutput)
 
-import           Ledger                  (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), pubKeyHash,
-                                          scriptCurrencySymbol, txId)
-import qualified Ledger.Ada              as Ada
-import qualified Ledger.Constraints      as Constraints
-import qualified Ledger.Contexts         as V
+import           Ledger                 (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..), pubKeyHash, pubKeyHashAddress,
+                                         scriptCurrencySymbol, txId)
+import qualified Ledger.Constraints     as Constraints
+import qualified Ledger.Contexts        as V
 import           Ledger.Scripts
-import qualified PlutusTx                as PlutusTx
+import qualified PlutusTx
 
-import qualified Ledger.Typed.Scripts    as Scripts
-import           Ledger.Value            (TokenName, Value)
-import qualified Ledger.Value            as Value
+import qualified Ledger.Typed.Scripts   as Scripts
+import           Ledger.Value           (TokenName, Value)
+import qualified Ledger.Value           as Value
 
-import           Data.Aeson              (FromJSON, ToJSON)
-import qualified Data.Map                as Map
-import           Data.Semigroup          (Last (..))
-import           GHC.Generics            (Generic)
-import qualified PlutusTx.AssocMap       as AssocMap
-import           Prelude                 (Semigroup (..))
-import qualified Prelude                 as Haskell
-import           Schema                  (ToSchema)
+import           Data.Aeson             (FromJSON, ToJSON)
+import           Data.Semigroup         (Last (..))
+import           GHC.Generics           (Generic)
+import qualified PlutusTx.AssocMap      as AssocMap
+import           Prelude                (Semigroup (..))
+import qualified Prelude                as Haskell
+import           Schema                 (ToSchema)
 
 {-# ANN module ("HLint: ignore Use uncurry" :: Haskell.String) #-}
 
@@ -75,7 +72,7 @@ PlutusTx.makeLift ''OneShotCurrency
 currencyValue :: CurrencySymbol -> OneShotCurrency -> Value
 currencyValue s OneShotCurrency{curAmounts = amts} =
     let
-        values = map (\(tn, i) -> (Value.singleton s tn i)) (AssocMap.toList amts)
+        values = map (\(tn, i) -> Value.singleton s tn i) (AssocMap.toList amts)
     in fold values
 
 mkCurrency :: TxOutRef -> [(TokenName, Integer)] -> OneShotCurrency
@@ -134,9 +131,8 @@ mintedValue cur = currencyValue (currencySymbol cur) cur
 currencySymbol :: OneShotCurrency -> CurrencySymbol
 currencySymbol = scriptCurrencySymbol . curPolicy
 
-data CurrencyError =
-    CurPubKeyError PubKeyError
-    | CurContractError ContractError
+newtype CurrencyError =
+    CurContractError ContractError
     deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -144,9 +140,6 @@ makeClassyPrisms ''CurrencyError
 
 instance AsContractError CurrencyError where
     _ContractError = _CurContractError
-
-instance AsPubKeyError CurrencyError where
-    _PubKeyError = _CurPubKeyError
 
 -- | @mint [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, minting @c_i@ units of each token @n_i@.
@@ -161,14 +154,14 @@ mintContract
     -> [(TokenName, Integer)]
     -> Contract w s e OneShotCurrency
 mintContract pk amounts = mapError (review _CurrencyError) $ do
-    (txOutRef, txOutTx, pkInst) <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
+    txOutRef <- getUnspentOutput
+    utxo <- utxoAt (pubKeyHashAddress pk)
     let theCurrency = mkCurrency txOutRef amounts
         curVali     = curPolicy theCurrency
         lookups     = Constraints.mintingPolicy curVali
-                        <> Constraints.otherScript (Scripts.validatorScript pkInst)
-                        <> Constraints.unspentOutputs (Map.singleton txOutRef txOutTx)
-    let mintTx = Constraints.mustSpendScriptOutput txOutRef unitRedeemer
-                    <> Constraints.mustMintValue (mintedValue theCurrency)
+                        <> Constraints.unspentOutputs utxo
+        mintTx      = Constraints.mustSpendPubKeyOutput txOutRef
+                        <> Constraints.mustMintValue (mintedValue theCurrency)
     tx <- submitTxConstraintsWith @Scripts.Any lookups mintTx
     _ <- awaitTxConfirmed (txId tx)
     pure theCurrency

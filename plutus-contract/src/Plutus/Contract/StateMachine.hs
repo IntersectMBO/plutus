@@ -54,18 +54,16 @@ import           Data.Aeson                               (FromJSON, ToJSON)
 import           Data.Either                              (rights)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
-import qualified Data.Set                                 as Set
 import           Data.Text                                (Text)
 import qualified Data.Text                                as Text
 import           Data.Void                                (Void, absurd)
 import           GHC.Generics                             (Generic)
 import           Ledger                                   (POSIXTime, Slot, Value, scriptCurrencySymbol)
 import qualified Ledger
-import qualified Ledger.Ada                               as Ada
 import           Ledger.AddressMap                        (outputsMapFromTxForAddress)
 import           Ledger.Constraints                       (ScriptLookups, TxConstraints (..), mintingPolicy,
-                                                           mustMintValueWithRedeemer, mustPayToPubKey,
-                                                           mustPayToTheScript, mustSpendPubKeyOutput)
+                                                           mustMintValueWithRedeemer, mustPayToTheScript,
+                                                           mustSpendPubKeyOutput)
 import           Ledger.Constraints.OffChain              (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain              as Constraints
 import           Ledger.Constraints.TxConstraints         (InputConstraint (..), OutputConstraint (..))
@@ -80,6 +78,7 @@ import           Plutus.Contract
 import           Plutus.Contract.StateMachine.OnChain     (State (..), StateMachine (..), StateMachineInstance (..))
 import qualified Plutus.Contract.StateMachine.OnChain     as SM
 import           Plutus.Contract.StateMachine.ThreadToken (ThreadToken (..), curPolicy, ttOutRef)
+import           Plutus.Contract.Wallet                   (getUnspentOutput)
 import qualified PlutusTx
 import           PlutusTx.Monoid                          (inv)
 
@@ -327,14 +326,7 @@ runStep smc input =
 
 getThreadToken :: AsSMContractError e => Contract w schema e ThreadToken
 getThreadToken = mapError (review _SMContractError) $ do
-    ownPK <- ownPubKey
-    let constraints = mustPayToPubKey (pubKeyHash ownPK) (Ada.lovelaceValueOf 1)
-    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void mempty constraints)
-    tx <- balanceTx utx
-    txOutRef <-
-        case Set.lookupMin (Tx.txInputs tx) of
-            Just inp -> pure $ txInRef inp
-            Nothing  -> throwing _OtherError "Balanced transaction has no inputs"
+    txOutRef <- getUnspentOutput
     pure $ ThreadToken txOutRef (scriptCurrencySymbol (curPolicy txOutRef))
 
 -- | Initialise a state machine

@@ -11,18 +11,28 @@
 module Plutus.Contract.Wallet(
       balanceTx
     , handleTx
+    , getUnspentOutput
     , WAPI.startWatching
     , WAPI.signTxAndSubmit
     ) where
 
 import           Control.Monad               ((>=>))
+import           Control.Monad.Error.Lens    (throwing)
 import           Control.Monad.Freer         (Eff, Member)
 import           Control.Monad.Freer.Error   (Error, throwError)
-import           Ledger.Constraints.OffChain (UnbalancedTx (..))
-import           Ledger.Tx                   (Tx (..))
+import qualified Data.Set                    as Set
+import           Data.Void                   (Void)
+import qualified Ledger.Ada                  as Ada
+import           Ledger.Constraints          (mustPayToPubKey)
+import           Ledger.Constraints.OffChain (UnbalancedTx (..), mkTx)
+import           Ledger.Crypto               (pubKeyHash)
+import           Ledger.Tx                   (Tx (..), TxOutRef, txInRef)
+import qualified Plutus.Contract.Request     as Contract
+import           Plutus.Contract.Types       (Contract)
 import qualified Wallet.API                  as WAPI
 import           Wallet.Effects
 import           Wallet.Emulator.Error       (WalletAPIError)
+import           Wallet.Types                (AsContractError (_ConstraintResolutionError, _OtherError))
 
 {- Note [Submitting transactions from Plutus contracts]
 
@@ -68,3 +78,14 @@ handleTx ::
     )
     => UnbalancedTx -> Eff effs Tx
 handleTx = balanceTx >=> either throwError WAPI.signTxAndSubmit
+
+-- | Get an unspent output belonging to the wallet.
+getUnspentOutput :: AsContractError e => Contract w s e TxOutRef
+getUnspentOutput = do
+    ownPK <- Contract.ownPubKey
+    let constraints = mustPayToPubKey (pubKeyHash ownPK) (Ada.lovelaceValueOf 1)
+    utx <- either (throwing _ConstraintResolutionError) pure (mkTx @Void mempty constraints)
+    tx <- Contract.balanceTx utx
+    case Set.lookupMin (txInputs tx) of
+        Just inp -> pure $ txInRef inp
+        Nothing  -> throwing _OtherError "Balanced transaction has no inputs"
