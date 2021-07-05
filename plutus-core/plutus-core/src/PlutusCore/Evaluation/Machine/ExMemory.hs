@@ -208,8 +208,12 @@ instance ExMemoryUsage Char where
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
-deriving via GenericExMemoryUsage [a] instance ExMemoryUsage a => ExMemoryUsage [a]
+-- TODO: The generic instance will traverse the list every time, which is bad. We need some sensible
+-- solution here in future.
+instance ExMemoryUsage [a] where
+  memoryUsage _ = 1
 
--- TODO: presumably in the long run we'll want to do something a bit more careful here
--- (maybe for costing purposes depth would be a better measure than total size, for instance).
-deriving via GenericExMemoryUsage Data instance ExMemoryUsage Data
+-- TODO; The generic instance will traverse the structure every time, which is bad. We need some sensible
+-- solution here in future.
+instance ExMemoryUsage Data where
+  memoryUsage _ = 1
