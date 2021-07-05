@@ -42,8 +42,9 @@ open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removab
 ## Pragmas
 
 ```
-{-# INJECTIVE _⊢_ #-}
 {-# INJECTIVE _⊢Nf⋆_ #-}
+{-# INJECTIVE _⊢_ #-}
+
 ```
 
 ## Some syntactic lemmas about injectivity
@@ -158,7 +159,7 @@ bwd-length : ∀{A} → Bwd A → ℕ
 bwd-length [] = 0
 bwd-length (az ∷ a) = Data.Nat.suc (bwd-length az)
 
-open import Data.Nat.Properties
+open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m)
 
 <>>-length : ∀{A}(az : Bwd A)(as : List A)
   → List.length (az <>> as) ≡ bwd-length az Data.Nat.+ List.length as
@@ -403,7 +404,46 @@ BApp2BAPP (step⋆ p q)  = step⋆ p (BApp2BAPP q) refl refl
 
 BUILTIN : ∀ b {A}{t : ∅ ⊢ A} → BAPP b (saturated (arity b)) t → ∅ ⊢ A
 BUILTIN addInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.+ j))
+BUILTIN subtractInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.- j))
+BUILTIN multiplyInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.* j))
+BUILTIN divideInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = con (integer (div i j))
+... | yes p = error _
+BUILTIN quotientInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = con (integer (quot i j))
+... | yes p = error _
+BUILTIN remainderInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = con (integer (rem i j))
+... | yes p = error _
+BUILTIN modInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = con (integer (mod i j))
+... | yes p = error _
+BUILTIN lessThanInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with i <? j
+... | no ¬p = con (bool false)
+... | yes p = con (bool true)
+BUILTIN lessThanEqualsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with i ≤? j
+... | no ¬p = con (bool false)
+... | yes p = con (bool true)
+BUILTIN greaterThanInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with i I>? j
+... | no ¬p = con (bool false)
+... | yes p = con (bool true)
+BUILTIN greaterThanEqualsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with i I≥? j
+... | no ¬p = con (bool false)
+... | yes p = con (bool true)
+BUILTIN equalsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
+  with i ≟ j
+... | no ¬p = con (bool false)
+... | yes p = con (bool true)
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool true))) t) f) = deval t
+
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool false))) t) f) = deval f
 BUILTIN _ p = error _
 
@@ -417,6 +457,7 @@ BUILTIN' b {t = t}{az = az} p q
 ```
 
 ```
+{-
 voidVal : Value (con unit)
 voidVal = V-con unit
 ```
@@ -1662,3 +1703,4 @@ determinism {L = L} (ruleErr E' p) (ruleEC E'' q q' q'') | step ¬VL E err r' U 
 determinism {L = L} (ruleErr E' p) (ruleEC .E () q' q'') | step ¬VL E err r' U | refl ,, refl ,, refl
 determinism {L = L} (ruleErr E' p) (ruleErr E'' q) | step ¬VL E err r' U with U E' p err | U E'' q err
 ... | refl ,, refl ,, refl | refl ,, refl ,, refl = refl
+-- -}

@@ -71,6 +71,7 @@ library
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
     MAlonzo.Code.Algorithmic.CEKV
+    MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Reduction
@@ -257,6 +258,7 @@ library
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
     MAlonzo.Code.Algorithmic.CEKV
+    MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Reduction

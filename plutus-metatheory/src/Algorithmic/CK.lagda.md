@@ -20,7 +20,6 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Algorithmic
-open import Algorithmic.Reduction hiding (step;Error)
 open import Builtin
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
@@ -32,15 +31,7 @@ open import Algorithmic.RenamingSubstitution
 ```
 
 ```
-data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
-  -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
-  _·-     : {A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A ⇒ B} → Value t → Frame B A
-  -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K) → Frame (B [ A ]Nf) (Π B)
-
-  wrap-   : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
-    → Frame (μ A B) (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
-  unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
-    → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
+open import Algorithmic.ReductionEC renaming (step to app;step⋆ to app⋆)
 
 data Stack : (T : ∅ ⊢Nf⋆ *)(H : ∅ ⊢Nf⋆ *) → Set where
   ε   : {T : ∅ ⊢Nf⋆ *} → Stack T T
@@ -93,19 +84,14 @@ step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
 step (s ▻ ibuiltin b) = s ◅ ival b
-step ((s , (V-I⇒ b {C = C} p q r σ base vs f ·-)) ◅ v) with IBUILTIN' b p q σ (vs ,, deval v ,, v) _ r
-... | _ ,, Sum.inj₁ v' = s ◅ v'
-... | _ ,, Sum.inj₂ e = ◆ (subNf σ C)
-step ((s , (V-I⇒ b p q r σ (skip⋆ p') vs f ·-)) ◅ v) =
-  s ◅ (V-IΠ b p q r σ p' (vs ,, deval v ,, v) (f · deval v))
-step ((s , (V-I⇒ b p q r σ (skip p') vs f ·-)) ◅ v) =
-  s ◅ V-I⇒ b p q r σ p' (vs ,, deval v ,, v) (f · deval v)
-step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ base vs f) with IBUILTIN' b p q (subNf-cons σ A) (vs ,, A) _ r
-... | _ ,, Sum.inj₁ v' = s ◅ convVal (subNf-cons-[]Nf C) v'
-... | _ ,, Sum.inj₂ e  = ◆ (subNf (subNf-cons σ A) C)
-step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip⋆ p') vs f) = s ◅ convValue (Πlem p' A C σ) (V-IΠ b {C = C} p q r (subNf-cons σ A) p' (vs ,, A) (conv⊢ refl (Πlem p' A C σ) (f ·⋆ A)))
-step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip p') vs f) = s ◅ convValue (⇒lem p' σ C) (V-I⇒ b p q r (subNf-cons σ A) p' (vs ,, A) (conv⊢ refl (⇒lem p' σ C) (f ·⋆ A)))
-
+step ((s , (V-I⇒ b {as' = []} p bt ·-)) ◅ vu) =
+  s ▻ BUILTIN' b (bubble p) (app p bt vu)
+step ((s , (V-I⇒ b {as' = _ ∷ as'} p bt ·-)) ◅ vu) =
+  s ◅ V-I b (bubble p) (app p bt vu)
+step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p bt) =
+  s ▻ BUILTIN' b (bubble p) (app⋆ p bt)
+step ((s , -·⋆ A) ◅ V-IΠ b {as' = x ∷ as'} p bt) =
+  s ◅ V-I b (bubble p) (app⋆ p bt)
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
@@ -121,3 +107,31 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 
+import Algorithmic.CC as CC
+open import Relation.Binary.PropositionalEquality
+open import Data.Sum
+
+{-# TERMINATING #-}
+helper : ∀{A B} → (B ≡ A) ⊎ (Σ _ λ I → EC B I × Frame I A) → Stack B A
+
+EvalCtx2Stack : ∀ {I J} → EC I J → Stack I J
+EvalCtx2Stack E = helper (CC.dissect E)
+
+helper (inj₁ refl) = ε
+helper (inj₂ (I ,, E ,, F)) = EvalCtx2Stack E , F
+
+Stack2EvalCtx : ∀ {A B} → Stack A B → EC A B
+Stack2EvalCtx ε       = []
+Stack2EvalCtx (s , F) = CC.extEC (Stack2EvalCtx s) F
+
+cc2ck : ∀ {I} → CC.State I → State I
+cc2ck (x CC.▻ x₁) = EvalCtx2Stack x ▻ x₁
+cc2ck (x CC.◅ x₁) = EvalCtx2Stack x ◅ x₁
+cc2ck (CC.□ x) = □ x
+cc2ck (CC.◆ x) = ◆ x
+
+ck2cc : ∀ {I} → State I → CC.State I
+ck2cc (x ▻ x₁) = Stack2EvalCtx x CC.▻ x₁
+ck2cc (x ◅ x₁) = Stack2EvalCtx x CC.◅ x₁
+ck2cc (□ x) = CC.□ x
+ck2cc (◆ x) = CC.◆ x
