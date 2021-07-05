@@ -26,6 +26,7 @@ import           Control.Lens
 import           Control.Monad                (forM_)
 import           Control.Monad.Error.Lens     (catching, throwing)
 import           Data.Aeson                   (FromJSON, ToJSON, parseJSON, toJSON)
+import           Data.Default                 (Default (def))
 import           Data.Map.Strict              (Map)
 import qualified Data.Map.Strict              as Map
 import           Data.Maybe                   (isNothing, maybeToList)
@@ -528,7 +529,7 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
                         finalBalance = totalIncome P.- totalPayouts
                         in (outputsConstraints, finalBalance)
             -- TODO Push this use of time further down the code
-            let range = TimeSlot.slotRangeToPOSIXTimeRange $ Interval.interval minSlot maxSlot
+            let range = TimeSlot.slotRangeToPOSIXTimeRange def $ Interval.interval minSlot maxSlot
             let constraints = inputsConstraints <> outputsConstraints <> mustValidateIn range
             if preconditionsOk
             then Just (constraints, SM.State marloweData finalBalance)

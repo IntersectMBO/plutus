@@ -40,6 +40,7 @@ import qualified Control.Monad.Freer.Error      as Eff
 import           Control.Monad.Freer.NonDet     (NonDet)
 import qualified Control.Monad.Freer.NonDet     as NonDet
 import           Control.Monad.Freer.Reader     (Reader, ask)
+import           Data.Default                   (Default (def))
 import           Data.Foldable                  (traverse_)
 import qualified Data.Map                       as Map
 import           Data.Monoid                    (Alt (..), Ap (..))
@@ -150,10 +151,10 @@ handleTimeNotifications =
     RequestHandler $ \targetTime_ ->
         surroundDebug @Text "handleTimeNotifications" $ do
             currentSlot <- Wallet.Effects.getClientSlot
-            let targetSlot_ = TimeSlot.posixTimeToSlot targetTime_
+            let targetSlot_ = TimeSlot.posixTimeToEnclosingSlot def targetTime_
             logDebug $ SlotNoticationTargetVsCurrent targetSlot_ currentSlot
             guard (currentSlot >= targetSlot_)
-            pure $ TimeSlot.slotToPOSIXTime currentSlot
+            pure $ TimeSlot.slotToEndPOSIXTime def currentSlot
 
 handleCurrentSlot ::
     forall effs a.
@@ -175,7 +176,7 @@ handleCurrentTime ::
 handleCurrentTime =
     RequestHandler $ \_ ->
         surroundDebug @Text "handleCurrentTime" $ do
-            TimeSlot.slotToPOSIXTime <$> Wallet.Effects.getClientSlot
+            TimeSlot.slotToEndPOSIXTime def <$> Wallet.Effects.getClientSlot
 
 handlePendingTransactions ::
     forall effs.

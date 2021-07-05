@@ -69,7 +69,6 @@ library
         Cardano.Wallet.Types
         Control.Monad.Freer.Delay
         Control.Concurrent.Availability
-        Data.Time.Units.Extra
         Plutus.PAB.App
         Plutus.PAB.Arbitrary
         Plutus.PAB.ContractCLI
@@ -169,7 +168,6 @@ library
         servant-websockets -any,
         stm -any,
         text -any,
-        time-units -any,
         transformers -any,
         unliftio-core -any,
         unordered-containers -any,
@@ -186,8 +184,8 @@ library
         lobemo-backend-ekg -any,
         exceptions -any,
         data-default -any,
-        time-units -any,
         time -any,
+        time-units -any,
         beam-core -any,
         beam-sqlite -any,
         beam-migrate -any,
@@ -229,12 +227,12 @@ executable plutus-pab
         servant-purescript -any,
         servant-server -any,
         text -any,
+        time-units -any,
         unliftio-core -any,
         uuid -any,
         yaml -any,
         containers -any,
         iohk-monitoring -any,
-        time-units -any,
         servant-client -any,
         contra-tracer -any,
         lobemo-backend-ekg -any
@@ -286,7 +284,8 @@ executable plutus-currency
         base >=4.9 && <5,
         plutus-pab,
         plutus-use-cases -any,
-        text -any
+        text -any,
+        time-units -any
 
 executable plutus-atomic-swap
     main-is: Main.hs
@@ -306,7 +305,8 @@ executable plutus-atomic-swap
         playground-common -any,
         plutus-ledger -any,
         plutus-ledger-api -any,
-        plutus-contract -any
+        plutus-contract -any,
+        time-units -any
 
 executable plutus-pay-to-wallet
     main-is: Main.hs

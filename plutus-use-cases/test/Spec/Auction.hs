@@ -49,7 +49,7 @@ params =
     AuctionParams
         { apOwner   = pubKeyHash $ walletPubKey w1
         , apAsset   = theToken
-        , apEndTime = TimeSlot.slotToPOSIXTime 100
+        , apEndTime = TimeSlot.slotToEndPOSIXTime def 100
         }
 
 -- | The token that we are auctioning off.
@@ -187,7 +187,7 @@ instance ContractModel AuctionModel where
 
     initialState = AuctionModel { _currentBid = 0
                                 , _winner     = w1
-                                , _endSlot    = TimeSlot.posixTimeToSlot $ apEndTime params
+                                , _endSlot    = TimeSlot.posixTimeToEnclosingSlot def $ apEndTime params
                                 , _phase      = NotStarted }
 
     arbitraryAction s

@@ -18,6 +18,7 @@ import           Criterion.Main
 import           Crypto.Hash                   hiding (Context)
 import qualified Data.ByteArray                as BA
 import qualified Data.ByteString               as BS
+import           Data.Default                  (Default (def))
 import           Ledger
 import qualified Ledger.Ada                    as Ada
 import           Ledger.Bytes
@@ -284,7 +285,7 @@ mockCtx = ScriptContext
       , txInfoOutputs = []
       , txInfoFee = PlutusTx.zero
       , txInfoForge = PlutusTx.zero
-      , txInfoValidRange = TimeSlot.slotRangeToPOSIXTimeRange defaultSlotRange
+      , txInfoValidRange = TimeSlot.slotRangeToPOSIXTimeRange def defaultSlotRange
       , txInfoSignatories = []
       , txInfoId = TxId P.emptyByteString
       , txInfoData = []
@@ -308,7 +309,7 @@ scriptHashes = bgroup "script hashes" [
 --   due at slot #100.
 theFuture :: FT.Future
 theFuture = FT.Future {
-    FT.ftDeliveryDate  = TimeSlot.slotToPOSIXTime 100,
+    FT.ftDeliveryDate  = TimeSlot.slotToBeginPOSIXTime def 100,
     FT.ftUnits         = 187,
     FT.ftUnitPrice     = Ada.lovelaceValueOf 1123,
     FT.ftInitialMargin = Ada.lovelaceValueOf 800,

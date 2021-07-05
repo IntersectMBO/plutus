@@ -197,6 +197,7 @@ benchmark flat
     , bytestring -any
     , containers -any
     , criterion >= 1.5.9.0
+    , data-default -any
     , deepseq -any
     , flat -any
     , lens -any
