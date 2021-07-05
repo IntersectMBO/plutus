@@ -66,7 +66,7 @@ let
       } // lib.mkIf pkgs.stdenv.hostPlatform.isWindows {
         packages.Win32.components.library.build-tools = lib.mkForce [];
       })
-      {
+      ({pkgs, config, ...}: {
         packages = {
 
           ghcjs.components.library.build-tools = let alex = pkgs.haskell-nix.tool compiler-nix-name "alex" {
@@ -234,7 +234,7 @@ let
             config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
           ];
         };
-      }
+      })
     ] ++ lib.optional enableHaskellProfiling {
       enableLibraryProfiling = true;
       enableExecutableProfiling = true;
