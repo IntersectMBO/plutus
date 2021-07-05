@@ -45,11 +45,11 @@ BASE_BRANCH_REF=$(git show-ref -s HEAD)
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
 nix-shell --run "cabal bench plutus-benchmark:validation >bench-base.log 2>&1"
 
-git checkout "$BASE_BRANCH_REF"  # .. so we use the most recent version of the comparison script
+git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 echo -e "Comparing benchmark results of '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
-./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "$BASE_BRANCH_REF" "$PR_BRANCH_REF" >>bench-compare-result.log
+./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:1:7}" "${PR_BRANCH_REF:1:7}" >>bench-compare-result.log
 nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
