@@ -380,7 +380,7 @@ sub[]Nf' : ∀{Φ Ψ K J}
 sub[]Nf' ρ A B =
   trans (sub[]Nf ρ A B)
   (subNf-cong' (subNf-cons (ne ∘ `) (subNf ρ A))
-     {A = subNf (extsNf (λ {K = K₁} → ρ)) B}
+     {A = subNf (extsNf ρ) B}
      {A' =
       reify
       (eval (sub (exts (embNf ∘ ρ)) (embNf B))

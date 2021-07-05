@@ -23,7 +23,7 @@
             (termbind
               (strict)
               (vardecl b (con bool))
-              [ [ (builtin equalsInteger) arg ] arg ]
+              [ [ (builtin eqInteger) arg ] arg ]
             )
             [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
           )

@@ -23,7 +23,7 @@ import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Pretty
 
-import qualified PlutusCore.StdLib.Data.List             as Plc
+import qualified PlutusCore.StdLib.Data.ScottList        as Plc
 
 import           Control.Exception
 import           Data.Either
@@ -105,11 +105,7 @@ data ExtensionFun
     | ExpensivePlus
     | Absurd
     | Cons
-    | Null
-    | Head
-    | Tail
-    | Fst
-    | Snd
+    | BiconstPair
     | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
@@ -254,31 +250,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                         EvaluationSuccess . SomeConstantOfArg uniA $
                             SomeConstantOfRes uniListA $ x : xs
 
-    toBuiltinMeaning Null = makeBuiltinMeaning nullPlc mempty where
-        nullPlc :: SomeConstantOf uni [] '[a] -> Bool
-        nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
-
-    toBuiltinMeaning Head = makeBuiltinMeaning headPlc mempty where
-        headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
-        headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) = case xs of
-            x : _ -> EvaluationSuccess . Opaque . fromConstant $ someValueOf uniA x
-            _     -> EvaluationFailure
-
-    toBuiltinMeaning Tail = makeBuiltinMeaning tailPlc mempty where
-        tailPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (SomeConstantOf uni [] '[a])
-        tailPlc (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) = case xs of
-            _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
-            _       -> EvaluationFailure
-
-    toBuiltinMeaning Fst = makeBuiltinMeaning fstPlc mempty where
-        fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
-        fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
-            Opaque . fromConstant . Some $ ValueOf uniA x
-
-    toBuiltinMeaning Snd = makeBuiltinMeaning sndPlc mempty where
-        sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
-        sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
-            Opaque . fromConstant . Some $ ValueOf uniB y
+    toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
+        biconstPairPlc
+            :: SomeConstant uni a
+            -> SomeConstant uni b
+            -> SomeConstantOf uni (,) '[a, b]
+            -> EvaluationResult (SomeConstantOf uni (,) '[a, b])
+        biconstPairPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstant (Some (ValueOf uniB y)))
+            (SomeConstantOfArg uniA' (SomeConstantOfArg uniB' (SomeConstantOfRes uniPairAB _))) =
+                case (,) <$> (uniA `geq` uniA') <*> (uniB `geq` uniB') of
+                    -- Should this rather be an 'UnliftingError'? For that we need
+                    -- https://github.com/input-output-hk/plutus/pull/3035
+                    Nothing           -> EvaluationFailure
+                    Just (Refl, Refl) ->
+                        EvaluationSuccess . SomeConstantOfArg uniA . SomeConstantOfArg uniB $
+                            SomeConstantOfRes uniPairAB (x, y)
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc :: SomeConstantOf uni (,) '[a, b] -> SomeConstantOf uni (,) '[b, a]

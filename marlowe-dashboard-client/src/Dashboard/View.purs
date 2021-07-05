@@ -1,22 +1,24 @@
-module Dashboard.View (renderDashboardState) where
+module Dashboard.View
+  ( dashboardScreen
+  , dashboardCard
+  ) where
 
 import Prelude hiding (div)
 import Contract.Lenses (_followerAppId, _mMarloweParams, _metadata)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractDetailsCard, contractInnerBox)
-import Css (applyWhen, classNames, hideWhen, toggleWhen)
 import Css as Css
-import Dashboard.Lenses (_cards, _menuOpen, _remoteWalletInfo, _screen, _selectedContract, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
+import Dashboard.Lenses (_card, _cardOpen, _menuOpen, _remoteWalletInfo, _selectedContract, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
 import Dashboard.State (partitionContracts)
-import Dashboard.Types (Action(..), Card(..), ContractStatus(..), Screen(..), State, PartitionedContracts)
+import Dashboard.Types (Action(..), Card(..), ContractStatus(..), State, PartitionedContracts)
 import Data.Array (length)
 import Data.Lens (preview, view, (^.))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Data.String (take)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
-import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (HTML, a, div, div_, footer, h2, header, img, main, nav, p_, span, text)
+import Halogen.Css (applyWhen, classNames)
+import Halogen.HTML (HTML, a, div, div_, footer, header, img, main, nav, p_, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, id_, src)
 import Images (marloweRunNavLogo, marloweRunNavLogoDark)
@@ -32,74 +34,131 @@ import Tooltip.Types (ReferenceId(..))
 import WalletData.Lenses (_assets, _walletNickname)
 import WalletData.View (putdownWalletCard, saveWalletCard, walletDetailsCard, walletLibraryScreen)
 
-renderDashboardState :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-renderDashboardState currentSlot state =
+dashboardScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
+dashboardScreen currentSlot state =
   let
     walletNickname = view (_walletDetails <<< _walletNickname) state
 
     menuOpen = view _menuOpen state
 
-    screen = view _screen state
+    card = view _card state
 
-    cards = view _cards state
+    cardOpen = view _cardOpen state
+
+    mSelectedContractState = preview _selectedContract state
   in
     div
-      [ classNames $ [ "grid", "h-full", "grid-rows-main" ] <> applyWhen menuOpen [ "bg-black" ] ]
-      [ renderHeader walletNickname menuOpen
-      , main
-          [ classNames [ "relative", "px-4", "md:px-5pc" ] ]
-          [ renderMobileMenu menuOpen
-          , div_ $ renderCard currentSlot state <$> cards
-          , renderScreen currentSlot state
+      [ classNames
+          $ [ "h-full", "grid", "grid-rows-dashboard-outer", "transition-all", "duration-500" ]
+          <> applyWhen cardOpen [ "lg:mr-sidebar" ]
+      ]
+      [ dashboardHeader walletNickname menuOpen
+      , div [ classNames [ "relative" ] ] -- this wrapper is relative because the mobile menu is absolutely positioned inside it
+          [ mobileMenu menuOpen
+          , div [ classNames [ "h-full", "grid", "grid-rows-dashboard-inner" ] ]
+              [ dashboardBreadcrumb mSelectedContractState
+              , main
+                  [ classNames $ [ "w-full" ] <> if isJust mSelectedContractState then [] else Css.container ] case mSelectedContractState of
+                  Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
+                  Nothing -> [ contractsScreen currentSlot state ]
+              ]
           ]
-      , renderFooter
+      , dashboardFooter
       ]
 
+dashboardCard :: forall p. Slot -> State -> HTML p Action
+dashboardCard currentSlot state = case view _card state of
+  Just card ->
+    let
+      cardOpen = view _cardOpen state
+
+      walletLibrary = view _walletLibrary state
+
+      currentWalletDetails = view _walletDetails state
+
+      assets = view _assets currentWalletDetails
+
+      walletNicknameInput = view _walletNicknameInput state
+
+      walletIdInput = view _walletIdInput state
+
+      remoteWalletInfo = view _remoteWalletInfo state
+
+      mSelectedContractState = preview _selectedContract state
+
+      templateState = view _templateState state
+    in
+      div
+        [ classNames $ Css.sidebarCardOverlay cardOpen ]
+        [ div
+            [ classNames $ Css.sidebarCard cardOpen ]
+            $ [ a
+                  [ classNames [ "absolute", "top-4", "right-4" ]
+                  , onClick_ CloseCard
+                  ]
+                  [ icon_ Close ]
+              ]
+            <> case card of
+                SaveWalletCard mTokenName -> [ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName ]
+                ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
+                PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
+                WalletLibraryCard -> [ walletLibraryScreen walletLibrary ]
+                TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard ]
+                ContractSetupCard -> [ TemplateAction <$> contractSetupScreen walletLibrary currentSlot templateState ]
+                ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard assets ]
+                ContractActionConfirmationCard action -> case mSelectedContractState of
+                  Just contractState -> [ ContractAction <$> actionConfirmationCard assets contractState action ]
+                  Nothing -> []
+        ]
+  Nothing -> div_ []
+
 ------------------------------------------------------------
-renderHeader :: forall m. MonadAff m => PubKey -> Boolean -> ComponentHTML Action ChildSlots m
-renderHeader walletNickname menuOpen =
+dashboardHeader :: forall m. MonadAff m => PubKey -> Boolean -> ComponentHTML Action ChildSlots m
+dashboardHeader walletNickname menuOpen =
   header
     [ classNames
-        $ [ "relative", "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1", "px-4", "md:px-5pc" ]
-        -- in case the menu is open when the user makes their window wider, we make sure the menuOpen styles only apply on small screens ...
-        
-        <> toggleWhen menuOpen [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] [ "border-b", "border-gray" ]
+        $ [ "relative", "border-gray", "transition-colors", "duration-200" ]
+        <> if menuOpen then [ "border-0", "bg-black", "text-white", "md:border-b", "md:bg-transparent", "md:text-black" ] else [ "border-b", "text-black" ]
+    -- ^ in case the menu is open when the user makes their window wider, we make sure the menuOpen styles only apply on small screens ...
     ]
-    [ img
-        [ classNames [ "w-16", "md:hidden" ]
-        , src if menuOpen then marloweRunNavLogoDark else marloweRunNavLogo
-        ]
-    -- ... and provide an alternative logo for wider screens that always has black text
-    , img
-        [ classNames [ "w-16", "hidden", "md:inline" ]
-        , src marloweRunNavLogo
-        ]
-    , nav
-        [ classNames [ "flex", "items-center" ] ]
-        [ navigation (SetScreen ContractsScreen) Home "Home"
-        , navigation (SetScreen WalletLibraryScreen) Contacts "Contacts"
-        , a
-            [ classNames [ "ml-6", "font-bold", "text-sm" ]
-            , id_ "dropWalletHeader"
-            , onClick_ $ OpenCard PutdownWalletCard
+    [ div
+        [ classNames $ Css.container <> [ "flex", "justify-between", "items-center", "leading-none", "py-3", "md:py-1" ] ]
+        [ img
+            [ classNames [ "w-16", "md:hidden" ]
+            , src if menuOpen then marloweRunNavLogoDark else marloweRunNavLogo
             ]
-            [ span
-                [ classNames [ "md:hidden" ] ]
-                [ icon_ Wallet ]
-            , span
-                [ classNames $ [ "hidden", "md:flex", "md:items-baseline" ] <> Css.button <> [ "bg-white" ] ]
-                [ span
-                    [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase", "font-semibold" ] <> Css.bgBlueGradient ]
-                    [ text $ take 1 walletNickname ]
-                , span [ classNames [ "truncate", "max-w-16" ] ] [ text walletNickname ]
+        -- ... and provide an alternative logo for wider screens that always has black text
+        , img
+            [ classNames [ "w-16", "hidden", "md:inline" ]
+            , src marloweRunNavLogo
+            ]
+        , nav
+            [ classNames [ "flex", "items-center" ] ]
+            [ navigation (SelectContract Nothing) Home "Home"
+            , navigation (OpenCard WalletLibraryCard) Contacts "Contacts"
+            , a
+                [ classNames [ "ml-6", "font-bold", "text-sm" ]
+                , id_ "dropWalletHeader"
+                , onClick_ $ OpenCard PutdownWalletCard
                 ]
+                [ span
+                    [ classNames [ "md:hidden" ] ]
+                    [ icon_ Wallet ]
+                , span
+                    [ classNames $ [ "hidden", "md:flex", "md:items-baseline" ] <> Css.button <> [ "bg-white" ] ]
+                    [ span
+                        [ classNames $ [ "-m-1", "mr-2", "rounded-full", "text-white", "w-5", "h-5", "flex", "justify-center", "items-center", "uppercase", "font-semibold" ] <> Css.bgBlueGradient ]
+                        [ text $ take 1 walletNickname ]
+                    , span [ classNames [ "truncate", "max-w-16" ] ] [ text walletNickname ]
+                    ]
+                ]
+            , tooltip "Drop wallet" (RefId "dropWalletHeader") Bottom
+            , a
+                [ classNames [ "ml-4", "md:hidden" ]
+                , onClick_ ToggleMenu
+                ]
+                [ if menuOpen then icon_ Close else icon_ Menu ]
             ]
-        , tooltip "Drop wallet" (RefId "dropWalletHeader") Bottom
-        , a
-            [ classNames [ "ml-4", "md:hidden" ]
-            , onClick_ ToggleMenu
-            ]
-            [ if menuOpen then icon_ Close else icon_ Menu ]
         ]
     ]
   where
@@ -116,10 +175,13 @@ renderHeader walletNickname menuOpen =
           [ text label ]
       ]
 
-renderMobileMenu :: forall p. Boolean -> HTML p Action
-renderMobileMenu menuOpen =
+mobileMenu :: forall p. Boolean -> HTML p Action
+mobileMenu menuOpen =
   nav
-    [ classNames $ [ "md:hidden", "absolute", "inset-0", "z-30", "bg-black", "text-white", "text-lg", "overflow-auto", "flex", "flex-col", "justify-between", "pt-8", "pb-4" ] <> hideWhen (not menuOpen) ]
+    [ classNames
+        $ [ "md:hidden", "absolute", "inset-0", "z-30", "bg-black", "text-white", "text-lg", "overflow-auto", "flex", "flex-col", "justify-between", "pt-8", "pb-4", "transition-all", "duration-200" ]
+        <> if menuOpen then [ "opacity-100" ] else [ "opacity-0", "pointer-events-none" ]
+    ]
     [ div
         [ classNames [ "flex", "flex-col" ] ]
         dashboardLinks
@@ -128,16 +190,32 @@ renderMobileMenu menuOpen =
         iohkLinks
     ]
 
-renderFooter :: forall p. HTML p Action
-renderFooter =
+dashboardBreadcrumb :: forall p. (Maybe Contract.State) -> HTML p Action
+dashboardBreadcrumb mSelectedContractState =
+  div [ classNames [ "border-b", "border-gray" ] ]
+    [ nav [ classNames $ Css.container <> [ "flex", "gap-2", "py-2" ] ]
+        $ [ a [ onClick_ $ SelectContract Nothing ] [ text "Dashboard" ] ]
+        <> case mSelectedContractState of
+            Just { nickname } ->
+              [ span_ [ text ">" ]
+              , span_ [ text nickname ]
+              ]
+            Nothing -> []
+    ]
+
+dashboardFooter :: forall p. HTML p Action
+dashboardFooter =
   footer
-    [ classNames [ "hidden", "md:flex", "py-2", "px-4", "md:px-5pc", "justify-between", "border-t", "border-gray", "text-sm" ] ]
-    [ nav
-        [ classNames [ "flex", "-ml-4" ] ] -- -ml-4 to offset the padding of the first link
-        dashboardLinks
-    , nav
-        [ classNames [ "flex", "-mr-4" ] ] -- -mr-4 to offset the padding of the last link
-        iohkLinks
+    [ classNames [ "hidden", "md:block", "border-t", "border-gray" ] ]
+    [ div
+        [ classNames $ Css.container <> [ "flex", "justify-between", "py-2", "text-sm" ] ]
+        [ nav
+            [ classNames [ "flex", "-ml-4" ] ] -- -ml-4 to offset the padding of the first link
+            dashboardLinks
+        , nav
+            [ classNames [ "flex", "-mr-4" ] ] -- -mr-4 to offset the padding of the last link
+            iohkLinks
+        ]
     ]
 
 dashboardLinks :: forall p. Warn (Text "We need to add the dashboard links.") => Array (HTML p Action)
@@ -165,21 +243,6 @@ link label url =
     [ text label ]
 
 ------------------------------------------------------------
-renderScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-renderScreen currentSlot state =
-  let
-    walletLibrary = view _walletLibrary state
-  in
-    div
-      -- TODO: Revisit the overflow-auto... I think the scrolling should be set at the screen level and not here.
-      --       this should have overflow-hidden to avoid the main div to occupy more space than available.
-      [ classNames [ "absolute", "inset-0", "overflow-auto", "z-0" ] ]
-      [ case state ^. _screen of
-          ContractsScreen -> contractsScreen currentSlot state
-          WalletLibraryScreen -> walletLibraryScreen walletLibrary
-          TemplateScreen -> renderSubmodule _templateState TemplateAction (contractSetupScreen walletLibrary currentSlot) state
-      ]
-
 contractsScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 contractsScreen currentSlot state =
   let
@@ -213,14 +276,11 @@ contractsScreen currentSlot state =
   in
     div
       [ classNames [ "pt-4", "flex", "flex-col", "h-full" ] ]
-      [ h2
-          [ classNames [ "font-semibold", "text-lg", "mb-4", "px-4", "md:px-5pc" ] ]
-          [ text "Home" ]
-      , viewSelector
+      [ viewSelector
       -- NOTE: This extra div is necesary to make the scroll only to work for the contract area.
       --       The parent flex with h-full and this element flex-grow makes the div to occupy the remaining
       --       vertical space.
-      , div [ classNames [ "overflow-y-auto", "flex-grow", "px-4", "md:px-5pc" ] ]
+      , div [ classNames [ "overflow-y-auto", "flex-grow", "px-4" ] ]
           [ renderContracts currentSlot state contracts
           ]
       , a
@@ -266,7 +326,7 @@ contractBox currentSlot contractState =
       Just _ ->
         -- NOTE: The overflow hidden helps fix a visual bug in which the background color eats away the border-radius
         [ classNames [ "flex", "flex-col", "cursor-pointer", "shadow-sm", "hover:shadow", "active:shadow-lg", "bg-white", "rounded", "overflow-hidden" ]
-        , onClick_ $ OpenContract contractInstanceId
+        , onClick_ $ SelectContract $ Just contractInstanceId
         ]
       -- in this case the box shouldn't be clickable
       Nothing -> [ classNames [ "flex", "flex-col", "shadow-sm", "bg-white", "rounded", "overflow-hidden" ] ]
@@ -281,65 +341,4 @@ contractBox currentSlot contractState =
           , icon ArrowRight [ "text-28px" ]
           ]
       , ContractAction <$> contractInnerBox currentSlot contractState
-      ]
-
-------------------------------------------------------------
-renderCard :: forall p. Slot -> State -> Card -> HTML p Action
-renderCard currentSlot state card =
-  let
-    walletLibrary = view _walletLibrary state
-
-    currentWalletDetails = view _walletDetails state
-
-    assets = view _assets currentWalletDetails
-
-    walletNicknameInput = view _walletNicknameInput state
-
-    walletIdInput = view _walletIdInput state
-
-    remoteWalletInfo = view _remoteWalletInfo state
-
-    mSelectedContractState = preview _selectedContract state
-
-    cardClasses = case card of
-      TemplateLibraryCard -> Css.largeCard false
-      ContractCard -> Css.largeCard false
-      _ -> Css.card false
-
-    hasCloseButton = case card of
-      (ContractActionConfirmationCard _) -> false
-      ContractSetupConfirmationCard -> false
-      _ -> true
-
-    closeButton =
-      if hasCloseButton then
-        [ a
-            [ classNames [ "absolute", "top-4", "right-4" ]
-            , onClick_ $ CloseCard card
-            ]
-            [ icon_ Close ]
-        ]
-      else
-        []
-  in
-    div
-      [ classNames $ Css.overlay false ]
-      [ div
-          [ classNames cardClasses ]
-          $ closeButton
-          <> case card of
-              SaveWalletCard mTokenName -> [ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName ]
-              ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
-              PutdownWalletCard -> [ putdownWalletCard currentWalletDetails ]
-              TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard ]
-              ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard assets ]
-              -- FIXME: We need to pattern match on the Maybe because the selectedContractState
-              --        could be Nothing. We could add the state as part of the view, but is not ideal
-              --        Will have to rethink how to deal with this once the overall state is more mature.
-              ContractCard -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> contractDetailsCard currentSlot contractState ]
-                Nothing -> []
-              ContractActionConfirmationCard action -> case mSelectedContractState of
-                Just contractState -> [ ContractAction <$> actionConfirmationCard assets contractState action ]
-                Nothing -> []
       ]

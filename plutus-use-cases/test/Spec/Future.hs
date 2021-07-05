@@ -12,6 +12,7 @@
 module Spec.Future(tests, theFuture, increaseMarginTrace, settleEarlyTrace, payOutTrace) where
 
 import           Control.Monad           (void)
+import           Data.Default            (Default (def))
 import           Test.Tasty
 import qualified Test.Tasty.HUnit        as HUnit
 
@@ -71,8 +72,8 @@ setup :: FutureSetup
 setup =
     FutureSetup
         { shortPK = walletPubKey w1
-        , longPK = walletPubKey (Wallet 2)
-        , contractStart = TimeSlot.slotToPOSIXTime 15
+        , longPK = walletPubKey w2
+        , contractStart = TimeSlot.slotToBeginPOSIXTime def 15
         }
 
 w1 :: Wallet
@@ -81,11 +82,14 @@ w1 = Wallet 1
 w2 :: Wallet
 w2 = Wallet 2
 
+w10 :: Wallet
+w10 = Wallet 10
+
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,
 --   due at slot #100.
 theFuture :: Future
 theFuture = Future {
-    ftDeliveryDate  = TimeSlot.slotToPOSIXTime 100,
+    ftDeliveryDate  = TimeSlot.slotToBeginPOSIXTime def 100,
     ftUnits         = units,
     ftUnitPrice     = forwardPrice,
     ftInitialMargin = Ada.lovelaceValueOf 800,
@@ -157,9 +161,7 @@ units :: Integer
 units = 187
 
 oracleKeys :: (PrivateKey, PubKey)
-oracleKeys =
-    let wllt = Wallet 10 in
-        (walletPrivKey wllt, walletPubKey wllt)
+oracleKeys = (walletPrivKey w10, walletPubKey w10)
 
 -- | Increase the margin of the 'Long' role by 100 lovelace
 increaseMargin :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
@@ -172,7 +174,7 @@ settleEarly :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
 settleEarly hdl = do
     let
         spotPrice = Ada.lovelaceValueOf 11240
-        ov = mkSignedMessage (TimeSlot.slotToPOSIXTime 25) spotPrice
+        ov = mkSignedMessage (TimeSlot.slotToBeginPOSIXTime def 25) spotPrice
     Trace.callEndpoint @"settle-early" hdl ov
     void $ Trace.waitNSlots 1
 

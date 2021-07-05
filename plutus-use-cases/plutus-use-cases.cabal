@@ -241,6 +241,7 @@ benchmark plutus-use-cases-bench
         base -any,
         criterion -any,
         cryptonite -any,
+        data-default -any,
         freer-extras -any,
         plutus-core -any,
         lens -any,

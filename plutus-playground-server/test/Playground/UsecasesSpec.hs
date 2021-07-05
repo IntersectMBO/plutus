@@ -278,7 +278,7 @@ crowdfundingTest =
                       , contribute w3 $ lovelaceValueOf 100000
                       , contribute w4 $ lovelaceValueOf 90000
                       , AddBlocks 1
-                      , AddBlocksUntil 40
+                      , AddBlocksUntil 41
                       , AddBlocks 1
                       ]
             , sourceCode

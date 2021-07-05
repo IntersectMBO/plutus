@@ -55,6 +55,7 @@ import           Data.Text                (Text)
 import qualified Data.Text                as Text
 import           GHC.Generics             (Generic)
 
+import           Data.Default             (Default (def))
 import           Ledger                   (POSIXTime, POSIXTimeRange, PubKeyHash, Validator, txId)
 import qualified Ledger
 import qualified Ledger.Ada               as Ada
@@ -123,13 +124,13 @@ mkCampaign ddl collectionDdl ownerWallet =
 {-# INLINABLE collectionRange #-}
 collectionRange :: Campaign -> POSIXTimeRange
 collectionRange cmp =
-    Interval.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
+    Interval.interval (campaignDeadline cmp + 1) (campaignCollectionDeadline cmp)
 
 -- | The 'POSIXTimeRange' during which a refund may be claimed
 {-# INLINABLE refundRange #-}
 refundRange :: Campaign -> POSIXTimeRange
 refundRange cmp =
-    Interval.from (campaignCollectionDeadline cmp)
+    Interval.from (campaignCollectionDeadline cmp + 1)
 
 data Crowdfunding
 instance Scripts.ValidatorTypes Crowdfunding where
@@ -191,8 +192,8 @@ crowdfunding c = contribute c `select` scheduleCollection c
 -- | A sample campaign
 theCampaign :: Campaign
 theCampaign = Campaign
-    { campaignDeadline = TimeSlot.slotToPOSIXTime 20
-    , campaignCollectionDeadline = TimeSlot.slotToPOSIXTime 30
+    { campaignDeadline = TimeSlot.slotToEndPOSIXTime def 20
+    , campaignCollectionDeadline = TimeSlot.slotToEndPOSIXTime def 30
     , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }
 

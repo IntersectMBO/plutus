@@ -6,14 +6,21 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
-module Spec.Auction(tests, theToken, auctionTrace1, auctionTrace2,
-                    prop_Auction, prop_FinishAuction) where
+module Spec.Auction
+    ( tests
+    , auctionEmulatorCfg
+    , auctionTrace1
+    , auctionTrace2
+    , prop_Auction
+    , prop_FinishAuction
+    ) where
 
 import           Control.Lens
 import           Control.Monad                      (void, when)
 import qualified Control.Monad.Freer                as Freer
 import qualified Control.Monad.Freer.Error          as Freer
 import           Control.Monad.Freer.Extras.Log     (LogLevel (..))
+import           Data.Default                       (Default (def))
 import           Data.Monoid                        (Last (..))
 
 import           Ledger                             (Ada, Slot (..), Value, pubKeyHash)
@@ -40,9 +47,9 @@ import           Test.Tasty.QuickCheck              (testProperty)
 params :: AuctionParams
 params =
     AuctionParams
-        { apOwner   = pubKeyHash $ walletPubKey (Wallet 1)
+        { apOwner   = pubKeyHash $ walletPubKey w1
         , apAsset   = theToken
-        , apEndTime = TimeSlot.slotToPOSIXTime 100
+        , apEndTime = TimeSlot.slotToEndPOSIXTime def 100
         }
 
 -- | The token that we are auctioning off.
@@ -53,11 +60,15 @@ theToken =
     -- This currency is created by the initial transaction.
     Value.singleton "ffff" "token" 1
 
--- | 'CheckOptions' that inclues 'theToken' in the initial distribution of wallet 1.
+-- | 'EmulatorConfig' that includes 'theToken' in the initial distribution of Wallet 1.
+auctionEmulatorCfg :: Trace.EmulatorConfig
+auctionEmulatorCfg =
+    let initialDistribution = defaultDist & over (ix w1) ((<>) theToken)
+    in def & Trace.initialChainState .~ Left initialDistribution
+
+-- | 'CheckOptions' that includes our own 'auctionEmulatorCfg'.
 options :: CheckOptions
-options =
-    let initialDistribution = defaultDist & over (at (Wallet 1) . _Just) ((<>) theToken)
-    in defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Left initialDistribution
+options = set emulatorConfig auctionEmulatorCfg defaultCheckOptions
 
 seller :: Contract AuctionOutput SellerSchema AuctionError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
@@ -83,6 +94,7 @@ auctionTrace1 = do
     Trace.callEndpoint @"bid" hdl2 trace1WinningBid
     void $ Trace.waitUntilTime $ apEndTime params
     void $ Trace.waitNSlots 2
+
 
 trace2WinningBid :: Ada
 trace2WinningBid = 70
@@ -175,7 +187,7 @@ instance ContractModel AuctionModel where
 
     initialState = AuctionModel { _currentBid = 0
                                 , _winner     = w1
-                                , _endSlot    = TimeSlot.posixTimeToSlot $ apEndTime params
+                                , _endSlot    = TimeSlot.posixTimeToEnclosingSlot def $ apEndTime params
                                 , _phase      = NotStarted }
 
     arbitraryAction s

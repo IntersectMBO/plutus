@@ -59,7 +59,7 @@ tests = testGroup "crowdfunding"
 
     , checkPredicate "make contributions and collect"
         (walletFundsChange w1 (Ada.lovelaceValueOf 225))
-        $ successfulCampaign
+        successfulCampaign
 
     , checkPredicate "cannot collect money too late"
         (walletFundsChange w1 PlutusTx.zero

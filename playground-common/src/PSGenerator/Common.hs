@@ -169,7 +169,7 @@ psAssocMap =
 dataBridge :: BridgePart
 dataBridge = do
     typeName ^== "Data"
-    typeModule ^== "PlutusTx.Data"
+    typeModule ^== "PlutusCore.Data"
     pure psString
 
 assocMapBridge :: BridgePart

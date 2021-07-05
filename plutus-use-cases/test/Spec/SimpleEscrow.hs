@@ -8,6 +8,7 @@ module Spec.SimpleEscrow(tests) where
 
 import           Control.Lens
 import           Control.Monad                 (void)
+import           Data.Default                  (Default (def))
 
 import           Ledger                        (Value, pubKeyHash)
 import qualified Ledger.Ada                    as Ada
@@ -104,7 +105,7 @@ mkEscrowParams p e =
     { payee     = pubKeyHash $ walletPubKey w1
     , paying    = p
     , expecting = e
-    , deadline  = TimeSlot.slotToPOSIXTime 100
+    , deadline  = TimeSlot.slotToEndPOSIXTime def 100
     }
 
 w1, w2 :: Wallet

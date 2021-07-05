@@ -63,6 +63,7 @@ library
         containers -any,
         cookie -any,
         cryptonite -any,
+        data-default -any,
         exceptions -any,
         file-embed -any,
         filepath -any,
@@ -130,6 +131,7 @@ library plutus-playground-usecases
     build-depends:
         aeson -any,
         base >=4.7 && <5,
+        data-default -any,
         lens -any,
         bytestring -any,
         containers -any,
@@ -185,6 +187,7 @@ executable plutus-playground-server
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
+        data-default -any,
         exceptions -any,
         data-default-class -any,
         filepath -any,

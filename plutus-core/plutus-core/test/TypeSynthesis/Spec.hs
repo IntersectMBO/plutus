@@ -75,8 +75,9 @@ foldAssertWell =
 test_typecheckAvailable :: TestTree
 test_typecheckAvailable =
     testGroup "Available"
-        [ testGroup "DefaultFun" . foldAssertWell $ stdLib <> examples
+        [ testGroup "DefaultFun"   $ foldAssertWell stdLib
         , testGroup "ExtensionFun" $ foldAssertWell builtins
+        , testGroup "Both"         $ foldAssertWell examples
         ]
 
 -- | Self-application. An example of ill-typed term.

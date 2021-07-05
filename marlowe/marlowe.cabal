@@ -53,6 +53,7 @@ library
     base -any,
     bytestring,
     containers -any,
+    data-default -any,
     deriving-aeson -any,
     lens,
     mtl,

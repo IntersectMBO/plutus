@@ -24,6 +24,7 @@ module Plutus.Contracts.Auction(
 
 import           Control.Lens                     (makeClassyPrisms)
 import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Default                     (Default (def))
 import           Data.Monoid                      (Last (..))
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           GHC.Generics                     (Generic)
@@ -271,15 +272,13 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
         submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
         otherBid = do
             let address = Scripts.validatorAddress (SM.typedValidator (SM.scInstance client))
-                -- FIXME (jm): There is some off-by-one thing going on that requires us to
-                -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
-                -- to wait for the next time to begin.
-                -- I don't have the time to look into that atm though :(
-                targetTime = Haskell.succ (Haskell.succ t)
+                targetTime = TimeSlot.slotToBeginPOSIXTime def
+                           $ Haskell.succ
+                           $ TimeSlot.posixTimeToEnclosingSlot def t
             AddressChangeResponse{acrTxns} <- addressChangeRequest
                 AddressChangeRequest
-                { acreqSlotRangeFrom = TimeSlot.posixTimeToSlot targetTime
-                , acreqSlotRangeTo = TimeSlot.posixTimeToSlot targetTime
+                { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot def targetTime
+                , acreqSlotRangeTo = TimeSlot.posixTimeToEnclosingSlot def targetTime
                 , acreqAddress = address
                 }
             case acrTxns of

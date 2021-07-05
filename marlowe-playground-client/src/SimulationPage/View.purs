@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Newtype (unwrap, wrap)
 import Data.String (trim)
 import Data.Tuple (Tuple(..), snd)
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
@@ -28,7 +28,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.Monaco (Settings, monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
-import Marlowe.Extended.Metadata (ChoiceFormat(..), MetaData, getChoiceFormat)
+import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
@@ -216,6 +216,14 @@ sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState)
     ]
 
 ------------------------------------------------------------
+type TemplateFormDisplayInfo a action
+  = { lookupFormat :: String -> Maybe (String /\ Int) -- Gets the format for a given key
+    , lookupDefinition :: String -> Maybe String -- Gets the definition for a given key
+    , typeName :: IntegerTemplateType -- Identifier for the type of template we are displaying
+    , title :: String -- Title of the section of the template type
+    , prefix :: String -- Prefix for the explanation of the template
+    }
+
 startSimulationWidget :: forall p. MetaData -> InitialConditionsRecord -> HTML p Action
 startSimulationWidget metadata { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
@@ -226,8 +234,8 @@ startSimulationWidget metadata { initialSlot, templateContent } =
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters metadata.slotParameterDescriptions SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                    <> integerTemplateParameters metadata.valueParameterDescriptions SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                ( integerTemplateParameters SetIntegerTemplateParam slotParameterDisplayInfo (unwrap templateContent).slotContent
+                    <> integerTemplateParameters SetIntegerTemplateParam valueParameterDisplayInfo (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -238,9 +246,36 @@ startSimulationWidget metadata { initialSlot, templateContent } =
                 [ text "Start simulation" ]
             ]
         ]
+  where
+  slotParameterDisplayInfo =
+    { lookupFormat: const Nothing
+    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , typeName: SlotContent
+    , title: "Timeout template parameters"
+    , prefix: "Slot for"
+    }
 
-integerTemplateParameters :: forall action p. Map String String -> (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
-integerTemplateParameters explanations actionGen typeName title prefix content =
+  valueParameterDisplayInfo =
+    { lookupFormat: extractValueParameterNuberFormat
+    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , typeName: ValueContent
+    , title: "Value template parameters"
+    , prefix: "Constant for"
+    }
+
+  extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
+    Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
+    _ -> Nothing
+
+  lookupDescription k m =
+    ( case Map.lookup k m of
+        Just { valueParameterDescription: description }
+          | trim description /= "" -> Just description
+        _ -> Nothing
+    )
+
+integerTemplateParameters :: forall a action p. (IntegerTemplateType -> String -> BigInteger -> action) -> TemplateFormDisplayInfo a action -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, title, prefix } content =
   [ li_
       if Map.isEmpty content then
         []
@@ -254,11 +289,13 @@ integerTemplateParameters explanations actionGen typeName title prefix content =
                                 , strong_ [ text key ]
                                 , text ":"
                                 ]
-                            , marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
+                            , case lookupFormat key of
+                                Just (currencyLabel /\ numDecimals) -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) currencyLabel numDecimals value
+                                Nothing -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
                             ]
                               <> [ div [ classes [ ClassName "action-group-explanation" ] ]
                                     $ maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
-                                    $ Map.lookup key explanations
+                                    $ lookupDefinition key
                                 ]
                           )
                       )
@@ -406,7 +443,7 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
                 [ span [ class_ (ClassName "break-word-span") ] [ text "Choice ", b_ [ text (show choiceName <> ": ") ] ]
                 , case mChoiceInfo of
                     Just { choiceFormat: DecimalFormat numDecimals currencyLabel } -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) currencyLabel numDecimals chosenNum
-                    _ -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) "" 0 chosenNum
+                    _ -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) chosenNum
                 ]
             , div [ class_ (ClassName "choice-error") ] error
             ]
@@ -450,7 +487,10 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
     else
       "Choice must be between " <> intercalate " or " (map boundError bounds)
 
-  boundError (Bound from to) = show from <> " and " <> show to
+  boundError (Bound from to) = showPretty from <> " and " <> showPretty to
+
+  showPretty :: BigInteger -> String
+  showPretty = showPrettyChoice (getChoiceFormat metadata choiceName)
 
 inputItem _ _ person NotifyInput =
   li

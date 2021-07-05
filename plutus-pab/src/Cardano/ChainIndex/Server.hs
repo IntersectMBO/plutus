@@ -24,11 +24,11 @@ import qualified Wallet.Effects                  as WalletEffects
 
 import           Cardano.ChainIndex.ChainIndex   (confirmedBlocks, healthcheck, processIndexEffects, startWatching,
                                                   syncState, watchedAddresses)
-import           Cardano.Node.Types              (SlotConfig)
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import           Ledger.Blockchain               (Block)
+import           Ledger.TimeSlot                 (SlotConfig)
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Servant                         (Application, hoistServer, serve, (:<|>) ((:<|>)))
 

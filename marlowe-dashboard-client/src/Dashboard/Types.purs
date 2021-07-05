@@ -1,6 +1,5 @@
 module Dashboard.Types
   ( State
-  , Screen(..)
   , Card(..)
   , ContractStatus(..)
   , PartitionedContracts
@@ -27,8 +26,8 @@ type State
   = { walletLibrary :: WalletLibrary
     , walletDetails :: WalletDetails
     , menuOpen :: Boolean
-    , screen :: Screen
-    , cards :: Array Card
+    , card :: Maybe Card
+    , cardOpen :: Boolean -- see note [CardOpen] in Welcome.State (the same applies here)
     , status :: ContractStatus
     , contracts :: Map PlutusAppId Contract.State
     , selectedContractIndex :: Maybe PlutusAppId
@@ -39,20 +38,14 @@ type State
     , templateState :: Template.State
     }
 
-data Screen
-  = ContractsScreen
-  | WalletLibraryScreen
-  | TemplateScreen
-
-derive instance eqScreen :: Eq Screen
-
 data Card
   = SaveWalletCard (Maybe String)
   | ViewWalletCard WalletDetails
   | PutdownWalletCard
+  | WalletLibraryCard
   | TemplateLibraryCard
+  | ContractSetupCard
   | ContractSetupConfirmationCard
-  | ContractCard
   | ContractActionConfirmationCard NamedAction
 
 derive instance eqCard :: Eq Card
@@ -77,11 +70,10 @@ data Action
   | SetRemoteWalletInfo (WebData WalletInfo)
   | SaveNewWallet (Maybe TokenName)
   | ToggleMenu
-  | SetScreen Screen
   | OpenCard Card
-  | CloseCard Card
+  | CloseCard
   | SelectView ContractStatus
-  | OpenContract PlutusAppId
+  | SelectContract (Maybe PlutusAppId)
   | UpdateFromStorage
   | UpdateFollowerApps (Map MarloweParams MarloweData)
   | UpdateContract PlutusAppId ContractHistory
@@ -98,11 +90,10 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetRemoteWalletInfo _) = Nothing
   toEvent (SaveNewWallet _) = Just $ defaultEvent "SaveNewWallet"
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
-  toEvent (SetScreen _) = Just $ defaultEvent "SetScreen"
   toEvent (OpenCard _) = Nothing
-  toEvent (CloseCard _) = Nothing
+  toEvent CloseCard = Nothing
   toEvent (SelectView _) = Just $ defaultEvent "SelectView"
-  toEvent (OpenContract _) = Just $ defaultEvent "OpenContract"
+  toEvent (SelectContract _) = Just $ defaultEvent "OpenContract"
   toEvent UpdateFromStorage = Nothing
   toEvent (UpdateFollowerApps _) = Nothing
   toEvent (UpdateContract _ _) = Nothing

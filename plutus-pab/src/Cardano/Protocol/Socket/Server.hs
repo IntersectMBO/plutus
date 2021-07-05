@@ -47,7 +47,7 @@ import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
 
-import           Cardano.Protocol.Socket.Type                        hiding (currentSlot)
+import           Cardano.Protocol.Socket.Type
 
 import           Cardano.Chain                                       (MockNodeServerChainState (..), addTxToPool,
                                                                       chainNewestFirst, channel, currentSlot,
