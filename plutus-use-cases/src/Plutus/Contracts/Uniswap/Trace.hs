@@ -12,7 +12,7 @@ module Plutus.Contracts.Uniswap.Trace(
     , wallets
     ) where
 
-import           Control.Monad                     (forM_, when)
+import           Control.Monad                     (forM_, void, when)
 import           Control.Monad.Freer.Error         (throwError)
 import qualified Data.Map                          as Map
 import qualified Data.Monoid                       as Monoid
@@ -67,12 +67,19 @@ setupTokens = do
     cur   <- Currency.mintContract ownPK [(tn, fromIntegral (length wallets) * amount) | tn <- tokenNames]
     let cs = Currency.currencySymbol cur
         v  = mconcat [Value.singleton cs tn amount | tn <- tokenNames]
+
     forM_ wallets $ \w -> do
         let pkh = pubKeyHash $ walletPubKey w
         when (pkh /= ownPK) $ do
             tx <- submitTx $ mustPayToPubKey pkh v
             awaitTxConfirmed $ txId tx
+
     tell $ Just $ Semigroup.Last cur
+
+    -- Need to wait one slot or else we will get stuck in an infinite loop
+    -- when requesting the contract's observable state.
+    void $ waitNSlots 1
+
   where
     amount = 1000000
 

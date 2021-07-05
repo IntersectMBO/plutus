@@ -5,15 +5,15 @@
 module PlutusCore.StdLib.Meta
     ( metaIntegerToNat
     , metaEitherToSum
-    , metaListToList
+    , metaListToScottList
     ) where
 
 import           PlutusCore.Core
 import           PlutusCore.MkPlc
 import           PlutusCore.Name
 
-import           PlutusCore.StdLib.Data.List
-import           PlutusCore.StdLib.Data.Nat  as Plc
+import           PlutusCore.StdLib.Data.Nat       as Plc
+import           PlutusCore.StdLib.Data.ScottList
 import           PlutusCore.StdLib.Data.Sum
 
 -- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
@@ -35,8 +35,9 @@ metaEitherToSum a b (Left  x) = apply () (mkIterInst () left  [a, b]) x
 metaEitherToSum a b (Right y) = apply () (mkIterInst () right [a, b]) y
 
 -- | Convert a Haskell list of 'Term's to a PLC @list@.
-metaListToList :: TermLike term TyName Name uni fun => Type TyName uni () -> [term ()] -> term ()
-metaListToList ty =
+metaListToScottList
+    :: TermLike term TyName Name uni fun => Type TyName uni () -> [term ()] -> term ()
+metaListToScottList ty =
     foldr
         (\x xs -> mkIterApp () (tyInst () cons ty) [x, xs])
         (tyInst () nil ty)

@@ -26,7 +26,7 @@
     chainIndexPort = 8083;
     signingProcessPort = 8084;
     metadataPort = 8085;
-    zeroSlotTime = "2020-06-07T21:44:51Z";
+    zeroSlotTime = 1591566291; # POSIX time of 2020-06-07T21:44:51Z (Sunday, June 7, 2020 21:44:51)
     slotLength = 1;
   };
 

@@ -181,6 +181,7 @@ start = do
         tx   = mustPayToTheScript (Factory []) $ unitValue c
     ledgerTx <- submitTxConstraints inst tx
     void $ awaitTxConfirmed $ txId ledgerTx
+    void $ waitNSlots 1
 
     logInfo @String $ printf "started Uniswap %s at address %s" (show us) (show $ uniswapAddress us)
     return us
@@ -488,7 +489,9 @@ findSwapB oldA oldB inB = findSwapA (switch oldB) (switch oldA) (switch inB)
 ownerEndpoint :: Contract (Last (Either Text Uniswap)) EmptySchema ContractError ()
 ownerEndpoint = do
     e <- mapError absurd $ runError start
+    void $ waitNSlots 1
     tell $ Last $ Just e
+    void $ waitNSlots 1
 
 -- | Provides the following endpoints for users of a Uniswap instance:
 --

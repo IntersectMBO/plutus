@@ -125,10 +125,6 @@
           "PlutusCore/Default/Universe"
           "PlutusCore/Eq"
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
-          "PlutusCore/Examples/Data/InterList"
-          "PlutusCore/Examples/Data/Shad"
-          "PlutusCore/Examples/Data/TreeForest"
-          "PlutusCore/Examples/Data/Vec"
           "PlutusCore/Generators/Internal/Denotation"
           "PlutusCore/Generators/Internal/Dependent"
           "PlutusCore/Generators/Internal/Entity"
@@ -196,18 +192,27 @@
           "PlutusCore/Constant"
           "PlutusCore/Constant/Dynamic/Emit"
           "PlutusCore/Core"
+          "PlutusCore/Data"
+          "PlutusCore/DataFilePaths"
           "PlutusCore/DeBruijn"
           "PlutusCore/Default"
           "PlutusCore/Error"
-          "PlutusCore/Evaluation/Machine/Ck"
           "PlutusCore/Evaluation/Machine/BuiltinCostModel"
+          "PlutusCore/Evaluation/Machine/Ck"
           "PlutusCore/Evaluation/Machine/CostModelInterface"
           "PlutusCore/Evaluation/Machine/ExBudget"
-          "PlutusCore/Evaluation/Machine/Exception"
           "PlutusCore/Evaluation/Machine/ExMemory"
+          "PlutusCore/Evaluation/Machine/Exception"
           "PlutusCore/Evaluation/Machine/MachineParameters"
           "PlutusCore/Evaluation/Result"
           "PlutusCore/Examples/Builtins"
+          "PlutusCore/Examples/Data/Data"
+          "PlutusCore/Examples/Data/InterList"
+          "PlutusCore/Examples/Data/List"
+          "PlutusCore/Examples/Data/Pair"
+          "PlutusCore/Examples/Data/Shad"
+          "PlutusCore/Examples/Data/TreeForest"
+          "PlutusCore/Examples/Data/Vec"
           "PlutusCore/Examples/Everything"
           "PlutusCore/Flat"
           "PlutusCore/FsTree"
@@ -232,10 +237,13 @@
           "PlutusCore/Rename/Monad"
           "PlutusCore/StdLib/Data/Bool"
           "PlutusCore/StdLib/Data/ChurchNat"
+          "PlutusCore/StdLib/Data/Data"
           "PlutusCore/StdLib/Data/Function"
           "PlutusCore/StdLib/Data/Integer"
           "PlutusCore/StdLib/Data/List"
           "PlutusCore/StdLib/Data/Nat"
+          "PlutusCore/StdLib/Data/Pair"
+          "PlutusCore/StdLib/Data/ScottList"
           "PlutusCore/StdLib/Data/ScottUnit"
           "PlutusCore/StdLib/Data/Sum"
           "PlutusCore/StdLib/Data/Unit"
@@ -280,7 +288,6 @@
           "Common"
           "Crypto"
           "Data/ByteString/Hash"
-          "Data/RandomAccessList/SkewBinary"
           "Data/SatInt"
           "Data/Text/Prettyprint/Doc/Custom"
           "ErrorCode"
@@ -298,6 +305,18 @@
           "prelude"
           "common"
           ];
+        };
+      sublibs = {
+        "index-envs" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
+            ];
+          buildable = true;
+          modules = [ "Data/DeBruijnEnv" "Data/RandomAccessList/SkewBinary" ];
+          hsSourceDirs = [ "index-envs/src" ];
+          };
         };
       exes = {
         "plc" = {
@@ -417,16 +436,16 @@
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];
           };
-        "bral-test" = {
+        "index-envs-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             ];
           buildable = true;
-          hsSourceDirs = [ "untyped-plutus-core/test" ];
+          hsSourceDirs = [ "index-envs/test" ];
           mainPath = [ "TestRAList.hs" ];
           };
         };
@@ -438,7 +457,6 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
-            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
             ];
@@ -502,17 +520,17 @@
           modules = [ "CostModelCreation" ];
           hsSourceDirs = [ "cost-model/test" "cost-model/create-cost-model" ];
           };
-        "bral-bench" = {
+        "index-envs-bench" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;
-          hsSourceDirs = [ "untyped-plutus-core/bench" ];
+          hsSourceDirs = [ "index-envs/bench" ];
           };
         };
       };

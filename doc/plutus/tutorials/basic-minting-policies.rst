@@ -17,7 +17,7 @@ Minting policies, like validators, receive some information from the validating 
 
 The minting policy is a function which receives these two inputs as *arguments*.
 The validating node is responsible for passing them in and running the minting policy.
-As with validator scripts, the arguments are passed encoded as :hsobj:`PlutusTx.Data.Data`.
+As with validator scripts, the arguments are passed encoded as :hsobj:`PlutusCore.Data.Data`.
 
 Using the minting context
 -------------------------

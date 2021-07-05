@@ -1,14 +1,17 @@
 module Home where
 
 import Prelude hiding (div)
+import Auth (_GithubUser, authStatusAuthRole)
+import Data.Lens (has)
 import Data.Maybe (Maybe(..))
-import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (arrowLeftDown, arrowLeftUp, arrowRightDown, arrowRightUp, flex, marloweLogo, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, primaryButton, secondaryButton, simulationIcon, simulationIconBlack, vl)
+import Halogen (ComponentHTML)
+import Halogen.Classes (arrowLeftDown, arrowLeftUp, arrowRightDown, arrowRightUp, marloweLogo, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, primaryButton, secondaryButton, simulationIconBlack)
 import Halogen.Css (classNames)
-import Halogen.HTML (a, button, div, h1, h2_, hr_, img, p_, span, span_, text)
+import Halogen.HTML (a, button, div, h1, img, span, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (href, src, target)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _authStatus)
+import Network.RemoteData (_Success)
 import NewProject.Types as NewProject
 import Projects.Types (Lang(..))
 
@@ -19,7 +22,11 @@ render state =
     , div [ classNames [ "mb-6" ] ]
         [ button
             [ classNames (secondaryButton <> [ "mr-small", "w-56", "text-base", "cursor-pointer" ])
-            , onClick ((const <<< Just <<< OpenModal) NewProject)
+            , onClick \_ ->
+                if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then
+                  Just $ OpenModal OpenProject
+                else
+                  Just $ OpenModal $ GithubLogin (OpenModal OpenProject)
             ]
             [ text "Open existing project" ]
         , button

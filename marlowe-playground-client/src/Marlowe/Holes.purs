@@ -1118,7 +1118,7 @@ class FromTerm a b where
   fromTerm :: a -> Maybe b
 
 ---------------------------------------------------------------------------------------------------
---
+-- TODO: Move to Marlowe.Term.Semantic
 -- Semantic functions
 --
 -- These functions and data structures are a trimmed down version from the correspondig Marlowe.Semantics

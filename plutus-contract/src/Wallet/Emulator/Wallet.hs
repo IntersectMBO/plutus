@@ -19,7 +19,7 @@ import           Control.Lens                   as Lens
 import           Control.Monad                  (foldM)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo)
+import           Control.Monad.Freer.Extras.Log (LogMsg, logDebug, logInfo, logWarn)
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH         (makeEffect)
 import           Control.Newtype.Generics       (Newtype)
@@ -203,7 +203,9 @@ validateTxAndAddFees ownTxOuts utx = do
     signedTx <- handleAddSignature tx
     let utxoIndex        = Ledger.UtxoIndex $ unBalancedTxUtxoIndex utx <> (fmap txOutTxOut ownTxOuts)
         ((e, _), events) = Ledger.runValidation (Ledger.validateTransactionOffChain signedTx) utxoIndex
-    traverse_ (throwError . WAPI.ValidationError . snd) e
+    flip traverse_ e $ \(phase, ve) -> do
+        logWarn $ ValidationFailed phase (txId tx) tx ve events
+        throwError $ WAPI.ValidationError ve
     let scriptsSize = getSum $ foldMap (Sum . scriptSize . Ledger.sveScript) events
         theFee = minFee tx <> Ada.lovelaceValueOf scriptsSize -- TODO: use protocol parameters
     pure $ utx{ unBalancedTxTx = (unBalancedTxTx utx){ txFee = theFee }}

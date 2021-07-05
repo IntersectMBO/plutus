@@ -78,6 +78,7 @@ tests = testGroup "all tests" [
         ],
     testGroup "traces" [
         testProperty "accept valid txn" validTrace,
+        testProperty "accept valid txn 2" validTrace2,
         testProperty "reject invalid txn" invalidTrace,
         testProperty "notify wallet" notifyWallet,
         testProperty "watch funds at an address" walletWatchinOwnAddress,
@@ -197,6 +198,16 @@ validTrace = property $ do
     let options = defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Right m
         trace = Trace.liftWallet wallet1 (submitTxn txn)
     checkPredicateInner options assertNoFailedTransactions trace Hedgehog.annotate Hedgehog.assert
+
+validTrace2 :: Property
+validTrace2 = property $ do
+    (Mockchain m _, txn) <- forAll genChainTxn
+    let options = defaultCheckOptions & emulatorConfig . Trace.initialChainState .~ Right m
+        trace = do
+            Trace.liftWallet wallet1 (submitTxn txn)
+            Trace.liftWallet wallet1 (submitTxn txn)
+        predicate = assertFailedTransaction (\_ _ _ -> True)
+    checkPredicateInner options predicate trace Hedgehog.annotate Hedgehog.assert
 
 invalidTrace :: Property
 invalidTrace = property $ do

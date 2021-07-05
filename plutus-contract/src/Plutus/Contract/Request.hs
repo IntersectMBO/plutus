@@ -150,7 +150,11 @@ waitNSlots n = do
   c <- currentSlot
   awaitSlot $ c + fromIntegral n
 
--- | Wait until the given time.
+-- | Wait until the slot where the given time falls into and return latest time
+-- we know has passed.
+--
+-- Example: if starting time is 0 and slot length is 3s, then `awaitTime 4`
+-- waits until slot 2 and returns the value `POSIXTime 5`.
 awaitTime ::
     forall w s e.
     ( AsContractError e
@@ -159,7 +163,10 @@ awaitTime ::
     -> Contract w s e POSIXTime
 awaitTime s = pabReq (AwaitTimeReq s) E._AwaitTimeResp
 
--- | Get the current time
+-- | Get the latest time of the current slot.
+--
+-- Example: if slot length is 3s and current slot is 2, then `currentTime`
+-- returns the value `POSIXTime 5`
 currentTime ::
     forall w s e.
     ( AsContractError e
@@ -167,9 +174,12 @@ currentTime ::
     => Contract w s e POSIXTime
 currentTime = pabReq CurrentTimeReq E._CurrentTimeResp
 
--- | Wait for a number of seconds to pass.
+-- | Wait for a number of seconds starting at the ending time of the current
+-- slot, and return the latest time we know has passed.
 --
--- Note: Currently, if n < length of a slot, then 'waitNSeconds' has no effect.
+-- Example: if starting time is 0, slot length is 3s and current slot is 0, then
+-- `waitNSeconds 0` returns the value `POSIXTime 2` and `waitNSeconds 1`
+-- returns the value `POSIXTime 5`.
 waitNSeconds ::
   forall w s e.
   ( AsContractError e
@@ -219,7 +229,9 @@ addressChangeRequest ::
     )
     => AddressChangeRequest
     -> Contract w s e AddressChangeResponse
-addressChangeRequest r = pabReq (AddressChangeReq r) E._AddressChangeResp
+addressChangeRequest r = do
+  _ <- awaitSlot (targetSlot r)
+  pabReq (AddressChangeReq r) E._AddressChangeResp
 
 -- | Call 'addresssChangeRequest' for the address in each slot, until at least one
 --   transaction is returned that modifies the address.

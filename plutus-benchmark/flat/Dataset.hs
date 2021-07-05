@@ -7,6 +7,7 @@ module Dataset ( contractsWithNames
 
 import           Control.Monad.Trans.Except
 import           Data.Bifunctor                    (second)
+import           Data.Default                      (Default (def))
 import           Data.Either                       (fromRight)
 import           Data.Text                         (Text)
 
@@ -35,7 +36,7 @@ wallet2 = Wallet 2
 escrowParams :: Escrow.EscrowParams d
 escrowParams =
   Escrow.EscrowParams
-    { Escrow.escrowDeadline = TimeSlot.slotToPOSIXTime 200
+    { Escrow.escrowDeadline = TimeSlot.slotToEndPOSIXTime def 200
     , Escrow.escrowTargets  =
         [ Escrow.payToPubKeyTarget (pubKeyHash $ walletPubKey wallet1)
                                    (Ada.lovelaceValueOf 10)
@@ -48,9 +49,9 @@ vesting :: Vesting.VestingParams
 vesting =
     Vesting.VestingParams
         { Vesting.vestingTranche1 =
-            Vesting.VestingTranche (TimeSlot.slotToPOSIXTime 10) (Ada.lovelaceValueOf 20)
+            Vesting.VestingTranche (TimeSlot.slotToBeginPOSIXTime def 10) (Ada.lovelaceValueOf 20)
         , Vesting.vestingTranche2 =
-            Vesting.VestingTranche (TimeSlot.slotToPOSIXTime 20) (Ada.lovelaceValueOf 40)
+            Vesting.VestingTranche (TimeSlot.slotToBeginPOSIXTime def 20) (Ada.lovelaceValueOf 40)
         , Vesting.vestingOwner    = Ledger.pubKeyHash $ walletPubKey wallet1 }
 
 -- Future data
@@ -70,7 +71,7 @@ oracleKeys =
 
 theFuture :: Future.Future
 theFuture = Future.Future {
-    Future.ftDeliveryDate  = TimeSlot.slotToPOSIXTime 100,
+    Future.ftDeliveryDate  = TimeSlot.slotToBeginPOSIXTime def 100,
     Future.ftUnits         = units,
     Future.ftUnitPrice     = forwardPrice,
     Future.ftInitialMargin = Ada.lovelaceValueOf 800,

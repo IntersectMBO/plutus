@@ -108,7 +108,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
   case action of
     Redeem ->
           -- Can't redeem after the deadline
-      let notLapsed = deadline params `after` txInfoValidRange txInfo
+      let notLapsed = (deadline params + 1) `after` txInfoValidRange txInfo
           -- Payee has to have been paid
           paid      = valuePaidTo txInfo (payee params) `geq` expecting params
        in traceIfFalse "escrow-deadline-lapsed" notLapsed

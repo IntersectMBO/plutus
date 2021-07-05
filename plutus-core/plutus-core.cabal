@@ -47,18 +47,27 @@ library
         PlutusCore.Constant
         PlutusCore.Constant.Dynamic.Emit
         PlutusCore.Core
+        PlutusCore.Data
+        PlutusCore.DataFilePaths
         PlutusCore.DeBruijn
         PlutusCore.Default
         PlutusCore.Error
-        PlutusCore.Evaluation.Machine.Ck
         PlutusCore.Evaluation.Machine.BuiltinCostModel
+        PlutusCore.Evaluation.Machine.Ck
         PlutusCore.Evaluation.Machine.CostModelInterface
         PlutusCore.Evaluation.Machine.ExBudget
-        PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.ExMemory
+        PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.MachineParameters
         PlutusCore.Evaluation.Result
         PlutusCore.Examples.Builtins
+        PlutusCore.Examples.Data.Data
+        PlutusCore.Examples.Data.InterList
+        PlutusCore.Examples.Data.List
+        PlutusCore.Examples.Data.Pair
+        PlutusCore.Examples.Data.Shad
+        PlutusCore.Examples.Data.TreeForest
+        PlutusCore.Examples.Data.Vec
         PlutusCore.Examples.Everything
         PlutusCore.Flat
         PlutusCore.FsTree
@@ -83,10 +92,13 @@ library
         PlutusCore.Rename.Monad
         PlutusCore.StdLib.Data.Bool
         PlutusCore.StdLib.Data.ChurchNat
+        PlutusCore.StdLib.Data.Data
         PlutusCore.StdLib.Data.Function
         PlutusCore.StdLib.Data.Integer
         PlutusCore.StdLib.Data.List
         PlutusCore.StdLib.Data.Nat
+        PlutusCore.StdLib.Data.Pair
+        PlutusCore.StdLib.Data.ScottList
         PlutusCore.StdLib.Data.ScottUnit
         PlutusCore.StdLib.Data.Sum
         PlutusCore.StdLib.Data.Unit
@@ -134,7 +146,6 @@ library
         Common
         Crypto
         Data.ByteString.Hash
-        Data.RandomAccessList.SkewBinary
         Data.SatInt
         Data.Text.Prettyprint.Doc.Custom
         ErrorCode
@@ -172,10 +183,6 @@ library
         PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Examples.Data.InterList
-        PlutusCore.Examples.Data.Shad
-        PlutusCore.Examples.Data.TreeForest
-        PlutusCore.Examples.Data.Vec
         PlutusCore.Generators.Internal.Denotation
         PlutusCore.Generators.Internal.Dependent
         PlutusCore.Generators.Internal.Entity
@@ -437,7 +444,6 @@ benchmark cost-model-budgeting-bench
         bytestring -any,
         criterion -any,
         directory -any,
-        filepath -any,
         hedgehog -any,
         random -any
 
@@ -516,26 +522,40 @@ benchmark cost-model-test
     other-modules:
         CostModelCreation
 
-benchmark bral-bench
+library index-envs
+    hs-source-dirs: index-envs/src
+    default-language: Haskell2010
+    exposed-modules:
+      Data.DeBruijnEnv
+      Data.RandomAccessList.SkewBinary
+    build-depends:
+        base -any,
+        containers -any,
+        -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
+        ral == 0.1
+
+benchmark index-envs-bench
     type: exitcode-stdio-1.0
-    hs-source-dirs:      untyped-plutus-core/bench
+    hs-source-dirs: index-envs/bench
+    default-language: Haskell2010
     main-is: Main.hs
     build-depends:
         base -any,
-        plutus-core -any,
+        index-envs -any,
         criterion >= 1.5.9.0,
         random >= 1.2.0,
         containers -any,
         -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
         ral == 0.1
 
-test-suite bral-test
+test-suite index-envs-test
     type: exitcode-stdio-1.0
-    hs-source-dirs:      untyped-plutus-core/test
+    hs-source-dirs: index-envs/test
+    default-language: Haskell2010
     main-is: TestRAList.hs
     build-depends:
         base -any,
-        plutus-core -any,
+        index-envs -any,
         tasty -any,
         tasty-hunit -any,
         tasty-quickcheck -any

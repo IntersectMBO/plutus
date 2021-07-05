@@ -25,7 +25,7 @@ The ``Data`` type
 But how are the validator's arguments passed?
 At least the redeemer and datum can be of different types depending on the script.
 
-The answer is that we pass them as a generic structured data type :hsobj:`PlutusTx.Data.Data`.
+The answer is that we pass them as a generic structured data type :hsobj:`PlutusCore.Data.Data`.
 ``Data`` is designed to make it easy to encode structured data into it, and to be itself encoded as CBOR.
 
 Consequently, the validator scripts we will write in this tutorial take three arguments of type ``Data``.

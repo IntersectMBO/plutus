@@ -164,7 +164,7 @@
                     (termbind
                       (strict)
                       (vardecl b (con bool))
-                      [ [ (builtin equalsInteger) arg ] arg ]
+                      [ [ (builtin eqInteger) arg ] arg ]
                     )
                     [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                   )
@@ -188,7 +188,7 @@
                     (termbind
                       (strict)
                       (vardecl b (con bool))
-                      [ [ (builtin equalsByteString) arg ] arg ]
+                      [ [ (builtin eqByteString) arg ] arg ]
                     )
                     [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
                   )
@@ -3792,7 +3792,7 @@
                                                                           ]
                                                                           [
                                                                             (builtin
-                                                                              sha2_256
+                                                                              sHA2
                                                                             )
                                                                             theGuess
                                                                           ]
@@ -6368,8 +6368,7 @@
                                       (strict)
                                       (vardecl b (con bool))
                                       [
-                                        [ (builtin lessThanEqualsInteger) arg ]
-                                        arg
+                                        [ (builtin lessThanEqInteger) arg ] arg
                                       ]
                                     )
                                     [
@@ -6511,9 +6510,7 @@
                                       (strict)
                                       (vardecl b (con bool))
                                       [
-                                        [
-                                          (builtin greaterThanEqualsInteger) arg
-                                        ]
+                                        [ (builtin greaterThanEqInteger) arg ]
                                         arg
                                       ]
                                     )

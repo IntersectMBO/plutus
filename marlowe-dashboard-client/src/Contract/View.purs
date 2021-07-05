@@ -1,13 +1,13 @@
 module Contract.View
-  ( contractDetailsCard
+  ( contractInnerBox
+  , contractDetailsCard
   , actionConfirmationCard
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _namedActions, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _mMarloweParams, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
 import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
-import Css (applyWhen, classNames, toggleWhen)
 import Css as Css
 import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
@@ -21,13 +21,13 @@ import Data.Map (keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (trim)
-import Data.String as String
+import Data.String (null, take, trim)
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
+import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (lifeCycleEvent)
-import Halogen.HTML (HTML, a, button, div, div_, h1, h2, h3, input, p, span, span_, sup_, text)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
@@ -41,6 +41,39 @@ import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..), icon)
 import WalletData.State (adaToken, getAda)
 
+-- I'm moving this view here so that we can easily call Contract.Actions from inside it. I'm not
+-- actually calling any Contract.Actions from here yet, but that's a TODO for the next PR...
+contractInnerBox :: forall p. Slot -> State -> HTML p Action
+contractInnerBox currentSlot state =
+  let
+    nickname = state ^. _nickname
+
+    mMarloweParams = state ^. _mMarloweParams
+
+    stepNumber = currentStep state + 1
+
+    mNextTimeout = state ^. (_executionState <<< _mNextTimeout)
+
+    timeoutStr =
+      maybe'
+        (\_ -> if isContractClosed state then "Contract closed" else "Timed out")
+        (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
+        mNextTimeout
+  in
+    div_
+      [ div
+          [ classNames [ "flex-1", "px-4", "py-2", "text-lg" ] ]
+          -- TODO: make (new) nicknames editable directly from here
+          [ text if null nickname then "My new contract" else nickname ]
+      , div
+          [ classNames [ "bg-lightgray", "flex", "flex-col", "px-4", "py-2" ] ] case mMarloweParams of
+          Nothing -> [ text "pending confirmation" ]
+          _ ->
+            [ span [ classNames [ "text-xs", "font-semibold" ] ] [ text $ "Step " <> show stepNumber <> ":" ]
+            , span [ classNames [ "text-xl" ] ] [ text timeoutStr ]
+            ]
+      ]
+
 -- NOTE: Currently, the horizontal scrolling for this element does not match the exact desing. In the designs, the active card is always centered and you
 -- can change which card is active via scrolling or the navigation buttons. To implement this we would probably need to add snap scrolling to the center of the
 -- big container and create a smaller absolute positioned element of the size of a card (positioned in the middle), and with JS check that if a card enters
@@ -49,6 +82,8 @@ import WalletData.State (adaToken, getAda)
 contractDetailsCard :: forall p. Slot -> State -> HTML p Action
 contractDetailsCard currentSlot state =
   let
+    nickname = state ^. _nickname
+
     metadata = state ^. _metadata
 
     pastStepsCards = mapWithIndex (renderPastStep state) (state ^. _previousSteps)
@@ -66,7 +101,12 @@ contractDetailsCard currentSlot state =
       [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
       , lifeCycleEvent { onInit: Just CarouselOpened, onFinilize: Just CarouselClosed }
       ]
-      [ h1 [ classNames [ "text-xl", "font-semibold" ] ] [ text metadata.contractName ]
+      [ input
+          [ classNames [ "text-xl", "font-semibold", "text-center", "bg-transparent" ]
+          , placeholder "Please rename"
+          , value nickname
+          , onValueInput_ SetNickname
+          ]
       , h2 [ classNames [ "mb-5", "text-xs", "uppercase" ] ] [ text $ contractTypeName metadata.contractType ]
       -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
       --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
@@ -113,7 +153,7 @@ cardNavigationButtons state =
               ]
               [ text "Next" ]
   in
-    div [ classNames [ "mb-6", "flex", "items-center", "w-full", "px-6", "md:px-5pc" ] ]
+    div [ classNames [ "mb-6", "flex", "items-center", "w-full", "px-6" ] ]
       $ Array.catMaybes
           [ leftButton (state ^. _selectedStep)
           , rightButton (state ^. _selectedStep)
@@ -238,9 +278,10 @@ renderContractCard stepNumber state currentTab cardBody =
       --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
       [ "grid", "grid-rows-contract-step-card", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out" ]
-        <> toggleWhen (state ^. _selectedStep /= stepNumber)
+        <> if (state ^. _selectedStep /= stepNumber) then
             -- Not selected card modifiers
             [ "shadow", "scale-77", "-mx-4" ]
+          else
             -- Selected card modifiers
             [ "shadow-lg", "mx-2" ]
   in
@@ -527,7 +568,7 @@ renderParty state party =
   in
     -- FIXME: mb-2 should not belong here
     div [ classNames [ "text-xs", "flex", "mb-2" ] ]
-      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1", "font-semibold" ] ] [ text $ String.take 1 participantName ]
+      [ div [ classNames [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "rounded-full", "w-5", "h-5", "text-center", "mr-1", "font-semibold" ] ] [ text $ take 1 participantName ]
       , div [ classNames [ "font-semibold" ] ] [ text participantName ]
       ]
 

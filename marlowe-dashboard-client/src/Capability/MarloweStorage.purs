@@ -1,8 +1,10 @@
 module Capability.MarloweStorage
   ( class ManageMarloweStorage
+  , clearAllLocalStorage
   , getWalletLibrary
-  , getCurrentWalletDetails
-  , updateWalletDetails
+  , insertIntoWalletLibrary
+  , getContractNicknames
+  , insertIntoContractNicknames
   , addAssets
   , getContracts
   , insertContract
@@ -19,28 +21,39 @@ import Data.Either (hush)
 import Data.Foldable (for_)
 import Data.Lens (set, view)
 import Data.Map (Map, insert, lookup)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Tuple (Tuple)
 import Effect.Class (liftEffect)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Halogen (HalogenM)
-import LocalStorage (getItem, setItem)
-import Marlowe.PAB (MarloweParams, MarloweData)
+import LocalStorage (Key(..), getItem, removeItem, setItem)
+import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
 import Marlowe.Semantics (Assets, TransactionInput)
-import StaticData (contractsLocalStorageKey, walletDetailsLocalStorageKey, walletLibraryLocalStorageKey, walletRoleContractsLocalStorageKey)
-import WalletData.Lenses (_assets, _companionAppId, _pubKeyHash, _walletInfo, _walletNickname)
-import WalletData.Types (PubKeyHash, WalletLibrary, WalletDetails)
+import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo, _walletNickname)
+import WalletData.Types (PubKeyHash, WalletDetails, WalletLibrary)
 
-{- As a temporary measure until everything is working with the PAB, we store quite a lot of
-   data in localStorage. This enables a local simulation of persistent data that can also
-   be shared between browser tabs. When we are connected up properly with the PAB, we will
-   only need to save the WalletLibrary and current WalletDetails.
--}
+walletLibraryLocalStorageKey :: Key
+walletLibraryLocalStorageKey = Key "walletLibrary"
+
+contractNicknamesLocalStorageKey :: Key
+contractNicknamesLocalStorageKey = Key "contractNicknames"
+
+contractsLocalStorageKey :: Key
+contractsLocalStorageKey = Key "walletContracts"
+
+walletRoleContractsLocalStorageKey :: Key
+walletRoleContractsLocalStorageKey = Key "walletRoleContracts"
+
 class
   Monad m <= ManageMarloweStorage m where
+  clearAllLocalStorage :: m Unit
+  -- wallet library
   getWalletLibrary :: m WalletLibrary
-  getCurrentWalletDetails :: m (Maybe WalletDetails)
-  updateWalletDetails :: WalletDetails -> m Unit
+  insertIntoWalletLibrary :: WalletDetails -> m Unit
+  -- contract nicknames
+  getContractNicknames :: m (Map PlutusAppId String)
+  insertIntoContractNicknames :: PlutusAppId -> String -> m Unit
+  -- temporary data that we persist until everything is working with the PAB
   addAssets :: PubKeyHash -> Assets -> m Unit
   getContracts :: m (Map MarloweParams (Tuple MarloweData (Array TransactionInput)))
   insertContract :: MarloweParams -> (Tuple MarloweData (Array TransactionInput)) -> m Unit
@@ -49,26 +62,33 @@ class
   insertWalletRoleContracts :: String -> MarloweParams -> MarloweData -> m Unit
 
 instance manageMarloweStorageAppM :: ManageMarloweStorage AppM where
+  clearAllLocalStorage =
+    liftEffect do
+      removeItem walletLibraryLocalStorageKey
+      removeItem contractNicknamesLocalStorageKey
+      removeItem contractsLocalStorageKey
+      removeItem walletRoleContractsLocalStorageKey
+  -- wallet library
   getWalletLibrary = do
     mWalletLibraryJson <- liftEffect $ getItem walletLibraryLocalStorageKey
     pure $ fromMaybe mempty $ hush <<< runExcept <<< decodeJSON =<< mWalletLibraryJson
-  getCurrentWalletDetails = do
-    mWalletDetailsJson <- liftEffect $ getItem walletDetailsLocalStorageKey
-    pure $ hush <<< runExcept <<< decodeJSON =<< mWalletDetailsJson
-  updateWalletDetails walletDetails = do
+  insertIntoWalletLibrary walletDetails = do
     walletLibrary <- getWalletLibrary
     let
       walletNickname = view _walletNickname walletDetails
 
       updatedWalletLibrary = insert walletNickname walletDetails walletLibrary
-    void $ liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON updatedWalletLibrary
-    mCurrentWalletDetails <- getCurrentWalletDetails
-    for_ mCurrentWalletDetails \currentDetails ->
-      when (view _companionAppId currentDetails == view _companionAppId walletDetails)
-        $ void
-        $ liftEffect
-        $ setItem walletDetailsLocalStorageKey
-        $ encodeJSON walletDetails
+    liftEffect $ setItem walletLibraryLocalStorageKey $ encodeJSON updatedWalletLibrary
+  -- contract nicknames
+  getContractNicknames = do
+    mContractNicknamesJson <- liftEffect $ getItem contractNicknamesLocalStorageKey
+    pure $ fromMaybe mempty $ hush <<< runExcept <<< decodeJSON =<< mContractNicknamesJson
+  insertIntoContractNicknames plutusAppId nickname = do
+    contractNicknames <- getContractNicknames
+    let
+      updatedContractNicknames = insert plutusAppId nickname contractNicknames
+    liftEffect $ setItem contractNicknamesLocalStorageKey $ encodeJSON updatedContractNicknames
+  -- temporary data that we persist until everything is working with the PAB
   addAssets pubKeyHash assets = do
     walletLibrary <- getWalletLibrary
     for_ (find (\details -> view (_walletInfo <<< _pubKeyHash) details == pubKeyHash) walletLibrary) \details ->
@@ -79,7 +99,7 @@ instance manageMarloweStorageAppM :: ManageMarloweStorage AppM where
 
         updatedDetails = set _assets updatedAssets details
       in
-        updateWalletDetails updatedDetails
+        insertIntoWalletLibrary updatedDetails
   getContracts = do
     mContractsJson <- liftEffect $ getItem contractsLocalStorageKey
     pure $ fromMaybe mempty $ hush <<< runExcept <<< decodeJSON =<< mContractsJson
@@ -104,9 +124,11 @@ instance manageMarloweStorageAppM :: ManageMarloweStorage AppM where
     void $ liftEffect $ setItem walletRoleContractsLocalStorageKey $ encodeJSON newAllWalletRoleContracts
 
 instance manageMarloweStorageHalogenM :: ManageMarloweStorage m => ManageMarloweStorage (HalogenM state action slots msg m) where
+  clearAllLocalStorage = lift clearAllLocalStorage
   getWalletLibrary = lift getWalletLibrary
-  getCurrentWalletDetails = lift getCurrentWalletDetails
-  updateWalletDetails = lift <<< updateWalletDetails
+  insertIntoWalletLibrary = lift <<< insertIntoWalletLibrary
+  getContractNicknames = lift getContractNicknames
+  insertIntoContractNicknames plutusAppId nickname = lift $ insertIntoContractNicknames plutusAppId nickname
   addAssets walletDetails assets = lift $ addAssets walletDetails assets
   getContracts = lift getContracts
   insertContract marloweParams contractData = lift $ insertContract marloweParams contractData

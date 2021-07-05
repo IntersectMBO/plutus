@@ -18,6 +18,8 @@ where
 
 import           PlutusPrelude
 
+import           PlutusCore.Data
+
 import           Data.Bits       (shiftL, (.|.))
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS (pack)
@@ -112,6 +114,8 @@ instance Parsable (a, b) where
 instance Parsable ByteString where
     parse = parseByteStringConstant
 
+instance Parsable Data where
+    parse = error "Implement me"
 
 
 --- Parsing bytestrings ---

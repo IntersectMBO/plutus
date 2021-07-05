@@ -177,7 +177,7 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
               -- and you can have several follower apps (with different PlutusAppIds) all following the same contract
               -- (identified by its MarloweParams). For the LocalStorage simlation we just have one follower app for
               -- each contract, and make its PlutusAppId a function of the MarloweParams. I thought this would be
-              -- simpler, but it turned out to lead to a complication (see note [PendingContracts] in Play.State).
+              -- simpler, but it turned out to lead to a complication (see note [PendingContracts] in Dashboard.State).
               -- I'm not going to change it now though, because this LocalStorage stuff is temporary anyway, and will
               -- be removed when the PAB is working fully.
               mUuid = parseUUID marloweParams.rolePayoutValidatorHash

@@ -1,8 +1,0 @@
-( (Right (/\(a :: *) -> /\(b :: *) -> iwrap (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b) (/\(r :: *) -> \(z : r) -> \(f : a -> b -> (\(a :: *) -> \(b :: *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b)) b a -> r) -> z)))
-, ({ tally: ({ BAST causes ({ cpu: 0
-| mem: 102
-})})
-| budget: ({ cpu: 0
-| mem: 102
-})
-}) )

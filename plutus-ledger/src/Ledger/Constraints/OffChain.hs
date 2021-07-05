@@ -60,6 +60,7 @@ import           PlutusTx                         (IsData (..))
 import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
+import           Data.Default                     (Default (def))
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Orphans                   ()
 import qualified Ledger.TimeSlot                  as TimeSlot
@@ -472,7 +473,7 @@ processConstraint = \case
         let theHash = datumHash dv in
         unbalancedTx . tx . Tx.datumWitnesses . at theHash .= Just dv
     MustValidateIn timeRange ->
-        unbalancedTx . tx . Tx.validRange %= (TimeSlot.posixTimeRangeToSlotRange timeRange /\)
+        unbalancedTx . tx . Tx.validRange %= (TimeSlot.posixTimeRangeToSlotRange def timeRange /\)
     MustBeSignedBy pk ->
         unbalancedTx . requiredSignatories %= Set.insert pk
     MustSpendAtLeast vl -> valueSpentInputs <>= required vl
