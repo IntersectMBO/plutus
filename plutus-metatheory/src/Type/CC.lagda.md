@@ -324,6 +324,8 @@ unwind A A' E p VA' = subst-step*
 open import Data.Empty
 open import Relation.Nullary
 
+
+-- this lemma makes the change of direction happen
 lemmaF : ∀ (M : ∅ ⊢⋆ J)(F : Frame K J)(E : EvalCtx K' K)
       → ∀ (E' : EvalCtx K J')(L : ∅ ⊢⋆ I ⇒ J') N (V : Value⋆ M)
       → (VL : Value⋆ L) → (VN : Value⋆ N)
