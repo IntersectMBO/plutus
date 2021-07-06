@@ -20,7 +20,7 @@ import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, button, div, h2, h3, h4, input, label, li, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, readOnly, type_, value)
-import Humanize (humanizeValue)
+import Humanize (humanizeToken)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (State) as InputField
@@ -45,6 +45,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletNickname"
       , placeholder: "Nickname"
       , readOnly: false
+      , numberFormat: Nothing
       , valueOptions: mempty
       }
 
@@ -54,6 +55,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletId"
       , placeholder: "Wallet ID"
       , readOnly: false
+      , numberFormat: Nothing
       , valueOptions: mempty
       }
   in
@@ -69,7 +71,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
               , for walletNicknameInputDisplayOptions.id_
               ]
               [ text "Nickname" ]
-          , WalletNicknameInputAction <$> renderInput walletNicknameInput walletNicknameInputDisplayOptions
+          , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
           ]
       , div
           [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
@@ -78,7 +80,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
               , for walletIdInputDisplayOptions.id_
               ]
               [ text "Wallet ID" ]
-          , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
+          , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
           ]
       , div
           [ classNames [ "flex" ] ]
@@ -153,7 +155,7 @@ putdownWalletCard walletDetails =
               [ text "Balance:" ]
           , p
               [ classNames Css.funds ]
-              [ text $ humanizeValue adaToken $ getAda assets ]
+              [ text $ humanizeToken adaToken $ getAda assets ]
           ]
       , div
           [ classNames [ "flex" ] ]

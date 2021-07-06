@@ -4,6 +4,7 @@ module Humanize
   , formatTime
   , humanizeInterval
   , humanizeValue
+  , humanizeToken
   ) where
 
 import Prelude
@@ -11,7 +12,7 @@ import Data.BigInteger (BigInteger, toNumber)
 import Data.DateTime (DateTime)
 import Data.Formatter.DateTime (FormatterCommand(..), format) as DateTime
 import Data.Formatter.Number (Formatter(..), format) as Number
-import Data.Int (floor, round)
+import Data.Int (floor, pow, round)
 import Data.Int (toNumber) as Int
 import Data.List as List
 import Data.Maybe (Maybe(..))
@@ -84,23 +85,37 @@ formatTime =
         , DateTime.MinutesTwoDigits
         ]
 
-humanizeValue :: Token -> BigInteger -> String
+humanizeValue :: Int -> BigInteger -> String
+humanizeValue decimals value =
+  let
+    numericValue = toNumber value
+
+    -- we display the number as the actual value divided by 10^decimals - this is useful for e.g.
+    -- displaying lovelace values as ada (decimals == 6), or cents as dollars (decimals == 2)
+    correctedValue = numericValue / (Int.toNumber $ pow 10 decimals)
+  in
+    -- we don't include the comma in this case, because this function is used to format the values
+    -- in number inputs, where browsers natively disallow commas (the value is a string, but it
+    -- must be one that can be parsed directly as a number)
+    Number.format (numberFormatter false decimals) correctedValue
+
+humanizeToken :: Token -> BigInteger -> String
 -- TODO: use a different currencyFormatter with no decimal places when they're all zero
-humanizeValue (Token "" "") value = "₳ " <> Number.format currencyFormatter (toAda value)
+humanizeToken (Token "" "") value = "₳ " <> Number.format (numberFormatter true 6) (toAda value)
 
-humanizeValue (Token "" "dollar") value = "$ " <> Number.format currencyFormatter (toNumber value)
+humanizeToken (Token "" "dollar") value = "$ " <> Number.format (numberFormatter true 2) (toNumber value)
 
-humanizeValue (Token _ name) value = Number.format currencyFormatter (toNumber value) <> " " <> name
+humanizeToken (Token _ name) value = Number.format (numberFormatter true 0) (toNumber value) <> " " <> name
 
 toAda :: BigInteger -> Number
 toAda lovelace = (toNumber lovelace) / 1000000.0
 
-currencyFormatter :: Number.Formatter
-currencyFormatter =
+numberFormatter :: Boolean -> Int -> Number.Formatter
+numberFormatter comma decimals =
   Number.Formatter
     { sign: false
     , before: 0
-    , comma: true
-    , after: 6
+    , comma
+    , after: decimals
     , abbreviations: false
     }

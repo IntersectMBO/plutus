@@ -1,6 +1,6 @@
 module InputField.View (renderInput) where
 
-import Prelude hiding (div)
+import Prelude hiding (div, min)
 import Css as Css
 import Data.Array (filter)
 import Data.Foldable (foldMap)
@@ -8,16 +8,46 @@ import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String (Pattern(..), contains, toLower)
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, div, input, text)
-import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
+import Halogen.HTML (HTML, a, div, div_, input, span, text)
+import Halogen.HTML.Events (onBlur, onKeyUp, onMouseEnter, onMouseLeave)
 import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, type_, value)
-import InputField.Lenses (_additionalCss, _baseCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value, _valueOptions)
+import Halogen.HTML.Properties (InputType(..), autocomplete, id_, min, placeholder, readOnly, type_, value)
+import InputField.Lenses (_additionalCss, _baseCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value)
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
+import Marlowe.Extended.Metadata (NumberFormat(..))
 
-renderInput :: forall p e. InputFieldError e => State e -> InputDisplayOptions -> HTML p (Action e)
-renderInput state options =
+renderInput :: forall p e. InputFieldError e => InputDisplayOptions -> State e -> HTML p (Action e)
+renderInput options@{ numberFormat: Nothing, valueOptions: [] } state =
+  let
+    mError = validate state
+
+    currentValue = view _value state
+
+    pristine = view _pristine state
+
+    showError = not pristine && isJust mError
+
+    baseCss = view _baseCss options
+
+    additionalCss = view _additionalCss options
+  in
+    div_
+      [ input
+          $ [ type_ InputText
+            , classNames $ (baseCss $ not showError) <> additionalCss
+            , id_ $ view _id_ options
+            , placeholder $ view _placeholder options
+            , value currentValue
+            , readOnly $ view _readOnly options
+            , onValueInput_ SetValue
+            ]
+      , div
+          [ classNames Css.inputError ]
+          [ text if showError then foldMap inputErrorToString mError else "" ]
+      ]
+
+renderInput options@{ numberFormat: Nothing, valueOptions } state =
   let
     mError = validate state
 
@@ -34,8 +64,6 @@ renderInput state options =
     baseCss = view _baseCss options
 
     additionalCss = view _additionalCss options
-
-    valueOptions = view _valueOptions options
 
     matchingValueOptions = filter (\v -> contains (Pattern $ toLower currentValue) (toLower v)) valueOptions
   in
@@ -77,3 +105,73 @@ renderInput state options =
       , onClick_ $ SetValueFromDropdown valueOption
       ]
       [ text valueOption ]
+
+renderInput options@{ numberFormat: Just DefaultFormat } state =
+  let
+    mError = validate state
+
+    currentValue = view _value state
+
+    pristine = view _pristine state
+
+    showError = not pristine && isJust mError
+
+    baseCss = view _baseCss options
+
+    additionalCss = view _additionalCss options
+  in
+    div_
+      [ input
+          $ [ type_ InputNumber
+            , classNames $ (baseCss $ not showError) <> additionalCss
+            , id_ $ view _id_ options
+            , value currentValue
+            , readOnly $ view _readOnly options
+            , onValueInput_ SetValue
+            ]
+      , div
+          [ classNames Css.inputError ]
+          [ text if showError then foldMap inputErrorToString mError else "" ]
+      ]
+
+renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state =
+  let
+    mError = validate state
+
+    currentValue = view _value state
+
+    pristine = view _pristine state
+
+    showError = not pristine && isJust mError
+
+    baseCss = view _baseCss options
+
+    additionalCss = view _additionalCss options
+  in
+    div_
+      [ div
+          [ classNames [ "relative" ] ]
+          -- FIXME: This absolutely positioned span is fine for single-character labels (like "₳"
+          -- or "$"), but won't work for the general case. I'll sort this in the next PR - it's not
+          -- trivial, because we'll need to remove the border and focus of the input, and put that
+          -- in the containing div instead (and add a `focus` flag to the InputField state),
+          -- creating a flex div that looks like an input. Then the label can take as much space as
+          -- it needs and the input itself can flex-grow to fill whatever's left.
+          [ span
+              [ classNames [ "absolute", "top-0", "left-0", "p-4", "border", "border-transparent" ] ]
+              [ text label ]
+          , input
+              [ type_ InputNumber
+              , classNames $ Css.input true <> [ "pl-8" ]
+              , id_ $ view _id_ options
+              , value currentValue
+              , readOnly $ view _readOnly options
+              , min zero
+              , onValueInput_ $ SetFormattedValue $ DecimalFormat decimals label
+              , onKeyUp $ const $ Just RefreshFormattedValue
+              ]
+          ]
+      , div
+          [ classNames Css.inputError ]
+          [ text if showError then foldMap inputErrorToString mError else "" ]
+      ]

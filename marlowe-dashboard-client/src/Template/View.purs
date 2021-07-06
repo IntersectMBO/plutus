@@ -19,19 +19,19 @@ import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, type_, value)
-import Humanize (humanizeValue)
+import Humanize (humanizeToken)
 import InputField.Types (State) as InputField
 import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
 import Marlowe.Extended (contractTypeInitials)
-import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData)
+import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData, lovelaceFormat)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, Slot, TokenName)
 import Marlowe.Template (TemplateContent, _valueContent)
 import Material.Icons (Icon(..), icon_)
 import Template.Format (formatText)
-import Template.Lenses (_contractNickname, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
+import Template.Lenses (_contractNickname, _dummyNumberInput, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
 import Template.Types (Action(..), State)
 import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
 import WalletData.Lenses (_walletNickname)
@@ -56,16 +56,28 @@ contractSetupScreen walletLibrary currentSlot state =
     termsAreAccessible = roleWalletsAreValid roleWalletInputs
 
     payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
+
+    dummyNumberInput = view _dummyNumberInput state
+
+    dummyNumberInputOptions =
+      { baseCss: Css.input
+      , additionalCss: mempty
+      , id_: "dummyNumber"
+      , placeholder: mempty
+      , readOnly: false
+      , numberFormat: Just lovelaceFormat
+      , valueOptions: mempty
+      }
   in
     div
       [ classNames [ "grid", "grid-rows-contract-setup", "h-full", "overflow-hidden" ] ]
       [ navigationBar contractName
       , contractNicknameDisplay contractName contractNickname
-      , div -- the containing grid sets the height of this div
-          [ classNames [ "px-4" ] ]
+      , div_ -- the containing grid sets the height of this div
           [ div -- and then this fills that height fully
-              [ classNames [ "h-full", "overflow-y-auto" ] ]
-              [ subHeader "top-0" true Roles "Roles" true
+              [ classNames [ "h-full", "overflow-y-auto", "px-4" ] ]
+              [ DummyNumberInputAction <$> renderInput dummyNumberInputOptions dummyNumberInput
+              , subHeader "top-0" true Roles "Roles" true
               , roleInputs walletLibrary metaData roleWalletInputs
               , subHeader "top-10" true Terms "Terms" termsAreAccessible
               , parameterInputs currentSlot metaData templateContent slotContentStrings termsAreAccessible
@@ -96,36 +108,24 @@ navigationBar contractName =
 contractNicknameDisplay :: forall p. String -> String -> HTML p Action
 contractNicknameDisplay contractName contractNickname =
   div
-    [ classNames [ "px-4" ] ]
-    [ div
-        [ classNames [ "ml-5", "border-l", "border-gray", "pt-2" ] ]
-        [ div
-            [ classNames [ "max-w-sm", "mx-auto", "px-4", "pt-2" ] ]
-            [ input
-                [ classNames $ (Css.input $ contractNickname /= mempty) <> [ "font-semibold" ]
-                , type_ InputText
-                , placeholder "Contract name *"
-                , value contractNickname
-                , onValueInput_ SetContractNickname
-                ]
-            ]
+    [ classNames [ "p-4" ] ]
+    [ input
+        [ classNames $ (Css.input $ contractNickname /= mempty) <> [ "font-semibold" ]
+        , type_ InputText
+        , placeholder "Contract name *"
+        , value contractNickname
+        , onValueInput_ SetContractNickname
         ]
     ]
 
 subHeader :: forall p. String -> Boolean -> Icon -> String -> Boolean -> HTML p Action
 subHeader topMargin border i title accessible =
   div
-    [ classNames $ [ "ml-5", "sticky", "z-10", topMargin, "pb-2", "bg-grayblue" ] <> applyWhen border [ "border-l", "border-gray" ] ]
-    [ div
-        [ classNames [ "flex", "items-center" ] ]
-        [ span
-            [ classNames $ Css.iconCircle accessible <> [ "-ml-4" ] ]
-            [ icon_ i ]
-        , h2
-            [ classNames [ "py-1", "px-2", "text-lg", "font-semibold" ] ]
-            [ text title ]
-        , hr [ classNames $ [ "flex-1" ] <> hideWhen (not accessible) ]
-        ]
+    [ classNames [ "mb-2" ] ]
+    [ h2
+        [ classNames [ "py-1", "px-2", "text-lg", "font-semibold" ] ]
+        [ text title ]
+    , hr [ classNames [ "flex-1" ] ]
     ]
 
 -- We range over roleWalletInputs rather than all the parties in the contract. This excludes any `PK` parties.
@@ -158,7 +158,7 @@ roleInputs walletLibrary metaData roleWalletInputs =
             ]
         , div
             [ classNames [ "relative" ] ]
-            [ RoleWalletInputAction tokenName <$> renderInput roleWalletInput (roleWalletInputDisplayOptions tokenName)
+            [ RoleWalletInputAction tokenName <$> renderInput (roleWalletInputDisplayOptions tokenName) roleWalletInput
             , button
                 [ classNames [ "absolute", "top-4", "right-4" ]
                 , onClick_ $ OpenCreateWalletCard tokenName
@@ -173,6 +173,7 @@ roleInputs walletLibrary metaData roleWalletInputs =
     , id_: tokenName
     , placeholder: "Choose any nickname"
     , readOnly: false
+    , numberFormat: Nothing
     , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
     }
 
@@ -272,7 +273,7 @@ reviewAndPay accessible metaData =
                 [ text "Fee to pay:" ]
             , p
                 [ classNames Css.funds ]
-                [ text $ humanizeValue adaToken contractCreationFee ]
+                [ text $ humanizeToken adaToken contractCreationFee ]
             ]
         ]
     , div
@@ -288,11 +289,8 @@ reviewAndPay accessible metaData =
 subSection :: forall p. Boolean -> Boolean -> Array (HTML p Action) -> HTML p Action
 subSection accessible border content =
   div
-    [ classNames $ [ "py-2", "ml-5" ] <> applyWhen border [ "border-l", "border-gray" ] <> (hideWhen $ not accessible) ]
-    [ div
-        [ classNames $ [ "max-w-sm", "mx-auto", "px-4" ] ]
-        content
-    ]
+    [ classNames $ [ "max-w-sm", "mx-auto", "px-4" ] ]
+    content
 
 ------------------------------------------------------------
 templateLibraryCard :: forall p. HTML p Action
@@ -342,7 +340,7 @@ contractSetupConfirmationCard assets =
     div_
       [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
           [ span_ [ text "Demo wallet balance:" ]
-          , span_ [ text $ humanizeValue adaToken $ getAda assets ]
+          , span_ [ text $ humanizeToken adaToken $ getAda assets ]
           ]
       , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
           [ p
@@ -350,7 +348,7 @@ contractSetupConfirmationCard assets =
               [ text "Confirm payment of:" ]
           , p
               [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-              [ text $ humanizeValue adaToken contractCreationFee ]
+              [ text $ humanizeToken adaToken contractCreationFee ]
           , div
               [ classNames [ "flex" ] ]
               [ button

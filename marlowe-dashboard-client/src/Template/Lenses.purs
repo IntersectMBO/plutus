@@ -5,6 +5,7 @@ module Template.Lenses
   , _roleWalletInput
   , _templateContent
   , _slotContentStrings
+  , _dummyNumberInput
   ) where
 
 import Prelude
@@ -38,3 +39,6 @@ _templateContent = prop (SProxy :: SProxy "templateContent")
 
 _slotContentStrings :: Lens' State (Map String String)
 _slotContentStrings = prop (SProxy :: SProxy "slotContentStrings")
+
+_dummyNumberInput :: Lens' State (InputField.State RoleError)
+_dummyNumberInput = prop (SProxy :: SProxy "dummyNumberInput")

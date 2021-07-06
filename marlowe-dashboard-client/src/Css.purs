@@ -85,11 +85,9 @@ inputBase =
   , "outline-none"
   , "focus:outline-none"
   , "text-black"
+  , "border"
   , "border-transparent"
   , "focus:border-transparent"
-  , "shadow-sm"
-  , "focus:shadow"
-  , "hover:shadow"
   ]
 
 inputBaseFocus :: Array String
@@ -99,19 +97,31 @@ inputBaseNoFocus :: Array String
 inputBaseNoFocus = inputBase <> [ "focus:ring-0" ]
 
 input :: Boolean -> Array String
-input valid = inputBaseFocus <> [ "border", "bg-transparent" ] <> if valid then [ "border-black", "focus:border-black" ] else [ "border-red" ]
+input valid =
+  inputBaseFocus
+    <> [ "border-gray" ]
+    <> applyWhen (not valid) [ "border-red" ]
 
 inputNoFocus :: Boolean -> Array String
-inputNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+inputNoFocus valid =
+  inputBaseNoFocus
+    <> [ "border-gray" ]
+    <> applyWhen (not valid) [ "border-red" ]
 
 withNestedLabel :: Array String
-withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
+withNestedLabel = [ "border-gray", "focus:border-gray" ]
 
 inputCard :: Boolean -> Array String
-inputCard valid = inputBaseFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+inputCard valid =
+  inputBaseFocus
+    <> [ "shadow-sm", "focus:shadow", "hover:shadow" ]
+    <> if valid then [ "border-transparent" ] else [ "border-red" ]
 
 inputCardNoFocus :: Boolean -> Array String
-inputCardNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+inputCardNoFocus valid =
+  inputBaseNoFocus
+    <> [ "shadow-sm", "focus:shadow", "hover:shadow" ]
+    <> if valid then [ "border-transparent" ] else [ "border-red" ]
 
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]

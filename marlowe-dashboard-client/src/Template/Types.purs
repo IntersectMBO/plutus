@@ -21,6 +21,7 @@ type State
     , roleWalletInputs :: Map TokenName (InputField.State RoleError)
     , templateContent :: TemplateContent
     , slotContentStrings :: Map String String
+    , dummyNumberInput :: InputField.State RoleError -- FIXME: temporary, just for testing
     }
 
 data Action
@@ -34,6 +35,7 @@ data Action
   | RoleWalletInputAction TokenName (InputField.Action RoleError)
   | SetSlotContent String String -- slot input comes from the HTML as a dateTimeString
   | SetValueContent String (Maybe BigInteger)
+  | DummyNumberInputAction (InputField.Action RoleError)
   | StartContract
 
 -- | Here we decide which top-level queries to track as GA events, and
@@ -49,4 +51,5 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (RoleWalletInputAction _ inputFieldAction) = toEvent inputFieldAction
   toEvent (SetSlotContent _ _) = Just $ defaultEvent "SetSlotContent"
   toEvent (SetValueContent _ _) = Just $ defaultEvent "SetValueContent"
+  toEvent (DummyNumberInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent StartContract = Just $ defaultEvent "StartContract"
