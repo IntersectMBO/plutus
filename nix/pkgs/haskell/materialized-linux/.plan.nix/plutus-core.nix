@@ -336,7 +336,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          modules = [ "Common" ];
+          modules = [ "Common" "Parsers" ];
           hsSourceDirs = [ "executables" ];
           mainPath = [ "plc/Main.hs" ];
           };
@@ -357,7 +357,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          modules = [ "Common" ];
+          modules = [ "Common" "Parsers" ];
           hsSourceDirs = [ "executables" ];
           mainPath = [ "uplc/Main.hs" ];
           };
