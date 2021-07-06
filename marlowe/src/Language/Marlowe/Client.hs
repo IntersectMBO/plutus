@@ -23,7 +23,7 @@
 
 module Language.Marlowe.Client where
 import           Control.Lens
-import           Control.Monad                (forM_)
+import           Control.Monad                (forM_, void)
 import           Control.Monad.Error.Lens     (catching, throwing)
 import           Data.Aeson                   (FromJSON, ToJSON, parseJSON, toJSON)
 import           Data.Default                 (Default (def))
@@ -84,7 +84,7 @@ data MarloweError =
     | MarloweEvaluationError TransactionError
     | OtherContractError ContractError
     | RolesCurrencyError Currency.CurrencyError
-  deriving stock (Show, Generic)
+  deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
 
 
@@ -111,8 +111,6 @@ data PartyAction
   deriving (Show)
 
 type RoleOwners = AssocMap.Map Val.TokenName PubKeyHash
-
-type MarloweContractState = [MarloweData]
 
 data ContractHistory =
     ContractHistory
@@ -141,6 +139,20 @@ instance Semigroup ContractProgress where
 
 instance Monoid ContractProgress where
     mempty = InProgress
+
+
+data LastResult = OK | SomeError MarloweError | Unknown
+  deriving (Show,Eq,Generic)
+  deriving anyclass (ToJSON, FromJSON)
+
+instance Semigroup LastResult where
+    any <> Unknown = any
+    _ <> last      = last
+
+instance Monoid LastResult where
+    mempty = Unknown
+
+type MarloweContractState = LastResult
 
 
 marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweError ()
@@ -220,7 +232,12 @@ marloweFollowContract = do
  -}
 marlowePlutusContract :: Contract MarloweContractState MarloweSchema MarloweError ()
 marlowePlutusContract = do
-    create `select` apply `select` auto `select` redeem `select` close
+    catching _MarloweError
+        (void $ mapError (review _MarloweError) $
+            create `select` apply `select` auto `select` redeem `select` close)
+        (\er -> do
+            tell $ SomeError er
+            marlowePlutusContract)
   where
     create = do
         (owners, contract) <- endpoint @"create"
@@ -240,6 +257,7 @@ marlowePlutusContract = do
     apply = do
         (params, slotInterval, inputs) <- endpoint @"apply-inputs"
         _ <- applyInputs params slotInterval inputs
+        tell OK
         marlowePlutusContract
     redeem = mapError (review _MarloweError) $ do
         (MarloweParams{rolesCurrency}, role, pkh) <-
@@ -268,6 +286,7 @@ marlowePlutusContract = do
                 <> Constraints.ownPubKeyHash pkh
         tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
         _ <- submitUnbalancedTx tx
+        tell OK
         marlowePlutusContract
     auto = do
         (params, party, untilSlot) <- endpoint @"auto"
@@ -276,7 +295,9 @@ marlowePlutusContract = do
             continueWith md@MarloweData{marloweContract} =
                 if canAutoExecuteContractForParty party marloweContract
                 then autoExecuteContract theClient party md
-                else marlowePlutusContract
+                else do
+                    tell OK
+                    marlowePlutusContract
 
         maybeState <- SM.getOnChainState theClient
         case maybeState of
@@ -285,15 +306,19 @@ marlowePlutusContract = do
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended for party " <> show party
+                        tell OK
                         marlowePlutusContract
                     Timeout _ -> do
                         logInfo @String $ "Contract Timeout for party " <> show party
+                        tell OK
                         marlowePlutusContract
                     WaitingResult marloweData -> continueWith marloweData
             Just ((st, _), _) -> do
                 let marloweData = tyTxOutData st
                 continueWith marloweData
-    close = endpoint @"close"
+    close = do
+        endpoint @"close"
+        tell OK
 
 
     autoExecuteContract :: StateMachineClient MarloweData MarloweInput
@@ -328,6 +353,7 @@ marlowePlutusContract = do
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended"
+                        tell OK
                         marlowePlutusContract
                     Timeout _ -> do
                         logInfo @String $ "Contract Timeout"
@@ -336,10 +362,12 @@ marlowePlutusContract = do
 
             CloseContract -> do
                 logInfo @String $ "CloseContract"
+                tell OK
                 marlowePlutusContract
 
             NotSure -> do
                 logInfo @String $ "NotSure"
+                tell OK
                 marlowePlutusContract
 
           where
