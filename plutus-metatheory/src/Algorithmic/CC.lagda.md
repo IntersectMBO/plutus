@@ -164,7 +164,7 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 stepV : ∀{A B }{M : ∅ ⊢ A}(V : Value M)
        → (B ≡ A) ⊎ ∃ (λ C → EC B C × Frame C A)
        → State B
-stepV V (inj₁ refl)                 = [] ◅ V
+stepV V (inj₁ refl)                 = □ V
 stepV V (inj₂ (_ ,, E ,, (-· N)))  = extEC E (V ·-) ▻ N
 stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-))) = E ▻ (M [ deval V ])
 stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = []} p q ·-))) =
