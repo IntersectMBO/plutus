@@ -118,10 +118,6 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ view _contractInstanceIdString ownInstanceResponse
       ]
-  pretty (SendNotificationResp _) =
-    span_
-      [ text "SendNotificationResponse"
-      ]
 
 instance prettyContractPABRequest :: Pretty PABReq where
   pretty (AwaitSlotReq slot) =
@@ -181,10 +177,6 @@ instance prettyContractPABRequest :: Pretty PABReq where
   pretty OwnContractInstanceIdReq =
     span_
       [ text "OwnInstanceIdRequest:"
-      ]
-  pretty (SendNotificationReq _) =
-    span_
-      [ text "SendNotificationRequest"
       ]
 
 instance prettyWriteTxResponse :: Pretty WriteTxResponse where
