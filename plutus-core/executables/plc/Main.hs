@@ -51,7 +51,7 @@ evalOpts =
   EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> timingmode
 
 plutus ::
-  -- | The @helpfText@
+  -- | The @helpText@
   String ->
   ParserInfo Command
 plutus langHelpText =
@@ -85,7 +85,7 @@ plutusOpts = hsubparser (
             (progDesc "Convert a typed Plutus Core program to an untyped one."))
     <> command "evaluate"
            (info (Eval <$> evalOpts)
-            (progDesc "Evaluate a Plutus Core program."))
+            (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
   )
 
 
@@ -134,7 +134,6 @@ runEval (EvalOptions inp ifmt printMode budgetMode timingMode) = do
 
 ----------------- Print examples -----------------------
 
-
 runPlcPrintExample ::
     ExampleOptions -> IO ()
 runPlcPrintExample = runPrintExample getPlcExamples
@@ -150,8 +149,6 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Textual       -> writeToFileOrStd outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
-
-
 
 ---------------- Parse and print a PLC source file ----------------
 

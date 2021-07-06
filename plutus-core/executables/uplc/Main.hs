@@ -24,7 +24,7 @@ uplcHelpText = helpText "Untyped Plutus Core"
 uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus uplcHelpText
 
-data EvalOptions      = EvalOptions Input Format PrintMode BudgetMode TimingMode CekModel
+data EvalOptions = EvalOptions Input Format PrintMode BudgetMode TimingMode CekModel
 
 
 -- Main commands
@@ -49,7 +49,7 @@ evalOpts =
   EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> timingmode <*> cekmodel
 
 plutus ::
-  -- | The @helpfText@
+  -- | The @helpText@
   String ->
   ParserInfo Command
 plutus langHelpText =
@@ -77,7 +77,7 @@ plutusOpts = hsubparser (
                      ++ "Note that evaluating a generated example may result in 'Failure'."))
     <> command "evaluate"
            (info (Eval <$> evalOpts)
-            (progDesc "Evaluate a Plutus Core program."))
+            (progDesc "Evaluate an untyped Plutus Core program using the CEK machine."))
   )
 
 
@@ -93,6 +93,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
           progAndargs -> foldl1 UPLC.applyProgram progAndargs
   writeProgram outp ofmt mode appliedScript
 
+---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode timingMode cekModel) = do
@@ -102,7 +103,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode timingMode cekModel) = do
         cekparams = case cekModel of
                     Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
                     Unit    -> PLC.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
-                                                        -- type is encountered.  This is useful for calibrating the budgeting code.
+                                                         -- type is encountered.  This is useful for calibrating the budgeting code.
     case budgetMode of
         Silent -> do
             let evaluate = Cek.evaluateCekNoEmit cekparams

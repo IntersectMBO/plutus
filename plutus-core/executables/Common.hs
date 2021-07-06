@@ -586,7 +586,6 @@ getProgram fmt inp =
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
 
 
-
 ---------------- Serialise a program using CBOR ----------------
 
 writeCBOR ::
