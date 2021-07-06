@@ -166,7 +166,6 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
               , id_ $ view _id_ options
               , value currentValue
               , readOnly $ view _readOnly options
-              , min zero
               , onValueInput_ $ SetFormattedValue $ DecimalFormat decimals label
               ]
           ]

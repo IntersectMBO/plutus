@@ -124,7 +124,10 @@ getBigIntegerValue decimals value =
 
     frac = fromMaybe zero $ BigInteger.fromString $ String.take decimals $ fractionalString
   in
-    (dec * multiplier) + frac
+    if dec < zero then
+      (dec * multiplier) - frac
+    else
+      (dec * multiplier) + frac
 
 validate :: forall e. InputFieldError e => State e -> Maybe e
 validate state =
