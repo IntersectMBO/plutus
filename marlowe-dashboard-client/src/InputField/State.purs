@@ -21,6 +21,7 @@ import Data.String.Extra (leftPadTo, rightPadTo)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
+import Humanize (humanizeValue)
 import InputField.Lenses (_dropdownLocked, _dropdownOpen, _pristine, _validator, _value)
 import InputField.Types (class InputFieldError, Action(..), State)
 import Marlowe.Extended.Metadata (NumberFormat(..))
@@ -33,6 +34,7 @@ initialState :: forall e. InputFieldError e => Maybe NumberFormat -> State e
 initialState mNumberFormat =
   let
     initialValue = case mNumberFormat of
+      Just DefaultFormat -> "0"
       Just (DecimalFormat decimals _) -> formatBigIntegerValue decimals zero
       _ -> mempty
   in
