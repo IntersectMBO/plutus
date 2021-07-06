@@ -23,7 +23,7 @@ module Plutus.Contract.StateMachine.OnChain(
     , mkStateMachine
     , machineAddress
     , mkValidator
-    , threadTokenValue
+    , threadTokenValueOrZero
     ) where
 
 import           Data.Aeson                               (FromJSON, ToJSON)
@@ -62,19 +62,20 @@ data StateMachine s i = StateMachine {
       --   constraints, so the default implementation always returns true.
       smCheck       :: s -> i -> ScriptContext -> Bool,
 
-      -- | The 'AssetClass' of the thread token that identifies the contract
-      --   instance.
+      -- | The 'ThreadToken' that identifies the contract instance.
+      --   Make one with 'getThreadToken' and pass it on to 'mkStateMachine'.
+      --   Initialising the machine will then mint a thread token value.
       smThreadToken :: Maybe TT.ThreadToken
     }
 
 {-# INLINABLE threadTokenValueInner #-}
--- | The 'Value' containing exactly the thread token, if one has been specified.
 threadTokenValueInner :: Maybe TT.ThreadToken -> ValidatorHash -> Value
 threadTokenValueInner = maybe (const mempty) (TT.threadTokenValue . TT.ttCurrencySymbol)
 
-{-# INLINABLE threadTokenValue #-}
-threadTokenValue :: StateMachineInstance s i -> Value
-threadTokenValue StateMachineInstance{stateMachine,typedValidator} =
+{-# INLINABLE threadTokenValueOrZero #-}
+-- | The 'Value' containing exactly the thread token, if one has been specified.
+threadTokenValueOrZero :: StateMachineInstance s i -> Value
+threadTokenValueOrZero StateMachineInstance{stateMachine,typedValidator} =
     threadTokenValueInner (smThreadToken stateMachine) (validatorHash typedValidator)
 
 -- | A state machine that does not perform any additional checks on the
@@ -113,7 +114,7 @@ mkValidator (StateMachine step isFinal check threadToken) currentState input ptx
     let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
         checkOk =
             traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
-            && traceIfFalse "Thread token hash mismatch" (TT.checkThreadToken threadToken (ownHash ptx) vl)
+            && traceIfFalse "Thread token not found" (TT.checkThreadToken threadToken (ownHash ptx) vl 1)
         oldState = State{stateData=currentState, stateValue=vl}
         stateAndOutputsOk = case step oldState input of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})

@@ -99,6 +99,7 @@
           "Plutus/Contract/Resumable"
           "Plutus/Contract/StateMachine"
           "Plutus/Contract/StateMachine/OnChain"
+          "Plutus/Contract/StateMachine/MintingPolarity"
           "Plutus/Contract/StateMachine/ThreadToken"
           "Plutus/Contract/Tx"
           "Plutus/Contract/Types"
