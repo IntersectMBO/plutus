@@ -1045,8 +1045,8 @@ thm1bV M (V-IΠ b {as' = x₂ ∷ as'} p₁ x₁) M' E p N V (step* refl q) | in
          V
          q
 
-... | inj₂ (_ ,, E' ,, wrap-) | I[ eq ] = {!!}
-... | inj₂ (_ ,, E' ,, unwrap-) | I[ eq ] = {!!}
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E' wrap- eq = thm1bV (wrap _ _ M) (V-wrap W) _ E' (trans p (extEC-[]ᴱ E' wrap- M)) N V q
+thm1bV .(wrap _ _ _) (V-wrap W) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E' unwrap- eq = trans—↠ (ruleEC E' (β-wrap W) (trans p (extEC-[]ᴱ E' unwrap- _)) refl) (thm1b _ _ E' refl N V q)
 thm1bV M W M' E refl N V (step* refl q) | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq with box2box M N W V q
 ... | refl ,, refl = refl—↠
 
