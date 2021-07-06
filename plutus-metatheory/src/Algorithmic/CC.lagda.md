@@ -984,3 +984,56 @@ thm1 M _ E refl O V (trans—↠ q q') with focus M E _ q
 
 thm2 : ∀{A}(M N : ∅ ⊢ A)(V : Value N) → M —↠ N → ([] ▻ M) -→s ([] ◅ V)
 thm2 M N V p = thm1 M M [] refl N V p
+
+box2box : ∀{A}(M M' : ∅ ⊢ A)(V : Value M)(V' : Value M')
+  → □ V -→s □ V' → Σ (M ≡ M') λ p → subst Value p V ≡ V'
+box2box M .M V .V base = refl ,, refl
+box2box M M' V V' (step* refl p) = box2box M M' V V' p
+
+thm1b : ∀{A B}(M : ∅ ⊢ A)(M' : ∅ ⊢ B)(E : EC B A)
+  → M' ≡ E [ M ]ᴱ → (N : ∅ ⊢ B)(V : Value N)
+  → (E ▻ M) -→s (□ V)
+  → M' —↠ N
+
+thm1bV : ∀{A B}(M : ∅ ⊢ A)(W : Value M)(M' : ∅ ⊢ B)(E : EC B A)
+  → M' ≡ E [ M ]ᴱ → (N : ∅ ⊢ B)(V : Value N)
+  → (E ◅ W) -→s (□ V)
+  → M' —↠ N
+
+thm1b M M' E p N V q = {!!}
+
+-- we never have just one case, because there is always a step before box
+
+thm1bV M W M' E p N V (step* x q) with dissect E | inspect dissect E
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (-· N')) | I[ eq ]
+  rewrite dissect-inj₂ E E' (-· N') eq =
+  thm1b N'
+        M'
+        (extEC E' (W ·-)) -- this is making sideways progress
+        (trans p (trans (extEC-[]ᴱ E' (-· N') M)
+                        (sym (extEC-[]ᴱ E' (W ·-) N'))))
+        N
+        V
+        q -- this is smaller 
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (V-ƛ M₁ ·-)) | I[ eq ]
+  rewrite dissect-inj₂ E E' (V-ƛ M₁ ·-) eq = trans—↠
+    (ruleEC E' (β-ƛ W) (trans p (extEC-[]ᴱ E' (V-ƛ M₁ ·-) M)) refl)
+    (thm1b (M₁ [ M ]) _ E' refl N V q)
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = []} p₁ x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq = trans—↠
+  (ruleEC E' (β-sbuiltin b _ p₁ x₁ M W) (trans p (extEC-[]ᴱ E' (VI ·-) M)) refl)
+  (thm1b (BUILTIN' b (bubble p₁) (step p₁ x₁ W)) _ E' refl N V q) 
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq =
+  thm1bV (_ · M)
+         (V-I b (bubble p₁) (step p₁ x₁ W))
+         M'
+         E'
+         (trans p (extEC-[]ᴱ E' (VI ·-) M))
+         N
+         V
+         q
+... | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] = {!!}
+... | inj₂ (_ ,, E' ,, wrap-) | I[ eq ] = {!!}
+... | inj₂ (_ ,, E' ,, unwrap-) | I[ eq ] = {!!}
+thm1bV M W M' E refl N V (step* refl q) | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq with box2box M N W V q
+... | refl ,, refl = refl—↠
+
