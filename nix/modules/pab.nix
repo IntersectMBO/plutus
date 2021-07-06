@@ -167,17 +167,17 @@ in
 
     zeroSlotTime = mkOption {
       type = types.int;
-      default = 1596059091; # POSIX time of 2020-07-29T21:44:51Z (Wednesday, July 29, 2020 21:44:51) - Shelley launch time
+      default = 1596059091000; # POSIX time of 2020-07-29T21:44:51Z (Wednesday, July 29, 2020 21:44:51) - Shelley launch time
       description = ''
-        Time of slot 0. Setting this (together with the slot length) enables pure datetime-to-slot mappings.
+        POSIX time of slot 0 in milliseconds. Setting this (together with the slot length) enables pure datetime-to-slot mappings.
       '';
     };
 
     slotLength = mkOption {
       type = types.int;
-      default = 1;
+      default = 1000;
       description = ''
-        Length of a slot (in seconds).
+        Length of a slot (in milliseconds).
       '';
     };
 

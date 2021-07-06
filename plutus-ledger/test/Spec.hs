@@ -288,8 +288,8 @@ initialSlotToTimeProp :: Property
 initialSlotToTimeProp = property $ do
   sc <- forAll slotConfigGen
   n <- forAll $ Gen.int (fromInteger <$> Range.linear 0 (fromIntegral $ scSlotLength sc))
-  let diff = DiffSeconds $ toInteger n
-  let time = TimeSlot.scZeroSlotTime sc + fromSeconds diff
+  let diff = DiffMilliSeconds $ toInteger n
+  let time = TimeSlot.scZeroSlotTime sc + fromMilliSeconds diff
   if diff >= fromIntegral (scSlotLength sc)
      then Hedgehog.assert $ TimeSlot.posixTimeToEnclosingSlot sc time == Slot 1
      else Hedgehog.assert $ TimeSlot.posixTimeToEnclosingSlot sc time == Slot 0
@@ -382,11 +382,11 @@ slotGen = Slot <$> Gen.integral (fromIntegral <$> Range.linear 0 10000)
 posixTimeGen :: (Hedgehog.MonadGen m) => SlotConfig -> m POSIXTime
 posixTimeGen sc = do
   let beginTime = getPOSIXTime $ TimeSlot.scZeroSlotTime sc
-  POSIXTime <$> Gen.integral (Range.linear beginTime (beginTime + 10000))
+  POSIXTime <$> Gen.integral (Range.linear beginTime (beginTime + 10000000))
 
--- | Generate a 'SlotConfig' where the slot length goes from 1 second to 100
--- seconds and the time of Slot 0 is the default 'scZeroSlotTime'.
+-- | Generate a 'SlotConfig' where the slot length goes from 1 to 100000
+-- ms and the time of Slot 0 is the default 'scZeroSlotTime'.
 slotConfigGen :: Hedgehog.MonadGen m => m SlotConfig
 slotConfigGen = do
-  sl <- Gen.integral (Range.linear 1 10)
+  sl <- Gen.integral (Range.linear 1 1000000)
   return $ def { TimeSlot.scSlotLength = sl }
