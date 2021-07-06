@@ -5,6 +5,7 @@ module Main (main) where
 
 
 import           Common
+import           Parsers
 import qualified PlutusCore                               as PLC
 
 import qualified UntypedPlutusCore                        as UPLC

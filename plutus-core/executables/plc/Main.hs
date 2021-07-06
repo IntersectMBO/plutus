@@ -1,8 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase   #-}
+
 module Main (main) where
 
 import           Common
+import           Parsers
 import qualified PlutusCore                       as PLC
 import qualified PlutusCore.Evaluation.Machine.Ck as Ck
 import qualified PlutusCore.Pretty                as PP

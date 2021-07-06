@@ -417,6 +417,7 @@ executable plc
     hs-source-dirs: executables
     other-modules:
         Common
+        Parsers
     build-depends:
         plutus-core -any,
         base <5,
@@ -438,6 +439,7 @@ executable uplc
     hs-source-dirs: executables
     other-modules:
         Common
+        Parsers
     build-depends:
         plutus-core -any,
         base <5,
