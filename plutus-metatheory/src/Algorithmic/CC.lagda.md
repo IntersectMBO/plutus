@@ -1031,7 +1031,20 @@ thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = x
          N
          V
          q
-... | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] = {!!}
+thm1bV .(Λ M) (V-Λ M) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq = trans—↠ (ruleEC E' β-Λ (trans p (extEC-[]ᴱ E' (-·⋆ A) (Λ M))) refl) (thm1b (M [ A ]⋆) _ E' refl N V q)
+thm1bV M (V-IΠ b {as' = []} p₁ x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq = trans—↠
+  (ruleEC E' (β-sbuiltin⋆ b _ p₁ x₁ A) (trans p (extEC-[]ᴱ E' (-·⋆ A) M)) refl)
+  (thm1b (BUILTIN' b (bubble p₁) (step⋆ p₁ x₁)) _ E' refl N V q)
+thm1bV M (V-IΠ b {as' = x₂ ∷ as'} p₁ x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq =
+  thm1bV (M ·⋆ A)
+         (V-I b (bubble p₁) (step⋆ p₁ x₁))
+         M'
+         E'
+         (trans p (extEC-[]ᴱ E' (-·⋆ A) M))
+         N
+         V
+         q
+
 ... | inj₂ (_ ,, E' ,, wrap-) | I[ eq ] = {!!}
 ... | inj₂ (_ ,, E' ,, unwrap-) | I[ eq ] = {!!}
 thm1bV M W M' E refl N V (step* refl q) | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq with box2box M N W V q
