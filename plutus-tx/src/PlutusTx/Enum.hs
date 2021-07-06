@@ -3,7 +3,6 @@
 module PlutusTx.Enum (Enum(..)) where
 
 import           PlutusTx.Builtins
-import           PlutusTx.String   ()
 import           Prelude           hiding (Enum (..), error)
 
 -- | Class 'Enum' defines operations on sequentially ordered types.
@@ -32,14 +31,14 @@ instance Enum Integer where
 
 instance Enum () where
   {-# INLINABLE succ #-}
-  succ _ = error (trace "PlutusTx.Enum.().succ: bad argument")
+  succ _ = error (trace "PlutusTx.Enum.().succ: bad argument" ())
 
   {-# INLINABLE pred #-}
-  pred _ = error (trace "PlutusTx.Enum.().pred: bad argument")
+  pred _ = error (trace "PlutusTx.Enum.().pred: bad argument" ())
 
   {-# INLINABLE toEnum #-}
   toEnum x | x == 0 = ()
-           | otherwise = error (trace "PlutusTx.Enum.().toEnum: bad argument")
+           | otherwise = error (trace "PlutusTx.Enum.().toEnum: bad argument" ())
 
   {-# INLINABLE fromEnum #-}
   fromEnum () = 0
@@ -47,16 +46,16 @@ instance Enum () where
 instance Enum Bool where
   {-# INLINABLE succ #-}
   succ False = True
-  succ True  = error (trace "PlutusTx.Enum.Bool.succ: bad argument")
+  succ True  = error (trace "PlutusTx.Enum.Bool.succ: bad argument" ())
 
   {-# INLINABLE pred #-}
   pred True  = False
-  pred False = error (trace "PlutusTx.Enum.Bool.pred: bad argument")
+  pred False = error (trace "PlutusTx.Enum.Bool.pred: bad argument" ())
 
   {-# INLINABLE toEnum #-}
   toEnum n | n == 0    = False
            | n == 1    = True
-           | otherwise = error (trace "PlutusTx.Enum.Bool.toEnum: bad argument")
+           | otherwise = error (trace "PlutusTx.Enum.Bool.toEnum: bad argument" ())
 
   {-# INLINABLE fromEnum #-}
   fromEnum False = 0
@@ -66,18 +65,18 @@ instance Enum Ordering where
   {-# INLINABLE succ #-}
   succ LT = EQ
   succ EQ = GT
-  succ GT = error (trace "PlutusTx.Enum.Ordering.succ: bad argument")
+  succ GT = error (trace "PlutusTx.Enum.Ordering.succ: bad argument" ())
 
   {-# INLINABLE pred #-}
   pred GT = EQ
   pred EQ = LT
-  pred LT = error (trace "PlutusTx.Enum.Ordering.pred: bad argument")
+  pred LT = error (trace "PlutusTx.Enum.Ordering.pred: bad argument" ())
 
   {-# INLINABLE toEnum #-}
   toEnum n | n == 0 = LT
            | n == 1 = EQ
            | n == 2 = GT
-  toEnum _ = error (trace "PlutusTx.Enum.Ordering.toEnum: bad argument")
+  toEnum _ = error (trace "PlutusTx.Enum.Ordering.toEnum: bad argument" ())
 
   {-# INLINABLE fromEnum #-}
   fromEnum LT = 0
