@@ -365,6 +365,8 @@ thm1 A A' E refl C V (trans—↠E {B = B} q q') with lemmaE' A E B q
   (thm1 (L [ N ]) B E' (sym p'') C V q')
 
 {-# TERMINATING #-}
+-- TODO: refactor following the term version
+-- the value part below is wrong
 thm1b : (A : ∅ ⊢⋆ J)(A' : ∅ ⊢⋆ K)(E : EvalCtx K J)
   → A' ≡ closeEvalCtx E A → (B : ∅ ⊢⋆ K)(V : Value⋆ B)
   → (E ▻ A) -→s ([] ◅ V) ⊎ (∃ λ (W : Value⋆ A) → (E ◅ W) -→s ([] ◅ V)) → A' —↠E B
