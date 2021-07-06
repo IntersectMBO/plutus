@@ -2,6 +2,7 @@
 
 @import "icons.css";
 @import "tabs.css";
+@import "../../web-common/static/tooltip.css";
 
 @tailwind base;
 @tailwind components;

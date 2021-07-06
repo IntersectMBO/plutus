@@ -68,10 +68,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "d7e5cface8d3b60eb60bd7b1a693587560023c0a",
-        "sha256": "17vx9xwnwmkj3hld44pyr08a10s50x2k3yjbiswiv0y96rxv9y9i",
+        "rev": "3856d2d24dca0ecc71fcfc314253a2a2d07a3c4f",
+        "sha256": "0s69nasqhkv8n0qmdv075k83p3z584ja9vkzdnp2291mymghvx87",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/d7e5cface8d3b60eb60bd7b1a693587560023c0a.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/3856d2d24dca0ecc71fcfc314253a2a2d07a3c4f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -100,16 +100,16 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "npmlock2nix": {
-        "branch": "restricted-mode-support",
+        "branch": "master",
         "builtin": false,
         "description": null,
         "homepage": null,
         "owner": "tweag",
         "repo": "npmlock2nix",
-        "rev": "5d3586977dea8d5680f383adee98be2667fa8131",
-        "sha256": "0ni3z64wf1cha7xf5vqzqfqs73qc938zvnnbn147li1m4v8pnzzx",
+        "rev": "9d71a0fc7a7450e740dba1bcdaed1eb9faa57bc2",
+        "sha256": "1qivxvm9shqi44pv1fbhmbb605nnrp8sirs8slbv0d1idrvsdyq5",
         "type": "tarball",
-        "url": "https://github.com/tweag/npmlock2nix/archive/5d3586977dea8d5680f383adee98be2667fa8131.tar.gz",
+        "url": "https://github.com/tweag/npmlock2nix/archive/9d71a0fc7a7450e740dba1bcdaed1eb9faa57bc2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {

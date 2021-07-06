@@ -1,9 +1,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Eq (Eq(..), (/=)) where
 
+import           PlutusCore.Data
+
 import           PlutusTx.Bool
 import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Data
 
 import           Prelude           hiding (Eq (..), not, (&&))
 

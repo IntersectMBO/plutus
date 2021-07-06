@@ -19,6 +19,7 @@
 @import './confirm_unsaved_navigation.css';
 @import './simulation.css';
 @import './save-as-modal.css';
+@import './../../web-common/static/tooltip.css';
 
 /* @tailwind base; */
 @tailwind components;

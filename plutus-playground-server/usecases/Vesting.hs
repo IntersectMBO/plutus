@@ -15,6 +15,7 @@ module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
 import           Control.Monad            (void, when)
+import           Data.Default             (Default (def))
 import qualified Data.Map                 as Map
 import qualified Data.Text                as T
 
@@ -216,10 +217,10 @@ endpoints = vestingContract vestingParams
         VestingParams {vestingTranche1, vestingTranche2, vestingOwner}
     vestingTranche1 =
         VestingTranche
-            {vestingTrancheDate = TimeSlot.slotToPOSIXTime 20, vestingTrancheAmount = Ada.lovelaceValueOf 50_000_000}
+            {vestingTrancheDate = TimeSlot.slotToBeginPOSIXTime def 20, vestingTrancheAmount = Ada.lovelaceValueOf 50_000_000}
     vestingTranche2 =
         VestingTranche
-            {vestingTrancheDate = TimeSlot.slotToPOSIXTime 40, vestingTrancheAmount = Ada.lovelaceValueOf 30_000_000}
+            {vestingTrancheDate = TimeSlot.slotToBeginPOSIXTime def 40, vestingTrancheAmount = Ada.lovelaceValueOf 30_000_000}
 
 mkSchemaDefinitions ''VestingSchema
 

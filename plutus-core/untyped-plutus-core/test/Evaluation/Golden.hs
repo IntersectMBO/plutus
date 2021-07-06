@@ -10,8 +10,8 @@ import           Prelude                                  hiding (even)
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function
-import           PlutusCore.StdLib.Data.List
 import           PlutusCore.StdLib.Data.Nat
+import           PlutusCore.StdLib.Data.ScottList
 import           PlutusCore.StdLib.Meta
 import           PlutusCore.StdLib.Meta.Data.Tuple
 import           PlutusCore.StdLib.Type
@@ -101,7 +101,7 @@ evenList :: Term TyName Name uni fun ()
 evenList = runQuote $ tupleTermAt () 0 evenAndOddList
 
 smallNatList :: Term TyName Name uni fun ()
-smallNatList = metaListToList nat nats where
+smallNatList = metaListToScottList nat nats where
     nats = Prelude.map metaIntegerToNat [1,2,3]
     nat = _recursiveType natData
 
@@ -140,7 +140,7 @@ closure = runQuote $ do
 -- Various components that we'll use to build larger terms for testing
 
 lte :: Term TyName Name DefaultUni DefaultFun ()
-lte = Builtin () LessThanEqInteger
+lte = Builtin () LessThanEqualsInteger
 
 eleven :: Term TyName Name DefaultUni DefaultFun ()
 eleven = mkConstant @Integer () 11

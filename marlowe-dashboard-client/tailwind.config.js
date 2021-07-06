@@ -42,6 +42,7 @@ module.exports = {
       77: ".77",
     },
     borderRadius: {
+      none: "0",
       sm: "5px",
       DEFAULT: "10px",
       lg: "25px",
@@ -62,6 +63,8 @@ module.exports = {
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
       backgroundImage: theme => ({
+        "background-shape": "url('/static/images/background-shape.svg')",
+        "get-started-thumbnail": "url('/static/images/get-started-thumbnail.jpg')",
         "link-highlight": "url('/static/images/link-highlight.svg')",
       }),
       keyframes: {
@@ -75,11 +78,15 @@ module.exports = {
         },
       },
       gridTemplateRows: {
-        main: "auto minmax(0, 1fr) auto",
+        "welcome": "1fr auto auto 1fr",
+        "dashboard-outer": "auto minmax(0, 1fr) auto",
+        "dashboard-inner": "auto minmax(0, 1fr)",
         "contract-setup": "auto auto minmax(0, 1fr)",
         "contract-step-card": "auto minmax(0, 1fr)",
       },
       gridTemplateColumns: {
+        "welcome": "1fr auto auto 1fr",
+        "dashboard-container": "1fr auto",
         "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",
         "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
       },
@@ -87,21 +94,24 @@ module.exports = {
         "22": "5.5rem",
         "160": "40rem",
         "256": "64rem",
-        "5pc": "5%",
+        "16:9": "56.25%", // this is used for video containers to maintain a 16:9 aspect ratio
+        "sidebar": "305px",
       },
       width: {
         sm: "375px",
         md: "640px",
         lg: "768px",
+        "welcome-box": "400px",
+        "sidebar": "305px",
         "contract-card": "264px",
         /* This width is used by a padding element in both sides of the carousel and is enough
            to push the first and last card to the center */
         "carousel-padding-element": "calc(50% - 264px / 2)",
       },
       height: {
+        "welcome-box": "227px",
         "contract-card": "467px",
       },
-
       borderWidth: {
         half: "0.5px",
       },
@@ -109,11 +119,12 @@ module.exports = {
         sm: "375px",
         md: "640px",
         lg: "768px",
-        "90p": "90%",
+        xl: "1440px",
+        "90pc": "90%",
       },
       minWidth: {
         button: "120px",
-        "90p": "90%",
+        "90pc": "90%",
         sm: "375px",
       },
     },
@@ -129,6 +140,7 @@ module.exports = {
       // spacing: ['first', 'last'],
       textColor: ["hover", "disabled"],
       margin: ["first", "last"],
+      borderRadius: ["responsive"],
     },
   },
   plugins: [require("@tailwindcss/forms")],
@@ -229,12 +241,12 @@ module.exports = {
     gridTemplateColumns: true,
     gridAutoColumns: false,
     gridColumn: false,
-    gridColumnStart: false,
+    gridColumnStart: true,
     gridColumnEnd: false,
     gridTemplateRows: true,
     gridAutoRows: false,
     gridRow: false,
-    gridRowStart: false,
+    gridRowStart: true,
     gridRowEnd: false,
     transform: true,
     transformOrigin: true,

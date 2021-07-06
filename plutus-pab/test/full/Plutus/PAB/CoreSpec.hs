@@ -207,8 +207,8 @@ currencyTest =
               createCurrency instanceId mps
               result <- Simulator.waitForState getCurrency instanceId
               assertTxCounts
-                "Minting the currency should produce two valid transactions."
-                (initialTxCounts & Simulator.txValidated +~ 2)
+                "Minting the currency should produce one valid transaction."
+                (initialTxCounts & Simulator.txValidated +~ 1)
 
 guessingGameTest :: TestTree
 guessingGameTest =

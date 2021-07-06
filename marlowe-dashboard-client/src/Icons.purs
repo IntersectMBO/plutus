@@ -36,6 +36,7 @@ data Icon
   | Next
   | NewContact
   | Pay
+  | Play
   | Previous
   | Refresh
   | Roles
@@ -76,6 +77,8 @@ content Next = "chevron_right"
 content NewContact = "person_add_alt"
 
 content Pay = "credit_score"
+
+content Play = "play_arrow"
 
 content Previous = "chevron_left"
 
@@ -123,6 +126,8 @@ iconClass Next = "next"
 iconClass NewContact = "new-contact"
 
 iconClass Pay = "pay"
+
+iconClass Play = "play"
 
 iconClass Previous = "previous"
 

@@ -77,7 +77,8 @@ library
         deepseq -any,
         newtype-generics -any,
         tagged -any,
-        lens -any
+        lens -any,
+        scientific -any
 
 test-suite plutus-ledger-api-test
     import: lang
@@ -86,8 +87,10 @@ test-suite plutus-ledger-api-test
     hs-source-dirs: test
     other-modules:
         Spec.Interval
+        Spec.Time
     build-depends:
         base >=4.9 && <5,
+        aeson -any,
         plutus-ledger-api -any,
         hedgehog -any,
         tasty -any,

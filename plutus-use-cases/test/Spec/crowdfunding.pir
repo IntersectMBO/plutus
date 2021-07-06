@@ -206,6 +206,72 @@
               )
             )
           )
+          (datatypebind
+            (datatype
+              (tyvardecl Campaign (type))
+
+              Campaign_match
+              (vardecl
+                Campaign
+                (fun (con integer) (fun (con integer) (fun (con bytestring) Campaign)))
+              )
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl collectionRange (fun Campaign [Interval (con integer)]))
+            (lam
+              cmp
+              Campaign
+              [
+                [
+                  { Interval (con integer) }
+                  [
+                    [
+                      { LowerBound (con integer) }
+                      [
+                        { Finite (con integer) }
+                        [
+                          [
+                            (builtin addInteger)
+                            [
+                              { [ Campaign_match cmp ] (con integer) }
+                              (lam
+                                ds
+                                (con integer)
+                                (lam
+                                  ds (con integer) (lam ds (con bytestring) ds)
+                                )
+                              )
+                            ]
+                          ]
+                          (con integer 1)
+                        ]
+                      ]
+                    ]
+                    True
+                  ]
+                ]
+                [
+                  [
+                    { UpperBound (con integer) }
+                    [
+                      { Finite (con integer) }
+                      [
+                        { [ Campaign_match cmp ] (con integer) }
+                        (lam
+                          ds
+                          (con integer)
+                          (lam ds (con integer) (lam ds (con bytestring) ds))
+                        )
+                      ]
+                    ]
+                  ]
+                  True
+                ]
+              ]
+            )
+          )
           (termbind
             (strict)
             (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
@@ -465,17 +531,6 @@
               ]
               fOrdInteger_cmin
             ]
-          )
-          (datatypebind
-            (datatype
-              (tyvardecl Campaign (type))
-
-              Campaign_match
-              (vardecl
-                Campaign
-                (fun (con integer) (fun (con integer) (fun (con bytestring) Campaign)))
-              )
-            )
           )
           (termbind
             (strict)
@@ -2628,59 +2683,7 @@
                               [
                                 [
                                   [ { contains (con integer) } fOrdPOSIXTime ]
-                                  [
-                                    [
-                                      { Interval (con integer) }
-                                      [
-                                        [
-                                          { LowerBound (con integer) }
-                                          [
-                                            { Finite (con integer) }
-                                            [
-                                              {
-                                                [ Campaign_match campaign ]
-                                                (con integer)
-                                              }
-                                              (lam
-                                                ds
-                                                (con integer)
-                                                (lam
-                                                  ds
-                                                  (con integer)
-                                                  (lam ds (con bytestring) ds)
-                                                )
-                                              )
-                                            ]
-                                          ]
-                                        ]
-                                        True
-                                      ]
-                                    ]
-                                    [
-                                      [
-                                        { UpperBound (con integer) }
-                                        [
-                                          { Finite (con integer) }
-                                          [
-                                            {
-                                              [ Campaign_match campaign ]
-                                              (con integer)
-                                            }
-                                            (lam
-                                              ds
-                                              (con integer)
-                                              (lam
-                                                ds
-                                                (con integer)
-                                                (lam ds (con bytestring) ds)
-                                              )
-                                            )
-                                          ]
-                                        ]
-                                      ]
-                                      True
-                                    ]
-                                  ]
+                                  [ collectionRange campaign ]
                                 ]
                                 [
                                   {
@@ -2758,6 +2761,50 @@
               )
               (termbind
                 (strict)
+                (vardecl refundRange (fun Campaign [Interval (con integer)]))
+                (lam
+                  cmp
+                  Campaign
+                  [
+                    [
+                      { Interval (con integer) }
+                      [
+                        [
+                          { LowerBound (con integer) }
+                          [
+                            { Finite (con integer) }
+                            [
+                              [
+                                (builtin addInteger)
+                                [
+                                  { [ Campaign_match cmp ] (con integer) }
+                                  (lam
+                                    ds
+                                    (con integer)
+                                    (lam
+                                      ds
+                                      (con integer)
+                                      (lam ds (con bytestring) ds)
+                                    )
+                                  )
+                                ]
+                              ]
+                              (con integer 1)
+                            ]
+                          ]
+                        ]
+                        True
+                      ]
+                    ]
+                    [
+                      [ { UpperBound (con integer) } { PosInf (con integer) } ]
+                      True
+                    ]
+                  ]
+                )
+              )
+              (termbind
+                (strict)
                 (vardecl
                   validRefund
                   (fun Campaign (fun (con bytestring) (fun TxInfo Bool)))
@@ -2780,42 +2827,7 @@
                                 [
                                   [
                                     [ { contains (con integer) } fOrdPOSIXTime ]
-                                    [
-                                      [
-                                        { Interval (con integer) }
-                                        [
-                                          [
-                                            { LowerBound (con integer) }
-                                            [
-                                              { Finite (con integer) }
-                                              [
-                                                {
-                                                  [ Campaign_match campaign ]
-                                                  (con integer)
-                                                }
-                                                (lam
-                                                  ds
-                                                  (con integer)
-                                                  (lam
-                                                    ds
-                                                    (con integer)
-                                                    (lam ds (con bytestring) ds)
-                                                  )
-                                                )
-                                              ]
-                                            ]
-                                          ]
-                                          True
-                                        ]
-                                      ]
-                                      [
-                                        [
-                                          { UpperBound (con integer) }
-                                          { PosInf (con integer) }
-                                        ]
-                                        True
-                                      ]
-                                    ]
+                                    [ refundRange campaign ]
                                   ]
                                   [
                                     {

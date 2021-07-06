@@ -1,0 +1,1 @@
+(fun (con list (data)) (con data))

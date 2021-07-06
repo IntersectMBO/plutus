@@ -51,6 +51,7 @@ module Plutus.Contract.StateMachine(
 import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Data.Aeson                               (FromJSON, ToJSON)
+import           Data.Default                             (Default (def))
 import           Data.Either                              (rights)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
@@ -260,7 +261,7 @@ waitForUpdateUntilTime ::
     -> POSIXTime
     -> Contract w schema e (WaitingResult state)
 waitForUpdateUntilTime sm timeoutTime = do
-    waitForUpdateUntilSlot sm $ TimeSlot.posixTimeToSlot timeoutTime
+    waitForUpdateUntilSlot sm $ TimeSlot.posixTimeToEnclosingSlot def timeoutTime
 
 -- | Wait until the on-chain state of the state machine instance has changed,
 --   and return the new state, or return 'Nothing' if the instance has been

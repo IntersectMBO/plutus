@@ -5,6 +5,7 @@
 module Main (main) where
 
 import           PlutusCore                               as PLC
+import qualified PlutusCore.DataFilePaths                 as DFP
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
 import           UntypedPlutusCore                        as UPLC
@@ -19,7 +20,6 @@ import qualified Hedgehog.Internal.Gen                    as HH
 import qualified Hedgehog.Internal.Tree                   as HH
 import qualified Hedgehog.Range                           as HH.Range
 import           System.Directory
-import           System.FilePath
 import           System.Random                            (StdGen, getStdGen, randomR)
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
@@ -320,32 +320,30 @@ benchNop3 gen =
    DivideInteger:     RemainderInteger, QuotientInteger, ModInteger
    LessThanInteger:   GreaterThanInteger
    LessThanEqInteger: GreaterThanEqInteger
-   LtByteString:      GtByteString
+   LessThanByteString:      GreaterThanByteString
 -}
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
-  let dataDir = "cost-model" </> "data"
-      csvFile = dataDir </> "benching.csv"
-      backupFile = dataDir </> "benching.csv.backup"
-  createDirectoryIfMissing True dataDir
-  csvExists <- doesFileExist csvFile
-  if csvExists then renameFile csvFile backupFile else pure ()
+  createDirectoryIfMissing True DFP.costModelDataDir
+  csvExists <- doesFileExist DFP.benchingResultsFile
+  if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
-  defaultMainWith (defaultConfig { C.csvFile = Just csvFile }) $
+  defaultMainWith (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
                          [benchNop1 gen, benchNop2 gen, benchNop3 gen]
                       <> (benchTwoIntegers gen <$> [ AddInteger
                                                    , MultiplyInteger
                                                    , DivideInteger
                                                    ])
-                      <> (benchSameTwoIntegers gen <$> [ EqInteger
+                      <> (benchSameTwoIntegers gen <$> [ EqualsInteger
                                                        , LessThanInteger
-                                                       , LessThanEqInteger
+                                                       , LessThanEqualsInteger
                                                        ])
                       <> (benchTwoByteStrings <$> [Concatenate])
                       <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
-                      <> (benchHashOperations <$> [SHA2, SHA3])
-                      <> (benchSameTwoByteStrings <$> [ EqByteString
-                                                      , LtByteString
+                      <> (benchHashOperations <$> [Sha2_256, Sha3_256])
+                      <> (benchSameTwoByteStrings <$> [ EqualsByteString
+                                                      , LessThanByteString
                                                       ])
                       <> [benchVerifySignature]
+

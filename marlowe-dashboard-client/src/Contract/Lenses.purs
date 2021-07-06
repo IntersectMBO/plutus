@@ -1,5 +1,6 @@
 module Contract.Lenses
-  ( _tab
+  ( _nickname
+  , _tab
   , _executionState
   , _pendingTransaction
   , _previousSteps
@@ -24,6 +25,9 @@ import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics (Party, TransactionInput)
 import WalletData.Types (WalletNickname)
+
+_nickname :: Lens' State String
+_nickname = prop (SProxy :: SProxy "nickname")
 
 _tab :: forall a. Lens' { tab :: Tab | a } Tab
 _tab = prop (SProxy :: SProxy "tab")
