@@ -44,16 +44,16 @@ succeedingTCTests = ["succInteger"
         ,"ApplyAdd2"
         ]
 
--- blah :: String -> [String]
--- blah "plc"     = []
--- blah mode = ["--mode",mode]
+blah :: String -> [String]
+blah "plc" = []
+blah _     = ["--mode","U"]
 
 runTest :: String -> String -> String -> IO ()
 runTest command mode test = do
   example <- readProcess mode ["example", "-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs [command,"--file","tmp"]  M.main
+  withArgs ([command,"--file","tmp"] ++ blah mode)  M.main
 
 runSucceedingTests :: String -> String -> [String] -> IO ()
 runSucceedingTests command mode [] = return ()
@@ -92,7 +92,7 @@ putStrLn "running succ L..."
   runFailingTests "evaluate" "plc" failingEvalTests
   putStrLn "running succ U..."
   runSucceedingTests "evaluate" "uplc" succeedingEvalTests
-  -- putStrLn "running fail U..."
-  -- runFailingTests "evaluate" "uplc" failingEvalTests
+  putStrLn "running fail U..."
+  runFailingTests "evaluate" "uplc" failingEvalTests
   putStrLn "running succ TC"
   runSucceedingTests "typecheck" "plc" succeedingTCTests
