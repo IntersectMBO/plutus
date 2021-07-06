@@ -59,7 +59,7 @@ data Tip =
     Tip
         { tipSlot    :: Slot -- ^ Last slot
         , tipBlockId :: BlockId -- ^ Last block ID
-        , tipBlockNo :: Int -- ^ Last block number (if available)
+        , tipBlockNo :: Int -- ^ Last block number
         }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
