@@ -16,7 +16,8 @@ let
   haskell = pkgs.callPackage ./haskell {
     inherit pkgs;
     inherit gitignore-nix sources;
-    inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
+#    inherit agdaWithStdlib;
+    inherit checkMaterialization enableHaskellProfiling;
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
     inherit (pkgs.evalPackages) writeShellScript;
@@ -55,32 +56,32 @@ let
   # another GHC from nixpkgs! Sadly, this one is harder to override, and we just hack
   # it into pkgs.haskellPackages in a fragile way. Annoyingly, this also means we have to ensure
   # we have a few extra packages that it uses in our Haskell package set.
-  agdaPackages =
-    let
-      frankenAgda = (pkgs.symlinkJoin {
-        name = "agda";
-        paths = [
-          haskellNixAgda.components.exes.agda
-          haskellNixAgda.components.exes.agda-mode
-        ];
-      }) // { version = haskellNixAgda.identifier.version; };
-      frankenPkgs = pkgs // { haskellPackages = pkgs.haskellPackages // { ghcWithPackages = haskell.project.ghcWithPackages; }; };
-    in
-    pkgs.agdaPackages.override { Agda = frankenAgda; pkgs = frankenPkgs; };
+  # agdaPackages =
+  #   let
+  #     frankenAgda = (pkgs.symlinkJoin {
+  #       name = "agda";
+  #       paths = [
+  #         haskellNixAgda.components.exes.agda
+  #         haskellNixAgda.components.exes.agda-mode
+  #       ];
+  #     }) // { version = haskellNixAgda.identifier.version; };
+  #     frankenPkgs = pkgs // { haskellPackages = pkgs.haskellPackages // { ghcWithPackages = haskell.project.ghcWithPackages; }; };
+  #   in
+  #   pkgs.agdaPackages.override { Agda = frankenAgda; pkgs = frankenPkgs; };
 
-  agdaWithStdlib =
-    # Need a newer version for 2.6.2 compatibility
-    let stdlib = agdaPackages.standard-library.overrideAttrs (oldAtts: rec {
-      version = "1.7";
-      src = pkgs.fetchFromGitHub {
-        repo = "agda-stdlib";
-        owner = "agda";
-        rev = "v${version}";
-        sha256 = "14h3jprm6924g9576v25axn9v6xnip354hvpzlcqsc5qqyj7zzjs";
-      };
-    });
+  # agdaWithStdlib =
+  #   # Need a newer version for 2.6.2 compatibility
+  #   let stdlib = agdaPackages.standard-library.overrideAttrs (oldAtts: rec {
+  #     version = "1.7";
+  #     src = pkgs.fetchFromGitHub {
+  #       repo = "agda-stdlib";
+  #       owner = "agda";
+  #       rev = "v${version}";
+  #       sha256 = "14h3jprm6924g9576v25axn9v6xnip354hvpzlcqsc5qqyj7zzjs";
+  #     };
+  #   });
 
-    in agdaPackages.agda.withPackages [ stdlib ];
+  #   in agdaPackages.agda.withPackages [ stdlib ];
 
   #
   # dev convenience scripts
@@ -201,12 +202,13 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server hie-bios cardano-cli cardano-node;
+  inherit haskell cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server hie-bios cardano-cli cardano-node;
   inherit purty purty-pre-commit purs spago spago2nix;
   inherit fixPurty fixStylishHaskell fixPngOptimization updateMaterialized updateMetadataSamples updateClientDeps;
   inherit web-ghc;
   inherit easyPS plutus-haddock-combined;
-  inherit agdaWithStdlib aws-mfa-login;
+  # inherit agdaPackages agdaWithStdlib;
+  inherit aws-mfa-login;
   inherit lib;
 
   cabal-plan = pkgs.haskell-nix.tool "ghc8104" "cabal-plan" {

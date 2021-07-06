@@ -89,9 +89,6 @@ let
       package plutus-doc
         tests: False
 
-      package plutus-metatheory
-        tests: False
-
       package prettyprinter-configurable
         tests: False
 

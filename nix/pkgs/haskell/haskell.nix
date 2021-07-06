@@ -149,19 +149,19 @@ let
           marlowe.components.tests.marlowe-test.preCheck = ''
             PATH=${lib.makeBinPath [ z3 ]}:$PATH
           '';
-          # In this case we can just propagate the native dependencies for the build of the test executable,
-          # which are actually set up right (we have a build-tool-depends on the executable we need)
-          # I'm slightly surprised this works, hooray for laziness!
-          plutus-metatheory.components.tests.test1.preCheck = ''
-            PATH=${lib.makeBinPath project.hsPkgs.plutus-metatheory.components.tests.test1.executableToolDepends }:$PATH
-          '';
-          # FIXME: Somehow this is broken even with setting the path up as above
-          plutus-metatheory.components.tests.test2.doCheck = false;
-          # plutus-metatheory needs agda with the stdlib around for the custom setup
-          # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
-          plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
+          # # In this case we can just propagate the native dependencies for the build of the test executable,
+          # # which are actually set up right (we have a build-tool-depends on the executable we need)
+          # # I'm slightly surprised this works, hooray for laziness!
+          # plutus-metatheory.components.tests.test1.preCheck = ''
+          #   PATH=${lib.makeBinPath project.hsPkgs.plutus-metatheory.components.tests.test1.executableToolDepends }:$PATH
+          # '';
+          # # FIXME: Somehow this is broken even with setting the path up as above
+          # plutus-metatheory.components.tests.test2.doCheck = false;
+          # # plutus-metatheory needs agda with the stdlib around for the custom setup
+          # # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
+          # plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
+          # plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
+          # plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
           # Relies on cabal-doctest, just turn it off in the Nix build
           prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
@@ -227,12 +227,12 @@ let
             config.hsPkgs.cardano-node.components.exes.cardano-node
             config.hsPkgs.cardano-cli.components.exes.cardano-cli
           ];
-          plutus-metatheory.components.tests.test1.build-tools = lib.mkForce [
-            config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
-          ];
-          plutus-metatheory.components.tests.test2.build-tools = lib.mkForce [
-            config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
-          ];
+          # plutus-metatheory.components.tests.test1.build-tools = lib.mkForce [
+          #   config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          # ];
+          # plutus-metatheory.components.tests.test2.build-tools = lib.mkForce [
+          #   config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
+          # ];
         };
       })
     ] ++ lib.optional enableHaskellProfiling {

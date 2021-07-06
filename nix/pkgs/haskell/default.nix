@@ -1,7 +1,7 @@
 { pkgs
 , lib
 , sources
-, agdaWithStdlib
+, agdaWithStdlib ? null
 , stdenv
 , haskell-nix
 , buildPackages
