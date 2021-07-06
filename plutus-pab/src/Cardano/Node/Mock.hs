@@ -22,7 +22,7 @@ import qualified Control.Monad.Freer.Writer        as Eff
 import           Control.Monad.IO.Class            (MonadIO, liftIO)
 import           Data.Foldable                     (traverse_)
 import           Data.Function                     ((&))
-import           Data.Time.Units                   (Second, toMicroseconds)
+import           Data.Time.Units                   (Millisecond, Second, toMicroseconds)
 import           Data.Time.Units.Extra             ()
 import           Servant                           (NoContent (NoContent))
 
@@ -140,4 +140,4 @@ slotCoordinator sc@SlotConfig{scSlotLength} serverHandler = do
         void $ Server.modifySlot (const newSlot) serverHandler
         liftIO $ threadDelay
                $ fromIntegral
-               $ toMicroseconds (fromInteger scSlotLength :: Second)
+               $ toMicroseconds (fromInteger scSlotLength :: Millisecond)

@@ -53,7 +53,7 @@ import qualified Data.Map                       as Map
 import           Data.Text.Prettyprint.Doc      (Pretty (..), pretty, viaShow, (<+>))
 import           Data.Time.Clock                (UTCTime)
 import qualified Data.Time.Format.ISO8601       as F
-import           Data.Time.Units                (Second)
+import           Data.Time.Units                (Millisecond, Second)
 import           Data.Time.Units.Extra          ()
 import           GHC.Generics                   (Generic)
 import           Ledger                         (Tx, txId)
@@ -140,7 +140,7 @@ data BlockReaperConfig =
 -- | Top-level logging data type for structural logging
 -- inside the Mock Node server.
 data MockServerLogMsg =
-    StartingSlotCoordination UTCTime Second
+    StartingSlotCoordination UTCTime Millisecond
     | NoRandomTxGeneration
     | StartingRandomTx
     | KeepingOldBlocks
