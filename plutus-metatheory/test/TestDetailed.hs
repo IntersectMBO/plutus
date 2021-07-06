@@ -40,7 +40,9 @@ compareResult eq mode test = do
   let mode' = if mode == "evaluate" then "plc" else "uplc"
   plcOutput <- readProcess mode' [mode, "--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs [mode,"--file","tmp"]  M.main)
+    (if mode'== "uplc"
+      then withArgs [mode,"-mU","--file","tmp"]  M.main
+      else withArgs [mode,"--file","tmp"]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ()) -- does this ever happen?
