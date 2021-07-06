@@ -1,5 +1,6 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE BangPatterns              #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE LambdaCase                #-}
 
 module Main (main) where
 
@@ -7,23 +8,32 @@ module Main (main) where
 import           Common
 import           Parsers
 import qualified PlutusCore                               as PLC
+import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
+import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
+
+import           Data.Foldable                            (asum)
+import           Data.Function                            ((&))
+import           Data.Functor                             (void)
+import           Data.List                                (nub)
+import           Data.List.Split                          (splitOn)
 
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import           Data.Function                            ((&))
-import           Data.Functor                             (void)
-import           Data.List                                (nub)
-
-import           Control.DeepSeq                          (rnf)
+import           Control.DeepSeq                          (NFData, rnf)
 import           Options.Applicative
 import           System.Exit                              (exitFailure, exitSuccess)
+import           Text.Read                                (readMaybe)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
 
 uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus uplcHelpText
+
+data BudgetMode  = Silent
+                 | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
+                     Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 
 data EvalOptions = EvalOptions Input Format PrintMode BudgetMode TimingMode CekModel
 
@@ -48,6 +58,54 @@ cekmodel = flag Default Unit
 evalOpts :: Parser EvalOptions
 evalOpts =
   EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> timingmode <*> cekmodel
+
+-- Reader for budget.  The --restricting option requires two integer arguments
+-- and the easiest way to do this is to supply a colon-separated pair of
+-- integers.
+exbudgetReader :: ReadM ExBudget
+exbudgetReader = do
+  s <- str
+  case splitOn ":" s of
+    [a,b] -> case (readMaybe a, readMaybe b) of
+               (Just cpu, Just mem) -> pure $ ExBudget (ExCPU cpu) (ExMemory mem)
+               _                    -> readerError badfmt
+    _     -> readerError badfmt
+    where badfmt = "Invalid budget (expected eg 10000:50000)"
+
+restrictingbudgetEnormous :: Parser BudgetMode
+restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
+                            (  long "restricting-enormous"
+                            <> short 'r'
+                            <> help "Run the machine in restricting mode with an enormous budget" )
+
+restrictingbudget :: Parser BudgetMode
+restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
+                    <$> option exbudgetReader
+                            (  long "restricting"
+                            <> short 'R'
+                            <> metavar "ExCPU:ExMemory"
+                            <> help "Run the machine in restricting mode with the given limits" )
+
+countingbudget :: Parser BudgetMode
+countingbudget = flag' (Verbose Cek.counting)
+                 (  long "counting"
+                 <> short 'c'
+                 <> help "Run machine in counting mode and report results" )
+
+tallyingbudget :: Parser BudgetMode
+tallyingbudget = flag' (Verbose Cek.tallying)
+                 (  long "tallying"
+                 <> short 't'
+                 <> help "Run machine in tallying mode and report results" )
+
+budgetmode :: Parser BudgetMode
+budgetmode = asum
+    [ restrictingbudgetEnormous
+    , restrictingbudget
+    , countingbudget
+    , tallyingbudget
+    , pure Silent
+    ]
 
 plutus ::
   -- | The @helpText@

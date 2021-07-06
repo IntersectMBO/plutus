@@ -26,7 +26,7 @@ plcInfoCommand :: ParserInfo Command
 plcInfoCommand = plutus plcHelpText
 
 data TypecheckOptions = TypecheckOptions Input Format
-data EvalOptions      = EvalOptions Input Format PrintMode BudgetMode TimingMode
+data EvalOptions      = EvalOptions Input Format PrintMode TimingMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 
 
@@ -50,7 +50,7 @@ eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> timingmode
+  EvalOptions <$> input <*> inputformat <*> printmode <*> timingmode
 
 plutus ::
   -- | The @helpText@
@@ -120,10 +120,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode budgetMode timingMode) = do
-  let !_ = case budgetMode of
-              Silent    -> ()
-              Verbose _ -> errorWithoutStackTrace "There is no budgeting for typed Plutus Core"
+runEval (EvalOptions inp ifmt printMode timingMode) = do
   prog <- getProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
       term = void . PLC.toTerm $ prog

@@ -1,10 +1,8 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE LambdaCase                #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Common where
 
@@ -233,9 +231,6 @@ data CekModel    = Default | Unit   -- Which cost model should we use for CEK ma
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
-data BudgetMode  = Silent
-                 | forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
-                     Verbose (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 -- | @Name@ can be @Name@s or de Bruijn indices when we (de)serialise the ASTs.
 -- PLC doesn't support de Bruijn indices when (de)serialising ASTs.
 -- UPLC supports @Name@ or de Bruijn indices.

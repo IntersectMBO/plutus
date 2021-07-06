@@ -6,17 +6,7 @@ module Parsers where
 
 import           Common
 
-import           PlutusCore.Evaluation.Machine.ExBudget   (ExBudget (..), ExRestrictingBudget (..))
-import           PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
-
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
-
-import           Data.Foldable                            (asum)
-import           Data.List.Split                          (splitOn)
-
 import           Options.Applicative
-
-import           Text.Read                                (readMaybe)
 
 -- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
 input :: Parser Input
@@ -83,55 +73,6 @@ outputformat = option (maybeReader formatReader)
   <> value Textual
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
-
--- Reader for budget.  The --restricting option requires two integer arguments
--- and the easiest way to do this is to supply a colon-separated pair of
--- integers.
-exbudgetReader :: ReadM ExBudget
-exbudgetReader = do
-  s <- str
-  case splitOn ":" s of
-    [a,b] -> case (readMaybe a, readMaybe b) of
-               (Just cpu, Just mem) -> pure $ ExBudget (ExCPU cpu) (ExMemory mem)
-               _                    -> readerError badfmt
-    _     -> readerError badfmt
-    where badfmt = "Invalid budget (expected eg 10000:50000)"
-
-restrictingbudgetEnormous :: Parser BudgetMode
-restrictingbudgetEnormous = flag' (Verbose Cek.restrictingEnormous)
-                            (  long "restricting-enormous"
-                            <> short 'r'
-                            <> help "Run the machine in restricting mode with an enormous budget" )
-
-restrictingbudget :: Parser BudgetMode
-restrictingbudget = Verbose . Cek.restricting . ExRestrictingBudget
-                    <$> option exbudgetReader
-                            (  long "restricting"
-                            <> short 'R'
-                            <> metavar "ExCPU:ExMemory"
-                            <> help "Run the machine in restricting mode with the given limits" )
-
-countingbudget :: Parser BudgetMode
-countingbudget = flag' (Verbose Cek.counting)
-                 (  long "counting"
-                 <> short 'c'
-                 <> help "Run machine in counting mode and report results" )
-
-tallyingbudget :: Parser BudgetMode
-tallyingbudget = flag' (Verbose Cek.tallying)
-                 (  long "tallying"
-                 <> short 't'
-                 <> help "Run machine in tallying mode and report results" )
-
-budgetmode :: Parser BudgetMode
-budgetmode = asum
-    [ restrictingbudgetEnormous
-    , restrictingbudget
-    , countingbudget
-    , tallyingbudget
-    , pure Silent
-    ]
-
 -- -x -> run 100 times and print the mean time
 timing1 :: Parser TimingMode
 timing1 = flag NoTiming (Timing 100)
