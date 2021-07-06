@@ -8,7 +8,7 @@ import Blockly.Internal (BlockDefinition, ElementId(..), centerOnBlock, getBlock
 import Blockly.Internal as Blockly
 import Blockly.Toolbox (Toolbox)
 import Blockly.Types as BT
-import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyState, _errorMessage, blocklyRef, emptyState)
+import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyEventSubscription, _blocklyReadyFired, _blocklyState, _errorMessage, blocklyRef, emptyState)
 import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), runExceptT, withExceptT)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
@@ -58,7 +58,7 @@ handleQuery ::
   MonadAff m =>
   Query a ->
   HalogenM State Action slots Message m (Maybe a)
-handleQuery (SetCode clearUndoStack code next) = do
+handleQuery (SetCode code next) = do
   mState <- use _blocklyState
   for_ mState \blocklyState -> do
     let
@@ -69,7 +69,7 @@ handleQuery (SetCode clearUndoStack code next) = do
           $ Parser.parseContract (Text.stripParens code)
     -- Create the blocks temporarily disabling the blockly events until they settle
     -- FIXME: check why buildBlocks requires we pass newBlock
-    runWithoutEventSubscription 100 BlocklyEvent $ buildBlocks clearUndoStack newBlock blocklyState contract
+    runWithoutEventSubscription 100 BlocklyEvent $ buildBlocks newBlock blocklyState contract
   assign _errorMessage Nothing
   pure $ Just next
 
@@ -170,7 +170,11 @@ handleAction (BlocklyEvent (BT.Select event)) = case newElementId event of
           blockType <- MaybeT $ map pure $ liftEffect $ getBlockType block
           MaybeT $ map pure $ raise $ BlockSelection $ Just { blockId, blockType }
 
-handleAction (BlocklyEvent (BT.FinishLoading _)) = raise BlocklyReady
+handleAction (BlocklyEvent (BT.FinishLoading _)) = do
+  alreadyFired <- use _blocklyReadyFired
+  when (not alreadyFired) do
+    raise BlocklyReady
+    assign _blocklyReadyFired true
 
 handleAction (BlocklyEvent event) = detectCodeChanges CodeChange event
 

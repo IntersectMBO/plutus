@@ -92,7 +92,6 @@ type State
     , editorErrors :: Array IMarkerData
     , editorWarnings :: Array IMarkerData
     , hasHoles :: Boolean
-    , comesFromBlockly :: Boolean
     , editorReady :: Boolean
     }
 
@@ -120,9 +119,6 @@ _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 _hasHoles :: Lens' State Boolean
 _hasHoles = prop (SProxy :: SProxy "hasHoles")
 
-_comesFromBlockly :: Lens' State Boolean
-_comesFromBlockly = prop (SProxy :: SProxy "comesFromBlockly")
-
 _editorReady :: Lens' State Boolean
 _editorReady = prop (SProxy :: SProxy "editorReady")
 
@@ -137,7 +133,6 @@ initialState =
   , editorErrors: mempty
   , editorWarnings: mempty
   , hasHoles: false
-  , comesFromBlockly: false
   , editorReady: false
   }
 
