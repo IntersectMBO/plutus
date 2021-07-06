@@ -104,9 +104,9 @@ printmode :: Parser PrintMode
 printmode = option auto
   (  long "print-mode"
   <> metavar "MODE"
-  <> value Classic
+  <> value Debug
   <> showDefault
-  <> help ("Print mode for plc output (ignored elsewhere): Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
+  <> help ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
         ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
