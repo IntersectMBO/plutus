@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -82,6 +83,7 @@ tests = testGroup "Marlowe"
     , testProperty "Multiply by zero" mulTest
     , testProperty "Scale rounding" scaleRoundingTest
     , zeroCouponBondTest
+    , errorHandlingTest
     , trustFundTest
     ]
 
@@ -99,6 +101,8 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag bob) (const True) "contract should close"
     T..&&. walletFundsChange alice (lovelaceValueOf (150))
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) OK) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) OK) "should be OK"
     ) $ do
     -- Init a contract
     let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
@@ -128,6 +132,37 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     Trace.callEndpoint @"close" aliceHdl ()
     Trace.callEndpoint @"close" bobHdl ()
     void $ Trace.waitNSlots 2
+
+
+errorHandlingTest :: TestTree
+errorHandlingTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Error handling"
+    (assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice)
+    (\case SomeError (TransitionError _) -> True
+           _                             -> False
+    ) "should be fail with SomeError"
+    ) $ do
+    -- Init a contract
+    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+
+    let params = defaultMarloweParams
+
+    let zeroCouponBond = When [ Case
+            (Deposit alicePk alicePk ada (Constant 850))
+            (Pay alicePk (Party bobPk) ada (Constant 850)
+                (When
+                    [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
+                ))] (Slot 100) Close
+
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
+
+    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.waitNSlots 2
+
+    Trace.callEndpoint @"apply-inputs" aliceHdl (params, Nothing, [IDeposit alicePk alicePk ada 1000])
+    Trace.waitNSlots 2
+    pure ()
 
 
 trustFundTest :: TestTree
