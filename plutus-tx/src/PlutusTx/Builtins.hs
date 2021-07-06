@@ -1,9 +1,4 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE PolyKinds #-}
--- This ensures that we don't put *anything* about these functions into the interface
--- file, otherwise GHC can be clever about the ones that are always error, even though
--- they're NOINLINE!
-{-# OPTIONS_GHC -O0 #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
                                 -- * Bytestring builtins
@@ -37,7 +32,7 @@ module PlutusTx.Builtins (
                                 -- * Data
                                 , Data (..)
                                 -- * Strings
-                                , String
+                                , BuiltinString
                                 , appendString
                                 , emptyString
                                 , charToString
@@ -47,194 +42,161 @@ module PlutusTx.Builtins (
                                 , trace
                                 ) where
 
-import qualified Crypto
-import           Data.ByteString      as BS
-import qualified Data.ByteString.Hash as Hash
-import           Data.Maybe           (fromMaybe)
-import           Prelude              hiding (String, error)
+import           Data.ByteString            as BS
+import           Prelude                    hiding (String, error)
 
 import           PlutusCore.Data
 
-import           PlutusTx.Utils       (mustBeReplaced)
+import           PlutusTx.Builtins.Class
+import           PlutusTx.Builtins.Internal (BuiltinString)
+import qualified PlutusTx.Builtins.Internal as BI
 
-{- Note [Builtin name definitions]
-The builtins here have definitions so they can be used in off-chain code too.
-
-However they *must* be replaced by the compiler when used in Plutus Tx code, so
-in particular they must *not* be inlined, otherwise we can't spot them to replace
-them.
--}
-
-{-# NOINLINE concatenate #-}
+{-# INLINABLE concatenate #-}
 -- | Concatenates two 'ByteString's.
 concatenate :: ByteString -> ByteString -> ByteString
-concatenate = BS.append
+concatenate x y = fromBuiltin (BI.concatenate (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE takeByteString #-}
+{-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> ByteString -> ByteString
-takeByteString n = BS.take (fromIntegral n)
+takeByteString n bs = fromBuiltin (BI.takeByteString (toBuiltin n) (toBuiltin bs))
 
-{-# NOINLINE dropByteString #-}
+{-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> ByteString -> ByteString
-dropByteString n = BS.drop (fromIntegral n)
+dropByteString n bs = fromBuiltin (BI.dropByteString (toBuiltin n) (toBuiltin bs))
 
-{-# NOINLINE emptyByteString #-}
+{-# INLINABLE emptyByteString #-}
 -- | An empty 'ByteString'.
 emptyByteString :: ByteString
-emptyByteString = BS.empty
+emptyByteString = fromBuiltin BI.emptyByteString
 
-{-# NOINLINE sha2_256 #-}
+{-# INLINABLE sha2_256 #-}
 -- | The SHA2-256 hash of a 'ByteString'
 sha2_256 :: ByteString -> ByteString
-sha2_256 = Hash.sha2
+sha2_256 b = fromBuiltin (BI.sha2_256 (toBuiltin b))
 
-{-# NOINLINE sha3_256 #-}
+{-# INLINABLE sha3_256 #-}
 -- | The SHA3-256 hash of a 'ByteString'
 sha3_256 :: ByteString -> ByteString
-sha3_256 = Hash.sha3
+sha3_256 b = fromBuiltin (BI.sha3_256 (toBuiltin b))
 
-{-# NOINLINE verifySignature #-}
+{-# INLINABLE verifySignature #-}
 -- | Verify that the signature is a signature of the message by the public key.
 verifySignature :: ByteString -> ByteString -> ByteString -> Bool
-verifySignature pubKey message signature =
-  fromMaybe False (Crypto.verifySignature pubKey message signature)
+verifySignature pubKey message signature = fromBuiltin (BI.verifySignature (toBuiltin pubKey) (toBuiltin message) (toBuiltin signature))
 
-{-# NOINLINE equalsByteString #-}
+{-# INLINABLE equalsByteString #-}
 -- | Check if two 'ByteString's are equal.
 equalsByteString :: ByteString -> ByteString -> Bool
-equalsByteString = (==)
+equalsByteString x y = fromBuiltin (BI.equalsByteString (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE lessThanByteString #-}
+{-# INLINABLE lessThanByteString #-}
 -- | Check if one 'ByteString' is less than another.
 lessThanByteString :: ByteString -> ByteString -> Bool
-lessThanByteString = (<)
+lessThanByteString x y = fromBuiltin (BI.lessThanByteString (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE greaterThanByteString #-}
+{-# INLINABLE greaterThanByteString #-}
 -- | Check if one 'ByteString' is greater than another.
 greaterThanByteString :: ByteString -> ByteString -> Bool
-greaterThanByteString = (>)
+greaterThanByteString x y = fromBuiltin (BI.greaterThanByteString (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE decodeUtf8 #-}
+{-# INLINABLE decodeUtf8 #-}
 -- | Converts a ByteString to a String.
-decodeUtf8 :: ByteString -> String
-decodeUtf8 = mustBeReplaced "decodeUtf8"
+decodeUtf8 :: ByteString -> BuiltinString
+decodeUtf8 x = BI.decodeUtf8 (toBuiltin x)
 
-{-# NOINLINE addInteger #-}
+{-# INLINABLE addInteger #-}
 -- | Add two 'Integer's.
 addInteger :: Integer -> Integer -> Integer
-addInteger = (+)
+addInteger x y = fromBuiltin (BI.addInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE subtractInteger #-}
+{-# INLINABLE subtractInteger #-}
 -- | Subtract two 'Integer's.
 subtractInteger :: Integer -> Integer -> Integer
-subtractInteger = (-)
+subtractInteger x y = fromBuiltin (BI.subtractInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE multiplyInteger #-}
+{-# INLINABLE multiplyInteger #-}
 -- | Multiply two 'Integer's.
 multiplyInteger :: Integer -> Integer -> Integer
-multiplyInteger = (*)
+multiplyInteger x y = fromBuiltin (BI.multiplyInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE divideInteger #-}
+{-# INLINABLE divideInteger #-}
 -- | Divide two integers.
 divideInteger :: Integer -> Integer -> Integer
-divideInteger = div
+divideInteger x y = fromBuiltin (BI.divideInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE modInteger #-}
+{-# INLINABLE modInteger #-}
 -- | Integer modulo operation.
 modInteger :: Integer -> Integer -> Integer
-modInteger = mod
+modInteger x y = fromBuiltin (BI.modInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE quotientInteger #-}
+{-# INLINABLE quotientInteger #-}
 -- | Quotient of two integers.
 quotientInteger :: Integer -> Integer -> Integer
-quotientInteger = quot
+quotientInteger x y = fromBuiltin (BI.quotientInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE remainderInteger #-}
+{-# INLINABLE remainderInteger #-}
 -- | Take the remainder of dividing two 'Integer's.
 remainderInteger :: Integer -> Integer -> Integer
-remainderInteger = rem
+remainderInteger x y = fromBuiltin (BI.remainderInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE greaterThanInteger #-}
+{-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger = (>)
+greaterThanInteger x y = fromBuiltin (BI.greaterThanInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE greaterThanEqInteger #-}
+{-# INLINABLE greaterThanEqInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
 greaterThanEqInteger :: Integer -> Integer -> Bool
-greaterThanEqInteger = (>=)
+greaterThanEqInteger x y = fromBuiltin (BI.greaterThanEqInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE lessThanInteger #-}
+{-# INLINABLE lessThanInteger #-}
 -- | Check whether one 'Integer' is less than another.
 lessThanInteger :: Integer -> Integer -> Bool
-lessThanInteger = (<)
+lessThanInteger x y = fromBuiltin (BI.lessThanInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE lessThanEqInteger #-}
+{-# INLINABLE lessThanEqInteger #-}
 -- | Check whether one 'Integer' is less than or equal to another.
 lessThanEqInteger :: Integer -> Integer -> Bool
-lessThanEqInteger = (<=)
+lessThanEqInteger x y = fromBuiltin (BI.lessThanEqInteger (toBuiltin x) (toBuiltin y))
 
-{-# NOINLINE equalsInteger #-}
+{-# INLINABLE equalsInteger #-}
 -- | Check if two 'Integer's are equal.
 equalsInteger :: Integer -> Integer -> Bool
-equalsInteger = (==)
+equalsInteger x y = fromBuiltin (BI.equalsInteger (toBuiltin x) (toBuiltin y))
 
-{- Note [Delaying error]
-The Plutus Core 'error' builtin is of type 'forall a . a', but the
-one we expose here is of type 'forall a . () -> a'.
-
-This is because it's hard to get the evaluation order right with
-the non-delayed version - it's easy to end up with it getting thrown
-unconditionally, or before some other effect (e.g. tracing). On the other
-hand, it's much easier to work with the delayed version.
-
-But why not just define that in the library? i.e.
-
-    error = \_ -> Builtins.error
-
-The answer is that GHC is eager to inline and reduce this function, which
-does the Wrong Thing. We can't stop GHC doing this (at the moment), but
-for most of our functions it's not a *semantic* problem. Here, however,
-it is a problem. So we just expose the delayed version as the builtin.
--}
-
-{-# NOINLINE error #-}
+{-# INLINABLE error #-}
 -- | Aborts evaluation with an error.
 error :: () -> a
-error = mustBeReplaced "error"
+error x = BI.error (toBuiltin x)
 
--- Note: IsString instance is in 'Prelude.hs'
--- | An opaque type representing Plutus Core strings.
-data String
-
-{-# NOINLINE appendString #-}
+{-# INLINABLE appendString #-}
 -- | Append two 'String's.
-appendString :: String -> String -> String
-appendString = mustBeReplaced "appendString"
+appendString :: BuiltinString -> BuiltinString -> BuiltinString
+appendString = BI.appendString
 
-{-# NOINLINE emptyString #-}
+{-# INLINABLE emptyString #-}
 -- | An empty 'String'.
-emptyString :: String
-emptyString = mustBeReplaced "emptyString"
+emptyString :: BuiltinString
+emptyString = BI.emptyString
 
-{-# NOINLINE charToString #-}
+{-# INLINABLE charToString #-}
 -- | Turn a 'Char' into a 'String'.
-charToString :: Char -> String
-charToString = mustBeReplaced "charToString"
+charToString :: Char -> BuiltinString
+charToString c = BI.charToString (toBuiltin c)
 
-{-# NOINLINE equalsString #-}
+{-# INLINABLE equalsString #-}
 -- | Check if two strings are equal
-equalsString :: String -> String -> Bool
-equalsString = mustBeReplaced "equalsString"
+equalsString :: BuiltinString -> BuiltinString -> Bool
+equalsString x y = fromBuiltin (BI.equalsString x y)
 
-{-# NOINLINE trace #-}
--- | Logs the given 'String' to the evaluation log.
-trace :: String -> ()
-trace _ = () --mustBeReplaced "trace"
+{-# INLINABLE trace #-}
+-- | Emit the given string as a trace message before evaluating the argument.
+trace :: BuiltinString -> a -> a
+trace s = BI.chooseUnit (BI.trace s)
 
-{-# NOINLINE encodeUtf8 #-}
+{-# INLINABLE encodeUtf8 #-}
 -- | Convert a String into a ByteString.
-encodeUtf8 :: String -> ByteString
-encodeUtf8 = mustBeReplaced "encodeUtf8"
+encodeUtf8 :: BuiltinString -> ByteString
+encodeUtf8 s = fromBuiltin (BI.encodeUtf8 s)

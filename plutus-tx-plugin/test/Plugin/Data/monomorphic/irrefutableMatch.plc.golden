@@ -2,6 +2,9 @@
   (let
     (nonrec)
     (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
       (datatype
         (tyvardecl MyMonoData (type))
 
@@ -10,9 +13,6 @@
         (vardecl Mono (fun (con integer) MyMonoData))
         (vardecl Mono (fun (con integer) MyMonoData))
       )
-    )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (lam
       ds

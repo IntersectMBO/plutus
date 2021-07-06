@@ -61,7 +61,7 @@ import           PlutusTx                 (makeIsDataIndexed)
 import           PlutusTx.AssocMap        (Map)
 import qualified PlutusTx.AssocMap        as Map
 import           PlutusTx.Lift            (makeLift)
-import           PlutusTx.Prelude         hiding (mapM, (<$>), (<*>), (<>))
+import           PlutusTx.Prelude         hiding (encodeUtf8, mapM, (<$>), (<*>), (<>))
 import           PlutusTx.Ratio           (denominator, numerator)
 import           Prelude                  (mapM, (<$>))
 import qualified Prelude                  as Haskell

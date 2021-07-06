@@ -6,7 +6,7 @@
 module PlutusTx.Compiler.Laziness where
 
 import {-# SOURCE #-}           PlutusTx.Compiler.Expr
-import {-# SOURCE #-}           PlutusTx.Compiler.Type
+import                          PlutusTx.Compiler.Type
 import                          PlutusTx.Compiler.Types
 import                          PlutusTx.PIRTypes
 

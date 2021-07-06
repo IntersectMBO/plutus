@@ -1,6 +1,13 @@
 (program
   (let
     (nonrec)
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam
+        x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ])
+      )
+    )
     (datatypebind
       (datatype
         (tyvardecl AdditiveMonoid (fun (type) (type)))
@@ -15,10 +22,7 @@
     (termbind
       (nonstrict)
       (vardecl fAdditiveMonoidInteger [AdditiveMonoid (con integer)])
-      [
-        [ { CConsAdditiveMonoid (con integer) } (builtin addInteger) ]
-        (con integer 0)
-      ]
+      [ [ { CConsAdditiveMonoid (con integer) } addInteger ] (con integer 0) ]
     )
     (datatypebind
       (datatype

@@ -13,23 +13,24 @@
       (strict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
-        arg
+        x
         (con integer)
         (lam
-          arg
+          y
           (con integer)
-          (let
-            (nonrec)
-            (termbind
-              (strict)
-              (vardecl b (con bool))
-              [ [ (builtin equalsInteger) arg ] arg ]
-            )
-            [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-          )
+          [
+            [
+              [
+                { (builtin ifThenElse) Bool }
+                [ [ (builtin equalsInteger) x ] y ]
+              ]
+              True
+            ]
+            False
+          ]
         )
       )
     )
-    (lam ds (con integer) (lam ds (con integer) [ [ equalsInteger ds ] ds ]))
+    equalsInteger
   )
 )

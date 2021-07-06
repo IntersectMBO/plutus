@@ -2,12 +2,7 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype
-        (tyvardecl Ordering (type))
-
-        Ordering_match
-        (vardecl EQ Ordering) (vardecl GT Ordering) (vardecl LT Ordering)
-      )
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (datatypebind
       (datatype
@@ -17,50 +12,13 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (termbind
-      (strict)
-      (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
-      (lam
-        arg
-        (con integer)
-        (lam
-          arg
-          (con integer)
-          (let
-            (nonrec)
-            (termbind
-              (strict)
-              (vardecl b (con bool))
-              [ [ (builtin equalsInteger) arg ] arg ]
-            )
-            [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-          )
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl lessThanEqInteger (fun (con integer) (fun (con integer) Bool)))
-      (lam
-        arg
-        (con integer)
-        (lam
-          arg
-          (con integer)
-          (let
-            (nonrec)
-            (termbind
-              (strict)
-              (vardecl b (con bool))
-              [ [ (builtin lessThanEqualsInteger) arg ] arg ]
-            )
-            [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-          )
-        )
-      )
-    )
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (datatype
+        (tyvardecl Ordering (type))
+
+        Ordering_match
+        (vardecl EQ Ordering) (vardecl GT Ordering) (vardecl LT Ordering)
+      )
     )
     (termbind
       (strict)
@@ -76,7 +34,22 @@
           [
             [
               [
-                { [ Bool_match [ [ equalsInteger x ] y ] ] (fun Unit Ordering) }
+                {
+                  [
+                    Bool_match
+                    [
+                      [
+                        [
+                          { (builtin ifThenElse) Bool }
+                          [ [ (builtin equalsInteger) x ] y ]
+                        ]
+                        True
+                      ]
+                      False
+                    ]
+                  ]
+                  (fun Unit Ordering)
+                }
                 (lam thunk Unit EQ)
               ]
               (lam
@@ -86,7 +59,19 @@
                   [
                     [
                       {
-                        [ Bool_match [ [ lessThanEqInteger x ] y ] ]
+                        [
+                          Bool_match
+                          [
+                            [
+                              [
+                                { (builtin ifThenElse) Bool }
+                                [ [ (builtin lessThanEqualsInteger) x ] y ]
+                              ]
+                              True
+                            ]
+                            False
+                          ]
+                        ]
                         (fun Unit Ordering)
                       }
                       (lam thunk Unit LT)
