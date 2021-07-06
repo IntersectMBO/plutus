@@ -9,7 +9,7 @@ import Data.Maybe (Maybe(..), isJust)
 import Data.String (Pattern(..), contains, toLower)
 import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, div_, input, span, text)
-import Halogen.HTML.Events (onBlur, onKeyUp, onMouseEnter, onMouseLeave)
+import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
 import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), autocomplete, id_, min, placeholder, readOnly, type_, value)
 import InputField.Lenses (_additionalCss, _baseCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value)
@@ -168,7 +168,6 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
               , readOnly $ view _readOnly options
               , min zero
               , onValueInput_ $ SetFormattedValue $ DecimalFormat decimals label
-              , onKeyUp $ const $ Just RefreshFormattedValue
               ]
           ]
       , div

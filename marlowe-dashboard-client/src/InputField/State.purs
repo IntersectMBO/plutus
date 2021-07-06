@@ -8,13 +8,15 @@ module InputField.State
 
 import Prelude
 import Control.Monad.Reader (class MonadAsk)
-import Data.Array (head, last, length, take)
+import Data.Array (head, last, length)
+import Data.Array (take) as Array
 import Data.BigInteger (BigInteger)
 import Data.BigInteger (fromInt, fromString) as BigInteger
 import Data.Int (pow)
 import Data.Lens (assign, set, use, view)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), split)
+import Data.String (take) as String
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
@@ -52,12 +54,20 @@ handleAction (SetValue value) =
     $ set _value value
     <<< set _pristine false
 
--- This handler is used for number inputs instead of SetValue. Since `getBigIntegerValue` and
--- `humanizeValue` are essentially inverses of each other, you might think it doesn't do anything
+-- This handler is used for number inputs instead of `SetValue`. Since `getBigIntegerValue` and
+-- `humanizeValue` are essentially inverses of each other, you might think it wouldn't do anything
 -- differently from what plain old SetValue does. But the difference is that this version sanitizes
 -- the user input, replacing empty strings with "0" and enforcing the right number of decimal
--- places.
-handleAction (SetFormattedValue numberFormat value) =
+-- places. Also there's an extra wrinkle. If the numeric value hasn't actually changed, then it
+-- seems Halogen doesn't bother updating the DOM. A sensible optimisation in general, but in this
+-- case we need to force the update, because the string value can change without the numeric value
+-- value changing, and we still want to update in that case. For example, if you add extra integers
+-- to the end of the string (beyond the number of decimal places allowed by the format), then those
+-- are discarded when the string is parsed - but before I added a workaround for this they would
+-- still show up in the DOM. To fix this, we manually set a different value before setting the new
+-- value. This forces the update to the DOM, and happens so fast that you don't notice it.
+handleAction (SetFormattedValue numberFormat value) = do
+  currentValue <- use _value
   let
     decimals = case numberFormat of
       DefaultFormat -> zero
@@ -66,18 +76,10 @@ handleAction (SetFormattedValue numberFormat value) =
     bigIntegerValue = getBigIntegerValue decimals value
 
     newValue = humanizeValue decimals bigIntegerValue
-  in
-    modify_
-      $ set _value newValue
-      <<< set _pristine false
 
--- This seemingly pointless action is used to force an update onKeyUp for number inputs. This is
--- needed because some edits to numeric inputs don't trigger the onValueChange handler. I *think*
--- this is because Halogen doesn't bubble the event up if the result of `parseFloat(value)` doesn't
--- change or is `NaN` - but I haven't investigated it thoroughly.
-handleAction RefreshFormattedValue = do
-  value <- use _value
-  assign _value value
+    forcedDifferentValue = humanizeValue decimals $ bigIntegerValue + (BigInteger.fromInt 1)
+  when (newValue == currentValue) $ handleAction $ SetValue forcedDifferentValue
+  handleAction $ SetValue newValue
 
 handleAction (SetValueFromDropdown value) = do
   handleAction $ SetValue value
@@ -110,7 +112,7 @@ handleAction Reset =
 getBigIntegerValue :: Int -> String -> BigInteger
 getBigIntegerValue decimals value =
   let
-    valueBits = take 2 $ split (Pattern ".") value
+    valueBits = Array.take 2 $ split (Pattern ".") value
 
     decimalString = if value /= "" then fromMaybe "0" $ head valueBits else "0"
 
@@ -120,7 +122,7 @@ getBigIntegerValue decimals value =
 
     dec = fromMaybe zero $ BigInteger.fromString decimalString
 
-    frac = fromMaybe zero $ BigInteger.fromString fractionalString
+    frac = fromMaybe zero $ BigInteger.fromString $ String.take decimals $ fractionalString
   in
     (dec * multiplier) + frac
 

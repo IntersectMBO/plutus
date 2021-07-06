@@ -43,7 +43,6 @@ type InputDisplayOptions
 data Action error
   = SetValue String
   | SetFormattedValue NumberFormat String
-  | RefreshFormattedValue
   | SetValueFromDropdown String
   | SetValidator (String -> Maybe error)
   | SetDropdownOpen Boolean
