@@ -7,6 +7,7 @@ module PlutusTx.Prelude (
     -- $prelude
     -- * Classes
     module Eq,
+    module Enum,
     module Ord,
     module Semigroup,
     module Monoid,
@@ -83,6 +84,7 @@ import           PlutusTx.Builtins    (ByteString, concatenate, dropByteString, 
                                        verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either
+import           PlutusTx.Enum        as Enum
 import           PlutusTx.Eq          as Eq
 import           PlutusTx.Foldable    as Foldable
 import           PlutusTx.Functor     as Functor
@@ -96,12 +98,12 @@ import           PlutusTx.Ratio       as Ratio
 import           PlutusTx.Semigroup   as Semigroup
 import           PlutusTx.String      as String
 import           PlutusTx.Traversable as Traversable
-import           Prelude              as Prelude hiding (Applicative (..), Eq (..), Foldable (..), Functor (..),
-                                                  Monoid (..), Num (..), Ord (..), Rational, Semigroup (..),
-                                                  Traversable (..), all, and, any, concat, concatMap, const, divMod,
-                                                  either, elem, error, filter, fst, head, id, length, map, mapM_, max,
-                                                  maybe, min, not, notElem, null, or, quotRem, reverse, round, sequence,
-                                                  snd, take, zip, (!!), ($), (&&), (++), (<$>), (||))
+import           Prelude              as Prelude hiding (Applicative (..), Enum (..), Eq (..), Foldable (..),
+                                                  Functor (..), Monoid (..), Num (..), Ord (..), Rational,
+                                                  Semigroup (..), Traversable (..), all, and, any, concat, concatMap,
+                                                  const, divMod, either, elem, error, filter, fst, head, id, length,
+                                                  map, mapM_, max, maybe, min, not, notElem, null, or, quotRem, reverse,
+                                                  round, sequence, snd, take, zip, (!!), ($), (&&), (++), (<$>), (||))
 import           Prelude              as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately

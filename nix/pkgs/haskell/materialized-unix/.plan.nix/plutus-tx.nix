@@ -65,6 +65,7 @@
           "PlutusTx/IsData"
           "PlutusTx/IsData/Class"
           "PlutusTx/Eq"
+          "PlutusTx/Enum"
           "PlutusTx/Either"
           "PlutusTx/Foldable"
           "PlutusTx/Functor"

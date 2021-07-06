@@ -42,7 +42,8 @@ import           Plutus.V1.Ledger.Interval
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
-    deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.IsData)
+    deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.IsData)
+    deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
 
 makeLift ''Slot
 
