@@ -31,11 +31,11 @@ import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
-import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payee(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Marlowe.Template (IntegerTemplateType(..))
 import Monaco (Editor)
 import Monaco as Monaco
-import Pretty (renderPrettyParty, renderPrettyToken, showPrettyChoice, showPrettyMoney)
+import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyChoice, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
 import SimulationPage.Lenses (_bottomPanelState)
 import SimulationPage.Types (Action(..), BottomPanelView(..), State)
@@ -617,17 +617,19 @@ inputToLine _ (SlotInterval start end) INotify =
   ]
 
 paymentToLines :: forall p a. MetaData -> SlotInterval -> Payment -> Array (HTML p a)
-paymentToLines metadata slotInterval (Payment party money) = join $ unfoldAssets money (paymentToLine metadata slotInterval party)
+paymentToLines metadata slotInterval (Payment accountId payee money) = join $ unfoldAssets money (paymentToLine metadata slotInterval accountId payee)
 
-paymentToLine :: forall p a. MetaData -> SlotInterval -> Party -> Token -> BigInteger -> Array (HTML p a)
-paymentToLine metadata (SlotInterval start end) party token money =
+paymentToLine :: forall p a. MetaData -> SlotInterval -> AccountId -> Payee -> Token -> BigInteger -> Array (HTML p a)
+paymentToLine metadata (SlotInterval start end) accountId payee token money =
   [ span_
       [ text "The contract pays "
       , strong_ [ text (showPrettyMoney money) ]
       , text " units of "
       , strong_ [ renderPrettyToken token ]
-      , text " to participant "
-      , strong_ [ renderPrettyParty metadata party ]
+      , text " to "
+      , strong_ $ renderPrettyPayee metadata payee
+      , text " from "
+      , strong_ $ renderPrettyPayee metadata (Account accountId)
       ]
   , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
   ]
