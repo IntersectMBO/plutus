@@ -123,7 +123,6 @@ haskell.project.shellFor {
   # We also use it in a deployment hack.
   # We have a local passwords store that we use for deployments etc.
   + ''
-    #export PLUTUS_ROOT=$(pwd)
-    #export PASSWORD_STORE_DIR="$(pwd)/secrets"
+    export ACTUS_TEST_DATA_DIR=${packages.actus-tests}/tests/
   '';
 }
