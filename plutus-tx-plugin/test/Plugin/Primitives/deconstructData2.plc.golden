@@ -5,19 +5,19 @@
       [ case_Tuple2_61 (con integer 1) ]
       (delay
         (lam
-          case_Nil_52
+          case_Nil_50
           (lam
-            case_Cons_53
+            case_Cons_51
             [
-              [ case_Cons_53 (con integer 2) ]
+              [ case_Cons_51 (con integer 2) ]
               (delay
                 (lam
-                  case_Nil_52
+                  case_Nil_50
                   (lam
-                    case_Cons_53
+                    case_Cons_51
                     [
-                      [ case_Cons_53 (con integer 3) ]
-                      (delay (lam case_Nil_48 (lam case_Cons_49 case_Nil_48)))
+                      [ case_Cons_51 (con integer 3) ]
+                      (delay (lam case_Nil_46 (lam case_Cons_47 case_Nil_46)))
                     ]
                   )
                 )

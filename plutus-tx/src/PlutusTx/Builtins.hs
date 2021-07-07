@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
--- DON'T turn on -fno-specialise if you can avoid id, see Note [Specializing recursive FromBuiltin instances]
 
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
