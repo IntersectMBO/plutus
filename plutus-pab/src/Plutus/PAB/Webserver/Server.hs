@@ -37,6 +37,7 @@ import           Servant.Client                  (BaseUrl (baseUrlPort), ClientE
 
 import           Cardano.Wallet.Types            (WalletInfo (..))
 import           Control.Monad.Freer.Extras.Log  (logInfo)
+import           Network.Wai.Middleware.Cors     (simpleCors)
 import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
 import qualified Plutus.PAB.Core                 as Core
 import qualified Plutus.PAB.Effects.Contract     as Contract
@@ -148,7 +149,7 @@ startServer' port walletClient fp availability = do
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
     void $ liftIO $
         forkFinally
-            (Warp.runSettings warpSettings $ app fp walletClient simRunner)
+            (Warp.runSettings warpSettings $ simpleCors $ app fp walletClient simRunner)
             (\_ -> putMVar mvar ())
 
     pure (mvar, liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
