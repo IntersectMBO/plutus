@@ -17,8 +17,8 @@
 module Plutus.V1.Ledger.Time(
       POSIXTime(..)
     , POSIXTimeRange
-    , DiffSeconds(..)
-    , fromSeconds
+    , DiffMilliSeconds(..)
+    , fromMilliSeconds
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
@@ -37,19 +37,20 @@ import           PlutusTx.Prelude
 import qualified Prelude                   as Haskell
 
 
--- | This is a length of time, as measured by a number of seconds.
-newtype DiffSeconds = DiffSeconds Integer
+-- | This is a length of time, as measured by a number of milliseconds.
+newtype DiffMilliSeconds = DiffMilliSeconds Integer
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
   deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.IsData)
 
-makeLift ''DiffSeconds
+makeLift ''DiffMilliSeconds
 
--- | POSIX time is measured as the number of seconds since 1970-01-01T00:00:00Z
+-- | POSIX time is measured as the number of milliseconds since 1970-01-01T00:00:00Z
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (FromJSONKey, ToJSONKey, NFData)
-  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.IsData)
+  deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.IsData)
+  deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
 
 -- | Custom `FromJSON` instance which allows to parse a JSON number to a
 -- 'POSIXTime' value. The parsed JSON value MUST be an 'Integer' or else the
@@ -78,7 +79,7 @@ instance Pretty (Interval POSIXTime) where
 -- | An 'Interval' of 'POSIXTime's.
 type POSIXTimeRange = Interval POSIXTime
 
--- | Simple conversion from 'DiffSeconds' to 'POSIXTime'.
-{-# INLINABLE fromSeconds #-}
-fromSeconds :: DiffSeconds -> POSIXTime
-fromSeconds (DiffSeconds s) = POSIXTime s
+-- | Simple conversion from 'DiffMilliSeconds' to 'POSIXTime'.
+{-# INLINABLE fromMilliSeconds #-}
+fromMilliSeconds :: DiffMilliSeconds -> POSIXTime
+fromMilliSeconds (DiffMilliSeconds s) = POSIXTime s

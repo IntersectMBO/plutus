@@ -32,7 +32,7 @@ instance Eq Builtins.ByteString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsByteString
 
-instance Eq Builtins.String where
+instance Eq Builtins.BuiltinString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsString
 
@@ -80,3 +80,10 @@ instance Eq Data where
     B _ == _                     = False
     List ls == List ls'          = ls == ls'
     List _  == _                 = False
+
+instance Eq Ordering where
+    {-# INLINABLE (==) #-}
+    EQ == EQ = True
+    GT == GT = True
+    LT == LT = True
+    _ == _   = False

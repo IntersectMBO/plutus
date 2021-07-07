@@ -237,7 +237,7 @@ member a i = i `contains` singleton a
 {-# INLINABLE overlaps #-}
 -- | Check whether two intervals overlap, that is, whether there is a value that
 --   is a member of both intervals.
-overlaps :: Ord a => Interval a -> Interval a -> Bool
+overlaps :: (Enum a, Ord a) => Interval a -> Interval a -> Bool
 overlaps l r = not $ isEmpty (l `intersection` r)
 
 {-# INLINABLE intersection #-}
@@ -260,11 +260,17 @@ contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
 
 {-# INLINABLE isEmpty #-}
 -- | Check if an 'Interval' is empty.
-isEmpty :: Ord a => Interval a -> Bool
+isEmpty :: (Enum a, Ord a) => Interval a -> Bool
 isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v2 of
-    LT -> False
+    LT -> if openInterval then checkEnds v1 v2 else False
     GT -> True
     EQ -> not (in1 && in2)
+    where
+        openInterval = in1 == False && in2 == False
+        -- | We check two finite ends to figure out if there are elements between them.
+        -- If there are no elements then the interval is empty (#3467).
+        checkEnds (Finite v1') (Finite v2') = (succ v1') `compare` v2' == EQ
+        checkEnds _ _                       = False
 
 {-# INLINABLE before #-}
 -- | Check if a value is earlier than the beginning of an 'Interval'.

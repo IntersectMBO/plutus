@@ -1,9 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE TemplateHaskell  #-}
-{-| A freer effect for querying the chain index
+{-| Freer effects for querying and updating the chain index state.
 -}
-module Plutus.ChainIndex.Query(
+module Plutus.ChainIndex.Effects(
+    -- * Query effect
     ChainIndexQueryEffect(..)
     , datumFromHash
     , validatorFromHash
@@ -12,16 +13,21 @@ module Plutus.ChainIndex.Query(
     , txFromTxId
     , utxoSetMembership
     , utxoSetAtAddress
-    , tip
+    , getTip
+    -- * Control effect
+    , ChainIndexControlEffect(..)
+    , appendBlock
+    , rollback
+    , collectGarbage
     ) where
 
 import           Control.Monad.Freer.TH  (makeEffect)
-import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Slot, TxId, Validator,
+import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, TxId, Validator,
                                           ValidatorHash)
 import           Ledger.Credential       (Credential)
 import           Ledger.Tx               (TxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
-import           Plutus.ChainIndex.Types (BlockId, Page)
+import           Plutus.ChainIndex.Types (Page, Tip)
 
 data ChainIndexQueryEffect r where
 
@@ -41,12 +47,29 @@ data ChainIndexQueryEffect r where
     TxFromTxId :: TxId -> ChainIndexQueryEffect (Maybe ChainIndexTx)
 
     -- | Whether a tx output is part of the UTXO set
-    UtxoSetMembership :: TxOutRef -> ChainIndexQueryEffect (Slot, Maybe BlockId, Bool)
+    UtxoSetMembership :: TxOutRef -> ChainIndexQueryEffect (Tip, Bool)
 
-    -- | How many unspent outputs are located at address with the given credential
-    UtxoSetAtAddress :: Credential -> ChainIndexQueryEffect (Page TxOutRef)
+    -- | Unspent outputs located at addresses with the given credential.
+    --   This returns at most 10 unspent outputs. There is currently no
+    --   way to ask for more pages and it is uncertain whether this query
+    --   will be part of the final API (because it is easy to clog up clients
+    --   by producing a large number of trash UTXOs at the address)
+    UtxoSetAtAddress :: Credential -> ChainIndexQueryEffect (Tip, Page TxOutRef)
 
     -- | Get the tip of the chain index
-    Tip :: ChainIndexQueryEffect (Slot, Maybe BlockId)
+    GetTip :: ChainIndexQueryEffect Tip
 
 makeEffect ''ChainIndexQueryEffect
+
+data ChainIndexControlEffect r where
+
+    -- | Add a new block to the chain index
+    AppendBlock :: Tip -> [ChainIndexTx] -> ChainIndexControlEffect ()
+
+    -- | Roll back to a previous state
+    Rollback    :: Tip -> ChainIndexControlEffect ()
+
+    -- | Delete all data that is not covered by current UTXOs.
+    CollectGarbage :: ChainIndexControlEffect ()
+
+makeEffect ''ChainIndexControlEffect

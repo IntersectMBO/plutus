@@ -288,6 +288,21 @@
           hsSourceDirs = [ "examples/atomic-swap-contract" ];
           mainPath = [ "Main.hs" ];
           };
+        "plutus-wait-for-tx" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "examples/wait-for-tx" ];
+          mainPath = [ "Main.hs" ];
+          };
         "plutus-pay-to-wallet" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))

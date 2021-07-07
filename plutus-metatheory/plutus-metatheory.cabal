@@ -71,6 +71,8 @@ library
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
     MAlonzo.Code.Algorithmic.CEKV
+    MAlonzo.Code.Algorithmic.ReductionEC
+    MAlonzo.Code.Algorithmic.CC
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Reduction
@@ -190,6 +192,7 @@ library
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Algebra
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Core
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties
+    MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Double
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Partial
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple
@@ -257,6 +260,8 @@ library
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
     MAlonzo.Code.Algorithmic.CEKV
+    MAlonzo.Code.Algorithmic.ReductionEC
+    MAlonzo.Code.Algorithmic.CC
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Reduction
@@ -376,6 +381,7 @@ library
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Algebra
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Core
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties
+    MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Double
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Partial
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple

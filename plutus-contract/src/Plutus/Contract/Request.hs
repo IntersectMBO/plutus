@@ -21,7 +21,7 @@ module Plutus.Contract.Request(
     , waitNSlots
     , awaitTime
     , currentTime
-    , waitNSeconds
+    , waitNMilliSeconds
     -- ** Querying the UTXO set
     , utxoAt
     -- ** Waiting for changes to the UTXO set
@@ -79,8 +79,8 @@ import           Data.Text.Extras            (tshow)
 import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
-import           Ledger                      (Address, DiffSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx, TxId,
-                                              TxOut (..), TxOutTx (..), Value, fromSeconds, txId)
+import           Ledger                      (Address, DiffMilliSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx,
+                                              TxId, TxOut (..), TxOutTx (..), Value, fromMilliSeconds, txId)
 import           Ledger.AddressMap           (UtxoMap)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
@@ -176,21 +176,21 @@ currentTime ::
     => Contract w s e POSIXTime
 currentTime = pabReq CurrentTimeReq E._CurrentTimeResp
 
--- | Wait for a number of seconds starting at the ending time of the current
+-- | Wait for a number of milliseconds starting at the ending time of the current
 -- slot, and return the latest time we know has passed.
 --
--- Example: if starting time is 0, slot length is 3s and current slot is 0, then
--- `waitNSeconds 0` returns the value `POSIXTime 2` and `waitNSeconds 1`
+-- Example: if starting time is 0, slot length is 3000ms and current slot is 0, then
+-- `waitNMilliSeconds 0` returns the value `POSIXTime 2000` and `waitNMilliSeconds 1000`
 -- returns the value `POSIXTime 5`.
-waitNSeconds ::
+waitNMilliSeconds ::
   forall w s e.
   ( AsContractError e
   )
-  => DiffSeconds
+  => DiffMilliSeconds
   -> Contract w s e POSIXTime
-waitNSeconds n = do
+waitNMilliSeconds n = do
   t <- currentTime
-  awaitTime $ t + fromSeconds n
+  awaitTime $ t + fromMilliSeconds n
 
 -- | Get the unspent transaction outputs at an address.
 utxoAt ::

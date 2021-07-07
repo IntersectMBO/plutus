@@ -20,7 +20,7 @@ module Plutus.Contract(
     , Request.waitNSlots
     , Request.awaitTime
     , Request.currentTime
-    , Request.waitNSeconds
+    , Request.waitNMilliSeconds
     -- * Endpoints
     , Request.HasEndpoint
     , Request.EndpointDescription(..)

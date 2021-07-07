@@ -12,27 +12,6 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (termbind
-      (strict)
-      (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
-      (lam
-        arg
-        (con integer)
-        (lam
-          arg
-          (con integer)
-          (let
-            (nonrec)
-            (termbind
-              (strict)
-              (vardecl b (con bool))
-              [ [ (builtin equalsInteger) arg ] arg ]
-            )
-            [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-          )
-        )
-      )
-    )
     (let
       (rec)
       (termbind
@@ -45,7 +24,19 @@
             [
               [
                 {
-                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                  [
+                    Bool_match
+                    [
+                      [
+                        [
+                          { (builtin ifThenElse) Bool }
+                          [ [ (builtin equalsInteger) n ] (con integer 0) ]
+                        ]
+                        True
+                      ]
+                      False
+                    ]
+                  ]
                   (fun Unit Bool)
                 }
                 (lam thunk Unit True)
@@ -72,7 +63,19 @@
             [
               [
                 {
-                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                  [
+                    Bool_match
+                    [
+                      [
+                        [
+                          { (builtin ifThenElse) Bool }
+                          [ [ (builtin equalsInteger) n ] (con integer 0) ]
+                        ]
+                        True
+                      ]
+                      False
+                    ]
+                  ]
                   (fun Unit Bool)
                 }
                 (lam thunk Unit False)

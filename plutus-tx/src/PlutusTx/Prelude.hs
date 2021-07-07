@@ -7,6 +7,7 @@ module PlutusTx.Prelude (
     -- $prelude
     -- * Classes
     module Eq,
+    module Enum,
     module Ord,
     module Semigroup,
     module Monoid,
@@ -32,7 +33,12 @@ module PlutusTx.Prelude (
     traceIfTrue,
     traceIfFalse,
     traceError,
-    module String,
+    BuiltinString,
+    appendString,
+    emptyString,
+    charToString,
+    equalsString,
+    encodeUtf8,
     -- * Error
     error,
     check,
@@ -78,11 +84,13 @@ module PlutusTx.Prelude (
 import           Data.String          (IsString (..))
 import           PlutusTx.Applicative as Applicative
 import           PlutusTx.Bool        as Bool
-import           PlutusTx.Builtins    (ByteString, concatenate, dropByteString, emptyByteString, equalsByteString,
-                                       greaterThanByteString, lessThanByteString, sha2_256, sha3_256, takeByteString,
-                                       verifySignature)
+import           PlutusTx.Builtins    (BuiltinString, ByteString, appendString, charToString, concatenate,
+                                       dropByteString, emptyByteString, emptyString, encodeUtf8, equalsByteString,
+                                       equalsString, error, greaterThanByteString, lessThanByteString, sha2_256,
+                                       sha3_256, takeByteString, trace, verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either
+import           PlutusTx.Enum        as Enum
 import           PlutusTx.Eq          as Eq
 import           PlutusTx.Foldable    as Foldable
 import           PlutusTx.Functor     as Functor
@@ -94,14 +102,13 @@ import           PlutusTx.Numeric     as Numeric
 import           PlutusTx.Ord         as Ord
 import           PlutusTx.Ratio       as Ratio
 import           PlutusTx.Semigroup   as Semigroup
-import           PlutusTx.String      as String
 import           PlutusTx.Traversable as Traversable
-import           Prelude              as Prelude hiding (Applicative (..), Eq (..), Foldable (..), Functor (..),
-                                                  Monoid (..), Num (..), Ord (..), Rational, Semigroup (..),
-                                                  Traversable (..), all, and, any, concat, concatMap, const, divMod,
-                                                  either, elem, error, filter, fst, head, id, length, map, mapM_, max,
-                                                  maybe, min, not, notElem, null, or, quotRem, reverse, round, sequence,
-                                                  snd, take, zip, (!!), ($), (&&), (++), (<$>), (||))
+import           Prelude              as Prelude hiding (Applicative (..), Enum (..), Eq (..), Foldable (..),
+                                                  Functor (..), Monoid (..), Num (..), Ord (..), Rational,
+                                                  Semigroup (..), Traversable (..), all, and, any, concat, concatMap,
+                                                  const, divMod, either, elem, error, filter, fst, head, id, length,
+                                                  map, mapM_, max, maybe, min, not, notElem, null, or, quotRem, reverse,
+                                                  round, sequence, snd, take, zip, (!!), ($), (&&), (++), (<$>), (||))
 import           Prelude              as Prelude (maximum, minimum)
 
 -- this module does lots of weird stuff deliberately
@@ -120,37 +127,24 @@ import           Prelude              as Prelude (maximum, minimum)
 -- >>> :set -XNoImplicitPrelude
 -- >>> import PlutusTx.Prelude
 
-{-# INLINABLE error #-}
--- | Terminate the evaluation of the script with an error message.
-error :: () -> a
-error = Builtins.error
-
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
 check b = if b then () else error ()
 
-{-# INLINABLE trace #-}
--- | Emit the given string as a trace message before evaluating the argument.
-trace :: Builtins.String -> a -> a
--- The builtin trace is just a side-effecting function that returns unit, so
--- we have to be careful to make sure it actually gets evaluated, and not
--- thrown away by GHC or the PIR compiler.
-trace str a = case Builtins.trace str of () -> a
-
 {-# INLINABLE traceError #-}
 -- | Log a message and then terminate the evaluation with an error.
-traceError :: Builtins.String -> a
+traceError :: Builtins.BuiltinString -> a
 traceError str = error (trace str ())
 
 {-# INLINABLE traceIfFalse #-}
--- | Emit the given 'String' only if the argument evaluates to 'False'.
-traceIfFalse :: Builtins.String -> Bool -> Bool
+-- | Emit the given 'BuiltinString' only if the argument evaluates to 'False'.
+traceIfFalse :: Builtins.BuiltinString -> Bool -> Bool
 traceIfFalse str a = if a then True else trace str False
 
 {-# INLINABLE traceIfTrue #-}
--- | Emit the given 'String' only if the argument evaluates to 'True'.
-traceIfTrue :: Builtins.String -> Bool -> Bool
+-- | Emit the given 'BuiltinString' only if the argument evaluates to 'True'.
+traceIfTrue :: Builtins.BuiltinString -> Bool -> Bool
 traceIfTrue str a = if a then trace str True else False
 
 {-# INLINABLE divide #-}
