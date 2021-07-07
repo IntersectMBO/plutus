@@ -429,7 +429,6 @@ executable plc
         optparse-applicative -any,
         prettyprinter -any,
         serialise -any,
-        split -any,
         text -any,
         transformers -any
 
@@ -451,7 +450,6 @@ executable uplc
         optparse-applicative -any,
         prettyprinter -any,
         serialise -any,
-        split -any,
         text -any,
         transformers -any
 
