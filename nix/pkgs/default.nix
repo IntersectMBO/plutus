@@ -211,7 +211,7 @@ in
   inherit aws-mfa-login;
   inherit lib;
 
-  cabal-plan = pkgs.haskell-nix.tool "ghc8104" "cabal-plan" {
+  cabal-plan = pkgs.haskell-nix.tool "ghc8105" "cabal-plan" {
             index-state = pkgs.haskell-nix.internalHackageIndexState;
             version = "0.7.2.0"; };
 }

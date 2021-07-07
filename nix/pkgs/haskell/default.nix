@@ -33,7 +33,7 @@ let
   # The compiler that we are using. We are using a patched version so we need to specify it explicitly.
   # This version has the experimental core interface files patch, and a fix for unboxed tuples in
   # GHCi, which helps with HLS.
-  compiler-nix-name = "ghc8104"; #"ghc810420210212"; #"ghc8104"; #20210212";
+  compiler-nix-name = "ghc8105"; #"ghc810420210212"; #"ghc8104"; #20210212";
 
   # The haskell project created by haskell-nix.stackProject'
   baseProject =
