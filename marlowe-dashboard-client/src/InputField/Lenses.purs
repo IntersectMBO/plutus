@@ -4,7 +4,6 @@ module InputField.Lenses
   , _validator
   , _dropdownOpen
   , _dropdownLocked
-  , _baseCss
   , _additionalCss
   , _id_
   , _placeholder
@@ -34,9 +33,6 @@ _dropdownLocked :: forall e. Lens' (State e) Boolean
 _dropdownLocked = prop (SProxy :: SProxy "dropdownLocked")
 
 ------------------------------------------------------------
-_baseCss :: Lens' InputDisplayOptions (Boolean -> Array String)
-_baseCss = prop (SProxy :: SProxy "baseCss")
-
 _additionalCss :: Lens' InputDisplayOptions (Array String)
 _additionalCss = prop (SProxy :: SProxy "additionalCss")
 

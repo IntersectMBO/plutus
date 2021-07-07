@@ -12,7 +12,7 @@ import Halogen.HTML (HTML, a, div, div_, input, span_, text)
 import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
 import Halogen.HTML.Events.Extra (onBlur_, onClick_, onFocus_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, type_, value)
-import InputField.Lenses (_additionalCss, _baseCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value)
+import InputField.Lenses (_additionalCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value)
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
 import Marlowe.Extended.Metadata (NumberFormat(..))
@@ -28,18 +28,17 @@ renderInput options@{ numberFormat: Nothing, valueOptions: [] } state =
 
     showError = not pristine && isJust mError
 
-    baseCss = view _baseCss options
-
     additionalCss = view _additionalCss options
   in
     div_
       [ input
           $ [ type_ InputText
-            , classNames $ (baseCss $ not showError) <> additionalCss
+            , classNames $ (Css.input $ not showError) <> additionalCss
             , id_ $ view _id_ options
             , placeholder $ view _placeholder options
             , value currentValue
             , readOnly $ view _readOnly options
+            , autocomplete false
             , onValueInput_ SetValue
             ]
       , div
@@ -61,8 +60,6 @@ renderInput options@{ numberFormat: Nothing, valueOptions } state =
 
     showError = not pristine && isJust mError
 
-    baseCss = view _baseCss options
-
     additionalCss = view _additionalCss options
 
     matchingValueOptions = filter (\v -> contains (Pattern $ toLower currentValue) (toLower v)) valueOptions
@@ -71,7 +68,7 @@ renderInput options@{ numberFormat: Nothing, valueOptions } state =
       [ classNames [ "relative" ] ]
       [ input
           $ [ type_ InputText
-            , classNames $ (baseCss $ not showError) <> additionalCss
+            , classNames $ (Css.inputNoFocus $ not showError) <> additionalCss
             , id_ $ view _id_ options
             , placeholder $ view _placeholder options
             , value currentValue
@@ -88,7 +85,7 @@ renderInput options@{ numberFormat: Nothing, valueOptions } state =
               []
       , div
           [ classNames
-              $ [ "absolute", "z-20", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-auto", "-mt-2", "pt-2", "bg-white", "shadow", "rounded-b", "transition-all", "duration-200" ]
+              $ [ "absolute", "z-20", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-auto", "-mt-2", "pt-2", "border-b", "border-l", "border-r", "border-gray", "bg-white", "shadow", "rounded-b", "transition-all", "duration-200" ]
               <> if (not dropdownOpen || matchingValueOptions == mempty) then [ "hidden", "opacity-0" ] else [ "opacity-100" ]
           , onMouseEnter $ const $ Just $ SetDropdownLocked true
           , onMouseLeave $ const $ Just $ SetDropdownLocked false
@@ -116,17 +113,16 @@ renderInput options@{ numberFormat: Just DefaultFormat } state =
 
     showError = not pristine && isJust mError
 
-    baseCss = view _baseCss options
-
     additionalCss = view _additionalCss options
   in
     div_
       [ input
           $ [ type_ InputNumber
-            , classNames $ (baseCss $ not showError) <> additionalCss
+            , classNames $ (Css.input $ not showError) <> additionalCss
             , id_ $ view _id_ options
             , value currentValue
             , readOnly $ view _readOnly options
+            , autocomplete false
             , onValueInput_ SetValue
             ]
       , div
@@ -144,8 +140,6 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
 
     showError = not pristine && isJust mError
 
-    baseCss = view _baseCss options
-
     additionalCss = view _additionalCss options
   in
     div_
@@ -159,6 +153,7 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
               , id_ $ view _id_ options
               , value currentValue
               , readOnly $ view _readOnly options
+              , autocomplete false
               , onValueInput_ SetValue
               , onBlur_ $ FormatValue $ DecimalFormat decimals label
               ]

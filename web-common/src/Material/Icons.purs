@@ -28,6 +28,9 @@ data Icon
   | Close
   | Contacts
   | Contract
+  | ContractContractForDifferences
+  | ContractLoan
+  | ContractPurchase
   | Done
   | DoneWithCircle
   | ErrorOutline
@@ -66,6 +69,12 @@ content Contacts = "people"
 
 content Contract = "history_edu"
 
+content ContractContractForDifferences = "trending_up"
+
+content ContractLoan = "wrap_text" -- FIXME: this is the wrong icon (I can't find the right one)
+
+content ContractPurchase = "swap_horiz"
+
 content Done = "done"
 
 content DoneWithCircle = "check_circle_outline"
@@ -100,7 +109,7 @@ content Running = "directions_run"
 
 content TaskAlt = "task_alt"
 
-content Terms = "alarm_add"
+content Terms = "drive_file_rename_outline"
 
 content Timer = "timer"
 
@@ -122,6 +131,12 @@ iconClass Close = "close"
 iconClass Contacts = "contacts"
 
 iconClass Contract = "contract"
+
+iconClass ContractContractForDifferences = "contract-contract-for-differences"
+
+iconClass ContractLoan = "contract-loan"
+
+iconClass ContractPurchase = "contract-purchase"
 
 iconClass Done = "done"
 
