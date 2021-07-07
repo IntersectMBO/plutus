@@ -402,7 +402,7 @@ data ScriptType = ValidatorScript | MintingPolicyScript
 data ScriptValidationEvent =
     ScriptValidationEvent
         { sveScript :: Script -- ^ The script applied to all arguments
-        , sveResult :: Either ScriptError (Api.ExBudget, [String]) -- ^ Result of running the script: an error or the trace logs
+        , sveResult :: Either ScriptError (Api.ExBudget, [String]) -- ^ Result of running the script: an error or the 'ExBudget' and trace logs
         , sveType   :: ScriptType -- ^ What type of script it was
         }
     deriving stock (Eq, Show, Generic)
