@@ -2,7 +2,7 @@
 {-|
 This module contains example values to be used for testing. These should NOT be used in non-test code!
 -}
-module Plutus.V1.Ledger.Examples where
+module Plutus.V1.Ledger.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction) where
 
 import           Codec.Serialise
 import           Data.ByteString.Lazy     (toStrict)
