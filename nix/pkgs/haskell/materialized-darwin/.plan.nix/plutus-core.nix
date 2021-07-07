@@ -331,7 +331,6 @@
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            (hsPkgs."split" or (errorHandler.buildDepError "split"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
@@ -352,7 +351,6 @@
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            (hsPkgs."split" or (errorHandler.buildDepError "split"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
