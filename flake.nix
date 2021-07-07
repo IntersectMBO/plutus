@@ -4,29 +4,39 @@
   inputs = {
     bitte-cli.follows = "bitte/bitte-cli";
     bitte.url = "github:input-output-hk/bitte";
-    #bitte.url = "path:/home/craige/source/IOHK/bitte";
+    # bitte.url = "path:/home/manveru/github/input-output-hk/bitte";
+    # bitte.url = "path:/home/jlotoski/work/iohk/bitte-wt/bitte";
     nixpkgs.follows = "bitte/nixpkgs";
     terranix.follows = "bitte/terranix";
     utils.url = "github:numtide/flake-utils";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
+    inclusive.follows = "bitte/inclusive";
   };
 
   outputs = { self, nixpkgs, utils, ops-lib, bitte, ... }:
-    (utils.lib.eachSystem [ "x86_64-linux" ] (system: rec {
+    (utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system: rec {
       overlay = import ./overlay.nix { inherit system self; };
 
       legacyPackages = import nixpkgs {
         inherit system;
-        config.allowUnfree = true; # for ssm-session-manager-plugin
+        config.allowUnfreePredicate = pkg:
+          let name = nixpkgs.lib.getName pkg;
+          in (builtins.elem name [ "ssm-session-manager-plugin" ])
+          || throw "unfree not allowed: ${name}";
         overlays = [ overlay ];
       };
 
       inherit (legacyPackages) devShell;
 
       packages = {
-        inherit (legacyPackages) bitte nixFlakes sops;
-        inherit (self.inputs.bitte.packages.${system})
-          terraform-with-plugins cfssl consul;
+        inherit (legacyPackages)
+          bitte nixFlakes sops generate-plutus-keys terraform-with-plugins cfssl
+          consul;
+      };
+
+      hydraJobs = packages // {
+        prebuilt-devshell =
+          devShell.overrideAttrs (_: { nobuildPhase = "touch $out"; });
       };
 
       apps.bitte = utils.lib.mkApp { drv = legacyPackages.bitte; };
@@ -36,7 +46,7 @@
         system = "x86_64-linux";
       };
     in {
-      inherit (pkgs) clusters nomadJobs dockerImages;
+      inherit (pkgs) clusters nomadJobs;
       nixosConfigurations = pkgs.nixosConfigurations // {
         # attrs of interest:
         # * config.system.build.zfsImage

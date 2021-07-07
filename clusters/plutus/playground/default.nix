@@ -10,6 +10,7 @@ let
   bitte = self.inputs.bitte;
 
   amis = {
+    us-east-2 = "ami-0492aa69cf46f79c3";
     eu-central-1 = "ami-0839f2c610f876d2d";
   };
 
@@ -21,11 +22,19 @@ in {
     intentions = "write";
   };
 
-  services.nomad.policies.admin.namespace."plutus-*".policy = "write";
-  services.nomad.policies.developer.namespace."plutus-*".policy = "write";
+  services.nomad.policies = {
+    admin.namespace."plutus-*".policy = "write";
+    developer = {
+      namespace."plutus-*".policy = "write";
+      agent.policy = "read";
+      quota.policy = "read";
+      node.policy = "read";
+      hostVolume."*".policy = "read";
+    };
+  };
 
   services.nomad.namespaces = {
-    plutus-playground = { description = "Plutus Playground"; };
+    plutus-playground.description = "Plutus playground";
   };
 
   cluster = {
@@ -33,7 +42,12 @@ in {
 
     adminNames = [
       "craige.mcwhirter"
+      "john.lotoski"
+      "michael.bishop"
       "michael.fellinger"
+      "samuel.evans-powell"
+      "samuel.leathers"
+      "shay.bergmann"
     ];
     developerGithubNames = [ ];
     developerGithubTeamNames = [ "plutus" ];
@@ -49,7 +63,11 @@ in {
     autoscalingGroups = listToAttrs (forEach [
       {
         region = "eu-central-1";
-        desiredCapacity = 2;
+        desiredCapacity = 8;
+      }
+      {
+        region = "us-east-2";
+        desiredCapacity = 8;
       }
     ] (args:
       let
@@ -67,7 +85,8 @@ in {
         '';
         attrs = ({
           desiredCapacity = 1;
-          instanceType = "t3a.large";
+          maxSize = 40;
+          instanceType = "c5.2xlarge";
           associatePublicIP = true;
           maxInstanceLifetime = 0;
           iam.role = cluster.iam.roles.client;
@@ -80,10 +99,12 @@ in {
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
             "${extraConfig}"
             ./secrets.nix
+            ./monitoring.nix
           ];
 
           securityGroupRules = {
-            inherit (securityGroupRules) internet internal ssh;
+            inherit (securityGroupRules)
+              internet internal ssh;
           };
           ami = amis.${args.region};
           userData = ''
@@ -109,7 +130,7 @@ in {
       in nameValuePair asgName attrs));
 
     instances = {
-        core-1 = {
+      core-1 = {
         instanceType = "t3a.medium";
         privateIP = "172.16.0.10";
         subnet = cluster.vpc.subnets.core-1;
@@ -124,22 +145,6 @@ in {
           inherit (securityGroupRules)
             internet internal ssh http https haproxyStats vault-http grpc;
         };
-
-        initialVaultSecrets = {
-          consul = ''
-            sops --decrypt --extract '["encrypt"]' ${
-              config.secrets.encryptedRoot + "/consul-clients.json"
-            } \
-            | vault kv put kv/bootstrap/clients/consul encrypt=-
-          '';
-
-          nomad = ''
-            sops --decrypt --extract '["server"]["encrypt"]' ${
-              config.secrets.encryptedRoot + "/nomad.json"
-            } \
-            | vault kv put kv/bootstrap/clients/nomad encrypt=-
-          '';
-        };
       };
 
       core-2 = {
@@ -150,8 +155,7 @@ in {
         modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
 
         securityGroupRules = {
-          inherit (securityGroupRules)
-            internet internal ssh http https haproxyStats vault-http grpc;
+          inherit (securityGroupRules) internet internal ssh;
         };
       };
 
@@ -163,8 +167,7 @@ in {
         modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
 
         securityGroupRules = {
-          inherit (securityGroupRules)
-            internet internal ssh http https haproxyStats vault-http grpc;
+          inherit (securityGroupRules) internet internal ssh;
         };
       };
 
@@ -172,7 +175,7 @@ in {
         instanceType = "t3a.large";
         privateIP = "172.16.0.20";
         subnet = cluster.vpc.subnets.core-1;
-        volumeSize = 40;
+        volumeSize = 500;
         route53.domains = [ "*.${cluster.domain}" ];
 
         modules = let
@@ -187,14 +190,15 @@ in {
         in [
           (bitte + /profiles/monitoring.nix)
           ./secrets.nix
-          "${extraConfig}"
           ./ingress.nix
+          "${extraConfig}"
           ./docker-registry.nix
+          ./minio.nix
         ];
 
         securityGroupRules = {
           inherit (securityGroupRules)
-            internet internal ssh http https docker-registry;
+            internet internal ssh http;
         };
       };
     };
