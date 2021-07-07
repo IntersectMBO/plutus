@@ -17,7 +17,7 @@ import Data.Lens (assign, set, use, view)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), split, splitAt)
 import Data.String (length, take) as String
-import Data.String.Extra (rightPadTo)
+import Data.String.Extra (leftPadTo, rightPadTo)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, modify_)
@@ -125,15 +125,13 @@ getBigIntegerValue decimals value =
 formatBigIntegerValue :: Int -> BigInteger -> String
 formatBigIntegerValue decimals value =
   let
-    string = show value
+    string = leftPadTo decimals "0" $ show value
 
     len = String.length string
 
-    { after, before } = splitAt (len - decimals) string
+    { after: fractionalString, before } = splitAt (len - decimals) string
 
     decimalString = if before == "" then "0" else before
-
-    fractionalString = rightPadTo decimals "0" after
   in
     decimalString <> "." <> fractionalString
 
