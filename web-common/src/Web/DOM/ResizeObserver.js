@@ -24,7 +24,7 @@ exports._observe = function (element) {
 exports.unobserve = function (element) {
     return function (observer) {
       return function () {
-        return observer.observe(element, config);
+        return observer.unobserve(element);
       };
     };
 };

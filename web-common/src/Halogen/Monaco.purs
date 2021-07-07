@@ -111,6 +111,7 @@ data Action
 
 data Message
   = TextChanged String
+  | EditorReady
 
 type Settings m
   = { languageExtensionPoint :: LanguageExtensionPoint
@@ -178,13 +179,13 @@ handleAction settings Init = do
         for_ settings.codeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
         for_ settings.documentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId
       editor <- liftEffect $ Monaco.create monaco element languageId
-      void $ H.subscribe $ effectEventSource (changeContentHandler editor)
       void $ H.modify (_ { editor = Just editor })
       H.lift $ settings.setup editor
       model <- liftEffect $ Monaco.getModel editor
-      H.raise $ TextChanged (Monaco.getValue model)
       void $ H.subscribe $ elementResize ContentBox (const ResizeWorkspace) (HTMLElement.toElement element)
-      pure unit
+      H.raise EditorReady
+      H.raise $ TextChanged (Monaco.getValue model)
+      void $ H.subscribe $ effectEventSource (changeContentHandler editor)
     Nothing -> pure unit
 
 handleAction _ (HandleChange contents) = H.raise $ TextChanged contents

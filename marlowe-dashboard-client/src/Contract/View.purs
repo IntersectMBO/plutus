@@ -99,7 +99,7 @@ contractDetailsCard currentSlot state =
   in
     div
       [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
-      , lifeCycleEvent { onInit: Just CarouselOpened, onFinilize: Just CarouselClosed }
+      , lifeCycleEvent { onInit: Just CarouselOpened, onFinalize: Just CarouselClosed }
       ]
       [ input
           [ classNames [ "text-xl", "font-semibold", "text-center", "bg-transparent" ]
