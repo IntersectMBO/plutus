@@ -86,21 +86,21 @@ formatTime =
 
 humanizeValue :: Token -> BigInteger -> String
 -- TODO: use a different currencyFormatter with no decimal places when they're all zero
-humanizeValue (Token "" "") value = "₳ " <> Number.format (numberFormatter true 6) (toAda value)
+humanizeValue (Token "" "") value = "₳ " <> Number.format (numberFormatter 6) (toAda value)
 
-humanizeValue (Token "" "dollar") value = "$ " <> Number.format (numberFormatter true 2) (toNumber value)
+humanizeValue (Token "" "dollar") value = "$ " <> Number.format (numberFormatter 2) (toNumber value)
 
-humanizeValue (Token _ name) value = Number.format (numberFormatter true 0) (toNumber value) <> " " <> name
+humanizeValue (Token _ name) value = Number.format (numberFormatter 0) (toNumber value) <> " " <> name
 
 toAda :: BigInteger -> Number
 toAda lovelace = (toNumber lovelace) / 1000000.0
 
-numberFormatter :: Boolean -> Int -> Number.Formatter
-numberFormatter comma decimals =
+numberFormatter :: Int -> Number.Formatter
+numberFormatter decimals =
   Number.Formatter
     { sign: false
     , before: 0
-    , comma
+    , comma: true
     , after: decimals
     , abbreviations: false
     }
