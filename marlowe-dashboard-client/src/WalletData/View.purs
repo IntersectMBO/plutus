@@ -20,7 +20,7 @@ import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, button, div, h2, h3, h4, input, label, li, p, p_, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (InputType(..), disabled, for, readOnly, type_, value)
-import Humanize (humanizeToken)
+import Humanize (humanizeValue)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (State) as InputField
@@ -155,7 +155,7 @@ putdownWalletCard walletDetails =
               [ text "Balance:" ]
           , p
               [ classNames Css.funds ]
-              [ text $ humanizeToken adaToken $ getAda assets ]
+              [ text $ humanizeValue adaToken $ getAda assets ]
           ]
       , div
           [ classNames [ "flex" ] ]

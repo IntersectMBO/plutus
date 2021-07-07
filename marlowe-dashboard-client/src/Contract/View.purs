@@ -30,7 +30,7 @@ import Halogen.Extra (lifeCycleEvent)
 import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
-import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeToken)
+import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
 import Marlowe.Execution.Lenses (_currentState, _mNextTimeout)
 import Marlowe.Execution.State (expandBalances, getActionParticipant)
 import Marlowe.Execution.Types (NamedAction(..))
@@ -183,11 +183,11 @@ actionConfirmationCard assets state namedAction =
         , span [ classNames [ "font-semibold" ] ] amountHtml
         ]
 
-    transactionFeeItem = detailItem [ text "Transaction fee", sup_ [ text "*" ], text ":" ] [ text $ humanizeToken adaToken transactionFee ]
+    transactionFeeItem = detailItem [ text "Transaction fee", sup_ [ text "*" ], text ":" ] [ text $ humanizeValue adaToken transactionFee ]
 
     actionAmountItems = case namedAction of
       MakeDeposit _ _ token amount ->
-        [ detailItem [ text "Deposit amount:" ] [ text $ humanizeToken token amount ] false
+        [ detailItem [ text "Deposit amount:" ] [ text $ humanizeValue token amount ] false
         , transactionFeeItem true
         ]
       MakeChoice _ _ (Just option) ->
@@ -207,7 +207,7 @@ actionConfirmationCard assets state namedAction =
     div_
       [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
           [ span_ [ text "Demo wallet balance:" ]
-          , span_ [ text $ humanizeToken adaToken $ getAda assets ]
+          , span_ [ text $ humanizeValue adaToken $ getAda assets ]
           ]
       , div [ classNames [ "px-5", "pb-6", "pt-3", "md:pb-8" ] ]
           [ h2
@@ -223,7 +223,7 @@ actionConfirmationCard assets state namedAction =
               [ text "Confirm payment of:" ]
           , div
               [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-              [ text $ humanizeToken adaToken totalToPay ]
+              [ text $ humanizeValue adaToken totalToPay ]
           , div [ classNames [ "flex", "justify-center" ] ]
               [ button
                   [ classNames $ Css.secondaryButton <> [ "mr-2", "flex-1" ]
@@ -404,7 +404,7 @@ renderPartyPastActions state { inputs, interval, party } =
                 PK publicKey -> publicKey <> " public key"
                 Role roleName -> roleName <> "'s"
         in
-          div [] [ text $ fromDescription <> " made a deposit of " <> humanizeToken token value <> " into " <> toDescription <> " account " <> intervalDescription ]
+          div [] [ text $ fromDescription <> " made a deposit of " <> humanizeValue token value <> " into " <> toDescription <> " account " <> intervalDescription ]
       IChoice (ChoiceId choiceIdKey _) chosenNum -> div [] [ text $ fromDescription <> " chose " <> show chosenNum <> " for " <> show choiceIdKey <> " " <> intervalDescription ]
       _ -> div_ []
   in
@@ -628,7 +628,7 @@ renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) 
           , onClick_ $ AskConfirmation namedAction
           ]
           [ span_ [ text "Deposit:" ]
-          , span_ [ text $ humanizeToken token value ]
+          , span_ [ text $ humanizeValue token value ]
           ]
       ]
 
@@ -754,7 +754,7 @@ renderBalances state accounts =
               <#> ( \((party /\ token) /\ amount) ->
                     div [ classNames [ "flex", "justify-between", "py-3", "border-t" ] ]
                       [ span_ [ text $ participantWithNickname state party ]
-                      , span [ classNames [ "font-semibold" ] ] [ text $ humanizeToken token amount ]
+                      , span [ classNames [ "font-semibold" ] ] [ text $ humanizeValue token amount ]
                       ]
                 )
           )

@@ -3,7 +3,7 @@ module Humanize
   , formatDate
   , formatTime
   , humanizeInterval
-  , humanizeToken
+  , humanizeValue
   ) where
 
 import Prelude
@@ -84,13 +84,13 @@ formatTime =
         , DateTime.MinutesTwoDigits
         ]
 
-humanizeToken :: Token -> BigInteger -> String
+humanizeValue :: Token -> BigInteger -> String
 -- TODO: use a different currencyFormatter with no decimal places when they're all zero
-humanizeToken (Token "" "") value = "₳ " <> Number.format (numberFormatter true 6) (toAda value)
+humanizeValue (Token "" "") value = "₳ " <> Number.format (numberFormatter true 6) (toAda value)
 
-humanizeToken (Token "" "dollar") value = "$ " <> Number.format (numberFormatter true 2) (toNumber value)
+humanizeValue (Token "" "dollar") value = "$ " <> Number.format (numberFormatter true 2) (toNumber value)
 
-humanizeToken (Token _ name) value = Number.format (numberFormatter true 0) (toNumber value) <> " " <> name
+humanizeValue (Token _ name) value = Number.format (numberFormatter true 0) (toNumber value) <> " " <> name
 
 toAda :: BigInteger -> Number
 toAda lovelace = (toNumber lovelace) / 1000000.0

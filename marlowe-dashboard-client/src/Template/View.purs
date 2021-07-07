@@ -19,7 +19,7 @@ import Halogen.Css (applyWhen, classNames, hideWhen)
 import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, type_, value)
-import Humanize (humanizeToken)
+import Humanize (humanizeValue)
 import InputField.Types (State) as InputField
 import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
@@ -273,7 +273,7 @@ reviewAndPay accessible metaData =
                 [ text "Fee to pay:" ]
             , p
                 [ classNames Css.funds ]
-                [ text $ humanizeToken adaToken contractCreationFee ]
+                [ text $ humanizeValue adaToken contractCreationFee ]
             ]
         ]
     , div
@@ -340,7 +340,7 @@ contractSetupConfirmationCard assets =
     div_
       [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
           [ span_ [ text "Demo wallet balance:" ]
-          , span_ [ text $ humanizeToken adaToken $ getAda assets ]
+          , span_ [ text $ humanizeValue adaToken $ getAda assets ]
           ]
       , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
           [ p
@@ -348,7 +348,7 @@ contractSetupConfirmationCard assets =
               [ text "Confirm payment of:" ]
           , p
               [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-              [ text $ humanizeToken adaToken contractCreationFee ]
+              [ text $ humanizeValue adaToken contractCreationFee ]
           , div
               [ classNames [ "flex" ] ]
               [ button
