@@ -165,12 +165,12 @@ instance FromBuiltin arep a => FromBuiltin (BuiltinList arep) [a] where
 instance ToBuiltin [BuiltinData] (BuiltinList BuiltinData) where
     {-# INLINABLE toBuiltin #-}
     toBuiltin []     = mkNilData unitval
-    toBuiltin (d:ds) = mkConsData d (toBuiltin ds)
+    toBuiltin (d:ds) = mkCons d (toBuiltin ds)
 
 instance ToBuiltin [(BuiltinData, BuiltinData)] (BuiltinList (BuiltinPair BuiltinData BuiltinData)) where
     {-# INLINABLE toBuiltin #-}
     toBuiltin []     = mkNilPairData unitval
-    toBuiltin (d:ds) = mkConsPairData (toBuiltin d) (toBuiltin ds)
+    toBuiltin (d:ds) = mkCons (toBuiltin d) (toBuiltin ds)
 
 instance FromBuiltin BuiltinData BuiltinData where
     {-# INLINABLE fromBuiltin #-}

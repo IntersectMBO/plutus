@@ -260,17 +260,13 @@ tail (BuiltinList [])     = Prelude.error "empty list"
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []
 
-{-# NOINLINE mkConsData #-}
-mkConsData :: BuiltinData -> BuiltinList BuiltinData -> BuiltinList BuiltinData
-mkConsData d (BuiltinList ds) = BuiltinList (d:ds)
-
 {-# NOINLINE mkNilPairData #-}
 mkNilPairData :: BuiltinUnit -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
 mkNilPairData _ = BuiltinList []
 
-{-# NOINLINE mkConsPairData #-}
-mkConsPairData :: BuiltinPair BuiltinData BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData) -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-mkConsPairData d (BuiltinList ds) = BuiltinList (d:ds)
+{-# NOINLINE mkCons #-}
+mkCons :: a -> BuiltinList a -> BuiltinList a
+mkCons a (BuiltinList as) = BuiltinList (a:as)
 
 {-
 DATA
