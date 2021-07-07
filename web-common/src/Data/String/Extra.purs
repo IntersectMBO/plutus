@@ -2,6 +2,7 @@ module Data.String.Extra
   ( abbreviate
   , toHex
   , leftPadTo
+  , rightPadTo
   , repeat
   , unlines
   , capitalize
@@ -38,6 +39,11 @@ toHex =
 
 leftPadTo :: Int -> String -> String -> String
 leftPadTo length prefix str = repeat (max 0 (length - strlen)) prefix <> str
+  where
+  strlen = String.length str
+
+rightPadTo :: Int -> String -> String -> String
+rightPadTo length suffix str = str <> repeat (max 0 (length - strlen)) suffix
   where
   strlen = String.length str
 

@@ -9,6 +9,7 @@ module Css
   , whiteButton
   , input
   , inputNoFocus
+  , unstyledInput
   , inputCard
   , inputCardNoFocus
   , inputError
@@ -88,25 +89,26 @@ inputBase =
   , "border"
   , "border-transparent"
   , "focus:border-transparent"
+  , "focus-within:border-transparent"
   ]
 
+-- note we set rings on focus-within as well as focus, so that we can use these classes on divs
+-- with unstyled inputs inside them, making that whole parent div look like the input
 inputBaseFocus :: Array String
-inputBaseFocus = inputBase <> [ "focus:ring-1" ]
+inputBaseFocus = inputBase <> [ "focus:ring-1", "focus-within:ring-1" ]
 
 inputBaseNoFocus :: Array String
 inputBaseNoFocus = inputBase <> [ "focus:ring-0" ]
 
 input :: Boolean -> Array String
-input valid =
-  inputBaseFocus
-    <> [ "border-gray" ]
-    <> applyWhen (not valid) [ "border-red" ]
+input valid = inputBaseFocus <> if valid then [ "border-gray" ] else [ "border-red" ]
 
 inputNoFocus :: Boolean -> Array String
-inputNoFocus valid =
-  inputBaseNoFocus
-    <> [ "border-gray" ]
-    <> applyWhen (not valid) [ "border-red" ]
+inputNoFocus valid = inputBaseNoFocus <> if valid then [ "border-gray" ] else [ "border-red" ]
+
+-- use this on an input inside a div styled like an input
+unstyledInput :: Array String
+unstyledInput = [ "p-0", "border-0", "focus:ring-0" ]
 
 withNestedLabel :: Array String
 withNestedLabel = [ "border-gray", "focus:border-gray" ]

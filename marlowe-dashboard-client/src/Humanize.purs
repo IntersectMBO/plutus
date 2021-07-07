@@ -3,7 +3,6 @@ module Humanize
   , formatDate
   , formatTime
   , humanizeInterval
-  , humanizeValue
   , humanizeToken
   ) where
 
@@ -12,7 +11,7 @@ import Data.BigInteger (BigInteger, toNumber)
 import Data.DateTime (DateTime)
 import Data.Formatter.DateTime (FormatterCommand(..), format) as DateTime
 import Data.Formatter.Number (Formatter(..), format) as Number
-import Data.Int (floor, pow, round)
+import Data.Int (floor, round)
 import Data.Int (toNumber) as Int
 import Data.List as List
 import Data.Maybe (Maybe(..))
@@ -84,20 +83,6 @@ formatTime =
         , DateTime.Placeholder ":"
         , DateTime.MinutesTwoDigits
         ]
-
-humanizeValue :: Int -> BigInteger -> String
-humanizeValue decimals value =
-  let
-    numericValue = toNumber value
-
-    -- we display the number as the actual value divided by 10^decimals - this is useful for e.g.
-    -- displaying lovelace values as ada (decimals == 6), or cents as dollars (decimals == 2)
-    correctedValue = numericValue / (Int.toNumber $ pow 10 decimals)
-  in
-    -- we don't include the comma in this case, because this function is used to format the values
-    -- in number inputs, where browsers natively disallow commas (the value is a string, but it
-    -- must be one that can be parsed directly as a number)
-    Number.format (numberFormatter false decimals) correctedValue
 
 humanizeToken :: Token -> BigInteger -> String
 -- TODO: use a different currencyFormatter with no decimal places when they're all zero

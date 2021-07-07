@@ -8,10 +8,10 @@ import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String (Pattern(..), contains, toLower)
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, div, div_, input, span, text)
+import Halogen.HTML (HTML, a, div, div_, input, span_, text)
 import Halogen.HTML.Events (onBlur, onMouseEnter, onMouseLeave)
-import Halogen.HTML.Events.Extra (onClick_, onFocus_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), autocomplete, id_, min, placeholder, readOnly, type_, value)
+import Halogen.HTML.Events.Extra (onBlur_, onClick_, onFocus_, onValueInput_)
+import Halogen.HTML.Properties (InputType(..), autocomplete, id_, placeholder, readOnly, type_, value)
 import InputField.Lenses (_additionalCss, _baseCss, _dropdownLocked, _dropdownOpen, _id_, _placeholder, _pristine, _readOnly, _value)
 import InputField.State (validate)
 import InputField.Types (class InputFieldError, Action(..), InputDisplayOptions, State, inputErrorToString)
@@ -44,7 +44,7 @@ renderInput options@{ numberFormat: Nothing, valueOptions: [] } state =
             ]
       , div
           [ classNames Css.inputError ]
-          [ text if showError then foldMap inputErrorToString mError else "" ]
+          [ text if showError then foldMap inputErrorToString mError else mempty ]
       ]
 
 renderInput options@{ numberFormat: Nothing, valueOptions } state =
@@ -131,7 +131,7 @@ renderInput options@{ numberFormat: Just DefaultFormat } state =
             ]
       , div
           [ classNames Css.inputError ]
-          [ text if showError then foldMap inputErrorToString mError else "" ]
+          [ text if showError then foldMap inputErrorToString mError else mempty ]
       ]
 
 renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state =
@@ -150,26 +150,20 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
   in
     div_
       [ div
-          [ classNames [ "relative" ] ]
-          -- FIXME: This absolutely positioned span is fine for single-character labels (like "₳"
-          -- or "$"), but won't work for the general case. I'll sort this in the next PR - it's not
-          -- trivial, because we'll need to remove the border and focus of the input, and put that
-          -- in the containing div instead (and add a `focus` flag to the InputField state),
-          -- creating a flex div that looks like an input. Then the label can take as much space as
-          -- it needs and the input itself can flex-grow to fill whatever's left.
-          [ span
-              [ classNames [ "absolute", "top-0", "left-0", "p-4", "border", "border-transparent" ] ]
+          [ classNames $ Css.input (not showError) <> [ "flex", "gap-1" ] ]
+          [ span_
               [ text label ]
           , input
               [ type_ InputNumber
-              , classNames $ Css.input true <> [ "pl-8" ]
+              , classNames $ Css.unstyledInput <> [ "flex-1" ]
               , id_ $ view _id_ options
               , value currentValue
               , readOnly $ view _readOnly options
-              , onValueInput_ $ SetFormattedValue $ DecimalFormat decimals label
+              , onValueInput_ SetValue
+              , onBlur_ $ FormatValue $ DecimalFormat decimals label
               ]
           ]
       , div
           [ classNames Css.inputError ]
-          [ text if showError then foldMap inputErrorToString mError else "" ]
+          [ text if showError then foldMap inputErrorToString mError else mempty ]
       ]
