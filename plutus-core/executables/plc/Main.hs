@@ -44,7 +44,6 @@ data Command = Apply     ApplyOptions
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TypecheckOptions <$> input <*> inputformat
 
-
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
@@ -89,7 +88,6 @@ plutusOpts = hsubparser (
            (info (Eval <$> evalOpts)
             (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
   )
-
 
 ---------------- Script application ----------------
 

@@ -4,7 +4,6 @@
 
 module Main (main) where
 
-
 import           Common
 import           Parsers
 import qualified PlutusCore                               as PLC
@@ -37,8 +36,8 @@ data BudgetMode  = Silent
 
 data EvalOptions = EvalOptions Input Format PrintMode BudgetMode TimingMode CekModel
 
+---------------- Main commands -----------------
 
--- Main commands
 data Command = Apply     ApplyOptions
              | Convert   ConvertOptions
              | Print     PrintOptions
@@ -46,7 +45,6 @@ data Command = Apply     ApplyOptions
              | Eval      EvalOptions
 
 ---------------- Option parsers ----------------
-
 
 cekmodel :: Parser CekModel
 cekmodel = flag Default Unit
@@ -216,7 +214,6 @@ runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
     writeProgram outp ofmt mode program
-
 
 main :: IO ()
 main = do
