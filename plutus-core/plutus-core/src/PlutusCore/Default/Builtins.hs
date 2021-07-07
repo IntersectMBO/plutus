@@ -346,12 +346,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning MkNilData =
         -- Nullary builtins don't work, so we need a unit argument
         makeBuiltinMeaning
-            ((\() -> []) :: () -> [Data])
+            @(() -> [Data])
+            (\() -> [])
             mempty
     toBuiltinMeaning MkNilPairData =
         -- Nullary builtins don't work, so we need a unit argument
         makeBuiltinMeaning
-            ((\() -> []) :: () -> [(Data,Data)])
+            @(() -> [(Data,Data)])
+            (\() -> [])
             mempty
     toBuiltinMeaning MkCons = makeBuiltinMeaning consPlc mempty where
         consPlc
