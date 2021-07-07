@@ -26,6 +26,7 @@ let
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
+    actus-tests = "${sources.actus-tests.outPath}";
   };
 
   #
