@@ -45,7 +45,7 @@ echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-cabal bench plutus-benchmark:validation >"$PR_LOG" 2>&1
+cabal bench plutus-benchmark:validation --benchmark-option game-sm >"$PR_LOG" 2>&1
 
 echo "[ci-plutus-benchmark]: Updating master ..."
 git checkout master
@@ -59,7 +59,7 @@ git checkout "$BASE_BRANCH_REF" # At this point, 'git rev-parse HEAD' should be 
 
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-cabal bench plutus-benchmark:validation >"$BASE_LOG" 2>&1
+cabal bench plutus-benchmark:validation --benchmark-option game-sm >"$BASE_LOG" 2>&1
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
