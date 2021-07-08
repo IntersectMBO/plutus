@@ -18,6 +18,7 @@ import Data.String (take)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
+import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, button, div, div_, footer, h2, header, img, main, nav, p, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (href, id_, src)
@@ -69,7 +70,12 @@ dashboardScreen currentSlot state =
       , dashboardFooter
       ]
 
-dashboardCard :: forall p. Slot -> State -> HTML p Action
+dashboardCard ::
+  forall m.
+  MonadAff m =>
+  Slot ->
+  State ->
+  ComponentHTML Action ChildSlots m
 dashboardCard currentSlot state = case view _card state of
   Just card ->
     let
@@ -86,10 +92,6 @@ dashboardCard currentSlot state = case view _card state of
       walletIdInput = view _walletIdInput state
 
       remoteWalletInfo = view _remoteWalletInfo state
-
-      selectedContract = preview _selectedContract state
-
-      templateState = view _templateState state
     in
       div
         [ classNames $ Css.sidebarCardOverlay cardOpen ]
@@ -100,17 +102,15 @@ dashboardCard currentSlot state = case view _card state of
                   , onClick_ CloseCard
                   ]
                   [ icon_ Icon.Close ]
+              , case card of
+                  TutorialsCard -> tutorialsCard
+                  CurrentWalletCard -> currentWalletCard currentWalletDetails
+                  WalletLibraryCard -> walletLibraryCard walletLibrary
+                  SaveWalletCard mTokenName -> saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName
+                  ViewWalletCard walletDetails -> walletDetailsCard walletDetails
+                  ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
+                  ContractActionConfirmationCard action -> renderSubmodule _selectedContract ContractAction (actionConfirmationCard assets action) state
               ]
-            <> case card of
-                TutorialsCard -> [ tutorialsCard ]
-                CurrentWalletCard -> [ currentWalletCard currentWalletDetails ]
-                WalletLibraryCard -> [ walletLibraryCard walletLibrary ]
-                SaveWalletCard mTokenName -> [ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName ]
-                ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
-                ContractTemplateCard -> [ TemplateAction <$> contractTemplateCard walletLibrary assets templateState ]
-                ContractActionConfirmationCard action -> case selectedContract of
-                  Just contractState -> [ ContractAction <$> actionConfirmationCard assets contractState action ]
-                  Nothing -> []
         ]
   Nothing -> div_ []
 

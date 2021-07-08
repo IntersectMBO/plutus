@@ -15,3 +15,7 @@ exports.getAnimationName = function (animation) {
 exports.setOnFinishHandler_ = function (animation, cb) {
   animation.onfinish = cb;
 };
+
+exports.animationFinished_ = function (animation) {
+  return animation.finished;
+};
