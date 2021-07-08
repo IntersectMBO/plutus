@@ -25,8 +25,7 @@ import Text.Pretty (pretty)
 import Types (WebData)
 
 data Action
-  = Init
-  | Compile
+  = Compile
   | ChangeKeyBindings KeyBindings
   | HandleEditorMessage Monaco.Message
   | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
@@ -43,7 +42,6 @@ defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent Init = Just $ defaultEvent "Init"
   toEvent Compile = Just $ defaultEvent "Compile"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
@@ -63,6 +61,7 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , metadataHintInfo :: MetadataHintInfo
     , analysisState :: AnalysisState
+    , editorReady :: Boolean
     }
 
 _haskellEditorKeybindings :: Lens' State KeyBindings
@@ -76,6 +75,9 @@ _metadataHintInfo = prop (SProxy :: SProxy "metadataHintInfo")
 
 _analysisState :: Lens' State AnalysisState
 _analysisState = prop (SProxy :: SProxy "analysisState")
+
+_editorReady :: Lens' State Boolean
+_editorReady = prop (SProxy :: SProxy "editorReady")
 
 --- Language.Haskell.Interpreter is missing this ---
 _result :: forall s a. Lens' { result :: a | s } a
@@ -101,6 +103,7 @@ initialState =
   , bottomPanelState: BottomPanel.initialState MetadataView
   , metadataHintInfo: mempty
   , analysisState: initAnalysisState
+  , editorReady: false
   }
 
 isCompiling :: State -> Boolean

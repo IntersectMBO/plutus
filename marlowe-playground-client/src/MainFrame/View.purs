@@ -3,7 +3,7 @@ module MainFrame.View where
 import Prelude hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
 import BlocklyEditor.View as BlocklyEditor
-import Data.Lens (has, to, (^.))
+import Data.Lens (has, (^.))
 import Data.Maybe (Maybe(..), isNothing)
 import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
@@ -49,18 +49,47 @@ render state =
           , topBar
           ]
       , main []
-          [ section [ id_ "main-panel" ]
-              [ tabContents HomePage [ Home.render state ]
-              , tabContents Simulation [ renderSubmodule _simulationState SimulationAction (Simulation.render (state ^. _contractMetadata)) state ]
-              , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction (MarloweEditor.render (state ^. _contractMetadata)) state ]
-              , tabContents HaskellEditor [ renderSubmodule _haskellState HaskellAction (HaskellEditor.render (state ^. _contractMetadata)) state ]
-              , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction (JSEditor.render (state ^. _contractMetadata)) state ]
-              , tabContents BlocklyEditor [ renderSubmodule _blocklyEditorState BlocklyEditorAction (BlocklyEditor.render (state ^. _contractMetadata)) state ]
-              , tabContents ActusBlocklyEditor
-                  [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions AMB.toolbox) unit (Just <<< HandleActusBlocklyMessage)
-                  , AMB.workspaceBlocks
-                  ]
-              ]
+          [ section [ id_ "main-panel" ] case state ^. _view of
+              HomePage -> [ Home.render state ]
+              Simulation ->
+                [ renderSubmodule
+                    _simulationState
+                    SimulationAction
+                    (Simulation.render (state ^. _contractMetadata))
+                    state
+                ]
+              MarloweEditor ->
+                [ renderSubmodule
+                    _marloweEditorState
+                    MarloweEditorAction
+                    (MarloweEditor.render (state ^. _contractMetadata))
+                    state
+                ]
+              HaskellEditor ->
+                [ renderSubmodule
+                    _haskellState
+                    HaskellAction
+                    (HaskellEditor.render (state ^. _contractMetadata))
+                    state
+                ]
+              JSEditor ->
+                [ renderSubmodule
+                    _javascriptState
+                    JavascriptAction
+                    (JSEditor.render (state ^. _contractMetadata))
+                    state
+                ]
+              BlocklyEditor ->
+                [ renderSubmodule
+                    _blocklyEditorState
+                    BlocklyEditorAction
+                    (BlocklyEditor.render (state ^. _contractMetadata))
+                    state
+                ]
+              ActusBlocklyEditor ->
+                [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions AMB.toolbox) unit (Just <<< HandleActusBlocklyMessage)
+                , AMB.workspaceBlocks
+                ]
           ]
       , modal state
       , globalLoadingOverlay
@@ -100,14 +129,6 @@ render state =
               ]
           , spinner
           ]
-
-  isActiveView activeView = state ^. _view <<< to (eq activeView)
-
-  tabContents activeView contents =
-    div
-      [ classNames $ if isActiveView activeView then [ "h-full" ] else [ "hidden" ]
-      ]
-      contents
 
   topBar =
     if showtopBar then

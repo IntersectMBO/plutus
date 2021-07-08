@@ -1,7 +1,6 @@
 module MarloweEditor.State
   ( handleAction
   , editorGetValue
-  , editorSetTheme
   ) where
 
 import Prelude hiding (div)
@@ -32,14 +31,14 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetadataHintInfo)
-import Marlowe.Template (TemplateContent)
-import Marlowe.Template as Template
 import Marlowe.Holes as Holes
 import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _comesFromBlockly, _editorErrors, _editorWarnings, _hasHoles, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
+import Marlowe.Template (TemplateContent)
+import Marlowe.Template as Template
+import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorReady, _editorWarnings, _hasHoles, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
 import Monaco (isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
@@ -66,19 +65,29 @@ handleAction ::
   MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction Init = do
-  editorSetTheme
-  mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
-  editorSetValue $ fromMaybe ME.example mContents
-
 handleAction (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
   void $ query _marloweEditorPageSlot unit (Monaco.SetKeyBindings bindings unit)
 
+handleAction (HandleEditorMessage Monaco.EditorReady) = do
+  editorSetTheme
+  mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
+  editorSetValue $ fromMaybe ME.example mContents
+  for_ mContents processMarloweCode
+  assign _editorReady true
+
 handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
-  assign _selectedHole Nothing
-  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey text
-  processMarloweCode text
+  -- When the Monaco component start it fires two messages at the same time, an EditorReady
+  -- and TextChanged. Because of how Halogen works, it interwines the handleActions calls which
+  -- can cause problems while setting and getting the values of the session storage. To avoid
+  -- starting with an empty text editor we use an editorReady flag to ignore the text changes until
+  -- we are ready to go. Eventually we could remove the initial TextChanged event, but we need to check
+  -- that it doesn't break the plutus playground.
+  editorReady <- use _editorReady
+  when editorReady do
+    assign _selectedHole Nothing
+    liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey text
+    processMarloweCode text
 
 handleAction (HandleDragEvent event) = liftEffect $ preventDefault event
 
@@ -114,7 +123,6 @@ handleAction ViewAsBlockly = pure unit
 
 handleAction (InitMarloweProject contents) = do
   editorSetValue contents
-  assign (_comesFromBlockly) false
   liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey contents
 
 handleAction (SelectHole hole) = assign _selectedHole hole
@@ -132,7 +140,7 @@ handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
 handleAction ClearAnalysisResults = do
   assign (_analysisState <<< _analysisExecutionState) NoneAsked
   mContents <- editorGetValue
-  for_ mContents \contents -> processMarloweCode contents
+  for_ mContents processMarloweCode
 
 handleAction Save = pure unit
 
