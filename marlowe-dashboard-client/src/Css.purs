@@ -171,9 +171,11 @@ videoCard visible =
 
 sidebarCard :: Boolean -> Array String
 sidebarCard visible =
-  [ "h-90pc"
+  [ "overflow-hidden"
+  , "rounded-t"
+  , "self-end"
+  , "h-90pc"
   , "lg:rounded-t-none"
-  , "lg:rounded-b-none"
   , "lg:mx-0"
   , "lg:flex-none"
   , "lg:w-sidebar"
@@ -181,7 +183,7 @@ sidebarCard visible =
   , "lg:justify-self-end"
   , "lg:duration-500"
   ]
-    <> card visible
+    <> cardBase visible
     <> applyWhen (not visible) [ "lg:translate-y-0", "lg:translate-x-80" ]
 
 cardHeader :: Array String
