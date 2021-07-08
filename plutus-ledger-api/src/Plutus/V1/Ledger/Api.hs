@@ -136,7 +136,6 @@ import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..)
 import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
 import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
-import qualified PlutusCore.MkPlc                                 as PLC
 import           PlutusCore.Pretty
 import           PlutusTx                                         (IsData (..), fromData, toData)
 import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
@@ -175,7 +174,7 @@ anything, we're just going to create new versions.
 -- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
 validateScript :: SerializedScript -> Bool
-validateScript = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
+validateScript = isRight . CBOR.deserialiseOrFail @Scripts.Script . fromStrict . fromShort
 
 validateCostModelParams :: CostModelParams -> Bool
 validateCostModelParams = isJust . applyCostModelParams PLC.defaultCekCostModel
@@ -208,12 +207,10 @@ instance Pretty EvaluationError where
 -- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, and un-deBruijn-ifies it.
 mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
-    (Script (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
+    s@(Script (UPLC.Program _ v _)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
-    let namedTerm = UPLC.termMapNames PLC.fakeNameDeBruijn t
-        termArgs = fmap (PLC.mkConstant ()) args
-        applied = PLC.mkIterApp () namedTerm termArgs
-    liftEither $ first DeBruijnError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm applied
+    UPLC.Program _ _ t <- liftEither $ first DeBruijnError $ Scripts.mkTermToEvaluate (Scripts.applyArguments s args)
+    pure t
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model.  There's a default cost
