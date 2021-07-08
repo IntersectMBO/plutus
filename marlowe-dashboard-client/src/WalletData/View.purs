@@ -1,8 +1,8 @@
 module WalletData.View
-  ( saveWalletCard
+  ( currentWalletCard
+  , walletLibraryCard
+  , saveWalletCard
   , walletDetailsCard
-  , putdownWalletCard
-  , walletLibraryScreen
   ) where
 
 import Prelude hiding (div)
@@ -31,6 +31,82 @@ import WalletData.Lenses (_assets, _companionAppId, _walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary)
 import WalletData.Validation (WalletIdError, WalletNicknameError)
+
+currentWalletCard :: forall p. WalletDetails -> HTML p Action
+currentWalletCard walletDetails =
+  let
+    walletNickname = view _walletNickname walletDetails
+
+    companionAppId = view _companionAppId walletDetails
+
+    assets = view _assets walletDetails
+  in
+    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
+      [ h3
+          [ classNames [ "font-semibold", "mb-4", "truncate", "w-11/12" ] ]
+          [ text $ "Wallet " <> walletNickname ]
+      , div
+          [ classNames Css.hasNestedLabel ]
+          [ label
+              [ classNames Css.nestedLabel ]
+              [ text "Wallet ID" ]
+          , input
+              [ type_ InputText
+              , classNames $ Css.input true <> [ "mb-4" ]
+              , value $ UUID.toString $ unwrap companionAppId
+              , readOnly true
+              ]
+          ]
+      , div
+          [ classNames [ "mb-4" ] ]
+          [ h4
+              [ classNames [ "font-semibold" ] ]
+              [ text "Balance:" ]
+          , p
+              [ classNames Css.funds ]
+              [ text $ humanizeValue adaToken $ getAda assets ]
+          ]
+      , div
+          [ classNames [ "flex" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              , onClick_ CloseCard
+              ]
+              [ text "Cancel" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1" ]
+              , onClick_ PutdownWallet
+              ]
+              [ text "Drop wallet" ]
+          ]
+      ]
+
+walletLibraryCard :: forall p. WalletLibrary -> HTML p Action
+walletLibraryCard library =
+  div
+    [ classNames [ "p-4" ] ]
+    [ h2
+        [ classNames [ "font-semibold", "text-lg", "mb-4" ] ]
+        [ text "Contacts" ]
+    , if isEmpty library then
+        p_ [ text "You do not have any contacts." ]
+      else
+        ul_
+          $ contactLi
+          <$> toUnfoldable library
+    , button
+        [ classNames $ Css.primaryButton <> Css.withIcon NewContact <> Css.fixedBottomRight
+        , onClick_ $ OpenCard $ SaveWalletCard Nothing
+        ]
+        [ text "New contact" ]
+    ]
+  where
+  contactLi (Tuple nickname walletDetails) =
+    li
+      [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
+      , onClick_ $ OpenCard $ ViewWalletCard walletDetails
+      ]
+      [ text nickname ]
 
 saveWalletCard :: forall p. WalletLibrary -> InputField.State WalletNicknameError -> InputField.State WalletIdError -> WebData WalletInfo -> Maybe String -> HTML p Action
 saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName =
@@ -122,79 +198,3 @@ walletDetailsCard walletDetails =
               ]
           ]
       ]
-
-putdownWalletCard :: forall p. WalletDetails -> HTML p Action
-putdownWalletCard walletDetails =
-  let
-    walletNickname = view _walletNickname walletDetails
-
-    companionAppId = view _companionAppId walletDetails
-
-    assets = view _assets walletDetails
-  in
-    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
-      [ h3
-          [ classNames [ "font-semibold", "mb-4", "truncate", "w-11/12" ] ]
-          [ text $ "Wallet " <> walletNickname ]
-      , div
-          [ classNames Css.hasNestedLabel ]
-          [ label
-              [ classNames Css.nestedLabel ]
-              [ text "Wallet ID" ]
-          , input
-              [ type_ InputText
-              , classNames $ Css.input true <> [ "mb-4" ]
-              , value $ UUID.toString $ unwrap companionAppId
-              , readOnly true
-              ]
-          ]
-      , div
-          [ classNames [ "mb-4" ] ]
-          [ h4
-              [ classNames [ "font-semibold" ] ]
-              [ text "Balance:" ]
-          , p
-              [ classNames Css.funds ]
-              [ text $ humanizeValue adaToken $ getAda assets ]
-          ]
-      , div
-          [ classNames [ "flex" ] ]
-          [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ CloseCard
-              ]
-              [ text "Cancel" ]
-          , button
-              [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , onClick_ PutdownWallet
-              ]
-              [ text "Drop wallet" ]
-          ]
-      ]
-
-walletLibraryScreen :: forall p. WalletLibrary -> HTML p Action
-walletLibraryScreen library =
-  div
-    [ classNames [ "p-4" ] ]
-    [ h2
-        [ classNames [ "font-semibold", "text-lg", "mb-4" ] ]
-        [ text "Contacts" ]
-    , if isEmpty library then
-        p_ [ text "You do not have any contacts." ]
-      else
-        ul_
-          $ contactLi
-          <$> toUnfoldable library
-    , button
-        [ classNames $ Css.primaryButton <> Css.withIcon NewContact <> Css.fixedBottomRight
-        , onClick_ $ OpenCard $ SaveWalletCard Nothing
-        ]
-        [ text "New contact" ]
-    ]
-  where
-  contactLi (Tuple nickname walletDetails) =
-    li
-      [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
-      , onClick_ $ OpenCard $ ViewWalletCard walletDetails
-      ]
-      [ text nickname ]

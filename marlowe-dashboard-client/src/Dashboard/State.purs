@@ -17,8 +17,8 @@ import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderSt
 import Contract.Types (Action(..), State) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Dashboard.Lenses (_card, _cardOpen, _contracts, _menuOpen, _remoteWalletInfo, _selectedContract, _selectedContractIndex, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
-import Dashboard.Types (Action(..), Card(..), ContractStatus(..), Input, PartitionedContracts, State)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contracts, _menuOpen, _remoteWalletInfo, _selectedContract, _selectedContractIndex, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
+import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, PartitionedContracts, State)
 import Data.Array (elem, partition)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
@@ -74,8 +74,8 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
     , menuOpen: false
     , card: Nothing
     , cardOpen: false
-    , status: Running
     , contracts: mapMaybeWithKey mkInitialContractState contracts
+    , contractFilter: Running
     , selectedContractIndex: Nothing
     , walletNicknameInput: InputField.initialState Nothing
     , walletIdInput: InputField.initialState Nothing
@@ -173,7 +173,7 @@ handleAction input (OpenCard card) = do
 
 handleAction _ CloseCard = assign _cardOpen false
 
-handleAction _ (SelectView view) = assign _status view
+handleAction _ (SetContractFilter contractFilter) = assign _contractFilter contractFilter
 
 handleAction input (SelectContract mFollowerAppId) = assign _selectedContractIndex mFollowerAppId
 

@@ -18,6 +18,10 @@
   content: "add";
 }
 
+.with-icon-add-box::after {
+  content: "add_box";
+}
+
 .with-icon-add-circle::after {
   content: "add_circle_outline";
 }
@@ -40,6 +44,10 @@
 
 .with-icon-help::after {
   content: "help";
+}
+
+.with-icon-history::after {
+  content: "history";
 }
 
 .with-icon-home::after {
@@ -78,6 +86,10 @@
   content: "person_pin_circle";
 }
 
+.with-icon-running::after {
+  content: "directions_run";
+}
+
 .with-icon-terms::after {
   content: "alarm_add";
 }
@@ -86,6 +98,6 @@
   content: "timer";
 }
 
-.with-icon-wallet::after {
-  content: "account_balance_wallet";
+.with-icon-tutorials::after {
+  content: "school";
 }
