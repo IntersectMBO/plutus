@@ -32,7 +32,11 @@ module Ledger.Index(
     validateTransactionOffChain,
     -- * Script validation events
     ScriptType(..),
-    ScriptValidationEvent(..)
+    ScriptValidationEvent(..),
+    Api.ExBudget(..),
+    Api.ExCPU(..),
+    Api.ExMemory(..),
+    Api.SatInt
     ) where
 
 import           Prelude                          hiding (lookup)

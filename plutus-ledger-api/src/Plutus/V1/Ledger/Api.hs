@@ -25,6 +25,7 @@ module Plutus.V1.Ledger.Api (
     , ExBudget (..)
     , ExCPU (..)
     , ExMemory (..)
+    , SatInt (..)
     -- ** Cost model
     , validateCostModelParams
     , defaultCostModelParams
@@ -110,6 +111,7 @@ import           Data.ByteString.Lazy                             (fromStrict)
 import           Data.ByteString.Short
 import           Data.Either
 import           Data.Maybe                                       (isJust)
+import           Data.SatInt
 import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
