@@ -104,9 +104,8 @@ handleAction Finalize = do
 handleAction (OnNewInput input) = do
   { active, content, placement } <- get
   modify_
-    ( set _content input.content
-        <<< set _placement input.placement
-    )
+    $ set _content input.content
+    <<< set _placement input.placement
   when active forceUpdatePopper
 
 handleAction Open = do
@@ -117,18 +116,16 @@ handleAction Open = do
     mElements = (\a b -> [ a, b ]) <$> mHintElem <*> mPopoutElem
   mGlobalClickSubscription <- traverse (H.subscribe <<< clickOutsideEventSource) mElements
   modify_
-    ( set _active true
-        <<< set _mGlobalClickSubscription mGlobalClickSubscription
-    )
+    $ set _active true
+    <<< set _mGlobalClickSubscription mGlobalClickSubscription
   forceUpdatePopper
 
 handleAction Close = do
   mGlobalClickSubscription <- use _mGlobalClickSubscription
   for_ mGlobalClickSubscription H.unsubscribe
   modify_
-    ( set _active false
-        <<< set _mGlobalClickSubscription Nothing
-    )
+    $ set _active false
+    <<< set _mGlobalClickSubscription Nothing
 
 handleAction Toggle = do
   active <- use _active
