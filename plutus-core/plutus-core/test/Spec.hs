@@ -25,7 +25,6 @@ import qualified PlutusCore.Generators.NEAT.Spec   as NEAT
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
 
-import           Codec.Serialise
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.Text                         as T
@@ -92,11 +91,6 @@ newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName N
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
-
-propCBOR :: Property
-propCBOR = property $ do
-    prog <- forAllPretty $ runAstGen genProgram
-    Hedgehog.tripping prog serialise deserialiseOrFail
 
 propFlat :: Property
 propFlat = property $ do
@@ -217,7 +211,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testCase "lexing constants from small types" testLexConstant
     , testProperty "lexing constants" propLexConstant
     , testProperty "parser round-trip" propParser
-    , testProperty "serialization round-trip (CBOR)" propCBOR
     , testProperty "serialization round-trip (Flat)" propFlat
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle

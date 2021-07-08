@@ -640,7 +640,7 @@ where
         <...>
 
 So as long as for each type of a universe you know its encoding as a sequence of integer tags,
-you can hash any type from the universe via that sequence. 'Serialise' is handled in a similar way.
+you can hash any type from the universe via that sequence. 'Flat' is handled in a similar way.
 
 The 'Hashable' type class is also interesting in that we do not provide a generic instance for
 any @Some f@. This is because @f@ can be anything of kind @* -> *@ and we only have 'encodeUni' for

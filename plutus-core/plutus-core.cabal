@@ -40,7 +40,6 @@ library
     import: lang
     exposed-modules:
         PlutusCore
-        PlutusCore.CBOR
         PlutusCore.Check.Normal
         PlutusCore.Check.Uniques
         PlutusCore.Check.Value
@@ -144,8 +143,6 @@ library
         UntypedPlutusCore.Rename
         UntypedPlutusCore.Check.Uniques
         UntypedPlutusCore.Core.Type
-        UntypedPlutusCore.Core.Instance.CBOR
-
 
         Common
         Crypto
@@ -351,7 +348,6 @@ test-suite plutus-core-test
         mmorph -any,
         mtl -any,
         prettyprinter -any,
-        serialise -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
@@ -428,7 +424,6 @@ executable plc
         mtl -any,
         optparse-applicative -any,
         prettyprinter -any,
-        serialise -any,
         text -any,
         transformers -any
 
@@ -449,7 +444,6 @@ executable uplc
         mtl -any,
         optparse-applicative -any,
         prettyprinter -any,
-        serialise -any,
         split -any,
         text -any,
         transformers -any
@@ -504,7 +498,6 @@ benchmark update-cost-model
         hedgehog -any,
         inline-r -any,
         lens -any,
-        serialise -any,
         text -any,
         vector -any
     other-modules:
@@ -543,7 +536,6 @@ benchmark cost-model-test
         inline-r -any,
         lens -any,
         mmorph -any,
-        serialise -any,
         text -any,
         vector -any
     other-modules:

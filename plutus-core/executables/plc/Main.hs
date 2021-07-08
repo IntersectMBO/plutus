@@ -144,7 +144,6 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   let untypedProg = () <$ UPLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writeToFileOrStd outp mode untypedProg
-    Cbor cborMode -> writeCBOR outp cborMode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
 ---------------- Parse and print a PLC source file ----------------

@@ -48,9 +48,6 @@ formatReader :: String -> Maybe Format
 formatReader =
     \case
          "textual"       -> Just Textual
-         "cbor-named"    -> Just (Cbor Named)
-         "cbor"          -> Just (Cbor DeBruijn)
-         "cbor-deBruijn" -> Just (Cbor DeBruijn)
          "flat-named"    -> Just (Flat Named)
          "flat"          -> Just (Flat DeBruijn)
          "flat-deBruijn" -> Just (Flat DeBruijn)
