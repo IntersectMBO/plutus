@@ -178,7 +178,13 @@ contractSetup walletLibrary state =
           [ h2
               [ classNames [ "text-lg", "font-semibold", "mb-2" ] ]
               [ text $ contractName <> " setup" ]
-          , ContractNicknameInputAction <$> renderInput contractNicknameInputDisplayOptions contractNicknameInput
+          , div
+              [ classNames Css.hasNestedLabel ]
+              [ label
+                  [ classNames Css.nestedLabel ]
+                  [ text $ contractName <> " title" ]
+              , ContractNicknameInputAction <$> renderInput contractNicknameInputDisplayOptions contractNicknameInput
+              ]
           , roleInputs walletLibrary metaData roleWalletInputs
           , parameterInputs metaData slotContentInputs valueContentInputs
           ]
