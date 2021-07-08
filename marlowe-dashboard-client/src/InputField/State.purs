@@ -16,7 +16,7 @@ import Data.Int (pow) as Int
 import Data.Lens (assign, set, use, view)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), split, splitAt)
-import Data.String (length, take) as String
+import Data.String (drop, length, take) as String
 import Data.String.Extra (leftPadTo, rightPadTo)
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
@@ -102,11 +102,17 @@ handleAction Reset =
 getBigIntegerValue :: Int -> String -> BigInteger
 getBigIntegerValue decimals value =
   let
-    valueBits = Array.take 2 $ split (Pattern ".") value
+    { isNegative, absoluteValue } =
+      if String.take 1 value == "-" then
+        { isNegative: true, absoluteValue: String.drop 1 value }
+      else
+        { isNegative: false, absoluteValue: value }
 
-    decimalString = if value /= "" then fromMaybe "0" $ head valueBits else "0"
+    valueBits = Array.take 2 $ split (Pattern ".") absoluteValue
 
-    fractionalString = if Array.length valueBits > 1 then fromMaybe "0" $ last valueBits else "0"
+    decimalString = if absoluteValue == "" then "0" else fromMaybe "0" $ head valueBits
+
+    fractionalString = if Array.length valueBits < 2 then "0" else fromMaybe "0" $ last valueBits
 
     -- if zeros have been deleted from the end of the string, the fractional part will be wrong
     correctedFractionalString = String.take decimals $ rightPadTo decimals "0" fractionalString
@@ -117,21 +123,38 @@ getBigIntegerValue decimals value =
 
     frac = fromMaybe zero $ BigInteger.fromString $ String.take decimals $ correctedFractionalString
   in
-    if dec < zero then
-      (dec * multiplier) - frac
+    if isNegative then
+      -((dec * multiplier) + frac)
     else
       (dec * multiplier) + frac
 
+-- The basic idea of this function is to take the default string representation (`show value`),
+-- split it where the decimal point is supposed to go, and join the two parts with a decimal point
+-- in the middle. Simple enough, but there are a few things to watch out for:
+-- 1. The default string representation needs left zero padding to a minimum length of `decimals`,
+--    otherwise small values (i.e where the absolute value of `value / (decimals ^ 10)` is less
+--    than 1) get the wrong fractionalString.
+-- 2. If the value is negative, the minus sign needs to go to the left of the left zero padding.
+-- 3. Small positive values will have no decimalString following the split, and the decimal string
+--    for small negative values will just be a minus sign, so a zero needs to be added in these
+--    cases.
 formatBigIntegerValue :: Int -> BigInteger -> String
 formatBigIntegerValue decimals value =
   let
-    string = leftPadTo decimals "0" $ show value
+    string =
+      if value < zero then
+        "-" <> (leftPadTo decimals "0" $ String.drop 1 $ show value)
+      else
+        leftPadTo decimals "0" $ show value
 
     len = String.length string
 
     { after: fractionalString, before } = splitAt (len - decimals) string
 
-    decimalString = if before == "" then "0" else before
+    decimalString = case before of
+      "" -> "0"
+      "-" -> "-0"
+      _ -> before
   in
     decimalString <> "." <> fractionalString
 
