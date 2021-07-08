@@ -1,4 +1,6 @@
 \begin{code}
+{-# OPTIONS --rewriting #-}
+
 module Algorithmic.Main where
 open import Agda.Builtin.IO
 open import Agda.Builtin.Unit

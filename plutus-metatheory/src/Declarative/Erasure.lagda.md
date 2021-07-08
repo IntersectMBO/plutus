@@ -4,6 +4,8 @@ layout: page
 ---
 
 ```
+{-# OPTIONS --rewriting #-}
+
 module Declarative.Erasure where
 ```
 

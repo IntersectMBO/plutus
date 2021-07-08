@@ -734,7 +734,8 @@ focus M E M' p with rlemma51! (E [ M ]ᴱ)
 focus M E M' p | done VEM = ⊥-elim (notVAL VEM p)
 focus M E M' p | step ¬VEM E' r q U with rlemma51! M
 focus M E M' p | step ¬VEM E' r q U | step ¬VM E'' r' q' U' with U _ (trans (cong (E [_]ᴱ) q') (compEC-[]ᴱ E E'' _)) r'
-... | refl ,, refl ,, refl = local (compEC E E'') _ r q q'
+... | refl ,, X ,, refl =
+  local (compEC E E'') _ r (trans q (cong (_[ _ ]ᴱ) X)) q'
 focus M E M' p | step ¬VEM E' r q U | done VM = nonlocal E' _ r q VM
 
 -- we can recover that M' == whatever I think
@@ -763,7 +764,7 @@ refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] with rlemma5
 refocus E M VM E₁ L r p | inj₂ (C ,, E₂ ,, (-· N)) | I[ eq ] | step ¬VN E₃ r' p' U with rlemma51! (E [ M ]ᴱ)
 ... | done VEM = ⊥-elim (valredex (lemVE _ E₁ (Value2VALUE (subst Value p VEM))) r)
 ... | step ¬VEM E₄ r'' p'' U'  rewrite dissect-inj₂ E E₂ (-· N) eq with U' _ p r
-... | refl ,, refl ,, refl with U' (compEC' (extEC E₂ (VM ·-)) E₃) (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))) r'
+... | refl ,, _ ,, refl with U' (compEC' (extEC E₂ (VM ·-)) E₃) (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))) r'
 ... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl VM (lemV'· (λ VN → valredex (lemVE L _ (Value2VALUE (subst Value p' VN))) r')) ((VM EC.·r E₃)) (sym (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))))
 -- same proof twice
 refocus E .(ƛ M) (V-ƛ M) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN with rlemma51! (E [ ƛ M ]ᴱ)
