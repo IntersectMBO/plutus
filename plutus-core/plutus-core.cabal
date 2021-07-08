@@ -78,6 +78,7 @@ library
         PlutusCore.Generators.NEAT.Spec
         PlutusCore.Generators.NEAT.Term
         PlutusCore.Generators.NEAT.Type
+        PlutusCore.Generators.Scoping
         PlutusCore.Generators.Test
         PlutusCore.Lexer
         PlutusCore.MkPlc

@@ -22,6 +22,7 @@ import           PlutusCore.Generators
 import           PlutusCore.Generators.AST         as AST
 import           PlutusCore.Generators.Interesting
 import qualified PlutusCore.Generators.NEAT.Spec   as NEAT
+import           PlutusCore.Generators.Scoping
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
 
@@ -199,6 +200,13 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
+propScoping :: Property
+propScoping = property $ do
+    prog <- forAllPretty $ runAstGen genType
+    case checkScopingUsingSpineOf prog of
+        Left err -> fail $ show err
+        Right () -> success
+
 propDeBruijn :: Gen (TermOf (DefaultTerm ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
@@ -221,6 +229,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testProperty "serialization round-trip (Flat)" propFlat
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
+    , testProperty "renaming does not destroy scoping" propScoping
     , testGroup "de Bruijn transformation round-trip" $
           fromInterestingTermGens $ \name -> testProperty name . propDeBruijn
     , testsGolden plcFiles
