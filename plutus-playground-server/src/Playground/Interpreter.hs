@@ -201,7 +201,7 @@ printQ q = do
     toPlaygroundError :: Either IOException a -> Either PlaygroundError a
     toPlaygroundError = first (OtherError . show)
 
-{-# ANN getJsonString ("HLint: ignore" :: String) #-}
+{-{- HLINT ignore getJsonString -}-}
 getJsonString :: (MonadError PlaygroundError m) => JSON.Value -> m String
 getJsonString (JSON.String s) = pure $ Text.unpack s
 getJsonString v =

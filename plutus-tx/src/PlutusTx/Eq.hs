@@ -8,7 +8,7 @@ import qualified PlutusTx.Builtins as Builtins
 
 import           Prelude           hiding (Eq (..), not, (&&))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 infix 4 ==, /=
 

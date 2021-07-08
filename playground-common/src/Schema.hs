@@ -69,8 +69,7 @@ import           Wallet.Types           (ContractInstanceId)
 
 import           Text.Show.Deriving     (deriveShow1)
 
-{-# ANN module ("HLint: ignore Avoid restricted function" :: Text)
-        #-}
+{- HLINT ignore "Avoid restricted function" -}
 
 data FormSchema
     = FormSchemaUnit
