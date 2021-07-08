@@ -77,8 +77,8 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
     , status: Running
     , contracts: mapMaybeWithKey mkInitialContractState contracts
     , selectedContractIndex: Nothing
-    , walletNicknameInput: InputField.initialState
-    , walletIdInput: InputField.initialState
+    , walletNicknameInput: InputField.initialState Nothing
+    , walletIdInput: InputField.initialState Nothing
     , remoteWalletInfo: NotAsked
     , timezoneOffset
     , templateState: Template.dummyState

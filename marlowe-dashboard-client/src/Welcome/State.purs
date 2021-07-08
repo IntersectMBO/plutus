@@ -45,9 +45,9 @@ mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
   , cardOpen: false
-  , walletNicknameOrIdInput: InputField.initialState
-  , walletNicknameInput: InputField.initialState
-  , walletIdInput: InputField.initialState
+  , walletNicknameOrIdInput: InputField.initialState Nothing
+  , walletNicknameInput: InputField.initialState Nothing
+  , walletIdInput: InputField.initialState Nothing
   , remoteWalletDetails: NotAsked
   , enteringDashboardState: false
   }

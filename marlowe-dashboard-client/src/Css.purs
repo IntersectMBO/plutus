@@ -9,6 +9,7 @@ module Css
   , whiteButton
   , input
   , inputNoFocus
+  , unstyledInput
   , inputCard
   , inputCardNoFocus
   , inputError
@@ -85,33 +86,44 @@ inputBase =
   , "outline-none"
   , "focus:outline-none"
   , "text-black"
+  , "border"
   , "border-transparent"
   , "focus:border-transparent"
-  , "shadow-sm"
-  , "focus:shadow"
-  , "hover:shadow"
+  , "focus-within:border-transparent"
   ]
 
+-- note we set rings on focus-within as well as focus, so that we can use these classes on divs
+-- with unstyled inputs inside them, making that whole parent div look like the input
 inputBaseFocus :: Array String
-inputBaseFocus = inputBase <> [ "focus:ring-1" ]
+inputBaseFocus = inputBase <> [ "focus:ring-1", "focus-within:ring-1" ]
 
 inputBaseNoFocus :: Array String
 inputBaseNoFocus = inputBase <> [ "focus:ring-0" ]
 
 input :: Boolean -> Array String
-input valid = inputBaseFocus <> [ "border", "bg-transparent" ] <> if valid then [ "border-black", "focus:border-black" ] else [ "border-red" ]
+input valid = inputBaseFocus <> if valid then [ "border-gray" ] else [ "border-red" ]
 
 inputNoFocus :: Boolean -> Array String
-inputNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+inputNoFocus valid = inputBaseNoFocus <> if valid then [ "border-gray" ] else [ "border-red" ]
+
+-- use this on an input inside a div styled like an input
+unstyledInput :: Array String
+unstyledInput = [ "p-0", "border-0", "focus:ring-0" ]
 
 withNestedLabel :: Array String
-withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
+withNestedLabel = [ "border-gray", "focus:border-gray" ]
 
 inputCard :: Boolean -> Array String
-inputCard valid = inputBaseFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+inputCard valid =
+  inputBaseFocus
+    <> [ "shadow-sm", "focus:shadow", "hover:shadow" ]
+    <> if valid then [ "border-transparent" ] else [ "border-red" ]
 
 inputCardNoFocus :: Boolean -> Array String
-inputCardNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+inputCardNoFocus valid =
+  inputBaseNoFocus
+    <> [ "shadow-sm", "focus:shadow", "hover:shadow" ]
+    <> if valid then [ "border-transparent" ] else [ "border-red" ]
 
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]

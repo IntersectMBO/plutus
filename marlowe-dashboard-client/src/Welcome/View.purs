@@ -84,6 +84,7 @@ useWalletBox state =
       , id_: "existingWallet"
       , placeholder: "Choose wallet or paste key"
       , readOnly: false
+      , numberFormat: Nothing
       , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
       }
   in
@@ -110,7 +111,7 @@ useWalletBox state =
       , p
           [ classNames [ "mb-4", "text-center" ] ]
           [ text "Or select an existing demo wallet from the list or paste in a demo wallet key." ]
-      , WalletNicknameOrIdInputAction <$> renderInput walletNicknameOrIdInput walletNicknameOrIdInputDisplayOptions
+      , WalletNicknameOrIdInputAction <$> renderInput walletNicknameOrIdInputDisplayOptions walletNicknameOrIdInput
       , div
           [ classNames [ "mt-6", "flex", "justify-between" ] ]
           [ a
@@ -245,7 +246,7 @@ useNewWalletCard state =
                   , for "walletNickname"
                   ]
                   [ text "Nickname" ]
-              , WalletNicknameInputAction <$> renderInput walletNicknameInput (walletNicknameInputDisplayOptions false)
+              , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions false) walletNicknameInput
               ]
         , div
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
@@ -254,7 +255,7 @@ useNewWalletCard state =
                 , for "walletID"
                 ]
                 [ text "Wallet ID" ]
-            , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
+            , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
             , walletIdTip
             ]
         , div
@@ -301,7 +302,7 @@ useWalletCard state =
                   , for "walletNickname"
                   ]
                   [ text "Nickname" ]
-              , WalletNicknameInputAction <$> renderInput walletNicknameInput (walletNicknameInputDisplayOptions true)
+              , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions true) walletNicknameInput
               ]
         , div
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
@@ -310,7 +311,7 @@ useWalletCard state =
                 , for "walletId"
                 ]
                 [ text "Wallet ID" ]
-            , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
+            , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
             , walletIdTip
             ]
         , div
@@ -337,6 +338,7 @@ walletNicknameInputDisplayOptions readOnly =
   , id_: "walletNickname"
   , placeholder: if readOnly then mempty else "Give your wallet a nickname"
   , readOnly
+  , numberFormat: Nothing
   , valueOptions: mempty
   }
 
@@ -347,6 +349,7 @@ walletIdInputDisplayOptions =
   , id_: "walletId"
   , placeholder: "Wallet ID"
   , readOnly: true
+  , numberFormat: Nothing
   , valueOptions: mempty
   }
 

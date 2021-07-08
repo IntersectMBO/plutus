@@ -8,9 +8,10 @@ module InputField.Types
 
 import Analytics (class IsEvent)
 import Data.Maybe (Maybe(..))
+import Marlowe.Extended.Metadata (NumberFormat)
 
 type State error
-  = { value :: String
+  = { value :: String -- all values are strings in JavaScript; embrace it
     , pristine :: Boolean
     , validator :: String -> Maybe error
     , dropdownOpen :: Boolean
@@ -28,18 +29,21 @@ type State error
 class InputFieldError e where
   inputErrorToString :: e -> String
 
+-- TODO: should the validator be in the InputDisplayOptions instead of the State?
 type InputDisplayOptions
   = { baseCss :: Boolean -> Array String
     , additionalCss :: Array String
     , id_ :: String
     , placeholder :: String
     , readOnly :: Boolean
-    , valueOptions :: Array String
+    , numberFormat :: Maybe NumberFormat -- set to nothing for string inputs
+    , valueOptions :: Array String -- non-empty for select inputs
     }
 
 data Action error
   = SetValue String
   | SetValueFromDropdown String
+  | FormatValue NumberFormat
   | SetValidator (String -> Maybe error)
   | SetDropdownOpen Boolean
   | SetDropdownLocked Boolean
@@ -48,9 +52,4 @@ data Action error
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent (Action e) where
-  toEvent (SetValue _) = Nothing
-  toEvent (SetValueFromDropdown _) = Nothing
-  toEvent (SetValidator _) = Nothing
-  toEvent (SetDropdownOpen _) = Nothing
-  toEvent (SetDropdownLocked _) = Nothing
-  toEvent Reset = Nothing
+  toEvent action = Nothing

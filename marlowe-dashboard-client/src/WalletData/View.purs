@@ -45,6 +45,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletNickname"
       , placeholder: "Nickname"
       , readOnly: false
+      , numberFormat: Nothing
       , valueOptions: mempty
       }
 
@@ -54,6 +55,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       , id_: "newWalletId"
       , placeholder: "Wallet ID"
       , readOnly: false
+      , numberFormat: Nothing
       , valueOptions: mempty
       }
   in
@@ -69,7 +71,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
               , for walletNicknameInputDisplayOptions.id_
               ]
               [ text "Nickname" ]
-          , WalletNicknameInputAction <$> renderInput walletNicknameInput walletNicknameInputDisplayOptions
+          , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
           ]
       , div
           [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
@@ -78,7 +80,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
               , for walletIdInputDisplayOptions.id_
               ]
               [ text "Wallet ID" ]
-          , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
+          , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
           ]
       , div
           [ classNames [ "flex" ] ]
