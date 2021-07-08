@@ -1,7 +1,8 @@
 /*eslint-env node*/
 /*global global*/
+// FIXME: We should check where we use this and replace it with google font icons
 import '@fortawesome/fontawesome-free/css/all.css';
-import './static/css/main.scss';
+import './static/css/main.css';
 import 'blockly';
 
 import './grammar.ne';

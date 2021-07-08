@@ -2,7 +2,9 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 
 module Plugin.Primitives.Spec where
 
@@ -11,14 +13,14 @@ import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified PlutusTx.Builtins   as Builtins
+import qualified PlutusTx.Builtins       as Builtins
+import qualified PlutusTx.Builtins.Class as Builtins
 import           PlutusTx.Code
 import           PlutusTx.Lift
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude    as P
+import qualified PlutusTx.Prelude        as P
 
-import qualified PlutusCore.Builtins as PLC
-import qualified PlutusCore.Universe as PLC
+import qualified PlutusCore.Default      as PLC
 
 import           Data.Proxy
 
@@ -52,10 +54,14 @@ primitives = testNested "Primitives" [
   , goldenUEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.ByteString)]
   , goldenUEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("hello" :: Builtins.ByteString)]
   , goldenUEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("world" :: Builtins.ByteString)]
+  , goldenUEval "decodeUtf8" [ getPlc bsDecode, liftProgram ("hello" :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
+  , goldenPir "traceComplex" traceComplex
   , goldenPir "stringLiteral" stringLiteral
   , goldenPir "stringConvert" stringConvert
+  , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: String), liftProgram ("hello" :: String)]
+  , goldenPir "encodeUtf8" stringEncode
   ]
 
 string :: CompiledCode String
@@ -119,14 +125,26 @@ bsEquals = plc (Proxy @"bs32Equals") (\(x :: Builtins.ByteString) (y :: Builtins
 bsLt :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
 bsLt = plc (Proxy @"bsLt") (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.lessThanByteString x y)
 
+bsDecode :: CompiledCode (Builtins.ByteString -> Builtins.BuiltinString)
+bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.ByteString) -> Builtins.decodeUtf8 x)
+
 verify :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
 verify = plc (Proxy @"verify") (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
 
-trace :: CompiledCode (Builtins.String -> ())
-trace = plc (Proxy @"trace") (\(x :: Builtins.String) -> Builtins.trace x)
+trace :: CompiledCode (Builtins.BuiltinString -> ())
+trace = plc (Proxy @"trace") (\(x :: Builtins.BuiltinString) -> Builtins.trace x ())
 
-stringLiteral :: CompiledCode (Builtins.String)
-stringLiteral = plc (Proxy @"stringLiteral") ("abc"::Builtins.String)
+traceComplex :: CompiledCode (Bool -> ())
+traceComplex = plc (Proxy @"traceComplex") (\(b :: Bool) -> if b then P.trace "yes" () else P.traceError "no")
 
-stringConvert :: CompiledCode (Builtins.String)
-stringConvert = plc (Proxy @"stringConvert") ((noinline P.stringToBuiltinString) "abc")
+stringLiteral :: CompiledCode (Builtins.BuiltinString)
+stringLiteral = plc (Proxy @"stringLiteral") ("abc"::Builtins.BuiltinString)
+
+stringConvert :: CompiledCode (Builtins.BuiltinString)
+stringConvert = plc (Proxy @"stringConvert") ((noinline Builtins.stringToBuiltinString) "abc")
+
+stringEquals :: CompiledCode (String -> String -> Bool)
+stringEquals = plc (Proxy @"string32Equals") (\(x :: String) (y :: String) -> Builtins.equalsString (Builtins.stringToBuiltinString x) (Builtins.stringToBuiltinString y))
+
+stringEncode :: CompiledCode (Builtins.ByteString)
+stringEncode = plc (Proxy @"stringEncode") (Builtins.encodeUtf8 "abc")

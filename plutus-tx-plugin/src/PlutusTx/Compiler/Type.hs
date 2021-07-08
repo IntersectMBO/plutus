@@ -183,6 +183,10 @@ The check we do is:
 
 This is somewhat wasteful, since we may compile the expression twice, but it's difficult to avoid, and
 it's hard to tell if a GHC core expression will be a PLC value or not. Easiest to just try it.
+
+One further optimization: we don't do compile a case lazily if it has one alternative. In this case
+we're going to evaluate that alternative unconditionally, *and* we're going to evaluate the scrutinee
+first, so the effects will also be in the right order.
 -}
 
 {- Note [Ordering of constructors]

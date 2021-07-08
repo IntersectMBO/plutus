@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -25,6 +26,7 @@ import           Data.Default                          (Default (..))
 import           Data.Either                           (isRight)
 import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
+import           Data.Monoid                           (First (..))
 import           Data.Ratio                            ((%))
 import           Data.Set                              (Set)
 import qualified Data.Set                              as Set
@@ -39,10 +41,10 @@ import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
-import           Ledger                                hiding (Value)
+import           Ledger                                (Slot (..), pubKeyHash, validatorHash)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Constraints.TxConstraints      (TxConstraints)
-import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import qualified Ledger.Typed.Scripts                  as Scripts
 import qualified Ledger.Value                          as Val
 import           Plutus.Contract.Test                  hiding ((.&&.))
 import qualified Plutus.Contract.Test                  as T
@@ -81,6 +83,7 @@ tests = testGroup "Marlowe"
     , testProperty "Multiply by zero" mulTest
     , testProperty "Scale rounding" scaleRoundingTest
     , zeroCouponBondTest
+    , errorHandlingTest
     , trustFundTest
     ]
 
@@ -94,10 +97,12 @@ zeroCouponBondTest :: TestTree
 zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Zero Coupon Bond Contract"
     (assertNoFailedTransactions
     -- T..&&. emulatorLog (const False) ""
-    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should close"
-    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should close"
+    T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag alice) (const True) "contract should close"
+    T..&&. assertDone marlowePlutusContract (Trace.walletInstanceTag bob) (const True) "contract should close"
     T..&&. walletFundsChange alice (lovelaceValueOf (150))
     T..&&. walletFundsChange bob (lovelaceValueOf (-150))
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice) ((==) OK) "should be OK"
+    T..&&. assertAccumState marlowePlutusContract (Trace.walletInstanceTag bob) ((==) OK) "should be OK"
     ) $ do
     -- Init a contract
     let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
@@ -118,15 +123,46 @@ zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250
     Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" bobHdl (params)
-
-    Trace.callEndpoint @"apply-inputs" aliceHdl (params, [IDeposit alicePk alicePk ada 850])
+    Trace.callEndpoint @"apply-inputs" aliceHdl (params, Nothing, [IDeposit alicePk alicePk ada 850])
     Trace.waitNSlots 2
 
-    Trace.callEndpoint @"wait" aliceHdl (params)
-
-    Trace.callEndpoint @"apply-inputs" bobHdl (params, [IDeposit alicePk bobPk ada 1000])
+    Trace.callEndpoint @"apply-inputs" bobHdl (params, Nothing, [IDeposit alicePk bobPk ada 1000])
     void $ Trace.waitNSlots 2
+
+    Trace.callEndpoint @"close" aliceHdl ()
+    Trace.callEndpoint @"close" bobHdl ()
+    void $ Trace.waitNSlots 2
+
+
+errorHandlingTest :: TestTree
+errorHandlingTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Error handling"
+    (assertAccumState marlowePlutusContract (Trace.walletInstanceTag alice)
+    (\case SomeError (TransitionError _) -> True
+           _                             -> False
+    ) "should be fail with SomeError"
+    ) $ do
+    -- Init a contract
+    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+
+    let params = defaultMarloweParams
+
+    let zeroCouponBond = When [ Case
+            (Deposit alicePk alicePk ada (Constant 850))
+            (Pay alicePk (Party bobPk) ada (Constant 850)
+                (When
+                    [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
+                ))] (Slot 100) Close
+
+    bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
+
+    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.waitNSlots 2
+
+    Trace.callEndpoint @"apply-inputs" aliceHdl (params, Nothing, [IDeposit alicePk alicePk ada 1000])
+    Trace.waitNSlots 2
+    pure ()
 
 
 trustFundTest :: TestTree
@@ -137,6 +173,13 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should not have any errors"
     T..&&. walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
     T..&&. walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
+    T..&&. assertAccumState marloweFollowContract "bob follow"
+        (\state@ContractHistory{chParams, chHistory} ->
+            case chParams of
+                First (Just (mp, MarloweData{marloweContract})) -> mp == params && marloweContract == contract
+                _                                               -> False) "follower contract state"
+            --mp MarloweData{marloweContract} history
+            -- chParams == (_ params) && chParams == (_ contract))
     ) $ do
 
     -- Init a contract
@@ -145,6 +188,7 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
     bobHdl <- Trace.activateContractWallet bob marlowePlutusContract
     aliceHdl <- Trace.activateContractWallet alice marlowePlutusContract
     bobCompanionHdl <- Trace.activateContract bob marloweCompanionContract "bob companion"
+    bobFollowHdl <- Trace.activateContract bob marloweFollowContract "bob follow"
 
     Trace.callEndpoint @"create" aliceHdl
         (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
@@ -155,17 +199,17 @@ trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Tr
         [] -> pure ()
         (pms, _) : _ -> do
 
-            Trace.callEndpoint @"wait" bobHdl pms
-
-            Trace.callEndpoint @"apply-inputs" aliceHdl (pms,
+            Trace.callEndpoint @"apply-inputs" aliceHdl (pms, Nothing,
                 [ IChoice chId 256
                 , IDeposit "alice" "alice" ada 256
                 ])
             Trace.waitNSlots 17
 
-            Trace.callEndpoint @"wait" aliceHdl (pms)
+            -- get contract's history and start following our contract
+            Trace.callEndpoint @"follow" bobFollowHdl pms
+            Trace.waitNSlots 2
 
-            Trace.callEndpoint @"apply-inputs" bobHdl (pms, [INotify])
+            Trace.callEndpoint @"apply-inputs" bobHdl (pms, Nothing, [INotify])
 
             Trace.waitNSlots 2
             Trace.callEndpoint @"redeem" bobHdl (pms, "bob", bobPkh)
@@ -208,16 +252,16 @@ uniqueContractHash = do
             { rolesCurrency = cs
             , rolePayoutValidatorHash = validatorHash (rolePayoutScript cs) }
 
-    let hash1 = scriptHash $ scriptInstance (params "11")
-    let hash2 = scriptHash $ scriptInstance (params "22")
-    let hash3 = scriptHash $ scriptInstance (params "22")
+    let hash1 = Scripts.validatorHash $ typedValidator (params "11")
+    let hash2 = Scripts.validatorHash $ typedValidator (params "22")
+    let hash3 = Scripts.validatorHash $ typedValidator (params "22")
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
 
 validatorSize :: IO ()
 validatorSize = do
-    let validator = validatorScript $ scriptInstance defaultMarloweParams
+    let validator = Scripts.validatorScript $ typedValidator defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
     assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
 

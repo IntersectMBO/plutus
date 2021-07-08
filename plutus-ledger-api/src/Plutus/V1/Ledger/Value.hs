@@ -31,6 +31,7 @@ module Plutus.V1.Ledger.Value(
     , AssetClass(..)
     , assetClass
     , assetClassValue
+    , assetClassValueOf
     -- ** Value
     , Value(..)
     , singleton
@@ -79,7 +80,7 @@ import           PlutusTx.Prelude
 import           PlutusTx.These
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
-    deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
     deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  NFData)
@@ -105,13 +106,13 @@ makeLift ''CurrencySymbol
 
 {-# INLINABLE mpsSymbol #-}
 -- | The currency symbol of a monetay policy hash
-mpsSymbol :: MonetaryPolicyHash -> CurrencySymbol
-mpsSymbol (MonetaryPolicyHash h) = CurrencySymbol h
+mpsSymbol :: MintingPolicyHash -> CurrencySymbol
+mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
 
 {-# INLINABLE currencyMPSHash #-}
--- | The monetary policy hash of a currency symbol
-currencyMPSHash :: CurrencySymbol -> MonetaryPolicyHash
-currencyMPSHash (CurrencySymbol h) = MonetaryPolicyHash h
+-- | The minting policy hash of a currency symbol
+currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
+currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 
 {-# INLINABLE currencySymbol #-}
 currencySymbol :: ByteString -> CurrencySymbol
@@ -140,10 +141,10 @@ asBase16 bs = Text.concat ["0x", JSON.encodeByteString bs]
 quoted :: Text -> Text
 quoted s = Text.concat ["\"", s, "\""]
 
-toString :: TokenName -> String
+toString :: TokenName -> Haskell.String
 toString = Text.unpack . fromTokenName asBase16 id
 
-instance Show TokenName where
+instance Haskell.Show TokenName where
     show = Text.unpack . fromTokenName asBase16 quoted
 
 {- note [Roundtripping token names]
@@ -168,7 +169,7 @@ instance FromJSON TokenName where
         fromJSONText raw
         where
             fromJSONText t = case Text.take 3 t of
-                "\NUL0x"       -> either fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
+                "\NUL0x"       -> either Haskell.fail (Haskell.pure . TokenName) . JSON.tryDecode . Text.drop 3 $ t
                 "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
                 _              -> Haskell.pure . fromText $ t
 
@@ -181,7 +182,7 @@ tokenName = TokenName
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData, Serialise, Show)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, PlutusTx.IsData, Serialise)
     deriving anyclass (Hashable, NFData, ToJSON, FromJSON)
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
@@ -212,13 +213,13 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
     deriving newtype (Serialise, PlutusTx.IsData)
     deriving Pretty via (PrettyShow Value)
 
-instance Show Value where
+instance Haskell.Show Value where
     showsPrec d v =
-        showParen (d Haskell.== 11) $
-            showString "Value " . (showParen True (showsMap (showPair (showsMap shows)) rep))
+        Haskell.showParen (d Haskell.== 11) $
+            Haskell.showString "Value " . (Haskell.showParen True (showsMap (showPair (showsMap Haskell.shows)) rep))
         where Value rep = normalizeValue v
-              showsMap sh m = showString "Map " . showList__ sh (Map.toList m)
-              showPair s (x,y) = showParen True $ shows x . showString "," . s y
+              showsMap sh m = Haskell.showString "Map " . showList__ sh (Map.toList m)
+              showPair s (x,y) = Haskell.showParen True $ Haskell.shows x . Haskell.showString "," . s y
 
 normalizeValue :: Value -> Value
 normalizeValue = Value . Map.fromList . sort . filterRange (/=Map.empty)
@@ -327,6 +328,11 @@ singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 assetClassValue :: AssetClass -> Integer -> Value
 assetClassValue (AssetClass (c, t)) i = singleton c t i
 
+{-# INLINABLE assetClassValueOf #-}
+-- | Get the quantity of the given 'AssetClass' class in the 'Value'.
+assetClassValueOf :: Value -> AssetClass -> Integer
+assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
+
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps
 unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
@@ -423,6 +429,7 @@ eq = checkBinRel (==)
 --
 --   @negate (fst (split a)) `plus` (snd (split a)) == a@
 --
+{-# INLINABLE split #-}
 split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos) where
   (neg, pos) = Map.mapThese splitIntl mp

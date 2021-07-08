@@ -1,11 +1,11 @@
 module Toast.View (renderToast) where
 
 import Prelude hiding (div)
-import Css (classNames)
 import Css as Css
 import Data.Lens (preview)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Halogen (RefLabel(..))
+import Halogen.Css (classNames)
 import Halogen.HTML (HTML, a, div, div_, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (ref)
@@ -31,9 +31,9 @@ renderExpanded ::
   HTML p Action
 renderExpanded toast =
   div
-    [ classNames $ Css.overlay false ]
+    [ classNames $ Css.cardOverlay true ]
     [ div
-        [ classNames $ Css.card false ]
+        [ classNames $ Css.card true ]
         [ a
             [ classNames [ "absolute", "top-4", "right-4", toast.textColor ]
             , onClick_ CloseToast
@@ -60,17 +60,15 @@ renderCollapsed toast =
       Just _ ->
         div [ classNames [ "ml-4", "font-semibold", "underline", "flex-shrink-0" ] ]
           [ a
-              [ onClick_ ExpandToast
-              ]
+              [ onClick_ ExpandToast ]
               [ text "Read more" ]
           ]
   in
     div
       [ classNames [ "fixed", "bottom-6", "md:bottom-10", "left-0", "right-0", "flex", "justify-center", "z-50" ] ]
       [ div
-          [ classNames [ "px-4", "py-2", "rounded", "shadow-lg", "min-w-90p", "max-w-90p", "sm:min-w-sm", "flex", "justify-between", "animate-from-below", toast.bgColor, toast.textColor ]
-          , ref
-              (RefLabel "collapsed-toast")
+          [ classNames [ "px-4", "py-2", "rounded", "shadow-lg", "min-w-90pc", "max-w-90pc", "sm:min-w-sm", "flex", "justify-between", "animate-from-below", toast.bgColor, toast.textColor ]
+          , ref $ RefLabel "collapsed-toast"
           ]
           [ div [ classNames [ "flex", "overflow-hidden" ] ]
               [ icon toast.icon [ "mr-2", toast.iconColor ]

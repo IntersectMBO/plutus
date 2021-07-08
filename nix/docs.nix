@@ -57,12 +57,11 @@ pkgs.recurseIntoAttrs {
     unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
   };
 
-  plutus-contract = import ../plutus-contract/doc { inherit buildAsciiDoc; };
   plutus-core-spec = import ../plutus-core-spec { inherit buildLatexDoc; };
   multi-currency = import ../notes/multi-currency { inherit buildLatexDoc; };
   extended-utxo-spec = import ../extended-utxo-spec { inherit buildLatexDoc; };
   lazy-machine = import ../notes/fomega/lazy-machine { inherit buildLatexDoc; };
-  plutus-report = import ../notes/plutus-report { inherit buildLatexDoc; };
+  plutus-report = import ../plutus-report { inherit buildLatexDoc; };
   cost-model-notes = import ../notes/cost-model-notes { inherit buildLatexDoc; };
 
   site = pkgs.callPackage ../doc {

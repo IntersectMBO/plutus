@@ -1,6 +1,6 @@
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module StarterSimulations where
 
@@ -19,14 +19,14 @@ simulations = [publishRedeem, payToWallet]
     wallet1 = Wallet {getWallet = 1}
     wallet2 = Wallet {getWallet = 2}
     simulationWallets =
-        simulatorWallet registeredKnownCurrencies 100 <$> [wallet1, wallet2]
+        simulatorWallet registeredKnownCurrencies 100_000_000 <$> [wallet1, wallet2]
     publishRedeem =
         Simulation
             { simulationName = "Publish/Redeem"
             , simulationId = 1
             , simulationWallets
             , simulationActions =
-                  [ publish wallet1 (12345, lovelaceValueOf 20)
+                  [ publish wallet1 (12345, lovelaceValueOf 20_000_000)
                   , AddBlocks 1
                   , redeem wallet2 12345
                   , AddBlocks 1
@@ -41,7 +41,7 @@ simulations = [publishRedeem, payToWallet]
                   [ PayToWallet
                         { sender = wallet1
                         , recipient = wallet2
-                        , amount = lovelaceValueOf 24
+                        , amount = lovelaceValueOf 20_000_000
                         }
                   , AddBlocks 1
                   ]

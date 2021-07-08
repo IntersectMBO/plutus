@@ -37,15 +37,16 @@ module Plutus.V1.Ledger.Interval(
     , strictUpperBound
     ) where
 
-import           Codec.Serialise.Class (Serialise)
-import           Control.DeepSeq       (NFData)
-import           Data.Aeson            (FromJSON, ToJSON)
-import           Data.Hashable         (Hashable)
-import           GHC.Generics          (Generic)
-import qualified Prelude               as Haskell
+import           Codec.Serialise.Class     (Serialise)
+import           Control.DeepSeq           (NFData)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Hashable             (Hashable)
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import           GHC.Generics              (Generic)
+import qualified Prelude                   as Haskell
 
-import qualified PlutusTx              as PlutusTx
-import           PlutusTx.Lift         (makeLift)
+import qualified PlutusTx
+import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
 -- | An interval of @a@s.
@@ -55,26 +56,57 @@ import           PlutusTx.Prelude
 --
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Functor Interval where
+  fmap f (Interval from to) = Interval (f <$> from) (f <$> to)
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Functor Extended where
+  fmap _ NegInf     = NegInf
+  fmap f (Finite a) = Finite (f a)
+  fmap _ PosInf     = PosInf
+
+instance Pretty a => Pretty (Extended a) where
+    pretty NegInf     = pretty "-∞"
+    pretty PosInf     = pretty "+∞"
+    pretty (Finite a) = pretty a
 
 -- | Whether a bound is inclusive or not.
 type Closure = Bool
 
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Functor UpperBound where
+  fmap f (UpperBound e c) = UpperBound (f <$> e) c
+
+instance Pretty a => Pretty (UpperBound a) where
+    pretty (UpperBound PosInf _) = pretty "+∞)"
+    pretty (UpperBound NegInf _) = pretty "-∞)"
+    pretty (UpperBound a True)   = pretty a <+> pretty "]"
+    pretty (UpperBound a False)  = pretty a <+> pretty ")"
 
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
-    deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
+    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Functor LowerBound where
+  fmap f (LowerBound e c) = LowerBound (f <$> e) c
+
+instance Pretty a => Pretty (LowerBound a) where
+    pretty (LowerBound PosInf _) = pretty "(+∞"
+    pretty (LowerBound NegInf _) = pretty "(-∞"
+    pretty (LowerBound a True)   = pretty "[" <+> pretty a
+    pretty (LowerBound a False)  = pretty "(" <+> pretty a
 
 PlutusTx.makeIsDataIndexed ''Extended [('NegInf,0),('Finite,1),('PosInf,2)]
 PlutusTx.makeIsDataIndexed ''UpperBound [('UpperBound,0)]
@@ -166,9 +198,8 @@ instance Eq a => Eq (Interval a) where
     l == r = ivFrom l == ivFrom r && ivTo l == ivTo r
 
 {-# INLINABLE interval #-}
--- | @interval a b@ includes all values that are greater than or equal
---   to @a@ and smaller than @b@. Therefore it includes @a@ but not it
---   does not include @b@.
+-- | @interval a b@ includes all values that are greater than or equal to @a@
+-- and smaller than or equal to @b@. Therefore it includes @a@ and @b@.
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
 
@@ -206,8 +237,8 @@ member a i = i `contains` singleton a
 {-# INLINABLE overlaps #-}
 -- | Check whether two intervals overlap, that is, whether there is a value that
 --   is a member of both intervals.
-overlaps :: Ord a => Interval a -> Interval a -> Bool
-overlaps l r = isEmpty (l `intersection` r)
+overlaps :: (Enum a, Ord a) => Interval a -> Interval a -> Bool
+overlaps l r = not $ isEmpty (l `intersection` r)
 
 {-# INLINABLE intersection #-}
 -- | 'intersection a b' is the largest interval that is contained in 'a' and in
@@ -229,11 +260,17 @@ contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
 
 {-# INLINABLE isEmpty #-}
 -- | Check if an 'Interval' is empty.
-isEmpty :: Ord a => Interval a -> Bool
+isEmpty :: (Enum a, Ord a) => Interval a -> Bool
 isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v2 of
-    LT -> True
-    GT -> False
+    LT -> if openInterval then checkEnds v1 v2 else False
+    GT -> True
     EQ -> not (in1 && in2)
+    where
+        openInterval = in1 == False && in2 == False
+        -- | We check two finite ends to figure out if there are elements between them.
+        -- If there are no elements then the interval is empty (#3467).
+        checkEnds (Finite v1') (Finite v2') = (succ v1') `compare` v2' == EQ
+        checkEnds _ _                       = False
 
 {-# INLINABLE before #-}
 -- | Check if a value is earlier than the beginning of an 'Interval'.

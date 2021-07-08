@@ -40,8 +40,8 @@ data Builtin : Set where
   append                   : Builtin
   trace                    : Builtin
 
-{-# FOREIGN GHC import PlutusCore.Builtins #-}
-{-# COMPILE GHC Builtin = data DefaultFun (AddInteger 
+{-# FOREIGN GHC import PlutusCore.Default #-}
+{-# COMPILE GHC Builtin = data DefaultFun (AddInteger
                                           | SubtractInteger
                                           | MultiplyInteger
                                           | DivideInteger
@@ -49,19 +49,19 @@ data Builtin : Set where
                                           | RemainderInteger
                                           | ModInteger
                                           | LessThanInteger
-                                          | LessThanEqInteger
+                                          | LessThanEqualsInteger
                                           | GreaterThanInteger
-                                          | GreaterThanEqInteger
-                                          | EqInteger
+                                          | GreaterThanEqualsInteger
+                                          | EqualsInteger
                                           | Concatenate
                                           | TakeByteString
                                           | DropByteString
-                                          | LtByteString
-                                          | GtByteString
-                                          | SHA2
-                                          | SHA3
+                                          | LessThanByteString
+                                          | GreaterThanByteString
+                                          | Sha2_256
+                                          | Sha3_256
                                           | VerifySignature
-                                          | EqByteString
+                                          | EqualsByteString
                                           | IfThenElse
                                           | CharToString
                                           | Append
@@ -140,4 +140,3 @@ postulate
 -- no binding needed for traceStr
 
 ```
-

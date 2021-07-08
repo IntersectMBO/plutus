@@ -1,0 +1,81 @@
+cabal-version: 2.2
+name: plutus-chain-index
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: sjoerd.visscher@iohk.io
+author: Sjoerd Visscher
+homepage: https://github.com/iohk/plutus#readme
+bug-reports: https://github.com/iohk/plutus/issues
+description:
+    Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
+build-type: Simple
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+
+library
+    import: lang
+    exposed-modules:
+        Plutus.ChainIndex
+        Plutus.ChainIndex.Effects
+        Plutus.ChainIndex.Emulator.DiskState
+        Plutus.ChainIndex.Emulator.Handlers
+        Plutus.ChainIndex.Tx
+        Plutus.ChainIndex.Types
+        Plutus.ChainIndex.UtxoState
+    hs-source-dirs: src
+    build-depends:
+        plutus-ledger -any,
+        plutus-ledger-api -any,
+        plutus-tx -any,
+        freer-extras -any,
+    build-depends:
+        aeson -any,
+        base >=4.7 && <5,
+        containers -any,
+        fingertree -any,
+        freer-simple -any,
+        lens -any,
+        prettyprinter >=1.1.0.1,
+        semigroups -any,
+        bytestring -any,
+        data-default -any
+
+test-suite plutus-chain-index-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    other-modules:
+        Generators
+    build-depends:
+        plutus-ledger -any,
+        plutus-ledger-api -any,
+        plutus-tx -any,
+        plutus-chain-index -any
+    build-depends:
+        base >=4.9 && <5,
+        hedgehog -any,
+        tasty -any,
+        tasty-hedgehog -any,
+        tasty-hunit -any,
+        containers -any,
+        serialise -any,
+        bytestring -any,
+        freer-simple -any,
+        lens -any
+

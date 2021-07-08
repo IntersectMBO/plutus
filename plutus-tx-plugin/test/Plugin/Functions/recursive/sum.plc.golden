@@ -10,31 +10,39 @@
       )
     )
     (let
-      (rec)
+      (nonrec)
       (termbind
         (strict)
-        (vardecl sum (fun [List (con integer)] (con integer)))
+        (vardecl
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
+        )
         (lam
-          ds
-          [List (con integer)]
-          [
-            [
-              { [ { Nil_match (con integer) } ds ] (con integer) }
-              (con integer 0)
-            ]
-            (lam
-              x
-              (con integer)
-              (lam
-                xs
-                [List (con integer)]
-                [ [ (builtin addInteger) x ] [ sum xs ] ]
-              )
-            )
-          ]
+          x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ])
         )
       )
-      sum
+      (let
+        (rec)
+        (termbind
+          (strict)
+          (vardecl sum (fun [List (con integer)] (con integer)))
+          (lam
+            ds
+            [List (con integer)]
+            [
+              [
+                { [ { Nil_match (con integer) } ds ] (con integer) }
+                (con integer 0)
+              ]
+              (lam
+                x
+                (con integer)
+                (lam xs [List (con integer)] [ [ addInteger x ] [ sum xs ] ])
+              )
+            ]
+          )
+        )
+        sum
+      )
     )
   )
 )

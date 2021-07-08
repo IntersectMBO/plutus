@@ -52,6 +52,7 @@ library
         Plutus.V1.Ledger.Slot
         Plutus.V1.Ledger.Tx
         Plutus.V1.Ledger.TxId
+        Plutus.V1.Ledger.Time
         Plutus.V1.Ledger.Value
     build-depends:
         base >=4.9 && <5,
@@ -76,15 +77,22 @@ library
         deepseq -any,
         newtype-generics -any,
         tagged -any,
-        lens -any
+        lens -any,
+        scientific -any
 
 test-suite plutus-ledger-api-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
+    other-modules:
+        Spec.Interval
+        Spec.Time
     build-depends:
         base >=4.9 && <5,
+        aeson -any,
         plutus-ledger-api -any,
+        hedgehog -any,
         tasty -any,
+        tasty-hedgehog -any,
         tasty-hunit -any

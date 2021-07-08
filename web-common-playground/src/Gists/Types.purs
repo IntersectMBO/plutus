@@ -12,7 +12,7 @@ import Gist (GistId(..))
 import Prelude (bind, ($), (<$>))
 
 data GistAction
-  = PublishGist
+  = PublishOrUpdateGist
   | SetGistUrl String
   | LoadGist
   | AjaxErrorPaneAction AjaxErrorPaneAction

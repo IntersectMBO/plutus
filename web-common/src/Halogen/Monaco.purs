@@ -7,6 +7,9 @@ module Halogen.Monaco
   , monacoComponent
   ) where
 
+import Prelude hiding (div)
+import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
+import Control.Monad.Trans.Class (lift)
 import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, class Enum)
 import Data.Generic.Rep (class Generic)
@@ -14,22 +17,24 @@ import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
-import Data.Lens (view)
+import Data.Lens (Lens', use, view)
+import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
-import Control.Monad.Trans.Class (lift)
+import Data.Symbol (SProxy(..))
 import Data.Traversable (for_, traverse)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (HalogenM, RefLabel, get, modify_)
 import Halogen as H
+import Halogen.ElementResize (elementResize)
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
-import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IRange)
+import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, IRange, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IModelDeltaDecoration)
 import Monaco as Monaco
-import Prelude hiding (div)
+import Web.DOM.ResizeObserver (ResizeObserverBoxOptions(..))
+import Web.HTML.HTMLElement as HTMLElement
 
 data KeyBindings
   = DefaultBindings
@@ -79,6 +84,9 @@ type State
     , objects :: Objects
     }
 
+_editor :: Lens' State (Maybe Editor)
+_editor = prop (SProxy :: SProxy "editor")
+
 data Query a
   = SetText String a
   | GetText (String -> a)
@@ -86,8 +94,9 @@ data Query a
   | GetModel (Monaco.ITextModel -> a)
   | GetModelMarkers (Array IMarker -> a)
   | GetDecorationRange String (IRange -> a)
-  | SetDeltaDecorations Int Int (String -> a)
+  | SetDeltaDecorations (Array String) (Array IModelDeltaDecoration) (Array String -> a)
   | SetPosition IPosition a
+  | RevealRange IRange a
   | Focus a
   | Resize a
   | SetTheme String a
@@ -98,9 +107,11 @@ data Query a
 data Action
   = Init
   | HandleChange String
+  | ResizeWorkspace
 
 data Message
   = TextChanged String
+  | EditorReady
 
 type Settings m
   = { languageExtensionPoint :: LanguageExtensionPoint
@@ -168,15 +179,21 @@ handleAction settings Init = do
         for_ settings.codeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
         for_ settings.documentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId
       editor <- liftEffect $ Monaco.create monaco element languageId
-      void $ H.subscribe $ effectEventSource (changeContentHandler editor)
       void $ H.modify (_ { editor = Just editor })
       H.lift $ settings.setup editor
       model <- liftEffect $ Monaco.getModel editor
+      void $ H.subscribe $ elementResize ContentBox (const ResizeWorkspace) (HTMLElement.toElement element)
+      H.raise EditorReady
       H.raise $ TextChanged (Monaco.getValue model)
-      pure unit
+      void $ H.subscribe $ effectEventSource (changeContentHandler editor)
     Nothing -> pure unit
 
 handleAction _ (HandleChange contents) = H.raise $ TextChanged contents
+
+handleAction _ ResizeWorkspace = do
+  mEditor <- use _editor
+  for_ mEditor \editor ->
+    liftEffect $ Monaco.layout editor
 
 changeContentHandler ::
   forall m.
@@ -247,6 +264,11 @@ handleQuery (SetPosition position next) = do
   withEditor \editor -> do
     liftEffect $ Monaco.setPosition editor position
     liftEffect $ Monaco.revealLine editor position.lineNumber
+    pure next
+
+handleQuery (RevealRange range next) = do
+  withEditor \editor -> do
+    liftEffect $ Monaco.revealRange editor range
     pure next
 
 handleQuery (Focus next) = do

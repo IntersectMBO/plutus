@@ -34,16 +34,7 @@ library
         Data.Text.Extras
         Data.UUID.Extras
         Plutus.Contract
-        Plutus.Contract.Effects.AwaitSlot
-        Plutus.Contract.Effects.AwaitTxConfirmed
-        Plutus.Contract.Effects.Instance
-        Plutus.Contract.Effects.RPC
-        Plutus.Contract.Effects.ExposeEndpoint
-        Plutus.Contract.Effects.Notify
-        Plutus.Contract.Effects.OwnPubKey
-        Plutus.Contract.Effects.UtxoAt
-        Plutus.Contract.Effects.WatchAddress
-        Plutus.Contract.Effects.WriteTx
+        Plutus.Contract.Effects
         Plutus.Contract.Request
         Plutus.Contract.Checkpoint
         Plutus.Contract.Constraints
@@ -125,7 +116,7 @@ library
         transformers-base -any,
         monad-control -any,
         mmorph -any,
-        row-types < 1.0,
+        row-types >= 1.0.1.0,
         freer-simple -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,
@@ -138,7 +129,9 @@ library
         random -any,
         unordered-containers -any,
         foldl -any,
-        streaming -any
+        streaming -any,
+        IntervalMap -any,
+        plutus-chain-index -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:
@@ -148,29 +141,6 @@ library
             tasty -any,
             tasty-hunit -any,
             tasty-golden -any,
-
-test-suite contract-doctests
-    type: exitcode-stdio-1.0
-    -- Include 'doc' so Haskell.nix finds the symlink sources
-    hs-source-dirs:
-        doctest
-        doc
-    default-language: Haskell2010
-    main-is: Main.hs
-    ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
-    build-tool-depends: unlit:unlit -any, doctest:doctest -any
-    other-modules:
-      ContractAPI
-    build-depends:
-      base >=4.9 && <5,
-      template-haskell >=2.13.0.0,
-      bytestring -any,
-      freer-extras -any,
-      plutus-core -any,
-      plutus-contract -any,
-      plutus-ledger -any,
-      prettyprinter -any,
-      containers -any
 
 test-suite plutus-contract-test
     -- TODO: put this back, turns out there were lots of warnings in the `plutus-emulator` tests...

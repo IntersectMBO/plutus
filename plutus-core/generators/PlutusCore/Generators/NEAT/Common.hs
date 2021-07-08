@@ -88,4 +88,3 @@ mkTextNameStream prefix =
   Stream.map
     (\n -> prefix <> Text.pack (show n))
     (Stream.iterate (+1) (0 :: Integer))
-

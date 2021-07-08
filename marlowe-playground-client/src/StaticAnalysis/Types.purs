@@ -11,7 +11,7 @@ import Data.Map (Map)
 import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
-import Marlowe.Extended (TemplateContent)
+import Marlowe.Template (TemplateContent)
 import Marlowe.Semantics (AccountId, Case, Contract, Observation, Payee, Timeout, Token, Value, ValueId)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)

@@ -10,23 +10,23 @@
 
 module CommandParser (parseOptions, AppOpts(..)) where
 
-import           Command
-
 import           Cardano.BM.Data.Severity                (Severity (..))
-
+import           Command
 import           Options.Applicative                     (CommandFields, Mod, Parser, argument, auto, command,
                                                           customExecParser, disambiguate, flag, fullDesc, help, helper,
                                                           idm, info, long, metavar, option, prefs, progDesc, short,
                                                           showHelpOnEmpty, showHelpOnError, str, strOption, subparser,
                                                           value)
+import           Plutus.PAB.App                          (StorageBackend (..))
 import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe (..))
 import           Wallet.Types                            (ContractInstanceId (..))
 
-data AppOpts = AppOpts { minLogLevel   :: Maybe Severity
-                       , configPath    :: FilePath
-                       , logConfigPath :: Maybe FilePath
-                       , runEkgServer  :: Bool
-                       , cmd           :: Command
+data AppOpts = AppOpts { minLogLevel    :: Maybe Severity
+                       , logConfigPath  :: Maybe FilePath
+                       , configPath     :: Maybe FilePath
+                       , runEkgServer   :: Bool
+                       , storageBackend :: StorageBackend
+                       , cmd            :: Command
                        }
 
 parseOptions :: IO AppOpts
@@ -48,21 +48,29 @@ ekgFlag =
         True
         (short 'e' <> long "ekg" <> help "Enable the EKG server")
 
+inMemoryFlag :: Parser StorageBackend
+inMemoryFlag =
+    flag
+        BeamSqliteBackend
+        InMemoryBackend
+        (short 'm' <> long "memory" <> help "Use the memory-backed backend. If false, the beam backend is used.")
+
 commandLineParser :: Parser AppOpts
 commandLineParser =
         AppOpts <$> logLevelFlag
-               <*> configFileParser
-               <*> logConfigFileParser
-               <*> ekgFlag
-               <*> commandParser
+                <*> logConfigFileParser
+                <*> configFileParser
+                <*> ekgFlag
+                <*> inMemoryFlag
+                <*> commandParser
 
-configFileParser :: Parser FilePath
+configFileParser :: Parser (Maybe FilePath)
 configFileParser =
     option
-        str
+        (Just <$> str)
         (long "config" <>
          metavar "CONFIG_FILE" <>
-         help "Config file location." <> value "plutus-pab.yaml")
+         help "Config file location." <> value Nothing)
 
 logConfigFileParser :: Parser (Maybe FilePath)
 logConfigFileParser =
@@ -86,7 +94,6 @@ commandParser =
         , chainIndexParser
         , metadataParser
         , defaultConfigParser
-        , simulatorParser
         , command
               "contracts"
               (info
@@ -105,96 +112,93 @@ defaultConfigParser :: Mod CommandFields Command
 defaultConfigParser =
     command "default-logging-config" $
     flip info (fullDesc <> progDesc "Write the default logging configuration YAML to a file") $ do
-        _outputFile <-
+        outputFile <-
             argument
                 str
                 (metavar "OUTPUT_FILE" <>
                  help "Output file to write logging config YAML to.")
-        pure WriteDefaultConfig {_outputFile}
-
-simulatorParser :: Mod CommandFields Command
-simulatorParser =
-    command "simulator" $
-    info
-        (pure StartSimulatorWebServer)
-        (fullDesc <> progDesc "Start a simulator with some pre-installed contracts. No external services required.")
+        pure $ WithoutConfig WriteDefaultConfig {outputFile}
 
 psGeneratorCommandParser :: Mod CommandFields Command
 psGeneratorCommandParser =
     command "psgenerator" $
     flip info (fullDesc <> progDesc "Generate the frontend's PureScript files.") $ do
-        _outputDir <-
+        outputDir <-
             argument
                 str
                 (metavar "OUTPUT_DIR" <>
                  help "Output directory to write PureScript files to.")
-        pure PSGenerator {_outputDir}
+        pure $ WithoutConfig PSGenerator {outputDir}
 
 migrationParser :: Mod CommandFields Command
 migrationParser =
     command "migrate" $
-    info
-        (pure Migrate)
-        (fullDesc <> progDesc "Update the database with the latest schema.")
+    flip info (fullDesc <> progDesc "Update the database with the latest schema.") $ do
+        dbPath <-
+            argument
+                str
+                (metavar "DATABASE" <>
+                 help "The sqlite database file.")
+        -- TODO: This will need to be 'WithConfig'.
+        pure $ WithoutConfig $ Migrate{dbPath}
 
 mockNodeParser :: Mod CommandFields Command
 mockNodeParser =
     command "node-server" $
-    info
-        (pure MockNode)
-        (fullDesc <>
-         progDesc "Run a mock version of the Cardano node API server.")
+    flip info (fullDesc <> progDesc "Run a mock version of the Cardano node API server.") $ do
+        withoutMockServer <- flag WithMockServer WithoutMockServer
+                                  (long "without-mock-node")
+        pure $ WithConfig $ MockNode withoutMockServer
 
 mockWalletParser :: Mod CommandFields Command
 mockWalletParser =
     command "wallet-server" $
     info
-        (pure MockWallet)
+        (pure $ WithConfig MockWallet)
         (fullDesc <>
          progDesc "Run a mock version of the Cardano wallet API server.")
 
 chainIndexParser :: Mod CommandFields Command
 chainIndexParser =
     command "chain-index" $
-    info (pure ChainIndex) (fullDesc <> progDesc "Run the chain index.")
+    info (pure $ WithConfig ChainIndex) (fullDesc <> progDesc "Run the chain index.")
 
 metadataParser :: Mod CommandFields Command
 metadataParser =
     command "metadata-server" $
-    info (pure Metadata) (fullDesc <> progDesc "Run the Cardano metadata API server.")
+    info (pure $ WithConfig Metadata) (fullDesc <> progDesc "Run the Cardano metadata API server.")
 
 allServersParser :: Mod CommandFields Command
 allServersParser =
     command "all-servers" $
-    info
-        (pure
-             (ForkCommands
-                  [ MockNode
-                  , ChainIndex
-                  , Metadata
-                  , MockWallet
-                  , PABWebserver
-                  ]))
-        (fullDesc <> progDesc "Run all the mock servers needed.")
+    flip info (fullDesc <> progDesc "Run all the mock servers needed.") $ do
+        withoutMockServer <- flag WithMockServer WithoutMockServer
+                                  (long "without-mock-node")
+        pure  (WithConfig $ ForkCommands
+                   [ MockNode withoutMockServer
+                   , ChainIndex
+                   , Metadata
+                   , MockWallet
+                   , PABWebserver
+                   ])
 
 clientServicesParser :: Mod CommandFields Command
 clientServicesParser =
     command "client-services" $
     info
-        (pure
-             (ForkCommands
-                  [ ChainIndex
-                  , Metadata
-                  , MockWallet
-                  , PABWebserver
-                  ]))
+        (pure (WithConfig $ ForkCommands
+                    [ ChainIndex
+                    , Metadata
+                    , MockWallet
+                    , PABWebserver
+                    ]))
         (fullDesc <> progDesc "Run the client services (all services except the mock node).")
 
 installContractParser :: Mod CommandFields Command
 installContractParser =
     command "install" $
     info
-        (InstallContract . ContractExe <$>
+        (WithConfig . InstallContract . ContractExe <$>
          strOption
              (short 'p' <>
               long "path" <> help "Path to the executable contract."))
@@ -204,7 +208,7 @@ contractStateParser :: Mod CommandFields Command
 contractStateParser =
     command "state" $
     info
-        (ContractState <$> contractIdParser)
+        (WithConfig . ContractState <$> contractIdParser)
         (fullDesc <> progDesc "Show the current state of a contract.")
 
 contractIdParser :: Parser ContractInstanceId
@@ -217,26 +221,26 @@ reportInstalledContractsParser :: Mod CommandFields Command
 reportInstalledContractsParser =
     command "installed" $
     info
-        (pure ReportInstalledContracts)
+        (pure $ WithConfig ReportInstalledContracts)
         (fullDesc <> progDesc "Show all installed contracts.")
 
 reportActiveContractsParser :: Mod CommandFields Command
 reportActiveContractsParser =
     command "active" $
     info
-        (pure ReportActiveContracts)
+        (pure $ WithConfig ReportActiveContracts)
         (fullDesc <> progDesc "Show all active contracts.")
 
 pabWebserverParser :: Mod CommandFields Command
 pabWebserverParser =
     command "webserver" $
     info
-        (pure PABWebserver)
+        (pure $ WithConfig PABWebserver)
         (fullDesc <> progDesc "Start the PAB backend webserver.")
 
 reportContractHistoryParser :: Mod CommandFields Command
 reportContractHistoryParser =
     command "history" $
     info
-        (ReportContractHistory <$> contractIdParser)
+        (WithConfig . ReportContractHistory <$> contractIdParser)
         (fullDesc <> progDesc "Show the state history of a smart contract.")

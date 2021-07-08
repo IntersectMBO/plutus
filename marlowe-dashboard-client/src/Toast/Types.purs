@@ -1,12 +1,25 @@
-module Toast.Types where
+module Toast.Types
+  ( ToastMessage
+  , Action(..)
+  , ToastState
+  , State
+  , successToast
+  , errorToast
+  , ajaxErrorToast
+  , decodingErrorToast
+  , decodedAjaxErrorToast
+  ) where
 
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Foreign (MultipleErrors)
 import Halogen (SubscriptionId)
 import Material.Icons (Icon(..))
-import Servant.PureScript.Ajax (AjaxError, errorToString)
+import Servant.PureScript.Ajax (AjaxError)
+import Types (DecodedAjaxError)
 
 type ToastMessage
   = { shortDescription :: String
@@ -59,7 +72,7 @@ successToast shortDescription =
 errorToast :: String -> Maybe String -> ToastMessage
 errorToast shortDescription longDescription =
   { shortDescription
-  , longDescription
+  , longDescription: map (\m -> m <> " " <> contactSupportMessage) longDescription
   , icon: ErrorOutline
   , iconColor: "text-white"
   , textColor: "text-white"
@@ -68,7 +81,15 @@ errorToast shortDescription longDescription =
   }
 
 ajaxErrorToast :: String -> AjaxError -> ToastMessage
-ajaxErrorToast shortDescription ajaxError = errorToast shortDescription $ Just $ errorToString ajaxError
+ajaxErrorToast shortDescription ajaxError = errorToast shortDescription $ Just "A request was made to the server, but the expected response was not returned."
 
-connectivityErrorToast :: String -> ToastMessage
-connectivityErrorToast shortDescription = errorToast shortDescription (Just "There was a problem connecting with the server, please contact support if this problem persists.")
+decodingErrorToast :: String -> MultipleErrors -> ToastMessage
+decodingErrorToast shortDescription decodingError = errorToast shortDescription $ Just "Some data was received from the server, but the browser was unable to parse it."
+
+decodedAjaxErrorToast :: String -> DecodedAjaxError -> ToastMessage
+decodedAjaxErrorToast shortDescription decodedAjaxError = case decodedAjaxError of
+  Left ajaxError -> ajaxErrorToast shortDescription ajaxError
+  Right multipleErrors -> decodingErrorToast shortDescription multipleErrors
+
+contactSupportMessage :: String
+contactSupportMessage = "Please contact support if the problem persists."

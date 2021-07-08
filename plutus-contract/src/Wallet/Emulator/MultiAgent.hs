@@ -107,6 +107,9 @@ walletClientEvent w = prism' (ClientEvent w) (\case { ClientEvent w' c | w == w'
 walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent' Wallet.WalletEvent
 walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Just c; _ -> Nothing })
 
+walletEvent' :: Prism' EmulatorEvent' (Wallet.Wallet, Wallet.WalletEvent)
+walletEvent' = prism' (uncurry WalletEvent) (\case { WalletEvent w c -> Just (w, c); _ -> Nothing })
+
 chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
@@ -283,12 +286,14 @@ emulatorStateInitialDist :: Map PubKey Value -> EmulatorState
 emulatorStateInitialDist mp = emulatorStatePool [tx] where
     tx = Tx
             { txInputs = mempty
+            , txCollateral = mempty
             , txOutputs = uncurry (flip pubKeyTxOut) <$> Map.toList mp
-            , txForge = foldMap snd $ Map.toList mp
+            , txMint = foldMap snd $ Map.toList mp
             , txFee = mempty
             , txValidRange = WAPI.defaultSlotRange
-            , txForgeScripts = mempty
+            , txMintScripts = mempty
             , txSignatures = mempty
+            , txRedeemers = mempty
             , txData = mempty
             }
 
@@ -391,7 +396,7 @@ ownFundsEqual wallet value = do
 isValidated :: (Members MultiAgentEffs effs) => Tx -> Eff effs ()
 isValidated txn = do
     emState <- get
-    if notElem txn (join $ emState ^. chainState . Chain.chainNewestFirst)
+    if notElem (Valid txn) (join $ emState ^. chainState . Chain.chainNewestFirst)
         then throwError $ GenericAssertion $ "Txn not validated: " <> T.pack (show txn)
         else pure ()
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports    #-}
 
@@ -15,9 +16,8 @@ import qualified Data.ByteString                    as BS
 import qualified Data.ByteString.Lazy               as LBS
 import           Data.Text                          (Text)
 
-import           PlutusCore                         (DefaultFun (..))
 import           PlutusCore.CBOR                    (InvisibleUnit (..))
-import           PlutusCore.Universe
+import           PlutusCore.Default
 import           UntypedPlutusCore                  hiding (OmitUnitAnnotations, restoreUnitAnnotations)
 
 import           "pure-zlib" Codec.Compression.Zlib as PureZlib
@@ -36,7 +36,7 @@ fromDecoded :: Show error => Either error a -> a
 fromDecoded (Left err) = error $ show err
 fromDecoded (Right  v) = v
 
-flatCodec :: Flat name => Codec (Tm name)
+flatCodec :: (Flat (Binder name), Flat name) => Codec (Tm name)
 flatCodec = Codec
   { serialize   = flat
   , deserialize = fromDecoded . unflat
@@ -71,7 +71,7 @@ withPureZlib codec = Codec
   , deserialize = (deserialize codec) . LBS.toStrict . fromDecoded . PureZlib.decompress . LBS.fromStrict
   }
 
-codecs    :: (Flat name, Serialise name) => [ (Text, Codec (Tm name)) ]
+codecs    :: (Flat (Binder name), Flat name, Serialise name) => [ (Text, Codec (Tm name)) ]
 codecs    =
   [ ("flat", flatCodec)
   , ("flat-zlib", withZlib flatCodec)

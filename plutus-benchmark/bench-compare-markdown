@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Compare the output from two runs of some Criterion benchmarks and produce a
+# markdown table showing the increase/decrease in execution time for each
+# benchmark.
+
+# Do something like
+#    `cabal bench plutus-benchmarks:validation >results1 2>&1`
+# in one branch and then 
+#    `cabal bench plutus-benchmarks:validation >results2 2>&1`
+# in another, then
+#    `bench-compare results1 results2 "Old results" "New results"`
+# to see the comparison.  The (optional) third and fourth arguments
+# will be used as column headers.
+#
+# You probably want to do this on a quiet machine, with things like Slack and
+# browsers turned off.
+
+if [[ $# -lt 2 || $1 == "-h" || $1 == "--help" ]]
+then
+  echo -n "Usage: $0 <file1> <file2> [<header1> <header2>]"
+  exit 1
+fi
+
+INPUT1="$1"
+INPUT2="$2"
+
+if [[ ! -r "$INPUT1" ]]
+then echo "Error: can't open $INPUT1" && exit 1
+fi
+
+if [[ ! -r "$INPUT2" ]]
+then echo "Error: can't open $INPUT2" && exit 1
+fi
+
+TMP1=$(mktemp /tmp/bc1-XXXXXXX)
+TMP2=$(mktemp /tmp/bc2-XXXXXXX)
+
+trap 'rm -f "$TMP1" "$TMP2"' EXIT
+
+awk '/^bench/ {printf ("%-40s ", $2)}
+     /^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT1" > "$TMP1"  # %-2s to get the units properly aligned
+awk '/^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT2" > "$TMP2"
+paste "$TMP1" "$TMP2" |
+  awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" 'BEGIN {
+       # Initialise array of unit conversion factors
+       ps["s"]  = 12  # 1 s = 10^12 ps
+       ps["ms"] = 9 
+       ps["µs"] = 6   # 0xb5; Criterion uses this
+       ps["μs"] = 6   # 0x03bc
+       ps["ns"] = 3
+       ps["ps"] = 0
+       # Print markdown table headers, attempting to make the output reasonably well aligned even in raw form.
+       printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", "Script", hdr1, hdr2, " Change")
+       printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", ":------", ":------:", ":------:", ":------:")
+   }
+   {
+   time1 = $2
+   time2 = $4 * 10^(ps[$5]-ps[$3]) # Adjust for different units
+   d = (time2-time1)/time1 * 100
+   sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
+   change = sprintf ("%s%.1f%%", sign, d)
+   printf ("| %-40s |  %s %s  |  %s %s  |  %7s   |\n", $1, $2, $3, $4, $5, change)
+ }' 
+
+
+

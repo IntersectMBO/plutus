@@ -166,6 +166,8 @@ itype b = let Φ ,, Γ ,, C = ISIG b in subNf (λ()) (isig2type Φ Γ C)
 postulate itype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype b ≡ renNf ρ (itype b)
 postulate itype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ subNf ρ (itype b)
 
+infixl 7 _·⋆_
+
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
   ` : ∀ {A : Φ ⊢Nf⋆ *}
@@ -217,7 +219,6 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 
   error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
-
 \end{code}
 
 Utility functions

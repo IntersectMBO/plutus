@@ -7,14 +7,16 @@ module Dataset ( contractsWithNames
 
 import           Control.Monad.Trans.Except
 import           Data.Bifunctor                    (second)
+import           Data.Default                      (Default (def))
 import           Data.Either                       (fromRight)
 import           Data.Text                         (Text)
 
 import qualified Language.Marlowe                  as Marlowe
-import qualified Ledger                            as Ledger
+import qualified Ledger
 import qualified Ledger.Ada                        as Ada
 import           Ledger.Crypto
 import qualified Ledger.Scripts                    as Plutus
+import qualified Ledger.TimeSlot                   as TimeSlot
 import qualified Ledger.Typed.Scripts              as Plutus
 import           Ledger.Value
 import           Plutus.Contract.Trace
@@ -23,8 +25,8 @@ import qualified Plutus.Contracts.Escrow           as Escrow
 import qualified Plutus.Contracts.Future           as Future
 import qualified Plutus.Contracts.GameStateMachine as GameStateMachine
 import qualified Plutus.Contracts.Vesting          as Vesting
-import           PlutusCore                        (DefaultFun (..), runQuoteT)
-import           PlutusCore.Universe
+import           PlutusCore                        (runQuoteT)
+import           PlutusCore.Default
 import           UntypedPlutusCore
 
 wallet1, wallet2 :: Wallet
@@ -34,7 +36,7 @@ wallet2 = Wallet 2
 escrowParams :: Escrow.EscrowParams d
 escrowParams =
   Escrow.EscrowParams
-    { Escrow.escrowDeadline = 200
+    { Escrow.escrowDeadline = TimeSlot.slotToEndPOSIXTime def 200
     , Escrow.escrowTargets  =
         [ Escrow.payToPubKeyTarget (pubKeyHash $ walletPubKey wallet1)
                                    (Ada.lovelaceValueOf 10)
@@ -47,9 +49,9 @@ vesting :: Vesting.VestingParams
 vesting =
     Vesting.VestingParams
         { Vesting.vestingTranche1 =
-            Vesting.VestingTranche (Ledger.Slot 10) (Ada.lovelaceValueOf 20)
+            Vesting.VestingTranche (TimeSlot.slotToBeginPOSIXTime def 10) (Ada.lovelaceValueOf 20)
         , Vesting.vestingTranche2 =
-            Vesting.VestingTranche (Ledger.Slot 20) (Ada.lovelaceValueOf 40)
+            Vesting.VestingTranche (TimeSlot.slotToBeginPOSIXTime def 20) (Ada.lovelaceValueOf 40)
         , Vesting.vestingOwner    = Ledger.pubKeyHash $ walletPubKey wallet1 }
 
 -- Future data
@@ -69,7 +71,7 @@ oracleKeys =
 
 theFuture :: Future.Future
 theFuture = Future.Future {
-    Future.ftDeliveryDate  = Ledger.Slot 100,
+    Future.ftDeliveryDate  = TimeSlot.slotToBeginPOSIXTime def 100,
     Future.ftUnits         = units,
     Future.ftUnitPrice     = forwardPrice,
     Future.ftInitialMargin = Ada.lovelaceValueOf 800,
@@ -97,19 +99,19 @@ runQuote tm = do
 
 contractsWithNames :: [ (Text, Term Name DefaultUni DefaultFun ()) ]
 contractsWithNames = map (second (runQuote . nameDeBruijn . getTerm . Plutus.unScript . Plutus.unValidatorScript))
-  [ ("game-names", Plutus.validatorScript GameStateMachine.scriptInstance)
+  [ ("game-names", Plutus.validatorScript GameStateMachine.typedValidator)
   , ("crowdfunding-names", Crowdfunding.contributionScript Crowdfunding.theCampaign)
-  , ("marlowe-names", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
+  , ("marlowe-names", Plutus.validatorScript $ Marlowe.typedValidator Marlowe.defaultMarloweParams)
   , ("vesting-names", Vesting.vestingScript vesting)
-  , ("escrow-names", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
+  , ("escrow-names", Plutus.validatorScript $ Escrow.typedValidator escrowParams)
   , ("future-names", Future.validator theFuture Future.testAccounts) ]
 
 contractsWithIndices ::
   [ (Text, Term DeBruijn DefaultUni DefaultFun ()) ]
 contractsWithIndices = map (second (getTerm . Plutus.unScript . Plutus.unValidatorScript))
-  [ ("game-indices", Plutus.validatorScript GameStateMachine.scriptInstance)
+  [ ("game-indices", Plutus.validatorScript GameStateMachine.typedValidator)
   , ("crowdfunding-indices", Crowdfunding.contributionScript Crowdfunding.theCampaign)
-  , ("marlowe-indices", Plutus.validatorScript $ Marlowe.scriptInstance Marlowe.defaultMarloweParams)
+  , ("marlowe-indices", Plutus.validatorScript $ Marlowe.typedValidator Marlowe.defaultMarloweParams)
   , ("vesting-indices", Vesting.vestingScript vesting)
-  , ("escrow-indices", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
+  , ("escrow-indices", Plutus.validatorScript $ Escrow.typedValidator escrowParams)
   , ("future-indices", Future.validator theFuture Future.testAccounts) ]

@@ -14,15 +14,11 @@ walletServerConfig:
 nodeServerConfig:
   mscBaseUrl: http://localhost:9082
   mscSocketPath: ./node-server.sock
-  mscSlotLength: 5
   mscKeptBlocks: 100
-  mscRandomTxInterval: 20
   mscSlotConfig:
-    scZeroSlotTime: "2020-07-29T21:44:51Z" #Wednesday, July 29, 2020 21:44:51 - shelley launch time
+    scZeroSlotTime: 1591566291000 #Wednesday, July 29, 2020 21:44:51 - shelley launch time
     scSlotLength: 1
-  mscBlockReaper:
-    brcInterval: 600
-    brcBlocksToKeep: 100
+  mscRandomTxInterval: 20
   mscInitialTxWallets:
     - getWallet: 1
     - getWallet: 2

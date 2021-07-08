@@ -1,6 +1,7 @@
 { makeTest, plutus-pab, marlowe-dashboard }:
 makeTest {
   name = "pab";
+  skipLint = true;
   machine = { pkgs, ... }:
     {
       imports = [ ../../modules/pab.nix ];
@@ -28,8 +29,15 @@ makeTest {
     machine.wait_for_open_port(8083)
     machine.wait_for_open_port(8081)
     machine.wait_for_open_port(8082)
-    machine.succeed("curl -s localhost:8080 | grep marlowe-dashboard")
-    machine.succeed("pab-exec contracts installed | grep '/tmp/file-that-does-not-exist'")
+
+    with subtest("********************************************************************************************* TEST: Serves static files from config"):
+      res = machine.succeed("curl -s localhost:8080 | grep marlowe-dashboard")
+      assert "marlowe-dashboard" in res, "Expected string 'marlowe-dashboard' in served content. Actual: {}".format(res)
+
+    with subtest("********************************************************************************************* TEST: Loads contracts in config"):
+      res = machine.succeed("pab-exec contracts installed")
+      assert "/tmp/file-that-does-not-exist" in res, "Expected '/tmp/file-that-does-not-exist' in output. Actual: {}".format(res)
+
   '';
 
 }

@@ -1,7 +1,0 @@
-#!/bin/bash
-cd crowdfunding          && ./make-validations
-cd ../future             && ./make-validations
-cd ../multisigSM         && ./make-validations
-cd ../vesting            && ./make-validations
-cd ../marlowe/trustfund  && ./make-validations
-cd ../zerocoupon         && ./make-validations

@@ -41,6 +41,7 @@ library
     hs-source-dirs: src
     default-language: Haskell2010
     exposed-modules:
+        Data.Time.Units.Extra
         Ledger
         Ledger.AddressMap
         Ledger.Blockchain
@@ -52,9 +53,12 @@ library
         Ledger.Oracle
         Ledger.Orphans
         Ledger.Index
+        Ledger.Scripts
+        Ledger.TimeSlot
         Ledger.Tokens
         Ledger.Typed.Scripts
         Ledger.Typed.Scripts.Validators
+        Ledger.Typed.Scripts.MonetaryPolicies
         Ledger.Typed.Tx
         Ledger.Typed.TypeUtils
     reexported-modules:
@@ -69,19 +73,23 @@ library
         Plutus.V1.Ledger.DCert as Ledger.DCert,
         Plutus.V1.Ledger.Crypto as Ledger.Crypto,
         Plutus.V1.Ledger.Interval as Ledger.Interval,
-        Plutus.V1.Ledger.Scripts as Ledger.Scripts,
+        -- We manually re-export that module so we can include some extra
+        -- instances
+        -- Plutus.V1.Ledger.Scripts as Ledger.Scripts,
         Plutus.V1.Ledger.Slot as Ledger.Slot,
         Plutus.V1.Ledger.Tx as Ledger.Tx,
         Plutus.V1.Ledger.TxId as Ledger.TxId,
+        Plutus.V1.Ledger.Time as Ledger.Time,
         Plutus.V1.Ledger.Value as Ledger.Value
     build-depends:
         base >=4.9 && <5,
         aeson -any,
-        base16-bytestring, 
+        base16-bytestring,
         bytestring -any,
         cborg -any,
         containers -any,
         cryptonite >=0.25,
+        data-default -any,
         flat -any,
         hashable -any,
         hedgehog -any,
@@ -96,14 +104,19 @@ library
         plutus-tx -any,
         serialise -any,
         servant -any,
+        scientific -any,
         template-haskell -any,
         text -any,
+        time -any,
+        time-units -any,
         transformers -any,
         recursion-schemes -any,
         lens -any,
         deriving-compat -any,
         newtype-generics -any,
         http-api-data -any,
+        cardano-api -any,
+        cardano-binary -any,
         cardano-crypto -any,
         deepseq -any,
         freer-simple -any,
@@ -122,6 +135,7 @@ test-suite plutus-ledger-test
     build-depends:
         base >=4.9 && <5,
         containers -any,
+        data-default -any,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,

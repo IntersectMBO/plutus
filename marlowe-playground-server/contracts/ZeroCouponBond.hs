@@ -6,9 +6,9 @@ import           Language.Marlowe.Extended
 main :: IO ()
 main = print . pretty $ contract
 
-discountedPrice, notional :: Value
+discountedPrice, notionalPrice :: Value
 discountedPrice = ConstantParam "Discounted price"
-notional = ConstantParam "Notional"
+notionalPrice = ConstantParam "Notional price"
 
 investor, issuer :: Party
 investor = Role "Investor"
@@ -27,5 +27,5 @@ transfer timeout from to amount continuation =
 
 contract :: Contract
 contract = transfer initialExchange investor issuer discountedPrice
-         $ transfer maturityExchangeTimeout issuer investor notional
+         $ transfer maturityExchangeTimeout issuer investor notionalPrice
            Close

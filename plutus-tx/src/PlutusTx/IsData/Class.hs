@@ -1,22 +1,27 @@
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE KindSignatures       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 module PlutusTx.IsData.Class where
 
 import           Data.ByteString      as BS
 
-import           Prelude              (Integer, Maybe (..))
+import           Prelude              (Int, Integer, Maybe (..), error)
 
-import           PlutusTx.Data
+import           PlutusCore.Data
 
 import           PlutusTx.Functor
 import           PlutusTx.Traversable
 
 import           Data.Kind
 import           Data.Void
+
+import           GHC.TypeLits         (ErrorMessage (..), TypeError)
+
 
 {-# ANN module "HLint: ignore" #-}
 
@@ -31,6 +36,11 @@ instance IsData Data where
     toData d = d
     {-# INLINABLE fromData #-}
     fromData d = Just d
+
+instance (TypeError ('Text "Int is not supported, use Integer instead"))
+    => IsData Int where
+    toData = error "unsupported"
+    fromData = error "unsupported"
 
 instance IsData Integer where
     {-# INLINABLE toData #-}

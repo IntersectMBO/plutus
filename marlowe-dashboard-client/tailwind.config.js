@@ -1,7 +1,11 @@
 "use strict";
 
 module.exports = {
-  purge: [],
+  purge: [
+    "src/**/*.purs",
+    "web-common/**/*.purs",
+    "web-common-marlowe/**/*.purs",
+  ],
   darkMode: false, // or 'media' or 'class'
   theme: {
     colors: {
@@ -18,7 +22,6 @@ module.exports = {
       purple: "#4700c3",
       lightpurple: "#8701fc",
       grayblue: "#f5f9fc",
-      purple: "#4c41e5",
       red: "#e04b4c",
     },
     fontSize: {
@@ -27,14 +30,19 @@ module.exports = {
       base: "16px",
       lg: "18px",
       xl: "24px",
+      /* this value was requested for some icons in the contract home */
+      "28px": "28px",
       "2xl": "34px",
       "3xl": "46px",
+      "4xl": "64px",
       "big-icon": "100px",
+      "medium-icon": "80px",
     },
     scale: {
       77: ".77",
     },
     borderRadius: {
+      none: "0",
       sm: "5px",
       DEFAULT: "10px",
       lg: "25px",
@@ -54,6 +62,11 @@ module.exports = {
         "from-below": "from-below 250ms ease-out 1",
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
+      backgroundImage: theme => ({
+        "background-shape": "url('/static/images/background-shape.svg')",
+        "get-started-thumbnail": "url('/static/images/get-started-thumbnail.jpg')",
+        "link-highlight": "url('/static/images/link-highlight.svg')",
+      }),
       keyframes: {
         "from-below": {
           "0%": { transform: "translateY(20px)", opacity: 0 },
@@ -65,26 +78,40 @@ module.exports = {
         },
       },
       gridTemplateRows: {
-        main: "auto minmax(0, 1fr) auto",
+        "welcome": "1fr auto auto 1fr",
+        "dashboard-outer": "auto minmax(0, 1fr) auto",
+        "dashboard-inner": "auto minmax(0, 1fr)",
         "contract-setup": "auto auto minmax(0, 1fr)",
+        "contract-step-card": "auto minmax(0, 1fr)",
       },
       gridTemplateColumns: {
+        "welcome": "1fr auto auto 1fr",
+        "dashboard-container": "1fr auto",
         "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",
         "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
       },
       spacing: {
-        "5pc": "5%",
+        "22": "5.5rem",
+        "160": "40rem",
+        "256": "64rem",
+        "16:9": "56.25%", // this is used for video containers to maintain a 16:9 aspect ratio
+        "sidebar": "305px",
       },
       width: {
         sm: "375px",
         md: "640px",
         lg: "768px",
+        "welcome-box": "400px",
+        "sidebar": "305px",
         "contract-card": "264px",
+        /* This width is used by a padding element in both sides of the carousel and is enough
+           to push the first and last card to the center */
+        "carousel-padding-element": "calc(50% - 264px / 2)",
       },
       height: {
+        "welcome-box": "227px",
         "contract-card": "467px",
       },
-
       borderWidth: {
         half: "0.5px",
       },
@@ -92,11 +119,12 @@ module.exports = {
         sm: "375px",
         md: "640px",
         lg: "768px",
-        "90p": "90%",
+        xl: "1440px",
+        "90pc": "90%",
       },
       minWidth: {
         button: "120px",
-        "90p": "90%",
+        "90pc": "90%",
         sm: "375px",
       },
     },
@@ -106,12 +134,13 @@ module.exports = {
       // note 'disabled' goes last so that it takes priority
       backgroundColor: ["last", "hover", "disabled"],
       backgroundImage: ["hover", "disabled"],
-      boxShadow: ["hover", "disabled"],
+      boxShadow: ["hover", "disabled", "active"],
       cursor: ["hover", "disabled"],
       // This causes an error
       // spacing: ['first', 'last'],
       textColor: ["hover", "disabled"],
       margin: ["first", "last"],
+      borderRadius: ["responsive"],
     },
   },
   plugins: [require("@tailwindcss/forms")],
@@ -130,9 +159,9 @@ module.exports = {
     backgroundImage: true,
     gradientColorStops: true,
     backgroundOpacity: false,
-    backgroundPosition: false,
-    backgroundRepeat: false,
-    backgroundSize: false,
+    backgroundPosition: true,
+    backgroundRepeat: true,
+    backgroundSize: true,
     borderCollapse: false,
     borderColor: true,
     borderOpacity: false,
@@ -212,21 +241,21 @@ module.exports = {
     gridTemplateColumns: true,
     gridAutoColumns: false,
     gridColumn: false,
-    gridColumnStart: false,
+    gridColumnStart: true,
     gridColumnEnd: false,
     gridTemplateRows: true,
     gridAutoRows: false,
     gridRow: false,
-    gridRowStart: false,
+    gridRowStart: true,
     gridRowEnd: false,
     transform: true,
     transformOrigin: true,
     scale: true,
-    rotate: false,
+    rotate: true,
     translate: true,
     skew: false,
     transitionProperty: true,
-    transitionTimingFunction: false,
+    transitionTimingFunction: true,
     transitionDuration: true,
     transitionDelay: false,
     animation: true,

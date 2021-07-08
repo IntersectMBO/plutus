@@ -12,15 +12,14 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Marlowe.Extended (IntegerTemplateType)
 import Marlowe.Extended.Metadata (MetadataHintInfo)
+import Marlowe.Template (IntegerTemplateType)
 import Marlowe.Linter (Warning)
 import MetadataTab.Types (MetadataAction, showConstructor)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
 
 data Action
-  = Init
-  | HandleBlocklyMessage Blockly.Message
+  = HandleBlocklyMessage Blockly.Message
   | InitBlocklyProject String
   | SendToSimulator
   | ViewAsMarlowe
@@ -38,7 +37,6 @@ defaultEvent :: String -> Event
 defaultEvent s = (A.defaultEvent $ "BlocklyEditor." <> s) { category = Just "Blockly" }
 
 instance blocklyActionIsEvent :: IsEvent Action where
-  toEvent Init = Just $ defaultEvent "Init"
   toEvent (HandleBlocklyMessage _) = Just $ defaultEvent "HandleBlocklyMessage"
   toEvent (InitBlocklyProject _) = Just $ defaultEvent "InitBlocklyProject"
   toEvent SendToSimulator = Just $ defaultEvent "SendToSimulator"

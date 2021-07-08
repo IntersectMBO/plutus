@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -63,6 +63,7 @@
           "Plutus/Contracts/Currency"
           "Plutus/Contracts/ErrorHandling"
           "Plutus/Contracts/Escrow"
+          "Plutus/Contracts/SimpleEscrow"
           "Plutus/Contracts/Future"
           "Plutus/Contracts/GameStateMachine"
           "Plutus/Contracts/Governance"
@@ -71,15 +72,19 @@
           "Plutus/Contracts/PingPong"
           "Plutus/Contracts/Prism"
           "Plutus/Contracts/Prism/Credential"
-          "Plutus/Contracts/Prism/CredentialManager"
           "Plutus/Contracts/Prism/STO"
           "Plutus/Contracts/Prism/Mirror"
           "Plutus/Contracts/Prism/StateMachine"
           "Plutus/Contracts/Prism/Unlock"
           "Plutus/Contracts/PubKey"
-          "Plutus/Contracts/RPC"
           "Plutus/Contracts/Stablecoin"
           "Plutus/Contracts/Swap"
+          "Plutus/Contracts/Uniswap"
+          "Plutus/Contracts/Uniswap/OnChain"
+          "Plutus/Contracts/Uniswap/OffChain"
+          "Plutus/Contracts/Uniswap/Pool"
+          "Plutus/Contracts/Uniswap/Trace"
+          "Plutus/Contracts/Uniswap/Types"
           "Plutus/Contracts/Vesting"
           ];
         hsSourceDirs = [ "src" ];
@@ -126,6 +131,7 @@
             "Spec/Currency"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
             "Spec/GameStateMachine"
             "Spec/Governance"
@@ -135,7 +141,6 @@
             "Spec/PubKey"
             "Spec/Prism"
             "Spec/Rollup"
-            "Spec/RPC"
             "Spec/Stablecoin"
             "Spec/TokenAccount"
             "Spec/Vesting"
@@ -183,6 +188,7 @@
             "Spec/Currency"
             "Spec/ErrorHandling"
             "Spec/Escrow"
+            "Spec/SimpleEscrow"
             "Spec/Future"
             "Spec/GameStateMachine"
             "Spec/Governance"
@@ -192,8 +198,8 @@
             "Spec/PubKey"
             "Spec/Prism"
             "Spec/Rollup"
-            "Spec/RPC"
             "Spec/Stablecoin"
+            "Spec/Uniswap"
             "Spec/TokenAccount"
             "Spec/Vesting"
             ];

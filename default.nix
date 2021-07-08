@@ -9,11 +9,17 @@
 { system ? builtins.currentSystem
 , crossSystem ? null
 , config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
-  # Overrides for niv
 , sourcesOverride ? { }
-, packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization enableHaskellProfiling; }
+, sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
+, isInFlake ? false
+, haskellNix ? import sources."haskell.nix" {
+    sourcesOverride = {
+      hackage = sources."hackage.nix";
+      stackage = sources."stackage.nix";
+    };
+  }
+, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix isInFlake checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
-, rev ? null
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
   # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
@@ -23,7 +29,7 @@
 let
   inherit (packages) pkgs plutus sources;
   inherit (pkgs) lib haskell-nix;
-  inherit (plutus) haskell iohkNix agdaPackages;
+  inherit (plutus) haskell agdaPackages;
   inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
@@ -37,7 +43,10 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
-  inherit (haskell.packages.marlowe.components.exes) marlowe-app marlowe-companion-app;
+  inherit (haskell.packages.marlowe.components.exes)
+    marlowe-app
+    marlowe-companion-app
+    marlowe-follow-app;
 
   webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
@@ -62,10 +71,18 @@ rec {
 
   marlowe-dashboard = pkgs.recurseIntoAttrs rec {
     inherit (pkgs.callPackage ./marlowe-dashboard-client {
-      inherit plutus-pab marlowe-app marlowe-companion-app;
+      inherit plutus-pab marlowe-app marlowe-companion-app marlowe-follow-app;
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit webCommon webCommonMarlowe;
     }) client server-invoker generated-purescript generate-purescript contractsJSON install-marlowe-contracts;
+  };
+
+  marlowe-dashboard-fake-pab = pkgs.recurseIntoAttrs rec {
+    inherit (pkgs.callPackage ./fake-pab {
+      inherit plutus-pab marlowe-app marlowe-companion-app marlowe-follow-app;
+      inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
+      inherit haskell webCommon webCommonMarlowe;
+    }) client fake-pab-exe fake-pab-generated-purescript;
   };
 
   marlowe-marketplace = pkgs.recurseIntoAttrs rec {
@@ -75,17 +92,20 @@ rec {
     }) client;
   };
 
+  marlowe-web = pkgs.callPackage ./marlowe-website { inherit (plutus.lib) npmlock2nix gitignore-nix; };
+
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix filterNpm;
     inherit haskell webCommon webCommonPlutus;
   });
 
   tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix docs;
+    inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
     inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
     inherit (pkgs) terraform;
-    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app marlowe-companion-app;
+    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab
+      marlowe-app marlowe-companion-app marlowe-follow-app;
     src = ./.;
   };
 
@@ -93,8 +113,8 @@ rec {
 
   deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
     plutus = {
-      inherit plutus-pab marlowe-app marlowe-companion-app
-        marlowe-dashboard marlowe-playground plutus-playground web-ghc docs;
+      inherit plutus-pab marlowe-app marlowe-companion-app marlowe-follow-app
+        marlowe-dashboard marlowe-playground plutus-playground web-ghc docs marlowe-web;
     };
   });
 
@@ -103,4 +123,6 @@ rec {
 
   # Test data needed by marlowe-actus provided via niv
   actus-tests = "${sources.actus-tests.outPath}";
+
+  build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus; };
 }

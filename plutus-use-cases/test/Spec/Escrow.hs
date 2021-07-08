@@ -3,9 +3,11 @@
 module Spec.Escrow(tests, redeemTrace, redeem2Trace, refundTrace) where
 
 import           Control.Monad           (void)
+import           Data.Default            (Default (def))
 
 import           Ledger                  (pubKeyHash)
 import qualified Ledger.Ada              as Ada
+import qualified Ledger.TimeSlot         as TimeSlot
 import qualified Ledger.Typed.Scripts    as Scripts
 import           Plutus.Contract
 import           Plutus.Contract.Test
@@ -68,7 +70,7 @@ tests = testGroup "escrow"
           .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
         refundTrace
 
-    , HUnit.testCase "script size is reasonable" (reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 32000)
+    , HUnit.testCaseSteps "script size is reasonable" $ \step -> reasonable' step (Scripts.validatorScript $ typedValidator escrowParams) 32000
     ]
 
 w1, w2, w3 :: Wallet
@@ -79,7 +81,7 @@ w3 = Wallet 3
 escrowParams :: EscrowParams d
 escrowParams =
   EscrowParams
-    { escrowDeadline = 100
+    { escrowDeadline = TimeSlot.slotToEndPOSIXTime def 100
     , escrowTargets  =
         [ payToPubKeyTarget (pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
         , payToPubKeyTarget (pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 20)

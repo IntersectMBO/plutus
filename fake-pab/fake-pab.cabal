@@ -1,0 +1,105 @@
+cabal-version: >=1.10
+name: fake-pab 
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+author: Pablo Lamela 
+category: Web
+build-type: Simple
+extra-source-files:
+    README.md
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+library
+    exposed-modules:
+        Server
+        API
+        WebSocket
+    hs-source-dirs:
+        src
+    default-language: Haskell2010
+    build-depends:
+        aeson -any,
+        base >=4.7 && <5,
+        base16-bytestring -any,
+        blaze-html -any,
+        bytestring -any,
+        cryptohash -any,
+        containers -any,
+        http-client -any,
+        http-client-tls -any,
+        http-media -any,
+        marlowe -any,
+        monad-logger -any,
+        mtl -any,
+        playground-common -any,
+        plutus-ledger -any,
+        plutus-ledger-api -any,
+        plutus-tx -any,
+        postgresql-simple -any,
+        resource-pool -any,
+        servant >= 0.16,
+        servant-client -any,
+        servant-client-core -any,
+        servant-server -any,
+        text -any,
+        time -any,
+        wai-app-static -any,
+        wai-cors -any,
+        websockets -any,
+        utf8-string -any,
+        uuid -any
+
+executable fake-pab-server 
+    main-is: Main.hs
+    other-modules:
+        Webserver
+        PSGenerator
+    hs-source-dirs: app
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+    build-depends:
+        aeson -any,
+        base -any,
+        bytestring -any,
+        http-client -any,
+        http-client-tls -any,
+        http-types -any,
+        lens -any,
+        fake-pab -any,
+        immortal -any,
+        marlowe -any,
+        monad-logger -any,
+        mtl -any,
+        playground-common -any,
+        plutus-ledger-api -any,
+        postgresql-simple -any,
+        prometheus >=2,
+        purescript-bridge -any,
+        resource-pool -any,
+        optparse-applicative -any,
+        servant-client -any,
+        servant-purescript -any,
+        servant-server -any,
+        text -any,
+        utf8-string -any,
+        uuid -any,
+        wai -any,
+        wai-cors -any,
+        wai-extra -any,
+        warp -any
+
+test-suite fake-pab-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    build-depends:
+        base -any

@@ -14,9 +14,9 @@ module PlutusTx.Evaluation
     )
 where
 
-import           PlutusCore.Builtins
+import qualified PlutusCore                               as PLC
+import           PlutusCore.Default
 import           PlutusCore.Name
-import           PlutusCore.Universe
 
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
@@ -26,13 +26,13 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 evaluateCek
     :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun () -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
-evaluateCek (Program _ _ t) = Cek.evaluateCekNoEmit defBuiltinsRuntime t
+evaluateCek (Program _ _ t) = Cek.evaluateCekNoEmit PLC.defaultCekParameters t
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek
     :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun () -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCek (Program _ _ t) = Cek.unsafeEvaluateCekNoEmit defBuiltinsRuntime t
+unsafeEvaluateCek (Program _ _ t) = Cek.unsafeEvaluateCekNoEmit PLC.defaultCekParameters t
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins and tracing, additionally
 -- returning the trace output.
@@ -41,5 +41,5 @@ evaluateCekTrace
     => Program Name uni fun ()
     -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
-    case runCek defBuiltinsRuntime Cek.tallying True t of
+    case runCek PLC.defaultCekParameters Cek.tallying True t of
         (errOrRes, TallyingSt st _, logs) -> (logs, st, errOrRes)

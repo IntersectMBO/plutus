@@ -17,10 +17,21 @@ exports.getElementById_ = function (id) {
 };
 
 exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
+
+  /* Disable comments */
+  try { blockly.ContextMenuRegistry.registry.unregister('blockComment'); } catch(err) { }
+
+  /* Disable disabling blocks */
+  try { blockly.ContextMenuRegistry.registry.unregister('blockDisable'); } catch(err) { }
+
   /* Register extensions */
   /* Silently clean if already registered */
   try { blockly.Extensions.register('timeout_validator', function () { }); } catch(err) { }
   blockly.Extensions.unregister('timeout_validator');
+  try { blockly.Extensions.register('hash_validator', function () { }); } catch(err) { }
+  blockly.Extensions.unregister('hash_validator');
+  try { blockly.Extensions.register('number_validator', function () { }); } catch(err) { }
+  blockly.Extensions.unregister('number_validator');
 
   /* Timeout extension (advanced validation for the timeout field) */
   blockly.Extensions.register('timeout_validator',
@@ -40,7 +51,7 @@ exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
           return input;
         }
       };
-      
+
       thisBlock.getField('timeout').setValidator(timeoutValidator);
 
       /* This sets the timeout to zero when switching to slot in the dropdown */
@@ -56,9 +67,56 @@ exports.createWorkspace_ = function (blockly, workspaceDiv, config) {
       });
     });
 
+  /* Hash extension (advanced validation for the hash fields) */
+  blockly.Extensions.register('hash_validator',
+    function () {
+      var thisBlock = this;
+
+      /* Validator for hash */
+      var hashValidator = function (input) {
+          var cleanedInput = input.replace(new RegExp('[^a-fA-F0-9]+', 'g'), '').toLowerCase();
+          if ((new RegExp('^([a-f0-9][a-f0-9])*$', 'g')).test(cleanedInput)) {
+            return cleanedInput;
+          } else {
+            return null;
+          }
+      };
+
+      ['currency_symbol', 'pubkey'].forEach(
+        function (fieldName) {
+          var field = thisBlock.getField(fieldName);
+          if (field != null) {
+            field.setValidator(hashValidator);
+          }
+        });
+    });
+
+  /* Number extension (advanced validation for number fields - other than timeout) */
+  blockly.Extensions.register('number_validator',
+    function() {
+      var thisBlock = this;
+
+      /* Validator for number fields */
+      var numberValidator = function (input) {
+        if (!isFinite(input)) {
+          return null;
+        }
+      }
+
+      thisBlock.inputList.forEach((input) => {
+        input.fieldRow.forEach((field) => {
+          if (field instanceof blockly.FieldNumber) {
+            field.setValidator(numberValidator);
+          }
+        })
+      })
+    })
+
+
   /* Inject workspace */
   var workspace = blockly.inject(workspaceDiv, config);
   blockly.svgResize(workspace);
+
   return workspace;
 };
 
@@ -164,4 +222,16 @@ exports.updateToolbox_ = function (toolboxJson, workspace) {
   workspace.updateToolbox(toolboxJson);
 }
 
+exports.clearUndoStack_ = function (workspace) {
+  workspace.clearUndo();
+}
+
+exports.isWorkspaceEmpty_ = function (workspace) {
+  var topBlocks = workspace.getTopBlocks(false);
+  return ((topBlocks == null) || (topBlocks.length == 0));
+}
+
+exports.setGroup_ = function (blockly, isGroup) {
+  blockly.Events.setGroup(isGroup);
+}
 

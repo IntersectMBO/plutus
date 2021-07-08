@@ -1,16 +1,15 @@
-{-# LANGUAGE ConstraintKinds    #-}
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 -- | Plutus implementation of an account that can be unlocked with a token.
 --   Whoever owns the token can spend the outputs locked by the contract.
 --   (A suitable token can be created with the 'Plutus.Contracts.Currency'
@@ -35,7 +34,7 @@ module Plutus.Contracts.TokenAccount(
   , TokenAccountError(..)
   , AsTokenAccountError(..)
   , validatorHash
-  , scriptInstance
+  , typedValidator
   ) where
 
 import           Control.Lens
@@ -56,7 +55,7 @@ import qualified Ledger                           as Ledger
 import qualified Ledger.Constraints               as Constraints
 import qualified Ledger.Contexts                  as V
 import qualified Ledger.Scripts
-import           Ledger.Typed.Scripts             (ScriptType (..))
+import           Ledger.Typed.Scripts             (ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Value                     (TokenName, Value)
 import qualified Ledger.Value                     as Value
@@ -71,19 +70,17 @@ newtype Account = Account { accountOwner :: Value.AssetClass }
 
 data TokenAccount
 
-instance ScriptType TokenAccount where
+instance ValidatorTypes TokenAccount where
     type RedeemerType TokenAccount = ()
     type DatumType TokenAccount = ()
 
 type TokenAccountSchema =
-    BlockchainActions
-        .\/ Endpoint "redeem" (Account, PubKeyHash)
+        Endpoint "redeem" (Account, PubKeyHash)
         .\/ Endpoint "pay" (Account, Value)
         .\/ Endpoint "new-account" (TokenName, PubKeyHash)
 
 type HasTokenAccountSchema s =
-    ( HasBlockchainActions s
-    , HasEndpoint "redeem" (Account, PubKeyHash) s
+    ( HasEndpoint "redeem" (Account, PubKeyHash) s
     , HasEndpoint "pay" (Account, Value) s
     , HasEndpoint "new-account" (TokenName, PubKeyHash) s
     )
@@ -131,18 +128,18 @@ accountToken (Account currency) = Value.assetClassValue currency 1
 validate :: Account -> () -> () -> V.ScriptContext -> Bool
 validate account _ _ ptx = V.valueSpent (V.scriptContextTxInfo ptx) `Value.geq` accountToken account
 
-scriptInstance :: Account -> Scripts.ScriptInstance TokenAccount
-scriptInstance = Scripts.validatorParam @TokenAccount
+typedValidator :: Account -> Scripts.TypedValidator TokenAccount
+typedValidator = Scripts.mkTypedValidatorParam @TokenAccount
     $$(PlutusTx.compile [|| validate ||])
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator
 
 address :: Account -> Address
-address = Scripts.scriptAddress . scriptInstance
+address = Scripts.validatorAddress . typedValidator
 
 validatorHash :: Account -> ValidatorHash
-validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptInstance
+validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . typedValidator
 
 -- | A transaction that pays the given value to the account
 payTx
@@ -153,14 +150,13 @@ payTx vl = Constraints.mustPayToTheScript () vl
 
 -- | Pay some money to the given token account
 pay
-    :: ( HasWriteTx s
-       , AsTokenAccountError e
+    :: ( AsTokenAccountError e
        )
     => Account
     -> Value
     -> Contract w s e Tx
 pay account vl = do
-    let inst = scriptInstance account
+    let inst = typedValidator account
     logInfo @String
         $ "TokenAccount.pay: Paying "
         <> show vl
@@ -172,14 +168,13 @@ pay account vl = do
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx :: forall w s e.
-    ( HasUtxoAt s
-    , AsTokenAccountError e
+    ( AsTokenAccountError e
     )
     => Account
     -> PubKeyHash
     -> Contract w s e (TxConstraints () (), ScriptLookups TokenAccount)
 redeemTx account pk = mapError (review _TAContractError) $ do
-    let inst = scriptInstance account
+    let inst = typedValidator account
     utxos <- utxoAt (address account)
     let totalVal = foldMap (V.txOutValue . txOutTxOut) utxos
         numInputs = Map.size utxos
@@ -190,7 +185,7 @@ redeemTx account pk = mapError (review _TAContractError) $ do
             <> show totalVal
     let constraints = TypedTx.collectFromScript utxos ()
                 <> Constraints.mustPayToPubKey pk (accountToken account)
-        lookups = Constraints.scriptInstanceLookups inst
+        lookups = Constraints.typedValidatorLookups inst
                 <> Constraints.unspentOutputs utxos
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
     --       Or perhaps add a field 'requiredTokens' to 'LedgerTxConstraints' and let the
@@ -199,9 +194,7 @@ redeemTx account pk = mapError (review _TAContractError) $ do
 
 -- | Empty the account by spending all outputs belonging to the 'Account'.
 redeem
-  :: ( HasWriteTx s
-     , HasUtxoAt s
-     , AsTokenAccountError e
+  :: ( AsTokenAccountError e
      )
   => PubKeyHash
   -- ^ Where the token should go after the transaction
@@ -216,8 +209,7 @@ redeem pk account = mapError (review _TokenAccountError) $ do
 -- | @balance account@ returns the value of all unspent outputs that can be
 --   unlocked with @accountToken account@
 balance
-    :: ( HasUtxoAt s
-       , AsTokenAccountError e
+    :: ( AsTokenAccountError e
        )
     => Account
     -> Contract w s e Value
@@ -230,17 +222,15 @@ balance account = mapError (review _TAContractError) $ do
 
 -- | Create a new token and return its 'Account' information.
 newAccount
-    :: ( HasWriteTx s
-       , HasTxConfirmation s
-       , AsTokenAccountError e
-       )
+    :: forall w s e.
+    (AsTokenAccountError e)
     => TokenName
     -- ^ Name of the token
     -> PubKeyHash
     -- ^ Public key of the token's initial owner
     -> Contract w s e Account
 newAccount tokenName pk = mapError (review _TokenAccountError) $ do
-    cur <- Currency.forgeContract pk [(tokenName, 1)]
+    cur <- Currency.mintContract pk [(tokenName, 1)]
     let sym = Currency.currencySymbol cur
     pure $ Account $ Value.assetClass sym tokenName
 

@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -74,6 +74,7 @@
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
+          (hsPkgs."IntervalMap" or (errorHandler.buildDepError "IntervalMap"))
           ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
@@ -85,16 +86,7 @@
           "Data/Text/Extras"
           "Data/UUID/Extras"
           "Plutus/Contract"
-          "Plutus/Contract/Effects/AwaitSlot"
-          "Plutus/Contract/Effects/AwaitTxConfirmed"
-          "Plutus/Contract/Effects/Instance"
-          "Plutus/Contract/Effects/RPC"
-          "Plutus/Contract/Effects/ExposeEndpoint"
-          "Plutus/Contract/Effects/Notify"
-          "Plutus/Contract/Effects/OwnPubKey"
-          "Plutus/Contract/Effects/UtxoAt"
-          "Plutus/Contract/Effects/WatchAddress"
-          "Plutus/Contract/Effects/WriteTx"
+          "Plutus/Contract/Effects"
           "Plutus/Contract/Request"
           "Plutus/Contract/Checkpoint"
           "Plutus/Contract/Constraints"
@@ -153,27 +145,6 @@
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "contract-doctests" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            ];
-          build-tools = [
-            (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
-            (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
-            ];
-          buildable = true;
-          modules = [ "ContractAPI" ];
-          hsSourceDirs = [ "doctest" "doc" ];
-          mainPath = [ "Main.hs" ];
-          };
         "plutus-contract-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))

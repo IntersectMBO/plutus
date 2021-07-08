@@ -1,20 +1,39 @@
 module Examples.PureScript.EscrowWithCollateral
   ( contractTemplate
+  , fullExtendedContract
   , metaData
-  , extendedContract
+  , fixedTimeoutContract
   ) where
 
 import Prelude
-import Data.BigInteger (BigInteger)
+import Data.BigInteger (BigInteger, fromInt)
+import Data.Map as Map
 import Data.Tuple.Nested (type (/\), (/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ChoiceName)
 
 contractTemplate :: ContractTemplate
-contractTemplate = { metaData, extendedContract }
+contractTemplate = { metaData, extendedContract: fixedTimeoutContract }
+
+fixedTimeoutContract :: Contract
+fixedTimeoutContract =
+  fillTemplate
+    ( TemplateContent
+        { slotContent:
+            Map.fromFoldable
+              [ "Collateral deposit by seller timeout" /\ fromInt 600
+              , "Deposit of collateral by buyer timeout" /\ fromInt 1200
+              , "Deposit of price by buyer timeout" /\ fromInt 1800
+              , "Dispute by buyer timeout" /\ fromInt 3000
+              , "Seller's response timeout" /\ fromInt 3600
+              ]
+        , valueContent: Map.empty
+        }
+    )
+    fullExtendedContract
 
 metaData :: MetaData
 metaData = Metadata.escrowWithCollateral
@@ -91,8 +110,8 @@ choices timeout chooser timeoutContinuation list =
 sellerToBuyer :: Contract -> Contract
 sellerToBuyer = Pay seller (Account buyer) ada price
 
-extendedContract :: Contract
-extendedContract =
+fullExtendedContract :: Contract
+fullExtendedContract =
   depositCollateral seller sellerCollateralTimeout Close
     $ depositCollateral buyer buyerCollateralTimeout Close
     $ deposit depositTimeout Close

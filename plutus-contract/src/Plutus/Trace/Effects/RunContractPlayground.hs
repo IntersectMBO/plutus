@@ -35,8 +35,8 @@ import           Control.Monad.Freer.State               (State, gets, modify)
 import           Control.Monad.Freer.TH                  (makeEffect)
 import qualified Data.Aeson                              as JSON
 import           Data.Map                                (Map)
-import           Plutus.Contract                         (Contract (..), ContractInstanceId, EndpointDescription (..),
-                                                          HasBlockchainActions)
+import           Plutus.Contract                         (Contract (..), ContractInstanceId, EndpointDescription (..))
+import           Plutus.Contract.Effects                 (PABResp (ExposeEndpointResp))
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, nextId)
 import           Plutus.Trace.Effects.RunContract        (startContractThread)
 import           Plutus.Trace.Emulator.ContractInstance  (EmulatorRuntimeError, getThread)
@@ -70,8 +70,7 @@ makeEffect ''RunContractPlayground
 -- | Handle the 'RunContractPlayground' effect.
 handleRunContractPlayground ::
     forall w s e effs effs2.
-    ( HasBlockchainActions s
-    , ContractConstraints s
+    ( ContractConstraints s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -94,8 +93,7 @@ handleRunContractPlayground contract = \case
 
 handleLaunchContract ::
     forall w s e effs effs2.
-    ( HasBlockchainActions s
-    , ContractConstraints s
+    ( ContractConstraints s
     , Show e
     , JSON.ToJSON e
     , JSON.ToJSON w
@@ -129,7 +127,8 @@ handleCallEndpoint ::
     -> JSON.Value
     -> Eff effs ()
 handleCallEndpoint wllt endpointName endpointValue = do
-    let epJson = JSON.object ["tag" JSON..= endpointName, "value" JSON..= EndpointValue endpointValue]
+    let desc = EndpointDescription endpointName
+        epJson = JSON.toJSON $ ExposeEndpointResp desc $ EndpointValue endpointValue
         thr = do
             threadId <- getInstance wllt >>= getThread
             ownId <- ask @ThreadId

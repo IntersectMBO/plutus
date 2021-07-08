@@ -1,0 +1,63 @@
+{
+    "maxLovelaceSupply": 0,
+    "securityParam": 2160,
+    "slotsPerKESPeriod": 129600,
+    "updateQuorum": 5,
+    "activeSlotsCoeff": 5.0e-2,
+    "protocolParams": {
+        "minUTxOValue": 0,
+        "eMax": 18,
+        "extraEntropy": {
+            "tag": "NeutralNonce"
+        },
+        "minFeeB": 0,
+        "tau": 0,
+        "maxBlockBodySize": 65536,
+        "maxTxSize": 16384,
+        "minPoolCost": 0,
+        "minFeeA": 0,
+        "nOpt": 100,
+        "maxBlockHeaderSize": 1100,
+        "keyDeposit": 0,
+        "poolDeposit": 0,
+        "protocolVersion": {
+            "minor": 0,
+            "major": 0
+        },
+        "a0": 0,
+        "rho": 0,
+        "decentralisationParam": 1
+    },
+    "networkMagic": 42,
+    "initialFunds": {
+        "605fdf9d50210cb64cb7b0de28eff123a57760b87a9fb8da22e2e1dfe0": 0,
+        "606e113a1b4a2cf2c44b43304d5c848a690a32a2a2fe23252e88fc0d1c": 0,
+        "60d3eda809da53aca62f97fe2280bbff65b77fedb3a13cf9b625f39ee1": 0,
+        "6025ab84a255e4b2ed9dbda9d420c0a7434a7b68d66941369e7273da94": 0,
+        "60144429be18a9fce718e50a84ad089073ad001dad72cbb87c0b11b870": 0,
+        "60ca5ee8b9e2b851c6bd3e5f04421c1afa6b5acc57162d3d17a5b9e8b2": 0,
+        "608da1e052be83003da94a8de77ed164ce7d90d666476d0c0d575245db": 0,
+        "603091f3e83c0404b7438f57e20b3ae055982ae100444840489e8c0df7": 0,
+        "607d1c55ab51c46236f1f0b2d1c7187e56a0596cd95e551b04945d53d2": 0,
+        "601d9539872d4d90538403081e60535a45f5d417ba3503b62b7a2191d9": 0
+    },
+    "networkId": "Testnet",
+    "maxKESEvolutions": 60,
+    "genDelegs": {
+        "5b8fcab0952bab0adbeacc82607f63212af0047787f7d2f44c197567": {
+            "delegate": "a247bd8714e03bdd8678fc085e1a3c753e7426b869137c577d45a684",
+            "vrf": "0cba05f15b9f71d9d63995d2885b4d8e1a20f2423ac63eeb0cd29437a991752a"
+        },
+        "cf2761eee82953e3c84dfca69b416701c54fe877d30ed073615e6969": {
+            "delegate": "8c199acf9934b60addb084b2dd71cb99799f9420bb53fdc0929df98f",
+            "vrf": "7e394966b8f553705b90ece5a7aa5807856837eb879df6b8f2a2961490c5fbe4"
+        }
+    },
+    "slotLength": 1,
+    "systemStart": "2021-06-18T10:13:05.399127Z",
+    "epochLength": 432000,
+    "staking": {
+        "pools": {},
+        "stake": {}
+    }
+}

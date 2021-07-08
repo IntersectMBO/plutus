@@ -7,15 +7,21 @@ import Control.Monad.State (get)
 import Data.Bifunctor (bimap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', Traversal', preview, set, view)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (over)
 import Data.Tuple (Tuple(..))
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Halogen (ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, getHTMLElementRef)
+import Halogen.HTML (IProp, div_)
+import Halogen.HTML.Core (Prop)
+import Halogen.HTML.Core as Core
 import Halogen.Query (HalogenM)
 import Halogen.Query.HalogenM (HalogenAp(..), mapAction)
 import Halogen.Query.HalogenM (imapState) as Halogen
+import Halogen.Query.Input (Input)
+import Halogen.Query.Input as Input
+import Unsafe.Coerce (unsafeCoerce)
 import Web.HTML.HTMLElement (HTMLElement)
 
 -- | This is a version of imapState that uses a lens.
@@ -58,14 +64,24 @@ mapSubmodule ::
     ~> HalogenM state action slots msg m
 mapSubmodule lens wrapper halogen = (imapState lens <<< mapAction wrapper) halogen
 
+-- Allows you to render a submodule changing the state with the provided optic and
+-- wrapping the action. If the optic cant produce a value, an empty div is inserted instead
 renderSubmodule ::
   forall m action action' state state' slots.
-  Lens' state state' ->
+  Traversal' state state' ->
   (action' -> action) ->
   (state' -> ComponentHTML action' slots m) ->
   state ->
   ComponentHTML action slots m
-renderSubmodule lens wrapper renderer state = bimap (map wrapper) wrapper (renderer (view lens state))
+renderSubmodule optic actionWrapper render state =
+  let
+    mSubState = preview optic state
+
+    rendered = case mSubState of
+      Nothing -> div_ []
+      Just subState -> render subState
+  in
+    bimap (map actionWrapper) actionWrapper rendered
 
 -- | This lets you map the state of a submodule that may not exist,
 -- | given an affine traversal into that optional substate. It's
@@ -98,3 +114,11 @@ scrollIntoView :: forall surface action slots output m. MonadEffect m => RefLabe
 scrollIntoView ref = do
   mElement <- getHTMLElementRef ref
   for_ mElement (liftEffect <<< runEffectFn1 scrollIntoView_)
+
+-- This HTML property dispatch lifecycle actions when the element is added or removed to the DOM
+lifeCycleEvent :: forall r action. { onInit :: Maybe action, onFinalize :: Maybe action } -> IProp r action
+lifeCycleEvent handlers = (unsafeCoerce :: Prop (Input action) -> IProp r action) $ Core.ref onLifecycleEvent
+  where
+  onLifecycleEvent (Just _) = Input.Action <$> handlers.onInit
+
+  onLifecycleEvent Nothing = Input.Action <$> handlers.onFinalize

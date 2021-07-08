@@ -25,12 +25,13 @@ import Halogen as H
 import Halogen.Extra (mapSubmodule)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly as MB
-import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended as Extended
 import Marlowe.Holes as Holes
 import Marlowe.Linter as Linter
+import Marlowe.Template (TemplateContent)
+import Marlowe.Template as Template
 import SessionStorage as SessionStorage
-import SimulationPage.Types (_templateContent)
+import Simulator.Lenses (_templateContent)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisExecutionState(..), _analysisExecutionState, _analysisState)
@@ -50,7 +51,7 @@ handleAction ::
   MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction Init = do
+handleAction (HandleBlocklyMessage Blockly.BlocklyReady) = do
   mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
   handleAction $ InitBlocklyProject $ fromMaybe ME.example mContents
 
@@ -65,8 +66,7 @@ handleAction (HandleBlocklyMessage (Blockly.BlockSelection selection)) = case mB
     Map.lookup blockType MB.definitionsMap
 
 handleAction (InitBlocklyProject code) = do
-  void $ query _blocklySlot unit $ H.tell (Blockly.SetCode code)
-  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey code
+  void $ query _blocklySlot unit $ H.tell $ Blockly.SetCode code
   processBlocklyCode
   -- Reset the toolbox
   void $ query _blocklySlot unit $ H.tell (Blockly.SetToolbox MB.toolbox)
@@ -83,7 +83,7 @@ handleAction (BottomPanelAction action) = toBottomPanel (BottomPanel.handleActio
 
 handleAction (SetIntegerTemplateParam templateType key value) =
   modifying
-    (_analysisState <<< _templateContent <<< Extended.typeToLens templateType)
+    (_analysisState <<< _templateContent <<< Template.typeToLens templateType)
     (Map.insert key value)
 
 handleAction (MetadataAction _) = pure unit
@@ -127,7 +127,7 @@ processBlocklyCode = do
         -- then update the template content. If not, leave them as they are
         maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
         maybeUpdateTemplateContent = case Holes.fromTerm holesContract of
-          Just (contract :: Extended.Contract) -> Extended.updateTemplateContent $ Extended.getPlaceholderIds contract
+          Just (contract :: Extended.Contract) -> Template.updateTemplateContent $ Template.getPlaceholderIds contract
           Nothing -> identity
       liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey prettyContract
       modify_

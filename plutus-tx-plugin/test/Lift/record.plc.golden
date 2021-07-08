@@ -1,18 +1,13 @@
 (program 1.0.0
   [
     [
-      (force
-        (delay
-          (lam
-            Plugin_Data_Spec_MyMonoRecord_i0
-            (lam
-              match_Plugin_Data_Spec_MyMonoRecord_i0
-              [
-                [ Plugin_Data_Spec_MyMonoRecord_i2 (con integer 1) ]
-                (con integer 2)
-              ]
-            )
-          )
+      (lam
+        Plugin_Data_Spec_MyMonoRecord_i0
+        (lam
+          match_Plugin_Data_Spec_MyMonoRecord_i0
+          [
+            [ Plugin_Data_Spec_MyMonoRecord_i2 (con integer 1) ] (con integer 2)
+          ]
         )
       )
       (lam

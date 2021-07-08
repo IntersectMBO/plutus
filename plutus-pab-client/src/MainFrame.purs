@@ -46,7 +46,6 @@ import Network.StreamData as Stream
 --import Playground.Lenses (_endpointDescription, _schema)
 --import Playground.Types (FunctionSchema(..), _FunctionSchema)
 --import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
---import Plutus.PAB.Events.Contract (ContractPABRequest)
 --import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Webserver (SPParams_(..))
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
@@ -78,7 +77,6 @@ initialState =
     { currentView: ActiveContracts
     , contractSignatures: Stream.NotAsked
     , chainReport: NotAsked
-    , events: NotAsked
     , chainState: Chain.initialState
     , contractStates: Map.empty
     , webSocketMessage: Stream.NotAsked

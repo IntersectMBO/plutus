@@ -14,6 +14,7 @@ module Ledger.Index(
     ValidationMonad,
     UtxoIndex(..),
     insert,
+    insertCollateral,
     insertBlock,
     initialise,
     Validation,
@@ -22,10 +23,13 @@ module Ledger.Index(
     lkpTxOut,
     lkpOutputs,
     ValidationError(..),
+    ValidationErrorInPhase,
+    ValidationPhase(..),
     InOutMatch(..),
     minFee,
     -- * Actual validation
     validateTransaction,
+    validateTransactionOffChain,
     -- * Script validation events
     ScriptType(..),
     ScriptValidationEvent(..)
@@ -36,12 +40,14 @@ import           Prelude                          hiding (lookup)
 
 import           Codec.Serialise                  (Serialise)
 import           Control.DeepSeq                  (NFData)
-import           Control.Lens                     (view, (^.))
+import           Control.Lens                     (toListOf, view, (^.))
+import           Control.Lens.Indexed             (iforM_)
 import           Control.Monad
 import           Control.Monad.Except             (ExceptT, MonadError (..), runExcept, runExceptT)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
 import           Control.Monad.Writer             (MonadWriter, Writer, runWriter, tell)
 import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Default                     (Default (def))
 import           Data.Foldable                    (asum, fold, foldl', traverse_)
 import qualified Data.Map                         as Map
 import qualified Data.Set                         as Set
@@ -49,6 +55,7 @@ import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain
+import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
@@ -83,9 +90,13 @@ initialise = UtxoIndex . unspentOutputs
 insert :: Tx -> UtxoIndex -> UtxoIndex
 insert tx = UtxoIndex . updateUtxo tx . getIndex
 
+-- | Update the index for the addition of only the collateral inputs of a failed transaction.
+insertCollateral :: Tx -> UtxoIndex -> UtxoIndex
+insertCollateral tx = UtxoIndex . updateUtxoCollateral tx . getIndex
+
 -- | Update the index for the addition of a block.
-insertBlock :: [Tx] -> UtxoIndex -> UtxoIndex
-insertBlock blck i = foldl' (flip insert) i blck
+insertBlock :: Block -> UtxoIndex -> UtxoIndex
+insertBlock blck i = foldl' (flip (eitherTx insertCollateral insert)) i blck
 
 -- | Find an unspent transaction output by the 'TxOutRef' that spends it.
 lookup :: MonadError ValidationError m => TxOutRef -> UtxoIndex -> m TxOut
@@ -104,6 +115,8 @@ data ValidationError =
     -- ^ For pay-to-script outputs: the validator script provided in the transaction input does not match the hash specified in the transaction output.
     | InvalidDatumHash Datum DatumHash
     -- ^ For pay-to-script outputs: the datum provided in the transaction input does not match the hash specified in the transaction output.
+    | MissingRedeemer RedeemerPtr
+    -- ^ For scripts that take redeemers: no redeemer was provided for this script.
     | InvalidSignature PubKey Signature
     -- ^ For pay-to-pubkey outputs: the signature of the transaction input does not match the public key of the transaction output.
     | ValueNotPreserved V.Value V.Value
@@ -118,9 +131,9 @@ data ValidationError =
     -- ^ The current slot is not covered by the transaction's validity slot range.
     | SignatureMissing PubKeyHash
     -- ^ The transaction is missing a signature
-    | ForgeWithoutScript Scripts.MonetaryPolicyHash
-    -- ^ The transaction attempts to forge value of a currency without running
-    --   the currency's monetary policy.
+    | MintWithoutScript Scripts.MintingPolicyHash
+    -- ^ The transaction attempts to mint value of a currency without running
+    --   the currency's minting policy.
     | TransactionFeeTooLow V.Value V.Value
     -- ^ The transaction fee is lower than the minimum acceptable fee.
     deriving (Eq, Show, Generic)
@@ -129,13 +142,17 @@ instance FromJSON ValidationError
 instance ToJSON ValidationError
 deriving via (PrettyShow ValidationError) instance Pretty ValidationError
 
+data ValidationPhase = Phase1 | Phase2 deriving (Eq, Show, Generic, FromJSON, ToJSON)
+deriving via (PrettyShow ValidationPhase) instance Pretty ValidationPhase
+type ValidationErrorInPhase = (ValidationPhase, ValidationError)
+
 -- | A monad for running transaction validation inside, which is an instance of 'ValidationMonad'.
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (ExceptT ValidationError (Writer [ScriptValidationEvent]))) a }
     deriving newtype (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError, MonadWriter [ScriptValidationEvent])
 
 -- | Run a 'Validation' on a 'UtxoIndex'.
-runValidation :: Validation a -> UtxoIndex -> (Either ValidationError a, [ScriptValidationEvent])
-runValidation l idx = runWriter $ runExceptT $ runReaderT (_runValidation l) idx
+runValidation :: Validation (Maybe ValidationErrorInPhase, UtxoIndex) -> UtxoIndex -> ((Maybe ValidationErrorInPhase, UtxoIndex), [ScriptValidationEvent])
+runValidation l idx = runWriter $ fmap (either (\e -> (Just (Phase1, e), idx)) id) $ runExceptT $ runReaderT (_runValidation l) idx
 
 -- | Determine the unspent value that a ''TxOutRef' refers to.
 lkpValue :: ValidationMonad m => TxOutRef -> m V.Value
@@ -151,21 +168,45 @@ lkpTxOut t = lookup t =<< ask
 validateTransaction :: ValidationMonad m
     => Slot.Slot
     -> Tx
-    -> m UtxoIndex
+    -> m (Maybe ValidationErrorInPhase, UtxoIndex)
 validateTransaction h t = do
-    _ <- checkSlotRange h t
-    _ <- checkValuePreserved t
-    _ <- checkPositiveValues t
-    _ <- checkFeeIsAda t
+    -- Phase 1 validation
+    checkSlotRange h t
 
-    -- see note [Forging of Ada]
+    -- see note [Minting of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
-    unless emptyUtxoSet (checkForgingScripts t)
-    unless emptyUtxoSet (checkForgingAuthorised t)
     unless emptyUtxoSet (checkTransactionFee t)
 
-    _ <- checkValidInputs t
-    insert t <$> ask
+    validateTransactionOffChain t
+
+validateTransactionOffChain :: ValidationMonad m
+    => Tx
+    -> m (Maybe ValidationErrorInPhase, UtxoIndex)
+validateTransactionOffChain t = do
+    checkValuePreserved t
+    checkPositiveValues t
+    checkFeeIsAda t
+
+    -- see note [Minting of Ada]
+    emptyUtxoSet <- reader (Map.null . getIndex)
+    unless emptyUtxoSet (checkMintingAuthorised t)
+
+    checkValidInputs (toListOf (inputs . pubKeyTxIns)) t
+    checkValidInputs (Set.toList . view collateralInputs) t
+
+    (do
+        -- Phase 2 validation
+        checkValidInputs (toListOf (inputs . scriptTxIns)) t
+        unless emptyUtxoSet (checkMintingScripts t)
+
+        idx <- ask
+        pure (Nothing, insert t idx)
+        )
+    `catchError` payCollateral
+    where
+        payCollateral e = do
+            idx <- ask
+            pure (Just (Phase2, e), insertCollateral t idx)
 
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Slot.Slot -> Tx -> m ()
@@ -176,63 +217,66 @@ checkSlotRange sl tx =
 
 -- | Check if the inputs of the transaction consume outputs that exist, and
 --   can be unlocked by the signatures or validator scripts of the inputs.
-checkValidInputs :: ValidationMonad m => Tx -> m ()
-checkValidInputs tx = do
+checkValidInputs :: ValidationMonad m => (Tx -> [TxIn]) -> Tx -> m ()
+checkValidInputs getInputs tx = do
     let tid = txId tx
         sigs = tx ^. signatures
-    outs <- lkpOutputs tx
-    matches <- traverse (\(txin, txout) -> matchInputOutput tid sigs txin txout) outs
+    outs <- lkpOutputs (getInputs tx)
+    matches <- traverse (uncurry (matchInputOutput tid sigs)) outs
     vld     <- mkTxInfo tx
     traverse_ (checkMatch vld) matches
 
 -- | Match each input of the transaction with the output that it spends.
-lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn, TxOut)]
-lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . view inputs
+lkpOutputs :: ValidationMonad m => [TxIn] -> m [(TxIn, TxOut)]
+lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t))
 
-{- note [Forging of Ada]
+{- note [Minting of Ada]
 
-'checkForgingAuthorised' will never allow a transaction that forges Ada.
+'checkMintingAuthorised' will never allow a transaction that mints Ada.
 Ada's currency symbol is the empty bytestring, and it can never be matched by a
 validator script whose hash is its symbol.
 
-Therefore 'checkForgingAuthorised' should not be applied to the first transaction in
+Therefore 'checkMintingAuthorised' should not be applied to the first transaction in
 the blockchain.
 
 -}
 
--- | Check whether each currency forged by the transaction is matched by
---   a corresponding monetary policy script (in the form of a pay-to-script
+-- | Check whether each currency minted by the transaction is matched by
+--   a corresponding minting policy script (in the form of a pay-to-script
 --   output of the currency's address).
 --
-checkForgingAuthorised :: ValidationMonad m => Tx -> m ()
-checkForgingAuthorised tx =
+checkMintingAuthorised :: ValidationMonad m => Tx -> m ()
+checkMintingAuthorised tx =
     let
-        forgedCurrencies = V.symbols (txForge tx)
+        mintedCurrencies = V.symbols (txMint tx)
 
-        mpsScriptHashes = Scripts.MonetaryPolicyHash . V.unCurrencySymbol <$> forgedCurrencies
+        mpsScriptHashes = Scripts.MintingPolicyHash . V.unCurrencySymbol <$> mintedCurrencies
 
-        lockingScripts = monetaryPolicyHash <$> Set.toList (txForgeScripts tx)
+        lockingScripts = mintingPolicyHash <$> Set.toList (txMintScripts tx)
 
-        forgedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
+        mintedWithoutScript = filter (\c -> c `notElem` lockingScripts) mpsScriptHashes
     in
-        traverse_ (throwError . ForgeWithoutScript) forgedWithoutScript
+        traverse_ (throwError . MintWithoutScript) mintedWithoutScript
 
-checkForgingScripts :: forall m . ValidationMonad m => Tx -> m ()
-checkForgingScripts tx = do
+checkMintingScripts :: forall m . ValidationMonad m => Tx -> m ()
+checkMintingScripts tx = do
     txinfo <- mkTxInfo tx
-    let mpss = Set.toList (txForgeScripts tx)
-        mkVd :: Integer -> ScriptContext
-        mkVd i =
-            let cs :: V.CurrencySymbol
-                cs = V.mpsSymbol $ monetaryPolicyHash $ mpss !! fromIntegral i
-            in ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
-    forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
-        let vd = Context $ toData ptx'
-        in case runExcept $ runMonetaryPolicyScript vd vl of
+    iforM_ (Set.toList (txMintScripts tx)) $ \i vl -> do
+        let cs :: V.CurrencySymbol
+            cs = V.mpsSymbol $ mintingPolicyHash vl
+            ctx :: Context
+            ctx = Context $ toData $ ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
+            ptr :: RedeemerPtr
+            ptr = RedeemerPtr Mint (fromIntegral i)
+        red <- case lookupRedeemer tx ptr of
+            Just r  -> pure r
+            Nothing -> throwError $ MissingRedeemer ptr
+
+        case runExcept $ runMintingPolicyScript ctx vl red of
             Left e  -> do
-                tell [mpsValidationEvent vd vl (Just e)]
+                tell [mpsValidationEvent ctx vl red (Left e)]
                 throwError $ ScriptFailure e
-            Right _ -> tell [mpsValidationEvent vd vl Nothing]
+            res -> tell [mpsValidationEvent ctx vl red res]
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -257,12 +301,12 @@ matchInputOutput :: ValidationMonad m
     -- ^ The unspent transaction output we are trying to unlock
     -> m InOutMatch
 matchInputOutput txid mp txin txo = case (txInType txin, txOutDatumHash txo, txOutAddress txo) of
-    (ConsumeScriptAddress v r d, Just dh, Address{addressCredential=ScriptCredential vh}) -> do
+    (Just (ConsumeScriptAddress v r d), Just dh, Address{addressCredential=ScriptCredential vh}) -> do
         unless (datumHash d == dh) $ throwError $ InvalidDatumHash d dh
         unless (validatorHash v == vh) $ throwError $ InvalidScriptHash v vh
 
         pure $ ScriptMatch (txInRef txin) v r d
-    (ConsumePublicKeyAddress, Nothing, Address{addressCredential=PubKeyCredential pkh}) ->
+    (Just ConsumePublicKeyAddress, Nothing, Address{addressCredential=PubKeyCredential pkh}) ->
         let sigMatches = flip fmap (Map.toList mp) $ \(pk,sig) ->
                 if pubKeyHash pk == pkh
                 then Just (PubKeyMatch txid pk sig)
@@ -284,16 +328,16 @@ checkMatch txinfo = \case
             ptx' = ScriptContext { scriptContextTxInfo = txinfo, scriptContextPurpose = Spending txOutRef }
             vd = Context (toData ptx')
         case runExcept $ runScript vd vl d r of
-            Left e  -> do
-                tell [validatorScriptValidationEvent vd vl d r (Just e)]
+            Left e -> do
+                tell [validatorScriptValidationEvent vd vl d r (Left e)]
                 throwError $ ScriptFailure e
-            Right _ -> tell [validatorScriptValidationEvent vd vl d r Nothing]
+            res -> tell [validatorScriptValidationEvent vd vl d r res]
     PubKeyMatch msg pk sig -> unless (signedBy sig pk msg) $ throwError $ InvalidSignature pk sig
 
 -- | Check if the value produced by a transaction equals the value consumed by it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ view inputs t))
+    inVal <- (P.+) (txMint t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ view inputs t))
     let outVal = txFee t P.+ foldMap txOutValue (txOutputs t)
     if outVal == inVal
     then pure ()
@@ -331,13 +375,12 @@ mkTxInfo tx = do
     txins <- traverse mkIn $ Set.toList $ view inputs tx
     let ptx = TxInfo
             { txInfoInputs = txins
-            , txInfoInputsFees = [] -- TODO: Fee inputs in emulator transactions
             , txInfoOutputs = txOutputs tx
-            , txInfoForge = txForge tx
+            , txInfoForge = txMint tx
             , txInfoFee = txFee tx
             , txInfoDCert = [] -- DCerts not supported in emulator
             , txInfoWdrl = [] -- Withdrawals not supported in emulator
-            , txInfoValidRange = txValidRange tx
+            , txInfoValidRange = TimeSlot.slotRangeToPOSIXTimeRange def $ txValidRange tx
             , txInfoSignatories = fmap pubKeyHash $ Map.keys (tx ^. signatures)
             , txInfoData = Map.toList (tx ^. datumWitnesses)
             , txInfoId = txId tx
@@ -350,7 +393,7 @@ mkIn TxIn{txInRef} = do
     txOut <- lkpTxOut txInRef
     pure $ Validation.TxInInfo{Validation.txInInfoOutRef = txInRef, Validation.txInInfoResolved=txOut}
 
-data ScriptType = ValidatorScript | MonetaryPolicyScript
+data ScriptType = ValidatorScript | MintingPolicyScript
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -358,24 +401,24 @@ data ScriptType = ValidatorScript | MonetaryPolicyScript
 data ScriptValidationEvent =
     ScriptValidationEvent
         { sveScript :: Script -- ^ The script applied to all arguments
-        , sveError  :: Maybe ScriptError -- ^ Result of running the script
+        , sveResult :: Either ScriptError [String] -- ^ Result of running the script: an error or the trace logs
         , sveType   :: ScriptType -- ^ What type of script it was
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Maybe ScriptError -> ScriptValidationEvent
-validatorScriptValidationEvent ctx validator datum redeemer err =
+validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+validatorScriptValidationEvent ctx validator datum redeemer result =
     ScriptValidationEvent
         { sveScript = applyValidator ctx validator datum redeemer
-        , sveError = err
+        , sveResult = result
         , sveType = ValidatorScript
         }
 
-mpsValidationEvent :: Context -> MonetaryPolicy -> Maybe ScriptError -> ScriptValidationEvent
-mpsValidationEvent ctx mps err =
+mpsValidationEvent :: Context -> MintingPolicy -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+mpsValidationEvent ctx mps red result =
     ScriptValidationEvent
-        { sveScript = applyMonetaryPolicyScript ctx mps
-        , sveError = err
-        , sveType = MonetaryPolicyScript
+        { sveScript = applyMintingPolicyScript ctx mps red
+        , sveResult = result
+        , sveType = MintingPolicyScript
         }

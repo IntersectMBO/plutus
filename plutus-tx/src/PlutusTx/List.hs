@@ -1,9 +1,28 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.List (map, filter, listToMaybe, uniqueElement, findIndices, findIndex, foldr, reverse, zip, (++), (!!)) where
+module PlutusTx.List (
+    map,
+    filter,
+    listToMaybe,
+    uniqueElement,
+    findIndices,
+    findIndex,
+    foldr,
+    reverse,
+    zip,
+    (++),
+    (!!),
+    head,
+    take,
+    tail,
+    nub,
+    nubBy
+    ) where
 
+import           PlutusTx.Bool     ((||))
 import qualified PlutusTx.Builtins as Builtins
-import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, length, map, null, reverse,
-                                    zip, (!!), (&&), (++), (||))
+import           PlutusTx.Eq       (Eq, (==))
+import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
+                                    reverse, tail, take, zip, (!!), (&&), (++), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -103,3 +122,43 @@ zip :: [a] -> [b] -> [(a,b)]
 zip []     _bs    = []
 zip _as    []     = []
 zip (a:as) (b:bs) = (a,b) : zip as bs
+
+{-# INLINABLE head #-}
+-- | Plutus Tx version of 'Data.List.head'.
+head :: [a] -> a
+head []      = Builtins.error ()
+head (x : _) = x
+
+{-# INLINABLE tail #-}
+-- | Plutus Tx version of 'Data.List.tail'.
+tail :: [a] -> [a]
+tail (_:as) =  as
+tail []     =  Builtins.error ()
+
+{-# INLINABLE take #-}
+-- | Plutus Tx version of 'Data.List.take'.
+take :: Integer -> [a] -> [a]
+take n _      | n <= 0 =  []
+take _ []              =  []
+take n (x:xs)          =  x : take (n-1) xs
+
+{-# INLINABLE nub #-}
+-- | Plutus Tx version of 'Data.List.nub'.
+nub :: (Eq a) => [a] -> [a]
+nub =  nubBy (==)
+
+{-# INLINABLE elem_by #-}
+-- | Plutus Tx version of 'Data.List.elem_by'.
+elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
+elem_by _  _ []     =  False
+elem_by eq y (x:xs) =  x `eq` y || elem_by eq y xs
+
+{-# INLINABLE nubBy #-}
+-- | Plutus Tx version of 'Data.List.nubBy'.
+nubBy :: (a -> a -> Bool) -> [a] -> [a]
+nubBy eq l              = nubBy' l []
+  where
+    nubBy' [] _         = []
+    nubBy' (y:ys) xs
+       | elem_by eq y xs = nubBy' ys xs
+       | otherwise       = y : nubBy' ys (y:xs)

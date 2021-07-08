@@ -12,7 +12,8 @@ import           UntypedPlutusCore.Core.Type
 import           PlutusCore.Eq
 import           PlutusCore.Name
 import           PlutusCore.Rename.Monad
-import           PlutusCore.Universe
+
+import           Universe
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique) =>
             Eq (Term name uni fun ann) where

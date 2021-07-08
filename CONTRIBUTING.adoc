@@ -28,10 +28,13 @@ NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 === How to use helper scripts to fix some common issues
 
 The shell comes with some tools for fixing various simple problems that the CI will complain about. Specifically:
+
 - `fix-stylish-haskell` will re-format all the Haskell sources correctly.
 - `fix-purty` will re-format all the Purescript sources correctly.
 - `fix-png-optimization` will optimize all PNGs in the repository.
 - `updateMaterialized` will update the materialized Nix files (see xref:update-generated[later]).
+
+If you're not using `nix-shell` all the time and you want to run one of these, you can use `nix-shell --run`.
 
 === How to build the code during development
 
@@ -61,33 +64,52 @@ bug workarounds.
 
 If you launch `nix-shell` with the `enableHaskellProfiling` argument set to true, you will get a shell where all the dependencies have been built with profiling.
 
-Like this: `nix-shell --arg enableHaskellProfiling true`
-
-Then you can do e.g. `cabal run --enableProfiling ...`.
+Like this: `nix-shell --arg enableHaskellProfiling true`.
 
 [WARNING]
 ====
-This is not curently cached, so may result in you rebuilding all of our dependencies with profiling on your machine.
+The shell with profiling dependencies is not currently cached, so this will result in you rebuilding all of our dependencies with profiling on your machine.
+This will take a *long* time.
 ====
+
+Once you have a shell with profiling libraries for our dependencies, add `profiling: true` to `cabal.project.local`, which will tell cabal that you want profiling (in particular, that will cause it to build *our* libraries with profiling).
+Alternatively, you can pass the `--enable-profiling` option to `cabal` on an ad-hoc basis, but adding the option to `cabal.project.local` will make it apply to everything, which is probably what you want when you're doing profiling work.
+
+At this point you need to configure which cost centres you want GHC to insert.
+The https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/profiling.html[GHC user guide] explains this very well.
+A typical way of doing this is to add `-fprof-auto` to either the `ghc-options` in the `.cabal` file for the project, or in an `OPTIONS_GHC` pragma in the module you care about.
+
+[WARNING]
+====
+Do *not* set the `-prof` option yourself!
+This will enable profiling libraries unconditionally, which interferes with what `cabal` wants.
+Setting `profiling: true` already sorts this out properly.
+====
+
+Then you can use the RTS `-p` option to dump a profile e.g. `cabal run plc ... -- +RTS -p`.
+
+There are various tools for visualizing the resulting profile, e.g. https://hackage.haskell.org/package/ghc-prof-flamegraph.
 
 === How to setup `haskell-language-server`
 
 The `nix-shell` environment has a `haskell-language-server` binary for the right version of GHC.
 
-IMPORTANT: this binary is called `haskell-language-server` not `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
+IMPORTANT: this binary is called `haskell-language-server`, rather than `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
 
 We don't have a `hie.yaml`, the implicit cradle support in HLS seems to work fine these days.
 
 [[update-generated]]
 === How to update the generated Haskell package set
 
-The Nix code that builds all the Haskell packages and their dependencies is generated automatically.
+Some of the Nix code that builds all the Haskell packages and their dependencies is generated automatically.
 However, to avoid doing too much work all the time, we have checked the generated output in.
 
 IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files.
 But the CI will tell you if you've failed to do so.
 
 You can regenerate the files by running `updateMaterialized` (provided by `nix-shell`) from the repository root.
+
+This will also update the `plan-256` shas for the extra Haskell tools, if you have a problem iwth that.
 
 === How to add a new Haskell package
 
@@ -136,6 +158,8 @@ The Nix code which builds our packages also cares about the index state.
 The set of index states which it knows about is controlled by `hackage.nix`, which is a Nix representation of Hackage.
 This therefore needs to be newer than the index state.
 You can update it xref:update-nix-pins[with `niv`].
+
+You will need to update the xref:update-generated[package set] after this to reflect the new build plan that Cabal will pick.
 
 == Working conventions
 
@@ -231,7 +255,6 @@ The key bottleneck in getting a PR merged is code review.
 Code review is great (see below), but it can slow you down if you don't take the time to make it easy.
 
 The amount of time it's worth spending doing this is probably much more than you think.
-If you make the reviewer spend
 
 ==== What changes to include
 
@@ -273,6 +296,7 @@ So please do use this ability where it helps, for example:
 * Add low-effort or WIP commits to fix review comments, and then squash them away before merging the PR.
 * If you have already had a PR review, don't rebase away the old commits until the PR is ready to merge, so that the reviewer only has to look at the "new" commits.
 * Rewrite the commits to make the story clearer where possible.
+* Always prefer `git push --force-with-lease` to just `git push --force` to ensure that no work gets accidentally deleted.
 
 Don't be obsessive about history though: a little bit of effort making the history clear is nice, but you can rapidly hit diminishing returns.
 Use your judgement, but probably don't merge a PR that has commits called "WIP" or "fix"!
@@ -288,25 +312,48 @@ As an author, code review is an opportunity for you to get feedback from clear e
 As a reviewer, code review is an opportunity for you to help your colleagues and learn about what they are doing.
 Make the best use of it you can!
 
-* Pick the right reviewer(s). If you don't know who to pick, ask!
-* Respect your reviewers' time. Their time is as valuable as yours, and it's typically more efficient for you
-to spend time explaining or clarifying something in advance than for them to puzzle it out or pose a question.
-* Respond to review requests as quickly as you can. If you can't review it all, say what you can and come back to it. Waiting for review is often a blocker for other people, so prioritize it.
-* If you don't understand something, ask. You are as clever as any person who will read this in the future, if it confuses you it's confusing.
+==== For the author
+
+* Pick the right reviewer(s).
+If you don't know who to pick, ask!
+* Respect your reviewers' time.
+Their time is as valuable as yours, and it's typically more efficient for you to spend time explaining or clarifying something in advance than for them to puzzle it out or pose a question.
 * If someone had to ask about your code, it wasn't clear enough so change it or add a comment.
-* Do spend the time to understand the code. This will help you make more useful comments, help you review future changes more easily, and help you if you ever need to work on it yourself.
-* More reviewing is usually helpful. If you think a PR is interesting, you can review it even if nobody asked you to, you will probably have things to contribute and you'll learn something.
+
+Read this blog post for more good tips: https://mtlynch.io/code-review-love/
+
+==== For the reviewer
+
+* Respond to review requests as quickly as you can.
+If you can't review it all, say what you can and come back to it.
+Waiting for review is often a blocker for other people, so prioritize it.
+* If you don't understand something, ask.
+You are as clever as any person who will read this in the future, if it confuses you it's confusing.
+* Do spend the time to understand the code.
+This will help you make more useful comments, help you review future changes more easily, and help you if you ever need to work on it yourself.
+* More reviewing is usually helpful.
+If you think a PR is interesting, you can review it even if nobody asked you to, you will probably have things to contribute and you'll learn something.
+
+Read these blog posts for more good tips:
+- https://mtlynch.io/human-code-reviews-1/
+- https://mtlynch.io/human-code-reviews-2/
 
 == Supporting systems
 
 === Continuous integration
 
-We have two sources of CI checks at the moment:
+We have a few sources of CI checks at the moment:
+
 - Hydra
 - ReadTheDocs
+- Github Actions
+- Buildkite
 
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
+
+NOTE: This isn't strictly true: repository admins (notably Michael) can force-merge PRs without the checks being green
+If you really need this, ask.
 
 CI checks are run on the tip of the PR branch, not on the merge commit that is created with master.
 As a result, it's possible to create a "semantic" merge commit where the CI passes on commits C1 and C2, but not on the merge of C1 and C2.
@@ -319,11 +366,29 @@ Hydra is the "standard" CI builder for Nix-based projects.
 It builds everything in the project, including all the tests, documentation, etc.
 
 Hydra builds jobs based on `release.nix`, although currently this imports a lot of its jobs from `ci.nix` (was used for Hercules, may be used again in future).
+Hydra should report a failed status even if `release.nix` fails to evaluate.
 
-Hydra will not report a failed status if `release.nix` fails to evaluate, but you should get a red CI status in this case.
+Hydra can be a bit flaky, unfortunately:
+- If evaluation fails saying "out of memory" or "unexpected EOF reading line", then this is likely a transient failure.
+These will be automatically retried, but if you're in a hurry Michael has permissions to force a new evaluation.
+- If a build fails spuriously, this is a _problem_: please report it to whoever is responsible for that build and we should try and iron it out.
+Nondeterministic failures are very annoying.
+Michael also has permissions to restart failed builds.
+
+==== ReadTheDocs
+
+The documentation site is built on ReadTheDocs.
+It will build a preview for each PR which is linked from the PR status.
+It's useful to take a look if you're changing any of the documentation.
+
+==== Github Actions
+
+These perform some of the same checks as Hydra, but Github Actions is often more available, so they return faster and act as a "smoke check".
+
+==== Buildkite
+
+Buildkite currently only performs the continuous deployment steps.
 
 === Continuous deployment
 
-The Plutus Playground is continuously deployed to an https://alpha.plutus.iohkdev.io/[alpha environment].
-This happens when a PR is merged to master, you can see the status on the
-Github https://github.com/input-output-hk/plutus/deployments[deployments page].
+Several packages are continuously deployed to a staging environment. See link:./deployment/README.md[deployment/README.md] for detailed information on the deployment setup.

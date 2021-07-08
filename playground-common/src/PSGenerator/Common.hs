@@ -18,21 +18,25 @@ import           Language.PureScript.Bridge                (BridgePart, Language
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, PubKey,
-                                                            PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
-                                                            TxOut, TxOutRef, TxOutTx, UtxoIndex, Validator)
+import           Ledger                                    (Address, Datum, DatumHash, MintingPolicy, OnChainTx, PubKey,
+                                                            PubKeyHash, Redeemer, RedeemerPtr, ScriptTag, Signature, Tx,
+                                                            TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
+                                                            ValidationPhase, Validator)
 import           Ledger.Ada                                (Ada)
-import           Ledger.Constraints.OffChain               (MkTxError)
+import           Ledger.Constraints.OffChain               (MkTxError, UnbalancedTx)
 import           Ledger.Credential                         (Credential, StakingCredential)
 import           Ledger.DCert                              (DCert)
 import           Ledger.Index                              (ScriptType, ScriptValidationEvent, ValidationError)
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
+import           Ledger.Time                               (POSIXTime)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
+import           Plutus.Contract.Effects                   (ActiveEndpoint, PABReq, PABResp, UtxoAtAddress,
+                                                            WriteTxResponse)
 import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
@@ -43,8 +47,9 @@ import           Wallet.API                                (WalletAPIError)
 import qualified Wallet.Emulator.Wallet                    as EM
 import           Wallet.Rollup.Types                       (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId,
                                                             TxKey)
-import           Wallet.Types                              (AssertionError, ContractError, ContractInstanceId,
-                                                            EndpointDescription, MatchingError, Notification,
+import           Wallet.Types                              (AddressChangeRequest, AddressChangeResponse, AssertionError,
+                                                            ContractError, ContractInstanceId, EndpointDescription,
+                                                            EndpointValue, MatchingError, Notification,
                                                             NotificationError, Payment)
 
 psJson :: PSType
@@ -164,7 +169,7 @@ psAssocMap =
 dataBridge :: BridgePart
 dataBridge = do
     typeName ^== "Data"
-    typeModule ^== "PlutusTx.Data"
+    typeModule ^== "PlutusCore.Data"
     pure psString
 
 assocMapBridge :: BridgePart
@@ -191,7 +196,7 @@ validatorHashBridge = do
 
 mpsHashBridge :: BridgePart
 mpsHashBridge = do
-    typeName ^== "MonetaryPolicyHash"
+    typeName ^== "MintingPolicyHash"
     typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
@@ -228,6 +233,7 @@ servantBridge = headersBridge <|> headerBridge
 ledgerTypes :: [SumType 'Haskell]
 ledgerTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @POSIXTime)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Ada)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxId)
@@ -235,6 +241,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOut)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOutTx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutRef)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OnChainTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoIndex)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Value)
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
@@ -246,14 +253,17 @@ ledgerTypes =
     , (functor <*> (equal <*> (genericShow <*> mkSumType)))
           (Proxy @(UpperBound A))
     , (genericShow <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @MonetaryPolicy)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @MintingPolicy)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Redeemer)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerPtr)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @ScriptTag)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TokenName)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptError)
-    , (genericShow <*> mkSumType) (Proxy @ValidationError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationPhase)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Datum)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DatumHash)
@@ -290,6 +300,15 @@ ledgerTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptValidationEvent)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptType)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABReq)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABResp)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     ]
 
 walletTypes :: [SumType 'Haskell]

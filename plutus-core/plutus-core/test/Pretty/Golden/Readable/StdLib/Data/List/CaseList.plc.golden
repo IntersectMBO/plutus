@@ -1,0 +1,1 @@
+/\(a :: *) -> \(x : list a) -> /\(r :: *) -> \(z : r) -> \(f : a -> list a -> r) -> (/\(a :: *) -> \(b : bool) -> \(x : unit -> a) -> \(y : unit -> a) -> ifThenElse {unit -> a} b x y ()) {r} (nullList {a} x) (\(u : unit) -> z) (\(u : unit) -> f (headList {a} x) (tailList {a} x))

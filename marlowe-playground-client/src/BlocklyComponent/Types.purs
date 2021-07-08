@@ -18,6 +18,10 @@ type State
     , errorMessage :: Maybe String
     , blocklyEventSubscription :: Maybe SubscriptionId
     , eventsWhileDragging :: Maybe (List BT.BlocklyEvent)
+    -- For some reason the "FinishLoading" event can be triggered when doing an UNDO in some cases
+    -- we only need to fire the BlocklyReady once in the lifetime of this component, so we
+    -- store a flag to avoid firing it multiple times.
+    , blocklyReadyFired :: Boolean
     }
 
 _blocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -29,12 +33,16 @@ _errorMessage = prop (SProxy :: SProxy "errorMessage")
 _blocklyEventSubscription :: Lens' State (Maybe SubscriptionId)
 _blocklyEventSubscription = prop (SProxy :: SProxy "blocklyEventSubscription")
 
+_blocklyReadyFired :: Lens' State Boolean
+_blocklyReadyFired = prop (SProxy :: SProxy "blocklyReadyFired")
+
 emptyState :: State
 emptyState =
   { blocklyState: Nothing
   , errorMessage: Nothing
   , blocklyEventSubscription: Nothing
   , eventsWhileDragging: Nothing
+  , blocklyReadyFired: false
   }
 
 data Query a
@@ -51,11 +59,12 @@ data Action
   | SetData Unit
   | BlocklyEvent BT.BlocklyEvent
   | ResizeWorkspace
-  | VisibilityChanged Boolean
+  | Finalize
 
 data Message
   = CodeChange
   | BlockSelection (Maybe { blockId :: String, blockType :: String })
+  | BlocklyReady
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

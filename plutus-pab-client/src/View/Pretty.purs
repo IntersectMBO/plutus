@@ -8,14 +8,11 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Newtype (unwrap)
 import Halogen.HTML (HTML, b_, div_, span_, text)
-import Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
-import Plutus.Contract.Effects.WriteTx (WriteTxResponse(..))
+import Plutus.Contract.Effects (ActiveEndpoint, WriteTxResponse(..), PABReq(..), PABResp(..))
 import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
-import Plutus.PAB.Events.Contract (ContractResponse(..), ContractPABRequest(..))
-import Plutus.PAB.Events (PABEvent(..))
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
@@ -24,25 +21,6 @@ import Types (_contractInstanceIdString)
 
 class Pretty a where
   pretty :: forall p i. a -> HTML p i
-
-instance prettyPABEvent :: Pretty t => Pretty (PABEvent t) where
-  pretty e =
-    withHeading "PAB"
-      $ case e of
-          InstallContract contract -> span_ [ text $ "Install contract:", nbsp, pretty contract ]
-          UpdateContractInstanceState (ContractActivationArgs { caID }) instanceId (PartiallyDecodedResponse { hooks }) ->
-            span_
-              [ text "Update instance "
-              , text (view _contractInstanceIdString instanceId)
-              , text " of contract "
-              , pretty caID
-              , div_
-                  [ nbsp
-                  , text "with new active endpoint(s): "
-                  , text $ show hooks
-                  ]
-              ]
-          SubmitTx tx -> span_ [ text "SubmittedTx:", nbsp, pretty tx ]
 
 withHeading :: forall i p. String -> HTML p i -> HTML p i
 withHeading prefix content =
@@ -71,20 +49,38 @@ instance prettyResponse :: Pretty a => Pretty (Response a) where
       , div_ [ pretty rspResponse ]
       ]
 
-instance prettyContractResponse :: Pretty ContractResponse where
-  pretty (AwaitSlotResponse slot) =
+instance prettyPABResp :: Pretty PABResp where
+  pretty (AwaitSlotResp slot) =
     span_
       [ text "AwaitSlotResponse:"
       , nbsp
       , text $ show slot
       ]
-  pretty (AwaitTxConfirmedResponse txConfirmed) =
+  pretty (CurrentSlotResp slot) =
+    span_
+      [ text "CurrentSlotResp:"
+      , nbsp
+      , text $ show slot
+      ]
+  pretty (AwaitTimeResp time) =
+    span_
+      [ text "AwaitTimeResponse:"
+      , nbsp
+      , text $ show time
+      ]
+  pretty (CurrentTimeResp time) =
+    span_
+      [ text "CurrentTimeResp:"
+      , nbsp
+      , text $ show time
+      ]
+  pretty (AwaitTxConfirmedResp txConfirmed) =
     span_
       [ text "AwaitTxConfirmedResponse:"
       , nbsp
-      , text $ view (_txConfirmed <<< _txId) txConfirmed
+      , text $ view _txId txConfirmed
       ]
-  pretty (UserEndpointResponse endpointDescription endpointValue) =
+  pretty (ExposeEndpointResp endpointDescription endpointValue) =
     span_
       [ text "UserEndpointResponse:"
       , nbsp
@@ -92,97 +88,103 @@ instance prettyContractResponse :: Pretty ContractResponse where
       , nbsp
       , text $ view (_endpointValue <<< _Newtype) endpointValue
       ]
-  pretty (OwnPubkeyResponse pubKey) =
+  pretty (OwnPublicKeyResp pubKey) =
     span_
-      [ text "OwnPubkeyResponse:"
+      [ text "OwnPublicKeyResponse:"
       , nbsp
       , text $ show pubKey
       ]
-  pretty (UtxoAtResponse utxoAtAddress) =
+  pretty (UtxoAtResp utxoAtAddress) =
     span_
       [ text "UtxoAtResponse:"
       , nbsp
       , text $ show utxoAtAddress
       ]
-  pretty (NextTxAtResponse addressChangeResponse) =
+  pretty (AddressChangeResp addressChangeResponse) =
     span_
-      [ text "NextTxAtResponse:"
+      [ text "AddressChangedAtResponse:"
       , nbsp
       , text $ show addressChangeResponse
       ]
-  pretty (WriteTxResponse writeTxResponse) =
+  pretty (WriteTxResp writeTxResponse) =
     span_
       [ text "WriteTxResponse:"
       , nbsp
       , pretty writeTxResponse
       ]
-  pretty (OwnInstanceResponse ownInstanceResponse) =
+  pretty (OwnContractInstanceIdResp ownInstanceResponse) =
     span_
       [ text "OwnInstanceResponse:"
       , nbsp
       , text $ view _contractInstanceIdString ownInstanceResponse
       ]
-  pretty (NotificationResponse notificationResponse) =
+  pretty (SendNotificationResp _) =
     span_
-      [ text "NotificationResponse:"
-      , nbsp
-      , text $ show notificationResponse
+      [ text "SendNotificationResponse"
       ]
 
-instance prettyContractPABRequest :: Pretty ContractPABRequest where
-  pretty (AwaitSlotRequest slot) =
+instance prettyContractPABRequest :: Pretty PABReq where
+  pretty (AwaitSlotReq slot) =
     span_
       [ text "AwaitSlotRequest:"
       , nbsp
       , text $ show slot
       ]
-  pretty (AwaitTxConfirmedRequest txId) =
+  pretty CurrentSlotReq =
+    span_
+      [ text "CurrentSlotRequest"
+      ]
+  pretty (AwaitTimeReq time) =
+    span_
+      [ text "AwaitTimeRequest:"
+      , nbsp
+      , text $ show time
+      ]
+  pretty CurrentTimeReq =
+    span_
+      [ text "CurrentTimeRequest"
+      ]
+  pretty (AwaitTxConfirmedReq txId) =
     span_
       [ text "AwaitTxConfirmedRequest:"
       , nbsp
       , text $ view _txId txId
       ]
-  pretty (UserEndpointRequest activeEndpoint) =
+  pretty (ExposeEndpointReq activeEndpoint) =
     span_
       [ text "UserEndpointRequest:"
       , nbsp
       , pretty activeEndpoint
       ]
-  pretty (OwnPubkeyRequest pubKey) =
+  pretty OwnPublicKeyReq =
     span_
-      [ text "OwnPubkeyRequest:"
-      , nbsp
-      , text $ show pubKey
+      [ text "OwnPubkeyRequest"
       ]
-  pretty (UtxoAtRequest utxoAtAddress) =
+  pretty (UtxoAtReq utxoAtAddress) =
     span_
       [ text "UtxoAtRequest:"
       , nbsp
       , text $ show utxoAtAddress
       ]
-  pretty (NextTxAtRequest addressChangeRequest) =
+  pretty (AddressChangeReq addressChangeRequest) =
     span_
-      [ text "NextTxAtRequest:"
+      [ text "AddressChangedAtRequest:"
       , nbsp
       , text $ show addressChangeRequest
       ]
-  pretty (WriteTxRequest writeTxRequest) =
+  pretty (WriteTxReq writeTxRequest) =
     span_
       [ text "WriteTxRequest:"
       , nbsp
       , pretty writeTxRequest
       ]
-  pretty (OwnInstanceIdRequest ownInstanceIdRequest) =
+  pretty OwnContractInstanceIdReq =
     span_
       [ text "OwnInstanceIdRequest:"
-      , nbsp
-      , text $ show ownInstanceIdRequest
       ]
-  pretty (SendNotificationRequest sendNotificationRequest) =
+  pretty (SendNotificationReq _) =
     span_
-      [ text "SendNotificationRequest:"
-      , nbsp
-      , text $ show sendNotificationRequest
+      [ text "SendNotificationRequest"
       ]
 
 instance prettyWriteTxResponse :: Pretty WriteTxResponse where

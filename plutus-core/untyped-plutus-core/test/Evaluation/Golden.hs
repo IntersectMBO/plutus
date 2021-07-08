@@ -10,8 +10,8 @@ import           Prelude                                  hiding (even)
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.Function
-import           PlutusCore.StdLib.Data.List
 import           PlutusCore.StdLib.Data.Nat
+import           PlutusCore.StdLib.Data.ScottList
 import           PlutusCore.StdLib.Meta
 import           PlutusCore.StdLib.Meta.Data.Tuple
 import           PlutusCore.StdLib.Type
@@ -33,11 +33,11 @@ import           Test.Tasty.Golden
 
 -- (con integer)
 integer :: uni `Includes` Integer => Type TyName uni ()
-integer = mkTyBuiltin @ Integer ()
+integer = mkTyBuiltin @_ @Integer ()
 
 -- (con string)
 string :: uni `Includes` String => Type TyName uni ()
-string = mkTyBuiltin @ String ()
+string = mkTyBuiltin @_ @String ()
 
 evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
@@ -101,7 +101,7 @@ evenList :: Term TyName Name uni fun ()
 evenList = runQuote $ tupleTermAt () 0 evenAndOddList
 
 smallNatList :: Term TyName Name uni fun ()
-smallNatList = metaListToList nat nats where
+smallNatList = metaListToScottList nat nats where
     nats = Prelude.map metaIntegerToNat [1,2,3]
     nat = _recursiveType natData
 
@@ -140,7 +140,7 @@ closure = runQuote $ do
 -- Various components that we'll use to build larger terms for testing
 
 lte :: Term TyName Name DefaultUni DefaultFun ()
-lte = Builtin () LessThanEqInteger
+lte = Builtin () LessThanEqualsInteger
 
 eleven :: Term TyName Name DefaultUni DefaultFun ()
 eleven = mkConstant @Integer () 11
@@ -188,10 +188,10 @@ iteAtIntegerWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerWithCond = Apply () iteAtInteger lteExpr
 
 -- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" ] :
--- IllTypedRuns.  This is ill-typed because the first term argument is a string
--- and a boolean is expected.  However, it will execute successfully (and the
--- result will be ill-typed) because it's not saturated and so the built-in
--- application machinery will never see it.
+-- IllTypedFails.  This is ill-typed because the first term argument is a string
+-- and a boolean is expected. Even though it's not saturated, it won't execute succefully,
+-- because the builtin application machinery unlifts an argument the moment it gets it,
+-- without waiting for full saturation.
 iteAtIntegerWrongCondType :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerWrongCondType = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse]
 
@@ -317,12 +317,12 @@ goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> Te
 goldenVsEvaluatedCK name
     = goldenVsPretty ".plc.golden" name
     . bimap (fmap UPLC.erase) UPLC.erase
-    . evaluateCkNoEmit defBuiltinsRuntime
+    . evaluateCkNoEmit defaultBuiltinsRuntime
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
     = goldenVsPretty ".plc.golden" name
-    . evaluateCekNoEmit defBuiltinsRuntime
+    . evaluateCekNoEmit defaultCekParameters
     . UPLC.erase
 
 runTypecheck
@@ -342,7 +342,7 @@ goldenVsTypecheckedEvaluatedCK name term =
     -- that the term is well-typed before checking that the type of the result is the
     -- one stored in the golden file (we could simply check the two types for equality,
     -- but since we're doing golden testing in this file, why not do it here as well).
-    case (runTypecheck term, evaluateCkNoEmit defBuiltinsRuntime term) of
+    case (runTypecheck term, evaluateCkNoEmit defaultBuiltinsRuntime term) of
         (Right _, Right res) -> goldenVsTypechecked name res
         _                    -> testGroup name []
 
@@ -352,7 +352,7 @@ namesAndTests =
    , ("even3", Apply () even $ metaIntegerToNat 3)
    , ("evenList", Apply () natSum $ Apply () evenList smallNatList)
    , ("polyError", polyError)
-   , ("polyErrorInst", TyInst () polyError (mkTyBuiltin @Integer ()))
+   , ("polyErrorInst", TyInst () polyError (mkTyBuiltin @_ @Integer ()))
    , ("closure", closure)
    , ("ite", ite)
    , ("iteUninstantiatedWithCond", iteUninstantiatedWithCond)

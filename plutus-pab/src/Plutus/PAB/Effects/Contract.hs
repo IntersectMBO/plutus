@@ -29,23 +29,27 @@ module Plutus.PAB.Effects.Contract(
     , getState
     , getDefinition
     , getActiveContracts
+    , putStartInstance
+    , putStopInstance
     -- * Storing and retrieving definitions of contracts
     , ContractDefinitionStore(..)
     , addDefinition
     , getDefinitions
     ) where
 
-import           Control.Monad.Freer                     (Eff, Member, send)
-import           Data.Map                                (Map)
-import qualified Data.Map                                as Map
-import           Data.Proxy                              (Proxy (..))
-import           Playground.Types                        (FunctionSchema)
-import           Plutus.Contract.Resumable               (Request, Response)
-import           Plutus.PAB.Events.Contract              (ContractPABRequest, ContractResponse)
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (hooks))
-import           Plutus.PAB.Webserver.Types              (ContractActivationArgs)
-import           Schema                                  (FormSchema)
-import           Wallet.Types                            (ContractInstanceId)
+import           Control.Monad.Freer        (Eff, Member, send)
+import           Data.Aeson                 (Value)
+import           Data.Map                   (Map)
+import qualified Data.Map                   as Map
+import           Data.Proxy                 (Proxy (..))
+import           Playground.Types           (FunctionSchema)
+import           Plutus.Contract.Effects    (PABReq, PABResp)
+import           Plutus.Contract.Resumable  (Request, Response)
+import           Plutus.Contract.State      (ContractResponse)
+import qualified Plutus.Contract.State      as C
+import           Plutus.PAB.Webserver.Types (ContractActivationArgs)
+import           Schema                     (FormSchema)
+import           Wallet.Types               (ContractInstanceId)
 
 -- | A class of contracts running in the PAB. The purpose of the type
 --   parameter @t@ is to allow for different ways of running
@@ -64,17 +68,17 @@ class PABContract contract where
     type State contract
 
     -- | Extract the serialisable state from the contract instance state.
-    serialisableState :: Proxy contract -> State contract -> PartiallyDecodedResponse ContractPABRequest
+    serialisableState :: Proxy contract -> State contract -> ContractResponse Value Value Value PABReq
 
 -- | The open requests of the contract instance.
-requests :: forall contract. PABContract contract => State contract -> [Request ContractPABRequest]
-requests = hooks . serialisableState (Proxy @contract)
+requests :: forall contract. PABContract contract => State contract -> [Request PABReq]
+requests = C.hooks . serialisableState (Proxy @contract)
 
 -- | An effect for sending updates to contracts that implement @PABContract@
 data ContractEffect t r where
     ExportSchema   :: PABContract t => ContractDef t -> ContractEffect t [FunctionSchema FormSchema] -- ^ The schema of the contract
-    InitialState   :: PABContract t => ContractDef t -> ContractEffect t (State t) -- ^ The initial state of the contract's instance
-    UpdateContract :: PABContract t => ContractDef t -> State t -> Response ContractResponse -> ContractEffect t (State t) -- ^ Send an update to the contract and return the new state.
+    InitialState   :: PABContract t => ContractInstanceId -> ContractDef t -> ContractEffect t (State t) -- ^ The initial state of the contract's instance
+    UpdateContract :: PABContract t => ContractInstanceId -> ContractDef t -> State t -> Response PABResp -> ContractEffect t (State t) -- ^ Send an update to the contract and return the new state.
 
 -- | Get the schema of a contract given its definition.
 exportSchema ::
@@ -94,10 +98,11 @@ initialState ::
     ( Member (ContractEffect t) effs
     , PABContract t
     )
-    => ContractDef t
+    => ContractInstanceId
+    -> ContractDef t
     -> Eff effs (State t)
-initialState def =
-    let command :: ContractEffect t (State t) = InitialState def
+initialState i def =
+    let command :: ContractEffect t (State t) = InitialState i def
     in send command
 
 -- | Send an update to the contract and return the new state.
@@ -106,19 +111,43 @@ updateContract ::
     ( Member (ContractEffect t) effs
     , PABContract t
     )
-    => ContractDef t
+    => ContractInstanceId
+    -> ContractDef t
     -> State t
-    -> Response ContractResponse
+    -> Response PABResp
     -> Eff effs (State t)
-updateContract def state request =
-    let command :: ContractEffect t (State t) = UpdateContract def state request
+updateContract i def state request =
+    let command :: ContractEffect t (State t) = UpdateContract i def state request
     in send command
 
 -- | Storing and retrieving the state of a contract instance
 data ContractStore t r where
-    PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t ()
-    GetState :: ContractInstanceId -> ContractStore t (State t)
-    ActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
+    PutStartInstance :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> ContractStore t () -- ^ Record the starting of a new contract instance
+    PutState :: ContractActivationArgs (ContractDef t) -> ContractInstanceId -> State t -> ContractStore t () -- ^ Record the updated state of the contract instance
+    GetState :: ContractInstanceId -> ContractStore t (State t) -- ^ Retrieve the last recorded state of the contract instance
+    PutStopInstance :: ContractInstanceId -> ContractStore t () -- ^ Record the fact that a contract instance has stopped
+    GetActiveContracts :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) -- ^ Get all active contracts with their activation args
+
+putStartInstance ::
+    forall t effs.
+    ( Member (ContractStore t) effs
+    )
+    => ContractActivationArgs (ContractDef t)
+    -> ContractInstanceId
+    -> Eff effs ()
+putStartInstance def i =
+    let command :: ContractStore t () = PutStartInstance def i
+    in send command
+
+putStopInstance ::
+    forall t effs.
+    ( Member (ContractStore t) effs
+    )
+    => ContractInstanceId
+    -> Eff effs ()
+putStopInstance i =
+    let command :: ContractStore t () = PutStopInstance i
+    in send command
 
 -- | Store the state of the contract instance
 putState ::
@@ -151,7 +180,7 @@ getActiveContracts ::
     )
     => Eff effs (Map ContractInstanceId (ContractActivationArgs (ContractDef t)))
 getActiveContracts =
-    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = ActiveContracts
+    let command :: ContractStore t (Map ContractInstanceId (ContractActivationArgs (ContractDef t))) = GetActiveContracts
     in send command
 
 -- | Get the definition of a running contract

@@ -67,7 +67,7 @@ import           Plutus.V1.Ledger.Credential (Credential (..), StakingCredential
 import           Plutus.V1.Ledger.Crypto     (PubKey (..), PubKeyHash (..), Signature (..), pubKeyHash)
 import           Plutus.V1.Ledger.DCert      (DCert (..))
 import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Slot       (SlotRange)
+import           Plutus.V1.Ledger.Time       (POSIXTimeRange)
 import           Plutus.V1.Ledger.Tx         (TxOut (..), TxOutRef (..))
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value      (CurrencySymbol (..), Value)
@@ -100,13 +100,13 @@ data ScriptPurpose
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
     { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
-    , txInfoInputsFees  :: [TxInInfo]     -- ^ Transaction inputs designated to pay fees
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
-    , txInfoForge       :: Value -- ^ The 'Value' forged by this transaction.
+    -- TODO: rename to txInfoMint, but this requires changes in cardano-ledger-specs
+    , txInfoForge       :: Value -- ^ The 'Value' minted by this transaction.
     , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
     , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
-    , txInfoValidRange  :: SlotRange -- ^ The valid range for the transaction.
+    , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.
     , txInfoSignatories :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
     , txInfoData        :: [(DatumHash, Datum)]
     , txInfoId          :: TxId
@@ -119,7 +119,7 @@ data ScriptContext = ScriptContext{scriptContextTxInfo :: TxInfo, scriptContextP
 -- | Find the input currently being validated.
 findOwnInput :: ScriptContext -> Maybe TxInInfo
 findOwnInput ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scriptContextPurpose=Spending txOutRef} =
-    listToMaybe $ filter (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
+    find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
 findOwnInput _ = Nothing
 
 {-# INLINABLE findDatum #-}
@@ -140,20 +140,19 @@ findDatumHash ds TxInfo{txInfoData} = fst <$> find f txInfoData
 {-# INLINABLE findTxInByTxOutRef #-}
 findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
-    listToMaybe
-    $ filter (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
+    find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
 
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> [Integer]
-findContinuingOutputs ctx | Just (TxInInfo{txInInfoResolved=TxOut{txOutAddress}}) <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
+findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 findContinuingOutputs _ = Builtins.error()
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: ScriptContext -> [TxOut]
-getContinuingOutputs ctx | Just (TxInInfo{txInInfoResolved=TxOut{txOutAddress}}) <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
+getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 getContinuingOutputs _ = Builtins.error()
@@ -183,9 +182,9 @@ them from the correct types in Haskell, and for comparing them (in
 -}
 
 {-# INLINABLE scriptCurrencySymbol #-}
--- | The 'CurrencySymbol' of a 'MonetaryPolicy'
-scriptCurrencySymbol :: MonetaryPolicy -> CurrencySymbol
-scriptCurrencySymbol scrpt = let (MonetaryPolicyHash hsh) = monetaryPolicyHash scrpt in Value.currencySymbol hsh
+-- | The 'CurrencySymbol' of a 'MintingPolicy'
+scriptCurrencySymbol :: MintingPolicy -> CurrencySymbol
+scriptCurrencySymbol scrpt = let (MintingPolicyHash hsh) = mintingPolicyHash scrpt in Value.currencySymbol hsh
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
@@ -202,7 +201,7 @@ pubKeyOutput TxOut{txOutAddress} = toPubKeyHash txOutAddress
 {-# INLINABLE ownHashes #-}
 -- | Get the validator and datum hashes of the output that is curently being validated
 ownHashes :: ScriptContext -> (ValidatorHash, DatumHash)
-ownHashes (findOwnInput -> Just (TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}})) = (s,dh)
+ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}}) = (s,dh)
 ownHashes _                                                        = Builtins.error ()
 
 {-# INLINABLE ownHash #-}
@@ -216,7 +215,7 @@ fromSymbol :: CurrencySymbol -> ValidatorHash
 fromSymbol (CurrencySymbol s) = ValidatorHash s
 
 {-# INLINABLE scriptOutputsAt #-}
--- | Get the list of 'TxOutInfo' outputs of the pending transaction at
+-- | Get the list of 'TxOut' outputs of the pending transaction at
 --   a given script address.
 scriptOutputsAt :: ValidatorHash -> TxInfo -> [(DatumHash, Value)]
 scriptOutputsAt h p =
@@ -253,7 +252,7 @@ adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Signature -> PubKey -> TxInfo -> Bool
-signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) (TxInfo{txInfoId=TxId h}) =
+signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) TxInfo{txInfoId=TxId h} =
     verifySignature pk h sig
 
 {-# INLINABLE valueSpent #-}

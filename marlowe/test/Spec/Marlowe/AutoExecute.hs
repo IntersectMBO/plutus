@@ -44,7 +44,7 @@ import           PlutusTx.Lattice
 import           Ledger                                hiding (Value)
 import qualified Ledger
 import           Ledger.Ada                            (lovelaceValueOf)
-import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import           Ledger.Typed.Scripts                  (validatorScript)
 import qualified PlutusTx.Prelude                      as P
 import           Spec.Marlowe.Common
 import           Test.Tasty
@@ -104,7 +104,7 @@ autoexecZCBTest = checkPredicate "ZCB Auto Execute Contract"
     Trace.waitNSlots 1
 
     -- Now Alice should be able to retry and pay to Bob
-    void $ Trace.waitNSlots 1
+    void $ Trace.waitNSlots 2
 
 
 autoexecZCBTestAliceWalksAway :: TestTree

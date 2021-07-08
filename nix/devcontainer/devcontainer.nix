@@ -1,4 +1,5 @@
-{ name ? "devcontainer"
+{ pkgs
+, name ? "devcontainer"
 , tag ? null
 , extraContents ? [ ]
 , extraCommands ? ""
@@ -34,23 +35,25 @@
 , which
 }:
 let
+  bashrc = ./bashrc;
+  # See: https://github.com/NixOS/docker/issues/7
+  nsswitch-conf = pkgs.writeTextFile {
+    name = "nsswitch.conf";
+    text = "hosts: dns files";
+    destination = "/etc/nsswitch.conf";
+  };
   # I think we should be able to use buildLayeredImage, but for some reason it
   # produces a nonfunctional image
   image = dockerTools.buildImage {
     inherit name tag;
 
     contents = [
-      # See: https://github.com/NixOS/nixpkgs/issues/118722
-      (stdenv.mkDerivation {
-        name = "wrapped";
-        src = ./root;
-        installPhase = "ln -s $src $out";
-      })
       coreutils
       procps
       gnugrep
       gnused
       less
+      nsswitch-conf
 
       # add /bin/sh
       bashInteractive
@@ -98,15 +101,19 @@ let
     runAsRoot = ''
       ${dockerTools.shadowSetup}
       groupadd --gid ${nonRootUserId} ${nonRootUser}
-      useradd --uid ${nonRootUserId} --gid ${nonRootUserId} -m ${nonRootUser}
+      useradd --uid ${nonRootUserId} --gid ${nonRootUserId} ${nonRootUser}
+
+      mkdir -p /home/${nonRootUser}
+      cat ${bashrc} > /home/${nonRootUser}/.bashrc
 
       # Because we map in the `./.cabal` folder from the users home directory,
       # (see: https://github.com/input-output-hk/plutus-starter/blob/main/.devcontainer/devcontainer.json)
       # and because docker won't let us map a volume not as root
       # (see: https://github.com/moby/moby/issues/2259 link), we have to make the
       # folder first and chown it ...
-      mkdir /home/${nonRootUser}/.cabal
-      chown ${nonRootUser}:${nonRootUser} /home/${nonRootUser}/.cabal
+      mkdir -p /home/${nonRootUser}/.cabal/packages
+
+      chown -R ${nonRootUser}:${nonRootUser} /home/${nonRootUser}
     '';
 
     config = {

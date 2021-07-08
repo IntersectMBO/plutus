@@ -7,28 +7,33 @@
 
 module CostModelCreation where
 
-import           PlutusCore.Evaluation.Machine.ExBudgeting
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
 import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Barbies
 import           Control.Applicative
-import           Control.Exception                         (TypeError (..))
+import           Control.Exception                              (TypeError (..))
 import           Control.Monad.Catch
-import qualified Data.ByteString.Hash                      as PlutusHash
-import qualified Data.ByteString.Lazy                      as BSL
+import qualified Data.ByteString.Hash                           as PlutusHash
+import qualified Data.ByteString.Lazy                           as BSL
 import           Data.Coerce
 import           Data.Csv
 import           Data.Default
 import           Data.Either.Extra
 import           Data.Functor.Compose
-import           Data.Text                                 as T
-import qualified Data.Text.Encoding                        as T
+import           Data.Text                                      as T
+import qualified Data.Text.Encoding                             as T
 import           Data.Vector
 import           GHC.Generics
 
 import           Foreign.R
-import           H.Prelude                                 (MonadR, Region, r)
+import           H.Prelude                                      (MonadR, Region, r)
 import           Language.R
+
+-- | Convert milliseconds represented as a float to picoseconds represented as a
+-- CostingInteger.  We round up to be sure we don't underestimate anything.
+msToPs :: Double -> CostingInteger
+msToPs = ceiling . (1e6 *)
 
 {- See Note [Creation of the Cost Model]
 -}
@@ -36,8 +41,8 @@ import           Language.R
 -- TODO some generics magic
 -- Mentioned in CostModel.md. Change here, change there.
 -- The names of the models in R
-costModelNames :: CostModelBase (Const Text)
-costModelNames = CostModel
+builtinCostModelNames :: BuiltinCostModelBase (Const Text)
+builtinCostModelNames = BuiltinCostModelBase
   { paramAddInteger           = "addIntegerModel"
   , paramSubtractInteger      = "subtractIntegerModel"
   , paramMultiplyInteger      = "multiplyIntegerModel"
@@ -63,18 +68,21 @@ costModelNames = CostModel
   }
 
 -- Loads the models from R
-costModelsR :: MonadR m => m (CostModelBase (Const (SomeSEXP (Region m))))
+costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR = do
   list <- [r|
     source("cost-model/data/models.R")
     modelFun("cost-model/data/benching.csv")
   |]
-  -- TODO use btraverse instead
-  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) costModelNames
+  -- Unfortunately we can't use the paths defined in DataFilePaths inside [r|...].
+  -- The above code may not work on Windows because of that, but we only ever
+  -- want to run this on a Linux reference machine anyway.
+  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) builtinCostModelNames
+  -- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files
-createCostModel :: IO CostModel
-createCostModel =
+createBuiltinCostModel :: IO BuiltinCostModel
+createBuiltinCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
     models <- costModelsR
     -- TODO: refactor with barbies
@@ -102,7 +110,7 @@ createCostModel =
     paramGtByteString         <- getParams gtByteString         paramGtByteString
     paramIfThenElse           <- getParams ifThenElse           paramIfThenElse
 
-    pure $ CostModel {..}
+    pure $ BuiltinCostModelBase {..}
 
 -- The output of `tidy(model)` on the R side.
 data LinearModelRaw = LinearModelRaw
@@ -133,7 +141,7 @@ findInRaw s v = maybeToEither ("Couldn't find the term " <> s <> " in " <> show 
   Data.Vector.find (\e -> linearModelRawTerm e == s) v
 
 -- t = ax+c
-unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (Double, Double)
+unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger)
 unsafeReadModelFromR formula rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -141,13 +149,13 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (intercept, slope)
+        pure $ (msToPs intercept, msToPs slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
 
 -- t = ax+by+c
-unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (Double, Double, Double)
+unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger, CostingInteger)
 unsafeReadModelFromR2 formula1 formula2 rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -156,7 +164,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (intercept, slope1, slope2)
+        pure $ (msToPs intercept, msToPs slope1, msToPs slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -182,7 +190,7 @@ readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsaf
 readModelSplitConst :: MonadR m => (SomeSEXP (Region m)) -> m ModelSplitConst
 readModelSplitConst model = (pure . uncurry ModelSplitConst) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, I(x_mem * y_mem), 0)" model
 
-readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m Double
+readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
 readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(Intercept)" model
 
 readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
@@ -282,31 +290,29 @@ takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArg
 takeByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
   -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 2.0
+  let memModel = ModelTwoArgumentsConstantCost 20
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 
 dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 dropByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
   -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 2.0
+  let memModel = ModelTwoArgumentsConstantCost 2
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 
-memoryUsageAsDouble :: ExMemoryUsage a => a -> Double
-memoryUsageAsDouble x =
-    let m = coerce $ memoryUsage x :: Integer
-    in fromIntegral m
+memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
+memoryUsageAsCostingInteger x = coerce $ memoryUsage x
 
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA2 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsDouble $ PlutusHash.sha2 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA3 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsDouble $ PlutusHash.sha3 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)

@@ -1,0 +1,115 @@
+.Rtable {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0.5rem 0 0 0;
+  text-align: center;
+}
+
+.Rtable-cell {
+  box-sizing: border-box;
+  flex-grow: 1;
+  width: 100%;
+  padding: 0 1.2em;
+  overflow: hidden;
+  list-style: none;
+  margin: -0.2em 0;
+  font-weight: bold;
+}
+
+.Rtable-cell.first {
+  border-left: none;
+  text-transform: uppercase;
+  font-size: x-small;
+  color: var(--secondary-color);
+}
+
+.Rtable-cell.header {
+  font-style: italic;
+  padding: 0.25em 1.2em;
+  margin-top: 0.2em;
+  font-weight: normal;
+}
+
+.Rtable-cell.header.first {
+  font-style: normal;
+  font-weight: bold;
+}
+
+.Rtable-cell>h1,
+.Rtable-cell>h2,
+.Rtable-cell>h3,
+.Rtable-cell>h4 {
+  margin: 0;
+}
+
+.RTable-empty-row {
+  text-align: left;
+  font-style: italic;
+  @apply text-gray-darkest;
+}
+
+.RTable-data-row {
+  text-align: left;
+  padding: 0.25em 1.2em;
+  margin-top: 0.2em;
+}
+
+.Rtable-single-column-row {
+  text-align: left;
+}
+
+.Rtable--2cols>.Rtable-cell {
+  width: 50%;
+}
+
+.Rtable--3cols>.Rtable-cell {
+  width: 33.33%;
+}
+
+.Rtable--4cols>.Rtable-cell {
+  width: 25%;
+}
+
+.Rtable--4cols>.RTable-empty-row {
+  width: 75%;
+}
+
+.Rtable--4cols>.RTable-data-row {
+  width: 75%;
+}
+
+.Rtable--4cols>.Rtable-single-column-row {
+  width: 75%;
+}
+
+.Rtable--5cols>.Rtable-cell {
+  width: 20%;
+}
+
+.Rtable--6cols>.Rtable-cell {
+  width: 16.6%;
+}
+
+.Rtable--6cols>.RTable-empty-row {
+  width: 83.3%;
+}
+
+.Rtable--6cols>.RTable-data-row {
+  width: 83.3%;
+}
+
+.Rtable--6cols>.Rtable-single-column-row {
+  width: 83.3%;
+}
+
+.Rtable--6cols>.RTable-2-cells {
+  width: 16.6%;
+}
+
+.Rtable--6cols>.RTable-4-cells {
+  width: 66.6%;
+}
+
+.Rtable--6cols>.RTable-5-cells {
+  width: 83.3%;
+}

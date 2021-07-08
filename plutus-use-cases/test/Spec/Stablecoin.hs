@@ -13,29 +13,30 @@ module Spec.Stablecoin(
 
 import           Control.Lens                (preview)
 import           Control.Monad               (void)
+import           Data.Default                (Default (def))
 import           Data.Maybe                  (listToMaybe, mapMaybe)
+import           Prelude                     hiding (negate)
+
 import           Ledger.Ada                  (adaSymbol, adaToken)
 import qualified Ledger.Ada                  as Ada
 import           Ledger.Address              (Address)
 import           Ledger.Oracle               (Observation, SignedMessage, signObservation)
-import           Ledger.Slot                 (Slot (..))
-import           Ledger.Typed.Scripts        (scriptAddress)
+import qualified Ledger.TimeSlot             as TimeSlot
+import           Ledger.Typed.Scripts        (validatorAddress)
 import           Ledger.Value                (Value)
 import qualified Ledger.Value                as Value
 import           Plutus.Contract.Test
-import           PlutusTx.Numeric            (negate, one, zero)
-import           PlutusTx.Ratio              as Ratio
-
-import           Prelude                     hiding (negate)
-import           Test.Tasty
-
 import           Plutus.Contracts.Stablecoin (BC (..), ConversionRate, Input (..), RC (..), SC (..), SCAction (..),
                                               Stablecoin (..), StablecoinError, StablecoinSchema)
 import qualified Plutus.Contracts.Stablecoin as Stablecoin
 import           Plutus.Trace.Emulator       (ContractHandle, EmulatorTrace)
 import qualified Plutus.Trace.Emulator       as Trace
 import           Plutus.Trace.Emulator.Types (_ContractLog, cilMessage)
+import           PlutusTx.Numeric            (negate, one, zero)
+import           PlutusTx.Ratio              as Ratio
 import           Wallet.Emulator.MultiAgent  (eteEvent)
+
+import           Test.Tasty
 
 user :: Wallet
 user = Wallet 1
@@ -59,10 +60,10 @@ coin = Stablecoin
     }
 
 signConversionRate :: ConversionRate -> SignedMessage (Observation ConversionRate)
-signConversionRate rate = signObservation (Slot 0) rate (walletPrivKey oracle)
+signConversionRate rate = signObservation (TimeSlot.scZeroSlotTime def) rate (walletPrivKey oracle)
 
 stablecoinAddress :: Address
-stablecoinAddress = scriptAddress $ Stablecoin.scriptInstance coin
+stablecoinAddress = validatorAddress $ Stablecoin.typedValidator coin
 
 initialDeposit :: Value
 initialDeposit = Ada.lovelaceValueOf 100

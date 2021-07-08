@@ -167,7 +167,7 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent CompileProgram = Just $ defaultEvent "CompileProgram"
   toEvent (HandleBalancesChartMessage _) = Nothing
   toEvent CheckAuthStatus = Nothing
-  toEvent (GistAction PublishGist) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
+  toEvent (GistAction PublishOrUpdateGist) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
   toEvent (GistAction (SetGistUrl _)) = Nothing
   toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
   toEvent (GistAction (AjaxErrorPaneAction _)) = Nothing

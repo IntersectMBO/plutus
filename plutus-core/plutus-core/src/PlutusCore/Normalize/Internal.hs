@@ -1,5 +1,6 @@
 -- | The internals of the normalizer.
 
+{-# LANGUAGE PolyKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module PlutusCore.Normalize.Internal
@@ -12,6 +13,7 @@ module PlutusCore.Normalize.Internal
     ) where
 
 import           PlutusCore.Core
+import           PlutusCore.MkPlc     (mkTyBuiltinOf)
 import           PlutusCore.Name
 import           PlutusCore.Quote
 import           PlutusCore.Rename
@@ -20,6 +22,7 @@ import           PlutusPrelude
 import           Control.Lens
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Universe
 
 {- Note [Global uniqueness]
 WARNING: everything in this module works under the assumption that the global uniqueness condition
@@ -118,12 +121,53 @@ was previously added to an environment (while handling the function application 
 this value and rename all bound variables in it to preserve the global uniqueness condition. It is
 safe to do so, because picked values cannot contain uninstantiated variables as only normalized types
 are added to environments and normalization instantiates all variables presented in an environment.
+
+See also Note [Normalization of built-in types].
 -}
+
+{- Note [Normalization of built-in types]
+Instantiating a polymorphic built-in type amounts to applying it to some arguments. However,
+the notion of "applying" is ambiguous, it can mean one of these two things:
+
+1. lifting the built-in type to 'Type' and applying that via 'TyApp'
+2. applying the built-in type right inside the universe to get a monomorphized type tag
+   (e.g. the default universe has 'DefaultUniApply' for that purpose)
+
+We need both of these things. The former allows us to assign types to polymorphic built-in functions
+(otherwise applying a built-in type to a type variable would be unrepresentable), the latter is
+used at runtime to juggle type tags so that we can avoid @unsafeCoerce@-ing, bring instances in
+scope via 'bring' etc -- for all of that we have to have fully monomorphized type tags at runtime.
+
+So in order for type checking to work we need to normalize polymorphic built-in types. For that
+we simply turn intra-universe applications into regular type applications during type normalization.
+
+We could go the other way around and "reduce" regular type applications into intra-universe ones,
+however that would be harder to implement, because collapsing a general 'Type' into a 'SomeTypeIn'
+is harder than expanding a 'SomeTypeIn' into a 'Type'. And it would also be impossible to do in the
+general case, 'cause you can't collapse an application of a built-in type to, say, a type variable
+into an intra-universe application as there are no type variables there. I guess we could "reduce"
+application of built-in types in some cases and not reduce them in others and still make the whole
+thing work, but that requires substantially more logic and is also a lot harder to get right.
+Hence we do the opposite, which is straightforward.
+-}
+
+-- See Note [Normalization of built-in types].
+-- | Normalize a built-in type by replacing each application inside the universe with regular
+-- type application.
+normalizeUni :: forall k (a :: k) uni tyname. HasUniApply uni => uni (Esc a) -> Type tyname uni ()
+normalizeUni uni =
+    matchUniApply
+        uni
+        -- If @uni@ is not an intra-universe application, then we're done.
+        (mkTyBuiltinOf () uni)
+        -- If it is, then we turn that application into normal type application and recurse
+        -- into both the function and its argument.
+        (\uniF uniA -> TyApp () (normalizeUni uniF) $ normalizeUni uniA)
 
 -- See Note [Normalization].
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
 normalizeTypeM
-    :: (HasUnique tyname TypeUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Type tyname uni ann -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
 normalizeTypeM (TyForall ann name kind body) =
     TyForall ann name kind <<$>> normalizeTypeM body
@@ -145,9 +189,8 @@ normalizeTypeM var@(TyVar _ name)            = do
         -- A variable is always normalized.
         Nothing -> pure $ Normalized var
         Just ty -> liftDupable ty
-normalizeTypeM builtin@TyBuiltin{}           =
-    -- A built-in type is always normalized.
-    pure $ Normalized builtin
+normalizeTypeM (TyBuiltin ann (SomeTypeIn uni)) =
+    pure . Normalized $ ann <$ normalizeUni uni
 
 {- Note [Normalizing substitution]
 @substituteNormalize[M]@ is only ever used as normalizing substitution that receives two already
@@ -159,7 +202,7 @@ normalized types. However we do not enforce this in the type signature, because
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
 substNormalizeTypeM
-    :: (HasUnique tyname TypeUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Normalized (Type tyname uni ann)                                    -- ^ @ty@
     -> tyname                                                              -- ^ @name@
     -> Type tyname uni ann                                                 -- ^ @body@
@@ -168,7 +211,7 @@ substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesInM
-    :: (HasUnique tyname TypeUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Term tyname name uni fun ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
 normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
     normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)

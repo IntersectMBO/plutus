@@ -32,6 +32,7 @@ library
         Plutus.Contracts.Currency
         Plutus.Contracts.ErrorHandling
         Plutus.Contracts.Escrow
+        Plutus.Contracts.SimpleEscrow
         Plutus.Contracts.Future
         Plutus.Contracts.GameStateMachine
         Plutus.Contracts.Governance
@@ -40,15 +41,19 @@ library
         Plutus.Contracts.PingPong
         Plutus.Contracts.Prism
         Plutus.Contracts.Prism.Credential
-        Plutus.Contracts.Prism.CredentialManager
         Plutus.Contracts.Prism.STO
         Plutus.Contracts.Prism.Mirror
         Plutus.Contracts.Prism.StateMachine
         Plutus.Contracts.Prism.Unlock
         Plutus.Contracts.PubKey
-        Plutus.Contracts.RPC
         Plutus.Contracts.Stablecoin
         Plutus.Contracts.Swap
+        Plutus.Contracts.Uniswap
+        Plutus.Contracts.Uniswap.OnChain
+        Plutus.Contracts.Uniswap.OffChain
+        Plutus.Contracts.Uniswap.Pool
+        Plutus.Contracts.Uniswap.Trace
+        Plutus.Contracts.Uniswap.Types
         Plutus.Contracts.Vesting
     hs-source-dirs: src
     default-language: Haskell2010
@@ -99,6 +104,7 @@ test-suite plutus-use-cases-test
         Spec.Currency
         Spec.ErrorHandling
         Spec.Escrow
+        Spec.SimpleEscrow
         Spec.Future
         Spec.GameStateMachine
         Spec.Governance
@@ -108,8 +114,8 @@ test-suite plutus-use-cases-test
         Spec.PubKey
         Spec.Prism
         Spec.Rollup
-        Spec.RPC
         Spec.Stablecoin
+        Spec.Uniswap
         Spec.TokenAccount
         Spec.Vesting
     default-language: Haskell2010
@@ -164,6 +170,7 @@ executable plutus-use-cases-scripts
         Spec.Currency
         Spec.ErrorHandling
         Spec.Escrow
+        Spec.SimpleEscrow
         Spec.Future
         Spec.GameStateMachine
         Spec.Governance
@@ -173,7 +180,6 @@ executable plutus-use-cases-scripts
         Spec.PubKey
         Spec.Prism
         Spec.Rollup
-        Spec.RPC
         Spec.Stablecoin
         Spec.TokenAccount
         Spec.Vesting
@@ -235,6 +241,7 @@ benchmark plutus-use-cases-bench
         base -any,
         criterion -any,
         cryptonite -any,
+        data-default -any,
         freer-extras -any,
         plutus-core -any,
         lens -any,

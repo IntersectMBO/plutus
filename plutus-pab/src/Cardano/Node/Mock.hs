@@ -22,16 +22,18 @@ import qualified Control.Monad.Freer.Writer        as Eff
 import           Control.Monad.IO.Class            (MonadIO, liftIO)
 import           Data.Foldable                     (traverse_)
 import           Data.Function                     ((&))
-import           Data.Time.Units                   (Second, toMicroseconds)
+import           Data.Time.Units                   (Millisecond, Second, toMicroseconds)
 import           Data.Time.Units.Extra             ()
 import           Servant                           (NoContent (NoContent))
 
 import           Cardano.BM.Data.Trace             (Trace)
+import           Cardano.Chain                     (handleChain, handleControlChain)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
 import qualified Cardano.Protocol.Socket.Client    as Client
 import qualified Cardano.Protocol.Socket.Server    as Server
 import           Ledger                            (Tx)
+import           Ledger.TimeSlot                   (SlotConfig (SlotConfig, scSlotLength), currentSlot)
 import           Ledger.Tx                         (outputs)
 import           Plutus.PAB.Arbitrary              ()
 import qualified Plutus.PAB.Monitoring.Monitoring  as LM
@@ -51,7 +53,7 @@ consumeEventHistory stateVar =
 
 addTx ::
     ( Member (LogMsg MockServerLogMsg) effs
-    , Member (Reader Client.ClientHandler) effs
+    , Member (Reader Client.TxSendHandle) effs
     , MonadIO m
     , LastMember m effs
     )
@@ -65,7 +67,7 @@ addTx tx = do
 -- | Run all chain effects in the IO Monad
 runChainEffects ::
  Trace IO MockServerLogMsg
- -> Client.ClientHandler
+ -> Client.TxSendHandle
  -> MVar AppState
  -> Eff (NodeServerEffects IO) a
  -> IO ([LogMessage MockServerLogMsg], a)
@@ -87,7 +89,7 @@ runChainEffects trace clientHandler stateVar eff = do
 
             runRandomTx = subsume . runGenRandomTx
 
-            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
+            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret handleControlChain
 
             mergeState = interpret (handleZoomedState chainState)
 
@@ -97,7 +99,7 @@ runChainEffects trace clientHandler stateVar eff = do
 
 processChainEffects ::
     Trace IO MockServerLogMsg
-    -> Client.ClientHandler
+    -> Client.TxSendHandle
     -> MVar AppState
     -> Eff (NodeServerEffects IO) a
     -> IO a
@@ -115,7 +117,7 @@ processChainEffects trace clientHandler stateVar eff = do
 transactionGenerator ::
   Trace IO MockServerLogMsg
  -> Second
- -> Client.ClientHandler
+ -> Client.TxSendHandle
  -> MVar AppState
  -> IO ()
 transactionGenerator trace interval clientHandler stateVar =
@@ -136,15 +138,6 @@ slotCoordinator sc@SlotConfig{scSlotLength} serverHandler = do
         void $ Server.processBlock serverHandler
         newSlot <- currentSlot sc
         void $ Server.modifySlot (const newSlot) serverHandler
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds scSlotLength
-
--- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
---   leak)
-blockReaper ::
-    BlockReaperConfig
- -> Server.ServerHandler
- -> IO ()
-blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler =
-    forever $ do
-        Server.trimTo serverHandler brcBlocksToKeep
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval
+        liftIO $ threadDelay
+               $ fromIntegral
+               $ toMicroseconds (fromInteger scSlotLength :: Millisecond)

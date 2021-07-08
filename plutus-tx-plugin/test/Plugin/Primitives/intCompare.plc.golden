@@ -13,22 +13,24 @@
       (strict)
       (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
-        arg
+        x
         (con integer)
         (lam
-          arg
+          y
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin lessThanInteger) arg ] arg ]
+            [
+              [
+                { (builtin ifThenElse) Bool }
+                [ [ (builtin lessThanInteger) x ] y ]
+              ]
+              True
+            ]
+            False
           ]
         )
       )
     )
-    (lam ds (con integer) (lam ds (con integer) [ [ lessThanInteger ds ] ds ]))
+    lessThanInteger
   )
 )

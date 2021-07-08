@@ -11,8 +11,9 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM)
-import Marlowe.Extended (fillTemplate, toCore)
+import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
+import Marlowe.Template (fillTemplate)
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..), emptyState)
 import Marlowe.Semantics as S
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)

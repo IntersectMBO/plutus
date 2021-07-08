@@ -50,7 +50,7 @@ and then apply the left-associative 'foldM' on them,
 which yields the same results as doing a right-associative fold.
 -}
 
-data LetKind = RecTerms | NonRecTerms | Types
+data LetKind = RecTerms | NonRecTerms | Types | DataTypes
 
 -- | Compile the let terms out of a 'Term'. Note: the result does *not* have globally unique names.
 compileLets :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
@@ -104,7 +104,7 @@ compileRecTermBindings RecTerms body bs = do
 compileRecTermBindings _ body bs = lift $ getEnclosing >>= \p -> pure $ Let p Rec bs body
 
 compileRecDataBindings :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a)) -> m (PIRTerm uni fun a)
-compileRecDataBindings Types body bs = do
+compileRecDataBindings DataTypes body bs = do
     binds <- forM bs $ \case
         DatatypeBind _ d -> pure d
         _ -> getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: term or type binding in datatype binding group"
@@ -116,6 +116,6 @@ compileNonRecBinding NonRecTerms body (TermBind x Strict d rhs) = withEnclosing 
    PIR.mkImmediateLamAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
 compileNonRecBinding Types body (TypeBind x d rhs) = withEnclosing (const $ TypeBinding (tyVarDeclNameString d) x) $
    PIR.mkImmediateTyAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
-compileNonRecBinding Types body (DatatypeBind x d) = withEnclosing (const $ TypeBinding (datatypeNameString d) x) $
+compileNonRecBinding DataTypes body (DatatypeBind x d) = withEnclosing (const $ TypeBinding (datatypeNameString d) x) $
    compileDatatype NonRec body d
 compileNonRecBinding _ body b = getEnclosing >>= \p -> pure $ Let p NonRec (pure b) body

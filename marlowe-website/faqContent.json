@@ -1,0 +1,54 @@
+[
+  {
+    "question": "What is Cardano?",
+    "answer": "Cardano is the blockchain platform that is used for building and running Marlowe contracts. It is a third-generation proof-of-stake blockchain that is developed by IOHK - the first to evolve out of a scientific philosophy and a research-first driven approach. Cardano is  fully decentralized and is home to the ada cryptocurrency."
+  },
+  {
+    "question": "What is Marlowe?",
+    "answer": "Marlowe is a new language developed by IOHK for writing and executing financial contracts on blockchain. It is a domain-specific language (DSL) designed for the financial industry. Read our <a href='https://docs.cardano.org/en/latest/marlowe/marlowe-explainer.html'>Marlowe explainer</a> to learn more or jump straight into our <a href='https://play.marlowe-finance.io/doc/marlowe/tutorials/index.html'>Marlowe tutorials</a>."
+  },
+  {
+    "question": "What is a smart contract?",
+    "answer": "A smart contract is a digital agreement that tracks, verifies, and executes the binding transactions of a contract between various parties. <br/><br/> The transactions that are part of the contract are automatically executed when predetermined conditions are met. These contracts are self-executing and reliable and do not require the actions or presence of third parties which means they are both fast and cost effective. Importantly, they cannot be changed, can be easily distributed, and are tamper-proof, as well as being safe due to encryption."
+  },
+  {
+    "question": "What can I do on Marlowe Run?",
+    "answer": "Marlowe Run is a fast and easy way to use and run contracts on Cardano. You will find a selection of financial contract templates so you can pick the right smart contract for you. Once you choose a template, you simply add in roles and terms, and then run your contract. You will be using the prototype version of Marlowe Run. "
+  },
+  {
+    "question": "I don’t see the type of financial contract I want to use in Marlowe Run. What can I do? ",
+    "answer": "You have the option to build your own contract using Marlowe Build. Also, we will be creating more contract templates for users to try out and these will be added to the contract catalogue soon."
+  },
+  {
+    "question": "Can I make changes to my contract once it’s been set up? ",
+    "answer": "You can make changes to your contract at any time before it has started running. You can simply edit the fields for Roles and Terms. Once it has started running, all terms are set, just as they are with a traditional legal contract."
+  },
+  {
+    "question": "Am I using real funds on Marlowe Run?",
+    "answer": "No, when you use Marlowe Run you are using test funds to run and execute your contracts."
+  },
+  {
+    "question": "Is there a limit on how many contracts I can run at once? ",
+    "answer": "Good question. We are not imposing hard user-specific limits on the prototype, but may do so in Version 1.0 of Marlowe Run. Keep in mind that there are limits on how many contracts and transactions our servers can handle simultaneously, but this is not user-specific at this time."
+  },
+  {
+    "question": "Can I open a contract with someone outside of the Cardano blockchain? ",
+    "answer": "As all transactions within these financial agreements occur between Cardano wallet addresses in Version 1.0, all agreements need to be made with someone who has a Cardano wallet. In future versions, we may support agreements on other chains, as technically speaking, Marlowe is blockchain-agnostic."
+  },
+  {
+    "question": "Can I build my own financial smart contracts on Marlowe Run? ",
+    "answer": "At this time, you can set up financial agreements using an array of templates available on Marlowe Market - a smart contract template library. If they want to, you can also build your own financial contracts on the Marlowe Playground. You can then upload these to Marlowe Market and run them on Marlowe Run."
+  },
+  {
+    "question": "What is the difference between Marlowe Run and Marlowe Playground?",
+    "answer": "Marlowe Run is a new product designed for non-developer end users, serving  a broader audience. The Marlowe Playground is for a technical developer audience where contracts can be built on the Playground and subsequently used on Marlowe Run."
+  },
+  {
+    "question": "I’m having issues with a contract on the Marlowe Run prototype, how do I get help?",
+    "answer": "If you experience any issues, you can use the ‘Submit Feedback’ email form on the sign and we will help you. You can also help us to stress test Marlowe further by signing up to our Marlowe Pioneer Program to work with our team. We will be releasing details about this program soon."
+  },
+  {
+    "question": "Can I make changes to my contract once it’s been set up?",
+    "answer": "You can make changes to your contract at any time before it has started running. You can simply edit the fields for Roles and Terms. Once it has started running, all terms are set, just as they are with a traditional legal contract."
+  }
+]

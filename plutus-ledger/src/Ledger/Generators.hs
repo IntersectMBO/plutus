@@ -88,8 +88,8 @@ constantFee = FeeEstimator . const . const . Ada.fromValue $ minFee mempty
 --   plutus-ledger (in particular, 'Ledger.Tx.unspentOutputs') we note the
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
-    mockchainInitialBlock :: Block,
-    mockchainUtxo         :: Map TxOutRef TxOut
+    mockchainInitialTxPool :: [Tx],
+    mockchainUtxo          :: Map TxOutRef TxOut
     } deriving Show
 
 -- | The empty mockchain.
@@ -106,7 +106,7 @@ genMockchain' gm = do
     let (txn, ot) = genInitialTransaction gm
         tid = txId txn
     pure Mockchain {
-        mockchainInitialBlock = [txn],
+        mockchainInitialTxPool = [txn],
         mockchainUtxo = Map.fromList $ first (TxOutRef tid) <$> zip [0..] ot
         }
 
@@ -115,7 +115,7 @@ genMockchain' gm = do
 genMockchain :: MonadGen m => m Mockchain
 genMockchain = genMockchain' generatorModel
 
--- | A transaction with no inputs that forges some value (to be used at the
+-- | A transaction with no inputs that mints some value (to be used at the
 --   beginning of a blockchain).
 genInitialTransaction ::
        GeneratorModel
@@ -126,7 +126,7 @@ genInitialTransaction GeneratorModel{..} =
         t = fold gmInitialBalance
     in (mempty {
         txOutputs = o,
-        txForge = t,
+        txMint = t,
         txValidRange = Interval.from 0
         }, o)
 
@@ -169,16 +169,16 @@ genValidTransactionSpending' :: MonadGen m
     -> Ada
     -> m Tx
 genValidTransactionSpending' g f ins totalVal = do
-    let fee = estimateFee f (fromIntegral $ length ins) 3
+    let fee' = estimateFee f (fromIntegral $ length ins) 3
         numOut = Set.size $ gmPubKeys g
-    if fee < totalVal
+    if fee' < totalVal
         then do
-            let sz = totalVal - fee
+            let sz = totalVal - fee'
             outVals <- fmap Ada.toValue <$> splitVal numOut sz
             let tx = mempty
                         { txInputs = ins
                         , txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g)
-                        , txFee = Ada.toValue fee
+                        , txFee = Ada.toValue fee'
                         }
 
                 -- sign the transaction with all three known wallets
@@ -245,10 +245,10 @@ assertValid tx mc = Hedgehog.assert $ isNothing $ validateMockchain mc tx
 
 -- | Validate a transaction in a mockchain.
 validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
-validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
+validateMockchain (Mockchain txPool _) tx = result where
     h      = 1
-    idx    = Index.initialise [blck]
-    result = fst $ Index.runValidation (Index.validateTransaction h tx) idx
+    idx    = Index.initialise [map Valid txPool]
+    result = fmap snd $ fst $ fst $ Index.runValidation (Index.validateTransaction h tx) idx
 
 {- | Split a value into max. n positive-valued parts such that the sum of the
      parts equals the original value.

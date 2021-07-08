@@ -6,10 +6,10 @@
 
 module Plutus.Benchmark.Clausify where
 
-import           PlutusCore.Builtins
-import           PlutusCore.Universe
-import qualified PlutusTx            as Tx
-import           PlutusTx.Prelude    as TxPrelude hiding (replicate)
+import           PlutusCore.Default
+import qualified PlutusTx           as Tx
+import           PlutusTx.Prelude   as Plutus
+import qualified Prelude            as Haskell
 import           UntypedPlutusCore
 
 type Var = Integer
@@ -23,7 +23,7 @@ data Formula =
   Con Formula Formula |
   Imp Formula Formula |
   Eqv Formula Formula
-      deriving (Show)
+      deriving (Haskell.Show)
 Tx.makeLift ''Formula
 
 -- separate positive and negative literals, eliminating duplicates

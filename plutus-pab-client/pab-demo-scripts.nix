@@ -30,7 +30,6 @@ let
     plutus-currency
     plutus-atomic-swap
     plutus-pay-to-wallet
-    prism-credential-manager
     prism-mirror
     prism-unlock-sto
     prism-unlock-exchange;
@@ -46,7 +45,7 @@ let
     in
     runCommand "pab-setup" { } ''
       echo "Creating PAB database"
-      ${pab} --config=${cfg} migrate
+      ${pab} migrate ${conf.db-file}
       ${sqlite-interactive}/bin/sqlite3 ${conf.db-file} '.tables'
       mkdir $out
       cp ${conf.db-file}* $out/
@@ -105,7 +104,6 @@ let
     ${pab} --config=$CFG_PATH contracts install --path ${plutus-atomic-swap}/bin/plutus-atomic-swap
     ${pab} --config=$CFG_PATH contracts install --path ${plutus-game}/bin/plutus-game
     ${pab} --config=$CFG_PATH contracts install --path ${plutus-pay-to-wallet}/bin/plutus-pay-to-wallet
-    ${pab} --config=$CFG_PATH contracts install --path ${prism-credential-manager}/bin/prism-credential-manager
     ${pab} --config=$CFG_PATH contracts install --path ${prism-mirror}/bin/prism-mirror
     ${pab} --config=$CFG_PATH contracts install --path ${prism-unlock-sto}/bin/prism-unlock-sto
     ${pab} --config=$CFG_PATH contracts install --path ${prism-unlock-exchange}/bin/prism-unlock-exchange
@@ -117,8 +115,9 @@ let
   start-second-pab = runWithContracts (mkSetup secondary-config) "client-services";
 
 in
-runCommand "pab-demo-scripts" { } ''
+# Mysteriously broken on the Hydra mac builders, disable until/unless we figure it out
+lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (runCommand "pab-demo-scripts" { } ''
   mkdir -p $out/bin
   cp ${start-all-servers} $out/bin/pab-start-all-servers
   cp ${start-second-pab} $out/bin/pab-start-second-pab
-''
+'')

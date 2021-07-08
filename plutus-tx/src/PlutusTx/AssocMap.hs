@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -23,11 +24,17 @@ module PlutusTx.AssocMap (
     , fromList
     , toList
     , keys
+    , elems
     , lookup
     , member
     , insert
     , delete
     , union
+    , unionWith
+    , filter
+    , mapWithKey
+    , mapMaybe
+    , mapMaybeWithKey
     , all
     , mapThese
     ) where
@@ -36,16 +43,16 @@ import           Control.DeepSeq  (NFData)
 import           GHC.Generics     (Generic)
 import           PlutusTx.IsData
 import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude hiding (all, lookup, null, toList)
+import           PlutusTx.Prelude hiding (all, filter, mapMaybe, null, toList)
 import qualified PlutusTx.Prelude as P
 import           PlutusTx.These
+import qualified Prelude          as Haskell
 
-{-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
+{-# ANN module ("HLint: ignore Use newtype instead of data"::Haskell.String) #-}
 
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
-    deriving (Show)
-    deriving stock (Generic)
+    deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving newtype (Eq, Ord, IsData, NFData)
 
 instance Functor (Map k) where
@@ -136,7 +143,7 @@ union (Map ls) (Map rs) =
         ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
 
         rs' :: [(k, r)]
-        rs' = filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
+        rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
 
         rs'' :: [(k, These v r)]
         rs'' = P.fmap (\(c, b) -> (c, That b)) rs'
@@ -157,7 +164,7 @@ unionWith merge (Map ls) (Map rs) =
         ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
 
         rs' :: [(k, a)]
-        rs' = filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
+        rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
 
     in Map (ls' ++ rs')
 
@@ -193,5 +200,30 @@ empty = Map ([] :: [(k, v)])
 -- | Is the map empty?
 null :: Map k v -> Bool
 null = P.null . unMap
+
+{-# INLINABLE filter #-}
+-- | Filter all values that satisfy the predicate.
+filter :: (v -> Bool) -> Map k v -> Map k v
+filter f (Map m) = Map $ P.filter (f . snd) m
+
+{-# INLINABLE elems #-}
+-- | Return all elements of the map in the ascending order of their keys.
+elems :: Map k v -> [v]
+elems (Map xs) = P.fmap (\(_ :: k, v) -> v) xs
+
+{-# INLINABLE mapWithKey #-}
+-- | Map a function over all values in the map.
+mapWithKey :: (k -> a -> b) -> Map k a -> Map k b
+mapWithKey f (Map xs) = Map $ fmap (\(k, v) -> (k, f k v)) xs
+
+{-# INLINABLE mapMaybe #-}
+-- | Map keys\/values and collect the 'Just' results.
+mapMaybe :: (a -> Maybe b) -> Map k a -> Map k b
+mapMaybe f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k, ) <$> f v) xs
+
+{-# INLINABLE mapMaybeWithKey #-}
+-- | Map keys\/values and collect the 'Just' results.
+mapMaybeWithKey :: (k -> a -> Maybe b) -> Map k a -> Map k b
+mapMaybeWithKey f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k, ) <$> f k v) xs
 
 makeLift ''Map

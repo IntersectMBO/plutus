@@ -1,18 +1,37 @@
 module Examples.PureScript.ZeroCouponBond
   ( contractTemplate
+  , fullExtendedContract
   , metaData
-  , extendedContract
+  , fixedTimeoutContract
   ) where
 
 import Prelude
+import Data.BigInteger (fromInt)
+import Data.Map as Map
+import Data.Tuple.Nested ((/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
-contractTemplate = { metaData, extendedContract }
+contractTemplate = { metaData, extendedContract: fixedTimeoutContract }
+
+fixedTimeoutContract :: Contract
+fixedTimeoutContract =
+  fillTemplate
+    ( TemplateContent
+        { slotContent:
+            Map.fromFoldable
+              [ "Initial exchange deadline" /\ fromInt 600
+              , "Maturity exchange deadline" /\ fromInt 1500
+              ]
+        , valueContent:
+            Map.empty
+        }
+    )
+    fullExtendedContract
 
 metaData :: MetaData
 metaData = Metadata.zeroCouponBond
@@ -23,8 +42,8 @@ ada = Token "" ""
 discountedPrice :: Value
 discountedPrice = ConstantParam "Discounted price"
 
-notional :: Value
-notional = ConstantParam "Notional"
+notionalPrice :: Value
+notionalPrice = ConstantParam "Notional price"
 
 investor :: Party
 investor = Role "Investor"
@@ -47,8 +66,8 @@ transfer timeout from to amount continuation =
     timeout
     Close
 
-extendedContract :: Contract
-extendedContract =
+fullExtendedContract :: Contract
+fullExtendedContract =
   transfer initialExchange investor issuer discountedPrice
-    $ transfer maturityExchangeTimeout issuer investor notional
+    $ transfer maturityExchangeTimeout issuer investor notionalPrice
         Close

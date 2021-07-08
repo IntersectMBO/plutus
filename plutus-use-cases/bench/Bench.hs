@@ -18,10 +18,12 @@ import           Criterion.Main
 import           Crypto.Hash                   hiding (Context)
 import qualified Data.ByteArray                as BA
 import qualified Data.ByteString               as BS
+import           Data.Default                  (Default (def))
 import           Ledger
 import qualified Ledger.Ada                    as Ada
 import           Ledger.Bytes
 import qualified Ledger.Crypto                 as Crypto
+import qualified Ledger.TimeSlot               as TimeSlot
 import qualified Ledger.Typed.Scripts          as Scripts
 import           Ledger.Value                  (assetClass, currencySymbol)
 import qualified Plutus.Contracts.Future       as FT
@@ -34,14 +36,14 @@ import           Wallet.Emulator.Types         (Wallet (..), walletPubKey)
 
 import qualified PlutusCore                    as PLC
 import qualified PlutusCore.Evaluation.Result  as PLC
-import qualified PlutusTx                      as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Evaluation           (unsafeEvaluateCek)
 import qualified PlutusTx.Prelude              as PlutusTx
 import qualified UntypedPlutusCore             as UPLC
 
 import           Opt
 import qualified Recursion                     as Rec
-import qualified Scott                         as Scott
+import qualified Scott
 
 main :: IO ()
 main = defaultMain [ functions, validators, scriptHashes ]
@@ -219,22 +221,22 @@ multisig :: Benchmark
 multisig = bgroup "multisig" [
         bench "1of1" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
+            , Scripts.validatorScript $ MS.typedValidator msScen1of1
             , unitDatum
             , unitRedeemer),
         bench "1of2" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen1of2
+            , Scripts.validatorScript $ MS.typedValidator msScen1of2
             , unitDatum
             , unitRedeemer),
         bench "2of2" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen2of2
+            , Scripts.validatorScript $ MS.typedValidator msScen2of2
             , unitDatum
             , unitRedeemer),
         bench "typecheck" $ nf runScript'
             (validationData2
-            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
+            , Scripts.validatorScript $ MS.typedValidator msScen1of1
             , unitDatum
             , unitRedeemer)
     ]
@@ -283,11 +285,10 @@ mockCtx = ScriptContext
       , txInfoOutputs = []
       , txInfoFee = PlutusTx.zero
       , txInfoForge = PlutusTx.zero
-      , txInfoValidRange = defaultSlotRange
+      , txInfoValidRange = TimeSlot.slotRangeToPOSIXTimeRange def defaultSlotRange
       , txInfoSignatories = []
       , txInfoId = TxId P.emptyByteString
       , txInfoData = []
-      , txInfoInputsFees = []
       , txInfoDCert = []
       , txInfoWdrl = []
       }
@@ -298,17 +299,17 @@ mockCtx = ScriptContext
 scriptHashes :: Benchmark
 scriptHashes = bgroup "script hashes" [
     let ac = assetClass "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" "my token"
-        si = TA.scriptInstance (TA.Account ac) in
+        si = TA.typedValidator (TA.Account ac) in
     bench "token account" $ nf Scripts.validatorScript si
-    , bench "public key" $ nf (Scripts.validatorScript . PK.scriptInstance) (pubKeyHash $ walletPubKey $ Wallet 2)
-    , bench "future" $ nf (Scripts.validatorScript . FT.scriptInstance theFuture) accounts
+    , bench "public key" $ nf (Scripts.validatorScript . PK.typedValidator) (pubKeyHash $ walletPubKey $ Wallet 2)
+    , bench "future" $ nf (Scripts.validatorScript . FT.typedValidator theFuture) accounts
     ]
 
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,
 --   due at slot #100.
 theFuture :: FT.Future
 theFuture = FT.Future {
-    FT.ftDeliveryDate  = Ledger.Slot 100,
+    FT.ftDeliveryDate  = TimeSlot.slotToBeginPOSIXTime def 100,
     FT.ftUnits         = 187,
     FT.ftUnitPrice     = Ada.lovelaceValueOf 1123,
     FT.ftInitialMargin = Ada.lovelaceValueOf 800,

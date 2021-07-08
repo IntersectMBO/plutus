@@ -1,26 +1,22 @@
 module Marlowe.Extended where
 
 import Prelude
-import Control.Alt ((<|>))
+import Decode.Helpers ((<|>))
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens')
-import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Lens.Record (prop)
-import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Data.Newtype (class Newtype, unwrap)
+import Data.Maybe (Maybe(..), maybe)
+import Data.Newtype (unwrap)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Symbol (SProxy(..))
 import Data.Traversable (foldMap, traverse)
 import Foreign (ForeignError(..), fail)
 import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Index (hasProperty)
 import Marlowe.Semantics (decodeProp)
 import Marlowe.Semantics as S
+import Marlowe.Template (class Fillable, class Template, Placeholders(..), TemplateContent, fillTemplate, getPlaceholderIds)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, pretty)
 
 data ContractType
@@ -96,74 +92,7 @@ instance decodeJsonContractType :: Decode ContractType where
 class ToCore a b where
   toCore :: a -> Maybe b
 
--- TODO: Move to Marlowe.Extended.Template
-newtype Placeholders
-  = Placeholders
-  { slotPlaceholderIds :: Set String
-  , valuePlaceholderIds :: Set String
-  }
-
-derive instance newTypePlaceholders :: Newtype Placeholders _
-
-derive newtype instance semigroupPlaceholders :: Semigroup Placeholders
-
-derive newtype instance monoidPlaceholders :: Monoid Placeholders
-
--- TODO: Move to Marlowe.Extended.Template
-data IntegerTemplateType
-  = SlotContent
-  | ValueContent
-
-newtype TemplateContent
-  = TemplateContent
-  { slotContent :: Map String BigInteger
-  , valueContent :: Map String BigInteger
-  }
-
-_slotContent :: Lens' TemplateContent (Map String BigInteger)
-_slotContent = _Newtype <<< prop (SProxy :: SProxy "slotContent")
-
-_valueContent :: Lens' TemplateContent (Map String BigInteger)
-_valueContent = _Newtype <<< prop (SProxy :: SProxy "valueContent")
-
-typeToLens :: IntegerTemplateType -> Lens' TemplateContent (Map String BigInteger)
-typeToLens SlotContent = _slotContent
-
-typeToLens ValueContent = _valueContent
-
-derive instance newTypeTemplateContent :: Newtype TemplateContent _
-
-derive newtype instance semigroupTemplateContent :: Semigroup TemplateContent
-
-derive newtype instance monoidTemplateContent :: Monoid TemplateContent
-
-initializeWith :: forall a b. Ord a => (a -> b) -> Set a -> Map a b
-initializeWith f = foldMap (\x -> Map.singleton x $ f x)
-
-initializeTemplateContent :: Placeholders -> TemplateContent
-initializeTemplateContent ( Placeholders
-    { slotPlaceholderIds, valuePlaceholderIds }
-) =
-  TemplateContent
-    { slotContent: initializeWith (const one) slotPlaceholderIds
-    , valueContent: initializeWith (const zero) valuePlaceholderIds
-    }
-
-updateTemplateContent :: Placeholders -> TemplateContent -> TemplateContent
-updateTemplateContent ( Placeholders { slotPlaceholderIds, valuePlaceholderIds }
-) (TemplateContent { slotContent, valueContent }) =
-  TemplateContent
-    { slotContent: initializeWith (\x -> fromMaybe one $ Map.lookup x slotContent) slotPlaceholderIds
-    , valueContent: initializeWith (\x -> fromMaybe zero $ Map.lookup x valueContent) valuePlaceholderIds
-    }
-
--- TODO: Move to Marlowe.Extended.Template
-class Template a b where
-  getPlaceholderIds :: a -> b
-
-class Fillable a b where
-  fillTemplate :: b -> a -> a
-
+-- TODO: Should this be in here or in Marlowe.Template?
 class HasChoices a where
   getChoiceNames :: a -> Set String
 
@@ -190,7 +119,9 @@ instance encodeJsonTimeout :: Encode Timeout where
 instance decodeJsonTimeout :: Decode Timeout where
   decode a =
     ( SlotParam <$> decodeProp "slot_param" a
-        <|> (Slot <$> decode a)
+        <|> ( \_ ->
+              Slot <$> decode a
+          )
     )
 
 instance showTimeout :: Show Timeout where
@@ -296,40 +227,54 @@ instance decodeJsonValue :: Decode Value where
         (pure SlotIntervalStart)
         (fail (ForeignError "Not \"slot_interval_start\" string"))
     )
-      <|> ( ifM ((\x -> x == "slot_interval_end") <$> decode a)
-            (pure SlotIntervalEnd)
-            (fail (ForeignError "Not \"slot_interval_end\" string"))
+      <|> ( \_ ->
+            ifM ((\x -> x == "slot_interval_end") <$> decode a)
+              (pure SlotIntervalEnd)
+              (fail (ForeignError "Not \"slot_interval_end\" string"))
         )
-      <|> ( AvailableMoney <$> decodeProp "in_account" a
-            <*> decodeProp "amount_of_token" a
+      <|> ( \_ ->
+            AvailableMoney <$> decodeProp "in_account" a
+              <*> decodeProp "amount_of_token" a
         )
-      <|> (Constant <$> decode a)
-      <|> ( ConstantParam <$> decodeProp "constant_param" a
+      <|> ( \_ ->
+            Constant <$> decode a
         )
-      <|> (NegValue <$> decodeProp "negate" a)
-      <|> ( AddValue <$> decodeProp "add" a
-            <*> decodeProp "and" a
+      <|> ( \_ -> ConstantParam <$> decodeProp "constant_param" a
         )
-      <|> ( SubValue <$> decodeProp "value" a
-            <*> decodeProp "minus" a
+      <|> ( \_ ->
+            NegValue <$> decodeProp "negate" a
         )
-      <|> ( if (hasProperty "divide_by" a) then
-            ( Scale
-                <$> ( S.Rational <$> decodeProp "times" a
-                      <*> decodeProp "divide_by" a
-                  )
-                <*> decodeProp "multiply" a
-            )
-          else
-            ( MulValue <$> decodeProp "multiply" a
-                <*> decodeProp "times" a
-            )
+      <|> ( \_ ->
+            AddValue <$> decodeProp "add" a
+              <*> decodeProp "and" a
         )
-      <|> (ChoiceValue <$> decodeProp "value_of_choice" a)
-      <|> (UseValue <$> decodeProp "use_value" a)
-      <|> ( Cond <$> decodeProp "if" a
-            <*> decodeProp "then" a
-            <*> decodeProp "else" a
+      <|> ( \_ ->
+            SubValue <$> decodeProp "value" a
+              <*> decodeProp "minus" a
+        )
+      <|> ( \_ ->
+            if (hasProperty "divide_by" a) then
+              ( Scale
+                  <$> ( S.Rational <$> decodeProp "times" a
+                        <*> decodeProp "divide_by" a
+                    )
+                  <*> decodeProp "multiply" a
+              )
+            else
+              ( MulValue <$> decodeProp "multiply" a
+                  <*> decodeProp "times" a
+              )
+        )
+      <|> ( \_ ->
+            ChoiceValue <$> decodeProp "value_of_choice" a
+        )
+      <|> ( \_ ->
+            UseValue <$> decodeProp "use_value" a
+        )
+      <|> ( \_ ->
+            Cond <$> decodeProp "if" a
+              <*> decodeProp "then" a
+              <*> decodeProp "else" a
         )
 
 instance showValue :: Show Value where
@@ -478,32 +423,44 @@ instance decodeJsonObservation :: Decode Observation where
         (pure TrueObs)
         (fail (ForeignError "Not a boolean"))
     )
-      <|> ( ifM (not <$> decode a)
-            (pure FalseObs)
-            (fail (ForeignError "Not a boolean"))
+      <|> ( \_ ->
+            ifM (not <$> decode a)
+              (pure FalseObs)
+              (fail (ForeignError "Not a boolean"))
         )
-      <|> ( AndObs <$> decodeProp "both" a
-            <*> decodeProp "and" a
+      <|> ( \_ ->
+            AndObs <$> decodeProp "both" a
+              <*> decodeProp "and" a
         )
-      <|> ( OrObs <$> decodeProp "either" a
-            <*> decodeProp "or" a
+      <|> ( \_ ->
+            OrObs <$> decodeProp "either" a
+              <*> decodeProp "or" a
         )
-      <|> (NotObs <$> decodeProp "not" a)
-      <|> (ChoseSomething <$> decodeProp "chose_something_for" a)
-      <|> ( ValueGE <$> decodeProp "value" a
-            <*> decodeProp "ge_than" a
+      <|> ( \_ ->
+            NotObs <$> decodeProp "not" a
         )
-      <|> ( ValueGT <$> decodeProp "value" a
-            <*> decodeProp "gt" a
+      <|> ( \_ ->
+            ChoseSomething <$> decodeProp "chose_something_for" a
         )
-      <|> ( ValueLT <$> decodeProp "value" a
-            <*> decodeProp "lt" a
+      <|> ( \_ ->
+            ValueGE <$> decodeProp "value" a
+              <*> decodeProp "ge_than" a
         )
-      <|> ( ValueLE <$> decodeProp "value" a
-            <*> decodeProp "le_than" a
+      <|> ( \_ ->
+            ValueGT <$> decodeProp "value" a
+              <*> decodeProp "gt" a
         )
-      <|> ( ValueEQ <$> decodeProp "value" a
-            <*> decodeProp "equal_to" a
+      <|> ( \_ ->
+            ValueLT <$> decodeProp "value" a
+              <*> decodeProp "lt" a
+        )
+      <|> ( \_ ->
+            ValueLE <$> decodeProp "value" a
+              <*> decodeProp "le_than" a
+        )
+      <|> ( \_ ->
+            ValueEQ <$> decodeProp "value" a
+              <*> decodeProp "equal_to" a
         )
 
 instance showObservation :: Show Observation where
@@ -608,10 +565,13 @@ instance decodeJsonAction :: Decode Action where
         <*> decodeProp "of_token" a
         <*> decodeProp "deposits" a
     )
-      <|> ( Choice <$> decodeProp "for_choice" a
-            <*> decodeProp "choose_between" a
+      <|> ( \_ ->
+            Choice <$> decodeProp "for_choice" a
+              <*> decodeProp "choose_between" a
         )
-      <|> (Notify <$> decodeProp "notify_if" a)
+      <|> ( \_ ->
+            Notify <$> decodeProp "notify_if" a
+        )
 
 instance showAction :: Show Action where
   show (Choice cid bounds) = "(Choice " <> show cid <> " " <> show bounds <> ")"
@@ -665,7 +625,9 @@ instance encodeJsonPayee :: Encode Payee where
 instance decodeJsonPayee :: Decode Payee where
   decode a =
     (Account <$> decodeProp "account" a)
-      <|> (Party <$> decodeProp "party" a)
+      <|> ( \_ ->
+            Party <$> decodeProp "party" a
+        )
 
 instance showPayee :: Show Payee where
   show v = genericShow v
@@ -778,31 +740,37 @@ instance encodeJsonContract :: Encode Contract where
 
 instance decodeJsonContract :: Decode Contract where
   decode a =
-    ( ifM ((\x -> x == "close") <$> decode a)
-        (pure Close)
-        (fail (ForeignError "Not \"close\" string"))
+    ( ( ifM ((\x -> x == "close") <$> decode a)
+          (pure Close)
+          (fail (ForeignError "Not \"close\" string"))
+      )
+        <|> ( \_ ->
+              Pay <$> decodeProp "from_account" a
+                <*> decodeProp "to" a
+                <*> decodeProp "token" a
+                <*> decodeProp "pay" a
+                <*> decodeProp "then" a
+          )
+        <|> ( \_ ->
+              If <$> decodeProp "if" a
+                <*> decodeProp "then" a
+                <*> decodeProp "else" a
+          )
+        <|> ( \_ ->
+              When <$> decodeProp "when" a
+                <*> decodeProp "timeout" a
+                <*> decodeProp "timeout_continuation" a
+          )
+        <|> ( \_ ->
+              Let <$> decodeProp "let" a
+                <*> decodeProp "be" a
+                <*> decodeProp "then" a
+          )
+        <|> ( \_ ->
+              Assert <$> decodeProp "assert" a
+                <*> decodeProp "then" a
+          )
     )
-      <|> ( Pay <$> decodeProp "from_account" a
-            <*> decodeProp "to" a
-            <*> decodeProp "token" a
-            <*> decodeProp "pay" a
-            <*> decodeProp "then" a
-        )
-      <|> ( If <$> decodeProp "if" a
-            <*> decodeProp "then" a
-            <*> decodeProp "else" a
-        )
-      <|> ( When <$> decodeProp "when" a
-            <*> decodeProp "timeout" a
-            <*> decodeProp "timeout_continuation" a
-        )
-      <|> ( Let <$> decodeProp "let" a
-            <*> decodeProp "be" a
-            <*> decodeProp "then" a
-        )
-      <|> ( Assert <$> decodeProp "assert" a
-            <*> decodeProp "then" a
-        )
 
 instance showContract :: Show Contract where
   show v = genericShow v

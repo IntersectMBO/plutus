@@ -1,13 +1,11 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MonoLocalBinds   #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE ExplicitNamespaces #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE MonoLocalBinds     #-}
 module Plutus.Contract(
       Contract(..)
     , ContractError(..)
     , AsContractError(..)
-    , HasBlockchainActions
-    , BlockchainActions
     , both
     , selectEither
     , select
@@ -17,65 +15,53 @@ module Plutus.Contract(
     , mapError
     , runError
     -- * Dealing with time
-    , HasAwaitSlot
-    , AwaitSlot
-    , awaitSlot
-    , currentSlot
-    , waitNSlots
-    , until
-    , when
-    , timeout
-    , between
-    , collectUntil
+    , Request.awaitSlot
+    , Request.currentSlot
+    , Request.waitNSlots
+    , Request.awaitTime
+    , Request.currentTime
+    , Request.waitNMilliSeconds
     -- * Endpoints
-    , HasEndpoint
-    , EndpointDescription(..)
-    , Endpoint
-    , endpoint
-    , endpointWithMeta
+    , Request.HasEndpoint
+    , Request.EndpointDescription(..)
+    , Request.Endpoint
+    , Request.endpoint
+    , Request.endpointWithMeta
+    , Schema.EmptySchema
     -- * Blockchain events
-    , HasWatchAddress
-    , WatchAddress
-    , AddressChangeRequest(..)
-    , AddressChangeResponse(..)
-    , addressChangeRequest
-    , nextTransactionsAt
-    , watchAddressUntil
-    , fundsAtAddressGt
-    , fundsAtAddressGeq
+    , Wallet.Types.AddressChangeRequest(..)
+    , Wallet.Types.AddressChangeResponse(..)
+    , Request.addressChangeRequest
+    , Request.nextTransactionsAt
+    , Request.watchAddressUntilSlot
+    , Request.watchAddressUntilTime
+    , Request.fundsAtAddressGt
+    , Request.fundsAtAddressGeq
     -- * UTXO set
-    , HasUtxoAt
-    , UtxoAt
-    , utxoAt
+    , UtxoMap
+    , Request.utxoAt
     -- * Wallet's own public key
-    , HasOwnPubKey
-    , OwnPubKey
-    , ownPubKey
+    , Request.ownPubKey
     -- * Contract instance Id
-    , HasOwnId
-    , ContractInstanceId
-    , ownInstanceId
+    , Wallet.Types.ContractInstanceId
+    , Request.ownInstanceId
     -- * Notifications
-    , notifyInstance
     , tell
     -- * Transactions
-    , HasWriteTx
-    , WriteTx
     , WalletAPIError
-    , submitTx
-    , submitTxConfirmed
-    , submitTxConstraints
-    , submitTxConstraintsSpending
-    , submitTxConstraintsWith
-    , submitUnbalancedTx
+    , Request.submitTx
+    , Request.submitTxConfirmed
+    , Request.submitTxConstraints
+    , Request.submitTxConstraintsSpending
+    , Request.submitTxConstraintsWith
+    , Request.submitUnbalancedTx
     -- ** Creating transactions
     , module Tx
     -- ** Tx confirmation
-    , HasTxConfirmation
-    , TxConfirmation
-    , awaitTxConfirmed
+    , Request.awaitTxConfirmed
     -- * Checkpoints
     , checkpoint
+    , checkpointLoop
     , AsCheckpointError(..)
     , CheckpointError(..)
     -- * Logging
@@ -90,54 +76,23 @@ module Plutus.Contract(
     , type Empty
     ) where
 
-import           Data.Aeson                               (ToJSON (toJSON))
-import           Data.Row                                 hiding (type (.\/))
+import           Data.Aeson                     (ToJSON (toJSON))
+import           Data.Row
 
-import           Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
-import           Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
-import           Plutus.Contract.Effects.ExposeEndpoint
-import           Plutus.Contract.Effects.Instance
-import           Plutus.Contract.Effects.Notify
-import           Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
-import           Plutus.Contract.Effects.UtxoAt           as UtxoAt
-import           Plutus.Contract.Effects.WatchAddress     as WatchAddress
-import           Plutus.Contract.Effects.WriteTx
+import           Plutus.Contract.Request        (ContractRow)
+import qualified Plutus.Contract.Request        as Request
+import qualified Plutus.Contract.Schema         as Schema
+import           Plutus.Contract.Typed.Tx       as Tx
+import           Plutus.Contract.Types          (AsCheckpointError (..), AsContractError (..), CheckpointError (..),
+                                                 Contract (..), ContractError (..), checkpoint, checkpointLoop,
+                                                 handleError, mapError, runError, select, selectEither, throwError)
 
-import           Data.Row.Extras                          (type (.\/))
-import           Plutus.Contract.Request                  (ContractRow)
-import           Plutus.Contract.Typed.Tx                 as Tx
-import           Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
-                                                           CheckpointError (..), Contract (..), ContractError (..),
-                                                           checkpoint, handleError, mapError, runError, select,
-                                                           selectEither, throwError)
-
-import qualified Control.Monad.Freer.Extras.Log           as L
-import qualified Control.Monad.Freer.Writer               as W
-import           Prelude                                  hiding (until)
-import           Wallet.API                               (WalletAPIError)
-
--- | Schema for contracts that can interact with the blockchain (via a node
---   client & signing process)
-type BlockchainActions =
-  AwaitSlot
-  .\/ WatchAddress
-  .\/ WriteTx
-  .\/ UtxoAt
-  .\/ OwnPubKey
-  .\/ TxConfirmation
-  .\/ ContractInstanceNotify
-  .\/ OwnId
-
-type HasBlockchainActions s =
-  ( HasAwaitSlot s
-  , HasWatchAddress s
-  , HasWriteTx s
-  , HasUtxoAt s
-  , HasOwnPubKey s
-  , HasTxConfirmation s
-  , HasContractNotify s
-  , HasOwnId s
-  )
+import qualified Control.Monad.Freer.Extras.Log as L
+import qualified Control.Monad.Freer.Writer     as W
+import           Ledger.AddressMap              (UtxoMap)
+import           Prelude
+import           Wallet.API                     (WalletAPIError)
+import qualified Wallet.Types
 
 -- | Execute both contracts in any order
 both :: Contract w s e a -> Contract w s e b -> Contract w s e (a, b)
@@ -164,4 +119,3 @@ logError = Contract . L.logError . toJSON
 -- | Update the contract's accumulating state @w@
 tell :: w -> Contract w s e ()
 tell = Contract . W.tell
-

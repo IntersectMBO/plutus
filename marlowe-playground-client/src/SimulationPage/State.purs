@@ -1,32 +1,30 @@
 module SimulationPage.State
   ( handleAction
-  , editorResize
-  , editorSetTheme
   , editorGetValue
   , getCurrentContract
+  , mkState
   ) where
 
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
-import BottomPanel.Types (Action(..), State) as BottomPanel
+import BottomPanel.Types (Action(..), State, initialState) as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
-import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
-import Data.Array (snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
 import Data.Either (Either(..), hush)
-import Data.Lens (_Just, assign, modifying, over, set, to, use)
+import Data.Foldable (for_)
+import Data.Lens (_Just, assign, modifying, use)
 import Data.Lens.Extra (peruse)
-import Data.Lens.NonEmptyList (_Head)
-import Data.List.NonEmpty (last, singleton)
+import Data.List.NonEmpty (last)
+import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Data.NonEmptyList.Extra (extendWith, tailIfNotEmpty)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
 import Data.String (splitAt)
 import Data.Tuple (Tuple(..))
@@ -37,26 +35,27 @@ import Effect.Console (log)
 import Env (Env)
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
-import Halogen (HalogenM, get, query)
+import Halogen (HalogenM, get, query, tell)
 import Halogen.Extra (mapSubmodule)
-import Halogen.Monaco (Query(..)) as Monaco
+import Halogen.Monaco (Message(..), Query(..)) as Monaco
+import Help (HelpContext(..))
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe as Server
-import Marlowe.Extended (fillTemplate, toCore, typeToLens)
-import Marlowe.Extended as EM
-import Marlowe.Holes (fromTerm)
+import Marlowe.Holes (Location(..), getLocation)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), inBounds)
-import Marlowe.Semantics as S
+import Marlowe.Template (fillTemplate, typeToLens)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import SessionStorage as SessionStorage
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentMarloweState, _executionState, _extendedContract, _helpContext, _initialSlot, _marloweState, _moveToAction, _possibleActions, _showRightPanel, _templateContent, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
-import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateMarloweState, updatePossibleActions, updateStateP)
+import SimulationPage.Lenses (_bottomPanelState, _decorationIds, _helpContext, _showRightPanel)
+import SimulationPage.Types (Action(..), BottomPanelView(..), State)
+import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _currentContract, _currentMarloweState, _executionState, _initialSlot, _marloweState, _moveToAction, _possibleActions, _templateContent, _termContract)
+import Simulator.State (applyInput, emptyMarloweState, inFuture, moveToSlot, startSimulation, updateChoice)
+import Simulator.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..))
 import StaticData (simulatorBufferLocalStorageKey)
-import Text.Pretty (genericPretty)
 import Types (WebData)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
@@ -65,6 +64,15 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
+
+mkState :: State
+mkState =
+  { showRightPanel: true
+  , marloweState: NEL.singleton (emptyMarloweState Nothing)
+  , helpContext: MarloweHelp
+  , bottomPanelState: BottomPanel.initialState CurrentStateView
+  , decorationIds: []
+  }
 
 toBottomPanel ::
   forall m a.
@@ -79,10 +87,12 @@ handleAction ::
   MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction Init = do
-  editorSetTheme
+handleAction (HandleEditorMessage Monaco.EditorReady) = do
   contents <- fromMaybe "" <$> (liftEffect $ SessionStorage.getItem simulatorBufferLocalStorageKey)
   handleAction $ LoadContract contents
+  editorSetTheme
+
+handleAction (HandleEditorMessage (Monaco.TextChanged _)) = pure unit
 
 handleAction (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
@@ -94,23 +104,24 @@ handleAction (SetIntegerTemplateParam templateType key value) = do
 
 handleAction StartSimulation =
   void
+    {- The marloweState is a non empty list of an object that includes the ExecutionState (SimulationRunning | SimulationNotStarted)
+       Inside the SimulationNotStarted we can find the information needed to start the simulation. By running
+       this code inside of a maybeT, we make sure that the Head of the list has the state SimulationNotStarted -}
+    
     $ runMaybeT do
         initialSlot <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
-        extendedContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _extendedContract <<< _Just)
+        termContract <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _termContract <<< _Just)
         templateContent <- MaybeT $ peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _templateContent)
-        contract <- hoistMaybe $ toCore $ fillTemplate templateContent (extendedContract :: EM.Contract)
-        modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _executionState (emptyExecutionStateWithSlot initialSlot (contract :: S.Contract)))))
-        lift $ updateContractInEditor
+        let
+          contract = fillTemplate templateContent termContract
+        startSimulation initialSlot contract
+        lift $ updateOracleAndContractEditor
 
 handleAction (MoveSlot slot) = do
   inTheFuture <- inFuture <$> get <*> pure slot
-  significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
   when inTheFuture do
-    if slot >= (fromMaybe zero significantSlot) then
-      moveToSignificantSlot slot
-    else
-      moveToSlot slot
-    updateContractInEditor
+    moveToSlot slot
+    updateOracleAndContractEditor
 
 handleAction (SetSlot slot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
@@ -118,43 +129,34 @@ handleAction (SetSlot slot) = do
 
 handleAction (AddInput input bounds) = do
   when validInput do
-    applyInput ((flip snoc) input)
-    updateContractInEditor
+    applyInput input
+    updateOracleAndContractEditor
   where
   validInput = case input of
     (IChoice _ chosenNum) -> inBounds chosenNum bounds
     _ -> true
 
-handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (updateChoice choiceId)))
-  where
-  updateChoice :: ChoiceId -> ActionInput -> ActionInput
-  updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
-    | wantedChoiceId == currentChoiceId = ChoiceInput choiceId bounds chosenNum
-
-  updateChoice _ input = input
+handleAction (SetChoice choiceId chosenNum) = updateChoice choiceId chosenNum
 
 handleAction ResetSimulator = do
-  modifying _marloweState (singleton <<< last)
-  updateContractInEditor
+  modifying _marloweState (NEL.singleton <<< last)
+  updateOracleAndContractEditor
 
 handleAction Undo = do
   modifying _marloweState tailIfNotEmpty
-  updateContractInEditor
+  updateOracleAndContractEditor
 
 handleAction (LoadContract contents) = do
   liftEffect $ SessionStorage.setItem simulatorBufferLocalStorageKey contents
   let
-    mExtendedContract = do
-      termContract <- hush $ parseContract contents
-      fromTerm termContract :: Maybe EM.Contract
-  assign _marloweState $ singleton $ emptyMarloweState mExtendedContract
-  updateContractInEditor
+    mTermContract = hush $ parseContract contents
+  assign _marloweState $ NEL.singleton $ emptyMarloweState mTermContract
+  editorSetValue contents
 
 handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction (ChangeHelpContext help) = do
   assign _helpContext help
@@ -271,25 +273,30 @@ scrollHelpPanel =
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorSetTheme = void $ query _simulatorEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
 
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _simulatorEditorSlot unit (Monaco.Resize unit)
-
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _simulatorEditorSlot unit (Monaco.SetText contents unit)
 
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue = query _simulatorEditorSlot unit (Monaco.GetText identity)
 
-updateContractInEditor ::
+updateOracleAndContractEditor ::
   forall m.
   MonadAff m =>
   MonadAsk Env m =>
   HalogenM State Action ChildSlots Void m Unit
-updateContractInEditor = do
-  executionState <- use (_currentMarloweState <<< _executionState)
-  editorSetValue
-    ( case executionState of
-        SimulationRunning runningState -> show $ genericPretty runningState.contract
-        SimulationNotStarted notStartedState -> maybe "No contract" (show <<< genericPretty) notStartedState.extendedContract -- This "No contract" should never happen if we get valid contracts from editors
-    )
+updateOracleAndContractEditor = do
+  mContract <- peruse _currentContract
+  -- Update the decorations around the current part of the running contract
+  oldDecorationIds <- use _decorationIds
+  case getLocation <$> mContract of
+    Just (Range r) -> do
+      let
+        decorationOptions = { isWholeLine: false, className: "monaco-simulation-text-decoration", linesDecorationsClassName: "monaco-simulation-line-decoration" }
+      mNewDecorationIds <- query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations oldDecorationIds [ { range: r, options: decorationOptions } ] identity
+      for_ mNewDecorationIds (assign _decorationIds)
+      void $ query _simulatorEditorSlot unit $ tell $ Monaco.RevealRange r
+    _ -> do
+      void $ query _simulatorEditorSlot unit $ Monaco.SetDeltaDecorations oldDecorationIds [] identity
+      assign _decorationIds []
+      void $ query _simulatorEditorSlot unit $ tell $ Monaco.SetPosition { column: 1, lineNumber: 1 }
   setOraclePrice

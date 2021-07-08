@@ -10,16 +10,18 @@ module PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
-import           PlutusCore.Builtins
+import           PlutusCore.Default
 import           PlutusCore.FsTree
-import           PlutusCore.Universe
 
 import           PlutusCore.StdLib.Data.Bool
 import           PlutusCore.StdLib.Data.ChurchNat
+import           PlutusCore.StdLib.Data.Data
 import           PlutusCore.StdLib.Data.Function   as Function
 import           PlutusCore.StdLib.Data.Integer
-import           PlutusCore.StdLib.Data.List       as List
+import           PlutusCore.StdLib.Data.List       as Builtin
 import           PlutusCore.StdLib.Data.Nat        as Nat
+import           PlutusCore.StdLib.Data.Pair       as Builtin
+import           PlutusCore.StdLib.Data.ScottList  as Scott
 import           PlutusCore.StdLib.Data.Sum        as Sum
 import           PlutusCore.StdLib.Data.Unit
 import           PlutusCore.StdLib.Meta.Data.Tuple
@@ -54,19 +56,34 @@ stdLib =
                   [ plcTypeFile "integer"     integer
                   , plcTermFile "SuccInteger" succInteger
                   ]
+              , treeFolderContents "Pair"
+                  [ plcTypeFile "Pair"    pair
+                  , plcTermFile "Fst"     Builtin.fstPair
+                  , plcTermFile "Snd"     Builtin.sndPair
+                  , plcTermFile "Uncurry" Builtin.uncurry
+                  ]
               , treeFolderContents "List"
-                  [ plcTypeFile "List"       $ _recursiveType listData
+                  [ plcTypeFile "List"      list
+                  , plcTermFile "CaseList"  Builtin.caseList
+                  , plcTermFile "FoldrList" Builtin.foldrList
+                  ]
+              , treeFolderContents "Data"
+                  [ plcTypeFile "Data"     dataTy
+                  , plcTermFile "caseData" caseData
+                  ]
+              , treeFolderContents "ScottList"
+                  [ plcTypeFile "List"       listTy
                   , plcTermFile "Nil"        nil
                   , plcTermFile "Cons"       cons
-                  , plcTermFile "FoldrList"  foldrList
-                  , plcTermFile "FoldList"   foldList
-                  , plcTermFile "Reverse"    List.reverse
-                  , plcTermFile "EnumFromTo" List.enumFromTo
-                  , plcTermFile "Sum"        List.sum
-                  , plcTermFile "Product"    List.product
+                  , plcTermFile "FoldrList"  Scott.foldrList
+                  , plcTermFile "FoldList"   Scott.foldList
+                  , plcTermFile "Reverse"    Scott.reverse
+                  , plcTermFile "EnumFromTo" Scott.enumFromTo
+                  , plcTermFile "Sum"        Scott.sum
+                  , plcTermFile "Product"    Scott.product
                   ]
               , treeFolderContents "Nat"
-                  [ plcTypeFile "Nat"          $ _recursiveType natData
+                  [ plcTypeFile "Nat"          natTy
                   , plcTermFile "Zero"         zero
                   , plcTermFile "Succ"         Nat.succ
                   , plcTermFile "FoldrNat"     foldrNat

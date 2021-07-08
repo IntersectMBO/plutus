@@ -7,18 +7,18 @@
 { stdenv
 , lib
 , haskell-nix
-, fetchFromGitHub
-, fetchFromGitLab
+, sources
 , index-state
 , compiler-nix-name
 , checkMaterialization
 , buildPackages
+, writeShellScript
 }:
-{
-  Agda = haskell-nix.hackage-package {
+let
+  agdaProject = haskell-nix.hackage-project {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "04b1q8wbh3v92nazfsjzr4qwp9rsv8c2zi51r44djfnp1k1hl3pk";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./agda.sha);
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
@@ -51,51 +51,66 @@
     }];
     configureArgs = "--constraint 'haskeline == 0.8.0.0'";
   };
-  cabal-install = haskell-nix.hackage-package {
+  cabalInstallProject = haskell-nix.hackage-project {
     name = "cabal-install";
     version = "3.4.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1cr9d1wfsd9a8i45c59h4gfddh48m1s6b4aiqz1c9j7fk0v9j3ax";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cabal-install.sha);
   };
-  stylish-haskell = haskell-nix.hackage-package {
+  cardanoRepoToolProject = haskell-nix.cabalProject' {
+    src = sources.cardano-repo-tool;
+    inherit compiler-nix-name index-state checkMaterialization;
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cardano-repo-tool.sha);
+    sha256map = {
+      "https://github.com/input-output-hk/nix-archive"."7dcf21b2af54d0ab267f127b6bd8fa0b31cfa49d" = "0mhw896nfqbd2iwibzymydjlb3yivi9gm0v2g1nrjfdll4f7d8ly";
+    };
+  };
+  stylishHaskellProject = haskell-nix.hackage-project {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0x5kfash33jgjh8vj1q5dqj2p8m5gxhgfj8k7n0wnj2l5djbhwci";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./stylish-haskell.sha);
   };
-  hlint = haskell-nix.hackage-package {
+  hlintProject = haskell-nix.hackage-project {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0ld6bl9rcan7cp99zdyjggrhyqb43qcn35csb4kc2hksy4yg7c5f";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./hlint.sha);
     modules = [{ reinstallableLibGhc = false; }];
   };
-}
-  //
-  # We need to lift this let-binding out far enough, otherwise it can get evaluated several times!
-(
-  let project = haskell-nix.cabalProject' {
-    src = fetchFromGitHub {
-      owner = "haskell";
-      repo = "haskell-language-server";
-      rev = "1.1.0";
-      sha256 = "0kviq3kinm3i0qm4r26rdnlkwbs1s3r1rqiqdry517rgkgnjpcp5";
-    };
+  # See https://github.com/input-output-hk/nix-tools/issues/97
+  hlsShaFile = if stdenv.isLinux then ./hls-linux.sha else ./hls-darwin.sha;
+  hlsProject = haskell-nix.cabalProject' {
+    src = sources.haskell-language-server;
     inherit compiler-nix-name index-state checkMaterialization;
-    # Invalidate and update if you change the version
-    plan-sha256 =
-      # See https://github.com/input-output-hk/nix-tools/issues/97
-      if stdenv.isLinux
-      then "09k840g7gg97dwjlif7hlpbx7sapmzdvixwj9hbcvkxiv57sizp3"
-      else "0mgxp1ja7rjh3qnf5ph4a4phncsd3yh04cxmdsg8baczx7jndfaf";
+    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
       # Workaround for https://github.com/haskell/haskell-language-server/issues/1160
       packages.haskell-language-server.patches = lib.mkIf stdenv.isDarwin [ ../../patches/haskell-language-server-dynamic.patch ];
+      # See https://github.com/haskell/haskell-language-server/pull/1382#issuecomment-780472005
+      packages.ghcide.flags.ghc-patched-unboxed-bytecode = true;
     }];
   };
-  in { inherit (project.hsPkgs) haskell-language-server hie-bios implicit-hie; }
-)
+
+  updateShaFile = project: shaFile: writeShellScript "updateShaFile" ''
+    ${project.plan-nix.passthru.calculateMaterializedSha} > ${toString shaFile}
+  '';
+  updateAllShaFiles = writeShellScript "updateShaFiles" ''
+    ${updateShaFile cabalInstallProject ./cabal-install.sha}
+    ${updateShaFile agdaProject ./agda.sha}
+    ${updateShaFile stylishHaskellProject ./stylish-haskell.sha}
+    ${updateShaFile hlintProject ./hlint.sha}
+    ${updateShaFile hlsProject hlsShaFile}
+    ${updateShaFile cardanoRepoToolProject ./cardano-repo-tool.sha}
+  '';
+in
+{
+  inherit (agdaProject.hsPkgs) Agda;
+  inherit (hlsProject.hsPkgs) haskell-language-server hie-bios implicit-hie;
+  inherit (cabalInstallProject.hsPkgs) cabal-install;
+  inherit (stylishHaskellProject.hsPkgs) stylish-haskell;
+  inherit (hlintProject.hsPkgs) hlint;
+  inherit (cardanoRepoToolProject.hsPkgs) cardano-repo-tool;
+  inherit updateAllShaFiles;
+}

@@ -3,7 +3,7 @@ module Marlowe.Blockly where
 import Prelude
 import Blockly.Dom as BDom
 import Blockly.Generator (Connection, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getInputWithName, inputList, inputName, inputType, nextConnection, previousConnection, setFieldText)
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), defaultBlockDefinition, getBlockById, initializeWorkspace, render, typedArguments)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), Pair(..), clearUndoStack, defaultBlockDefinition, getBlockById, initializeWorkspace, isWorkspaceEmpty, render, typedArguments)
 import Blockly.Toolbox (Category, Toolbox(..), category, leaf, rename, separator)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Monad.Error.Class (catchError)
@@ -397,12 +397,13 @@ toDefinition BoundsType =
         { type: show BoundsType
         , message0: "between %1 and %2"
         , args0:
-            [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-            , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Nothing }
+            [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
+            , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Just 1.0 }
             ]
         , colour: blockColour BoundsType
         , previousStatement: Just (show BoundsType)
         , nextStatement: Just (show BoundsType)
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -503,11 +504,12 @@ toDefinition blockType@(PartyType PKPartyType) =
         { type: show PKPartyType
         , message0: "Public Key %1"
         , args0:
-            [ Input { name: "pubkey", text: "pubkey", spellcheck: false }
+            [ Input { name: "pubkey", text: "0000000000000000000000000000000000000000000000000000000000000000", spellcheck: false }
             ]
         , colour: blockColour blockType
         , output: Just "party"
         , inputsInline: Just true
+        , extensions: [ "hash_validator" ]
         }
         defaultBlockDefinition
 
@@ -537,6 +539,7 @@ toDefinition blockType@(TokenType CustomTokenType) =
         , colour: blockColour blockType
         , output: Just "token"
         , inputsInline: Just true
+        , extensions: [ "hash_validator" ]
         }
         defaultBlockDefinition
 
@@ -841,11 +844,12 @@ toDefinition blockType@(ValueType ConstantValueType) =
         { type: show ConstantValueType
         , message0: "Constant %1"
         , args0:
-            [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+            [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
             ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -944,13 +948,14 @@ toDefinition blockType@(ValueType ScaleValueType) =
         { type: show ScaleValueType
         , message0: "(%1 / %2) * %3"
         , args0:
-            [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-            , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+            [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Just 1.0 }
+            , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Just 1.0 }
             , Value { name: "value", check: "value", align: Right }
             ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
+        , extensions: [ "number_validator" ]
         }
         defaultBlockDefinition
 
@@ -1436,6 +1441,7 @@ instance blockToTermBound :: BlockToTerm Bound where
 ---------------------------------------------------------------------------------------------------
 buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
 buildBlocks newBlock bs contract = do
+  workspaceWasEmpty <- isWorkspaceEmpty bs.workspace
   clearWorkspace bs.workspace
   initializeWorkspace bs.blockly bs.workspace
   -- Get or create rootBlock
@@ -1450,6 +1456,8 @@ buildBlocks newBlock bs contract = do
   for_ mInput \input -> do
     toBlockly newBlock bs.workspace input contract
     render bs.workspace
+  -- We clear the UNDO stack so that we can't delete the base contract with that action.
+  clearUndoStack bs.workspace
 
 setField :: Block -> String -> String -> Effect Unit
 setField block name value = do

@@ -55,13 +55,15 @@ handleNodeClientClient ::
     forall m effs.
     ( LastMember m effs
     , MonadIO m
-    , Member (Reader Client.ClientHandler) effs
+    , Member (Reader Client.TxSendHandle) effs
+    , Member (Reader Client.ChainSyncHandle) effs
     )
     => NodeClientEffect
     ~> Eff effs
 handleNodeClientClient e = do
-    clientHandler <- ask @Client.ClientHandler
+    txSendHandle <- ask @Client.TxSendHandle
+    chainSyncHandle <- ask @Client.ChainSyncHandle
     case e of
         PublishTx tx  ->
-            liftIO $ Client.queueTx clientHandler tx
-        GetClientSlot -> liftIO $ Client.getCurrentSlot clientHandler
+            liftIO $ Client.queueTx txSendHandle tx
+        GetClientSlot -> liftIO $ Client.getCurrentSlot chainSyncHandle

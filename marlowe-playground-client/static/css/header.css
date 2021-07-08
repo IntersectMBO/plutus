@@ -1,0 +1,78 @@
+.project-title {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  h1 {
+    max-width: 200px;
+    white-space: nowrap;
+  }
+}
+
+.project-title .unsave-change-indicator {
+  @apply text-gray-darkest;
+  margin-left: var(--very-small-margin);
+}
+
+/* Spinner icon when saving */
+.project-title i {
+  height: 1em;
+  width: 1em;
+  margin-left: 1rem;
+}
+
+/* Placeholder for the spinner icon */
+.project-title .empty {
+  height: 1em;
+  width: 1em;
+  margin-left: 1rem;
+}
+
+.menu-bar {
+  display: flex;
+
+  a {
+    padding-left: var(--medium-margin);
+    font-weight: bold;
+    color: var(--text-color-light);
+
+    :hover {
+      color: var(--text-color);
+    }
+  }
+
+  .short-text {
+    display: none;
+  }
+}
+
+.global-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--small-margin);
+  padding-bottom: var(--small-margin);
+  padding-right: var(--medium-margin);
+  background-color: var(--bg-light);
+  border-bottom: rgba(0,0,0,0.1) solid 1px
+}
+
+.global-actions h2 {
+  margin: 0 1rem;
+}
+
+.global-actions button {
+  height: 2em;
+  padding: 0.4em 0em;
+  min-width: 8em;
+}
+
+.global-actions .group {
+  display: flex;
+  align-items: center;
+}
+
+.global-actions .group button {
+  margin-left: 1em;
+  padding: 0rem 1rem;
+}

@@ -2,9 +2,6 @@
   # 'supportedSystems' restricts the set of systems that we will evaluate for. Useful when you're evaluting
   # on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
-  # This will be used by the packages that get the git revision in lieu of actually trying to find it,
-  # which doesn't work in all situations. Set to null to get it from git.
-, rev ? "fake"
 }:
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
@@ -52,19 +49,17 @@ let
       # given a system ("x86_64-linux") return an attrset of derivations to build
       select = _: system:
         let
-          packages = import ./default.nix { inherit system rev; checkMaterialization = true; };
+          packages = import ./default.nix { inherit system; checkMaterialization = true; };
           pkgs = packages.pkgs;
           plutus = packages.plutus;
           isBuildable = platformFilterGeneric pkgs system;
         in
         filterAttrsOnlyRecursive (_: drv: isBuildable drv) {
           # build relevant top level attributes from default.nix
-          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard plutus-pab deployment;
+          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab deployment;
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
           # cache for users
           inherit (plutus.haskell.project) roots;
-          # Should be in roots, see https://github.com/input-output-hk/haskell.nix/issues/967
-          inherit (pkgs.haskell-nix) internal-nix-tools internal-cabal-install;
 
           # Build the shell expression to be sure it works on all platforms
           #

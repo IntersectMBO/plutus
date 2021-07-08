@@ -1,11 +1,10 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 -- | Defines a number of types that are used in Wallet.XXX modules
 module Wallet.Types(
     ContractInstanceId(..)
@@ -17,6 +16,8 @@ module Wallet.Types(
     , Payment(..)
     , emptyPayment
     , AddressChangeRequest(..)
+    , targetSlot
+    , slotRange
     , AddressChangeResponse(..)
     -- * Error types
     , MatchingError(..)
@@ -47,7 +48,8 @@ import qualified Data.UUID.V4                     as UUID
 import           GHC.Generics                     (Generic)
 import qualified Language.Haskell.TH.Syntax       as TH
 
-import           Ledger                           (Address, Slot, Tx, TxIn, TxOut, txId)
+import           Ledger                           (Address, OnChainTx, Slot, SlotRange, TxIn, TxOut, eitherTx, interval,
+                                                   txId)
 import           Ledger.Constraints.OffChain      (MkTxError)
 import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
 import           Wallet.Emulator.Error            (WalletAPIError)
@@ -191,37 +193,47 @@ emptyPayment :: Payment
 emptyPayment = Payment { paymentInputs = Set.empty, paymentChangeOutput = Nothing }
 
 -- | Information about transactions that spend or produce an output at
---   an address in a slot.
+--   an address in a slot range.
 data AddressChangeResponse =
     AddressChangeResponse
-        { acrAddress :: Address -- ^ The address
-        , acrSlot    :: Slot -- ^ The slot
-        , acrTxns    :: [Tx] -- ^ Transactions that were validated in the slot and spent or produced at least one output at the address.
+        { acrAddress   :: Address -- ^ The address
+        , acrSlotRange :: SlotRange -- ^ The slot range
+        , acrTxns      :: [OnChainTx] -- ^ Transactions that were validated in the slot range and spent or produced at least one output at the address.
         }
         deriving stock (Eq, Generic, Show)
         deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty AddressChangeResponse where
-    pretty AddressChangeResponse{acrAddress, acrTxns, acrSlot} =
+    pretty AddressChangeResponse{acrAddress, acrTxns, acrSlotRange} =
         hang 2 $ vsep
             [ "Address:" <+> pretty acrAddress
-            , "Slot:" <+> pretty acrSlot
-            , "Tx IDs:" <+> pretty (txId <$> acrTxns)
+            , "Slot range:" <+> pretty acrSlotRange
+            , "Tx IDs:" <+> pretty (eitherTx txId txId <$> acrTxns)
             ]
 
 -- | Request for information about transactions that spend or produce
---   outputs at a specific address in a slot.
+--   outputs at a specific address in a slot range.
 data AddressChangeRequest =
     AddressChangeRequest
-        { acreqSlot    :: Slot -- ^ The slot
-        , acreqAddress :: Address -- ^ The address
+        { acreqSlotRangeFrom :: Slot
+        , acreqSlotRangeTo   :: Slot
+        , acreqAddress       :: Address -- ^ The address
         }
         deriving stock (Eq, Generic, Show, Ord)
         deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty AddressChangeRequest where
-    pretty AddressChangeRequest{acreqSlot, acreqAddress} =
+    pretty AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo, acreqAddress} =
         hang 2 $ vsep
-            [ "Slot:" <+> pretty acreqSlot
+            [ "From " <+> pretty acreqSlotRangeFrom <+> "to" <+> pretty acreqSlotRangeTo
             , "Address:" <+> pretty acreqAddress
             ]
+
+-- | The earliest slot in which we can respond to an 'AddressChangeRequest'.
+targetSlot :: AddressChangeRequest -> Slot
+targetSlot = succ . acreqSlotRangeTo
+
+-- | The slot range for this request
+slotRange :: AddressChangeRequest -> SlotRange
+slotRange AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo} =
+    interval acreqSlotRangeFrom acreqSlotRangeTo

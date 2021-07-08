@@ -25,14 +25,14 @@ import           Data.Time.Units           (Second)
 import           Data.UUID                 (UUID)
 import qualified Data.UUID.Extras          as UUID
 import           GHC.Generics              (Generic)
-import           Ledger                    (Block, Blockchain, Tx, TxId, txId)
+import           Ledger                    (Block, Blockchain, Tx, TxId, eitherTx, txId)
 import           Ledger.Index              as UtxoIndex
 import           Plutus.Contract.Types     (ContractError)
 import           Plutus.PAB.Instances      ()
 import           Servant.Client            (BaseUrl, ClientError)
 import           Wallet.API                (WalletAPIError)
 import           Wallet.Emulator.Wallet    (Wallet)
-import           Wallet.Types              (ContractInstanceId, NotificationError)
+import           Wallet.Types              (ContractInstanceId (..), NotificationError)
 
 data PABError
     = FileNotFound FilePath
@@ -49,7 +49,10 @@ data PABError
     | InvalidUUIDError  Text
     | OtherError Text -- ?
     | EndpointCallError NotificationError
+    | InstanceAlreadyStopped ContractInstanceId -- ^ Attempt to stop the instance failed because it was not running
     | WalletNotFound Wallet
+    | MissingConfigFileOption
+    | ContractStateNotFound ContractInstanceId
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -69,7 +72,10 @@ instance Pretty PABError where
         InvalidUUIDError t         -> "Invalid UUID:" <+> pretty t
         OtherError t               -> "Other error:" <+> pretty t
         EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
+        InstanceAlreadyStopped i   -> "Instance already stopped:" <+> pretty i
         WalletNotFound w           -> "Wallet not found:" <+> pretty w
+        MissingConfigFileOption    -> "The --config-file option is required"
+        ContractStateNotFound i    -> "State for contract instance not found:" <+> pretty i
 
 data DbConfig =
     DbConfig
@@ -109,15 +115,16 @@ data WebserverConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
+-- | The source of a PAB event, used for sharding of the event stream
 data Source
     = PABEventSource
+    | InstanceEventSource ContractInstanceId
     deriving (Show, Eq)
 
 toUUID :: Source -> UUID
-toUUID source =
-    UUID.sequenceIdToMockUUID $
-    case source of
-        PABEventSource -> 1
+toUUID = \case
+    InstanceEventSource (ContractInstanceId i) -> i
+    PABEventSource                             -> UUID.sequenceIdToMockUUID 1
 
 data ChainOverview =
     ChainOverview
@@ -137,7 +144,7 @@ mkChainOverview = foldl reducer emptyChainOverview
                           , chainOverviewUtxoIndex = oldUtxoIndex
                           } txs =
         let unprunedTxById =
-                foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
+                foldl (\m -> eitherTx (const m) (\tx -> Map.insert (txId tx) tx m)) oldTxById txs
             newTxById = unprunedTxById -- TODO Prune spent keys.
             newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
          in ChainOverview

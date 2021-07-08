@@ -6,6 +6,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -18,18 +19,19 @@ module PlutusCore.Examples.Builtins where
 import           PlutusCore
 import           PlutusCore.Constant
 import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Pretty
 
-import qualified PlutusCore.StdLib.Data.List                       as Plc
+import qualified PlutusCore.StdLib.Data.ScottList        as Plc
 
+import           Control.Exception
 import           Data.Either
-import           Data.Hashable                                     (Hashable)
-import qualified Data.Kind                                         as GHC (Type)
+import           Data.Hashable                           (Hashable)
+import qualified Data.Kind                               as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
+import           Data.Tuple
 import           Data.Void
 import           GHC.Generics
 import           GHC.Ix
@@ -88,6 +90,7 @@ instance (Bounded a, Bounded b, Ix a, Ix b) => Ix (Either a b) where
 
     inRange (m, n) i = m <= i && i <= n
 
+-- See Note [Representable built-in functions over polymorphic built-in types]
 data ExtensionFun
     = Factorial
     | Const
@@ -95,7 +98,19 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
+    -- The next four are for testing that costing always precedes actual evaluation.
+    | FailingSucc
+    | ExpensiveSucc
+    | FailingPlus
+    | ExpensivePlus
     | Absurd
+    | Cons
+    | Comma
+    | BiconstPair  -- A safe version of 'Comma' as discussed in
+                   -- Note [Representable built-in functions over polymorphic built-in types].
+    | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
+    | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
+               -- a mix of monomorphic types and type variables works correctly.
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
 
@@ -113,12 +128,12 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
 defBuiltinsRuntimeExt
     :: HasConstantIn DefaultUni term
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
-defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultCostModel, ())
+defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 
-data ListRep (a :: GHC.Type)
-instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
+data PlcListRep (a :: GHC.Type)
+instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (ListRep a) = ToBinds a
+type instance ToBinds (PlcListRep a) = ToBinds a
 
 instance KnownTypeAst uni Void where
     toTypeAst _ = runQuote $ do
@@ -129,49 +144,53 @@ instance KnownType term Void where
     readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
 type instance ToBinds Void = '[]
 
--- Every polymorphic function ignores the memory annotation of its argument. This is due to the fact
--- that no function duplicates the AST and so threading an argument through a function or dropping
--- it completely does not increase memory consumption. It does not seem to be possible to define
--- a function that duplicates the AST of its argument with the current set of built-in types,
--- but once we have lists in the universe, that should be easy to do. Once there's a duplicating
--- function, should we multiple memory consumption by the number of duplicates it returns minus one?
--- For example, should @\x -> [x, x]@ increase memory consumption by the memory annotation of @x@
--- just once and not twice, since one of the @x@s is going to be essentially reused and the other
--- one will be a true duplicate? Or should memory consumption stay the same regardless of the
--- number of duplicates (modulo whatever the spine of the freshly list takes up)? Since
+data BuiltinErrorCall = BuiltinErrorCall
+    deriving (Show, Eq, Exception)
+
+-- See Note [Representable built-in functions over polymorphic built-in types].
+-- We have lists in the universe and so we can define a function like @\x -> [x, x]@ that duplicates
+-- the constant that it receives. Should memory consumption of that function be linear in the number
+-- of duplicates that the function creates? I think, no:
 --
 -- 1. later we can call @head@ over the resulting list thus not duplicating anything in the end
--- 2. any monomorphic builtin forcing a 'Constant' node of the duplicated AST will automatically
+-- 2. any monomorphic builtin touching a duplicated constant will automatically
 --    add it to the current budget. And if we never touch the duplicate again and just keep it
 --    around, then it won't ever increase memory consumption. And any other node will be taken into
 --    account automatically as well: just think that having @\x -> f x x@ as a PLC term is supposed
 --    to be handled correctly by design
-instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
+instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
+    toBuiltinMeaning :: forall term. HasConstantIn uni term => ExtensionFun -> BuiltinMeaning term ()
+
     toBuiltinMeaning Factorial =
         makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
             mempty  -- Whatever.
+
     toBuiltinMeaning Const =
         makeBuiltinMeaning
             const
             (\_ _ _ -> ExBudget 1 0)
+
     toBuiltinMeaning Id =
         makeBuiltinMeaning
             Prelude.id
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
             (Prelude.id
                 :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
                 => a -> a)
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning IdList =
         makeBuiltinMeaning
             (Prelude.id
-                :: a ~ Opaque term (ListRep (TyVarRep ('TyNameRep "a" 0)))
+                :: a ~ Opaque term (PlcListRep (TyVarRep ('TyNameRep "a" 0)))
                 => a -> a)
             (\_ _ -> ExBudget 1 0)
+
     toBuiltinMeaning IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
@@ -181,9 +200,98 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
                    )
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning FailingSucc =
+        makeBuiltinMeaning
+            @(Integer -> Integer)
+            (\_ -> throw BuiltinErrorCall)
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning ExpensiveSucc =
+        makeBuiltinMeaning
+            @(Integer -> Integer)
+            (\_ -> throw BuiltinErrorCall)
+            (\_ _ -> unExRestrictingBudget enormousBudget)
+
+    toBuiltinMeaning FailingPlus =
+        makeBuiltinMeaning
+            @(Integer -> Integer -> Integer)
+            (\_ _ -> throw BuiltinErrorCall)
+            (\_ _ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning ExpensivePlus =
+        makeBuiltinMeaning
+            @(Integer -> Integer -> Integer)
+            (\_ _ -> throw BuiltinErrorCall)
+            (\_ _ _ -> unExRestrictingBudget enormousBudget)
+
     toBuiltinMeaning Absurd =
         makeBuiltinMeaning
             (absurd
                 :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
                 => Void -> a)
             (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning Cons = makeBuiltinMeaning consPlc mempty where
+        consPlc
+            :: SomeConstant uni a
+            -> SomeConstantOf uni [] '[a]
+            -> EvaluationResult (SomeConstantOf uni [] '[a])
+        consPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
+                -- Checking that the type of the constant is the same as the type of the elements
+                -- of the unlifted list. Note that there's no way we could enforce this statically
+                -- since in UPLC one can create an ill-typed program that attempts to prepend
+                -- a value of the wrong type to a list.
+                case uniA `geq` uniA' of
+                    -- Should this rather be an 'UnliftingError'? For that we need
+                    -- https://github.com/input-output-hk/plutus/pull/3035
+                    Nothing   -> EvaluationFailure
+                    Just Refl ->
+                        EvaluationSuccess . SomeConstantOfArg uniA $
+                            SomeConstantOfRes uniListA $ x : xs
+
+    toBuiltinMeaning Comma = makeBuiltinMeaning commaPlc mempty where
+        commaPlc :: SomeConstant uni a -> SomeConstant uni b -> SomeConstantOf uni (,) '[a, b]
+        commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
+            let uniPairAB = DefaultUniPair uniA uniB
+            in SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes uniPairAB (x, y)))
+
+    toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
+        biconstPairPlc
+            :: SomeConstant uni a
+            -> SomeConstant uni b
+            -> SomeConstantOf uni (,) '[a, b]
+            -> EvaluationResult (SomeConstantOf uni (,) '[a, b])
+        biconstPairPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstant (Some (ValueOf uniB y)))
+            (SomeConstantOfArg uniA' (SomeConstantOfArg uniB' (SomeConstantOfRes uniPairAB _))) =
+                case (,) <$> (uniA `geq` uniA') <*> (uniB `geq` uniB') of
+                    -- Should this rather be an 'UnliftingError'? For that we need
+                    -- https://github.com/input-output-hk/plutus/pull/3035
+                    Nothing           -> EvaluationFailure
+                    Just (Refl, Refl) ->
+                        EvaluationSuccess . SomeConstantOfArg uniA . SomeConstantOfArg uniB $
+                            SomeConstantOfRes uniPairAB (x, y)
+
+    toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
+        swapPlc :: SomeConstantOf uni (,) '[a, b] -> SomeConstantOf uni (,) '[b, a]
+        swapPlc (SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes _ (x, y)))) =
+            SomeConstantOfArg uniB . SomeConstantOfArg uniA $
+                SomeConstantOfRes (DefaultUniPair uniB uniA) (y, x)
+
+    toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
+        -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
+        swapElsPlc
+            :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
+            => SomeConstantOf uni [] '[SomeConstantOf uni (,) '[a, Bool]]
+            -> EvaluationResult (SomeConstantOf uni [] '[SomeConstantOf uni (,) '[Bool, a]])
+        swapElsPlc (SomeConstantOfArg uniEl (SomeConstantOfRes _ xs)) = case uniEl of
+            DefaultUniPair uniA DefaultUniBool ->
+                EvaluationSuccess $
+                    let uniElS = DefaultUniPair DefaultUniBool uniA
+                        listUniElS = DefaultUniList uniElS
+                    in SomeConstantOfArg uniElS . SomeConstantOfRes listUniElS $ map swap xs
+            _ -> EvaluationFailure

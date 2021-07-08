@@ -1,9 +1,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Eq (Eq(..), (/=)) where
 
+import           PlutusCore.Data
+
 import           PlutusTx.Bool
 import qualified PlutusTx.Builtins as Builtins
-import           PlutusTx.Data
 
 import           Prelude           hiding (Eq (..), not, (&&))
 
@@ -30,6 +31,10 @@ instance Eq Integer where
 instance Eq Builtins.ByteString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsByteString
+
+instance Eq Builtins.BuiltinString where
+    {-# INLINABLE (==) #-}
+    (==) = Builtins.equalsString
 
 instance Eq a => Eq [a] where
     {-# INLINABLE (==) #-}
@@ -75,3 +80,10 @@ instance Eq Data where
     B _ == _                     = False
     List ls == List ls'          = ls == ls'
     List _  == _                 = False
+
+instance Eq Ordering where
+    {-# INLINABLE (==) #-}
+    EQ == EQ = True
+    GT == GT = True
+    LT == LT = True
+    _ == _   = False

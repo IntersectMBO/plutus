@@ -27,15 +27,11 @@
   nodeServerConfig:
     mscBaseUrl: http://localhost:${ nodeserver-port }
     mscSocketPath: /tmp/node-server.sock
-    mscSlotLength: 5
     mscRandomTxInterval: 20000000
     mscSlotConfig:
-      scZeroSlotTime: "2020-07-29T21:44:51Z" #Wednesday, July 29, 2020 21:44:51 - shelley launch time
-      scSlotLength: 1
+      scZeroSlotTime: 1596059091000 # POSIX time of 2020-07-29T21:44:51Z (Wednesday, July 29, 2020 21:44:51) - Shelley launch time
+      scSlotLength: 1000
     mscKeptBlocks: 100000
-    mscBlockReaper:
-      brcInterval: 6000000
-      brcBlocksToKeep: 100000
     mscInitialTxWallets:
       - getWallet: 1
       - getWallet: 2

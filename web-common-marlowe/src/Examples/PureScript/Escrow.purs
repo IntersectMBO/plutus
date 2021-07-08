@@ -1,20 +1,38 @@
 module Examples.PureScript.Escrow
   ( contractTemplate
+  , fullExtendedContract
   , metaData
-  , extendedContract
+  , fixedTimeoutContract
   ) where
 
 import Prelude
-import Data.BigInteger (BigInteger)
+import Data.BigInteger (BigInteger, fromInt)
+import Data.Map as Map
 import Data.Tuple.Nested (type (/\), (/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
-import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Extended.Template (ContractTemplate)
+import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ChoiceName)
 
 contractTemplate :: ContractTemplate
-contractTemplate = { metaData, extendedContract }
+contractTemplate = { metaData, extendedContract: fixedTimeoutContract }
+
+fixedTimeoutContract :: Contract
+fixedTimeoutContract =
+  fillTemplate
+    ( TemplateContent
+        { slotContent:
+            Map.fromFoldable
+              [ "Buyer's deposit timeout" /\ fromInt 600
+              , "Buyer's dispute timeout" /\ fromInt 1800
+              , "Seller's response timeout" /\ fromInt 2400
+              , "Timeout for arbitrage" /\ fromInt 3600
+              ]
+        , valueContent: Map.empty
+        }
+    )
+    fullExtendedContract
 
 metaData :: MetaData
 metaData = Metadata.escrow
@@ -76,8 +94,8 @@ sellerToBuyer = Pay seller (Account buyer) ada price
 paySeller :: Contract -> Contract
 paySeller = Pay buyer (Party seller) ada price
 
-extendedContract :: Contract
-extendedContract =
+fullExtendedContract :: Contract
+fullExtendedContract =
   deposit depositTimeout Close
     $ choices disputeTimeout buyer Close
         [ (zero /\ "Everything is alright" /\ Close)

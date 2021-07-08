@@ -1,5 +1,7 @@
 module Main where
 
+import           PlutusCore.DataFilePaths
+
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy     as BSL
 
@@ -9,5 +11,5 @@ import           CostModelCreation
 -}
 main :: IO ()
 main = do
-  model <- createCostModel
-  BSL.writeFile "cost-model/data/costModel.json" $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model
+  model <- createBuiltinCostModel
+  BSL.writeFile builtinCostModelFile $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model

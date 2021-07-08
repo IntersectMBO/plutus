@@ -135,6 +135,30 @@ executable marlowe-playground-server
         yaml -any,
         time -any
 
+executable flow-chart-generator
+    main-is: FlowChartGenerator.hs
+    other-modules:
+        Types
+        Escrow
+        EscrowWithCollateral
+        Example
+        CouponBondGuaranteed
+        ZeroCouponBond
+        Swap
+        Option
+        ContractForDifferences
+        ContractForDifferencesWithOracle
+    hs-source-dirs: app contracts
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+    build-depends:
+        aeson -any,
+        base -any,
+        playground-common -any,
+        marlowe -any,
+        marlowe-playground-server -any
+
 test-suite marlowe-playground-server-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs

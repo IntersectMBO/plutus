@@ -27,7 +27,7 @@ openssl rand -hex 40
 
 Once the environment variables are created, the server can be run with the following command:
 ```bash
-$(nix-build -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
+$(nix-build -A marlowe-playground.server)/bin/marlowe-playground-server webserver
 ```
 
 You can now reach the server on [http://localhost:8080]() however you probably want to run the web front-end, see the [Marlowe Playground Client](../marlowe-playground-client/README.md) for instructions on how to do this.

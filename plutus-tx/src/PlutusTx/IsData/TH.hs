@@ -7,8 +7,9 @@ import           Data.Traversable
 import qualified Language.Haskell.TH          as TH
 import qualified Language.Haskell.TH.Datatype as TH
 
+import           PlutusCore.Data
+
 import qualified PlutusTx.Applicative         as PlutusTx
-import           PlutusTx.Data
 import qualified PlutusTx.Eq                  as PlutusTx
 
 import           PlutusTx.IsData.Class

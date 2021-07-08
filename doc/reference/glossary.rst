@@ -12,6 +12,9 @@ Glossary
       stipulates the conditions for unlocking the output. This can be a
       public key hash, or (in the Extended UTXO model) a script hash.
 
+    Cardano
+      The blockchain system upon which the Plutus Platform is built.
+
     contract application
       An application written against the contract application API, which
       runs in the PAB.
@@ -36,9 +39,9 @@ Glossary
       actually distributed to users and run by the PAB.
 
     currency
-      A class of token whose forging is controlled by a particular monetary
+      A class of token whose minting is controlled by a particular monetary
       policy script. On the Cardano ledger there is a special currency
-      called Ada which can never be forged and which is controlled
+      called Ada which can never be minted and which is controlled
       separately.
 
     datum
@@ -50,35 +53,30 @@ Glossary
     Extended UTXO Model
       The ledger model which the Plutus Platform relies on.
 
-      This is implemented in the Goguen release of the Cardano blockchain.
-      Notable differences from traditional UTXO ledgers are:
+      This is implemented in the Alonzo hard fork of the Cardano blockchain.
 
-      1. UTXOs carry an additional data output, called the datum
+      See :ref:`what_is_a_ledger`.
 
-      2. Validators get to see a representation of the transaction being
-          validated, called the context
-
-      3. The validator script is provided with:
-
-          a. The datum on the spent output
-
-          b. The redeemer provided by the input
-
-          c. The context representing the transaction being validated
-
-    forging
-      A transaction which forges tokens creates new tokens, providing that
-      the corresponding monetary policy script is satisfied. The amount
-      forged can be negative, in which case the tokens will be destroyed
+    minting
+      A transaction which mints tokens creates new tokens, providing that
+      the corresponding minting policy script is satisfied. The amount
+      minted can be negative, in which case the tokens will be destroyed
       instead of created.
 
-    forging context
+    minting context
       A data structure containing a summary of the transaction being
-      validated, and the current forging policy which is being run.
+      validated, and the current minting policy which is being run.
 
-    forging policy script
-      A script which must be satisfied in order for a transaction to forge
+    minting policy script
+      A script which must be satisfied in order for a transaction to mint
       tokens of the corresponding currency.
+
+    Hydra
+      A Layer 2 scalability solution for Cardano. See :cite:t:`chakravarty2020hydra`.
+
+    distributed ledger
+    ledger
+      See :ref:`what_is_a_ledger`.
 
     Marlowe
       A domain-specific language for writing financial contract
@@ -109,9 +107,12 @@ Glossary
 
       2. Other user software which uses the contract application as part of a wider system.
 
+    Plutus Application
+      An application written using the Plutus Application Framework.
+
     Plutus Application Backend (PAB)
-      The component which manages contract applications run on users'
-      machines. It handles:
+      The component which manages Plutus Applications that run on users' machines.
+      It handles:
 
       1. Interactions with the node
 
@@ -130,6 +131,8 @@ Glossary
       Plutus Core is not read or written by humans, it is a compilation
       target for other languages.
 
+      See :ref:`what_is_plutus_foundation`.
+
     Plutus IR
       An intermediate language that compiles to Plutus Core. Plutus IR is
       not used by users, but rather as a compilation target on the way to
@@ -141,11 +144,11 @@ Glossary
       The combined software support for writing contract applications,
       including:
 
-      1. The Plutus Application Backend
+      1. Plutus Foundation, and
 
-      2. The Plutus SDK
+      2. The Plutus Application Framework
 
-      3. The support for Plutus scripts on the Cardano chain
+      See :ref:`what_is_the_plutus_platform`.
 
     Plutus SDK
       The libraries and development tooling for writing contract

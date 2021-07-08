@@ -24,7 +24,7 @@
       isLocal = true;
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
-      dataDir = "";
+      dataDir = ".";
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
@@ -77,6 +77,7 @@
           "Plutus/V1/Ledger/Slot"
           "Plutus/V1/Ledger/Tx"
           "Plutus/V1/Ledger/TxId"
+          "Plutus/V1/Ledger/Time"
           "Plutus/V1/Ledger/Value"
           ];
         hsSourceDirs = [ "src" ];
@@ -86,10 +87,13 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             ];
           buildable = true;
+          modules = [ "Spec/Interval" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

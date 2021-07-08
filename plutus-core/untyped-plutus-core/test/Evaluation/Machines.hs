@@ -10,32 +10,32 @@ module Evaluation.Machines
 
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.HOAS
-import           UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import           UntypedPlutusCore.Evaluation.Machine.Cek        as Cek
 
-import qualified PlutusCore                               as Plc
-import           PlutusCore.Builtins
+import qualified PlutusCore                                      as Plc
 import           PlutusCore.Constant
+import           PlutusCore.Default
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
+import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.FsTree
 import           PlutusCore.Generators.Interesting
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import           PlutusCore.Examples.Builtins
-import           PlutusCore.Examples.Everything           (examples)
-import qualified PlutusCore.StdLib.Data.Nat               as Plc
-import           PlutusCore.StdLib.Everything             (stdLib)
+import           PlutusCore.Examples.Everything                  (examples)
+import qualified PlutusCore.StdLib.Data.Nat                      as Plc
+import           PlutusCore.StdLib.Everything                    (stdLib)
 import           PlutusCore.StdLib.Meta
-import           PlutusCore.StdLib.Meta.Data.Function     (etaExpand)
+import           PlutusCore.StdLib.Meta.Data.Function            (etaExpand)
 
 import           Common
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
 import           GHC.Ix
-import           Hedgehog                                 hiding (Size, Var, eval)
+import           Hedgehog                                        hiding (Size, Var, eval)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -57,8 +57,8 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCekNoEmit defBuiltinsRuntime
-        , testMachine "HOAS" $ evaluateHoas defBuiltinsRuntime
+        [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
+        , testMachine "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
         ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -66,11 +66,16 @@ testMemory name = nestedGoldenVsText name . fromString . show . memoryUsage
 
 test_memory :: TestTree
 test_memory =
-    runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
-        .  testNested "Memory"
-        .  foldPlcFolderContents testNested testMemory testMemory
-        $  stdLib
-        <> examples
+    testGroup "Bundles"
+        [ folder stdLib
+        , folder examples
+        ]
+  where
+    folder :: ExMemoryUsage fun => PlcFolderContents DefaultUni fun -> TestTree
+    folder
+        = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
+        . testNested "Memory"
+        . foldPlcFolderContents testNested testMemory testMemory
 
 testBudget
     :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
@@ -82,7 +87,7 @@ testBudget runtime name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit runtime Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -129,10 +134,9 @@ test_budget
     = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
-        [ folder defBuiltinsRuntime examples
-        , folder defBuiltinsRuntime bunchOfFibs
+        [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
         , folder (toBuiltinsRuntime ()) bunchOfIdNats
-        , folder defBuiltinsRuntime bunchOfIfThenElseNats
+        , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where
     folder runtime =
@@ -146,7 +150,7 @@ testTallying name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekNoEmit defBuiltinsRuntime Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =
@@ -155,4 +159,4 @@ test_tallying =
         .  foldPlcFolderContents testNested
                                  (\name _ -> pure $ testGroup name [])
                                  (\name -> testTallying name . erase)
-        $ examples <> bunchOfFibs
+        $ bunchOfFibs

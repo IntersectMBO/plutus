@@ -1,44 +1,50 @@
+# This file is provided here for development purposes only. In deployment,
+# settings are taken from `deployment/morph/machines/marlowe-dash.nix` (which
+# also determines which contracts are available). In most cases we use the
+# default settings - the main thing to watch out for is that the
+# `scZeroSlotTime` here coincides with the frontend code's assumptions about
+# the time of slot 0 (in `web-common-marlowe/src/Marlowe/Slot.purs`).
 dbConfig:
     dbConfigFile: pab-core.db
     dbConfigPoolSize: 20
 
 pabWebserverConfig:
-  baseUrl: http://localhost:9080
+  baseUrl: http://localhost:8080
   staticDir: plutus-pab-client/dist
 
 walletServerConfig:
-  baseUrl: http://localhost:9081
+  baseUrl: http://localhost:8081
   wallet:
     getWallet: 1
 
 nodeServerConfig:
-  mscBaseUrl: http://localhost:9082
+  mscBaseUrl: http://localhost:8082
   mscSocketPath: ./node-server.sock
   mscSlotLength: 1
   mscKeptBlocks: 100
   # mscRandomTxInterval: 20 -- this creates random transactions on the blockchain
-  mscBlockReaper:
-    brcInterval: 600
-    brcBlocksToKeep: 100
+  mscSlotConfig:
+    scZeroSlotTime: 1591566291000 # see note [Datetime to slot] in Marlowe.Slot
+    scSlotLength: 1
   mscInitialTxWallets:
     - getWallet: 1
     - getWallet: 2
     - getWallet: 3
 
 chainIndexConfig:
-  ciBaseUrl: http://localhost:9083
+  ciBaseUrl: http://localhost:8083
   ciWatchedAddresses: []
 
 requestProcessingConfig:
   requestProcessingInterval: 1
 
 signingProcessConfig:
-  spBaseUrl: http://localhost:9084
+  spBaseUrl: http://localhost:8084
   spWallet:
     getWallet: 1
 
 metadataServerConfig:
-  mdBaseUrl: http://localhost:9085
+  mdBaseUrl: http://localhost:8085
 
 # Optional timeout (in seconds) for calls to endpoints that are not currently
 # available. If this is not set, calls to unavailable endpoints fail 

@@ -1,8 +1,6 @@
 module MarloweEditor.State
   ( handleAction
   , editorGetValue
-  , {- FIXME: this should be an action -} editorResize
-  , editorSetTheme
   ) where
 
 import Prelude hiding (div)
@@ -31,7 +29,6 @@ import Halogen as H
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe.Extended (TemplateContent)
 import Marlowe.Extended as Extended
 import Marlowe.Extended.Metadata (MetadataHintInfo)
 import Marlowe.Holes as Holes
@@ -39,7 +36,9 @@ import Marlowe.LinterText as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import MarloweEditor.Types (Action(..), BottomPanelView, State, _hasHoles, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
+import Marlowe.Template (TemplateContent)
+import Marlowe.Template as Template
+import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorReady, _editorWarnings, _hasHoles, _keybindings, _metadataHintInfo, _selectedHole, _showErrorDetail)
 import Monaco (isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
@@ -66,19 +65,29 @@ handleAction ::
   MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction Init = do
-  editorSetTheme
-  mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
-  editorSetValue $ fromMaybe ME.example mContents
-
 handleAction (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
   void $ query _marloweEditorPageSlot unit (Monaco.SetKeyBindings bindings unit)
 
+handleAction (HandleEditorMessage Monaco.EditorReady) = do
+  editorSetTheme
+  mContents <- liftEffect $ SessionStorage.getItem marloweBufferLocalStorageKey
+  editorSetValue $ fromMaybe ME.example mContents
+  for_ mContents processMarloweCode
+  assign _editorReady true
+
 handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
-  assign _selectedHole Nothing
-  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey text
-  processMarloweCode text
+  -- When the Monaco component start it fires two messages at the same time, an EditorReady
+  -- and TextChanged. Because of how Halogen works, it interwines the handleActions calls which
+  -- can cause problems while setting and getting the values of the session storage. To avoid
+  -- starting with an empty text editor we use an editorReady flag to ignore the text changes until
+  -- we are ready to go. Eventually we could remove the initial TextChanged event, but we need to check
+  -- that it doesn't break the plutus playground.
+  editorReady <- use _editorReady
+  when editorReady do
+    assign _selectedHole Nothing
+    liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey text
+    processMarloweCode text
 
 handleAction (HandleDragEvent event) = liftEffect $ preventDefault event
 
@@ -105,7 +114,6 @@ handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction
 
 handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
-  editorResize
 
 handleAction (ShowErrorDetail val) = assign _showErrorDetail val
 
@@ -119,7 +127,7 @@ handleAction (InitMarloweProject contents) = do
 
 handleAction (SelectHole hole) = assign _selectedHole hole
 
-handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< Extended.typeToLens templateType) (Map.insert key value)
+handleAction (SetIntegerTemplateParam templateType key value) = modifying (_analysisState <<< _templateContent <<< Template.typeToLens templateType) (Map.insert key value)
 
 handleAction (MetadataAction _) = pure unit
 
@@ -132,7 +140,7 @@ handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
 handleAction ClearAnalysisResults = do
   assign (_analysisState <<< _analysisExecutionState) NoneAsked
   mContents <- editorGetValue
-  for_ mContents \contents -> processMarloweCode contents
+  for_ mContents processMarloweCode
 
 handleAction Save = pure unit
 
@@ -203,7 +211,7 @@ processMarloweCode text = do
     -- If we can get an Extended contract from the holes contract (basically if it has no holes)
     -- then update the template content. If not, leave them as they are
     maybeUpdateTemplateContent :: TemplateContent -> TemplateContent
-    maybeUpdateTemplateContent = maybe identity (Extended.updateTemplateContent <<< Extended.getPlaceholderIds) mContract
+    maybeUpdateTemplateContent = maybe identity (Template.updateTemplateContent <<< Template.getPlaceholderIds) mContract
   void $ query _marloweEditorPageSlot unit $ H.request $ Monaco.SetModelMarkers markerData
   modify_
     ( set _editorWarnings warningMarkers
@@ -233,9 +241,6 @@ runAjax action = RemoteData.fromEither <$> runExceptT action
 
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorSetTheme = void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
-
-editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _marloweEditorPageSlot unit (Monaco.Resize unit)
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _marloweEditorPageSlot unit (Monaco.SetText contents unit)

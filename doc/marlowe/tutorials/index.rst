@@ -1,5 +1,7 @@
-Marlowe tutorials
-=================
+.. _marlowe_tutorials:
+
+Tutorials
+=========
 
 This document gives an overview the Marlowe tutorials.
 

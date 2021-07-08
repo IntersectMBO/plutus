@@ -28,9 +28,9 @@ import           Common
 
 import qualified PlutusCore                               as TPLC
 import           PlutusCore.DeBruijn
+import           PlutusCore.Default.Universe
 import qualified PlutusCore.Evaluation.Machine.Ck         as TPLC
 import           PlutusCore.Pretty
-import           PlutusCore.Universe
 
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
@@ -79,7 +79,7 @@ runTPlc
 runTPlc values = do
     ps <- traverse toTPlc values
     let (TPLC.Program _ _ t) = foldl1 TPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ TPLC.evaluateCkNoEmit TPLC.defBuiltinsRuntime t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntime t
 
 runUPlc
     :: ToUPlc a DefaultUni TPLC.DefaultFun
@@ -88,7 +88,7 @@ runUPlc
 runUPlc values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit TPLC.defBuiltinsRuntime t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit TPLC.defaultCekParameters t
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value

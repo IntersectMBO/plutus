@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -14,6 +15,7 @@ import           Data.Text              (Text, unpack)
 import           Flat                   (Flat)
 import           Paths_plutus_benchmark (getDataFileName)
 import           System.FilePath
+import           UntypedPlutusCore
 
 import           Codec
 import           Dataset
@@ -27,7 +29,7 @@ serializedContracts = fromList $
   concatMap serializeContract contractsWithNames ++
   concatMap serializeContract contractsWithIndices
   where
-    serializeContract :: (Flat a, Serialise a)
+    serializeContract :: (Flat a, Flat (Binder a), Serialise a)
                       => (Text, Tm a)
                       -> [((Text, Text), BS.ByteString)]
     serializeContract (name, tm) = do

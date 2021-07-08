@@ -121,15 +121,6 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.*.id[count.index]
 }
 
-# Bastion hosts
-data "template_file" "bastion_user_data" {
-  template = "${file("${path.module}/templates/bastion_configuration.nix")}"
-
-  vars = {
-    ssh_keys   = "${join(" ", formatlist("\"command=\\\"echo 'this host is for forwarding only'\\\",no-X11-forwarding,no-user-rc %s\"", local.bastion_ssh_keys))}"
-    network_id = "canbeanything"
-  }
-}
 
 resource "aws_instance" "bastion" {
   count                       = length(var.azs)
@@ -229,3 +220,55 @@ resource "aws_route53_zone" "plutus_private_zone" {
     Environment = var.env
   }
 }
+
+resource "aws_route53_zone" "marlowe_finance_io_zone" {
+  count = (var.env == "production" ? 1 : 0)
+  name  = "marlowe-finance.io"
+}
+
+resource "aws_route53_record" "marlowe_finance_top_level" {
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
+  name    = "marlowe-finance.io"
+  type    = "A"
+  ttl     = 300
+  records = [var.marlowe_finance_production_ip]
+}
+
+resource "aws_route53_record" "marlowe_finance_play" {
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
+  name    = "play.marlowe-finance.io"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["production.marlowe.iohkdev.io"]
+}
+
+resource "aws_route53_record" "marlowe_finance_run" {
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
+  name    = "run.marlowe-finance.io"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["production.marlowe-dash.iohkdev.io"]
+}
+
+resource "aws_route53_record" "marlowe_finance_webinar" {
+  count   = (var.env == "production" ? 1 : 0)
+  zone_id = aws_route53_zone.marlowe_finance_io_zone[0].zone_id
+  name    = "webinar.marlowe-finance.io"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["wy8k2fnarz0v.wpeproxy.com"]
+}
+
+# Bastion hosts
+data "template_file" "bastion_user_data" {
+  template = "${file("${path.module}/templates/bastion_configuration.nix")}"
+
+  vars = {
+    ssh_keys   = "${join(" ", formatlist("\"command=\\\"echo 'this host is for forwarding only'\\\",no-X11-forwarding,no-user-rc %s\"", local.bastion_ssh_keys))}"
+    network_id = "canbeanything"
+  }
+}
+

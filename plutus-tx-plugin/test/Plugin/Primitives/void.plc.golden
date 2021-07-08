@@ -13,18 +13,20 @@
       (strict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
-        arg
+        x
         (con integer)
         (lam
-          arg
+          y
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin equalsInteger) arg ] arg ]
+            [
+              [
+                { (builtin ifThenElse) Bool }
+                [ [ (builtin equalsInteger) x ] y ]
+              ]
+              True
+            ]
+            False
           ]
         )
       )

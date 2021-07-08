@@ -35,6 +35,7 @@ types = testNested "types"
   ,"strictNonValue3"
   ,"strictValueNonValue"
   ,"strictValueValue"
+  ,"strictNonValueDeep"
   ,"even3Eval"
   ,"sameNameDifferentEnv"
   ]

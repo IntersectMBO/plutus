@@ -6,8 +6,8 @@ module Ledger.Constraints(
     -- * Defining constraints
     , mustPayToTheScript
     , mustPayToPubKey
-    , mustForgeCurrency
-    , mustForgeValue
+    , mustMintCurrency
+    , mustMintValue
     , mustSpendAtLeast
     , mustSpendPubKeyOutput
     , mustSpendScriptOutput
@@ -25,9 +25,9 @@ module Ledger.Constraints(
     , ScriptLookups(..)
     , MkTxError(..)
     , UnbalancedTx
-    , scriptInstanceLookups
+    , typedValidatorLookups
     , unspentOutputs
-    , monetaryPolicy
+    , mintingPolicy
     , otherScript
     , otherData
     , ownPubKeyHash
@@ -38,8 +38,8 @@ module Ledger.Constraints(
     ) where
 
 import           Ledger.Constraints.OffChain      (MkTxError (..), ScriptLookups (..), SomeLookupsAndConstraints (..),
-                                                   UnbalancedTx, mkSomeTx, mkTx, monetaryPolicy, otherData, otherScript,
-                                                   ownPubKeyHash, scriptInstanceLookups, unspentOutputs)
+                                                   UnbalancedTx, mintingPolicy, mkSomeTx, mkTx, otherData, otherScript,
+                                                   ownPubKeyHash, typedValidatorLookups, unspentOutputs)
 import           Ledger.Constraints.OnChain       (checkScriptContext)
 import           Ledger.Constraints.TxConstraints
 

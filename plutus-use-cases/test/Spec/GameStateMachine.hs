@@ -35,7 +35,7 @@ import           Plutus.Contract.Test               hiding (not)
 import           Plutus.Contract.Test.ContractModel
 import           Plutus.Contracts.GameStateMachine  as G
 import           Plutus.Trace.Emulator              as Trace
-import qualified PlutusTx                           as PlutusTx
+import qualified PlutusTx
 
 -- * QuickCheck model
 
@@ -91,7 +91,7 @@ instance ContractModel GameModel where
         hasToken      $= Just w
         currentSecret $= secret
         gameValue     $= val
-        forge gameTokenVal
+        mint gameTokenVal
         deposit  w gameTokenVal
         withdraw w $ Ada.lovelaceValueOf val
         wait 2
@@ -170,7 +170,7 @@ genValue :: Gen Integer
 genValue = getPositive <$> arbitrary
 
 delay :: Int -> EmulatorTrace ()
-delay n = void $ waitNSlots (fromIntegral n)
+delay n = void $ Trace.waitNSlots (fromIntegral n)
 
 -- Dynamic Logic ----------------------------------------------------------
 
@@ -219,31 +219,30 @@ tests =
     testGroup "game state machine tests"
     [ checkPredicate "run a successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
-        .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.typedValidator) (Ada.lovelaceValueOf 5 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         successTrace
 
     , checkPredicate "run a 2nd successful game trace"
         (walletFundsChange w2 (Ada.lovelaceValueOf 3)
-        .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.typedValidator) (Ada.lovelaceValueOf 1 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8))
         .&&. walletFundsChange w3 (Ada.lovelaceValueOf 4 <> gameTokenVal))
         successTrace2
 
     , checkPredicate "run a failed trace"
         (walletFundsChange w2 gameTokenVal
-        .&&. valueAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
+        .&&. valueAtAddress (Scripts.validatorAddress G.typedValidator) (Ada.lovelaceValueOf 8 ==)
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         failTrace
 
     , goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
-    , HUnit.testCase "script size is reasonable"
-        (reasonable (Scripts.validatorScript G.scriptInstance) 49000)
+    , HUnit.testCaseSteps "script size is reasonable" $ \step ->
+        reasonable' step (Scripts.validatorScript G.typedValidator) 49000
 
     , testProperty "can always get the funds out" $
         withMaxSuccess 10 prop_NoLockedFunds
-
     ]
 
 initialVal :: Value
@@ -299,6 +298,5 @@ failTrace = do
 
 gameTokenVal :: Value
 gameTokenVal =
-    let sym = Scripts.monetaryPolicyHash G.scriptInstance
+    let sym = Scripts.forwardingMintingPolicyHash G.typedValidator
     in G.token sym "guess"
-

@@ -2,22 +2,32 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 module BasicValidators where
 
-import qualified PlutusCore.Builtins  as PLC
-import qualified PlutusCore.Universe  as PLC
+import qualified PlutusCore.Default   as PLC
 import           PlutusTx
 import           PlutusTx.Lift
 import           PlutusTx.Prelude
 
-import           Ledger
+import           Ledger               hiding (validatorHash)
 import           Ledger.Ada
 import           Ledger.Typed.Scripts
 import           Ledger.Value
 
+import           Cardano.Api          (HasTextEnvelope, TextEnvelope, TextEnvelopeDescr, serialiseToTextEnvelope)
+
+import qualified Data.ByteString.Lazy as BSL
+
+import           Codec.Serialise
+
+import           Prelude              (IO, print, show)
+import qualified Prelude              as Haskell
+
 myKeyHash :: PubKeyHash
-myKeyHash = undefined
+myKeyHash = Haskell.undefined
 
 -- BLOCK1
 -- | A specific date.
@@ -74,9 +84,55 @@ validatePayment _ _ ctx = check $ case fromData ctx of
         in fold values `geq` adaValueOf 1
     _ -> False
 -- BLOCK5
-validateDate' :: Data -> Data -> Data -> ()
-validateDate' = wrapValidator validateDateTyped
-    where
-        validateDateTyped :: EndDate -> Date -> ScriptContext -> Bool
-        validateDateTyped endDate date _ = beforeEnd date endDate
+data DateValidator
+instance ValidatorTypes DateValidator where
+    type instance RedeemerType DateValidator = Date
+    type instance DatumType DateValidator = EndDate
 -- BLOCK6
+validateDateTyped :: EndDate -> Date -> ScriptContext -> Bool
+validateDateTyped endDate date _ = beforeEnd date endDate
+
+validateDateWrapped :: Data -> Data -> Data -> ()
+validateDateWrapped = wrapValidator validateDateTyped
+-- BLOCK7
+dateInstance :: TypedValidator DateValidator
+dateInstance = mkTypedValidator @DateValidator
+    -- The first argument is the compiled validator.
+    $$(compile [|| validateDateTyped ||])
+    -- The second argument is a compiled wrapper.
+    -- Unfortunately we can't just inline wrapValidator here for technical reasons.
+    $$(compile [|| wrap ||])
+    where
+        wrap = wrapValidator
+
+dateValidatorHash :: ValidatorHash
+dateValidatorHash = validatorHash dateInstance
+
+dateValidator :: Validator
+dateValidator = validatorScript dateInstance
+-- BLOCK8
+serializedDateValidator :: BSL.ByteString
+serializedDateValidator = serialise dateValidator
+
+-- The module 'Ledger.Scripts' includes instances related to typeclass
+-- 'Cardano.Api.HasTextEnvelope'
+
+-- Envelope of the PLC 'Script'.
+envelopeDateValidator :: TextEnvelope
+envelopeDateValidator = serialiseToTextEnvelope Nothing (getValidator dateValidator)
+
+-- Envelope of the 'Datum' representing the 'Date' datatype.
+envelopeDate :: Date -> TextEnvelope
+envelopeDate d = serialiseToTextEnvelope Nothing (Datum $ toData d)
+
+-- Envelope of the 'Redeemer' representing the 'EndDate' datatype.
+envelopeEndDate :: EndDate -> TextEnvelope
+envelopeEndDate d = serialiseToTextEnvelope Nothing (Redeemer $ toData d)
+
+main :: IO ()
+main = do
+  print serializedDateValidator
+  print envelopeDateValidator
+  print $ envelopeDate (Date 0)
+  print $ envelopeEndDate Never
+-- BLOCK9

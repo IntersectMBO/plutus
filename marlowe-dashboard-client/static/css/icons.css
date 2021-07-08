@@ -34,6 +34,10 @@
   content: "people";
 }
 
+.with-icon-contract::after {
+  content: "history_edu";
+}
+
 .with-icon-help::after {
   content: "help";
 }
@@ -50,12 +54,24 @@
   content: "chevron_right";
 }
 
+.with-icon-new-contact::after {
+  content: "person_add_alt";
+}
+
 .with-icon-pay::after {
   content: "credit_score";
 }
 
+.with-icon-play::after {
+  content: "play";
+}
+
 .with-icon-previous::after {
   content: "chevron_left";
+}
+
+.with-icon-refresh::after {
+  content: "refresh";
 }
 
 .with-icon-roles::after {

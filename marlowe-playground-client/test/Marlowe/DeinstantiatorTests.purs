@@ -10,7 +10,8 @@ import Examples.PureScript.EscrowWithCollateral as EscrowWithCollateral
 import Examples.PureScript.CouponBondGuaranteed as CouponBondGuaranteed
 import Examples.PureScript.ZeroCouponBond as ZeroCouponBond
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.Extended (TemplateContent(..), fillTemplate, toCore)
+import Marlowe.Extended (toCore)
+import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Contract)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assertFalse, equal)
@@ -27,10 +28,10 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Buyer's deposit timeout" /\ fromInt 10
-                          , "Buyer's dispute timeout" /\ fromInt 50
-                          , "Seller's response timeout" /\ fromInt 100
-                          , "Timeout for arbitrage" /\ fromInt 1000
+                          [ "Buyer's deposit timeout" /\ fromInt 600
+                          , "Buyer's dispute timeout" /\ fromInt 1800
+                          , "Seller's response timeout" /\ fromInt 2400
+                          , "Timeout for arbitrage" /\ fromInt 3600
                           ]
                     , valueContent:
                         Map.fromFoldable
@@ -51,11 +52,11 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Collateral deposit by seller timeout" /\ fromInt 10
-                          , "Deposit of collateral by buyer timeout" /\ fromInt 50
-                          , "Deposit of price by buyer timeout" /\ fromInt 100
-                          , "Dispute by buyer timeout" /\ fromInt 1000
-                          , "Seller's response timeout" /\ fromInt 2000
+                          [ "Collateral deposit by seller timeout" /\ fromInt 600
+                          , "Deposit of collateral by buyer timeout" /\ fromInt 1200
+                          , "Deposit of price by buyer timeout" /\ fromInt 1800
+                          , "Dispute by buyer timeout" /\ fromInt 3000
+                          , "Seller's response timeout" /\ fromInt 3600
                           ]
                     , valueContent:
                         Map.fromFoldable
@@ -77,13 +78,13 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Initial exchange deadline" /\ fromInt 10
-                          , "Maturity exchange deadline" /\ fromInt 20
+                          [ "Initial exchange deadline" /\ fromInt 600
+                          , "Maturity exchange deadline" /\ fromInt 1500
                           ]
                     , valueContent:
                         Map.fromFoldable
                           [ "Discounted price" /\ fromInt 50
-                          , "Notional" /\ fromInt 100
+                          , "Notional price" /\ fromInt 100
                           ]
                     }
                 )

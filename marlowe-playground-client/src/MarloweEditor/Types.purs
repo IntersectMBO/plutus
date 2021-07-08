@@ -14,8 +14,8 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
-import Marlowe.Extended (IntegerTemplateType)
 import Marlowe.Extended.Metadata (MetadataHintInfo)
+import Marlowe.Template (IntegerTemplateType)
 import MetadataTab.Types (MetadataAction, showConstructor)
 import Monaco (IMarkerData)
 import StaticAnalysis.Types (AnalysisState, initAnalysisState)
@@ -23,8 +23,7 @@ import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 data Action
-  = Init
-  | ChangeKeyBindings KeyBindings
+  = ChangeKeyBindings KeyBindings
   | HandleEditorMessage Monaco.Message
   | HandleDragEvent DragEvent
   | HandleDropEvent DragEvent
@@ -49,7 +48,6 @@ defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "MarloweEditor." <> s
 
 instance actionIsEvent :: IsEvent Action where
-  toEvent Init = Just $ defaultEvent "Init"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
   toEvent (HandleDragEvent _) = Just $ defaultEvent "HandleDragEvent"
@@ -94,6 +92,7 @@ type State
     , editorErrors :: Array IMarkerData
     , editorWarnings :: Array IMarkerData
     , hasHoles :: Boolean
+    , editorReady :: Boolean
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -120,6 +119,9 @@ _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 _hasHoles :: Lens' State Boolean
 _hasHoles = prop (SProxy :: SProxy "hasHoles")
 
+_editorReady :: Lens' State Boolean
+_editorReady = prop (SProxy :: SProxy "editorReady")
+
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
@@ -131,6 +133,7 @@ initialState =
   , editorErrors: mempty
   , editorWarnings: mempty
   , hasHoles: false
+  , editorReady: false
   }
 
 contractHasHoles :: State -> Boolean

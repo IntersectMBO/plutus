@@ -5,37 +5,42 @@ import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
 import Data.Array (concatMap, intercalate, reverse, sortWith)
 import Data.Array as Array
-import Data.BigInteger (BigInteger, fromString, fromInt)
+import Data.BigInteger (BigInteger)
 import Data.Lens (has, only, previewOn, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Newtype (unwrap, wrap)
+import Data.String (trim)
 import Data.Tuple (Tuple(..), snd)
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShrink0, fontBold, fullHeight, fullWidth, grid, gridColsDescriptionLocation, group, justifyBetween, justifyCenter, justifyEnd, maxH70p, minH0, noMargins, overflowHidden, overflowScroll, paddingX, plusBtn, smallBtn, smallSpaceBottom, spaceBottom, spaceLeft, spaceRight, spanText, spanTextBreakWord, textSecondaryColor, textXs, uppercase, w30p)
+import Halogen.Css (classNames)
+import Halogen.CurrencyInput (currencyInput)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, input, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
-import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, placeholder, type_, value)
-import Halogen.Monaco (Settings, monacoComponent)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, disabled)
+import Halogen.Monaco (monacoComponent)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
-import Marlowe.Extended (IntegerTemplateType(..))
-import Marlowe.Extended.Metadata (MetaData)
+import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
-import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
-import Monaco (Editor)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payee(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
+import Marlowe.Template (IntegerTemplateType(..))
 import Monaco as Monaco
-import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
+import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyChoice, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, BottomPanelView(..), ExecutionState(..), InitialConditionsRecord, MarloweEvent(..), State, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings, otherActionsParty)
-import Simulator (hasHistory, inFuture)
+import SimulationPage.Lenses (_bottomPanelState)
+import SimulationPage.Types (Action(..), BottomPanelView(..), State)
+import Simulator.Lenses (_SimulationRunning, _currentContract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _slot, _transactionError, _transactionWarnings)
+import Simulator.State (hasHistory, inFuture)
+import Simulator.Types (ActionInput(..), ActionInputId, ExecutionState(..), InitialConditionsRecord, LogEntry(..), otherActionsParty)
+import Text.Markdown.TrimmedInline (markdownToHTML)
 
 render ::
   forall m.
@@ -155,6 +160,7 @@ editSourceButton :: forall p. HTML p Action
 editSourceButton =
   button
     [ onClick $ const $ Just $ EditSource
+    , classNames [ "btn" ]
     ]
     [ text "Edit source" ]
 
@@ -163,35 +169,11 @@ marloweEditor ::
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
-marloweEditor state = slot _simulatorEditorSlot unit component unit (const Nothing)
+marloweEditor state = slot _simulatorEditorSlot unit component unit (Just <<< HandleEditorMessage)
   where
-  setup editor = do
-    model <- liftEffect $ Monaco.getModel editor
-    liftEffect do
-      -- Since the Simulation Tab is viewed before the Haskell tab we need to set the correct editor theme when things have been loaded
-      monaco <- Monaco.getMonaco
-      Monaco.setTheme monaco MM.daylightTheme.name
-      Monaco.setReadOnly editor true
+  setup editor = liftEffect $ Monaco.setReadOnly editor true
 
-  component = monacoComponent $ settings setup
-
-refLabel :: RefLabel
-refLabel = RefLabel "simulatorEditor"
-
-settings :: forall m. (Editor -> m Unit) -> Settings m
-settings setup =
-  { languageExtensionPoint
-  , theme: Just daylightTheme
-  , monarchTokensProvider: Nothing
-  , tokensProvider: Nothing
-  , hoverProvider: Nothing
-  , completionItemProvider: Nothing
-  , codeActionProvider: Nothing
-  , documentFormattingEditProvider: Nothing
-  , refLabel
-  , owner: "marloweEditor"
-  , setup
-  }
+  component = monacoComponent $ MM.settings setup
 
 ------------------------------------------------------------
 sidebar ::
@@ -208,18 +190,26 @@ sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState)
     ]
 
 ------------------------------------------------------------
+type TemplateFormDisplayInfo a action
+  = { lookupFormat :: String -> Maybe (String /\ Int) -- Gets the format for a given key
+    , lookupDefinition :: String -> Maybe String -- Gets the definition for a given key
+    , typeName :: IntegerTemplateType -- Identifier for the type of template we are displaying
+    , title :: String -- Title of the section of the template type
+    , prefix :: String -- Prefix for the explanation of the template
+    }
+
 startSimulationWidget :: forall p. MetaData -> InitialConditionsRecord -> HTML p Action
 startSimulationWidget metadata { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
     $ div_
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
-            , marloweActionInput (SetInitialSlot <<< wrap) initialSlot
+            , marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetInitialSlot <<< wrap) (unwrap initialSlot)
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters metadata.slotParameterDescriptions SetIntegerTemplateParam SlotContent "Timeout template parameters" "Slot for" (unwrap templateContent).slotContent
-                    <> integerTemplateParameters metadata.valueParameterDescriptions SetIntegerTemplateParam ValueContent "Value template parameters" "Constant for" (unwrap templateContent).valueContent
+                ( integerTemplateParameters SetIntegerTemplateParam slotParameterDisplayInfo (unwrap templateContent).slotContent
+                    <> integerTemplateParameters SetIntegerTemplateParam valueParameterDisplayInfo (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -230,9 +220,36 @@ startSimulationWidget metadata { initialSlot, templateContent } =
                 [ text "Start simulation" ]
             ]
         ]
+  where
+  slotParameterDisplayInfo =
+    { lookupFormat: const Nothing
+    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , typeName: SlotContent
+    , title: "Timeout template parameters"
+    , prefix: "Slot for"
+    }
 
-integerTemplateParameters :: forall action p. Map String String -> (IntegerTemplateType -> String -> BigInteger -> action) -> IntegerTemplateType -> String -> String -> Map String BigInteger -> Array (HTML p action)
-integerTemplateParameters explanations actionGen typeName title prefix content =
+  valueParameterDisplayInfo =
+    { lookupFormat: extractValueParameterNuberFormat
+    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , typeName: ValueContent
+    , title: "Value template parameters"
+    , prefix: "Constant for"
+    }
+
+  extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
+    Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
+    _ -> Nothing
+
+  lookupDescription k m =
+    ( case Map.lookup k m of
+        Just { valueParameterDescription: description }
+          | trim description /= "" -> Just description
+        _ -> Nothing
+    )
+
+integerTemplateParameters :: forall a action p. (IntegerTemplateType -> String -> BigInteger -> action) -> TemplateFormDisplayInfo a action -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, title, prefix } content =
   [ li_
       if Map.isEmpty content then
         []
@@ -246,11 +263,13 @@ integerTemplateParameters explanations actionGen typeName title prefix content =
                                 , strong_ [ text key ]
                                 , text ":"
                                 ]
-                            , marloweActionInput (actionGen typeName key) value
+                            , case lookupFormat key of
+                                Just (currencyLabel /\ numDecimals) -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) currencyLabel numDecimals value
+                                Nothing -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
                             ]
                               <> [ div [ classes [ ClassName "action-group-explanation" ] ]
-                                    $ maybe [] (\explanation -> [ text ("“" <> explanation <> "„") ])
-                                    $ Map.lookup key explanations
+                                    $ maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
+                                    $ lookupDefinition key
                                 ]
                           )
                       )
@@ -347,7 +366,7 @@ participant ::
   Array ActionInput ->
   HTML p Action
 participant metadata state party actionInputs =
-  li [ classes [ ClassName "participant-a", noMargins ] ]
+  li [ classes [ noMargins ] ]
     ( [ title ]
         <> (map (inputItem metadata state partyName) actionInputs)
     )
@@ -361,7 +380,7 @@ participant metadata state party actionInputs =
         [ div [ classes [ ClassName "action-group-title" ] ] [ h6_ [ em_ [ text "Participant ", strong_ [ text partyName ] ] ] ] ]
           <> [ div [ classes [ ClassName "action-group-explanation" ] ]
                 ( case party of
-                    Role roleName -> maybe [] (\explanation -> [ text ("“" <> explanation <> "„") ]) $ Map.lookup roleName metadata.roleDescriptions
+                    Role roleName -> maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ]) $ Map.lookup roleName metadata.roleDescriptions
                     _ -> []
                 )
             ]
@@ -382,7 +401,7 @@ inputItem metadata _ person (DepositInput accountId party token value) =
     [ renderDeposit metadata accountId party token value
     , div [ class_ (ClassName "align-top") ]
         [ button
-            [ classes [ plusBtn, smallBtn ]
+            [ classes [ plusBtn, smallBtn, btn ]
             , onClick $ const $ Just
                 $ AddInput (IDeposit accountId party token value) []
             ]
@@ -396,27 +415,36 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
     ( [ div [ classes [ ClassName "action-label" ] ]
           ( [ div [ class_ (ClassName "choice-input") ]
                 [ span [ class_ (ClassName "break-word-span") ] [ text "Choice ", b_ [ text (show choiceName <> ": ") ] ]
-                , marloweActionInput (SetChoice choiceId) chosenNum
+                , case mChoiceInfo of
+                    Just { choiceFormat: DecimalFormat numDecimals currencyLabel } -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) currencyLabel numDecimals chosenNum
+                    _ -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) chosenNum
                 ]
             , div [ class_ (ClassName "choice-error") ] error
             ]
               <> ( maybe []
                     ( \explanation ->
                         [ div [ class_ (ClassName "action-explanation") ]
-                            [ text ("“" <> explanation <> "„") ]
+                            ([ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
                         ]
                     )
-                    $ Map.lookup choiceName metadata.choiceDescriptions
+                    (mChoiceInfo >>= mExtractDescription)
                 )
           )
       ]
         <> addButton
     )
   where
+  mChoiceInfo = Map.lookup choiceName metadata.choiceInfo
+
+  mExtractDescription { choiceDescription }
+    | trim choiceDescription /= "" = Just choiceDescription
+
+  mExtractDescription _ = Nothing
+
   addButton =
     if inBounds chosenNum bounds then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
+          [ classes [ btn, plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
           , onClick $ const $ Just
               $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
@@ -433,14 +461,17 @@ inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwn
     else
       "Choice must be between " <> intercalate " or " (map boundError bounds)
 
-  boundError (Bound from to) = show from <> " and " <> show to
+  boundError (Bound from to) = showPretty from <> " and " <> showPretty to
+
+  showPretty :: BigInteger -> String
+  showPretty = showPrettyChoice (getChoiceFormat metadata choiceName)
 
 inputItem _ _ person NotifyInput =
   li
     [ classes [ ClassName "action", ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+        [ classes [ btn, plusBtn, smallBtn, ClassName "align-top" ]
         , onClick $ const $ Just
             $ AddInput INotify []
         ]
@@ -453,7 +484,7 @@ inputItem _ state person (MoveToSlot slot) =
     ( [ div [ classes [ ClassName "action" ] ]
           [ p [ class_ (ClassName "slot-input") ]
               [ spanTextBreakWord "Move to slot "
-              , marloweActionInput (SetSlot <<< wrap) slot
+              , marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetSlot <<< wrap) (unwrap slot)
               ]
           , p [ class_ (ClassName "choice-error") ] error
           ]
@@ -464,7 +495,7 @@ inputItem _ state person (MoveToSlot slot) =
   addButton =
     if inFuture state slot then
       [ button
-          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink" ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-top", ClassName "flex-noshrink", btn ]
           , onClick $ const $ Just $ MoveSlot slot
           ]
           [ text "+" ]
@@ -476,23 +507,11 @@ inputItem _ state person (MoveToSlot slot) =
 
   boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
 
-marloweActionInput :: forall p a action. Show a => (BigInteger -> action) -> a -> HTML p action
-marloweActionInput f current =
-  input
-    [ type_ InputNumber
-    , placeholder "BigInteger"
-    , class_ $ ClassName "action-input"
-    , value $ show current
-    , onValueChange
-        $ ( \x ->
-              Just
-                $ f
-                    ( case fromString x of
-                        Just y -> y
-                        Nothing -> fromInt 0
-                    )
-          )
-    ]
+marloweCurrencyInput :: forall p action. Array String -> (BigInteger -> action) -> String -> Int -> BigInteger -> HTML p action
+marloweCurrencyInput classes f currencyLabel numDecimals current = currencyInput classes current currencyLabel numDecimals (Just <<< f <<< fromMaybe zero)
+
+marloweActionInput :: forall p action. Array String -> (BigInteger -> action) -> BigInteger -> HTML p action
+marloweActionInput classes f current = marloweCurrencyInput classes f "" 0 current
 
 renderDeposit :: forall p. MetaData -> AccountId -> Party -> Token -> BigInteger -> HTML p Action
 renderDeposit metadata accountOwner party tok money =
@@ -524,10 +543,20 @@ logWidget metadata state =
   where
   inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap (logToLines metadata) <<< reverse))
 
-logToLines :: forall p a. MetaData -> MarloweEvent -> Array (HTML p a)
+logToLines :: forall p a. MetaData -> LogEntry -> Array (HTML p a)
+logToLines metadata (StartEvent slot) =
+  [ span_ [ text "Contract started" ]
+  , span [ class_ justifyEnd ] [ text $ show slot ]
+  ]
+
 logToLines metadata (InputEvent (TransactionInput { interval, inputs })) = inputToLine metadata interval =<< Array.fromFoldable inputs
 
 logToLines metadata (OutputEvent interval payment) = paymentToLines metadata interval payment
+
+logToLines metadata (CloseEvent (SlotInterval start end)) =
+  [ span_ [ text $ "Contract ended" ]
+  , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
+  ]
 
 inputToLine :: forall p a. MetaData -> SlotInterval -> Input -> Array (HTML p a)
 inputToLine metadata (SlotInterval start end) (IDeposit accountOwner party token money) =
@@ -549,7 +578,7 @@ inputToLine metadata (SlotInterval start end) (IChoice (ChoiceId choiceName choi
       [ text "Participant "
       , strong_ [ renderPrettyParty metadata choiceOwner ]
       , text " chooses the value "
-      , strong_ [ text (showPrettyMoney chosenNum) ]
+      , strong_ [ text (showPrettyChoice (getChoiceFormat metadata choiceName) chosenNum) ]
       , text " for choice with id "
       , strong_ [ text (show choiceName) ]
       ]
@@ -562,17 +591,19 @@ inputToLine _ (SlotInterval start end) INotify =
   ]
 
 paymentToLines :: forall p a. MetaData -> SlotInterval -> Payment -> Array (HTML p a)
-paymentToLines metadata slotInterval (Payment party money) = join $ unfoldAssets money (paymentToLine metadata slotInterval party)
+paymentToLines metadata slotInterval (Payment accountId payee money) = join $ unfoldAssets money (paymentToLine metadata slotInterval accountId payee)
 
-paymentToLine :: forall p a. MetaData -> SlotInterval -> Party -> Token -> BigInteger -> Array (HTML p a)
-paymentToLine metadata (SlotInterval start end) party token money =
+paymentToLine :: forall p a. MetaData -> SlotInterval -> AccountId -> Payee -> Token -> BigInteger -> Array (HTML p a)
+paymentToLine metadata (SlotInterval start end) accountId payee token money =
   [ span_
       [ text "The contract pays "
       , strong_ [ text (showPrettyMoney money) ]
       , text " units of "
       , strong_ [ renderPrettyToken token ]
-      , text " to participant "
-      , strong_ [ renderPrettyParty metadata party ]
+      , text " to "
+      , strong_ $ renderPrettyPayee metadata payee
+      , text " from "
+      , strong_ $ renderPrettyPayee metadata (Account accountId)
       ]
   , span [ class_ justifyEnd ] [ text $ showSlotRange start end ]
   ]

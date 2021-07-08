@@ -1,12 +1,13 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
 
 module Plutus.PAB.Monitoring.Util (
       handleLogMsgTrace
@@ -15,27 +16,34 @@ module Plutus.PAB.Monitoring.Util (
     , runLogEffects
     , convertLog
     , toSeverity
+    , PrettyObject(..)
     ) where
 
-import qualified Cardano.BM.Configuration.Model as CM
+import qualified Cardano.BM.Configuration.Model        as CM
 import           Cardano.BM.Data.Counter
 import           Cardano.BM.Data.LogItem
 import           Cardano.BM.Data.Severity
 import           Cardano.BM.Data.SubTrace
 import           Cardano.BM.Data.Trace
+import           Cardano.BM.Data.Tracer                (ToObject (..))
 import           Cardano.BM.Observer.Monadic
 import           Cardano.BM.Trace
-import           Control.Monad                  (void)
-import           Control.Monad.Catch            (MonadCatch)
+import           Control.Monad                         (void)
+import           Control.Monad.Catch                   (MonadCatch)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Extras.Log (LogMsg (..), LogObserve (..), Observation (..))
-import qualified Control.Monad.Freer.Extras.Log as L
-import           Control.Monad.IO.Class         (MonadIO (..))
-import           Data.Bifunctor                 (Bifunctor (..))
-import           Data.Foldable                  (for_)
-import           Data.Functor.Contravariant     (Contravariant (..))
-import           Data.Maybe                     (fromMaybe)
-import           Data.Text                      (Text)
+import           Control.Monad.Freer.Extras.Log        (LogMsg (..), LogObserve (..), Observation (..))
+import qualified Control.Monad.Freer.Extras.Log        as L
+import           Control.Monad.IO.Class                (MonadIO (..))
+import           Data.Aeson                            (FromJSON, ToJSON (..))
+import           Data.Bifunctor                        (Bifunctor (..))
+import           Data.Foldable                         (for_)
+import           Data.Functor.Contravariant            (Contravariant (..))
+import qualified Data.HashMap.Strict                   as HM
+import           Data.Maybe                            (fromMaybe)
+import           Data.Text                             (Text)
+import qualified Data.Text.Lazy                        as Text
+import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty)
+import qualified Data.Text.Prettyprint.Doc.Render.Text as Render
 
 toSeverity :: L.LogLevel -> Severity
 toSeverity = \case
@@ -128,3 +136,13 @@ handleObserveTrace config t =
   in L.handleObserve
       observeBefore
       observeAfter
+
+-- | A 'ToObject' instance that uses 'Pretty' as its 'textTransformer'
+newtype PrettyObject t = PrettyObject { unPrettyObject :: t }
+    deriving newtype (ToJSON, FromJSON)
+
+instance (Pretty t) => ToObject (PrettyObject t) where
+    toObject _ (PrettyObject t) =
+        let str = Text.toStrict . Render.renderLazy . layoutPretty defaultLayoutOptions $ pretty t in
+        HM.singleton "string" (toJSON str)
+    textTransformer (PrettyObject t) _ = Text.toStrict . Render.renderLazy . layoutPretty defaultLayoutOptions $ pretty t

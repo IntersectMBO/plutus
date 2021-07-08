@@ -24,12 +24,12 @@ module Ledger.AddressMap(
     restrict,
     addressesTouched,
     outRefMap,
+    outputsMapFromTxForAddress,
     fromChain
     ) where
 
 import           Codec.Serialise.Class    (Serialise)
-import           Control.Lens             (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, view, (&), (.~),
-                                           (^.))
+import           Control.Lens             (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, (&), (.~), (^.))
 import           Control.Monad            (join)
 import           Data.Aeson               (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson               as JSON
@@ -44,7 +44,6 @@ import           GHC.Generics             (Generic)
 import           Ledger.Blockchain
 import           Plutus.V1.Ledger.Address (Address (..))
 import           Plutus.V1.Ledger.Tx      (Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), txId)
-import qualified Plutus.V1.Ledger.Tx      as Tx
 import           Plutus.V1.Ledger.Value   (Value)
 
 type UtxoMap = Map TxOutRef TxOutTx
@@ -125,12 +124,20 @@ traverseWithKey ::
   -> f AddressMap
 traverseWithKey f (AddressMap m) = AddressMap <$> Map.traverseWithKey f m
 
+outputsMapFromTxForAddress :: Address -> OnChainTx -> Map TxOutRef TxOutTx
+outputsMapFromTxForAddress addr (Valid tx) =
+    fmap (\txout -> TxOutTx{txOutTxTx=tx, txOutTxOut = txout})
+    $ Map.filter ((==) addr . txOutAddress)
+    $ unspentOutputsTx tx
+outputsMapFromTxForAddress _ (Invalid _) = mempty
+
 -- | Create an 'AddressMap' with the unspent outputs of a single transaction.
-fromTxOutputs :: Tx -> AddressMap
-fromTxOutputs tx =
+fromTxOutputs :: OnChainTx -> AddressMap
+fromTxOutputs (Valid tx) =
     AddressMap . Map.fromListWith Map.union . fmap mkUtxo . zip [0..] . txOutputs $ tx where
     mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRef h i) (TxOutTx tx t))
     h = txId tx
+fromTxOutputs (Invalid _) = mempty
 
 -- | Create a map of unspent transaction outputs to their addresses (the
 -- "inverse" of an 'AddressMap', without the values)
@@ -144,7 +151,7 @@ knownAddresses = Map.fromList . unRef . Map.toList . getAddressMap where
 
 -- | Update an 'AddressMap' with the inputs and outputs of a new
 -- transaction. @updateAddresses@ does /not/ add or remove any keys from the map.
-updateAddresses :: Tx -> AddressMap -> AddressMap
+updateAddresses :: OnChainTx -> AddressMap -> AddressMap
 updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) where
     -- adds the newly produced outputs, and removes the consumed outputs, for
     -- an address `adr`
@@ -165,7 +172,7 @@ updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) w
 
 -- | Update an 'AddressMap' with the inputs and outputs of a new
 -- transaction, including all addresses in the transaction.
-updateAllAddresses :: Tx -> AddressMap -> AddressMap
+updateAllAddresses :: OnChainTx -> AddressMap -> AddressMap
 -- updateAddresses handles getting rid of spent outputs, so all we have to do is add in the
 -- new things. We can do this by just merging in `fromTxOutputs`, which will have many of the
 -- things that are already there, but also the new things.
@@ -175,13 +182,13 @@ updateAllAddresses tx utxo = updateAddresses tx utxo <> fromTxOutputs tx
 inputs ::
     Map TxOutRef Address
     -- ^ A map of 'TxOutRef's to their 'Address'es
-    -> Tx
+    -> OnChainTx
     -> Map Address (Set.Set TxOutRef)
 inputs addrs = Map.fromListWith Set.union
     . fmap (fmap Set.singleton . swap)
     . mapMaybe ((\a -> sequence (a, Map.lookup a addrs)) . txInRef)
     . Set.toList
-    . view Tx.inputs
+    . consumableInputs
 
 -- | Restrict an 'AddressMap' to a set of addresses.
 restrict :: AddressMap -> Set.Set Address -> AddressMap
@@ -192,7 +199,7 @@ swap (x, y) = (y, x)
 
 -- | Get the set of all addresses that the transaction spends outputs from
 --   or produces outputs to
-addressesTouched :: AddressMap -> Tx -> Set.Set Address
+addressesTouched :: AddressMap -> OnChainTx -> Set.Set Address
 addressesTouched utxo t = ins <> outs where
     ins = Map.keysSet (inputs (knownAddresses utxo) t)
     outs = Map.keysSet (getAddressMap (fromTxOutputs t))

@@ -22,7 +22,7 @@ import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (_FunctionSchema)
 import Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
-import Plutus.PAB.Events.Contract (ContractPABRequest)
+import Plutus.Contract.Effects (PABReq)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Schema.Types (FormEvent)
 import Schema.View (actionArgumentForm)
@@ -85,15 +85,15 @@ contractStatusesPane contractStates =
         ]
     ]
   where
-  contractsWithRequests :: Array (WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm))
+  contractsWithRequests :: Array (WebStreamData (PartiallyDecodedResponse PABReq /\ Array EndpointForm))
   contractsWithRequests = Array.filter hasActiveRequests $ Array.fromFoldable $ Map.values contractStates
 
-  hasActiveRequests :: WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm) -> Boolean
+  hasActiveRequests :: WebStreamData (PartiallyDecodedResponse PABReq /\ Array EndpointForm) -> Boolean
   hasActiveRequests contractInstance = not $ null $ view (Stream._Success <<< _1 <<< _hooks) contractInstance
 
 contractStatusPane ::
   forall p.
-  WebStreamData (PartiallyDecodedResponse ContractPABRequest /\ Array EndpointForm) ->
+  WebStreamData (PartiallyDecodedResponse PABReq /\ Array EndpointForm) ->
   HTML p HAction
 contractStatusPane contractState = div [ class_ $ ClassName "contract-status" ] []
 
@@ -115,7 +115,7 @@ contractStatusPane contractState = div [ class_ $ ClassName "contract-status" ] 
 --            ]
 --    )
 --    contractState
-contractRequestView :: forall p. PartiallyDecodedResponse ContractPABRequest -> HTML p HAction
+contractRequestView :: forall p. PartiallyDecodedResponse PABReq -> HTML p HAction
 contractRequestView contractInstance =
   table [ classes [ Bootstrap.table, tableBordered ] ]
     [ thead_
@@ -158,7 +158,7 @@ actionCard contractInstanceId wrapper endpointForm =
   col4_
     [ card_
         [ cardHeader_ [ h2_ [ text $ view (_schema <<< _FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) endpointForm ] ]
-        , cardBody_ [ actionArgumentForm wrapper (view _argument endpointForm) ]
+        , cardBody_ [ actionArgumentForm 0 wrapper (view _argument endpointForm) ]
         , cardFooter_
             [ button
                 [ classes [ btn, btnSmall, btnPrimary ]

@@ -1,0 +1,75 @@
+html,
+body,
+.site-wrap {
+  background: var(--bg-light);
+  /* The properties from here on set the layout of the page.
+     The site-wrap is the topmost element, and it should always
+     ocupy the full height of the screen. */
+  height: 100vh;
+
+  /* We use a grid system to keep the header and footer always
+     at the top and bottom without needing to define margins or
+     positions absolutes. */
+  display: grid;
+  /* Only one column of the whole width */
+  grid-template-columns: 1fr;
+  /* Three named rows with headers and footer equal to the space they need (auto)
+     and the main content occupies the remaining space. */
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    'header'
+    'main'
+    'footer';
+}
+
+header {
+  /* Indicate which row of the .site-wrap grid to use */
+  grid-area: header;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  /* Indicate which row of the .site-wrap grid to use */
+  grid-area: main;
+
+  hr {
+    margin: 0em 0.5em 0.5em 0.5em;
+    border-top: 1px solid var(--bg-darker);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+footer {
+  /* Indicate which row of the .site-wrap grid to use */
+  grid-area: footer;
+}
+
+/* The "grey" background that prevents other actions to be performed */
+.loading-overlay {
+  /*
+    Hidden by default
+    Centered vertically and horizontally
+  */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Stay in place */
+  position: fixed;
+  /* Sit on top */
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  /* Full width */
+  width: 100vw;
+  /* Full height */
+  height: 100vh;
+  /* Fallback color */
+  background-color: rgb(0, 0, 0);
+  /* Black w/ opacity */
+  background-color: rgba(0, 0, 0, 0.4);
+}

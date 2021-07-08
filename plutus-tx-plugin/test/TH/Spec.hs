@@ -34,7 +34,6 @@ import qualified PlutusIR                  as PIR
 
 import qualified PlutusCore                as PLC
 import           PlutusCore.Pretty
-import qualified PlutusCore.Universe       as PLC
 import           UntypedPlutusCore
 import qualified UntypedPlutusCore         as UPLC
 
@@ -45,13 +44,13 @@ import           Control.Monad.Except
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
-runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- Haskell.traverse toUPlc values
      let p = Haskell.foldl1 UPLC.applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO ([String], CekExTally PLC.DefaultFun, (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()))
+runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO ([Haskell.String], CekExTally PLC.DefaultFun, (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()))
 runPlcCekTrace values = do
      ps <- Haskell.traverse toUPlc values
      let p = Haskell.foldl1 UPLC.applyProgram ps
@@ -59,10 +58,10 @@ runPlcCekTrace values = do
      res <- either (throwError . SomeException) Haskell.pure result
      Haskell.pure (logOut, tally, res)
 
-goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
+goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Haskell.String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
 
-goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
+goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Haskell.String -> [a] -> TestNested
 goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . (view _1)) Haskell.<$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested
@@ -76,7 +75,7 @@ tests = testNested "TH" [
     , goldenEvalCekLog "tracePrelude" [tracePrelude]
     , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
     -- want to see the raw structure, so using Show
-    , nestedGoldenVsDoc "someData" (pretty $ show someData)
+    , nestedGoldenVsDoc "someData" (pretty $ Haskell.show someData)
   ]
 
 simple :: CompiledCode (Bool -> Integer)
@@ -92,11 +91,11 @@ andPlc = $$(compile [|| $$(andTH) True False ||])
 allPlc :: CompiledCode Bool
 allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
 
-convertString :: CompiledCode Builtins.String
+convertString :: CompiledCode Builtins.BuiltinString
 convertString = $$(compile [|| "test" ||])
 
 traceDirect :: CompiledCode ()
-traceDirect = $$(compile [|| Builtins.trace "test" ||])
+traceDirect = $$(compile [|| Builtins.trace "test" () ||])
 
 tracePrelude :: CompiledCode Integer
 tracePrelude = $$(compile [|| trace "test" (1::Integer) ||])

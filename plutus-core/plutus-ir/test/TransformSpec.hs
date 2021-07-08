@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module TransformSpec where
+module TransformSpec (transform) where
 
 import           Common
 import           TestLib
@@ -11,12 +11,16 @@ import           PlutusCore.Quote
 import qualified PlutusCore                         as PLC
 
 import           PlutusIR.Parser
+import qualified PlutusIR.Transform.Beta            as Beta
+import qualified PlutusIR.Transform.DeadCode        as DeadCode
 import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
+import qualified PlutusIR.Transform.Unwrap          as Unwrap
 
+import           Control.Monad
 import           Text.Megaparsec.Pos
 
 transform :: TestNested
@@ -25,6 +29,9 @@ transform = testNested "transform" [
     , nonStrict
     , letFloat
     , inline
+    , beta
+    , unwrapCancel
+    , deadCode
     ]
 
 thunkRecursions :: TestNested
@@ -71,6 +78,7 @@ letFloat =
   ,"strictValueNonValue"
   ,"strictValueValue"
   ,"even3Eval"
+  ,"strictNonValueDeep"
   ]
 
 instance Semigroup SourcePos where
@@ -82,11 +90,49 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (Inline.inline . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . (Inline.inline <=< PLC.rename)) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "var"
     , "builtin"
     , "constant"
     , "transitive"
-    -- We don't do beta reduction, but we could
-    , "lamapp"
+    , "tyvar"
+    ]
+
+
+beta :: TestNested
+beta =
+    testNested "beta"
+    $ map (goldenPir (Beta.beta . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "lamapp"
+    , "absapp"
+    ]
+
+unwrapCancel :: TestNested
+unwrapCancel =
+    testNested "unwrapCancel"
+    $ map (goldenPir Unwrap.unwrapCancel $ term @PLC.DefaultUni @PLC.DefaultFun)
+    -- Note: these examples don't typecheck, but we don't care
+    [ "unwrapWrap"
+    , "wrapUnwrap"
+    ]
+
+deadCode :: TestNested
+deadCode =
+    testNested "deadCode"
+    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "typeLet"
+    , "termLet"
+    , "strictLet"
+    , "nonstrictLet"
+    , "datatypeLiveType"
+    , "datatypeLiveConstr"
+    , "datatypeLiveDestr"
+    , "datatypeDead"
+    , "singleBinding"
+    , "builtinBinding"
+    , "etaBuiltinBinding"
+    , "nestedBindings"
+    , "nestedBindingsIndirect"
+    , "recBindingSimple"
+    , "recBindingComplex"
     ]

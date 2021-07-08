@@ -1,10 +1,10 @@
 { lib
-, fetchFromGitHub
-, fetchFromGitLab
+, sources
 , agdaWithStdlib
 , stdenv
 , haskell-nix
 , buildPackages
+, writeShellScript
 , checkMaterialization
 , gitignore-nix
 , R
@@ -31,7 +31,7 @@ let
   # The compiler that we are using. We are using a patched version so we need to specify it explicitly.
   # This version has the experimental core interface files patch, and a fix for unboxed tuples in
   # GHCi, which helps with HLS.
-  compiler-nix-name = "ghc810220201118";
+  compiler-nix-name = "ghc810420210212";
 
   # The haskell project created by haskell-nix.stackProject'
   baseProject =
@@ -56,12 +56,12 @@ let
   projectPackagesAllHaddock = haskell-nix.haskellLib.selectProjectPackages projectAllHaddock.hsPkgs;
 
   extraPackages = import ./extra.nix {
-    inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
+    inherit stdenv lib haskell-nix sources buildPackages writeShellScript;
     inherit index-state checkMaterialization compiler-nix-name;
   };
 
 in
 rec {
-  inherit index-state project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
+  inherit index-state compiler-nix-name project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
   inherit extraPackages;
 }

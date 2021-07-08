@@ -1,5 +1,4 @@
 { pkgs
-, iohkNix
 , gitignore-nix
 , fixStylishHaskell
 , fixPurty
@@ -13,6 +12,7 @@
 , plutus-pab
 , marlowe-app
 , marlowe-companion-app
+, marlowe-follow-app
 , docs
 , vmCompileTests ? false
 }:
@@ -21,7 +21,7 @@ let
   cleanSrc = gitignore-nix.gitignoreSource src;
 in
 pkgs.recurseIntoAttrs {
-  shellcheck = pkgs.callPackage iohkNix.tests.shellcheck { src = cleanSrc; };
+  shellcheck = pkgs.callPackage ./shellcheck.nix { src = cleanSrc; };
 
   stylishHaskell = pkgs.callPackage ./stylish-haskell.nix {
     src = cleanSrc;
@@ -43,10 +43,9 @@ pkgs.recurseIntoAttrs {
     inherit fixPngOptimization;
   };
 
-  terraform = pkgs.callPackage ./terraform.nix {
-    src = cleanSrc;
-    inherit (pkgs) terraform;
+  vmTests = pkgs.callPackage ./vm.nix {
+    inherit vmCompileTests plutus-playground marlowe-playground
+      marlowe-dashboard web-ghc plutus-pab
+      marlowe-app marlowe-companion-app marlowe-follow-app docs;
   };
-
-  vmTests = pkgs.callPackage ./vm.nix { inherit vmCompileTests plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-app marlowe-companion-app docs; };
 }

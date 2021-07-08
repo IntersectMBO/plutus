@@ -280,7 +280,6 @@ dissect-lemma (μl E B) E' .(μ- B) refl | inj₁ refl | I[ eq ] rewrite dissect
 dissect-lemma (μl E B) .(μl E'' B) .F' refl | inj₂ (I , E'' , F') | I[_] eq = cong (λ E → μl E B) (dissect-lemma E E'' F' eq)
 
 {-# TERMINATING #-}
-
 unwindVE : (A : ∅ ⊢⋆ I)(B : ∅ ⊢⋆ J)(E : EvalCtx K J)(E' : EvalCtx J I)
       → B ≡ closeEvalCtx E' A
       → (VA : Value⋆ A)
@@ -325,6 +324,8 @@ unwind A A' E p VA' = subst-step*
 open import Data.Empty
 open import Relation.Nullary
 
+
+-- this lemma makes the change of direction happen
 lemmaF : ∀ (M : ∅ ⊢⋆ J)(F : Frame K J)(E : EvalCtx K' K)
       → ∀ (E' : EvalCtx K J')(L : ∅ ⊢⋆ I ⇒ J') N (V : Value⋆ M)
       → (VL : Value⋆ L) → (VN : Value⋆ N)

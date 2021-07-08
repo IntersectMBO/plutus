@@ -5,6 +5,7 @@
 module Main (main) where
 
 import           PlutusCore                               as PLC
+import qualified PlutusCore.DataFilePaths                 as DFP
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.MkPlc
 import           UntypedPlutusCore                        as UPLC
@@ -19,7 +20,6 @@ import qualified Hedgehog.Internal.Gen                    as HH
 import qualified Hedgehog.Internal.Tree                   as HH
 import qualified Hedgehog.Range                           as HH.Range
 import           System.Directory
-import           System.FilePath
 import           System.Random                            (StdGen, getStdGen, randomR)
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
@@ -33,10 +33,10 @@ runTermBench :: String -> PlainTerm -> Benchmark
 runTermBench name term = env
     (do
         (_result, budget) <-
-          pure $ (unsafeEvaluateCek defBuiltinsRuntime) term
+          pure $ (unsafeEvaluateCek defaultCekParameters) term
         pure budget
         )
-    $ \_ -> bench name $ nf (unsafeEvaluateCek defBuiltinsRuntime) term
+    $ \_ -> bench name $ nf (unsafeEvaluateCek defaultCekParameters) term
 
 
 ---------------- Constructing PLC terms for benchmarking ----------------
@@ -244,6 +244,9 @@ sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb882159
 pubKey :: BS.ByteString
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 
+-- The sizes of the signature and the key are fixed (64 and 32 bytes) so we don't include
+-- them in the benchmark name.  However, in models.R we still have to remove the overhead
+-- for a three-argument function.
 benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
@@ -255,22 +258,47 @@ benchVerifySignature =
         bs = (makeSizedBytestring seedA . fromInteger) <$> byteStringSizes
 
 
+---------------- Calibration ----------------
+
+{- We want the benchmark results to reflect only the time taken to evaluate a
+   builtin, not the startup costs of the CEK machine or the overhead incurred
+   while collecting the arguments (applyEvaluate/ forceEvaluate etc).  We
+   benchmark the no-op builtins Nop1, Nop2, and Nop3 and in the R code we
+   subtract the costs of those from the time recorded for the real builtins.
+   Experiments show that the time taken to evaluate these doesn't depend on the
+   types or the sizes of the arguments, so we just use function which consume a
+   number of integer arguments and return (). -}
+
+-- TODO.  Nop1, Nop2, and Nop3 are temporarily included in the set of default
+-- builtins.  These functions are only required here, so we should construct an
+-- extended set of bultins here and use that instead.
+
+benchNop1 :: StdGen -> Benchmark
+benchNop1 gen =
+    let name = Nop1
+        mem = 1
+        (x,_) = randNwords mem gen
+    in bgroup (show name) $ [runTermBench (show $ memoryUsage x) $ mkApp1 name x]
+
+benchNop2 :: StdGen -> Benchmark
+benchNop2 gen =
+    let name = Nop2
+        mem = 1
+        (x,gen1) = randNwords mem gen
+        (y,_)    = randNwords mem gen1
+    in bgroup (show name) [bgroup (show $ memoryUsage x) [runTermBench (show $ memoryUsage y) $ mkApp2 name x y]]
+
+benchNop3 :: StdGen -> Benchmark
+benchNop3 gen =
+    let name = Nop3
+        mem = 1
+        (x,gen1) = randNwords mem gen
+        (y,gen2) = randNwords mem gen1
+        (z,_)    = randNwords mem gen2
+    in bgroup (show name) [bgroup (show $ memoryUsage x) [bgroup (show $ memoryUsage y) $ [runTermBench (show $ memoryUsage z) $ mkApp3 name x y z]]]
+
+
 ---------------- Miscellaneous ----------------
-
--- We may need these later.
-{-
-benchComparison :: [Benchmark]
-benchComparison = (\n -> runTermBench ("CalibratingBench/ExMemory " <> show n) (erase $ createRecursiveTerm n)) <$> [1..20]
-
--- Creates a cheap builtin operation to measure the base cost of executing one.
-createRecursiveTerm :: Integer -> Plain PLC.Term DefaultUni DefaultFun
-createRecursiveTerm d = mkIterApp () (builtin () AddInteger)
-                        [ (mkConstant () (1::Integer))
-                        , if d == 0
-                          then mkConstant () (1::Integer)
-                          else createRecursiveTerm (d-1)
-                        ]
--}
 
 {- Creates the .csv file consumed by create-cost-model. The data in this file is
    the time taken for all the builtin operations, as measured by criterion.
@@ -281,36 +309,41 @@ createRecursiveTerm d = mkIterApp () (builtin () AddInteger)
    run`) then the current directory will be `plutus-core`.  If you use nix it'll
    be the current shell directory, so you'll need to run it from `plutus-core`
    (NOT `plutus`, where `default.nix` is).  See SCP-2005. -}
+{- Experimentation and examination of implementations suggests that the cost
+   models for certain builtins can be re-used for others, and we do this in
+   models.R.  Specifically, we re-use the cost models for the functions on the
+   left below for the functions on the right as well.  Because of this we don't
+   benchmark the functions on the right; the benchmarks take a long time to run,
+   so this speeds things up a lot.
+
+   AddInteger:        SubtractInteger
+   DivideInteger:     RemainderInteger, QuotientInteger, ModInteger
+   LessThanInteger:   GreaterThanInteger
+   LessThanEqInteger: GreaterThanEqInteger
+   LessThanByteString:      GreaterThanByteString
+-}
 main :: IO ()
 main = do
-  gen <- System.Random.getStdGen
-  let dataDir = "cost-model" </> "data"
-      csvFile = dataDir </> "benching.csv"
-      backupFile = dataDir </> "benching.csv.backup"
-  createDirectoryIfMissing True dataDir
-  csvExists <- doesFileExist csvFile
-  if csvExists then renameFile csvFile backupFile else pure ()
+  gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
+  createDirectoryIfMissing True DFP.costModelDataDir
+  csvExists <- doesFileExist DFP.benchingResultsFile
+  if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
-  defaultMainWith (defaultConfig { C.csvFile = Just csvFile })
-                      $  (benchTwoIntegers gen <$> [ AddInteger
-                                                   , SubtractInteger
+  defaultMainWith (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
+                         [benchNop1 gen, benchNop2 gen, benchNop3 gen]
+                      <> (benchTwoIntegers gen <$> [ AddInteger
                                                    , MultiplyInteger
                                                    , DivideInteger
-                                                   , ModInteger
-                                                   , QuotientInteger
-                                                   , RemainderInteger
                                                    ])
-                      <> (benchSameTwoIntegers gen <$> [ EqInteger
+                      <> (benchSameTwoIntegers gen <$> [ EqualsInteger
                                                        , LessThanInteger
-                                                       , GreaterThanInteger
-                                                       , LessThanEqInteger
-                                                       , GreaterThanEqInteger
+                                                       , LessThanEqualsInteger
                                                        ])
                       <> (benchTwoByteStrings <$> [Concatenate])
                       <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
-                      <> (benchHashOperations <$> [SHA2, SHA3])
-                      <> (benchSameTwoByteStrings <$> [ EqByteString
-                                                      , LtByteString
-                                                      , GtByteString
+                      <> (benchHashOperations <$> [Sha2_256, Sha3_256])
+                      <> (benchSameTwoByteStrings <$> [ EqualsByteString
+                                                      , LessThanByteString
                                                       ])
                       <> [benchVerifySignature]
+

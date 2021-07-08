@@ -9,9 +9,9 @@ module UntypedPlutusCore.Core.Instance.CBOR where
 import           UntypedPlutusCore.Core.Type
 
 import           PlutusCore.CBOR
-import           PlutusCore.Universe
 
 import           Codec.Serialise
+import           Universe
 
 import qualified Data.ByteString.Lazy        as BSL
 

@@ -7,7 +7,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MonoLocalBinds         #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE NamedFieldPuns         #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -35,9 +34,13 @@ module Plutus.Contract.StateMachine(
     , runGuardedStep
     , runStep
     , runInitialise
+    , runGuardedStepWith
+    , runStepWith
+    , runInitialiseWith
     , getOnChainState
     , waitForUpdate
-    , waitForUpdateUntil
+    , waitForUpdateUntilSlot
+    , waitForUpdateUntilTime
     -- * Lower-level API
     , StateMachineTransition(..)
     , mkStep
@@ -48,6 +51,7 @@ module Plutus.Contract.StateMachine(
 import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Data.Aeson                           (FromJSON, ToJSON)
+import           Data.Default                         (Default (def))
 import           Data.Either                          (rights)
 import           Data.Map                             (Map)
 import qualified Data.Map                             as Map
@@ -55,15 +59,15 @@ import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
 import           Data.Void                            (Void, absurd)
 import           GHC.Generics                         (Generic)
-
-import           Ledger                               (Slot, Value)
+import           Ledger                               (POSIXTime, Slot, Value)
 import qualified Ledger
-import           Ledger.AddressMap                    (UtxoMap)
+import           Ledger.AddressMap                    (outputsMapFromTxForAddress)
 import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
 import           Ledger.Constraints.OffChain          (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain          as Constraints
 import           Ledger.Constraints.TxConstraints     (InputConstraint (..), OutputConstraint (..))
 import           Ledger.Crypto                        (pubKeyHash)
+import qualified Ledger.TimeSlot                      as TimeSlot
 import           Ledger.Tx                            as Tx
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
@@ -73,7 +77,7 @@ import qualified Ledger.Value                         as Value
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
 import qualified Plutus.Contract.StateMachine.OnChain as SM
-import qualified PlutusTx                             as PlutusTx
+import qualified PlutusTx
 
 -- $statemachine
 -- To write your contract as a state machine you need
@@ -185,7 +189,7 @@ mkStateMachineClient inst =
 getOnChainState ::
     ( AsSMContractError e
     , PlutusTx.IsData state
-    , HasUtxoAt schema)
+    )
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i, UtxoMap))
 getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SMContractError) $ do
@@ -202,7 +206,8 @@ data WaitingResult a
     = Timeout Slot
     | ContractEnded
     | WaitingResult a
-  deriving (Show)
+  deriving (Show,Generic)
+  deriving anyclass (ToJSON, FromJSON)
 
 
 -- | Wait for the on-chain state of the state machine instance to change until timeoutSlot,
@@ -210,24 +215,22 @@ data WaitingResult a
 --   terminated. If 'waitForUpdate' is called before the instance has even
 --   started then it returns the first state of the instance as soon as it
 --   has started.
-waitForUpdateUntil ::
+waitForUpdateUntilSlot ::
     ( AsSMContractError e
     , AsContractError e
     , PlutusTx.IsData state
-    , HasAwaitSlot schema
-    , HasWatchAddress schema)
+    )
     => StateMachineClient state i
     -> Slot
     -> Contract w schema e (WaitingResult state)
-waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
-    let addr = Scripts.scriptAddress $ validatorInstance scInstance
-        outputsMap :: Ledger.Tx -> Map.Map TxOutRef TxOutTx
-        outputsMap t =
-                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-                $ Map.filter ((==) addr . Tx.txOutAddress)
-                $ Tx.unspentOutputsTx t
+waitForUpdateUntilSlot StateMachineClient{scInstance, scChooser} timeoutSlot = do
+    let addr = Scripts.validatorAddress $ typedValidator scInstance
     let go sl = do
-            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
+                { acreqSlotRangeFrom = sl
+                , acreqSlotRangeTo = sl
+                , acreqAddress = addr
+                }
             if null txns && sl < timeoutSlot
                 then go (succ sl)
                 else pure txns
@@ -235,7 +238,7 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
     initial <- currentSlot
     txns <- go initial
     slot <- currentSlot -- current slot, can be after timeout
-    let states = txns >>= getStates scInstance . outputsMap
+    let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of
         [] | slot < timeoutSlot -> pure ContractEnded
         [] | slot >= timeoutSlot -> pure $ Timeout timeoutSlot
@@ -243,6 +246,17 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
                 Left err         -> throwing _SMContractError err
                 Right (state, _) -> pure $ WaitingResult (tyTxOutData state)
 
+-- | Same as 'waitForUpdateUntilSlot', but works with 'POSIXTime' instead.
+waitForUpdateUntilTime ::
+    ( AsSMContractError e
+    , AsContractError e
+    , PlutusTx.IsData state
+    )
+    => StateMachineClient state i
+    -> POSIXTime
+    -> Contract w schema e (WaitingResult state)
+waitForUpdateUntilTime sm timeoutTime = do
+    waitForUpdateUntilSlot sm $ TimeSlot.posixTimeToEnclosingSlot def timeoutTime
 
 -- | Wait until the on-chain state of the state machine instance has changed,
 --   and return the new state, or return 'Nothing' if the instance has been
@@ -253,19 +267,13 @@ waitForUpdate ::
     ( AsSMContractError e
     , AsContractError e
     , PlutusTx.IsData state
-    , HasAwaitSlot schema
-    , HasWatchAddress schema)
+    )
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
-    let addr = Scripts.scriptAddress $ validatorInstance scInstance
-        outputsMap :: Ledger.Tx -> Map TxOutRef TxOutTx
-        outputsMap t =
-                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-                $ Map.filter ((==) addr . Tx.txOutAddress)
-                $ Tx.unspentOutputsTx t
+    let addr = Scripts.validatorAddress $ typedValidator scInstance
     txns <- nextTransactionsAt addr
-    let states = txns >>= getStates scInstance . outputsMap
+    let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
     case states of
         [] -> pure Nothing
         xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)
@@ -278,26 +286,12 @@ runGuardedStep ::
     ( AsSMContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
-    , HasUtxoAt schema
-    , HasWriteTx schema
-    , HasOwnPubKey schema
-    , HasTxConfirmation schema
     )
     => StateMachineClient state input              -- ^ The state machine
     -> input                                       -- ^ The input to apply to the state machine
     -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
     -> Contract w schema e (Either a (TransitionResult state input))
-runGuardedStep smc input guard = mapError (review _SMContractError) $ mkStep smc input >>= \case
-    Right (StateMachineTransition{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups}) -> do
-        pk <- ownPubKey
-        let lookups = smtLookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
-        utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups smtConstraints)
-        case guard utx os ns of
-            Nothing -> do
-                submitTxConfirmed utx
-                pure $ Right $ TransitionSuccess ns
-            Just a  -> pure $ Left a
-    Left e -> pure $ Right $ TransitionFailure e
+runGuardedStep = runGuardedStepWith mempty mempty
 
 -- | Run one step of a state machine, returning the new state.
 runStep ::
@@ -305,28 +299,19 @@ runStep ::
     ( AsSMContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
-    , HasUtxoAt schema
-    , HasWriteTx schema
-    , HasOwnPubKey schema
-    , HasTxConfirmation schema
     )
     => StateMachineClient state input
     -- ^ The state machine
     -> input
     -- ^ The input to apply to the state machine
     -> Contract w schema e (TransitionResult state input)
-runStep smc input =
-    runGuardedStep smc input (\_ _ _ -> Nothing) >>= pure . \case
-        Left a  -> absurd a
-        Right a -> a
+runStep = runStepWith mempty mempty
 
 -- | Initialise a state machine
 runInitialise ::
     forall w e state schema input.
     ( PlutusTx.IsData state
     , PlutusTx.IsData input
-    , HasTxConfirmation schema
-    , HasWriteTx schema
     , AsSMContractError e
     )
     => StateMachineClient state input
@@ -336,22 +321,88 @@ runInitialise ::
     -> Value
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
-runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{validatorInstance, stateMachine} = scInstance
-        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine)
-    let lookups = Constraints.scriptInstanceLookups validatorInstance
-    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
-    submitTxConfirmed utx
-    pure initialState
+runInitialise = runInitialiseWith mempty mempty
 
 -- | Constraints & lookups needed to transition a state machine instance
 data StateMachineTransition state input =
     StateMachineTransition
-        { smtConstraints :: TxConstraints (Scripts.RedeemerType (StateMachine state input)) (Scripts.DatumType (StateMachine state input))
+        { smtConstraints :: TxConstraints input state
         , smtOldState    :: State state
         , smtNewState    :: State state
         , smtLookups     :: ScriptLookups (StateMachine state input)
         }
+
+-- | Initialise a state machine and supply additional constraints and lookups for transaction.
+runInitialiseWith ::
+    forall w e state schema input.
+    ( PlutusTx.IsData state
+    , PlutusTx.IsData input
+    , AsSMContractError e
+    )
+    => ScriptLookups (StateMachine state input)
+    -- ^ Additional lookups
+    -> TxConstraints input state
+    -- ^ Additional constraints
+    -> StateMachineClient state input
+    -- ^ The state machine
+    -> state
+    -- ^ The initial state
+    -> Value
+    -- ^ The value locked by the contract at the beginning
+    -> Contract w schema e state
+runInitialiseWith customLookups customConstraints StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
+    let StateMachineInstance{typedValidator, stateMachine} = scInstance
+        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine) <> customConstraints
+    let lookups = Constraints.typedValidatorLookups typedValidator <> customLookups
+    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
+    submitTxConfirmed utx
+    pure initialState
+
+-- | Run one step of a state machine, returning the new state. We can supply additional constraints and lookups for transaction.
+runStepWith ::
+    forall w e state schema input.
+    ( AsSMContractError e
+    , PlutusTx.IsData state
+    , PlutusTx.IsData input
+    )
+    => ScriptLookups (StateMachine state input)
+    -- ^ Additional lookups
+    -> TxConstraints input state
+    -- ^ Additional constraints
+    -> StateMachineClient state input
+    -- ^ The state machine
+    -> input
+    -- ^ The input to apply to the state machine
+    -> Contract w schema e (TransitionResult state input)
+runStepWith lookups constraints smc input =
+    runGuardedStepWith lookups constraints smc input (\_ _ _ -> Nothing) >>= pure . \case
+        Left a  -> absurd a
+        Right a -> a
+
+-- | The same as 'runGuardedStep' but we can supply additional constraints and lookups for transaction.
+runGuardedStepWith ::
+    forall w a e state schema input.
+    ( AsSMContractError e
+    , PlutusTx.IsData state
+    , PlutusTx.IsData input
+    )
+    => ScriptLookups (StateMachine state input)    -- ^ Additional lookups
+    -> TxConstraints input state                   -- ^ Additional constraints
+    -> StateMachineClient state input              -- ^ The state machine
+    -> input                                       -- ^ The input to apply to the state machine
+    -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
+    -> Contract w schema e (Either a (TransitionResult state input))
+runGuardedStepWith userLookups userConstraints smc input guard = mapError (review _SMContractError) $ mkStep smc input >>= \case
+     Right (StateMachineTransition{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups}) -> do
+         pk <- ownPubKey
+         let lookups = smtLookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
+         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx (lookups <> userLookups) (smtConstraints <> userConstraints))
+         case guard utx os ns of
+             Nothing -> do
+                 submitTxConfirmed utx
+                 pure $ Right $ TransitionSuccess ns
+             Just a  -> pure $ Left a
+     Left e -> pure $ Right $ TransitionFailure e
 
 -- | Given a state machine client and an input to apply to
 --   the client's state machine instance, compute the 'StateMachineTransition'
@@ -359,14 +410,13 @@ data StateMachineTransition state input =
 mkStep ::
     forall w e state schema input.
     ( AsSMContractError e
-    , HasUtxoAt schema
     , PlutusTx.IsData state
     )
     => StateMachineClient state input
     -> input
     -> Contract w schema e (Either (InvalidTransition state input) (StateMachineTransition state input))
 mkStep client@StateMachineClient{scInstance} input = do
-    let StateMachineInstance{stateMachine, validatorInstance} = scInstance
+    let StateMachineInstance{stateMachine, typedValidator} = scInstance
         StateMachine{smTransition} = stateMachine
     maybeState <- getOnChainState client
     case maybeState of
@@ -379,7 +429,7 @@ mkStep client@StateMachineClient{scInstance} input = do
             case smTransition oldState input of
                 Just (newConstraints, newState)  ->
                     let lookups =
-                            Constraints.scriptInstanceLookups validatorInstance
+                            Constraints.typedValidatorLookups typedValidator
                             <> Constraints.unspentOutputs utxo
                         outputConstraints =
                             if smFinal (SM.stateMachine scInstance) (stateData newState)

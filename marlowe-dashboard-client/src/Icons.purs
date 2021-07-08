@@ -26,6 +26,7 @@ data Icon
   | ArrowLeft
   | Close
   | Contacts
+  | Contract
   | Done
   | DoneWithCircle
   | ErrorOutline
@@ -33,8 +34,11 @@ data Icon
   | Home
   | Menu
   | Next
+  | NewContact
   | Pay
+  | Play
   | Previous
+  | Refresh
   | Roles
   | TaskAlt
   | Terms
@@ -54,6 +58,8 @@ content Close = "close"
 
 content Contacts = "people"
 
+content Contract = "history_edu"
+
 content Done = "done"
 
 content DoneWithCircle = "check_circle_outline"
@@ -68,9 +74,15 @@ content Menu = "short_text"
 
 content Next = "chevron_right"
 
+content NewContact = "person_add_alt"
+
 content Pay = "credit_score"
 
+content Play = "play_arrow"
+
 content Previous = "chevron_left"
+
+content Refresh = "refresh"
 
 content Roles = "person_pin_circle"
 
@@ -95,6 +107,8 @@ iconClass Close = "close"
 
 iconClass Contacts = "contacts"
 
+iconClass Contract = "contract"
+
 iconClass Done = "done"
 
 iconClass DoneWithCircle = "check-circle-outline"
@@ -109,9 +123,15 @@ iconClass Menu = "menu"
 
 iconClass Next = "next"
 
+iconClass NewContact = "new-contact"
+
 iconClass Pay = "pay"
 
+iconClass Play = "play"
+
 iconClass Previous = "previous"
+
+iconClass Refresh = "refresh"
 
 iconClass Roles = "roles"
 

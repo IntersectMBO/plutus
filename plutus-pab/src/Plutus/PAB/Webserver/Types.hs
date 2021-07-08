@@ -21,8 +21,7 @@ import           Ledger.Index                            (UtxoIndex)
 import           Ledger.Slot                             (Slot)
 import           Ledger.Value                            (Value)
 import           Playground.Types                        (FunctionSchema)
-import           Plutus.Contract.Effects.ExposeEndpoint  (ActiveEndpoint)
-import           Plutus.PAB.Events.Contract              (ContractPABRequest)
+import           Plutus.Contract.Effects                 (ActiveEndpoint, PABReq)
 import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import           Schema                                  (FormSchema)
 import           Wallet.Emulator.Wallet                  (Wallet)
@@ -32,7 +31,7 @@ import           Wallet.Types                            (ContractInstanceId)
 data ContractReport t =
     ContractReport
         { crAvailableContracts   :: [ContractSignatureResponse t]
-        , crActiveContractStates :: [(ContractInstanceId, PartiallyDecodedResponse ContractPABRequest)]
+        , crActiveContractStates :: [(ContractInstanceId, PartiallyDecodedResponse PABReq)]
         }
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
@@ -80,11 +79,12 @@ instance Pretty t => Pretty (ContractActivationArgs t) where
 
 -- | Current state of a contract instance
 --   (to be sent to external clients)
-data ContractInstanceClientState =
+data ContractInstanceClientState t =
     ContractInstanceClientState
         { cicContract     :: ContractInstanceId
         , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
         , cicWallet       :: Wallet
+        , cicDefintion    :: t
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)

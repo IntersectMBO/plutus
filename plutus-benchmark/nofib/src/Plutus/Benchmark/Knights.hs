@@ -8,12 +8,13 @@ import           Plutus.Benchmark.Knights.ChessSetList
 import           Plutus.Benchmark.Knights.KnightHeuristic
 import           Plutus.Benchmark.Knights.Queue
 
-import           PlutusCore.Builtins
+import           PlutusCore.Default
 import qualified PlutusCore.Pretty                        as PLC
-import           PlutusCore.Universe
 import qualified PlutusTx                                 as Tx
 import           PlutusTx.Prelude                         as Tx
+import qualified Prelude                                  as Haskell
 import           UntypedPlutusCore
+
 
 {-# INLINABLE zipConst #-}
 zipConst :: a -> [b] -> [(a,b)]
@@ -80,8 +81,8 @@ depthSearch depth q growFn finFn
                                  finFn
 
 -- % Only for textual output of PLC scripts
-unindent :: PLC.Doc ann -> [String]
-unindent d = map (dropWhile isSpace) $ (lines . show $ d)
+unindent :: PLC.Doc ann -> [Haskell.String]
+unindent d = map (Haskell.dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
 
 
 -- % Haskell entry point for testing

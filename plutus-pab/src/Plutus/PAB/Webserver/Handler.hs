@@ -37,23 +37,25 @@ import           Data.Foldable                           (traverse_)
 import qualified Data.Map                                as Map
 import           Data.Maybe                              (mapMaybe)
 import           Data.Proxy                              (Proxy (..))
+import qualified Data.Set                                as Set
 import           Data.Text                               (Text)
 import qualified Data.UUID                               as UUID
-import           Ledger                                  (Slot, Value, pubKeyHash)
-import           Ledger.AddressMap                       (UtxoMap)
-import           Ledger.Tx                               (Tx, TxOut (txOutValue), TxOutTx (txOutTxOut))
+import           Ledger                                  (Value, pubKeyHash)
+import           Ledger.Constraints.OffChain             (UnbalancedTx)
+import           Ledger.Tx                               (Tx)
+import           Plutus.Contract.Effects                 (PABReq, _ExposeEndpointReq)
 import           Plutus.PAB.Core                         (PABAction)
 import qualified Plutus.PAB.Core                         as Core
 import qualified Plutus.PAB.Effects.Contract             as Contract
-import           Plutus.PAB.Events.Contract              (ContractPABRequest, _UserEndpointRequest)
-import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..))
+import           Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse (..), fromResp)
 import           Plutus.PAB.Types
 import           Plutus.PAB.Webserver.Types
 import           Servant                                 (NoContent (NoContent), (:<|>) ((:<|>)))
 import           Servant.Client                          (ClientEnv, ClientM, runClientM)
 import qualified Wallet.Effects                          as Wallet.Effects
+import           Wallet.Emulator.Error                   (WalletAPIError)
 import           Wallet.Emulator.Wallet                  (Wallet (..))
-import           Wallet.Types                            (ContractInstanceId (..), NotificationError, Payment)
+import           Wallet.Types                            (ContractInstanceId (..), NotificationError)
 
 -- | Handler for the "old" API
 handlerOld ::
@@ -87,7 +89,7 @@ getContractReport = do
         traverse
             (\t -> ContractSignatureResponse t <$> Contract.exportSchema @t t)
             installedContracts
-    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, Contract.serialisableState (Proxy @t) s)) activeContractIDs
+    crActiveContractStates <- traverse (\i -> Contract.getState @t i >>= \s -> pure (i, fromResp $ Contract.serialisableState (Proxy @t) s)) activeContractIDs
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getFullReport :: forall t env. Contract.PABContract t => PABAction t env (FullReport (Contract.ContractDef t))
@@ -113,30 +115,34 @@ handlerNew ::
        forall t env.
        Contract.PABContract t =>
        (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
-            :<|> (Text -> PABAction t env (ContractInstanceClientState)
-                                        :<|> (String -> JSON.Value -> PABAction t env ()))
-            :<|> (Integer -> PABAction t env [ContractInstanceClientState])
-            :<|> PABAction t env [ContractInstanceClientState]
+            :<|> (Text -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
+                                        :<|> (String -> JSON.Value -> PABAction t env ())
+                                        :<|> PABAction t env ()
+                                        )
+            :<|> (Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
+            :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
             :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 handlerNew =
         (activateContract
-            :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z))
+            :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z) :<|> (parseContractId x >>= shutdown))
             :<|> instancesForWallets
             :<|> allInstanceStates
             :<|> availableContracts)
 
 fromInternalState ::
-    ContractInstanceId
+    t
+    -> ContractInstanceId
     -> Wallet
-    -> PartiallyDecodedResponse ContractPABRequest
-    -> ContractInstanceClientState
-fromInternalState i wallet resp =
+    -> PartiallyDecodedResponse PABReq
+    -> ContractInstanceClientState t
+fromInternalState t i wallet resp =
     ContractInstanceClientState
         { cicContract = i
         , cicCurrentState =
-            let hks' = mapMaybe (traverse (preview _UserEndpointRequest)) (hooks resp)
+            let hks' = mapMaybe (traverse (preview _ExposeEndpointReq)) (hooks resp)
             in resp { hooks = hks' }
         , cicWallet = wallet
+        , cicDefintion = t
         }
 
 -- HANDLERS
@@ -145,30 +151,35 @@ activateContract :: forall t env. Contract.PABContract t => ContractActivationAr
 activateContract ContractActivationArgs{caID, caWallet} = do
     Core.activateContract caWallet caID
 
-contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env ContractInstanceClientState
+contractInstanceState :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
 contractInstanceState i = do
     definition <- Contract.getDefinition @t i
     case definition of
         Nothing -> throwError @PABError (ContractInstanceNotFound i)
-        Just ContractActivationArgs{caWallet} -> fromInternalState i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+        Just ContractActivationArgs{caWallet, caID} -> fromInternalState caID i caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
 
 callEndpoint :: forall t env. ContractInstanceId -> String -> JSON.Value -> PABAction t env ()
 callEndpoint a b v = Core.callEndpointOnInstance a b v >>= traverse_ (throwError @PABError . EndpointCallError)
 
-instancesForWallets :: forall t env. Contract.PABContract t => Integer -> PABAction t env [ContractInstanceClientState]
+instancesForWallets :: forall t env. Contract.PABContract t => Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 instancesForWallets wallet = filter ((==) (Wallet wallet) . cicWallet) <$> allInstanceStates
 
-allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState]
+allInstanceStates :: forall t env. Contract.PABContract t => PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
 allInstanceStates = do
     mp <- Contract.getActiveContracts @t
-    let get (i, ContractActivationArgs{caWallet}) = fromInternalState i caWallet . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
-    traverse get $ Map.toList mp
+    inst <- Core.runningInstances
+    let isRunning i = Set.member i inst
+    let get (i, ContractActivationArgs{caWallet, caID}) = fromInternalState caID i caWallet . fromResp . Contract.serialisableState (Proxy @t) <$> Contract.getState @t i
+    filter (isRunning . cicContract) <$> traverse get (Map.toList mp)
 
 availableContracts :: forall t env. Contract.PABContract t => PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
 availableContracts = do
     def <- Contract.getDefinitions @t
     let mkSchema s = ContractSignatureResponse s <$> Contract.exportSchema @t s
     traverse mkSchema def
+
+shutdown :: forall t env. ContractInstanceId -> PABAction t env ()
+shutdown = Core.stopInstance
 
 -- | Proxy for the wallet API
 walletProxyClientEnv ::
@@ -177,9 +188,7 @@ walletProxyClientEnv ::
     (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
     :<|> (Integer -> PABAction t env WalletInfo)
-    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
-    :<|> (Integer -> PABAction t env Slot) -- Wallet slot
-    :<|> (Integer -> PABAction t env UtxoMap)
+    :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
     :<|> (Integer -> PABAction t env Value)
     :<|> (Integer -> Tx -> PABAction t env Tx))
 walletProxyClientEnv clientEnv =
@@ -201,18 +210,14 @@ walletProxy ::
     (PABAction t env WalletInfo -- Create new wallet
     :<|> (Integer -> Tx -> PABAction t env NoContent) -- Submit txn
     :<|> (Integer -> PABAction t env WalletInfo)
-    :<|> (Integer -> (Value, Payment) -> PABAction t env Payment) -- Update payment with change
-    :<|> (Integer -> PABAction t env Slot) -- Wallet slot
-    :<|> (Integer -> PABAction t env UtxoMap)
+    :<|> (Integer -> UnbalancedTx -> PABAction t env (Either WalletAPIError Tx))
     :<|> (Integer -> PABAction t env Value)
     :<|> (Integer -> Tx -> PABAction t env Tx))
 walletProxy createNewWallet =
     ( createNewWallet
     :<|> (\w tx -> fmap (const NoContent) (Core.handleAgentThread (Wallet w) $ Wallet.Effects.submitTxn tx))
     :<|> (\w -> (\pk -> WalletInfo{wiWallet=Wallet w, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk }) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownPubKey)
-    :<|> (\w (value, payment) -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.updatePaymentWithChange value payment)
-    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.walletSlot)
-    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)
-    :<|> (\w -> foldMap (txOutValue . txOutTxOut) <$> Core.handleAgentThread (Wallet w) Wallet.Effects.ownOutputs)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) . Wallet.Effects.balanceTx)
+    :<|> (\w -> Core.handleAgentThread (Wallet w) Wallet.Effects.totalFunds)
     :<|> (\w tx -> Core.handleAgentThread (Wallet w) $ Wallet.Effects.walletAddSignature tx)
     )

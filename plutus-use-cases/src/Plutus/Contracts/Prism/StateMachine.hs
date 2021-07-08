@@ -11,7 +11,7 @@ module Plutus.Contracts.Prism.StateMachine(
     IDState(..)
     , IDAction(..)
     , UserCredential(..)
-    , scriptInstance
+    , typedValidator
     , machineClient
     , mkMachineClient
     ) where
@@ -24,12 +24,11 @@ import           Ledger.Constraints.TxConstraints  (TxConstraints)
 import           Ledger.Crypto                     (PubKeyHash)
 import qualified Ledger.Typed.Scripts              as Scripts
 import           Ledger.Value                      (TokenName, Value)
-import           Plutus.Contract.StateMachine      (State (..), StateMachine (..), StateMachineClient (..),
-                                                    StateMachineInstance (..), Void)
+import           Plutus.Contract.StateMachine      (State (..), StateMachine (..), StateMachineClient (..), Void)
 import qualified Plutus.Contract.StateMachine      as StateMachine
 import           Plutus.Contracts.Prism.Credential (Credential (..), CredentialAuthority (..))
 import qualified Plutus.Contracts.Prism.Credential as Credential
-import qualified PlutusTx                          as PlutusTx
+import qualified PlutusTx
 import           PlutusTx.Prelude
 import qualified Prelude                           as Haskell
 
@@ -56,7 +55,7 @@ data UserCredential =
         -- ^ The 'Value' containing a token of the credential
         -- (this needs to be included here because 'Credential.token'
         -- is not available in on-chain code)
-        } deriving stock (Haskell.Eq, Show, Generic)
+        } deriving stock (Haskell.Eq, Haskell.Show, Generic)
           deriving anyclass (ToJSON, FromJSON, Hashable)
 
 {-# INLINABLE transition #-}
@@ -71,7 +70,7 @@ transition UserCredential{ucAddress, ucCredential, ucToken} State{stateData=stat
         (Active, RevokeCredential) ->
             Just
                 ( Constraints.mustBeSignedBy (unCredentialAuthority $ credAuthority ucCredential)
-                <> Constraints.mustForgeValue (inv ucToken) -- Destroy the token
+                <> Constraints.mustMintValue (inv ucToken) -- Destroy the token
                 , State{stateData=Revoked, stateValue=mempty}
                 )
         _ -> Nothing
@@ -84,22 +83,22 @@ credentialStateMachine cd = StateMachine.mkStateMachine Nothing (transition cd) 
   isFinal Revoked = True
   isFinal _       = False
 
-scriptInstance ::
+typedValidator ::
   UserCredential
-  -> Scripts.ScriptInstance (StateMachine IDState IDAction)
-scriptInstance credentialData =
+  -> Scripts.TypedValidator (StateMachine IDState IDAction)
+typedValidator credentialData =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode credentialData
         validator d = StateMachine.mkValidator (credentialStateMachine d)
         wrap = Scripts.wrapValidator @IDState @IDAction
-    in Scripts.validator @(StateMachine IDState IDAction) val $$(PlutusTx.compile [|| wrap ||])
+    in Scripts.mkTypedValidator @(StateMachine IDState IDAction) val $$(PlutusTx.compile [|| wrap ||])
 
 machineClient ::
-    Scripts.ScriptInstance (StateMachine IDState IDAction)
+    Scripts.TypedValidator (StateMachine IDState IDAction)
     -> UserCredential
     -> StateMachineClient IDState IDAction
 machineClient inst credentialData =
     let machine = credentialStateMachine credentialData
-    in StateMachine.mkStateMachineClient (StateMachineInstance machine inst)
+    in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
 
 mkMachineClient :: CredentialAuthority -> PubKeyHash -> TokenName -> StateMachineClient IDState IDAction
 mkMachineClient authority credentialOwner tokenName =
@@ -110,7 +109,7 @@ mkMachineClient authority credentialOwner tokenName =
                 , ucCredential = credential
                 , ucToken = Credential.token credential
                 }
-    in machineClient (scriptInstance userCredential) userCredential
+    in machineClient (typedValidator userCredential) userCredential
 
 PlutusTx.makeLift ''UserCredential
 PlutusTx.makeLift ''IDState
