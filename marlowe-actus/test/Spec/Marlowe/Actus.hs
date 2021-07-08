@@ -9,10 +9,13 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 tests :: TestTree
-tests = testGroup "Actus"
-    [
-      testCase "PAM static ACTUS" pamStaticFromFile
-    ]
+tests = testGroup "Actus" [ testCase fileName (staticFromFile fileName) | fileName <- testFileNames ]
+
+testFileNames :: [String]
+testFileNames =
+  [
+    "actus-tests-pam"
+  ]
 
 excludedTestCases :: [String]
 excludedTestCases =
@@ -25,7 +28,7 @@ pathToTestData :: IO String
 pathToTestData = do
   getEnv "ACTUS_TEST_DATA_DIR"
 
-pamStaticFromFile :: IO ()
-pamStaticFromFile = do
+staticFromFile :: String -> IO ()
+staticFromFile fileName = do
   testDataPath <- pathToTestData
-  assertTestResultsFromFile excludedTestCases (testDataPath ++ "actus-tests-pam.json")
+  assertTestResultsFromFile excludedTestCases (testDataPath ++ fileName ++ ".json")
