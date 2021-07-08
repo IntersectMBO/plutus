@@ -15,6 +15,7 @@ let
     pabWebserverConfig = {
       baseUrl = "http://localhost:${builtins.toString cfg.webserverPort}";
       staticDir = "${cfg.staticContent}";
+      permissiveCorsPolicy = false;
     };
 
     walletServerConfig = {

@@ -96,6 +96,8 @@
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+          (hsPkgs."wai" or (errorHandler.buildDepError "wai"))
+          (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
           (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
           (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
           (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))

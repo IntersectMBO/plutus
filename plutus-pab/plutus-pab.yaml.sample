@@ -5,6 +5,7 @@ dbConfig:
 pabWebserverConfig:
   baseUrl: http://localhost:9080
   staticDir: plutus-pab-client/dist
+  permissiveCorsPolicy: False
 
 walletServerConfig:
   baseUrl: http://localhost:9081
