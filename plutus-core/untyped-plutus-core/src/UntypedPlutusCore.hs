@@ -27,7 +27,7 @@ import           Control.Monad.Except                 (MonadError, (<=<))
 import qualified Data.ByteString.Lazy                 as BSL
 
 
--- | Take one PLC program and apply it to another.
+-- | Take one UPLC program and apply it to another.
 applyProgram :: Program name uni fun () -> Program name uni fun () -> Program name uni fun ()
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (PLC.defaultVersion ()) (Apply () t1 t2)
 

@@ -426,7 +426,9 @@ executable plc-agda
 
 test-suite test1
   import: stuff
-  build-tool-depends: plutus-core:plc
+  build-tool-depends:
+    plutus-core:plc,
+    plutus-core:uplc
   hs-source-dirs: test
   build-depends:
     base -any,
@@ -437,7 +439,9 @@ test-suite test1
 
 test-suite test2
   import: stuff
-  build-tool-depends: plutus-core:plc
+  build-tool-depends: 
+    plutus-core:plc,
+    plutus-core:uplc
   hs-source-dirs: test
   type: detailed-0.9
   test-module: TestDetailed

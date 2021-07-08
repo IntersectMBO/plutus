@@ -267,6 +267,7 @@
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
+            (hsPkgs.buildPackages.plutus-core.components.exes.uplc or (pkgs.buildPackages.uplc or (errorHandler.buildToolDepError "plutus-core:uplc")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];
@@ -284,6 +285,7 @@
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
+            (hsPkgs.buildPackages.plutus-core.components.exes.uplc or (pkgs.buildPackages.uplc or (errorHandler.buildToolDepError "plutus-core:uplc")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];
