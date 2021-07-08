@@ -14,6 +14,7 @@ open import Agda.Builtin.Nat
 open import Data.Nat
 open import Agda.Builtin.Int
 open import Data.Integer
+open import Data.Integer.Show
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Bool
 open import Data.Fin
@@ -333,7 +334,7 @@ typeCheckByteString b = do
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []
-junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
+junk {Nat.suc n} = Data.Integer.Show.show (pos n) ∷ junk
 
 alphaTm : ByteString → ByteString → Bool
 alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2

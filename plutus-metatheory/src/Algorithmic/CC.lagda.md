@@ -734,8 +734,7 @@ focus M E M' p with rlemma51! (E [ M ]ᴱ)
 focus M E M' p | done VEM = ⊥-elim (notVAL VEM p)
 focus M E M' p | step ¬VEM E' r q U with rlemma51! M
 focus M E M' p | step ¬VEM E' r q U | step ¬VM E'' r' q' U' with U _ (trans (cong (E [_]ᴱ) q') (compEC-[]ᴱ E E'' _)) r'
-... | refl ,, X ,, refl =
-  local (compEC E E'') _ r (trans q (cong (_[ _ ]ᴱ) X)) q'
+... | refl ,, X ,, refl = local (compEC E E'') _ r (trans q (cong (_[ _ ]ᴱ) X)) q'
 focus M E M' p | step ¬VEM E' r q U | done VM = nonlocal E' _ r q VM
 
 -- we can recover that M' == whatever I think

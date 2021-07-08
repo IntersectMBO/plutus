@@ -7,6 +7,7 @@ open import Data.Nat hiding (_*_)
 open import Data.Fin hiding (_-_;_+_;_<_)
 open import Data.List hiding (map; _++_)
 open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
+open import Data.Integer.Show
 open import Data.String hiding (_<_)
 open import Data.Unit
 open import Data.Vec using (Vec;[];_∷_)
@@ -387,7 +388,7 @@ uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
 uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " ++ Data.Integer.show x ++ ")"
+uglyTermCon (integer x) = "(integer " ++ Data.Integer.Show.show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon size = "size"
 
