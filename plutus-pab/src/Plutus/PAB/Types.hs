@@ -109,8 +109,9 @@ newtype RequestProcessingConfig =
 
 data WebserverConfig =
     WebserverConfig
-        { baseUrl   :: BaseUrl
-        , staticDir :: FilePath
+        { baseUrl              :: BaseUrl
+        , staticDir            :: FilePath
+        , permissiveCorsPolicy :: Bool -- ^ If true; use a very permissive CORS policy (any website can interact.)
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

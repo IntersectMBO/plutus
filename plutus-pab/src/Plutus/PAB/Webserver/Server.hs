@@ -19,7 +19,7 @@ module Plutus.PAB.Webserver.Server
 import           Control.Concurrent              (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
 import           Control.Concurrent.Availability (Availability, available, newToken)
 import qualified Control.Concurrent.STM          as STM
-import           Control.Monad                   (void)
+import           Control.Monad                   (void, when)
 import           Control.Monad.Except            (ExceptT (ExceptT))
 import           Control.Monad.IO.Class          (liftIO)
 import           Data.Aeson                      (FromJSON, ToJSON)
@@ -36,7 +36,8 @@ import           Servant                         (Application, Handler (Handler)
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
 
 import           Cardano.Wallet.Types            (WalletInfo (..))
-import           Control.Monad.Freer.Extras.Log  (logInfo)
+import           Control.Monad.Freer.Extras.Log  (logInfo, logWarn)
+import           Network.Wai                     (Middleware)
 import           Network.Wai.Middleware.Cors     (simpleCors)
 import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
 import qualified Plutus.PAB.Core                 as Core
@@ -113,8 +114,12 @@ startServer ::
     -> Either ClientEnv (PABAction t env WalletInfo)
     -> Availability
     -> PABAction t env (MVar (), PABAction t env ())
-startServer WebserverConfig{baseUrl, staticDir} walletClient availability =
-    startServer' (baseUrlPort baseUrl) walletClient (Just staticDir) availability
+startServer WebserverConfig{baseUrl, staticDir, permissiveCorsPolicy} walletClient availability = do
+    when permissiveCorsPolicy $
+      logWarn @(LM.PABMultiAgentMsg t) (LM.UserLog "Warning: Using a very permissive CORS policy! *Any* website serving JavaScript can interact with these endpoints.")
+    startServer' mw (baseUrlPort baseUrl) walletClient (Just staticDir) availability
+      where
+        mw = if permissiveCorsPolicy then simpleCors else id
 
 -- | Start the server. Returns an action that shuts it down
 --   again, and an MVar that is filled when the webserver
@@ -126,12 +131,13 @@ startServer' ::
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
-    => Int -- ^ Port
+    => Middleware -- ^ Optional wai middleware
+    -> Int -- ^ Port
     -> Either ClientEnv (PABAction t env WalletInfo) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
     -> Maybe FilePath -- ^ Optional file path for static assets
     -> Availability
     -> PABAction t env (MVar (), PABAction t env ())
-startServer' port walletClient fp availability = do
+startServer' mw port walletClient fp availability = do
     simRunner <- Core.pabRunner
     shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
     mvar <- liftIO newEmptyMVar
@@ -149,7 +155,7 @@ startServer' port walletClient fp availability = do
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
     void $ liftIO $
         forkFinally
-            (Warp.runSettings warpSettings $ simpleCors $ app fp walletClient simRunner)
+            (Warp.runSettings warpSettings $ mw $ app fp walletClient simRunner)
             (\_ -> putMVar mvar ())
 
     pure (mvar, liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
@@ -167,4 +173,5 @@ startServerDebug = do
     let mkWalletInfo = do
             (wllt, pk) <- Simulator.addWallet
             pure $ WalletInfo{wiWallet = wllt, wiPubKey = pk, wiPubKeyHash = pubKeyHash pk}
-    snd <$> startServer' 8080 (Right mkWalletInfo) Nothing tk
+    let mw = id -- default configuration middleware is a strict CORS policy; i.e. no policy.
+    snd <$> startServer' mw 8080 (Right mkWalletInfo) Nothing tk
