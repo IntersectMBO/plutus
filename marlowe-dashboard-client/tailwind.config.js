@@ -92,8 +92,6 @@ module.exports = {
         "auto-1fr-auto": "auto minmax(0, 1fr) auto",
         "1fr-auto-1fr": "minmax(0, 1fr) auto minmax(0, 1fr)",
         "1fr-auto-auto-1fr": "minmax(0, 1fr) auto auto minmax(0, 1fr)",
-        "2-contract-home-card": "repeat(2, minmax(240px, 1fr))",
-        "auto-fill-contract-home-card": "repeat(auto-fill, minmax(240px, 1fr))",
       },
       spacing: {
         "2+2px": "calc(0.5rem + 2px)",
