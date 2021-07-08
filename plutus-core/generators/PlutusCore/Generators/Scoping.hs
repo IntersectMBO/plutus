@@ -12,12 +12,9 @@ import           PlutusCore.Quote
 
 import           Control.Monad.Except
 import           Data.Coerce
-import           Data.Either
-import           Data.Map.Strict                  as Map
+import           Data.Map.Strict      as Map
 import           Data.Maybe
-import           Data.Set                         as Set
-
-import           PlutusCore.StdLib.Data.ScottList
+import           Data.Set             as Set
 
 -- let nonrec x_1 = x_2 in x_3
 
@@ -42,6 +39,17 @@ import           PlutusCore.StdLib.Data.ScottList
 -- @(stays_out_of_scope x_1) x_1 (\(@disappears_binding x_1) x_1 -> @(disappears_variable x_1) x_1 @(stays_free x_2) x_2)
 -- @(stays_out_of_scope x_1) x_1 (\(@disappears_binding x_1) x_3 -> @(disappears_variable x_1) x_3 @(stays_free x_2) x_2)
 
+data ScopedName
+    = TypeName TyName
+    | TermName Name
+    deriving (Show, Eq, Ord)
+
+isSameScope :: ScopedName -> ScopedName -> Bool
+isSameScope TypeName{} TypeName{} = True
+isSameScope TermName{} TermName{} = True
+isSameScope TypeName{} TermName{} = False
+isSameScope TermName{} TypeName{} = False
+
 data Persists
     = StaysOutOfScopeVariable
     | StaysFreeVariable
@@ -58,30 +66,56 @@ data NameAction
     deriving (Show)
 
 data NameAnn
-    = NameAction NameAction (Either TyName Name)
+    = NameAction NameAction ScopedName
     | NotAName
     deriving (Show)
 
-class LiftToScope n where
-    liftToScope :: n -> Either TyName Name
+class ToScopedName name where
+    toScopedName :: name -> ScopedName
 
-instance LiftToScope TyName where
-    liftToScope = Left
+instance ToScopedName TyName where
+    toScopedName = TypeName
 
-instance LiftToScope Name where
-    liftToScope = Right
+instance ToScopedName Name where
+    toScopedName = TermName
 
-introduceBound :: LiftToScope n => n -> NameAnn
-introduceBound = NameAction (Changes DisappearsBinding) . liftToScope
+introduceBound :: ToScopedName name => name -> NameAnn
+introduceBound = NameAction (Changes DisappearsBinding) . toScopedName
 
-registerBound :: LiftToScope n => n -> NameAnn
-registerBound = NameAction (Changes DisappearsVariable) . liftToScope
+registerBound :: ToScopedName name => name -> NameAnn
+registerBound = NameAction (Changes DisappearsVariable) . toScopedName
 
-registerOutOfScope :: LiftToScope n => n -> NameAnn
-registerOutOfScope = NameAction (Persists StaysOutOfScopeVariable) . liftToScope
+registerOutOfScope :: ToScopedName name => name -> NameAnn
+registerOutOfScope = NameAction (Persists StaysOutOfScopeVariable) . toScopedName
 
-registerFree :: LiftToScope n => n -> NameAnn
-registerFree = NameAction (Persists StaysFreeVariable) . liftToScope
+registerFree :: ToScopedName name => name -> NameAnn
+registerFree = NameAction (Persists StaysFreeVariable) . toScopedName
+
+class Reference n t where
+    referenceVia
+        :: (forall name. ToScopedName name => name -> NameAnn)
+        -> n
+        -> t NameAnn
+        -> t NameAnn
+
+referenceInScope :: Reference n t => n -> t NameAnn -> t NameAnn
+referenceInScope = referenceVia registerBound
+
+referenceOutOfScope :: Reference n t => n -> t NameAnn -> t NameAnn
+referenceOutOfScope = referenceVia registerOutOfScope
+
+instance tyname ~ TyName => Reference TyName (Type tyname uni) where
+    referenceVia reg tyname ty = TyApp NotAName ty $ TyVar (reg tyname) tyname
+
+instance tyname ~ TyName => Reference TyName (Term tyname name uni fun) where
+    referenceVia reg tyname term = TyInst NotAName term $ TyVar (reg tyname) tyname
+
+instance name ~ Name => Reference Name (Term tyname name uni fun) where
+    referenceVia reg name term = Apply NotAName term $ Var (reg name) name
+
+-- #####################################################
+-- ## Information about scopes and relevant functions ##
+-- #####################################################
 
 data ScopeEntry
     = DisappearedBindings
@@ -93,13 +127,10 @@ data ScopeEntry
     deriving (Show, Eq, Ord)
 
 newtype ScopeInfo = ScopeInfo
-    { unScopeInfo :: Map ScopeEntry (Set (Either TyName Name))
+    { unScopeInfo :: Map ScopeEntry (Set ScopedName)
     } deriving (Show)
 
-data ScopeError = ScopeError Int
-    deriving (Show)
-
-to :: ScopeEntry -> ScopeInfo -> Set (Either TyName Name)
+to :: ScopeEntry -> ScopeInfo -> Set ScopedName
 to entry = fromMaybe Set.empty . Map.lookup entry . unScopeInfo
 
 emptyScopeInfo :: ScopeInfo
@@ -107,110 +138,35 @@ emptyScopeInfo = ScopeInfo Map.empty
 
 mergeScopeInfo :: ScopeInfo -> ScopeInfo -> Either ScopeError ScopeInfo
 mergeScopeInfo si1 si2
-    | to DisappearedBindings si1 `Set.intersection` to DisappearedBindings si2 /= Set.empty =
-        Left $ ScopeError 1
-    | to AppearedBindings si1 `Set.intersection` to AppearedBindings si2 /= Set.empty =
-        Left $ ScopeError 2
+    | duplicateDisappearedBindings /= Set.empty =
+        Left $ DuplicateBindersInTheInput duplicateDisappearedBindings
+    | duplicateAppearedBindings /= Set.empty =
+        Left $ DuplicateBindersInTheOutput duplicateAppearedBindings
     | otherwise = Right $ coerce (Map.unionWith Set.union) si1 si2
+    where
+        disappearedBindings1 = to DisappearedBindings si1
+        disappearedBindings2 = to DisappearedBindings si2
+        duplicateDisappearedBindings = disappearedBindings1 `Set.intersection` disappearedBindings2
+        appearedBindings1 = to AppearedBindings si1
+        appearedBindings2 = to AppearedBindings si2
+        duplicateAppearedBindings = appearedBindings1 `Set.intersection` appearedBindings2
 
-overrideEName :: ScopeEntry -> Either TyName Name -> ScopeInfo -> ScopeInfo
-overrideEName key = coerce . Map.insert key . Set.singleton
+mergeErrOrScopeInfos :: [Either ScopeError ScopeInfo] -> Either ScopeError ScopeInfo
+mergeErrOrScopeInfos =
+    Prelude.foldr (\si1 si2 -> join $ mergeScopeInfo <$> si1 <*> si2) $ pure emptyScopeInfo
 
-applyPersists :: Persists -> Either TyName Name -> ScopeInfo
-applyPersists persists ename = overrideEName key ename emptyScopeInfo where
-    key = case persists of
-        StaysOutOfScopeVariable -> StayedOutOfScopeVariables
-        StaysFreeVariable       -> StayedFreeVariables
-
-applyChanges :: Changes -> Either TyName Name -> Either TyName Name -> ScopeInfo
-applyChanges changes enameOld enameNew =
-    overrideEName keyNew enameNew $ overrideEName keyOld enameOld emptyScopeInfo where
-        (keyOld, keyNew) = case changes of
-            DisappearsBinding  -> (DisappearedBindings, AppearedBindings)
-            DisappearsVariable -> (DisappearedVariables, AppearedVariables)
-
-applyNameAction
-    :: NameAction -> Either TyName Name -> Either TyName Name -> Either ScopeError ScopeInfo
-applyNameAction (Persists persists) enameOld enameNew =
-    if enameOld == enameNew
-        then Right $ applyPersists persists enameOld
-        else Left $ ScopeError 5
-applyNameAction (Changes changes) enameOld enameNew =
-    if enameOld /= enameNew
-        then Right $ applyChanges changes enameOld enameNew
-        else Left $ ScopeError 6
-
-handleName :: LiftToScope name => NameAnn -> name -> Either ScopeError ScopeInfo
-handleName NotAName                     _       = Left $ ScopeError 3
-handleName (NameAction action enameOld) nameNew = do
-    let enameNew = liftToScope nameNew
-    if isLeft enameOld == isLeft enameNew
-        then applyNameAction action enameOld enameNew
-        else Left $ ScopeError 4
-
-checkScopeInfo :: ScopeInfo -> Either ScopeError ()
-checkScopeInfo scopeInfo = do
-    let disappearedBindings       = to DisappearedBindings       scopeInfo
-        disappearedVariables      = to DisappearedVariables      scopeInfo
-        appearedBindings          = to AppearedBindings          scopeInfo
-        appearedVariables         = to AppearedVariables         scopeInfo
-        stayedOutOfScopeVariables = to StayedOutOfScopeVariables scopeInfo
-        stayedFreeVariables       = to StayedFreeVariables       scopeInfo
-    -- The next three are based on the assumption that for each binder we add at least one
-    -- out-of-scope variable and at least one in-scope one.
-    unless (disappearedBindings == disappearedVariables) $
-        Left $ ScopeError 10
-    unless (disappearedBindings == stayedOutOfScopeVariables) $
-        Left $ ScopeError 11
-    unless (appearedBindings == appearedVariables) $
-        Left $ ScopeError 12
-    unless (disappearedBindings `Set.intersection` appearedBindings == Set.empty) $
-        Left $ ScopeError 13
-    unless (disappearedBindings `Set.intersection` stayedFreeVariables == Set.empty) $
-        Left $ ScopeError 14
-    unless (appearedBindings `Set.intersection` stayedFreeVariables == Set.empty) $
-        Left $ ScopeError 15
-
-
-
-
+-- ########################################################################
+-- ## Main class for collecting scope information and relevant functions ##
+-- ########################################################################
 
 class Scoping t where
     establishScoping :: MonadQuote m => t ann -> m (t NameAnn)
 
-    -- We might want to use @Validation@ instead of 'Either'.
+    -- We might want to use @Validation@ or something instead of 'Either'.
     collectScopeInfo :: t NameAnn -> Either ScopeError ScopeInfo
 
-checkScopingUsingSpineOf :: (Scoping t, Rename (t NameAnn)) => t ann -> Either ScopeError ()
-checkScopingUsingSpineOf =
-    checkScopeInfo <=< collectScopeInfo . runQuote . rename . runQuote . establishScoping
-
-class Reference n t where
-    referenceVia
-        :: (forall n. LiftToScope n => n -> NameAnn)
-        -> n
-        -> t NameAnn
-        -> t NameAnn
-
-referenceInScope :: Reference n t => n -> t NameAnn -> t NameAnn
-referenceInScope = referenceVia registerBound
-
-referenceOutOfScope :: Reference n t => n -> t NameAnn -> t NameAnn
-referenceOutOfScope = referenceVia registerOutOfScope
-
-
-
-instance tyname ~ TyName => Reference TyName (Type tyname uni) where
-    referenceVia reg tyname ty = TyApp NotAName ty $ TyVar (reg tyname) tyname
-
-instance tyname ~ TyName => Reference TyName (Term tyname name uni fun) where
-    referenceVia reg tyname term = TyInst NotAName term $ TyVar (reg tyname) tyname
-
-instance name ~ Name => Reference Name (Term tyname name uni fun) where
-    referenceVia reg name term = Apply NotAName term $ Var (reg name) name
-
 establishScopingBinder
-    :: (Reference name lower, LiftToScope name, Scoping upper, Scoping lower, MonadQuote m)
+    :: (Reference name lower, ToScopedName name, Scoping upper, Scoping lower, MonadQuote m)
     => (NameAnn -> name -> upper NameAnn -> lower NameAnn -> lower NameAnn)
     -> name
     -> upper ann
@@ -222,6 +178,99 @@ establishScopingBinder binder name upper lower = do
         binder (introduceBound name) name upperS .
             referenceInScope name <$>
                 establishScoping lower
+
+-- #############################################
+-- ## Checking coherence of scope information ##
+-- #############################################
+
+data ScopeError
+    = UnannotatedName ScopedName
+    | NameChangedItsScope ScopedName ScopedName
+    | NameUnexpectedlyChanged ScopedName ScopedName
+    | NameUnexpectedlyStayed ScopedName
+    | DuplicateBindersInTheInput (Set ScopedName)
+    | DuplicateBindersInTheOutput (Set ScopedName)
+    | OldBindingsDiscordWithBoundVariables (Set ScopedName)
+    | OldBindingsDiscordWithOutOfScopeVariables (Set ScopedName)
+    | NewBindingsDiscordWithBoundVariables (Set ScopedName)
+    | OldBindingsClashWithFreeVariables (Set ScopedName)
+    | OldBindingsClashWithNewBindings (Set ScopedName)
+    | NewBindingsClashWithFreeVariabes (Set ScopedName)
+    deriving (Show)
+
+overrideSname :: ScopeEntry -> ScopedName -> ScopeInfo -> ScopeInfo
+overrideSname key = coerce . Map.insert key . Set.singleton
+
+applyPersists :: Persists -> ScopedName -> ScopeInfo
+applyPersists persists sname = overrideSname key sname emptyScopeInfo where
+    key = case persists of
+        StaysOutOfScopeVariable -> StayedOutOfScopeVariables
+        StaysFreeVariable       -> StayedFreeVariables
+
+applyChanges :: Changes -> ScopedName -> ScopedName -> ScopeInfo
+applyChanges changes snameOld snameNew =
+    overrideSname keyNew snameNew $ overrideSname keyOld snameOld emptyScopeInfo where
+        (keyOld, keyNew) = case changes of
+            DisappearsBinding  -> (DisappearedBindings, AppearedBindings)
+            DisappearsVariable -> (DisappearedVariables, AppearedVariables)
+
+applyNameAction
+    :: NameAction -> ScopedName -> ScopedName -> Either ScopeError ScopeInfo
+applyNameAction (Persists persists) snameOld snameNew =
+    if snameOld == snameNew
+        then Right $ applyPersists persists snameOld
+        else Left $ NameUnexpectedlyChanged snameOld snameNew
+applyNameAction (Changes changes) snameOld snameNew =
+    if snameOld == snameNew
+        then Left $ NameUnexpectedlyStayed snameOld
+        else Right $ applyChanges changes snameOld snameNew
+
+handleSname :: ToScopedName name => NameAnn -> name -> Either ScopeError ScopeInfo
+handleSname ann nameNew = do
+    let snameNew = toScopedName nameNew
+    case ann of
+        NotAName -> Left $ UnannotatedName snameNew
+        NameAction action snameOld ->
+            if snameOld `isSameScope` snameNew
+                then applyNameAction action snameOld snameNew
+                else Left $ NameChangedItsScope snameOld snameNew
+
+symmetricDifference :: Ord a => Set a -> Set a -> Set a
+symmetricDifference s t = (s `Set.union` t) `Set.difference` (s `Set.intersection` t)
+
+leftUnlessEmpty :: (Set ScopedName -> ScopeError) -> Set ScopedName -> Either ScopeError ()
+leftUnlessEmpty err s = unless (Set.null s) . Left $ err s
+
+checkScopeInfo :: ScopeInfo -> Either ScopeError ()
+checkScopeInfo scopeInfo = do
+    let disappearedBindings       = to DisappearedBindings       scopeInfo
+        disappearedVariables      = to DisappearedVariables      scopeInfo
+        appearedBindings          = to AppearedBindings          scopeInfo
+        appearedVariables         = to AppearedVariables         scopeInfo
+        stayedOutOfScopeVariables = to StayedOutOfScopeVariables scopeInfo
+        stayedFreeVariables       = to StayedFreeVariables       scopeInfo
+    -- The next three are based on the assumption that for each binder we add at least one
+    -- out-of-scope variable and at least one in-scope one.
+    leftUnlessEmpty OldBindingsDiscordWithBoundVariables $
+        disappearedBindings `symmetricDifference` disappearedVariables
+    leftUnlessEmpty OldBindingsDiscordWithOutOfScopeVariables $
+        disappearedBindings `symmetricDifference` stayedOutOfScopeVariables
+    leftUnlessEmpty NewBindingsDiscordWithBoundVariables $
+        appearedBindings `symmetricDifference` appearedVariables
+    leftUnlessEmpty OldBindingsClashWithFreeVariables $
+        disappearedBindings `Set.intersection` stayedFreeVariables
+    leftUnlessEmpty OldBindingsClashWithNewBindings $
+        disappearedBindings `Set.intersection` appearedBindings
+    leftUnlessEmpty NewBindingsClashWithFreeVariabes $
+        appearedBindings `Set.intersection` stayedFreeVariables
+
+checkRespectsScoping :: Scoping t => (t NameAnn -> t NameAnn) -> t ann -> Either ScopeError ()
+checkRespectsScoping ren =
+    checkScopeInfo <=< collectScopeInfo . ren . runQuote . establishScoping
+
+
+
+
 
 instance Scoping Kind where
     establishScoping kind = pure $ NotAName <$ kind
@@ -245,18 +294,18 @@ instance tyname ~ TyName => Scoping (Type tyname uni) where
         pure $ TyVar (registerFree name) name
     establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
 
-    collectScopeInfo (TyLam ann name _ ty) =
-        join $ mergeScopeInfo <$> handleName ann name <*> collectScopeInfo ty
-    collectScopeInfo (TyForall ann name _ ty) =
-        join $ mergeScopeInfo <$> handleName ann name <*> collectScopeInfo ty
+    collectScopeInfo (TyLam ann name kind ty) =
+        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo kind, collectScopeInfo ty]
+    collectScopeInfo (TyForall ann name kind ty) =
+        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo kind, collectScopeInfo ty]
     collectScopeInfo (TyIFix _ pat arg) =
-        join $ mergeScopeInfo <$> collectScopeInfo pat <*> collectScopeInfo arg
+        mergeErrOrScopeInfos [collectScopeInfo pat, collectScopeInfo arg]
     collectScopeInfo (TyApp _ fun arg) =
-        join $ mergeScopeInfo <$> collectScopeInfo fun <*> collectScopeInfo arg
+        mergeErrOrScopeInfos [collectScopeInfo fun, collectScopeInfo arg]
     collectScopeInfo (TyFun _ dom cod) =
-        join $ mergeScopeInfo <$> collectScopeInfo dom <*> collectScopeInfo cod
-    collectScopeInfo (TyVar ann name) = handleName ann name
-    collectScopeInfo (TyBuiltin _ _ ) = Right emptyScopeInfo
+        mergeErrOrScopeInfos [collectScopeInfo dom, collectScopeInfo cod]
+    collectScopeInfo (TyVar ann name) = handleSname ann name
+    collectScopeInfo (TyBuiltin _ _) = Right emptyScopeInfo
 
 instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) where
     establishScoping (LamAbs _ nameDup ty body)  = do
@@ -279,52 +328,50 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
 
-    -- collectScopeInfo (LamAbs _ name ty body)  = do
-    --     join $ mergeScopeInfo <$> handleName ann name <*> collectScopeInfo ty
-    -- collectScopeInfo (TyAbs _ nameDup kind body) = do
-    --     name <- freshenTyName nameDup
-    --     collectScopeInfoBinder TyAbs name kind body
-    -- collectScopeInfo (IWrap _ pat arg term)   =
-    --     IWrap NotAName <$> collectScopeInfo pat <*> collectScopeInfo arg <*> collectScopeInfo term
-    -- collectScopeInfo (Apply _ fun arg) =
-    --     Apply NotAName <$> collectScopeInfo fun <*> collectScopeInfo arg
-    -- collectScopeInfo (Unwrap _ term) = Unwrap NotAName <$> collectScopeInfo term
-    -- collectScopeInfo (Error _ ty) = Error NotAName <$> collectScopeInfo ty
-    -- collectScopeInfo (TyInst _ term ty) =
-    --     TyInst NotAName <$> collectScopeInfo term <*> collectScopeInfo ty
-    -- collectScopeInfo (Var _ nameDup) = do
-    --     name <- freshenName nameDup
-    --     pure $ Var (registerFree name) name
-    -- collectScopeInfo (Constant _ con) = pure $ Constant NotAName con
-    -- collectScopeInfo (Builtin _ bi) = pure $ Builtin NotAName bi
+    collectScopeInfo (LamAbs ann name ty body)  = do
+        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo ty, collectScopeInfo body]
+    collectScopeInfo (TyAbs ann name kind body) = do
+        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo kind, collectScopeInfo body]
+    collectScopeInfo (IWrap _ pat arg term)   =
+        mergeErrOrScopeInfos [collectScopeInfo pat, collectScopeInfo arg, collectScopeInfo term]
+    collectScopeInfo (Apply _ fun arg) =
+        mergeErrOrScopeInfos [collectScopeInfo fun, collectScopeInfo arg]
+    collectScopeInfo (Unwrap _ term) = collectScopeInfo term
+    collectScopeInfo (Error _ ty) = collectScopeInfo ty
+    collectScopeInfo (TyInst _ term ty) =
+        mergeErrOrScopeInfos [collectScopeInfo term, collectScopeInfo ty]
+    collectScopeInfo (Var ann name) = handleSname ann name
+    collectScopeInfo (Constant _ _) = Right emptyScopeInfo
+    collectScopeInfo (Builtin _ _) = Right emptyScopeInfo
 
--- instance tyname ~ TyName => Scoping (Type tyname uni) where
---     establishScoping = runQuote . go where
---         go (TyLam _ nameDup kind ty) = do
---             name <- freshenTyName nameDup
---             referenceOutOfScopeTyName name .
---                 TyLam (introduceBound $ Left name) name (NotAName <$ kind) .
---                     referenceInScopeTyName name <$>
---                         go ty
---         go (TyForall _ nameDup kind ty) = do
---             name <- freshenTyName nameDup
---             referenceOutOfScopeTyName name .
---                 TyForall (introduceBound $ Left name) name (NotAName <$ kind) .
---                     referenceInScopeTyName name <$>
---                         go ty
---         go (TyIFix _ pat arg) = TyIFix NotAName <$> go pat <*> go arg
---         go (TyApp _ fun arg) = TyApp NotAName <$> go fun <*> go arg
---         go (TyFun _ dom cod) = TyFun NotAName <$> go dom <*> go cod
---         go (TyVar _ nameDup) = do
---             name <- freshenTyName nameDup
---             pure $ TyVar (registerFree $ Left name) name
---         go (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
+instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun) where
+    establishScoping (Program _ ver term) =
+        Program NotAName (NotAName <$ ver) <$> establishScoping term
 
-typeId :: Type TyName uni ()
-typeId = runQuote $ do
-    x <- freshTyName "x"
-    pure . TyLam () x (Type ()) $ TyVar () x
+    collectScopeInfo (Program _ _ term) = collectScopeInfo term
 
--- >>> :set -XTypeApplications
--- >>> checkScopingUsingSpineOf $ listTy @DefaultUni
--- Right ()
+-- flawed renamers:
+--   changing free variables
+--   not changing bound variables correctly
+--   changing the spine of the program
+--   mixing up type and term variables
+--
+--   changing names at the binding site but not the use site
+--   changing out-of-scope variables
+--   adding names clashing with preexisting names
+
+--   leaving duplicate binders
+
+
+    -- leftUnlessEmpty OldBindingsDiscordWithBoundVariables $
+    --     disappearedBindings `symmetricDifference` disappearedVariables
+    -- leftUnlessEmpty OldBindingsDiscordWithOutOfScopeVariables $
+    --     disappearedBindings `symmetricDifference` stayedOutOfScopeVariables
+    -- leftUnlessEmpty NewBindingsDiscordWithBoundVariables $
+    --     appearedBindings `symmetricDifference` appearedVariables
+    -- leftUnlessEmpty OldBindingsClashWithFreeVariables $
+    --     disappearedBindings `Set.intersection` stayedFreeVariables
+    -- leftUnlessEmpty OldBindingsClashWithNewBindings $
+    --     disappearedBindings `Set.intersection` appearedBindings
+    -- leftUnlessEmpty NewBindingsClashWithFreeVariabes $
+    --     appearedBindings `Set.intersection` stayedFreeVariables

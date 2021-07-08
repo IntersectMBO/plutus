@@ -202,8 +202,8 @@ propMangle = property $ do
 
 propScoping :: Property
 propScoping = property $ do
-    prog <- forAllPretty $ runAstGen genType
-    case checkScopingUsingSpineOf prog of
+    prog <- forAllPretty $ runAstGen genProgram
+    case checkRespectsScoping (runQuote . rename) prog of
         Left err -> fail $ show err
         Right () -> success
 
