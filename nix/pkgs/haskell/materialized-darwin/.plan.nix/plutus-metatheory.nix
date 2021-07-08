@@ -60,7 +60,6 @@
           "MAlonzo/Code/Main"
           "MAlonzo/Code/Agda/Builtin/Bool"
           "MAlonzo/Code/Agda/Builtin/Char"
-          "MAlonzo/Code/Agda/Builtin/Coinduction"
           "MAlonzo/Code/Agda/Builtin/Equality"
           "MAlonzo/Code/Agda/Builtin/IO"
           "MAlonzo/Code/Agda/Builtin/Int"
