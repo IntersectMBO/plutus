@@ -44,6 +44,15 @@ exports._preventOverflow = function (options) {
   });
 };
 
+exports._flipPlacement = function (options) {
+  const modifier =
+    require("@popperjs/core/lib/modifiers/flip").default;
+  return Object.assign({}, modifier, {
+    options,
+  });
+};
+
+
 exports._createPopper = function (reference, popper, options) {
   const { createPopper } = require("@popperjs/core/lib/createPopper");
   return createPopper(reference, popper, options);

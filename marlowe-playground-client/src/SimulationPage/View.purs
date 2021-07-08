@@ -22,17 +22,19 @@ import Halogen.Classes (aHorizontal, bold, btn, flex, flexCol, flexGrow, flexShr
 import Halogen.Css (classNames)
 import Halogen.CurrencyInput (currencyInput)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, button, div, div_, em_, h6, h6_, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, PlainHTML, aside, b_, button, div, div_, em, em_, h4, h6, h6_, li, li_, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.Monaco (monacoComponent)
+import Hint.State (hint)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
-import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payee(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Marlowe.Template (IntegerTemplateType(..))
+import Material.Icons as Icon
 import Monaco as Monaco
+import Popper (Placement(..))
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyChoice, showPrettyMoney)
 import SimulationPage.BottomPanel (panelContents)
 import SimulationPage.Lenses (_bottomPanelState)
@@ -177,10 +179,11 @@ marloweEditor state = slot _simulatorEditorSlot unit component unit (Just <<< Ha
 
 ------------------------------------------------------------
 sidebar ::
-  forall p.
+  forall m.
+  MonadAff m =>
   MetaData ->
   State ->
-  Array (HTML p Action)
+  Array (ComponentHTML Action ChildSlots m)
 sidebar metadata state = case view (_marloweState <<< _Head <<< _executionState) state of
   SimulationNotStarted notStartedRecord -> [ startSimulationWidget metadata notStartedRecord ]
   SimulationRunning _ ->
@@ -198,7 +201,12 @@ type TemplateFormDisplayInfo a action
     , prefix :: String -- Prefix for the explanation of the template
     }
 
-startSimulationWidget :: forall p. MetaData -> InitialConditionsRecord -> HTML p Action
+startSimulationWidget ::
+  forall m.
+  MonadAff m =>
+  MetaData ->
+  InitialConditionsRecord ->
+  ComponentHTML Action ChildSlots m
 startSimulationWidget metadata { initialSlot, templateContent } =
   cardWidget "Simulation has not started yet"
     $ div_
@@ -248,36 +256,53 @@ startSimulationWidget metadata { initialSlot, templateContent } =
         _ -> Nothing
     )
 
-integerTemplateParameters :: forall a action p. (IntegerTemplateType -> String -> BigInteger -> action) -> TemplateFormDisplayInfo a action -> Map String BigInteger -> Array (HTML p action)
+integerTemplateParameters ::
+  forall a action m.
+  MonadAff m =>
+  (IntegerTemplateType -> String -> BigInteger -> action) ->
+  TemplateFormDisplayInfo a action ->
+  Map String BigInteger ->
+  Array (ComponentHTML action ChildSlots m)
 integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, title, prefix } content =
-  [ li_
-      if Map.isEmpty content then
-        []
-      else
-        ([ h6_ [ em_ [ text title ] ] ])
-          <> ( map
-                ( \(key /\ value) ->
-                    ( ( div [ class_ (ClassName "template-fields") ]
-                          ( [ div_
-                                [ text (prefix <> " ")
-                                , strong_ [ text key ]
-                                , text ":"
-                                ]
-                            , case lookupFormat key of
-                                Just (currencyLabel /\ numDecimals) -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) currencyLabel numDecimals value
-                                Nothing -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
-                            ]
-                              <> [ div [ classes [ ClassName "action-group-explanation" ] ]
-                                    $ maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
-                                    $ lookupDefinition key
-                                ]
-                          )
+  let
+    parameterHint key =
+      maybe []
+        ( \explanation ->
+            [ hint
+                [ "leading-none" ]
+                ("template-parameter-" <> key)
+                Auto
+                (markdownHintWithTitle key explanation)
+            ]
+        )
+        $ lookupDefinition key
+  in
+    [ li_
+        if Map.isEmpty content then
+          []
+        else
+          ([ h6_ [ em_ [ text title ] ] ])
+            <> ( map
+                  ( \(key /\ value) ->
+                      ( ( div [ class_ (ClassName "template-fields") ]
+                            ( [ div_
+                                  [ text (prefix <> " ")
+                                  , strong_ [ text key ]
+                                  , text ":"
+                                  ]
+                              ]
+                                <> parameterHint key
+                                <> [ case lookupFormat key of
+                                      Just (currencyLabel /\ numDecimals) -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) currencyLabel numDecimals value
+                                      Nothing -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (actionGen typeName key) value
+                                  ]
+                            )
+                        )
                       )
-                    )
-                )
-                (Map.toUnfoldable content)
-            )
-  ]
+                  )
+                  (Map.toUnfoldable content)
+              )
+    ]
 
 ------------------------------------------------------------
 simulationStateWidget ::
@@ -314,10 +339,11 @@ simulationStateWidget state =
 
 ------------------------------------------------------------
 actionWidget ::
-  forall p.
+  forall m.
+  MonadAff m =>
   MetaData ->
   State ->
-  HTML p Action
+  ComponentHTML Action ChildSlots m
 actionWidget metadata state =
   cardWidget "Actions"
     $ div [ classes [] ]
@@ -355,47 +381,65 @@ actionWidget metadata state =
   sortParties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
   sortParties = sortWith (\(Tuple party _) -> party == otherActionsParty)
 
-  actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
+  actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (ComponentHTML Action ChildSlots m)
   actionsForParties m = map (\(Tuple k v) -> participant metadata state k (vs v)) (sortParties (kvs m))
 
 participant ::
-  forall p.
+  forall m.
+  MonadAff m =>
   MetaData ->
   State ->
   Party ->
   Array ActionInput ->
-  HTML p Action
+  ComponentHTML Action ChildSlots m
 participant metadata state party actionInputs =
   li [ classes [ noMargins ] ]
     ( [ title ]
         <> (map (inputItem metadata state partyName) actionInputs)
     )
   where
+  emptyDiv = div_ []
+
+  partyHint = case party of
+    Role roleName ->
+      maybe emptyDiv
+        ( \explanation ->
+            hint
+              [ "relative", "-top-1" ]
+              ("participant-hint-" <> roleName)
+              Auto
+              (markdownHintWithTitle roleName explanation)
+        )
+        $ Map.lookup roleName metadata.roleDescriptions
+    _ -> emptyDiv
+
   title =
     div [ classes [ ClassName "action-group" ] ]
       if party == otherActionsParty then
         -- QUESTION: if we only have "move to slot", could we rename this to "Slot Actions"?
-        [ div [ classes [ ClassName "action-group-title" ] ] [ h6_ [ em_ [ text "Other Actions" ] ] ] ]
+        [ h6_ [ em_ [ text "Other Actions" ] ] ]
       else
-        [ div [ classes [ ClassName "action-group-title" ] ] [ h6_ [ em_ [ text "Participant ", strong_ [ text partyName ] ] ] ] ]
-          <> [ div [ classes [ ClassName "action-group-explanation" ] ]
-                ( case party of
-                    Role roleName -> maybe [] (\explanation -> [ text "“" ] <> markdownToHTML explanation <> [ text "„" ]) $ Map.lookup roleName metadata.roleDescriptions
-                    _ -> []
-                )
+        [ h6_
+            [ em [ classNames [ "mr-1" ] ]
+                [ text "Participant "
+                , strong_ [ text partyName ]
+                ]
+            , partyHint
             ]
+        ]
 
   partyName = case party of
     (PK name) -> name
     (Role name) -> name
 
 inputItem ::
-  forall p.
+  forall m.
+  MonadAff m =>
   MetaData ->
   State ->
   PubKey ->
   ActionInput ->
-  HTML p Action
+  ComponentHTML Action ChildSlots m
 inputItem metadata _ person (DepositInput accountId party token value) =
   div [ classes [ ClassName "action", aHorizontal ] ]
     [ renderDeposit metadata accountId party token value
@@ -410,29 +454,36 @@ inputItem metadata _ person (DepositInput accountId party token value) =
     ]
 
 inputItem metadata _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
-  div
-    [ classes [ ClassName "action", aHorizontal, ClassName "flex-nowrap" ] ]
-    ( [ div [ classes [ ClassName "action-label" ] ]
-          ( [ div [ class_ (ClassName "choice-input") ]
-                [ span [ class_ (ClassName "break-word-span") ] [ text "Choice ", b_ [ text (show choiceName <> ": ") ] ]
+  let
+    choiceHint =
+      maybe (div_ [])
+        ( \explanation ->
+            hint
+              [ "relative", "-top-1" ]
+              ("choice-hint-" <> choiceName)
+              Auto
+              (markdownHintWithTitle choiceName explanation)
+        )
+        (mChoiceInfo >>= mExtractDescription)
+  in
+    div
+      [ classes [ ClassName "action", aHorizontal, ClassName "flex-nowrap" ] ]
+      ( [ div [ classes [ ClassName "action-label" ] ]
+            [ div [ class_ (ClassName "choice-input") ]
+                [ span [ class_ (ClassName "break-word-span") ]
+                    [ text "Choice "
+                    , b_ [ text (show choiceName <> ": ") ]
+                    , choiceHint
+                    ]
                 , case mChoiceInfo of
                     Just { choiceFormat: DecimalFormat numDecimals currencyLabel } -> marloweCurrencyInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) currencyLabel numDecimals chosenNum
                     _ -> marloweActionInput [ "mx-2", "flex-grow", "flex-shrink-0" ] (SetChoice choiceId) chosenNum
                 ]
             , div [ class_ (ClassName "choice-error") ] error
             ]
-              <> ( maybe []
-                    ( \explanation ->
-                        [ div [ class_ (ClassName "action-explanation") ]
-                            ([ text "“" ] <> markdownToHTML explanation <> [ text "„" ])
-                        ]
-                    )
-                    (mChoiceInfo >>= mExtractDescription)
-                )
-          )
-      ]
-        <> addButton
-    )
+        ]
+          <> addButton
+      )
   where
   mChoiceInfo = Map.lookup choiceName metadata.choiceInfo
 
@@ -638,3 +689,16 @@ cardWidget name body =
       [ div [ class_ (ClassName "simulation-card-widget-header") ] [ title' ]
       , div [ class_ (ClassName "simulation-card-widget-body") ] [ body ]
       ]
+
+markdownHintWithTitle :: String -> String -> PlainHTML
+markdownHintWithTitle title markdown =
+  div_
+    $ [ h4
+          -- With min-w-max we define that the title should never break into
+          -- a different line.
+          [ classNames [ "no-margins", "text-lg", "font-semibold", "flex", "items-center", "pb-2", "min-w-max" ] ]
+          [ Icon.icon Icon.HelpOutline [ "mr-1", "font-normal" ]
+          , text title
+          ]
+      ]
+    <> markdownToHTML markdown
