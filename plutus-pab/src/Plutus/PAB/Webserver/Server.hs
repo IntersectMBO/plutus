@@ -13,6 +13,7 @@
 
 module Plutus.PAB.Webserver.Server
     ( startServer
+    , startServer'
     , startServerDebug
     ) where
 
