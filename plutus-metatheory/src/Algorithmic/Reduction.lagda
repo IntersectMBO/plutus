@@ -1,4 +1,5 @@
 \begin{code}
+{-# OPTIONS --rewriting #-}
 module Algorithmic.Reduction where
 \end{code}
 

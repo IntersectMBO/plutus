@@ -4,6 +4,7 @@ layout: page
 ---
 
 ```
+{-# OPTIONS --rewriting #-}
 module Untyped.RenamingSubstitution where
 ```
 

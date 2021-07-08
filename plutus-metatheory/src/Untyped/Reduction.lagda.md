@@ -4,6 +4,7 @@ style: page
 ---
 
 ```
+{-# OPTIONS --rewriting #-}
 module Untyped.Reduction where
 ```
 

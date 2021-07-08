@@ -1,6 +1,7 @@
 # CK machine
 
 ```
+{-# OPTIONS --rewriting #-}
 module Scoped.CK where
 ```
 

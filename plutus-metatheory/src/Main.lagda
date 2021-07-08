@@ -1,4 +1,5 @@
 \begin{code}
+{-# OPTIONS --rewriting #-}
 module Main where
 open import Agda.Builtin.IO
 import IO.Primitive as IO using (return;_>>=_)
