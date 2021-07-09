@@ -53,11 +53,6 @@ in {
       cidrs = global;
     };
 
-    docker-registry = {
-      port = config.services.dockerRegistry.port;
-      cidrs = global;
-    };
-
     consul-serf-lan = {
       port = 8301;
       protocols = [ "tcp" "udp" ];
@@ -94,9 +89,12 @@ in {
       cidrs = internal;
     };
 
-    vit-public-rpc = {
-      port = 7100;
+    routing = {
+      from = 10000;
+      to = 20000;
+      protocols = [ "tcp" "udp" ];
       cidrs = global;
     };
+
   };
 }

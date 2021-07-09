@@ -1,5 +1,4 @@
-{ system, self }:
-final: prev:
+inputs: final: prev:
 let
   lib = final.lib;
   # Little convenience function helping us to containing the bash
@@ -7,7 +6,7 @@ let
   writeBashChecked = final.writers.makeScriptWriter {
     interpreter = "${final.bash}/bin/bash";
     check = final.writers.writeBash "shellcheck-check" ''
-      ${final.shellcheck}/bin/shellcheck "$1"
+      ${final.shellcheck}/bin/shellcheck -x "$1"
     '';
   };
   writeBashBinChecked = name: writeBashChecked "/bin/${name}";
@@ -19,9 +18,36 @@ in {
     ref = "master";
   };
 
-  restic-backup = final.callPackage ./pkgs/backup { };
+  # Any:
+  # - run of this command with a parameter different than the testnet (currently 10)
+  # - change in the genesis file here
+  # Requires an update on the mantis repository and viceversa
+  generate-mantis-keys = final.writeBashBinChecked "generate-mantis-keys" ''
+    export PATH="${
+      lib.makeBinPath (with final; [
+        coreutils
+        curl
+        gawk
+        gnused
+        gnused
+        jq
+        mantis
+        netcat
+        vault-bin
+        which
+        shellcheck
+        tree
+      ])
+    }"
 
-  plutus = import final.plutus-source { inherit system; };
+    . ${./pkgs/generate-mantis-keys.sh}
+  '';
+
+  plutus = import final.plutus-source { inherit (final) system; };
+  checkFmt = final.writeShellScriptBin "check_fmt.sh" ''
+    export PATH="$PATH:${lib.makeBinPath (with final; [ git nixfmt gnugrep ])}"
+    . ${./pkgs/check_fmt.sh}
+  '';
 
   devShell = let
     cluster = "plutus-playground";
@@ -33,36 +59,36 @@ in {
     BITTE_CLUSTER = cluster;
     AWS_PROFILE = "plutus";
     AWS_DEFAULT_REGION = final.clusters.${cluster}.proto.config.cluster.region;
+    NOMAD_NAMESPACE = "plutus-playground";
 
     VAULT_ADDR = "https://vault.${domain}";
     NOMAD_ADDR = "https://nomad.${domain}";
     CONSUL_HTTP_ADDR = "https://consul.${domain}";
 
-    buildInputs = [
-      final.bitte
-      self.inputs.bitte.legacyPackages.${system}.scaler-guard
-      final.terraform-with-plugins
-      prev.sops
-      final.vault-bin
-      final.openssl
-      final.cfssl
-      final.nixfmt
-      final.awscli
-      final.nomad
-      final.consul
-      final.consul-template
-      final.direnv
-      final.nixFlakes
-      final.jq
-      final.fd
+    buildInputs = with final; [
+      bitte
+      scaler-guard
+      terraform-with-plugins
+      sops
+      vault-bin
+      openssl
+      cfssl
+      ripgrep
+      nixfmt
+      awscli
+      nomad
+      consul
+      consul-template
+      direnv
+      jq
+      fd
+      cue
     ];
   };
 
   # Used for caching
   devShellPath = prev.symlinkJoin {
-    paths = final.devShell.buildInputs ++ [
-      final.nixFlakes
-    ];
+    paths = final.devShell.buildInputs;
     name = "devShell";
   };
 
@@ -83,81 +109,6 @@ in {
     tree
   ];
 
-  nixosConfigurations =
-    self.inputs.bitte.legacyPackages.${system}.mkNixosConfigurations
-    final.clusters;
 
-  clusters = self.inputs.bitte.legacyPackages.${system}.mkClusters {
-    root = ./clusters;
-    inherit self system;
-  };
-
-  inherit (self.inputs.bitte.legacyPackages.${system})
-    bitte vault-bin mkNomadJob terraform-with-plugins systemdSandbox nixFlakes
-    nomad consul consul-template;
-
-  nomadJobs = let
-    jobsDir = ./jobs;
-    contents = builtins.readDir jobsDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackage (jobsDir + "/${fileName}") { });
-  in lib.foldl' lib.recursiveUpdate { } imported;
-
-  dockerImages = let
-    imageDir = ./docker;
-    contents = builtins.readDir imageDir;
-    toImport = name: type: type == "regular" && lib.hasSuffix ".nix" name;
-    fileNames = builtins.attrNames (lib.filterAttrs toImport contents);
-    imported = lib.forEach fileNames
-      (fileName: final.callPackages (imageDir + "/${fileName}") { });
-    merged = lib.foldl' lib.recursiveUpdate { } imported;
-  in lib.flip lib.mapAttrs merged (key: image: {
-    inherit image;
-
-    id = "${image.imageName}:${image.imageTag}";
-
-    push = let
-      parts = builtins.split "/" image.imageName;
-      registry = builtins.elemAt parts 0;
-      repo = builtins.elemAt parts 2;
-    in final.writeShellScriptBin "push" ''
-      set -euo pipefail
-
-      echo -n "Pushing ${image.imageName}:${image.imageTag} ... "
-
-      if curl -s "https://${registry}/v2/${repo}/tags/list" | grep "${image.imageTag}" &> /dev/null; then
-        echo "Image already exists in registry"
-      else
-        docker load -i ${image}
-        docker push ${image.imageName}:${image.imageTag}
-      fi
-    '';
-
-    load = builtins.trace key (final.writeShellScriptBin "load" ''
-      set -euo pipefail
-      echo "Loading ${image} (${image.imageName}:${image.imageTag}) ..."
-      docker load -i ${image}
-    '');
-  });
-
-  push-docker-images = final.writeShellScriptBin "push-docker-images" ''
-    set -euo pipefail
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "${value.push}/bin/push")
-      final.dockerImages)}
-  '';
-
-  load-docker-images = final.writeShellScriptBin "load-docker-images" ''
-    set -euo pipefail
-    ${lib.concatStringsSep "\n"
-    (lib.mapAttrsToList (key: value: "${value.load}/bin/load")
-      final.dockerImages)}
-  '';
-
-  inherit ((self.inputs.nixpkgs.legacyPackages.${system}).dockerTools)
-    buildImage buildLayeredImage shadowSetup;
-
-  mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
+  restic-backup = final.callPackage ./pkgs/backup { };
 }
