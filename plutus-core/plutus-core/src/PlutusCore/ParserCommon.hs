@@ -30,6 +30,9 @@ newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
 type Parser ann = ParsecT (PLC.ParseError SourcePos) T.Text (StateT ParserState PLC.Quote)
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
 
+instance Pretty SourcePos where
+    pretty = pretty . sourcePosPretty
+
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
 

@@ -34,13 +34,13 @@ import           PlutusCore.Lexer.Type
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 
-import           Control.Lens                       hiding (use)
+import           Control.Lens                 hiding (use)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
-import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import qualified Data.Text                    as T
 import           ErrorCode
+import           Prettyprinter                (hardline, indent, squotes, (<+>))
+import           Prettyprinter.Internal       (Doc (Text))
 import           Universe
 
 {- Note [Annotations and equality]
