@@ -237,24 +237,12 @@ lemma<>2 (xs ∷ x) ys = lemma<>2 xs (x ∷ ys)
 saturated : ∀{A}(as : List A) → ([] <>< as) <>> [] ∈ as
 saturated as = <>>'2<>> ([] <>< as) [] as (lemma<>1 [] as)
 
-
--- I'd prefer not to use cons', stop' and rev
-cons' : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <>> as' ∈ as''
-    → (cons a as) <>> as' ∈ (a ∷ as'')
-cons' (start _) = bubble (start _)
-cons' (bubble p) = bubble (cons' p)
-
 toBwd : ∀{A} → List A → Bwd A
 toBwd [] = []
 toBwd (a ∷ as) = cons a (toBwd as)
 
-stop' : ∀{A}(as : List A) → toBwd as <>> [] ∈ as
-stop' [] = start []
-stop' (a ∷ as) = cons' (stop' as)
-
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 
--- one BApp to rule them all...
 data BApp (b : Builtin) : ∀{az}{as}
   → az <>> as ∈ arity b
   → ∀{A} → ∅ ⊢ A → Set where
@@ -301,12 +289,6 @@ data Value where
        → {t : ∅ ⊢ Π A}
        → BApp b p t
        → Value t
-
-
-
--- I need a helper function that takes an application and a arity
--- proof and then attaches the right constructor. This may save me
--- from using with to determine this in lots of places
 
 deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u

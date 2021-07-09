@@ -8,7 +8,7 @@ module Algorithmic.CEKV where
 open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Function hiding (_∋_)
 open import Data.Product using (proj₁;proj₂)
-import Data.List as L
+open import Data.List using ([];_∷_)
 open import Data.List.Properties
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]];subst to substEq)
 open import Data.Unit using (⊤;tt)
@@ -33,9 +33,14 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Utils using (decIf;just;nothing)
 
+open import Algorithmic.ReductionEC using (Arg;Term;Type;_<>>_∈_;start;bubble;arity;saturated)
+
 data Env : Ctx ∅ → Set
 
-ITel : Builtin → ∀{Φ} → Ctx Φ → SubNf Φ ∅ → Set
+data BAPP (b : Builtin) : ∀{az}{as}
+  → az <>> as ∈ arity b
+  → (A : ∅ ⊢Nf⋆ *) → Set
+
 data Value : (A : ∅ ⊢Nf⋆ *) → Set where
   V-ƛ : ∀ {Γ}{A B : ∅ ⊢Nf⋆ *}
     → (M : Γ , A ⊢ B)
@@ -57,35 +62,28 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
     → (cn : TermCon {∅} (con tcn))
     → Value (con tcn)
 
-  V-I⇒ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = ISIG b in
-      (p : Ψ ≡ Φ)
-    → (q : substEq Ctx p Γ' ≡ Γ)
-    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
-    → (σ : SubNf Φ' ∅)
-    → (p : (Δ , A) ≤C' Γ)
-    → ITel b Δ σ
-    → (t : ∅ ⊢ subNf σ (<C'2type (skip p) C))
-    → Value (subNf σ (<C'2type (skip p) C))
+  V-I⇒ : ∀ b {A B as as'}
+       → (p : as <>> (Term ∷ as') ∈ arity b)
+       → BAPP b p (A ⇒ B)
+       → Value (A ⇒ B)
 
-  V-IΠ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{K}{C : Φ ⊢Nf⋆ *}
-    → let Ψ ,, Γ' ,, C' = ISIG b in
-      (p : Ψ ≡ Φ)
-    → (q : substEq Ctx p Γ' ≡ Γ)
-    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
-    → (σ : SubNf Φ' ∅) -- could try one at a time
-      (p : (Δ ,⋆ K) ≤C' Γ)
-    → ITel b Δ σ
-    → (t : ∅ ⊢ subNf σ (<C'2type (skip⋆ p) C))
-    → Value (subNf σ (<C'2type (skip⋆ p) C))
+  V-IΠ : ∀ b {K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{as as'}
+       → (p : as <>> (Type ∷ as') ∈ arity b)
+       → BAPP b p (Π B)
+       → Value (Π B)
 
-ITel b ∅       σ = ⊤
-ITel b (Γ ,⋆ J) σ = ITel b Γ (σ ∘ S) × ∅ ⊢Nf⋆ J
-ITel b (Γ , A)  σ = ITel b Γ σ × Value (subNf σ A)
-
--- ITel is very similar to Env...
--- The most significant difference is that envs don't contain types
--- if they did we could perhaps delay type substitutions too...
+data BAPP b where
+  base : BAPP b (start (arity b)) (itype b)
+  step : ∀{A B}{az as}
+    → (p : az <>> (Term ∷ as) ∈ arity b)
+    → BAPP b p (A ⇒ B)
+    → Value A → BAPP b (bubble p) B
+  step⋆ : ∀{B C}{az as}
+    → (p : az <>> (Type ∷ as) ∈ arity b)
+    → BAPP b p (Π B)
+    → {A : ∅ ⊢Nf⋆ K}
+    → (q : C ≡ B [ A ]Nf)
+    → BAPP b (bubble p) C
 
 data Env where
   [] : Env ∅
@@ -97,6 +95,8 @@ lookup (S x) (ρ ∷ v) = lookup x ρ
 
 convValue : ∀{A A'}(p : A ≡ A') → Value A → Value A'
 convValue refl v = v
+
+
 
 data Error : ∅ ⊢Nf⋆ * → Set where
   -- an actual error term
@@ -126,26 +126,61 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
     (subNf-id A))
   (sub (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2ren ρ)) M)
 
+dischargeB : ∀{b A}{az}{as}{p : az <>> as ∈ arity b} → BAPP b p A → ∅ ⊢ A
+dischargeB {b = b} base = ibuiltin b
+dischargeB (step p bt vu) = dischargeB bt · discharge vu
+dischargeB (step⋆ p bt refl) = dischargeB bt ·⋆ _
+
 discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
 discharge (V-Λ M ρ)  = Λ (dischargeBody⋆ M ρ)
 discharge (V-wrap V) = wrap _ _ (discharge V)
 discharge (V-con c)  = con c
-discharge (V-I⇒ _ _ _ _ _ _ _ t) = t
-discharge (V-IΠ _ _ _ _ _ _ _ t) = t
+discharge (V-I⇒ b p bt) = dischargeB bt
+discharge (V-IΠ b p bt) = dischargeB bt
 
-VTel : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : L.List (Δ ⊢Nf⋆ *)) → Set
-VTel Δ σ L.[]       = ⊤
-VTel Δ σ (A L.∷ As) = Value (subNf σ A) × VTel Δ σ As
+BUILTIN : ∀ b {A} → BAPP b (saturated (arity b)) A → Value A ⊎ ∅ ⊢Nf⋆ *
+BUILTIN addInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i + i')))
+BUILTIN subtractInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i - i')))
+BUILTIN multiplyInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i ** i')))
+BUILTIN divideInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+  (i' ≟ ℤ.pos 0)
+  (inj₂ (con integer))
+  (inj₁ (V-con (integer (div i i'))))
+BUILTIN quotientInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+  (i' ≟ ℤ.pos 0)
+  (inj₂ (con integer))
+  (inj₁ (V-con (integer (quot i i'))))
+BUILTIN remainderInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+  (i' ≟ ℤ.pos 0)
+  (inj₂ (con integer))
+  (inj₁ (V-con (integer (rem i i'))))
+BUILTIN modInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+  (i' ≟ ℤ.pos 0)
+  (inj₂ (con integer))
+  (inj₁ (V-con (integer (mod i i'))))
+BUILTIN lessThanInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN lessThanEqualsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN greaterThanInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I>? i')
+  (inj₁ (V-con (bool true)))
+  (inj₁ (V-con (bool false)))
+BUILTIN greaterThanEqualsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN equalsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN concatenate bt = {!!}
+BUILTIN takeByteString bt = {!!}
+BUILTIN dropByteString bt = {!!}
+BUILTIN lessThanByteString bt = {!!}
+BUILTIN greaterThanByteString bt = {!!}
+BUILTIN sha2-256 bt = {!!}
+BUILTIN sha3-256 bt = {!!}
+BUILTIN verifySignature bt = {!!}
+BUILTIN equalsByteString bt = {!!}
+BUILTIN ifThenElse bt = {!!}
+BUILTIN charToString bt = {!!}
+BUILTIN append bt = {!!}
+BUILTIN trace bt = {!!}
 
-extendVTel : ∀{Δ As} Bs
-    → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (vs : VTel Δ σ Bs)
-    → ∀{C}(v : Value (subNf σ C))
-    → (p : Bs L.++ (C L.∷ L.[]) ≡ As)
-    → VTel Δ σ As
-extendVTel L.[] σ vs v refl = v ,, _
-extendVTel (B L.∷ Bs) σ (v ,, vs) v' refl = v ,, extendVTel Bs σ vs v' refl
 
+{-
 BUILTIN : (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
@@ -376,3 +411,4 @@ stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
+-}
