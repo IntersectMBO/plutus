@@ -35,8 +35,8 @@
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+          (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
           (hsPkgs."io-sim" or (errorHandler.buildDepError "io-sim"))
-          (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
@@ -50,4 +50,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/16; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/17; }

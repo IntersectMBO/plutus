@@ -37,7 +37,6 @@
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."bech32" or (errorHandler.buildDepError "bech32"))
-          (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
@@ -59,7 +58,6 @@
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
-          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
           (hsPkgs."strict-containers" or (errorHandler.buildDepError "strict-containers"))
@@ -138,4 +136,4 @@
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/42; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/43; }

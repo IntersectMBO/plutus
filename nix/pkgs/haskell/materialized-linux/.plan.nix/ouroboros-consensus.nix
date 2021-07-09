@@ -67,7 +67,7 @@
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
-          (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+          (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
           (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
@@ -167,6 +167,7 @@
           "Ouroboros/Consensus/Ledger/Extended"
           "Ouroboros/Consensus/Ledger/Inspect"
           "Ouroboros/Consensus/Ledger/Query"
+          "Ouroboros/Consensus/Ledger/Query/Version"
           "Ouroboros/Consensus/Ledger/SupportsMempool"
           "Ouroboros/Consensus/Ledger/SupportsPeerSelection"
           "Ouroboros/Consensus/Ledger/SupportsProtocol"
@@ -175,6 +176,7 @@
           "Ouroboros/Consensus/Mempool/Impl"
           "Ouroboros/Consensus/Mempool/Impl/Pure"
           "Ouroboros/Consensus/Mempool/Impl/Types"
+          "Ouroboros/Consensus/Mempool/TxLimits"
           "Ouroboros/Consensus/Mempool/TxSeq"
           "Ouroboros/Consensus/MiniProtocol/BlockFetch/Server"
           "Ouroboros/Consensus/MiniProtocol/ChainSync/Client"
@@ -291,4 +293,4 @@
           else [ "src-unix" ]);
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/18; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/19; }

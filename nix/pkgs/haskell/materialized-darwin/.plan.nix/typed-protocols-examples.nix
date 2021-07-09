@@ -36,7 +36,7 @@
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
-          (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+          (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           ];
@@ -66,7 +66,7 @@
             (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
             (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
             (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
-            (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+            (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
             (hsPkgs."io-sim" or (errorHandler.buildDepError "io-sim"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
@@ -83,4 +83,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/14; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/15; }
