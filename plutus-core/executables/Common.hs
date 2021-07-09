@@ -48,18 +48,6 @@ import           System.Exit                              (exitFailure, exitSucc
 import           System.Mem                               (performGC)
 import           Text.Printf                              (printf)
 
-{- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
-   ASTs.  In all cases we require the annotation type to be ().  There are two
-   reasons for this.  Firstly, ASTs serialised for transmission to the chain
-   will always have unit annotations because we can save space by omitting
-   annotations in the CBOR (using the OmitUnitAnnotations class from CBOR.hs),
-   so it makes sense for the program to deal with these.  Secondly, the
-   annotation type has to be specified when we're deserialising CBOR (in order
-   to check that the AST has the correct type), so it's difficult to deal with
-   CBOR with arbitrary annotation types: fixing the annotation type to be () is
-   the simplest thing to do and fits our use case.
- -}
-
 ----------- Executable type class -----------
 -- currently we only have PLC and UPLC. PIR will be added later on.
 
