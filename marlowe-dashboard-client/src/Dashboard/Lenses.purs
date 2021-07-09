@@ -4,8 +4,8 @@ module Dashboard.Lenses
   , _menuOpen
   , _card
   , _cardOpen
-  , _status
   , _contracts
+  , _contractFilter
   , _selectedContractIndex
   , _selectedContract
   , _walletNicknameInput
@@ -16,7 +16,7 @@ module Dashboard.Lenses
 
 import Prelude
 import Contract.Types (State) as Contract
-import Dashboard.Types (Card, ContractStatus, State)
+import Dashboard.Types (Card, ContractFilter, State)
 import Data.Lens (Lens', Traversal', set, wander)
 import Data.Lens.Record (prop)
 import Data.Map (Map, insert, lookup)
@@ -44,11 +44,11 @@ _card = prop (SProxy :: SProxy "card")
 _cardOpen :: Lens' State Boolean
 _cardOpen = prop (SProxy :: SProxy "cardOpen")
 
-_status :: Lens' State ContractStatus
-_status = prop (SProxy :: SProxy "status")
-
 _contracts :: Lens' State (Map PlutusAppId Contract.State)
 _contracts = prop (SProxy :: SProxy "contracts")
+
+_contractFilter :: Lens' State ContractFilter
+_contractFilter = prop (SProxy :: SProxy "contractFilter")
 
 _selectedContractIndex :: Lens' State (Maybe PlutusAppId)
 _selectedContractIndex = prop (SProxy :: SProxy "selectedContractIndex")

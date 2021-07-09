@@ -21,6 +21,7 @@ icon_ i = icon i []
 -----
 data Icon
   = Add
+  | AddBox
   | AddCircle
   | ArrowRight
   | ArrowLeft
@@ -32,6 +33,7 @@ data Icon
   | ErrorOutline
   | Help
   | HelpOutline
+  | History
   | Home
   | Menu
   | Next
@@ -41,13 +43,16 @@ data Icon
   | Previous
   | Refresh
   | Roles
+  | Running
   | TaskAlt
   | Terms
   | Timer
-  | Wallet
+  | Tutorials
 
 content :: Icon -> String
 content Add = "add"
+
+content AddBox = "add_box"
 
 content AddCircle = "add_circle_outline"
 
@@ -71,6 +76,8 @@ content Help = "help"
 
 content HelpOutline = "help_outline"
 
+content History = "history"
+
 content Home = "home"
 
 content Menu = "short_text"
@@ -89,16 +96,20 @@ content Refresh = "refresh"
 
 content Roles = "person_pin_circle"
 
+content Running = "directions_run"
+
 content TaskAlt = "task_alt"
 
 content Terms = "alarm_add"
 
 content Timer = "timer"
 
-content Wallet = "account_balance_wallet"
+content Tutorials = "school"
 
 iconClass :: Icon -> String
 iconClass Add = "add"
+
+iconClass AddBox = "add-box"
 
 iconClass AddCircle = "add-circle"
 
@@ -122,6 +133,8 @@ iconClass Help = "help"
 
 iconClass HelpOutline = "help-outline"
 
+iconClass History = "history"
+
 iconClass Home = "home"
 
 iconClass Menu = "menu"
@@ -140,10 +153,12 @@ iconClass Refresh = "refresh"
 
 iconClass Roles = "roles"
 
+iconClass Running = "running"
+
 iconClass TaskAlt = "task-alt"
 
 iconClass Terms = "terms"
 
 iconClass Timer = "timer"
 
-iconClass Wallet = "wallet"
+iconClass Tutorials = "tutorials"

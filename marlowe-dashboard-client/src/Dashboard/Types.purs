@@ -1,7 +1,7 @@
 module Dashboard.Types
   ( State
   , Card(..)
-  , ContractStatus(..)
+  , ContractFilter(..)
   , PartitionedContracts
   , Input
   , Action(..)
@@ -28,8 +28,8 @@ type State
     , menuOpen :: Boolean
     , card :: Maybe Card
     , cardOpen :: Boolean -- see note [CardOpen] in Welcome.State (the same applies here)
-    , status :: ContractStatus
     , contracts :: Map PlutusAppId Contract.State
+    , contractFilter :: ContractFilter
     , selectedContractIndex :: Maybe PlutusAppId
     , walletNicknameInput :: InputField.State WalletNicknameError
     , walletIdInput :: InputField.State WalletIdError
@@ -39,10 +39,11 @@ type State
     }
 
 data Card
-  = SaveWalletCard (Maybe String)
-  | ViewWalletCard WalletDetails
-  | PutdownWalletCard
+  = TutorialsCard
+  | CurrentWalletCard
   | WalletLibraryCard
+  | SaveWalletCard (Maybe String)
+  | ViewWalletCard WalletDetails
   | TemplateLibraryCard
   | ContractSetupCard
   | ContractSetupConfirmationCard
@@ -50,11 +51,11 @@ data Card
 
 derive instance eqCard :: Eq Card
 
-data ContractStatus
+data ContractFilter
   = Running
   | Completed
 
-derive instance eqContractStatus :: Eq ContractStatus
+derive instance eqContractFilter :: Eq ContractFilter
 
 type PartitionedContracts
   = { completed :: Array Contract.State, running :: Array Contract.State }
@@ -72,7 +73,7 @@ data Action
   | ToggleMenu
   | OpenCard Card
   | CloseCard
-  | SelectView ContractStatus
+  | SetContractFilter ContractFilter
   | SelectContract (Maybe PlutusAppId)
   | UpdateFromStorage
   | UpdateFollowerApps (Map MarloweParams MarloweData)
@@ -92,7 +93,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
-  toEvent (SelectView _) = Just $ defaultEvent "SelectView"
+  toEvent (SetContractFilter _) = Just $ defaultEvent "FilterContracts"
   toEvent (SelectContract _) = Just $ defaultEvent "OpenContract"
   toEvent UpdateFromStorage = Nothing
   toEvent (UpdateFollowerApps _) = Nothing

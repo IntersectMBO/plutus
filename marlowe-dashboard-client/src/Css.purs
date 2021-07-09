@@ -1,5 +1,5 @@
 module Css
-  ( container
+  ( maxWidthContainer
   , bgBlueGradient
   , button
   , withIcon
@@ -33,8 +33,8 @@ import Halogen.Css (applyWhen)
 import Material.Icons (Icon, iconClass)
 
 -- max-width container
-container :: Array String
-container = [ "max-w-xl", "mx-auto", "px-4" ]
+maxWidthContainer :: Array String
+maxWidthContainer = [ "max-w-xl", "mx-auto", "px-4" ]
 
 --- color gradients
 bgBlueGradient :: Array String

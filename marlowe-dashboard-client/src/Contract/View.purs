@@ -277,7 +277,7 @@ renderContractCard stepNumber state currentTab cardBody =
       --       so the perceived margins are bigger than we'd want to. To solve this we add negative margin of 4
       --       to the "not selected" cards, a positive margin of 2 to the selected one
       -- Base classes
-      [ "grid", "grid-rows-contract-step-card", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out" ]
+      [ "grid", "grid-rows-auto-1fr", "rounded", "overflow-hidden", "flex-shrink-0", "w-contract-card", "h-contract-card", "transform", "transition-transform", "duration-100", "ease-out" ]
         <> if (state ^. _selectedStep /= stepNumber) then
             -- Not selected card modifiers
             [ "shadow", "scale-77", "-mx-4" ]
@@ -298,7 +298,7 @@ renderContractCard stepNumber state currentTab cardBody =
               ]
               [ span_ $ [ text "Balances" ] ]
           ]
-      , div [ classNames [ "bg-white", "grid", "grid-rows-contract-step-card" ] ] cardBody
+      , div [ classNames [ "bg-white", "grid", "grid-rows-auto-1fr" ] ] cardBody
       ]
 
 statusIndicator :: forall p a. Maybe Icon -> String -> Array String -> HTML p a
