@@ -175,7 +175,7 @@ sidebarCard visible =
   , "rounded-t"
   , "self-end"
   , "h-90pc"
-  , "lg:rounded-t-none"
+  , "lg:rounded-none"
   , "lg:mx-0"
   , "lg:flex-none"
   , "lg:w-sidebar"

@@ -39,7 +39,7 @@ contractTemplateCard walletLibrary assets state =
     contractTemplate = view _contractTemplate state
   in
     div
-      [ classNames [ "h-full", "grid", "grid-rows-contract-setup" ] ]
+      [ classNames [ "h-full", "grid", "grid-rows-auto-auto-1fr" ] ]
       [ h2
           [ classNames Css.cardHeader ]
           [ text "Contract templates" ]
@@ -124,7 +124,7 @@ contractSelection =
 contractOverview :: forall p. ContractTemplate -> HTML p Action
 contractOverview contractTemplate =
   div
-    [ classNames [ "h-full", "grid", "grid-rows-contract-setup-inner" ] ]
+    [ classNames [ "h-full", "grid", "grid-rows-1fr-auto" ] ]
     [ div
         [ classNames [ "h-full", "overflow-y-auto", "p-4" ] ]
         [ h2
@@ -172,7 +172,7 @@ contractSetup walletLibrary state =
       }
   in
     div
-      [ classNames [ "h-full", "grid", "grid-rows-contract-setup-inner" ] ]
+      [ classNames [ "h-full", "grid", "grid-rows-1fr-auto" ] ]
       [ div
           [ classNames [ "overflow-y-auto", "p-4" ] ]
           [ h2
