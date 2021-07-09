@@ -356,11 +356,12 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun)
 --   changing the spine of the program
 --   mixing up type and term variables
 --
---   changing names at the binding site but not the use site
+--   changing names at the binding site but not the use site (or the other way around)
 --   changing out-of-scope variables
 --   adding names clashing with preexisting names
 
 --   leaving duplicate binders
+
 
 
     -- leftUnlessEmpty OldBindingsDiscordWithBoundVariables $
