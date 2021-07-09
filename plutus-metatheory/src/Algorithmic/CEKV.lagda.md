@@ -165,89 +165,28 @@ BUILTIN greaterThanInteger (step _ (step _ base (V-con (integer i))) (V-con (int
   (inj₁ (V-con (bool false)))
 BUILTIN greaterThanEqualsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN equalsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN concatenate bt = {!!}
-BUILTIN takeByteString bt = {!!}
-BUILTIN dropByteString bt = {!!}
-BUILTIN lessThanByteString bt = {!!}
-BUILTIN greaterThanByteString bt = {!!}
-BUILTIN sha2-256 bt = {!!}
-BUILTIN sha3-256 bt = {!!}
-BUILTIN verifySignature bt = {!!}
-BUILTIN equalsByteString bt = {!!}
-BUILTIN ifThenElse bt = {!!}
-BUILTIN charToString bt = {!!}
-BUILTIN append bt = {!!}
-BUILTIN trace bt = {!!}
-
-
-{-
-BUILTIN : (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (vtel : VTel Δ σ As)
-      -----------------------------
-    → Value (subNf σ C) ⊎ ∅ ⊢Nf⋆ *
-BUILTIN addInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  inj₁ (V-con (integer (i + i')))
-BUILTIN subtractInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  inj₁ (V-con (integer (i - i')))
-BUILTIN multiplyInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  inj₁ (V-con (integer (i ** i')))
-BUILTIN divideInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (div i i'))))
-BUILTIN quotientInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (quot i i'))))
-BUILTIN remainderInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (rem i i'))))
-BUILTIN modInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (mod i i'))))
-BUILTIN lessThanInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i <? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN
-  lessThanEqualsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN greaterThanInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i I>? i')
-        (inj₁ (V-con (bool true)))
-        (inj₁ (V-con (bool false)))
-BUILTIN
-  greaterThanEqualsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN equalsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN concatenate σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
-  inj₁ (V-con (bytestring (concat b b')))
-BUILTIN takeByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
-  inj₁ (V-con (bytestring (take i b)))
-BUILTIN dropByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
-  inj₁ (V-con (bytestring (drop i b)))
-BUILTIN lessThanByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (B< b b')))
-BUILTIN greaterThanByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (B> b b')))
-BUILTIN sha2-256 σ (V-con (bytestring b) ,, tt) =
+BUILTIN concatenate (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
+BUILTIN takeByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (take i b)))
+BUILTIN dropByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (drop i b)))
+BUILTIN lessThanByteString (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B< b b')))
+BUILTIN greaterThanByteString (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B> b b')))
+BUILTIN sha2-256 (step _ base (V-con (bytestring b))) =
   inj₁ (V-con (bytestring (SHA2-256 b)))
-BUILTIN sha3-256 σ (V-con (bytestring b) ,, tt) =
+BUILTIN sha3-256 (step _ base (V-con (bytestring b))) =
   inj₁ (V-con (bytestring (SHA3-256 b)))
-BUILTIN
-  verifySignature
-  σ
-  (V-con (bytestring k)
-   ,,
-   V-con (bytestring d)
-   ,,
-   V-con (bytestring c)
-   ,,
-   tt) with (verifySig k d c)
+BUILTIN verifySignature (step _ (step _ (step _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
 ... | just b = inj₁ (V-con (bool b))
 ... | nothing = inj₂ (con bool)
 
-BUILTIN equalsByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (equals b b')))
+BUILTIN equalsByteString (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (equals b b')))
+BUILTIN ifThenElse (step _ (step _ (step _ (step⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₁ vf
+BUILTIN ifThenElse (step _ (step _ (step _ (step⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₁ vt
+BUILTIN charToString (step _ base (V-con (char c))) = inj₁ (V-con (string (primStringFromList Data.List.[ c ])))
+BUILTIN append (step _ (step _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
+BUILTIN trace (step _ base (V-con (string s))) =
+  inj₁ (V-con (Debug.trace s unit))
 
-BUILTIN ifThenElse σ (VF ,, VT ,, V-con (bool false) ,, tt) = inj₁ VF
-BUILTIN ifThenElse σ (VF ,, VT ,, V-con (bool true) ,, tt) = inj₁ VT
-BUILTIN charToString σ (V-con (char c) ,, tt) = inj₁ (V-con (string (primStringFromList L.[ c ])))
-BUILTIN append σ (V-con (string s) ,, V-con (string t) ,, tt) = inj₁ (V-con (string (primStringAppend s t)))
-BUILTIN trace σ (V-con (string s) ,, tt) = inj₁ (V-con (Debug.trace s unit))
-
+{-
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *} → Value (A ⇒ B) → Frame B A
