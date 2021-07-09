@@ -63,7 +63,19 @@ let
     in
     pkgs.agdaPackages.override { Agda = frankenAgda; pkgs = frankenPkgs; };
 
-  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
+  agdaWithStdlib =
+    # Need a newer version for 2.6.2 compatibility
+    let stdlib = agdaPackages.standard-library.overrideAttrs (oldAtts: rec {
+      version = "1.7";
+      src = pkgs.fetchFromGitHub {
+        repo = "agda-stdlib";
+        owner = "agda";
+        rev = "v${version}";
+        sha256 = "14h3jprm6924g9576v25axn9v6xnip354hvpzlcqsc5qqyj7zzjs";
+      };
+    });
+
+    in agdaPackages.agda.withPackages [ stdlib ];
 
   #
   # dev convenience scripts

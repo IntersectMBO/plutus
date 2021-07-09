@@ -14,6 +14,7 @@ open import Data.Nat
 open import Data.Fin hiding (_≤_)
 open import Data.Bool using (Bool;true;false)
 open import Data.Integer hiding (suc;_≤_)
+open import Data.Integer.Show
 open import Data.String using (String) renaming (_++_ to _+++_)
 open import Data.Char
 open import Data.Sum
@@ -70,7 +71,7 @@ uglyFin (suc x) = "(S " +++ uglyFin x +++ ")"
 
 
 uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " +++ Data.Integer.show x +++ ")"
+uglyTermCon (integer x) = "(integer " +++ Data.Integer.Show.show x +++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " +++ s +++ ")"

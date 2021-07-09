@@ -1,4 +1,5 @@
 \begin{code}
+{-# OPTIONS --rewriting #-}
 module Scoped.Reduction where
 \end{code}
 

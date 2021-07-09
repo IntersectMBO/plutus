@@ -6,6 +6,7 @@ module Raw where
 open import Data.String using (String;_++_)
 open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
+open import Data.Integer.Show
 open import Data.Char using (Char)
 open import Data.Unit using (⊤)
 
@@ -248,7 +249,7 @@ decRTm _ _ = false
 -- one counts type and term binders separately the other counts them together
 
 rawTyPrinter : RawTy → String
-rawTyPrinter (` x)   = Data.Integer.show (ℤ.pos x)
+rawTyPrinter (` x)   = Data.Integer.Show.show (ℤ.pos x)
 rawTyPrinter (A ⇒ B) = "(" ++ rawTyPrinter A ++ "⇒" ++ rawTyPrinter B ++ ")"
 rawTyPrinter (Π K A) = "(Π" ++ "kind" ++ rawTyPrinter A ++ ")"
 rawTyPrinter (ƛ K A) = "(ƛ" ++ "kind" ++ rawTyPrinter A ++ ")"
@@ -257,7 +258,7 @@ rawTyPrinter (con c) = "(con)"
 rawTyPrinter (μ A B) = "(μ" ++ rawTyPrinter A ++ rawTyPrinter B ++ ")"
 
 rawPrinter : RawTm → String
-rawPrinter (` x) = Data.Integer.show (ℤ.pos x)
+rawPrinter (` x) = Data.Integer.Show.show (ℤ.pos x)
 rawPrinter (Λ K t) = "(" ++ "Λ" ++ "kind" ++ rawPrinter t ++ ")"
 rawPrinter (t ·⋆ A) = "(" ++ rawPrinter t ++ "·⋆" ++ rawTyPrinter A ++ ")"
 rawPrinter (ƛ A t) = "(" ++ "ƛ" ++ rawTyPrinter A ++ rawPrinter t ++ ")"

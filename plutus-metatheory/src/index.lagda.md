@@ -3,6 +3,10 @@ layout: page
 title: Table of Contents
 ---
 
+```
+{-# OPTIONS --rewriting #-}
+```
+
 The Formalisation is split into several sections.
 
 The main body of the formalisation involves a intrinsically typed
@@ -51,6 +55,7 @@ instead. Equality of types is specified in the
 [`Type.Equality`](Type/Equality.html) module. Equality serves as a
 specification of type compuation and is used in the normalisation
 proof.
+
 
 ```
 import Type
