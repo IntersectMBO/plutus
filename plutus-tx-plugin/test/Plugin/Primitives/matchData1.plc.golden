@@ -1,0 +1,2 @@
+(delay (lam case_Just_71 (lam case_Nothing_72 [ case_Just_71 (con integer 1) ]))
+)

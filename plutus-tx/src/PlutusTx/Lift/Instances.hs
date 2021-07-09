@@ -14,7 +14,7 @@ module PlutusTx.Lift.Instances () where
 
 import qualified PlutusCore          as PLC
 
-import           PlutusTx.Builtins
+import           PlutusCore.Data
 import           PlutusTx.Lift.Class
 
 import           PlutusIR

@@ -1,0 +1,31 @@
+(delay
+  (lam
+    case_Tuple2_61
+    [
+      [ case_Tuple2_61 (con integer 1) ]
+      (delay
+        (lam
+          case_Nil_50
+          (lam
+            case_Cons_51
+            [
+              [ case_Cons_51 (con integer 2) ]
+              (delay
+                (lam
+                  case_Nil_50
+                  (lam
+                    case_Cons_51
+                    [
+                      [ case_Cons_51 (con integer 3) ]
+                      (delay (lam case_Nil_46 (lam case_Cons_47 case_Nil_46)))
+                    ]
+                  )
+                )
+              )
+            ]
+          )
+        )
+      )
+    ]
+  )
+)

@@ -91,6 +91,12 @@ data DefaultFun
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
     | ChooseUnit
+    -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
+    -- constructors are often problematic (See note [Representable built-in functions over polymorphic built-in types])
+    | MkPairData
+    | MkNilData
+    | MkNilPairData
+    | MkCons
     -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
     | Nop1
     | Nop2
@@ -333,6 +339,41 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() a -> a)
             mempty
+    toBuiltinMeaning MkPairData =
+        makeBuiltinMeaning
+            ((,) :: Data -> Data -> (Data, Data))
+            mempty
+    toBuiltinMeaning MkNilData =
+        -- Nullary builtins don't work, so we need a unit argument
+        makeBuiltinMeaning
+            @(() -> [Data])
+            (\() -> [])
+            mempty
+    toBuiltinMeaning MkNilPairData =
+        -- Nullary builtins don't work, so we need a unit argument
+        makeBuiltinMeaning
+            @(() -> [(Data,Data)])
+            (\() -> [])
+            mempty
+    toBuiltinMeaning MkCons = makeBuiltinMeaning consPlc mempty where
+        consPlc
+            :: SomeConstant uni a
+            -> SomeConstantOf uni [] '[a]
+            -> EvaluationResult (SomeConstantOf uni [] '[a])
+        consPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
+                -- Checking that the type of the constant is the same as the type of the elements
+                -- of the unlifted list. Note that there's no way we could enforce this statically
+                -- since in UPLC one can create an ill-typed program that attempts to prepend
+                -- a value of the wrong type to a list.
+                case uniA `geq` uniA' of
+                    -- Should this rather be an 'UnliftingError'? For that we need
+                    -- https://github.com/input-output-hk/plutus/pull/3035
+                    Nothing   -> EvaluationFailure
+                    Just Refl ->
+                        EvaluationSuccess . SomeConstantOfArg uniA $
+                            SomeConstantOfRes uniListA $ x : xs
 
 -- See Note [Stable encoding of PLC]
 instance Serialise DefaultFun where
@@ -386,6 +427,10 @@ instance Serialise DefaultFun where
               EqualsData               -> 46
               ChooseData               -> 47
               ChooseUnit               -> 48
+              MkPairData               -> 49
+              MkNilData                -> 50
+              MkNilPairData            -> 51
+              MkCons                   -> 52
 
     decode = go =<< decodeWord
         where go 0  = pure AddInteger
@@ -437,6 +482,10 @@ instance Serialise DefaultFun where
               go 46 = pure EqualsData
               go 47 = pure ChooseData
               go 48 = pure ChooseUnit
+              go 49 = pure MkPairData
+              go 50 = pure MkNilData
+              go 51 = pure MkNilPairData
+              go 52 = pure MkCons
               go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
@@ -504,6 +553,10 @@ instance Flat DefaultFun where
               EqualsData               -> 46
               ChooseData               -> 47
               ChooseUnit               -> 48
+              MkPairData               -> 49
+              MkNilData                -> 50
+              MkNilPairData            -> 51
+              MkCons                   -> 52
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -555,6 +608,10 @@ instance Flat DefaultFun where
               go 46 = pure EqualsData
               go 47 = pure ChooseData
               go 48 = pure ChooseUnit
+              go 49 = pure MkPairData
+              go 50 = pure MkNilData
+              go 51 = pure MkNilPairData
+              go 52 = pure MkCons
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth

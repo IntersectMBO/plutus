@@ -15,7 +15,9 @@ module PlutusCore.Pretty.PrettyConst where
 
 import           PlutusCore.Data
 
+import           Codec.Serialise                    (serialise)
 import qualified Data.ByteString                    as BS
+import qualified Data.ByteString.Lazy               as BSL
 import           Data.Coerce
 import           Data.Foldable                      (fold)
 import           Data.Proxy
@@ -114,7 +116,7 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | otherwise = id
 
 instance PrettyBy ConstConfig Data where
-    prettyBy = error "Implement me"
+    prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
 
 instance GShow uni => Pretty (SomeTypeIn uni) where
     pretty (SomeTypeIn uni) = pretty $ gshow uni
