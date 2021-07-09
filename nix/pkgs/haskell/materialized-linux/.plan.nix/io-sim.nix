@@ -34,7 +34,7 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+          (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."psqueues" or (errorHandler.buildDepError "psqueues"))
@@ -51,8 +51,8 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."array" or (errorHandler.buildDepError "array"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
             (hsPkgs."io-sim" or (errorHandler.buildDepError "io-sim"))
-            (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
@@ -65,4 +65,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/22; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/23; }

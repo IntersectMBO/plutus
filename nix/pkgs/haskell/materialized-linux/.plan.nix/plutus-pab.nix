@@ -60,7 +60,7 @@
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
           (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
-          (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+          (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
