@@ -65,6 +65,9 @@ let
           marlowe.doHaddock = deferPluginErrors;
           marlowe.flags.defer-plugin-errors = deferPluginErrors;
 
+          plutus-contract.doHaddock = deferPluginErrors;
+          plutus-contract.flags.defer-plugin-errors = deferPluginErrors;
+
           plutus-use-cases.doHaddock = deferPluginErrors;
           plutus-use-cases.flags.defer-plugin-errors = deferPluginErrors;
 

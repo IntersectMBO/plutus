@@ -8,6 +8,7 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MonoLocalBinds         #-}
 {-# LANGUAGE NamedFieldPuns         #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 module Plutus.Contract.StateMachine(
@@ -23,6 +24,7 @@ module Plutus.Contract.StateMachine(
     , WaitingResult(..)
     , InvalidTransition(..)
     , TransitionResult(..)
+    , ThreadToken(..)
     -- * Constructing the machine instance
     , SM.mkValidator
     , SM.mkStateMachine
@@ -37,6 +39,7 @@ module Plutus.Contract.StateMachine(
     , runGuardedStepWith
     , runStepWith
     , runInitialiseWith
+    , getThreadToken
     , getOnChainState
     , waitForUpdate
     , waitForUpdateUntilSlot
@@ -50,34 +53,39 @@ module Plutus.Contract.StateMachine(
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
-import           Data.Aeson                           (FromJSON, ToJSON)
-import           Data.Default                         (Default (def))
-import           Data.Either                          (rights)
-import           Data.Map                             (Map)
-import qualified Data.Map                             as Map
-import           Data.Text                            (Text)
-import qualified Data.Text                            as Text
-import           Data.Void                            (Void, absurd)
-import           GHC.Generics                         (Generic)
-import           Ledger                               (POSIXTime, Slot, Value)
+import           Data.Aeson                                   (FromJSON, ToJSON)
+import           Data.Default                                 (Default (def))
+import           Data.Either                                  (rights)
+import           Data.Map                                     (Map)
+import qualified Data.Map                                     as Map
+import           Data.Text                                    (Text)
+import qualified Data.Text                                    as Text
+import           Data.Void                                    (Void, absurd)
+import           GHC.Generics                                 (Generic)
+import           Ledger                                       (POSIXTime, Slot, Value, scriptCurrencySymbol)
 import qualified Ledger
-import           Ledger.AddressMap                    (outputsMapFromTxForAddress)
-import           Ledger.Constraints                   (ScriptLookups, TxConstraints (..), mustPayToTheScript)
-import           Ledger.Constraints.OffChain          (UnbalancedTx)
-import qualified Ledger.Constraints.OffChain          as Constraints
-import           Ledger.Constraints.TxConstraints     (InputConstraint (..), OutputConstraint (..))
-import           Ledger.Crypto                        (pubKeyHash)
-import qualified Ledger.TimeSlot                      as TimeSlot
-import           Ledger.Tx                            as Tx
-import qualified Ledger.Typed.Scripts                 as Scripts
-import           Ledger.Typed.Tx                      (TypedScriptTxOut (..))
-import qualified Ledger.Typed.Tx                      as Typed
-import           Ledger.Value                         (AssetClass)
-import qualified Ledger.Value                         as Value
+import           Ledger.AddressMap                            (outputsMapFromTxForAddress)
+import           Ledger.Constraints                           (ScriptLookups, TxConstraints (..), mintingPolicy,
+                                                               mustMintValueWithRedeemer, mustPayToTheScript,
+                                                               mustSpendPubKeyOutput)
+import           Ledger.Constraints.OffChain                  (UnbalancedTx)
+import qualified Ledger.Constraints.OffChain                  as Constraints
+import           Ledger.Constraints.TxConstraints             (InputConstraint (..), OutputConstraint (..))
+import           Ledger.Crypto                                (pubKeyHash)
+import qualified Ledger.TimeSlot                              as TimeSlot
+import qualified Ledger.Tx                                    as Tx
+import qualified Ledger.Typed.Scripts                         as Scripts
+import           Ledger.Typed.Tx                              (TypedScriptTxOut (..))
+import qualified Ledger.Typed.Tx                              as Typed
+import qualified Ledger.Value                                 as Value
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..), StateMachineInstance (..))
-import qualified Plutus.Contract.StateMachine.OnChain as SM
+import           Plutus.Contract.StateMachine.MintingPolarity (MintingPolarity (..))
+import           Plutus.Contract.StateMachine.OnChain         (State (..), StateMachine (..), StateMachineInstance (..))
+import qualified Plutus.Contract.StateMachine.OnChain         as SM
+import           Plutus.Contract.StateMachine.ThreadToken     (ThreadToken (..), curPolicy, ttOutRef)
+import           Plutus.Contract.Wallet                       (getUnspentOutput)
 import qualified PlutusTx
+import           PlutusTx.Monoid                              (inv)
 
 -- $statemachine
 -- To write your contract as a state machine you need
@@ -101,7 +109,7 @@ getStates
     :: forall s i
     . (PlutusTx.IsData s)
     => SM.StateMachineInstance s i
-    -> Map TxOutRef TxOutTx
+    -> Map Tx.TxOutRef Tx.TxOutTx
     -> [OnChainState s i]
 getStates (SM.StateMachineInstance _ si) refMap =
     let lkp (ref, out) = do
@@ -159,15 +167,15 @@ defaultChooser xs  =
 -- | A state chooser function that searches for an output with the thread token
 threadTokenChooser ::
     forall state input
-    . AssetClass
+    . Value
     -> [OnChainState state input]
     -> Either SMContractError (OnChainState state input)
-threadTokenChooser cur states =
-    let flt (TypedScriptTxOut{tyTxOutTxOut=TxOut{txOutValue}},_) = Value.assetClassValue cur 1 `Value.leq` txOutValue in
-    case filter flt states of
+threadTokenChooser val states =
+    let hasToken (TypedScriptTxOut{tyTxOutTxOut=Tx.TxOut{Tx.txOutValue}},_) = val `Value.leq` txOutValue in
+    case filter hasToken states of
         [x] -> Right x
         xs ->
-            let msg = unwords ["Found ", show (length xs), "outputs with thread token ", show cur, "expected 1"]
+            let msg = unwords ["Found", show (length xs), "outputs with thread token", show val, "expected 1"]
             in Left (ChooserError (Text.pack msg))
 
 -- | A state machine client with the 'defaultChooser' function
@@ -176,8 +184,9 @@ mkStateMachineClient ::
     . SM.StateMachineInstance state input
     -> StateMachineClient state input
 mkStateMachineClient inst =
-    let scChooser = maybe defaultChooser threadTokenChooser $ SM.smThreadToken $ SM.stateMachine inst in
-    StateMachineClient
+    let threadTokenVal = SM.threadTokenValueOrZero inst
+        scChooser = if Value.isZero threadTokenVal then defaultChooser else threadTokenChooser threadTokenVal
+    in StateMachineClient
         { scInstance = inst
         , scChooser
         }
@@ -307,6 +316,14 @@ runStep ::
     -> Contract w schema e (TransitionResult state input)
 runStep = runStepWith mempty mempty
 
+-- | Create a thread token. The thread token contains a reference to an unspent output of the wallet,
+-- so it needs to used with 'mkStateMachine' immediately, and the machine must be initialised,
+-- to prevent the output from getting spent in the mean time.
+getThreadToken :: AsSMContractError e => Contract w schema e ThreadToken
+getThreadToken = mapError (review _SMContractError) $ do
+    txOutRef <- getUnspentOutput
+    pure $ ThreadToken txOutRef (scriptCurrencySymbol (curPolicy txOutRef))
+
 -- | Initialise a state machine
 runInitialise ::
     forall w e state schema input.
@@ -351,10 +368,21 @@ runInitialiseWith ::
     -- ^ The value locked by the contract at the beginning
     -> Contract w schema e state
 runInitialiseWith customLookups customConstraints StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
-    let StateMachineInstance{typedValidator, stateMachine} = scInstance
-        tx = mustPayToTheScript initialState (initialValue <> SM.threadTokenValue stateMachine) <> customConstraints
-    let lookups = Constraints.typedValidatorLookups typedValidator <> customLookups
-    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
+    ownPK <- ownPubKey
+    utxo <- utxoAt (Ledger.pubKeyAddress ownPK) -- TODO: use chain index
+    let StateMachineInstance{stateMachine, typedValidator} = scInstance
+        constraints = mustPayToTheScript initialState (initialValue <> SM.threadTokenValueOrZero scInstance)
+            <> foldMap ttConstraints (smThreadToken stateMachine)
+            <> customConstraints
+        red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, Mint))
+        ttConstraints ThreadToken{ttOutRef} =
+            mustMintValueWithRedeemer red (SM.threadTokenValueOrZero scInstance)
+            <> mustSpendPubKeyOutput ttOutRef
+        lookups = Constraints.typedValidatorLookups typedValidator
+            <> foldMap (mintingPolicy . curPolicy . ttOutRef) (smThreadToken stateMachine)
+            <> Constraints.unspentOutputs utxo
+            <> customLookups
+    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups constraints)
     submitTxConfirmed utx
     pure initialState
 
@@ -428,18 +456,21 @@ mkStep client@StateMachineClient{scInstance} input = do
 
             case smTransition oldState input of
                 Just (newConstraints, newState)  ->
-                    let lookups =
+                    let isFinal = smFinal stateMachine (stateData newState)
+                        lookups =
                             Constraints.typedValidatorLookups typedValidator
                             <> Constraints.unspentOutputs utxo
+                            <> if isFinal then foldMap (mintingPolicy . curPolicy . ttOutRef) (smThreadToken stateMachine) else mempty
+                        red = Ledger.Redeemer (PlutusTx.toData (Scripts.validatorHash typedValidator, Burn))
+                        unmint = if isFinal then mustMintValueWithRedeemer red (inv $ SM.threadTokenValueOrZero scInstance) else mempty
                         outputConstraints =
-                            if smFinal (SM.stateMachine scInstance) (stateData newState)
-                                then []
-                                else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValue stateMachine }]
+                            [ OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValueOrZero scInstance }
+                            | not isFinal ]
                     in pure
                         $ Right
                         $ StateMachineTransition
                             { smtConstraints =
-                                newConstraints
+                                (newConstraints <> unmint)
                                     { txOwnInputs = inputConstraints
                                     , txOwnOutputs = outputConstraints
                                     }
