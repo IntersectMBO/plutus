@@ -74,11 +74,11 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
 
 data BAPP b where
   base : BAPP b (start (arity b)) (itype b)
-  step : ∀{A B}{az as}
+  app : ∀{A B}{az as}
     → (p : az <>> (Term ∷ as) ∈ arity b)
     → BAPP b p (A ⇒ B)
     → Value A → BAPP b (bubble p) B
-  step⋆ : ∀{B C}{az as}
+  app⋆ : ∀{B C}{az as}
     → (p : az <>> (Type ∷ as) ∈ arity b)
     → BAPP b p (Π B)
     → {A : ∅ ⊢Nf⋆ K}
@@ -128,8 +128,8 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
 
 dischargeB : ∀{b A}{az}{as}{p : az <>> as ∈ arity b} → BAPP b p A → ∅ ⊢ A
 dischargeB {b = b} base = ibuiltin b
-dischargeB (step p bt vu) = dischargeB bt · discharge vu
-dischargeB (step⋆ p bt refl) = dischargeB bt ·⋆ _
+dischargeB (app p bt vu) = dischargeB bt · discharge vu
+dischargeB (app⋆ p bt refl) = dischargeB bt ·⋆ _
 
 discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
 discharge (V-Λ M ρ)  = Λ (dischargeBody⋆ M ρ)
@@ -139,54 +139,53 @@ discharge (V-I⇒ b p bt) = dischargeB bt
 discharge (V-IΠ b p bt) = dischargeB bt
 
 BUILTIN : ∀ b {A} → BAPP b (saturated (arity b)) A → Value A ⊎ ∅ ⊢Nf⋆ *
-BUILTIN addInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i + i')))
-BUILTIN subtractInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i - i')))
-BUILTIN multiplyInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i ** i')))
-BUILTIN divideInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN addInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i + i')))
+BUILTIN subtractInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i - i')))
+BUILTIN multiplyInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i ** i')))
+BUILTIN divideInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₂ (con integer))
   (inj₁ (V-con (integer (div i i'))))
-BUILTIN quotientInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN quotientInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₂ (con integer))
   (inj₁ (V-con (integer (quot i i'))))
-BUILTIN remainderInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN remainderInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₂ (con integer))
   (inj₁ (V-con (integer (rem i i'))))
-BUILTIN modInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN modInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₂ (con integer))
   (inj₁ (V-con (integer (mod i i'))))
-BUILTIN lessThanInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN lessThanEqualsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN greaterThanInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I>? i')
+BUILTIN lessThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN greaterThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I>? i')
   (inj₁ (V-con (bool true)))
   (inj₁ (V-con (bool false)))
-BUILTIN greaterThanEqualsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN equalsInteger (step _ (step _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN concatenate (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
-BUILTIN takeByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (take i b)))
-BUILTIN dropByteString (step _ (step _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (drop i b)))
-BUILTIN lessThanByteString (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B< b b')))
-BUILTIN greaterThanByteString (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B> b b')))
-BUILTIN sha2-256 (step _ base (V-con (bytestring b))) =
+BUILTIN greaterThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN concatenate (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
+BUILTIN takeByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (take i b)))
+BUILTIN dropByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (drop i b)))
+BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B< b b')))
+BUILTIN greaterThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B> b b')))
+BUILTIN sha2-256 (app _ base (V-con (bytestring b))) =
   inj₁ (V-con (bytestring (SHA2-256 b)))
-BUILTIN sha3-256 (step _ base (V-con (bytestring b))) =
+BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
   inj₁ (V-con (bytestring (SHA3-256 b)))
-BUILTIN verifySignature (step _ (step _ (step _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
+BUILTIN verifySignature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
 ... | just b = inj₁ (V-con (bool b))
 ... | nothing = inj₂ (con bool)
 
-BUILTIN equalsByteString (step _ (step _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (equals b b')))
-BUILTIN ifThenElse (step _ (step _ (step _ (step⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₁ vf
-BUILTIN ifThenElse (step _ (step _ (step _ (step⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₁ vt
-BUILTIN charToString (step _ base (V-con (char c))) = inj₁ (V-con (string (primStringFromList Data.List.[ c ])))
-BUILTIN append (step _ (step _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
-BUILTIN trace (step _ base (V-con (string s))) =
+BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (equals b b')))
+BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₁ vf
+BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₁ vt
+BUILTIN charToString (app _ base (V-con (char c))) = inj₁ (V-con (string (primStringFromList Data.List.[ c ])))
+BUILTIN append (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
+BUILTIN trace (app _ base (V-con (string s))) =
   inj₁ (V-con (Debug.trace s unit))
 
-{-
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *} → Value (A ⇒ B) → Frame B A
@@ -211,34 +210,36 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
   □     : Value T → State T
   ◆     : ∅ ⊢Nf⋆ * → State T
 
+
+
 ival : ∀ b → Value (itype b)
-ival addInteger = V-I⇒ addInteger {Γ = proj₁ (proj₂ (ISIG addInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG addInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin addInteger)
-ival subtractInteger = V-I⇒ subtractInteger {Γ = proj₁ (proj₂ (ISIG subtractInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG subtractInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin subtractInteger)
-ival multiplyInteger = V-I⇒ multiplyInteger {Γ = proj₁ (proj₂ (ISIG multiplyInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG multiplyInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin multiplyInteger)
-ival divideInteger = V-I⇒ divideInteger {Γ = proj₁ (proj₂ (ISIG divideInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG divideInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin divideInteger)
-ival quotientInteger = V-I⇒ quotientInteger {Γ = proj₁ (proj₂ (ISIG quotientInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG quotientInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin quotientInteger)
-ival remainderInteger = V-I⇒ remainderInteger {Γ = proj₁ (proj₂ (ISIG remainderInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG remainderInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin remainderInteger)
-ival modInteger = V-I⇒ modInteger {Γ = proj₁ (proj₂ (ISIG modInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG modInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin modInteger)
-ival lessThanInteger = V-I⇒ lessThanInteger {Γ = proj₁ (proj₂ (ISIG lessThanInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanInteger)
-ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger {Γ = proj₁ (proj₂ (ISIG lessThanEqualsInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanEqualsInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsInteger)
-ival greaterThanInteger = V-I⇒ greaterThanInteger {Γ = proj₁ (proj₂ (ISIG greaterThanInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG greaterThanInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin greaterThanInteger)
-ival greaterThanEqualsInteger = V-I⇒ greaterThanEqualsInteger {Γ = proj₁ (proj₂ (ISIG greaterThanEqualsInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG greaterThanEqualsInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin greaterThanEqualsInteger)
-ival equalsInteger = V-I⇒ equalsInteger {Γ = proj₁ (proj₂ (ISIG equalsInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsInteger)
-ival concatenate = V-I⇒ concatenate {Γ = proj₁ (proj₂ (ISIG concatenate))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG concatenate))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin concatenate)
-ival takeByteString = V-I⇒ takeByteString {Γ = proj₁ (proj₂ (ISIG takeByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG takeByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin takeByteString)
-ival dropByteString = V-I⇒ dropByteString {Γ = proj₁ (proj₂ (ISIG dropByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG dropByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin dropByteString)
-ival lessThanByteString = V-I⇒ lessThanByteString {Γ = proj₁ (proj₂ (ISIG lessThanByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanByteString)
-ival greaterThanByteString = V-I⇒ greaterThanByteString {Γ = proj₁ (proj₂ (ISIG greaterThanByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG greaterThanByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin greaterThanByteString)
-ival sha2-256 = V-I⇒ sha2-256 {Γ = proj₁ (proj₂ (ISIG sha2-256))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG sha2-256))} refl refl refl (λ()) base tt (ibuiltin sha2-256)
-ival sha3-256 = V-I⇒ sha3-256 {Γ = proj₁ (proj₂ (ISIG sha3-256))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG sha3-256))} refl refl refl (λ()) base tt (ibuiltin sha3-256)
-ival verifySignature = V-I⇒ verifySignature {Γ = proj₁ (proj₂ (ISIG verifySignature))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG verifySignature))} refl refl refl (λ()) (≤Cto≤C' (skip (skip base))) tt (ibuiltin verifySignature)
-ival equalsByteString = V-I⇒ equalsByteString {Γ = proj₁ (proj₂ (ISIG equalsByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsByteString)
-ival ifThenElse = V-IΠ ifThenElse {Γ = proj₁ (proj₂ (ISIG ifThenElse))}{C = proj₂ (proj₂ (ISIG ifThenElse))} refl refl refl (λ()) (≤Cto≤C' (skip (skip (skip base)))) tt (ibuiltin ifThenElse)
-ival charToString = V-I⇒ charToString {Γ = proj₁ (proj₂ (ISIG charToString))}{C = proj₂ (proj₂ (ISIG charToString))} refl refl refl (λ()) base tt (ibuiltin charToString)
-ival append = V-I⇒ append {Γ = proj₁ (proj₂ (ISIG append))}{C = proj₂ (proj₂ (ISIG append))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin append)
-ival trace = V-I⇒ trace {Γ = proj₁ (proj₂ (ISIG trace))}{C = proj₂ (proj₂ (ISIG trace))} refl refl refl (λ()) base tt (ibuiltin trace)
+ival addInteger = V-I⇒ addInteger _ base
+ival subtractInteger = V-I⇒ subtractInteger _ base
+ival multiplyInteger = V-I⇒ multiplyInteger _ base
+ival divideInteger = V-I⇒ divideInteger _ base
+ival quotientInteger = V-I⇒ quotientInteger _ base
+ival remainderInteger = V-I⇒ remainderInteger _ base
+ival modInteger = V-I⇒ modInteger _ base
+ival lessThanInteger = V-I⇒ lessThanInteger _ base
+ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger _ base
+ival greaterThanInteger = V-I⇒ greaterThanInteger _ base
+ival greaterThanEqualsInteger = V-I⇒ greaterThanEqualsInteger _ base
+ival equalsInteger = V-I⇒ equalsInteger _ base
+ival concatenate = V-I⇒ concatenate _ base
+ival takeByteString = V-I⇒ takeByteString _ base
+ival dropByteString = V-I⇒ dropByteString _ base
+ival lessThanByteString = V-I⇒ lessThanByteString _ base
+ival greaterThanByteString = V-I⇒ greaterThanByteString _ base
+ival sha2-256 = V-I⇒ sha2-256 _ base
+ival sha3-256 = V-I⇒ sha3-256 _ base
+ival verifySignature = V-I⇒ verifySignature _ base
+ival equalsByteString = V-I⇒ equalsByteString _ base
+ival ifThenElse = V-IΠ ifThenElse _ base
+ival charToString = V-I⇒ charToString _ base
+ival append = V-I⇒ append _ base
+ival trace = V-I⇒ trace _ base
 
-
+{-
 IBUILTIN : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
       (σ : SubNf Φ ∅)
@@ -306,6 +307,8 @@ IBUILTIN' : (b : Builtin)
     → Value (subNf σ C') ⊎ Error (subNf σ C')
     
 IBUILTIN' b refl refl σ tel _ refl = IBUILTIN b σ tel
+-}
+
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ
@@ -325,6 +328,7 @@ step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
 step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , wrap- {A = A}{B = B}) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
+{-
 step ((s , (V-I⇒ b p q r σ base vs t ·-)) ◅ v) with IBUILTIN' b p q σ (vs ,, v) _ r
 ... | inj₁ v' = s ◅ v'
 ... | inj₂ (E-error B) = ◆ B
@@ -333,11 +337,13 @@ step ((s , (V-I⇒ b p q r σ (skip⋆ p') vs t ·-)) ◅ v) =
   s ◅ V-IΠ b p q r σ p' (vs ,, v) (t · discharge v)
 step ((s , (V-I⇒ b p q r σ (skip p') vs t ·-)) ◅ v) =
   s ◅ V-I⇒ b p q r σ p' (vs ,, v) (t · discharge v)
+
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ base vs t) with IBUILTIN' b p q (subNf-cons σ A) (vs ,, A) _ r
 ... | inj₁ v' = s ◅ convValue (subNf-cons-[]Nf C) v'
 ... | inj₂ (E-error B) = ◆ B
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip⋆ p') vs t) = s ◅ convValue (sym (Πlem p' A C σ)) (V-IΠ b {C = C} p q r (subNf-cons σ A) p' (vs ,, A) (conv⊢ refl (Πlem p' A C σ) (t ·⋆ A)))
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip p') vs t) = s ◅ convValue (sym (⇒lem p' σ C)) (V-I⇒ b p q r (subNf-cons σ A) p' (vs ,, A) (conv⊢ refl (⇒lem p' σ C) (t ·⋆ A) ))
+-}
 step (□ V) = □ V
 step (◆ A) = ◆ A
 
@@ -350,4 +356,4 @@ stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
--}
+
