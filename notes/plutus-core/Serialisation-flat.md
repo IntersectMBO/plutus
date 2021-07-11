@@ -1,7 +1,7 @@
 # Serialisation and the `flat` format.
 
 The figures in eg, [Erasure.md](./Merklisation/Erasure.md) show that the sizes
-of serialised Plutus Cor scripts can be reduced considerably by compression.
+of serialised Plutus Core scripts can be reduced considerably by compression.
 However, it was decided that compression methods such as `gzip` shouldn't be
 used on the chain because of the risk of vulnerabilities in the standard
 implementations.  As an alternative, we decided to switch to the
