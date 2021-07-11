@@ -37,7 +37,7 @@ for both `flat` and `CBOR` versions with three compression methods:
 
 #### Deserialisation times: de Bruijn-indexed ASTs
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
-|:------------ | --------:| ---------:| --------------:| ----:| ---------:| --------------:|
+|:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 1.911 ms | 2.052 ms | 7.054 ms | 3.629 ms | 3.655 ms | 11.56 ms |
 | crowdfunding | 989.6 μs | 1.068 ms | 3.511 ms | 1.800 ms | 1.836 ms | 5.912 ms |
 | marlowe      | 5.294 ms | 5.484 ms | 20.71 ms | 10.09 ms | 10.43 ms | 31.08 ms |
@@ -47,7 +47,7 @@ for both `flat` and `CBOR` versions with three compression methods:
 
 #### Deserialisation times: ASTs with `Names`
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
-|:------------ | --------:| ---------:| --------------:| ----:| ---------:| --------------:|
+|:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 3.004 ms | 3.123 ms | 17.11 ms | 4.074 ms | 4.333 ms | 21.30 ms |
 | crowdfunding | 1.592 ms | 1.670 ms | 8.864 ms | 2.080 ms | 2.210 ms | 11.02 ms |
 | marlowe      | 8.139 ms | 8.747 ms | 44.31 ms | 11.76 ms | 11.88 ms | 62.51 ms |
@@ -57,7 +57,7 @@ for both `flat` and `CBOR` versions with three compression methods:
 
 #### Serialisation times: de Bruijn-indexed ASTs
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
-|:------------ | --------:| ---------:| --------------:| ----:| ---------:| --------------:|
+|:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 2.187 ms | 2.633 ms | 2.610 ms | 2.261 ms | 3.465 ms | 3.484 ms |
 | crowdfunding | 872.9 μ | 1.145 ms | 1.120 ms | 912.2 μ | 1.512 ms | 1.536 ms |
 | marlowe      | 7.503 ms | 9.107 ms | 9.017 ms | 7.204 ms | 10.86 ms | 10.83 ms |
@@ -67,7 +67,7 @@ for both `flat` and `CBOR` versions with three compression methods:
 
 #### Serialisation times: ASTs with `Names`
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
-|:------------ | --------:| ---------:| --------------:| ----:| ---------:| --------------:|
+|:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 3.037 ms | 5.133 ms | 5.185 ms | 3.032 ms | 6.200 ms | 6.177 ms |
 | crowdfunding | 1.376 ms | 2.237 ms | 2.281 ms | 1.373 ms | 2.967 ms | 2.927 ms |
 | marlowe      | 9.493 ms | 16.37 ms | 16.30 ms | 9.285 ms | 18.25 ms | 18.22 ms |
