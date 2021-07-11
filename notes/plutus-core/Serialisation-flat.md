@@ -30,6 +30,10 @@ for both `flat` and `CBOR` versions with three compression methods:
  2. compressed with [pure-zlib](https://hackage.haskell.org/package/pure-zlib),
     as Haskell-only zlib implementation
 
+Results are given for two versions of Plutus Core ASTs: one using the `Name`
+type for variables and one using de Bruijn indices, which lead to more compact
+serialised scripts.
+
 ## Times
 
 (Edited Criterion output, showing the `time` figure)
