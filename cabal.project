@@ -63,6 +63,11 @@ allow-newer:
            -- a new Win32 version (ghc-boot depends on Win32 via directory)
            , ghc-boot:base
            , ghc-boot:ghc-boot-th
+           , snap-server:attoparsec
+           , io-streams-haproxy:attoparsec
+           , snap-core:attoparsec
+           , websockets:attoparsec
+           , jsaddle:base64-bytestring
 
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
