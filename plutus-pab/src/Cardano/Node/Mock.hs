@@ -28,7 +28,6 @@ import           Servant                           (NoContent (NoContent))
 
 import           Cardano.BM.Data.Trace             (Trace)
 import           Cardano.Chain                     (handleChain, handleControlChain)
-import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
 import qualified Cardano.Protocol.Socket.Client    as Client
 import qualified Cardano.Protocol.Socket.Server    as Server
@@ -75,7 +74,6 @@ runChainEffects trace clientHandler stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
             $ processBlock eff
-            & runRandomTx
             & runChain
             & mergeState
             & toWriter
@@ -86,8 +84,6 @@ runChainEffects trace clientHandler stateVar eff = do
     pure (events, a)
         where
             processBlock e = e >>= \r -> Chain.processBlock >> pure r
-
-            runRandomTx = subsume . runGenRandomTx
 
             runChain = interpret (mapLog ProcessingChainEvent) . reinterpret handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret handleControlChain
 
@@ -111,21 +107,6 @@ processChainEffects trace clientHandler stateVar eff = do
             stateVar
             (\state -> pure $ over eventHistory (mappend events) state)
     pure result
-
--- | Generates a random transaction once in each 'mscRandomTxInterval' of the
---   config
-transactionGenerator ::
-  Trace IO MockServerLogMsg
- -> Second
- -> Client.TxSendHandle
- -> MVar AppState
- -> IO ()
-transactionGenerator trace interval clientHandler stateVar =
-    forever $ do
-        liftIO $ threadDelay $ fromIntegral $ toMicroseconds interval
-        processChainEffects trace clientHandler stateVar $ do
-            tx' <- genRandomTx
-            unless (null $ view outputs tx') (void $ addTx tx')
 
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
