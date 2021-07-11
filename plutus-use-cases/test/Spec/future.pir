@@ -2207,31 +2207,11 @@
                           )
                         )
                       )
-                      (datatypebind
-                        (datatype
-                          (tyvardecl Credential (type))
-
-                          Credential_match
-                          (vardecl
-                            PubKeyCredential (fun (con bytestring) Credential)
-                          )
-                          (vardecl
-                            ScriptCredential (fun (con bytestring) Credential)
-                          )
-                        )
-                      )
-                      (datatypebind
-                        (datatype
-                          (tyvardecl StakingCredential (type))
-
-                          StakingCredential_match
-                          (vardecl
-                            StakingHash (fun Credential StakingCredential)
-                          )
-                          (vardecl
-                            StakingPtr
-                            (fun (con integer) (fun (con integer) (fun (con integer) StakingCredential)))
-                          )
+                      (termbind
+                        (strict)
+                        (vardecl
+                          build
+                          (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
                         )
                         (abs
                           a
@@ -2249,15 +2229,128 @@
                           mustPayToOtherScript
                           (all i (type) (all o (type) (fun (con bytestring) (fun Data (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[TxConstraints i] o])))))
                         )
-                      )
-                      (datatypebind
-                        (datatype
-                          (tyvardecl Maybe (fun (type) (type)))
-                          (tyvardecl a (type))
-                          Maybe_match
-                          (vardecl Just (fun a [Maybe a]))
-                          (vardecl Nothing [Maybe a])
+                        (abs
+                          i
+                          (type)
+                          (abs
+                            o
+                            (type)
+                            (lam
+                              vh
+                              (con bytestring)
+                              (lam
+                                dv
+                                Data
+                                (lam
+                                  vl
+                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                  [
+                                    [
+                                      [
+                                        { { TxConstraints i } o }
+                                        [
+                                          [
+                                            [
+                                              {
+                                                { foldr TxConstraint }
+                                                [List TxConstraint]
+                                              }
+                                              { Cons TxConstraint }
+                                            ]
+                                            [
+                                              { build TxConstraint }
+                                              (abs
+                                                a
+                                                (type)
+                                                (lam
+                                                  c
+                                                  (fun TxConstraint (fun a a))
+                                                  (lam
+                                                    n
+                                                    a
+                                                    [
+                                                      [
+                                                        c
+                                                        [ MustIncludeDatum dv ]
+                                                      ]
+                                                      n
+                                                    ]
+                                                  )
+                                                )
+                                              )
+                                            ]
+                                          ]
+                                          [
+                                            { build TxConstraint }
+                                            (abs
+                                              a
+                                              (type)
+                                              (lam
+                                                c
+                                                (fun TxConstraint (fun a a))
+                                                (lam
+                                                  n
+                                                  a
+                                                  [
+                                                    [
+                                                      c
+                                                      [
+                                                        [
+                                                          [
+                                                            MustPayToOtherScript
+                                                            vh
+                                                          ]
+                                                          dv
+                                                        ]
+                                                        vl
+                                                      ]
+                                                    ]
+                                                    n
+                                                  ]
+                                                )
+                                              )
+                                            )
+                                          ]
+                                        ]
+                                      ]
+                                      [
+                                        [
+                                          [
+                                            {
+                                              { foldr [InputConstraint i] }
+                                              [List [InputConstraint i]]
+                                            }
+                                            { Cons [InputConstraint i] }
+                                          ]
+                                          { Nil [InputConstraint i] }
+                                        ]
+                                        { Nil [InputConstraint i] }
+                                      ]
+                                    ]
+                                    [
+                                      [
+                                        [
+                                          {
+                                            { foldr [OutputConstraint o] }
+                                            [List [OutputConstraint o]]
+                                          }
+                                          { Cons [OutputConstraint o] }
+                                        ]
+                                        { Nil [OutputConstraint o] }
+                                      ]
+                                      { Nil [OutputConstraint o] }
+                                    ]
+                                  ]
+                                )
+                              )
+                            )
+                          )
                         )
+                      )
+                      (termbind
+                        (nonstrict)
+                        (vardecl unitDatum Data)
+                        [ [ Constr (con integer 0) ] { Nil Data } ]
                       )
                       (termbind
                         (strict)
