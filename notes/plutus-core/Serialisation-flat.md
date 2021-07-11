@@ -1,4 +1,4 @@
-## Serialisation and the Flat format.
+# Serialisation and the `flat` format.
 
 The figures in eg, [Erasure.md](./Merklisation/Erasure.md) show that the sizes
 of serialised Plutus Cor scripts can be reduced considerably by compression.
@@ -19,7 +19,7 @@ For reference, here are the results of these at commit
 on the reference machine used for benchmarking (a machine with eight Intel Xeon CPUs (E3-1240 v5 @ 3.50GHz)
 and 32GB of memory, running `NixOS 19.09pre-git (Loris)` with the `Linux 4.19.95` kernel).
 
-### Benchmark results
+## Benchmark results
 The results below show comparisons of time and space figures for deserialisation
 and serialisation of a number of Plutus validation scripts.  Figures are included
 for both `flat` and `CBOR` versions with three compression methods:
@@ -30,12 +30,12 @@ for both `flat` and `CBOR` versions with three compression methods:
  2. compressed with [pure-zlib](https://hackage.haskell.org/package/pure-zlib),
     as Haskell-only zlib implementation
 
-### Times
+## Times
 
 (Edited Criterion output, showing the `time` figure)
 
 
-#### Deserialisation times: de Bruijn-indexed ASTs
+### Deserialisation times: de Bruijn-indexed ASTs
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
 |:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 1.911 ms | 2.052 ms | 7.054 ms | 3.629 ms | 3.655 ms | 11.56 ms |
@@ -45,7 +45,7 @@ for both `flat` and `CBOR` versions with three compression methods:
 | escrow       | 1.175 ms | 1.232 ms | 4.350 ms | 2.106 ms | 2.167 ms | 7.063 ms |
 | future       | 2.185 ms | 2.348 ms | 8.482 ms | 4.055 ms | 4.074 ms | 13.67 ms | 
 
-#### Deserialisation times: ASTs with `Names`
+### Deserialisation times: ASTs with `Names`
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
 |:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 3.004 ms | 3.123 ms | 17.11 ms | 4.074 ms | 4.333 ms | 21.30 ms |
@@ -55,7 +55,7 @@ for both `flat` and `CBOR` versions with three compression methods:
 | escrow       | 1.945 ms | 2.015 ms | 11.19 ms | 2.590 ms | 2.764 ms | 13.76 ms |
 | future       | 3.554 ms | 3.722 ms | 20.39 ms | 4.830 ms | 5.061 ms | 26.36 ms |
 
-#### Serialisation times: de Bruijn-indexed ASTs
+### Serialisation times: de Bruijn-indexed ASTs
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
 |:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 2.187 ms | 2.633 ms | 2.610 ms | 2.261 ms | 3.465 ms | 3.484 ms |
@@ -65,7 +65,7 @@ for both `flat` and `CBOR` versions with three compression methods:
 | escrow       | 1.109 ms | 1.396 ms | 1.415 ms | 1.105 ms | 1.889 ms | 1.874 ms |
 | future       | 2.608 ms | 3.166 ms | 3.153 ms | 2.423 ms | 4.039 ms | 4.097 ms |
 
-#### Serialisation times: ASTs with `Names`
+### Serialisation times: ASTs with `Names`
 | Script       | flat     | flat-zlib | flat-pure-zlib | cbor | cbor-zlib | cbor-pure-zlib |
 |:------------ |:--------:|:---------:|:--------------:|:----:|:---------:|:--------------:|
 | game         | 3.037 ms | 5.133 ms | 5.185 ms | 3.032 ms | 6.200 ms | 6.177 ms |
