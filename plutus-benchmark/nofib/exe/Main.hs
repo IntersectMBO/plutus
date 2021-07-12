@@ -49,8 +49,8 @@ data Options
     = RunPLC           ProgAndArgs
     | RunHaskell       ProgAndArgs
     | DumpPLC          ProgAndArgs
-    | DumpFlatnamed    ProgAndArgs
-    | DumpFlatdeBruijn ProgAndArgs
+    | DumpFlatNamed    ProgAndArgs
+    | DumpFlatDeBruijn ProgAndArgs
 
 
 -- Clausify options --
@@ -172,14 +172,14 @@ options = hsubparser
   <> command "dumpPLC"
      (info (DumpPLC <$> progAndArgs)
       (progDesc "print the program (applied to arguments) as Plutus Core source on standard output"))
-  <> command "dumpFlatnamed"
-     (info (DumpFlatnamed <$> progAndArgs)
+  <> command "dumpFlatNamed"
+     (info (DumpFlatNamed <$> progAndArgs)
       (progDesc "dump the AST as Flat, preserving names"))
   <> command "dumpFlat"
-     (info (DumpFlatdeBruijn <$> progAndArgs)
-      (progDesc "same as dumpFlatdeBruijn, but easier to type"))
-  <> command "dumpFlatdeBruijn"
-     (info (DumpFlatdeBruijn <$> progAndArgs)
+     (info (DumpFlatDeBruijn <$> progAndArgs)
+      (progDesc "same as dumpFlatDeBruijn, but easier to type"))
+  <> command "dumpFlatDeBruijn"
+     (info (DumpFlatDeBruijn <$> progAndArgs)
       (progDesc "dump the AST as Flat, with names replaced by de Bruijn indices"))
   )
 
@@ -196,11 +196,11 @@ toDeBruijn prog = do
     Left e  -> throw e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
-writeFlatnamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
-writeFlatnamed prog = BS.putStr $ Flat.flat prog
+writeFlatNamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
+writeFlatNamed prog = BS.putStr $ Flat.flat prog
 
-writeFlatdeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-writeFlatdeBruijn  prog = BS.putStr . Flat.flat $
+writeFlatDeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+writeFlatDeBruijn  prog = BS.putStr . Flat.flat $
                       UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
 
 description :: Haskell.String
@@ -246,8 +246,8 @@ main = do
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa -> Haskell.mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getUnDBrTerm $ pa
         where unindent d = map (dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
-    DumpFlatnamed pa   -> writeFlatnamed . mkProg . getUnDBrTerm $ pa
-    DumpFlatdeBruijn pa-> writeFlatdeBruijn . mkProg . getDBrTerm $ pa
+    DumpFlatNamed pa   -> writeFlatNamed . mkProg . getUnDBrTerm $ pa
+    DumpFlatDeBruijn pa-> writeFlatDeBruijn . mkProg . getDBrTerm $ pa
     -- Write the output to stdout and let the user deal with redirecting it.
     where getDBrTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
           getDBrTerm =

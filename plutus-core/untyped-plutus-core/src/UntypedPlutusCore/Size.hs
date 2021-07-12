@@ -27,6 +27,6 @@ termSize = \case
 programSize :: Program name uni fun ann -> Integer
 programSize (Program _ _ t) = termSize t
 
--- | Compute the size of the serializabled form of a value.
+-- | Compute the size of the serialized form of a value.
 serialisedSize :: Flat a => a -> Integer
 serialisedSize = fromIntegral . BS.length . flat
