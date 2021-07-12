@@ -373,6 +373,9 @@ instance ToSchema LedgerBytes where
 instance ToSchema UUID where
     toSchema = toSchema @String
 
+instance ToSchema POSIXTime where
+    toSchema = FormSchemaInteger
+
 instance ToSchema POSIXTimeRange where
     toSchema = FormSchemaPOSIXTimeRange
 
@@ -389,8 +392,6 @@ deriving anyclass instance ToSchema PubKeyHash
 deriving anyclass instance ToSchema RedeemerHash
 
 deriving anyclass instance ToSchema Signature
-
-deriving anyclass instance ToSchema POSIXTime
 
 deriving anyclass instance ToSchema TokenName
 
