@@ -15,8 +15,6 @@
 
 module PlutusCore.Flat
     ( AsSerialize (..)
-    , encode
-    , decode
     , safeEncodeBits
     ) where
 

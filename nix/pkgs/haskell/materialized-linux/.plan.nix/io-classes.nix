@@ -11,7 +11,7 @@
     flags = { checktvarinvariant = false; asserts = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "io-sim-classes"; version = "0.2.0.0"; };
+      identifier = { name = "io-classes"; version = "0.2.0.0"; };
       license = "Apache-2.0";
       copyright = "2019 Input Output (Hong Kong) Ltd.";
       maintainer = "";
@@ -59,7 +59,7 @@
         "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+            (hsPkgs."io-classes" or (errorHandler.buildDepError "io-classes"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
@@ -71,4 +71,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/23; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/24; }

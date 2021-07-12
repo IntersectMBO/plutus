@@ -24,23 +24,21 @@ import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
 import           GHC.Generics              (Generic)
-import           Plutus.V1.Ledger.Bytes    (LedgerBytes (..))
 import           Plutus.V1.Ledger.Crypto   (PubKeyHash)
 import           Plutus.V1.Ledger.Scripts  (ValidatorHash)
 import qualified PlutusTx                  as PlutusTx
 import qualified PlutusTx.Bool             as PlutusTx
-import qualified PlutusTx.Builtins         as Builtins
 import qualified PlutusTx.Eq               as PlutusTx
 
 -- | Staking credential used to assign rewards
 data StakingCredential
-    = StakingHash Builtins.ByteString
+    = StakingHash Credential
     | StakingPtr Integer Integer Integer -- NB: The fields should really be Word64 / Natural / Natural, but 'Integer' is our only integral type so we need to use it instead.
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)
 
 instance Pretty StakingCredential where
-    pretty (StakingHash h)    = "StakingHash:" <+> pretty (LedgerBytes h)
+    pretty (StakingHash h)    = "StakingHash" <+> pretty h
     pretty (StakingPtr a b c) = "StakingPtr:" <+> pretty a <+> pretty b <+> pretty c
 
 instance PlutusTx.Eq StakingCredential where

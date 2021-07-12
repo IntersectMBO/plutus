@@ -1992,11 +1992,24 @@
                       )
                       (datatypebind
                         (datatype
+                          (tyvardecl Credential (type))
+
+                          Credential_match
+                          (vardecl
+                            PubKeyCredential (fun (con bytestring) Credential)
+                          )
+                          (vardecl
+                            ScriptCredential (fun (con bytestring) Credential)
+                          )
+                        )
+                      )
+                      (datatypebind
+                        (datatype
                           (tyvardecl StakingCredential (type))
 
                           StakingCredential_match
                           (vardecl
-                            StakingHash (fun (con bytestring) StakingCredential)
+                            StakingHash (fun Credential StakingCredential)
                           )
                           (vardecl
                             StakingPtr
@@ -2102,21 +2115,6 @@
                               (vardecl
                                 Interval
                                 (fun [LowerBound a] (fun [UpperBound a] [Interval a]))
-                              )
-                            )
-                          )
-                          (datatypebind
-                            (datatype
-                              (tyvardecl Credential (type))
-
-                              Credential_match
-                              (vardecl
-                                PubKeyCredential
-                                (fun (con bytestring) Credential)
-                              )
-                              (vardecl
-                                ScriptCredential
-                                (fun (con bytestring) Credential)
                               )
                             )
                           )

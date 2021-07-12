@@ -10,7 +10,6 @@ import           UntypedPlutusCore.Rename             as Rename
 
 import           PlutusCore.Name                      as Export
 import           UntypedPlutusCore.Core               as Export
-import           UntypedPlutusCore.Core.Instance.CBOR as Export
 import           UntypedPlutusCore.Core.Instance.Flat as Export
 import           UntypedPlutusCore.DeBruijn           as Export
 import           UntypedPlutusCore.Size               as Export
