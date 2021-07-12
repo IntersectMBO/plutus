@@ -8,9 +8,9 @@ module PlutusCore.Size
 
 import           PlutusCore.Core
 
-import           Codec.Serialise
-import qualified Data.ByteString.Lazy  as BSL
+import qualified Data.ByteString       as BS
 import           Data.Functor.Foldable
+import           Flat
 
 -- | Count the number of AST nodes in a kind.
 kindSize :: Kind a -> Integer
@@ -48,5 +48,5 @@ programSize :: Program tyname name uni fun ann -> Integer
 programSize (Program _ _ t) = termSize t
 
 -- | Compute the size of the serializabled form of a value.
-serialisedSize :: Serialise a => a -> Integer
-serialisedSize = fromIntegral . BSL.length . serialise
+serialisedSize :: Flat a => a -> Integer
+serialisedSize = fromIntegral . BS.length . flat
