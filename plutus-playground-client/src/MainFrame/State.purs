@@ -80,7 +80,7 @@ mkSimulatorWallet :: Array KnownCurrency -> BigInteger -> SimulatorWallet
 mkSimulatorWallet currencies walletId =
   SimulatorWallet
     { simulatorWalletWallet: Wallet { getWallet: walletId }
-    , simulatorWalletBalance: mkInitialValue currencies (BigInteger.fromInt 10)
+    , simulatorWalletBalance: mkInitialValue currencies (BigInteger.fromInt 100_000_000)
     }
 
 mkSimulation :: Array KnownCurrency -> Int -> Simulation
