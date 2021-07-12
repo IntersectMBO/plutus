@@ -33,7 +33,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Utils using (decIf;just;nothing)
 
-open import Algorithmic.ReductionEC using (Arg;Term;Type;_<>>_∈_;start;bubble;arity;saturated)
+open import Algorithmic.ReductionEC using (Arg;Term;Type;_<>>_∈_;start;bubble;arity;saturated;_<><_;<>>2<>>';lemma<>2;unique<>>;Bwd;[];_∷_)
 
 data Env : Ctx ∅ → Set
 
@@ -186,6 +186,37 @@ BUILTIN append (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj
 BUILTIN trace (app _ base (V-con (string s))) =
   inj₁ (V-con (Debug.trace s unit))
 
+convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
+  → ∀{A}
+  → BAPP b p A
+  → BAPP b p' A
+convBApp b p p' q rewrite unique<>> p p' = q
+
+BUILTIN' : ∀ b {A}{az}(p : az <>> [] ∈ arity b)
+  → BAPP b p A
+  → Value A ⊎ ∅ ⊢Nf⋆ *
+BUILTIN' b {az = az} p q
+  with sym (trans (cong ([] <><_) (sym (<>>2<>>' _ _ _ p))) (lemma<>2 az []))
+... | refl = BUILTIN b (convBApp b p (saturated (arity b)) q)
+
+open import Data.Product using (∃)
+
+postulate
+  bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b)
+    → BAPP b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
+  bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
+    → BAPP b p A → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
+
+V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
+       → (p : as <>> a ∷ as' ∈ arity b)
+       → BAPP b p A
+       → Value A
+V-I b {a = Term} p q with bappTermLem b p q
+... | _ ,, _ ,, refl = V-I⇒ b p q
+V-I b {a = Type} p q  with bappTypeLem b p q
+... | _ ,, _ ,, refl = V-IΠ b p q
+
+
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *} → Value (A ⇒ B) → Frame B A
@@ -328,22 +359,18 @@ step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
 step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , wrap- {A = A}{B = B}) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
-{-
-step ((s , (V-I⇒ b p q r σ base vs t ·-)) ◅ v) with IBUILTIN' b p q σ (vs ,, v) _ r
-... | inj₁ v' = s ◅ v'
-... | inj₂ (E-error B) = ◆ B
-  
-step ((s , (V-I⇒ b p q r σ (skip⋆ p') vs t ·-)) ◅ v) =
-  s ◅ V-IΠ b p q r σ p' (vs ,, v) (t · discharge v)
-step ((s , (V-I⇒ b p q r σ (skip p') vs t ·-)) ◅ v) =
-  s ◅ V-I⇒ b p q r σ p' (vs ,, v) (t · discharge v)
-
-step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ base vs t) with IBUILTIN' b p q (subNf-cons σ A) (vs ,, A) _ r
-... | inj₁ v' = s ◅ convValue (subNf-cons-[]Nf C) v'
-... | inj₂ (E-error B) = ◆ B
-step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip⋆ p') vs t) = s ◅ convValue (sym (Πlem p' A C σ)) (V-IΠ b {C = C} p q r (subNf-cons σ A) p' (vs ,, A) (conv⊢ refl (Πlem p' A C σ) (t ·⋆ A)))
-step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip p') vs t) = s ◅ convValue (sym (⇒lem p' σ C)) (V-I⇒ b p q r (subNf-cons σ A) p' (vs ,, A) (conv⊢ refl (⇒lem p' σ C) (t ·⋆ A) ))
--}
+step ((s , (V-I⇒ b {as' = []} p x₁ ·-)) ◅ V)
+  with BUILTIN' b (bubble p) (app p x₁ V)
+... | inj₁ V = s ◅ V
+... | inj₂ A = ◆ A
+step ((s , (V-I⇒ b {as' = x₂ ∷ as'} p x₁ ·-)) ◅ V) =
+  s ◅ V-I b (bubble p) (app p x₁ V)
+step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p x₁)
+  with BUILTIN' b (bubble p) (app⋆ p x₁ refl)
+... | inj₁ V = s ◅ V
+... | inj₂ A = ◆ A
+step ((s , -·⋆ A) ◅ V-IΠ b {as' = x₂ ∷ as'} p x₁) =
+  s ◅ V-I b (bubble p) (app⋆ p x₁ refl)
 step (□ V) = □ V
 step (◆ A) = ◆ A
 
