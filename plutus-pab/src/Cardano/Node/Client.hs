@@ -9,20 +9,21 @@
 module Cardano.Node.Client where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Reader     (Reader, ask)
+import           Control.Monad.Freer.Reader          (Reader, ask)
 import           Control.Monad.IO.Class
-import           Data.Proxy                     (Proxy (Proxy))
-import           Ledger                         (Tx)
-import           Servant                        (NoContent, (:<|>) (..))
-import           Servant.Client                 (ClientEnv, ClientError, ClientM, client, runClientM)
+import           Data.Proxy                          (Proxy (Proxy))
+import           Ledger                              (Block, Tx)
+import           Servant                             (NoContent, (:<|>) (..))
+import           Servant.Client                      (ClientEnv, ClientError, ClientM, client, runClientM)
 
-import           Cardano.Node.API               (API)
-import           Cardano.Node.RandomTx          (GenRandomTx (..))
-import           Cardano.Node.Types             (MockServerLogMsg)
-import qualified Cardano.Protocol.Socket.Client as Client
+import           Cardano.Node.API                    (API)
+import           Cardano.Node.RandomTx               (GenRandomTx (..))
+import           Cardano.Node.Types                  (MockServerLogMsg)
+import qualified Cardano.Protocol.Socket.Client      as Client
+import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Extras.Log (LogMessage)
-import           Wallet.Effects                 (NodeClientEffect (..))
+import           Control.Monad.Freer.Extras.Log      (LogMessage)
+import           Wallet.Effects                      (NodeClientEffect (..))
 
 healthcheck :: ClientM NoContent
 randomTx :: ClientM Tx
@@ -55,15 +56,15 @@ handleNodeClientClient ::
     forall m effs.
     ( LastMember m effs
     , MonadIO m
-    , Member (Reader Client.TxSendHandle) effs
-    , Member (Reader Client.ChainSyncHandle) effs
+    , Member (Reader MockClient.TxSendHandle) effs
+    , Member (Reader (Client.ChainSyncHandle Block)) effs
     )
     => NodeClientEffect
     ~> Eff effs
 handleNodeClientClient e = do
-    txSendHandle <- ask @Client.TxSendHandle
-    chainSyncHandle <- ask @Client.ChainSyncHandle
+    txSendHandle <- ask @MockClient.TxSendHandle
+    chainSyncHandle <- ask @(Client.ChainSyncHandle Block)
     case e of
         PublishTx tx  ->
-            liftIO $ Client.queueTx txSendHandle tx
-        GetClientSlot -> liftIO $ Client.getCurrentSlot chainSyncHandle
+            liftIO $ MockClient.queueTx txSendHandle tx
+        GetClientSlot -> liftIO $ MockClient.getCurrentSlot chainSyncHandle
