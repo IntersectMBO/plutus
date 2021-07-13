@@ -940,7 +940,6 @@ bappTermLem append {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
 bappTermLem trace {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem trace {az = .[]} {.[]} .(ibuiltin trace) .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
 
-
 bappTypeLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> (Type ∷ as) ∈ arity b)
   → BAPP b p M → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
 bappTypeLem addInteger {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
