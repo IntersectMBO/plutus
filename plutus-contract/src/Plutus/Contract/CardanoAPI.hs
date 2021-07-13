@@ -350,7 +350,7 @@ toCardanoPlutusScript = deserialiseFromRawBytes (C.AsPlutusScript C.AsPlutusScri
 
 toCardanoExecutionUnits :: P.Script -> [Data.Data] -> Either ToCardanoError C.ExecutionUnits
 toCardanoExecutionUnits script datum = do
-    cmp <- maybe (Left NoDefaultCostModelParams) Right Api.defaultCostModelParams
+    cmp <- maybe (Left NoDefaultCostModelParams) Right Api.defaultCostModelParams -- TODO: Configurable cost model params
     let apiScript = BSS.toShort . BSL.toStrict $ Codec.serialise script
     case Api.evaluateScriptCounting Api.Quiet cmp apiScript datum of
         (_, Left err) -> Left $ EvaluationError err
