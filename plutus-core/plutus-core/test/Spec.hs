@@ -201,28 +201,57 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-newtype RenameT_BAD ren m a = RenameT_BAD
-    { unRenameT_BAD :: StateT ren m a
+newtype NoMarkRenameT ren m a = NoMarkRenameT
+    { unNoMarkRenameT :: RenameT ren m a
+    } deriving newtype
+        ( Functor, Applicative, Alternative, Monad
+        , MonadReader ren
+        , MonadQuote
+        )
+
+noMarkRenameProgram
+    :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
+    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
+noMarkRenameProgram = runRenameT . unNoMarkRenameT . renameProgramM
+
+newtype NoRenameT ren m a = NoRenameT
+    { unNoRenameT :: m a
+    } deriving newtype
+        ( Functor, Applicative, Alternative, Monad
+        , MonadQuote
+        )
+
+noRenameProgram
+    :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
+    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
+noRenameProgram = through markNonFreshProgram >=> unNoRenameT . renameProgramM
+
+instance (Monad m, Monoid ren) => MonadReader ren (NoRenameT ren m) where
+    ask = pure mempty
+    local _ = id
+
+newtype BrokenRenameT ren m a = BrokenRenameT
+    { unBrokenRenameT :: StateT ren m a
     } deriving newtype
         ( Functor, Applicative, Alternative, Monad
         , MonadState ren
         , MonadQuote
         )
 
-runRenameT_BAD :: (Monad m, Monoid ren) => RenameT_BAD ren m a -> m a
-runRenameT_BAD = flip evalStateT mempty . unRenameT_BAD
+runBrokenRenameT :: (Monad m, Monoid ren) => BrokenRenameT ren m a -> m a
+runBrokenRenameT = flip evalStateT mempty . unBrokenRenameT
 
-instance Monad m => MonadReader ren (RenameT_BAD ren m) where
+instance Monad m => MonadReader ren (BrokenRenameT ren m) where
     ask = get
     local f a = modify f *> a
 
-renameProgram_BAD
+brokenRenameProgram
     :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
     => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
-renameProgram_BAD = through markNonFreshProgram >=> runRenameT_BAD . renameProgramM
+brokenRenameProgram = through markNonFreshProgram >=> runBrokenRenameT . renameProgramM
 
-checkBadRenamer :: Property -> IO ()
-checkBadRenamer prop = check prop >>= \res -> res @?= False
+checkBadRename :: Property -> IO ()
+checkBadRename prop = check prop >>= \res -> res @?= False
 
 propRenameFor
     :: program ~ Program TyName Name DefaultUni DefaultFun ()
@@ -235,8 +264,11 @@ propRenameFor ren = property $ do
 propRename :: Property
 propRename = propRenameFor rename
 
-propRenameBadRenamer :: IO ()
-propRenameBadRenamer = checkBadRenamer $ propRenameFor renameProgram_BAD
+propRenameBrokenRename :: IO ()
+propRenameBrokenRename = checkBadRename $ propRenameFor brokenRenameProgram
+
+propRenameNoMarkRename :: IO ()
+propRenameNoMarkRename = checkBadRename $ propRenameFor noMarkRenameProgram
 
 propScopingFor
     :: program ~ Program TyName Name DefaultUni DefaultFun NameAnn
@@ -250,8 +282,14 @@ propScopingFor ren = property $ do
 propScoping :: Property
 propScoping = propScopingFor rename
 
-propScopingBadRenamer :: IO ()
-propScopingBadRenamer = checkBadRenamer $ propScopingFor renameProgram_BAD
+propScopingBrokenRename :: IO ()
+propScopingBrokenRename = checkBadRename $ propScopingFor brokenRenameProgram
+
+propScopingNoRename :: IO ()
+propScopingNoRename = checkBadRename $ propScopingFor noRenameProgram
+
+propScopingNoMarkRename :: IO ()
+propScopingNoMarkRename = checkBadRename $ propScopingFor noMarkRenameProgram
 
 propDeBruijn :: Gen (TermOf (DefaultTerm ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
@@ -275,9 +313,12 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testProperty "serialization round-trip (Flat)" propFlat
     , testProperty "equality does not survive mangling" propMangle
     , testProperty "equality survives renaming" propRename
-    , testCase "equality does not survive wrong renaming" propRenameBadRenamer
+    , testCase "equality does not survive wrong renaming" propRenameBrokenRename
     , testProperty "renaming does not destroy scoping" propScoping
-    , testCase "wrong renaming destroys scoping" propScopingBadRenamer
+    , testCase "wrong renaming destroys scoping" propScopingBrokenRename
+    , testCase "no renaming does not result in global uniqueness" propScopingNoRename
+    , testCase "equality does survive renaming without marking" propRenameNoMarkRename
+    , testCase "no marking in renaming destroys scoping" propScopingNoMarkRename
     , testGroup "de Bruijn transformation round-trip" $
           fromInterestingTermGens $ \name -> testProperty name . propDeBruijn
     , testsGolden plcFiles
