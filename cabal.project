@@ -43,6 +43,9 @@ benchmarks: true
 package eventful-sql-common
   ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses
 
+package ghci
+  flags: +ghci
+
 allow-newer:
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
            size-based:template-haskell
