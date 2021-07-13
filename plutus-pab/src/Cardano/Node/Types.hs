@@ -44,7 +44,6 @@ module Cardano.Node.Types
         where
 
 import           Control.Lens                   (makeLenses, view)
-import           Control.Monad.Freer.TH         (makeEffect)
 import           Control.Monad.IO.Class         (MonadIO (..))
 import           Data.Aeson                     (FromJSON, ToJSON)
 import qualified Data.Map                       as Map
@@ -209,8 +208,7 @@ initialChainState =
 -- Effects -------------------------------------------------------------------------------------------------------------
 
 type NodeServerEffects m
-     = '[ LogMsg MockServerLogMsg
-        , ChainControlEffect
+     = '[ ChainControlEffect
         , ChainEffect
         , State MockNodeServerChainState
         , LogMsg MockServerLogMsg

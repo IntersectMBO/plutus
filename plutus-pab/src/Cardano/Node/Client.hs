@@ -12,14 +12,12 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Reader     (Reader, ask)
 import           Control.Monad.IO.Class
 import           Data.Proxy                     (Proxy (Proxy))
-import           Ledger                         (Tx)
 import           Servant                        (NoContent, (:<|>) (..))
-import           Servant.Client                 (ClientEnv, ClientError, ClientM, client, runClientM)
+import           Servant.Client                 (ClientM, client)
 
 import           Cardano.Node.API               (API)
 import           Cardano.Node.Types             (MockServerLogMsg)
 import qualified Cardano.Protocol.Socket.Client as Client
-import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras.Log (LogMessage)
 import           Wallet.Effects                 (NodeClientEffect (..))
 
