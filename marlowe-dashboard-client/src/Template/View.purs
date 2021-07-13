@@ -10,10 +10,11 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, label, li, p, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, img, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (enabled, for)
+import Halogen.HTML.Properties (enabled, for, src)
 import Humanize (humanizeValue)
+import Images (cfdIcon, loanIcon, purchaseIcon)
 import InputField.Lenses (_value)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
@@ -97,19 +98,23 @@ contractSelection :: forall p. HTML p Action
 contractSelection =
   div
     [ classNames [ "h-full", "overflow-y-auto" ] ]
-    $ contractTemplateLink
-    <$> contractTemplates
+    [ ul_ $ contractTemplateLink <$> contractTemplates
+    ]
   where
+  -- Cautionary tale: Initially I made these `divs` inside a `div`, but because they are very
+  -- similar to the overview div for the corresponding contract template, I got a weird event
+  -- propgation bug when clicking on the "back" button in the contract overview section. I'm not
+  -- entirely clear on what was going on, but either Halogen's diff of the DOM or the browser
+  -- itself ended up thinking that the "back" button in the contract overview was inside one of
+  -- these `divs` (even though they are never rendered at the same time). Anyway, changing these
+  -- to `li` items inside a `ul` (a perfectly reasonable semantic choice anyway) solves this
+  -- problem.
   contractTemplateLink contractTemplate =
-    div
+    li
       [ classNames [ "flex", "gap-4", "items-center", "p-4", "border-gray", "border-b", "cursor-pointer" ]
       , onClick_ $ SetTemplate contractTemplate
       ]
-      [ icon_ case contractTemplate.metaData.contractType of
-          Escrow -> ContractPurchase
-          ZeroCouponBond -> ContractLoan
-          ContractForDifferences -> ContractContractForDifferences
-          _ -> Contract
+      [ contractIcon contractTemplate.metaData.contractType
       , div_
           [ h2
               [ classNames [ "font-semibold", "mb-2" ] ]
@@ -128,8 +133,10 @@ contractOverview contractTemplate =
     [ div
         [ classNames [ "h-full", "overflow-y-auto", "p-4" ] ]
         [ h2
-            [ classNames [ "text-lg", "font-semibold", "mb-2" ] ]
-            [ text $ contractTemplate.metaData.contractName <> " overview" ]
+            [ classNames [ "flex", "gap-2", "items-center", "text-lg", "font-semibold", "mb-2" ] ]
+            [ contractIcon contractTemplate.metaData.contractType
+            , text $ contractTemplate.metaData.contractName <> " overview"
+            ]
         , p_ [ text contractTemplate.metaData.contractDescription ]
         ]
     , div
@@ -268,6 +275,15 @@ contractReview assets state =
       ]
 
 ------------------------------------------------------------
+contractIcon :: forall p. ContractType -> HTML p Action
+contractIcon contractType =
+  img
+    [ src case contractType of
+        Escrow -> purchaseIcon
+        ZeroCouponBond -> loanIcon
+        _ -> cfdIcon
+    ]
+
 slotParameter :: forall p. MetaData -> Tuple String (InputField.State SlotError) -> HTML p Action
 slotParameter metaData (key /\ slotContentInput) =
   let
