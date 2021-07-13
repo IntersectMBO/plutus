@@ -105,7 +105,9 @@ data ExtensionFun
     | ExpensivePlus
     | Absurd
     | Cons
-    | BiconstPair
+    | Comma
+    | BiconstPair  -- A safe version of 'Comma' as discussed in
+                   -- Note [Representable built-in functions over polymorphic built-in types].
     | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
@@ -249,6 +251,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                     Just Refl ->
                         EvaluationSuccess . SomeConstantOfArg uniA $
                             SomeConstantOfRes uniListA $ x : xs
+
+    toBuiltinMeaning Comma = makeBuiltinMeaning commaPlc mempty where
+        commaPlc :: SomeConstant uni a -> SomeConstant uni b -> SomeConstantOf uni (,) '[a, b]
+        commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
+            let uniPairAB = DefaultUniPair uniA uniB
+            in SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes uniPairAB (x, y)))
 
     toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
         biconstPairPlc

@@ -19,7 +19,7 @@ import           PlutusCore.Examples.Builtins
 -- | Apply a monomorphic function to both components of a pair.
 --
 -- > /\(a :: *) -> \(f : a -> a) (p : pair a a) ->
--- >     biconstPair {a} {a} (f (fst {a} {a} p)) (f (snd {a} {a} p)) p
+-- >     comma {a} {a} (f (fst {a} {a} p)) (f (snd {a} {a} p))
 obothPair :: TermLike term TyName Name DefaultUni (Either DefaultFun ExtensionFun) => term ()
 obothPair = runQuote $ do
     a <- freshTyName "a"
@@ -30,8 +30,7 @@ obothPair = runQuote $ do
         . tyAbs () a (Type ())
         . lamAbs () f (TyFun () (TyVar () a) $ TyVar () a)
         . lamAbs () p (mkIterTyApp () pair [TyVar () a, TyVar () a])
-        $ mkIterApp () (atAA $ Right BiconstPair)
+        $ mkIterApp () (atAA $ Right Comma)
             [ apply () (var () f) . apply () (atAA $ Left FstPair) $ var () p
             , apply () (var () f) . apply () (atAA $ Left SndPair) $ var () p
-            , var () p
             ]

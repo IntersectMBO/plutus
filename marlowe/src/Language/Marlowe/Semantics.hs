@@ -61,13 +61,13 @@ import           PlutusTx                 (makeIsDataIndexed)
 import           PlutusTx.AssocMap        (Map)
 import qualified PlutusTx.AssocMap        as Map
 import           PlutusTx.Lift            (makeLift)
-import           PlutusTx.Prelude         hiding (mapM, (<$>), (<*>), (<>))
+import           PlutusTx.Prelude         hiding (encodeUtf8, mapM, (<$>), (<*>), (<>))
 import           PlutusTx.Ratio           (denominator, numerator)
 import           Prelude                  (mapM, (<$>))
 import qualified Prelude                  as Haskell
 import           Text.PrettyPrint.Leijen  (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
-{-# ANN module ("HLint: ignore Avoid restricted function" :: Haskell.String) #-}
+{- HLINT ignore "Avoid restricted function" -}
 
 {- Functions that used in Plutus Core must be inlineable,
    so their code is available for PlutusTx compiler -}
@@ -295,7 +295,7 @@ instance ToJSON Input where
 -}
 data IntervalError = InvalidInterval SlotInterval
                    | IntervalInPastError Slot SlotInterval
-  deriving stock (Haskell.Show, Generic)
+  deriving stock (Haskell.Show, Generic, Haskell.Eq)
   deriving anyclass (ToJSON, FromJSON)
 
 
@@ -308,7 +308,7 @@ data IntervalResult = IntervalTrimmed Environment State
 {-| Payment occurs during 'Pay' contract evaluation, and
     when positive balances are payed out on contract closure.
 -}
-data Payment = Payment Party Money
+data Payment = Payment AccountId Payee Money
   deriving stock (Haskell.Show)
 
 
@@ -378,7 +378,7 @@ data TransactionError = TEAmbiguousSlotIntervalError
                       | TEApplyNoMatchError
                       | TEIntervalError IntervalError
                       | TEUselessTransaction
-  deriving stock (Haskell.Show, Generic)
+  deriving stock (Haskell.Show, Generic, Haskell.Eq)
   deriving anyclass (ToJSON, FromJSON)
 
 
@@ -552,12 +552,12 @@ addMoneyToAccount accId token amount accounts = let
 {-| Gives the given amount of money to the given payee.
     Returns the appropriate effect and updated accounts
 -}
-giveMoney :: Payee -> Token -> Integer -> Accounts -> (ReduceEffect, Accounts)
-giveMoney payee (Token cur tok) amount accounts = case payee of
-    Party party   -> (ReduceWithPayment (Payment party (Val.singleton cur tok amount)), accounts)
-    Account accId -> let
-        newAccs = addMoneyToAccount accId (Token cur tok) amount accounts
-        in (ReduceNoPayment, newAccs)
+giveMoney :: AccountId -> Payee -> Token -> Integer -> Accounts -> (ReduceEffect, Accounts)
+giveMoney accountId payee (Token cur tok) amount accounts = let
+    newAccounts = case payee of
+        Party _       -> accounts
+        Account accId -> addMoneyToAccount accId (Token cur tok) amount accounts
+    in (ReduceWithPayment (Payment accountId payee (Val.singleton cur tok amount)), newAccounts)
 
 
 -- | Carry a step of the contract with no inputs
@@ -567,7 +567,7 @@ reduceContractStep env state contract = case contract of
     Close -> case refundOne (accounts state) of
         Just ((party, money), newAccounts) -> let
             newState = state { accounts = newAccounts }
-            in Reduced ReduceNoWarning (ReduceWithPayment (Payment party money)) newState Close
+            in Reduced ReduceNoWarning (ReduceWithPayment (Payment party (Party party) money)) newState Close
         Nothing -> NotReduced
 
     Pay accId payee tok val cont -> let
@@ -584,7 +584,7 @@ reduceContractStep env state contract = case contract of
                 warning = if paidAmount < amountToPay
                           then ReducePartialPay accId payee tok paidAmount amountToPay
                           else ReduceNoWarning
-                (payment, finalAccs) = giveMoney payee tok paidAmount newAccs
+                (payment, finalAccs) = giveMoney accId payee tok paidAmount newAccs
                 newState = state { accounts = finalAccs }
                 in Reduced warning payment newState cont
 
@@ -1191,7 +1191,7 @@ instance Eq Payee where
 
 instance Eq Payment where
     {-# INLINABLE (==) #-}
-    Payment p1 m1 == Payment p2 m2 = p1 == p2 && m1 == m2
+    Payment a1 p1 m1 == Payment a2 p2 m2 = a1 == a2 && p1 == p2 && m1 == m2
 
 
 instance Eq ReduceWarning where

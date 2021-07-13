@@ -9,8 +9,9 @@ import qualified Prelude                                  as Haskell
 import           Control.Exception
 import           Control.Monad                            ()
 import           Control.Monad.Trans.Except
-import qualified Data.ByteString.Lazy                     as BSL
+import qualified Data.ByteString                          as BS
 import           Data.Char                                (isSpace)
+import qualified Flat
 import           Options.Applicative                      as Opt hiding (action)
 import           System.Exit                              (exitFailure)
 import           System.IO
@@ -24,7 +25,6 @@ import qualified Plutus.Benchmark.Queens                  as Queens
 
 import           PlutusCore                               (Name (..))
 import qualified PlutusCore                               as PLC
-import           PlutusCore.CBOR                          ()
 import           PlutusCore.Default
 import qualified PlutusCore.Pretty                        as PLC
 import           PlutusTx.Prelude                         as Plutus hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
@@ -49,8 +49,8 @@ data Options
     = RunPLC           ProgAndArgs
     | RunHaskell       ProgAndArgs
     | DumpPLC          ProgAndArgs
-    | DumpCBORnamed    ProgAndArgs
-    | DumpCBORdeBruijn ProgAndArgs
+    | DumpFlatNamed    ProgAndArgs
+    | DumpFlatDeBruijn ProgAndArgs
 
 
 -- Clausify options --
@@ -172,15 +172,15 @@ options = hsubparser
   <> command "dumpPLC"
      (info (DumpPLC <$> progAndArgs)
       (progDesc "print the program (applied to arguments) as Plutus Core source on standard output"))
-  <> command "dumpCBORnamed"
-     (info (DumpCBORnamed <$> progAndArgs)
-      (progDesc "dump the AST as CBOR, preserving names"))
-  <> command "dumpCBOR"
-     (info (DumpCBORdeBruijn <$> progAndArgs)
-      (progDesc "same as dumpCBORdeBruijn, but easier to type"))
-  <> command "dumpCBORdeBruijn"
-     (info (DumpCBORdeBruijn <$> progAndArgs)
-      (progDesc "dump the AST as CBOR, with names replaced by de Bruijn indices"))
+  <> command "dumpFlatNamed"
+     (info (DumpFlatNamed <$> progAndArgs)
+      (progDesc "dump the AST as Flat, preserving names"))
+  <> command "dumpFlat"
+     (info (DumpFlatDeBruijn <$> progAndArgs)
+      (progDesc "same as dumpFlatDeBruijn, but easier to type"))
+  <> command "dumpFlatDeBruijn"
+     (info (DumpFlatDeBruijn <$> progAndArgs)
+      (progDesc "dump the AST as Flat, with names replaced by de Bruijn indices"))
   )
 
 
@@ -196,11 +196,11 @@ toDeBruijn prog = do
     Left e  -> throw e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
-writeCBORnamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
-writeCBORnamed prog = BSL.putStr $ UPLC.serialiseOmittingUnits prog
+writeFlatNamed :: UPLC.Program Name DefaultUni DefaultFun () -> IO ()
+writeFlatNamed prog = BS.putStr $ Flat.flat prog
 
-writeCBORdeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-writeCBORdeBruijn  prog = BSL.putStr . UPLC.serialiseOmittingUnits $
+writeFlatDeBruijn ::UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+writeFlatDeBruijn  prog = BS.putStr . Flat.flat $
                       UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
 
 description :: Haskell.String
@@ -246,8 +246,8 @@ main = do
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa -> Haskell.mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug . mkProg . getUnDBrTerm $ pa
         where unindent d = map (dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
-    DumpCBORnamed pa   -> writeCBORnamed . mkProg . getUnDBrTerm $ pa
-    DumpCBORdeBruijn pa-> writeCBORdeBruijn . mkProg . getDBrTerm $ pa
+    DumpFlatNamed pa   -> writeFlatNamed . mkProg . getUnDBrTerm $ pa
+    DumpFlatDeBruijn pa-> writeFlatDeBruijn . mkProg . getDBrTerm $ pa
     -- Write the output to stdout and let the user deal with redirecting it.
     where getDBrTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
           getDBrTerm =

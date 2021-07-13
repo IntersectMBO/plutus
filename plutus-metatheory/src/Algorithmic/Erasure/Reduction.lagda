@@ -1,4 +1,6 @@
 \begin{code}
+{-# OPTIONS --rewriting #-}
+
 module Algorithmic.Erasure.Reduction where
 \end{code}
 

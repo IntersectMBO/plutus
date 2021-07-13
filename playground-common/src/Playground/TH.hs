@@ -70,7 +70,7 @@ mkSchemaDefinitions ts = do
             "Incorrect Name type provided to mkSchemaDefinitions. Got: " <>
             show other
 
-{-# ANN mkFunction ("HLint: ignore" :: String) #-}
+{-{- HLINT ignore mkFunction -}-}
 
 mkFunction :: Name -> Q [Dec]
 mkFunction _ =
@@ -100,7 +100,7 @@ mkFunction' name = do
     expression <- mkFunctionExp name fn
     pure $ FunD newName [Clause [] (NormalB expression) []]
 
-{-# ANN mkFunctionExp ("HLint: ignore" :: String) #-}
+{-{- HLINT ignore mkFunctionExp -}-}
 
 mkFunctionExp :: Name -> EndpointDescription -> Q Exp
 mkFunctionExp name fn = do
@@ -111,14 +111,14 @@ mkFunctionExp name fn = do
              in toSchemas fn ts
         _ -> error "Incorrect Name type provided to mkFunction"
 
-{-# ANN toSchemas ("HLint: ignore Redundant bracket" :: String) #-}
+{- HLINT ignore toSchemas "Redundant bracket" -}
 
 toSchemas :: EndpointDescription -> [Type] -> Q Exp
 toSchemas fn ts = do
     es <- foldr (\t e -> [|toSchema @($(pure t)) : $e|]) [|[]|] ts
     [|FunctionSchema fn $(pure es)|]
 
-{-# ANN args ("HLint: ignore" :: String) #-}
+{-{- HLINT ignore args -}-}
 
 args :: Type -> [Type]
 args (AppT (AppT ArrowT t1) as) = t1 : args as

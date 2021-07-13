@@ -10,10 +10,13 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ComponentHTML)
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, minW0, overflowXScroll, paddingRight, underline)
 import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
+import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _hasHoles, _metadataHintInfo, _showErrorDetail, contractHasErrors)
 import MetadataTab.View (metadataView)
@@ -21,7 +24,13 @@ import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButto
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
 
-panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents ::
+  forall m.
+  MonadAff m =>
+  State ->
+  MetaData ->
+  BottomPanelView ->
+  ComponentHTML Action ChildSlots m
 panelContents state metadata MetadataView = metadataView (state ^. _metadataHintInfo) metadata MetadataAction
 
 panelContents state metadata StaticAnalysisView =

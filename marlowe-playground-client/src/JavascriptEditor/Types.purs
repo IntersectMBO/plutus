@@ -91,6 +91,7 @@ type State
     , decorationIds :: Maybe DecorationIds
     , metadataHintInfo :: MetadataHintInfo
     , analysisState :: AnalysisState
+    , editorReady :: Boolean
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -111,6 +112,9 @@ _metadataHintInfo = prop (SProxy :: SProxy "metadataHintInfo")
 _analysisState :: Lens' State AnalysisState
 _analysisState = prop (SProxy :: SProxy "analysisState")
 
+_editorReady :: Lens' State Boolean
+_editorReady = prop (SProxy :: SProxy "editorReady")
+
 isCompiling :: State -> Boolean
 isCompiling state = case state ^. _compilationResult of
   Compiling -> true
@@ -124,6 +128,7 @@ initialState =
   , decorationIds: Nothing
   , metadataHintInfo: mempty
   , analysisState: initAnalysisState
+  , editorReady: false
   }
 
 data BottomPanelView

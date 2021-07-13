@@ -21,7 +21,7 @@ module Plutus.Contract.Request(
     , waitNSlots
     , awaitTime
     , currentTime
-    , waitNSeconds
+    , waitNMilliSeconds
     -- ** Querying the UTXO set
     , utxoAt
     -- ** Waiting for changes to the UTXO set
@@ -49,6 +49,8 @@ module Plutus.Contract.Request(
     , ownPubKey
     -- ** Submitting transactions
     , submitUnbalancedTx
+    , submitBalancedTx
+    , balanceTx
     , submitTx
     , submitTxConstraints
     , submitTxConstraintsSpending
@@ -77,8 +79,8 @@ import           Data.Text.Extras            (tshow)
 import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
-import           Ledger                      (Address, DiffSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx, TxId,
-                                              TxOut (..), TxOutTx (..), Value, fromSeconds, txId)
+import           Ledger                      (Address, DiffMilliSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx,
+                                              TxId, TxOut (..), TxOutTx (..), Value, fromMilliSeconds, txId)
 import           Ledger.AddressMap           (UtxoMap)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
@@ -174,21 +176,21 @@ currentTime ::
     => Contract w s e POSIXTime
 currentTime = pabReq CurrentTimeReq E._CurrentTimeResp
 
--- | Wait for a number of seconds starting at the ending time of the current
+-- | Wait for a number of milliseconds starting at the ending time of the current
 -- slot, and return the latest time we know has passed.
 --
--- Example: if starting time is 0, slot length is 3s and current slot is 0, then
--- `waitNSeconds 0` returns the value `POSIXTime 2` and `waitNSeconds 1`
+-- Example: if starting time is 0, slot length is 3000ms and current slot is 0, then
+-- `waitNMilliSeconds 0` returns the value `POSIXTime 2000` and `waitNMilliSeconds 1000`
 -- returns the value `POSIXTime 5`.
-waitNSeconds ::
+waitNMilliSeconds ::
   forall w s e.
   ( AsContractError e
   )
-  => DiffSeconds
+  => DiffMilliSeconds
   -> Contract w s e POSIXTime
-waitNSeconds n = do
+waitNMilliSeconds n = do
   t <- currentTime
-  awaitTime $ t + fromSeconds n
+  awaitTime $ t + fromMilliSeconds n
 
 -- | Get the unspent transaction outputs at an address.
 utxoAt ::
@@ -411,9 +413,26 @@ ownPubKey = pabReq OwnPublicKeyReq E._OwnPublicKeyResp
 --    error if balancing or signing failed.
 submitUnbalancedTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e Tx
 -- See Note [Injecting errors into the user's error type]
-submitUnbalancedTx t =
-  let req = pabReq (WriteTxReq t) E._WriteTxResp in
-  req >>= either (throwError . review _WalletError) pure . view E.writeTxResponse
+submitUnbalancedTx utx = do
+  tx <- balanceTx utx
+  submitBalancedTx tx
+
+-- | Send an unbalanced transaction to be balanced. Returns the balanced transaction.
+--    Throws an error if balancing failed.
+balanceTx :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e Tx
+-- See Note [Injecting errors into the user's error type]
+balanceTx t =
+  let req = pabReq (BalanceTxReq t) E._BalanceTxResp in
+  req >>= either (throwError . review _WalletError) pure . view E.balanceTxResponse
+
+-- | Send an balanced transaction to be signed. Returns the ID
+--    of the final transaction when the transaction was submitted. Throws an
+--    error if signing failed.
+submitBalancedTx :: forall w s e. (AsContractError e) => Tx -> Contract w s e Tx
+-- See Note [Injecting errors into the user's error type]
+submitBalancedTx t =
+  let req = pabReq (WriteBalancedTxReq t) E._WriteBalancedTxResp in
+  req >>= either (throwError . review _WalletError) pure . view E.writeBalancedTxResponse
 
 -- | Build a transaction that satisfies the constraints, then submit it to the
 --   network. The constraints do not refer to any typed script inputs or

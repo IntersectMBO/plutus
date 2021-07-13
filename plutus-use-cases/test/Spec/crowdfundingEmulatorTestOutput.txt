@@ -19,84 +19,84 @@ Slot 1: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 3}:
           Contract log: String "Contributing Value (Map [(,Map [(\"\",100)])])"
 Slot 1: W2: Balancing an unbalanced transaction:
               Tx:
-                Tx cd8336306dd92c40226894736f14e9dd397a7d4d5ce987b2c828f93b4ea9d36c:
+                Tx 7e9d478ca6a1b4516d77adb3e6657c5797f23792f549cda76672debd67ca8a4f:
                   {inputs:
                   collateral inputs:
                   outputs:
                     - Value (Map [(,Map [("",100)])]) addressed to
-                      addressed to ScriptCredential: 36413290f8140b972de69e376d36d6e36b9d667300229bbfda8b524ed848bdbc (no staking credential)
+                      addressed to ScriptCredential: 81d213e0cf9fd88c2ac25fd0a2c537e10469f44cb20d2ff16f30a561747b9b79 (no staking credential)
                   mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
                   signatures:
-                  validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = -1596059090})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}
+                  validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = -1596059091})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}
                   data:
                     "9\247\DC3\208\166D%?\EOTR\148!\185\245\ESC\155\b\151\157\b)YY\196\243\153\SO\230\ETB\245\DC3\159"}
               Requires signatures:
               Utxo index:
-Slot 1: W2: Finished balancing. f2e5bd0665145558ada750aa0b707999df1486a354c62d4d18e717a9268b4869
-Slot 1: W2: Submitting tx: f2e5bd0665145558ada750aa0b707999df1486a354c62d4d18e717a9268b4869
-Slot 1: W2: TxSubmit: f2e5bd0665145558ada750aa0b707999df1486a354c62d4d18e717a9268b4869
+Slot 1: W2: Finished balancing. dbf1a50d45ab06d9eb6d914ff0362ccad42cdacc4a19a0efd8a12ee6e84df0d8
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Contract instance started
+Slot 1: W2: Submitting tx: dbf1a50d45ab06d9eb6d914ff0362ccad42cdacc4a19a0efd8a12ee6e84df0d8
+Slot 1: W2: TxSubmit: dbf1a50d45ab06d9eb6d914ff0362ccad42cdacc4a19a0efd8a12ee6e84df0d8
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Receive endpoint call on 'contribute' for Object (fromList [("contents",Array [Object (fromList [("getEndpointDescription",String "contribute")]),Object (fromList [("unEndpointValue",Object (fromList [("contribValue",Object (fromList [("getValue",Array [Array [Object (fromList [("unCurrencySymbol",String "")]),Array [Array [Object (fromList [("unTokenName",String "")]),Number 25.0]]]])]))]))])]),("tag",String "ExposeEndpointResp")])
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Contract log: String "Contributing Value (Map [(,Map [(\"\",25)])])"
 Slot 1: W3: Balancing an unbalanced transaction:
               Tx:
-                Tx c7016fa72c91df06510b230a9675c9feb1688a9b5fc04fcc1b734f7e0f66b9a4:
+                Tx d4044da3fb78d90b1215d1b49b37ef2f678f8e576359505bba1dfaf1062aaf4d:
                   {inputs:
                   collateral inputs:
                   outputs:
                     - Value (Map [(,Map [("",100)])]) addressed to
-                      addressed to ScriptCredential: 36413290f8140b972de69e376d36d6e36b9d667300229bbfda8b524ed848bdbc (no staking credential)
+                      addressed to ScriptCredential: 81d213e0cf9fd88c2ac25fd0a2c537e10469f44cb20d2ff16f30a561747b9b79 (no staking credential)
                   mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
                   signatures:
-                  validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = -1596059090})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}
+                  validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = -1596059091})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}
                   data:
                     "\218\192s\224\DC2;\222\165\157\217\179\189\169\207`7\246:\202\130b}z\188\213\196\172)\221t\NUL>"}
               Requires signatures:
               Utxo index:
-Slot 1: W3: Finished balancing. a5308ca2d6f5dc6b5f48053723b2724562af0f743c6684b3fcbf390635ee5b77
-Slot 1: W3: Submitting tx: a5308ca2d6f5dc6b5f48053723b2724562af0f743c6684b3fcbf390635ee5b77
-Slot 1: W3: TxSubmit: a5308ca2d6f5dc6b5f48053723b2724562af0f743c6684b3fcbf390635ee5b77
+Slot 1: W3: Finished balancing. 63ebadc1d82da24f1e6433138fbccb63b20985903ddd738a7b4b9d4c05e185f1
+Slot 1: W3: Submitting tx: 63ebadc1d82da24f1e6433138fbccb63b20985903ddd738a7b4b9d4c05e185f1
+Slot 1: W3: TxSubmit: 63ebadc1d82da24f1e6433138fbccb63b20985903ddd738a7b4b9d4c05e185f1
 Slot 1: W4: Balancing an unbalanced transaction:
               Tx:
-                Tx 0a9f7d3954e90d7f49a96748628f3fbebf5e30ae3dd4e8173913077c5400b91e:
+                Tx 7b7252b4e9799c02a04421e63ea60dd21089fdcc606a21349879cd7ade3d978e:
                   {inputs:
                   collateral inputs:
                   outputs:
                     - Value (Map [(,Map [("",25)])]) addressed to
-                      addressed to ScriptCredential: 36413290f8140b972de69e376d36d6e36b9d667300229bbfda8b524ed848bdbc (no staking credential)
+                      addressed to ScriptCredential: 81d213e0cf9fd88c2ac25fd0a2c537e10469f44cb20d2ff16f30a561747b9b79 (no staking credential)
                   mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
                   signatures:
-                  validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = -1596059090})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}
+                  validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = -1596059091})) True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) True}
                   data:
                     "\237\209\195sr\247R\201z\236\b\130E/\172\172\ETB\164\253\175F\230\FS\ETX?J\246x\164\a\155\205"}
               Requires signatures:
               Utxo index:
-Slot 1: W4: Finished balancing. 4c32d40d9dc3f69e45175b3b831e683159871837110493e72132d8fcdb37e566
-Slot 1: W4: Submitting tx: 4c32d40d9dc3f69e45175b3b831e683159871837110493e72132d8fcdb37e566
-Slot 1: W4: TxSubmit: 4c32d40d9dc3f69e45175b3b831e683159871837110493e72132d8fcdb37e566
-Slot 1: TxnValidate 4c32d40d9dc3f69e45175b3b831e683159871837110493e72132d8fcdb37e566
-Slot 1: TxnValidate a5308ca2d6f5dc6b5f48053723b2724562af0f743c6684b3fcbf390635ee5b77
-Slot 1: TxnValidate f2e5bd0665145558ada750aa0b707999df1486a354c62d4d18e717a9268b4869
+Slot 1: W4: Finished balancing. 3cce88bfd7cb1f859a649d789cda055225582b16f5585ad93c2b5b86a4074e53
+Slot 1: W4: Submitting tx: 3cce88bfd7cb1f859a649d789cda055225582b16f5585ad93c2b5b86a4074e53
+Slot 1: W4: TxSubmit: 3cce88bfd7cb1f859a649d789cda055225582b16f5585ad93c2b5b86a4074e53
+Slot 1: TxnValidate 3cce88bfd7cb1f859a649d789cda055225582b16f5585ad93c2b5b86a4074e53
+Slot 1: TxnValidate 63ebadc1d82da24f1e6433138fbccb63b20985903ddd738a7b4b9d4c05e185f1
+Slot 1: TxnValidate dbf1a50d45ab06d9eb6d914ff0362ccad42cdacc4a19a0efd8a12ee6e84df0d8
 Slot 20: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
            Contract log: String "Collecting funds"
 Slot 20: W1: Balancing an unbalanced transaction:
                Tx:
-                 Tx 3f25577e82a1e28088b887894adc1302e72a5ec4ec935eae6bfbacd252e7836e:
+                 Tx 5c8de3746a7f1da5f25a59ed5086908fdf9f270439b7aaeb3360895e95f4710d:
                    {inputs:
-                      - 4c32d40d9dc3f69e45175b3b831e683159871837110493e72132d8fcdb37e566!1
+                      - 3cce88bfd7cb1f859a649d789cda055225582b16f5585ad93c2b5b86a4074e53!1
                         Redeemer: <>
-                      - a5308ca2d6f5dc6b5f48053723b2724562af0f743c6684b3fcbf390635ee5b77!1
+                      - 63ebadc1d82da24f1e6433138fbccb63b20985903ddd738a7b4b9d4c05e185f1!1
                         Redeemer: <>
-                      - f2e5bd0665145558ada750aa0b707999df1486a354c62d4d18e717a9268b4869!1
+                      - dbf1a50d45ab06d9eb6d914ff0362ccad42cdacc4a19a0efd8a12ee6e84df0d8!1
                         Redeemer: <>
                    collateral inputs:
                    outputs:
@@ -108,18 +108,18 @@ Slot 20: W1: Balancing an unbalanced transaction:
                    data:}
                Requires signatures:
                Utxo index:
-                 ( 4c32d40d9dc3f69e45175b3b831e683159871837110493e72132d8fcdb37e566!1
+                 ( 3cce88bfd7cb1f859a649d789cda055225582b16f5585ad93c2b5b86a4074e53!1
                  , - Value (Map [(,Map [("",25)])]) addressed to
-                     addressed to ScriptCredential: 36413290f8140b972de69e376d36d6e36b9d667300229bbfda8b524ed848bdbc (no staking credential) )
-                 ( a5308ca2d6f5dc6b5f48053723b2724562af0f743c6684b3fcbf390635ee5b77!1
+                     addressed to ScriptCredential: 81d213e0cf9fd88c2ac25fd0a2c537e10469f44cb20d2ff16f30a561747b9b79 (no staking credential) )
+                 ( 63ebadc1d82da24f1e6433138fbccb63b20985903ddd738a7b4b9d4c05e185f1!1
                  , - Value (Map [(,Map [("",100)])]) addressed to
-                     addressed to ScriptCredential: 36413290f8140b972de69e376d36d6e36b9d667300229bbfda8b524ed848bdbc (no staking credential) )
-                 ( f2e5bd0665145558ada750aa0b707999df1486a354c62d4d18e717a9268b4869!1
+                     addressed to ScriptCredential: 81d213e0cf9fd88c2ac25fd0a2c537e10469f44cb20d2ff16f30a561747b9b79 (no staking credential) )
+                 ( dbf1a50d45ab06d9eb6d914ff0362ccad42cdacc4a19a0efd8a12ee6e84df0d8!1
                  , - Value (Map [(,Map [("",100)])]) addressed to
-                     addressed to ScriptCredential: 36413290f8140b972de69e376d36d6e36b9d667300229bbfda8b524ed848bdbc (no staking credential) )
-Slot 20: W1: Finished balancing. a1e75d3a7a0aa5cf46ef22e282efe7c5f0579c44d0fe811dd0f56e413f85ed55
-Slot 20: W1: Submitting tx: a1e75d3a7a0aa5cf46ef22e282efe7c5f0579c44d0fe811dd0f56e413f85ed55
-Slot 20: W1: TxSubmit: a1e75d3a7a0aa5cf46ef22e282efe7c5f0579c44d0fe811dd0f56e413f85ed55
+                     addressed to ScriptCredential: 81d213e0cf9fd88c2ac25fd0a2c537e10469f44cb20d2ff16f30a561747b9b79 (no staking credential) )
+Slot 20: W1: Finished balancing. 680f5637fc65623f0cc0e0c29ddc2fc5f6ae5e82efc5f7e3fa82fba988269978
+Slot 20: W1: Submitting tx: 680f5637fc65623f0cc0e0c29ddc2fc5f6ae5e82efc5f7e3fa82fba988269978
+Slot 20: W1: TxSubmit: 680f5637fc65623f0cc0e0c29ddc2fc5f6ae5e82efc5f7e3fa82fba988269978
 Slot 20: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
            Contract instance stopped (no errors)
-Slot 21: TxnValidate a1e75d3a7a0aa5cf46ef22e282efe7c5f0579c44d0fe811dd0f56e413f85ed55
+Slot 21: TxnValidate 680f5637fc65623f0cc0e0c29ddc2fc5f6ae5e82efc5f7e3fa82fba988269978

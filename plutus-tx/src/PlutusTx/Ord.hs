@@ -1,15 +1,15 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Ord (Ord(..), Max (..), Min (..), Ordering(..)) where
 
-import           PlutusCore.Data
-
 import qualified PlutusTx.Builtins  as Builtins
 import           PlutusTx.Eq
 import           PlutusTx.Semigroup
 
+import           PlutusCore.Data
+
 import           Prelude            hiding (Eq (..), Ord (..), Semigroup (..))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 infix 4 <, <=, >, >=
 

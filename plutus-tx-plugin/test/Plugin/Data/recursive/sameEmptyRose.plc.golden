@@ -4,25 +4,25 @@
       fix1_i0
       [
         [
-          [
+          (lam
+            Unit_i0
             (lam
-              Nil_i0
-              (lam
-                Cons_i0
-                (lam
-                  Nil_match_i0
+              Unit_match_i0
+              [
+                [
                   [
-                    [
+                    (lam
+                      Nil_i0
                       (lam
-                        EmptyRose_i0
+                        Cons_i0
                         (lam
-                          EmptyRose_match_i0
+                          Nil_match_i0
                           [
                             [
                               (lam
-                                Unit_i0
+                                EmptyRose_i0
                                 (lam
-                                  Unit_match_i0
+                                  EmptyRose_match_i0
                                   [
                                     (lam
                                       tup_i0
@@ -52,13 +52,13 @@
                                                       (lam
                                                         x_i0
                                                         [
-                                                          EmptyRose_i9
+                                                          EmptyRose_i7
                                                           [
                                                             [ map_i4 go_i2 ]
                                                             [
                                                               (force
                                                                 [
-                                                                  EmptyRose_match_i8
+                                                                  EmptyRose_match_i6
                                                                   x_i1
                                                                 ]
                                                               )
@@ -97,13 +97,13 @@
                                                       [
                                                         (force
                                                           [
-                                                            (force Nil_match_i9)
+                                                            (force Nil_match_i7)
                                                             ds_i1
                                                           ]
                                                         )
                                                         (lam
                                                           thunk_i0
-                                                          (force Nil_i12)
+                                                          (force Nil_i10)
                                                         )
                                                       ]
                                                       (lam
@@ -114,7 +114,7 @@
                                                             thunk_i0
                                                             [
                                                               [
-                                                                (force Cons_i13)
+                                                                (force Cons_i11)
                                                                 [ ds_i5 x_i3 ]
                                                               ]
                                                               [
@@ -126,7 +126,7 @@
                                                         )
                                                       )
                                                     ]
-                                                    Unit_i6
+                                                    Unit_i11
                                                   ]
                                                 )
                                               )
@@ -138,42 +138,50 @@
                                   ]
                                 )
                               )
-                              (delay (lam case_Unit_i0 case_Unit_i1))
+                              (lam
+                                arg_0_i0
+                                (delay
+                                  (lam
+                                    case_EmptyRose_i0
+                                    [ case_EmptyRose_i1 arg_0_i2 ]
+                                  )
+                                )
+                              )
                             ]
                             (lam x_i0 x_i1)
                           ]
                         )
                       )
+                    )
+                    (delay
+                      (delay (lam case_Nil_i0 (lam case_Cons_i0 case_Nil_i2)))
+                    )
+                  ]
+                  (delay
+                    (lam
+                      arg_0_i0
                       (lam
-                        arg_0_i0
+                        arg_1_i0
                         (delay
-                          (lam case_EmptyRose_i0 [ case_EmptyRose_i1 arg_0_i2 ])
+                          (lam
+                            case_Nil_i0
+                            (lam
+                              case_Cons_i0
+                              [ [ case_Cons_i1 arg_0_i4 ] arg_1_i3 ]
+                            )
+                          )
                         )
                       )
-                    ]
-                    (lam x_i0 x_i1)
-                  ]
-                )
-              )
-            )
-            (delay (delay (lam case_Nil_i0 (lam case_Cons_i0 case_Nil_i2))))
-          ]
-          (delay
-            (lam
-              arg_0_i0
-              (lam
-                arg_1_i0
-                (delay
-                  (lam
-                    case_Nil_i0
-                    (lam case_Cons_i0 [ [ case_Cons_i1 arg_0_i4 ] arg_1_i3 ])
+                    )
                   )
-                )
-              )
+                ]
+                (delay (lam x_i0 x_i1))
+              ]
             )
           )
+          (delay (lam case_Unit_i0 case_Unit_i1))
         ]
-        (delay (lam x_i0 x_i1))
+        (lam x_i0 x_i1)
       ]
     )
     (delay

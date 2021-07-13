@@ -116,9 +116,9 @@ scrollIntoView ref = do
   for_ mElement (liftEffect <<< runEffectFn1 scrollIntoView_)
 
 -- This HTML property dispatch lifecycle actions when the element is added or removed to the DOM
-lifeCycleEvent :: forall r action. { onInit :: Maybe action, onFinilize :: Maybe action } -> IProp r action
+lifeCycleEvent :: forall r action. { onInit :: Maybe action, onFinalize :: Maybe action } -> IProp r action
 lifeCycleEvent handlers = (unsafeCoerce :: Prop (Input action) -> IProp r action) $ Core.ref onLifecycleEvent
   where
   onLifecycleEvent (Just _) = Input.Action <$> handlers.onInit
 
-  onLifecycleEvent Nothing = Input.Action <$> handlers.onFinilize
+  onLifecycleEvent Nothing = Input.Action <$> handlers.onFinalize

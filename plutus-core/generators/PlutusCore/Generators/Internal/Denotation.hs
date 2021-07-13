@@ -118,15 +118,15 @@ typedBuiltins
 --     . insertBuiltin QuotientInteger
 --     . insertBuiltin ModInteger
     . insertBuiltin LessThanInteger
-    . insertBuiltin LessThanEqInteger
+    . insertBuiltin LessThanEqualsInteger
     . insertBuiltin GreaterThanInteger
-    . insertBuiltin GreaterThanEqInteger
-    . insertBuiltin EqInteger
+    . insertBuiltin GreaterThanEqualsInteger
+    . insertBuiltin EqualsInteger
     . insertBuiltin Concatenate
     . insertBuiltin TakeByteString
     . insertBuiltin DropByteString
-    . insertBuiltin SHA2
-    . insertBuiltin SHA3
+    . insertBuiltin Sha2_256
+    . insertBuiltin Sha3_256
 --     . insertBuiltin VerifySignature
-    . insertBuiltin EqByteString
+    . insertBuiltin EqualsByteString
     $ DenotationContext mempty

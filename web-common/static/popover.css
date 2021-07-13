@@ -1,0 +1,34 @@
+/* This styles were taken from https://popper.js.org/docs/v2/tutorial/ */
+.popover-arrow,
+.popover-arrow::before {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+}
+
+.popover-arrow {
+  visibility: hidden;
+}
+
+.popover-arrow::before {
+  visibility: visible;
+  content: "";
+  transform: rotate(45deg);
+}
+
+div[data-popper-placement^="top"] > .popover-arrow {
+  bottom: -4px;
+}
+
+div[data-popper-placement^="bottom"] > .popover-arrow {
+  top: -4px;
+}
+
+div[data-popper-placement^="left"] > .popover-arrow {
+  right: -4px;
+}
+
+div[data-popper-placement^="right"] > .popover-arrow {
+  left: -4px;
+}

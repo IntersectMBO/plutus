@@ -46,12 +46,14 @@
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           ];
         buildable = true;
         modules = [
           "Plutus/ChainIndex"
-          "Plutus/ChainIndex/DiskState"
-          "Plutus/ChainIndex/Query"
+          "Plutus/ChainIndex/Effects"
+          "Plutus/ChainIndex/Emulator/DiskState"
+          "Plutus/ChainIndex/Emulator/Handlers"
           "Plutus/ChainIndex/Tx"
           "Plutus/ChainIndex/Types"
           "Plutus/ChainIndex/UtxoState"

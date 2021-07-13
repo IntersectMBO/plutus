@@ -444,6 +444,18 @@
                   (termbind
                     (strict)
                     (vardecl
+                      addInteger
+                      (fun (con integer) (fun (con integer) (con integer)))
+                    )
+                    (lam
+                      x
+                      (con integer)
+                      (lam y (con integer) [ [ (builtin addInteger) x ] y ])
+                    )
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl
                       build
                       (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
                     )
@@ -596,10 +608,7 @@
                         ds
                         (con integer)
                         [
-                          [
-                            [ { bad_name (con integer) } (builtin addInteger) ]
-                            ds
-                          ]
+                          [ [ { bad_name (con integer) } addInteger ] ds ]
                           (con integer 1)
                         ]
                       )

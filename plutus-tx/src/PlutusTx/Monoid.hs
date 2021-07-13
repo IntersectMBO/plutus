@@ -10,7 +10,7 @@ import           PlutusTx.Functor   (id)
 import           PlutusTx.Semigroup
 import           Prelude            hiding (Monoid (..), Semigroup (..), id, mconcat)
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 -- | Plutus Tx version of 'Data.Monoid.Monoid'.
 class Semigroup a => Monoid a where
@@ -33,7 +33,7 @@ instance Monoid Builtins.ByteString where
     {-# INLINABLE mempty #-}
     mempty = Builtins.emptyByteString
 
-instance Monoid Builtins.String where
+instance Monoid Builtins.BuiltinString where
     {-# INLINABLE mempty #-}
     mempty = Builtins.emptyString
 

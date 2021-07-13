@@ -2,7 +2,9 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
 
 module Plugin.Primitives.Spec where
 
@@ -11,13 +13,16 @@ import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified PlutusTx.Builtins  as Builtins
+import qualified PlutusTx.Builtins          as Builtins
+import qualified PlutusTx.Builtins.Class    as Builtins
+import qualified PlutusTx.Builtins.Internal as BI
 import           PlutusTx.Code
 import           PlutusTx.Lift
 import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude   as P
+import qualified PlutusTx.Prelude           as P
 
-import qualified PlutusCore.Default as PLC
+import qualified PlutusCore                 as PLC
+import qualified PlutusCore.Default         as PLC
 
 import           Data.Proxy
 
@@ -54,10 +59,21 @@ primitives = testNested "Primitives" [
   , goldenUEval "decodeUtf8" [ getPlc bsDecode, liftProgram ("hello" :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
+  , goldenPir "traceComplex" traceComplex
   , goldenPir "stringLiteral" stringLiteral
   , goldenPir "stringConvert" stringConvert
   , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: String), liftProgram ("hello" :: String)]
   , goldenPir "encodeUtf8" stringEncode
+  , goldenUEval "constructData1" [ constructData1 ]
+  -- It's interesting to look at one of these to make sure all the specialisation is working out nicely and for
+  -- debugging when it isn't
+  , goldenPir "deconstructorData1" deconstructData1
+  -- Check that matchData works (and isn't too strict)
+  , goldenUEval "matchData1" [ toUPlc matchData1, toUPlc constructData1 ]
+  , goldenUEval "deconstructData1" [ toUPlc deconstructData1, toUPlc constructData1 ]
+  , goldenPir "deconstructorData2" deconstructData2
+  , goldenUEval "deconstructData2" [ toUPlc deconstructData2, toUPlc constructData2 ]
+  , goldenUEval "deconstructData3" [ toUPlc deconstructData3, toUPlc constructData3 ]
   ]
 
 string :: CompiledCode String
@@ -121,23 +137,47 @@ bsEquals = plc (Proxy @"bs32Equals") (\(x :: Builtins.ByteString) (y :: Builtins
 bsLt :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Bool)
 bsLt = plc (Proxy @"bsLt") (\(x :: Builtins.ByteString) (y :: Builtins.ByteString) -> Builtins.lessThanByteString x y)
 
-bsDecode :: CompiledCode (Builtins.ByteString -> Builtins.String)
+bsDecode :: CompiledCode (Builtins.ByteString -> Builtins.BuiltinString)
 bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.ByteString) -> Builtins.decodeUtf8 x)
 
 verify :: CompiledCode (Builtins.ByteString -> Builtins.ByteString -> Builtins.ByteString -> Bool)
 verify = plc (Proxy @"verify") (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
 
-trace :: CompiledCode (Builtins.String -> ())
-trace = plc (Proxy @"trace") (\(x :: Builtins.String) -> Builtins.trace x)
+trace :: CompiledCode (Builtins.BuiltinString -> ())
+trace = plc (Proxy @"trace") (\(x :: Builtins.BuiltinString) -> Builtins.trace x ())
 
-stringLiteral :: CompiledCode (Builtins.String)
-stringLiteral = plc (Proxy @"stringLiteral") ("abc"::Builtins.String)
+traceComplex :: CompiledCode (Bool -> ())
+traceComplex = plc (Proxy @"traceComplex") (\(b :: Bool) -> if b then P.trace "yes" () else P.traceError "no")
 
-stringConvert :: CompiledCode (Builtins.String)
-stringConvert = plc (Proxy @"stringConvert") ((noinline P.stringToBuiltinString) "abc")
+stringLiteral :: CompiledCode (Builtins.BuiltinString)
+stringLiteral = plc (Proxy @"stringLiteral") ("abc"::Builtins.BuiltinString)
+
+stringConvert :: CompiledCode (Builtins.BuiltinString)
+stringConvert = plc (Proxy @"stringConvert") ((noinline Builtins.stringToBuiltinString) "abc")
 
 stringEquals :: CompiledCode (String -> String -> Bool)
-stringEquals = plc (Proxy @"string32Equals") (\(x :: String) (y :: String) -> Builtins.equalsString (P.stringToBuiltinString x) (P.stringToBuiltinString y))
+stringEquals = plc (Proxy @"string32Equals") (\(x :: String) (y :: String) -> Builtins.equalsString (Builtins.stringToBuiltinString x) (Builtins.stringToBuiltinString y))
 
 stringEncode :: CompiledCode (Builtins.ByteString)
 stringEncode = plc (Proxy @"stringEncode") (Builtins.encodeUtf8 "abc")
+
+constructData1 :: CompiledCode (Builtins.BuiltinData)
+constructData1 = plc (Proxy @"constructData1") (Builtins.mkI 1)
+
+deconstructData1 :: CompiledCode (Builtins.BuiltinData -> Integer)
+deconstructData1 = plc (Proxy @"deconstructData1") (\(d :: Builtins.BuiltinData) -> Builtins.unsafeDataAsI d)
+
+constructData2 :: CompiledCode (Builtins.BuiltinData)
+constructData2 = plc (Proxy @"constructData2") (Builtins.mkConstr 1 [Builtins.mkI 2, Builtins.mkI 3])
+
+deconstructData2 :: CompiledCode (Builtins.BuiltinData -> (Integer, [Integer]))
+deconstructData2 = plc (Proxy @"deconstructData2") (\(d :: Builtins.BuiltinData) -> (P.fmap . P.fmap) Builtins.unsafeDataAsI (Builtins.unsafeDataAsConstr d))
+
+constructData3 :: CompiledCode (Builtins.BuiltinData)
+constructData3 = plc (Proxy @"constructData2") (Builtins.mkList [Builtins.mkI 2, Builtins.mkI 3])
+
+deconstructData3 :: CompiledCode (Builtins.BuiltinData -> [Builtins.BuiltinData])
+deconstructData3 = plc (Proxy @"deconstructData2") (\(d :: Builtins.BuiltinData) -> (Builtins.unsafeDataAsList d))
+
+matchData1 :: CompiledCode (Builtins.BuiltinData -> Maybe Integer)
+matchData1 = plc (Proxy @"matchData1") (\(d :: Builtins.BuiltinData) -> (Builtins.matchData d (\_ _ -> Nothing) (const Nothing) (const Nothing) (Just) (const Nothing)))

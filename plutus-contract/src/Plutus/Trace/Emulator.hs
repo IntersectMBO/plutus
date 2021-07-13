@@ -35,7 +35,7 @@ module Plutus.Trace.Emulator(
     , Waiting.waitUntilSlot
     , Waiting.waitUntilTime
     , Waiting.waitNSlots
-    , Waiting.waitNSeconds
+    , Waiting.waitNMilliSeconds
     , EmulatorControl.freezeContractInstance
     , EmulatorControl.thawContractInstance
     -- ** Inspecting the chain state

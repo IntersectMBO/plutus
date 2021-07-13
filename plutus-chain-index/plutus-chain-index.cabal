@@ -31,8 +31,9 @@ library
     import: lang
     exposed-modules:
         Plutus.ChainIndex
-        Plutus.ChainIndex.DiskState
-        Plutus.ChainIndex.Query
+        Plutus.ChainIndex.Effects
+        Plutus.ChainIndex.Emulator.DiskState
+        Plutus.ChainIndex.Emulator.Handlers
         Plutus.ChainIndex.Tx
         Plutus.ChainIndex.Types
         Plutus.ChainIndex.UtxoState
@@ -51,7 +52,8 @@ library
         lens -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,
-        bytestring -any
+        bytestring -any,
+        data-default -any
 
 test-suite plutus-chain-index-test
     import: lang

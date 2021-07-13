@@ -54,6 +54,8 @@ handleAction bufferLocalStorageKey Init = do
   assign _keyBindings binding
   handleAction bufferLocalStorageKey (SetKeyBindings binding)
 
+handleAction _ (HandleEditorMessage Monaco.EditorReady) = pure unit
+
 handleAction bufferLocalStorageKey (HandleEditorMessage (Monaco.TextChanged text)) = do
   lastCompiledCode <- use _lastCompiledCode
   case lastCompiledCode of

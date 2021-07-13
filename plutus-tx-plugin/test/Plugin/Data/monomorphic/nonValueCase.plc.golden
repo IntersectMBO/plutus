@@ -14,8 +14,21 @@
     )
     (termbind
       (strict)
+      (vardecl error (all a (type) (fun (con unit) a)))
+      (abs a (type) (lam thunk (con unit) (error a)))
+    )
+    (termbind
+      (strict)
       (vardecl error (all a (type) (fun Unit a)))
-      (abs e (type) (lam thunk Unit (error e)))
+      (abs
+        a
+        (type)
+        (lam
+          x
+          Unit
+          [ { error a } [ { [ Unit_match x ] (con unit) } (con unit ()) ] ]
+        )
+      )
     )
     (lam
       ds

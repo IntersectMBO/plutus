@@ -320,7 +320,7 @@ benchNop3 gen =
    DivideInteger:     RemainderInteger, QuotientInteger, ModInteger
    LessThanInteger:   GreaterThanInteger
    LessThanEqInteger: GreaterThanEqInteger
-   LtByteString:      GtByteString
+   LessThanByteString:      GreaterThanByteString
 -}
 main :: IO ()
 main = do
@@ -335,15 +335,15 @@ main = do
                                                    , MultiplyInteger
                                                    , DivideInteger
                                                    ])
-                      <> (benchSameTwoIntegers gen <$> [ EqInteger
+                      <> (benchSameTwoIntegers gen <$> [ EqualsInteger
                                                        , LessThanInteger
-                                                       , LessThanEqInteger
+                                                       , LessThanEqualsInteger
                                                        ])
                       <> (benchTwoByteStrings <$> [Concatenate])
                       <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
-                      <> (benchHashOperations <$> [SHA2, SHA3])
-                      <> (benchSameTwoByteStrings <$> [ EqByteString
-                                                      , LtByteString
+                      <> (benchHashOperations <$> [Sha2_256, Sha3_256])
+                      <> (benchSameTwoByteStrings <$> [ EqualsByteString
+                                                      , LessThanByteString
                                                       ])
                       <> [benchVerifySignature]
 

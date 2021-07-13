@@ -24,6 +24,18 @@ neverIsEmpty =
   testCase "never is empty" $
     assertBool "never" (Interval.isEmpty (Interval.never :: Interval.Interval Slot))
 
+openIsEmpty :: TestTree
+openIsEmpty =
+  testCase "open interval isEmpty" $
+    assertBool "open" (Interval.isEmpty (Interval.Interval (Interval.strictLowerBound 4) (Interval.strictUpperBound 5) :: Interval.Interval Integer))
+
+openOverlaps :: TestTree
+openOverlaps =
+  testCase "open interval overlaps" $
+    let a = Interval.Interval (Interval.strictLowerBound 1) (Interval.strictUpperBound 5) :: Interval.Interval Integer
+        b = Interval.Interval (Interval.strictLowerBound 4) (Interval.strictUpperBound 6) :: Interval.Interval Integer
+    in assertBool "overlaps" (not $ Interval.overlaps a b)
+
 intvlIsEmpty :: Property
 intvlIsEmpty = property $ do
   (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
@@ -76,6 +88,8 @@ tests =
     "plutus-ledger-api-interval"
     [ neverIsEmpty
     , alwaysIsNotEmpty
+    , openIsEmpty
+    , openOverlaps
     , testProperty "interval intersection" intvlIntersection
     , testProperty "interval intersection with always/never" intvlIntersectionWithAlwaysNever
     , testProperty "interval isEmpty" intvlIsEmpty

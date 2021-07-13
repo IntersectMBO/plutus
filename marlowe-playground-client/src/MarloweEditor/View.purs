@@ -4,6 +4,7 @@ import Prelude hiding (div)
 import BottomPanel.Types (Action(..)) as BottomPanel
 import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
+import Data.Bifunctor (bimap)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
@@ -58,7 +59,10 @@ render metadata state =
 
   errorsTitle = withCount "Errors" $ state ^. _editorErrors
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state metadata panelView
+  -- TODO: improve this wrapper helper
+  actionWrapper = BottomPanel.PanelAction
+
+  wrapBottomPanelContents panelView = bimap (map actionWrapper) actionWrapper $ panelContents state metadata panelView
 
 otherActions :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
 otherActions state =

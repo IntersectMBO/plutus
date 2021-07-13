@@ -49,19 +49,19 @@ data Builtin : Set where
                                           | RemainderInteger
                                           | ModInteger
                                           | LessThanInteger
-                                          | LessThanEqInteger
+                                          | LessThanEqualsInteger
                                           | GreaterThanInteger
-                                          | GreaterThanEqInteger
-                                          | EqInteger
+                                          | GreaterThanEqualsInteger
+                                          | EqualsInteger
                                           | Concatenate
                                           | TakeByteString
                                           | DropByteString
-                                          | LtByteString
-                                          | GtByteString
-                                          | SHA2
-                                          | SHA3
+                                          | LessThanByteString
+                                          | GreaterThanByteString
+                                          | Sha2_256
+                                          | Sha3_256
                                           | VerifySignature
-                                          | EqByteString
+                                          | EqualsByteString
                                           | IfThenElse
                                           | CharToString
                                           | Append

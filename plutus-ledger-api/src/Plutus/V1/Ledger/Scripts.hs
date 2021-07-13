@@ -73,7 +73,7 @@ import           GHC.Generics                     (Generic)
 import           Plutus.V1.Ledger.Bytes           (LedgerBytes (..))
 import           Plutus.V1.Ledger.Orphans         ()
 import qualified PlutusCore                       as PLC
-import           PlutusTx                         (CompiledCode, IsData (..), getPlc, makeLift)
+import           PlutusTx                         (CompiledCode, Data (..), IsData (..), getPlc, makeLift)
 import           PlutusTx.Builtins                as Builtins
 import           PlutusTx.Evaluation              (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
 import           PlutusTx.Lift                    (liftCode)

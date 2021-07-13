@@ -38,11 +38,12 @@ import           Cardano.Slotting.Slot                               (SlotNo (..
 import           Ouroboros.Network.Block                             (Point (..), pointSlot)
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux
-import           Ouroboros.Network.NodeToNode                        hiding (chainSyncMiniProtocolNum,
-                                                                      txSubmissionMiniProtocolNum)
+import           Ouroboros.Network.NodeToClient                      (NodeToClientProtocols (..),
+                                                                      nodeToClientCodecCBORTerm,
+                                                                      nodeToClientHandshakeCodec, nullErrorPolicies,
+                                                                      versionedNodeToClientProtocols)
 import qualified Ouroboros.Network.Point                             as OP (Block (..))
 import           Ouroboros.Network.Protocol.Handshake.Codec
-import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
@@ -394,42 +395,50 @@ protocolLoop socketPath internalState = liftIO $ withIOManager $ \iocp -> do
       networkState
       (AcceptedConnectionsLimit maxBound maxBound 0)
       (localAddressFromPath socketPath)
-      unversionedHandshakeCodec
+      nodeToClientHandshakeCodec
       noTimeLimitsHandshake
-      (cborTermVersionDataCodec unversionedProtocolDataCodec)
+      (cborTermVersionDataCodec nodeToClientCodecCBORTerm)
       acceptableVersion
-      (unversionedProtocol (SomeResponderApplication (application internalState)))
+      (SomeResponderApplication <$>
+        versionedNodeToClientProtocols
+          nodeToClientVersion
+          nodeToClientVersionData
+          (\_ _ -> nodeToClientProtocols internalState))
       nullErrorPolicies
       $ \_ serverAsync -> wait serverAsync
 
-application ::
-    MVar MockNodeServerChainState
- -> OuroborosApplication 'ResponderMode
-                         addr
-                         LBS.ByteString
-                         IO Void ()
-application mvChainState =
-    mkApplication [ (chainSyncMiniProtocolNum   , chainSync)
-                  , (txSubmissionMiniProtocolNum, txSubmission) ]
-    where
-        chainSync :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
-        chainSync =
-             ResponderProtocolOnly $
-             MuxPeer
-               nullTracer
-               codecChainSync
-               (ChainSync.chainSyncServerPeer
-                   (runReader (hoistChainSync chainSyncServer)
-                              mvChainState))
+nodeToClientProtocols
+  :: MVar MockNodeServerChainState
+  -> NodeToClientProtocols 'ResponderMode LBS.ByteString IO Void ()
+nodeToClientProtocols internalState =
+  NodeToClientProtocols
+    { localChainSyncProtocol = chainSync internalState
+    , localTxSubmissionProtocol = txSubmission internalState
+    , localStateQueryProtocol = doNothingResponderProtocol
+    }
 
-        txSubmission :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
-        txSubmission =
-            ResponderProtocolOnly $
-            MuxPeer
-              nullTracer
-              codecTxSubmission
-              (TxSubmission.localTxSubmissionServerPeer
-                  (pure $ txSubmissionServer mvChainState))
+chainSync
+  :: MVar MockNodeServerChainState
+  -> RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
+chainSync mvChainState =
+     ResponderProtocolOnly $
+     MuxPeer
+       nullTracer
+       codecChainSync
+       (ChainSync.chainSyncServerPeer
+           (runReader (hoistChainSync chainSyncServer)
+                      mvChainState))
+
+txSubmission
+  :: MVar MockNodeServerChainState
+  -> RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
+txSubmission mvChainState =
+    ResponderProtocolOnly $
+    MuxPeer
+      nullTracer
+      codecTxSubmission
+      (TxSubmission.localTxSubmissionServerPeer
+          (pure $ txSubmissionServer mvChainState))
 
 -- * Computing intersections
 

@@ -28,7 +28,8 @@ import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (Message, Query, monacoComponent)
-import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _keybindings, _metadataHintInfo)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _editorReady, _keybindings, _metadataHintInfo)
+import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter (InterpreterResult(..))
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
@@ -64,43 +65,55 @@ handleAction ::
   MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction (HandleEditorMessage (Monaco.TextChanged text)) =
-  ( do
-      -- TODO: This handler manages the logic of having a restricted range that cannot be modified. But the
-      --       current implementation uses editorSetValue to overwrite the editor contents with the last
-      --       correct value (taken from session storage). By using editorSetValue inside the TextChanged handler
-      --       the events get fired multiple times on init, which makes hasUnsavedChanges always true for a new
-      --       JS project or a project load.
-      --
-      --       Once the PR 2498 gets merged, I want to try changing the web-commons Monaco component so that the
-      --       TextChanged handler returns an IModelContentChangedEvent instead of a string. That event cointains
-      --       information of the range of the modifications, and if the action was triggered by an undo/redo
-      --       action. With that information we can reimplement this by firing an undo event if a "read only"
-      --       decoration. At this moment I'm not sure if that will solve the bubble problem but at least it will
-      --       allow us to decouple from session storage.
-      let
-        prunedText = pruneJSboilerplate text
+handleAction (HandleEditorMessage Monaco.EditorReady) = do
+  editorSetTheme
+  mContents <- liftEffect $ SessionStorage.getItem jsBufferLocalStorageKey
+  editorSetValue $ fromMaybe JSE.example mContents
+  assign _editorReady true
 
-        numLines = Array.length $ lines text
-      mDecorIds <- gets $ view _decorationIds
-      case mDecorIds of
-        Just decorIds -> do
-          mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
-          mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
-          mContent <- liftEffect $ SessionStorage.getItem jsBufferLocalStorageKey
-          if ((mContent == Nothing) || (mContent == Just prunedText)) then
-            -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
-            assign _compilationResult NotCompiled
+handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
+  -- When the Monaco component start it fires two messages at the same time, an EditorReady
+  -- and TextChanged. Because of how Halogen works, it interwines the handleActions calls which
+  -- can cause problems while setting and getting the values of the session storage. To avoid
+  -- starting with an empty text editor we use an editorReady flag to ignore the text changes until
+  -- we are ready to go. Eventually we could remove the initial TextChanged event, but we need to check
+  -- that it doesn't break the plutus playground.
+  editorReady <- use _editorReady
+  when editorReady do
+    -- TODO: This handler manages the logic of having a restricted range that cannot be modified. But the
+    --       current implementation uses editorSetValue to overwrite the editor contents with the last
+    --       correct value (taken from session storage). By using editorSetValue inside the TextChanged handler
+    --       the events get fired multiple times on init, which makes hasUnsavedChanges always true for a new
+    --       JS project or a project load.
+    --
+    --       Once the PR 2498 gets merged, I want to try changing the web-commons Monaco component so that the
+    --       TextChanged handler returns an IModelContentChangedEvent instead of a string. That event cointains
+    --       information of the range of the modifications, and if the action was triggered by an undo/redo
+    --       action. With that information we can reimplement this by firing an undo event if a "read only"
+    --       decoration. At this moment I'm not sure if that will solve the bubble problem but at least it will
+    --       allow us to decouple from session storage.
+    let
+      prunedText = pruneJSboilerplate text
+
+      numLines = Array.length $ lines text
+    mDecorIds <- gets $ view _decorationIds
+    case mDecorIds of
+      Just decorIds -> do
+        mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
+        mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
+        mContent <- liftEffect $ SessionStorage.getItem jsBufferLocalStorageKey
+        if ((mContent == Nothing) || (mContent == Just prunedText)) then
+          -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
+          assign _compilationResult NotCompiled
+        else
+          if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
+            ( do
+                liftEffect $ SessionStorage.setItem jsBufferLocalStorageKey prunedText
+                assign _compilationResult NotCompiled
+            )
           else
-            if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
-              ( do
-                  liftEffect $ SessionStorage.setItem jsBufferLocalStorageKey prunedText
-                  assign _compilationResult NotCompiled
-              )
-            else
-              editorSetValue (fromMaybe "" mContent)
-        Nothing -> editorSetValue prunedText
-  )
+            editorSetValue (fromMaybe "" mContent)
+      Nothing -> editorSetValue prunedText
 
 handleAction (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
@@ -273,6 +286,9 @@ editorGetValue = do
         pruneJSboilerplate
         mContent
     )
+
+editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorSetTheme = void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
 
 mkEditor :: forall m. MonadEffect m => MonadAff m => Component HTML Query Unit Message m
 mkEditor = monacoComponent $ JSM.settings setup

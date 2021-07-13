@@ -351,7 +351,18 @@ argument and providing such an argument is impossible, 'cause it's pretty much t
 populating 'Void' -- both values are equally unrepresentable. And so @cons {some_non_built_in_type}@
 is a way to say @absurd@, which is perfectly fine to have.
 
-So could we still get @nil@ somehow? Well, we could have this weirdness:
+Finally,
+
+    comma :: all a b. a -> b -> (a, b)
+
+is representable (because we can require arguments to be constants carrying universes with them,
+which we can use to construct the resulting universe), but is still a lie, because instantiating
+that builtin with non-built-in types is possible and so the PLC type checker won't throw on such
+an instantiation, which will become 'EvalutionFailure' at runtime the moment unlifting of a
+non-constant is attempted when a constant is expected.
+
+So could we still get @nil@ or a safe version of @comma@ somehow? Well, we could have this
+weirdness:
 
     nilOfTypeOf : all a. [a] -> [a]
 

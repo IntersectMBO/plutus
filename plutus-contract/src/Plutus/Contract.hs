@@ -20,7 +20,7 @@ module Plutus.Contract(
     , Request.waitNSlots
     , Request.awaitTime
     , Request.currentTime
-    , Request.waitNSeconds
+    , Request.waitNMilliSeconds
     -- * Endpoints
     , Request.HasEndpoint
     , Request.EndpointDescription(..)
@@ -55,6 +55,8 @@ module Plutus.Contract(
     , Request.submitTxConstraintsSpending
     , Request.submitTxConstraintsWith
     , Request.submitUnbalancedTx
+    , Request.submitBalancedTx
+    , Request.balanceTx
     -- ** Creating transactions
     , module Tx
     -- ** Tx confirmation

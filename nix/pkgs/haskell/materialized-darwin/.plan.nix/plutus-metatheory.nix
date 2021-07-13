@@ -60,14 +60,12 @@
           "MAlonzo/Code/Main"
           "MAlonzo/Code/Agda/Builtin/Bool"
           "MAlonzo/Code/Agda/Builtin/Char"
-          "MAlonzo/Code/Agda/Builtin/Coinduction"
           "MAlonzo/Code/Agda/Builtin/Equality"
           "MAlonzo/Code/Agda/Builtin/IO"
           "MAlonzo/Code/Agda/Builtin/Int"
           "MAlonzo/Code/Agda/Builtin/List"
           "MAlonzo/Code/Agda/Builtin/Nat"
           "MAlonzo/Code/Agda/Builtin/Sigma"
-          "MAlonzo/Code/Agda/Builtin/Size"
           "MAlonzo/Code/Agda/Builtin/String"
           "MAlonzo/Code/Agda/Builtin/Unit"
           "MAlonzo/Code/Agda/Primitive"
@@ -85,6 +83,8 @@
           "MAlonzo/Code/Algebra/Structures/Biased"
           "MAlonzo/Code/Algorithmic"
           "MAlonzo/Code/Algorithmic/CEKV"
+          "MAlonzo/Code/Algorithmic/ReductionEC"
+          "MAlonzo/Code/Algorithmic/CC"
           "MAlonzo/Code/Algorithmic/CK"
           "MAlonzo/Code/Algorithmic/Evaluation"
           "MAlonzo/Code/Algorithmic/Reduction"
@@ -97,18 +97,8 @@
           "MAlonzo/Code/Category/Functor"
           "MAlonzo/Code/Category/Monad/Indexed"
           "MAlonzo/Code/Check"
-          "MAlonzo/Code/Codata/Colist"
-          "MAlonzo/Code/Codata/Conat"
-          "MAlonzo/Code/Codata/Cowriter"
-          "MAlonzo/Code/Codata/Delay"
-          "MAlonzo/Code/Codata/Musical/Colist"
-          "MAlonzo/Code/Codata/Musical/Conat"
-          "MAlonzo/Code/Codata/Stream"
-          "MAlonzo/Code/Codata/Thunk"
           "MAlonzo/Code/Data/Bool/Base"
           "MAlonzo/Code/Data/Bool/Properties"
-          "MAlonzo/Code/Data/BoundedVec"
-          "MAlonzo/Code/Data/BoundedVec/Inefficient"
           "MAlonzo/Code/Data/Char/Properties"
           "MAlonzo/Code/Data/Digit"
           "MAlonzo/Code/Data/Empty"
@@ -118,6 +108,7 @@
           "MAlonzo/Code/Data/Integer"
           "MAlonzo/Code/Data/Integer/Base"
           "MAlonzo/Code/Data/Integer/Properties"
+          "MAlonzo/Code/Data/Integer/Show"
           "MAlonzo/Code/Data/List/Base"
           "MAlonzo/Code/Data/List/Categorical"
           "MAlonzo/Code/Data/List/Extrema"
@@ -135,6 +126,7 @@
           "MAlonzo/Code/Data/List/Relation/Binary/Lex/Core"
           "MAlonzo/Code/Data/List/Relation/Binary/Lex/Strict"
           "MAlonzo/Code/Data/List/Relation/Binary/Pointwise"
+          "MAlonzo/Code/Data/List/Relation/Binary/Pointwise/Properties"
           "MAlonzo/Code/Data/List/Relation/Unary/All"
           "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
           "MAlonzo/Code/Data/List/Relation/Unary/AllPairs/Core"
@@ -189,7 +181,6 @@
           "MAlonzo/Code/Relation/Binary/Bundles"
           "MAlonzo/Code/Relation/Binary/Consequences"
           "MAlonzo/Code/Relation/Binary/Construct/Converse"
-          "MAlonzo/Code/Relation/Binary/Construct/FromRel"
           "MAlonzo/Code/Relation/Binary/Construct/NaturalOrder/Left"
           "MAlonzo/Code/Relation/Binary/Construct/NonStrictToStrict"
           "MAlonzo/Code/Relation/Binary/Construct/On"
@@ -204,10 +195,9 @@
           "MAlonzo/Code/Relation/Binary/PropositionalEquality/Algebra"
           "MAlonzo/Code/Relation/Binary/PropositionalEquality/Core"
           "MAlonzo/Code/Relation/Binary/PropositionalEquality/Properties"
+          "MAlonzo/Code/Relation/Binary/HeterogeneousEquality/Core"
           "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
-          "MAlonzo/Code/Relation/Binary/Reasoning/Base/Partial"
           "MAlonzo/Code/Relation/Binary/Reasoning/Base/Triple"
-          "MAlonzo/Code/Relation/Binary/Reasoning/PartialSetoid"
           "MAlonzo/Code/Relation/Binary/Structures"
           "MAlonzo/Code/Relation/Nullary"
           "MAlonzo/Code/Relation/Nullary/Decidable"
@@ -237,6 +227,24 @@
           "MAlonzo/Code/Untyped"
           "MAlonzo/Code/Untyped/Reduction"
           "MAlonzo/Code/Untyped/RenamingSubstitution"
+          "MAlonzo/Code/Agda/Builtin/Maybe"
+          "MAlonzo/Code/Algebra/Construct/NaturalChoice/Base"
+          "MAlonzo/Code/Algebra/Construct/NaturalChoice/Max"
+          "MAlonzo/Code/Algebra/Construct/NaturalChoice/MaxOp"
+          "MAlonzo/Code/Algebra/Construct/NaturalChoice/MinMaxOp"
+          "MAlonzo/Code/Algebra/Construct/NaturalChoice/MinOp"
+          "MAlonzo/Code/Category/Comonad"
+          "MAlonzo/Code/Data/List/NonEmpty/Base"
+          "MAlonzo/Code/Data/List/Relation/Binary/Lex"
+          "MAlonzo/Code/Data/List/Relation/Binary/Pointwise/Base"
+          "MAlonzo/Code/Data/Maybe/Categorical"
+          "MAlonzo/Code/Function/Base"
+          "MAlonzo/Code/Function/Identity/Categorical"
+          "MAlonzo/Code/Relation/Binary/Construct/Closure/Reflexive"
+          "MAlonzo/Code/Relation/Binary/Construct/Closure/Reflexive/Properties"
+          "MAlonzo/Code/Relation/Binary/Reasoning/Base/Single"
+          "MAlonzo/Code/Relation/Binary/Reasoning/Setoid"
+          "MAlonzo/Code/Relation/Nullary/Negation/Core"
           "Opts"
           "Raw"
           "Scoped"
@@ -264,6 +272,7 @@
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
+            (hsPkgs.buildPackages.plutus-core.components.exes.uplc or (pkgs.buildPackages.uplc or (errorHandler.buildToolDepError "plutus-core:uplc")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];
@@ -281,6 +290,7 @@
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
+            (hsPkgs.buildPackages.plutus-core.components.exes.uplc or (pkgs.buildPackages.uplc or (errorHandler.buildToolDepError "plutus-core:uplc")))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];

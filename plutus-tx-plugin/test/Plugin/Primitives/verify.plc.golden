@@ -16,35 +16,28 @@
         (fun (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool)))
       )
       (lam
-        arg
+        pubKey
         (con bytestring)
         (lam
-          arg
+          message
           (con bytestring)
           (lam
-            arg
+            signature
             (con bytestring)
-            (let
-              (nonrec)
-              (termbind
-                (strict)
-                (vardecl b (con bool))
-                [ [ [ (builtin verifySignature) arg ] arg ] arg ]
-              )
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
+            [
+              [
+                [
+                  { (builtin ifThenElse) Bool }
+                  [ [ [ (builtin verifySignature) pubKey ] message ] signature ]
+                ]
+                True
+              ]
+              False
+            ]
           )
         )
       )
     )
-    (lam
-      ds
-      (con bytestring)
-      (lam
-        ds
-        (con bytestring)
-        (lam ds (con bytestring) [ [ [ verifySignature ds ] ds ] ds ])
-      )
-    )
+    verifySignature
   )
 )

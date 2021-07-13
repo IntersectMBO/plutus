@@ -1,7 +1,6 @@
 module HaskellEditor.State
   ( handleAction
   , editorGetValue
-  , editorSetTheme
   ) where
 
 import Prelude hiding (div)
@@ -23,7 +22,7 @@ import Examples.Haskell.Contracts (example) as HE
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, _metadataHintInfo)
+import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _editorReady, _haskellEditorKeybindings, _metadataHintInfo)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
@@ -58,14 +57,23 @@ handleAction ::
   MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction Init = do
+handleAction (HandleEditorMessage Monaco.EditorReady) = do
   editorSetTheme
   mContents <- liftEffect $ SessionStorage.getItem haskellBufferLocalStorageKey
   editorSetValue $ fromMaybe HE.example mContents
+  assign _editorReady true
 
 handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ SessionStorage.setItem haskellBufferLocalStorageKey text
-  assign _compilationResult NotAsked
+  -- When the Monaco component start it fires two messages at the same time, an EditorReady
+  -- and TextChanged. Because of how Halogen works, it interwines the handleActions calls which
+  -- can cause problems while setting and getting the values of the session storage. To avoid
+  -- starting with an empty text editor we use an editorReady flag to ignore the text changes until
+  -- we are ready to go. Eventually we could remove the initial TextChanged event, but we need to check
+  -- that it doesn't break the plutus playground.
+  editorReady <- use _editorReady
+  when editorReady do
+    liftEffect $ SessionStorage.setItem haskellBufferLocalStorageKey text
+    assign _compilationResult NotAsked
 
 handleAction (ChangeKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings

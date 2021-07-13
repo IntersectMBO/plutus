@@ -91,11 +91,11 @@ andPlc = $$(compile [|| $$(andTH) True False ||])
 allPlc :: CompiledCode Bool
 allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
 
-convertString :: CompiledCode Builtins.String
+convertString :: CompiledCode Builtins.BuiltinString
 convertString = $$(compile [|| "test" ||])
 
 traceDirect :: CompiledCode ()
-traceDirect = $$(compile [|| Builtins.trace "test" ||])
+traceDirect = $$(compile [|| Builtins.trace "test" () ||])
 
 tracePrelude :: CompiledCode Integer
 tracePrelude = $$(compile [|| trace "test" (1::Integer) ||])

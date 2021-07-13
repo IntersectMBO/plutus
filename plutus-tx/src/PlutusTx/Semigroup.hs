@@ -7,7 +7,7 @@ import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.List
 import           Prelude           hiding (Functor (..), Semigroup (..), (++))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 infixr 6 <>
 
@@ -22,7 +22,7 @@ instance Semigroup Builtins.ByteString where
     {-# INLINABLE (<>) #-}
     (<>) = Builtins.concatenate
 
-instance Semigroup Builtins.String where
+instance Semigroup Builtins.BuiltinString where
     {-# INLINABLE (<>) #-}
     (<>) = Builtins.appendString
 

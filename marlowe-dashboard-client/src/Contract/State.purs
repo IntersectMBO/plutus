@@ -47,9 +47,11 @@ import Halogen.Query.EventSource as EventSource
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
-import Marlowe.Execution.Lenses (_currentContract, _currentState, _pendingTimeouts, _previousState, _previousTransactions)
-import Marlowe.Execution.State (expandBalances, extractNamedActions, initExecution, isClosed, mkTx, nextState, timeoutState)
-import Marlowe.Execution.Types (ExecutionState, NamedAction(..), PreviousState)
+import Marlowe.Execution.Lenses (_contract, _semanticState, _history, _pendingTimeouts, _previousTransactions)
+import Marlowe.Execution.State (expandBalances, extractNamedActions, isClosed, mkTx, nextState, timeoutState)
+import Marlowe.Execution.State (mkInitialState) as Execution
+import Marlowe.Execution.Types (NamedAction(..))
+import Marlowe.Execution.Types (PastState, State) as Execution
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
 import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
@@ -71,7 +73,7 @@ dummyState :: State
 dummyState =
   { nickname: mempty
   , tab: Tasks
-  , executionState: initExecution zero contract
+  , executionState: Execution.mkInitialState zero contract
   , pendingTransaction: Nothing
   , previousSteps: mempty
   , mMarloweParams: Nothing
@@ -97,7 +99,7 @@ mkPlaceholderState :: PlutusAppId -> String -> MetaData -> Contract -> State
 mkPlaceholderState followerAppId nickname metaData contract =
   { nickname
   , tab: Tasks
-  , executionState: initExecution zero contract
+  , executionState: Execution.mkInitialState zero contract
   , pendingTransaction: Nothing
   , previousSteps: mempty
   , mMarloweParams: Nothing
@@ -122,7 +124,7 @@ mkInitialState walletDetails currentSlot followerAppId nickname { chParams, chHi
 
       minSlot = view _minSlot marloweData.marloweState
 
-      initialExecutionState = initExecution minSlot contract
+      initialExecutionState = Execution.mkInitialState minSlot contract
     in
       flip map mTemplate \template ->
         let
@@ -235,13 +237,13 @@ handleAction _ (SetNickname nickname) = do
   insertIntoContractNicknames followerAppId nickname
 
 handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
-  currentExeState <- use _executionState
+  executionState <- use _executionState
   mMarloweParams <- use _mMarloweParams
   for_ mMarloweParams \marloweParams -> do
     let
       contractInput = toInput namedAction
 
-      txInput = mkTx currentSlot (currentExeState ^. _currentContract) (Unfoldable.fromMaybe contractInput)
+      txInput = mkTx currentSlot (executionState ^. _contract) (Unfoldable.fromMaybe contractInput)
     ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
     case ajaxApplyInputs of
       Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
@@ -291,7 +293,7 @@ handleAction _ CarouselOpened = do
 
 handleAction _ CarouselClosed = unsubscribeFromSelectCenteredStep
 
-applyTransactionInputs :: Array TransactionInput -> ExecutionState -> ExecutionState
+applyTransactionInputs :: Array TransactionInput -> Execution.State -> Execution.State
 applyTransactionInputs transactionInputs state = foldl nextState state transactionInputs
 
 currentStep :: State -> Int
@@ -341,14 +343,14 @@ toInput (MakeNotify _) = Just $ Semantic.INotify
 
 toInput _ = Nothing
 
-transactionsToStep :: State -> PreviousState -> PreviousStep
-transactionsToStep { participants } { txInput, state } =
+transactionsToStep :: State -> Execution.PastState -> PreviousStep
+transactionsToStep { participants } { initialSemanticState, txInput } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
 
     -- TODO: When we add support for multiple tokens we should extract the possible tokens from the
     --       contract, store it in ContractState and pass them here.
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] state
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] initialSemanticState
 
     stepState =
       -- For the moment the only way to get an empty transaction is if there was a timeout,
@@ -367,9 +369,9 @@ transactionsToStep { participants } { txInput, state } =
 timeoutToStep :: State -> Slot -> PreviousStep
 timeoutToStep { participants, executionState } slot =
   let
-    currentContractState = executionState ^. _currentState
+    semanticState = executionState ^. _semanticState
 
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] currentContractState
+    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] semanticState
   in
     { tab: Tasks
     , balances
@@ -382,7 +384,7 @@ regenerateStepCards currentSlot state =
   -- the Tasks tab). If any of them are showing the Balances tab, it would be nice to keep them that way.
   let
     confirmedSteps :: Array PreviousStep
-    confirmedSteps = toArrayOf (_executionState <<< _previousState <<< traversed <<< to (transactionsToStep state)) state
+    confirmedSteps = toArrayOf (_executionState <<< _history <<< traversed <<< to (transactionsToStep state)) state
 
     pendingTimeoutSteps :: Array PreviousStep
     pendingTimeoutSteps = toArrayOf (_executionState <<< _pendingTimeouts <<< traversed <<< to (timeoutToStep state)) state

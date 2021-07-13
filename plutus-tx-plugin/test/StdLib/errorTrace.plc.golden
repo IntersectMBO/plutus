@@ -6,26 +6,36 @@
     )
     (termbind
       (strict)
-      (vardecl error (all a (type) (fun Unit a)))
-      (abs e (type) (lam thunk Unit (error e)))
-    )
-    (termbind
-      (strict)
-      (vardecl trace (fun (con string) Unit))
-      (lam
-        arg
-        (con string)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl b (con unit)) [ (builtin trace) arg ])
-          Unit
-        )
-      )
+      (vardecl error (all a (type) (fun (con unit) a)))
+      (abs a (type) (lam thunk (con unit) (error a)))
     )
     (termbind
       (strict)
       (vardecl traceError (all a (type) (fun (con string) a)))
-      (abs a (type) (lam str (con string) [ { error a } [ trace str ] ]))
+      (abs
+        a
+        (type)
+        (lam
+          str
+          (con string)
+          [
+            { error a }
+            [
+              {
+                [
+                  Unit_match
+                  [
+                    [ { (builtin chooseUnit) Unit } [ (builtin trace) str ] ]
+                    Unit
+                  ]
+                ]
+                (con unit)
+              }
+              (con unit ())
+            ]
+          ]
+        )
+      )
     )
     [ { traceError (con integer) } (con string "") ]
   )

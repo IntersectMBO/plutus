@@ -24,7 +24,6 @@ data SubRoute
   | JSEditor
   | ActusBlocklyEditor
   | Blockly
-  | Wallets
   | GithubAuthCallback
 
 derive instance eqRoute :: Eq SubRoute
@@ -45,7 +44,6 @@ route =
         , "JSEditor": "javascript" / noArgs
         , "Blockly": "blockly" / noArgs
         , "ActusBlocklyEditor": "actus" / noArgs
-        , "Wallets": "wallets" / noArgs
         , "GithubAuthCallback": "gh-oauth-cb" / noArgs
         }
   where

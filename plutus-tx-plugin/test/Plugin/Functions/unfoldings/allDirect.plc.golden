@@ -133,20 +133,21 @@
               greaterThanInteger (fun (con integer) (fun (con integer) Bool))
             )
             (lam
-              arg
+              x
               (con integer)
               (lam
-                arg
+                y
                 (con integer)
-                (let
-                  (nonrec)
-                  (termbind
-                    (strict)
-                    (vardecl b (con bool))
-                    [ [ (builtin greaterThanInteger) arg ] arg ]
-                  )
-                  [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                )
+                [
+                  [
+                    [
+                      { (builtin ifThenElse) Bool }
+                      [ [ (builtin greaterThanInteger) x ] y ]
+                    ]
+                    True
+                  ]
+                  False
+                ]
               )
             )
           )

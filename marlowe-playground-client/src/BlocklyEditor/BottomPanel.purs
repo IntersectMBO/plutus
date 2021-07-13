@@ -7,16 +7,25 @@ import BlocklyEditor.Types (Action(..), BottomPanelView(..), State, _hasHoles, _
 import Data.Array as Array
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ComponentHTML)
 import Halogen.Classes (flex, flexCol, fontBold, fullWidth, grid, gridColsDescriptionLocation, justifySelfEnd, paddingRight, underline)
 import Halogen.HTML (HTML, a, div, div_, pre_, section, section_, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
+import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData)
 import MetadataTab.View (metadataView)
 import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton, clearButton)
 import StaticAnalysis.Types (_analysisExecutionState, _analysisState, isCloseAnalysisLoading, isNoneAsked, isReachabilityLoading, isStaticLoading)
 
-panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents ::
+  forall m.
+  MonadAff m =>
+  State ->
+  MetaData ->
+  BottomPanelView ->
+  ComponentHTML Action ChildSlots m
 panelContents state metadata MetadataView = metadataView (state ^. _metadataHintInfo) metadata MetadataAction
 
 panelContents state metadata StaticAnalysisView =

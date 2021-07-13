@@ -26,7 +26,7 @@
 | BBuiltinApp SubtractInteger causes ({ cpu: 506256
 | mem: 4
 })
-| BBuiltinApp LessThanEqInteger causes ({ cpu: 650142
+| BBuiltinApp LessThanEqualsInteger causes ({ cpu: 650142
 | mem: 3
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 0

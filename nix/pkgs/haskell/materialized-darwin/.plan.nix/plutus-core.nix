@@ -158,10 +158,8 @@
           "PlutusIR/Normalize"
           "PlutusIR/TypeCheck/Internal"
           "UntypedPlutusCore/Analysis/Definitions"
-          "UntypedPlutusCore/Check/Uniques"
           "UntypedPlutusCore/Core"
           "UntypedPlutusCore/Core/Instance"
-          "UntypedPlutusCore/Core/Instance/CBOR"
           "UntypedPlutusCore/Core/Instance/Eq"
           "UntypedPlutusCore/Core/Instance/Flat"
           "UntypedPlutusCore/Core/Instance/Pretty"
@@ -171,7 +169,6 @@
           "UntypedPlutusCore/Core/Instance/Pretty/Readable"
           "UntypedPlutusCore/Core/Instance/Recursive"
           "UntypedPlutusCore/Core/Plated"
-          "UntypedPlutusCore/Core/Type"
           "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
@@ -185,7 +182,6 @@
           "Data/Functor/Foldable/Monadic"
           "Universe/Core"
           "PlutusCore"
-          "PlutusCore/CBOR"
           "PlutusCore/Check/Normal"
           "PlutusCore/Check/Uniques"
           "PlutusCore/Check/Value"
@@ -285,6 +281,8 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
+          "UntypedPlutusCore/Check/Uniques"
+          "UntypedPlutusCore/Core/Type"
           "Common"
           "Crypto"
           "Data/ByteString/Hash"
@@ -327,16 +325,36 @@
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            ];
+          buildable = true;
+          modules = [ "Common" "Parsers" ];
+          hsSourceDirs = [ "executables" ];
+          mainPath = [ "plc/Main.hs" ];
+          };
+        "uplc" = {
+          depends = [
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."split" or (errorHandler.buildDepError "split"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          hsSourceDirs = [ "plc" ];
-          mainPath = [ "Main.hs" ];
+          modules = [ "Common" "Parsers" ];
+          hsSourceDirs = [ "executables" ];
+          mainPath = [ "uplc/Main.hs" ];
           };
         };
       tests = {
@@ -366,7 +384,6 @@
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
@@ -482,7 +499,6 @@
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
             ];
@@ -512,7 +528,6 @@
             (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
             ];

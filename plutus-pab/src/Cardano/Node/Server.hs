@@ -24,7 +24,7 @@ import           Data.Function                    ((&))
 import qualified Data.Map.Strict                  as Map
 import           Data.Proxy                       (Proxy (Proxy))
 import           Data.Time.Clock.POSIX            (posixSecondsToUTCTime)
-import           Data.Time.Units                  (Second)
+import           Data.Time.Units                  (Millisecond, Second)
 import qualified Ledger.Ada                       as Ada
 import           Ledger.TimeSlot                  (SlotConfig (SlotConfig, scSlotLength, scZeroSlotTime))
 import qualified Network.Wai.Handler.Warp         as Warp
@@ -96,8 +96,8 @@ main trace MockServerConfig { mscBaseUrl
 
             runSlotCoordinator (Ctx (Just serverHandler) _ _ _)  = do
                 let SlotConfig{scZeroSlotTime, scSlotLength} = mscSlotConfig
-                logInfo $ StartingSlotCoordination (posixSecondsToUTCTime $ realToFrac scZeroSlotTime)
-                                                   (fromInteger scSlotLength :: Second)
+                logInfo $ StartingSlotCoordination (posixSecondsToUTCTime $ realToFrac scZeroSlotTime / 1000)
+                                                   (fromInteger scSlotLength :: Millisecond)
                 void $ liftIO $ forkIO $ slotCoordinator mscSlotConfig serverHandler
             -- Don't start the coordinator if we don't start the mock server.
             runSlotCoordinator _ = pure ()

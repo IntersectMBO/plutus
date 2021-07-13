@@ -8,3 +8,4 @@ Explanations
    platform
    ledger
    plutus-foundation
+   pab

@@ -140,7 +140,7 @@ closure = runQuote $ do
 -- Various components that we'll use to build larger terms for testing
 
 lte :: Term TyName Name DefaultUni DefaultFun ()
-lte = Builtin () LessThanEqInteger
+lte = Builtin () LessThanEqualsInteger
 
 eleven :: Term TyName Name DefaultUni DefaultFun ()
 eleven = mkConstant @Integer () 11

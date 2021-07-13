@@ -8,7 +8,7 @@ import qualified PlutusTx.Builtins as Builtins
 
 import           Prelude           hiding (Eq (..), not, (&&))
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{- HLINT ignore -}
 
 infix 4 ==, /=
 
@@ -32,7 +32,11 @@ instance Eq Builtins.ByteString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsByteString
 
-instance Eq Builtins.String where
+instance Eq Builtins.BuiltinData where
+    {-# INLINABLE (==) #-}
+    (==) = Builtins.equalsData
+
+instance Eq Builtins.BuiltinString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsString
 
@@ -80,3 +84,10 @@ instance Eq Data where
     B _ == _                     = False
     List ls == List ls'          = ls == ls'
     List _  == _                 = False
+
+instance Eq Ordering where
+    {-# INLINABLE (==) #-}
+    EQ == EQ = True
+    GT == GT = True
+    LT == LT = True
+    _ == _   = False

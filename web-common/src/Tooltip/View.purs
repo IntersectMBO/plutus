@@ -19,7 +19,7 @@ render state =
     ]
     [ div
         [ ref arrowRef
-        , classNames [ "tooltip-arrow" ]
+        , classNames [ "popover-arrow" ]
         ]
         []
     , text state.message

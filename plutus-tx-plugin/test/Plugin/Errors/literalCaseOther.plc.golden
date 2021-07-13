@@ -7,37 +7,37 @@
           AType_match_i0
           [
             [
-              (lam
-                Unit_i0
+              [
                 (lam
-                  Unit_match_i0
-                  [
-                    [
+                  True_i0
+                  (lam
+                    False_i0
+                    (lam
+                      Bool_match_i0
                       [
                         (lam
-                          True_i0
-                          (lam
-                            False_i0
-                            (lam
-                              Bool_match_i0
+                          c_i0
+                          [
+                            [
                               [
                                 (lam
-                                  c_i0
-                                  [
-                                    [
+                                  Nil_i0
+                                  (lam
+                                    Cons_i0
+                                    (lam
+                                      Nil_match_i0
                                       [
                                         (lam
-                                          Nil_i0
-                                          (lam
-                                            Cons_i0
+                                          cfromString_i0
+                                          [
                                             (lam
-                                              Nil_match_i0
+                                              fromString_i0
                                               [
-                                                (lam
-                                                  cfromString_i0
-                                                  [
+                                                [
+                                                  (lam
+                                                    Unit_i0
                                                     (lam
-                                                      fromString_i0
+                                                      Unit_match_i0
                                                       (lam
                                                         x_i0
                                                         [
@@ -45,22 +45,22 @@
                                                             [
                                                               (force
                                                                 [
-                                                                  Bool_match_i8
+                                                                  Bool_match_i10
                                                                   [
                                                                     [
-                                                                      c_i7 x_i1
+                                                                      c_i9 x_i1
                                                                     ]
                                                                     [
                                                                       [
                                                                         (force
-                                                                          fromString_i2
+                                                                          fromString_i4
                                                                         )
-                                                                        cfromString_i3
+                                                                        cfromString_i5
                                                                       ]
                                                                       [
                                                                         [
                                                                           (force
-                                                                            Cons_i5
+                                                                            Cons_i7
                                                                           )
                                                                           (con
                                                                             char
@@ -70,7 +70,7 @@
                                                                         [
                                                                           [
                                                                             (force
-                                                                              Cons_i5
+                                                                              Cons_i7
                                                                             )
                                                                             (con
                                                                               char
@@ -80,7 +80,7 @@
                                                                           [
                                                                             [
                                                                               (force
-                                                                                Cons_i5
+                                                                                Cons_i7
                                                                               )
                                                                               (con
                                                                                 char
@@ -88,7 +88,7 @@
                                                                               )
                                                                             ]
                                                                             (force
-                                                                              Nil_i6
+                                                                              Nil_i8
                                                                             )
                                                                           ]
                                                                         ]
@@ -102,100 +102,84 @@
                                                                 [
                                                                   [
                                                                     (force
-                                                                      fromString_i3
+                                                                      fromString_i5
                                                                     )
-                                                                    cfromString_i4
+                                                                    cfromString_i6
                                                                   ]
-                                                                  (force Nil_i7)
+                                                                  (force Nil_i9)
                                                                 ]
                                                               )
                                                             ]
                                                             (lam thunk_i0 x_i2)
                                                           ]
-                                                          Unit_i12
+                                                          Unit_i3
                                                         ]
                                                       )
                                                     )
-                                                    (delay (lam v_i0 v_i1))
-                                                  ]
-                                                )
-                                                (lam ds_i0 AType_i12)
+                                                  )
+                                                  (delay
+                                                    (lam
+                                                      case_Unit_i0 case_Unit_i1
+                                                    )
+                                                  )
+                                                ]
+                                                (lam x_i0 x_i1)
                                               ]
                                             )
-                                          )
-                                        )
-                                        (delay
-                                          (delay
-                                            (lam
-                                              case_Nil_i0
-                                              (lam case_Cons_i0 case_Nil_i2)
-                                            )
-                                          )
-                                        )
-                                      ]
-                                      (delay
-                                        (lam
-                                          arg_0_i0
-                                          (lam
-                                            arg_1_i0
-                                            (delay
-                                              (lam
-                                                case_Nil_i0
-                                                (lam
-                                                  case_Cons_i0
-                                                  [
-                                                    [ case_Cons_i1 arg_0_i4 ]
-                                                    arg_1_i3
-                                                  ]
-                                                )
-                                              )
-                                            )
-                                          )
-                                        )
-                                      )
-                                    ]
-                                    (delay (lam x_i0 x_i1))
-                                  ]
-                                )
-                                (lam
-                                  ds_i0
-                                  (lam
-                                    ds_i0
-                                    [
-                                      [
-                                        (force [ AType_match_i8 ds_i2 ])
-                                        (lam
-                                          thunk_i0
-                                          [
-                                            [
-                                              (force [ AType_match_i9 ds_i2 ])
-                                              (lam thunk_i0 True_i7)
-                                            ]
-                                            Unit_i8
+                                            (delay (lam v_i0 v_i1))
                                           ]
                                         )
+                                        (lam ds_i0 AType_i10)
                                       ]
-                                      Unit_i7
-                                    ]
+                                    )
+                                  )
+                                )
+                                (delay
+                                  (delay
+                                    (lam
+                                      case_Nil_i0 (lam case_Cons_i0 case_Nil_i2)
+                                    )
                                   )
                                 )
                               ]
-                            )
+                              (delay
+                                (lam
+                                  arg_0_i0
+                                  (lam
+                                    arg_1_i0
+                                    (delay
+                                      (lam
+                                        case_Nil_i0
+                                        (lam
+                                          case_Cons_i0
+                                          [ [ case_Cons_i1 arg_0_i4 ] arg_1_i3 ]
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            ]
+                            (delay (lam x_i0 x_i1))
+                          ]
+                        )
+                        (lam
+                          ds_i0
+                          (lam
+                            ds_i0
+                            [
+                              (force [ AType_match_i6 ds_i2 ])
+                              [ (force [ AType_match_i6 ds_i1 ]) True_i5 ]
+                            ]
                           )
                         )
-                        (delay
-                          (lam case_True_i0 (lam case_False_i0 case_True_i2))
-                        )
                       ]
-                      (delay
-                        (lam case_True_i0 (lam case_False_i0 case_False_i1))
-                      )
-                    ]
-                    (lam x_i0 x_i1)
-                  ]
+                    )
+                  )
                 )
-              )
-              (delay (lam case_Unit_i0 case_Unit_i1))
+                (delay (lam case_True_i0 (lam case_False_i0 case_True_i2)))
+              ]
+              (delay (lam case_True_i0 (lam case_False_i0 case_False_i1)))
             ]
             (lam x_i0 x_i1)
           ]

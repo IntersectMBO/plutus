@@ -168,7 +168,6 @@ lemmaH : (E : EvalCtx K J)(F : Frame J I)
   → (helper (dissect' E) , F) ≡ helper (dissect' (extendEvalCtx E F))
 lemmaH E F rewrite CC.lemma' E F = refl
 
-
 Stack2EvalCtx : ∀ {I J} → Stack I J → EvalCtx I J
 Stack2EvalCtx ε       = []
 Stack2EvalCtx (s , F) = extendEvalCtx (Stack2EvalCtx s) F
@@ -182,7 +181,6 @@ ck2cc : ∀ {I J} → State I J → CC.State I J
 ck2cc (x ▻ x₁) = Stack2EvalCtx x CC.▻ x₁
 ck2cc (x ◅ x₁) = Stack2EvalCtx x CC.◅ x₁
 ck2cc (□ x) = CC.□ x
-
 
 thm64 : (s : CC.State K J)(s' : CC.State K J')
   → s CC.-→s s' → cc2ck s -→ck cc2ck s'

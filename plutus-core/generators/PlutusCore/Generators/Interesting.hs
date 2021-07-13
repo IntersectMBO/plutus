@@ -108,7 +108,7 @@ naiveFib iv = runQuote $ do
             [   LamAbs () rec (TyFun () intS intS)
               . LamAbs () i intS
               $ mkIterApp () (TyInst () ifThenElse intS)
-                  [ mkIterApp () (Builtin () LessThanEqInteger)
+                  [ mkIterApp () (Builtin () LessThanEqualsInteger)
                       [Var () i, mkConstant @Integer () 1]
                   , LamAbs () u unit $ Var () i
                   , LamAbs () u unit $ mkIterApp () (Builtin () AddInteger)

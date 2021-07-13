@@ -164,7 +164,7 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 stepV : ∀{A B }{M : ∅ ⊢ A}(V : Value M)
        → (B ≡ A) ⊎ ∃ (λ C → EC B C × Frame C A)
        → State B
-stepV V (inj₁ refl)                 = [] ◅ V
+stepV V (inj₁ refl)                 = □ V
 stepV V (inj₂ (_ ,, E ,, (-· N)))  = extEC E (V ·-) ▻ N
 stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-))) = E ▻ (M [ deval V ])
 stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = []} p q ·-))) =
@@ -734,7 +734,7 @@ focus M E M' p with rlemma51! (E [ M ]ᴱ)
 focus M E M' p | done VEM = ⊥-elim (notVAL VEM p)
 focus M E M' p | step ¬VEM E' r q U with rlemma51! M
 focus M E M' p | step ¬VEM E' r q U | step ¬VM E'' r' q' U' with U _ (trans (cong (E [_]ᴱ) q') (compEC-[]ᴱ E E'' _)) r'
-... | refl ,, refl ,, refl = local (compEC E E'') _ r q q'
+... | refl ,, X ,, refl = local (compEC E E'') _ r (trans q (cong (_[ _ ]ᴱ) X)) q'
 focus M E M' p | step ¬VEM E' r q U | done VM = nonlocal E' _ r q VM
 
 -- we can recover that M' == whatever I think
@@ -763,7 +763,7 @@ refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] with rlemma5
 refocus E M VM E₁ L r p | inj₂ (C ,, E₂ ,, (-· N)) | I[ eq ] | step ¬VN E₃ r' p' U with rlemma51! (E [ M ]ᴱ)
 ... | done VEM = ⊥-elim (valredex (lemVE _ E₁ (Value2VALUE (subst Value p VEM))) r)
 ... | step ¬VEM E₄ r'' p'' U'  rewrite dissect-inj₂ E E₂ (-· N) eq with U' _ p r
-... | refl ,, refl ,, refl with U' (compEC' (extEC E₂ (VM ·-)) E₃) (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))) r'
+... | refl ,, _ ,, refl with U' (compEC' (extEC E₂ (VM ·-)) E₃) (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))) r'
 ... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl VM (lemV'· (λ VN → valredex (lemVE L _ (Value2VALUE (subst Value p' VN))) r')) ((VM EC.·r E₃)) (sym (trans (extEC-[]ᴱ E₂ (-· N) M) (trans (trans (cong (λ N →  E₂ [ M · N ]ᴱ) p') (sym (extEC-[]ᴱ E₂ (VM ·-) _))) (trans (compEC-[]ᴱ (extEC E₂ (VM ·-)) E₃ _) (cong (λ E → E [ _ ]ᴱ) (compEC-eq (extEC E₂ (VM ·-)) E₃))))))
 -- same proof twice
 refocus E .(ƛ M) (V-ƛ M) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN with rlemma51! (E [ ƛ M ]ᴱ)
@@ -984,3 +984,86 @@ thm1 M _ E refl O V (trans—↠ q q') with focus M E _ q
 
 thm2 : ∀{A}(M N : ∅ ⊢ A)(V : Value N) → M —↠ N → ([] ▻ M) -→s ([] ◅ V)
 thm2 M N V p = thm1 M M [] refl N V p
+
+box2box : ∀{A}(M M' : ∅ ⊢ A)(V : Value M)(V' : Value M')
+  → □ V -→s □ V' → Σ (M ≡ M') λ p → subst Value p V ≡ V'
+box2box M .M V .V base = refl ,, refl
+box2box M M' V V' (step* refl p) = box2box M M' V V' p
+
+diamond2box : ∀{A B}(M : ∅ ⊢ B)(V : Value M)
+  → ◆ A -→s □ V → ⊥
+diamond2box M V (step* refl p) = diamond2box M V p
+
+thm1b : ∀{A B}(M : ∅ ⊢ A)(M' : ∅ ⊢ B)(E : EC B A)
+  → M' ≡ E [ M ]ᴱ → (N : ∅ ⊢ B)(V : Value N)
+  → (E ▻ M) -→s (□ V)
+  → M' —↠ N
+
+thm1bV : ∀{A B}(M : ∅ ⊢ A)(W : Value M)(M' : ∅ ⊢ B)(E : EC B A)
+  → M' ≡ E [ M ]ᴱ → (N : ∅ ⊢ B)(V : Value N)
+  → (E ◅ W) -→s (□ V)
+  → M' —↠ N
+
+thm1b (ƛ M) M' E p N V (step* refl q) = thm1bV (ƛ M) (V-ƛ M) M' E p N V q
+thm1b (M · M₁) M' E p N V (step* refl q) =
+  thm1b M _ (extEC E (-· M₁)) (trans p (sym (extEC-[]ᴱ E (-· M₁) M))) N V q 
+thm1b (Λ M) M' E p N V (step* refl q) = thm1bV (Λ M) (V-Λ M) M' E p N V q
+thm1b (M ·⋆ A) M' E p N V (step* refl q) =
+  thm1b M _ (extEC E (-·⋆ A)) (trans p (sym (extEC-[]ᴱ E (-·⋆ A) M))) N V q 
+thm1b (wrap A B M) M' E p N V (step* refl q) =
+  thm1b M _ (extEC E wrap-) (trans p (sym (extEC-[]ᴱ E wrap- M))) N V q
+thm1b (unwrap M) M' E p N V (step* refl q) =
+  thm1b M _ (extEC E unwrap-) (trans p (sym (extEC-[]ᴱ E unwrap- M))) N V q
+thm1b (con c) M' E p N V (step* refl q) = thm1bV (con c) (V-con c) M' E p N V q
+thm1b (ibuiltin b) M' E p N V (step* refl q) =
+  thm1bV (ibuiltin b) (ival b) M' E p N V q
+thm1b (error _) M' E p N V (step* refl q) = ⊥-elim (diamond2box N V q)
+
+thm1bV M W M' E p N V (step* x q) with dissect E | inspect dissect E
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (-· N')) | I[ eq ]
+  rewrite dissect-inj₂ E E' (-· N') eq =
+  thm1b N'
+        M'
+        (extEC E' (W ·-))
+        (trans p (trans (extEC-[]ᴱ E' (-· N') M)
+                        (sym (extEC-[]ᴱ E' (W ·-) N'))))
+        N
+        V
+        q
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (V-ƛ M₁ ·-)) | I[ eq ]
+  rewrite dissect-inj₂ E E' (V-ƛ M₁ ·-) eq = trans—↠
+    (ruleEC E' (β-ƛ W) (trans p (extEC-[]ᴱ E' (V-ƛ M₁ ·-) M)) refl)
+    (thm1b (M₁ [ M ]) _ E' refl N V q)
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = []} p₁ x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq = trans—↠
+  (ruleEC E' (β-sbuiltin b _ p₁ x₁ M W) (trans p (extEC-[]ᴱ E' (VI ·-) M)) refl)
+  (thm1b (BUILTIN' b (bubble p₁) (step p₁ x₁ W)) _ E' refl N V q) 
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq =
+  thm1bV (_ · M)
+         (V-I b (bubble p₁) (step p₁ x₁ W))
+         M'
+         E'
+         (trans p (extEC-[]ᴱ E' (VI ·-) M))
+         N
+         V
+         q
+thm1bV .(Λ M) (V-Λ M) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq = trans—↠ (ruleEC E' β-Λ (trans p (extEC-[]ᴱ E' (-·⋆ A) (Λ M))) refl) (thm1b (M [ A ]⋆) _ E' refl N V q)
+thm1bV M (V-IΠ b {as' = []} p₁ x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq = trans—↠
+  (ruleEC E' (β-sbuiltin⋆ b _ p₁ x₁ A) (trans p (extEC-[]ᴱ E' (-·⋆ A) M)) refl)
+  (thm1b (BUILTIN' b (bubble p₁) (step⋆ p₁ x₁)) _ E' refl N V q)
+thm1bV M (V-IΠ b {as' = x₂ ∷ as'} p₁ x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq =
+  thm1bV (M ·⋆ A)
+         (V-I b (bubble p₁) (step⋆ p₁ x₁))
+         M'
+         E'
+         (trans p (extEC-[]ᴱ E' (-·⋆ A) M))
+         N
+         V
+         q
+
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E E' wrap- eq = thm1bV (wrap _ _ M) (V-wrap W) _ E' (trans p (extEC-[]ᴱ E' wrap- M)) N V q
+thm1bV .(wrap _ _ _) (V-wrap W) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E E' unwrap- eq = trans—↠ (ruleEC E' (β-wrap W) (trans p (extEC-[]ᴱ E' unwrap- _)) refl) (thm1b _ _ E' refl N V q)
+thm1bV M W M' E refl N V (step* refl q) | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E refl eq with box2box M N W V q
+... | refl ,, refl = refl—↠
+
+thm2b : ∀{A}(M N : ∅ ⊢ A)(V : Value N) → ([] ▻ M) -→s (□ V) → M —↠ N
+thm2b M N V p = thm1b M M [] refl N V p

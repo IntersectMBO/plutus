@@ -20,7 +20,7 @@
 | BStep BBuiltin causes ({ cpu: 78000
 | mem: 20
 })
-| BBuiltinApp LessThanEqInteger causes ({ cpu: 216714
+| BBuiltinApp LessThanEqualsInteger causes ({ cpu: 216714
 | mem: 1
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 0
