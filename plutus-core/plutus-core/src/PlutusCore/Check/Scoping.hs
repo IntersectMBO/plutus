@@ -235,6 +235,27 @@ symmetricDifference s t = (s `Set.union` t) `Set.difference` (s `Set.intersectio
 leftUnlessEmpty :: (Set ScopedName -> ScopeError) -> Set ScopedName -> Either ScopeError ()
 leftUnlessEmpty err s = unless (Set.null s) . Left $ err s
 
+{-| Check that each kind of 'Set' from 'ScopeInfo' relates to all other ones in a certain way.
+We start with these three relations that are based on the assumption that for each binder we add
+at least one out-of-scope variable and at least one in-scope one:
+
+1. disappeared bindings should be the same as stayed out of scope variables
+     (an internal sanity check)
+2. disappeared bindings should be the same as disappeared variables
+     (ensures that old names consistently disappear at the binding and use sites)
+3. appeared bindings should be the same as appeared variables
+     (ensures that new names consistently appear at the binding and use sites)
+
+Once we've ensured all of that, we're left with only three sets and 3C2 equals 3,
+so we only need to consider three more relations:
+
+1. disappeared bindings should not intersect with free variables
+     (an internal sanity check)
+2. appeared bindings should not intersect with disappeared bindings
+3. appeared bindings should not intersect with free variables
+
+The last two ensure that no new name has an old name's unique.
+-}
 checkScopeInfo :: ScopeInfo -> Either ScopeError ()
 checkScopeInfo scopeInfo = do
     let disappearedBindings       = to DisappearedBindings       scopeInfo
@@ -243,18 +264,16 @@ checkScopeInfo scopeInfo = do
         appearedVariables         = to AppearedVariables         scopeInfo
         stayedOutOfScopeVariables = to StayedOutOfScopeVariables scopeInfo
         stayedFreeVariables       = to StayedFreeVariables       scopeInfo
-    -- The next three are based on the assumption that for each binder we add at least one
-    -- out-of-scope variable and at least one in-scope one.
-    leftUnlessEmpty OldBindingsDiscordWithBoundVariables $
-        disappearedBindings `symmetricDifference` disappearedVariables
     leftUnlessEmpty OldBindingsDiscordWithOutOfScopeVariables $
         disappearedBindings `symmetricDifference` stayedOutOfScopeVariables
+    leftUnlessEmpty OldBindingsDiscordWithBoundVariables $
+        disappearedBindings `symmetricDifference` disappearedVariables
     leftUnlessEmpty NewBindingsDiscordWithBoundVariables $
         appearedBindings `symmetricDifference` appearedVariables
     leftUnlessEmpty OldBindingsClashWithFreeVariables $
         disappearedBindings `Set.intersection` stayedFreeVariables
     leftUnlessEmpty OldBindingsClashWithNewBindings $
-        disappearedBindings `Set.intersection` appearedBindings
+        appearedBindings  `Set.intersection` disappearedBindings
     leftUnlessEmpty NewBindingsClashWithFreeVariabes $
         appearedBindings `Set.intersection` stayedFreeVariables
 
