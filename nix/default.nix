@@ -59,8 +59,8 @@ let
       source-repository-package
         type: git
         location: https://github.com/ghcjs/ghcjs.git
-        tag: 6f20f45e384e4907cbf11ec7c258e456c4f0f4d7
-        --sha256: 098n3nabc9dgsfh0mznpkaxhbwmsp5rx5wcvx4411k631lglkyk2
+        tag: e4cd4232a31f6371c761acd93853702f4c7ca74c
+        --sha256: 1q52p91cvkm6ckpcgfrkd3crk68zcaxik5i3gxdbfppf0ljlrlbi
 
       allow-newer: ghcjs:base16-bytestring
                  , ghcjs:aeson
@@ -73,8 +73,11 @@ let
                  , ghcjs-base:aeson
                  , servant-foreign:lens
                  , servant-client:http-client
-      constraints: plutus-tx +ghcjs-plugin
+      constraints: plutus-tx +ghcjs-plugin,
+                   ghci +ghci
 
+      package ghci
+        flags: +ghci
 
       package plutus-tx
         flags: +ghcjs-plugin

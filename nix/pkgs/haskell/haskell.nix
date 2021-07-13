@@ -74,6 +74,10 @@ let
             version = "3.2.5"; }; in [ alex ];
           ghcjs.flags.use-host-template-haskell = true;
 
+          # This is important. We may be reinstalling lib:ghci, and if we do
+          # it *must* have the ghci flag enabled (default is disabled).
+          ghci.flags.ghci = true;
+
           plutus-use-cases.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
                                          in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
@@ -223,10 +227,10 @@ let
 
           # By default haskell.nix chooses the `buildPackages` versions of these `build-tool-depeends`, but
           # when cross compiling we want the cross compiled version.
-          plutus-pab.components.library.build-tools = lib.mkForce [
-            config.hsPkgs.cardano-node.components.exes.cardano-node
-            config.hsPkgs.cardano-cli.components.exes.cardano-cli
-          ];
+          # plutus-pab.components.library.build-tools = lib.mkForce [
+          #   config.hsPkgs.cardano-node.components.exes.cardano-node
+          #   config.hsPkgs.cardano-cli.components.exes.cardano-cli
+          # ];
           # plutus-metatheory.components.tests.test1.build-tools = lib.mkForce [
           #   config.hsPkgs.plutus-core.components.exes.plc agdaWithStdlib
           # ];
