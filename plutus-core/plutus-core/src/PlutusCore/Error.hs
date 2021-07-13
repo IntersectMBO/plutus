@@ -68,12 +68,7 @@ data ParseError ann
     | BuiltinTypeNotAStar ann T.Text
     | UnknownBuiltinFunction ann T.Text
     | InvalidBuiltinConstant ann T.Text T.Text
-    deriving (Eq, Generic, NFData, Functor)
-
--- MonadParsec requires an Ord instance for the errors.
--- @thealmarty doesn't see why so the errors are all equal for simplicity.
-instance (Eq ann) => (Ord (ParseError ann)) where
-    compare _ _ = EQ
+    deriving (Eq, Ord, Generic, NFData, Functor)
 
 makeClassyPrisms ''ParseError
 

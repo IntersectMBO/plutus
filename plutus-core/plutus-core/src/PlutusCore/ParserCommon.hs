@@ -29,7 +29,9 @@ newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
 
 -- With the alex lexer @ann@ could be @AlexPosn@ or @SourcePos@.
 -- We should un-generalize it when we know it can only be @SourcePos@.
-type Parser ann = ParsecT (PLC.ParseError ann) T.Text (StateT ParserState PLC.Quote)
+type Parser ann =
+    ParsecT (PLC.ParseError ann) T.Text (StateT ParserState PLC.Quote)
+
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
 
 topSourcePos :: SourcePos
