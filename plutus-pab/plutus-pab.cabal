@@ -196,7 +196,8 @@ library
                        lobemo-backend-ekg -any
 
     else
-        build-depends: cardano-api-stub
+        build-depends: cardano-api-stub,
+                       iohk-monitoring-stub
 
 executable plutus-pab
     main-is: Main.hs
