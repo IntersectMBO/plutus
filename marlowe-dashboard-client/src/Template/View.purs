@@ -24,6 +24,7 @@ import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, TokenName)
 import Material.Icons (Icon(..), icon, icon_)
+import Template.Format (formatText)
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInputs, _slotContentInputs, _valueContentInputs)
 import Template.State (templateSetupIsValid)
 import Template.Types (Action(..), ContractSetupStage(..), State)
@@ -121,7 +122,7 @@ contractSelection =
               [ text contractTemplate.metaData.contractName ]
           , p
               [ classNames [ "font-xs" ] ]
-              [ text contractTemplate.metaData.contractDescription ]
+              $ formatText contractTemplate.metaData.contractDescription
           ]
       , icon_ Next
       ]
@@ -137,7 +138,7 @@ contractOverview contractTemplate =
             [ contractIcon contractTemplate.metaData.contractType
             , text $ contractTemplate.metaData.contractName <> " overview"
             ]
-        , p_ [ text contractTemplate.metaData.contractDescription ]
+        , p_ $ formatText contractTemplate.metaData.contractDescription
         ]
     , div
         [ classNames [ "flex", "items-baseline", "p-4", "border-gray", "border-t" ] ]
