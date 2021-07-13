@@ -1,0 +1,59 @@
+0.3.7.3 (2015-05-30):
+    - Moved VERSION to CHANGELOG
+0.3.7 (2013-08-08):
+    - System.Posix.IO.ByteString: Corrected a bug in fdSeek/tryFdSeek where the return value was always 0 on largefile i686 systems due to the underlying C function being (undocumentedly) implemented as a macrocall. This had been fixed in unix-2.6.0.1, and I've just backported their fix (replacing the previous unix-2.4.2.0 implementation). Cf:
+    * <https://github.com/ghc/packages-base/blob/master/System/Posix/Internals.hs#L414>
+    * <https://github.com/ghc/packages-unix/blob/master/System/Posix/IO/Common.hsc#L306>
+0.3.6 (2013-05-29):
+    - System.Posix.Types.Iovec: adjusted unsafeForeignPtrToPtr for GHC 7.8
+0.3.5.4 (2012-08-23):
+    - System.Posix.IO.ByteString: adjusted some imports for GHC 7.6
+    - Removed the custom Setup.hs, for compatibility with GHC 7.6
+0.3.5.3 (2012-02-21):
+    - Foreign.C.Error.Safe: changed (Num a) to (Eq a, Num a) for GHC 7.4
+0.3.5 (2011-06-29):
+    - System.Posix.IO.ByteString: added fdSeek, tryFdSeek.
+    - Foreign.C.Error.Safe: added.
+0.3.4.1 (2011-04-03):
+    - LICENSE: corrected license for the fdReadBuf and fdWriteBuf functions
+0.3.4 (2011-03-26):
+    - System.Posix.IO.ByteString.Lazy: Fixed functions to check (<=0) instead of (==0)
+0.3.3 (2011-03-26):
+    - System.Posix.IO.ByteString: added tryFdReadBuf, tryFdReadvBuf, tryFdPreadBuf, tryFdWriteBuf, tryFdWritevBuf, tryFdPwriteBuf
+0.3.2.1 (2011-03-20):
+    - Changed the cabal category label to System
+    - Uploaded to Hackage
+0.3.2 (2011-03-17):
+    - Removed the dependency on @unix@.
+0.3.1 (2011-03-07):
+    - System.Posix.IO.ByteString: added fdPreads
+    - System.Posix.IO.ByteString.Lazy: added fdPread
+0.3.0 (2011-03-07):
+    - System.Posix.IO.ByteString: added fdReadvBuf, exposed fdWritevBuf
+    - System.Posix.IO.ByteString: added fdReadBuf and fdWriteBuf for compatibility with older versions of the @unix@ package
+    - System.Posix.IO.ByteString: added fdPread, fdPreadBuf
+    - System.Posix.IO.ByteString: added fdPwrite, fdPwriteBuf
+
+0.2.1 (2011-03-06):
+    - Added a custom build in order to define __HADDOCK__ when appropriate.
+    - System.Posix.IO.ByteString: added fdReads
+0.2.0 (2011-03-05):
+    - Corrected the specifications (writev etc is XPG4.2, not POSIX)
+    - Added some extra #includes for legacy reasons
+    - Changed stability to experimental.
+    - Added new module System.Posix.Types.Iovec
+    - System.Posix.IO.ByteString.Lazy: added fdWritev
+    - System.Posix.IO.ByteString.Lazy: changed fdWrite to fdWrites
+    - System.Posix.IO.ByteString: added fdWrites and fdWritev
+    - Renamed package to unix-bytestring
+
+0.1.0 (2011-02-27):
+    - Moved Data.ByteString.Posix to System.Posix.IO.ByteString
+    - Moved Data.ByteString.Lazy.Posix to System.Posix.IO.ByteString.Lazy
+
+0.0.2 (2011-02-20):
+    - Fixed stack overflow possibility in Lazy.fdWrite
+0.0.1 (2010-11-10):
+    - Added lazy variants
+0.0.0 (2010-11-10):
+    - Initial version forked from Posta-IPC

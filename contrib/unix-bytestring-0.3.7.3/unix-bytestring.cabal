@@ -1,0 +1,62 @@
+----------------------------------------------------------------
+-- wren gayle romano <wren@community.haskell.org>   ~ 2015.05.30
+----------------------------------------------------------------
+
+-- By and large Cabal >=1.2 is fine; but >= 1.6 gives tested-with:
+-- and source-repository:.
+Cabal-Version:  >= 1.6
+Build-Type:     Simple
+
+Name:           unix-bytestring
+Version:        0.3.7.3
+Stability:      provisional
+Homepage:       http://code.haskell.org/~wren/
+Author:         wren gayle romano
+Maintainer:     wren@community.haskell.org
+Copyright:      Copyright (c) 2010--2015 wren gayle romano
+License:        BSD3
+License-File:   LICENSE
+
+Category:       System
+Synopsis:       Unix/Posix-specific functions for ByteStrings.
+Description:    Unix\/Posix-specific functions for ByteStrings.
+    .
+    Provides @ByteString@ file-descriptor based I\/O API, designed
+    loosely after the @String@ file-descriptor based I\/O API in
+    "System.Posix.IO". The functions here wrap standard C implementations
+    of the functions specified by the ISO\/IEC 9945-1:1990 (``POSIX.1'')
+    and X\/Open Portability Guide Issue 4, Version 2 (``XPG4.2'')
+    specifications.
+    .
+    Note that this package doesn't require the @unix@ package as a
+    dependency. But you'll need it in order to get your hands on
+    an @Fd@, so we're not offering a complete replacement.
+
+Tested-With:
+    GHC ==6.12.1, GHC ==6.12.3, GHC ==7.4.2, GHC ==7.6.1, GHC ==7.8.0
+Extra-source-files:
+    README, CHANGELOG
+Source-Repository head
+    Type:     darcs
+    Location: http://community.haskell.org/~wren/unix-bytestring
+
+----------------------------------------------------------------
+Library
+    Hs-Source-Dirs:  src
+    Exposed-Modules: Foreign.C.Error.Safe
+                   , System.Posix.IO.ByteString
+                   , System.Posix.IO.ByteString.Lazy
+                   , System.Posix.Types.Iovec
+
+    -- We require base>=4.1 for Foreign.C.Error.throwErrnoIfMinus1Retry.
+    --
+    -- We would require unix>=2.4 for System.Posix.IO.fdReadBuf/fdWriteBuf
+    -- (and unix-2.4.0.0 requires base>=4.1 too), except we define
+    -- them on our own for better backwards compatibility.
+    --
+    -- Not sure what the real minbound is on bytestring...
+    Build-Depends: base       >= 4.1 && < 5
+                 , bytestring >= 0.9.1.5
+
+----------------------------------------------------------------
+----------------------------------------------------------- fin.
