@@ -7,6 +7,8 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
@@ -41,7 +43,8 @@ import qualified Data.Text                    as T
 import           ErrorCode
 import           Prettyprinter                (hardline, indent, squotes, (<+>))
 import           Prettyprinter.Internal       (Doc (Text))
-import           Universe
+import           Text.Megaparsec.Pos          (SourcePos, sourcePosPretty)
+import           Universe                     (Closed (Everywhere), GEq, GShow)
 
 {- Note [Annotations and equality]
 Equality of two errors DOES DEPEND on their annotations.
@@ -67,6 +70,8 @@ data ParseError ann
     | InvalidBuiltinConstant ann T.Text T.Text
     deriving (Eq, Generic, NFData, Functor)
 
+-- MonadParsec requires an Ord instance for the errors.
+-- @thealmarty doesn't see why so the errors are all equal for simplicity.
 instance (Eq ann) => (Ord (ParseError ann)) where
     compare _ _ = EQ
 
@@ -130,6 +135,9 @@ instance (tyname ~ TyName, name ~ Name) =>
 
 instance AsFreeVariableError (Error uni fun ann) where
     _FreeVariableError = _FreeVariableErrorE
+
+instance Pretty SourcePos where
+    pretty = pretty . sourcePosPretty
 
 instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)

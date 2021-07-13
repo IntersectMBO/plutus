@@ -27,11 +27,10 @@ import           Data.Proxy                 (Proxy (Proxy))
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
 
-type Parser ann = ParsecT (PLC.ParseError SourcePos) T.Text (StateT ParserState PLC.Quote)
+-- With the alex lexer @ann@ could be @AlexPosn@ or @SourcePos@.
+-- We should un-generalize it when we know it can only be @SourcePos@.
+type Parser ann = ParsecT (PLC.ParseError ann) T.Text (StateT ParserState PLC.Quote)
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
-
-instance Pretty SourcePos where
-    pretty = pretty . sourcePosPretty
 
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
@@ -96,9 +95,6 @@ inBraces = between lbrace rbrace
 
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
-
-stringLiteral :: Parser SourcePos String
-stringLiteral = char '"' >> manyTill Lex.charLiteral (char '"')
 
 -- | Create a parser that matches the input word and returns its source position.
 -- This is for attaching source positions to parsed terms/programs.

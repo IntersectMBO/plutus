@@ -114,7 +114,7 @@ program = whitespace >> do
     return prog
 
 -- | Generic parser function.
-parseGen :: Parser ann a -> ByteString -> Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a
+parseGen :: Parser SourcePos a -> ByteString -> Either (ParseErrorBundle T.Text (PLC.ParseError SourcePos)) a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
