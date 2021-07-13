@@ -185,31 +185,6 @@ propParser = property $ do
     Hedgehog.tripping prog (reprint . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError AlexPosn) p)
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeErrorFiles =
-  testGroup "all tests"
-    [ tests
-    , testCase "lexing constants from small types" testLexConstant
-    , testProperty "lexing constants" propLexConstant
-    , testProperty "parser round-trip" propParser
-    , testProperty "serialization round-trip (CBOR)" propCBOR
-    , testProperty "serialization round-trip (Flat)" propFlat
-    , test_names
-    , testsGolden plcFiles
-    , testsRewrite rwFiles
-    , testsType typeFiles
-    , testsType typeErrorFiles
-    , test_Pretty
-    , test_typeNormalization
-    , test_typecheck
-    , test_evaluation
-    , test_normalizationCheck
-    , test_costModelInterface
-    , Check.tests
-    , NEAT.tests NEAT.defaultGenOptions
-    ]
-
-
 type TestFunction a = BSL.ByteString -> Either (DefaultError a) T.Text
 
 asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
@@ -247,3 +222,27 @@ tests = testCase "example programs" $ fold
         fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeErrorFiles =
+  testGroup "all tests"
+    [ tests
+    , testCase "lexing constants from small types" testLexConstant
+    , testProperty "lexing constants" propLexConstant
+    , testProperty "parser round-trip" propParser
+    , testProperty "serialization round-trip (CBOR)" propCBOR
+    , testProperty "serialization round-trip (Flat)" propFlat
+    , testsGolden plcFiles
+    , testsRewrite rwFiles
+    , testsType typeFiles
+    , testsType typeErrorFiles
+    , test_Pretty
+    , test_names
+    , test_typeNormalization
+    , test_typecheck
+    , test_evaluation
+    , test_normalizationCheck
+    , test_costModelInterface
+    , Check.tests
+    , NEAT.tests NEAT.defaultGenOptions
+    ]

@@ -26,8 +26,24 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
 
-propMangle :: Property
-propMangle = property $ do
+prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
+prop_DeBruijn gen = property . generalizeT $ do
+    TermOf body _ <- forAllNoShowT gen
+    let
+        forward = deBruijnTerm
+        backward
+            :: Either FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a)
+            -> Either FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
+        backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
+    Hedgehog.tripping body forward backward
+
+test_DeBruijnInteresting :: TestTree
+test_DeBruijnInteresting =
+    testGroup "de Bruijn transformation round-trip" $
+        fromInterestingTermGens $ \name -> testProperty name . prop_DeBruijn
+
+test_mangle :: TestTree
+test_mangle = testProperty "equality does not survive mangling" . property $ do
     (term, termMangled) <- forAll . Gen.just . runAstGen $ do
         term <- AST.genTerm
         mayTermMang <- mangleNames term
@@ -56,14 +72,14 @@ newtype NoRenameT ren m a = NoRenameT
         , MonadQuote
         )
 
+instance (Monad m, Monoid ren) => MonadReader ren (NoRenameT ren m) where
+    ask = pure mempty
+    local _ = id
+
 noRenameProgram
     :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
     => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
 noRenameProgram = through markNonFreshProgram >=> unNoRenameT . renameProgramM
-
-instance (Monad m, Monoid ren) => MonadReader ren (NoRenameT ren m) where
-    ask = pure mempty
-    local _ = id
 
 newtype BrokenRenameT ren m a = BrokenRenameT
     { unBrokenRenameT :: StateT ren m a
@@ -73,12 +89,12 @@ newtype BrokenRenameT ren m a = BrokenRenameT
         , MonadQuote
         )
 
-runBrokenRenameT :: (Monad m, Monoid ren) => BrokenRenameT ren m a -> m a
-runBrokenRenameT = flip evalStateT mempty . unBrokenRenameT
-
 instance Monad m => MonadReader ren (BrokenRenameT ren m) where
     ask = get
     local f a = modify f *> a
+
+runBrokenRenameT :: (Monad m, Monoid ren) => BrokenRenameT ren m a -> m a
+runBrokenRenameT = flip evalStateT mempty . unBrokenRenameT
 
 brokenRenameProgram
     :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
@@ -88,54 +104,57 @@ brokenRenameProgram = through markNonFreshProgram >=> runBrokenRenameT . renameP
 checkBadRename :: Property -> IO ()
 checkBadRename prop = check prop >>= \res -> res @?= False
 
-propRenameFor
+prop_equalityFor
     :: program ~ Program TyName Name DefaultUni DefaultFun ()
     => (program -> Quote program) -> Property
-propRenameFor ren = property $ do
+prop_equalityFor ren = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     let progRen = runQuote $ ren prog
     Hedgehog.assert $ progRen == prog && prog == progRen
 
-propRename :: Property
-propRename = propRenameFor rename
+test_equalityRename :: TestTree
+test_equalityRename =
+    testProperty "equality survives renaming" $
+        prop_equalityFor rename
 
-propRenameBrokenRename :: IO ()
-propRenameBrokenRename = checkBadRename $ propRenameFor brokenRenameProgram
+test_equalityBrokenRename :: TestTree
+test_equalityBrokenRename =
+    testCase "no marking in renaming destroys scoping" $
+        checkBadRename $ prop_equalityFor brokenRenameProgram
 
-propRenameNoMarkRename :: IO ()
-propRenameNoMarkRename = checkBadRename $ propRenameFor noMarkRenameProgram
+test_equalityNoMarkRename :: TestTree
+test_equalityNoMarkRename =
+    testCase "equality does not survive renaming without marking" $
+        checkBadRename $ prop_equalityFor noMarkRenameProgram
 
-propScopingFor
+prop_scopingFor
     :: program ~ Program TyName Name DefaultUni DefaultFun NameAnn
     => (program -> Quote program) -> Property
-propScopingFor ren = property $ do
+prop_scopingFor ren = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     case checkRespectsScoping (runQuote . ren) prog of
         Left err -> fail $ show err
         Right () -> success
 
-propScoping :: Property
-propScoping = propScopingFor rename
+test_scopingRename :: TestTree
+test_scopingRename =
+    testProperty "renaming does not destroy scoping" $
+        prop_scopingFor rename
 
-propScopingBrokenRename :: IO ()
-propScopingBrokenRename = checkBadRename $ propScopingFor brokenRenameProgram
+test_scopingBrokenRename :: TestTree
+test_scopingBrokenRename =
+    testCase "wrong renaming destroys scoping" $
+        checkBadRename $ prop_scopingFor brokenRenameProgram
 
-propScopingNoRename :: IO ()
-propScopingNoRename = checkBadRename $ propScopingFor noRenameProgram
+test_scopingNoRename :: TestTree
+test_scopingNoRename =
+    testCase "no renaming does not result in global uniqueness" $
+        checkBadRename $ prop_scopingFor noRenameProgram
 
-propScopingNoMarkRename :: IO ()
-propScopingNoMarkRename = checkBadRename $ propScopingFor noMarkRenameProgram
-
-propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
-propDeBruijn gen = property . generalizeT $ do
-    TermOf body _ <- forAllNoShowT gen
-    let
-        forward = deBruijnTerm
-        backward
-            :: Either FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a)
-            -> Either FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
-        backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
-    Hedgehog.tripping body forward backward
+test_scopingNoMarkRename :: TestTree
+test_scopingNoMarkRename =
+    testCase "equality does not survive wrong renaming" $
+        checkBadRename $ prop_scopingFor noMarkRenameProgram
 
 test_alphaEquality :: TestTree
 test_alphaEquality = testCase "alphaEquality" $ do
@@ -233,16 +252,15 @@ test_rebindCapturedVariable = testCase "rebindCapturedVariable" $ do
 test_names :: TestTree
 test_names =
     testGroup "names"
-        [ testProperty "equality does not survive mangling" propMangle
-        , testProperty "equality survives renaming" propRename
-        , testCase "equality does not survive wrong renaming" propRenameBrokenRename
-        , testProperty "renaming does not destroy scoping" propScoping
-        , testCase "wrong renaming destroys scoping" propScopingBrokenRename
-        , testCase "no renaming does not result in global uniqueness" propScopingNoRename
-        , testCase "equality does survive renaming without marking" propRenameNoMarkRename
-        , testCase "no marking in renaming destroys scoping" propScopingNoMarkRename
-        , testGroup "de Bruijn transformation round-trip" $
-              fromInterestingTermGens $ \name -> testProperty name . propDeBruijn
+        [ test_DeBruijnInteresting
+        , test_mangle
+        , test_equalityRename
+        , test_equalityBrokenRename
+        , test_equalityNoMarkRename
+        , test_scopingRename
+        , test_scopingBrokenRename
+        , test_scopingNoRename
+        , test_scopingNoMarkRename
         , test_alphaEquality
         , test_rebindShadowedVariable
         , test_rebindCapturedVariable
