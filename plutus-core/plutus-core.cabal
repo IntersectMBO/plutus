@@ -42,6 +42,7 @@ library
         PlutusCore
         PlutusCore.CBOR
         PlutusCore.Check.Normal
+        PlutusCore.Check.Scoping
         PlutusCore.Check.Uniques
         PlutusCore.Check.Value
         PlutusCore.Constant
@@ -78,7 +79,6 @@ library
         PlutusCore.Generators.NEAT.Spec
         PlutusCore.Generators.NEAT.Term
         PlutusCore.Generators.NEAT.Type
-        PlutusCore.Generators.Scoping
         PlutusCore.Generators.Test
         PlutusCore.Lexer
         PlutusCore.Mark
@@ -178,6 +178,7 @@ library
         PlutusCore.Core.Instance.Pretty.Plc
         PlutusCore.Core.Instance.Pretty.Readable
         PlutusCore.Core.Instance.Recursive
+        PlutusCore.Core.Instance.Scoping
         PlutusCore.Core.Plated
         PlutusCore.Core.Type
         PlutusCore.DeBruijn.Internal

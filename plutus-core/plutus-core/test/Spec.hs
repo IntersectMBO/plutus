@@ -20,12 +20,12 @@ import           Pretty.Readable
 import           TypeSynthesis.Spec                (test_typecheck)
 
 import           PlutusCore
+import           PlutusCore.Check.Scoping
 import           PlutusCore.DeBruijn
 import           PlutusCore.Generators
 import           PlutusCore.Generators.AST         as AST
 import           PlutusCore.Generators.Interesting
 import qualified PlutusCore.Generators.NEAT.Spec   as NEAT
-import           PlutusCore.Generators.Scoping
 import           PlutusCore.Mark
 import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
