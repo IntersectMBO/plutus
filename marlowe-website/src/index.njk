@@ -4,30 +4,7 @@
   <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ googleAnalyticsId }}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
-      gtag("js", new Date());
-      gtag(
-        "config",
-        "{{ googleAnalyticsId }}",
-        {
-          "anonymize_ip": true,
-          "custom_map": { "dimension1": "product" },
-          "product": "Marlowe website"
-        }
-      );
-    </script>
-    <!-- Segment Analytics -->
-    <script>
-      !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"];analytics.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);t.unshift(e);analytics.push(t);return analytics}};for(var e=0;e<analytics.methods.length;e++){var key=analytics.methods[e];analytics[key]=analytics.factory(key)}analytics.load=function(key,e){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n);analytics._loadOptions=e};analytics.SNIPPET_VERSION="4.13.1";
-      analytics.load("{{ segmentAnalyticsId }}");
-      analytics.page();
-      }}();
-    </script>
-    <title>Marlowe: Financial smart contracts made easy</title>
+    <title>Marlowe: Financial test contracts made easy</title>
     <meta name="description" content="Marlowe reimagines how to create, test and run financial agreements. Peer-to-peer, secure and scalable. Marlowe makes finance accessible to all.">
     <meta property="og:title" content="Marlowe: Financial Smart Contracts">
     <meta property="og:description" content="Democratizing Finance on Cardano">
@@ -63,7 +40,7 @@
         <div class="sm:absolute sm:w-min inset-0 ">
           <h1 class="text-3xl md:text-4xl lg:text-5xl flex flex-col font-comfortaa-bolder leading-tight pt-28 lg:pt-40 pb-4">
             <span class="min-w-max">Financial</span>
-            <span class="min-w-max">Smart Contracts,</span>
+            <span class="min-w-max">Test Contracts,</span>
             <span>reimagined.</span>
           </h1>
           <h2 class="text-xl lg:text-2xl xl:text-27px pb-8">Marlowe puts the power of financial agreements into the hands of millions.</h2>
@@ -104,7 +81,7 @@
         </div>
         <div class="rounded-lg bg-lightgray p-4">
           <h4 class="text-lightpurple text-xl font-semibold mb-3">Already tried Marlowe Run?</h4>
-          <p class="text-lg ">Tell us what you think, we need your feedback to turn great into exceptional.</p>
+          <p class="text-lg">Tell us what you think, we need your feedback to turn great into exceptional.</p>
           <div class="flex items-end justify-end">
             <img class="relative top-2" src="{% static './static/img/top-down-arrow.svg' %}" alt="Arrow">
             <button class="text-sm flex-shrink-0 primary-button">Submit feedback</button>
