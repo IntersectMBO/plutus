@@ -349,30 +349,3 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun)
         Program NotAName (NotAName <$ ver) <$> establishScoping term
 
     collectScopeInfo (Program _ _ term) = collectScopeInfo term
-
--- flawed renamers:
---   changing free variables
---   not changing bound variables correctly
---   changing the spine of the program
---   mixing up type and term variables
---
---   changing names at the binding site but not the use site (or the other way around)
---   changing out-of-scope variables
---   adding names clashing with preexisting names
-
---   leaving duplicate binders
-
-
-
-    -- leftUnlessEmpty OldBindingsDiscordWithBoundVariables $
-    --     disappearedBindings `symmetricDifference` disappearedVariables
-    -- leftUnlessEmpty OldBindingsDiscordWithOutOfScopeVariables $
-    --     disappearedBindings `symmetricDifference` stayedOutOfScopeVariables
-    -- leftUnlessEmpty NewBindingsDiscordWithBoundVariables $
-    --     appearedBindings `symmetricDifference` appearedVariables
-    -- leftUnlessEmpty OldBindingsClashWithFreeVariables $
-    --     disappearedBindings `Set.intersection` stayedFreeVariables
-    -- leftUnlessEmpty OldBindingsClashWithNewBindings $
-    --     disappearedBindings `Set.intersection` appearedBindings
-    -- leftUnlessEmpty NewBindingsClashWithFreeVariabes $
-    --     appearedBindings `Set.intersection` stayedFreeVariables
