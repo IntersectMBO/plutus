@@ -59,7 +59,7 @@ webserverCommandParser =
         _maxInterpretationTime <-
             option
                 auto
-                (short 'i' <> long "interpretation" <> help "Max interpretation time" <>
+                (short 'i' <> long "interpretation" <> help "Max interpretation time (seconds)" <>
                  showDefault <>
                  value 80)
         pure Webserver {..}
