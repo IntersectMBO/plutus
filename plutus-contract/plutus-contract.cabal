@@ -143,7 +143,8 @@ library
         foldl -any,
         streaming -any,
         IntervalMap -any,
-        plutus-chain-index -any
+        plutus-chain-index -any,
+        plutus-core -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

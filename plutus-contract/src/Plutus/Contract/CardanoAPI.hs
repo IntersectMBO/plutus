@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -18,7 +19,7 @@ module Plutus.Contract.CardanoAPI(
   , fromCardanoValue
   , fromCardanoFee
   , fromCardanoValidityRange
-  , fromCardanoAuxScriptData
+  , fromCardanoExtraScriptData
   , fromCardanoScriptInEra
   , toCardanoTxBody
   , toCardanoTxIn
@@ -30,7 +31,7 @@ module Plutus.Contract.CardanoAPI(
   , toCardanoValue
   , toCardanoFee
   , toCardanoValidityRange
-  , toCardanoAuxScriptData
+  , toCardanoExtraScriptData
   , toCardanoScriptInEra
 ) where
 
@@ -50,7 +51,7 @@ import qualified Ledger.Ada                  as Ada
 import qualified Plutus.V1.Ledger.Api        as Api
 import qualified Plutus.V1.Ledger.Credential as Credential
 import qualified Plutus.V1.Ledger.Value      as Value
-import qualified PlutusTx.Data               as Data
+import qualified PlutusCore.Data             as Data
 
 fromCardanoTx :: C.Era era => C.Tx era -> Either FromCardanoError P.Tx
 fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
@@ -62,9 +63,10 @@ fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
         , txMint = fromCardanoMintValue txMintValue
         , txFee = fromCardanoFee txFee
         , txValidRange = fromCardanoValidityRange txValidityRange
-        , txData = Map.fromList $ fmap (\ds -> (P.datumHash ds, ds)) $ fromCardanoAuxScriptData txAuxScriptData
+        , txData = mempty -- only available with a Build Tx
         , txSignatures = mempty -- TODO: convert from _keyWitnesses?
         , txMintScripts = mempty -- only available with a Build Tx
+        , txRedeemers = mempty -- only available with a Build Tx
         }
 
 toCardanoTxBody :: P.Tx -> Either ToCardanoError (C.TxBody C.AlonzoEra)
@@ -81,7 +83,7 @@ toCardanoTxBody P.Tx{..} = do
         , txOuts = txOuts
         , txFee = txFee'
         , txValidityRange = txValidityRange
-        , txAuxScriptData = toCardanoAuxScriptData (Map.elems txData)
+        , txExtraScriptData = C.BuildTxWith $ toCardanoExtraScriptData (Map.elems txData)
         , txMintValue = txMintValue
         -- unused:
         , txMetadata = C.TxMetadataNone
@@ -319,12 +321,12 @@ fromCardanoSlotNo (C.SlotNo w64) = P.Slot (toInteger w64)
 toCardanoSlotNo :: P.Slot -> C.SlotNo
 toCardanoSlotNo (P.Slot i) = C.SlotNo (fromInteger i)
 
-fromCardanoAuxScriptData :: C.TxAuxScriptData era -> [P.Datum]
-fromCardanoAuxScriptData C.TxAuxScriptDataNone            = []
-fromCardanoAuxScriptData (C.TxAuxScriptData _ scriptData) = fmap (P.Datum . fromCardanoScriptData) scriptData
+fromCardanoExtraScriptData :: C.TxExtraScriptData era -> [P.Datum]
+fromCardanoExtraScriptData C.TxExtraScriptDataNone            = []
+fromCardanoExtraScriptData (C.TxExtraScriptData _ scriptData) = fmap (P.Datum . fromCardanoScriptData) scriptData
 
-toCardanoAuxScriptData :: [P.Datum] -> C.TxAuxScriptData C.AlonzoEra
-toCardanoAuxScriptData = C.TxAuxScriptData C.ScriptDataInAlonzoEra . fmap (toCardanoScriptData . P.getDatum)
+toCardanoExtraScriptData :: [P.Datum] -> C.TxExtraScriptData C.AlonzoEra
+toCardanoExtraScriptData = C.TxExtraScriptData C.ScriptDataInAlonzoEra . fmap (toCardanoScriptData . P.getDatum)
 
 fromCardanoScriptData :: C.ScriptData -> Data.Data
 fromCardanoScriptData = C.toPlutusData
