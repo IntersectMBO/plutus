@@ -10,6 +10,9 @@ import           PlutusCore.Core.Type
 import           PlutusCore.Name
 import           PlutusCore.Quote
 
+-- In the three instances below the added variable is always the last field of a constructor.
+-- Just to be consistent.
+
 instance tyname ~ TyName => Reference TyName (Type tyname uni) where
     referenceVia reg tyname ty = TyApp NotAName ty $ TyVar (reg tyname) tyname
 
@@ -19,9 +22,21 @@ instance tyname ~ TyName => Reference TyName (Term tyname name uni fun) where
 instance name ~ Name => Reference Name (Term tyname name uni fun) where
     referenceVia reg name term = Apply NotAName term $ Var (reg name) name
 
+-- Kinds have no names, hence the simple instance.
 instance Scoping Kind where
     establishScoping kind = pure $ NotAName <$ kind
-    collectScopeInfo _ = Right emptyScopeInfo
+    collectScopeInfo _ = mempty
+
+-- Very straightforward boilerplate.
+--
+-- For 'establishScoping':
+-- 1. bindings are handled with 'freshen*Name' + 'establishScopingBinder'
+-- 2. variables are handled with 'freshen*Name' + 'registerFree'
+-- 3. everything else is direct recursion + 'Applicative' stuff
+--
+-- For 'collectScopeInfo':
+-- 1. names (both bindings and variables) are handled with 'handleSname'
+-- 2. everything else is direct recursion + 'Monoid' stuff
 
 instance tyname ~ TyName => Scoping (Type tyname uni) where
     establishScoping (TyLam _ nameDup kind ty) = do
@@ -42,17 +57,17 @@ instance tyname ~ TyName => Scoping (Type tyname uni) where
     establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
 
     collectScopeInfo (TyLam ann name kind ty) =
-        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo kind, collectScopeInfo ty]
+        handleSname ann name <> collectScopeInfo kind <> collectScopeInfo ty
     collectScopeInfo (TyForall ann name kind ty) =
-        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo kind, collectScopeInfo ty]
+        handleSname ann name <> collectScopeInfo kind <> collectScopeInfo ty
     collectScopeInfo (TyIFix _ pat arg) =
-        mergeErrOrScopeInfos [collectScopeInfo pat, collectScopeInfo arg]
+        collectScopeInfo pat <> collectScopeInfo arg
     collectScopeInfo (TyApp _ fun arg) =
-        mergeErrOrScopeInfos [collectScopeInfo fun, collectScopeInfo arg]
+        collectScopeInfo fun <> collectScopeInfo arg
     collectScopeInfo (TyFun _ dom cod) =
-        mergeErrOrScopeInfos [collectScopeInfo dom, collectScopeInfo cod]
+        collectScopeInfo dom <> collectScopeInfo cod
     collectScopeInfo (TyVar ann name) = handleSname ann name
-    collectScopeInfo (TyBuiltin _ _) = Right emptyScopeInfo
+    collectScopeInfo (TyBuiltin _ _) = mempty
 
 instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) where
     establishScoping (LamAbs _ nameDup ty body)  = do
@@ -75,21 +90,21 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
 
-    collectScopeInfo (LamAbs ann name ty body)  = do
-        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo ty, collectScopeInfo body]
-    collectScopeInfo (TyAbs ann name kind body) = do
-        mergeErrOrScopeInfos [handleSname ann name, collectScopeInfo kind, collectScopeInfo body]
+    collectScopeInfo (LamAbs ann name ty body)  =
+        handleSname ann name <> collectScopeInfo ty <> collectScopeInfo body
+    collectScopeInfo (TyAbs ann name kind body) =
+        handleSname ann name <> collectScopeInfo kind <> collectScopeInfo body
     collectScopeInfo (IWrap _ pat arg term)   =
-        mergeErrOrScopeInfos [collectScopeInfo pat, collectScopeInfo arg, collectScopeInfo term]
+        collectScopeInfo pat <> collectScopeInfo arg <> collectScopeInfo term
     collectScopeInfo (Apply _ fun arg) =
-        mergeErrOrScopeInfos [collectScopeInfo fun, collectScopeInfo arg]
+        collectScopeInfo fun <> collectScopeInfo arg
     collectScopeInfo (Unwrap _ term) = collectScopeInfo term
     collectScopeInfo (Error _ ty) = collectScopeInfo ty
     collectScopeInfo (TyInst _ term ty) =
-        mergeErrOrScopeInfos [collectScopeInfo term, collectScopeInfo ty]
+        collectScopeInfo term <> collectScopeInfo ty
     collectScopeInfo (Var ann name) = handleSname ann name
-    collectScopeInfo (Constant _ _) = Right emptyScopeInfo
-    collectScopeInfo (Builtin _ _) = Right emptyScopeInfo
+    collectScopeInfo (Constant _ _) = mempty
+    collectScopeInfo (Builtin _ _) = mempty
 
 instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun) where
     establishScoping (Program _ ver term) =

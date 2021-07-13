@@ -138,9 +138,17 @@ mergeScopeInfo si1 si2
         appearedBindings2 = to AppearedBindings si2
         duplicateAppearedBindings = appearedBindings1 `Set.intersection` appearedBindings2
 
-mergeErrOrScopeInfos :: [Either ScopeError ScopeInfo] -> Either ScopeError ScopeInfo
-mergeErrOrScopeInfos =
-    Prelude.foldr (\si1 si2 -> join $ mergeScopeInfo <$> si1 <*> si2) $ pure emptyScopeInfo
+-- We might want to use @Validation@ or something instead of 'Either'.
+newtype ScopeErrorOrInfo = ScopeErrorOrInfo
+    { unScopeErrorOrInfo :: Either ScopeError ScopeInfo
+    }
+
+instance Semigroup ScopeErrorOrInfo where
+    ScopeErrorOrInfo errOrInfo1 <> ScopeErrorOrInfo errOrInfo2 =
+        ScopeErrorOrInfo . join $ mergeScopeInfo <$> errOrInfo1 <*> errOrInfo2
+
+instance Monoid ScopeErrorOrInfo where
+    mempty = ScopeErrorOrInfo $ Right emptyScopeInfo
 
 -- ########################################################################
 -- ## Main class for collecting scope information and relevant functions ##
@@ -149,8 +157,7 @@ mergeErrOrScopeInfos =
 class Scoping t where
     establishScoping :: MonadQuote m => t ann -> m (t NameAnn)
 
-    -- We might want to use @Validation@ or something instead of 'Either'.
-    collectScopeInfo :: t NameAnn -> Either ScopeError ScopeInfo
+    collectScopeInfo :: t NameAnn -> ScopeErrorOrInfo
 
 establishScopingBinder
     :: (Reference name lower, ToScopedName name, Scoping upper, Scoping lower, MonadQuote m)
@@ -212,8 +219,8 @@ applyNameAction (Changes changes) snameOld snameNew =
         then Left $ NameUnexpectedlyStayed snameOld
         else Right $ applyChanges changes snameOld snameNew
 
-handleSname :: ToScopedName name => NameAnn -> name -> Either ScopeError ScopeInfo
-handleSname ann nameNew = do
+handleSname :: ToScopedName name => NameAnn -> name -> ScopeErrorOrInfo
+handleSname ann nameNew = ScopeErrorOrInfo $ do
     let snameNew = toScopedName nameNew
     case ann of
         NotAName -> Left $ UnannotatedName snameNew
@@ -253,4 +260,4 @@ checkScopeInfo scopeInfo = do
 
 checkRespectsScoping :: Scoping t => (t NameAnn -> t NameAnn) -> t ann -> Either ScopeError ()
 checkRespectsScoping ren =
-    checkScopeInfo <=< collectScopeInfo . ren . runQuote . establishScoping
+    checkScopeInfo <=< unScopeErrorOrInfo . collectScopeInfo . ren . runQuote . establishScoping
