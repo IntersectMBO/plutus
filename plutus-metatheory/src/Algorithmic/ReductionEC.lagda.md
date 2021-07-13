@@ -1103,7 +1103,8 @@ bappTypeLem trace {az = az} {as} M p q
   with <>>-cancel-both' az ([] ∷ Type) ([] ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 
--- a smart constructor that looks at the arity and then puts on the right constructor
+-- a smart constructor that looks at the arity and then puts on the
+-- right constructor
 V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
        → (p : as <>> a ∷ as' ∈ arity b)
        → {t : ∅ ⊢ A}
