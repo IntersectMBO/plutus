@@ -63,6 +63,8 @@ data HscEnv = HscEnv { hsc_dflags :: DynFlags }
 data RdrName = RdrName_
 data Messages = Messages_
 
+data HoleFitPluginR = HoleFitPluginR_
+
 data Literal
     =     ------------------
           -- First the primitive guys

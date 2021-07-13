@@ -35,19 +35,30 @@ data Plugin = Plugin {
   , tcPlugin :: TcPlugin
     -- ^ An optional typechecker plugin, which may modify the
     -- behaviour of the constraint solver.
+  , holeFitPlugin :: HoleFitPlugin
+    -- ^ An optional plugin to handle hole fits, which may re-order
+    --   or change the list of valid hole fits and refinement hole fits.
+  , dynflagsPlugin :: [CommandLineOption] -> DynFlags -> IO DynFlags
+  , driverPlugin :: [CommandLineOption] -> HscEnv -> IO HscEnv
+    -- ^ An optional plugin to update 'HscEnv', right after plugin loading. This
+    -- can be used to register hooks or tweak any field of 'DynFlags' before
+    -- doing actual work on a module.
+    --
+    --   @since 8.10.1
+
   , pluginRecompile :: [CommandLineOption] -> IO PluginRecompile
     -- ^ Specify how the plugin should affect recompilation.
   , parsedResultAction :: [CommandLineOption] -> ModSummary -> HsParsedModule
                             -> Hsc HsParsedModule
     -- ^ Modify the module when it is parsed. This is called by
-    -- HscMain when the parsing is successful.
+    -- "GHC.Driver.Main" when the parsing is successful.
   , renamedResultAction :: [CommandLineOption] -> TcGblEnv
                                 -> HsGroup GhcRn -> TcM (TcGblEnv, HsGroup GhcRn)
     -- ^ Modify each group after it is renamed. This is called after each
     -- `HsGroup` has been renamed.
   , typeCheckResultAction :: [CommandLineOption] -> ModSummary -> TcGblEnv
                                -> TcM TcGblEnv
-    -- ^ Modify the module when it is type checked. This is called add the
+    -- ^ Modify the module when it is type checked. This is called at the
     -- very end of typechecking.
   , spliceRunAction :: [CommandLineOption] -> LHsExpr GhcTc
                          -> TcM (LHsExpr GhcTc)
@@ -55,7 +66,7 @@ data Plugin = Plugin {
   , interfaceLoadAction :: forall lcl . [CommandLineOption] -> ModIface
                                           -> IfM lcl ModIface
     -- ^ Modify an interface that have been loaded. This is called by
-    -- LoadIface when an interface is successfully loaded. Not applied to
+    -- "GHC.Iface.Load" when an interface is successfully loaded. Not applied to
     -- the loading of the plugin interface. Tools that rely on information from
     -- modules other than the currently compiled one should implement this
     -- function.
@@ -115,6 +126,7 @@ instance Monoid PluginRecompile where
 
 type CorePlugin = [CommandLineOption] -> [CoreToDo] -> CoreM [CoreToDo]
 type TcPlugin = [CommandLineOption] -> Maybe TcRnTypes.TcPlugin
+type HoleFitPlugin = [CommandLineOption] -> Maybe HoleFitPluginR
 
 purePlugin, impurePlugin, flagRecompile :: [CommandLineOption] -> IO PluginRecompile
 purePlugin _args = return NoForceRecompile
@@ -130,7 +142,9 @@ defaultPlugin :: Plugin
 defaultPlugin = Plugin {
         installCoreToDos      = const return
       , tcPlugin              = const Nothing
-      , pluginRecompile  = impurePlugin
+      , holeFitPlugin         = const Nothing
+      , dynflagsPlugin        = const return
+      , pluginRecompile       = impurePlugin
       , renamedResultAction   = \_ env grp -> return (env, grp)
       , parsedResultAction    = \_ _ -> return
       , typeCheckResultAction = \_ _ -> return

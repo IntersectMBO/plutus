@@ -28,7 +28,6 @@ Library
                    ghc-boot,
                    bytestring -any,
                    template-haskell -any
-
     hs-source-dirs:
         src
 
