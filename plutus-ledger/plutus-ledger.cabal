@@ -114,13 +114,16 @@ library
         deriving-compat -any,
         newtype-generics -any,
         http-api-data -any,
-        cardano-api -any,
         cardano-binary -any,
         cardano-crypto -any,
         deepseq -any,
         freer-simple -any,
         semigroups -any,
         plutus-tx-plugin -any
+    if !os(ghcjs)
+        build-depends: cardano-api -any,
+    else
+        build-depends: cardano-api-stub
 
     ghc-options: -fprint-potential-instances
 

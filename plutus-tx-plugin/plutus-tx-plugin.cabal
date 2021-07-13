@@ -33,7 +33,7 @@ common lang
 
 flag ghcjs-plugin
   description: build the plugin for GHCJS instead of GHC
-  default:     False
+  default:     True
   manual:      True
 
 library
@@ -79,7 +79,7 @@ library
         build-depends: plutus-ghc-stub
     else
         if(flag(ghcjs-plugin))
-            build-depends: ghcjs >=8.10 && <9
+            build-depends: ghcjs >=8.10.5 && <9
         else
             build-depends: ghc >=8.10 && <9
 

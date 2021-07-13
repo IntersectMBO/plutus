@@ -39,8 +39,8 @@ common lang
 
 library
     import: lang
-    if os(linux) || os(osx)
-        build-tool-depends: cardano-node:cardano-node, cardano-cli:cardano-cli
+    -- if !os(ghcjs)
+    --     build-tool-depends: cardano-node:cardano-node, cardano-cli:cardano-cli
     exposed-modules:
         Cardano.BM.Data.Tracer.Extras
         Cardano.Chain
@@ -123,7 +123,6 @@ library
         async -any,
         base >=4.7 && <5,
         bytestring -any,
-        cardano-api -any,
         cardano-crypto -any,
         cardano-prelude -any,
         cardano-slotting -any,
@@ -183,16 +182,21 @@ library
         mwc-random -any,
         primitive -any,
         hedgehog -any,
-        iohk-monitoring -any,
-        lobemo-backend-ekg -any,
         exceptions -any,
         data-default -any,
         time -any,
         time-units -any,
         beam-core -any,
-        beam-sqlite -any,
         beam-migrate -any,
         sqlite-simple -any
+    if !os(ghcjs)
+        build-depends: cardano-api -any,
+                       beam-sqlite -any,
+                       iohk-monitoring -any,
+                       lobemo-backend-ekg -any
+
+    else
+        build-depends: cardano-api-stub
 
 executable plutus-pab
     main-is: Main.hs
@@ -235,10 +239,11 @@ executable plutus-pab
         uuid -any,
         yaml -any,
         containers -any,
-        iohk-monitoring -any,
         servant-client -any,
         contra-tracer -any,
         lobemo-backend-ekg -any
+    if !os(ghcjs)
+        build-depends: iohk-monitoring -any
 
 executable plutus-uniswap
     main-is: Main.hs
