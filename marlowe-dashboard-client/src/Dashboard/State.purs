@@ -48,8 +48,8 @@ import Marlowe.Extended.Metadata (_extendedContract, _metaData)
 import Marlowe.PAB (ContractHistory, MarloweParams, PlutusAppId(..), MarloweData)
 import Marlowe.Semantics (Party(..), Payee(..), Payment(..), Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
-import Template.Lenses (_contractNickname, _roleWalletInputs, _template, _templateContent)
-import Template.State (dummyState, handleAction, mkInitialState) as Template
+import Template.Lenses (_contractNicknameInput, _contractTemplate, _roleWalletInputs)
+import Template.State (dummyState, handleAction, initialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
 import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
@@ -150,7 +150,7 @@ handleAction input (SaveNewWallet mTokenName) = do
       newWalletLibrary <- use _walletLibrary
       -- if a tokenName was also passed, we need to update the contract setup data
       for_ mTokenName \tokenName -> do
-        handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators newWalletLibrary
+        handleAction input $ TemplateAction Template.UpdateRoleWalletValidators
         handleAction input $ TemplateAction $ Template.RoleWalletInputAction tokenName $ InputField.SetValue walletNickname
     -- TODO: show error feedback to the user (just to be safe - but this should never happen, because
     -- the button to save a new wallet should be disabled in this case)
@@ -340,24 +340,11 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
     for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
     handleAction input $ ContractAction Contract.CancelConfirmation
 
--- TODO: We have to handle quite a lot of submodule actions here (mainly just because of the
--- cards), so there's probably a better way of structuring this - perhaps making cards work more
--- like toasts.
 handleAction input@{ currentSlot } (TemplateAction templateAction) = case templateAction of
-  Template.SetTemplate template -> do
-    mCurrentTemplate <- peruse (_templateState <<< _template)
-    when (mCurrentTemplate /= Just template) $ assign _templateState $ Template.mkInitialState template
-    walletLibrary <- use _walletLibrary
-    handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators walletLibrary
-    handleAction input $ OpenCard ContractSetupCard
-  Template.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
   Template.OpenCreateWalletCard tokenName -> handleAction input $ OpenCard $ SaveWalletCard $ Just tokenName
-  Template.OpenSetupConfirmationCard -> handleAction input $ OpenCard ContractSetupConfirmationCard
-  Template.CloseSetupConfirmationCard -> handleAction input CloseCard
   Template.StartContract -> do
-    extendedContract <- use (_templateState <<< _template <<< _extendedContract)
-    templateContent <- use (_templateState <<< _templateContent)
-    case instantiateExtendedContract currentSlot extendedContract templateContent of
+    templateState <- use _templateState
+    case instantiateExtendedContract currentSlot templateState of
       Nothing -> addToast $ errorToast "Failed to instantiate contract." $ Just "Something went wrong when trying to instantiate a contract from this template using the parameters you specified."
       Just contract -> do
         -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
@@ -379,15 +366,18 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
             case ajaxPendingFollowerApp of
               Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
               Right followerAppId -> do
-                contractNickname <- use (_templateState <<< _contractNickname)
+                contractNickname <- use (_templateState <<< _contractNicknameInput <<< _value)
                 insertIntoContractNicknames followerAppId contractNickname
-                metaData <- use (_templateState <<< _template <<< _metaData)
+                metaData <- use (_templateState <<< _contractTemplate <<< _metaData)
                 modifying _contracts $ insert followerAppId $ Contract.mkPlaceholderState followerAppId contractNickname metaData contract
                 handleAction input CloseCard
                 addToast $ successToast "The request to initialise this contract has been submitted."
                 { dataProvider } <- ask
                 when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
-  _ -> toTemplate $ Template.handleAction templateAction
+                assign _templateState Template.initialState
+  _ -> do
+    walletLibrary <- use _walletLibrary
+    toTemplate $ Template.handleAction { currentSlot, walletLibrary } templateAction
 
 handleAction input@{ currentSlot } (ContractAction contractAction) = do
   walletDetails <- use _walletDetails

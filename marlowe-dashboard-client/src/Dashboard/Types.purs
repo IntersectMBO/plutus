@@ -44,9 +44,7 @@ data Card
   | WalletLibraryCard
   | SaveWalletCard (Maybe String)
   | ViewWalletCard WalletDetails
-  | TemplateLibraryCard
-  | ContractSetupCard
-  | ContractSetupConfirmationCard
+  | ContractTemplateCard
   | ContractActionConfirmationCard NamedAction
 
 derive instance eqCard :: Eq Card
