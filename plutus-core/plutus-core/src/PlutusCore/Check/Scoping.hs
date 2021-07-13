@@ -123,23 +123,24 @@ to entry = fromMaybe Set.empty . Map.lookup entry . unScopeInfo
 emptyScopeInfo :: ScopeInfo
 emptyScopeInfo = ScopeInfo Map.empty
 
-mergeScopeInfo :: ScopeInfo -> ScopeInfo -> Either ScopeError ScopeInfo
-mergeScopeInfo si1 si2
-    | duplicateDisappearedBindings /= Set.empty =
-        Left $ DuplicateBindersInTheInput duplicateDisappearedBindings
-    | duplicateAppearedBindings /= Set.empty =
-        Left $ DuplicateBindersInTheOutput duplicateAppearedBindings
-    | otherwise = Right $ coerce (Map.unionWith Set.union) si1 si2
-    where
-        disappearedBindings1 = to DisappearedBindings si1
-        disappearedBindings2 = to DisappearedBindings si2
-        duplicateDisappearedBindings = disappearedBindings1 `Set.intersection` disappearedBindings2
-        appearedBindings1 = to AppearedBindings si1
-        appearedBindings2 = to AppearedBindings si2
-        duplicateAppearedBindings = appearedBindings1 `Set.intersection` appearedBindings2
+-- | Check if a set is empty and report an error with the set embedded in it otherwise.
+checkEmpty :: (Set ScopedName -> ScopeError) -> Set ScopedName -> Either ScopeError ()
+checkEmpty err s = unless (Set.null s) . Left $ err s
 
--- We might want to use @Validation@ or something instead of 'Either'.
+mergeScopeInfo :: ScopeInfo -> ScopeInfo -> Either ScopeError ScopeInfo
+mergeScopeInfo si1 si2 = do
+    let disappearedBindings1 = to DisappearedBindings si1
+        disappearedBindings2 = to DisappearedBindings si2
+        appearedBindings1    = to AppearedBindings    si1
+        appearedBindings2    = to AppearedBindings    si2
+        duplicateDisappearedBindings = disappearedBindings1 `Set.intersection` disappearedBindings2
+        duplicateAppearedBindings    = appearedBindings1    `Set.intersection` appearedBindings2
+    checkEmpty DuplicateBindersInTheInput  duplicateDisappearedBindings
+    checkEmpty DuplicateBindersInTheOutput duplicateAppearedBindings
+    Right $ coerce (Map.unionWith Set.union) si1 si2
+
 newtype ScopeErrorOrInfo = ScopeErrorOrInfo
+    -- We might want to use @Validation@ or something instead of 'Either'.
     { unScopeErrorOrInfo :: Either ScopeError ScopeInfo
     }
 
@@ -232,9 +233,6 @@ handleSname ann nameNew = ScopeErrorOrInfo $ do
 symmetricDifference :: Ord a => Set a -> Set a -> Set a
 symmetricDifference s t = (s `Set.union` t) `Set.difference` (s `Set.intersection` t)
 
-leftUnlessEmpty :: (Set ScopedName -> ScopeError) -> Set ScopedName -> Either ScopeError ()
-leftUnlessEmpty err s = unless (Set.null s) . Left $ err s
-
 {-| Check that each kind of 'Set' from 'ScopeInfo' relates to all other ones in a certain way.
 We start with these three relations that are based on the assumption that for each binder we add
 at least one out-of-scope variable and at least one in-scope one:
@@ -264,19 +262,20 @@ checkScopeInfo scopeInfo = do
         appearedVariables         = to AppearedVariables         scopeInfo
         stayedOutOfScopeVariables = to StayedOutOfScopeVariables scopeInfo
         stayedFreeVariables       = to StayedFreeVariables       scopeInfo
-    leftUnlessEmpty OldBindingsDiscordWithOutOfScopeVariables $
+    checkEmpty OldBindingsDiscordWithOutOfScopeVariables $
         disappearedBindings `symmetricDifference` stayedOutOfScopeVariables
-    leftUnlessEmpty OldBindingsDiscordWithBoundVariables $
+    checkEmpty OldBindingsDiscordWithBoundVariables $
         disappearedBindings `symmetricDifference` disappearedVariables
-    leftUnlessEmpty NewBindingsDiscordWithBoundVariables $
+    checkEmpty NewBindingsDiscordWithBoundVariables $
         appearedBindings `symmetricDifference` appearedVariables
-    leftUnlessEmpty OldBindingsClashWithFreeVariables $
+    checkEmpty OldBindingsClashWithFreeVariables $
         disappearedBindings `Set.intersection` stayedFreeVariables
-    leftUnlessEmpty OldBindingsClashWithNewBindings $
+    checkEmpty OldBindingsClashWithNewBindings $
         appearedBindings  `Set.intersection` disappearedBindings
-    leftUnlessEmpty NewBindingsClashWithFreeVariabes $
+    checkEmpty NewBindingsClashWithFreeVariabes $
         appearedBindings `Set.intersection` stayedFreeVariables
 
+-- | Check if a renamer respects scoping.
 checkRespectsScoping :: Scoping t => (t NameAnn -> t NameAnn) -> t ann -> Either ScopeError ()
 checkRespectsScoping ren =
     checkScopeInfo <=< unScopeErrorOrInfo . collectScopeInfo . ren . runQuote . establishScoping
