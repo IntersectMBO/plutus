@@ -73,6 +73,7 @@ import qualified Wallet.Emulator                     as EM
 import           Wallet.Emulator.Chain               (ChainControlEffect, ChainEffect, ChainEvent)
 import qualified Wallet.Emulator.MultiAgent          as MultiAgent
 
+import           Cardano.Api.NetworkId.Extra         (NetworkIdWrapper (..))
 import           Ledger.Fee                          (FeeConfig)
 import           Plutus.PAB.Arbitrary                ()
 
@@ -127,6 +128,8 @@ data MockServerConfig =
         , mscFeeConfig        :: FeeConfig
         -- ^ Configure constant fee per transaction and ratio by which to
         -- multiply size-dependent scripts fee.
+        , mscNetworkId        :: NetworkIdWrapper
+        -- ^ NetworkId that's used with the CardanoAPI.
         }
     deriving (Show, Eq, Generic, FromJSON)
 

@@ -25,4 +25,3 @@ tests =
     "plutus-ledger-api-time"
     [ testProperty "POSIXTime FromJSON/ToJSON inverse property" invPropJson
     ]
-
