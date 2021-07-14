@@ -30,16 +30,6 @@ makeTest {
     machine.succeed("systemctl start plutus-playground")
     machine.wait_for_unit("plutus-playground.service")
     machine.wait_for_open_port(4000)
-
-    with subtest("********************************************************************************************* TEST: Can reload a config file"):
-      machine.succeed("mkdir -p /var/lib/playgrounds")
-      machine.succeed("cp ${envFile} /var/lib/playgrounds/plutus.env")
-      machine.succeed("systemctl restart plutus-playground")
-      machine.wait_for_unit("plutus-playground.service")
-      machine.sleep(2)
-
-      res = machine.succeed("journalctl -eu plutus-playground.service --no-pager")
-      assert "Loading environment config from '/var/lib/playgrounds/plutus.env'" in res, "Expected playground to load config. Actual: {}".format(res)
   '';
 
 }
