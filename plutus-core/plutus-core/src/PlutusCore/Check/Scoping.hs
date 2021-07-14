@@ -88,15 +88,20 @@ registerFree :: ToScopedName name => name -> NameAnn
 registerFree = NameAction (Persists StaysFreeVariable) . toScopedName
 
 class Reference n t where
+    -- | Take a registering function, apply it to the provided name, create a type\/term variable
+    -- out of the resulting annotation and the original name and reference that variable in the
+    -- provided type\/term by prepending a constructor to it mentioning the variable.
     referenceVia
         :: (forall name. ToScopedName name => name -> NameAnn)
         -> n
         -> t NameAnn
         -> t NameAnn
 
+-- | Reference the provided variable in the provided type\/term as an in-scope one.
 referenceInScope :: Reference n t => n -> t NameAnn -> t NameAnn
 referenceInScope = referenceVia registerBound
 
+-- | Reference the provided variable in the provided type\/term as an out-of-scope one.
 referenceOutOfScope :: Reference n t => n -> t NameAnn -> t NameAnn
 referenceOutOfScope = referenceVia registerOutOfScope
 
@@ -117,6 +122,7 @@ newtype ScopeInfo = ScopeInfo
     { unScopeInfo :: Map ScopeEntry (Set ScopedName)
     } deriving (Show)
 
+-- | Extract the set stored in the provided 'ScopeInfo' at the provided 'ScopeEntry'.
 to :: ScopeEntry -> ScopeInfo -> Set ScopedName
 to entry = fromMaybe Set.empty . Map.lookup entry . unScopeInfo
 
@@ -127,6 +133,7 @@ emptyScopeInfo = ScopeInfo Map.empty
 checkEmpty :: (Set ScopedName -> ScopeError) -> Set ScopedName -> Either ScopeError ()
 checkEmpty err s = unless (Set.null s) . Left $ err s
 
+-- | Merge two 'ScopeInfo's checking that they do not intersect along the way.
 mergeScopeInfo :: ScopeInfo -> ScopeInfo -> Either ScopeError ScopeInfo
 mergeScopeInfo si1 si2 = do
     let disappearedBindings1 = to DisappearedBindings si1
@@ -155,11 +162,41 @@ instance Monoid ScopeErrorOrInfo where
 -- ## Main class for collecting scope information and relevant functions ##
 -- ########################################################################
 
+-- Given that it's straightforward to provide an implementation for each of the methods,
+-- it would be nice to somehow do that generically by default.
 class Scoping t where
+    {-| Traverse a 't' freshening every name (both at the binding and the use sites)
+    and annotating the freshened names with either 'DisappearsBinding' or 'StaysFreeVariable'
+    depending on whether the name occurs at the binding or the use site.
+
+    In addition to that every binder should be decorated with one out-of-scope variable (annotated
+    with 'StaysOutOfScopeVariable') and one in-scope one (annotated with 'DisappearsVariable').
+
+    Note that no original name occurring in 't' should survive this procedure (and hence we don't
+    care if any of the freshened names clashes with an original one as all original ones are
+    supposed to be gone).
+
+    How to provide an implementation:
+
+    1. handle bindings with 'freshen*Name' + 'establishScopingBinder' (or similar)
+    2. handle variables with 'freshen*Name' + 'registerFree'
+    3. everything else is direct recursion + 'Applicative' stuff
+    -}
     establishScoping :: MonadQuote m => t ann -> m (t NameAnn)
 
+    {-| Collect scoping information after scoping was established and renaming was performed.
+
+    How to provide an implementation:
+
+    1. handle names (both bindings and variables) with 'handleSname'
+    2. everything else is direct recursion + 'Monoid' stuff
+    -}
     collectScopeInfo :: t NameAnn -> ScopeErrorOrInfo
 
+-- | Take a binder, a name bound by it, a sort (kind\/type), a value of that sort (type\/term)
+-- and call 'establishScoping' on both the sort and its value and reassemble the original binder
+-- with the annotated sort and its value, but also decorate the reassembled binder with
+-- one out-of-scope variable and one in-scope one.
 establishScopingBinder
     :: (Reference name lower, ToScopedName name, Scoping upper, Scoping lower, MonadQuote m)
     => (NameAnn -> name -> upper NameAnn -> lower NameAnn -> lower NameAnn)
@@ -193,15 +230,18 @@ data ScopeError
     | NewBindingsClashWithFreeVariabes (Set ScopedName)
     deriving (Show)
 
+-- | Overrisde the set at the provided 'ScopeEntry' to contain only the provided 'ScopedName'.
 overrideSname :: ScopeEntry -> ScopedName -> ScopeInfo -> ScopeInfo
 overrideSname key = coerce . Map.insert key . Set.singleton
 
+-- | Use a 'Persists' to handle an unchanged old name.
 applyPersists :: Persists -> ScopedName -> ScopeInfo
 applyPersists persists sname = overrideSname key sname emptyScopeInfo where
     key = case persists of
         StaysOutOfScopeVariable -> StayedOutOfScopeVariables
         StaysFreeVariable       -> StayedFreeVariables
 
+-- | Use a 'Changes' to handle differing old and new names.
 applyChanges :: Changes -> ScopedName -> ScopedName -> ScopeInfo
 applyChanges changes snameOld snameNew =
     overrideSname keyNew snameNew $ overrideSname keyOld snameOld emptyScopeInfo where
@@ -209,6 +249,7 @@ applyChanges changes snameOld snameNew =
             DisappearsBinding  -> (DisappearedBindings, AppearedBindings)
             DisappearsVariable -> (DisappearedVariables, AppearedVariables)
 
+-- | Use a 'NameAction' to handle an old and a new name.
 applyNameAction
     :: NameAction -> ScopedName -> ScopedName -> Either ScopeError ScopeInfo
 applyNameAction (Persists persists) snameOld snameNew =
@@ -220,6 +261,7 @@ applyNameAction (Changes changes) snameOld snameNew =
         then Left $ NameUnexpectedlyStayed snameOld
         else Right $ applyChanges changes snameOld snameNew
 
+-- | Use a 'NameAnn' to handle a new name.
 handleSname :: ToScopedName name => NameAnn -> name -> ScopeErrorOrInfo
 handleSname ann nameNew = ScopeErrorOrInfo $ do
     let snameNew = toScopedName nameNew

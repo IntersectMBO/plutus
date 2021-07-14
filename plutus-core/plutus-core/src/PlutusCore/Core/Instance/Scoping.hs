@@ -27,17 +27,6 @@ instance Scoping Kind where
     establishScoping kind = pure $ NotAName <$ kind
     collectScopeInfo _ = mempty
 
--- Very straightforward boilerplate.
---
--- For 'establishScoping':
--- 1. bindings are handled with 'freshen*Name' + 'establishScopingBinder'
--- 2. variables are handled with 'freshen*Name' + 'registerFree'
--- 3. everything else is direct recursion + 'Applicative' stuff
---
--- For 'collectScopeInfo':
--- 1. names (both bindings and variables) are handled with 'handleSname'
--- 2. everything else is direct recursion + 'Monoid' stuff
-
 instance tyname ~ TyName => Scoping (Type tyname uni) where
     establishScoping (TyLam _ nameDup kind ty) = do
         name <- freshenTyName nameDup
