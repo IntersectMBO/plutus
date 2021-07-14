@@ -10,15 +10,13 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, img, label, li, p, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (enabled, for, src)
-import Humanize (humanizeValue)
-import Images (cfdIcon, loanIcon, purchaseIcon)
+import Halogen.HTML.Properties (enabled, for)
+import Humanize (contractIcon, humanizeValue)
 import InputField.Lenses (_value)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
-import Marlowe.Extended (ContractType(..))
 import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
@@ -276,15 +274,6 @@ contractReview assets state =
       ]
 
 ------------------------------------------------------------
-contractIcon :: forall p. ContractType -> HTML p Action
-contractIcon contractType =
-  img
-    [ src case contractType of
-        Escrow -> purchaseIcon
-        ZeroCouponBond -> loanIcon
-        _ -> cfdIcon
-    ]
-
 slotParameter :: forall p. MetaData -> Tuple String (InputField.State SlotError) -> HTML p Action
 slotParameter metaData (key /\ slotContentInput) =
   let
