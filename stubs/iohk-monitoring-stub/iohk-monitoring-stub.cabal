@@ -23,6 +23,7 @@ library
     Cardano.BM.Counters
     Cardano.BM.Observer.Monadic
     Cardano.BM.Data.Aggregated
+    Cardano.BM.Data.AggregatedKind
     Cardano.BM.Data.BackendKind
     Cardano.BM.Data.Counter
     Cardano.BM.Data.Observable
