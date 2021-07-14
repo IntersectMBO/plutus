@@ -3626,7 +3626,7 @@
                             (termbind
                               (strict)
                               (vardecl
-                                contract
+                                mkValidator
                                 (fun (con bytestring) (fun (con bytestring) [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]))
                               )
                               (lam
@@ -4000,7 +4000,7 @@
                                                                                                     MustSpendAtLeast
                                                                                                     [
                                                                                                       [
-                                                                                                        contract
+                                                                                                        mkValidator
                                                                                                         mph
                                                                                                       ]
                                                                                                       tn
