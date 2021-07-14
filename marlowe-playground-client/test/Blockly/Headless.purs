@@ -20,7 +20,7 @@ createBlocklyInstance :: String -> Effect BlocklyState
 createBlocklyInstance rootBlockName = do
   blockly <- createBlocklyInstance_
   workspace <- runEffectFn1 createWorkspace_ blockly
-  pure { blockly, workspace, rootBlockName }
+  pure { blockly, workspace, rootBlockName, blocksElementId: "workspaceBlocks" }
 
 newBlock :: Workspace -> String -> Effect Block
 newBlock = runEffectFn2 newBlock_
