@@ -9,6 +9,7 @@ module Wallet.Emulator.LogMessages(
   RequestHandlerLogMsg(..)
   , TxBalanceMsg(..)
   , _ValidationFailed
+  , _BalancingUnbalancedTx
   ) where
 
 import           Control.Lens.TH             (makePrisms)

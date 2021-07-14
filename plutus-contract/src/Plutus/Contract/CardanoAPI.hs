@@ -33,6 +33,9 @@ module Plutus.Contract.CardanoAPI(
   , toCardanoValidityRange
   , toCardanoExtraScriptData
   , toCardanoScriptInEra
+  , toCardanoPaymentKeyHash
+  , toCardanoScriptHash
+  , ToCardanoError(..)
 ) where
 
 import qualified Cardano.Api                 as C
