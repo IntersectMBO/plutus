@@ -14,6 +14,7 @@ type BlocklyState
   = { blockly :: Blockly
     , workspace :: Workspace
     , rootBlockName :: String
+    , blocksElementId :: String
     }
 
 data BlocklyEvent

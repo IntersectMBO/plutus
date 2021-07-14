@@ -8,8 +8,9 @@ import Data.Array (catMaybes)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
-import Data.Traversable (class Foldable, traverse_)
+import Data.Traversable (class Foldable, for_, traverse_)
 import Effect (Effect)
+import Effect.Exception (throw)
 import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4)
 import Foreign (Foreign)
 import Global (infinity)
@@ -20,8 +21,11 @@ import Record as Record
 import Simple.JSON (class WriteForeign)
 import Simple.JSON as JSON
 import Web.DOM (Element)
+import Web.DOM.NonElementParentNode (getElementById)
 import Web.Event.EventTarget (EventListener)
-import Web.HTML (HTMLElement)
+import Web.HTML (HTMLElement, window)
+import Web.HTML.HTMLDocument (toNonElementParentNode)
+import Web.HTML.Window (document)
 
 type GridConfig
   = { spacing :: Int
@@ -85,7 +89,7 @@ foreign import resizeBlockly_ :: EffectFn2 Blockly Workspace Unit
 
 foreign import addBlockType_ :: EffectFn3 Blockly String Foreign Unit
 
-foreign import initializeWorkspace_ :: EffectFn2 Blockly Workspace Unit
+foreign import initializeWorkspace_ :: EffectFn3 Blockly Workspace Element Unit
 
 foreign import addChangeListener_ :: EffectFn2 Workspace EventListener Unit
 
@@ -127,12 +131,12 @@ newtype ElementId
 
 derive instance newtypeElementId :: Newtype ElementId _
 
-createBlocklyInstance :: String -> ElementId -> Toolbox -> Effect BlocklyState
-createBlocklyInstance rootBlockName workspaceElementId toolbox = do
+createBlocklyInstance :: String -> ElementId -> ElementId -> Toolbox -> Effect BlocklyState
+createBlocklyInstance rootBlockName (ElementId workspaceElementId) (ElementId blocksElementId) toolbox = do
   blockly <- createBlocklyInstance_
-  workspace <- runEffectFn3 createWorkspace_ blockly (unwrap workspaceElementId) config
-  runEffectFn2 debugBlockly_ (unwrap workspaceElementId) { blockly, workspace, rootBlockName }
-  pure { blockly, workspace, rootBlockName }
+  workspace <- runEffectFn3 createWorkspace_ blockly workspaceElementId config
+  runEffectFn2 debugBlockly_ workspaceElementId { blockly, workspace, rootBlockName, blocksElementId }
+  pure { blockly, workspace, rootBlockName, blocksElementId }
   where
   config =
     { toolbox: encodeToolbox toolbox
@@ -184,8 +188,12 @@ addBlockType blockly (BlockDefinition fields) =
 addBlockTypes :: forall f. Foldable f => Blockly -> f BlockDefinition -> Effect Unit
 addBlockTypes blocklyState = traverse_ (addBlockType blocklyState)
 
-initializeWorkspace :: Blockly -> Workspace -> Effect Unit
-initializeWorkspace = runEffectFn2 initializeWorkspace_
+initializeWorkspace :: BlocklyState -> Effect Unit
+initializeWorkspace bs = do
+  mBlockElement <- getElementById bs.blocksElementId =<< (map toNonElementParentNode $ document =<< window)
+  case mBlockElement of
+    Just blocksElement -> runEffectFn3 initializeWorkspace_ bs.blockly bs.workspace blocksElement
+    Nothing -> throw "Blocks element not found"
 
 addChangeListener :: Workspace -> EventListener -> Effect Unit
 addChangeListener = runEffectFn2 addChangeListener_
