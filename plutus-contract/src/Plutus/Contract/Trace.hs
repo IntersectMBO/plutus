@@ -188,7 +188,7 @@ handleTxConfirmedQueries ::
     )
     => RequestHandler effs PABReq PABResp
 handleTxConfirmedQueries =
-    generalise (preview E._AwaitTxConfirmedReq) (E.AwaitTxConfirmedResp . E.unTxConfirmed) RequestHandler.handleTxConfirmedQueries
+    generalise (preview E._AwaitTxConfirmedReq) (E.AwaitTxConfirmedResp . fmap E.unTxConfirmed) RequestHandler.handleTxConfirmedQueries
 
 handleAddressChangedAtQueries ::
     ( Member (LogObserve (LogMessage Text)) effs

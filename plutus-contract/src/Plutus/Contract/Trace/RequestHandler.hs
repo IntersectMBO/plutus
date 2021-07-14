@@ -54,7 +54,7 @@ import           Ledger                         (Address, OnChainTx (Valid), POS
 import           Ledger.AddressMap              (AddressMap (..))
 import           Ledger.Constraints.OffChain    (UnbalancedTx (unBalancedTxTx))
 import qualified Ledger.TimeSlot                as TimeSlot
-import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..))
+import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..), Waited (..))
 import qualified Plutus.Contract.Wallet         as Wallet
 import           Wallet.API                     (WalletAPIError)
 import           Wallet.Effects                 (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
@@ -131,14 +131,14 @@ handleSlotNotifications ::
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
-    => RequestHandler effs Slot Slot
+    => RequestHandler effs Slot (Waited Slot)
 handleSlotNotifications =
     RequestHandler $ \targetSlot_ ->
         surroundDebug @Text "handleSlotNotifications" $ do
             currentSlot <- Wallet.Effects.getClientSlot
             logDebug $ SlotNoticationTargetVsCurrent targetSlot_ currentSlot
             guard (currentSlot >= targetSlot_)
-            pure currentSlot
+            pure $ Waited currentSlot
 
 handleTimeNotifications ::
     forall effs.
@@ -146,7 +146,7 @@ handleTimeNotifications ::
     , Member (LogObserve (LogMessage Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     )
-    => RequestHandler effs POSIXTime POSIXTime
+    => RequestHandler effs POSIXTime (Waited POSIXTime)
 handleTimeNotifications =
     RequestHandler $ \targetTime_ ->
         surroundDebug @Text "handleTimeNotifications" $ do
@@ -154,7 +154,7 @@ handleTimeNotifications =
             let targetSlot_ = TimeSlot.posixTimeToEnclosingSlot def targetTime_
             logDebug $ SlotNoticationTargetVsCurrent targetSlot_ currentSlot
             guard (currentSlot >= targetSlot_)
-            pure $ TimeSlot.slotToEndPOSIXTime def currentSlot
+            pure $ Waited $ TimeSlot.slotToEndPOSIXTime def currentSlot
 
 handleCurrentSlot ::
     forall effs a.
@@ -216,12 +216,12 @@ handleTxConfirmedQueries ::
     ( Member (LogObserve (LogMessage Text)) effs
     , Member ChainIndexEffect effs
     )
-    => RequestHandler effs TxId TxConfirmed
+    => RequestHandler effs TxId (Waited TxConfirmed)
 handleTxConfirmedQueries = RequestHandler $ \txid ->
     surroundDebug @Text "handleTxConfirmedQueries" $ do
         conf <- Wallet.Effects.transactionConfirmed txid
         guard conf
-        pure (TxConfirmed txid)
+        pure $ Waited $ TxConfirmed txid
 
 handleAddressChangedAtQueries ::
     forall effs.
