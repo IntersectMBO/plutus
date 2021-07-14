@@ -95,18 +95,19 @@ module.exports = {
       },
       spacing: {
         "2+2px": "calc(0.5rem + 2px)",
+        "4.5": "1.125rem",
         "22": "5.5rem",
         "160": "40rem",
         "256": "64rem",
         "16:9": "56.25%", // this is used for video containers to maintain a 16:9 aspect ratio
-        "sidebar": "305px",
+        "sidebar": "350px",
       },
       width: {
         sm: "375px",
         md: "640px",
         lg: "768px",
         "welcome-box": "400px",
-        "sidebar": "305px",
+        "sidebar": "350px",
         "contract-card": "264px",
         /* This width is used by a padding element in both sides of the carousel and is enough
            to push the first and last card to the center */
@@ -115,6 +116,7 @@ module.exports = {
       height: {
         "welcome-box": "227px",
         "contract-card": "467px",
+        "90pc": "90%",
       },
       borderWidth: {
         half: "0.5px",

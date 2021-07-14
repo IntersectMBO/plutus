@@ -42,6 +42,18 @@
   content: "history_edu";
 }
 
+.with-icon-contract-contract-for-differences::after {
+  content: "trending_up";
+}
+
+.with-icon-contract-loan::after {
+  content: "wrap_text"; /* FIXME: this is the wrong icon */
+}
+
+.with-icon-contract-purchase::after {
+  content: "swap_horiz";
+}
+
 .with-icon-help::after {
   content: "help";
 }
@@ -91,7 +103,7 @@
 }
 
 .with-icon-terms::after {
-  content: "alarm_add";
+  content: "drive_file_rename_outline";
 }
 
 .with-icon-timer::after {

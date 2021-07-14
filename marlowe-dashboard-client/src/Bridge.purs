@@ -8,7 +8,7 @@ module Bridge
 import Prelude
 import Cardano.Wallet.Types (WalletInfo(..)) as Back
 import Data.Bifunctor (bimap)
-import Data.BigInteger (BigInteger)
+import Data.BigInteger (BigInteger, fromInt)
 import Data.Either (Either)
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Json.JsonUUID (JsonUUID(..))
@@ -26,7 +26,6 @@ import PlutusTx.AssocMap (Map, fromTuples, toTuples) as Back
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Emulator.Wallet (Wallet(..)) as Back
 import Wallet.Types (ContractInstanceId(..)) as Back
-import Wallet.Types (Payment)
 import WalletData.Types (PubKeyHash(..), Wallet(..), WalletInfo(..)) as Front
 
 {-
@@ -86,9 +85,17 @@ instance mapBridge :: (Ord a, Ord c, Bridge a c, Bridge b d) => Bridge (Back.Map
   toFront map = Front.fromFoldable $ toFront <$> Back.toTuples map
   toBack map = Back.fromTuples $ toBack <$> Front.toUnfoldable map
 
+-- The PAB has replaced slot numbers with posix timestamps, but still gives us slot numbers through
+-- the websocket. However, these are now all multiplied by 1000 and increment by 1000 every second
+-- (so apparently the slot conversion represents things in milliseconds). This breaks the frontend,
+-- which expects slot numbers to be incremented by 1 each second. The simplest fix for now is to
+-- divide by 1000 on the the way in, and multiply back by 1000 on the way out. But note that this
+-- conversion is not currently applied to Marlowe contracts, so the backend will also need to do
+-- some slot-to-posix conversion (either in the Marlowe contracts or the PAB itself) - something
+-- for @nau to sort out.
 instance slotBridge :: Bridge Back.Slot Front.Slot where
-  toFront slot@(Back.Slot { getSlot }) = Front.Slot getSlot
-  toBack (Front.Slot slot) = Back.Slot { getSlot: slot }
+  toFront slot@(Back.Slot { getSlot }) = Front.Slot $ getSlot / (fromInt 1000)
+  toBack (Front.Slot slot) = Back.Slot { getSlot: slot * (fromInt 1000) }
 
 instance bigIntegerBridge :: Bridge BigInteger BigInteger where
   toFront = identity
@@ -129,8 +136,3 @@ instance pubKeyHashBridge :: Bridge Back.PubKeyHash Front.PubKeyHash where
 instance contractInstanceIdBridge :: Bridge Back.ContractInstanceId Front.PlutusAppId where
   toFront (Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }) = Front.PlutusAppId uuid
   toBack (Front.PlutusAppId uuid) = Back.ContractInstanceId { unContractInstanceId: JsonUUID uuid }
-
--- NOTE: the `Payment` type defined in `Marlowe.Semantics` is for something different
-instance paymentBridge :: Bridge Payment Payment where
-  toFront = identity
-  toBack = identity

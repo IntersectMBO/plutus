@@ -31,8 +31,7 @@ class InputFieldError e where
 
 -- TODO: should the validator be in the InputDisplayOptions instead of the State?
 type InputDisplayOptions
-  = { baseCss :: Boolean -> Array String
-    , additionalCss :: Array String
+  = { additionalCss :: Array String
     , id_ :: String
     , placeholder :: String
     , readOnly :: Boolean

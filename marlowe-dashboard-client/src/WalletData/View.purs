@@ -116,8 +116,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
     walletIdString = view _value walletIdInput
 
     walletNicknameInputDisplayOptions =
-      { baseCss: Css.input
-      , additionalCss: mempty
+      { additionalCss: mempty
       , id_: "newWalletNickname"
       , placeholder: "Nickname"
       , readOnly: false
@@ -126,8 +125,7 @@ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo 
       }
 
     walletIdInputDisplayOptions =
-      { baseCss: Css.input
-      , additionalCss: mempty
+      { additionalCss: mempty
       , id_: "newWalletId"
       , placeholder: "Wallet ID"
       , readOnly: false

@@ -40,6 +40,7 @@ library
         Data.Text.Extras
         Data.UUID.Extras
         Plutus.Contract
+        Plutus.Contract.CardanoAPI
         Plutus.Contract.Effects
         Plutus.Contract.Request
         Plutus.Contract.Checkpoint
@@ -101,6 +102,9 @@ library
         plutus-tx -any,
         freer-extras -any,
     build-depends:
+        cardano-api -any,
+        cardano-ledger-core -any,
+    build-depends:
         aeson >= 1.5.2,
         base >=4.7 && <5,
         containers -any,
@@ -139,7 +143,8 @@ library
         foldl -any,
         streaming -any,
         IntervalMap -any,
-        plutus-chain-index -any
+        plutus-chain-index -any,
+        plutus-core -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
