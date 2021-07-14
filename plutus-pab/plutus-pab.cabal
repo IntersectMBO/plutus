@@ -188,10 +188,10 @@ library
         time-units -any,
         beam-core -any,
         beam-migrate -any,
+        beam-sqlite -any,
         sqlite-simple -any
     if !os(ghcjs)
         build-depends: cardano-api -any,
-                       beam-sqlite -any,
                        iohk-monitoring -any,
                        lobemo-backend-ekg -any
 
