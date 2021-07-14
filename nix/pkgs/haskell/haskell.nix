@@ -131,6 +131,13 @@ let
                                               "-Werror" ])
                                         else __trace "nativePlutus is null" [];
 
+          plutus-pab.ghcOptions = if (ghcjsPluginPkgs != null && pkgs.stdenv.hostPlatform.isGhcjs)
+                                         then (let attr = ghcjsPluginPkgs.haskell.projectPackages.plutus-tx-plugin.components.library;
+                                         in [ "-host-package-db ${attr.passthru.configFiles}/${attr.passthru.configFiles.packageCfgDir}"
+                                              "-host-package-db ${attr}/package.conf.d"
+                                              "-Werror" ])
+                                        else __trace "nativePlutus is null" [];
+
           Cabal.patches = [ ../../patches/cabal.patch ];
           # See https://github.com/input-output-hk/plutus/issues/1213 and
           # https://github.com/input-output-hk/plutus/pull/2865.
@@ -206,7 +213,7 @@ let
           # plutus-ledger.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-playground-server.ghcOptions = [ "-Werror" ];
-          plutus-pab.ghcOptions = [ "-Werror" ];
+          # plutus-pab.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           # plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           plutus-doc.ghcOptions = [ "-Werror" ];
