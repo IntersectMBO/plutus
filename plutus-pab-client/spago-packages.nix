@@ -17,6 +17,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "aff-promise" = pkgs.stdenv.mkDerivation {
+        name = "aff-promise";
+        version = "v2.1.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/nwolverson/purescript-aff-promise.git";
+          rev = "033d6b90252e0390b0de7845e21de919bc4c3a0e";
+          sha256 = "0khm53lvxgvc7fbsvcr2h2wlhcgay8vq45755f0w8vpk1441dvww";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "affjax" = pkgs.stdenv.mkDerivation {
         name = "affjax";
         version = "v10.0.0";
