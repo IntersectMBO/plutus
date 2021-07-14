@@ -3,7 +3,9 @@
 module Language.PlutusIR.Compiler (
     compileTerm,
     compileToReadable,
+    compileToReadable',
     compileReadableToPlc,
+    compileReadableToPlc',
     Compiling,
     Error (..),
     AsError (..),
@@ -47,6 +49,12 @@ import           PlutusPrelude
 simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
 simplifyTerm = runIfOpts $ pure . Inline.inline . DeadCode.removeDeadBindings
 
+simplifyTerm' :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b, [Term TyName Name uni fun b])
+simplifyTerm' t = runIfOpts (\(t',_) ->  -- ugly workaround to get types of runIfOpts to line up
+  let t1 = DeadCode.removeDeadBindings t'
+      t2 = Inline.inline t1
+  in pure (t2, [t1, t2])) (t, [])
+
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
 floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
@@ -76,6 +84,20 @@ compileToReadable =
     >=> (pure . ThunkRec.thunkRecursions)
     >=> floatTerm
 
+-- to dump a "readable" version of pir (i.e. floated).
+compileToReadable' :: Compiling m e uni fun a
+                  => Term TyName Name uni fun a
+                  -> m (Term TyName Name uni fun (Provenance a), [Term TyName Name uni fun (Provenance a)])
+compileToReadable' x0 = do
+    x1 <- (pure . original) x0
+    -- We need globally unique names for typechecking, floating, and compiling non-strict bindings
+    x2 <- PLC.rename x1
+    x3 <- through typeCheckTerm x2
+    (x4, x4s) <- simplifyTerm' x3
+    x5 <- (pure . ThunkRec.thunkRecursions) x4
+    x6 <- floatTerm x5
+    return (x6, [x1, x2, x3] ++ x4s ++ [x5, x6])
+
 -- | The 2nd half of the PIR compiler pipeline.
 -- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language construsts to PLC.
 -- Note: the result *does* have globally unique names.
@@ -89,6 +111,18 @@ compileReadableToPlc =
     >=> simplifyTerm
     >=> Let.compileLets Let.NonRecTerms
     >=> lowerTerm
+
+compileReadableToPlc' :: Compiling m e uni fun a => Term TyName Name uni fun (Provenance a) -> m (PLCTerm uni fun a, [Term TyName Name uni fun (Provenance a)])
+compileReadableToPlc' x0 = do
+    x1 <- NonStrict.compileNonStrictBindings x0
+    x2 <- Let.compileLets Let.Types x1
+    x3 <- Let.compileLets Let.RecTerms x2
+    -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
+    -- can eliminate any of them which are unused here.
+    (x4, x4s) <- simplifyTerm' x3
+    x5 <- Let.compileLets Let.NonRecTerms x4
+    x6 <- lowerTerm x5
+    return (x6, [x1, x2, x3] ++ x4s ++ [x5])
 
 --- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
 compileTerm :: Compiling m e uni fun a

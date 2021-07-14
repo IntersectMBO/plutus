@@ -1,12 +1,16 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE QuantifiedConstraints      #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
 module Language.PlutusTx.Plugin (plugin, plc) where
 
@@ -44,7 +48,11 @@ import           Flat                                   (flat)
 
 import qualified Data.ByteString                        as BS
 import qualified Data.ByteString.Unsafe                 as BSUnsafe
+import           Data.List                              as List
+import           Data.List.NonEmpty                     as NonEmpty
 import qualified Data.Map                               as Map
+import           Data.Proxy
+import qualified Data.Text                              as T
 import qualified Data.Text.Prettyprint.Doc              as PP
 import           Data.Traversable
 import           ErrorCode
@@ -318,18 +326,29 @@ runCompiler opts expr = do
                  & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
 
+    let phase name = "\n" ++ replicate 20 '=' ++ " " ++ name ++ replicate 20 '=' ++ "\n"
+    let dumpPLC name ast = liftIO . putStrLn $ phase name ++ (show (PP.pretty ast))
+    let dumpPIR name ast = liftIO . putStrLn $ phase name ++ (show ast)
+    let dumpPIR' name ast = liftIO . putStrLn $ phase name ++ dump ast
+
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
+    when (poDumpPir opts) $ dumpPIR' "PIR" pirT
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
-    spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
+    (spirT, trace) <- flip runReaderT pirCtx $ PIR.compileToReadable' pirT
     let spirP = PIR.Program () . void $ spirT
-    when (poDumpPir opts) . liftIO . print . PP.pretty $ spirP
+
+    when (poDumpPir opts) $ -- dumpPIR' "PIR (Simplified)" spirT
+      sequence_ [dumpPIR' ("PIR " ++ show @Int n) t | (t, n) <- List.zip trace [0..]]
 
     -- (Simplified) Pir -> Plc translation.
-    plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
+    (plcT, trace) <- flip runReaderT pirCtx $ PIR.compileReadableToPlc' spirT
+    when (poDumpPlc opts) $ -- dumpPIR' "PIR (Simplified)" spirT
+      sequence_ [dumpPIR' ("PLC " ++ show @Int n) t | (t, n) <- List.zip trace [0..]]
+
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
-    when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
+    -- when (poDumpPlc opts) $ dumpPLC "PLC (Program)" plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (poDoTypecheck opts) . void $
@@ -346,6 +365,102 @@ runCompiler opts expr = do
         -- also wrap the PLC Error annotations into Original provenances, to match our expected 'CompileError'
         liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) plcTcError
 
+class Dumpable a where
+  dump :: a -> String
+
+apps :: String -> [String] -> String
+apps f xs = List.intercalate " " (f : fmap parens xs)
+  where parens x = "(" ++ x ++ ")"
+
+-- TODO: Write these instances with generics
+instance
+  ( Dumpable name
+  , Dumpable tyname
+  , Dumpable fun
+  , forall b. Dumpable (uni b)
+  , PLC.Closed uni
+  , PLC.Everywhere uni Dumpable
+  ) =>
+  Dumpable (PIR.Term name tyname uni fun a) where
+  dump = \case
+    PIR.Let _ rec bindings t  -> apps "Let"    [dump rec, dump bindings, dump t]
+    PIR.Var _ name            -> apps "Var"    [dump name]
+    PIR.TyAbs _ tyname kind t -> apps "TyAbs"  [dump tyname, dump kind, dump t]
+    PIR.LamAbs _ name ty t    -> apps "LamAbs" [dump name, dump ty, dump t]
+    PIR.Apply _ t1 t2         -> apps "Apply"  [dump t1, dump t2]
+    PIR.Constant _ val        -> apps "Constant" [dump val]
+    PIR.Builtin _ fun         -> apps "Builtin" [dump fun]
+    PIR.TyInst _ term ty      -> apps "TyInst" [dump term, dump ty]
+    PIR.Error _ ty            -> apps "Error" [dump ty]
+    PIR.IWrap _ ty1 ty2 t     -> apps "IWrap" [dump ty1, dump ty2, dump t]
+    PIR.Unwrap _ t            -> apps "Unwrap" [dump t]
+
+instance (forall a. Dumpable (f a)) => Dumpable (PLC.Some f) where
+  dump (PLC.Some x) = apps "Some" [dump x]
+instance (Dumpable (uni a), PLC.Closed uni, PLC.Everywhere uni Dumpable) => Dumpable (PLC.ValueOf uni a) where
+  dump (PLC.ValueOf uni x) = PLC.bring (Proxy @Dumpable) uni $ apps "ValueOf" [dump uni, dump x] -- (PLC.ValueOf ev x) = apps "ValueOf" [dump ev, dump x]
+
+instance Dumpable (PLC.DefaultUni a) where
+  dump PLC.DefaultUniInteger    = "DefaultUniInteger"
+  dump PLC.DefaultUniByteString = "DefaultUniByteString"
+  dump PLC.DefaultUniString     = "DefaultUniString"
+  dump PLC.DefaultUniChar       = "DefaultUniChar"
+  dump PLC.DefaultUniUnit       = "DefaultUniUnit"
+  dump PLC.DefaultUniBool       = "DefaultUniBool"
+
+instance Dumpable Bool where
+  dump True  = "true"
+  dump False = "false"
+
+instance Dumpable () where dump () = "tt"
+instance Dumpable T.Text where dump = show
+instance Dumpable String where dump = show
+instance Dumpable Int where dump = show
+instance Dumpable Integer where dump = show
+instance Dumpable Char where dump = show
+instance Dumpable BS.ByteString where dump = show
+
+instance (Dumpable tyname, Dumpable name, Dumpable fun, PLC.Closed uni, PLC.Everywhere uni Dumpable, forall b. Dumpable (uni b)) =>
+  Dumpable (PIR.Binding tyname name uni fun a) where
+  dump (PIR.TermBind _ strictness vdecl t) = apps "TermBind"     [dump strictness, dump vdecl, dump t]
+  dump (PIR.TypeBind _ tvdecl ty)          = apps "TypeBind"     [dump tvdecl, dump ty]
+  dump (PIR.DatatypeBind _ dt)             = apps "DatatypeBind" [dump dt]
+instance (Dumpable name) => Dumpable (PIR.VarDecl tyname name uni fun a) where
+  dump (PIR.VarDecl _ name ty) = apps "VarDecl" [dump name, dump ty]
+instance (Dumpable tyname) => Dumpable (PIR.TyVarDecl tyname a) where
+  dump (PIR.TyVarDecl _ name kind) = apps "TyVarDecl" [dump name, dump kind]
+
+-- Awful newtype workaround to expose the arity of constructors
+-- (need this to verify Scott encoding)
+newtype Constructor tyname name uni fun a = Constructor (PIR.VarDecl tyname name uni fun a)
+
+instance (Dumpable name) => Dumpable (Constructor tyname name uni fun a) where
+  dump (Constructor (PIR.VarDecl _ name ty)) = apps "Constructor" [dump name, dump (arity ty)]
+    where
+      arity :: PIR.Type tyname uni a -> Int
+      arity (PIR.TyFun _ a b) = 1 + arity b
+      arity _                 = 0
+
+instance (Dumpable name, Dumpable tyname) => Dumpable (PIR.Datatype tyname name uni fun a) where
+  dump (PIR.Datatype _ tvdecl tvdecls name constructors) = apps "Datatype" [dump tvdecl, dump tvdecls, dump name, dump (List.map Constructor constructors)]
+instance Dumpable (PLC.TyName) where dump (PLC.TyName name) = apps "TyName" [dump name]
+
+
+instance Dumpable a => Dumpable (NonEmpty.NonEmpty a) where
+  dump (x NonEmpty.:| xs) = apps "cons" [dump x, dump xs]
+
+instance {-# OVERLAPPABLE #-} Dumpable a => Dumpable [a] where
+  dump []     = "nil"
+  dump (x:xs) = apps "cons" [dump x, dump xs]
+
+instance Dumpable PLC.Name where dump (PLC.Name str uniq) = apps "Name" [dump str, dump uniq]
+instance Dumpable PLC.Unique where dump (PLC.Unique n) = apps "Unique" [dump n]
+instance Dumpable PLC.DefaultFun where dump = show
+instance Dumpable PIR.Strictness where dump = show
+instance Dumpable PIR.Recursivity where dump = show
+
+instance Dumpable (PIR.Kind a) where dump _ = "tt"
+instance Dumpable (PIR.Type a b c) where dump _ = "tt"
 
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
