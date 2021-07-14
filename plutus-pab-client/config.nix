@@ -18,6 +18,7 @@
   pabWebserverConfig:
     baseUrl: http://localhost:${ webserver-port }
     staticDir: ${ client }
+    permissiveCorsPolicy: False
 
   walletServerConfig:
     baseUrl: http://localhost:${ walletserver-port }
