@@ -135,7 +135,6 @@ module PlutusCore
 
 import           PlutusPrelude
 
-import           PlutusCore.CBOR                                          ()
 import qualified PlutusCore.Check.Uniques                                 as Uniques
 import           PlutusCore.Core
 import           PlutusCore.DeBruijn

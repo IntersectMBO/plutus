@@ -4,6 +4,7 @@ import Prelude hiding (div)
 import BottomPanel.Types (Action(..)) as BottomPanel
 import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
+import Data.Bifunctor (bimap)
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (_Right, has, to, view, (^.))
@@ -56,7 +57,10 @@ render metadata state =
     , { title: "Errors", view: ErrorsView, classes: [] }
     ]
 
-  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state metadata panelView
+  -- TODO: improve this wrapper helper
+  actionWrapper = BottomPanel.PanelAction
+
+  wrapBottomPanelContents panelView = bimap (map actionWrapper) actionWrapper $ panelContents state metadata panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -137,7 +141,7 @@ sendToSimulationButton state =
     Success (Right (InterpreterResult _)) -> true
     _ -> false
 
-panelContents :: forall p. State -> MetaData -> BottomPanelView -> HTML p Action
+panelContents :: forall m. MonadAff m => State -> MetaData -> BottomPanelView -> ComponentHTML Action ChildSlots m
 panelContents state _ GeneratedOutputView =
   section_ case view _compilationResult state of
     Success (Right (InterpreterResult result)) ->

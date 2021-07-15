@@ -1,4 +1,6 @@
 \begin{code}
+{-# OPTIONS --rewriting #-}
+
 module Scoped.Erasure where
 \end{code}
 

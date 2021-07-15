@@ -1,8 +1,8 @@
 module WalletData.View
-  ( saveWalletCard
+  ( currentWalletCard
+  , walletLibraryCard
+  , saveWalletCard
   , walletDetailsCard
-  , putdownWalletCard
-  , walletLibraryScreen
   ) where
 
 import Prelude hiding (div)
@@ -32,97 +32,8 @@ import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary)
 import WalletData.Validation (WalletIdError, WalletNicknameError)
 
-saveWalletCard :: forall p. WalletLibrary -> InputField.State WalletNicknameError -> InputField.State WalletIdError -> WebData WalletInfo -> Maybe String -> HTML p Action
-saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName =
-  let
-    walletNickname = view _value walletNicknameInput
-
-    walletIdString = view _value walletIdInput
-
-    walletNicknameInputDisplayOptions =
-      { baseCss: Css.input
-      , additionalCss: mempty
-      , id_: "newWalletNickname"
-      , placeholder: "Nickname"
-      , readOnly: false
-      , valueOptions: mempty
-      }
-
-    walletIdInputDisplayOptions =
-      { baseCss: Css.input
-      , additionalCss: mempty
-      , id_: "newWalletId"
-      , placeholder: "Wallet ID"
-      , readOnly: false
-      , valueOptions: mempty
-      }
-  in
-    div
-      [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
-      [ p
-          [ classNames [ "font-semibold", "mb-4" ] ]
-          [ text $ "Create new contact" <> foldMap (\tokenName -> " for role " <> show tokenName) mTokenName ]
-      , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletNickname) Css.hasNestedLabel) ]
-          [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null walletNickname)
-              , for walletNicknameInputDisplayOptions.id_
-              ]
-              [ text "Nickname" ]
-          , WalletNicknameInputAction <$> renderInput walletNicknameInput walletNicknameInputDisplayOptions
-          ]
-      , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
-          [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null walletIdString)
-              , for walletIdInputDisplayOptions.id_
-              ]
-              [ text "Wallet ID" ]
-          , WalletIdInputAction <$> renderInput walletIdInput walletIdInputDisplayOptions
-          ]
-      , div
-          [ classNames [ "flex" ] ]
-          [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ CloseCard
-              ]
-              [ text "Cancel" ]
-          , button
-              [ classNames $ Css.primaryButton <> [ "flex-1" ]
-              , disabled $ isJust (validate walletNicknameInput) || isJust (validate walletIdInput)
-              , onClick_ $ SaveNewWallet mTokenName
-              ]
-              [ text "Save" ]
-          ]
-      ]
-
-walletDetailsCard :: forall p a. WalletDetails -> HTML p a
-walletDetailsCard walletDetails =
-  let
-    walletNickname = view _walletNickname walletDetails
-
-    companionAppId = view _companionAppId walletDetails
-  in
-    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
-      [ h3
-          [ classNames [ "font-semibold", "mb-4" ] ]
-          [ text $ "Wallet " <> walletNickname ]
-      , div
-          [ classNames Css.hasNestedLabel ]
-          [ label
-              [ classNames Css.nestedLabel ]
-              [ text "Wallet ID" ]
-          , input
-              [ type_ InputText
-              , classNames $ Css.input true <> [ "mb-4" ]
-              , value $ UUID.toString $ unwrap companionAppId
-              , readOnly true
-              ]
-          ]
-      ]
-
-putdownWalletCard :: forall p. WalletDetails -> HTML p Action
-putdownWalletCard walletDetails =
+currentWalletCard :: forall p. WalletDetails -> HTML p Action
+currentWalletCard walletDetails =
   let
     walletNickname = view _walletNickname walletDetails
 
@@ -170,8 +81,8 @@ putdownWalletCard walletDetails =
           ]
       ]
 
-walletLibraryScreen :: forall p. WalletLibrary -> HTML p Action
-walletLibraryScreen library =
+walletLibraryCard :: forall p. WalletLibrary -> HTML p Action
+walletLibraryCard library =
   div
     [ classNames [ "p-4" ] ]
     [ h2
@@ -196,3 +107,92 @@ walletLibraryScreen library =
       , onClick_ $ OpenCard $ ViewWalletCard walletDetails
       ]
       [ text nickname ]
+
+saveWalletCard :: forall p. WalletLibrary -> InputField.State WalletNicknameError -> InputField.State WalletIdError -> WebData WalletInfo -> Maybe String -> HTML p Action
+saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName =
+  let
+    walletNickname = view _value walletNicknameInput
+
+    walletIdString = view _value walletIdInput
+
+    walletNicknameInputDisplayOptions =
+      { additionalCss: mempty
+      , id_: "newWalletNickname"
+      , placeholder: "Nickname"
+      , readOnly: false
+      , numberFormat: Nothing
+      , valueOptions: mempty
+      }
+
+    walletIdInputDisplayOptions =
+      { additionalCss: mempty
+      , id_: "newWalletId"
+      , placeholder: "Wallet ID"
+      , readOnly: false
+      , numberFormat: Nothing
+      , valueOptions: mempty
+      }
+  in
+    div
+      [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
+      [ p
+          [ classNames [ "font-semibold", "mb-4" ] ]
+          [ text $ "Create new contact" <> foldMap (\tokenName -> " for role " <> show tokenName) mTokenName ]
+      , div
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletNickname) Css.hasNestedLabel) ]
+          [ label
+              [ classNames $ Css.nestedLabel <> hideWhen (null walletNickname)
+              , for walletNicknameInputDisplayOptions.id_
+              ]
+              [ text "Nickname" ]
+          , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
+          ]
+      , div
+          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
+          [ label
+              [ classNames $ Css.nestedLabel <> hideWhen (null walletIdString)
+              , for walletIdInputDisplayOptions.id_
+              ]
+              [ text "Wallet ID" ]
+          , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
+          ]
+      , div
+          [ classNames [ "flex" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              , onClick_ CloseCard
+              ]
+              [ text "Cancel" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1" ]
+              , disabled $ isJust (validate walletNicknameInput) || isJust (validate walletIdInput)
+              , onClick_ $ SaveNewWallet mTokenName
+              ]
+              [ text "Save" ]
+          ]
+      ]
+
+walletDetailsCard :: forall p a. WalletDetails -> HTML p a
+walletDetailsCard walletDetails =
+  let
+    walletNickname = view _walletNickname walletDetails
+
+    companionAppId = view _companionAppId walletDetails
+  in
+    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
+      [ h3
+          [ classNames [ "font-semibold", "mb-4" ] ]
+          [ text $ "Wallet " <> walletNickname ]
+      , div
+          [ classNames Css.hasNestedLabel ]
+          [ label
+              [ classNames Css.nestedLabel ]
+              [ text "Wallet ID" ]
+          , input
+              [ type_ InputText
+              , classNames $ Css.input true <> [ "mb-4" ]
+              , value $ UUID.toString $ unwrap companionAppId
+              , readOnly true
+              ]
+          ]
+      ]

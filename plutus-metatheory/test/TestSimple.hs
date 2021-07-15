@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase     #-}
 {-# LANGUAGE PackageImports #-}
 
 module Main where
@@ -43,36 +44,32 @@ succeedingTCTests = ["succInteger"
         ,"ApplyAdd2"
         ]
 
-blah :: Maybe String -> [String]
-blah Nothing     = []
-blah (Just mode) = ["--mode",mode]
+blah :: String -> [String]
+blah "plc" = []
+blah _     = ["--mode","U"]
 
-modeType :: Maybe String -> [String]
-modeType (Just "U") = []
-modeType _          = ["--typed"]
-
-runTest :: String -> Maybe String -> String -> IO ()
+runTest :: String -> String -> String -> IO ()
 runTest command mode test = do
-  example <- readProcess "plc" (["example","-s",test] ++ modeType mode) []
+  example <- readProcess mode ["example", "-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
   withArgs ([command,"--file","tmp"] ++ blah mode)  M.main
 
-runSucceedingTests :: String -> Maybe String -> [String] -> IO ()
+runSucceedingTests :: String -> String -> [String] -> IO ()
 runSucceedingTests command mode [] = return ()
 runSucceedingTests command mode (test:tests) = catch
   (runTest command mode test)
-  (\ e -> case e of
-      ExitFailure _ -> exitFailure
-      ExitSuccess   -> runSucceedingTests command mode tests)
+  (\case
+    ExitFailure _ -> exitFailure
+    ExitSuccess   -> runSucceedingTests command mode tests)
 
-runFailingTests :: String -> Maybe String -> [String] -> IO ()
+runFailingTests :: String -> String -> [String] -> IO ()
 runFailingTests command mode [] = return ()
 runFailingTests command mode (test:tests) = catch
   (runTest command mode test)
-  (\ e -> case e of
-      ExitFailure _ -> runFailingTests command mode tests
-      ExitSuccess   -> exitSuccess)
+  (\case
+    ExitFailure _ -> runFailingTests command mode tests
+    ExitSuccess   -> exitSuccess)
 
 main = do
 {-
@@ -86,16 +83,16 @@ putStrLn "running succ L..."
   runFailingTests "evaluate" (Just "CK") failingEvalTests
 -}
   putStrLn "running succ TCK"
-  runSucceedingTests "evaluate" (Just "TCK") succeedingEvalTests
+  runSucceedingTests "evaluate" "plc" succeedingEvalTests
   putStrLn "running fail TCK"
-  runFailingTests "evaluate" (Just "TCK") failingEvalTests
+  runFailingTests "evaluate" "plc" failingEvalTests
   putStrLn "running succ TCEK"
-  runSucceedingTests "evaluate" (Just "TCEK") succeedingEvalTests
+  runSucceedingTests "evaluate" "plc" succeedingEvalTests
   putStrLn "running fail TCEK"
-  runFailingTests "evaluate" (Just "TCEK") failingEvalTests
+  runFailingTests "evaluate" "plc" failingEvalTests
   putStrLn "running succ U..."
-  runSucceedingTests "evaluate" (Just "U") succeedingEvalTests
+  runSucceedingTests "evaluate" "uplc" succeedingEvalTests
   putStrLn "running fail U..."
-  runFailingTests "evaluate" (Just "U") failingEvalTests
+  runFailingTests "evaluate" "uplc" failingEvalTests
   putStrLn "running succ TC"
-  runSucceedingTests "typecheck" Nothing succeedingTCTests
+  runSucceedingTests "typecheck" "plc" succeedingTCTests

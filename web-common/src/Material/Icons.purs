@@ -21,16 +21,22 @@ icon_ i = icon i []
 -----
 data Icon
   = Add
+  | AddBox
   | AddCircle
   | ArrowRight
   | ArrowLeft
   | Close
   | Contacts
   | Contract
+  | ContractContractForDifferences
+  | ContractLoan
+  | ContractPurchase
   | Done
   | DoneWithCircle
   | ErrorOutline
   | Help
+  | HelpOutline
+  | History
   | Home
   | Menu
   | Next
@@ -40,13 +46,16 @@ data Icon
   | Previous
   | Refresh
   | Roles
+  | Running
   | TaskAlt
   | Terms
   | Timer
-  | Wallet
+  | Tutorials
 
 content :: Icon -> String
 content Add = "add"
+
+content AddBox = "add_box"
 
 content AddCircle = "add_circle_outline"
 
@@ -60,6 +69,12 @@ content Contacts = "people"
 
 content Contract = "history_edu"
 
+content ContractContractForDifferences = "trending_up"
+
+content ContractLoan = "wrap_text" -- FIXME: this is the wrong icon (I can't find the right one)
+
+content ContractPurchase = "swap_horiz"
+
 content Done = "done"
 
 content DoneWithCircle = "check_circle_outline"
@@ -67,6 +82,10 @@ content DoneWithCircle = "check_circle_outline"
 content ErrorOutline = "error_outline"
 
 content Help = "help"
+
+content HelpOutline = "help_outline"
+
+content History = "history"
 
 content Home = "home"
 
@@ -86,16 +105,20 @@ content Refresh = "refresh"
 
 content Roles = "person_pin_circle"
 
+content Running = "directions_run"
+
 content TaskAlt = "task_alt"
 
-content Terms = "alarm_add"
+content Terms = "drive_file_rename_outline"
 
 content Timer = "timer"
 
-content Wallet = "account_balance_wallet"
+content Tutorials = "school"
 
 iconClass :: Icon -> String
 iconClass Add = "add"
+
+iconClass AddBox = "add-box"
 
 iconClass AddCircle = "add-circle"
 
@@ -109,6 +132,12 @@ iconClass Contacts = "contacts"
 
 iconClass Contract = "contract"
 
+iconClass ContractContractForDifferences = "contract-contract-for-differences"
+
+iconClass ContractLoan = "contract-loan"
+
+iconClass ContractPurchase = "contract-purchase"
+
 iconClass Done = "done"
 
 iconClass DoneWithCircle = "check-circle-outline"
@@ -116,6 +145,10 @@ iconClass DoneWithCircle = "check-circle-outline"
 iconClass ErrorOutline = "error-outline"
 
 iconClass Help = "help"
+
+iconClass HelpOutline = "help-outline"
+
+iconClass History = "history"
 
 iconClass Home = "home"
 
@@ -135,10 +168,12 @@ iconClass Refresh = "refresh"
 
 iconClass Roles = "roles"
 
+iconClass Running = "running"
+
 iconClass TaskAlt = "task-alt"
 
 iconClass Terms = "terms"
 
 iconClass Timer = "timer"
 
-iconClass Wallet = "wallet"
+iconClass Tutorials = "tutorials"

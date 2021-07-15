@@ -17,6 +17,7 @@ import           Cardano.Node.Types        (MockServerConfig (..))
 import qualified Cardano.Wallet.Types      as Wallet
 import           Control.Lens.TH           (makePrisms)
 import           Data.Aeson                (FromJSON, ToJSON (..))
+import           Data.Default              (Default, def)
 import           Data.Map.Strict           (Map)
 import qualified Data.Map.Strict           as Map
 import           Data.Text                 (Text)
@@ -29,7 +30,7 @@ import           Ledger                    (Block, Blockchain, Tx, TxId, eitherT
 import           Ledger.Index              as UtxoIndex
 import           Plutus.Contract.Types     (ContractError)
 import           Plutus.PAB.Instances      ()
-import           Servant.Client            (BaseUrl, ClientError)
+import           Servant.Client            (BaseUrl (..), ClientError, Scheme (Http))
 import           Wallet.API                (WalletAPIError)
 import           Wallet.Emulator.Wallet    (Wallet)
 import           Wallet.Types              (ContractInstanceId (..), NotificationError)
@@ -109,11 +110,24 @@ newtype RequestProcessingConfig =
 
 data WebserverConfig =
     WebserverConfig
-        { baseUrl   :: BaseUrl
-        , staticDir :: FilePath
+        { baseUrl              :: BaseUrl
+        , staticDir            :: Maybe FilePath
+        , permissiveCorsPolicy :: Bool -- ^ If true; use a very permissive CORS policy (any website can interact.)
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+-- | Default config for debugging.
+defaultWebServerConfig :: WebserverConfig
+defaultWebServerConfig =
+  WebserverConfig
+    { baseUrl              = BaseUrl Http "localhost" 8080 "/"
+    , staticDir            = Nothing
+    , permissiveCorsPolicy = False
+    }
+
+instance Default WebserverConfig where
+  def = defaultWebServerConfig
 
 -- | The source of a PAB event, used for sharding of the event stream
 data Source

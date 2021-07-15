@@ -1,6 +1,8 @@
 # CEK machine that discharges builtin args
 
 ```
+{-# OPTIONS --rewriting #-}
+
 module Algorithmic.CEKV where
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend)

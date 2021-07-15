@@ -15,6 +15,7 @@ let
     pabWebserverConfig = {
       baseUrl = "http://localhost:${builtins.toString cfg.webserverPort}";
       staticDir = "${cfg.staticContent}";
+      permissiveCorsPolicy = false;
     };
 
     walletServerConfig = {
@@ -31,6 +32,12 @@ let
       mscSlotConfig = {
         scZeroSlotTime = cfg.zeroSlotTime;
         scSlotLength = cfg.slotLength;
+      };
+      mscFeeConfig = {
+        fcConstantFee = {
+          getLovelace = cfg.constantFee;
+        };
+        fcScriptsFeeFactor = cfg.scriptsFeeFactor;
       };
       mscKeptBlocks = 100000;
       mscBlockReaper = {
@@ -178,6 +185,22 @@ in
       default = 1000;
       description = ''
         Length of a slot (in milliseconds).
+      '';
+    };
+
+    constantFee = mkOption {
+      type = types.int;
+      default = 10;
+      description = ''
+        Constant fee per transaction in lovelace.
+      '';
+    };
+
+    scriptsFeeFactor = mkOption {
+      type = types.float;
+      default = 1.0;
+      description = ''
+        Factor by which to multiply the size-dependent scripts fee in lovelace.
       '';
     };
 

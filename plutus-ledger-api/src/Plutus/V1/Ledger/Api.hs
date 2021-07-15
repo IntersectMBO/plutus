@@ -5,30 +5,30 @@
 The interface to Plutus V1 for the ledger.
 -}
 module Plutus.V1.Ledger.Api (
+    -- * Scripts
     SerializedScript
+    , Script
+    , fromCompiledCode
     -- * Validating scripts
     , validateScript
-    -- * Cost model
-    , validateCostModelParams
-    , defaultCostModelParams
-    , CostModelParams
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
+    -- ** Verbose mode and log output
+    , VerboseMode (..)
+    , LogOutput
     -- * Serialising scripts
     , plutusScriptEnvelopeType
     , plutusDatumEnvelopeType
     , plutusRedeemerEnvelopeType
-    -- * Data
-    , Data (..)
-    , IsData (..)
-    -- ** Costing-related types
+    -- * Costing-related types
     , ExBudget (..)
     , ExCPU (..)
     , ExMemory (..)
-    -- ** Verbose mode and log output
-    , VerboseMode (..)
-    , LogOutput
+    -- ** Cost model
+    , validateCostModelParams
+    , defaultCostModelParams
+    , CostModelParams
     -- * Context types
     , ScriptContext(..)
     , ScriptPurpose(..)
@@ -41,30 +41,58 @@ module Plutus.V1.Ledger.Api (
     -- *** Credentials
     , StakingCredential(..)
     , Credential(..)
+    -- *** Value
+    , Value (..)
+    , CurrencySymbol (..)
+    , TokenName (..)
+    , singleton
+    , unionWith
+    , adaSymbol
+    , adaToken
+    -- *** Time
+    , POSIXTime (..)
+    , POSIXTimeRange
     -- *** Types for representing transactions
     , Address (..)
     , PubKeyHash (..)
+    , TxId (..)
     , TxInfo (..)
     , TxOut(..)
     , TxOutRef(..)
     , TxInInfo(..)
-    , Slot (..)
-    , SlotRange
     -- *** Intervals
     , Interval (..)
     , Extended (..)
     , Closure
     , UpperBound (..)
     , LowerBound (..)
+    , always
+    , from
+    , to
+    , lowerBound
+    , upperBound
+    , strictLowerBound
+    , strictUpperBound
     -- *** Newtypes for script/datum types and hash types
     , Validator (..)
+    , mkValidatorScript
+    , unValidatorScript
     , ValidatorHash (..)
+    , validatorHash
     , MintingPolicy (..)
+    , mkMintingPolicyScript
+    , unMintingPolicyScript
     , MintingPolicyHash (..)
+    , mintingPolicyHash
     , Redeemer (..)
     , RedeemerHash (..)
+    , redeemerHash
     , Datum (..)
     , DatumHash (..)
+    , datumHash
+    -- * Data
+    , Data (..)
+    , IsData (..)
     -- * Errors
     , EvaluationError (..)
 ) where
@@ -81,15 +109,18 @@ import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
+import           Plutus.V1.Ledger.Ada
 import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Bytes
 import           Plutus.V1.Ledger.Contexts
 import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.DCert
-import           Plutus.V1.Ledger.Interval
+import           Plutus.V1.Ledger.Interval                        hiding (singleton)
 import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Slot
+import           Plutus.V1.Ledger.Time
+import           Plutus.V1.Ledger.TxId
+import           Plutus.V1.Ledger.Value
 import           PlutusCore                                       as PLC
 import qualified PlutusCore.DeBruijn                              as PLC
 import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)

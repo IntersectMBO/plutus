@@ -18,6 +18,10 @@
   content: "add";
 }
 
+.with-icon-add-box::after {
+  content: "add_box";
+}
+
 .with-icon-add-circle::after {
   content: "add_circle_outline";
 }
@@ -38,8 +42,24 @@
   content: "history_edu";
 }
 
+.with-icon-contract-contract-for-differences::after {
+  content: "trending_up";
+}
+
+.with-icon-contract-loan::after {
+  content: "wrap_text"; /* FIXME: this is the wrong icon */
+}
+
+.with-icon-contract-purchase::after {
+  content: "swap_horiz";
+}
+
 .with-icon-help::after {
   content: "help";
+}
+
+.with-icon-history::after {
+  content: "history";
 }
 
 .with-icon-home::after {
@@ -78,14 +98,18 @@
   content: "person_pin_circle";
 }
 
+.with-icon-running::after {
+  content: "directions_run";
+}
+
 .with-icon-terms::after {
-  content: "alarm_add";
+  content: "drive_file_rename_outline";
 }
 
 .with-icon-timer::after {
   content: "timer";
 }
 
-.with-icon-wallet::after {
-  content: "account_balance_wallet";
+.with-icon-tutorials::after {
+  content: "school";
 }

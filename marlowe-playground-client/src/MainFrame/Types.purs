@@ -147,6 +147,7 @@ type ChildSlots
     , simulatorEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , marloweEditorPageSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , tooltipSlot :: forall query. H.Slot query Void ReferenceId
+    , hintSlot :: forall query. H.Slot query Void String
     )
 
 _haskellEditorSlot :: SProxy "haskellEditorSlot"

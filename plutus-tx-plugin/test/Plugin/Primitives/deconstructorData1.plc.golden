@@ -1,0 +1,11 @@
+(program
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl unsafeDataAsI (fun (con data) (con integer)))
+      (lam d (con data) [ (builtin unIData) d ])
+    )
+    unsafeDataAsI
+  )
+)

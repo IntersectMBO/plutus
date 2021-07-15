@@ -21,7 +21,6 @@ import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
-import           Data.Time.Units              (Second)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
                                                InterpreterError (CompilationErrors),
                                                InterpreterResult (InterpreterResult), SourceCode (SourceCode),
@@ -35,9 +34,6 @@ import           Servant.Client               (ClientEnv, ClientM, client, runCl
 import qualified Text.Regex                   as Regex
 import           Webghc.Server                (CompileRequest (CompileRequest))
 import qualified Webghc.Server                as Webghc
-
-maxInterpretationTime :: Second
-maxInterpretationTime = 80
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =
@@ -201,7 +197,7 @@ printQ q = do
     toPlaygroundError :: Either IOException a -> Either PlaygroundError a
     toPlaygroundError = first (OtherError . show)
 
-{-# ANN getJsonString ("HLint: ignore" :: String) #-}
+{-{- HLINT ignore getJsonString -}-}
 getJsonString :: (MonadError PlaygroundError m) => JSON.Value -> m String
 getJsonString (JSON.String s) = pure $ Text.unpack s
 getJsonString v =

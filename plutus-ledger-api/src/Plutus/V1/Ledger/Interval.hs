@@ -33,6 +33,8 @@ module Plutus.V1.Ledger.Interval(
     , isEmpty
     , before
     , after
+    , lowerBound
+    , upperBound
     , strictLowerBound
     , strictUpperBound
     ) where

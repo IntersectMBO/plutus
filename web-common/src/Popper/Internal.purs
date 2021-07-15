@@ -11,6 +11,7 @@ module Popper.Internal
   , eventListeners
   , offset
   , preventOverflow
+  , flipPlacement
   ) where
 
 import Prelude
@@ -23,7 +24,7 @@ import Effect.Uncurried (EffectFn1, EffectFn3, runEffectFn1, runEffectFn3)
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Generic (encode) as Foreign
 import Foreign.Object as Object
-import Popper.Types (Boundary(..), ComputeStyleOptions, EventListenerOptions, Modifier, Offset, OffsetOption(..), Options, Padding(..), PaddingOption(..), Placement(..), PopperInstance, PositioningStrategy(..), PreventOverflowOptions, Rect, RootBoundary(..), TetherOffsetOption(..))
+import Popper.Types (Boundary(..), ComputeStyleOptions, EventListenerOptions, Modifier, Offset, OffsetOption(..), Options, Padding(..), PaddingOption(..), Placement(..), PopperInstance, PositioningStrategy(..), PreventOverflowOptions, Rect, RootBoundary(..), TetherOffsetOption(..), FlipOptions)
 import Web.HTML (HTMLElement)
 
 -------------------------------------------------------------------------------------------------------
@@ -91,6 +92,24 @@ preventOverflow { mainAxis
         , rootBoundary: rootBoundaryToFFI rootBoundary
         , tether
         , tetherOffset: tetherOffsetToFFI tetherOffset
+        }
+
+foreign import _flipPlacement :: Fn1 Foreign Modifier
+
+flipPlacement :: FlipOptions -> Modifier
+flipPlacement { padding
+, boundary
+, rootBoundary
+, flipVariations
+, allowedAutoPlacements
+} =
+  runFn1 _flipPlacement
+    $ Foreign.encode
+        { padding: paddingToFFI padding
+        , boundary: boundaryToFFI boundary
+        , rootBoundary: rootBoundaryToFFI rootBoundary
+        , flipVariations
+        , allowedAutoPlacements: placementToFFI <$> allowedAutoPlacements
         }
 
 --------------------------------------------------------------------------------

@@ -23,25 +23,24 @@ module Plutus.Contract.StateMachine.OnChain(
     , mkStateMachine
     , machineAddress
     , mkValidator
-    , threadTokenValue
+    , threadTokenValueOrZero
     ) where
 
-import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Void                        (Void)
-import           GHC.Generics                     (Generic)
-
+import           Data.Aeson                               (FromJSON, ToJSON)
+import           Data.Void                                (Void)
+import           GHC.Generics                             (Generic)
+import           Ledger                                   (Address, ValidatorHash)
 import           Ledger.Constraints
-import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
-import qualified PlutusTx                         as PlutusTx
-import           PlutusTx.Prelude                 hiding (check)
-
-import           Ledger                           (Address, Value)
-import           Ledger.Contexts                  (ScriptContext (..), TxInInfo (..), findOwnInput)
-import           Ledger.Tx                        (TxOut (..))
+import           Ledger.Constraints.TxConstraints         (OutputConstraint (..))
+import           Ledger.Contexts                          (ScriptContext (..), TxInInfo (..), findOwnInput, ownHash)
+import           Ledger.Tx                                (TxOut (..))
 import           Ledger.Typed.Scripts
-import           Ledger.Value                     (AssetClass, isZero)
-import qualified Ledger.Value                     as Value
-import qualified Prelude                          as Haskell
+import           Ledger.Value                             (Value, isZero)
+import qualified PlutusTx
+import           PlutusTx.Prelude                         hiding (check)
+import qualified Prelude                                  as Haskell
+
+import qualified Plutus.Contract.StateMachine.ThreadToken as TT
 
 data State s = State { stateData :: s, stateValue :: Value }
     deriving stock (Haskell.Eq, Haskell.Show, Generic)
@@ -63,20 +62,26 @@ data StateMachine s i = StateMachine {
       --   constraints, so the default implementation always returns true.
       smCheck       :: s -> i -> ScriptContext -> Bool,
 
-      -- | The 'AssetClass' of the thread token that identifies the contract
-      --   instance.
-      smThreadToken :: Maybe AssetClass
+      -- | The 'ThreadToken' that identifies the contract instance.
+      --   Make one with 'getThreadToken' and pass it on to 'mkStateMachine'.
+      --   Initialising the machine will then mint a thread token value.
+      smThreadToken :: Maybe TT.ThreadToken
     }
 
-{-# INLINABLE threadTokenValue #-}
+{-# INLINABLE threadTokenValueInner #-}
+threadTokenValueInner :: Maybe TT.ThreadToken -> ValidatorHash -> Value
+threadTokenValueInner = maybe (const mempty) (TT.threadTokenValue . TT.ttCurrencySymbol)
+
+{-# INLINABLE threadTokenValueOrZero #-}
 -- | The 'Value' containing exactly the thread token, if one has been specified.
-threadTokenValue :: StateMachine s i -> Value
-threadTokenValue StateMachine{smThreadToken} = maybe mempty (\c -> Value.assetClassValue c 1) smThreadToken
+threadTokenValueOrZero :: StateMachineInstance s i -> Value
+threadTokenValueOrZero StateMachineInstance{stateMachine,typedValidator} =
+    threadTokenValueInner (smThreadToken stateMachine) (validatorHash typedValidator)
 
 -- | A state machine that does not perform any additional checks on the
 --   'ScriptContext' (beyond enforcing the constraints)
 mkStateMachine
-    :: Maybe AssetClass
+    :: Maybe TT.ThreadToken
     -> (State s -> i -> Maybe (TxConstraints Void Void, State s))
     -> (s -> Bool)
     -> StateMachine s i
@@ -105,9 +110,11 @@ machineAddress = validatorAddress . typedValidator
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
-mkValidator sm@(StateMachine step isFinal check _) currentState input ptx =
+mkValidator (StateMachine step isFinal check threadToken) currentState input ptx =
     let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
-        checkOk = traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
+        checkOk =
+            traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
+            && traceIfFalse "Thread token not found" (TT.checkThreadToken threadToken (ownHash ptx) vl 1)
         oldState = State{stateData=currentState, stateValue=vl}
         stateAndOutputsOk = case step oldState input of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})
@@ -120,7 +127,7 @@ mkValidator sm@(StateMachine step isFinal check _) currentState input ptx =
                                 { txOwnOutputs=
                                     [ OutputConstraint
                                         { ocDatum = newData
-                                        , ocValue = newValue <> threadTokenValue sm
+                                        , ocValue = newValue <> threadTokenValueInner threadToken (ownHash ptx)
                                         }
                                     ]
                                 }

@@ -8,7 +8,7 @@ module Dashboard.State
 import Prelude
 import Capability.Contract (class ManageContract)
 import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, lookupWalletInfo, subscribeToPlutusApp)
+import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, lookupWalletInfo, redeem, subscribeToPlutusApp)
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames, insertIntoWalletLibrary)
 import Capability.Toast (class Toast, addToast)
 import Contract.Lenses (_mMarloweParams, _nickname, _selectedStep)
@@ -17,14 +17,15 @@ import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderSt
 import Contract.Types (Action(..), State) as Contract
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
-import Dashboard.Lenses (_card, _cardOpen, _contracts, _menuOpen, _remoteWalletInfo, _selectedContract, _selectedContractIndex, _status, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
-import Dashboard.Types (Action(..), Card(..), ContractStatus(..), Input, PartitionedContracts, State)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contracts, _menuOpen, _remoteWalletInfo, _selectedContract, _selectedContractIndex, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
+import Dashboard.Types (Action(..), Card(..), ContractFilter(..), Input, PartitionedContracts, State)
 import Data.Array (elem, partition)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Lens (assign, filtered, modifying, over, set, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Traversal (traversed)
+import Data.List (filter, fromFoldable) as List
 import Data.Map (Map, alter, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable, toUnfoldableUnordered, values)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Time.Duration (Minutes(..))
@@ -42,12 +43,13 @@ import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
+import Marlowe.Execution.State (getAllPayments)
 import Marlowe.Extended.Metadata (_extendedContract, _metaData)
 import Marlowe.PAB (ContractHistory, MarloweParams, PlutusAppId(..), MarloweData)
-import Marlowe.Semantics (Slot(..))
+import Marlowe.Semantics (Party(..), Payee(..), Payment(..), Slot(..))
 import Network.RemoteData (RemoteData(..), fromEither)
-import Template.Lenses (_contractNickname, _roleWalletInputs, _template, _templateContent)
-import Template.State (dummyState, handleAction, mkInitialState) as Template
+import Template.Lenses (_contractNicknameInput, _contractTemplate, _roleWalletInputs)
+import Template.State (dummyState, handleAction, initialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
 import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
@@ -74,11 +76,11 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
     , menuOpen: false
     , card: Nothing
     , cardOpen: false
-    , status: Running
     , contracts: mapMaybeWithKey mkInitialContractState contracts
+    , contractFilter: Running
     , selectedContractIndex: Nothing
-    , walletNicknameInput: InputField.initialState
-    , walletIdInput: InputField.initialState
+    , walletNicknameInput: InputField.initialState Nothing
+    , walletIdInput: InputField.initialState Nothing
     , remoteWalletInfo: NotAsked
     , timezoneOffset
     , templateState: Template.dummyState
@@ -148,7 +150,7 @@ handleAction input (SaveNewWallet mTokenName) = do
       newWalletLibrary <- use _walletLibrary
       -- if a tokenName was also passed, we need to update the contract setup data
       for_ mTokenName \tokenName -> do
-        handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators newWalletLibrary
+        handleAction input $ TemplateAction Template.UpdateRoleWalletValidators
         handleAction input $ TemplateAction $ Template.RoleWalletInputAction tokenName $ InputField.SetValue walletNickname
     -- TODO: show error feedback to the user (just to be safe - but this should never happen, because
     -- the button to save a new wallet should be disabled in this case)
@@ -173,7 +175,7 @@ handleAction input (OpenCard card) = do
 
 handleAction _ CloseCard = assign _cardOpen false
 
-handleAction _ (SelectView view) = assign _status view
+handleAction _ (SetContractFilter contractFilter) = assign _contractFilter contractFilter
 
 handleAction input (SelectContract mFollowerAppId) = assign _selectedContractIndex mFollowerAppId
 
@@ -292,6 +294,35 @@ handleAction input@{ currentSlot } (UpdateContract plutusAppId contractHistory@{
           $ for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
       Nothing -> for_ (Contract.mkInitialState walletDetails currentSlot plutusAppId mempty contractHistory) (modifying _contracts <<< insert plutusAppId)
 
+-- This handler looks, in the given contract, for any payments to roles for which the current
+-- wallet holds the token, and then calls the "redeem" endpoint of the main marlowe app for each
+-- one, to make sure those funds reach the user's wallet (without the user having to do anything).
+-- The handler is called every time we receive a notification that the state of the contract's
+-- follower app has changed, so it will be called more often that is necessary. But there is no way
+-- to guard against that. (Well, we could keep track of payments redeemed in the application state,
+-- but that record would be lost when the browser is closed - and then those payments would all be
+-- redeemed again anyway the next time the user picks up the wallet. Since these duplicate requests
+-- will happen anyway, therefore, this extra complication doesn't seem worth the bother.
+handleAction input (RedeemPayments plutusAppId) = do
+  walletDetails <- use _walletDetails
+  contracts <- use _contracts
+  for_ (lookup plutusAppId contracts) \{ executionState, mMarloweParams, userParties } ->
+    for_ mMarloweParams \marloweParams ->
+      let
+        payments = getAllPayments executionState
+
+        isToParty party (Payment _ payee _) = case payee of
+          Party p -> p == party
+          _ -> false
+      in
+        for (List.fromFoldable userParties) \party ->
+          let
+            paymentsToParty = List.filter (isToParty party) payments
+          in
+            for paymentsToParty \payment -> case payment of
+              Payment _ (Party (Role tokenName)) _ -> void $ redeem walletDetails marloweParams tokenName
+              _ -> pure unit
+
 handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
   walletDetails <- use _walletDetails
   selectedStep <- peruse $ _selectedContract <<< _selectedStep
@@ -309,23 +340,11 @@ handleAction input@{ currentSlot } AdvanceTimedoutSteps = do
     for_ selectedStep' (handleAction input <<< ContractAction <<< Contract.MoveToStep)
     handleAction input $ ContractAction Contract.CancelConfirmation
 
--- TODO: we have to handle quite a lot of submodule actions here (mainly just because of the cards),
--- so there's probably a better way of structuring this - perhaps making cards work more like toasts
 handleAction input@{ currentSlot } (TemplateAction templateAction) = case templateAction of
-  Template.SetTemplate template -> do
-    mCurrentTemplate <- peruse (_templateState <<< _template)
-    when (mCurrentTemplate /= Just template) $ assign _templateState $ Template.mkInitialState template
-    walletLibrary <- use _walletLibrary
-    handleAction input $ TemplateAction $ Template.UpdateRoleWalletValidators walletLibrary
-    handleAction input $ OpenCard ContractSetupCard
-  Template.OpenTemplateLibraryCard -> handleAction input $ OpenCard TemplateLibraryCard
   Template.OpenCreateWalletCard tokenName -> handleAction input $ OpenCard $ SaveWalletCard $ Just tokenName
-  Template.OpenSetupConfirmationCard -> handleAction input $ OpenCard ContractSetupConfirmationCard
-  Template.CloseSetupConfirmationCard -> handleAction input CloseCard
   Template.StartContract -> do
-    extendedContract <- use (_templateState <<< _template <<< _extendedContract)
-    templateContent <- use (_templateState <<< _templateContent)
-    case instantiateExtendedContract currentSlot extendedContract templateContent of
+    templateState <- use _templateState
+    case instantiateExtendedContract currentSlot templateState of
       Nothing -> addToast $ errorToast "Failed to instantiate contract." $ Just "Something went wrong when trying to instantiate a contract from this template using the parameters you specified."
       Just contract -> do
         -- the user enters wallet nicknames for roles; here we convert these into pubKeyHashes
@@ -347,15 +366,18 @@ handleAction input@{ currentSlot } (TemplateAction templateAction) = case templa
             case ajaxPendingFollowerApp of
               Left ajaxError -> addToast $ ajaxErrorToast "Failed to initialise contract." ajaxError
               Right followerAppId -> do
-                contractNickname <- use (_templateState <<< _contractNickname)
+                contractNickname <- use (_templateState <<< _contractNicknameInput <<< _value)
                 insertIntoContractNicknames followerAppId contractNickname
-                metaData <- use (_templateState <<< _template <<< _metaData)
+                metaData <- use (_templateState <<< _contractTemplate <<< _metaData)
                 modifying _contracts $ insert followerAppId $ Contract.mkPlaceholderState followerAppId contractNickname metaData contract
                 handleAction input CloseCard
                 addToast $ successToast "The request to initialise this contract has been submitted."
                 { dataProvider } <- ask
                 when (dataProvider == LocalStorage) (handleAction input UpdateFromStorage)
-  _ -> toTemplate $ Template.handleAction templateAction
+                assign _templateState Template.initialState
+  _ -> do
+    walletLibrary <- use _walletLibrary
+    toTemplate $ Template.handleAction { currentSlot, walletLibrary } templateAction
 
 handleAction input@{ currentSlot } (ContractAction contractAction) = do
   walletDetails <- use _walletDetails

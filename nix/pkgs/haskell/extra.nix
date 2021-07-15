@@ -17,7 +17,7 @@
 let
   agdaProject = haskell-nix.hackage-project {
     name = "Agda";
-    version = "2.6.1.1";
+    version = "2.6.2";
     plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./agda.sha);
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
@@ -49,7 +49,6 @@ let
         done
       '';
     }];
-    configureArgs = "--constraint 'haskeline == 0.8.0.0'";
   };
   cabalInstallProject = haskell-nix.hackage-project {
     name = "cabal-install";

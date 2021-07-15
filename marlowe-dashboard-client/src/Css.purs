@@ -1,5 +1,5 @@
 module Css
-  ( container
+  ( maxWidthContainer
   , bgBlueGradient
   , button
   , withIcon
@@ -9,17 +9,16 @@ module Css
   , whiteButton
   , input
   , inputNoFocus
-  , inputCard
-  , inputCardNoFocus
+  , unstyledInput
   , inputError
   , hasNestedLabel
   , nestedLabel
-  , withNestedLabel
   , cardOverlay
   , sidebarCardOverlay
   , card
   , videoCard
   , sidebarCard
+  , cardHeader
   , embeddedVideoContainer
   , embeddedVideo
   , iconCircle
@@ -32,8 +31,8 @@ import Halogen.Css (applyWhen)
 import Material.Icons (Icon, iconClass)
 
 -- max-width container
-container :: Array String
-container = [ "max-w-xl", "mx-auto", "px-4" ]
+maxWidthContainer :: Array String
+maxWidthContainer = [ "max-w-xl", "mx-auto", "px-4" ]
 
 --- color gradients
 bgBlueGradient :: Array String
@@ -85,33 +84,27 @@ inputBase =
   , "outline-none"
   , "focus:outline-none"
   , "text-black"
-  , "border-transparent"
-  , "focus:border-transparent"
-  , "shadow-sm"
-  , "focus:shadow"
-  , "hover:shadow"
+  , "border"
   ]
 
-inputBaseFocus :: Array String
-inputBaseFocus = inputBase <> [ "focus:ring-1" ]
-
-inputBaseNoFocus :: Array String
-inputBaseNoFocus = inputBase <> [ "focus:ring-0" ]
-
+-- note we set rings on focus-within as well as focus, so that we can use these classes on divs
+-- with unstyled inputs inside them, making that whole parent div look like the input
 input :: Boolean -> Array String
-input valid = inputBaseFocus <> [ "border", "bg-transparent" ] <> if valid then [ "border-black", "focus:border-black" ] else [ "border-red" ]
+input valid =
+  inputBase
+    <> [ "focus:border-transparent", "focus:ring-1", "focus-within:ring-1" ]
+    <> if valid then [ "border-gray" ] else [ "border-red" ]
 
+-- use this on pseudo select elements, because the focus ring doesn't play well with the dropdown
 inputNoFocus :: Boolean -> Array String
-inputNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+inputNoFocus valid =
+  inputBase
+    <> [ "focus:ring-0", "focus:border-gray" ]
+    <> if valid then [ "border-gray" ] else [ "border-red" ]
 
-withNestedLabel :: Array String
-withNestedLabel = [ "border", "border-gray", "focus:border-gray" ]
-
-inputCard :: Boolean -> Array String
-inputCard valid = inputBaseFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
-
-inputCardNoFocus :: Boolean -> Array String
-inputCardNoFocus valid = inputBaseNoFocus <> if valid then [ "border-transparent" ] else [ "border-red" ]
+-- use this on an input inside a div styled like an input
+unstyledInput :: Array String
+unstyledInput = [ "p-0", "border-0", "focus:ring-0" ]
 
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]
@@ -161,9 +154,9 @@ card :: Boolean -> Array String
 card visible =
   [ "overflow-hidden"
   , "rounded-t"
-  , "md:rounded-b"
+  , "lg:rounded-b"
   , "self-end"
-  , "md:self-center"
+  , "lg:self-center"
   ]
     <> cardBase visible
 
@@ -180,9 +173,8 @@ sidebarCard :: Boolean -> Array String
 sidebarCard visible =
   [ "overflow-hidden"
   , "rounded-t"
-  , "md:rounded-b"
   , "self-end"
-  , "md:self-center"
+  , "h-90pc"
   , "lg:rounded-none"
   , "lg:mx-0"
   , "lg:flex-none"
@@ -193,6 +185,9 @@ sidebarCard visible =
   ]
     <> cardBase visible
     <> applyWhen (not visible) [ "lg:translate-y-0", "lg:translate-x-80" ]
+
+cardHeader :: Array String
+cardHeader = [ "text-lg", "font-semibold", "leading-none", "px-4", "py-4.5", "border-gray", "border-b" ]
 
 -- embedded videos
 embeddedVideoContainer :: Array String

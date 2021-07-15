@@ -145,9 +145,9 @@ handleAction (Inject rootBlockName blockDefinitions toolbox) = do
     liftEffect do
       -- TODO: once we refactor ActusBlockly to use BlocklyComponent we should remove ElementId from
       --       createBlocklyInstance and receive two HTMLElements that should be handled by RefElement
-      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") toolbox
+      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "workspaceBlocks") toolbox
       Blockly.addBlockTypes state.blockly blockDefinitions
-      Blockly.initializeWorkspace state.blockly state.workspace
+      Blockly.initializeWorkspace state
       pure state
   -- Subscribe to the resize events on the main section to resize blockly automatically.
   for_ mElement $ H.subscribe <<< elementResize ContentBox (const ResizeWorkspace)

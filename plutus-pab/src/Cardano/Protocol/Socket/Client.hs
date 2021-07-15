@@ -23,11 +23,8 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmis
 import           Ledger.TimeSlot                                     (SlotConfig, currentSlot)
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux
-import           Ouroboros.Network.NodeToNode                        hiding (chainSyncMiniProtocolNum,
-                                                                      txSubmissionMiniProtocolNum)
-import           Ouroboros.Network.Protocol.Handshake.Codec
-import           Ouroboros.Network.Protocol.Handshake.Unversioned
-import           Ouroboros.Network.Protocol.Handshake.Version
+import           Ouroboros.Network.NodeToClient                      (NodeToClientProtocols (..), connectTo,
+                                                                      versionedNodeToClientProtocols)
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
 
@@ -75,29 +72,29 @@ runChainSync socketPath slotConfig onNewBlock = do
       loop :: TimeUnit a => a -> ChainSyncHandle -> IOManager -> IO ()
       loop timeout ch@ChainSyncHandle{ cshHandler } iocp = do
         catchAll
-          (connectToNode
+          (connectTo
             (localSnocket iocp socketPath)
-            unversionedHandshakeCodec
-            noTimeLimitsHandshake
-            (cborTermVersionDataCodec unversionedProtocolDataCodec)
             nullNetworkConnectTracers
-            acceptableVersion
-            (unversionedProtocol $ app cshHandler)
-            Nothing
-            (localAddressFromPath socketPath))
+            (versionedNodeToClientProtocols
+              nodeToClientVersion
+              nodeToClientVersionData
+              (\_ _ -> nodeToClientProtocols cshHandler))
+            socketPath)
           {- If we receive any error or disconnect, try to reconnect.
              This happens a lot on startup, until the server starts. -}
           (\_ -> do
                threadDelay (fromIntegral $ toMicroseconds timeout)
                loop timeout ch iocp)
 
-      {- Application that communicates using 2 multiplexed protocols
-         (ChainSync and TxSubmission). -}
-      app :: (Block -> Slot -> IO ())
-          -> OuroborosApplication 'InitiatorMode addr
-                                  LBS.ByteString IO () Void
-      app onNewBlock' =
-        mkApplication [(chainSyncMiniProtocolNum, chainSync onNewBlock')]
+      nodeToClientProtocols
+        :: (Block -> Slot -> IO ())
+        -> NodeToClientProtocols 'InitiatorMode LBS.ByteString IO () Void
+      nodeToClientProtocols blockHandler =
+        NodeToClientProtocols
+          { localChainSyncProtocol = chainSync blockHandler
+          , localTxSubmissionProtocol = doNothingInitiatorProtocol
+          , localStateQueryProtocol = doNothingInitiatorProtocol
+          }
 
       chainSync :: (Block -> Slot -> IO ())
                 -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
@@ -146,30 +143,29 @@ runTxSender socketPath = do
       loop :: TimeUnit a => a -> TxSendHandle -> IOManager -> IO ()
       loop timeout ch@TxSendHandle{ tshQueue } iocp = do
         catchAll
-          (connectToNode
+          (connectTo
             (localSnocket iocp socketPath)
-            unversionedHandshakeCodec
-            noTimeLimitsHandshake
-            (cborTermVersionDataCodec unversionedProtocolDataCodec)
             nullNetworkConnectTracers
-            acceptableVersion
-            (unversionedProtocol (app tshQueue))
-            Nothing
-            (localAddressFromPath socketPath))
+            (versionedNodeToClientProtocols
+              nodeToClientVersion
+              nodeToClientVersionData
+              (\_ _ -> nodeToClientProtocols tshQueue))
+            socketPath)
           {- If we receive any error or disconnect, try to reconnect.
              This happens a lot on startup, until the server starts. -}
           (\_ -> do
                threadDelay (fromIntegral $ toMicroseconds timeout)
                loop timeout ch iocp)
 
-      {- Application that communicates using 2 multiplexed protocols
-         (ChainSync and TxSubmission). -}
-      app :: TQueue Tx
-          -> OuroborosApplication 'InitiatorMode addr
-                                  LBS.ByteString IO () Void
-      app inputQueue =
-        mkApplication [(txSubmissionMiniProtocolNum, txSubmission inputQueue)]
-
+      nodeToClientProtocols
+        :: TQueue Tx
+        -> NodeToClientProtocols 'InitiatorMode LBS.ByteString IO () Void
+      nodeToClientProtocols sendQueue =
+        NodeToClientProtocols
+          { localChainSyncProtocol = doNothingInitiatorProtocol
+          , localTxSubmissionProtocol = txSubmission sendQueue
+          , localStateQueryProtocol = doNothingInitiatorProtocol
+          }
 
       txSubmission :: TQueue Tx
                    -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void

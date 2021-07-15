@@ -1441,9 +1441,8 @@ instance blockToTermBound :: BlockToTerm Bound where
 ---------------------------------------------------------------------------------------------------
 buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
 buildBlocks newBlock bs contract = do
-  workspaceWasEmpty <- isWorkspaceEmpty bs.workspace
   clearWorkspace bs.workspace
-  initializeWorkspace bs.blockly bs.workspace
+  initializeWorkspace bs
   -- Get or create rootBlock
   mRootBlock <- getBlockById bs.workspace bs.rootBlockName
   rootBlock <- case mRootBlock of

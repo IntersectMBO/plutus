@@ -10,26 +10,31 @@ import           Common
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad.IO.Class
-import           Data.Ratio             ((%))
-import           GHC.Real               (reduce)
-import           Hedgehog               (MonadGen, Property)
+import           Data.Ratio                 ((%))
+import           GHC.Real                   (reduce)
+import           Hedgehog                   (MonadGen, Property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen           as Gen
-import qualified Hedgehog.Range         as Range
+import qualified Hedgehog.Gen               as Gen
+import qualified Hedgehog.Range             as Range
 import           Lib
 import           PlcTestUtils
-import           PlutusCore.Data        (Data (..))
-import           Test.Tasty             (TestName)
-import           Test.Tasty.Hedgehog    (testProperty)
+import           PlutusCore.Data            (Data (..))
+import           Test.Tasty                 (TestName)
+import           Test.Tasty.Hedgehog        (testProperty)
 
-import qualified PlutusTx.Eq            as PlutusTx
-import qualified PlutusTx.Ord           as PlutusTx
-import qualified PlutusTx.Prelude       as PlutusTx
-import qualified PlutusTx.Ratio         as Ratio
+import qualified PlutusTx.Eq                as PlutusTx
+import qualified PlutusTx.Ord               as PlutusTx
+import qualified PlutusTx.Prelude           as PlutusTx
+import qualified PlutusTx.Ratio             as Ratio
+
+import           PlutusTx.Builtins.Internal (BuiltinData (..))
+import           PlutusTx.Code
+import qualified PlutusTx.Lift              as Lift
+import           PlutusTx.Plugin
 
 import           PlutusTx.Code
-import qualified PlutusTx.Lift          as Lift
-import           PlutusTx.Plugin
+
+import qualified PlutusCore.Data            as PLC
 
 import           Data.Proxy
 
@@ -111,25 +116,25 @@ testOrd = Hedgehog.property $ do
 
 eqData :: Property
 eqData = Hedgehog.property $ do
-    theData <- Hedgehog.forAll genData
+    theData <- BuiltinData <$> Hedgehog.forAll genData
     let ghcResult = theData == theData
         plutusResult = theData PlutusTx.== theData
     Hedgehog.annotateShow theData
     Hedgehog.assert (ghcResult && plutusResult)
 
-genData :: MonadGen m => m Data
+genData :: MonadGen m => m PLC.Data
 genData =
     let genInteger = Gen.integral (Range.linear (-10000) 100000)
         genBytes   = Gen.bytes (Range.linear 0 1000)
         genList    = Gen.list (Range.linear 0 10)
     in Gen.recursive
             Gen.choice
-            [ I <$> genInteger
-            , B <$> genBytes
+            [ PLC.I <$> genInteger
+            , PLC.B <$> genBytes
             ]
-            [ Constr <$> genInteger <*> genList genData
-            , Map <$> genList ((,) <$> genData <*> genData)
-            , List <$> genList genData
+            [ PLC.Constr <$> genInteger <*> genList genData
+            , PLC.Map <$> genList ((,) <$> genData <*> genData)
+            , PLC.List <$> genList genData
             ]
 
 errorTrace :: CompiledCode (Integer)

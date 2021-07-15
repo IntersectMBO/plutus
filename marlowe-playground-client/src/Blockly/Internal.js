@@ -153,10 +153,7 @@ exports.addBlockType_ = function (blockly, name, block) {
   };
 };
 
-exports.initializeWorkspace_ = function (blockly, workspace) {
-  // QUESTION: Shouldn't we pass the id element as a parameter? this does not
-  // affect having multiple Blockly instances? (currently Actus and BlocklyEditor)
-  var workspaceBlocks = document.getElementById("workspaceBlocks");
+exports.initializeWorkspace_ = function (blockly, workspace, workspaceBlocks) {
   blockly.Xml.domToWorkspace(workspaceBlocks, workspace);
   workspace.getAllBlocks()[0].setDeletable(false);
 };

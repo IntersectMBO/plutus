@@ -14,7 +14,8 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Halogen (RefLabel(..))
-import Marlowe.Execution.Types (ExecutionState, NamedAction)
+import Marlowe.Execution.Types (NamedAction)
+import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (PlutusAppId, MarloweParams)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
@@ -23,7 +24,7 @@ import WalletData.Types (WalletDetails, WalletNickname)
 type State
   = { nickname :: String
     , tab :: Tab -- this is the tab of the current (latest) step - previous steps have their own tabs
-    , executionState :: ExecutionState
+    , executionState :: Execution.State
     -- When the user submits a transaction, we save it here until we get confirmation from the PAB and
     -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
     , pendingTransaction :: Maybe TransactionInput

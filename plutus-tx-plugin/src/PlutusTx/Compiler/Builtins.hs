@@ -36,6 +36,7 @@ import qualified PlutusIR.Purity               as PIR
 
 import qualified PlutusCore                    as PLC
 import qualified PlutusCore.Constant           as PLC
+import qualified PlutusCore.Data               as PLC
 import           PlutusCore.Quote
 
 import qualified GhcPlugins                    as GHC
@@ -209,11 +210,28 @@ builtinNames = [
     , ''Builtins.BuiltinPair
     , 'Builtins.fst
     , 'Builtins.snd
+    , 'Builtins.mkPairData
 
     , ''Builtins.BuiltinList
     , 'Builtins.null
     , 'Builtins.head
     , 'Builtins.tail
+    , 'Builtins.mkNilData
+    , 'Builtins.mkNilPairData
+    , 'Builtins.mkCons
+
+    , ''Builtins.BuiltinData
+    , 'Builtins.chooseData
+    , 'Builtins.mkConstr
+    , 'Builtins.mkMap
+    , 'Builtins.mkList
+    , 'Builtins.mkI
+    , 'Builtins.mkB
+    , 'Builtins.unsafeDataAsConstr
+    , 'Builtins.unsafeDataAsMap
+    , 'Builtins.unsafeDataAsList
+    , 'Builtins.unsafeDataAsB
+    , 'Builtins.unsafeDataAsI
     ]
 
 -- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
@@ -301,11 +319,28 @@ defineBuiltinTerms = do
     -- Pairs
     defineBuiltinTerm 'Builtins.fst $ mkBuiltin PLC.FstPair
     defineBuiltinTerm 'Builtins.snd $ mkBuiltin PLC.SndPair
+    defineBuiltinTerm 'Builtins.mkPairData $ mkBuiltin PLC.MkPairData
 
     -- List
     defineBuiltinTerm 'Builtins.null $ mkBuiltin PLC.NullList
     defineBuiltinTerm 'Builtins.head $ mkBuiltin PLC.HeadList
     defineBuiltinTerm 'Builtins.tail $ mkBuiltin PLC.TailList
+    defineBuiltinTerm 'Builtins.mkNilData $ mkBuiltin PLC.MkNilData
+    defineBuiltinTerm 'Builtins.mkNilPairData $ mkBuiltin PLC.MkNilPairData
+    defineBuiltinTerm 'Builtins.mkCons $ mkBuiltin PLC.MkCons
+
+    -- Data
+    defineBuiltinTerm 'Builtins.chooseData $ mkBuiltin PLC.ChooseData
+    defineBuiltinTerm 'Builtins.mkConstr $ mkBuiltin PLC.ConstrData
+    defineBuiltinTerm 'Builtins.mkMap $ mkBuiltin PLC.MapData
+    defineBuiltinTerm 'Builtins.mkList $ mkBuiltin PLC.ListData
+    defineBuiltinTerm 'Builtins.mkI $ mkBuiltin PLC.IData
+    defineBuiltinTerm 'Builtins.mkB $ mkBuiltin PLC.BData
+    defineBuiltinTerm 'Builtins.unsafeDataAsConstr $ mkBuiltin PLC.UnConstrData
+    defineBuiltinTerm 'Builtins.unsafeDataAsMap $ mkBuiltin PLC.UnMapData
+    defineBuiltinTerm 'Builtins.unsafeDataAsList $ mkBuiltin PLC.UnListData
+    defineBuiltinTerm 'Builtins.unsafeDataAsB $ mkBuiltin PLC.UnBData
+    defineBuiltinTerm 'Builtins.unsafeDataAsI $ mkBuiltin PLC.UnIData
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m
@@ -317,6 +352,7 @@ defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinUnit $ PLC.toTypeAst $ Proxy @()
     defineBuiltinType ''Builtins.BuiltinString $ PLC.toTypeAst $ Proxy @String
     defineBuiltinType ''Char $ PLC.toTypeAst $ Proxy @Char
+    defineBuiltinType ''Builtins.BuiltinData $ PLC.toTypeAst $ Proxy @PLC.Data
     defineBuiltinType ''Builtins.BuiltinPair $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
     defineBuiltinType ''Builtins.BuiltinList $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
 

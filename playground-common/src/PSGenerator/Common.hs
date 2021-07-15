@@ -35,8 +35,8 @@ import           Ledger.Typed.Tx                           (ConnectionError, Wro
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
-import           Plutus.Contract.Effects                   (ActiveEndpoint, PABReq, PABResp, UtxoAtAddress,
-                                                            WriteTxResponse)
+import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, PABReq, PABResp,
+                                                            UtxoAtAddress, WriteBalancedTxResponse)
 import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
@@ -50,7 +50,7 @@ import           Wallet.Rollup.Types                       (AnnotatedTx, Benefic
 import           Wallet.Types                              (AddressChangeRequest, AddressChangeResponse, AssertionError,
                                                             ContractError, ContractInstanceId, EndpointDescription,
                                                             EndpointValue, MatchingError, Notification,
-                                                            NotificationError, Payment)
+                                                            NotificationError)
 
 psJson :: PSType
 psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
@@ -278,7 +278,6 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WrongOutTypeError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Notification)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @NotificationError)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Payment)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @MatchingError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AssertionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointError)
@@ -305,7 +304,8 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @BalanceTxResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteBalancedTxResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
