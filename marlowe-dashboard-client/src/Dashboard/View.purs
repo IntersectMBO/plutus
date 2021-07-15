@@ -334,16 +334,16 @@ contractCards currentSlot { contractFilter: Running, contracts } =
     if isEmpty runningContracts then
       noContractsMessage Running
     else
-      contractGrid currentSlot runningContracts
+      contractGrid currentSlot Running runningContracts
 
 contractCards currentSlot { contractFilter: Completed, contracts } =
   let
     completedContracts = filter isContractClosed contracts
   in
     if isEmpty completedContracts then
-      noContractsMessage Running
+      noContractsMessage Completed
     else
-      contractGrid currentSlot completedContracts
+      contractGrid currentSlot Completed completedContracts
 
 noContractsMessage :: forall p. ContractFilter -> HTML p Action
 noContractsMessage contractFilter =
@@ -370,11 +370,13 @@ noContractsMessage contractFilter =
               [ text "You have no completed contracts." ]
           ]
 
-contractGrid :: forall p. Slot -> Map PlutusAppId Contract.State -> HTML p Action
-contractGrid currentSlot contracts =
+contractGrid :: forall p. Slot -> ContractFilter -> Map PlutusAppId Contract.State -> HTML p Action
+contractGrid currentSlot contractFilter contracts =
   div
     [ classNames [ "grid", "pt-4", "pb-20", "lg:pb-4", "gap-8", "auto-rows-min", "mx-auto", "max-w-contracts-grid-sm", "md:max-w-none", "md:w-contracts-grid-md", "md:grid-cols-2", "lg:w-contracts-grid-lg", "lg:grid-cols-3" ] ]
-    $ [ newContractCard ]
+    $ case contractFilter of
+        Running -> [ newContractCard ]
+        Completed -> []
     <> (dashboardContractCard <$> toUnfoldable contracts)
   where
   newContractCard =
