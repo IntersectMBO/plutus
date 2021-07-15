@@ -60,6 +60,8 @@ module Plutus.Contract(
     , Request.submitTxConstraintsSpending
     , Request.submitTxConstraintsWith
     , Request.submitUnbalancedTx
+    , Request.submitBalancedTx
+    , Request.balanceTx
     -- ** Creating transactions
     , module Tx
     -- ** Tx confirmation

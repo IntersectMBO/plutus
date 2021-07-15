@@ -33,6 +33,7 @@ initialState :: forall e. InputFieldError e => Maybe NumberFormat -> State e
 initialState mNumberFormat =
   let
     initialValue = case mNumberFormat of
+      Just DefaultFormat -> "0"
       Just (DecimalFormat decimals _) -> formatBigIntegerValue decimals zero
       _ -> mempty
   in

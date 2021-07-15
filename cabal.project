@@ -114,8 +114,9 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: e50613562d6d4a0f933741fcf590b0f69a1eda67
+  tag: e338f2cf8e1078fbda9555dd2b169c6737ef6774
   subdir:
+    monoidal-synchronisation
     typed-protocols
     typed-protocols-examples
     ouroboros-network
@@ -126,7 +127,7 @@ source-repository-package
     ouroboros-consensus-cardano
     ouroboros-consensus-shelley
     io-sim
-    io-sim-classes
+    io-classes
     network-mux
 
 source-repository-package
@@ -146,7 +147,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: a3ef848542961079b7cd53d599e5385198a3035c
+  tag: b8f1ebb46a91f1c634e616feb89ae34de5937e17
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -169,9 +170,8 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-node.git
-  tag: b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6
+  tag: f3ef4ed72894499160f2330b91572a159005c148
   subdir:
-    cardano-api/test
     cardano-api
     cardano-node
     cardano-cli

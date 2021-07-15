@@ -1,15 +1,21 @@
 "use strict";
 
-exports.marloweRunLogo_ = require("static/images/marlowe-run-logo.svg");
+exports.marloweRunLogo = require("static/images/marlowe-run-logo.svg");
 
-exports.marloweRunNavLogo_ = require("static/images/marlowe-run-nav-logo.svg");
+exports.marloweRunNavLogo = require("static/images/marlowe-run-nav-logo.svg");
 
-exports.marloweRunNavLogoDark_ = require("static/images/marlowe-run-nav-logo-dark.svg");
+exports.marloweRunNavLogoDark = require("static/images/marlowe-run-nav-logo-dark.svg");
 
-exports.backgroundShape_ = require("static/images/background-shape.svg");
+exports.backgroundShape = require("static/images/background-shape.svg");
 
-exports.arrowBack_ = require("static/images/arrow-back.svg");
+exports.arrowBack = require("static/images/arrow-back.svg");
 
-exports.linkHighlight_ = require("static/images/link-highlight.svg");
+exports.linkHighlight = require("static/images/link-highlight.svg");
 
-exports.getStartedThumbnail_ = require("static/images/get-started-thumbnail.jpg")
+exports.getStartedThumbnail = require("static/images/get-started-thumbnail.jpg")
+
+exports.cfdIcon = require("static/images/cfd-icon.svg")
+
+exports.loanIcon = require("static/images/loan-icon.svg")
+
+exports.purchaseIcon = require("static/images/purchase-icon.svg")

@@ -8,8 +8,8 @@ module UntypedPlutusCore.Size
 
 import           UntypedPlutusCore.Core
 
-import           Codec.Serialise
-import qualified Data.ByteString.Lazy   as BSL
+import qualified Data.ByteString        as BS
+import           Flat
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term name uni fun ann -> Integer
@@ -27,6 +27,6 @@ termSize = \case
 programSize :: Program name uni fun ann -> Integer
 programSize (Program _ _ t) = termSize t
 
--- | Compute the size of the serializabled form of a value.
-serialisedSize :: Serialise a => a -> Integer
-serialisedSize = fromIntegral . BSL.length . serialise
+-- | Compute the size of the serialized form of a value.
+serialisedSize :: Flat a => a -> Integer
+serialisedSize = fromIntegral . BS.length . flat

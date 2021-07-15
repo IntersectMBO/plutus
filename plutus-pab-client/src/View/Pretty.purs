@@ -8,7 +8,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Newtype (unwrap)
 import Halogen.HTML (HTML, b_, div_, span_, text)
-import Plutus.Contract.Effects (ActiveEndpoint, WriteTxResponse(..), PABReq(..), PABResp(..))
+import Plutus.Contract.Effects (ActiveEndpoint, BalanceTxResponse(..), WriteBalancedTxResponse(..), PABReq(..), PABResp(..))
 import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
@@ -106,21 +106,23 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show addressChangeResponse
       ]
-  pretty (WriteTxResp writeTxResponse) =
+  pretty (BalanceTxResp balanceTxResponse) =
     span_
-      [ text "WriteTxResponse:"
+      [ text "BalanceTxResponse:"
       , nbsp
-      , pretty writeTxResponse
+      , pretty balanceTxResponse
+      ]
+  pretty (WriteBalancedTxResp writeBalancedTxResponse) =
+    span_
+      [ text "WriteBalancedTxResponse:"
+      , nbsp
+      , pretty writeBalancedTxResponse
       ]
   pretty (OwnContractInstanceIdResp ownInstanceResponse) =
     span_
       [ text "OwnInstanceResponse:"
       , nbsp
       , text $ view _contractInstanceIdString ownInstanceResponse
-      ]
-  pretty (SendNotificationResp _) =
-    span_
-      [ text "SendNotificationResponse"
       ]
 
 instance prettyContractPABRequest :: Pretty PABReq where
@@ -172,26 +174,37 @@ instance prettyContractPABRequest :: Pretty PABReq where
       , nbsp
       , text $ show addressChangeRequest
       ]
-  pretty (WriteTxReq writeTxRequest) =
+  pretty (BalanceTxReq balanceTxRequest) =
     span_
-      [ text "WriteTxRequest:"
+      [ text "BalanceTxRequest:"
       , nbsp
-      , pretty writeTxRequest
+      , pretty balanceTxRequest
+      ]
+  pretty (WriteBalancedTxReq writeBalancedTxRequest) =
+    span_
+      [ text "WriteBalancedTxRequest:"
+      , nbsp
+      , pretty writeBalancedTxRequest
       ]
   pretty OwnContractInstanceIdReq =
     span_
       [ text "OwnInstanceIdRequest:"
       ]
-  pretty (SendNotificationReq _) =
-    span_
-      [ text "SendNotificationRequest"
+
+instance prettyBalanceTxResponse :: Pretty BalanceTxResponse where
+  pretty (BalanceTxSuccess tx) = span_ [ text "BalanceTxSuccess:", nbsp, pretty tx ]
+  pretty (BalanceTxFailed error) =
+    alertDanger_
+      [ text "BalanceTxFailed:"
+      , nbsp
+      , text $ show error
       ]
 
-instance prettyWriteTxResponse :: Pretty WriteTxResponse where
-  pretty (WriteTxSuccess tx) = span_ [ text "WriteTxSuccess:", nbsp, pretty tx ]
-  pretty (WriteTxFailed error) =
+instance prettyWriteBalancedTxResponse :: Pretty WriteBalancedTxResponse where
+  pretty (WriteBalancedTxSuccess tx) = span_ [ text "WriteBalancedTxSuccess:", nbsp, pretty tx ]
+  pretty (WriteBalancedTxFailed error) =
     alertDanger_
-      [ text "WriteTxFailed:"
+      [ text "WriteBalancedTxFailed:"
       , nbsp
       , text $ show error
       ]

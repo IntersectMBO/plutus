@@ -79,8 +79,7 @@ useWalletBox state =
     walletNicknameOrIdInput = view _walletNicknameOrIdInput state
 
     walletNicknameOrIdInputDisplayOptions =
-      { baseCss: Css.inputNoFocus
-      , additionalCss: mempty
+      { additionalCss: mempty
       , id_: "existingWallet"
       , placeholder: "Choose wallet or paste key"
       , readOnly: false
@@ -333,8 +332,7 @@ useWalletCard state =
 
 walletNicknameInputDisplayOptions :: Boolean -> InputDisplayOptions
 walletNicknameInputDisplayOptions readOnly =
-  { baseCss: Css.inputCard
-  , additionalCss: Css.withNestedLabel
+  { additionalCss: mempty
   , id_: "walletNickname"
   , placeholder: if readOnly then mempty else "Give your wallet a nickname"
   , readOnly
@@ -344,8 +342,7 @@ walletNicknameInputDisplayOptions readOnly =
 
 walletIdInputDisplayOptions :: InputDisplayOptions
 walletIdInputDisplayOptions =
-  { baseCss: Css.inputCard
-  , additionalCss: Css.withNestedLabel
+  { additionalCss: mempty
   , id_: "walletId"
   , placeholder: "Wallet ID"
   , readOnly: true

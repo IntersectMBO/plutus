@@ -44,10 +44,39 @@
         )
         (datatypebind
           (datatype
+            (tyvardecl TxOutRef (type))
+
+            TxOutRef_match
+            (vardecl
+              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl ThreadToken (type))
+
+            ThreadToken_match
+            (vardecl
+              ThreadToken (fun TxOutRef (fun (con bytestring) ThreadToken))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl Credential (type))
+
+            Credential_match
+            (vardecl PubKeyCredential (fun (con bytestring) Credential))
+            (vardecl ScriptCredential (fun (con bytestring) Credential))
+          )
+        )
+        (datatypebind
+          (datatype
             (tyvardecl StakingCredential (type))
 
             StakingCredential_match
-            (vardecl StakingHash (fun (con bytestring) StakingCredential))
+            (vardecl StakingHash (fun Credential StakingCredential))
             (vardecl
               StakingPtr
               (fun (con integer) (fun (con integer) (fun (con integer) StakingCredential)))
@@ -78,16 +107,6 @@
         )
         (datatypebind
           (datatype
-            (tyvardecl TxOutRef (type))
-
-            TxOutRef_match
-            (vardecl
-              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
             (tyvardecl ScriptPurpose (type))
 
             ScriptPurpose_match
@@ -95,15 +114,6 @@
             (vardecl Minting (fun (con bytestring) ScriptPurpose))
             (vardecl Rewarding (fun StakingCredential ScriptPurpose))
             (vardecl Spending (fun TxOutRef ScriptPurpose))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl Credential (type))
-
-            Credential_match
-            (vardecl PubKeyCredential (fun (con bytestring) Credential))
-            (vardecl ScriptCredential (fun (con bytestring) Credential))
           )
         )
         (datatypebind
@@ -306,7 +316,7 @@
                 StateMachine_match
                 (vardecl
                   StateMachine
-                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe [[Tuple2 (con bytestring)] (con bytestring)]] [[StateMachine s] i]))))
+                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] [[StateMachine s] i]))))
                 )
               )
             )
@@ -6525,10 +6535,7 @@
                                       FutureAction
                                     }
                                   ]
-                                  {
-                                    Nothing
-                                    [[Tuple2 (con bytestring)] (con bytestring)]
-                                  }
+                                  { Nothing ThreadToken }
                                 ]
                               )
                             )

@@ -29,7 +29,7 @@ import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon, icon_)
 import Popper (Placement(..))
 import Prim.TypeError (class Warn, Text)
-import Template.View (contractSetupConfirmationCard, contractSetupScreen, templateLibraryCard)
+import Template.View (contractTemplateCard)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
 import WalletData.Lenses (_assets, _walletNickname)
@@ -107,9 +107,7 @@ dashboardCard currentSlot state = case view _card state of
                 WalletLibraryCard -> [ walletLibraryCard walletLibrary ]
                 SaveWalletCard mTokenName -> [ saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName ]
                 ViewWalletCard walletDetails -> [ walletDetailsCard walletDetails ]
-                TemplateLibraryCard -> [ TemplateAction <$> templateLibraryCard ]
-                ContractSetupCard -> [ TemplateAction <$> contractSetupScreen walletLibrary currentSlot templateState ]
-                ContractSetupConfirmationCard -> [ TemplateAction <$> contractSetupConfirmationCard assets ]
+                ContractTemplateCard -> [ TemplateAction <$> contractTemplateCard walletLibrary assets templateState ]
                 ContractActionConfirmationCard action -> case selectedContract of
                   Just contractState -> [ ContractAction <$> actionConfirmationCard assets contractState action ]
                   Nothing -> []
@@ -299,7 +297,7 @@ contractNavigation contractFilter =
                   [ icon_ Icon.History ]
               , a
                   [ classNames $ navItemClasses false
-                  , onClick_ $ OpenCard TemplateLibraryCard
+                  , onClick_ $ OpenCard ContractTemplateCard
                   ]
                   [ icon Icon.AddBox [ "text-purple" ] ]
               ]
@@ -341,7 +339,7 @@ noContractsMessage contractFilter =
               [ text "Choose a template to begin." ]
           , button
               [ classNames Css.primaryButton
-              , onClick_ $ OpenCard TemplateLibraryCard
+              , onClick_ $ OpenCard ContractTemplateCard
               ]
               [ text "Choose a template" ]
           ]

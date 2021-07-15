@@ -175,7 +175,9 @@ instance Arbitrary PABReq where
             , UtxoAtReq <$> arbitrary
             , AddressChangeReq <$> arbitrary
             , pure $ OwnPublicKeyReq
-            -- TODO This would need an Arbitrary Tx instance: WriteTxRequest <$> arbitrary
+            -- TODO This would need an Arbitrary Tx instance:
+            -- , BalanceTxRequest <$> arbitrary
+            -- , WriteBalancedTxRequest <$> arbitrary
             ]
 
 instance Arbitrary Address where
@@ -199,7 +201,8 @@ instance Arbitrary ActiveEndpoint where
 -- warning sign around the rabbit hole:
 -- bad :: [Gen ContractRequest]
 -- bad =
---     [ WriteTxRequest <$> arbitrary
+--     [ BalanceTxRequest <$> arbitrary
+--     , WriteBalancedTxRequest <$> arbitrary
 --     , UtxoAtRequest <$> arbitrary
 --     , AddressChangedAtRequest <$> arbitrary
 --     ]

@@ -7,7 +7,9 @@ module Ledger.Constraints(
     , mustPayToTheScript
     , mustPayToPubKey
     , mustMintCurrency
+    , mustMintCurrencyWithRedeemer
     , mustMintValue
+    , mustMintValueWithRedeemer
     , mustSpendAtLeast
     , mustSpendPubKeyOutput
     , mustSpendScriptOutput

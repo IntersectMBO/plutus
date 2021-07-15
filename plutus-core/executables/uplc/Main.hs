@@ -119,7 +119,7 @@ plutusOpts = hsubparser (
        command "apply"
            (info (Apply <$> applyOpts)
             (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
-            ++ "for example, 'plc apply --if cbor Validator.cbor Datum.cbor Redeemer.cbor Context.cbor --of cbor -o Script.cbor'"))
+            ++ "for example, 'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
@@ -206,7 +206,7 @@ runPrint (PrintOptions inp mode) =
 
 ---------------- Conversions ----------------
 
--- | Convert between textual and CBOR representations.  This subsumes the
+-- | Convert between textual and FLAT representations.  This subsumes the
 -- `print` command: for example, `plc convert -i prog.plc --typed --fmt Readable`
 -- will read a typed plc file and print it in the Readable format.  Having
 -- the separate `print` option may be more user-friendly though.

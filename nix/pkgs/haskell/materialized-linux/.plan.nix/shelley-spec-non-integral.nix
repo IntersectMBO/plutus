@@ -41,7 +41,6 @@
         "shelley-spec-non-integral-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            ] ++ (pkgs.lib).optionals (!flags.development) [
             (hsPkgs."shelley-spec-non-integral" or (errorHandler.buildDepError "shelley-spec-non-integral"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             ];
@@ -52,4 +51,4 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/41; }
+    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/42; }
