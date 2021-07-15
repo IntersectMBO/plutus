@@ -195,7 +195,7 @@ fromCardanoPaymentKeyHash :: C.Hash C.PaymentKey -> P.PubKeyHash
 fromCardanoPaymentKeyHash paymentKeyHash = P.PubKeyHash $ C.serialiseToRawBytes paymentKeyHash
 
 toCardanoPaymentKeyHash :: P.PubKeyHash -> Either ToCardanoError (C.Hash C.PaymentKey)
-toCardanoPaymentKeyHash (P.PubKeyHash bs) = tag "toCardanoPaymentKeyHash" $ _ (C.AsHash C.AsPaymentKey) $ _ bs
+toCardanoPaymentKeyHash (P.PubKeyHash bs) = tag "toCardanoPaymentKeyHash" $ deserialiseFromRawBytes (C.AsHash C.AsPaymentKey) bs
 
 fromCardanoScriptHash :: C.ScriptHash -> P.ValidatorHash
 fromCardanoScriptHash scriptHash = P.ValidatorHash $ C.serialiseToRawBytes scriptHash
