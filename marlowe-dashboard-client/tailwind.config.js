@@ -118,6 +118,7 @@ module.exports = {
       },
       height: {
         "welcome-box": "227px",
+        "dashboard-card-actions": "200px",
         "contract-card": "467px",
         "90pc": "90%",
       },

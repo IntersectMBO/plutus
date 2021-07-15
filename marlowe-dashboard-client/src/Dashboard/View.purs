@@ -203,7 +203,7 @@ dashboardBreadcrumb mSelectedContractState =
         <> case mSelectedContractState of
             Just { nickname } ->
               [ span_ [ text ">" ]
-              , span_ [ text nickname ]
+              , span_ [ text if nickname == mempty then "My new contract" else nickname ]
               ]
             Nothing -> []
     ]
@@ -365,7 +365,8 @@ contractGrid :: forall p. Slot -> Map PlutusAppId Contract.State -> HTML p Actio
 contractGrid currentSlot contracts =
   div
     [ classNames [ "grid", "pt-4", "pb-20", "lg:pb-4", "gap-4", "auto-rows-min", "md:grid-cols-2", "lg:grid-cols-3", "lg:px-16" ] ]
-    $ dashboardContractCard <$> toUnfoldable contracts
+    $ dashboardContractCard
+    <$> toUnfoldable contracts
   where
   dashboardContractCard (followerAppId /\ contractState) = ContractAction followerAppId <$> contractCard currentSlot contractState
 

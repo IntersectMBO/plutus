@@ -9,7 +9,6 @@ module Contract.Types
   ) where
 
 import Prelude
-
 import Analytics (class IsEvent, defaultEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))

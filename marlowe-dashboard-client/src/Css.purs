@@ -10,6 +10,7 @@ module Css
   , whiteButton
   , input
   , inputNoFocus
+  , inputNoBorder
   , unstyledInput
   , inputError
   , hasNestedLabel
@@ -104,6 +105,20 @@ inputNoFocus valid =
   inputBase
     <> [ "focus:ring-0", "focus:border-gray" ]
     <> if valid then [ "border-gray" ] else [ "border-red" ]
+
+inputNoBorder :: Array String
+inputNoBorder =
+  [ "block"
+  , "w-full"
+  , "p-2"
+  , "rounded"
+  , "transition-all"
+  , "duration-200"
+  , "outline-none"
+  , "focus:outline-none"
+  , "text-black"
+  , "border-0"
+  ]
 
 -- use this on an input inside a div styled like an input
 unstyledInput :: Array String
