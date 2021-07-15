@@ -216,12 +216,14 @@ builtinNames = [
     , 'Builtins.null
     , 'Builtins.head
     , 'Builtins.tail
+    , 'Builtins.chooseList
     , 'Builtins.mkNilData
     , 'Builtins.mkNilPairData
     , 'Builtins.mkCons
 
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
+    , 'Builtins.equalsData
     , 'Builtins.mkConstr
     , 'Builtins.mkMap
     , 'Builtins.mkList
@@ -325,12 +327,14 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.null $ mkBuiltin PLC.NullList
     defineBuiltinTerm 'Builtins.head $ mkBuiltin PLC.HeadList
     defineBuiltinTerm 'Builtins.tail $ mkBuiltin PLC.TailList
+    defineBuiltinTerm 'Builtins.chooseList $ mkBuiltin PLC.ChooseList
     defineBuiltinTerm 'Builtins.mkNilData $ mkBuiltin PLC.MkNilData
     defineBuiltinTerm 'Builtins.mkNilPairData $ mkBuiltin PLC.MkNilPairData
     defineBuiltinTerm 'Builtins.mkCons $ mkBuiltin PLC.MkCons
 
     -- Data
     defineBuiltinTerm 'Builtins.chooseData $ mkBuiltin PLC.ChooseData
+    defineBuiltinTerm 'Builtins.equalsData $ mkBuiltin PLC.EqualsData
     defineBuiltinTerm 'Builtins.mkConstr $ mkBuiltin PLC.ConstrData
     defineBuiltinTerm 'Builtins.mkMap $ mkBuiltin PLC.MapData
     defineBuiltinTerm 'Builtins.mkList $ mkBuiltin PLC.ListData

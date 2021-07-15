@@ -149,7 +149,7 @@ secretWordValue :: TxOutTx -> Maybe HashedString
 secretWordValue o = do
   dh <- Ledger.txOutDatum $ Ledger.txOutTxOut o
   Datum d <- Map.lookup dh $ Ledger.txData $ Ledger.txOutTxTx o
-  PlutusTx.fromData d
+  PlutusTx.fromBuiltinData d
 
 game :: AsContractError e => Contract () GameSchema e ()
 game = lock `select` guess

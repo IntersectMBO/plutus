@@ -1,0 +1,639 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        Tuple2_match
+        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+      )
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Maybe (fun (type) (type)))
+        (tyvardecl a (type))
+        Maybe_match
+        (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+      )
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl IsData (fun (type) (type)))
+        (tyvardecl a (type))
+        IsData_match
+        (vardecl
+          CConsIsData
+          (fun (fun a (con data)) (fun (fun (con data) [Maybe a]) (fun (fun (con data) a) [IsData a])))
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fromBuiltinData
+        (all a (type) (fun [IsData a] (fun (con data) [Maybe a])))
+      )
+      (abs
+        a
+        (type)
+        (lam
+          v
+          [IsData a]
+          [
+            { [ { IsData_match a } v ] (fun (con data) [Maybe a]) }
+            (lam
+              v
+              (fun a (con data))
+              (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v))
+            )
+          ]
+        )
+      )
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fIsDataTuple2_cfromBuiltinData
+        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun (con data) [Maybe [[Tuple2 a] b]])))))
+      )
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            dIsData
+            [IsData a]
+            (lam
+              dIsData
+              [IsData b]
+              (lam
+                d
+                (con data)
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              {
+                                (builtin chooseData)
+                                (fun Unit [Maybe [[Tuple2 a] b]])
+                              }
+                              (lam
+                                ds
+                                Unit
+                                (let
+                                  (nonrec)
+                                  (termbind
+                                    (nonstrict)
+                                    (vardecl
+                                      tup
+                                      [[(con pair) (con integer)] [(con list) (con data)]]
+                                    )
+                                    [ (builtin unConstrData) d ]
+                                  )
+                                  (termbind
+                                    (nonstrict)
+                                    (vardecl l [(con list) (con data)])
+                                    [
+                                      {
+                                        { (builtin sndPair) (con integer) }
+                                        [(con list) (con data)]
+                                      }
+                                      tup
+                                    ]
+                                  )
+                                  (termbind
+                                    (nonstrict)
+                                    (vardecl l [(con list) (con data)])
+                                    [ { (builtin tailList) (con data) } l ]
+                                  )
+                                  (termbind
+                                    (nonstrict)
+                                    (vardecl nilCase [Maybe [[Tuple2 a] b]])
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [
+                                              { Maybe_match a }
+                                              [
+                                                [
+                                                  { fromBuiltinData a } dIsData
+                                                ]
+                                                [
+                                                  {
+                                                    (builtin headList)
+                                                    (con data)
+                                                  }
+                                                  l
+                                                ]
+                                              ]
+                                            ]
+                                            (fun Unit [Maybe [[Tuple2 a] b]])
+                                          }
+                                          (lam
+                                            ipv
+                                            a
+                                            (lam
+                                              thunk
+                                              Unit
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Maybe_match b }
+                                                        [
+                                                          [
+                                                            {
+                                                              fromBuiltinData b
+                                                            }
+                                                            dIsData
+                                                          ]
+                                                          [
+                                                            {
+                                                              (builtin headList)
+                                                              (con data)
+                                                            }
+                                                            l
+                                                          ]
+                                                        ]
+                                                      ]
+                                                      (fun Unit [Maybe [[Tuple2 a] b]])
+                                                    }
+                                                    (lam
+                                                      ipv
+                                                      b
+                                                      (lam
+                                                        thunk
+                                                        Unit
+                                                        [
+                                                          {
+                                                            Just [[Tuple2 a] b]
+                                                          }
+                                                          [
+                                                            [
+                                                              { { Tuple2 a } b }
+                                                              ipv
+                                                            ]
+                                                            ipv
+                                                          ]
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  (lam
+                                                    thunk
+                                                    Unit
+                                                    { Nothing [[Tuple2 a] b] }
+                                                  )
+                                                ]
+                                                Unit
+                                              ]
+                                            )
+                                          )
+                                        ]
+                                        (lam
+                                          thunk Unit { Nothing [[Tuple2 a] b] }
+                                        )
+                                      ]
+                                      Unit
+                                    ]
+                                  )
+                                  (termbind
+                                    (nonstrict)
+                                    (vardecl lvl [Maybe [[Tuple2 a] b]])
+                                    [
+                                      [
+                                        [
+                                          [
+                                            {
+                                              {
+                                                (builtin chooseList)
+                                                (fun Unit [Maybe [[Tuple2 a] b]])
+                                              }
+                                              (con data)
+                                            }
+                                            (lam ds Unit nilCase)
+                                          ]
+                                          (lam
+                                            ds Unit { Nothing [[Tuple2 a] b] }
+                                          )
+                                        ]
+                                        [ { (builtin tailList) (con data) } l ]
+                                      ]
+                                      Unit
+                                    ]
+                                  )
+                                  (termbind
+                                    (nonstrict)
+                                    (vardecl lvl [Maybe [[Tuple2 a] b]])
+                                    [
+                                      [
+                                        [
+                                          [
+                                            {
+                                              {
+                                                (builtin chooseList)
+                                                (fun Unit [Maybe [[Tuple2 a] b]])
+                                              }
+                                              (con data)
+                                            }
+                                            (lam
+                                              ds Unit { Nothing [[Tuple2 a] b] }
+                                            )
+                                          ]
+                                          (lam ds Unit lvl)
+                                        ]
+                                        l
+                                      ]
+                                      Unit
+                                    ]
+                                  )
+                                  (termbind
+                                    (nonstrict)
+                                    (vardecl x [Maybe [[Tuple2 a] b]])
+                                    [
+                                      [
+                                        [
+                                          [
+                                            {
+                                              {
+                                                (builtin chooseList)
+                                                (fun Unit [Maybe [[Tuple2 a] b]])
+                                              }
+                                              (con data)
+                                            }
+                                            (lam
+                                              ds Unit { Nothing [[Tuple2 a] b] }
+                                            )
+                                          ]
+                                          (lam ds Unit lvl)
+                                        ]
+                                        l
+                                      ]
+                                      Unit
+                                    ]
+                                  )
+                                  [
+                                    [
+                                      [
+                                        [
+                                          {
+                                            (builtin ifThenElse)
+                                            (fun Unit [Maybe [[Tuple2 a] b]])
+                                          }
+                                          [
+                                            [
+                                              (builtin equalsInteger)
+                                              [
+                                                {
+                                                  {
+                                                    (builtin fstPair)
+                                                    (con integer)
+                                                  }
+                                                  [(con list) (con data)]
+                                                }
+                                                tup
+                                              ]
+                                            ]
+                                            (con integer 0)
+                                          ]
+                                        ]
+                                        (lam ds Unit x)
+                                      ]
+                                      (lam ds Unit { Nothing [[Tuple2 a] b] })
+                                    ]
+                                    Unit
+                                  ]
+                                )
+                              )
+                            ]
+                            (lam ds Unit { Nothing [[Tuple2 a] b] })
+                          ]
+                          (lam ds Unit { Nothing [[Tuple2 a] b] })
+                        ]
+                        (lam ds Unit { Nothing [[Tuple2 a] b] })
+                      ]
+                      (lam ds Unit { Nothing [[Tuple2 a] b] })
+                    ]
+                    d
+                  ]
+                  Unit
+                ]
+              )
+            )
+          )
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl toBuiltinData (all a (type) (fun [IsData a] (fun a (con data)))))
+      (abs
+        a
+        (type)
+        (lam
+          v
+          [IsData a]
+          [
+            { [ { IsData_match a } v ] (fun a (con data)) }
+            (lam
+              v
+              (fun a (con data))
+              (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v))
+            )
+          ]
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fIsDataTuple2_ctoBuiltinData
+        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun [[Tuple2 a] b] (con data))))))
+      )
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            dIsData
+            [IsData a]
+            (lam
+              dIsData
+              [IsData b]
+              (lam
+                ds
+                [[Tuple2 a] b]
+                [
+                  { [ { { Tuple2_match a } b } ds ] (con data) }
+                  (lam
+                    arg
+                    a
+                    (lam
+                      arg
+                      b
+                      [
+                        [ (builtin constrData) (con integer 0) ]
+                        [
+                          [
+                            { (builtin mkCons) (con data) }
+                            [ [ { toBuiltinData a } dIsData ] arg ]
+                          ]
+                          [
+                            [
+                              { (builtin mkCons) (con data) }
+                              [ [ { toBuiltinData b } dIsData ] arg ]
+                            ]
+                            [ (builtin mkNilData) (con unit ()) ]
+                          ]
+                        ]
+                      ]
+                    )
+                  )
+                ]
+              )
+            )
+          )
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl error (all a (type) (fun (con unit) a)))
+      (abs a (type) (lam thunk (con unit) (error a)))
+    )
+    (termbind
+      (strict)
+      (vardecl
+        unsafeFromBuiltinData (all a (type) (fun [IsData a] (fun (con data) a)))
+      )
+      (abs
+        a
+        (type)
+        (lam
+          v
+          [IsData a]
+          [
+            { [ { IsData_match a } v ] (fun (con data) a) }
+            (lam
+              v
+              (fun a (con data))
+              (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v))
+            )
+          ]
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fIsDataTuple2_cunsafeFromBuiltinData
+        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun (con data) [[Tuple2 a] b])))))
+      )
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            dIsData
+            [IsData a]
+            (lam
+              dIsData
+              [IsData b]
+              (lam
+                d
+                (con data)
+                (let
+                  (nonrec)
+                  (termbind
+                    (nonstrict)
+                    (vardecl x [[Tuple2 a] b])
+                    [ { error [[Tuple2 a] b] } (con unit ()) ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl
+                      tup [[(con pair) (con integer)] [(con list) (con data)]]
+                    )
+                    [ (builtin unConstrData) d ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl t [(con list) (con data)])
+                    [
+                      {
+                        { (builtin sndPair) (con integer) }
+                        [(con list) (con data)]
+                      }
+                      tup
+                    ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl x b)
+                    [
+                      [ { unsafeFromBuiltinData b } dIsData ]
+                      [
+                        { (builtin headList) (con data) }
+                        [ { (builtin tailList) (con data) } t ]
+                      ]
+                    ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl x a)
+                    [
+                      [ { unsafeFromBuiltinData a } dIsData ]
+                      [ { (builtin headList) (con data) } t ]
+                    ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl x [[Tuple2 a] b])
+                    [ [ { { Tuple2 a } b } x ] x ]
+                  )
+                  [
+                    [
+                      [
+                        [
+                          { (builtin ifThenElse) (fun Unit [[Tuple2 a] b]) }
+                          [
+                            [
+                              (builtin equalsInteger)
+                              [
+                                {
+                                  { (builtin fstPair) (con integer) }
+                                  [(con list) (con data)]
+                                }
+                                tup
+                              ]
+                            ]
+                            (con integer 0)
+                          ]
+                        ]
+                        (lam ds Unit x)
+                      ]
+                      (lam ds Unit x)
+                    ]
+                    Unit
+                  ]
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fIsDataTuple2
+        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] [IsData [[Tuple2 a] b]]))))
+      )
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            v
+            [IsData a]
+            (lam
+              v
+              [IsData b]
+              [
+                [
+                  [
+                    { CConsIsData [[Tuple2 a] b] }
+                    [ [ { { fIsDataTuple2_ctoBuiltinData a } b } v ] v ]
+                  ]
+                  [ [ { { fIsDataTuple2_cfromBuiltinData a } b } v ] v ]
+                ]
+                [ [ { { fIsDataTuple2_cunsafeFromBuiltinData a } b } v ] v ]
+              ]
+            )
+          )
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fIsDataInteger_cfromBuiltinData (fun (con data) [Maybe (con integer)])
+      )
+      (lam
+        d
+        (con data)
+        [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      { (builtin chooseData) (fun Unit [Maybe (con integer)]) }
+                      (lam ds Unit { Nothing (con integer) })
+                    ]
+                    (lam ds Unit { Nothing (con integer) })
+                  ]
+                  (lam ds Unit { Nothing (con integer) })
+                ]
+                (lam ds Unit [ { Just (con integer) } [ (builtin unIData) d ] ])
+              ]
+              (lam ds Unit { Nothing (con integer) })
+            ]
+            d
+          ]
+          Unit
+        ]
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl fIsDataInteger_ctoBuiltinData (fun (con integer) (con data)))
+      (lam i (con integer) [ (builtin iData) i ])
+    )
+    (termbind
+      (nonstrict)
+      (vardecl fIsDataInteger [IsData (con integer)])
+      [
+        [
+          [ { CConsIsData (con integer) } fIsDataInteger_ctoBuiltinData ]
+          fIsDataInteger_cfromBuiltinData
+        ]
+        (builtin unIData)
+      ]
+    )
+    (termbind
+      (nonstrict)
+      (vardecl dIsData [IsData [[Tuple2 (con integer)] (con integer)]])
+      [
+        [ { { fIsDataTuple2 (con integer) } (con integer) } fIsDataInteger ]
+        fIsDataInteger
+      ]
+    )
+    (lam
+      ds
+      (con data)
+      [
+        [ { fromBuiltinData [[Tuple2 (con integer)] (con integer)] } dIsData ]
+        ds
+      ]
+    )
+  )
+)

@@ -7,39 +7,111 @@ import           Data.Traversable
 import qualified Language.Haskell.TH          as TH
 import qualified Language.Haskell.TH.Datatype as TH
 
-import           PlutusCore.Data
-
 import qualified PlutusTx.Applicative         as PlutusTx
-import qualified PlutusTx.Eq                  as PlutusTx
 
+import           PlutusTx.Builtins            as Builtins
+import qualified PlutusTx.Builtins.Internal   as BI
 import           PlutusTx.IsData.Class
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
-    let pat = TH.conP name (fmap TH.varP argNames)
-    let argsToData = fmap (\v -> [| toData $(TH.varE v) |]) argNames
-    let app = [| Constr index $(TH.listE argsToData) |]
-    TH.clause [pat] (TH.normalB app) []
+    let argsList = foldr (\v e -> [| BI.mkCons (toBuiltinData $(TH.varE v)) $e |]) [| BI.mkNilData BI.unitval |] argNames
+    let app = [| BI.mkConstr index $argsList |]
+    TH.clause [TH.conP name (fmap TH.varP argNames)] (TH.normalB app) []
 
 toDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
 toDataClauses indexedCons = toDataClause <$> indexedCons
 
-fromDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
-fromDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
+reconstructCase :: (TH.ConstructorInfo, Int) -> TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp
+reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) ixExpr argsExpr kont = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
-    indexName <- TH.newName "i"
-    let pat = TH.conP 'Constr [TH.varP indexName , TH.listP (fmap TH.varP argNames)]
-    let argsFromData = fmap (\v -> [| fromData $(TH.varE v) |]) argNames
-    let app = foldl' (\h e -> [| $h PlutusTx.<*> $e |]) [| PlutusTx.pure $(TH.conE name) |] argsFromData
-    let guard = [| $(TH.varE indexName) PlutusTx.== index |]
-    TH.clause [pat] (TH.guardedB [TH.normalGE guard app]) []
 
-fromDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
-fromDataClauses indexedCons =
-    let mainClauses = fromDataClause <$> indexedCons
-        catchallClause = TH.clause [TH.wildP] (TH.normalB [| Nothing |]) []
-    in mainClauses ++ [ catchallClause ]
+    -- Applicatively build the constructor application, assuming that all the arguments are in scope
+    let app = foldl' (\h v -> [| $h PlutusTx.<*> fromBuiltinData $(TH.varE v) |]) [| PlutusTx.pure $(TH.conE name) |] argNames
+
+    -- Takes a list of argument names, and safely takes one element off the list for each, binding it to the name.
+    -- Finally, invokes 'app'.
+    let handleList :: [TH.Name] -> TH.Q TH.Exp -> TH.Q TH.Exp
+        handleList [] lExp = [| matchList $lExp $app (\_ _ -> Nothing) |]
+        handleList (argName:rest) lExp = do
+            tailName <- TH.newName "t"
+            [|
+             let consCase = \ $(TH.varP argName) $(TH.varP tailName) -> $(handleList rest (TH.varE tailName))
+             in matchList $lExp Nothing consCase
+             |]
+    -- Check that the index matches the expected one, otherwise fallthrough to 'kont'
+    let body =
+            [|
+                let indexMatchCase = $(handleList argNames argsExpr)
+                    fallthrough = $kont
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) ()
+            |]
+    body
+
+fromDataClause :: [(TH.ConstructorInfo, Int)] -> TH.Q TH.Clause
+fromDataClause indexedCons = do
+    dName <- TH.newName "d"
+    indexName <- TH.newName "index"
+    argsName <- TH.newName "args0"
+    -- Call the clause for each constructor, falling through to the next one, until we get to the end in which case we return 'Nothing'
+    let cases =
+            foldl'
+            (\kont ixCon -> reconstructCase ixCon (TH.varE indexName) (TH.varE argsName) kont)
+            [| Nothing |]
+            indexedCons
+    let body =
+          [|
+            let constrMatchCase = \ $(TH.varP indexName) $(TH.varP argsName) -> $cases
+            in matchData' $(TH.varE dName) constrMatchCase (const Nothing) (const Nothing) (const Nothing) (const Nothing)
+          |]
+    TH.clause [TH.varP dName] (TH.normalB body) []
+
+unsafeReconstructCase :: (TH.ConstructorInfo, Int) -> TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp
+unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) ixExpr argsExpr kont = do
+    argNames <- for argTys $ \_ -> TH.newName "arg"
+
+    -- Build the constructor application, assuming that all the arguments are in scope
+    let app = foldl' (\h v -> [| $h (unsafeFromBuiltinData $(TH.varE v)) |]) (TH.conE name) argNames
+
+    -- Takes a list of argument names, and takes one element off the list for each, binding it to the name.
+    -- Finally, invokes 'app'.
+    let handleList :: [TH.Name] -> TH.Q TH.Exp -> TH.Q TH.Exp
+        handleList [] _ = [| $app |]
+        handleList (argName:rest) lExp = do
+            [|
+             let
+                 t = $lExp
+                 $(TH.varP argName) = BI.head t
+             in $(handleList rest [| BI.tail t |])
+             |]
+    -- Check that the index matches the expected one, otherwise fallthrough to 'kont'
+    let body =
+            [|
+                let indexMatchCase = $(handleList argNames argsExpr)
+                    fallthrough = $kont
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) ()
+            |]
+    body
+
+unsafeFromDataClause :: [(TH.ConstructorInfo, Int)] -> TH.Q TH.Clause
+unsafeFromDataClause indexedCons = do
+    dName <- TH.newName "d"
+    indexName <- TH.newName "index"
+    tupName <- TH.newName "tup"
+    -- Call the clause for each constructor, falling through to the next one, until we get to the end in which case we call 'error'
+    let cases =
+            foldl'
+            (\kont ixCon -> unsafeReconstructCase ixCon (TH.varE indexName) [| BI.snd $(TH.varE tupName) |] kont)
+            [| Builtins.error () |]
+            indexedCons
+    let body =
+          [|
+            let $(TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
+                $(TH.varP indexName) = BI.fst $(TH.varE tupName)
+            in $cases
+          |]
+    TH.clause [TH.varP dName] (TH.normalB body) []
 
 defaultIndex :: TH.Name -> TH.Q [(TH.Name, Int)]
 defaultIndex name = do
@@ -64,13 +136,16 @@ makeIsDataIndexed name indices = do
             Just i  -> pure (c, i)
             Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName c)
 
-    toDataDecl <- TH.funD 'toData (toDataClauses indexedCons)
-    toDataPrag <- TH.pragInlD 'toData TH.Inlinable TH.FunLike TH.AllPhases
+    toDataDecl <- TH.funD 'toBuiltinData (toDataClauses indexedCons)
+    toDataPrag <- TH.pragInlD 'toBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
 
-    fromDataDecl <- TH.funD 'fromData (fromDataClauses indexedCons)
-    fromDataPrag <- TH.pragInlD 'fromData TH.Inlinable TH.FunLike TH.AllPhases
+    fromDataDecl <- TH.funD 'fromBuiltinData [fromDataClause indexedCons]
+    fromDataPrag <- TH.pragInlD 'fromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
 
-    pure [TH.InstanceD Nothing constraints (TH.classPred ''IsData [appliedType]) [toDataPrag, toDataDecl, fromDataPrag, fromDataDecl]]
+    unsafeFromDataDecl <- TH.funD 'unsafeFromBuiltinData [unsafeFromDataClause indexedCons]
+    unsafeFromDataPrag <- TH.pragInlD 'unsafeFromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+
+    pure [TH.InstanceD Nothing constraints (TH.classPred ''IsData [appliedType]) [toDataPrag, toDataDecl, fromDataPrag, fromDataDecl, unsafeFromDataPrag, unsafeFromDataDecl]]
     where
         tyvarbndrName (TH.PlainTV n)    = n
         tyvarbndrName (TH.KindedTV n _) = n
