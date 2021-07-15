@@ -23,7 +23,7 @@
 }
 
 .with-icon-add-circle::after {
-  content: "add_circle_outline";
+  content: "add_circle";
 }
 
 .with-icon-arrow-right::after {

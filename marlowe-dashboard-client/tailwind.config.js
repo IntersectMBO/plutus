@@ -111,6 +111,8 @@ module.exports = {
         lg: "768px",
         "welcome-box": "400px",
         "sidebar": "350px",
+        "contracts-grid-md": "632px", // 2 cards of 300px + 1 gap of 32px
+        "contracts-grid-lg": "964px", // 3 cards of 300px + 2 gaps of 32px
         "contract-card": "264px",
         /* This width is used by a padding element in both sides of the carousel and is enough
            to push the first and last card to the center */
@@ -130,6 +132,7 @@ module.exports = {
         md: "640px",
         lg: "768px",
         xl: "1440px",
+        "contracts-grid-sm": "300px", // 1 card of 300px
         "90pc": "90%",
       },
       minWidth: {
@@ -176,7 +179,7 @@ module.exports = {
     borderColor: true,
     borderOpacity: false,
     borderRadius: true,
-    borderStyle: false,
+    borderStyle: true,
     borderWidth: true,
     boxSizing: false,
     cursor: true,

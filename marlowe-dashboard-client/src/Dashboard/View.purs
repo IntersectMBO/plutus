@@ -55,7 +55,7 @@ dashboardScreen currentSlot state =
   in
     div
       [ classNames
-          $ [ "h-full", "grid", "grid-rows-auto-1fr-auto", "transition-all", "duration-500" ]
+          $ [ "h-full", "grid", "grid-rows-auto-1fr-auto", "transition-all", "duration-500", "overflow-x-hidden" ]
           <> applyWhen cardOpen [ "lg:mr-sidebar" ]
       ]
       [ dashboardHeader walletNickname menuOpen
@@ -261,7 +261,8 @@ contractsScreen currentSlot state =
     div
       [ classNames [ "h-full", "relative" ] ]
       [ div
-          [ classNames [ "absolute", "z-10", "inset-0", "h-full", "overflow-y-auto" ] ]
+          -- overflow-x here can occur when the sidebar is open
+          [ classNames [ "absolute", "z-10", "inset-0", "h-full", "overflow-y-auto", "overflow-x-hidden" ] ]
           [ div
               [ classNames $ Css.maxWidthContainer <> [ "relative", "h-full" ] ]
               [ contractCards currentSlot state ]
@@ -274,7 +275,7 @@ contractsScreen currentSlot state =
           ]
       ]
 
-contractNavigation :: forall p. ContractFilter -> HTML p Action
+contractNavigation :: forall m. MonadAff m => ContractFilter -> ComponentHTML Action ChildSlots m
 contractNavigation contractFilter =
   let
     navClasses = [ "inline-flex", "gap-4", "overflow-hidden", "px-3", "lg:px-0", "lg:py-3", "lg:flex-col", "bg-white", "rounded", "shadow" ]
@@ -290,18 +291,24 @@ contractNavigation contractFilter =
               [ a
                   [ classNames $ navItemClasses $ contractFilter == Running
                   , onClick_ $ SetContractFilter Running
+                  , id_ "runningContractsFilter"
                   ]
                   [ icon_ Icon.Running ]
+              , tooltip "Running contracts" (RefId "runningContractsFilter") Right
               , a
                   [ classNames $ navItemClasses $ contractFilter == Completed
                   , onClick_ $ SetContractFilter Completed
+                  , id_ "completedContractsFilter"
                   ]
                   [ icon_ Icon.History ]
+              , tooltip "Completed contracts" (RefId "completedContractsFilter") Right
               , a
                   [ classNames $ navItemClasses false
                   , onClick_ $ OpenCard ContractTemplateCard
+                  , id_ "newContractButton"
                   ]
                   [ icon Icon.AddBox [ "text-purple" ] ]
+              , tooltip "Create a new contract" (RefId "newContractButton") Right
               ]
           ]
       , div
@@ -311,8 +318,10 @@ contractNavigation contractFilter =
               [ a
                   [ classNames $ navItemClasses false
                   , onClick_ $ OpenCard TutorialsCard
+                  , id_ "tutorialsButton"
                   ]
                   [ icon Icon.Help [ "text-purple" ] ]
+              , tooltip "Tutorials" (RefId "tutorialsButton") Right
               ]
           ]
       ]
@@ -364,10 +373,19 @@ noContractsMessage contractFilter =
 contractGrid :: forall p. Slot -> Map PlutusAppId Contract.State -> HTML p Action
 contractGrid currentSlot contracts =
   div
-    [ classNames [ "grid", "pt-4", "pb-20", "lg:pb-4", "gap-4", "auto-rows-min", "md:grid-cols-2", "lg:grid-cols-3", "lg:px-16" ] ]
-    $ dashboardContractCard
-    <$> toUnfoldable contracts
+    [ classNames [ "grid", "pt-4", "pb-20", "lg:pb-4", "gap-8", "auto-rows-min", "mx-auto", "max-w-contracts-grid-sm", "md:max-w-none", "md:w-contracts-grid-md", "md:grid-cols-2", "lg:w-contracts-grid-lg", "lg:grid-cols-3" ] ]
+    $ [ newContractCard ]
+    <> (dashboardContractCard <$> toUnfoldable contracts)
   where
+  newContractCard =
+    a
+      [ classNames [ "hidden", "md:flex", "flex-col", "justify-center", "items-center", "rounded", "border-2", "border-darkgray", "border-dashed", "p-4" ]
+      , onClick_ $ OpenCard ContractTemplateCard
+      ]
+      [ icon_ Icon.AddCircle
+      , span_ [ text "New smart contract from template" ]
+      ]
+
   dashboardContractCard (followerAppId /\ contractState) = ContractAction followerAppId <$> contractCard currentSlot contractState
 
 -- FIXME: add a proper tutorials card (possibly a whole tutorials module)
