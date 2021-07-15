@@ -219,7 +219,12 @@ executable plutus-use-cases-scripts
         plutus-tx -any,
         plutus-contract -any,
         plutus-ledger -any,
-        plutus-use-cases -any
+        plutus-use-cases -any,
+        optparse-applicative -any,
+        aeson-pretty -any,
+        cardano-api -any,
+        cardano-binary -any,
+        cborg -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
