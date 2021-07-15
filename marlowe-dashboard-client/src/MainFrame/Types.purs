@@ -22,6 +22,7 @@ import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Toast.Types (Action, State) as Toast
 import Tooltip.Types (ReferenceId)
 import WalletData.Types (WalletDetails, WalletLibrary)
+import LoadingSubmitButton.Types as LoadingSubmitButton
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 import Welcome.Types (Action, State) as Welcome
@@ -50,6 +51,7 @@ instance showWebSocketStatus :: Show WebSocketStatus where
 ------------------------------------------------------------
 type ChildSlots
   = ( tooltipSlot :: forall query. H.Slot query Void ReferenceId
+    , submitButtonSlot :: H.Slot LoadingSubmitButton.Query LoadingSubmitButton.Message String
     )
 
 ------------------------------------------------------------

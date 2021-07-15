@@ -32,6 +32,7 @@ import Data.Newtype (unwrap)
 import Data.Ord (abs)
 import Data.Set (Set)
 import Data.Set as Set
+import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (traverse)
 import Data.Tuple.Nested ((/\))
 import Data.UUID as UUID
@@ -41,9 +42,10 @@ import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (DataProvider(..), Env)
-import Halogen (HalogenM, getHTMLElementRef, liftEffect, subscribe, unsubscribe)
+import Halogen (HalogenM, getHTMLElementRef, liftEffect, query, subscribe, tell, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
+import LoadingSubmitButton.Types (Query(..), _submitButtonSlot)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
@@ -246,9 +248,12 @@ handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = 
       txInput = mkTx currentSlot (executionState ^. _contract) (Unfoldable.fromMaybe contractInput)
     ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
     case ajaxApplyInputs of
-      Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
+      Left ajaxError -> do
+        void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Left "Error")
+        addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
       Right _ -> do
         assign _pendingTransaction $ Just txInput
+        void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Right "")
         addToast $ successToast "Transaction submitted, awating confirmation."
         { dataProvider } <- ask
         when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.UpdateFromStorage)

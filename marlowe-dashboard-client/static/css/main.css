@@ -29,3 +29,10 @@ hr {
 .scrollbar-width-none::-webkit-scrollbar {
   display: none;
 }
+
+/* This "utility" is used by the loading submit button. Tailwind does not
+  generate the directional-border utility colors as they would generate a lot
+  of clases, so we manually define the one we use.  */
+.border-left-green {
+  border-left-color: #00a551;
+}

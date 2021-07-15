@@ -25,12 +25,17 @@ import Data.String (null, take, trim)
 import Data.String.Extra (capitalize)
 import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested ((/\))
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (lifeCycleEvent)
 import Halogen.HTML (HTML, a, button, div, div_, h2, h3, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, placeholder, ref, target, type_, value)
 import Humanize (formatDate, formatTime, humanizeDuration, humanizeInterval, humanizeValue)
+import LoadingSubmitButton.State (loadingSubmitButton)
+import LoadingSubmitButton.Types (Message(..))
+import MainFrame.Types (ChildSlots)
 import Marlowe.Execution.Lenses (_semanticState, _mNextTimeout)
 import Marlowe.Execution.State (expandBalances, getActionParticipant)
 import Marlowe.Execution.Types (NamedAction(..))
@@ -160,8 +165,14 @@ cardNavigationButtons state =
           ]
 
 -- TODO: This is a lot like the `contractSetupConfirmationCard` in `Template.View`. Consider factoring out a shared component.
-actionConfirmationCard :: forall p. Assets -> State -> NamedAction -> HTML p Action
-actionConfirmationCard assets state namedAction =
+actionConfirmationCard ::
+  forall m.
+  MonadAff m =>
+  Assets ->
+  NamedAction ->
+  State ->
+  ComponentHTML Action ChildSlots m
+actionConfirmationCard assets namedAction state =
   let
     stepNumber = currentStep state
 
@@ -230,12 +241,16 @@ actionConfirmationCard assets state namedAction =
                   , onClick_ CancelConfirmation
                   ]
                   [ text "Cancel" ]
-              , button
-                  [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                  , onClick_ $ ConfirmAction namedAction
-                  , enabled hasSufficientFunds
-                  ]
-                  [ text cta ]
+              , loadingSubmitButton
+                  { ref: "action-confirm-button"
+                  , caption: cta
+                  , styles: [ "flex-1" ]
+                  , enabled: hasSufficientFunds
+                  , handler:
+                      \msg -> case msg of
+                        OnSubmit -> Just $ ConfirmAction namedAction
+                        _ -> Nothing
+                  }
               ]
           , div
               [ classNames [ "my-4", "text-sm", "text-red" ] ]
@@ -619,7 +634,7 @@ renderAction state party namedAction@(MakeDeposit intoAccountOf by token value) 
     div_
       [ shortDescription isActiveParticipant description
       , button
-          [ classNames $ Css.button <> [ "flex", "justify-between", "w-full", "mt-2" ]
+          [ classNames $ Css.button <> Css.withAnimation <> [ "flex", "justify-between", "w-full", "mt-2" ]
               <> if isActiveParticipant || debugMode then
                   Css.bgBlueGradient <> Css.withShadow
                 else
@@ -693,7 +708,7 @@ renderAction state party namedAction@(MakeChoice choiceId bounds mChosenNum) =
 
     singleInput = \_ ->
       button
-        [ classNames $ Css.button <> [ "w-full", "mt-2" ]
+        [ classNames $ Css.button <> Css.withAnimation <> [ "w-full", "mt-2" ]
             <> if isActiveParticipant || debugMode then
                 Css.bgBlueGradient <> Css.withShadow
               else
@@ -727,7 +742,7 @@ renderAction state party CloseContract =
       [ shortDescription isActiveParticipant "The contract is still open and needs to be manually closed by any participant for the remainder of the balances to be distributed (charges may apply)"
       , button
           -- TODO: adapt to use button classes from Css module
-          [ classNames $ Css.button <> [ "w-full", "mt-2" ]
+          [ classNames $ Css.button <> Css.withAnimation <> [ "w-full", "mt-2" ]
               <> if isActiveParticipant || debugMode then
                   Css.bgBlueGradient <> Css.withShadow
                 else

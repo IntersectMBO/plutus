@@ -42,16 +42,18 @@ import Data.Map (Map, findMin, fromFoldable, lookup, mapMaybeWithKey, singleton,
 import Data.Map (filter) as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
+import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple, snd)
 import Data.Tuple.Nested ((/\))
 import Data.UUID (genUUID, parseUUID, toString)
+import Effect.Aff (delay)
 import Effect.Class (liftEffect)
 import Effect.Random (random)
 import Env (DataProvider(..), PABType(..))
 import Foreign (MultipleErrors)
 import Foreign.Generic (decodeJSON)
-import Halogen (HalogenM)
+import Halogen (HalogenM, liftAff)
 import MainFrame.Types (Msg)
 import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusApp(..), PlutusAppId(..), plutusAppPath, plutusAppType)
 import Marlowe.Semantics (Assets(..), Contract, TokenName, TransactionInput(..), asset, emptyState)
@@ -292,6 +294,9 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
             WithMarloweContracts -> Contract.invokeEndpoint MarloweApp marloweAppId "apply-inputs" (marloweParams /\ Just interval /\ inputs)
       LocalStorage -> do
         existingContracts <- getContracts
+        -- When we emulate these calls we add a 500ms delay so we give time to the submit button
+        -- to show a loading indicator (we'll remove this once the PAB is connected)
+        liftAff $ delay $ Milliseconds 500.0
         case lookup marloweParams existingContracts of
           Just (marloweData /\ transactionInputs) -> do
             void $ insertContract marloweParams (marloweData /\ (transactionInputs <> [ transactionInput ]))
