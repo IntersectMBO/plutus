@@ -5,13 +5,14 @@ module Main(main) where
 import qualified Codec.CBOR.FlatTerm as FlatTerm
 import           Codec.Serialise     (deserialiseOrFail, serialise)
 import qualified Codec.Serialise     as Serialise
-import           Hedgehog            (MonadGen, Property, annotateShow, assert, forAll, property, tripping)
+import           Hedgehog            (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
 import           PlutusCore.Data     (Data (..))
-import           PlutusTx.Ratio      (Rational, denominator, numerator, (%))
+import           PlutusTx.Numeric    (negate)
+import           PlutusTx.Ratio      (Rational, denominator, numerator, recip, (%))
 import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
-import           Prelude             hiding (Rational)
+import           Prelude             hiding (Rational, negate, recip)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog (testProperty)
 
@@ -22,6 +23,7 @@ tests :: TestTree
 tests = testGroup "plutus-tx" [
     serdeTests
     , sqrtTests
+    , ratioTests
     ]
 
 sqrtTests :: TestTree
@@ -118,3 +120,49 @@ genData =
         , List <$> constructorArgList
         , Map <$> kvMapList
         ]
+
+ratioTests :: TestTree
+ratioTests = testGroup "Ratio"
+  [ testProperty "reciprocal ordering 1" reciprocalOrdering1
+  , testProperty "reciprocal ordering 2" reciprocalOrdering2
+  , testProperty "reciprocal ordering 3" reciprocalOrdering3
+  ]
+
+genPositiveRational :: Monad m => PropertyT m Rational
+genPositiveRational = do
+  a <- forAll . Gen.integral $ Range.linear 1 100000
+  b <- forAll . Gen.integral $ Range.linear 1 100000
+  return (a % b)
+
+genNegativeRational :: Monad m => PropertyT m Rational
+genNegativeRational = negate <$> genPositiveRational
+
+-- If x and y are positive rational numbers and x < y then 1/y < 1/x
+reciprocalOrdering1 :: Property
+reciprocalOrdering1 = property $ do
+  x <- genPositiveRational
+  y <- genPositiveRational
+  if x < y
+  then assert (recip y < recip x)
+  else if y < x
+  then assert (recip x < recip y)
+  else return ()
+
+-- If x and y are negative rational numbers and x < y then 1/y < 1/x
+reciprocalOrdering2 :: Property
+reciprocalOrdering2 = property $ do
+  x <- genNegativeRational
+  y <- genNegativeRational
+  if x < y
+  then assert (recip y < recip x)
+  else if y < x
+  then assert (recip x < recip y)
+  else return ()
+
+-- If x is a negative rational number and y is a positive rational number
+-- then 1/x < 1/y
+reciprocalOrdering3 :: Property
+reciprocalOrdering3 = property $ do
+  x <- genNegativeRational
+  y <- genPositiveRational
+  assert (recip x < recip y)

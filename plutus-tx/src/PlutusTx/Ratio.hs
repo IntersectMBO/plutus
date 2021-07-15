@@ -189,7 +189,7 @@ x % y = reduce (x P.* signum y) (abs y)
 
 -- | Reciprocal fraction
 recip :: Ratio Integer -> Ratio Integer
-recip (x :% y) = (y :% x)
+recip (x :% y) = ((y P.* signum x) :% abs x)
 
 -- | Convert an 'Interger' to a 'Rational'
 fromInteger :: Integer -> Ratio Integer
