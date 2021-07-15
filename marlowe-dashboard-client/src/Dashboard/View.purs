@@ -8,20 +8,23 @@ import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractCard, contractScreen)
 import Css as Css
-import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _contracts, _menuOpen, _remoteWalletInfo, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput)
+import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), State)
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.String (take)
 import Data.Tuple.Nested ((/\))
+import Data.UUID (toString) as UUID
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (HTML, a, button, div, div_, footer, h2, header, img, main, nav, p, span, span_, text)
+import Halogen.HTML (HTML, a, button, div, div_, footer, h2, h3, h4, header, img, input, label, main, nav, p, span, span_, text)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (href, id_, src)
+import Halogen.HTML.Properties (InputType(..), href, id_, readOnly, src, type_, value)
+import Humanize (humanizeValue)
 import Images (marloweRunNavLogo, marloweRunNavLogoDark)
 import MainFrame.Types (ChildSlots)
 import Marlowe.PAB (PlutusAppId)
@@ -33,8 +36,10 @@ import Prim.TypeError (class Warn, Text)
 import Template.View (contractTemplateCard)
 import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
-import WalletData.Lenses (_assets, _walletNickname)
-import WalletData.View (currentWalletCard, saveWalletCard, walletDetailsCard, walletLibraryCard)
+import WalletData.Lenses (_assets, _companionAppId, _walletNickname, _walletLibrary)
+import WalletData.State (adaToken, getAda)
+import WalletData.Types (WalletDetails)
+import WalletData.View (walletDataCard)
 
 dashboardScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 dashboardScreen currentSlot state =
@@ -81,23 +86,13 @@ dashboardCard ::
 dashboardCard currentSlot state = case view _card state of
   Just card ->
     let
-      cardOpen = view _cardOpen state
+      cardOpen = state ^. _cardOpen
 
-      walletLibrary = view _walletLibrary state
+      walletLibrary = state ^. (_walletDataState <<< _walletLibrary)
 
-      currentWalletDetails = view _walletDetails state
+      currentWalletDetails = state ^. _walletDetails
 
-      assets = view _assets currentWalletDetails
-
-      walletNicknameInput = view _walletNicknameInput state
-
-      walletIdInput = view _walletIdInput state
-
-      remoteWalletInfo = view _remoteWalletInfo state
-
-      contracts = view _contracts state
-
-      templateState = view _templateState state
+      assets = currentWalletDetails ^. _assets
     in
       div
         [ classNames $ Css.sidebarCardOverlay cardOpen ]
@@ -111,9 +106,7 @@ dashboardCard currentSlot state = case view _card state of
               , case card of
                   TutorialsCard -> tutorialsCard
                   CurrentWalletCard -> currentWalletCard currentWalletDetails
-                  WalletLibraryCard -> walletLibraryCard walletLibrary
-                  SaveWalletCard mTokenName -> saveWalletCard walletLibrary walletNicknameInput walletIdInput remoteWalletInfo mTokenName
-                  ViewWalletCard walletDetails -> walletDetailsCard walletDetails
+                  WalletDataCard -> renderSubmodule _walletDataState WalletDataAction walletDataCard state
                   ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
                   ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId) (ContractAction followerAppId) (actionConfirmationCard assets action) state
               ]
@@ -145,7 +138,7 @@ dashboardHeader walletNickname menuOpen =
             ]
         , nav
             [ classNames [ "flex", "items-center" ] ]
-            [ navigation (OpenCard WalletLibraryCard) Icon.Contacts "contactsHeader"
+            [ navigation (OpenCard WalletDataCard) Icon.Contacts "contactsHeader"
             , tooltip "Contacts" (RefId "contactsHeader") Bottom
             , navigation (OpenCard TutorialsCard) Icon.Tutorials "tutorialsHeader"
             , tooltip "Tutorials" (RefId "tutorialsHeader") Bottom
@@ -389,6 +382,56 @@ contractGrid currentSlot contractFilter contracts =
       ]
 
   dashboardContractCard (followerAppId /\ contractState) = ContractAction followerAppId <$> contractCard currentSlot contractState
+
+-- TODO: waiting new design for this from Russ
+currentWalletCard :: forall p. WalletDetails -> HTML p Action
+currentWalletCard walletDetails =
+  let
+    walletNickname = view _walletNickname walletDetails
+
+    companionAppId = view _companionAppId walletDetails
+
+    assets = view _assets walletDetails
+  in
+    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
+      [ h3
+          [ classNames [ "font-semibold", "mb-4", "truncate", "w-11/12" ] ]
+          [ text $ "Wallet " <> walletNickname ]
+      , div
+          [ classNames Css.hasNestedLabel ]
+          [ label
+              [ classNames Css.nestedLabel ]
+              [ text "Wallet ID" ]
+          , input
+              [ type_ InputText
+              , classNames $ Css.input true <> [ "mb-4" ]
+              , value $ UUID.toString $ unwrap companionAppId
+              , readOnly true
+              ]
+          ]
+      , div
+          [ classNames [ "mb-4" ] ]
+          [ h4
+              [ classNames [ "font-semibold" ] ]
+              [ text "Balance:" ]
+          , p
+              [ classNames Css.funds ]
+              [ text $ humanizeValue adaToken $ getAda assets ]
+          ]
+      , div
+          [ classNames [ "flex" ] ]
+          [ button
+              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              , onClick_ CloseCard
+              ]
+              [ text "Cancel" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1" ]
+              , onClick_ PutdownWallet
+              ]
+              [ text "Drop wallet" ]
+          ]
+      ]
 
 -- FIXME: add a proper tutorials card (possibly a whole tutorials module)
 tutorialsCard :: forall p. HTML p Action

@@ -1,6 +1,6 @@
 module InputField.State
   ( dummyState
-  , initialState
+  , mkInitialState
   , handleAction
   , getBigIntegerValue
   , validate
@@ -27,10 +27,10 @@ import Marlowe.Extended.Metadata (NumberFormat(..))
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: forall e. InputFieldError e => State e
-dummyState = initialState Nothing
+dummyState = mkInitialState Nothing
 
-initialState :: forall e. InputFieldError e => Maybe NumberFormat -> State e
-initialState mNumberFormat =
+mkInitialState :: forall e. InputFieldError e => Maybe NumberFormat -> State e
+mkInitialState mNumberFormat =
   let
     initialValue = case mNumberFormat of
       Just DefaultFormat -> "0"

@@ -2,15 +2,16 @@ module Welcome.Types
   ( State
   , Card(..)
   , Action(..)
+  , WalletNicknameOrIdError(..)
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Data.Maybe (Maybe(..))
 import InputField.Types (Action, State) as InputField
+import InputField.Types (class InputFieldError)
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletLibrary, WalletNickname)
-import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError)
+import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNickname, WalletNicknameError)
 
 type State
   = { card :: Maybe Card
@@ -29,6 +30,16 @@ type State
     , remoteWalletDetails :: WebData WalletDetails
     , enteringDashboardState :: Boolean
     }
+
+data WalletNicknameOrIdError
+  = UnconfirmedWalletNicknameOrId
+  | NonexistentWalletNicknameOrId
+
+derive instance eqWalletNicknameOrIdError :: Eq WalletNicknameOrIdError
+
+instance inputFieldErrorWalletNicknameOrIdError :: InputFieldError WalletNicknameOrIdError where
+  inputErrorToString UnconfirmedWalletNicknameOrId = "Looking up wallet..."
+  inputErrorToString NonexistentWalletNicknameOrId = "Wallet not found"
 
 data Card
   = GetStartedHelpCard
@@ -50,8 +61,7 @@ data Action
   | UseWallet WalletNickname
   | ClearLocalStorage
 
--- | Here we decide which top-level queries to track as GA events, and
--- how to classify them.
+-- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing

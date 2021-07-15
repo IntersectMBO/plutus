@@ -11,7 +11,7 @@ import Control.Monad.Reader (class MonadAsk)
 import Data.Array (mapMaybe) as Array
 import Data.BigInteger (BigInteger)
 import Data.Lens (Lens', assign, set, use, view)
-import Data.Map (Map, isEmpty, keys, lookup, mapMaybeWithKey)
+import Data.Map (Map, isEmpty, keys, lookup, mapMaybeWithKey, member)
 import Data.Map (fromFoldable, mapMaybe) as Map
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Set (toUnfoldable) as Set
@@ -23,7 +23,7 @@ import Examples.PureScript.Escrow (contractTemplate) as Escrow
 import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import InputField.Lenses (_value)
-import InputField.State (dummyState, handleAction, initialState) as InputField
+import InputField.State (dummyState, handleAction, mkInitialState) as InputField
 import InputField.State (getBigIntegerValue, validate)
 import InputField.Types (Action(..), State) as InputField
 import InputField.Types (class InputFieldError)
@@ -34,10 +34,11 @@ import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _extendedContract,
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot, TokenName)
+import Marlowe.Slot (dateTimeStringToSlot)
 import Marlowe.Template (TemplateContent(..), _slotContent, _valueContent, fillTemplate, getPlaceholderIds, initializeTemplateContent)
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInput, _roleWalletInputs, _slotContentInput, _slotContentInputs, _valueContentInput, _valueContentInputs)
-import Template.Types (Action(..), ContractSetupStage(..), Input, State)
-import Template.Validation (ContractNicknameError, RoleError, SlotError, ValueError, contractNicknameError, roleError, slotError, valueError)
+import Template.Types (Action(..), ContractNicknameError(..), ContractSetupStage(..), Input, RoleError(..), SlotError(..), State, ValueError(..))
+import WalletData.Types (WalletLibrary)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -50,7 +51,7 @@ initialState =
   in
     { contractSetupStage: Start
     , contractTemplate: Escrow.contractTemplate
-    , contractNicknameInput: InputField.initialState Nothing
+    , contractNicknameInput: InputField.mkInitialState Nothing
     , roleWalletInputs: mempty
     , slotContentInputs: mempty
     , valueContentInputs: mempty
@@ -131,17 +132,17 @@ mkRoleWalletInputs contract = Map.fromFoldable $ Array.mapMaybe getRoleInput (Se
   getRoleInput :: Party -> Maybe (Tuple TokenName (InputField.State RoleError))
   getRoleInput (PK pubKey) = Nothing
 
-  getRoleInput (Role tokenName) = Just (Tuple tokenName $ InputField.initialState Nothing)
+  getRoleInput (Role tokenName) = Just (Tuple tokenName $ InputField.mkInitialState Nothing)
 
 mkSlotContentInputs :: MetaData -> Map String BigInteger -> Map String (InputField.State SlotError)
-mkSlotContentInputs metaData slotContent = map (const $ InputField.initialState $ Just DefaultFormat) slotContent
+mkSlotContentInputs metaData slotContent = map (const $ InputField.mkInitialState $ Just DefaultFormat) slotContent
 
 mkValueContentInputs :: MetaData -> Map String BigInteger -> Map String (InputField.State ValueError)
 mkValueContentInputs metaData valueContent = mapMaybeWithKey valueToInput valueContent
   where
   valueToInput key value = case lookup key $ map (view _valueParameterFormat) (view _valueParameterInfo metaData) of
-    Just numberFormat -> Just $ InputField.initialState $ Just numberFormat
-    _ -> Just $ InputField.initialState Nothing
+    Just numberFormat -> Just $ InputField.mkInitialState $ Just numberFormat
+    _ -> Just $ InputField.mkInitialState Nothing
 
 instantiateExtendedContract :: Slot -> State -> Maybe Semantic.Contract
 instantiateExtendedContract currentSlot state =
@@ -200,7 +201,38 @@ toValueContentInput ::
   HalogenM State Action slots msg m Unit
 toValueContentInput key = mapMaybeSubmodule (_valueContentInput key) (ValueContentInputAction key) InputField.dummyState
 
-----------
+------------------------------------------------------------
+contractNicknameError :: String -> Maybe ContractNicknameError
+contractNicknameError "" = Just EmptyContractNickname
+
+contractNicknameError _ = Nothing
+
+roleError :: WalletLibrary -> String -> Maybe RoleError
+roleError _ "" = Just EmptyNickname
+
+roleError walletLibrary walletNickname =
+  if member walletNickname walletLibrary then
+    Nothing
+  else
+    Just NonExistentNickname
+
+-- note: we validate slot inputs against the dateTimeString that we get from HTML
+slotError :: Slot -> String -> Maybe SlotError
+slotError _ "" = Just EmptySlot
+
+slotError currentSlot dateTimeString = case dateTimeStringToSlot dateTimeString of
+  Just slot ->
+    if slot <= currentSlot then
+      Just PastSlot
+    else
+      Nothing
+  Nothing -> Just BadDateTimeString
+
+valueError :: String -> Maybe ValueError
+valueError "" = Just EmptyValue
+
+valueError _ = Nothing
+
 templateSetupIsValid :: State -> Boolean
 templateSetupIsValid state =
   let

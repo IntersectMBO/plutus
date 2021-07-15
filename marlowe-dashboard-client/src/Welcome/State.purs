@@ -21,20 +21,21 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, liftEffect, modify_)
 import Halogen.Extra (mapSubmodule)
-import InputField.State (handleAction, initialState) as InputField
+import InputField.State (handleAction, mkInitialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
 import Toast.Types (ajaxErrorToast, errorToast)
+import Types (WebData)
 import WalletData.Lenses (_companionAppId, _walletNickname)
-import WalletData.Types (WalletLibrary)
-import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError, parsePlutusAppId, walletNicknameError, walletNicknameOrIdError)
+import WalletData.State (parsePlutusAppId, walletNicknameError)
+import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
 import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
-import Welcome.Types (Action(..), Card(..), State)
+import Welcome.Types (Action(..), Card(..), State, WalletNicknameOrIdError(..))
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
@@ -45,9 +46,9 @@ mkInitialState walletLibrary =
   { walletLibrary
   , card: Nothing
   , cardOpen: false
-  , walletNicknameOrIdInput: InputField.initialState Nothing
-  , walletNicknameInput: InputField.initialState Nothing
-  , walletIdInput: InputField.initialState Nothing
+  , walletNicknameOrIdInput: InputField.mkInitialState Nothing
+  , walletNicknameInput: InputField.mkInitialState Nothing
+  , walletIdInput: InputField.mkInitialState Nothing
   , remoteWalletDetails: NotAsked
   , enteringDashboardState: false
   }
@@ -186,3 +187,10 @@ toWalletIdInput ::
   HalogenM (InputField.State WalletIdError) (InputField.Action WalletIdError) slots msg m Unit ->
   HalogenM State Action slots msg m Unit
 toWalletIdInput = mapSubmodule _walletIdInput WalletIdInputAction
+
+------------------------------------------------------------
+walletNicknameOrIdError :: WebData WalletDetails -> String -> Maybe WalletNicknameOrIdError
+walletNicknameOrIdError remoteWalletDetails _ = case remoteWalletDetails of
+  Loading -> Just UnconfirmedWalletNicknameOrId
+  Failure _ -> Just NonexistentWalletNicknameOrId
+  _ -> Nothing
