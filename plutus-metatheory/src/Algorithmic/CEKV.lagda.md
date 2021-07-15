@@ -659,3 +659,39 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 
+import Algorithmic.ReductionEC as Red
+
+ck2cekVal : ∀{A}{L : ∅ ⊢ A} → Red.Value L → Value A
+ck2cekBAPP : ∀{b az as}{p : az <>> as ∈ arity b}{A}{L : ∅ ⊢ A}
+  → Red.BApp b p L → BAPP b p A
+
+ck2cekBAPP Red.base = base
+ck2cekBAPP (Red.step p x x₁) = app p (ck2cekBAPP x) (ck2cekVal x₁)
+ck2cekBAPP (Red.step⋆ p x) = app⋆ p (ck2cekBAPP x) refl
+
+ck2cekVal (Red.V-ƛ M) = V-ƛ M []
+ck2cekVal (Red.V-Λ M) = V-Λ M []
+ck2cekVal (Red.V-wrap V) = V-wrap (ck2cekVal V)
+ck2cekVal (Red.V-con cn) = V-con cn
+ck2cekVal (Red.V-I⇒ b p x) = V-I⇒ b p (ck2cekBAPP x)
+ck2cekVal (Red.V-IΠ b p x) = V-IΠ b p (ck2cekBAPP x)
+
+ck2cekFrame : ∀{A B} → Red.Frame A B → Frame A B
+ck2cekFrame (Red.-· M) = -· M []
+ck2cekFrame (VM Red.·-) = ck2cekVal VM ·-
+ck2cekFrame (Red.-·⋆ A) = -·⋆ A
+ck2cekFrame Red.wrap- = wrap-
+ck2cekFrame Red.unwrap- = unwrap-
+
+import Algorithmic.CK as CK
+
+ck2cekStack : ∀{A B} → CK.Stack A B → Stack A B
+ck2cekStack CK.ε = ε
+ck2cekStack (s CK., f) = ck2cekStack s , ck2cekFrame f
+
+ck2cekState : ∀{A} → CK.State A → State A
+ck2cekState (s CK.▻ L) = ck2cekStack s ; [] ▻ L
+ck2cekState (s CK.◅ V) = ck2cekStack s ◅ ck2cekVal V
+ck2cekState (CK.□ V) = □ (ck2cekVal V)
+ck2cekState (CK.◆ A) = ◆ A
+
