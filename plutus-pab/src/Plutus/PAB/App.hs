@@ -32,6 +32,7 @@ import qualified Cardano.ChainIndex.Types                       as ChainIndex
 import           Cardano.Node.Client                            (handleNodeClientClient)
 import           Cardano.Node.Types                             (MockServerConfig (..))
 import qualified Cardano.Protocol.Socket.Client                 as Client
+import qualified Cardano.Protocol.Socket.Mock.Client            as MockClient
 import qualified Cardano.Wallet.Client                          as WalletClient
 import qualified Cardano.Wallet.Types                           as Wallet
 import qualified Control.Concurrent.STM                         as STM
@@ -46,6 +47,7 @@ import qualified Database.Beam.Sqlite                           as Sqlite
 import qualified Database.Beam.Sqlite.Migrate                   as Sqlite
 import           Database.SQLite.Simple                         (open)
 import qualified Database.SQLite.Simple                         as Sqlite
+import           Ledger                                         (Block)
 import           Network.HTTP.Client                            (managerModifyRequest, newManager,
                                                                  setRequestIgnoreStatus)
 import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
@@ -56,7 +58,6 @@ import           Plutus.PAB.Core.ContractInstance.STM           as Instances
 import qualified Plutus.PAB.Db.Beam.ContractDefinitionStore     as BeamEff
 import qualified Plutus.PAB.Db.Beam.ContractStore               as BeamEff
 import           Plutus.PAB.Db.Memory.ContractStore             (InMemInstances, initialInMemInstances)
--- TODO: Use this or delete it
 import qualified Plutus.PAB.Db.Memory.ContractStore             as InMem
 import           Plutus.PAB.Effects.Contract.ContractExe        (ContractExe (..), handleContractEffectContractExe)
 import           Plutus.PAB.Effects.DbStore                     (checkedSqliteDb, handleDbStore)
@@ -76,8 +77,8 @@ data AppEnv =
         , walletClientEnv       :: ClientEnv
         , nodeClientEnv         :: ClientEnv
         , chainIndexEnv         :: ClientEnv
-        , txSendHandle          :: Client.TxSendHandle
-        , chainSyncHandle       :: Client.ChainSyncHandle
+        , txSendHandle          :: MockClient.TxSendHandle
+        , chainSyncHandle       :: Client.ChainSyncHandle Block
         , appConfig             :: Config
         , appTrace              :: Trace IO (PABLogMsg ContractExe)
         , appInMemContractStore :: InMemInstances ContractExe
@@ -129,9 +130,9 @@ appEffectHandlers storageBackend config trace =
             -- handle 'NodeClientEffect'
             flip handleError (throwError . NodeClientError)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . reinterpret (Core.handleMappedReader @AppEnv @Client.ChainSyncHandle chainSyncHandle)
+            . reinterpret (Core.handleMappedReader @AppEnv @(Client.ChainSyncHandle Block) chainSyncHandle)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
-            . reinterpret (Core.handleMappedReader @AppEnv @Client.TxSendHandle txSendHandle)
+            . reinterpret (Core.handleMappedReader @AppEnv @MockClient.TxSendHandle txSendHandle)
             . interpret (Core.handleUserEnvReader @ContractExe @AppEnv)
             . reinterpret (Core.handleMappedReader @AppEnv @ClientEnv nodeClientEnv)
             . reinterpretN @'[_, _, _, _] (handleNodeClientClient @IO)
@@ -178,9 +179,9 @@ mkEnv appTrace appConfig@Config { dbConfig
     nodeClientEnv <- clientEnv mscBaseUrl
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
     dbConnection <- dbConnect appTrace dbConfig
-    txSendHandle <- liftIO $ Client.runTxSender mscSocketPath
+    txSendHandle <- liftIO $ MockClient.runTxSender mscSocketPath
     -- This is for access to the slot number in the interpreter
-    chainSyncHandle <- liftIO $ Client.runChainSync' mscSocketPath mscSlotConfig
+    chainSyncHandle <- liftIO $ MockClient.runChainSync' mscSocketPath mscSlotConfig
     appInMemContractStore <- liftIO initialInMemInstances
     pure AppEnv {..}
   where

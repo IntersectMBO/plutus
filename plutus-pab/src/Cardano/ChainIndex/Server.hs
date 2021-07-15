@@ -14,29 +14,29 @@ module Cardano.ChainIndex.Server(
     , syncState
     ) where
 
-import           Control.Concurrent.MVar         (MVar, newMVar)
+import           Control.Concurrent.MVar             (MVar, newMVar)
 import           Control.Monad.Freer.Extras.Log
-import           Servant.Client                  (BaseUrl (baseUrlPort))
+import           Servant.Client                      (BaseUrl (baseUrlPort))
 
-import           Data.Coerce                     (coerce)
-import           Plutus.PAB.Monitoring.Util      (runLogEffects)
-import qualified Wallet.Effects                  as WalletEffects
+import           Data.Coerce                         (coerce)
+import           Plutus.PAB.Monitoring.Util          (runLogEffects)
+import qualified Wallet.Effects                      as WalletEffects
 
-import           Cardano.ChainIndex.ChainIndex   (confirmedBlocks, healthcheck, processIndexEffects, startWatching,
-                                                  syncState, watchedAddresses)
-import           Control.Monad.IO.Class          (MonadIO (..))
-import           Data.Function                   ((&))
-import           Data.Proxy                      (Proxy (Proxy))
-import           Ledger.Blockchain               (Block)
-import           Ledger.TimeSlot                 (SlotConfig)
-import qualified Network.Wai.Handler.Warp        as Warp
-import           Servant                         (Application, hoistServer, serve, (:<|>) ((:<|>)))
+import           Cardano.ChainIndex.ChainIndex       (confirmedBlocks, healthcheck, processIndexEffects, startWatching,
+                                                      syncState, watchedAddresses)
+import           Control.Monad.IO.Class              (MonadIO (..))
+import           Data.Function                       ((&))
+import           Data.Proxy                          (Proxy (Proxy))
+import           Ledger.Blockchain                   (Block)
+import           Ledger.TimeSlot                     (SlotConfig)
+import qualified Network.Wai.Handler.Warp            as Warp
+import           Servant                             (Application, hoistServer, serve, (:<|>) ((:<|>)))
 
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
-import           Cardano.Protocol.Socket.Client  (runChainSync)
-import           Control.Concurrent.Availability (Availability, available)
-import           Ledger.Slot                     (Slot (..))
+import           Cardano.Protocol.Socket.Mock.Client (runChainSync)
+import           Control.Concurrent.Availability     (Availability, available)
+import           Ledger.Slot                         (Slot (..))
 
 -- $chainIndex
 -- The PAB chain index that keeps track of transaction data (UTXO set enriched

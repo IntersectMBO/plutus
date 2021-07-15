@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module Cardano.Protocol.Socket.Server where
+module Cardano.Protocol.Socket.Mock.Server where
 
 import           Cardano.BM.Data.Trace                               (Trace)
 import           Cardano.Node.Types                                  (MockServerLogMsg (..))
@@ -424,7 +424,7 @@ chainSync mvChainState =
      ResponderProtocolOnly $
      MuxPeer
        nullTracer
-       codecChainSync
+       chainSyncCodec
        (ChainSync.chainSyncServerPeer
            (runReader (hoistChainSync chainSyncServer)
                       mvChainState))
@@ -436,7 +436,7 @@ txSubmission mvChainState =
     ResponderProtocolOnly $
     MuxPeer
       nullTracer
-      codecTxSubmission
+      txSubmissionCodec
       (TxSubmission.localTxSubmissionServerPeer
           (pure $ txSubmissionServer mvChainState))
 
