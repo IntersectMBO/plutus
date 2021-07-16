@@ -659,6 +659,9 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 
+
+-- convert CK things to CEK things
+
 import Algorithmic.ReductionEC as Red
 
 ck2cekVal : ∀{A}{L : ∅ ⊢ A} → Red.Value L → Value A
@@ -695,3 +698,49 @@ ck2cekState (s CK.◅ V) = ck2cekStack s ◅ ck2cekVal V
 ck2cekState (CK.□ V) = □ (ck2cekVal V)
 ck2cekState (CK.◆ A) = ◆ A
 
+
+-- conver CEK things to CK things
+
+cek2ckVal : ∀{A} → (V : Value A) → Red.Value (discharge V)
+
+cek2ckBAPP : ∀{b az as}{p : az <>> as ∈ arity b}{A}
+  → (vs : BAPP b p A) → Red.BApp b p (dischargeB vs)
+cek2ckBAPP base = Red.base
+cek2ckBAPP (app p vs v) = Red.step p (cek2ckBAPP vs) (cek2ckVal v)
+cek2ckBAPP (app⋆ p vs refl) = Red.step⋆ p (cek2ckBAPP vs)
+
+cek2ckVal (V-ƛ M ρ) = Red.V-ƛ _
+cek2ckVal (V-Λ M ρ) = Red.V-Λ _
+cek2ckVal (V-wrap V) = Red.V-wrap (cek2ckVal V)
+cek2ckVal (V-con cn) = Red.V-con cn
+cek2ckVal (V-I⇒ b p x) = Red.V-I⇒ b p (cek2ckBAPP x)
+cek2ckVal (V-IΠ b p x) = Red.V-IΠ b p (cek2ckBAPP x)
+
+cek2ckClos : ∀{A Γ} → Γ ⊢ A → Env Γ → ∅ ⊢ A
+cek2ckClos (` x) ρ = discharge (lookup x ρ)
+cek2ckClos (ƛ L) ρ = ƛ (dischargeBody L ρ)
+cek2ckClos (L · M) ρ = cek2ckClos L ρ · cek2ckClos M ρ
+cek2ckClos (Λ L) ρ = Λ (dischargeBody⋆ L ρ)
+cek2ckClos (L ·⋆ A) ρ = cek2ckClos L ρ ·⋆ A
+cek2ckClos (wrap A B L) ρ = wrap A B (cek2ckClos L ρ)
+cek2ckClos (unwrap L) ρ = unwrap (cek2ckClos L ρ)
+cek2ckClos (con c) ρ = con c
+cek2ckClos (ibuiltin b) ρ = ibuiltin b
+cek2ckClos (error _) ρ = error _
+
+cek2ckFrame : ∀{A B} → Frame A B → Red.Frame A B
+cek2ckFrame (-· N ρ) = Red.-· cek2ckClos N ρ
+cek2ckFrame (V ·-) = cek2ckVal V Red.·-
+cek2ckFrame (-·⋆ A) = Red.-·⋆ A
+cek2ckFrame wrap- = Red.wrap-
+cek2ckFrame unwrap- = Red.unwrap-
+
+cek2ckStack : ∀{A B} → Stack A B → CK.Stack A B
+cek2ckStack ε = CK.ε
+cek2ckStack (s , f) = cek2ckStack s CK., cek2ckFrame f
+ 
+cek2ckState : ∀{A} → State A → CK.State A
+cek2ckState (s ; ρ ▻ L) = cek2ckStack s CK.▻ cek2ckClos L ρ
+cek2ckState (s ◅ V) = cek2ckStack s CK.◅ cek2ckVal V
+cek2ckState (□ V) = CK.□ (cek2ckVal V)
+cek2ckState (◆ A) = CK.◆ A
