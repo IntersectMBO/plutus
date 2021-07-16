@@ -127,6 +127,7 @@
         buildable = true;
         modules = [
           "Servant/Extra"
+          "Cardano/Api/NetworkId/Extra"
           "Cardano/BM/Data/Tracer/Extras"
           "Cardano/Chain"
           "Cardano/ChainIndex/API"
@@ -477,9 +478,11 @@
             (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
             (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
@@ -493,6 +496,7 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."smallcheck" or (errorHandler.buildDepError "smallcheck"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."tasty-smallcheck" or (errorHandler.buildDepError "tasty-smallcheck"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -501,6 +505,7 @@
             ];
           buildable = true;
           modules = [
+            "Cardano/Api/NetworkId/ExtraSpec"
             "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"
             "Cardano/Wallet/ServerSpec"

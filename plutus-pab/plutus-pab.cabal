@@ -41,6 +41,7 @@ library
     import: lang
     build-tool-depends: cardano-node:cardano-node, cardano-cli:cardano-cli
     exposed-modules:
+        Cardano.Api.NetworkId.Extra
         Cardano.BM.Data.Tracer.Extras
         Cardano.Chain
         Cardano.ChainIndex.API
@@ -408,6 +409,7 @@ test-suite plutus-pab-test-light
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
+        Cardano.Api.NetworkId.ExtraSpec
         Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec
         Cardano.Wallet.ServerSpec
@@ -418,9 +420,11 @@ test-suite plutus-pab-test-light
         aeson-pretty -any,
         base >=4.9 && <5,
         bytestring -any,
+        cardano-api -any,
         containers -any,
         freer-extras -any,
         freer-simple -any,
+        hedgehog -any,
         http-client -any,
         http-client-tls -any,
         lens -any,
@@ -434,6 +438,7 @@ test-suite plutus-pab-test-light
         tasty -any,
         tasty-hunit -any,
         smallcheck -any,
+        tasty-hedgehog -any,
         tasty-smallcheck -any,
         tasty-quickcheck -any,
         text -any,

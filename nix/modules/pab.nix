@@ -39,6 +39,7 @@ let
         };
         fcScriptsFeeFactor = cfg.scriptsFeeFactor;
       };
+      mscNetworkId = ""; # Empty string for Mainnet. Put a network magic number in the string to use the Testnet.
       mscKeptBlocks = 100000;
       mscBlockReaper = {
         brcInterval = 6000000;
