@@ -201,7 +201,7 @@ module.exports = {
     order: false,
     float: true,
     clear: false,
-    fontFamily: false,
+    fontFamily: true,
     fontWeight: true,
     height: true,
     lineHeight: true,

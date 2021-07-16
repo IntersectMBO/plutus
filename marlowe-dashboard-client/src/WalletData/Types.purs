@@ -14,6 +14,7 @@ module WalletData.Types
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Clipboard (Action) as Clipboard
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
@@ -144,14 +145,20 @@ data Action
   = CloseWalletDataCard
   | SetCardSection CardSection
   | SaveWallet (Maybe String)
+  | CancelNewContactForRole
   | WalletNicknameInputAction (InputField.Action WalletNicknameError)
   | WalletIdInputAction (InputField.Action WalletIdError)
   | SetRemoteWalletInfo (WebData WalletInfo)
+  | UseWallet WalletNickname PlutusAppId
+  | ClipboardAction Clipboard.Action
 
 instance actionIsEvent :: IsEvent Action where
   toEvent CloseWalletDataCard = Just $ defaultEvent "CloseWalletDataCard"
   toEvent (SetCardSection _) = Just $ defaultEvent "SetCardSection"
   toEvent (SaveWallet _) = Just $ defaultEvent "SaveWallet"
+  toEvent CancelNewContactForRole = Nothing
   toEvent (WalletNicknameInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (SetRemoteWalletInfo _) = Nothing
+  toEvent (UseWallet _ _) = Just $ defaultEvent "UseWallet"
+  toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"

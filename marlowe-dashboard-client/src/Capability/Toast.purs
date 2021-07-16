@@ -1,4 +1,7 @@
-module Capability.Toast where
+module Capability.Toast
+  ( class Toast
+  , addToast
+  ) where
 
 import Prelude
 import AppM (AppM)

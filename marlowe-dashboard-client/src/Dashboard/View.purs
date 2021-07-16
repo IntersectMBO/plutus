@@ -90,9 +90,9 @@ dashboardCard currentSlot state = case view _card state of
 
       walletLibrary = state ^. (_walletDataState <<< _walletLibrary)
 
-      currentWalletDetails = state ^. _walletDetails
+      currentWallet = state ^. _walletDetails
 
-      assets = currentWalletDetails ^. _assets
+      assets = currentWallet ^. _assets
     in
       div
         [ classNames $ Css.sidebarCardOverlay cardOpen ]
@@ -105,8 +105,8 @@ dashboardCard currentSlot state = case view _card state of
                   [ icon_ Icon.Close ]
               , case card of
                   TutorialsCard -> tutorialsCard
-                  CurrentWalletCard -> currentWalletCard currentWalletDetails
-                  WalletDataCard -> renderSubmodule _walletDataState WalletDataAction walletDataCard state
+                  CurrentWalletCard -> currentWalletCard currentWallet
+                  WalletDataCard -> renderSubmodule _walletDataState WalletDataAction (walletDataCard currentWallet) state
                   ContractTemplateCard -> renderSubmodule _templateState TemplateAction (contractTemplateCard walletLibrary assets) state
                   ContractActionConfirmationCard followerAppId action -> renderSubmodule (_contract followerAppId) (ContractAction followerAppId) (actionConfirmationCard assets action) state
               ]
@@ -419,9 +419,9 @@ currentWalletCard walletDetails =
               [ text $ humanizeValue adaToken $ getAda assets ]
           ]
       , div
-          [ classNames [ "flex" ] ]
+          [ classNames [ "flex", "gap-4" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1" ]
               , onClick_ CloseCard
               ]
               [ text "Cancel" ]

@@ -1,29 +1,33 @@
-module WalletData.View (walletDataCard) where
+module WalletData.View
+  ( walletDataCard
+  , walletIdTip
+  ) where
 
 import Prelude hiding (div)
+import Clipboard (Action(..)) as Clipboard
 import Css as Css
-import Data.Foldable (foldMap)
 import Data.Lens (view, (^.))
 import Data.Map (isEmpty, toUnfoldable)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap)
 import Data.String (null)
-import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 import Data.UUID (toString) as UUID
 import Halogen.Css (applyWhen, classNames, hideWhen)
-import Halogen.HTML (HTML, button, div, h2, h3, input, label, li, p, p_, text, ul_)
+import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, label, li, p, span, text, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (InputType(..), disabled, for, readOnly, type_, value)
+import Halogen.HTML.Properties (disabled, for)
 import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
 import Material.Icons (Icon(..)) as Icon
-import WalletData.Lenses (_cardSection, _companionAppId, _walletIdInput, _walletNickname, _walletNicknameInput, _walletLibrary)
+import Material.Icons (icon_)
+import WalletData.Lenses (_cardSection, _companionAppId, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
 import WalletData.Types (Action(..), CardSection(..), State, WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
 
-walletDataCard :: forall p. State -> HTML p Action
-walletDataCard state =
+walletDataCard :: forall p. WalletDetails -> State -> HTML p Action
+walletDataCard currentWallet state =
   let
     walletLibrary = state ^. _walletLibrary
 
@@ -33,24 +37,61 @@ walletDataCard state =
 
     walletIdInput = state ^. _walletIdInput
   in
-    case cardSection of
-      Home -> walletLibraryCard walletLibrary
-      ViewWallet walletDetails -> walletDetailsCard walletDetails
-      NewWallet mTokenName -> newWalletCard walletNicknameInput walletIdInput mTokenName
+    div
+      [ classNames [ "h-full", "grid", "grid-rows-auto-auto-1fr" ] ]
+      [ h2
+          [ classNames Css.cardHeader ]
+          [ text "Contacts" ]
+      , walletDataBreadcrumb cardSection
+      , case cardSection of
+          Home -> walletLibraryCard walletLibrary
+          ViewWallet walletDetails -> walletDetailsCard currentWallet walletDetails
+          NewWallet mTokenName -> newWalletCard walletNicknameInput walletIdInput mTokenName
+      ]
+
+walletDataBreadcrumb :: forall p. CardSection -> HTML p Action
+walletDataBreadcrumb cardSection =
+  div
+    [ classNames [ "overflow-x-auto", "flex", "align-baseline", "px-4", "gap-1", "border-gray", "border-b", "text-xs" ] ] case cardSection of
+    Home -> [ activeItem "Home" ]
+    ViewWallet walletDetails ->
+      [ previousItem "Home" Home
+      , arrow
+      , activeItem $ walletDetails ^. _walletNickname
+      ]
+    NewWallet mTokenName ->
+      [ previousItem "Home" Home
+      , arrow
+      , case mTokenName of
+          Nothing -> activeItem "New Contact"
+          Just tokenName -> activeItem $ "New Contact for " <> tokenName <> " Role"
+      ]
+  where
+  activeItem itemText =
+    span
+      [ classNames [ "whitespace-nowrap", "py-2.5", "border-black", "border-b-2", "font-semibold" ] ]
+      [ text itemText ]
+
+  previousItem itemText stage =
+    a
+      [ classNames [ "whitespace-nowrap", "py-2.5", "text-purple", "border-transparent", "border-b-2", "hover:border-purple", "font-semibold" ]
+      , onClick_ $ SetCardSection stage
+      ]
+      [ text itemText ]
+
+  arrow = span [ classNames [ "mt-2" ] ] [ icon_ Icon.Next ]
 
 walletLibraryCard :: forall p. WalletLibrary -> HTML p Action
-walletLibraryCard library =
+walletLibraryCard walletLibrary =
   div
-    [ classNames [ "p-4" ] ]
-    [ h2
-        [ classNames [ "font-semibold", "text-lg", "mb-4" ] ]
-        [ text "Contacts" ]
-    , if isEmpty library then
-        p_ [ text "You do not have any contacts." ]
+    [ classNames [ "overflow-y-auto" ] ]
+    [ if isEmpty walletLibrary then
+        -- If you're here, the walletLibrary can't be empty, because at least your own wallet will
+        -- be in there. But that might change when we have real wallet integration, and it's easy
+        -- to forget cases like these, so it seems sensible to code for it in case.
+        p [ classNames [ "p-4" ] ] [ text "You do not have any contacts." ]
       else
-        ul_
-          $ contactLi
-          <$> toUnfoldable library
+        ul_ $ contactLi <$> toUnfoldable walletLibrary
     , button
         [ classNames $ Css.primaryButton <> Css.withIcon Icon.NewContact <> Css.fixedBottomRight
         , onClick_ $ SetCardSection $ NewWallet Nothing
@@ -58,35 +99,65 @@ walletLibraryCard library =
         [ text "New contact" ]
     ]
   where
-  contactLi (Tuple nickname walletDetails) =
+  contactLi (nickname /\ walletDetails) =
     li
-      [ classNames [ "mt-4", "hover:cursor-pointer", "hover:text-green" ]
+      [ classNames [ "px-4", "py-2", "border-gray", "border-b", "hover:cursor-pointer", "hover:text-purple" ]
       , onClick_ $ SetCardSection $ ViewWallet walletDetails
       ]
       [ text nickname ]
 
-walletDetailsCard :: forall p a. WalletDetails -> HTML p a
-walletDetailsCard walletDetails =
+walletDetailsCard :: forall p. WalletDetails -> WalletDetails -> HTML p Action
+walletDetailsCard currentWallet walletDetails =
   let
-    walletNickname = view _walletNickname walletDetails
+    walletNickname = walletDetails ^. _walletNickname
 
-    companionAppId = view _companionAppId walletDetails
+    companionAppId = walletDetails ^. _companionAppId
+
+    companionAppIdString = UUID.toString $ unwrap companionAppId
+
+    isCurrentWallet = walletNickname == currentWallet ^. _walletNickname
   in
-    div [ classNames [ "p-5", "pb-6", "md:pb-8" ] ]
-      [ h3
-          [ classNames [ "font-semibold", "mb-4" ] ]
-          [ text $ "Wallet " <> walletNickname ]
-      , div
-          [ classNames Css.hasNestedLabel ]
-          [ label
-              [ classNames Css.nestedLabel ]
-              [ text "Wallet ID" ]
-          , input
-              [ type_ InputText
-              , classNames $ Css.input true <> [ "mb-4" ]
-              , value $ UUID.toString $ unwrap companionAppId
-              , readOnly true
+    div
+      [ classNames [ "grid", "grid-rows-1fr-auto", "p-4", "gap-4" ] ]
+      [ div_
+          [ h3
+              [ classNames [ "text-lg", "font-semibold", "mb-4" ] ]
+              [ text walletNickname ]
+          , h4
+              [ classNames [ "text-sm", "font-semibold" ] ]
+              [ text "Demo wallet key" ]
+          , div
+              [ classNames [ "flex", "items-center", "justify-between" ] ]
+              [ span
+                  [ classNames [ "font-mono", "text-xs", "whitespace-nowrap" ] ]
+                  [ text companionAppIdString ]
+              , span
+                  -- I don't understand why I have to set the width of this - for some reason it
+                  -- grows very wide if I don't :/
+                  [ classNames [ "cursor-pointer", "w-6" ]
+                  , onClick_ $ ClipboardAction $ Clipboard.CopyToClipboard companionAppIdString
+                  ]
+                  [ icon_ Icon.Copy ]
               ]
+          , walletIdTip
+          ]
+      , div
+          [ classNames [ "flex", "gap-4" ] ]
+          [ a
+              [ classNames Css.button
+              , onClick_ $ SetCardSection Home
+              ]
+              [ text "Back" ]
+          , if isCurrentWallet then
+              span
+                [ classNames $ Css.button <> [ "flex-1", "text-center", "border-2", "border-green", "text-green" ] ]
+                [ text "Using this wallet" ]
+            else
+              button
+                [ classNames $ Css.primaryButton <> [ "flex-1", "text-center" ]
+                , onClick_ $ UseWallet walletNickname companionAppId
+                ]
+                [ text "Use this wallet" ]
           ]
       ]
 
@@ -107,7 +178,7 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       }
 
     walletIdInputDisplayOptions =
-      { additionalCss: mempty
+      { additionalCss: [ "font-mono", "text-xs" ]
       , id_: "newWalletId"
       , placeholder: "Wallet ID"
       , readOnly: false
@@ -116,35 +187,36 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       }
   in
     div
-      [ classNames [ "flex", "flex-col", "p-5", "pb-6", "md:pb-8" ] ]
-      [ p
-          [ classNames [ "font-semibold", "mb-4" ] ]
-          [ text $ "Create new contact" <> foldMap (\tokenName -> " for role " <> show tokenName) mTokenName ]
-      , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletNickname) Css.hasNestedLabel) ]
-          [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null walletNickname)
-              , for walletNicknameInputDisplayOptions.id_
+      [ classNames [ "grid", "grid-rows-1fr-auto", "p-4", "gap-4" ] ]
+      [ div_
+          [ div
+              [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletNickname) Css.hasNestedLabel) ]
+              [ label
+                  [ classNames $ Css.nestedLabel <> hideWhen (null walletNickname)
+                  , for walletNicknameInputDisplayOptions.id_
+                  ]
+                  [ text "Nickname" ]
+              , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
               ]
-              [ text "Nickname" ]
-          , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
+          , div
+              [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
+              [ label
+                  [ classNames $ Css.nestedLabel <> hideWhen (null walletIdString)
+                  , for walletIdInputDisplayOptions.id_
+                  ]
+                  [ text "Wallet ID" ]
+              , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
+              ]
           ]
       , div
-          [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
-          [ label
-              [ classNames $ Css.nestedLabel <> hideWhen (null walletIdString)
-              , for walletIdInputDisplayOptions.id_
+          [ classNames [ "flex", "gap-4" ] ]
+          [ a
+              [ classNames $ Css.button <> [ "flex-1" ]
+              , onClick_ case mTokenName of
+                  Just _ -> CancelNewContactForRole
+                  Nothing -> SetCardSection Home
               ]
-              [ text "Wallet ID" ]
-          , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
-          ]
-      , div
-          [ classNames [ "flex" ] ]
-          [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
-              , onClick_ CloseWalletDataCard
-              ]
-              [ text "Cancel" ]
+              [ text "Back" ]
           , button
               [ classNames $ Css.primaryButton <> [ "flex-1" ]
               , disabled $ isJust (validate walletNicknameInput) || isJust (validate walletIdInput)
@@ -153,3 +225,9 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
               [ text "Save" ]
           ]
       ]
+
+walletIdTip :: forall p a. HTML p a
+walletIdTip =
+  p
+    [ classNames [ "text-xs", "font-semibold" ] ]
+    [ text "Tip: Copy and share your demo wallet ID with others so they can add you to their contracts" ]

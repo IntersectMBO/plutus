@@ -3,8 +3,8 @@ module WalletData.Lenses
   , _cardSection
   , _walletNicknameInput
   , _walletIdInput
-  , _walletNickname
   , _remoteWalletInfo
+  , _walletNickname
   , _companionAppId
   , _marloweAppId
   , _walletInfo
@@ -26,7 +26,7 @@ import InputField.Types (State) as InputField
 import Marlowe.PAB (MarloweData, MarloweParams, PlutusAppId)
 import Marlowe.Semantics (Assets, PubKey)
 import Types (WebData)
-import WalletData.Types (CardSection, PubKeyHash, State, Wallet, WalletDetails, WalletIdError, WalletInfo, WalletLibrary, WalletNickname, WalletNicknameError)
+import WalletData.Types (CardSection, PubKeyHash, State, Wallet, WalletIdError, WalletInfo, WalletLibrary, WalletNickname, WalletNicknameError, WalletDetails)
 
 _walletLibrary :: Lens' State WalletLibrary
 _walletLibrary = prop (SProxy :: SProxy "walletLibrary")

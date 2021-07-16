@@ -1,10 +1,11 @@
 module AppM where
 
 import Prelude
+import Clipboard (class MonadClipboard, copy)
 import Control.Monad.Reader.Trans (class MonadAsk, ReaderT, asks, runReaderT)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect)
+import Effect.Class (class MonadEffect, liftEffect)
 import Env (Env)
 import Type.Equality (class TypeEquals, from)
 
@@ -36,3 +37,6 @@ derive newtype instance monadAffAppM :: MonadAff AppM
 -- | This is how we can write a type class instance for a type synonym, which is otherwise disallowed.
 instance monadAskAppM :: TypeEquals e Env => MonadAsk e AppM where
   ask = AppM $ asks from
+
+instance monadClipboardAppM :: MonadClipboard AppM where
+  copy = liftEffect <<< copy

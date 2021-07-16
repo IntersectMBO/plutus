@@ -10,6 +10,7 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createContract, createPendingFollowerApp, followContract, followContractWithPendingFollowerApp, getFollowerApps, getRoleContracts, redeem, subscribeToPlutusApp)
 import Capability.MarloweStorage (class ManageMarloweStorage, getWalletLibrary, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (class MonadClipboard)
 import Contract.Lenses (_mMarloweParams, _nickname, _selectedStep)
 import Contract.State (applyTimeout)
 import Contract.State (dummyState, handleAction, mkInitialState, mkPlaceholderState, updateState) as Contract
@@ -44,15 +45,16 @@ import Marlowe.Execution.State (getAllPayments)
 import Marlowe.Extended.Metadata (_metaData)
 import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusAppId)
 import Marlowe.Semantics (Party(..), Payee(..), Payment(..), Slot(..))
-import Template.Lenses (_contractNicknameInput, _contractTemplate, _roleWalletInputs)
+import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInputs)
 import Template.State (dummyState, handleAction, initialState) as Template
 import Template.State (instantiateExtendedContract)
 import Template.Types (Action(..), State) as Template
+import Template.Types (ContractSetupStage(..))
 import Toast.Types (ajaxErrorToast, decodedAjaxErrorToast, errorToast, successToast)
 import WalletData.Lenses (_cardSection, _pubKeyHash, _walletInfo, _walletLibrary, _walletNickname)
 import WalletData.State (defaultWalletDetails)
 import WalletData.State (handleAction, mkInitialState) as WalletData
-import WalletData.Types (Action, State) as WalletData
+import WalletData.Types (Action(..), State) as WalletData
 import WalletData.Types (CardSection(..), WalletDetails, WalletLibrary)
 
 -- see note [dummyState] in MainFrame.State
@@ -89,6 +91,7 @@ handleAction ::
   ManageMarloweStorage m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadClipboard m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction _ PutdownWallet = do
   walletLibrary <- use (_walletDataState <<< _walletLibrary)
@@ -96,14 +99,21 @@ handleAction _ PutdownWallet = do
   contracts <- use _contracts
   callMainFrameAction $ MainFrame.EnterWelcomeState walletLibrary walletDetails contracts
 
-handleAction _ (WalletDataAction walletDataAction) = toWalletData $ WalletData.handleAction walletDataAction
+handleAction _ (WalletDataAction walletDataAction) = case walletDataAction of
+  WalletData.CancelNewContactForRole -> assign _card $ Just ContractTemplateCard
+  _ -> toWalletData $ WalletData.handleAction walletDataAction
 
 handleAction _ ToggleMenu = modifying _menuOpen not
 
 handleAction input (OpenCard card) = do
-  -- we assign the card first so that it's in the DOM when cardOpen is set to true, so that the CSS
-  -- transition animation works
-  assign _card $ Just card
+  -- first we set the card and reset the contact and template card states to their first section
+  -- (we could check the card and only reset if relevant, but it doesn't seem worth the bother)
+  modify_
+    $ set _card (Just card)
+    <<< set (_walletDataState <<< _cardSection) Home
+    <<< set (_templateState <<< _contractSetupStage) Start
+  -- then we set the card to open (and close the mobile menu) in a separate `modify_`, so that the
+  -- CSS transition animation works
   modify_
     $ set _cardOpen true
     <<< set _menuOpen false

@@ -9,6 +9,8 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, createWallet, lookupWalletDetails)
 import Capability.MarloweStorage (class ManageMarloweStorage, clearAllLocalStorage, insertIntoWalletLibrary)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (class MonadClipboard)
+import Clipboard (handleAction) as Clipboard
 import Control.Monad.Reader (class MonadAsk)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
@@ -21,12 +23,13 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM, liftEffect, modify_)
 import Halogen.Extra (mapSubmodule)
+import Halogen.Query.HalogenM (mapAction)
 import InputField.State (handleAction, mkInitialState) as InputField
 import InputField.Types (Action(..), State) as InputField
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Network.RemoteData (RemoteData(..), fromEither)
-import Toast.Types (ajaxErrorToast, errorToast)
+import Toast.Types (ajaxErrorToast, errorToast, successToast)
 import Types (WebData)
 import WalletData.Lenses (_companionAppId, _walletNickname)
 import WalletData.State (parsePlutusAppId, walletNicknameError)
@@ -63,6 +66,7 @@ handleAction ::
   ManageMarlowe m =>
   ManageMarloweStorage m =>
   Toast m =>
+  MonadClipboard m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction (OpenCard card) =
   modify_
@@ -165,6 +169,10 @@ handleAction ClearLocalStorage = do
   liftEffect do
     location_ <- location =<< window
     reload location_
+
+handleAction (ClipboardAction clipboardAction) = do
+  mapAction ClipboardAction $ Clipboard.handleAction clipboardAction
+  addToast $ successToast "Copied to clipboard"
 
 ------------------------------------------------------------
 toWalletNicknameOrIdInput ::

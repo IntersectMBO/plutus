@@ -11,15 +11,19 @@ module WalletData.State
 
 import Prelude
 import Capability.MainFrameLoop (callMainFrameAction)
-import Capability.Marlowe (class ManageMarlowe, lookupWalletInfo)
+import Capability.Marlowe (class ManageMarlowe, lookupWalletDetails, lookupWalletInfo)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoWalletLibrary)
+import Capability.Toast (class Toast, addToast)
+import Clipboard (class MonadClipboard)
+import Clipboard (handleAction) as Clipboard
 import Control.Monad.Reader (class MonadAsk)
 import Dashboard.Types (Action(..)) as Dashboard
 import Data.Array (any)
 import Data.BigInteger (BigInteger)
 import Data.Char.Unicode (isAlphaNum)
+import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (assign, modifying, use)
+import Data.Lens (assign, modifying, set, use)
 import Data.Map (isEmpty, filter, insert, lookup, member)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -29,6 +33,7 @@ import Effect.Aff.Class (class MonadAff)
 import Env (Env)
 import Halogen (HalogenM)
 import Halogen.Extra (mapSubmodule)
+import Halogen.Query.HalogenM (mapAction)
 import InputField.Lenses (_value)
 import InputField.State (handleAction, mkInitialState) as InputField
 import InputField.Types (Action(..), State) as InputField
@@ -37,8 +42,9 @@ import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.PAB (PlutusAppId(..))
 import Marlowe.Semantics (Assets, Token(..))
 import Network.RemoteData (RemoteData(..), fromEither)
+import Toast.Types (errorToast, successToast)
 import Types (WebData)
-import WalletData.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNicknameInput)
+import WalletData.Lenses (_cardSection, _remoteWalletInfo, _walletIdInput, _walletLibrary, _walletNickname, _walletNicknameInput)
 import WalletData.Types (Action(..), CardSection(..), PubKeyHash(..), State, Wallet(..), WalletDetails, WalletIdError(..), WalletInfo(..), WalletLibrary, WalletNickname, WalletNicknameError(..))
 
 mkInitialState :: WalletLibrary -> State
@@ -74,6 +80,8 @@ handleAction ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   ManageMarloweStorage m =>
+  Toast m =>
+  MonadClipboard m =>
   Action -> HalogenM State Action ChildSlots Msg m Unit
 handleAction CloseWalletDataCard = callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.CloseCard
 
@@ -118,6 +126,8 @@ handleAction (SaveWallet mTokenName) = do
     -- the button to save a new wallet should be disabled in this case)
     _, _ -> pure unit
 
+handleAction CancelNewContactForRole = pure unit -- handled in Dashboard.State
+
 handleAction (WalletNicknameInputAction inputFieldAction) = toWalletNicknameInput $ InputField.handleAction inputFieldAction
 
 handleAction (WalletIdInputAction inputFieldAction) = do
@@ -139,6 +149,21 @@ handleAction (SetRemoteWalletInfo remoteWalletInfo) = do
   assign _remoteWalletInfo remoteWalletInfo
   walletLibrary <- use _walletLibrary
   handleAction $ WalletIdInputAction $ InputField.SetValidator $ walletIdError remoteWalletInfo walletLibrary
+
+handleAction (UseWallet walletNickname companionAppId) = do
+  ajaxWalletDetails <- lookupWalletDetails companionAppId
+  case ajaxWalletDetails of
+    Right walletDetails -> do
+      let
+        walletDetailsWithNickname = set _walletNickname walletNickname walletDetails
+      walletLibrary <- use _walletLibrary
+      callMainFrameAction $ MainFrame.EnterDashboardState walletLibrary walletDetailsWithNickname
+    _ -> do
+      addToast $ errorToast "Unable to use this wallet." $ Just "Details for this wallet could not be loaded."
+
+handleAction (ClipboardAction clipboardAction) = do
+  mapAction ClipboardAction $ Clipboard.handleAction clipboardAction
+  addToast $ successToast "Copied to clipboard"
 
 ------------------------------------------------------------
 toWalletNicknameInput ::
