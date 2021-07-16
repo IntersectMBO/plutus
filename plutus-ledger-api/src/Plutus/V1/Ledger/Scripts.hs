@@ -55,11 +55,11 @@ module Plutus.V1.Ledger.Scripts(
 
 import qualified Prelude                          as Haskell
 
+import qualified Cardano.Crypto.Hash              as Crypto
 import           Codec.CBOR.Decoding              (decodeBytes)
 import           Codec.Serialise                  (Serialise, decode, encode, serialise)
 import           Control.DeepSeq                  (NFData)
 import           Control.Monad.Except             (MonadError, runExceptT, throwError)
-import           Crypto.Hash                      (Digest, SHA256, hash)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
@@ -315,16 +315,24 @@ redeemerHash :: Redeemer -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash vl = ValidatorHash $ BA.convert h' where
-    h :: Digest SHA256 = hash $ BSL.toStrict e
-    h' :: Digest SHA256 = hash h
-    e = serialise vl
+validatorHash vl =
+    ValidatorHash
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ BSL.toStrict
+        $ serialise vl
 
 mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
-mintingPolicyHash vl = MintingPolicyHash $ BA.convert h' where
-    h :: Digest SHA256 = hash $ BSL.toStrict e
-    h' :: Digest SHA256 = hash h
-    e = serialise vl
+mintingPolicyHash vl =
+    MintingPolicyHash
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ BSL.toStrict
+        $ serialise vl
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
