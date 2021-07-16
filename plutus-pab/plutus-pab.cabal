@@ -41,6 +41,7 @@ library
     import: lang
     build-tool-depends: cardano-node:cardano-node, cardano-cli:cardano-cli
     exposed-modules:
+        Cardano.Api.NetworkId.Extra
         Cardano.BM.Data.Tracer.Extras
         Cardano.Chain
         Cardano.ChainIndex.API
@@ -60,7 +61,8 @@ library
         Cardano.Node.Server
         Cardano.Node.Types
         Cardano.Protocol.Socket.Type
-        Cardano.Protocol.Socket.Server
+        Cardano.Protocol.Socket.Mock.Server
+        Cardano.Protocol.Socket.Mock.Client
         Cardano.Protocol.Socket.Client
         Cardano.Wallet.API
         Cardano.Wallet.Client
@@ -124,6 +126,7 @@ library
         bytestring -any,
         cardano-api -any,
         cardano-crypto -any,
+        cardano-ledger-byron -any,
         cardano-prelude -any,
         cardano-slotting -any,
         containers -any,
@@ -147,6 +150,10 @@ library
         newtype-generics -any,
         nothunks -any,
         optparse-applicative -any,
+        ouroboros-consensus -any,
+        ouroboros-consensus-byron -any,
+        ouroboros-consensus-shelley -any,
+        ouroboros-consensus-cardano -any,
         ouroboros-network -any,
         ouroboros-network-framework -any,
         playground-common -any,
@@ -402,6 +409,7 @@ test-suite plutus-pab-test-light
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
+        Cardano.Api.NetworkId.ExtraSpec
         Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec
         Cardano.Wallet.ServerSpec
@@ -412,9 +420,11 @@ test-suite plutus-pab-test-light
         aeson-pretty -any,
         base >=4.9 && <5,
         bytestring -any,
+        cardano-api -any,
         containers -any,
         freer-extras -any,
         freer-simple -any,
+        hedgehog -any,
         http-client -any,
         http-client-tls -any,
         lens -any,
@@ -428,6 +438,7 @@ test-suite plutus-pab-test-light
         tasty -any,
         tasty-hunit -any,
         smallcheck -any,
+        tasty-hedgehog -any,
         tasty-smallcheck -any,
         tasty-quickcheck -any,
         text -any,
@@ -544,3 +555,19 @@ executable tx-inject
         time-units -any,
         yaml -any,
         data-default -any
+
+executable sync-client
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: sync-client
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        cardano-slotting -any,
+        optparse-applicative -any,
+        ouroboros-consensus-byron -any,
+        ouroboros-consensus-cardano -any,
+        ouroboros-consensus-shelley -any,
+        ouroboros-network -any,
+        plutus-ledger,
+        plutus-pab

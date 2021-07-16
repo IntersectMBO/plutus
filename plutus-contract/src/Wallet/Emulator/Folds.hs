@@ -36,6 +36,7 @@ module Wallet.Emulator.Folds (
     , walletWatchingAddress
     , walletFunds
     , walletFees
+    , walletTxBalanceEvents
     -- * Folds that are used in the Playground
     , annotatedBlockchain
     , blockchain
@@ -81,7 +82,7 @@ import           Plutus.Trace.Emulator.Types            (ContractInstanceLog, Co
                                                          _HandledRequest, cilMessage, cilTag, toInstanceState)
 import           Wallet.Emulator.Chain                  (ChainEvent (..), _TxnValidate, _TxnValidationFail)
 import           Wallet.Emulator.ChainIndex             (_AddressStartWatching)
-import           Wallet.Emulator.LogMessages            (_ValidationFailed)
+import           Wallet.Emulator.LogMessages            (_BalancingUnbalancedTx, _ValidationFailed)
 import           Wallet.Emulator.MultiAgent             (EmulatorEvent, EmulatorTimeEvent, chainEvent, chainIndexEvent,
                                                          eteEvent, instanceEvent, userThreadEvent, walletClientEvent,
                                                          walletEvent')
@@ -116,6 +117,10 @@ scriptEvents = preMapMaybe (preview (eteEvent . chainEvent) >=> getEvent) (conca
         TxnValidate _ _ es           -> Just es
         TxnValidationFail _ _ _ _ es -> Just es
         SlotAdd _                    -> Nothing
+
+-- | Unbalanced transactions that are sent to the wallet for balancing
+walletTxBalanceEvents :: EmulatorEventFold [UnbalancedTx]
+walletTxBalanceEvents = preMapMaybe (preview (eteEvent . walletEvent' . _2 . _TxBalanceLog . _BalancingUnbalancedTx)) L.list
 
 -- | The state of a contract instance, recovered from the emulator log.
 instanceState ::

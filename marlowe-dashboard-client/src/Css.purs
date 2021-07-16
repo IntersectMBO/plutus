@@ -2,6 +2,7 @@ module Css
   ( maxWidthContainer
   , bgBlueGradient
   , button
+  , withAnimation
   , withIcon
   , withShadow
   , primaryButton
@@ -47,9 +48,8 @@ button =
   , "font-bold"
   , "leading-none"
   , "whitespace-nowrap"
-  , "transition-all"
-  , "duration-200"
   , "outline-none"
+  , "select-none"
   , "focus:outline-none"
   , "disabled:bg-none"
   , "disabled:bg-lightgray"
@@ -60,14 +60,17 @@ button =
 withShadow :: Array String
 withShadow = [ "shadow", "hover:shadow-lg" ]
 
+withAnimation :: Array String
+withAnimation = [ "transition-all", "duration-200" ]
+
 primaryButton :: Array String
-primaryButton = button <> bgBlueGradient <> withShadow
+primaryButton = button <> bgBlueGradient <> withShadow <> withAnimation
 
 secondaryButton :: Array String
-secondaryButton = button <> [ "bg-lightgray", "text-black", "hover:shadow" ]
+secondaryButton = button <> withAnimation <> [ "bg-lightgray", "text-black", "hover:shadow" ]
 
 whiteButton :: Array String
-whiteButton = button <> withShadow <> [ "bg-white" ]
+whiteButton = button <> withShadow <> withAnimation <> [ "bg-white" ]
 
 withIcon :: Icon -> Array String
 withIcon icon = [ "with-icon", "with-icon-" <> iconClass icon ]

@@ -30,7 +30,7 @@ import           Plutus.V1.Ledger.Tx         (TxOut (..))
 
 import           Ledger.Typed.TypeUtils
 
-type WrappedMintingPolicyType = Data -> Data -> ()
+type WrappedMintingPolicyType = BuiltinData -> BuiltinData -> ()
 
 -- TODO: we should add a TypedMintingPolicy interface here
 
@@ -39,8 +39,8 @@ wrapMintingPolicy
     :: IsData r
     => (r -> Validation.ScriptContext -> Bool)
     -> WrappedMintingPolicyType
-wrapMintingPolicy f (fromData -> Just r) (fromData -> Just p) = check $ f r p
-wrapMintingPolicy _ _                    _                    = check False
+-- We can use unsafeFromBuiltinData here as we would fail immediately anyway if parsing failed
+wrapMintingPolicy f r p = check $ f (unsafeFromBuiltinData r) (unsafeFromBuiltinData p)
 
 -- | A minting policy that checks whether the validator script was run
 --   in the minting transaction.

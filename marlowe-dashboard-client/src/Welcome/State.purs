@@ -33,7 +33,7 @@ import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNickname
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
-import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletLibrary, _walletIdInput, _walletNicknameInput, _walletNicknameOrIdInput)
+import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
 -- see note [dummyState] in MainFrame.State

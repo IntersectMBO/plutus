@@ -157,27 +157,30 @@
                     [
                       [
                         {
-                          (builtin ifThenElse)
-                          (fun (con unit) [List (con data)])
+                          {
+                            (builtin chooseList)
+                            (fun (con unit) [List (con data)])
+                          }
+                          (con data)
                         }
-                        [ { (builtin nullList) (con data) } l ]
+                        (lam ds (con unit) { Nil (con data) })
                       ]
-                      (lam ds (con unit) { Nil (con data) })
+                      (lam
+                        ds
+                        (con unit)
+                        [
+                          [
+                            { Cons (con data) }
+                            [ { (builtin headList) (con data) } l ]
+                          ]
+                          [
+                            unsafeDataAsList_go
+                            [ { (builtin tailList) (con data) } l ]
+                          ]
+                        ]
+                      )
                     ]
-                    (lam
-                      ds
-                      (con unit)
-                      [
-                        [
-                          { Cons (con data) }
-                          [ { (builtin headList) (con data) } l ]
-                        ]
-                        [
-                          unsafeDataAsList_go
-                          [ { (builtin tailList) (con data) } l ]
-                        ]
-                      ]
-                    )
+                    l
                   ]
                   (con unit ())
                 ]

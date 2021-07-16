@@ -62,6 +62,9 @@ module.exports = {
         "from-below": "from-below 250ms ease-out 1",
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
+      transitionProperty: {
+        width: "width"
+      },
       backgroundImage: theme => ({
         "background-shape": "url('/static/images/background-shape.svg')",
         "get-started-thumbnail": "url('/static/images/get-started-thumbnail.jpg')",

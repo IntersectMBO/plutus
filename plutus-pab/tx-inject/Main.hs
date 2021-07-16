@@ -10,41 +10,41 @@
 -}
 module Main where
 
-import           Control.Concurrent             (ThreadId, forkIO, myThreadId, throwTo)
-import           Control.Concurrent.STM         (atomically)
-import           Control.Concurrent.STM.TBQueue (TBQueue, newTBQueueIO, readTBQueue, writeTBQueue)
-import           Control.Concurrent.STM.TVar    (TVar, modifyTVar', newTVarIO, readTVar)
-import           Control.Exception              (AsyncException (..))
-import           Control.Lens                   hiding (ix)
-import           Control.Monad                  (forever)
-import           Control.Monad.IO.Class         (liftIO)
-import           Control.RateLimit              (rateLimitExecution)
-import qualified Data.Map                       as Map
-import           Data.Text                      (Text)
-import qualified Data.Text                      as T
-import qualified Data.Text.IO                   as T
-import           Data.Time.Units                (Microsecond, fromMicroseconds)
-import           Data.Yaml                      (decodeFileThrow)
-import           GHC.Generics                   (Generic)
-import           Options.Applicative            (Parser, ParserInfo, auto, execParser, fullDesc, help, helper, info,
-                                                 long, metavar, option, progDesc, short, showDefault, strOption, value,
-                                                 (<**>))
-import           System.Clock                   (Clock (..), TimeSpec (..), getTime)
-import           System.Random.MWC              (GenIO, createSystemRandom)
-import           System.Signal                  (installHandler, sigINT)
-import           Text.Pretty.Simple             (pPrint)
+import           Control.Concurrent                  (ThreadId, forkIO, myThreadId, throwTo)
+import           Control.Concurrent.STM              (atomically)
+import           Control.Concurrent.STM.TBQueue      (TBQueue, newTBQueueIO, readTBQueue, writeTBQueue)
+import           Control.Concurrent.STM.TVar         (TVar, modifyTVar', newTVarIO, readTVar)
+import           Control.Exception                   (AsyncException (..))
+import           Control.Lens                        hiding (ix)
+import           Control.Monad                       (forever)
+import           Control.Monad.IO.Class              (liftIO)
+import           Control.RateLimit                   (rateLimitExecution)
+import qualified Data.Map                            as Map
+import           Data.Text                           (Text)
+import qualified Data.Text                           as T
+import qualified Data.Text.IO                        as T
+import           Data.Time.Units                     (Microsecond, fromMicroseconds)
+import           Data.Yaml                           (decodeFileThrow)
+import           GHC.Generics                        (Generic)
+import           Options.Applicative                 (Parser, ParserInfo, auto, execParser, fullDesc, help, helper,
+                                                      info, long, metavar, option, progDesc, short, showDefault,
+                                                      strOption, value, (<**>))
+import           System.Clock                        (Clock (..), TimeSpec (..), getTime)
+import           System.Random.MWC                   (GenIO, createSystemRandom)
+import           System.Signal                       (installHandler, sigINT)
+import           Text.Pretty.Simple                  (pPrint)
 
-import           Cardano.Node.RandomTx          (generateTx)
-import           Cardano.Node.Types             (MockServerConfig (..))
-import           Cardano.Protocol.Socket.Client (TxSendHandle (..), queueTx, runTxSender)
-import qualified Ledger.Ada                     as Ada
-import           Ledger.Blockchain              (OnChainTx (..))
-import           Ledger.Index                   (UtxoIndex (..), insertBlock)
-import           Ledger.Slot                    (Slot (..))
-import           Ledger.Tx                      (Tx (..))
-import           Plutus.PAB.Types               (Config (..))
-import           Wallet.Emulator                (chainState, txPool, walletPubKey)
-import           Wallet.Emulator.MultiAgent     (emulatorStateInitialDist)
+import           Cardano.Node.RandomTx               (generateTx)
+import           Cardano.Node.Types                  (MockServerConfig (..))
+import           Cardano.Protocol.Socket.Mock.Client (TxSendHandle (..), queueTx, runTxSender)
+import qualified Ledger.Ada                          as Ada
+import           Ledger.Blockchain                   (OnChainTx (..))
+import           Ledger.Index                        (UtxoIndex (..), insertBlock)
+import           Ledger.Slot                         (Slot (..))
+import           Ledger.Tx                           (Tx (..))
+import           Plutus.PAB.Types                    (Config (..))
+import           Wallet.Emulator                     (chainState, txPool, walletPubKey)
+import           Wallet.Emulator.MultiAgent          (emulatorStateInitialDist)
 
 {- | The `Stats` are used by both the producer and consumer to track the number of
      generated transactions (used to verify if we respect the requested TPS rate)
