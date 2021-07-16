@@ -4,24 +4,46 @@ import Prelude hiding (div)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap)
-import Data.Lens (previewOn, to, (^.))
+import Data.Lens (preview, previewOn, to, view, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ComponentHTML)
 import Halogen.Classes (first, rTable, rTable4cols, rTableCell, rTableEmptyRow)
 import Halogen.Classes as Classes
-import Halogen.HTML (HTML, div, text)
+import Halogen.Css (classNames)
+import Halogen.HTML (HTML, br_, div, div_, h4, text)
 import Halogen.HTML.Properties (class_, classes)
+import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.Semantics (ChoiceId(..), Party, Token, ValueId(..), _accounts, _boundValues, _choices)
+import Marlowe.Semantics (ChoiceId(..), Party, Token, TransactionError, TransactionWarning, ValueId(..), _accounts, _boundValues, _choices)
+import Marlowe.ViewPartials (displayWarningList)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
-import SimulationPage.Types (Action, BottomPanelView(..), State)
-import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _executionState, _initialSlot, _marloweState, _slot, _state)
+import SimulationPage.Types (BottomPanelView(..), State)
+import Simulator.Lenses (_SimulationNotStarted, _SimulationRunning, _executionState, _initialSlot, _marloweState, _slot, _state, _transactionError, _transactionWarnings)
 
-panelContents :: forall p. MetaData -> State -> BottomPanelView -> HTML p Action
-panelContents metadata state CurrentStateView =
+panelContents ::
+  forall m action.
+  MonadAff m =>
+  MetaData ->
+  State ->
+  BottomPanelView ->
+  ComponentHTML action ChildSlots m
+panelContents metadata state CurrentStateView = currentStateView metadata state
+
+panelContents metadata state WarningsAndErrorsView =
+  let
+    runtimeWarnings = view (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings) state
+
+    mRuntimeError = join $ preview (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError) state
+  in
+    warningsAndErrorsView runtimeWarnings mRuntimeError
+
+currentStateView :: forall p action. MetaData -> State -> HTML p action
+currentStateView metadata state =
   div [ classes [ rTable, rTable4cols ] ]
     ( tableRow
         { title: "Accounts"
@@ -89,4 +111,46 @@ panelContents metadata state CurrentStateView =
     [ div [ classes [ rTableCell, first, Classes.header ] ]
         [ text title ]
     , div [ classes [ rTableCell, rTableEmptyRow, Classes.header ] ] [ text message ]
+    ]
+
+warningsAndErrorsView ::
+  forall action m.
+  MonadAff m =>
+  Array TransactionWarning ->
+  Maybe TransactionError ->
+  ComponentHTML action ChildSlots m
+warningsAndErrorsView [] Nothing = div_ [ text "No problems found" ]
+
+warningsAndErrorsView [] (Just err) = errorView err
+
+warningsAndErrorsView warnings Nothing = warningsView warnings
+
+warningsAndErrorsView warnings (Just err) =
+  div_
+    [ errorView err
+    , br_
+    , warningsView warnings
+    ]
+
+warningsView ::
+  forall action m.
+  MonadAff m =>
+  Array TransactionWarning ->
+  ComponentHTML action ChildSlots m
+warningsView warnings =
+  div_
+    [ h4 [ classNames [ "font-semibold", "no-margins", "mb-2" ] ] [ text "Warnings" ]
+    , displayWarningList warnings
+    ]
+
+errorView ::
+  forall action m.
+  MonadAff m =>
+  TransactionError ->
+  ComponentHTML action ChildSlots m
+errorView err =
+  div_
+    [ h4 [ classNames [ "font-semibold", "no-margins", "mb-2" ] ] [ text "Error" ]
+    -- TODO: Improve the error messages
+    , text $ show err
     ]
