@@ -29,13 +29,14 @@ import           Flat                           (flat)
 import           GHC.Generics                   (Generic)
 import qualified Ledger                         as Plutus
 import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
-import           Ledger.Index                   (ScriptValidationEvent (sveScript))
+import           Ledger.Index                   (ScriptValidationEvent (..))
 import           Options.Applicative
 import qualified Plutus.Contract.CardanoAPI     as CardanoAPI
 import qualified Plutus.Contracts.Crowdfunding  as Crowdfunding
 import qualified Plutus.Contracts.Uniswap.Trace as Uniswap
 import           Plutus.Trace.Emulator          (EmulatorConfig, EmulatorTrace)
 import qualified Plutus.Trace.Emulator          as Trace
+import           Plutus.V1.Ledger.Api           (ExBudget (..))
 import           Plutus.V1.Ledger.Scripts       (Script (..))
 import qualified Spec.Auction                   as Auction
 import qualified Spec.Currency                  as Currency
@@ -147,7 +148,7 @@ writeScriptsTo ScriptsConfig{scMode, scPath, scNetworkId} prefix trace emulatorC
 
     createDirectoryIfMissing True scPath
     when (Scripts <= scMode) $
-        traverse_ (uncurry $ writeScript scPath prefix) (zip [1::Int ..] (sveScript <$> scriptEvents))
+        traverse_ (uncurry $ writeScript scPath prefix) (zip [1::Int ..] scriptEvents)
     when (Transactions <= scMode) $
         traverse_ (uncurry $ writeTransaction scNetworkId scPath prefix) (zip [1::Int ..] balanceEvents)
 
@@ -157,11 +158,13 @@ writeScriptsTo ScriptsConfig{scMode, scPath, scNetworkId} prefix trace emulatorC
     just use unwrapped Flat because that's more convenient for use with the
     `plc` command, for example.
 -}
-writeScript :: FilePath -> String -> Int -> Script -> IO ()
-writeScript fp prefix idx script = do
+writeScript :: FilePath -> String -> Int -> ScriptValidationEvent -> IO ()
+writeScript fp prefix idx ScriptValidationEvent{sveScript, sveResult} = do
     let filename = fp </> prefix <> "-" <> show idx <> ".flat"
-    putStrLn $ "Writing script: " <> filename
-    BSL.writeFile filename (BSL.fromStrict . flat . unScript $ script)
+    putStrLn $ "Writing script: " <> filename <> " (Cost: " <> either show (showBudget . fst) sveResult <> ")"
+    BSL.writeFile filename (BSL.fromStrict . flat . unScript $ sveScript)
+    where
+        showBudget (ExBudget exCPU exMemory) = show exCPU <> ", " <> show exMemory
 
 writeTransaction :: C.NetworkId -> FilePath -> String -> Int -> UnbalancedTx -> IO ()
 writeTransaction networkId fp prefix idx tx = do
