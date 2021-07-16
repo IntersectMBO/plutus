@@ -25,7 +25,7 @@ module Plutus.V1.Ledger.Api (
     , ExBudget (..)
     , ExCPU (..)
     , ExMemory (..)
-    , SatInt (..)
+    , SatInt
     -- ** Cost model
     , validateCostModelParams
     , defaultCostModelParams
@@ -124,13 +124,13 @@ import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.DCert
 import           Plutus.V1.Ledger.Interval                        hiding (singleton)
-import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Scripts                         hiding (mkTermToEvaluate)
+import qualified Plutus.V1.Ledger.Scripts                         as Scripts
 import           Plutus.V1.Ledger.Time
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value
 import           PlutusCore                                       as PLC
 import qualified PlutusCore.Data                                  as PLC
-import qualified PlutusCore.DeBruijn                              as PLC
 import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
@@ -174,7 +174,7 @@ anything, we're just going to create new versions.
 -- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
 validateScript :: SerializedScript -> Bool
-validateScript = isRight . CBOR.deserialiseOrFail @Scripts.Script . fromStrict . fromShort
+validateScript = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
 
 validateCostModelParams :: CostModelParams -> Bool
 validateCostModelParams = isJust . applyCostModelParams PLC.defaultCekCostModel
