@@ -121,20 +121,11 @@ getRiskFactors dataObserved ev date ContractTerms{..} =
             ct_SCMO
           _  ->
             ct_CURS
-      value =
-        case observedKey of
-          Just observedKey' ->
-            case M.lookup observedKey' dataObserved of
-              Just ValuesObserved{ values = values } ->
-                case L.find (\(ValueObserved { timestamp = timestamp }) -> timestamp == date) values of
-                  Just ValueObserved{ value = valueObserved } ->
-                    valueObserved
-                  Nothing ->
-                    1.0
-              Nothing ->
-                1.0
-          Nothing ->
-            1.0
+      value = fromMaybe 1.0 $ do observedKey' <- observedKey
+                                 ValuesObserved{ values = values } <- M.lookup observedKey' dataObserved
+                                 ValueObserved{ value = valueObserved } <-
+                                   L.find (\ ValueObserved { timestamp = timestamp } -> timestamp == date) values
+                                 return valueObserved
   in
     case ev of
       RR ->

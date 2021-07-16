@@ -182,12 +182,7 @@ testToContractTerms TestCase{terms = terms} =
      }
 
 readMaybe :: (Read a) => Maybe String -> Maybe a
-readMaybe term =
-  case term of
-    Just t ->
-      Just $ read t
-    Nothing ->
-      Nothing
+readMaybe term = fmap (read) term
 
 parseMaybeDate :: Maybe String -> Maybe Day
 parseMaybeDate date =
@@ -214,7 +209,6 @@ parseMaybeCycle stringCycle =
           Just Cycle { n = n, p = read $ "P_" ++ [p] :: Period, stub = parseStub [s], includeEndDay = False }
     Nothing ->
       Nothing
-
 
 parseStub :: String -> Stub
 parseStub stub =
@@ -243,17 +237,7 @@ maybeDCCFromString stringDCC =
       Nothing
 
 maybeConcatPrefix :: String -> Maybe String -> Maybe String
-maybeConcatPrefix prefix term =
-  case term of
-    Just t ->
-      Just $ prefix ++ t
-    Nothing ->
-      Nothing
+maybeConcatPrefix prefix term = fmap (prefix ++) term
 
 maybeReplace :: String -> String -> Maybe String -> Maybe String
-maybeReplace from to string =
-  case string of
-    Just s ->
-      Just $ replace from to s
-    Nothing ->
-      Nothing
+maybeReplace from to string = fmap (replace from to) string
