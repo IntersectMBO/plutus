@@ -97,7 +97,7 @@ input :: Boolean -> Array String
 input valid =
   inputBase
     <> [ "focus:border-transparent", "focus-within:border-transparent", "focus:ring-2", "focus-within:ring-2" ]
-    <> if valid then [ "border-gray", "focus:ring-blue", "focus-within:ring-blue" ] else [ "border-red", "focus:ring-red", "focus-within:ring-red" ]
+    <> if valid then [ "border-gray", "focus:ring-purple", "focus-within:ring-purple" ] else [ "border-red", "focus:ring-red", "focus-within:ring-red" ]
 
 -- use this on pseudo select elements, because the focus ring doesn't play well with the dropdown
 inputNoFocus :: Boolean -> Array String

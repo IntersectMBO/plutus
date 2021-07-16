@@ -144,7 +144,7 @@ walletDetailsCard currentWallet walletDetails =
       , div
           [ classNames [ "flex", "gap-4" ] ]
           [ a
-              [ classNames Css.button
+              [ classNames $ Css.button <> [ "text-center" ]
               , onClick_ $ SetCardSection Home
               ]
               [ text "Back" ]
@@ -178,7 +178,7 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       }
 
     walletIdInputDisplayOptions =
-      { additionalCss: [ "font-mono", "text-xs" ]
+      { additionalCss: mempty
       , id_: "newWalletId"
       , placeholder: "Wallet ID"
       , readOnly: false
@@ -190,28 +190,28 @@ newWalletCard walletNicknameInput walletIdInput mTokenName =
       [ classNames [ "grid", "grid-rows-1fr-auto", "p-4", "gap-4" ] ]
       [ div_
           [ div
-              [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletNickname) Css.hasNestedLabel) ]
+              [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
               [ label
-                  [ classNames $ Css.nestedLabel <> hideWhen (null walletNickname)
+                  [ classNames Css.nestedLabel
                   , for walletNicknameInputDisplayOptions.id_
                   ]
-                  [ text "Nickname" ]
+                  [ text "Wallet nickname" ]
               , WalletNicknameInputAction <$> renderInput walletNicknameInputDisplayOptions walletNicknameInput
               ]
           , div
-              [ classNames $ [ "mb-4" ] <> (applyWhen (not null walletIdString) Css.hasNestedLabel) ]
+              [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
               [ label
-                  [ classNames $ Css.nestedLabel <> hideWhen (null walletIdString)
+                  [ classNames Css.nestedLabel
                   , for walletIdInputDisplayOptions.id_
                   ]
-                  [ text "Wallet ID" ]
+                  [ text "Demo wallet ID" ]
               , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
               ]
           ]
       , div
           [ classNames [ "flex", "gap-4" ] ]
           [ a
-              [ classNames $ Css.button <> [ "flex-1" ]
+              [ classNames $ Css.button <> [ "flex-1", "text-center" ]
               , onClick_ case mTokenName of
                   Just _ -> CancelNewContactForRole
                   Nothing -> SetCardSection Home

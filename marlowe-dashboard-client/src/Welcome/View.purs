@@ -251,7 +251,7 @@ useNewWalletCard state =
                   [ classNames $ Css.nestedLabel
                   , for "walletNickname"
                   ]
-                  [ text "Nickname" ]
+                  [ text "Wallet nickname" ]
               , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions false) walletNicknameInput
               ]
         , div
@@ -319,7 +319,7 @@ useWalletCard state =
                   [ classNames $ Css.nestedLabel
                   , for "walletNickname"
                   ]
-                  [ text "Nickname" ]
+                  [ text "Wallet nickname" ]
               , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions true) walletNicknameInput
               ]
         , div
