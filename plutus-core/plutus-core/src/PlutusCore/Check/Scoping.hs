@@ -12,28 +12,54 @@ import           Data.Map.Strict      as Map
 import           Data.Maybe
 import           Data.Set             as Set
 
--- let nonrec x_1 = x_2 in x_3
+{- Note [Example of a scoping check]
+Consider the following type:
 
--- let nonrec @(disappears_binding x_1) x_1 = @(stays_out_of_scope x_1) x_1 -> @(stays_free x_2) x_2 in @(disappears_bound x_1) x_1 -> @(stays_free x_3) x_3
+    \(x_42 :: *) -> x_42
 
--- let nonrec @(disappears_binding x_1) x_4 = @(stays_out_of_scope x_1) x_1 -> @(stays_free x_2) x_2 in @(disappears_bound x_1) x_4 -> @(stays_free x_3) x_3
+This Note describes how we can use this type to check that a renamer handles scoping correctly.
+Any other type could be used as well (and in property tests we generate random ones), but the type
+above is the simplest example, so we're going to use it.
 
--- @(disappears_binding x_1) x_4: x_1 must not be equal to x_4, x_1 is added to out_of_scope, x_4 is added to in_scope
--- @(stays_out_of_scope x_1) x_1: x_1 must be equal to x_1, x_1 must be in out_of_scope, x_1 must not be in in_scope
--- @(stays_free x_2) x_2: x_2 must be equal to x_2, x_2 must not be in out_of_scope, x_2 must not be in in_scope
--- @(disappears_bound x_1) x_4: x_1 must not be equal to x_4, x_1 must be in out_of_scope, x_4 must be in in_scope
--- @(stays_free x_3) x_3: x_3 must be equal to x_3, x_3 must not be in out_of_scope, x_3 must not be in in_scope
+First, we traverse the type and freshen every single name in it, which gives us
 
+    \(x_0 :: *) -> x_1
 
+After this procedure all names in the new type are distinct, not just globally unique -- completely
+distinct: all variables are free variables with different uniques and all bindings are distinct and
+never referenced.
 
--- let nonrec x_1 = x_2 in x_3
--- let nonrec x_1 = x_2 in let nonrec x_1 = x_2 in x_3  -- Duplicating a binding makes the duplicate disappear
+Now for each binder we insert one in-scope variable and one out-of-scope one by referencing them
+in an added constructor (we could use 'TyFun', but we use 'TyApp', 'cause it has an analogue at the
+term level -- 'Apply' and we can also reference a type variable in a 'Term' via a similar
+constructor -- 'TyInst'). That gives us
 
+    (\(x_0 :: *) -> x_1 x_0) x_0
 
--- \x_1 -> x_2
--- x_1 (\x_1 -> x_1 x_2)
--- @(stays_out_of_scope x_1) x_1 (\(@disappears_binding x_1) x_1 -> @(disappears_variable x_1) x_1 @(stays_free x_2) x_2)
--- @(stays_out_of_scope x_1) x_1 (\(@disappears_binding x_1) x_3 -> @(disappears_variable x_1) x_3 @(stays_free x_2) x_2)
+(currently we just decorate the binder with those constructors. In future we could employ a fancier
+strategy and go under to the leaves of the term being processed etc).
+
+The next step is to annotate each name with what is supposed to happen to it once the renaming is
+performed.
+
+1. the @x_0@ binding is supposed to be renamed and hence will disappear
+2. the @x_1@ variable is free, so it's supposed to stay free
+3. the inner @x_0@ variable is in scope and so is supposed to be renamed
+4. the outer @x_0@ is out of scope and so is free and is supposed to stay
+
+In the actual implementation everything that we did above happens in a single definition.
+
+After this initial scoping setup is performed, we run the provided renamer (which is not supposed
+to touch any annotations) and collect all the available information: which names disappeared,
+which didn't, which appeared etc, simultaneously checking that the names that were supposed to
+disappear indeed disappeared and the names that were supposed to stay indeed stayed.
+
+Once all this scoping information is collected, we run 'checkScopeInfo' to check that the
+information is coherent. See its docs for the details on what exactly the checked invariants are.
+
+The advantage of this approach is that we can pinpoint exactly where what is visible and, just
+as importantly, what is not.
+-}
 
 data ScopedName
     = TypeName TyName
@@ -46,19 +72,22 @@ isSameScope TermName{} TermName{} = True
 isSameScope TypeName{} TermName{} = False
 isSameScope TermName{} TypeName{} = False
 
-data Persists
-    = StaysOutOfScopeVariable
-    | StaysFreeVariable
+-- | Staying names.
+data Stays
+    = StaysOutOfScopeVariable  -- ^ An out-of-scope variable does not get renamed and hence stays.
+    | StaysFreeVariable        -- ^ A free variable does not get renamed and hence stays.
     deriving (Show)
 
-data Changes
-    = DisappearsBinding
-    | DisappearsVariable
+-- | Changing names.
+data Disappears
+    = DisappearsBinding   -- ^ A binding gets renamed and hence the name that it binds disappears.
+    | DisappearsVariable  -- ^ A bound variable gets renamed and hence its name disappears.
     deriving (Show)
 
+-- | A name either stays or disappears.
 data NameAction
-    = Persists Persists
-    | Changes Changes
+    = Stays Stays
+    | Disappears Disappears
     deriving (Show)
 
 data NameAnn
@@ -75,17 +104,23 @@ instance ToScopedName TyName where
 instance ToScopedName Name where
     toScopedName = TermName
 
+-- Naming: @introduce*@ for bindings and @register*@ for variables.
+
+-- | Annotation for a binding saying \"supposed to disappear\".
 introduceBound :: ToScopedName name => name -> NameAnn
-introduceBound = NameAction (Changes DisappearsBinding) . toScopedName
+introduceBound = NameAction (Disappears DisappearsBinding) . toScopedName
 
+-- | Annotation for a bound variable saying \"supposed to disappear\".
 registerBound :: ToScopedName name => name -> NameAnn
-registerBound = NameAction (Changes DisappearsVariable) . toScopedName
+registerBound = NameAction (Disappears DisappearsVariable) . toScopedName
 
+-- | Annotation for an out-of-scope variable saying \"supposed to stay out of scope\".
 registerOutOfScope :: ToScopedName name => name -> NameAnn
-registerOutOfScope = NameAction (Persists StaysOutOfScopeVariable) . toScopedName
+registerOutOfScope = NameAction (Stays StaysOutOfScopeVariable) . toScopedName
 
+-- | Annotation for a free variable saying \"supposed to stay free\".
 registerFree :: ToScopedName name => name -> NameAnn
-registerFree = NameAction (Persists StaysFreeVariable) . toScopedName
+registerFree = NameAction (Stays StaysFreeVariable) . toScopedName
 
 class Reference n t where
     -- | Take a registering function, apply it to the provided name, create a type\/term variable
@@ -109,6 +144,7 @@ referenceOutOfScope = referenceVia registerOutOfScope
 -- ## Information about scopes and relevant functions ##
 -- #####################################################
 
+-- | Each kind of old and new names.
 data ScopeEntry
     = DisappearedBindings
     | DisappearedVariables
@@ -118,6 +154,9 @@ data ScopeEntry
     | StayedFreeVariables
     deriving (Show, Eq, Ord)
 
+-- | A 'ScopeInfo' is a set of 'ScopedName's for each of the 'ScopeEntry'.
+-- If a 'ScopeEntry' is not present in the map, the corresponding set of 'ScopeName's is considered
+-- to be empty.
 newtype ScopeInfo = ScopeInfo
     { unScopeInfo :: Map ScopeEntry (Set ScopedName)
     } deriving (Show)
@@ -146,6 +185,7 @@ mergeScopeInfo si1 si2 = do
     checkEmpty DuplicateBindersInTheOutput duplicateAppearedBindings
     Right $ coerce (Map.unionWith Set.union) si1 si2
 
+-- @newtype@-ing it for the sake of providing very convenient 'Semigroup' and 'Monoid' instances.
 newtype ScopeErrorOrInfo = ScopeErrorOrInfo
     -- We might want to use @Validation@ or something instead of 'Either'.
     { unScopeErrorOrInfo :: Either ScopeError ScopeInfo
@@ -162,6 +202,7 @@ instance Monoid ScopeErrorOrInfo where
 -- ## Main class for collecting scope information and relevant functions ##
 -- ########################################################################
 
+-- See Note [Example of a scoping check].
 -- Given that it's straightforward to provide an implementation for each of the methods,
 -- it would be nice to somehow do that generically by default.
 class Scoping t where
@@ -215,10 +256,11 @@ establishScopingBinder binder name upper lower = do
 -- ## Checking coherence of scope information ##
 -- #############################################
 
+-- | Every kind of error thrown by the scope checking machinery at different stages.
 data ScopeError
     = UnannotatedName ScopedName
     | NameChangedItsScope ScopedName ScopedName
-    | NameUnexpectedlyChanged ScopedName ScopedName
+    | NameUnexpectedlyDisappeared ScopedName ScopedName
     | NameUnexpectedlyStayed ScopedName
     | DuplicateBindersInTheInput (Set ScopedName)
     | DuplicateBindersInTheOutput (Set ScopedName)
@@ -234,32 +276,32 @@ data ScopeError
 overrideSname :: ScopeEntry -> ScopedName -> ScopeInfo -> ScopeInfo
 overrideSname key = coerce . Map.insert key . Set.singleton
 
--- | Use a 'Persists' to handle an unchanged old name.
-applyPersists :: Persists -> ScopedName -> ScopeInfo
-applyPersists persists sname = overrideSname key sname emptyScopeInfo where
+-- | Use a 'Stays' to handle an unchanged old name.
+applyStays :: Stays -> ScopedName -> ScopeInfo
+applyStays persists sname = overrideSname key sname emptyScopeInfo where
     key = case persists of
         StaysOutOfScopeVariable -> StayedOutOfScopeVariables
         StaysFreeVariable       -> StayedFreeVariables
 
--- | Use a 'Changes' to handle differing old and new names.
-applyChanges :: Changes -> ScopedName -> ScopedName -> ScopeInfo
-applyChanges changes snameOld snameNew =
+-- | Use a 'Disappears' to handle differing old and new names.
+applyDisappears :: Disappears -> ScopedName -> ScopedName -> ScopeInfo
+applyDisappears disappears snameOld snameNew =
     overrideSname keyNew snameNew $ overrideSname keyOld snameOld emptyScopeInfo where
-        (keyOld, keyNew) = case changes of
+        (keyOld, keyNew) = case disappears of
             DisappearsBinding  -> (DisappearedBindings, AppearedBindings)
             DisappearsVariable -> (DisappearedVariables, AppearedVariables)
 
 -- | Use a 'NameAction' to handle an old and a new name.
 applyNameAction
     :: NameAction -> ScopedName -> ScopedName -> Either ScopeError ScopeInfo
-applyNameAction (Persists persists) snameOld snameNew =
+applyNameAction (Stays persists) snameOld snameNew =
     if snameOld == snameNew
-        then Right $ applyPersists persists snameOld
-        else Left $ NameUnexpectedlyChanged snameOld snameNew
-applyNameAction (Changes changes) snameOld snameNew =
+        then Right $ applyStays persists snameOld
+        else Left $ NameUnexpectedlyDisappeared snameOld snameNew
+applyNameAction (Disappears disappears) snameOld snameNew =
     if snameOld == snameNew
         then Left $ NameUnexpectedlyStayed snameOld
-        else Right $ applyChanges changes snameOld snameNew
+        else Right $ applyDisappears disappears snameOld snameNew
 
 -- | Use a 'NameAnn' to handle a new name.
 handleSname :: ToScopedName name => NameAnn -> name -> ScopeErrorOrInfo
@@ -317,6 +359,7 @@ checkScopeInfo scopeInfo = do
     checkEmpty NewBindingsClashWithFreeVariabes $
         appearedBindings `Set.intersection` stayedFreeVariables
 
+-- See Note [Example of a scoping check].
 -- | Check if a renamer respects scoping.
 checkRespectsScoping :: Scoping t => (t NameAnn -> t NameAnn) -> t ann -> Either ScopeError ()
 checkRespectsScoping ren =
