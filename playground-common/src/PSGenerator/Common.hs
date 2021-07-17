@@ -26,8 +26,8 @@ import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError, UnbalancedTx)
 import           Ledger.Credential                         (Credential, StakingCredential)
 import           Ledger.DCert                              (DCert)
-import           Ledger.Index                              (ExBudget, ExCPU, ExMemory, SatInt, ScriptType,
-                                                            ScriptValidationEvent, ValidationError)
+import           Ledger.Index                              (ExCPU, ExMemory, ScriptType, ScriptValidationEvent,
+                                                            ValidationError)
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
@@ -153,9 +153,21 @@ naturalBridge = do
     typeModule ^== "GHC.Natural"
     pure psInt
 
+satIntBridge :: BridgePart
+satIntBridge = do
+    typeName ^== "SatInt"
+    typeModule ^== "Data.SatInt" <|> typeModule ^== "Ledger.Index"
+    pure psInt
+
+exBudgetBridge :: BridgePart
+exBudgetBridge = do
+    typeName ^== "ExBudget"
+    typeModule ^== "PlutusCore.Evaluation.Machine.ExBudget"
+    pure psJson
+
 miscBridge :: BridgePart
 miscBridge =
-    byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge
+    byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
 
 ------------------------------------------------------------
 
@@ -309,10 +321,8 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StopReason)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptValidationEvent)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ExBudget)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ExCPU)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ExMemory)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @SatInt)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptType)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABReq)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABResp)
