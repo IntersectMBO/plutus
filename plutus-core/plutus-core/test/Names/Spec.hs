@@ -52,6 +52,8 @@ test_mangle = testProperty "equality does not survive mangling" . property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
+-- See Note [Marking].
+-- | A version of 'RenameT' that fails to take free variables into account.
 newtype NoMarkRenameT ren m a = NoMarkRenameT
     { unNoMarkRenameT :: RenameT ren m a
     } deriving newtype
@@ -65,6 +67,7 @@ noMarkRenameProgram
     => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
 noMarkRenameProgram = runRenameT . unNoMarkRenameT . renameProgramM
 
+-- | A version of 'RenameT' that does not perform any renaming at all.
 newtype NoRenameT ren m a = NoRenameT
     { unNoRenameT :: m a
     } deriving newtype
@@ -81,6 +84,7 @@ noRenameProgram
     => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
 noRenameProgram = through markNonFreshProgram >=> unNoRenameT . renameProgramM
 
+-- | A broken version of 'RenameT' whose 'local' updates the scope globally (as opposed to locally).
 newtype BrokenRenameT ren m a = BrokenRenameT
     { unBrokenRenameT :: StateT ren m a
     } deriving newtype
@@ -101,9 +105,11 @@ brokenRenameProgram
     => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
 brokenRenameProgram = through markNonFreshProgram >=> runBrokenRenameT . renameProgramM
 
+-- | Check that the given 'Property' fails.
 checkBadRename :: Property -> IO ()
 checkBadRename prop = check prop >>= \res -> res @?= False
 
+-- | Test equality of a program and its renamed version, given a renamer.
 prop_equalityFor
     :: program ~ Program TyName Name DefaultUni DefaultFun ()
     => (program -> Quote program) -> Property
@@ -127,6 +133,7 @@ test_equalityNoMarkRename =
     testCase "equality does not survive renaming without marking" $
         checkBadRename $ prop_equalityFor noMarkRenameProgram
 
+-- | Test scoping for a renamer.
 prop_scopingFor
     :: program ~ Program TyName Name DefaultUni DefaultFun NameAnn
     => (program -> Quote program) -> Property
