@@ -107,7 +107,7 @@ There is an executable that runs programs on the CK machine: you can feed a prog
 An example of usage:
 
 ```
-echo "(program 0.1.0 [(lam x (con integer) x) (con integer 271)])" | plc evaluate --stdin -mCK
+echo "(program 0.1.0 [(lam x (con integer) x) (con integer 271)])" | plc evaluate --stdin
 ```
 
 #### Tests
