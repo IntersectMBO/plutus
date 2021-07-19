@@ -165,7 +165,7 @@ isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: TxInfo -> Payment -> Bool
 proposalExpired TxInfo{txInfoValidRange} Payment{paymentDeadline} =
-    paymentDeadline `Interval.before` txInfoValidRange
+    (paymentDeadline - 1) `Interval.before` txInfoValidRange
 
 {-# INLINABLE proposalAccepted #-}
 -- | Check whether enough signatories (represented as a list of public keys)
@@ -220,7 +220,7 @@ transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) 
         | proposalAccepted params pkh ->
             let Payment{paymentAmount, paymentRecipient, paymentDeadline} = payment
                 constraints =
-                    Constraints.mustValidateIn (Interval.to paymentDeadline)
+                    Constraints.mustValidateIn (Interval.to $ paymentDeadline - 1)
                     <> Constraints.mustPayToPubKey paymentRecipient paymentAmount
             in Just ( constraints
                     , State

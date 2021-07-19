@@ -196,10 +196,10 @@ validate :: EscrowParams DatumHash -> PubKeyHash -> Action -> ScriptContext -> B
 validate EscrowParams{escrowDeadline, escrowTargets} contributor action ScriptContext{scriptContextTxInfo} =
     case action of
         Redeem ->
-            traceIfFalse "escrowDeadline-after" ((escrowDeadline + 1) `after` txInfoValidRange scriptContextTxInfo)
+            traceIfFalse "escrowDeadline-after" (escrowDeadline `after` txInfoValidRange scriptContextTxInfo)
             && traceIfFalse "meetsTarget" (all (meetsTarget scriptContextTxInfo) escrowTargets)
         Refund ->
-            traceIfFalse "escrowDeadline-before" (escrowDeadline `before` txInfoValidRange scriptContextTxInfo)
+            traceIfFalse "escrowDeadline-before" ((escrowDeadline - 1) `before` txInfoValidRange scriptContextTxInfo)
             && traceIfFalse "txSignedBy" (scriptContextTxInfo `txSignedBy` contributor)
 
 typedValidator :: EscrowParams Datum -> Scripts.TypedValidator Escrow

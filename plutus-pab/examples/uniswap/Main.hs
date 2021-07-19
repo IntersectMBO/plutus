@@ -106,5 +106,5 @@ instance HasDefinitions UniswapContracts where
 
 handlers :: SimulatorEffectHandlers (Builtin UniswapContracts)
 handlers =
-    Simulator.mkSimulatorHandlers @(Builtin UniswapContracts) def
+    Simulator.mkSimulatorHandlers def def
     $ interpret (contractHandler (Builtin.handleBuiltin @UniswapContracts))

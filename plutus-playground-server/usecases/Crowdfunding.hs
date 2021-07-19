@@ -88,12 +88,12 @@ mkCampaign ddl collectionDdl ownerWallet =
 -- | The 'POSIXTimeRange' during which the funds can be collected
 collectionRange :: Campaign -> POSIXTimeRange
 collectionRange cmp =
-    Interval.interval (campaignDeadline cmp + 1) (campaignCollectionDeadline cmp)
+    Interval.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp - 1)
 
 -- | The 'POSIXTimeRange' during which a refund may be claimed
 refundRange :: Campaign -> POSIXTimeRange
 refundRange cmp =
-    Interval.from (campaignCollectionDeadline cmp + 1)
+    Interval.from (campaignCollectionDeadline cmp)
 
 data Crowdfunding
 instance Scripts.ValidatorTypes Crowdfunding where
@@ -149,10 +149,10 @@ crowdfunding :: AsContractError e => Campaign -> Contract () CrowdfundingSchema 
 crowdfunding c = selectList [contribute c, scheduleCollection c]
 
 -- | A sample campaign
-theCampaign :: Campaign
-theCampaign = Campaign
-    { campaignDeadline = TimeSlot.slotToEndPOSIXTime def 40
-    , campaignCollectionDeadline = TimeSlot.slotToEndPOSIXTime def 60
+theCampaign :: POSIXTime -> Campaign
+theCampaign startTime = Campaign
+    { campaignDeadline = startTime + 40000
+    , campaignCollectionDeadline = startTime + 60000
     , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }
 
@@ -165,7 +165,7 @@ contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
     contributor <- pubKeyHash <$> ownPubKey
     let inst = typedValidator cmp
         tx = Constraints.mustPayToTheScript contributor contribValue
-                <> Constraints.mustValidateIn (Ledger.interval 1 (campaignDeadline cmp))
+                <> Constraints.mustValidateIn (Interval.to (campaignDeadline cmp))
     txid <- fmap txId (submitTxConstraints inst tx)
 
     utxo <- watchAddressUntilTime (Scripts.validatorAddress inst) (campaignCollectionDeadline cmp)
@@ -236,7 +236,7 @@ to change.
 -}
 
 endpoints :: AsContractError e => Contract () CrowdfundingSchema e ()
-endpoints = crowdfunding theCampaign
+endpoints = crowdfunding (theCampaign $ TimeSlot.scSlotZeroTime def)
 
 mkSchemaDefinitions ''CrowdfundingSchema
 

@@ -38,12 +38,18 @@ tests :: TestTree
 tests =
     testGroup "futures"
     [ checkPredicate "setup tokens"
-        (assertDone (F.setupTokens @() @FutureSchema @FutureError) (Trace.walletInstanceTag w1) (const True) "setupTokens")
+        (assertDone (F.setupTokens @() @FutureSchema @FutureError)
+                    (Trace.walletInstanceTag w1) (const True) "setupTokens")
         $ void F.setupTokensTrace
 
     , checkPredicate "can initialise and obtain tokens"
-        (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short F.testAccounts)
-        .&&. walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long F.testAccounts))
+        (    walletFundsChange w1 ( scale (-1) (F.initialMargin $ theFuture startTime)
+                                 <> F.tokenFor Short F.testAccounts
+                                  )
+        .&&. walletFundsChange w2 ( scale (-1) (F.initialMargin $ theFuture startTime)
+                                 <> F.tokenFor Long F.testAccounts
+                                  )
+        )
         (void (initContract >> joinFuture))
 
     , checkPredicate "can increase margin"
@@ -64,16 +70,18 @@ tests =
     , goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
     , HUnit.testCaseSteps "script size is reasonable" $ \step ->
-        reasonable' step (F.validator theFuture F.testAccounts) 63000
-
+        reasonable' step (F.validator (theFuture startTime) F.testAccounts) 63000
     ]
 
-setup :: FutureSetup
-setup =
+    where
+        startTime = TimeSlot.scSlotZeroTime def
+
+setup :: POSIXTime -> FutureSetup
+setup startTime =
     FutureSetup
         { shortPK = walletPubKey w1
         , longPK = walletPubKey w2
-        , contractStart = TimeSlot.slotToBeginPOSIXTime def 15
+        , contractStart = startTime + 15000
         }
 
 w1 :: Wallet
@@ -87,9 +95,9 @@ w10 = Wallet 10
 
 -- | A futures contract over 187 units with a forward price of 1233 Lovelace,
 --   due at slot #100.
-theFuture :: Future
-theFuture = Future {
-    ftDeliveryDate  = TimeSlot.slotToBeginPOSIXTime def 100,
+theFuture :: POSIXTime -> Future
+theFuture startTime = Future {
+    ftDeliveryDate  = startTime + 100000,
     ftUnits         = units,
     ftUnitPrice     = forwardPrice,
     ftInitialMargin = Ada.lovelaceValueOf 800,
@@ -124,8 +132,9 @@ payOutTrace = do
 --   are locked by the contract.
 initContract :: EmulatorTrace (ContractHandle () FutureSchema FutureError)
 initContract = do
-    hdl1 <- Trace.activateContractWallet w1 (F.futureContract theFuture)
-    Trace.callEndpoint @"initialise-future" hdl1 (setup, Short)
+    startTime <- TimeSlot.scSlotZeroTime <$> Trace.getSlotConfig
+    hdl1 <- Trace.activateContractWallet w1 (F.futureContract $ theFuture startTime)
+    Trace.callEndpoint @"initialise-future" hdl1 (setup startTime, Short)
     _ <- Trace.waitNSlots 3
     pure hdl1
 
@@ -133,8 +142,9 @@ initContract = do
 --   all resulting transactions.
 joinFuture :: EmulatorTrace (ContractHandle () FutureSchema FutureError)
 joinFuture = do
-    hdl2 <- Trace.activateContractWallet w2 (F.futureContract theFuture)
-    Trace.callEndpoint @"join-future" hdl2 (F.testAccounts, setup)
+    startTime <- TimeSlot.scSlotZeroTime <$> Trace.getSlotConfig
+    hdl2 <- Trace.activateContractWallet w2 (F.futureContract $ theFuture startTime)
+    Trace.callEndpoint @"join-future" hdl2 (F.testAccounts, setup startTime)
     _ <- Trace.waitNSlots 2
     pure hdl2
 
@@ -142,9 +152,10 @@ joinFuture = do
 --   all resulting transactions.
 payOut :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
 payOut hdl = do
+    startTime <- TimeSlot.scSlotZeroTime <$> Trace.getSlotConfig
     let
         spotPrice = Ada.lovelaceValueOf 1124
-        ov = mkSignedMessage (ftDeliveryDate theFuture) spotPrice
+        ov = mkSignedMessage (ftDeliveryDate $ theFuture startTime) spotPrice
     Trace.callEndpoint @"settle-future" hdl ov
     void $ Trace.waitNSlots 2
 
@@ -172,9 +183,10 @@ increaseMargin hdl = do
 -- | Call 'settleEarly' with a high spot price (11240 lovelace)
 settleEarly :: ContractHandle () FutureSchema FutureError -> EmulatorTrace ()
 settleEarly hdl = do
+    startTime <- TimeSlot.scSlotZeroTime <$> Trace.getSlotConfig
     let
         spotPrice = Ada.lovelaceValueOf 11240
-        ov = mkSignedMessage (TimeSlot.slotToBeginPOSIXTime def 25) spotPrice
+        ov = mkSignedMessage (startTime + 25000) spotPrice
     Trace.callEndpoint @"settle-early" hdl ov
     void $ Trace.waitNSlots 1
 

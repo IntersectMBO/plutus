@@ -13,7 +13,6 @@ module Spec.Governance(tests, doVoting) where
 
 import           Control.Lens                (view)
 import           Control.Monad               (void)
-import           Data.Default                (Default (def))
 import           Data.Foldable               (traverse_)
 
 import qualified Ledger
@@ -50,7 +49,10 @@ tests =
         (doVoting 5 5 1)
 
     , goldenPir "test/Spec/governance.pir" $$(PlutusTx.compile [|| Gov.mkValidator ||])
-    , HUnit.testCase "script size is reasonable" (reasonable (Scripts.validatorScript $ Gov.typedValidator params) 23000)
+    , HUnit.testCase "script size is reasonable"
+                     ( reasonable (Scripts.validatorScript $ Gov.typedValidator params)
+                                  23000
+                     )
     ]
 
 numberOfHolders :: Integer
@@ -74,20 +76,28 @@ lawv3 = "Law v3"
 
 doVoting :: Int -> Int -> Integer -> EmulatorTrace ()
 doVoting ayes nays rounds = do
-    let activate w = (Gov.mkTokenName baseName w,) <$> Trace.activateContractWallet (EM.Wallet w) (Gov.contract @Gov.GovError params)
+    let activate w = (Gov.mkTokenName baseName w,)
+                 <$> Trace.activateContractWallet (EM.Wallet w)
+                                                  (Gov.contract @Gov.GovError params)
     namesAndHandles <- traverse activate [1..numberOfHolders]
     let handle1 = snd (head namesAndHandles)
     let token2 = fst (namesAndHandles !! 1)
     void $ Trace.callEndpoint @"new-law" handle1 lawv1
     void $ Trace.waitNSlots 10
+    slotCfg <- Trace.getSlotConfig
     let votingRound (_, law) = do
             now <- view Trace.currentSlot <$> Trace.chainState
             void $ Trace.activateContractWallet (EM.Wallet 2)
                 (Gov.proposalContract @Gov.GovError params
-                    Gov.Proposal{ Gov.newLaw = law, Gov.votingDeadline = TimeSlot.slotToEndPOSIXTime def $ now + 20, Gov.tokenName = token2 })
+                    Gov.Proposal { Gov.newLaw = law
+                                 , Gov.votingDeadline = TimeSlot.slotToEndPOSIXTime slotCfg $ now + 20
+                                 , Gov.tokenName = token2
+                                 })
             void $ Trace.waitNSlots 1
-            traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, True)  >> Trace.waitNSlots 1) (take ayes namesAndHandles)
-            traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, False) >> Trace.waitNSlots 1) (take nays $ drop ayes namesAndHandles)
+            traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, True)  >> Trace.waitNSlots 1)
+                      (take ayes namesAndHandles)
+            traverse_ (\(nm, hdl) -> Trace.callEndpoint @"add-vote" hdl (nm, False) >> Trace.waitNSlots 1)
+                      (take nays $ drop ayes namesAndHandles)
             Trace.waitNSlots 15
 
     traverse_ votingRound (zip [1..rounds] (cycle [lawv2, lawv3]))

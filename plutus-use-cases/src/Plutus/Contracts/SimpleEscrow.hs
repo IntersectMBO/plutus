@@ -108,7 +108,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
   case action of
     Redeem ->
           -- Can't redeem after the deadline
-      let notLapsed = (deadline params + 1) `after` txInfoValidRange txInfo
+      let notLapsed = deadline params `after` txInfoValidRange txInfo
           -- Payee has to have been paid
           paid      = valuePaidTo txInfo (payee params) `geq` expecting params
        in traceIfFalse "escrow-deadline-lapsed" notLapsed
@@ -117,8 +117,9 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
           -- Has to be the person that locked value requesting the refund
       let signed = txInfo `txSignedBy` payee params
           -- And we only refund after the deadline has passed
-          lapsed = deadline params `before` txInfoValidRange txInfo
+          lapsed = (deadline params - 1) `before` txInfoValidRange txInfo
        in traceIfFalse "escrow-not-signed" signed
+          -- && traceIfFalse "refund-too-early" lapsed
           && traceIfFalse "refund-too-early" lapsed
 
 -- | Lock the 'paying' 'Value' in the output of this script, with the
@@ -160,7 +161,7 @@ refundEp = endpoint @"refund" refund
       unspentOutputs <- utxoAt escrowAddress
 
       let tx = Typed.collectFromScript unspentOutputs Refund
-                  <> Constraints.mustValidateIn (Interval.from (Haskell.succ $ deadline params))
+                  <> Constraints.mustValidateIn (Interval.from (deadline params))
 
       if Constraints.modifiesUtxoSet tx
       then RefundSuccess . txId <$> submitTxConstraintsSpending escrowInstance unspentOutputs tx

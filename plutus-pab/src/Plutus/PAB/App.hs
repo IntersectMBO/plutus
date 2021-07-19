@@ -150,7 +150,7 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
             . reinterpret (Core.handleMappedReader @(AppEnv a) @MockClient.TxSendHandle txSendHandle)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
             . reinterpret (Core.handleMappedReader @(AppEnv a) @ClientEnv nodeClientEnv)
-            . reinterpretN @'[_, _, _, _] (handleNodeClientClient @IO)
+            . reinterpretN @'[_, _, _, _] (handleNodeClientClient @IO $ mscSlotConfig $ nodeServerConfig config)
 
             -- handle 'ChainIndexEffect'
             . flip handleError (throwError . ChainIndexError)
