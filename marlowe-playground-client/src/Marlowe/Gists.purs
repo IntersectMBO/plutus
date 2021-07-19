@@ -67,7 +67,7 @@ filenames =
   { playground: "playground.marlowe.json"
   , marlowe: "playground.marlowe"
   , haskell: "Main.hs"
-  , blockly: "blockly.xml"
+  , blockly: "playground.marlowe"
   , javascript: "playground.js"
   , actus: "actus.xml"
   , metadata: "metadata.json"
