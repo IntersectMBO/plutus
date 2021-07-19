@@ -1,10 +1,10 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Scoping where
-
 
 import           PlutusIR.Core.Type
 
@@ -17,7 +17,8 @@ import           Data.List.NonEmpty       (NonEmpty (..), (<|))
 import qualified Data.List.NonEmpty       as NonEmpty
 import           Data.Traversable
 
--- Should we only pick an arbitrary sublist of the provided list instead of using the whole list?
+-- Should we only pick an arbitrary sublist of the provided list instead of using the whole list
+-- for better performance? That requires enhancing 'Reference' with @Hedgehog.Gen@ or something.
 instance Reference n t => Reference [n] t where
     referenceVia reg = flip . foldr $ referenceVia reg
 
@@ -53,8 +54,8 @@ instance tyname ~ TyName => Reference TyName (Binding tyname name uni fun) where
     referenceVia reg tyname (DatatypeBind ann datatype) =
         DatatypeBind ann $ referenceVia reg tyname datatype
 
--- Note that unlike other 'Reference' instances this one does not guarantee that name will actually
--- be referenced.
+-- Note that unlike other 'Reference' instances this one does not guarantee that the name will
+-- actually be referenced.
 instance name ~ Name => Reference Name (Binding tyname name uni fun) where
     referenceVia reg name (TermBind ann strictness varDecl term) =
         TermBind ann strictness varDecl $ referenceVia reg name term
@@ -108,22 +109,21 @@ establishScopingConstrTyNonRec dataName params = goTyFun where
         TyFun NotAName (dataParamsIterApp registerOutOfScope dataName params) <$> goTyApp ty
 
     goTyApp (TyApp _ fun arg) = TyApp NotAName <$> goTyApp fun <*> establishScoping arg
+    -- TODO: mention the weird thing that this does.
     goTyApp _                 = pure $ dataParamsIterApp registerBound dataName params
 
 establishScopingConstrsNonRec
     :: MonadQuote m
-    => TyName
+    => ann
+    -> TyName
     -> [TyVarDecl TyName NameAnn]
     -> [VarDecl TyName Name uni fun ann]
     -> m [VarDecl TyName Name uni fun NameAnn]
-establishScopingConstrsNonRec dataName params constrs = do
+establishScopingConstrsNonRec dataAnn dataName params constrs = do
     -- TODO: explain.
-    cons0 <- freshName "cons0"
-    let cons0Decl
-            = VarDecl (introduceBound cons0) cons0
-            . TyFun NotAName (dataParamsIterApp registerOutOfScope dataName params)
-            $ dataParamsIterApp registerBound dataName params
-    fmap (cons0Decl :) . for constrs $ \(VarDecl _ constrNameDup constrTyDup) -> do
+    cons0Name <- freshName "cons0"
+    let cons0 = VarDecl dataAnn cons0Name $ TyVar dataAnn dataName
+    for (cons0 : constrs) $ \(VarDecl _ constrNameDup constrTyDup) -> do
         constrName <- freshenName constrNameDup
         constrTy <- establishScopingConstrTyNonRec dataName params constrTyDup
         pure $ VarDecl (introduceBound constrName) constrName constrTy
@@ -138,30 +138,40 @@ establishScopingBindingNonRec (TypeBind _ (TyVarDecl _ nameDup kind) ty) = do
     name <- freshenTyName nameDup
     tyVarDecl <- TyVarDecl (introduceBound name) name <$> establishScoping kind
     TypeBind NotAName tyVarDecl . referenceOutOfScope name <$> establishScoping ty
-establishScopingBindingNonRec (DatatypeBind _ datatypeDup) = do
+establishScopingBindingNonRec (DatatypeBind dataAnn datatypeDup) = do
     let Datatype _ (TyVarDecl _ dataNameDup dataKind) paramsDup matchNameDup constrsDup = datatypeDup
     dataName <- freshenTyName dataNameDup
     dataDecl <- TyVarDecl (introduceBound dataName) dataName <$> establishScoping dataKind
     params <- establishScopingParamsNonRec paramsDup
     matchName <- freshenName matchNameDup
-    constrs <- establishScopingConstrsNonRec dataName params constrsDup
+    constrs <- establishScopingConstrsNonRec dataAnn dataName params constrsDup
     let datatype = Datatype (introduceBound matchName) dataDecl params matchName constrs
     pure $ DatatypeBind NotAName datatype
 
-referenceBindingsNonRec
+referenceViaBindingsNonRec
+    :: (forall name. ToScopedName name => name -> NameAnn)
+    -> NonEmpty (Binding TyName Name uni fun NameAnn)
+    -> NonEmpty (Binding TyName Name uni fun NameAnn)
+referenceViaBindingsNonRec _   (b0 :| [])  = b0 :| []
+referenceViaBindingsNonRec reg (b0 :| bs0) = go [] b0 bs0 where
+    go prevs b []       = referenceVia reg prevs b :| []
+    go prevs b (c : bs) = b <| go (b : prevs) c bs
+
+referenceBindingsBothWaysNonRec
     :: NonEmpty (Binding TyName Name uni fun NameAnn)
     -> NonEmpty (Binding TyName Name uni fun NameAnn)
-referenceBindingsNonRec (b0 :| [])  = b0 :| []
-referenceBindingsNonRec (b0 :| bs0) = go [] b0 bs0 where
-    go prevs b []       = referenceInScope prevs b :| []
-    go prevs b (c : bs) = b <| go (b : prevs) c bs
+referenceBindingsBothWaysNonRec
+    = NonEmpty.reverse                               -- Latter bindings are
+    . referenceViaBindingsNonRec registerOutOfScope  -- not visible in former ones.
+    . NonEmpty.reverse                               -- Former bindings are
+    . referenceViaBindingsNonRec registerBound       -- visible in latter ones.
 
 establishScopingBindingsNonRec
     :: MonadQuote m
     => NonEmpty (Binding TyName Name uni fun ann)
     -> m (NonEmpty (Binding TyName Name uni fun NameAnn))
 establishScopingBindingsNonRec =
-    fmap referenceBindingsNonRec . traverse establishScopingBindingNonRec
+    fmap referenceBindingsBothWaysNonRec . traverse establishScopingBindingNonRec
 
 collectScopeInfoTyVarDecl :: TyVarDecl TyName NameAnn -> ScopeErrorOrInfo
 collectScopeInfoTyVarDecl (TyVarDecl ann tyname kind) =
