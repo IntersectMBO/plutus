@@ -128,6 +128,39 @@ renderInput options@{ numberFormat: Just DefaultFormat } state =
           [ text if showError then foldMap inputErrorToString mError else mempty ]
       ]
 
+renderInput options@{ numberFormat: Just TimeFormat } state =
+  let
+    mError = validate state
+
+    currentValue = view _value state
+
+    pristine = view _pristine state
+
+    showError = not pristine && isJust mError
+
+    additionalCss = view _additionalCss options
+  in
+    div_
+      [ div
+          [ classNames $ Css.input (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
+          [ input
+              [ type_ InputNumber
+              , classNames $ Css.unstyledInput <> [ "flex-1" ]
+              , id_ $ view _id_ options
+              , value currentValue
+              , readOnly $ view _readOnly options
+              , autocomplete false
+              , onValueInput_ SetValue
+              , onBlur_ $ FormatValue TimeFormat
+              ]
+          , span_
+              [ text "minutes" ]
+          ]
+      , div
+          [ classNames Css.inputError ]
+          [ text if showError then foldMap inputErrorToString mError else mempty ]
+      ]
+
 renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state =
   let
     mError = validate state
@@ -142,7 +175,7 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
   in
     div_
       [ div
-          [ classNames $ Css.input (not showError) <> [ "flex", "gap-1", "items-baseline" ] ]
+          [ classNames $ Css.input (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
           [ span_
               [ text label ]
           , input

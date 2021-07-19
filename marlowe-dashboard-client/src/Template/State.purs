@@ -19,22 +19,24 @@ import Data.Traversable (for)
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Env (Env)
-import Examples.PureScript.Escrow (contractTemplate) as Escrow
+import Examples.PureScript.Escrow (contractTemplate, defaultSlotContent) as Escrow
+import Examples.PureScript.EscrowWithCollateral (defaultSlotContent) as EscrowWithCollateral
+import Examples.PureScript.Swap (defaultSlotContent) as Swap
+import Examples.PureScript.ZeroCouponBond (defaultSlotContent) as ZeroCouponBond
 import Halogen (HalogenM, modify_)
 import Halogen.Extra (mapMaybeSubmodule, mapSubmodule)
 import InputField.Lenses (_value)
 import InputField.State (dummyState, handleAction, mkInitialState) as InputField
-import InputField.State (getBigIntegerValue, validate)
+import InputField.State (formatBigIntegerValue, getBigIntegerValue, validate)
 import InputField.Types (Action(..), State) as InputField
 import InputField.Types (class InputFieldError)
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (Contract) as Extended
-import Marlowe.Extended (resolveRelativeTimes, toCore)
+import Marlowe.Extended (ContractType(..), resolveRelativeTimes, toCore)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _extendedContract, _metaData, _valueParameterFormat, _valueParameterInfo)
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot, TokenName)
-import Marlowe.Slot (dateTimeStringToSlot)
 import Marlowe.Template (TemplateContent(..), _slotContent, _valueContent, fillTemplate, getPlaceholderIds, initializeTemplateContent)
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInput, _roleWalletInputs, _slotContentInput, _slotContentInputs, _valueContentInput, _valueContentInputs)
 import Template.Types (Action(..), ContractNicknameError(..), ContractSetupStage(..), Input, RoleError(..), SlotError(..), State, ValueError(..))
@@ -88,16 +90,14 @@ handleAction input@{ currentSlot } (SetTemplate contractTemplate) = do
   handleAction input $ ContractNicknameInputAction $ InputField.Reset
   handleAction input $ ContractNicknameInputAction $ InputField.SetValidator contractNicknameError
   handleAction input UpdateRoleWalletValidators
-  handleAction input UpdateSlotContentValidators
   setInputValidators input _valueContentInputs ValueContentInputAction valueError
+  setInputValidators input _slotContentInputs SlotContentInputAction slotError
 
 handleAction _ (OpenCreateWalletCard tokenName) = pure unit -- handled in Dashboard.State (see note [State] in MainFrame.State)
 
 handleAction _ (ContractNicknameInputAction inputFieldAction) = toContractNicknameInput $ InputField.handleAction inputFieldAction
 
 handleAction input@{ walletLibrary } UpdateRoleWalletValidators = setInputValidators input _roleWalletInputs RoleWalletInputAction $ roleError walletLibrary
-
-handleAction input@{ currentSlot } UpdateSlotContentValidators = setInputValidators input _slotContentInputs SlotContentInputAction $ slotError currentSlot
 
 handleAction _ (RoleWalletInputAction tokenName inputFieldAction) = toRoleWalletInput tokenName $ InputField.handleAction inputFieldAction
 
@@ -135,7 +135,24 @@ mkRoleWalletInputs contract = Map.fromFoldable $ Array.mapMaybe getRoleInput (Se
   getRoleInput (Role tokenName) = Just (Tuple tokenName $ InputField.mkInitialState Nothing)
 
 mkSlotContentInputs :: MetaData -> Map String BigInteger -> Map String (InputField.State SlotError)
-mkSlotContentInputs metaData slotContent = map (const $ InputField.mkInitialState $ Just DefaultFormat) slotContent
+mkSlotContentInputs metaData slotContent =
+  let
+    defaultSlotContent = case metaData.contractType of
+      Escrow -> Escrow.defaultSlotContent
+      EscrowWithCollateral -> EscrowWithCollateral.defaultSlotContent
+      Swap -> Swap.defaultSlotContent
+      ZeroCouponBond -> ZeroCouponBond.defaultSlotContent
+      _ -> mempty
+    
+    mkSlotContentInput key _ =
+      let
+        inputFieldInitialState = InputField.mkInitialState $ Just DefaultFormat
+      in
+        case lookup key defaultSlotContent of
+          Just value -> Just $ set _value (formatBigIntegerValue TimeFormat value) inputFieldInitialState
+          Nothing -> Just inputFieldInitialState
+  in
+    mapMaybeWithKey mkSlotContentInput slotContent
 
 mkValueContentInputs :: MetaData -> Map String BigInteger -> Map String (InputField.State ValueError)
 mkValueContentInputs metaData valueContent = mapMaybeWithKey valueToInput valueContent
@@ -155,13 +172,13 @@ instantiateExtendedContract currentSlot state =
 
     valueContentInputs = view _valueContentInputs state
 
-    slotContent = map (getBigIntegerValue 0 <<< view _value) slotContentInputs
+    slotContent = map (getBigIntegerValue TimeFormat <<< view _value) slotContentInputs
 
     valueParameterFormats = map (view _valueParameterFormat) (view (_contractTemplate <<< _metaData <<< _valueParameterInfo) state)
 
     getBigIntegerValueWithDecimals key valueContentInput = case lookup key valueParameterFormats of
-      Just (DecimalFormat decimals _) -> Just $ getBigIntegerValue decimals $ view _value valueContentInput
-      _ -> Just $ getBigIntegerValue 0 $ view _value valueContentInput
+      Just numberFormat -> Just $ getBigIntegerValue numberFormat $ view _value valueContentInput
+      _ -> Just $ getBigIntegerValue DefaultFormat $ view _value valueContentInput
 
     valueContent = mapMaybeWithKey getBigIntegerValueWithDecimals valueContentInputs
 
@@ -216,17 +233,10 @@ roleError walletLibrary walletNickname =
   else
     Just NonExistentNickname
 
--- note: we validate slot inputs against the dateTimeString that we get from HTML
-slotError :: Slot -> String -> Maybe SlotError
-slotError _ "" = Just EmptySlot
+slotError :: String -> Maybe SlotError
+slotError "" = Just EmptySlot
 
-slotError currentSlot dateTimeString = case dateTimeStringToSlot dateTimeString of
-  Just slot ->
-    if slot <= currentSlot then
-      Just PastSlot
-    else
-      Nothing
-  Nothing -> Just BadDateTimeString
+slotError _ = Nothing
 
 valueError :: String -> Maybe ValueError
 valueError "" = Just EmptyValue
