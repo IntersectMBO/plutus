@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Scoping where
@@ -8,14 +9,16 @@ module PlutusIR.Core.Instance.Scoping where
 import           PlutusIR.Core.Type
 
 import           PlutusCore.Check.Scoping
+import           PlutusCore.MkPlc
 import           PlutusCore.Quote
 
 import           Data.Foldable
 import           Data.List.NonEmpty       (NonEmpty (..), (<|))
 import qualified Data.List.NonEmpty       as NonEmpty
+import           Data.Traversable
 
+-- Should we only pick an arbitrary sublist of the provided list instead of using the whole list?
 instance Reference n t => Reference [n] t where
-    -- TODO: for efficiency we really should only pick an arbitrary sublist of the provided list.
     referenceVia reg = flip . foldr $ referenceVia reg
 
 instance Reference n t => Reference (NonEmpty n) t where
@@ -31,14 +34,6 @@ instance tyname ~ TyName => Reference TyName (VarDecl tyname name uni fun) where
     referenceVia reg tyname (VarDecl ann varName ty) =
         VarDecl ann varName $ referenceVia reg tyname ty
 
--- instance tyname ~ TyName => Reference TyName (TyVarDecl tyname uni) where
---     referenceVia reg tyname (TyVarDecl ann varName kind) =
---         VarDecl ann varName $ referenceVia reg tyname ty
-
--- instance tyname ~ Name => Reference Name (VarDecl tyname name uni fun) where
---     referenceVia _ _ varDecl = varDecl
-
--- TODO: describe the paranoia.
 instance tyname ~ TyName => Reference TyName (Datatype tyname name uni fun) where
     referenceVia reg tyname (Datatype dataAnn dataDecl params matchName constrs) =
         Datatype dataAnn dataDecl params matchName $ map goConstr constrs where
@@ -58,6 +53,8 @@ instance tyname ~ TyName => Reference TyName (Binding tyname name uni fun) where
     referenceVia reg tyname (DatatypeBind ann datatype) =
         DatatypeBind ann $ referenceVia reg tyname datatype
 
+-- Note that unlike other 'Reference' instances this one does not guarantee that name will actually
+-- be referenced.
 instance name ~ Name => Reference Name (Binding tyname name uni fun) where
     referenceVia reg name (TermBind ann strictness varDecl term) =
         TermBind ann strictness varDecl $ referenceVia reg name term
@@ -90,6 +87,15 @@ establishScopingParamsNonRec =
         paramName <- freshenTyName paramNameDup
         TyVarDecl (introduceBound paramName) paramName <$> establishScoping paramKind
 
+dataParamsIterApp
+    :: (TyName -> NameAnn)
+    -> TyName
+    -> [TyVarDecl TyName NameAnn]
+    -> Type TyName uni NameAnn
+dataParamsIterApp reg dataName
+    = mkIterTyApp NotAName (TyVar (reg dataName) dataName)
+    . map (\(TyVarDecl _ name _) -> TyVar (registerBound name) name)
+
 establishScopingConstrTyNonRec
     :: MonadQuote m
     => TyName
@@ -97,19 +103,12 @@ establishScopingConstrTyNonRec
     -> Type TyName uni ann
     -> m (Type TyName uni NameAnn)
 establishScopingConstrTyNonRec dataName params = goTyFun where
-    referenceOutOfScopeDataInScopeParams = referenceOutOfScope dataName . referenceInScope params
+    goTyFun (TyFun _ dom cod) = TyFun NotAName <$> establishScoping dom <*> goTyFun cod
+    goTyFun ty                =
+        TyFun NotAName (dataParamsIterApp registerOutOfScope dataName params) <$> goTyApp ty
 
-    goTyFun (TyFun _ domDup codDup) = do
-        dom <- referenceOutOfScopeDataInScopeParams <$> establishScoping domDup
-        cod <- goTyFun codDup
-        pure $ TyFun NotAName dom cod
-    goTyFun ty = goTyApp ty
-
-    goTyApp (TyApp _ funDup argDup) = do
-        fun <- goTyApp funDup
-        arg <- referenceOutOfScopeDataInScopeParams <$> establishScoping argDup
-        pure $ TyApp NotAName fun arg
-    goTyApp _ = pure $ TyVar (registerBound dataName) dataName
+    goTyApp (TyApp _ fun arg) = TyApp NotAName <$> goTyApp fun <*> establishScoping arg
+    goTyApp _                 = pure $ dataParamsIterApp registerBound dataName params
 
 establishScopingConstrsNonRec
     :: MonadQuote m
@@ -117,8 +116,14 @@ establishScopingConstrsNonRec
     -> [TyVarDecl TyName NameAnn]
     -> [VarDecl TyName Name uni fun ann]
     -> m [VarDecl TyName Name uni fun NameAnn]
-establishScopingConstrsNonRec dataName params =
-    traverse $ \(VarDecl _ constrNameDup constrTyDup) -> do
+establishScopingConstrsNonRec dataName params constrs = do
+    -- TODO: explain.
+    cons0 <- freshName "cons0"
+    let cons0Decl
+            = VarDecl (introduceBound cons0) cons0
+            . TyFun NotAName (dataParamsIterApp registerOutOfScope dataName params)
+            $ dataParamsIterApp registerBound dataName params
+    fmap (cons0Decl :) . for constrs $ \(VarDecl _ constrNameDup constrTyDup) -> do
         constrName <- freshenName constrNameDup
         constrTy <- establishScopingConstrTyNonRec dataName params constrTyDup
         pure $ VarDecl (introduceBound constrName) constrName constrTy
@@ -166,9 +171,6 @@ collectScopeInfoVarDecl :: VarDecl TyName Name uni fun NameAnn -> ScopeErrorOrIn
 collectScopeInfoVarDecl (VarDecl ann name ty) =
     handleSname ann name <> collectScopeInfo ty
 
--- data Datatype tyname name uni fun a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni fun a]
---     deriving (Functor, Show, Generic)
-
 collectScopeInfoDatatype :: Datatype TyName Name uni fun NameAnn -> ScopeErrorOrInfo
 collectScopeInfoDatatype (Datatype matchAnn dataDecl params matchName constrs) = fold
     [ collectScopeInfoTyVarDecl dataDecl
@@ -177,6 +179,7 @@ collectScopeInfoDatatype (Datatype matchAnn dataDecl params matchName constrs) =
     , foldMap collectScopeInfoVarDecl constrs
     ]
 
+-- TODO: use a type class for collecting.
 collectScopeInfoBinding :: Binding TyName Name uni fun NameAnn -> ScopeErrorOrInfo
 collectScopeInfoBinding (TermBind _ _ varDecl term) =
     collectScopeInfoVarDecl varDecl <> collectScopeInfo term
@@ -185,12 +188,11 @@ collectScopeInfoBinding (TypeBind _ tyVarDecl ty) =
 collectScopeInfoBinding (DatatypeBind _ datatype) =
     collectScopeInfoDatatype datatype
 
--- DON'T FORGET TO HANDLE THE OUT OF SCOPE PARAMS!
+-- DON'T FORGET TO HANDLE OUT OF SCOPE THINGS (IN PARTICULAR, PARAMS)
 instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) where
     establishScoping (Let _ recy bindingsDup body) = do
         bindings <- establishScopingBindingsNonRec bindingsDup
-        {- referenceOutOfScope bindings . -}
-        Let NotAName recy bindings . referenceInScope bindings <$>
+        referenceOutOfScope bindings . Let NotAName recy bindings . referenceInScope bindings <$>
             establishScoping body
     establishScoping (LamAbs _ nameDup ty body) = do
         name <- freshenName nameDup
@@ -212,8 +214,8 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
 
-    -- TODO: FIX THE TEMPORARY HACK
-    collectScopeInfo (Let _ Rec _ _) = mempty
+    -- TODO: HANDLE
+    collectScopeInfo (Let _ Rec _ _) = Prelude.error "can't handle right now"
     collectScopeInfo (Let _ NonRec bindings body) =
         foldMap collectScopeInfoBinding bindings <> collectScopeInfo body
     collectScopeInfo (LamAbs ann name ty body) =
@@ -231,3 +233,9 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
     collectScopeInfo (Var ann name) = handleSname ann name
     collectScopeInfo (Constant _ _) = mempty
     collectScopeInfo (Builtin _ _) = mempty
+
+instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun) where
+    establishScoping (Program _ term) =
+        Program NotAName <$> establishScoping term
+
+    collectScopeInfo (Program _ term) = collectScopeInfo term
