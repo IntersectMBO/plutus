@@ -122,7 +122,7 @@ rec {
   devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
 
   # Test data needed by marlowe-actus provided via niv
-  actus-tests = "${sources.actus-tests.outPath}";
+  actus-tests = pkgs.fetchFromGitHub { inherit (sources.actus-tests) owner repo rev sha256; };
 
   build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus; };
 }
