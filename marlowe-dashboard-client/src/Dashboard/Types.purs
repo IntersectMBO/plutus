@@ -2,7 +2,6 @@ module Dashboard.Types
   ( State
   , Card(..)
   , ContractFilter(..)
-  , PartitionedContracts
   , Input
   , Action(..)
   ) where
@@ -30,7 +29,7 @@ type State
     , cardOpen :: Boolean -- see note [CardOpen] in Welcome.State (the same applies here)
     , contracts :: Map PlutusAppId Contract.State
     , contractFilter :: ContractFilter
-    , selectedContractIndex :: Maybe PlutusAppId
+    , selectedContractFollowerAppId :: Maybe PlutusAppId
     , walletNicknameInput :: InputField.State WalletNicknameError
     , walletIdInput :: InputField.State WalletIdError
     , remoteWalletInfo :: WebData WalletInfo
@@ -45,7 +44,7 @@ data Card
   | SaveWalletCard (Maybe String)
   | ViewWalletCard WalletDetails
   | ContractTemplateCard
-  | ContractActionConfirmationCard NamedAction
+  | ContractActionConfirmationCard PlutusAppId NamedAction
 
 derive instance eqCard :: Eq Card
 
@@ -54,9 +53,6 @@ data ContractFilter
   | Completed
 
 derive instance eqContractFilter :: Eq ContractFilter
-
-type PartitionedContracts
-  = { completed :: Array Contract.State, running :: Array Contract.State }
 
 type Input
   = { currentSlot :: Slot
@@ -79,7 +75,7 @@ data Action
   | RedeemPayments PlutusAppId
   | AdvanceTimedoutSteps
   | TemplateAction Template.Action
-  | ContractAction Contract.Action
+  | ContractAction PlutusAppId Contract.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -100,4 +96,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (RedeemPayments _) = Nothing
   toEvent AdvanceTimedoutSteps = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
-  toEvent (ContractAction contractAction) = toEvent contractAction
+  toEvent (ContractAction _ contractAction) = toEvent contractAction

@@ -13,7 +13,7 @@ render state =
     [ ref tooltipRef
     , role "tooltip"
     , classNames
-        ( [ "tooltip", "bg-black", "p-2", "rounded-sm", "text-white", "text-sm", "z-50" ]
+        ( [ "tooltip", "bg-black", "p-2", "rounded-sm", "text-white", "text-sm", "whitespace-nowrap", "z-50" ]
             <> hideWhen (not state.active)
         )
     ]

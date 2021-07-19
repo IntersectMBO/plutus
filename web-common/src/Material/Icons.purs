@@ -57,7 +57,7 @@ content Add = "add"
 
 content AddBox = "add_box"
 
-content AddCircle = "add_circle_outline"
+content AddCircle = "add_circle"
 
 content ArrowRight = "east"
 
