@@ -5,6 +5,7 @@ import Bridge (toFront)
 import Capability.Marlowe (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.MarloweStorage (class ManageMarloweStorage, getContractNicknames, getWalletLibrary)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (class MonadClipboard)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
@@ -49,6 +50,7 @@ mkMainFrame ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadClipboard m =>
   Component HTML Query Action Msg m
 mkMainFrame =
   mkComponent
@@ -78,6 +80,7 @@ handleQuery ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadClipboard m =>
   Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
@@ -176,6 +179,7 @@ handleAction ::
   ManageMarlowe m =>
   ManageMarloweStorage m =>
   Toast m =>
+  MonadClipboard m =>
   Action ->
   HalogenM State Action ChildSlots Msg m Unit
 -- mainframe actions

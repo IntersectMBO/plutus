@@ -12,17 +12,15 @@ import Contract.Types (Action, State) as Contract
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Minutes)
-import InputField.Types (Action, State) as InputField
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusAppId)
-import Marlowe.Semantics (Slot, TokenName)
+import Marlowe.Semantics (Slot)
 import Template.Types (Action, State) as Template
-import Types (WebData)
-import WalletData.Types (WalletDetails, WalletInfo, WalletLibrary)
-import WalletData.Validation (WalletIdError, WalletNicknameError)
+import WalletData.Types (Action, State) as WalletData
+import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
-  = { walletLibrary :: WalletLibrary
+  = { walletDataState :: WalletData.State
     , walletDetails :: WalletDetails
     , menuOpen :: Boolean
     , card :: Maybe Card
@@ -30,9 +28,6 @@ type State
     , contracts :: Map PlutusAppId Contract.State
     , contractFilter :: ContractFilter
     , selectedContractFollowerAppId :: Maybe PlutusAppId
-    , walletNicknameInput :: InputField.State WalletNicknameError
-    , walletIdInput :: InputField.State WalletIdError
-    , remoteWalletInfo :: WebData WalletInfo
     , timezoneOffset :: Minutes
     , templateState :: Template.State
     }
@@ -40,9 +35,7 @@ type State
 data Card
   = TutorialsCard
   | CurrentWalletCard
-  | WalletLibraryCard
-  | SaveWalletCard (Maybe String)
-  | ViewWalletCard WalletDetails
+  | WalletDataCard
   | ContractTemplateCard
   | ContractActionConfirmationCard PlutusAppId NamedAction
 
@@ -60,10 +53,7 @@ type Input
 
 data Action
   = PutdownWallet
-  | WalletNicknameInputAction (InputField.Action WalletNicknameError)
-  | WalletIdInputAction (InputField.Action WalletIdError)
-  | SetRemoteWalletInfo (WebData WalletInfo)
-  | SaveNewWallet (Maybe TokenName)
+  | WalletDataAction WalletData.Action
   | ToggleMenu
   | OpenCard Card
   | CloseCard
@@ -76,15 +66,12 @@ data Action
   | AdvanceTimedoutSteps
   | TemplateAction Template.Action
   | ContractAction PlutusAppId Contract.Action
+  | SetContactForRole String WalletNickname
 
--- | Here we decide which top-level queries to track as GA events, and
--- how to classify them.
+-- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent PutdownWallet = Just $ defaultEvent "PutdownWallet"
-  toEvent (WalletNicknameInputAction inputAction) = toEvent inputAction
-  toEvent (WalletIdInputAction inputAction) = toEvent inputAction
-  toEvent (SetRemoteWalletInfo _) = Nothing
-  toEvent (SaveNewWallet _) = Just $ defaultEvent "SaveNewWallet"
+  toEvent (WalletDataAction walletDataAction) = toEvent walletDataAction
   toEvent ToggleMenu = Just $ defaultEvent "ToggleMenu"
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
@@ -97,3 +84,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent AdvanceTimedoutSteps = Nothing
   toEvent (TemplateAction templateAction) = toEvent templateAction
   toEvent (ContractAction _ contractAction) = toEvent contractAction
+  toEvent (SetContactForRole _ _) = Nothing

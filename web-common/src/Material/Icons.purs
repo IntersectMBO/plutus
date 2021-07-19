@@ -31,6 +31,7 @@ data Icon
   | ContractContractForDifferences
   | ContractLoan
   | ContractPurchase
+  | Copy
   | Done
   | DoneWithCircle
   | ErrorOutline
@@ -74,6 +75,8 @@ content ContractContractForDifferences = "trending_up"
 content ContractLoan = "wrap_text" -- FIXME: this is the wrong icon (I can't find the right one)
 
 content ContractPurchase = "swap_horiz"
+
+content Copy = "copy_content"
 
 content Done = "done"
 
@@ -137,6 +140,8 @@ iconClass ContractContractForDifferences = "contract-contract-for-differences"
 iconClass ContractLoan = "contract-loan"
 
 iconClass ContractPurchase = "contract-purchase"
+
+iconClass Copy = "copy"
 
 iconClass Done = "done"
 

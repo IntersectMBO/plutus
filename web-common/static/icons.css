@@ -8,6 +8,7 @@
 .with-icon::after {
   font-family: "Material Icons Round";
   font-size: 24px;
+  font-weight: normal;
   line-height: 1;
   white-space: nowrap;
   float: right;
@@ -52,6 +53,10 @@
 
 .with-icon-contract-purchase::after {
   content: "swap_horiz";
+}
+
+.with-icon-copy::after {
+  content: "copy";
 }
 
 .with-icon-help::after {
