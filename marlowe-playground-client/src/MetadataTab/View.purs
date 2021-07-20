@@ -115,6 +115,7 @@ formattedNumberMetadataRenderer { key, description, format, setFormat, setDescri
                   ]
               ]
           ]
+        TimeFormat -> []
   where
   setNumberFormatType :: String -> NumberFormat
   setNumberFormatType str = case fromString str of

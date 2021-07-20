@@ -59,14 +59,14 @@ instance inputFieldErrorRoleError :: InputFieldError RoleError where
 
 data SlotError
   = EmptySlot
-  | PastSlot
+  | NegativeSlot
   | BadDateTimeString
 
 derive instance eqSlotError :: Eq SlotError
 
 instance inputFieldErrorSlotError :: InputFieldError SlotError where
   inputErrorToString EmptySlot = "Timeout cannot be blank"
-  inputErrorToString PastSlot = "Timeout date is past"
+  inputErrorToString NegativeSlot = "Timeout cannot be negative"
   inputErrorToString BadDateTimeString = "Invalid timeout"
 
 data ValueError
@@ -83,7 +83,6 @@ data Action
   | OpenCreateWalletCard TokenName
   | ContractNicknameInputAction (InputField.Action ContractNicknameError)
   | UpdateRoleWalletValidators
-  | UpdateSlotContentValidators
   | RoleWalletInputAction TokenName (InputField.Action RoleError)
   | SlotContentInputAction String (InputField.Action SlotError)
   | ValueContentInputAction String (InputField.Action ValueError)
@@ -97,7 +96,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCreateWalletCard tokenName) = Nothing
   toEvent (ContractNicknameInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent UpdateRoleWalletValidators = Nothing
-  toEvent UpdateSlotContentValidators = Nothing
   toEvent (RoleWalletInputAction _ inputFieldAction) = toEvent inputFieldAction
   toEvent (SlotContentInputAction _ inputFieldAction) = toEvent inputFieldAction
   toEvent (ValueContentInputAction _ inputFieldAction) = toEvent inputFieldAction
