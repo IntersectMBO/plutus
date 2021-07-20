@@ -18,8 +18,8 @@ in {
     ref = "master";
   };
 
-  web-ghc-server = inputs.plutus.web-ghc-server;
-  ghcWithPlutus = inputs.plutus.web-ghc-backend;
+  web-ghc-server = inputs.plutus.packages.x86_64-linux.web-ghc-server;
+  ghcWithPlutus = inputs.plutus.packages.x86_64-linux.web-ghc-backend;
 
 
   checkCue = final.writeShellScriptBin "check_cue.sh" ''
