@@ -38,7 +38,7 @@ genTyName :: PLC.AstGen TyName
 genTyName = TyName <$> genName
 
 genRecursivity :: MonadGen m => m Recursivity
-genRecursivity = Gen.element [{- Rec, -} NonRec]
+genRecursivity = Gen.element [Rec, NonRec]
 
 genStrictness :: MonadGen m => m Strictness
 genStrictness = Gen.element [Strict, NonStrict]

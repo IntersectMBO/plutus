@@ -157,6 +157,11 @@ withFreshenedConstr (VarDecl ann name ty) cont =
 --     Nil  :: List a
 --     Cons :: a -> List a -> List a
 
+-- TODO: talk about
+-- data D where
+--   C : all D. D -> D
+
+
 onNonRec :: Recursivity -> (a -> a) -> a -> a
 onNonRec NonRec f x = f x
 onNonRec Rec    _ x = x
