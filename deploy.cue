@@ -6,8 +6,8 @@ import (
 	"list"
 )
 
-let fqdn   = "plutus.iohk.io"
-let opsRev = "1e79e40734f78843b1d685598158c1d49fe7d82d"
+let fqdn = "plutus.iohk.io"
+let opsRev = "f5ca391dbb15e32e014ab707866c9ffdbbc699df"
 
 Namespace: [Name=_]: {
 	vars: {
@@ -16,16 +16,16 @@ Namespace: [Name=_]: {
 		let datacenter = "eu-central-1"
 		let flakePath = "github:input-output-hk/\(seg)+\\?rev=\(hex){40}#\(seg)"
 
-		datacenters:  list.MinItems(1) | [...datacenter] | *[ "eu-central-1" ]
-		namespace:    Name
-		#domain:      string
-		#fqdn:        fqdn
-		#opsRev:      =~"^\(hex){40}$" | *opsRev
+		datacenters: list.MinItems(1) | [...datacenter] | *[ "eu-central-1"]
+		namespace:   Name
+		#domain:     string
+		#fqdn:       fqdn
+		#opsRev:     =~"^\(hex){40}$" | *opsRev
 
 		#flakes: {
-			devBox:                  =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(#opsRev)#devbox-entrypoint"
-			frontend:                =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(#opsRev)#frontend-\(#release)-entrypoint"
-			web-ghc-server:          =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#web-ghc-server-entrypoint"
+			devBox: =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(#opsRev)#devbox-entrypoint"
+			// frontend:                =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(#opsRev)#frontend-foo-entrypoint"
+			webGhcServer: =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#web-ghc-server-entrypoint"
 		}
 
 		#rateLimit: {
@@ -46,13 +46,14 @@ Namespace: [Name=_]: {
 			// #opsRev: ""
 		}
 		jobs: {
-			"web-ghc-server": jobDef.#WebGhcServerJob & { }
-			"devbox": jobDef.#DevBoxUnstableJob & { }
-
-			"frontend": jobDef.#FrontendUnstable & {
-				#domain:       "frontend-unstable.\(fqdn)"
+			"web-ghc-server": jobDef.#WebGhcServerJob & {
+				#domain: "web-ghc.\(fqdn)"
 			}
+			// "devbox": jobDef.#DevBoxUnstableJob & {}
 
+			//"frontend": jobDef.#FrontendUnstable & {
+			// #domain:       "frontend-unstable.\(fqdn)"
+			//}
 		}
 	}
 }

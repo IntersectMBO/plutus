@@ -21,6 +21,12 @@ in {
   web-ghc-server = inputs.plutus.web-ghc-server;
   ghcWithPlutus = inputs.plutus.web-ghc-backend;
 
+
+  checkCue = final.writeShellScriptBin "check_cue.sh" ''
+    export PATH="$PATH:${lib.makeBinPath (with final; [ cue ])}"
+    cue vet -c
+  '';
+
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
   # - change in the genesis file here

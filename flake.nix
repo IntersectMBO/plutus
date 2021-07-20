@@ -3,7 +3,7 @@
 
   inputs = {
     utils.url = "github:kreisys/flake-utils";
-    bitte.url = "github:input-output-hk/bitte/nix-driver-with-profiles";
+    bitte.url = "github:input-output-hk/bitte/clients-use-vault-agent";
     nixpkgs-unstable.url = "nixpkgs/nixpkgs-unstable";
     nixpkgs.follows = "bitte/nixpkgs";
     bitte-ci.url = "github:input-output-hk/bitte-ci";
@@ -34,10 +34,11 @@
       };
 
       # simpleFlake ignores devShell if we don't specify this.
-      packages = { }: { };
+      packages = { checkFmt, checkCue }@pkgs: pkgs;
 
-      devShell = { bitteShell }:
+      devShell = { bitteShell, cue }:
         (bitteShell {
+          extraPackages = [ cue ];
           cluster = "plutus-playground";
           profile = "plutus";
           region = "eu-central-1";
