@@ -52,7 +52,7 @@ import           Schema                     (FormSchema)
 import           Wallet.Types               (ContractInstanceId)
 
 -- | A class of contracts running in the PAB. The purpose of the type
---   parameter @t@ is to allow for different ways of running
+--   parameter @contract@ is to allow for different ways of running
 --   contracts, for example: A compiled executable running in a separate
 --   process, or an "inline" contract that was compiled with the PAB and
 --   runs in the same process.
