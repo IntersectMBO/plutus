@@ -37,7 +37,7 @@
     "purescript-psa": "^0.8.2",
     "purs-loader": "^3.7.2",
     "raw-loader": "^4.0.2",
-    "tailwindcss": "^2.1.2",
+    "tailwindcss": "^2.2.4",
     "webpack": "^5.36.2",
     "webpack-cli": "^4.6.0",
     "webpack-dev-server": "^3.11.2"

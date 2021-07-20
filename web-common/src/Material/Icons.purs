@@ -39,6 +39,8 @@ data Icon
   | HelpOutline
   | History
   | Home
+  | Info
+  | Language
   | Menu
   | Next
   | NewContact
@@ -48,6 +50,7 @@ data Icon
   | Refresh
   | Roles
   | Running
+  | South
   | TaskAlt
   | Terms
   | Timer
@@ -92,6 +95,10 @@ content History = "history"
 
 content Home = "home"
 
+content Info = "info"
+
+content Language = "language"
+
 content Menu = "short_text"
 
 content Next = "chevron_right"
@@ -109,6 +116,8 @@ content Refresh = "refresh"
 content Roles = "person_pin_circle"
 
 content Running = "directions_run"
+
+content South = "south"
 
 content TaskAlt = "task_alt"
 
@@ -157,6 +166,10 @@ iconClass History = "history"
 
 iconClass Home = "home"
 
+iconClass Info = "info"
+
+iconClass Language = "language"
+
 iconClass Menu = "menu"
 
 iconClass Next = "next"
@@ -174,6 +187,8 @@ iconClass Refresh = "refresh"
 iconClass Roles = "roles"
 
 iconClass Running = "running"
+
+iconClass South = "south"
 
 iconClass TaskAlt = "task-alt"
 
