@@ -18,6 +18,9 @@ in {
     ref = "master";
   };
 
+  web-ghc-server = inputs.plutus.web-ghc-server;
+  ghcWithPlutus = inputs.plutus.web-ghc-backend;
+
   # Any:
   # - run of this command with a parameter different than the testnet (currently 10)
   # - change in the genesis file here
@@ -111,4 +114,5 @@ in {
 
 
   restic-backup = final.callPackage ./pkgs/backup { };
+  web-ghc-server-entrypoint = final.callPackage ./pkgs/web-ghc-server.nix {};
 }
