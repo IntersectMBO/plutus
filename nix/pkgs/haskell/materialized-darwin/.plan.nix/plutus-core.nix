@@ -255,6 +255,7 @@
           "PlutusIR/Core"
           "PlutusIR/Core/Instance"
           "PlutusIR/Core/Instance/Pretty"
+          "PlutusIR/Core/Instance/Scoping"
           "PlutusIR/Core/Plated"
           "PlutusIR/Core/Type"
           "PlutusIR/Compiler"
@@ -425,7 +426,13 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "TransformSpec" "ParserSpec" "TypeSpec" "TestLib" ];
+          modules = [
+            "NamesSpec"
+            "ParserSpec"
+            "TestLib"
+            "TransformSpec"
+            "TypeSpec"
+            ];
           hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };
