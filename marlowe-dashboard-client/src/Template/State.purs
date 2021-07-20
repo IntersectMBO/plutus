@@ -233,6 +233,8 @@ roleError walletLibrary walletNickname =
   else
     Just NonExistentNickname
 
+-- TODO: Add proper slot input validation. It's not necessary yet, because slot parameters are
+-- readonly for now.
 slotError :: String -> Maybe SlotError
 slotError "" = Just EmptySlot
 
