@@ -35,6 +35,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
+    , GivenCekEmitter
+    , emitCek
     , StepKind(..)
     , PrettyUni
     , extractEvaluationResult
@@ -73,9 +75,7 @@ import           Data.Proxy
 import           Data.STRef
 import           Data.Semigroup                                           (stimes)
 import           Data.Text.Prettyprint.Doc
-import           Data.Time.Clock                                          (getCurrentTime)
 import           Data.Word64Array.Word8
-import           System.IO.Unsafe                                         (unsafePerformIO)
 import           Universe
 
 {- Note [Compilation peculiarities]
@@ -477,14 +477,6 @@ emitCek str =
     in case mayLogsRef of
         Nothing      -> pure ()
         Just logsRef -> CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
-
-emitCekWithTime :: GivenCekEmitter s => String -> CekM uni fun s ()
-emitCekWithTime str =
-    let withTime =
-            "[" ++
-            (show $ unsafePerformIO getCurrentTime) ++
-            "]" ++ str
-    in emitCek withTime
 
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
