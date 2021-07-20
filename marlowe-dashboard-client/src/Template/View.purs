@@ -1,7 +1,6 @@
 module Template.View (contractTemplateCard) where
 
 import Prelude hiding (div)
-
 import Css as Css
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List

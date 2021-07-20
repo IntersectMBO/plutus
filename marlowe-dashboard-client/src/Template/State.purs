@@ -143,7 +143,7 @@ mkSlotContentInputs metaData slotContent =
       Swap -> Swap.defaultSlotContent
       ZeroCouponBond -> ZeroCouponBond.defaultSlotContent
       _ -> mempty
-    
+
     mkSlotContentInput key _ =
       let
         inputFieldInitialState = InputField.mkInitialState $ Just DefaultFormat
