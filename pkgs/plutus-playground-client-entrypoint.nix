@@ -10,6 +10,9 @@ let
       ".css" => "text/css",
       ".jpg" => "image/jpeg",
       ".jpeg" => "image/jpeg",
+      ".html" => "text/html",
+      ".js"           =>      "text/javascript",
+      ".svg"          =>      "image/svg+xml",
     )
     deflate.cache-dir   = "/tmp"
     deflate.mimetypes    = ("text/plain", "text/html", "text/css")
