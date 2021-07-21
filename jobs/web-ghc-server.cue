@@ -15,7 +15,7 @@ import (
 		burst:   uint
 		period:  types.#duration
 	}
-        #hosts: "`\(#domain)`,`frontend.\(#fqdn)`"
+        #hosts: "`\(#domain)`,`webghc.\(#fqdn)`"
 
 	namespace: string
 
@@ -55,7 +55,7 @@ import (
 			}
 		}
 
-		task: "web-ghc-server": tasks.#WebGhcServerTask & {
+		task: "web-ghc-server": tasks.#SimpleTask & {
 			#flake:     #flakes.webGhcServer
 			#namespace: namespace
 		}

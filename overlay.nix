@@ -125,4 +125,7 @@ in {
 
   plutus-playground-server = inputs.plutus.packages.x86_64-linux.plutus-playground-server;
   plutus-playground-server-entrypoint = final.callPackage ./pkgs/plutus-playground-server.nix {};
+
+  plutus-playground-client = inputs.plutus.packages.x86_64-linux.plutus-playground-client;
+  plutus-playground-client-entrypoint = final.callPackage ./pkgs/plutus-playground-client-entrypoint.nix {};
 }

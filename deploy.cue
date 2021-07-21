@@ -6,8 +6,9 @@ import (
 	"list"
 )
 
-let fqdn = "plutus.iohk.io"
-let opsRev = "ae088522ad395de3bf72757c9e7c9a6365e88768"
+let fqdn = "plutus.aws.iohkdev.io"
+let opsRev = "10dfb90cd37eab05e028e91b054370245ca40924"
+let plutusRev = "0e5520982b48daafac8f49ecbae2d61d1118773c"
 
 Namespace: [Name=_]: {
 	vars: {
@@ -21,11 +22,13 @@ Namespace: [Name=_]: {
 		#domain:     string
 		#fqdn:       fqdn
 		#opsRev:     =~"^\(hex){40}$" | *opsRev
+		#plutusRev:  =~"^\(hex){40}$" | *plutusRev
 
 		#flakes: {
 			devBox: =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(#opsRev)#devbox-entrypoint"
 			// frontend:                =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(#opsRev)#frontend-foo-entrypoint"
 			webGhcServer: =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#web-ghc-server-entrypoint"
+			"plutus-playground-server": =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#plutus-playground-server-entrypoint"
 		}
 
 		#rateLimit: {
@@ -49,6 +52,9 @@ Namespace: [Name=_]: {
 			"web-ghc-server": jobDef.#WebGhcServerJob & {
 				#domain: "web-ghc.\(fqdn)"
 			}
+			"plutus-playground-server": jobDef.#PlutusPlaygroundServerJob & {
+				#domain: "plutus-playground-server.\(fqdn)"
+                        }
 			// "devbox": jobDef.#DevBoxUnstableJob & {}
 
 			//"frontend": jobDef.#FrontendUnstable & {
