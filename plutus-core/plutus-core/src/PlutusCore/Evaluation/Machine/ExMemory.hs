@@ -15,6 +15,7 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExMemoryUsage(..)
 ) where
 
+import           PlutusCore.Core
 import           PlutusCore.Data
 import           PlutusCore.Name
 import           PlutusCore.Pretty
@@ -123,6 +124,7 @@ instance PrettyBy config ExCPU where
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
+deriving newtype instance ExMemoryUsage (BuiltinTag fun)
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
 instance ExMemoryUsage SatInt where

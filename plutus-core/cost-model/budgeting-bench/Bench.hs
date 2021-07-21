@@ -15,7 +15,6 @@ import           PlutusCore.Pretty                               (Pretty)
 import           UntypedPlutusCore                               as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.DeepSeq                                 (NFData)
 import           Criterion.Main
 import           Criterion.Types                                 as C
 import qualified Data.ByteString                                 as BS
@@ -37,7 +36,7 @@ type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
 -- we throw that away and evaluate the term again.  This may have the effect of
 -- avoiding warmup, which could be a good thing.  Let's look into that.
 benchWith
-    :: (Ix fun, NFData fun, Pretty fun, Typeable fun)
+    :: (Ix fun, Enum fun, Pretty fun, Typeable fun)
     => MachineParameters CekMachineCosts CekValue DefaultUni fun
     -> String
     -> PlainTerm fun
@@ -56,23 +55,23 @@ benchDefault = benchWith defaultCekParameters
 ---------------- Constructing PLC terms for benchmarking ----------------
 
 -- Create a term applying a builtin to one argument
-mkApp1 :: (DefaultUni `Includes` a) => fun -> a -> PlainTerm fun
+mkApp1 :: (Enum fun, DefaultUni `Includes` a) => fun -> a -> PlainTerm fun
 mkApp1 name x =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x]
+    erase $ mkIterApp () (mkBuiltin () name) [mkConstant () x]
 
 -- Create a term applying a builtin to two arguments
 mkApp2
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
+    :: (Enum fun, DefaultUni `Includes` a, DefaultUni `Includes` b)
     =>  fun -> a -> b -> PlainTerm fun
 mkApp2 name x y =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y]
+    erase $ mkIterApp () (mkBuiltin () name) [mkConstant () x,  mkConstant () y]
 
 -- Create a term applying a builtin to three arguments
 mkApp3
-    :: forall fun a b c. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
+    :: forall fun a b c. (Enum fun, DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
     => fun -> a -> b -> c -> PlainTerm fun
 mkApp3 name x y z =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
+    erase $ mkIterApp () (mkBuiltin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
 
 
 ---------------- Creating benchmarks ----------------

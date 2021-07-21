@@ -11,6 +11,7 @@ import           PlutusCore.Constant.Meaning
 import           PlutusCore.Constant.Typed
 
 import           Data.Proxy
+import           PlutusPrelude               (renum)
 
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
@@ -42,13 +43,13 @@ isSaturated (BuiltinApp fun args) =
         BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
-asBuiltinApp :: Term tyname name uni fun a -> Maybe (BuiltinApp tyname name uni fun a)
+asBuiltinApp :: (Enum fun) => Term tyname name uni fun a -> Maybe (BuiltinApp tyname name uni fun a)
 asBuiltinApp = go []
     where
         go argsSoFar = \case
             Apply _ t arg  -> go (TermArg arg:argsSoFar) t
             TyInst _ t arg -> go (TypeArg arg:argsSoFar) t
-            Builtin _ b    -> Just $ BuiltinApp b argsSoFar
+            Builtin _ b    -> Just $ BuiltinApp (renum b) argsSoFar
             _              -> Nothing
 
 {- Note [Purity, strictness, and variables]

@@ -79,7 +79,7 @@ test_textRoundtrip =
 test_collectText :: TestTree
 test_collectText = testProperty "collectText" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
-    let step arg rest = mkIterApp () (tyInst () (builtin () Trace) unit)
+    let step arg rest = mkIterApp () (tyInst () (mkBuiltin () Trace) unit)
             [ mkConstant @Text @DefaultUni () arg
             , rest
             ]

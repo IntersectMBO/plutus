@@ -7,7 +7,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module UntypedPlutusCore.Core.Type
-    ( TPLC.UniOf
+    ( TPLC.BuiltinTag (..)
+    , TPLC.UniOf
     , TPLC.Version (..)
     , TPLC.Binder (..)
     , Term (..)
@@ -69,7 +70,7 @@ data Term name uni fun ann
     | Force !ann !(Term name uni fun ann)
     | Delay !ann !(Term name uni fun ann)
     | Constant !ann !(Some (ValueOf uni))
-    | Builtin !ann !fun
+    | Builtin !ann !(TPLC.BuiltinTag fun)
     -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
@@ -120,13 +121,13 @@ termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
 
 bindFunM
-    :: Monad m
+    :: (Monad m, Enum fun)
     => (ann -> fun -> m (Term name uni fun' ann))
     -> Term name uni fun ann
     -> m (Term name uni fun' ann)
 bindFunM f = go where
     go (Constant ann val)     = pure $ Constant ann val
-    go (Builtin ann fun)      = f ann fun
+    go (Builtin ann fun)      = f ann (renum fun)
     go (Var ann name)         = pure $ Var ann name
     go (LamAbs ann name body) = LamAbs ann name <$> go body
     go (Apply ann fun arg)    = Apply ann <$> go fun <*> go arg
@@ -135,13 +136,14 @@ bindFunM f = go where
     go (Error ann)            = pure $ Error ann
 
 bindFun
-    :: (ann -> fun -> Term name uni fun' ann)
+    :: Enum fun
+    => (ann -> fun -> Term name uni fun' ann)
     -> Term name uni fun ann
     -> Term name uni fun' ann
 bindFun f = runIdentity . bindFunM (coerce f)
 
-mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann
-mapFun f = bindFun $ \ann fun -> Builtin ann (f ann fun)
+mapFun :: (Enum fun, Enum fun') => (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann
+mapFun f = bindFun $ \ann fun -> Builtin ann (renum (f ann fun))
 
 -- | Erase a Typed Plutus Core term to its untyped counterpart.
 erase :: TPLC.Term tyname name uni fun ann -> Term name uni fun ann

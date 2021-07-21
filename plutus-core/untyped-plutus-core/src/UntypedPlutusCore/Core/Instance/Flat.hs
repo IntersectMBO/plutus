@@ -26,6 +26,7 @@ import           Data.Primitive              (Ptr)
 import           Data.Proxy
 import           Foreign                     (minusPtr)
 import           GHC.TypeLits
+import           PlutusPrelude               (renum)
 
 {-
 The definitions in this file rely on some Flat instances defined for typed plutus core.
@@ -105,6 +106,7 @@ encodeTerm
     . ( Closed uni
     , uni `Everywhere` Flat
     , PrettyPlc (Term name uni fun ann)
+    , Enum fun
     , Flat fun
     , Flat ann
     , Flat name
@@ -120,7 +122,7 @@ encodeTerm = \case
     Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
     Force    ann t    -> encodeTermTag 5 <> encode ann <> encode t
     Error    ann      -> encodeTermTag 6 <> encode ann
-    Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
+    Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode @fun (renum bn)
 
 data SizeLimit = NoLimit | Limit Integer
 
@@ -129,6 +131,7 @@ decodeTerm
     . ( Closed uni
     , uni `Everywhere` Flat
     , PrettyPlc (Term name uni fun ann)
+    , Enum fun
     , Flat fun
     , Flat ann
     , Flat name
@@ -164,7 +167,7 @@ decodeTerm sizeLimit = go =<< decodeTermTag
                 getCurPtr = Get $ \_ s@S{currPtr} -> pure $ GetResult s currPtr
           go 5 = Force    <$> decode <*> decode
           go 6 = Error    <$> decode
-          go 7 = Builtin  <$> decode <*> decode
+          go 7 = Builtin  <$> decode <*> (renum <$> decode @fun)
           go t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -172,6 +175,7 @@ sizeTerm
     . ( Closed uni
     , uni `Everywhere` Flat
     , PrettyPlc (Term name uni fun ann)
+    , Enum fun
     , Flat fun
     , Flat ann
     , Flat name
@@ -188,7 +192,7 @@ sizeTerm tm sz = termTagWidth + sz + case tm of
     Constant ann c    -> getSize ann + getSize c
     Force    ann t    -> getSize ann + getSize t
     Error    ann      -> getSize ann
-    Builtin  ann bn   -> getSize ann + getSize bn
+    Builtin  ann bn   -> getSize ann + getSize @fun (renum bn)
 
 -- | A newtype to indicate that the program should be serialized with size checks
 -- for constants.
@@ -197,6 +201,7 @@ newtype WithSizeLimits (n :: Nat) a = WithSizeLimits a
 instance ( Closed uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
+         , Enum fun
          , Flat fun
          , Flat ann
          , Flat name
@@ -209,6 +214,7 @@ instance ( Closed uni
 instance ( Closed uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
+         , Enum fun
          , Flat fun
          , Flat ann
          , Flat name
@@ -222,6 +228,7 @@ instance ( Closed uni
 instance ( Closed uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
+         , Enum fun
          , Flat fun
          , Flat ann
          , Flat name
@@ -234,6 +241,7 @@ instance ( Closed uni
 instance ( Closed uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
+         , Enum fun
          , Flat fun
          , Flat ann
          , Flat name

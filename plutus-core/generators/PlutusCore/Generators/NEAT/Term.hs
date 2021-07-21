@@ -45,6 +45,7 @@ import           PlutusCore.Generators.NEAT.Common
 import           Text.Printf
 
 import           PlutusCore.Generators.NEAT.Type
+import           PlutusPrelude                     (renum)
 
 {-
 
@@ -244,7 +245,7 @@ convertTerm tns ns _ (TyInstG tm cod ty k) =
   TyInst () <$> convertTerm tns ns (TyForallG k cod) tm <*> convertType tns k ty
 convertTerm _tns _ns _ (ConstantG c) =
   return $ Constant () (convertTermConstant c)
-convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () b
+convertTerm _tns _ns _ (BuiltinG b) =  return $ Builtin () $ renum b
 convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap () <$> convertType tns k' ty1 <*> convertType tns k ty2 <*> convertTerm tns ns (normalizeTypeG ty') tm
   where
   k'  = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))

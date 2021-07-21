@@ -32,6 +32,7 @@ import           Data.Word             (Word8)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder
+import           PlutusPrelude         (renum)
 import           Universe
 
 {- Note [Stable encoding of PLC]
@@ -237,6 +238,8 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyLam     ann n k t   -> getSize ann + getSize n   + getSize k + getSize t
         TyApp     ann t t'    -> getSize ann + getSize t   + getSize t'
 
+deriving via Int instance Flat (BuiltinTag fun)
+
 termTagWidth :: NumBits
 termTagWidth = 4
 
@@ -248,6 +251,7 @@ decodeTerm = dBEBits8 termTagWidth
 
 instance ( Closed uni
          , uni `Everywhere` Flat
+         , Enum fun
          , Flat fun
          , Flat ann
          , Flat tyname
@@ -263,7 +267,7 @@ instance ( Closed uni
         Unwrap   ann t         -> encodeTerm 6 <> encode ann <> encode t
         IWrap    ann pat arg t -> encodeTerm 7 <> encode ann <> encode pat <> encode arg <> encode t
         Error    ann ty        -> encodeTerm 8 <> encode ann <> encode ty
-        Builtin  ann bn        -> encodeTerm 9 <> encode ann <> encode bn
+        Builtin  ann bn        -> encodeTerm 9 <> encode ann <> encode @fun (renum bn)
 
     decode = go =<< decodeTerm
         where go 0 = Var      <$> decode <*> decode
@@ -275,7 +279,7 @@ instance ( Closed uni
               go 6 = Unwrap   <$> decode <*> decode
               go 7 = IWrap    <$> decode <*> decode <*> decode <*> decode
               go 8 = Error    <$> decode <*> decode
-              go 9 = Builtin  <$> decode <*> decode
+              go 9 = Builtin  <$> decode <*> (renum <$> decode @fun)
               go _ = fail "Failed to decode Term TyName Name ()"
 
     size tm sz = termTagWidth + sz + case tm of
@@ -288,7 +292,7 @@ instance ( Closed uni
         Unwrap   ann t         -> getSize ann + getSize t
         IWrap    ann pat arg t -> getSize ann + getSize pat + getSize arg + getSize t
         Error    ann ty        -> getSize ann + getSize ty
-        Builtin  ann bn        -> getSize ann + getSize bn
+        Builtin  ann bn        -> getSize ann + getSize @fun (renum bn)
 
 instance ( Closed uni
          , Flat fun

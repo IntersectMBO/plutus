@@ -87,7 +87,7 @@ data CkEnv uni fun s = CkEnv
     , ckEnvMayEmitRef :: Maybe (STRef s (DList Text))
     }
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun, Enum fun) =>
             PrettyBy PrettyConfigPlc (CkValue uni fun) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm
 
@@ -350,7 +350,7 @@ evaluateCkNoEmit runtime = fst . runCk runtime False
 unsafeEvaluateCk
     :: ( GShow uni, Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun, Ix fun
+       , Pretty fun, Enum fun, Ix fun
        )
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
@@ -361,7 +361,7 @@ unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runt
 unsafeEvaluateCkNoEmit
     :: ( GShow uni, Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun, Ix fun
+       , Pretty fun, Enum fun, Ix fun
        )
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
