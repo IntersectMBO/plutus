@@ -13,6 +13,7 @@
 module PlutusCore.Core.Type
     ( Kind(..)
     , Type(..)
+    , BuiltinTag (..)
     , Term(..)
     , Version(..)
     , Program(..)
@@ -67,13 +68,26 @@ data Type tyname uni ann
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
+type BuiltinTag :: GHC.Type -> GHC.Type
+newtype BuiltinTag fun = BuiltinTag
+    { unBuiltinTag :: Int
+    } deriving stock (Show, Generic, Eq, Ord)
+      deriving newtype (NFData, Hashable, Enum)  -- BEING SLOPPY WITH Enum!
+
+instance (Bounded fun, Enum fun) => Bounded (BuiltinTag fun) where
+    minBound = BuiltinTag . fromEnum $ minBound @fun
+    maxBound = BuiltinTag . fromEnum $ maxBound @fun
+
+instance (Pretty fun, Enum fun) => Pretty (BuiltinTag fun) where
+    pretty = pretty . toEnum @fun . unBuiltinTag
+
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
     | TyAbs ann tyname (Kind ann) (Term tyname name uni fun ann)
     | LamAbs ann name (Type tyname uni ann) (Term tyname name uni fun ann)
     | Apply ann (Term tyname name uni fun ann) (Term tyname name uni fun ann)
     | Constant ann (Some (ValueOf uni)) -- ^ a constant term
-    | Builtin ann fun
+    | Builtin ann (BuiltinTag fun)
     | TyInst ann (Term tyname name uni fun ann) (Type tyname uni ann)
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
@@ -174,11 +188,10 @@ mapFun f = go where
     go (TyInst ann term ty)       = TyInst ann (go term) ty
     go (Var ann name)             = Var ann name
     go (Constant ann con)         = Constant ann con
-    go (Builtin ann fun)          = Builtin ann (f fun)
+    go (Builtin ann fun)          = Builtin ann undefined -- (f fun)
 
 -- | This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
 -- and not where it is actually used (TyVar/Var..).
 -- This marking allows us to skip the (de)serialization of binders at LamAbs/TyAbs positions
 -- iff 'name' is DeBruijn-encoded (level or index). See for example the instance of  'UntypedPlutusCore.Core.Instance.Flat'
 newtype Binder name = Binder { unBinder :: name }
-
