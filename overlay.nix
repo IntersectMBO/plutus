@@ -18,8 +18,6 @@ in {
     ref = "master";
   };
 
-  web-ghc-server = inputs.plutus.packages.x86_64-linux.web-ghc-server;
-  ghcWithPlutus = inputs.plutus.packages.x86_64-linux.web-ghc-backend;
 
 
   checkCue = final.writeShellScriptBin "check_cue.sh" ''
@@ -120,5 +118,11 @@ in {
 
 
   restic-backup = final.callPackage ./pkgs/backup { };
+
+  web-ghc-server = inputs.plutus.packages.x86_64-linux.web-ghc-server;
+  ghcWithPlutus = inputs.plutus.packages.x86_64-linux.ghcWithPlutus;
   web-ghc-server-entrypoint = final.callPackage ./pkgs/web-ghc-server.nix {};
+
+  plutus-playground-server = inputs.plutus.packages.x86_64-linux.plutus-playground-server;
+  plutus-playground-server-entrypoint = final.callPackage ./pkgs/plutus-playground-server.nix {};
 }
