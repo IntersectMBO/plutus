@@ -49,7 +49,6 @@
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
-          (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
@@ -99,7 +98,6 @@
           "Plutus/Contract/Schema"
           "Plutus/Contract/Trace"
           "Plutus/Contract/Trace/RequestHandler"
-          "Plutus/Contract/Servant"
           "Plutus/Contract/Resumable"
           "Plutus/Contract/StateMachine"
           "Plutus/Contract/StateMachine/OnChain"

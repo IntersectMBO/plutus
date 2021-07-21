@@ -49,7 +49,6 @@ library
         Plutus.Contract.Schema
         Plutus.Contract.Trace
         Plutus.Contract.Trace.RequestHandler
-        Plutus.Contract.Servant
         Plutus.Contract.Resumable
         Plutus.Contract.StateMachine
         Plutus.Contract.StateMachine.OnChain
@@ -115,7 +114,6 @@ library
         hashable -any,
         bytestring -any,
         servant -any,
-        servant-server -any,
         serialise -any,
         mtl -any,
         semigroupoids -any,
