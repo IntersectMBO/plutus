@@ -17,7 +17,7 @@ let
   '';
   entrypoint = writeShellScriptBin "entrypoint" ''
     export PATH=${lib.makeBinPath [ lighttpd ]}
-    lighttpd -f ${config}
+    lighttpd -f ${config} -D
   '';
 in symlinkJoin {
   name = "entrypoint";
