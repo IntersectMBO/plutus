@@ -13,6 +13,7 @@ let
     )
     deflate.cache-dir   = "/tmp"
     deflate.mimetypes    = ("text/plain", "text/html", "text/css")
+    server.upload-dirs = ("/tmp")
   '';
   entrypoint = writeShellScriptBin "entrypoint" ''
     export PATH=${lib.makeBinPath [ lighttpd ]}
