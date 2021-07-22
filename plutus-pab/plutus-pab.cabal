@@ -563,6 +563,7 @@ executable sync-client
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
+        cardano-api -any,
         cardano-slotting -any,
         optparse-applicative -any,
         ouroboros-consensus-byron -any,

@@ -9,28 +9,20 @@
 
 module Cardano.Protocol.Socket.Client where
 
-import qualified Data.ByteString.Lazy                        as LBS
-import           Data.Time.Units                             (Second, TimeUnit, toMicroseconds)
-import           Data.Void                                   (Void)
-
 import           Control.Concurrent
 import           Control.Monad.Catch                         (catchAll)
-import           Control.Tracer
+import           Data.Time.Units                             (Second, TimeUnit, toMicroseconds)
 
-import           Ouroboros.Network.Block                     (Point (..), Tip (..))
-import qualified Ouroboros.Network.Protocol.ChainSync.Client as ChainSync
-
-import           Cardano.Slotting.Slot                       (WithOrigin (..))
+import           Cardano.Api                                 (BlockInMode (..), CardanoMode, ChainPoint (..),
+                                                              ChainTip (..), ConsensusModeParams (..),
+                                                              LocalChainSyncClient (..), LocalNodeClientProtocols (..),
+                                                              LocalNodeClientProtocolsInMode, LocalNodeConnectInfo (..),
+                                                              connectToLocalNode)
 import           Ledger.TimeSlot                             (SlotConfig, currentSlot)
 import           Ouroboros.Consensus.Cardano.Block           (CardanoBlock)
-import           Ouroboros.Consensus.Network.NodeToClient    (Codecs' (..))
 import           Ouroboros.Consensus.Shelley.Protocol        (StandardCrypto)
 import           Ouroboros.Network.IOManager
-import           Ouroboros.Network.Mux
-import           Ouroboros.Network.NodeToClient              (NodeToClientProtocols (..), connectTo,
-                                                              versionedNodeToClientProtocols)
-import           Ouroboros.Network.Snocket
-import           Ouroboros.Network.Socket
+import qualified Ouroboros.Network.Protocol.ChainSync.Client as ChainSync
 
 import           Cardano.Protocol.Socket.Type                hiding (Tip)
 import           Ledger                                      (Slot (..))
@@ -51,76 +43,55 @@ getCurrentSlot = cshCurrentSlot
 runChainSync'
   :: FilePath
   -> SlotConfig
-  -> IO (ChainSyncHandle CBlock)
+  -> IO (ChainSyncHandle (BlockInMode CardanoMode))
 runChainSync' socketPath slotConfig =
   runChainSync socketPath slotConfig (\_ _ -> pure ())
 
 runChainSync
   :: FilePath
   -> SlotConfig
-  -> (CBlock -> Slot -> IO ())
-  -> IO (ChainSyncHandle CBlock)
+  -> (BlockInMode CardanoMode -> Slot -> IO ())
+  -> IO (ChainSyncHandle (BlockInMode CardanoMode))
 runChainSync socketPath slotConfig onNewBlock = do
-    let handle = ChainSyncHandle { cshCurrentSlot = currentSlot slotConfig
-                                 , cshHandler = onNewBlock
-                                 }
+    let handle = ChainSyncHandle {
+          cshCurrentSlot = currentSlot slotConfig,
+          cshHandler = onNewBlock }
 
-    _ <- forkIO $ withIOManager $ loop (1 :: Second) handle
+    _ <- forkIO $ withIOManager $ loop (1 :: Second)
     pure handle
     where
+      localNodeConnectInfo = LocalNodeConnectInfo {
+        localConsensusModeParams = CardanoModeParams epochSlots,
+        localNodeNetworkId = cfgNetworkId,
+        localNodeSocketPath = socketPath }
+      localNodeClientProtocols :: LocalNodeClientProtocolsInMode CardanoMode
+      localNodeClientProtocols = LocalNodeClientProtocols {
+        localChainSyncClient = LocalChainSyncClient (chainSyncClient slotConfig onNewBlock),
+        localTxSubmissionClient = Nothing,
+        localStateQueryClient = Nothing }
       loop :: forall a. TimeUnit a
            => a
-           -> ChainSyncHandle CBlock
            -> IOManager
            -> IO ()
-      loop timeout ch@ChainSyncHandle{ cshHandler } iocp = do
+      loop timeout iocp = do
         catchAll
-          (connectTo
-            (localSnocket iocp socketPath)
-            nullNetworkConnectTracers
-            (versionedNodeToClientProtocols
-              nodeToClientVersion
-              nodeToClientVersionData
-              (\_ _ -> nodeToClientProtocols cshHandler))
-            socketPath)
-          {- If we receive any error or disconnect, try to reconnect.
-             This happens a lot on startup, until the server starts. -}
+          (connectToLocalNode
+             localNodeConnectInfo
+             localNodeClientProtocols)
           (\_ -> do
                threadDelay (fromIntegral $ toMicroseconds timeout)
-               loop timeout ch iocp)
-
-      nodeToClientProtocols
-        :: (CBlock -> Slot -> IO ())
-        -> NodeToClientProtocols 'InitiatorMode LBS.ByteString IO () Void
-      nodeToClientProtocols blockHandler =
-        NodeToClientProtocols
-          { localChainSyncProtocol = chainSync blockHandler
-          , localTxSubmissionProtocol = doNothingInitiatorProtocol
-          , localStateQueryProtocol = doNothingInitiatorProtocol
-          }
-
-      chainSync
-        :: (CBlock -> Slot -> IO ())
-        -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
-      chainSync onNewBlock' =
-          InitiatorProtocolOnly $
-          MuxPeer
-            nullTracer
-            (cChainSyncCodec nodeToClientCodecs)
-            (ChainSync.chainSyncClientPeer
-               (chainSyncClient slotConfig onNewBlock'))
-
+               loop timeout iocp)
 -- | The client updates the application state when the protocol state changes.
 chainSyncClient
   :: SlotConfig
-  -> (CBlock -> Slot -> IO ())
-  -> ChainSync.ChainSyncClient CBlock (Point CBlock) (Tip CBlock) IO ()
+  -> (BlockInMode CardanoMode -> Slot -> IO ())
+  -> ChainSync.ChainSyncClient (BlockInMode CardanoMode) ChainPoint ChainTip IO ()
 chainSyncClient slotConfig handleBlock =
     ChainSync.ChainSyncClient $ pure initialise
     where
-      initialise :: ChainSync.ClientStIdle CBlock (Point CBlock) (Tip CBlock) IO ()
+      initialise :: ChainSync.ClientStIdle (BlockInMode CardanoMode) ChainPoint ChainTip IO ()
       initialise =
-        ChainSync.SendMsgFindIntersect [Point Origin] $
+        ChainSync.SendMsgFindIntersect [ChainPointAtGenesis] $
           ChainSync.ClientStIntersect {
             ChainSync.recvMsgIntersectFound    =
               \_ _ -> ChainSync.ChainSyncClient $ pure requestNext,
@@ -128,13 +99,13 @@ chainSyncClient slotConfig handleBlock =
               \_   -> ChainSync.ChainSyncClient $ pure requestNext
           }
 
-      requestNext :: ChainSync.ClientStIdle CBlock (Point CBlock) (Tip CBlock) IO ()
+      requestNext :: ChainSync.ClientStIdle (BlockInMode CardanoMode) ChainPoint ChainTip IO ()
       requestNext =
         ChainSync.SendMsgRequestNext
           handleNext
           (return handleNext)
 
-      handleNext :: ChainSync.ClientStNext CBlock (Point CBlock) (Tip CBlock) IO ()
+      handleNext :: ChainSync.ClientStNext (BlockInMode CardanoMode) ChainPoint ChainTip IO ()
       handleNext =
         ChainSync.ClientStNext
         {

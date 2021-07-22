@@ -27,6 +27,7 @@ import           Data.Void                                          (Void)
 import           GHC.Generics
 import           NoThunks.Class                                     (NoThunks)
 
+import           Cardano.Api                                        (NetworkId (..))
 import           Cardano.Chain.Slotting                             (EpochSlots (..))
 import           Codec.Serialise                                    (DeserialiseFailure)
 import qualified Codec.Serialise                                    as CBOR
@@ -99,8 +100,14 @@ nodeToClientVersion = NodeToClientV_4
 -- | A temporary definition of the protocol version. This will be moved as an
 -- argument to the client connection function in a future PR (the network magic
 -- number matches the one in the test net created by scripts)
+cfgNetworkMagic :: NetworkMagic
+cfgNetworkMagic = NetworkMagic 1097911063
+
+cfgNetworkId :: NetworkId
+cfgNetworkId    = Testnet cfgNetworkMagic
+
 nodeToClientVersionData :: NodeToClientVersionData
-nodeToClientVersionData = NodeToClientVersionData { networkMagic = NetworkMagic 1097911063 }
+nodeToClientVersionData = NodeToClientVersionData { networkMagic = cfgNetworkMagic }
 
 -- | A protocol client that will never leave the initial state.
 doNothingInitiatorProtocol
