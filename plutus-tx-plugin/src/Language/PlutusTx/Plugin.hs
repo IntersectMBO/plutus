@@ -327,8 +327,8 @@ runCompiler opts expr = do
                  & set PIR.ccTypeCheckConfig pirTcConfig
 
     let phase name = "\n" ++ replicate 20 '=' ++ " " ++ name ++ replicate 20 '=' ++ "\n"
-    let dumpPLC name ast = liftIO . putStrLn $ phase name ++ (show (PP.pretty ast))
-    let dumpPIR name ast = liftIO . putStrLn $ phase name ++ (show ast)
+    -- let dumpPLC name ast = liftIO . putStrLn $ phase name ++ (show (PP.pretty ast))
+    -- let dumpPIR name ast = liftIO . putStrLn $ phase name ++ (show ast)
     let dumpPIR' name ast = liftIO . putStrLn $ phase name ++ dump ast
 
     -- GHC.Core -> Pir translation.
@@ -336,16 +336,14 @@ runCompiler opts expr = do
     when (poDumpPir opts) $ dumpPIR' "PIR" pirT
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
-    (spirT, trace) <- flip runReaderT pirCtx $ PIR.compileToReadable' pirT
+    (spirT, PIR.CompilationTrace t_0 passes) <- flip runReaderT pirCtx $ PIR.compileToReadable' pirT
     let spirP = PIR.Program () . void $ spirT
 
-    when (poDumpPir opts) $ -- dumpPIR' "PIR (Simplified)" spirT
-      sequence_ [dumpPIR' ("PIR " ++ show @Int n) t | (t, n) <- List.zip trace [0..]]
-
     -- (Simplified) Pir -> Plc translation.
-    (plcT, trace) <- flip runReaderT pirCtx $ PIR.compileReadableToPlc' spirT
-    when (poDumpPlc opts) $ -- dumpPIR' "PIR (Simplified)" spirT
-      sequence_ [dumpPIR' ("PLC " ++ show @Int n) t | (t, n) <- List.zip trace [0..]]
+    (plcT, passes') <- flip runReaderT pirCtx $ PIR.compileReadableToPlc' spirT
+
+    when (poDumpPir opts) $
+      liftIO . writeFile "compilation-trace" . dump $ PIR.CompilationTrace t_0 (passes ++ passes')
 
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
     -- when (poDumpPlc opts) $ dumpPLC "PLC (Program)" plcP
@@ -438,8 +436,8 @@ instance (Dumpable name) => Dumpable (Constructor tyname name uni fun a) where
   dump (Constructor (PIR.VarDecl _ name ty)) = apps "Constructor" [dump name, dump (arity ty)]
     where
       arity :: PIR.Type tyname uni a -> Int
-      arity (PIR.TyFun _ a b) = 1 + arity b
-      arity _                 = 0
+      arity (PIR.TyFun _ _a b) = 1 + arity b
+      arity _                  = 0
 
 instance (Dumpable name, Dumpable tyname) => Dumpable (PIR.Datatype tyname name uni fun a) where
   dump (PIR.Datatype _ tvdecl tvdecls name constructors) = apps "Datatype" [dump tvdecl, dump tvdecls, dump name, dump (List.map Constructor constructors)]
@@ -452,6 +450,8 @@ instance Dumpable a => Dumpable (NonEmpty.NonEmpty a) where
 instance {-# OVERLAPPABLE #-} Dumpable a => Dumpable [a] where
   dump []     = "nil"
   dump (x:xs) = apps "cons" [dump x, dump xs]
+instance (Dumpable a, Dumpable b) => Dumpable (a, b) where
+  dump (a, b) = "(" ++ dump a ++ "," ++ dump b ++ ")"
 
 instance Dumpable PLC.Name where dump (PLC.Name str uniq) = apps "Name" [dump str, dump uniq]
 instance Dumpable PLC.Unique where dump (PLC.Unique n) = apps "Unique" [dump n]
@@ -461,6 +461,28 @@ instance Dumpable PIR.Recursivity where dump = show
 
 instance Dumpable (PIR.Kind a) where dump _ = "tt"
 instance Dumpable (PIR.Type a b c) where dump _ = "tt"
+
+instance Dumpable PIR.Pass where
+  dump PIR.PassRename         = "PassRename"
+  dump PIR.PassTypeCheck      = "PassTypeCheck"
+  dump (PIR.PassInline names) = apps "PassInline" [dump names]
+  dump PIR.PassDeadCode       = "PassDeadCode"
+  dump PIR.PassThunkRec       = "PassThunkRec"
+  dump PIR.PassFloatTerm      = "PassFloatTerm"
+  dump PIR.PassLetNonStrict   = "PassLetNonStrict"
+  dump PIR.PassLetTypes       = "PassLetTypes"
+  dump PIR.PassLetRec         = "PassLetRec"
+  dump PIR.PassLetNonRec      = "PassLetNonRec"
+
+
+instance
+  ( PLC.Everywhere uni Dumpable
+  , PLC.Closed uni
+  , Dumpable fun
+  , forall b. Dumpable (uni b)
+  )
+  => Dumpable (PIR.CompilationTrace uni fun a) where
+  dump (PIR.CompilationTrace t0 passes) = apps "CompilationTrace" [dump t0, dump passes]
 
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.

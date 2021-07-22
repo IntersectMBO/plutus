@@ -24,10 +24,12 @@ import           Language.PlutusCore.Name
 import           Control.Lens                            hiding (Strict)
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Control.Monad.Writer
 
 import qualified Algebra.Graph                           as G
 import           Data.Foldable
 import qualified Data.Map                                as Map
+import           Data.Maybe
 import           Data.Witherable
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -89,6 +91,7 @@ type ExternalConstraints tyname name uni fun =
 type Inlining tyname name uni fun a m =
     ( MonadState (Subst tyname name uni fun a) m
     , MonadReader (Deps.StrictnessMap) m
+    , MonadWriter [name] m
     , ExternalConstraints tyname name uni fun)
 
 lookupSubst
@@ -120,13 +123,13 @@ and rename everything when we substitute in, which GHC considers too expensive b
 inline
     :: ExternalConstraints tyname name uni fun
     => Term tyname name uni fun a
-    -> Term tyname name uni fun a
+    -> (Term tyname name uni fun a, [name])
 inline t =
     let
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
         deps = Deps.runTermDeps t
-    in flip runReader (snd deps) $ flip evalStateT mempty $ processTerm t
+    in flip runReader (snd deps) $ runWriterT $ flip evalStateT mempty $ processTerm t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
@@ -183,6 +186,7 @@ processSingleBinding = \case
     -- See Note [Inlining various kinds of binding]
     TermBind a s v@(VarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddSubst s n rhs
+        when (isNothing maybeRhs') (tell [n])
         pure $ TermBind a s v <$> maybeRhs'
     -- Not a strict binding, just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm

@@ -70,7 +70,8 @@ library
         template-haskell -any,
         text -any,
         transformers -any,
-        plutus-tx -any
+        plutus-tx -any,
+        generic-deriving -any,
 
 test-suite plutus-tx-tests
     type: exitcode-stdio-1.0
