@@ -789,11 +789,11 @@
         "nixpkgs": "nixpkgs_15"
       },
       "locked": {
-        "lastModified": 1626806989,
-        "narHash": "sha256-mrTeNbn4S5danpaTAf90TZBbX6WZjqrjkB8lsql196M=",
+        "lastModified": 1626979654,
+        "narHash": "sha256-rNKHgZNfLkfSj2aYobUUm7s11A8A9ocnUfLLyFTrGdo=",
         "owner": "input-output-hk",
         "repo": "plutus",
-        "rev": "0e5520982b48daafac8f49ecbae2d61d1118773c",
+        "rev": "9624f318a9eab5a31d67db7ebec03f033008507c",
         "type": "github"
       },
       "original": {
