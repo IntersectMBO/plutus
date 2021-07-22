@@ -58,6 +58,7 @@ import (
 		task: "web-ghc-server": tasks.#SimpleTask & {
 			#flake:     #flakes.webGhcServer
 			#namespace: namespace
+                        #memory: 4000
 		}
 	}
 }

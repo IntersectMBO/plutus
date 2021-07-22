@@ -1,9 +1,9 @@
-{ writeShellScriptBin, symlinkJoin, lib, writeText, lighttpd, plutus-playground-client }:
+{ writeShellScriptBin, symlinkJoin, lib, writeText, lighttpd, root }:
 
 let
   config = writeText "lighttpd.conf" ''
     server.modules = ("mod_deflate")
-    server.document-root = "${plutus-playground-client}"
+    server.document-root = "${root}"
     server.port = 8081
     index-file.names = ("index.html")
     mimetype.assign = (

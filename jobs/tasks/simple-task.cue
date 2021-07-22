@@ -8,6 +8,7 @@ import (
 	#flake: types.#flake
 
 	#namespace: string
+        #memory: uint
 
 	driver: "exec"
 
@@ -20,7 +21,7 @@ import (
 
 	resources: {
 		cpu:    4000
-		memory: 5120
+		memory: #memory
 	}
 
 	config: {
