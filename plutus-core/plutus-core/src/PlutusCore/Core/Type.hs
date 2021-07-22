@@ -72,14 +72,20 @@ type BuiltinTag :: GHC.Type -> GHC.Type
 newtype BuiltinTag fun = BuiltinTag
     { unBuiltinTag :: Int
     } deriving stock (Show, Generic, Eq, Ord)
-      deriving newtype (NFData, Hashable, Enum)  -- BEING SLOPPY WITH Enum!
+      deriving newtype (NFData, Hashable)
 
 instance (Bounded fun, Enum fun) => Bounded (BuiltinTag fun) where
-    minBound = BuiltinTag . fromEnum $ minBound @fun
-    maxBound = BuiltinTag . fromEnum $ maxBound @fun
+    minBound = renum $ minBound @fun
+    maxBound = renum $ maxBound @fun
+
+instance Enum fun => Enum (BuiltinTag fun) where
+    succ     = renum . succ @fun . renum
+    pred     = renum . pred @fun . renum
+    toEnum   = BuiltinTag
+    fromEnum = unBuiltinTag
 
 instance (Pretty fun, Enum fun) => Pretty (BuiltinTag fun) where
-    pretty = pretty . toEnum @fun . unBuiltinTag
+    pretty = pretty @fun . renum
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
@@ -177,7 +183,9 @@ termAnn (Error ann _     ) = ann
 termAnn (LamAbs ann _ _ _) = ann
 
 -- | Map a function over the set of built-in functions.
-mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann
+mapFun
+    :: (Enum fun, Enum fun')
+    => (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann
 mapFun f = go where
     go (LamAbs ann name ty body)  = LamAbs ann name ty (go body)
     go (TyAbs ann name kind body) = TyAbs ann name kind (go body)
@@ -188,7 +196,7 @@ mapFun f = go where
     go (TyInst ann term ty)       = TyInst ann (go term) ty
     go (Var ann name)             = Var ann name
     go (Constant ann con)         = Constant ann con
-    go (Builtin ann fun)          = Builtin ann undefined -- (f fun)
+    go (Builtin ann fun)          = Builtin ann . renum . f $ renum fun
 
 -- | This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
 -- and not where it is actually used (TyVar/Var..).

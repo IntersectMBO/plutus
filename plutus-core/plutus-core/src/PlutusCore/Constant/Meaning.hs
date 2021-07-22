@@ -114,12 +114,6 @@ typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
 typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ ()) fun of
     BuiltinMeaning sch _ _ -> typeSchemeToType sch
 
-tabulateArray' :: forall i a. (Bounded i, Enum i, Ix i) => (i -> a) -> Array Int a
-tabulateArray' f
-    = ixmap (0, fromEnum $ maxBound @i) fromEnum
-    . listArray (minBound, maxBound)
-    $ map f enumeration
-
 -- | Calculate runtime info for all built-in functions given denotations of builtins
 -- and a cost model.
 toBuiltinsRuntime
@@ -127,7 +121,7 @@ toBuiltinsRuntime
        (cost ~ CostingPart uni fun, HasConstantIn uni term, ToBuiltinMeaning uni fun)
     => cost -> BuiltinsRuntime fun term
 toBuiltinsRuntime cost =
-    BuiltinsRuntime . tabulateArray' $ toBuiltinRuntime cost . toBuiltinMeaning @uni @fun
+    BuiltinsRuntime . tabulateArraySub $ toBuiltinRuntime cost . toBuiltinMeaning @uni @fun
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin

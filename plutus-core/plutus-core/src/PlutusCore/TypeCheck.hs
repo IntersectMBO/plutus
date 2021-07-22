@@ -46,7 +46,7 @@ builtinMeaningsToTypes
        (MonadError err m, AsTypeError err term uni fun ann, Typecheckable uni fun)
     => ann -> m (BuiltinTypes uni fun)
 builtinMeaningsToTypes ann =
-    runQuoteT . fmap (BuiltinTypes . Just) . sequence . tabulateArray' @fun $ \fun -> do
+    runQuoteT . fmap (BuiltinTypes . Just) . sequence . tabulateArraySub @fun $ \fun -> do
         let ty = typeOfBuiltinFunction fun
         _ <- inferKind (TypeCheckConfig $ BuiltinTypes Nothing) $ ann <$ ty
         pure <$> normalizeType ty
