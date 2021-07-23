@@ -43,10 +43,10 @@ instance tyname ~ TyName => Reference TyName (Datatype tyname name uni fun) wher
         Datatype dataAnn dataDecl params matchName $ map goConstr constrs where
             tyVar = TyVar (reg tyname) tyname
 
-            goConstr (VarDecl ann constrName constrTy) = VarDecl ann constrName $ goTyFun constrTy
+            goConstr (VarDecl ann constrName constrTy) = VarDecl ann constrName $ goSpine constrTy
 
-            goTyFun (TyFun ann dom cod) = TyFun ann (referenceVia reg tyname dom) $ goTyFun cod
-            goTyFun ty                  = TyFun NotAName tyVar $ goTyApp ty
+            goSpine (TyFun ann dom cod) = TyFun ann (referenceVia reg tyname dom) $ goSpine cod
+            goSpine ty                  = TyFun NotAName tyVar $ goTyApp ty
 
             goTyApp (TyApp ann fun arg) = TyApp ann (goTyApp fun) $ referenceVia reg tyname arg
             goTyApp ty                  = TyApp NotAName ty tyVar
@@ -100,13 +100,13 @@ establishScopingConstrTy
     -> [TyVarDecl TyName NameAnn]
     -> Type TyName uni ann
     -> m (Type TyName uni NameAnn)
-establishScopingConstrTy regSelf dataName params = goTyFun where
+establishScopingConstrTy regSelf dataName params = goSpine where
     toDataAppliedToParams reg
         = mkIterTyApp NotAName (TyVar (reg dataName) dataName)
         $ map (\(TyVarDecl _ name _) -> TyVar (registerBound name) name) params
 
-    goTyFun (TyFun _ dom cod) = TyFun NotAName <$> establishScoping dom <*> goTyFun cod
-    goTyFun ty                = TyFun NotAName (toDataAppliedToParams regSelf) <$> goTyApp ty
+    goSpine (TyFun _ dom cod) = TyFun NotAName <$> establishScoping dom <*> goSpine cod
+    goSpine ty                = TyFun NotAName (toDataAppliedToParams regSelf) <$> goTyApp ty
 
     goTyApp (TyApp _ fun arg) = TyApp NotAName <$> goTyApp fun <*> establishScoping arg
     -- TODO: mention the weird thing that this does.

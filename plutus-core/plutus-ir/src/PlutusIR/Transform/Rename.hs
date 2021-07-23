@@ -18,17 +18,12 @@ import           PlutusPrelude
 import           PlutusIR
 import           PlutusIR.Mark
 
-import qualified PlutusCore                  as PLC
-import qualified PlutusCore.Name             as PLC
-import qualified PlutusCore.Rename.Internal  as PLC
+import qualified PlutusCore                 as PLC
+import qualified PlutusCore.Name            as PLC
+import qualified PlutusCore.Rename.Internal as PLC
 
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Cont    (ContT (..))
-
-import           Control.Monad.Except
-import           Data.Set                    as Set
-import qualified PlutusCore.Quote            as PLC
-import           PlutusCore.StdLib.Data.List
+import           Control.Monad.Trans.Cont   (ContT (..))
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring
@@ -122,6 +117,8 @@ captureContext k = do
 -- rec data List_2 a_1 where
 --     Nil  :: List_2 a_1
 --     Cons :: a_1 -> List_2 a_1 -> List_2 a_1
+
+-- TODO: handle 'TyForall' as well!
 
 renameConstrTypeM
     :: (PLC.HasRenaming ren PLC.TypeUnique, PLC.HasUniques (Type tyname uni ann), PLC.MonadQuote m)
