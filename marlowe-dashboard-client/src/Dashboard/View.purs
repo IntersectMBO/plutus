@@ -12,7 +12,7 @@ import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), State)
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap)
 import Data.String (take)
 import Data.Tuple.Nested ((/\))
@@ -22,6 +22,7 @@ import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, button, div, div_, footer, h2, h3, h4, header, img, input, label, main, nav, p, span, span_, text)
+import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_)
 import Halogen.HTML.Properties (InputType(..), href, id_, readOnly, src, type_, value)
 import Humanize (humanizeValue)
@@ -69,9 +70,9 @@ dashboardScreen currentSlot state =
           , div [ classNames [ "h-full", "grid", "grid-rows-auto-1fr" ] ]
               [ dashboardBreadcrumb selectedContract
               , main
-                  [ classNames [ "relative" ] ] case selectedContractFollowerAppId, selectedContract of
-                  Just followerAppId, Just contractState -> [ ContractAction followerAppId <$> contractScreen currentSlot contractState ]
-                  _, _ -> [ contractsScreen currentSlot state ]
+                  [ classNames [ "relative" ] ] case selectedContractFollowerAppId of
+                  Just followerAppId -> [ renderSubmodule _selectedContract (ContractAction followerAppId) (contractScreen currentSlot) state ]
+                  _ -> [ contractsScreen currentSlot state ]
               ]
           ]
       , dashboardFooter
@@ -188,14 +189,29 @@ mobileMenu menuOpen =
         iohkLinks
     ]
 
-dashboardBreadcrumb :: forall p. (Maybe Contract.State) -> HTML p Action
+dashboardBreadcrumb :: forall m. MonadAff m => (Maybe Contract.State) -> ComponentHTML Action ChildSlots m
 dashboardBreadcrumb mSelectedContractState =
   div [ classNames [ "border-b", "border-gray" ] ]
     [ nav [ classNames $ Css.maxWidthContainer <> [ "flex", "gap-2", "py-2" ] ]
-        $ [ a [ onClick_ $ SelectContract Nothing ] [ text "Dashboard" ] ]
+        $ [ a
+              [ id_ "goToDashboard"
+              , onClick \_ ->
+                  if (isJust mSelectedContractState) then
+                    Just $ SelectContract Nothing
+                  else
+                    Nothing
+              , classNames
+                  $ if (isJust mSelectedContractState) then
+                      [ "text-lightpurple", "font-bold" ]
+                    else
+                      [ "cursor-default" ]
+              ]
+              [ text "Dashboard" ]
+          ]
         <> case mSelectedContractState of
             Just { nickname } ->
-              [ span_ [ text ">" ]
+              [ span [ classNames [ "font-semibold" ] ] [ text ">" ] -- FIXME: change > for an Icon
+              , tooltip "Go to dashboard" (RefId "goToDashboard") Bottom
               , span_ [ text if nickname == mempty then "My new contract" else nickname ]
               ]
             Nothing -> []

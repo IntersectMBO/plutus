@@ -64,6 +64,13 @@ mapSubmodule ::
     ~> HalogenM state action slots msg m
 mapSubmodule lens wrapper halogen = (imapState lens <<< mapAction wrapper) halogen
 
+mapComponentAction ::
+  forall m action action' slots.
+  (action' -> action) ->
+  ComponentHTML action' slots m ->
+  ComponentHTML action slots m
+mapComponentAction actionWrapper rendered = bimap (map actionWrapper) actionWrapper rendered
+
 -- Allows you to render a submodule changing the state with the provided optic and
 -- wrapping the action. If the optic cant produce a value, an empty div is inserted instead
 renderSubmodule ::
@@ -81,7 +88,7 @@ renderSubmodule optic actionWrapper render state =
       Nothing -> div_ []
       Just subState -> render subState
   in
-    bimap (map actionWrapper) actionWrapper rendered
+    mapComponentAction actionWrapper rendered
 
 -- | This lets you map the state of a submodule that may not exist,
 -- | given an affine traversal into that optional substate. It's
@@ -115,6 +122,12 @@ scrollIntoView ref = do
   mElement <- getHTMLElementRef ref
   for_ mElement (liftEffect <<< runEffectFn1 scrollIntoView_)
 
+-- FIXME: There is a problem with this implementation of lifeCycleEvent that makes the tooltips not appear
+--        in branches of the component that includes this.
+--        I think that by firing an Action and not using the RefUpdate we are "hijacking" halogen internals
+--        and not allowing the slots component Init state to kick in.
+--        To fix this one option would be to change this IProp into a proper dumb component (used with slots)
+--        and to re-use the lifecycle of that component through the output message to send an Init/Finilize message.
 -- This HTML property dispatch lifecycle actions when the element is added or removed to the DOM
 lifeCycleEvent :: forall r action. { onInit :: Maybe action, onFinalize :: Maybe action } -> IProp r action
 lifeCycleEvent handlers = (unsafeCoerce :: Prop (Input action) -> IProp r action) $ Core.ref onLifecycleEvent
