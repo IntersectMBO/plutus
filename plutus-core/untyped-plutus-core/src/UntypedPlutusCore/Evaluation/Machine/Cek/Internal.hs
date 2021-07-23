@@ -21,6 +21,8 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
     ( EvaluationResult(..)
@@ -73,7 +75,7 @@ import           Data.Proxy
 import           Data.STRef
 import           Data.Semigroup                                           (stimes)
 import           Data.Text.Prettyprint.Doc
-import           Data.Time.Clock                                          (getCurrentTime)
+import           Data.Time.Clock                                          (UTCTime, getCurrentTime)
 import           Data.Word64Array.Word8
 import           Universe
 
@@ -369,7 +371,15 @@ type CekCarryingM :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type 
 -- | The monad the CEK machine runs in.
 newtype CekCarryingM term uni fun s a = CekCarryingM
     { unCekCarryingM :: ST s a
-    } deriving newtype (Show, Functor, Applicative, Monad)
+    } deriving newtype (Functor, Applicative, Monad)
+
+instance Show (CekCarryingM term uni fun s UTCTime) where
+    show (CekCarryingM x) = show x
+
+-- We need this show instance to show the UTCTime properly.
+-- The default Show (ST s a) instance is the string "ST actions".
+instance {-# OVERLAPS #-} Show (ST s UTCTime) where
+    showsPrec _ x  = showString $ show x
 
 type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
 
@@ -471,13 +481,14 @@ spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget 
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 
 emitCek :: GivenCekEmitter s => String -> CekM uni fun s ()
-emitCek str =
+emitCek str = do
+    time <- (CekCarryingM . unsafeIOToST) getCurrentTime
     let mayLogsRef = ?cekEmitter
         withTime =
             "[" ++
-            (show $ (CekCarryingM . unsafeIOToST) getCurrentTime) ++
+            show time ++
             "]" ++ str
-    in case mayLogsRef of
+    case mayLogsRef of
         Nothing      -> pure ()
         Just logsRef ->
             CekCarryingM $
