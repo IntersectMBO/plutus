@@ -38,16 +38,16 @@ open import Utils
 We have six base types referred to as type constants:
 
 ```
-data TyCon : Set where
-  integer    : TyCon
-  bytestring : TyCon
-  string     : TyCon
-  char       : TyCon
-  unit       : TyCon
-  bool       : TyCon
-  list       : ∀{Φ} → Ty Φ → TyCon
-  pair       : ∀{Φ} → Ty Φ → Ty Φ → TyCon
-  Data       : TyCon
+data TyCon (Φ : Con) : Set where
+  integer    : TyCon Φ
+  bytestring : TyCon Φ
+  string     : TyCon Φ
+  char       : TyCon Φ
+  unit       : TyCon Φ
+  bool       : TyCon Φ
+  list       : Ty Φ → TyCon Φ
+  pair       : Ty Φ → Ty Φ → TyCon Φ
+  Data       : TyCon Φ
 
 {-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}
 {-# FOREIGN GHC import PlutusCore                                      #-}
