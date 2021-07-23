@@ -475,7 +475,7 @@ evalValue env state value = let
         Scale s rhs          -> let (n, d) = (numerator s, denominator s)
                                     nn = eval rhs * n
                                     (q, r) = nn `quotRem` d in
-                                if abs r * 2 < abs d then q else q + signum nn * signum d
+                                if abs r * 2 < abs d then q else signum nn * signum d + q
         ChoiceValue choiceId ->
             case Map.lookup choiceId (choices state) of
                 Just x  -> x

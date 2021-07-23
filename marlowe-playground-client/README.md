@@ -67,3 +67,5 @@ nix-shell shell.nix --run fix-purty
 ## VSCode notes
 
 In order to have the PureScript IDE working properly with this project you need to open this folder as the root folder.
+
+
