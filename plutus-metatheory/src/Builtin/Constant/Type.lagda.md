@@ -10,7 +10,8 @@ The postulated operations are in this module because it is not
 parameterised. They could also be placed elsewhere.
 
 ```
-module Builtin.Constant.Type where
+module Builtin.Constant.Type
+  (Con : Set)(Ty : Con → Set) where
 ```
 
 ## Imports
@@ -44,6 +45,9 @@ data TyCon : Set where
   char       : TyCon
   unit       : TyCon
   bool       : TyCon
+  list       : ∀{Φ} → Ty Φ → TyCon
+  pair       : ∀{Φ} → Ty Φ → Ty Φ → TyCon
+  Data       : TyCon
 
 {-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}
 {-# FOREIGN GHC import PlutusCore                                      #-}
@@ -54,5 +58,8 @@ data TyCon : Set where
 {-# FOREIGN GHC pattern TyChar       = SomeTypeIn DefaultUniChar       #-}
 {-# FOREIGN GHC pattern TyUnit       = SomeTypeIn DefaultUniUnit       #-}
 {-# FOREIGN GHC pattern TyBool       = SomeTypeIn DefaultUniBool       #-}
-{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString | TyChar | TyUnit | TyBool) #-}
+{-# FOREIGN GHC pattern TyList a     = SomeTypeIn DefaultUniList a     #-}
+{-# FOREIGN GHC pattern TyPair a b   = SomeTypeIn DefaultUniPair a b   #-}
+
+{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString | TyChar | TyUnit | TyBool | TyList | TyPair | TyData) #-}
 ```

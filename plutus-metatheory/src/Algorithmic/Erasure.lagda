@@ -17,8 +17,6 @@ open import Function hiding (_∋_)
 open import Builtin hiding (length)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con as DS
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con as AS
 open import Type.RenamingSubstitution as T
 open import Type.Equality
 open import Type.BetaNBE.Soundness
@@ -94,11 +92,6 @@ lenLemma (Γ D., A)  = cong suc (lenLemma Γ)
 lenLemma⋆ : ∀ Φ → D.len⋆ Φ ≡ len⋆ Φ
 lenLemma⋆ ∅       = refl
 lenLemma⋆ (Φ ,⋆ K) = cong suc (lenLemma⋆ Φ)
-
-nfTypeSIG≡₁' : (bn : Builtin)
-  → D.len⋆ (proj₁ (DS.SIG bn)) ≡ len⋆ (proj₁ (AS.SIG bn))
-nfTypeSIG≡₁' b = trans (cong D.len⋆ (nfTypeSIG≡₁ b)) (lenLemma⋆ _)
-
 
 -- these lemmas for each clause of eraseVar and erase below could be
 -- avoided by using with but it would involve doing with on a long

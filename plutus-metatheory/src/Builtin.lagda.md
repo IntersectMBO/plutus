@@ -38,7 +38,36 @@ data Builtin : Set where
   ifThenElse               : Builtin
   charToString             : Builtin
   append                   : Builtin
+  equalsString             : Builtin
+  encodeUtf8               : Builtin
+  decodeUtf8               : Builtin  
   trace                    : Builtin
+  -- polymorphic lists and pairs are not supported currently
+  fstPair                  : Builtin
+  sndPair                  : Builtin
+  nullList                 : Builtin
+  headList                 : Builtin
+  tailList                 : Builtin
+  chooseList               : Builtin
+  -- builtin data can only be parsed and run through the untyped simplifier
+  constrData    : Builtin
+  mapData       : Builtin
+  listData      : Builtin
+  iData         : Builtin
+  bData         : Builtin
+  unconstrData  : Builtin
+  unMapData     : Builtin
+  unListData    : Builtin
+  unIData       : Builtin
+  unBData       : Builtin
+  equalsData    : Builtin
+  chooseData    : Builtin
+  chooseUnit    : Builtin
+  mkPairData    : Builtin
+  mkNilData     : Builtin
+  mkNilPairData : Builtin
+  mkConsData    : Builtin
+
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
 {-# COMPILE GHC Builtin = data DefaultFun (AddInteger
@@ -65,7 +94,33 @@ data Builtin : Set where
                                           | IfThenElse
                                           | CharToString
                                           | Append
+                                          | EqualsString
+                                          | EncodeUtf8
+                                          | DecodeUtf8
                                           | Trace
+                                          | FstPair
+                                          | SndPair
+                                          | NullList
+                                          | HeadList
+                                          | TailList
+                                          | ChooseList
+                                          | ConstrData
+                                          | MapData
+                                          | ListData
+                                          | IData
+                                          | BData
+                                          | UnConstrData
+                                          | UnMapData
+                                          | UnListData
+                                          | UnIData
+                                          | UnBData
+                                          | EqualsData
+                                          | ChooseData
+                                          | ChooseUnit
+                                          | MkPairData
+                                          | MkNilData
+                                          | MkNilPairData
+                                          | MkCons
                                           ) #-}
 ```
 

@@ -16,7 +16,6 @@ open import Type.Equality
 open import Builtin
 open import Utils
 open import Builtin.Constant.Type
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 
 open import Relation.Binary.PropositionalEquality
@@ -123,6 +122,7 @@ ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
 ISIG charToString = ∅ ,, ∅ , con char ,, con string
 ISIG append = ∅ ,, ∅ , con string , con string ,, con string
 ISIG trace = ∅ ,, ∅ , con string ,, con unit
+ISIG _ = ∅ ,, ∅ ,, con unit -- TODO: add support for remaining builtins
 ```
 
 Converting a signature to a totally unsaturated type:

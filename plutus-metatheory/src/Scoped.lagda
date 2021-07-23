@@ -53,6 +53,7 @@ arity ifThenElse = 3
 arity charToString = 1
 arity append = 2
 arity trace = 1
+arity _ = 0 -- TODO: add support for remaining builtins
 
 arity⋆ : Builtin → ℕ
 arity⋆ ifThenElse = 1
@@ -72,8 +73,6 @@ data ScopedTy (n : ℕ) : Set where
 
 Tel⋆ : ℕ → ℕ → Set
 Tel⋆ n m = Vec (ScopedTy n) m
-
-open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con
 
 -- contexts
 

@@ -27,7 +27,6 @@ infix  9 S
 
 ```
 open import Agda.Builtin.Nat
-open import Builtin.Constant.Type
 ```
 
 ## Kinds
@@ -104,8 +103,11 @@ arbitrary kind `k` which goes beyond standard iso-recursive types.
 ```
 open import Data.String
 
-data _⊢⋆_ : Ctx⋆ → Kind → Set where
+data _⊢⋆_ : Ctx⋆ → Kind → Set
 
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+
+data _⊢⋆_ where
   ` : Φ ∋⋆ J
       --------
     → Φ ⊢⋆ J

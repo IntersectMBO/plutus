@@ -23,8 +23,6 @@ open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Type.BetaNormal.Equality
 \end{code}
 

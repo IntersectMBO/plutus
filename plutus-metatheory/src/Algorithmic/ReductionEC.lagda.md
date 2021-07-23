@@ -31,8 +31,6 @@ open import Type.BetaNormal.Equality
 open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
@@ -121,6 +119,7 @@ arity ifThenElse = Type ∷ Term ∷ Term ∷ Term ∷ []
 arity charToString = Term ∷ []
 arity append = Term ∷ Term ∷ []
 arity trace = Term ∷ []
+arity _ = [] -- TODO: add support for remaining builtins
 
 data Bwd (A : Set) : Set where
   [] : Bwd A
@@ -445,6 +444,7 @@ BUILTIN charToString (step .(start (Term ∷ [])) base (V-con (char c))) =
 BUILTIN append (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) = 
   con (string (primStringAppend s s'))
 BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
+BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)
   → BApp b p t
@@ -578,6 +578,7 @@ _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 (wrap   E) [ L ]ᴱ = wrap _ _ (E [ L ]ᴱ)
 (unwrap E) [ L ]ᴱ = unwrap (E [ L ]ᴱ)
 
+{-
 lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
   → ∀{L : ∅ ,⋆ K ⊢ B}{X}{L' : ∅ ⊢ X}{Y}
   → Y ≡ Π B
@@ -585,7 +586,7 @@ lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
   → Λ L ≅ E [ L' ]ᴱ
   → E ≅ EC.[] {A = Y} × Λ L ≅ L'
 lemΛE eq [] p = refl ,, p
-
+-}
 _[_]ᶠ : ∀{A B : ∅ ⊢Nf⋆ *} → Frame B A → ∅ ⊢ A → ∅ ⊢ B
 (-· M') [ L ]ᶠ = L · M' 
 (V ·-)  [ L ]ᶠ = deval V · L
@@ -1101,7 +1102,32 @@ bappTypeLem append {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
 bappTypeLem trace {az = az} {as} M p q
   with <>>-cancel-both' az ([] ∷ Type) ([] ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-
+bappTypeLem equalsString {az = az} {as} M p q = {!!}
+bappTypeLem encodeUtf8 {az = az} {as} M p q = {!!}
+bappTypeLem decodeUtf8 {az = az} {as} M p q = {!!}
+bappTypeLem fstPair {az = az} {as} M p q = {!!}
+bappTypeLem sndPair {az = az} {as} M p q = {!!}
+bappTypeLem nullList {az = az} {as} M p q = {!!}
+bappTypeLem headList {az = az} {as} M p q = {!!}
+bappTypeLem tailList {az = az} {as} M p q = {!!}
+bappTypeLem chooseList {az = az} {as} M p q = {!!}
+bappTypeLem constrData {az = az} {as} M p q = {!!}
+bappTypeLem mapData {az = az} {as} M p q = {!!}
+bappTypeLem listData {az = az} {as} M p q = {!!}
+bappTypeLem iData {az = az} {as} M p q = {!!}
+bappTypeLem bData {az = az} {as} M p q = {!!}
+bappTypeLem unconstrData {az = az} {as} M p q = {!!}
+bappTypeLem unMapData {az = az} {as} M p q = {!!}
+bappTypeLem unListData {az = az} {as} M p q = {!!}
+bappTypeLem unIData {az = az} {as} M p q = {!!}
+bappTypeLem unBData {az = az} {as} M p q = {!!}
+bappTypeLem equalsData {az = az} {as} M p q = {!!}
+bappTypeLem chooseData {az = az} {as} M p q = {!!}
+bappTypeLem chooseUnit {az = az} {as} M p q = {!!}
+bappTypeLem mkPairData {az = az} {as} M p q = {!!}
+bappTypeLem mkNilData {az = az} {as} M p q = {!!}
+bappTypeLem mkNilPairData {az = az} {as} M p q = {!!}
+bappTypeLem mkConsData {az = az} {as} M p q = {!!}
 -- a smart constructor that looks at the arity and then puts on the
 -- right constructor
 V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
@@ -1410,7 +1436,7 @@ data RProgress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
 
 
 -- a beta⋆ reduction happened
-
+{-
 U·⋆1 : ∀{A : ∅ ⊢Nf⋆ K}{B}{L : ∅ ,⋆ K ⊢ B}{X}
  {B' : ∅ ⊢Nf⋆ *}
  → X ≡ B [ A ]Nf →

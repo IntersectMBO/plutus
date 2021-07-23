@@ -18,10 +18,8 @@ import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Utils
 \end{code}
 
@@ -93,43 +91,8 @@ A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
-open import Data.String
-
-data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
- base : Γ ≤C Γ
- skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
- skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
-
-∅≤C : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C Γ
-∅≤C ∅       = base
-∅≤C (Γ ,⋆ K) = skip⋆ (∅≤C Γ)
-∅≤C (Γ , A) = skip (∅≤C Γ)
-
-data _≤C'_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
- base : Γ ≤C' Γ
- skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → (Γ ,⋆ K) ≤C' Γ' → Γ ≤C' Γ'
- skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *} → (Γ , A) ≤C' Γ' → Γ ≤C' Γ'
-
-skip⋆' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K} → Γ ≤C' Γ' → Γ ≤C' (Γ' ,⋆ K)
-skip⋆' base = skip⋆ base
-skip⋆' (skip⋆ p) = skip⋆ (skip⋆' p)
-skip⋆' (skip p) = skip (skip⋆' p)
-
-skip' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A} → Γ ≤C' Γ' → Γ ≤C' (Γ' , A)
-skip' base = skip base
-skip' (skip⋆ p) = skip⋆ (skip' p)
-skip' (skip p) = skip (skip' p)
-
-≤Cto≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Γ ≤C' Γ'
-≤Cto≤C' base      = base
-≤Cto≤C' (skip⋆ p) = skip⋆' (≤Cto≤C' p)
-≤Cto≤C' (skip p)  = skip' (≤Cto≤C' p)
-
-∅≤C' : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C' Γ
-∅≤C' Γ = ≤Cto≤C' (∅≤C Γ)
-
 ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
-ISIG ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
+ISIG ifThenElse = _ ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
 ISIG addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 ISIG subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 ISIG multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
@@ -154,6 +117,32 @@ ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
 ISIG charToString = ∅ ,, ∅ , con char ,, con string
 ISIG append = ∅ ,, ∅ , con string , con string ,, con string
 ISIG trace = ∅ ,, ∅ , con string ,, con unit
+ISIG equalsString = ∅ ,, ∅ , con string , con string ,, con bool
+ISIG encodeUtf8 = ∅ ,, ∅ , con string ,, con bytestring
+ISIG decodeUtf8 = ∅ ,, ∅ , con bytestring ,, con string
+ISIG fstPair = _ ,, ∅ ,⋆ * ,⋆ * , con (pair {!!} {!!})  ,, con integer
+ISIG sndPair = _ ,, ∅ , con (pair {!!} {!!}) ,, con integer
+ISIG nullList = _ ,, ∅ ,, con (list {!!})
+ISIG headList = _ ,, ∅ , con (list {!!}) ,, con integer
+ISIG tailList = _ ,, ∅ , con (list {!!}) ,, con (list {!!})
+ISIG chooseList = {!!}
+ISIG constrData = _ ,, ∅ , con integer , con (list {!!}) ,, con Data
+ISIG mapData = _ ,, ∅ ,, con Data -- TODO: fix this
+ISIG listData = _ ,, ∅ , con (list {!!}) ,, con Data
+ISIG iData = _ ,, ∅ , con integer ,, con Data
+ISIG bData = _ ,, ∅ , con bytestring ,, con Data
+ISIG unconstrData = {!!}
+ISIG unMapData = {!!}
+ISIG unListData = {! !}
+ISIG unIData = _ ,, ∅ , con Data ,, con integer
+ISIG unBData = _ ,, ∅ , con Data ,, con bytestring
+ISIG equalsData = _ ,, ∅ , con Data , con Data ,, con bool
+ISIG chooseData = {!!}
+ISIG chooseUnit = {!!}
+ISIG mkPairData = {!!}
+ISIG mkNilData = {!!}
+ISIG mkNilPairData = {!!}
+ISIG mkConsData = {!!}
 
 isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 isig2type .∅ ∅ C = C
@@ -244,35 +233,8 @@ conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
 
-<C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
-<C'2type base      C = C
-<C'2type (skip⋆ p) C = Π (<C'2type p C)
-<C'2type (skip {A = A} p)  C = A ⇒ <C'2type p C
-
 Ctx2type : ∀{Φ}(Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 Ctx2type ∅        C = C
 Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
 Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
-
-Πlem : ∀{K K'}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}(p : ((Δ ,⋆ K) ,⋆ K') ≤C' Γ)
-  (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
-  → (Π
-       (eval
-        (⋆.sub (⋆.exts (⋆.exts (λ x → embNf (σ x))))
-         (embNf (<C'2type p C)))
-        (exte (exte (idEnv ∅))))
-       [ A ]Nf)
-      ≡ subNf (subNf-cons σ A) (Π (<C'2type p C))
-Πlem p A C σ = sym (subNf-cons-[]Nf (Π (<C'2type p C)))
-
-⇒lem : ∀{K}{A : ∅ ⊢Nf⋆ K}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}{B : Φ' ,⋆ K ⊢Nf⋆ *}
-       (p : ((Δ ,⋆ K) , B) ≤C' Γ)(σ : SubNf Φ' ∅)(C : Φ ⊢Nf⋆ *)
-  → ((eval (⋆.sub (⋆.exts (λ x → embNf (σ x))) (embNf B))
-        (exte (idEnv ∅))
-        ⇒
-        eval (⋆.sub (⋆.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
-        (exte (idEnv ∅)))
-       [ A ]Nf)
-      ≡ subNf (subNf-cons σ A) (B ⇒ <C'2type p C)
-⇒lem {B = B} p σ C = sym (subNf-cons-[]Nf (B ⇒ <C'2type p C)) 
 \end{code}
