@@ -25,22 +25,24 @@ module Language.Marlowe.Client.OnChain(
     , typedValidator
     ) where
 
-import           Data.Default                 (Default (def))
-import           Language.Marlowe.Semantics   hiding (Contract)
-import           Ledger                       (CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..), Slot (..),
-                                               TokenName, ValidatorHash, mkValidatorScript, validatorHash, valueSpent)
-import           Ledger.Ada                   (adaSymbol)
+import           Data.Default                      (Default (def))
+import           Language.Marlowe.Client.Interface (MarloweInterface (..), compiledMarloweInterface, marloweInterface)
+import           Language.Marlowe.Semantics        hiding (Contract, computeTransaction, totalBalance, validateBalances)
+import           Ledger                            (CurrencySymbol, Datum (..), PubKeyHash, ScriptContext (..),
+                                                    Slot (..), TokenName, ValidatorHash, mkValidatorScript,
+                                                    validatorHash, valueSpent)
+import           Ledger.Ada                        (adaSymbol)
 import           Ledger.Constraints
-import qualified Ledger.Interval              as Interval
-import           Ledger.Scripts               (Validator)
-import qualified Ledger.TimeSlot              as TimeSlot
-import qualified Ledger.Typed.Scripts         as Scripts
-import qualified Ledger.Value                 as Val
-import           Plutus.Contract.StateMachine (StateMachine (..), Void)
-import qualified Plutus.Contract.StateMachine as SM
+import qualified Ledger.Interval                   as Interval
+import           Ledger.Scripts                    (Validator)
+import qualified Ledger.TimeSlot                   as TimeSlot
+import qualified Ledger.Typed.Scripts              as Scripts
+import qualified Ledger.Value                      as Val
+import           Plutus.Contract.StateMachine      (StateMachine (..), Void)
+import qualified Plutus.Contract.StateMachine      as SM
 import qualified PlutusTx
-import qualified PlutusTx.AssocMap            as AssocMap
-import qualified PlutusTx.Prelude             as P
+import qualified PlutusTx.AssocMap                 as AssocMap
+import qualified PlutusTx.Prelude                  as P
 
 type MarloweSlotRange = (Slot, Slot)
 type MarloweInput = (MarloweSlotRange, [Input])
@@ -71,11 +73,12 @@ defaultMarloweParams = marloweParams adaSymbol
 
 {-# INLINABLE mkMarloweStateMachineTransition #-}
 mkMarloweStateMachineTransition
-    :: MarloweParams
+    :: MarloweInterface
+    -> MarloweParams
     -> SM.State MarloweData
     -> MarloweInput
     -> Maybe (TxConstraints Void Void, SM.State MarloweData)
-mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue}
+mkMarloweStateMachineTransition MarloweInterface{validateBalances, totalBalance, computeTransaction} params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue}
     (interval@(minSlot, maxSlot), inputs) = do
     let positiveBalances = validateBalances marloweState ||
             P.traceError "Invalid contract state. There exists an account with non positive balance"
@@ -170,14 +173,16 @@ isFinal :: MarloweData -> Bool
 isFinal MarloweData{marloweContract=c} = c P.== Close
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: MarloweParams -> Scripts.ValidatorType MarloweStateMachine
-mkValidator p = SM.mkValidator $ SM.mkStateMachine Nothing (mkMarloweStateMachineTransition p) isFinal
+mkValidator :: MarloweInterface -> MarloweParams -> Scripts.ValidatorType MarloweStateMachine
+mkValidator i p = SM.mkValidator $ SM.mkStateMachine Nothing (mkMarloweStateMachineTransition i p) isFinal
 
 mkMarloweValidatorCode
     :: MarloweParams
     -> PlutusTx.CompiledCode (Scripts.ValidatorType MarloweStateMachine)
 mkMarloweValidatorCode params =
-    $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
+    $$(PlutusTx.compile [|| mkValidator ||])
+        `PlutusTx.applyCode` compiledMarloweInterface
+        `PlutusTx.applyCode` PlutusTx.liftCode params
 
 type MarloweStateMachine = StateMachine MarloweData MarloweInput
 
@@ -191,7 +196,7 @@ typedValidator params = Scripts.mkTypedValidator @MarloweStateMachine
 mkMachineInstance :: MarloweParams -> SM.StateMachineInstance MarloweData MarloweInput
 mkMachineInstance params =
     SM.StateMachineInstance
-    (SM.mkStateMachine Nothing (mkMarloweStateMachineTransition params) isFinal)
+    (SM.mkStateMachine Nothing (mkMarloweStateMachineTransition marloweInterface params) isFinal)
     (typedValidator params)
 
 mkMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData MarloweInput
