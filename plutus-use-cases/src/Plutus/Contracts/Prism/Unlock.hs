@@ -66,7 +66,7 @@ subscribeSTO :: forall w s.
     ( HasEndpoint "sto" STOSubscriber s
     )
     => Contract w s UnlockError ()
-subscribeSTO = forever $ handleError (const $ return ()) $ fmap getWaited $
+subscribeSTO = forever $ handleError (const $ return ()) $ awaitPromise $
     endpoint @"sto" $ \STOSubscriber{wCredential, wSTOIssuer, wSTOTokenName, wSTOAmount} -> do
         (credConstraints, credLookups) <- obtainCredentialTokenData wCredential
         let stoData =
@@ -84,7 +84,7 @@ subscribeSTO = forever $ handleError (const $ return ()) $ fmap getWaited $
                 Constraints.mintingPolicy (STO.policy stoData)
                 <> credLookups
         mapError WithdrawTxError
-            $ submitTxConstraintsWith lookups constraints >>= fmap getWaited . awaitTxConfirmed . txId
+            $ submitTxConstraintsWith lookups constraints >>= awaitTxConfirmed . txId
 
 type UnlockExchangeSchema = Endpoint "unlock from exchange" Credential
 
@@ -94,7 +94,7 @@ unlockExchange :: forall w s.
     ( HasEndpoint "unlock from exchange" Credential s
     )
     => Contract w s UnlockError ()
-unlockExchange = fmap getWaited $ endpoint @"unlock from exchange" $ \credential -> do
+unlockExchange = awaitPromise $ endpoint @"unlock from exchange" $ \credential -> do
     ownPK <- mapError WithdrawPkError $ pubKeyHash <$> ownPubKey
     (credConstraints, credLookups) <- obtainCredentialTokenData credential
     (accConstraints, accLookups) <-
@@ -104,7 +104,7 @@ unlockExchange = fmap getWaited $ endpoint @"unlock from exchange" $ \credential
         Left mkTxErr -> throwError (UnlockMkTxError mkTxErr)
         Right utx -> mapError WithdrawTxError $ do
             tx <- submitUnbalancedTx utx
-            getWaited <$> awaitTxConfirmed (txId tx)
+            awaitTxConfirmed (txId tx)
 
 -- | Get the constraints and script lookups that are needed to construct a
 --   transaction that presents the 'Credential'

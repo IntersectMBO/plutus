@@ -83,10 +83,10 @@ type SplitSchema =
 
 -- BLOCK5
 
-lock :: Contract () SplitSchema T.Text (Waited ())
+lock :: Promise () SplitSchema T.Text ()
 lock = endpoint @"lock" (lockFunds . mkSplitData)
 
-unlock :: Contract () SplitSchema T.Text (Waited ())
+unlock :: Promise () SplitSchema T.Text ()
 unlock = endpoint @"unlock" (unlockFunds . mkSplitData)
 
 -- BLOCK6

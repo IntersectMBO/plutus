@@ -201,7 +201,7 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding was not collected.
-contribute :: Campaign -> Contract () CrowdfundingSchema ContractError (Waited ())
+contribute :: Campaign -> Promise () CrowdfundingSchema ContractError ()
 contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
     logInfo @Text $ "Contributing " <> Text.pack (Haskell.show contribValue)
     contributor <- ownPubKey
@@ -229,7 +229,7 @@ contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: Campaign -> Contract () CrowdfundingSchema ContractError (Waited ())
+scheduleCollection :: Campaign -> Promise () CrowdfundingSchema ContractError ()
 scheduleCollection cmp = endpoint @"schedule collection" $ \() -> do
     let inst = typedValidator cmp
 

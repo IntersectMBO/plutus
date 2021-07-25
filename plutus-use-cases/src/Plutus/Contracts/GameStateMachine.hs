@@ -200,7 +200,7 @@ client :: SM.StateMachineClient GameState GameInput
 client = SM.mkStateMachineClient $ SM.StateMachineInstance machine typedValidator
 
 -- | The @"guess"@ endpoint.
-guess :: Contract () GameStateMachineSchema GameError (Waited ())
+guess :: Promise () GameStateMachineSchema GameError ()
 guess = endpoint @"guess" $ \GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} -> do
 
     let guessedSecret = ClearString (C.pack guessArgsOldSecret)
@@ -210,7 +210,7 @@ guess = endpoint @"guess" $ \GuessArgs{guessArgsOldSecret,guessArgsNewSecret, gu
         $ SM.runStep client
             (Guess guessedSecret newSecret guessArgsValueTakenOut)
 
-lock :: Contract () GameStateMachineSchema GameError (Waited ())
+lock :: Promise () GameStateMachineSchema GameError ()
 lock = endpoint @"lock" $ \LockArgs{lockArgsSecret, lockArgsValue} -> do
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
         sym = Scripts.forwardingMintingPolicyHash typedValidator

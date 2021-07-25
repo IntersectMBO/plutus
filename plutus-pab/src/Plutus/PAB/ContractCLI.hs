@@ -55,7 +55,7 @@ import           Options.Applicative               (CommandFields, Mod, Parser, 
                                                     showHelpOnEmpty, showHelpOnError, subparser)
 import qualified Options.Applicative
 import           Playground.Schema                 (EndpointToSchema, endpointsToSchemas)
-import           Plutus.Contract                   (Contract, EmptySchema)
+import           Plutus.Contract                   (EmptySchema, IsContract (..))
 import qualified Plutus.Contract.State             as ContractState
 import           Prelude                           hiding (getContents)
 import           System.Environment                (getArgs)
@@ -105,71 +105,77 @@ exportSignatureParser =
     command "export-signature" $
     info (pure ExportSignature) (fullDesc <> progDesc "Export the contract's signature.")
 
-runCliCommand :: forall w s s2 ignored.
+runCliCommand :: forall contract w s s2.
        ( EndpointToSchema (s .\\ s2)
        , ToJSON w
        , FromJSON w
        , Monoid w
+       , IsContract contract
        )
     => Proxy s2
-    -> Contract w s Text ignored
+    -> contract w s Text ()
     -> Command
     -> Prompt BS8.ByteString
-runCliCommand _ schema Initialise = pure $ BSL.toStrict $ JSON.encodePretty $ ContractState.initialiseContract schema
+runCliCommand _ schema Initialise = pure $ BSL.toStrict $ JSON.encodePretty $ ContractState.initialiseContract $ toContract schema
 runCliCommand _ schema Update = do
     arg <- getContents
-    runUpdate schema arg
+    runUpdate (toContract schema) arg
 runCliCommand _ _ ExportSignature = do
   let r = endpointsToSchemas @(s .\\ s2)
   pure $ BSL.toStrict $ JSON.encodePretty r
 
-runUpdate :: forall w s ignored.
+runUpdate :: forall contract w s.
     ( ToJSON w
     , FromJSON w
     , Monoid w
+    , IsContract contract
     )
-    => Contract w s Text ignored
+    => contract w s Text ()
     -> BS.ByteString
     -> Prompt BS8.ByteString
 runUpdate contract arg = either (throwError @[BS.ByteString] . return) pure $
     bimap
         (BSL.toStrict . JSON.encodePretty . Text.pack)
-        (BSL.toStrict . JSON.encodePretty . ContractState.mapE toJSON . ContractState.mapW toJSON . bimap toJSON toJSON . ContractState.insertAndUpdateContract contract)
+        (BSL.toStrict . JSON.encodePretty . ContractState.mapE toJSON . ContractState.mapW toJSON .
+            bimap toJSON toJSON . ContractState.insertAndUpdateContract (toContract contract))
         (JSON.eitherDecode $ BSL.fromStrict arg)
 
 -- | Make a command line app with a schema that includes all of the contract's
 --   endpoints
-commandLineApp :: forall w s ignored.
+commandLineApp :: forall contract w s.
        ( EndpointToSchema (s .\\ EmptySchema)
        , ToJSON w
        , FromJSON w
        , Monoid w
+       , IsContract contract
        )
-    => Contract w s Text ignored
+    => contract w s Text ()
     -> IO ()
-commandLineApp = commandLineApp' @w @s @EmptySchema (Proxy @EmptySchema)
+commandLineApp = commandLineApp' @_ @w @s @EmptySchema (Proxy @EmptySchema)
 
 -- | Make a command line app for a contract, excluding some of the contract's
 --   endpoints from the generated schema.
-commandLineApp' :: forall w s s2 ignored.
+commandLineApp' :: forall contract w s s2.
        ( EndpointToSchema (s .\\ s2)
        , ToJSON w
        , FromJSON w
        , Monoid w
+       , IsContract contract
        )
     => Proxy s2
-    -> Contract w s Text ignored
+    -> contract w s Text ()
     -> IO ()
 commandLineApp' p schema = runPromptIO (contractCliApp p schema)
 
-contractCliApp :: forall w s s2 ignored.
+contractCliApp :: forall contract w s s2.
        ( EndpointToSchema (s .\\ s2)
        , ToJSON w
        , FromJSON w
        , Monoid w
+       , IsContract contract
        )
     => Proxy s2
-    -> Contract w s Text ignored
+    -> contract w s Text ()
     -> [String]
     -> Prompt BS.ByteString
 contractCliApp p schema args = do

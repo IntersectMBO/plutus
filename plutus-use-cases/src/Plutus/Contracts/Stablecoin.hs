@@ -399,11 +399,11 @@ instance AsSMContractError StablecoinError where
 
 -- | A 'Contract' that initialises the state machine and then accepts 'Input'
 --   transitions.
-contract :: Contract () StablecoinSchema StablecoinError (Waited ())
+contract :: Promise () StablecoinSchema StablecoinError ()
 contract = endpoint @"initialise" $ \sc -> do
     let theClient = machineClient (typedValidator sc) sc
     _ <- StateMachine.runInitialise theClient (initialState theClient) mempty
-    forever $ endpoint @"run step" $ \i -> do
+    forever $ awaitPromise $ endpoint @"run step" $ \i -> do
         checkTransition theClient sc i
         StateMachine.runStep theClient i
 

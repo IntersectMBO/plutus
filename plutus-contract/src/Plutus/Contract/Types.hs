@@ -22,7 +22,11 @@ module Plutus.Contract.Types(
     ContractEffs
     , handleContractEffs
     , Contract(..)
+    , IsContract(..)
     -- * Select
+    , Promise(..)
+    , promiseBind
+    , promiseMap
     , select
     , selectEither
     , selectList
@@ -78,6 +82,7 @@ import qualified Control.Monad.Freer.Writer        as W
 import           Data.Aeson                        (Value)
 import qualified Data.Aeson                        as Aeson
 import           Data.Foldable                     (foldl')
+import           Data.Functor.Apply                (Apply (..))
 import qualified Data.IntervalSet                  as IS
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
@@ -92,7 +97,7 @@ import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Chec
 import           Plutus.Contract.Resumable         hiding (responses, select)
 import qualified Plutus.Contract.Resumable         as Resumable
 
-import           Plutus.Contract.Effects           (PABReq, PABResp, Waited (..))
+import           Plutus.Contract.Effects           (PABReq, PABResp)
 import qualified PlutusTx.Applicative              as PlutusTx
 import qualified PlutusTx.Functor                  as PlutusTx
 import           Prelude                           as Haskell
@@ -202,18 +207,42 @@ instance PlutusTx.Applicative (Contract w s e) where
 instance Bifunctor (Contract w s) where
   bimap l r = mapError l . fmap r
 
+instance Semigroup a => Semigroup (Contract w s e a) where
+  Contract ma <> Contract ma' = Contract $ (<>) <$> ma <*> ma'
+
+-- | A wrapper indicating that this contract starts with a waiting action. For use with @select@.
+newtype Promise w (s :: Row *) e a = Promise { awaitPromise :: Contract w s e a }
+  deriving newtype (Functor, Bifunctor, Semigroup)
+
+instance Apply (Promise w s e) where
+  liftF2 f (Promise a) (Promise b) = Promise (f <$> a <*> b)
+
+promiseBind :: Promise w s e a -> (a -> Contract w s e b) -> Promise w s e b
+promiseBind (Promise ma) f = Promise (ma >>= f)
+
+promiseMap :: (Contract w1 s1 e1 a1 -> Contract w2 s2 e2 a2) -> Promise w1 s1 e1 a1 -> Promise w2 s2 e2 a2
+promiseMap f (Promise ma) = Promise (f ma)
+
+class IsContract c where
+  toContract :: c w s e a -> Contract w s e a
+
+instance IsContract Contract where
+  toContract = id
+
+instance IsContract Promise where
+  toContract = awaitPromise
+
 -- | @select@ returns the contract that makes progress first, discarding the
 --   other one.
-select :: forall w s e a. Contract w s e (Waited a) -> Contract w s e (Waited a) -> Contract w s e (Waited a)
-select (Contract l) (Contract r) = Contract (Resumable.select @PABResp @PABReq @(ContractEffs w e) l r)
+select :: forall w s e a. Promise w s e a -> Promise w s e a -> Promise w s e a
+select (Promise (Contract l)) (Promise (Contract r)) = Promise (Contract (Resumable.select @PABResp @PABReq @(ContractEffs w e) l r))
 
 -- | A variant of @select@ for contracts with different return types.
-selectEither :: forall w s e a b. Contract w s e (Waited a) -> Contract w s e (Waited b) -> Contract w s e (Waited (Either a b))
-selectEither l r = (fmap Left <$> l) `select` (fmap Right <$> r)
+selectEither :: forall w s e a b. Promise w s e a -> Promise w s e b -> Promise w s e (Either a b)
+selectEither l r = (Left <$> l) `select` (Right <$> r)
 
-selectList :: [Contract w s e (Waited ())] -> Contract w s e ()
-selectList [] = pure ()
-selectList cs = getWaited <$> foldr1 select cs
+selectList :: [Promise w s e a] -> Contract w s e a
+selectList = awaitPromise . foldr1 select
 
 -- | Write the current state of the contract to a checkpoint.
 checkpoint :: forall w s e a. (AsCheckpointError e, Aeson.FromJSON a, Aeson.ToJSON a) => Contract w s e a -> Contract w s e a

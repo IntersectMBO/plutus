@@ -64,7 +64,7 @@ tests = testGroup "escrow"
           )
           redeem2Trace
 
-    , let con = void $ payEp @()  @EscrowSchema @EscrowError escrowParams >> refundEp escrowParams in
+    , let con = void (payEp @() @EscrowSchema @EscrowError escrowParams) <> void (refundEp escrowParams) in
       checkPredicate "can refund"
         ( walletFundsChange w1 mempty
           .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
@@ -121,7 +121,7 @@ redeem2Trace = do
 --   amount isn't claimed.
 refundTrace :: Trace.EmulatorTrace ()
 refundTrace = do
-    let con = void $ payEp @() @EscrowSchema @EscrowError escrowParams >> refundEp escrowParams
+    let con = void (payEp @() @EscrowSchema @EscrowError escrowParams) <> void (refundEp escrowParams)
     hdl1 <- Trace.activateContractWallet w1 con
     Trace.callEndpoint @"pay-escrow" hdl1 (Ada.lovelaceValueOf 20)
     _ <- Trace.waitNSlots 100

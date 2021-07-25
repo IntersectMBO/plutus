@@ -173,8 +173,8 @@ vestingContract vesting = selectList [vest, retrieve]
     vest = endpoint @"vest funds" $ \() -> vestFundsC vesting
     retrieve = endpoint @"retrieve funds" $ \payment -> do
         liveness <- retrieveFundsC vesting payment
-        void $ case liveness of
-            Alive -> getWaited <$> retrieve
+        case liveness of
+            Alive -> awaitPromise retrieve
             Dead  -> pure ()
 
 payIntoContract :: Value -> TxConstraints () ()
@@ -200,7 +200,7 @@ retrieveFundsC
 retrieveFundsC vesting payment = mapError (review _VestingError) $ do
     let inst = typedValidator vesting
         addr = Scripts.validatorAddress inst
-    nextTime <- getWaited <$> awaitTime 0
+    nextTime <- awaitTime 0
     unspentOutputs <- utxoAt addr
     let
         currentlyLocked = foldMap (Validation.txOutValue . Tx.txOutTxOut . snd) (Map.toList unspentOutputs)

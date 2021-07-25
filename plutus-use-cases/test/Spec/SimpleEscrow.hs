@@ -51,7 +51,7 @@ tests = testGroup "simple-escrow"
         $ do
           let params = mkEscrowParams (Ada.lovelaceValueOf 10) (Ada.lovelaceValueOf 1)
 
-          hdl <- Trace.activateContractWallet w1 (lockEp >> void refundEp)
+          hdl <- Trace.activateContractWallet w1 (lockEp <> void refundEp)
           Trace.callEndpoint @"lock" hdl params
 
           void $ Trace.waitNSlots 100

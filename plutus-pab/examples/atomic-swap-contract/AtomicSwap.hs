@@ -81,7 +81,7 @@ instance AsContractError AtomicSwapError where
 
 -- | Perform the atomic swap. Needs to be called by both of the two parties
 --   involved.
-atomicSwap :: Contract () AtomicSwapSchema AtomicSwapError (Waited ())
+atomicSwap :: Promise () AtomicSwapSchema AtomicSwapError ()
 atomicSwap = endpoint @"Atomic swap" $ \p -> do
     let value1 = mkValue1 p
         value2 = mkValue2 p

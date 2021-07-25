@@ -261,18 +261,18 @@ data BuyerEvent =
         | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
         | NoChange HighestBid -- ^ Nothing has changed
 
-waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract AuctionOutput BuyerSchema AuctionError (Waited BuyerEvent)
+waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract AuctionOutput BuyerSchema AuctionError BuyerEvent
 waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     t <- currentTime
     let
-        auctionOver = (AuctionIsOver lastHighestBid Haskell.<$) <$> awaitTime apEndTime
+        auctionOver = AuctionIsOver lastHighestBid Haskell.<$ isTime apEndTime
         submitOwnBid = endpoint @"bid" $ pure . SubmitOwnBid
         otherBid = do
             let address = Scripts.validatorAddress (SM.typedValidator (SM.scInstance client))
                 targetTime = TimeSlot.slotToBeginPOSIXTime def
                            $ Haskell.succ
                            $ TimeSlot.posixTimeToEnclosingSlot def t
-            bindWaited
+            promiseBind
                 (addressChangeRequest
                     AddressChangeRequest
                     { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot def targetTime
@@ -285,7 +285,7 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
                         _  -> maybe (AuctionIsOver lastHighestBid) OtherBid <$> currentState client
 
     -- see note [Buyer client]
-    auctionOver `select` submitOwnBid `select` otherBid
+    selectList [auctionOver, submitOwnBid, otherBid]
 
 handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract AuctionOutput BuyerSchema AuctionError (Either HighestBid ())
 handleEvent client lastHighestBid change =
@@ -318,13 +318,13 @@ auctionBuyer currency params = do
         client = machineClient inst currency params
 
         -- the actual loop, see note [Buyer client]
-        loop         = loopM (\h -> waitForChange params client h >>= handleEvent client h . getWaited)
+        loop   = loopM (\h -> waitForChange params client h >>= handleEvent client h)
     tell $ threadTokenOut currency
     initial <- currentState client
     case initial of
         Just s -> loop s
 
         -- If the state can't be found we wait for it to appear.
-        Nothing -> getWaited <$> SM.waitForUpdateUntilTime client (apEndTime params) >>= \case
+        Nothing -> SM.waitForUpdateUntilTime client (apEndTime params) >>= \case
             WaitingResult (Ongoing s) -> loop s
             _                         -> logWarn CurrentStateNotFound

@@ -110,7 +110,7 @@ handleUniswapContract = Builtin.handleBuiltin getSchema getContract where
     UniswapStart  -> Builtin.endpointsToSchemas @Uniswap.UniswapOwnerSchema
     Init          -> Builtin.endpointsToSchemas @Empty
   getContract = \case
-    UniswapUser us -> SomeBuiltin $ Uniswap.userEndpoints us
+    UniswapUser us -> SomeBuiltin . awaitPromise $ Uniswap.userEndpoints us
     UniswapStart   -> SomeBuiltin Uniswap.ownerEndpoint
     Init           -> SomeBuiltin US.setupTokens
 

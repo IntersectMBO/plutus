@@ -6,23 +6,28 @@ module Plutus.Contract(
       Contract(..)
     , ContractError(..)
     , AsContractError(..)
-    , Waited
-    , getWaited
-    , bindWaited
-    , both
-    , selectEither
-    , select
-    , selectList
+    , IsContract(..)
     , (>>)
     , throwError
     , handleError
     , mapError
     , runError
+    -- * Promises
+    , Promise
+    , awaitPromise
+    , promiseMap
+    , promiseBind
+    , both
+    , selectEither
+    , select
+    , selectList
     -- * Dealing with time
     , Request.awaitSlot
+    , Request.isSlot
     , Request.currentSlot
     , Request.waitNSlots
     , Request.awaitTime
+    , Request.isTime
     , Request.currentTime
     , Request.waitNMilliSeconds
     -- * Endpoints
@@ -66,6 +71,7 @@ module Plutus.Contract(
     , module Tx
     -- ** Tx confirmation
     , Request.awaitTxConfirmed
+    , Request.isTxConfirmed
     -- * Checkpoints
     , checkpoint
     , checkpointLoop
@@ -86,15 +92,14 @@ module Plutus.Contract(
 import           Data.Aeson                     (ToJSON (toJSON))
 import           Data.Row
 
-import           Plutus.Contract.Effects        (Waited (..), bindWaited)
 import           Plutus.Contract.Request        (ContractRow)
 import qualified Plutus.Contract.Request        as Request
 import qualified Plutus.Contract.Schema         as Schema
 import           Plutus.Contract.Typed.Tx       as Tx
 import           Plutus.Contract.Types          (AsCheckpointError (..), AsContractError (..), CheckpointError (..),
-                                                 Contract (..), ContractError (..), checkpoint, checkpointLoop,
-                                                 handleError, mapError, runError, select, selectEither, selectList,
-                                                 throwError)
+                                                 Contract (..), ContractError (..), IsContract (..), Promise (..),
+                                                 checkpoint, checkpointLoop, handleError, mapError, promiseBind,
+                                                 promiseMap, runError, select, selectEither, selectList, throwError)
 
 import qualified Control.Monad.Freer.Extras.Log as L
 import qualified Control.Monad.Freer.Writer     as W
@@ -105,10 +110,8 @@ import           Wallet.API                     (WalletAPIError)
 import qualified Wallet.Types
 
 -- | Execute both contracts in any order
-both :: Contract w s e (Waited a) -> Contract w s e (Waited b) -> Contract w s e (Waited (a, b))
-both a b =
-  let swap b_ a_ = (a_, b_) in
-  (liftF2 (,) <$> a <*> b) `select` (liftF2 swap <$> b <*> a)
+both :: Promise w s e a -> Promise w s e b -> Promise w s e (a, b)
+both a b = liftF2 (,) a b `select` liftF2 (flip (,)) b a
 
 -- | Log a message at the 'Debug' level
 logDebug :: ToJSON a => a -> Contract w s e ()

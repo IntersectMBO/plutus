@@ -155,8 +155,8 @@ instance Monoid LastResult where
 type MarloweContractState = LastResult
 
 
-marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweError (Waited ())
-marloweFollowContract = endpoint @"follow" $ \params -> do
+marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweError ()
+marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
     slot <- currentSlot
     checkpointLoop follow (0, slot, params)
   where
@@ -164,7 +164,7 @@ marloweFollowContract = endpoint @"follow" $ \params -> do
         let client@StateMachineClient{scInstance} = mkMarloweClient params
         let inst = SM.typedValidator scInstance
         let address = Scripts.validatorAddress inst
-        AddressChangeResponse{acrTxns} <- getWaited <$> addressChangeRequest
+        AddressChangeResponse{acrTxns} <- awaitPromise $ addressChangeRequest
                 AddressChangeRequest
                 { acreqSlotRangeFrom = ifrom
                 , acreqSlotRangeTo = ito
@@ -256,7 +256,7 @@ marlowePlutusContract = do
         _ <- applyInputs params slotInterval inputs
         tell OK
         marlowePlutusContract
-    redeem = mapError (review _MarloweError) $ endpoint @"redeem" $ \(MarloweParams{rolesCurrency}, role, pkh) -> do
+    redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(MarloweParams{rolesCurrency}, role, pkh) -> do
         let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
         utxos <- utxoAt address
         let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
@@ -296,7 +296,7 @@ marlowePlutusContract = do
         maybeState <- SM.getOnChainState theClient
         case maybeState of
             Nothing -> do
-                wr <- getWaited <$> SM.waitForUpdateUntilSlot theClient untilSlot
+                wr <- SM.waitForUpdateUntilSlot theClient untilSlot
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended for party " <> show party
@@ -341,7 +341,7 @@ marlowePlutusContract = do
                 continueWith marloweData
             WaitOtherActionUntil timeout -> do
                 logInfo @String $ "WaitOtherActionUntil " <> show timeout
-                wr <- getWaited <$> SM.waitForUpdateUntilSlot theClient timeout
+                wr <- SM.waitForUpdateUntilSlot theClient timeout
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended"
@@ -664,7 +664,7 @@ marloweCompanionContract = contracts
         forM_ txOuts notifyOnNewContractRoles
         checkpointLoop (fmap Right <$> cont) ownAddress
     cont ownAddress = do
-        txns <- getWaited <$> nextTransactionsAt ownAddress
+        txns <- nextTransactionsAt ownAddress
         let txOuts = txns >>= eitherTx (const []) txOutputs
         forM_ txOuts notifyOnNewContractRoles
         pure ownAddress

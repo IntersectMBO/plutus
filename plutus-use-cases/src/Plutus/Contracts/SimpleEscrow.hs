@@ -123,7 +123,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
 
 -- | Lock the 'paying' 'Value' in the output of this script, with the
 -- requirement that the transaction validates before the 'deadline'.
-lockEp :: Contract () EscrowSchema EscrowError (Waited ())
+lockEp :: Promise () EscrowSchema EscrowError ()
 lockEp = endpoint @"lock" $ \params -> do
   let valRange = Interval.to (Haskell.pred $ deadline params)
       tx = Constraints.mustPayToTheScript params (paying params)
@@ -132,7 +132,7 @@ lockEp = endpoint @"lock" $ \params -> do
 
 -- | Attempts to redeem the 'Value' locked into this script by paying in from
 -- the callers address to the payee.
-redeemEp :: Contract () EscrowSchema EscrowError (Waited RedeemSuccess)
+redeemEp :: Promise () EscrowSchema EscrowError RedeemSuccess
 redeemEp = endpoint @"redeem" redeem
   where
     redeem params = do
@@ -153,7 +153,7 @@ redeemEp = endpoint @"redeem" redeem
       else RedeemSuccess . txId <$> do submitTxConstraintsSpending escrowInstance unspentOutputs tx
 
 -- | Refunds the locked amount back to the 'payee'.
-refundEp :: Contract () EscrowSchema EscrowError (Waited RefundSuccess)
+refundEp :: Promise () EscrowSchema EscrowError RefundSuccess
 refundEp = endpoint @"refund" refund
   where
     refund params = do

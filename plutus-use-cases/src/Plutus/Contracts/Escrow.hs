@@ -217,10 +217,11 @@ escrowContract escrow =
         payAndRefund = endpoint @"pay-escrow" $ \vl -> do
             _ <- pay inst escrow vl
             _ <- awaitTime $ escrowDeadline escrow
-            void $ refund inst escrow
+            refund inst escrow
     in selectList
-        [ payAndRefund
-        , fmap void $ redeemEp escrow]
+        [ void $ payAndRefund
+        , void $ redeemEp escrow
+        ]
 
 -- | 'pay' with an endpoint that gets the owner's public key and the
 --   contribution.
@@ -230,8 +231,10 @@ payEp ::
     , AsEscrowError e
     )
     => EscrowParams Datum
-    -> Contract w s e (Waited TxId)
-payEp escrow = mapError (review _EContractError) $ endpoint @"pay-escrow" $ pay (typedValidator escrow) escrow
+    -> Promise w s e TxId
+payEp escrow = promiseMap
+    (mapError (review _EContractError))
+    (endpoint @"pay-escrow" $ pay (typedValidator escrow) escrow)
 
 -- | Pay some money into the escrow contract.
 pay ::
@@ -261,10 +264,10 @@ redeemEp ::
     , AsEscrowError e
     )
     => EscrowParams Datum
-    -> Contract w s e (Waited RedeemSuccess)
-redeemEp escrow =
-    mapError (review _EscrowError) $
-    endpoint @"redeem-escrow" $ \() -> redeem (typedValidator escrow) escrow
+    -> Promise w s e RedeemSuccess
+redeemEp escrow = promiseMap
+    (mapError (review _EscrowError))
+    (endpoint @"redeem-escrow" $ \() -> redeem (typedValidator escrow) escrow)
 
 -- | Redeem all outputs at the contract address using a transaction that
 --   has all the outputs defined in the contract's list of targets.
@@ -300,7 +303,7 @@ refundEp ::
     ( HasEndpoint "refund-escrow" () s
     )
     => EscrowParams Datum
-    -> Contract w s EscrowError (Waited RefundSuccess)
+    -> Promise w s EscrowError RefundSuccess
 refundEp escrow = endpoint @"refund-escrow" $ \() -> refund (typedValidator escrow) escrow
 
 -- | Claim a refund of the contribution.
@@ -329,15 +332,16 @@ payRedeemRefund ::
     -> Contract w s EscrowError (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
     let inst = typedValidator params
+        go = do
+            cur <- utxoAt (Scripts.validatorAddress inst)
+            let presentVal = foldMap (Tx.txOutValue . Tx.txOutTxOut) cur
+            if presentVal `geq` targetTotal params
+                then Right <$> redeem inst params
+                else do
+                    time <- currentTime
+                    if time >= escrowDeadline params
+                        then Left <$> refund inst params
+                        else waitNSlots 1 >> go
     -- Pay the value 'vl' into the contract
     _ <- pay inst params vl
-    outcome <- selectEither (awaitTime (escrowDeadline params)) (fundsAtAddressGeq (Scripts.validatorAddress inst) (targetTotal params))
-    -- wait
-    -- for the 'targetTotal' of the contract to appear at the address, or
-    -- for the 'escrowDeadline' to pass, whichever happens first.
-    -- If 'outcome' is a 'Right' then the total amount was deposited before the
-    -- deadline, and we procedd with 'redeem'. If it's a 'Left', there are not
-    -- enough funds at the address and we refund our own contribution.
-    case getWaited outcome of
-        Right _ -> Right <$> redeem inst params
-        Left _  -> Left <$> refund inst params
+    go

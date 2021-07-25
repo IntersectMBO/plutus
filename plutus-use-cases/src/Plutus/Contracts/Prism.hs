@@ -105,7 +105,7 @@ instance AsContractError PrismError where
 --   the PAB we could simply start all four contracts (credentialManager,
 --   mirror, subscribeSTO, subscribeExchange) separately.
 contract :: Contract () PrismSchema PrismError ()
-contract = fmap getWaited $ endpoint @"role" $ \r -> do
+contract = awaitPromise $ endpoint @"role" $ \r -> do
     case r of
         Mirror         -> mapError MirrorErr mirror
         UnlockSTO      -> mapError UnlockSTOErr subscribeSTO

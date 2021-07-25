@@ -51,11 +51,11 @@ import qualified Data.Row.Internal                       as V
 import           Data.String                             (IsString (..))
 import qualified GHC.TypeLits
 import           Plutus.Contract                         (Contract, HasEndpoint)
-import           Plutus.Contract.Effects                 (ActiveEndpoint, PABResp (ExposeEndpointResp), Waited (..),
+import           Plutus.Contract.Effects                 (ActiveEndpoint, PABResp (ExposeEndpointResp),
                                                           _ExposeEndpointReq)
 import           Plutus.Contract.Resumable               (Request (rqRequest), Requests (..))
 import           Plutus.Contract.Schema                  (Input, Output)
-import           Plutus.Contract.Types                   (ResumableResult (..))
+import           Plutus.Contract.Types                   (IsContract (..), ResumableResult (..))
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, nextId)
 import           Plutus.Trace.Emulator.ContractInstance  (contractThread, getThread)
 import           Plutus.Trace.Emulator.Types             (ContractHandle (..), ContractInstanceState (..),
@@ -87,9 +87,9 @@ type ContractConstraints s =
 walletInstanceTag :: Wallet -> ContractInstanceTag
 walletInstanceTag (Wallet i) = fromString $ "Contract instance for wallet " <> show i
 
--- | Run a Plutus contract (client side)activateContractWallet
+-- | Run a Plutus contract (client side)
 data RunContract r where
-    ActivateContract :: (ContractConstraints s, Show e, JSON.FromJSON e, JSON.ToJSON e, JSON.ToJSON w, Monoid w, JSON.FromJSON w) => Wallet -> Contract w s e a -> ContractInstanceTag -> RunContract (ContractHandle w s e)
+    ActivateContract :: (IsContract contract, ContractConstraints s, Show e, JSON.FromJSON e, JSON.ToJSON e, JSON.ToJSON w, Monoid w, JSON.FromJSON w) => Wallet -> contract w s e a -> ContractInstanceTag -> RunContract (ContractHandle w s e)
     CallEndpointP :: forall l ep w s e. (ContractConstraints s, HasEndpoint l ep s, JSON.ToJSON ep) => Proxy l -> ContractHandle w s e -> ep -> RunContract ()
     GetContractState :: forall w s e. (ContractConstraints s, JSON.FromJSON e, JSON.FromJSON w, JSON.ToJSON w) => ContractHandle w s e -> RunContract (ContractInstanceState w s e ())
 
@@ -103,8 +103,9 @@ callEndpoint hdl v = callEndpointP (Proxy @l) hdl v
 
 -- | Like 'activateContract', but using 'walletInstanceTag' for the tag.
 activateContractWallet
-    :: forall w s e effs ignored.
-    ( ContractConstraints s
+    :: forall contract w s e effs.
+    ( IsContract contract
+    , ContractConstraints s
     , Show e
     , JSON.ToJSON e
     , JSON.FromJSON e
@@ -114,7 +115,7 @@ activateContractWallet
     , Monoid w
     )
     => Wallet
-    -> Contract w s e ignored
+    -> contract w s e ()
     -> Eff effs (ContractHandle w s e)
 activateContractWallet w contract = activateContract w contract (walletInstanceTag w)
 
@@ -135,7 +136,7 @@ handleRunContract :: forall effs effs2.
     => RunContract
     ~> Eff effs
 handleRunContract = \case
-    ActivateContract w c t -> handleActivate @_ @_ @_ @effs @effs2 w t (void c)
+    ActivateContract w c t -> handleActivate @_ @_ @_ @effs @effs2 w t (void (toContract c))
     CallEndpointP p h v -> handleCallEndpoint @_ @_ @_ @_ @_ @effs @effs2 p h v
     GetContractState hdl ->
         interpret (mapLog UserThreadEvent)
@@ -250,7 +251,7 @@ handleCallEndpoint :: forall w s l e ep effs effs2.
     -> ep
     -> Eff effs ()
 handleCallEndpoint p ContractHandle{chInstanceId} ep = do
-    let epJson = JSON.toJSON $ ExposeEndpointResp description $ Waited $ EndpointValue $ JSON.toJSON ep
+    let epJson = JSON.toJSON $ ExposeEndpointResp description $ EndpointValue $ JSON.toJSON ep
         description = EndpointDescription $ GHC.TypeLits.symbolVal p
         thr = do
             threadId <- getThread chInstanceId

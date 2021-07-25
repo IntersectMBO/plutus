@@ -8,7 +8,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Newtype (unwrap)
 import Halogen.HTML (HTML, b_, div_, span_, text)
-import Plutus.Contract.Effects (ActiveEndpoint, BalanceTxResponse(..), WriteBalancedTxResponse(..), PABReq(..), PABResp(..), Waited(..))
+import Plutus.Contract.Effects (ActiveEndpoint, BalanceTxResponse(..), WriteBalancedTxResponse(..), PABReq(..), PABResp(..))
 import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
@@ -49,11 +49,8 @@ instance prettyResponse :: Pretty a => Pretty (Response a) where
       , div_ [ pretty rspResponse ]
       ]
 
-instance prettyWaited :: Pretty a => Pretty (Waited a) where
-  pretty (Waited { getWaited: a }) = pretty a
-
 instance prettyPABResp :: Pretty PABResp where
-  pretty (AwaitSlotResp (Waited { getWaited: slot })) =
+  pretty (AwaitSlotResp slot) =
     span_
       [ text "AwaitSlotResponse:"
       , nbsp
@@ -65,7 +62,7 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show slot
       ]
-  pretty (AwaitTimeResp (Waited { getWaited: time })) =
+  pretty (AwaitTimeResp time) =
     span_
       [ text "AwaitTimeResponse:"
       , nbsp
@@ -77,13 +74,13 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show time
       ]
-  pretty (AwaitTxConfirmedResp (Waited { getWaited: txConfirmed })) =
+  pretty (AwaitTxConfirmedResp txConfirmed) =
     span_
       [ text "AwaitTxConfirmedResponse:"
       , nbsp
       , text $ view _txId txConfirmed
       ]
-  pretty (ExposeEndpointResp endpointDescription (Waited { getWaited: endpointValue })) =
+  pretty (ExposeEndpointResp endpointDescription endpointValue) =
     span_
       [ text "UserEndpointResponse:"
       , nbsp

@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
@@ -32,8 +31,6 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _BalanceTxResp,
     _WriteBalancedTxResp,
     _ExposeEndpointResp,
-    Waited(..),
-    bindWaited,
     matches,
 
     -- * Etc.
@@ -49,8 +46,6 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
 import           Control.Lens                (Iso', iso, makePrisms)
 import           Data.Aeson                  (FromJSON, ToJSON)
 import qualified Data.Aeson                  as JSON
-import           Data.Functor.Apply          (Apply (..))
-import           Data.Functor.Extend         (Extend (..))
 import qualified Data.Map                    as Map
 import           Data.Text.Prettyprint.Doc   (Pretty (..), colon, indent, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
@@ -97,18 +92,18 @@ instance Pretty PABReq where
 
 -- | Responses that 'Contract's receive
 data PABResp =
-    AwaitSlotResp (Waited Slot)
-    | AwaitTimeResp (Waited POSIXTime)
+    AwaitSlotResp Slot
+    | AwaitTimeResp POSIXTime
     | CurrentSlotResp Slot
     | CurrentTimeResp POSIXTime
-    | AwaitTxConfirmedResp (Waited TxId)
+    | AwaitTxConfirmedResp TxId
     | OwnContractInstanceIdResp ContractInstanceId
     | OwnPublicKeyResp PubKey
     | UtxoAtResp UtxoAtAddress
     | AddressChangeResp AddressChangeResponse
     | BalanceTxResp BalanceTxResponse
     | WriteBalancedTxResp WriteBalancedTxResponse
-    | ExposeEndpointResp EndpointDescription (Waited (EndpointValue JSON.Value))
+    | ExposeEndpointResp EndpointDescription (EndpointValue JSON.Value)
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -144,24 +139,6 @@ matches a b = case (a, b) of
   (ExposeEndpointReq ActiveEndpoint{aeDescription}, ExposeEndpointResp desc _)
     | aeDescription == desc -> True
   _                                                       -> False
-
--- | A wrapper indicating that calulating this value was not immediate. For use with @select@.
-newtype Waited a = Waited { getWaited :: a }
-    deriving stock (Eq, Show, Generic, Functor, Foldable, Traversable)
-    deriving anyclass (ToJSON, FromJSON)
-    deriving Pretty via a
-
-instance Apply Waited where
-    liftF2 f (Waited a) (Waited b) = Waited (f a b)
-
--- 'Waited' is actually a complete comonad, with 'getWaited' as 'extract'.
-instance Extend Waited where
-    extended f = Waited . f
-
-bindWaited :: Monad m => m (Waited a) -> (a -> m b) -> m (Waited b)
-bindWaited ma f = do
-  Waited a <- ma
-  Waited <$> f a
 
 data UtxoAtAddress =
     UtxoAtAddress

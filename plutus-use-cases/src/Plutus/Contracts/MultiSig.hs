@@ -75,7 +75,7 @@ typedValidator = Scripts.mkTypedValidatorParam @MultiSig
 
 
 -- | Lock some funds in a 'MultiSig' contract.
-lock :: AsContractError e => Contract () MultiSigSchema e (Waited ())
+lock :: AsContractError e => Promise () MultiSigSchema e ()
 lock = endpoint @"lock" $ \(ms, vl) -> do
     let tx = Constraints.mustPayToTheScript () vl
     let inst = typedValidator ms
@@ -83,7 +83,7 @@ lock = endpoint @"lock" $ \(ms, vl) -> do
 
 -- | The @"unlock"@ endpoint, unlocking some funds with a list
 --   of signatures.
-unlock :: AsContractError e => Contract () MultiSigSchema e (Waited ())
+unlock :: AsContractError e => Promise () MultiSigSchema e ()
 unlock = endpoint @"unlock" $ \(ms, pks) -> do
     let inst = typedValidator ms
     utx <- utxoAt (Scripts.validatorAddress inst)
