@@ -5,12 +5,13 @@
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE NumericUnderscores   #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-| Hedgehog generators for types used in plutus-chain-index
 -}
-module Generators(
+module Spec.ChainIndex.Generators(
     genTxOutRef,
     genRandomTxId,
     genSlot,

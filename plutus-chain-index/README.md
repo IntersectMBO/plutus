@@ -5,6 +5,9 @@ The information that is stored is useful for Plutus smart contracts: Various has
 
 The chain index is intended to be used primarily by the PAB, but its HTTP interface can be accessed by other applications also.
 
+This package contains the chain index executable that connects to the Alonzo node. 
+The types and operations of the chain index are defined in `plutus-contract`.
+
 ## Design goals
 
 - Minimise RAM usage

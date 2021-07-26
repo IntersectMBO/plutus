@@ -29,13 +29,13 @@ common lang
 
 library
     import: lang
-    exposed-modules:
-        Plutus.ChainIndex
-        Plutus.ChainIndex.Effects
-        Plutus.ChainIndex.Emulator.DiskState
-        Plutus.ChainIndex.Emulator.Handlers
-        Plutus.ChainIndex.Tx
-        Plutus.ChainIndex.Types
+    reexported-modules:
+        Plutus.ChainIndex,
+        Plutus.ChainIndex.Effects,
+        Plutus.ChainIndex.Emulator.DiskState,
+        Plutus.ChainIndex.Emulator.Handlers,
+        Plutus.ChainIndex.Tx,
+        Plutus.ChainIndex.Types,
         Plutus.ChainIndex.UtxoState
     hs-source-dirs: src
     build-depends:
@@ -43,39 +43,6 @@ library
         plutus-ledger-api -any,
         plutus-tx -any,
         freer-extras -any,
+        plutus-contract -any
     build-depends:
-        aeson -any,
         base >=4.7 && <5,
-        containers -any,
-        fingertree -any,
-        freer-simple -any,
-        lens -any,
-        prettyprinter >=1.1.0.1,
-        semigroups -any,
-        bytestring -any,
-        data-default -any
-
-test-suite plutus-chain-index-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: test
-    other-modules:
-        Generators
-    build-depends:
-        plutus-ledger -any,
-        plutus-ledger-api -any,
-        plutus-tx -any,
-        plutus-chain-index -any
-    build-depends:
-        base >=4.9 && <5,
-        hedgehog -any,
-        tasty -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
-        containers -any,
-        serialise -any,
-        bytestring -any,
-        freer-simple -any,
-        lens -any
-

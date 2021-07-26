@@ -39,6 +39,13 @@ library
         Data.Row.Extras
         Data.Text.Extras
         Data.UUID.Extras
+        Plutus.ChainIndex.Effects
+        Plutus.ChainIndex.Emulator.DiskState
+        Plutus.ChainIndex.Emulator.Handlers
+        Plutus.ChainIndex.Tx
+        Plutus.ChainIndex.Types
+        Plutus.ChainIndex.UtxoState
+        Plutus.ChainIndex
         Plutus.Contract
         Plutus.Contract.CardanoAPI
         Plutus.Contract.Effects
@@ -141,7 +148,6 @@ library
         foldl -any,
         streaming -any,
         IntervalMap -any,
-        plutus-chain-index -any,
         plutus-core -any
 
     if !(impl(ghcjs) || os(ghcjs))
@@ -171,6 +177,8 @@ test-suite plutus-contract-test
         Spec.Emulator
         Spec.Rows
         Spec.State
+        Spec.ChainIndex
+        Spec.ChainIndex.Generators
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -192,7 +200,8 @@ test-suite plutus-contract-test
         plutus-ledger -any,
         plutus-tx -any,
         freer-simple -any,
-        aeson -any
+        aeson -any,
+        serialise -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

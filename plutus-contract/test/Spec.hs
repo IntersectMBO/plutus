@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main(main) where
 
+import qualified Spec.ChainIndex
 import qualified Spec.Contract
 import qualified Spec.Emulator
 import qualified Spec.Rows
@@ -15,5 +16,6 @@ tests = testGroup "plutus-contract" [
     Spec.Contract.tests,
     Spec.Emulator.tests,
     Spec.State.tests,
-    Spec.Rows.tests
+    Spec.Rows.tests,
+    Spec.ChainIndex.tests
     ]

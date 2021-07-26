@@ -1,9 +1,9 @@
-{-# LANGUAGE MonoLocalBinds   #-}
-{-# LANGUAGE TypeApplications #-}
-
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds   #-}
 {-# LANGUAGE NamedFieldPuns   #-}
-module Main(main) where
+{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE TypeApplications #-}
+module Spec.ChainIndex(tests) where
 
 import           Control.Monad               (foldM, replicateM)
 import           Control.Monad.Freer         (Eff, Member, runM, sendM)
@@ -13,23 +13,20 @@ import           Data.Either                 (isRight)
 import           Data.Foldable               (fold, toList)
 import           Data.List                   (sort)
 import qualified Data.Set                    as Set
-import qualified Generators                  as Gen
 import           Hedgehog                    (Property, annotateShow, assert, failure, forAll, property, (===))
 import qualified Hedgehog.Gen                as Gen
 import qualified Hedgehog.Range              as Range
 import           Plutus.ChainIndex.Types     (Tip (..))
 import           Plutus.ChainIndex.UtxoState (InsertUtxoSuccess (..), RollbackResult (..), TxUtxoBalance (..))
 import qualified Plutus.ChainIndex.UtxoState as UtxoState
+import qualified Spec.ChainIndex.Generators  as Gen
 import           Test.Tasty
 import           Test.Tasty.Hedgehog         (testProperty)
 
-main :: IO ()
-main = defaultMain tests
-
 tests :: TestTree
 tests =
-    testGroup "utxo balance" [
-        testGroup "monoid" [
+    testGroup "chain index" [
+        testGroup "utxo balance - monoid" [
             testProperty "associative" semigroup_utxobalance_associative,
             testProperty "unit" monoid_utxobalance_unit
             ],

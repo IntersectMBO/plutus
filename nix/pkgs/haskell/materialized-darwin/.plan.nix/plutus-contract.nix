@@ -76,7 +76,6 @@
           (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
           (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
           (hsPkgs."IntervalMap" or (errorHandler.buildDepError "IntervalMap"))
-          (hsPkgs."plutus-chain-index" or (errorHandler.buildDepError "plutus-chain-index"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))) ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
@@ -88,6 +87,13 @@
           "Data/Row/Extras"
           "Data/Text/Extras"
           "Data/UUID/Extras"
+          "Plutus/ChainIndex/Effects"
+          "Plutus/ChainIndex/Emulator/DiskState"
+          "Plutus/ChainIndex/Emulator/Handlers"
+          "Plutus/ChainIndex/Tx"
+          "Plutus/ChainIndex/Types"
+          "Plutus/ChainIndex/UtxoState"
+          "Plutus/ChainIndex"
           "Plutus/Contract"
           "Plutus/Contract/CardanoAPI"
           "Plutus/Contract/Effects"
@@ -173,6 +179,7 @@
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [
@@ -180,6 +187,8 @@
             "Spec/Emulator"
             "Spec/Rows"
             "Spec/State"
+            "Spec/ChainIndex"
+            "Spec/ChainIndex/Generators"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
