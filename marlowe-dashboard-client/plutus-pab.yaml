@@ -22,6 +22,7 @@ nodeServerConfig:
   mscBaseUrl: http://localhost:8082
   mscSocketPath: ./node-server.sock
   mscKeptBlocks: 100
+  mscNetworkId: "1"
   # mscRandomTxInterval: 20 -- this creates random transactions on the blockchain
   mscSlotConfig:
     scZeroSlotTime: 1591566291000 # In milliseconds. See note [Datetime to slot] in Marlowe.Slot

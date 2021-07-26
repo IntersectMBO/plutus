@@ -51,6 +51,7 @@ instance showWebSocketStatus :: Show WebSocketStatus where
 ------------------------------------------------------------
 type ChildSlots
   = ( tooltipSlot :: forall query. H.Slot query Void ReferenceId
+    , hintSlot :: forall query. H.Slot query Void String
     , submitButtonSlot :: H.Slot LoadingSubmitButton.Query LoadingSubmitButton.Message String
     )
 

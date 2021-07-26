@@ -42,7 +42,7 @@ import qualified Cardano.Api.Shelley         as C
 import qualified Cardano.Ledger.Era          as C
 import qualified Codec.Serialise             as Codec
 import           Data.Bifunctor              (first)
-import           Data.ByteString             (ByteString)
+import           Data.ByteString             as BS
 import qualified Data.ByteString.Lazy        as BSL
 import           Data.ByteString.Short       as BSS
 import qualified Data.Map                    as Map
@@ -71,8 +71,12 @@ fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
         , txRedeemers = mempty -- only available with a Build Tx
         }
 
-toCardanoTxBody :: C.NetworkId -> P.Tx -> Either ToCardanoError (C.TxBody C.AlonzoEra)
-toCardanoTxBody networkId P.Tx{..} = do
+toCardanoTxBody ::
+    Maybe C.ProtocolParameters -- ^ Protocol parameters to use. Building Plutus transactions will fail if this is 'Nothing'
+    -> C.NetworkId -- ^ Network ID
+    -> P.Tx
+    -> Either ToCardanoError (C.TxBody C.AlonzoEra)
+toCardanoTxBody protocolParams networkId P.Tx{..} = do
     txIns <- traverse toCardanoTxInBuild $ Set.toList txInputs
     txInsCollateral <- toCardanoTxInsCollateral txCollateral
     txOuts <- traverse (toCardanoTxOut networkId) txOutputs
@@ -91,7 +95,7 @@ toCardanoTxBody networkId P.Tx{..} = do
         , txMetadata = C.TxMetadataNone
         , txAuxScripts = C.TxAuxScriptsNone
         , txExtraKeyWits = C.TxExtraKeyWitnessesNone
-        , txProtocolParams = C.BuildTxWith Nothing
+        , txProtocolParams = C.BuildTxWith protocolParams
         , txWithdrawals = C.TxWithdrawalsNone
         , txCertificates = C.TxCertificatesNone
         , txUpdateProposal = C.TxUpdateProposalNone
@@ -266,14 +270,17 @@ fromCardanoValue (C.valueToList -> list) = foldMap toValue list
 toCardanoValue :: P.Value -> Either ToCardanoError C.Value
 toCardanoValue = fmap C.valueFromList . traverse fromValue . Value.flattenValue
     where
-        fromValue (currencySymbol, tokenName, amount) =
-            (,) <$> (C.AssetId <$> toCardanoPolicyId (Value.currencyMPSHash currencySymbol) <*> pure (toCardanoAssetName tokenName)) <*> pure (C.Quantity amount)
+        fromValue (currencySymbol, tokenName, amount)
+            | currencySymbol == Ada.adaSymbol && tokenName == Ada.adaToken =
+                pure (C.AdaAssetId, C.Quantity amount)
+            | otherwise =
+                (,) <$> (C.AssetId <$> toCardanoPolicyId (Value.currencyMPSHash currencySymbol) <*> pure (toCardanoAssetName tokenName)) <*> pure (C.Quantity amount)
 
 fromCardanoPolicyId :: C.PolicyId -> P.MintingPolicyHash
 fromCardanoPolicyId (C.PolicyId scriptHash) = P.MintingPolicyHash (C.serialiseToRawBytes scriptHash)
 
 toCardanoPolicyId :: P.MintingPolicyHash -> Either ToCardanoError C.PolicyId
-toCardanoPolicyId (P.MintingPolicyHash bs) = C.PolicyId <$> tag "toCardanoPolicyId" (deserialiseFromRawBytes C.AsScriptHash bs)
+toCardanoPolicyId (P.MintingPolicyHash bs) = C.PolicyId <$> tag "toCardanoPolicyId" (tag (show (BS.length bs) <> " bytes") (deserialiseFromRawBytes C.AsScriptHash bs))
 
 fromCardanoAssetName :: C.AssetName -> Value.TokenName
 fromCardanoAssetName (C.AssetName bs) = Value.TokenName bs
@@ -394,8 +401,8 @@ data ToCardanoError
     | Tag String ToCardanoError
 
 instance Pretty ToCardanoError where
-    pretty (EvaluationError err)       = pretty err
-    pretty (TxBodyError err)           = pretty $ C.displayError err
+    pretty (EvaluationError err)       = "EvaluationError" <> colon <+> pretty err
+    pretty (TxBodyError err)           = "TxBodyError" <> colon <+> pretty (C.displayError err)
     pretty DeserialisationError        = "ByteString deserialisation failed"
     pretty InvalidValidityRange        = "Invalid validity range"
     pretty ValueNotPureAda             = "Fee values should only contain Ada"

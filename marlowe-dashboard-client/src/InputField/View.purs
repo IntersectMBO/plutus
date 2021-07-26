@@ -84,9 +84,7 @@ renderInput options@{ numberFormat: Nothing, valueOptions } state =
             else
               []
       , div
-          [ classNames
-              $ [ "absolute", "z-20", "w-full", "max-h-56", "overflow-x-hidden", "overflow-y-auto", "-mt-2", "pt-2", "border-b", "border-l", "border-r", "border-gray", "bg-white", "shadow", "rounded-b", "transition-all", "duration-200" ]
-              <> if (not dropdownOpen || matchingValueOptions == mempty) then [ "hidden", "opacity-0" ] else [ "opacity-100" ]
+          [ classNames $ Css.pseudoDropdown (dropdownOpen && matchingValueOptions /= mempty)
           , onMouseEnter $ const $ Just $ SetDropdownLocked true
           , onMouseLeave $ const $ Just $ SetDropdownLocked false
           ]
@@ -130,6 +128,39 @@ renderInput options@{ numberFormat: Just DefaultFormat } state =
           [ text if showError then foldMap inputErrorToString mError else mempty ]
       ]
 
+renderInput options@{ numberFormat: Just TimeFormat } state =
+  let
+    mError = validate state
+
+    currentValue = view _value state
+
+    pristine = view _pristine state
+
+    showError = not pristine && isJust mError
+
+    additionalCss = view _additionalCss options
+  in
+    div_
+      [ div
+          [ classNames $ Css.input (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
+          [ input
+              [ type_ InputNumber
+              , classNames $ Css.unstyledInput <> [ "flex-1" ]
+              , id_ $ view _id_ options
+              , value currentValue
+              , readOnly $ view _readOnly options
+              , autocomplete false
+              , onValueInput_ SetValue
+              , onBlur_ $ FormatValue TimeFormat
+              ]
+          , span_
+              [ text "minutes" ]
+          ]
+      , div
+          [ classNames Css.inputError ]
+          [ text if showError then foldMap inputErrorToString mError else mempty ]
+      ]
+
 renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state =
   let
     mError = validate state
@@ -144,7 +175,7 @@ renderInput options@{ numberFormat: Just (DecimalFormat decimals label) } state 
   in
     div_
       [ div
-          [ classNames $ Css.input (not showError) <> [ "flex", "gap-1" ] ]
+          [ classNames $ Css.input (not showError) <> additionalCss <> [ "flex", "gap-1", "items-baseline" ] ]
           [ span_
               [ text label ]
           , input

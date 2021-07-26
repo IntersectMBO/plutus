@@ -4,6 +4,7 @@ module Humanize
   , formatTime
   , humanizeInterval
   , humanizeValue
+  , contractIcon
   ) where
 
 import Prelude
@@ -18,12 +19,16 @@ import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Seconds(..))
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
+import Halogen.HTML (HTML, img)
+import Halogen.HTML.Properties (src)
+import Images (cfdIcon, loanIcon, purchaseIcon)
+import Marlowe.Extended (ContractType(..))
 import Marlowe.Semantics (Slot, SlotInterval(..), Token(..))
 import Marlowe.Slot (slotToDateTime)
 
 humanizeDuration :: Seconds -> String
 humanizeDuration (Seconds seconds)
-  | seconds <= 0.0 = "timed out"
+  | seconds <= 0.0 = "Timed out"
   | seconds <= 60.0 = show (floor seconds) <> "sec left"
   | seconds <= (60.0 * 60.0) =
     let
@@ -104,3 +109,12 @@ numberFormatter decimals =
     , after: decimals
     , abbreviations: false
     }
+
+contractIcon :: forall p a. ContractType -> HTML p a
+contractIcon contractType =
+  img
+    [ src case contractType of
+        Escrow -> purchaseIcon
+        ZeroCouponBond -> loanIcon
+        _ -> cfdIcon
+    ]

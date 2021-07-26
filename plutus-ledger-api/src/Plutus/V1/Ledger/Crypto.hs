@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module Plutus.V1.Ledger.Crypto(
@@ -31,6 +32,7 @@ module Plutus.V1.Ledger.Crypto(
     , privateKey10
     ) where
 
+import           Cardano.Crypto.Hash       as Crypto
 import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Control.Newtype.Generics  (Newtype)
@@ -81,13 +83,12 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
 
-{-# INLINABLE pubKeyHash #-}
 -- | Compute the hash of a public key.
 pubKeyHash :: PubKey -> PubKeyHash
 pubKeyHash (PubKey (LedgerBytes bs)) =
-    -- this needs to be usable in on-chain code as well, so we have to
-    -- INLINABLE & use the hash function from Builtins
-    PubKeyHash (Builtins.sha2_256 bs)
+    PubKeyHash
+      $ Crypto.hashToBytes
+      $ Crypto.hashWith @Crypto.Blake2b_224 id bs
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }

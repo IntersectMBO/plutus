@@ -5,6 +5,7 @@ import Bridge (toFront)
 import Capability.Marlowe (class ManageMarlowe, getFollowerApps, getRoleContracts, subscribeToPlutusApp, subscribeToWallet, unsubscribeFromPlutusApp, unsubscribeFromWallet)
 import Capability.MarloweStorage (class ManageMarloweStorage, getContractNicknames, getWalletLibrary)
 import Capability.Toast (class Toast, addToast)
+import Clipboard (class MonadClipboard)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Reader (class MonadAsk)
 import Control.Monad.Reader.Class (ask)
@@ -33,7 +34,6 @@ import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocket
 import MainFrame.View (render)
 import Marlowe.PAB (PlutusAppId)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
-import Template.Types (Action(..)) as Template
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
 import Toast.Types (decodedAjaxErrorToast, decodingErrorToast)
@@ -49,6 +49,7 @@ mkMainFrame ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadClipboard m =>
   Component HTML Query Action Msg m
 mkMainFrame =
   mkComponent
@@ -78,6 +79,7 @@ handleQuery ::
   MonadAsk Env m =>
   ManageMarlowe m =>
   Toast m =>
+  MonadClipboard m =>
   Query a -> HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   case msg of
@@ -105,7 +107,6 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
       SlotChange slot -> do
         assign _currentSlot $ toFront slot
         handleAction $ DashboardAction Dashboard.AdvanceTimedoutSteps
-        handleAction $ DashboardAction $ Dashboard.TemplateAction Template.UpdateSlotContentValidators
       -- update the wallet funds (if the change is to the current wallet)
       -- note: we should only ever be notified of changes to the current wallet, since we subscribe to
       -- this update when we pick it up, and unsubscribe when we put it down - but we check here
@@ -176,6 +177,7 @@ handleAction ::
   ManageMarlowe m =>
   ManageMarloweStorage m =>
   Toast m =>
+  MonadClipboard m =>
   Action ->
   HalogenM State Action ChildSlots Msg m Unit
 -- mainframe actions

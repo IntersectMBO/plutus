@@ -10,6 +10,8 @@ module Css
   , whiteButton
   , input
   , inputNoFocus
+  , inputNoBorder
+  , pseudoDropdown
   , unstyledInput
   , inputError
   , hasNestedLabel
@@ -45,7 +47,6 @@ button =
   [ "px-6"
   , "py-4"
   , "rounded-full"
-  , "font-bold"
   , "leading-none"
   , "whitespace-nowrap"
   , "outline-none"
@@ -64,13 +65,13 @@ withAnimation :: Array String
 withAnimation = [ "transition-all", "duration-200" ]
 
 primaryButton :: Array String
-primaryButton = button <> bgBlueGradient <> withShadow <> withAnimation
+primaryButton = button <> bgBlueGradient <> withShadow <> withAnimation <> [ "font-bold" ]
 
 secondaryButton :: Array String
-secondaryButton = button <> withAnimation <> [ "bg-lightgray", "text-black", "hover:shadow" ]
+secondaryButton = button <> withAnimation <> [ "font-bold", "bg-lightgray", "text-black", "hover:shadow" ]
 
 whiteButton :: Array String
-whiteButton = button <> withShadow <> withAnimation <> [ "bg-white" ]
+whiteButton = button <> withShadow <> withAnimation <> [ "font-bold", "bg-white" ]
 
 withIcon :: Icon -> Array String
 withIcon icon = [ "with-icon", "with-icon-" <> iconClass icon ]
@@ -81,22 +82,22 @@ inputBase =
   [ "block"
   , "w-full"
   , "p-4"
-  , "rounded"
-  , "transition-all"
-  , "duration-200"
+  , "rounded-sm"
+  , "leading-none"
   , "outline-none"
   , "focus:outline-none"
   , "text-black"
-  , "border"
+  , "border-2"
   ]
+    <> withAnimation
 
 -- note we set rings on focus-within as well as focus, so that we can use these classes on divs
 -- with unstyled inputs inside them, making that whole parent div look like the input
 input :: Boolean -> Array String
 input valid =
   inputBase
-    <> [ "focus:border-transparent", "focus:ring-1", "focus-within:ring-1" ]
-    <> if valid then [ "border-gray" ] else [ "border-red" ]
+    <> [ "focus:border-transparent", "focus-within:border-transparent", "focus:ring-2", "focus-within:ring-2" ]
+    <> if valid then [ "border-gray", "focus:ring-purple", "focus-within:ring-purple" ] else [ "border-red", "focus:ring-red", "focus-within:ring-red" ]
 
 -- use this on pseudo select elements, because the focus ring doesn't play well with the dropdown
 inputNoFocus :: Boolean -> Array String
@@ -105,9 +106,44 @@ inputNoFocus valid =
     <> [ "focus:ring-0", "focus:border-gray" ]
     <> if valid then [ "border-gray" ] else [ "border-red" ]
 
+inputNoBorder :: Array String
+inputNoBorder =
+  [ "block"
+  , "w-full"
+  , "p-2"
+  , "rounded"
+  , "transition-all"
+  , "duration-200"
+  , "outline-none"
+  , "focus:outline-none"
+  , "text-black"
+  , "border-0"
+  ]
+
+pseudoDropdown :: Boolean -> Array String
+pseudoDropdown open =
+  [ "absolute"
+  , "z-20"
+  , "w-full"
+  , "max-h-56"
+  , "overflow-x-hidden"
+  , "overflow-y-auto"
+  , "-mt-2"
+  , "pt-2"
+  , "border-b-2"
+  , "border-l-2"
+  , "border-r-2"
+  , "border-gray"
+  , "bg-white"
+  , "shadow"
+  , "rounded-b-sm"
+  ]
+    <> withAnimation
+    <> if open then [ "opacity-100" ] else [ "hidden", "opacity-0" ]
+
 -- use this on an input inside a div styled like an input
 unstyledInput :: Array String
-unstyledInput = [ "p-0", "border-0", "focus:ring-0" ]
+unstyledInput = [ "leading-none", "p-0", "border-0", "focus:ring-0" ]
 
 inputError :: Array String
 inputError = [ "px-3", "mt-1", "text-red", "text-sm" ]

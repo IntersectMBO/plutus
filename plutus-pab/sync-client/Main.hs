@@ -5,6 +5,7 @@ import           Control.Concurrent                       (threadDelay)
 import           Control.Monad                            (forever)
 import           Options.Applicative
 
+import           Cardano.Api                              (Block (..), BlockHeader (..), BlockInMode (..), CardanoMode)
 import           Cardano.Protocol.Socket.Client           (runChainSync)
 import           Cardano.Slotting.Slot                    (SlotNo (..))
 import           Ledger                                   (Slot)
@@ -32,12 +33,12 @@ slotConfig =
 
 -- | A simple callback that reads the incoming data, from the node.
 processBlock
-  :: CardanoBlock StandardCrypto
+  :: BlockInMode CardanoMode
   -> Slot
   -> IO ()
-processBlock blk _ =
-  putStrLn $ "Received block " <> getBlockHash blk
-          <> " for slot "      <> getBlockSlotNo blk
+processBlock (BlockInMode (Block (BlockHeader (SlotNo slot) hsh _) _) _) _ =
+  putStrLn $ "Received block " <> show hsh
+          <> " for slot "      <> show slot
 
 getBlockHash
   :: CardanoBlock StandardCrypto

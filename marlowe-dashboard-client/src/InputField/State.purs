@@ -1,8 +1,9 @@
 module InputField.State
   ( dummyState
-  , initialState
+  , mkInitialState
   , handleAction
   , getBigIntegerValue
+  , formatBigIntegerValue
   , validate
   ) where
 
@@ -27,14 +28,14 @@ import Marlowe.Extended.Metadata (NumberFormat(..))
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: forall e. InputFieldError e => State e
-dummyState = initialState Nothing
+dummyState = mkInitialState Nothing
 
-initialState :: forall e. InputFieldError e => Maybe NumberFormat -> State e
-initialState mNumberFormat =
+mkInitialState :: forall e. InputFieldError e => Maybe NumberFormat -> State e
+mkInitialState mNumberFormat =
   let
     initialValue = case mNumberFormat of
       Just DefaultFormat -> "0"
-      Just (DecimalFormat decimals _) -> formatBigIntegerValue decimals zero
+      Just numberFormat -> formatBigIntegerValue numberFormat zero
       _ -> mempty
   in
     { value: initialValue
@@ -62,13 +63,9 @@ handleAction (SetValueFromDropdown value) = do
 handleAction (FormatValue numberFormat) = do
   currentValue <- use _value
   let
-    decimals = case numberFormat of
-      DefaultFormat -> zero
-      DecimalFormat d _ -> d
+    bigIntegerValue = getBigIntegerValue numberFormat currentValue
 
-    bigIntegerValue = getBigIntegerValue decimals currentValue
-
-    formattedValue = formatBigIntegerValue decimals bigIntegerValue
+    formattedValue = formatBigIntegerValue numberFormat bigIntegerValue
   handleAction $ SetValue formattedValue
 
 handleAction (SetValidator validator) = assign _validator validator
@@ -100,8 +97,10 @@ handleAction Reset =
 --    it became apparent that this standard number formatter can't handle numbers beyond a certain
 --    size. And since we need a bespoke solution that's only used in this particular case, it seems
 --    better to just keep it in this module.
-getBigIntegerValue :: Int -> String -> BigInteger
-getBigIntegerValue decimals value =
+getBigIntegerValue :: NumberFormat -> String -> BigInteger
+getBigIntegerValue DefaultFormat value = fromMaybe zero $ BigInteger.fromString value
+
+getBigIntegerValue (DecimalFormat decimals _) value =
   let
     { isNegative, absoluteValue } =
       if String.take 1 value == "-" then
@@ -129,6 +128,8 @@ getBigIntegerValue decimals value =
     else
       (dec * multiplier) + frac
 
+getBigIntegerValue TimeFormat value = (BigInteger.fromInt 60) * (fromMaybe zero $ BigInteger.fromString value)
+
 -- The basic idea of this function is to take the default string representation (`show value`),
 -- split it where the decimal point is supposed to go, and join the two parts with a decimal point
 -- in the middle. Simple enough, but there are a few things to watch out for:
@@ -139,8 +140,10 @@ getBigIntegerValue decimals value =
 -- 3. Small positive values will have no decimalString following the split, and the decimal string
 --    for small negative values will just be a minus sign, so a zero needs to be added in these
 --    cases.
-formatBigIntegerValue :: Int -> BigInteger -> String
-formatBigIntegerValue decimals value =
+formatBigIntegerValue :: NumberFormat -> BigInteger -> String
+formatBigIntegerValue DefaultFormat value = show value
+
+formatBigIntegerValue (DecimalFormat decimals _) value =
   let
     string =
       if value < zero then
@@ -157,7 +160,12 @@ formatBigIntegerValue decimals value =
       "-" -> "-0"
       _ -> before
   in
-    decimalString <> "." <> fractionalString
+    if decimals == 0 then
+      decimalString
+    else
+      decimalString <> "." <> fractionalString
+
+formatBigIntegerValue TimeFormat value = show $ value / (BigInteger.fromInt 60)
 
 validate :: forall e. InputFieldError e => State e -> Maybe e
 validate state =

@@ -108,7 +108,10 @@ newKeyPair = do
 -- | Get the public key of a 'Wallet' by converting the wallet identifier
 --   to a private key bytestring.
 walletPubKey :: Wallet -> PubKeyHash
-walletPubKey (Wallet i) = PubKeyHash $ integer2ByteString32 i
+walletPubKey (Wallet i) =
+    -- public key hashes are 28 bytes long, so we need to drop the first 4
+    -- (SCP-2208)
+    PubKeyHash $ BS.drop 4 $ integer2ByteString32 i
 
 -- | Get the 'Wallet' whose identifier is the integer representation of the
 --   pubkey hash.

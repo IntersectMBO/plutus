@@ -29,6 +29,8 @@ module Plutus.V1.Ledger.Scripts(
     runMintingPolicyScript,
     applyValidator,
     applyMintingPolicyScript,
+    mkTermToEvaluate,
+    applyArguments,
     -- * Script wrappers
     mkValidatorScript,
     Validator (..),
@@ -53,35 +55,38 @@ module Plutus.V1.Ledger.Scripts(
     unitDatum,
     ) where
 
-import qualified Prelude                          as Haskell
+import qualified Prelude                                  as Haskell
 
-import           Codec.CBOR.Decoding              (decodeBytes)
-import           Codec.Serialise                  (Serialise, decode, encode, serialise)
-import           Control.DeepSeq                  (NFData)
-import           Control.Monad.Except             (MonadError, runExceptT, throwError)
-import           Crypto.Hash                      (Digest, SHA256, hash)
-import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.Aeson                       as JSON
-import qualified Data.Aeson.Extras                as JSON
-import qualified Data.ByteArray                   as BA
-import qualified Data.ByteString.Lazy             as BSL
-import           Data.Hashable                    (Hashable)
+import qualified Cardano.Crypto.Hash                      as Crypto
+import           Codec.CBOR.Decoding                      (decodeBytes)
+import           Codec.Serialise                          (Serialise, decode, encode, serialise)
+import           Control.DeepSeq                          (NFData)
+import           Control.Monad.Except                     (MonadError, runExceptT, throwError)
+import           Data.Aeson                               (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.Aeson                               as JSON
+import qualified Data.Aeson.Extras                        as JSON
+import qualified Data.ByteArray                           as BA
+import qualified Data.ByteString.Lazy                     as BSL
+import           Data.Hashable                            (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import qualified Flat
-import           GHC.Generics                     (Generic)
-import           Plutus.V1.Ledger.Bytes           (LedgerBytes (..))
-import           Plutus.V1.Ledger.Orphans         ()
-import qualified PlutusCore                       as PLC
-import qualified PlutusCore.Data                  as PLC
-import qualified PlutusCore.MkPlc                 as PLC
-import           PlutusTx                         (CompiledCode, IsData (..), getPlc, makeLift)
-import           PlutusTx.Builtins                as Builtins
-import           PlutusTx.Builtins.Internal       as BI
-import           PlutusTx.Evaluation              (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
+import           GHC.Generics                             (Generic)
+import           Plutus.V1.Ledger.Bytes                   (LedgerBytes (..))
+import           Plutus.V1.Ledger.Orphans                 ()
+import qualified PlutusCore                               as PLC
+import qualified PlutusCore.Data                          as PLC
+import qualified PlutusCore.DeBruijn                      as PLC
+import qualified PlutusCore.Evaluation.Machine.ExBudget   as PLC
+import qualified PlutusCore.MkPlc                         as PLC
+import           PlutusTx                                 (CompiledCode, IsData (..), getPlc, makeLift)
+import           PlutusTx.Builtins                        as Builtins
+import           PlutusTx.Builtins.Internal               as BI
+import           PlutusTx.Evaluation                      (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
 import           PlutusTx.Prelude
-import qualified UntypedPlutusCore                as UPLC
+import qualified UntypedPlutusCore                        as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
@@ -162,13 +167,6 @@ fromPlc (UPLC.Program a v t) =
     let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t
     in Script $ UPLC.Program a v nameless
 
-constantScript :: (PLC.DefaultUni `PLC.Contains` a) => a -> Script
-constantScript a = Script $ UPLC.Program () (PLC.defaultVersion ()) $ PLC.mkConstant () a
-
--- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
-applyScript :: Script -> Script -> Script
-applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `UPLC.applyProgram` s2
-
 data ScriptError =
     EvaluationError [Haskell.String] -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String -- ^ Unexpected behavior of the engine (a bug)
@@ -176,24 +174,32 @@ data ScriptError =
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
 
--- | Evaluate a script, returning the trace log.
-evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m [Haskell.String]
-evaluateScript s = do
+applyArguments :: Script -> [PLC.Data] -> Script
+applyArguments (Script (UPLC.Program a v t)) args =
+    let termArgs = Haskell.fmap (UPLC.termMapNames UPLC.unNameDeBruijn . PLC.mkConstant ()) args
+        applied = PLC.mkIterApp () t termArgs
+    in Script (UPLC.Program a v applied)
+
+mkTermToEvaluate :: Script -> Either PLC.FreeVariableError (UPLC.Program UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
+mkTermToEvaluate (Script (UPLC.Program a v t)) =
     -- TODO: evaluate the nameless debruijn program directly
-    let namedProgram =
-            let (UPLC.Program a v t) = unScript s
-                named = UPLC.termMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "" ix) t
-            in UPLC.Program a v named
-    p <- case PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
+    let named = UPLC.termMapNames PLC.fakeNameDeBruijn t
+        namedProgram = UPLC.Program a v named
+    in PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram
+
+-- | Evaluate a script, returning the trace log.
+evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Haskell.String])
+evaluateScript s = do
+    p <- case mkTermToEvaluate s of
         Right p -> return p
         Left e  -> throwError $ MalformedScript $ Haskell.show e
-    let (logOut, _tally, result) = evaluateCekTrace p
+    let (logOut, UPLC.TallyingSt _ budget, result) = evaluateCekTrace p
     case result of
         Right _ -> Haskell.pure ()
         Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
             InternalEvaluationError {} -> EvaluationException $ Haskell.show errWithCause
             UserEvaluationError {}     -> EvaluationError logOut -- TODO fix this error channel fuckery
-    Haskell.pure logOut
+    Haskell.pure (budget, logOut)
 
 instance ToJSON Script where
     toJSON = JSON.String . JSON.encodeSerialise
@@ -315,16 +321,24 @@ redeemerHash :: Redeemer -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash vl = ValidatorHash $ BA.convert h' where
-    h :: Digest SHA256 = hash $ BSL.toStrict e
-    h' :: Digest SHA256 = hash h
-    e = serialise vl
+validatorHash vl =
+    ValidatorHash
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ BSL.toStrict
+        $ serialise vl
 
 mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
-mintingPolicyHash vl = MintingPolicyHash $ BA.convert h' where
-    h :: Digest SHA256 = hash $ BSL.toStrict e
-    h' :: Digest SHA256 = hash h
-    e = serialise vl
+mintingPolicyHash vl =
+    MintingPolicyHash
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ Crypto.hashToBytes
+        $ Crypto.hashWith @Crypto.Blake2b_224 id
+        $ BSL.toStrict
+        $ serialise vl
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
@@ -339,7 +353,7 @@ applyValidator
     -> Redeemer
     -> Script
 applyValidator (Context (BuiltinData valData)) (Validator validator) (Datum (BuiltinData datum)) (Redeemer (BuiltinData redeemer)) =
-    ((validator `applyScript` constantScript datum) `applyScript` constantScript redeemer) `applyScript` constantScript valData
+    applyArguments validator [datum, redeemer, valData]
 
 -- | Evaluate a 'Validator' with its 'Context', 'Datum', and 'Redeemer', returning the log.
 runScript
@@ -348,7 +362,7 @@ runScript
     -> Validator
     -> Datum
     -> Redeemer
-    -> m [Haskell.String]
+    -> m (PLC.ExBudget, [Haskell.String])
 runScript context validator datum redeemer = do
     evaluateScript (applyValidator context validator datum redeemer)
 
@@ -359,7 +373,7 @@ applyMintingPolicyScript
     -> Redeemer
     -> Script
 applyMintingPolicyScript (Context (BuiltinData valData)) (MintingPolicy validator) (Redeemer (BuiltinData red)) =
-    (validator `applyScript` constantScript red) `applyScript` constantScript valData
+    applyArguments validator [red, valData]
 
 -- | Evaluate a 'MintingPolicy' with its 'Context' and 'Redeemer', returning the log.
 runMintingPolicyScript
@@ -367,7 +381,7 @@ runMintingPolicyScript
     => Context
     -> MintingPolicy
     -> Redeemer
-    -> m [Haskell.String]
+    -> m (PLC.ExBudget, [Haskell.String])
 runMintingPolicyScript context mps red = do
     evaluateScript (applyMintingPolicyScript context mps red)
 

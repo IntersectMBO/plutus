@@ -76,6 +76,7 @@ data Query a
 
 data BottomPanelView
   = CurrentStateView
+  | WarningsAndErrorsView
 
 derive instance eqBottomPanelView :: Eq BottomPanelView
 

@@ -74,6 +74,7 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."tree-diff" or (errorHandler.buildDepError "tree-diff"))
           ];
         buildable = true;
         modules = [
@@ -161,6 +162,7 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."time" or (errorHandler.buildDepError "time"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."tree-diff" or (errorHandler.buildDepError "tree-diff"))
             ];
           buildable = true;
           modules = [

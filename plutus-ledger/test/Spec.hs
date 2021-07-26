@@ -73,8 +73,7 @@ tests = testGroup "all tests" [
     testGroup "Etc." [
         testProperty "splitVal" splitVal,
         testProperty "encodeByteString" encodeByteStringTest,
-        testProperty "encodeSerialise" encodeSerialiseTest,
-        testProperty "pubkey hash" pubkeyHashOnChainAndOffChain
+        testProperty "encodeSerialise" encodeSerialiseTest
         ],
     testGroup "LedgerBytes" [
         testProperty "show-fromHex" ledgerBytesShowFromHexProp,
@@ -225,18 +224,6 @@ byteStringJson jsonString value =
         HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
     , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
     ]
-
--- | Check that the on-chain version and the off-chain version of 'pubKeyHash'
---   match.
-pubkeyHashOnChainAndOffChain :: Property
-pubkeyHashOnChainAndOffChain = property $ do
-    pk <- forAll $ PubKey . LedgerBytes <$> Gen.genSizedByteString 32 -- this won't generate a valid public key but that doesn't matter for the purposes of pubKeyHash
-    let offChainHash = Crypto.pubKeyHash pk
-        onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
-        onchainProg = $$(PlutusTx.compile [|| \pk expected -> if expected PlutusTx.== Validation.pubKeyHash pk then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
-        script = Scripts.fromCompiledCode $ onchainProg `applyCode` liftCode pk `applyCode` liftCode offChainHash
-        result = runExcept $ evaluateScript script
-    result Hedgehog.=== Right ["correct"]
 
 -- | Check that 'missingValueSpent' is the smallest value needed to
 --   meet the requirements.

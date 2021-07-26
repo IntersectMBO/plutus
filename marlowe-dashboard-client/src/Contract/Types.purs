@@ -17,7 +17,7 @@ import Halogen (RefLabel(..))
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.PAB (PlutusAppId, MarloweParams)
+import Marlowe.PAB (MarloweParams, PlutusAppId)
 import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
 import WalletData.Types (WalletDetails, WalletNickname)
 
@@ -29,7 +29,6 @@ type State
     -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
     , pendingTransaction :: Maybe TransactionInput
     , previousSteps :: Array PreviousStep
-    , followerAppId :: PlutusAppId
     -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"
     -- contracts when a user creates a contract, to show on the page until the blockchain settles and
     -- we get the MarloweParams back from the PAB (through the MarloweFollower app).
@@ -66,10 +65,12 @@ derive instance eqTab :: Eq Tab
 type Input
   = { currentSlot :: Slot
     , walletDetails :: WalletDetails
+    , followerAppId :: PlutusAppId
     }
 
 data Action
-  = SetNickname String
+  = SelectSelf
+  | SetNickname String
   | ConfirmAction NamedAction
   | ChangeChoice ChoiceId (Maybe ChosenNum)
   | SelectTab Int Tab
@@ -83,6 +84,7 @@ data Action
   | CarouselClosed
 
 instance actionIsEvent :: IsEvent Action where
+  toEvent SelectSelf = Nothing
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
   toEvent (SetNickname _) = Just $ defaultEvent "SetNickname"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
