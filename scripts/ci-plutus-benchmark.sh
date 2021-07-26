@@ -38,8 +38,11 @@ cabal update
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
 nix-shell --run "cabal bench plutus-benchmark:validation >bench-PR.log 2>&1"
 
+echo "[ci-plutus-benchmark]: fetching origin ..."
+git fetch origin
+
 echo "[ci-plutus-benchmark]: Switching branches ..."
-git checkout "$(git merge-base HEAD master)"
+git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git show-ref -s HEAD)
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
