@@ -91,22 +91,3 @@ There is an executable that runs programs on the CK machine: you can feed a prog
 #### The CEK machine
 
 Similarly for untyped plutus core, the CEK machine can be used to evaluate untyped plutus core programs. Run `cabal run uplc evaluate -- -h` for a full list of options.
-
-#### Tests
-
-A term generation machinery sits in the [`PlutusCore.Generators.Internal.Entity`](plutus-core/generators/PlutusCore/Generators/Internal/Entity.hs) module. It allows to generate terms that contain built-ins (integers, bytestrings, sizes and booleans), constant applications and first-order functions.
-
-The generator makes sure a term is well-typed and keeps track of what it's supposed to evaluate to.
-
-There is an executable that prints a term and the expected result of evaluation. Run it as `plutus-core-generate-evaluation-test`, and you'll be shown two terms separated by a newline.
-
-```
-(program 0.1.0 [ (lam x0 (con bool) [ [ (builtin dropByteString) [ [ (builtin multiplyInteger) [ [ (builtin addInteger) (con integer 3) ] (con integer 3) ] ] [ [ (builtin multiplyInteger) (con integer 2) ] (con integer 1) ] ] ] [ (builtin sha3_256) [ [ (builtin takeByteString) (con integer 2) ] (con bytestring #7661) ] ] ] ) [ [ (builtin greaterThanInteger) [ [ (builtin multiplyInteger) [ [ (builtin multiplyInteger) (con integer 2) ] (con integer 0) ] ] [ [ (builtin subtractInteger) (con integer 3) ] (con integer 3) ] ] ] [ [ (builtin addInteger) [ [ (builtin multiplyInteger) (con integer 1) ] (con integer 1) ] ] [ [ (builtin addInteger) (con integer 1) ] (con integer 1) ] ] ] ] )
-
-(con bytestring #4b6e4ba90e78b6601bc63c806d34f914b983acc3)
-```
-
-where the first line is a program, the second line is empty and the third line
-is the result of evaluation of the program (in this case, the Plutus Core
-representation of a bytestring). Output is always structured this way: three
-lines with the second one being empty.
