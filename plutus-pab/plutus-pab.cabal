@@ -565,10 +565,12 @@ executable sync-client
         base >=4.9 && <5,
         cardano-api -any,
         cardano-slotting -any,
+        either -any,
         optparse-applicative -any,
         ouroboros-consensus-byron -any,
         ouroboros-consensus-cardano -any,
         ouroboros-consensus-shelley -any,
         ouroboros-network -any,
         plutus-ledger,
-        plutus-pab
+        plutus-pab,
+        text
