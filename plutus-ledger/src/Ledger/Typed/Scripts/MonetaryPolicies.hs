@@ -36,7 +36,7 @@ type WrappedMintingPolicyType = BuiltinData -> BuiltinData -> ()
 
 {-# INLINABLE wrapMintingPolicy #-}
 wrapMintingPolicy
-    :: IsData r
+    :: UnsafeFromData r
     => (r -> Validation.ScriptContext -> Bool)
     -> WrappedMintingPolicyType
 -- We can use unsafeFromBuiltinData here as we would fail immediately anyway if parsing failed

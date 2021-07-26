@@ -63,7 +63,7 @@ import qualified PlutusTx.Prelude          as P
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Newtype, ToJSON, FromJSON, NFData)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKey
@@ -78,7 +78,7 @@ instance FromJSONKey PubKey where
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, NFData)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
+    deriving newtype (P.Eq, P.Ord, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
@@ -94,7 +94,7 @@ pubKeyHash (PubKey (LedgerBytes bs)) =
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving (Show, Pretty) via LedgerBytes
 
 makeLift ''PrivateKey
@@ -102,7 +102,7 @@ makeLift ''PrivateKey
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, NFData)
+    deriving newtype (P.Eq, P.Ord, Serialise, NFData, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving (Show, Pretty) via LedgerBytes
 
 instance ToJSON Signature where

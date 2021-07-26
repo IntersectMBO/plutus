@@ -44,54 +44,6 @@
         )
         (datatypebind
           (datatype
-            (tyvardecl Maybe (fun (type) (type)))
-            (tyvardecl a (type))
-            Maybe_match
-            (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataByteString_cfromBuiltinData
-            (fun (con data) [Maybe (con bytestring)])
-          )
-          (lam
-            d
-            (con data)
-            [
-              [
-                [
-                  [
-                    [
-                      [
-                        [
-                          {
-                            (builtin chooseData)
-                            (fun Unit [Maybe (con bytestring)])
-                          }
-                          (lam ds Unit { Nothing (con bytestring) })
-                        ]
-                        (lam ds Unit { Nothing (con bytestring) })
-                      ]
-                      (lam ds Unit { Nothing (con bytestring) })
-                    ]
-                    (lam ds Unit { Nothing (con bytestring) })
-                  ]
-                  (lam
-                    ds
-                    Unit
-                    [ { Just (con bytestring) } [ (builtin unBData) d ] ]
-                  )
-                ]
-                d
-              ]
-              Unit
-            ]
-          )
-        )
-        (datatypebind
-          (datatype
             (tyvardecl GameState (type))
 
             GameState_match
@@ -107,572 +59,7 @@
         )
         (termbind
           (strict)
-          (vardecl
-            fIsDataGameState_cfromBuiltinData (fun (con data) [Maybe GameState])
-          )
-          (lam
-            d
-            (con data)
-            [
-              [
-                [
-                  [
-                    [
-                      [
-                        [
-                          { (builtin chooseData) (fun Unit [Maybe GameState]) }
-                          (lam
-                            ds
-                            Unit
-                            (let
-                              (nonrec)
-                              (termbind
-                                (nonstrict)
-                                (vardecl
-                                  tup
-                                  [[(con pair) (con integer)] [(con list) (con data)]]
-                                )
-                                [ (builtin unConstrData) d ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl args [(con list) (con data)])
-                                [
-                                  {
-                                    { (builtin sndPair) (con integer) }
-                                    [(con list) (con data)]
-                                  }
-                                  tup
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [ { (builtin tailList) (con data) } args ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [ { (builtin tailList) (con data) } l ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl nilCase [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      {
-                                        [
-                                          { Maybe_match (con bytestring) }
-                                          [
-                                            fIsDataByteString_cfromBuiltinData
-                                            [
-                                              { (builtin headList) (con data) }
-                                              args
-                                            ]
-                                          ]
-                                        ]
-                                        (fun Unit [Maybe GameState])
-                                      }
-                                      (lam
-                                        ipv
-                                        (con bytestring)
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [
-                                                    {
-                                                      Maybe_match
-                                                      (con bytestring)
-                                                    }
-                                                    [
-                                                      fIsDataByteString_cfromBuiltinData
-                                                      [
-                                                        {
-                                                          (builtin headList)
-                                                          (con data)
-                                                        }
-                                                        l
-                                                      ]
-                                                    ]
-                                                  ]
-                                                  (fun Unit [Maybe GameState])
-                                                }
-                                                (lam
-                                                  ipv
-                                                  (con bytestring)
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      [
-                                                        [
-                                                          {
-                                                            [
-                                                              {
-                                                                Maybe_match
-                                                                (con bytestring)
-                                                              }
-                                                              [
-                                                                fIsDataByteString_cfromBuiltinData
-                                                                [
-                                                                  {
-                                                                    (builtin
-                                                                      headList
-                                                                    )
-                                                                    (con data)
-                                                                  }
-                                                                  l
-                                                                ]
-                                                              ]
-                                                            ]
-                                                            (fun Unit [Maybe GameState])
-                                                          }
-                                                          (lam
-                                                            ipv
-                                                            (con bytestring)
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [
-                                                                {
-                                                                  Just GameState
-                                                                }
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      Initialised
-                                                                      ipv
-                                                                    ]
-                                                                    ipv
-                                                                  ]
-                                                                  ipv
-                                                                ]
-                                                              ]
-                                                            )
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          { Nothing GameState }
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (lam
-                                                thunk Unit { Nothing GameState }
-                                              )
-                                            ]
-                                            Unit
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                    (lam thunk Unit { Nothing GameState })
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit nilCase)
-                                      ]
-                                      (lam ds Unit { Nothing GameState })
-                                    ]
-                                    [ { (builtin tailList) (con data) } l ]
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing GameState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing GameState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl x [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing GameState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    args
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl index (con integer))
-                                [
-                                  {
-                                    { (builtin fstPair) (con integer) }
-                                    [(con list) (con data)]
-                                  }
-                                  tup
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl x [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          (builtin ifThenElse)
-                                          (fun Unit [Maybe GameState])
-                                        }
-                                        [
-                                          [ (builtin equalsInteger) index ]
-                                          (con integer 0)
-                                        ]
-                                      ]
-                                      (lam ds Unit x)
-                                    ]
-                                    (lam ds Unit { Nothing GameState })
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [ { (builtin tailList) (con data) } args ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [ { (builtin tailList) (con data) } l ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl nilCase [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      {
-                                        [
-                                          { Maybe_match (con bytestring) }
-                                          [
-                                            fIsDataByteString_cfromBuiltinData
-                                            [
-                                              { (builtin headList) (con data) }
-                                              args
-                                            ]
-                                          ]
-                                        ]
-                                        (fun Unit [Maybe GameState])
-                                      }
-                                      (lam
-                                        ipv
-                                        (con bytestring)
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [
-                                                    {
-                                                      Maybe_match
-                                                      (con bytestring)
-                                                    }
-                                                    [
-                                                      fIsDataByteString_cfromBuiltinData
-                                                      [
-                                                        {
-                                                          (builtin headList)
-                                                          (con data)
-                                                        }
-                                                        l
-                                                      ]
-                                                    ]
-                                                  ]
-                                                  (fun Unit [Maybe GameState])
-                                                }
-                                                (lam
-                                                  ipv
-                                                  (con bytestring)
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      [
-                                                        [
-                                                          {
-                                                            [
-                                                              {
-                                                                Maybe_match
-                                                                (con bytestring)
-                                                              }
-                                                              [
-                                                                fIsDataByteString_cfromBuiltinData
-                                                                [
-                                                                  {
-                                                                    (builtin
-                                                                      headList
-                                                                    )
-                                                                    (con data)
-                                                                  }
-                                                                  l
-                                                                ]
-                                                              ]
-                                                            ]
-                                                            (fun Unit [Maybe GameState])
-                                                          }
-                                                          (lam
-                                                            ipv
-                                                            (con bytestring)
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [
-                                                                {
-                                                                  Just GameState
-                                                                }
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      Locked ipv
-                                                                    ]
-                                                                    ipv
-                                                                  ]
-                                                                  ipv
-                                                                ]
-                                                              ]
-                                                            )
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          { Nothing GameState }
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (lam
-                                                thunk Unit { Nothing GameState }
-                                              )
-                                            ]
-                                            Unit
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                    (lam thunk Unit { Nothing GameState })
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit nilCase)
-                                      ]
-                                      (lam ds Unit { Nothing GameState })
-                                    ]
-                                    [ { (builtin tailList) (con data) } l ]
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing GameState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing GameState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl x [Maybe GameState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe GameState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing GameState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    args
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              [
-                                [
-                                  [
-                                    [
-                                      {
-                                        (builtin ifThenElse)
-                                        (fun Unit [Maybe GameState])
-                                      }
-                                      [
-                                        [ (builtin equalsInteger) index ]
-                                        (con integer 1)
-                                      ]
-                                    ]
-                                    (lam ds Unit x)
-                                  ]
-                                  (lam ds Unit x)
-                                ]
-                                Unit
-                              ]
-                            )
-                          )
-                        ]
-                        (lam ds Unit { Nothing GameState })
-                      ]
-                      (lam ds Unit { Nothing GameState })
-                    ]
-                    (lam ds Unit { Nothing GameState })
-                  ]
-                  (lam ds Unit { Nothing GameState })
-                ]
-                d
-              ]
-              Unit
-            ]
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl fIsDataGameState_ctoBuiltinData (fun GameState (con data)))
+          (vardecl fToDataGameState_ctoBuiltinData (fun GameState (con data)))
           (lam
             ds
             GameState
@@ -750,176 +137,6 @@
               )
             ]
           )
-        )
-        (termbind
-          (strict)
-          (vardecl error (all a (type) (fun (con unit) a)))
-          (abs a (type) (lam thunk (con unit) (error a)))
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataGameState_cunsafeFromBuiltinData (fun (con data) GameState)
-          )
-          (lam
-            d
-            (con data)
-            (let
-              (nonrec)
-              (termbind
-                (nonstrict)
-                (vardecl x GameState)
-                [ { error GameState } (con unit ()) ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl
-                  tup [[(con pair) (con integer)] [(con list) (con data)]]
-                )
-                [ (builtin unConstrData) d ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl t [(con list) (con data)])
-                [
-                  {
-                    { (builtin sndPair) (con integer) } [(con list) (con data)]
-                  }
-                  tup
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl t [(con list) (con data)])
-                [ { (builtin tailList) (con data) } t ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con bytestring))
-                [
-                  (builtin unBData)
-                  [
-                    { (builtin headList) (con data) }
-                    [ { (builtin tailList) (con data) } t ]
-                  ]
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con bytestring))
-                [ (builtin unBData) [ { (builtin headList) (con data) } t ] ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con bytestring))
-                [ (builtin unBData) [ { (builtin headList) (con data) } t ] ]
-              )
-              (termbind
-                (nonstrict) (vardecl x GameState) [ [ [ Initialised x ] x ] x ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl index (con integer))
-                [
-                  {
-                    { (builtin fstPair) (con integer) } [(con list) (con data)]
-                  }
-                  tup
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x GameState)
-                [
-                  [
-                    [
-                      [
-                        { (builtin ifThenElse) (fun Unit GameState) }
-                        [ [ (builtin equalsInteger) index ] (con integer 0) ]
-                      ]
-                      (lam ds Unit x)
-                    ]
-                    (lam ds Unit x)
-                  ]
-                  Unit
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl t [(con list) (con data)])
-                [
-                  {
-                    { (builtin sndPair) (con integer) } [(con list) (con data)]
-                  }
-                  tup
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl t [(con list) (con data)])
-                [ { (builtin tailList) (con data) } t ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con bytestring))
-                [
-                  (builtin unBData)
-                  [
-                    { (builtin headList) (con data) }
-                    [ { (builtin tailList) (con data) } t ]
-                  ]
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con bytestring))
-                [ (builtin unBData) [ { (builtin headList) (con data) } t ] ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con bytestring))
-                [ (builtin unBData) [ { (builtin headList) (con data) } t ] ]
-              )
-              (termbind
-                (nonstrict) (vardecl x GameState) [ [ [ Locked x ] x ] x ]
-              )
-              [
-                [
-                  [
-                    [
-                      { (builtin ifThenElse) (fun Unit GameState) }
-                      [ [ (builtin equalsInteger) index ] (con integer 1) ]
-                    ]
-                    (lam ds Unit x)
-                  ]
-                  (lam ds Unit x)
-                ]
-                Unit
-              ]
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl IsData (fun (type) (type)))
-            (tyvardecl a (type))
-            IsData_match
-            (vardecl
-              CConsIsData
-              (fun (fun a (con data)) (fun (fun (con data) [Maybe a]) (fun (fun (con data) a) [IsData a])))
-            )
-          )
-        )
-        (termbind
-          (nonstrict)
-          (vardecl fIsDataGameState [IsData GameState])
-          [
-            [
-              [ { CConsIsData GameState } fIsDataGameState_ctoBuiltinData ]
-              fIsDataGameState_cfromBuiltinData
-            ]
-            fIsDataGameState_cunsafeFromBuiltinData
-          ]
         )
         (datatypebind
           (datatype
@@ -1019,6 +236,14 @@
             (vardecl
               Interval (fun [LowerBound a] (fun [UpperBound a] [Interval a]))
             )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl Maybe (fun (type) (type)))
+            (tyvardecl a (type))
+            Maybe_match
+            (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
           )
         )
         (datatypebind
@@ -2806,7 +2031,7 @@
                   )
                   (termbind
                     (strict)
-                    (vardecl fIsDataUnit_ctoBuiltinData (fun Unit (con data)))
+                    (vardecl fToDataUnit_ctoBuiltinData (fun Unit (con data)))
                     (lam
                       ds
                       Unit
@@ -3020,7 +2245,7 @@
                                                                               mph
                                                                             ]
                                                                             [
-                                                                              fIsDataUnit_ctoBuiltinData
+                                                                              fToDataUnit_ctoBuiltinData
                                                                               Unit
                                                                             ]
                                                                           ]
@@ -3201,7 +2426,7 @@
                                                                                                 mph
                                                                                               ]
                                                                                               [
-                                                                                                fIsDataUnit_ctoBuiltinData
+                                                                                                fToDataUnit_ctoBuiltinData
                                                                                                 Unit
                                                                                               ]
                                                                                             ]
@@ -3393,33 +2618,8 @@
                   )
                   (termbind
                     (strict)
-                    (vardecl
-                      fIsDataVoid_cfromBuiltinData (fun (con data) [Maybe Void])
-                    )
-                    (lam ds (con data) { Nothing Void })
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl
-                      fIsDataVoid_cunsafeFromBuiltinData (fun (con data) Void)
-                    )
-                    (lam ds (con data) [ { error Void } (con unit ()) ])
-                  )
-                  (termbind
-                    (strict)
                     (vardecl absurd (all a (type) (fun Void a)))
                     (abs a (type) (lam a Void { [ Void_match a ] a }))
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl fIsDataVoid [IsData Void])
-                    [
-                      [
-                        [ { CConsIsData Void } { absurd (con data) } ]
-                        fIsDataVoid_cfromBuiltinData
-                      ]
-                      fIsDataVoid_cunsafeFromBuiltinData
-                    ]
                   )
                   (datatypebind
                     (datatype
@@ -4077,33 +3277,6 @@
                   (termbind
                     (strict)
                     (vardecl
-                      toBuiltinData
-                      (all a (type) (fun [IsData a] (fun a (con data))))
-                    )
-                    (abs
-                      a
-                      (type)
-                      (lam
-                        v
-                        [IsData a]
-                        [
-                          { [ { IsData_match a } v ] (fun a (con data)) }
-                          (lam
-                            v
-                            (fun a (con data))
-                            (lam
-                              v
-                              (fun (con data) [Maybe a])
-                              (lam v (fun (con data) a) v)
-                            )
-                          )
-                        ]
-                      )
-                    )
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl
                       fEqCredential_c (fun Credential (fun Credential Bool))
                     )
                     (lam
@@ -4560,6 +3733,11 @@
                         ]
                       )
                     )
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl error (all a (type) (fun (con unit) a)))
+                    (abs a (type) (lam thunk (con unit) (error a)))
                   )
                   (termbind
                     (strict)
@@ -5266,14 +4444,14 @@
                     (strict)
                     (vardecl
                       checkOwnOutputConstraint
-                      (all o (type) (fun [IsData o] (fun ScriptContext (fun [OutputConstraint o] Bool))))
+                      (all o (type) (fun [(lam a (type) (fun a (con data))) o] (fun ScriptContext (fun [OutputConstraint o] Bool))))
                     )
                     (abs
                       o
                       (type)
                       (lam
-                        dIsData
-                        [IsData o]
+                        dToData
+                        [(lam a (type) (fun a (con data))) o]
                         (lam
                           ctx
                           ScriptContext
@@ -5304,15 +4482,7 @@
                                               hsh [Maybe (con bytestring)]
                                             )
                                             [
-                                              [
-                                                findDatumHash
-                                                [
-                                                  [
-                                                    { toBuiltinData o } dIsData
-                                                  ]
-                                                  ds
-                                                ]
-                                              ]
+                                              [ findDatumHash [ dToData ds ] ]
                                               ds
                                             ]
                                           )
@@ -10226,7 +9396,7 @@
                     (strict)
                     (vardecl
                       checkScriptContext
-                      (all i (type) (all o (type) (fun [IsData o] (fun [[TxConstraints i] o] (fun ScriptContext Bool)))))
+                      (all i (type) (all o (type) (fun [(lam a (type) (fun a (con data))) o] (fun [[TxConstraints i] o] (fun ScriptContext Bool)))))
                     )
                     (abs
                       i
@@ -10235,8 +9405,8 @@
                         o
                         (type)
                         (lam
-                          dIsData
-                          [IsData o]
+                          dToData
+                          [(lam a (type) (fun a (con data))) o]
                           (lam
                             ds
                             [[TxConstraints i] o]
@@ -10376,7 +9546,7 @@
                                                                             checkOwnOutputConstraint
                                                                             o
                                                                           }
-                                                                          dIsData
+                                                                          dToData
                                                                         ]
                                                                         ptx
                                                                       ]
@@ -10908,7 +10078,7 @@
                     (strict)
                     (vardecl
                       wmkValidator
-                      (all s (type) (all i (type) (fun [IsData s] (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] (fun s (fun i (fun ScriptContext Bool))))))))))
+                      (all s (type) (all i (type) (fun [(lam a (type) (fun a (con data))) s] (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] (fun s (fun i (fun ScriptContext Bool))))))))))
                     )
                     (abs
                       s
@@ -10918,7 +10088,7 @@
                         (type)
                         (lam
                           w
-                          [IsData s]
+                          [(lam a (type) (fun a (con data))) s]
                           (lam
                             ww
                             (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]]))
@@ -11126,7 +10296,10 @@
                                                                                                 }
                                                                                                 Void
                                                                                               }
-                                                                                              fIsDataVoid
+                                                                                              {
+                                                                                                absurd
+                                                                                                (con data)
+                                                                                              }
                                                                                             ]
                                                                                             newConstraints
                                                                                           ]
@@ -11643,7 +10816,7 @@
                     (strict)
                     (vardecl
                       mkValidator
-                      (all s (type) (all i (type) (fun [IsData s] (fun [[StateMachine s] i] (fun s (fun i (fun ScriptContext Bool)))))))
+                      (all s (type) (all i (type) (fun [(lam a (type) (fun a (con data))) s] (fun [[StateMachine s] i] (fun s (fun i (fun ScriptContext Bool)))))))
                     )
                     (abs
                       s
@@ -11653,7 +10826,7 @@
                         (type)
                         (lam
                           w
-                          [IsData s]
+                          [(lam a (type) (fun a (con data))) s]
                           (lam
                             w
                             [[StateMachine s] i]
@@ -11731,7 +10904,8 @@
                     )
                     [
                       [
-                        { { mkValidator GameState } GameInput } fIsDataGameState
+                        { { mkValidator GameState } GameInput }
+                        fToDataGameState_ctoBuiltinData
                       ]
                       machine
                     ]

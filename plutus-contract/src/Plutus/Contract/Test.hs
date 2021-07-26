@@ -105,7 +105,7 @@ import qualified Plutus.Contract.Request               as Request
 import           Plutus.Contract.Resumable             (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable             as State
 import           Plutus.Contract.Types                 (Contract (..), ResumableResult, shrinkResumableResult)
-import           PlutusTx                              (CompiledCode, IsData (..), getPir)
+import           PlutusTx                              (CompiledCode, FromData (..), getPir)
 import qualified PlutusTx.Prelude                      as P
 
 import           Ledger                                (Validator)
@@ -339,7 +339,7 @@ valueAtAddress address check =
             tell @(Doc Void) ("Funds at address" <+> pretty address <+> "were" <+> pretty vl)
         pure result
 
-dataAtAddress :: IsData a => Address -> (a -> Bool) -> TracePredicate
+dataAtAddress :: FromData a => Address -> (a -> Bool) -> TracePredicate
 dataAtAddress address check =
     flip postMapM (L.generalize $ Folds.utxoAtAddress address) $ \utxo -> do
         let isSingletonWith p xs = length xs == 1 && all p xs

@@ -413,8 +413,9 @@ submitTx = submitTxConstraintsWith @Void mempty
 --   contract's own public key to solve the constraints.
 submitTxConstraints
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => TypedValidator a
@@ -426,8 +427,9 @@ submitTxConstraints inst = submitTxConstraintsWith (Constraints.typedValidatorLo
 --   to resolve any input constraints (see 'Ledger.Constraints.TxConstraints.InputConstraint')
 submitTxConstraintsSpending
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => TypedValidator a
@@ -442,8 +444,9 @@ submitTxConstraintsSpending inst utxo =
 --   network. Using the given constraints.
 submitTxConstraintsWith
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => ScriptLookups a
@@ -457,4 +460,3 @@ submitTxConstraintsWith sl constraints = do
 --   confirmed on the ledger before returning.
 submitTxConfirmed :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e ()
 submitTxConfirmed t = submitUnbalancedTx t >>= awaitTxConfirmed . txId
-

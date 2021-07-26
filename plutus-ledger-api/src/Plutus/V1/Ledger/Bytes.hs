@@ -70,7 +70,7 @@ fromHex = fmap LedgerBytes . asBSLiteral
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
     deriving stock (Eq, Ord, Generic)
-    deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.IsData)
+    deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
 

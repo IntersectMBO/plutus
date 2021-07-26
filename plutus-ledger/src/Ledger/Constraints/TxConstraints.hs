@@ -179,7 +179,7 @@ mustIncludeDatum = singleton . MustIncludeDatum
 
 {-# INLINABLE mustPayToTheScript #-}
 -- | Lock the value with a script
-mustPayToTheScript :: forall i o. PlutusTx.IsData o => o -> Value -> TxConstraints i o
+mustPayToTheScript :: forall i o. PlutusTx.ToData o => o -> Value -> TxConstraints i o
 mustPayToTheScript dt vl =
     TxConstraints
         { txConstraints = [MustIncludeDatum (Datum $ PlutusTx.toBuiltinData dt)]

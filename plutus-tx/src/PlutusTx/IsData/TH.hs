@@ -130,22 +130,30 @@ makeIsDataIndexed name indices = do
 
     info <- TH.reifyDatatype name
     let appliedType = TH.datatypeType info
-        constraints = fmap (\t -> TH.classPred ''IsData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
 
     indexedCons <- for (TH.datatypeCons info) $ \c -> case lookup (TH.constructorName c) indices of
             Just i  -> pure (c, i)
             Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName c)
 
-    toDataDecl <- TH.funD 'toBuiltinData (toDataClauses indexedCons)
-    toDataPrag <- TH.pragInlD 'toBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+    toDataInst <- do
+        let constraints = fmap (\t -> TH.classPred ''ToData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
+        toDataDecl <- TH.funD 'toBuiltinData (toDataClauses indexedCons)
+        toDataPrag <- TH.pragInlD 'toBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+        pure $ TH.InstanceD Nothing constraints (TH.classPred ''ToData [appliedType]) [toDataPrag, toDataDecl]
 
-    fromDataDecl <- TH.funD 'fromBuiltinData [fromDataClause indexedCons]
-    fromDataPrag <- TH.pragInlD 'fromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+    fromDataInst <- do
+        let constraints = fmap (\t -> TH.classPred ''FromData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
+        fromDataDecl <- TH.funD 'fromBuiltinData [fromDataClause indexedCons]
+        fromDataPrag <- TH.pragInlD 'fromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+        pure $ TH.InstanceD Nothing constraints (TH.classPred ''FromData [appliedType]) [fromDataPrag, fromDataDecl]
 
-    unsafeFromDataDecl <- TH.funD 'unsafeFromBuiltinData [unsafeFromDataClause indexedCons]
-    unsafeFromDataPrag <- TH.pragInlD 'unsafeFromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+    unsafeFromDataInst <- do
+        let constraints = fmap (\t -> TH.classPred ''UnsafeFromData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
+        unsafeFromDataDecl <- TH.funD 'unsafeFromBuiltinData [unsafeFromDataClause indexedCons]
+        unsafeFromDataPrag <- TH.pragInlD 'unsafeFromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+        pure $ TH.InstanceD Nothing constraints (TH.classPred ''UnsafeFromData [appliedType]) [unsafeFromDataPrag, unsafeFromDataDecl]
 
-    pure [TH.InstanceD Nothing constraints (TH.classPred ''IsData [appliedType]) [toDataPrag, toDataDecl, fromDataPrag, fromDataDecl, unsafeFromDataPrag, unsafeFromDataDecl]]
+    pure [toDataInst, fromDataInst, unsafeFromDataInst]
     where
         tyvarbndrName (TH.PlainTV n)    = n
         tyvarbndrName (TH.KindedTV n _) = n

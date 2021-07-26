@@ -10,6 +10,9 @@
       )
     )
     (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
       (datatype
         (tyvardecl Maybe (fun (type) (type)))
         (tyvardecl a (type))
@@ -17,48 +20,11 @@
         (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
       )
     )
-    (datatypebind
-      (datatype
-        (tyvardecl IsData (fun (type) (type)))
-        (tyvardecl a (type))
-        IsData_match
-        (vardecl
-          CConsIsData
-          (fun (fun a (con data)) (fun (fun (con data) [Maybe a]) (fun (fun (con data) a) [IsData a])))
-        )
-      )
-    )
     (termbind
       (strict)
       (vardecl
-        fromBuiltinData
-        (all a (type) (fun [IsData a] (fun (con data) [Maybe a])))
-      )
-      (abs
-        a
-        (type)
-        (lam
-          v
-          [IsData a]
-          [
-            { [ { IsData_match a } v ] (fun (con data) [Maybe a]) }
-            (lam
-              v
-              (fun a (con data))
-              (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v))
-            )
-          ]
-        )
-      )
-    )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (termbind
-      (strict)
-      (vardecl
-        fIsDataTuple2_cfromBuiltinData
-        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun (con data) [Maybe [[Tuple2 a] b]])))))
+        fFromDataTuple2_cfromBuiltinData
+        (all a (type) (all b (type) (fun [(lam a (type) (fun (con data) [Maybe a])) a] (fun [(lam a (type) (fun (con data) [Maybe a])) b] (fun (con data) [Maybe [[Tuple2 a] b]])))))
       )
       (abs
         a
@@ -67,11 +33,11 @@
           b
           (type)
           (lam
-            dIsData
-            [IsData a]
+            dFromData
+            [(lam a (type) (fun (con data) [Maybe a])) a]
             (lam
-              dIsData
-              [IsData b]
+              dFromData
+              [(lam a (type) (fun (con data) [Maybe a])) b]
               (lam
                 d
                 (con data)
@@ -125,9 +91,7 @@
                                             [
                                               { Maybe_match a }
                                               [
-                                                [
-                                                  { fromBuiltinData a } dIsData
-                                                ]
+                                                dFromData
                                                 [
                                                   {
                                                     (builtin headList)
@@ -152,12 +116,7 @@
                                                       [
                                                         { Maybe_match b }
                                                         [
-                                                          [
-                                                            {
-                                                              fromBuiltinData b
-                                                            }
-                                                            dIsData
-                                                          ]
+                                                          dFromData
                                                           [
                                                             {
                                                               (builtin headList)
@@ -337,244 +296,8 @@
     )
     (termbind
       (strict)
-      (vardecl toBuiltinData (all a (type) (fun [IsData a] (fun a (con data)))))
-      (abs
-        a
-        (type)
-        (lam
-          v
-          [IsData a]
-          [
-            { [ { IsData_match a } v ] (fun a (con data)) }
-            (lam
-              v
-              (fun a (con data))
-              (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v))
-            )
-          ]
-        )
-      )
-    )
-    (termbind
-      (strict)
       (vardecl
-        fIsDataTuple2_ctoBuiltinData
-        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun [[Tuple2 a] b] (con data))))))
-      )
-      (abs
-        a
-        (type)
-        (abs
-          b
-          (type)
-          (lam
-            dIsData
-            [IsData a]
-            (lam
-              dIsData
-              [IsData b]
-              (lam
-                ds
-                [[Tuple2 a] b]
-                [
-                  { [ { { Tuple2_match a } b } ds ] (con data) }
-                  (lam
-                    arg
-                    a
-                    (lam
-                      arg
-                      b
-                      [
-                        [ (builtin constrData) (con integer 0) ]
-                        [
-                          [
-                            { (builtin mkCons) (con data) }
-                            [ [ { toBuiltinData a } dIsData ] arg ]
-                          ]
-                          [
-                            [
-                              { (builtin mkCons) (con data) }
-                              [ [ { toBuiltinData b } dIsData ] arg ]
-                            ]
-                            [ (builtin mkNilData) (con unit ()) ]
-                          ]
-                        ]
-                      ]
-                    )
-                  )
-                ]
-              )
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl error (all a (type) (fun (con unit) a)))
-      (abs a (type) (lam thunk (con unit) (error a)))
-    )
-    (termbind
-      (strict)
-      (vardecl
-        unsafeFromBuiltinData (all a (type) (fun [IsData a] (fun (con data) a)))
-      )
-      (abs
-        a
-        (type)
-        (lam
-          v
-          [IsData a]
-          [
-            { [ { IsData_match a } v ] (fun (con data) a) }
-            (lam
-              v
-              (fun a (con data))
-              (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v))
-            )
-          ]
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        fIsDataTuple2_cunsafeFromBuiltinData
-        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun (con data) [[Tuple2 a] b])))))
-      )
-      (abs
-        a
-        (type)
-        (abs
-          b
-          (type)
-          (lam
-            dIsData
-            [IsData a]
-            (lam
-              dIsData
-              [IsData b]
-              (lam
-                d
-                (con data)
-                (let
-                  (nonrec)
-                  (termbind
-                    (nonstrict)
-                    (vardecl x [[Tuple2 a] b])
-                    [ { error [[Tuple2 a] b] } (con unit ()) ]
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl
-                      tup [[(con pair) (con integer)] [(con list) (con data)]]
-                    )
-                    [ (builtin unConstrData) d ]
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl t [(con list) (con data)])
-                    [
-                      {
-                        { (builtin sndPair) (con integer) }
-                        [(con list) (con data)]
-                      }
-                      tup
-                    ]
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl x b)
-                    [
-                      [ { unsafeFromBuiltinData b } dIsData ]
-                      [
-                        { (builtin headList) (con data) }
-                        [ { (builtin tailList) (con data) } t ]
-                      ]
-                    ]
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl x a)
-                    [
-                      [ { unsafeFromBuiltinData a } dIsData ]
-                      [ { (builtin headList) (con data) } t ]
-                    ]
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl x [[Tuple2 a] b])
-                    [ [ { { Tuple2 a } b } x ] x ]
-                  )
-                  [
-                    [
-                      [
-                        [
-                          { (builtin ifThenElse) (fun Unit [[Tuple2 a] b]) }
-                          [
-                            [
-                              (builtin equalsInteger)
-                              [
-                                {
-                                  { (builtin fstPair) (con integer) }
-                                  [(con list) (con data)]
-                                }
-                                tup
-                              ]
-                            ]
-                            (con integer 0)
-                          ]
-                        ]
-                        (lam ds Unit x)
-                      ]
-                      (lam ds Unit x)
-                    ]
-                    Unit
-                  ]
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        fIsDataTuple2
-        (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] [IsData [[Tuple2 a] b]]))))
-      )
-      (abs
-        a
-        (type)
-        (abs
-          b
-          (type)
-          (lam
-            v
-            [IsData a]
-            (lam
-              v
-              [IsData b]
-              [
-                [
-                  [
-                    { CConsIsData [[Tuple2 a] b] }
-                    [ [ { { fIsDataTuple2_ctoBuiltinData a } b } v ] v ]
-                  ]
-                  [ [ { { fIsDataTuple2_cfromBuiltinData a } b } v ] v ]
-                ]
-                [ [ { { fIsDataTuple2_cunsafeFromBuiltinData a } b } v ] v ]
-              ]
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        fIsDataInteger_cfromBuiltinData (fun (con data) [Maybe (con integer)])
+        fFromDataInteger_cfromBuiltinData (fun (con data) [Maybe (con integer)])
       )
       (lam
         d
@@ -604,34 +327,32 @@
       )
     )
     (termbind
-      (strict)
-      (vardecl fIsDataInteger_ctoBuiltinData (fun (con integer) (con data)))
-      (lam i (con integer) [ (builtin iData) i ])
-    )
-    (termbind
       (nonstrict)
-      (vardecl fIsDataInteger [IsData (con integer)])
+      (vardecl
+        dFromData
+        [(lam a (type) (fun (con data) [Maybe a])) [[Tuple2 (con integer)] (con integer)]]
+      )
       [
         [
-          [ { CConsIsData (con integer) } fIsDataInteger_ctoBuiltinData ]
-          fIsDataInteger_cfromBuiltinData
+          { { fFromDataTuple2_cfromBuiltinData (con integer) } (con integer) }
+          fFromDataInteger_cfromBuiltinData
         ]
-        (builtin unIData)
+        fFromDataInteger_cfromBuiltinData
       ]
     )
     (termbind
-      (nonstrict)
-      (vardecl dIsData [IsData [[Tuple2 (con integer)] (con integer)]])
-      [
-        [ { { fIsDataTuple2 (con integer) } (con integer) } fIsDataInteger ]
-        fIsDataInteger
-      ]
+      (strict)
+      (vardecl
+        fromBuiltinData
+        (all a (type) (fun [(lam a (type) (fun (con data) [Maybe a])) a] (fun (con data) [Maybe a])))
+      )
+      (abs a (type) (lam v [(lam a (type) (fun (con data) [Maybe a])) a] v))
     )
     (lam
       ds
       (con data)
       [
-        [ { fromBuiltinData [[Tuple2 (con integer)] (con integer)] } dIsData ]
+        [ { fromBuiltinData [[Tuple2 (con integer)] (con integer)] } dFromData ]
         ds
       ]
     )
