@@ -19,23 +19,33 @@ import           Cardano.Api                                 (BlockInMode (..), 
                                                               LocalNodeClientProtocolsInMode, LocalNodeConnectInfo (..),
                                                               connectToLocalNode)
 import           Ledger.TimeSlot                             (SlotConfig, currentSlot)
-import           Ouroboros.Consensus.Cardano.Block           (CardanoBlock)
-import           Ouroboros.Consensus.Shelley.Protocol        (StandardCrypto)
 import           Ouroboros.Network.IOManager
 import qualified Ouroboros.Network.Protocol.ChainSync.Client as ChainSync
 
 import           Cardano.Protocol.Socket.Type                hiding (Tip)
 import           Ledger                                      (Slot (..))
 
-data ChainSyncHandle block = ChainSyncHandle
+data ChainSyncHandle event = ChainSyncHandle
     { cshCurrentSlot :: IO Slot
-    , cshHandler     :: block -> Slot -> IO ()
+    , cshHandler     :: event -> Slot -> IO ()
     }
 
-type CBlock = CardanoBlock StandardCrypto
+data ChainSyncEvent =
+    Resume !ChainPoint
+  | RollForward !(BlockInMode CardanoMode)
+
+{- | The `Slot` parameter here represents the `current` slot as computed from the
+     current time. There is also the slot where the block was published, which is
+     available from the `ChainSyncEvent`.
+
+     Currently we are using this current slot everywhere, which is why I leave it
+     here, as a parameter.
+-}
+type ChainSyncCallback = ChainSyncEvent -> Slot -> IO ()
 
 getCurrentSlot
-  :: ChainSyncHandle CBlock
+  :: forall block.
+     ChainSyncHandle block
   -> IO Slot
 getCurrentSlot = cshCurrentSlot
 
@@ -43,19 +53,21 @@ getCurrentSlot = cshCurrentSlot
 runChainSync'
   :: FilePath
   -> SlotConfig
-  -> IO (ChainSyncHandle (BlockInMode CardanoMode))
-runChainSync' socketPath slotConfig =
-  runChainSync socketPath slotConfig (\_ _ -> pure ())
+  -> [ChainPoint]
+  -> IO (ChainSyncHandle ChainSyncEvent)
+runChainSync' socketPath slotConfig resumePoints =
+  runChainSync socketPath slotConfig resumePoints (\_ _ -> pure ())
 
 runChainSync
   :: FilePath
   -> SlotConfig
-  -> (BlockInMode CardanoMode -> Slot -> IO ())
-  -> IO (ChainSyncHandle (BlockInMode CardanoMode))
-runChainSync socketPath slotConfig onNewBlock = do
+  -> [ChainPoint]
+  -> ChainSyncCallback
+  -> IO (ChainSyncHandle ChainSyncEvent)
+runChainSync socketPath slotConfig resumePoints chainSyncEventHandler = do
     let handle = ChainSyncHandle {
           cshCurrentSlot = currentSlot slotConfig,
-          cshHandler = onNewBlock }
+          cshHandler = chainSyncEventHandler }
 
     _ <- forkIO $ withIOManager $ loop (1 :: Second)
     pure handle
@@ -66,7 +78,9 @@ runChainSync socketPath slotConfig onNewBlock = do
         localNodeSocketPath = socketPath }
       localNodeClientProtocols :: LocalNodeClientProtocolsInMode CardanoMode
       localNodeClientProtocols = LocalNodeClientProtocols {
-        localChainSyncClient = LocalChainSyncClient (chainSyncClient slotConfig onNewBlock),
+        localChainSyncClient =
+          LocalChainSyncClient $
+            chainSyncClient slotConfig resumePoints chainSyncEventHandler,
         localTxSubmissionClient = Nothing,
         localStateQueryClient = Nothing }
       loop :: forall a. TimeUnit a
@@ -81,20 +95,28 @@ runChainSync socketPath slotConfig onNewBlock = do
           (\_ -> do
                threadDelay (fromIntegral $ toMicroseconds timeout)
                loop timeout iocp)
+
 -- | The client updates the application state when the protocol state changes.
 chainSyncClient
   :: SlotConfig
-  -> (BlockInMode CardanoMode -> Slot -> IO ())
+  -> [ChainPoint]
+  -> ChainSyncCallback
   -> ChainSync.ChainSyncClient (BlockInMode CardanoMode) ChainPoint ChainTip IO ()
-chainSyncClient slotConfig handleBlock =
+chainSyncClient slotConfig [] chainSyncEventHandler =
+  chainSyncClient slotConfig [ChainPointAtGenesis] chainSyncEventHandler
+chainSyncClient slotConfig resumePoints chainSyncEventHandler =
     ChainSync.ChainSyncClient $ pure initialise
     where
       initialise :: ChainSync.ClientStIdle (BlockInMode CardanoMode) ChainPoint ChainTip IO ()
       initialise =
-        ChainSync.SendMsgFindIntersect [ChainPointAtGenesis] $
+        ChainSync.SendMsgFindIntersect resumePoints $
           ChainSync.ClientStIntersect {
             ChainSync.recvMsgIntersectFound    =
-              \_ _ -> ChainSync.ChainSyncClient $ pure requestNext,
+              \chainPoint _ ->
+                 ChainSync.ChainSyncClient $ do
+                   slot <- currentSlot slotConfig
+                   chainSyncEventHandler (Resume chainPoint) slot
+                   pure requestNext,
             ChainSync.recvMsgIntersectNotFound =
               \_   -> ChainSync.ChainSyncClient $ pure requestNext
           }
@@ -112,7 +134,7 @@ chainSyncClient slotConfig handleBlock =
           ChainSync.recvMsgRollForward  = \block _ ->
             ChainSync.ChainSyncClient $ do
               slot <- currentSlot slotConfig
-              handleBlock block slot
+              chainSyncEventHandler (RollForward block) slot
               pure requestNext
         , ChainSync.recvMsgRollBackward = \_     _ ->
             ChainSync.ChainSyncClient $ pure requestNext
