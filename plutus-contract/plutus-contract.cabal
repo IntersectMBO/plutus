@@ -192,7 +192,8 @@ test-suite plutus-contract-test
         plutus-ledger -any,
         plutus-tx -any,
         freer-simple -any,
-        aeson -any
+        aeson -any,
+        semigroupoids -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

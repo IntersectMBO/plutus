@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 module Spec.Contract(tests, loopCheckpointContract, initial, upd) where
 
-import           Control.Lens
+import           Control.Lens                         hiding ((.>))
 import           Control.Monad                        (forM_, forever, void)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except                 (catchError, throwError)
