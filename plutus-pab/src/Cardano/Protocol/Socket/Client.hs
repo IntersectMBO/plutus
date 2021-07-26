@@ -31,8 +31,9 @@ data ChainSyncHandle event = ChainSyncHandle
     }
 
 data ChainSyncEvent =
-    Resume !ChainPoint
-  | RollForward !(BlockInMode CardanoMode)
+    Resume       !ChainPoint
+  | RollForward  !(BlockInMode CardanoMode)
+  | RollBackward !ChainPoint
 
 {- | The `Slot` parameter here represents the `current` slot as computed from the
      current time. There is also the slot where the block was published, which is
@@ -136,7 +137,10 @@ chainSyncClient slotConfig resumePoints chainSyncEventHandler =
               slot <- currentSlot slotConfig
               chainSyncEventHandler (RollForward block) slot
               pure requestNext
-        , ChainSync.recvMsgRollBackward = \_     _ ->
-            ChainSync.ChainSyncClient $ pure requestNext
+        , ChainSync.recvMsgRollBackward = \point _ ->
+            ChainSync.ChainSyncClient $ do
+              slot <- currentSlot slotConfig
+              chainSyncEventHandler (RollBackward point) slot
+              pure requestNext
         }
 
