@@ -42,8 +42,9 @@ import qualified Data.Set                 as Set
 import           GHC.Generics             (Generic)
 
 import           Ledger.Blockchain
+import           Ledger.Tx                (txId)
 import           Plutus.V1.Ledger.Address (Address (..))
-import           Plutus.V1.Ledger.Tx      (Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), txId)
+import           Plutus.V1.Ledger.Tx      (Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..))
 import           Plutus.V1.Ledger.Value   (Value)
 
 type UtxoMap = Map TxOutRef TxOutTx

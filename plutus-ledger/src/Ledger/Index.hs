@@ -62,6 +62,7 @@ import           Ledger.Blockchain
 import           Ledger.Crypto
 import           Ledger.Scripts
 import qualified Ledger.TimeSlot                  as TimeSlot
+import           Ledger.Tx                        (txId)
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
 import qualified Plutus.V1.Ledger.Api             as Api
