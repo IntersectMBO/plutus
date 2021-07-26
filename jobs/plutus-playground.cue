@@ -19,6 +19,9 @@ import (
 		period:  types.#duration
 	}
 	#hosts: "`\(#domain)`,`client.\(#fqdn)`"
+  // these are needed to break infinite recursion later on, why?
+	#wut: "\(#domain)"
+	#wut2: #variant
 
 	namespace: string
 
@@ -61,10 +64,15 @@ import (
 				namespace,
 				"ingress",
 				"traefik.enable=true",
-				"traefik.http.routers.\(namespace)-\(#variant)-playground-server.rule=Host(\(#hosts)) && PathPrefix(`/api/`)",
+				"traefik.http.routers.\(namespace)-\(#variant)-playground-server.rule=Host(\(#hosts)) && PathPrefix(`/runghc`)",
 				"traefik.http.routers.\(namespace)-\(#variant)-playground-server.entrypoints=https",
 				"traefik.http.routers.\(namespace)-\(#variant)-playground-server.tls=true",
 				"traefik.http.routers.\(namespace)-\(#variant)-playground-server.middlewares=\(namespace)-web-ghc-server-ratelimit@consulcatalog",
+        // TODO, after https://jira.iohk.io/browse/SCP-2575 moves /runghc, then only /api/ is needed
+				"traefik.http.routers.\(namespace)-\(#variant)-playground-server2.rule=Host(\(#hosts)) && PathPrefix(`/api/`)",
+				"traefik.http.routers.\(namespace)-\(#variant)-playground-server2.entrypoints=https",
+				"traefik.http.routers.\(namespace)-\(#variant)-playground-server2.tls=true",
+				"traefik.http.routers.\(namespace)-\(#variant)-playground-server2.middlewares=\(namespace)-web-ghc-server-ratelimit@consulcatalog",
 				"traefik.http.middlewares.\(namespace)-\(#variant)-playground-server-ratelimit.ratelimit.average=\(#rateLimit.average)",
 				"traefik.http.middlewares.\(namespace)-\(#variant)-playground-server-ratelimit.ratelimit.burst=\(#rateLimit.burst)",
 				"traefik.http.middlewares.\(namespace)-\(#variant)-playground-server-ratelimit.ratelimit.period=\(#rateLimit.period)",
@@ -75,12 +83,16 @@ import (
 			#flake:     #clientFlake
 			#namespace: namespace
 			#memory: 32
+			#variant: #wut2
+			#domain: #wut
 		}
 
 		task: "server": tasks.#SimpleTask & {
 			#flake:     #serverFlake
 			#namespace: namespace
-			#memory: 32
+			#memory: 1024
+			#variant: #wut2
+			#domain: #wut
 		}
 	}
 }

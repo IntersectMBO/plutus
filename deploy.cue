@@ -7,7 +7,7 @@ import (
 )
 
 let fqdn = "plutus.aws.iohkdev.io"
-let opsRev = "1816240f195e85bf4be3ab4f9ae82aaf0adf8879"
+let opsRev = "95684007c17037c6ee139dceab7ee2417effb701"
 let plutusRev = "0e5520982b48daafac8f49ecbae2d61d1118773c"
 let hex = "[0-9a-f]"
 let seg = "[-a-zA-Z0-9]"
