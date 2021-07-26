@@ -58,28 +58,9 @@ The type checker synthesizes the kind of a given type and the type of a given te
 
 NB: The type checker requires terms to meet the global uniqueness property. If this is not a given, use a renamer pass to suitably pre-process the term in question.
 
-The `plc` executable can be used to type check programs. See installation instructions below. Run `plc typecheck -h` for available options.
+The `plc` executable can be used to type check programs. Run `cabal run plc typecheck -- -h` in the plutus directory for a full list of options.
 
 ### Evaluation
-
-#### Installation
-
-You can install the executables described below via either `stack` or `nix`.
-
-##### Via `nix`
-
-Run `nix build -f default.nix plutus.haskell.packages.plutus-core.components.exes.plc` being in the `plutus` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
-
-##### Via `stack`
-
-Run `stack install plutus-core` in your terminal being in any subfolder of `plutus`. Once the build finishes, you'll be shown the following lines:
-
-<!-- @thealmarty can't successfully install plutus-core, can someone else verify/update this? -->
-```
-Copied executables to ~/.local/bin:
-- plutus-core-generate-evaluation-test
-- plc
-```
 
 #### The CK machine
 
@@ -105,17 +86,11 @@ data EvaluationResult a
 ```
 It can also raise an exception, as indicated by `unsafe` in the name, but this should not happen for well-formed programs.
 
-There is an executable that runs programs on the CK machine: you can feed a program to `plc evaluate`, the program will be run and the result will be printed.
-
-An example of usage:
-
-```
-echo "(program 0.1.0 [(lam x (con integer) x) (con integer 271)])" | plc evaluate --stdin
-```
+There is an executable that runs programs on the CK machine: you can feed a program to `plc evaluate`, the program will be run and the result will be printed. Run `cabal run plc evaluate -- -h` for a full list of options.
 
 #### The CEK machine
 
-Similarly for untyped plutus core, the CEK machine can be used to evaluate untyped plutus core programs. Run `uplc evaluate -h` for a full list of options.
+Similarly for untyped plutus core, the CEK machine can be used to evaluate untyped plutus core programs. Run `cabal run uplc evaluate -- -h` for a full list of options.
 
 #### Tests
 
