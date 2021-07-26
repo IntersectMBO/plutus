@@ -1,5 +1,6 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -17,13 +18,13 @@ module Ledger.Tx
     , txId
     ) where
 
+import           Cardano.Crypto.Hash       (SHA256, digest)
 import qualified Codec.CBOR.Write          as Write
 import           Codec.Serialise.Class     (encode)
 import           Control.Lens
-import           Crypto.Hash               (Digest, SHA256, hash)
-import qualified Data.ByteArray            as BA
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
+import           Data.Proxy
 import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc (Pretty (pretty), braces, colon, hang, nest, viaShow, vsep, (<+>))
 import           Ledger.Address            (pubKeyAddress, scriptAddress)
@@ -52,11 +53,9 @@ instance Pretty Tx where
 -- | Compute the id of a transaction.
 txId :: Tx -> TxId
 -- Double hash of a transaction, excluding its witnesses.
-txId tx = TxId $ BA.convert h' where
-    h :: Digest SHA256
-    h = hash $ Write.toStrictByteString $ encode $ strip tx
-    h' :: Digest SHA256
-    h' = hash h
+txId tx = TxId $ digest (Proxy @SHA256)
+               $ digest (Proxy @SHA256)
+               (Write.toStrictByteString $ encode $ strip tx)
 
 -- | Update a map of unspent transaction outputs and signatures based on the inputs
 --   and outputs of a transaction.
