@@ -75,7 +75,7 @@ runCekNoEmit
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
 runCekNoEmit params mode term =
-    case runCek params mode False term of
+    case runCek params mode NoEmit term of
         (errOrRes, cost', _) -> (errOrRes, cost')
 
 -- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
@@ -99,7 +99,7 @@ evaluateCek
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
 evaluateCek params term =
-    case runCek params restrictingEnormous True term of
+    case runCek params restrictingEnormous Emit term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
@@ -109,6 +109,16 @@ evaluateCekNoEmit
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
 evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
+
+-- | Evaluate a term using the CEK machine with timestamped logging enabled.
+evaluateCekWithTime
+    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    => MachineParameters CekMachineCosts CekValue uni fun
+    -> Term Name uni fun ()
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
+evaluateCekWithTime params term =
+    case runCek params restrictingEnormous EmitWithTimestamp term of
+        (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 unsafeEvaluateCek

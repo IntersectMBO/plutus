@@ -356,7 +356,6 @@ test-suite plutus-core-test
         tasty-golden -any,
         tasty-hedgehog -any,
         tasty-hunit -any,
-        tasty-hunit -any,
         text -any,
         transformers -any
 

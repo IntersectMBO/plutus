@@ -34,6 +34,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , ExBudgetMode(..)
     , CekCarryingM (..)
     , CekM
+    , EmitterTy (..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
@@ -392,6 +393,14 @@ type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name 
 -- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
 type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Everywhere uni PrettyConst)
 
+-- | Describe whether to emit or not. And if emitting, should it include timestamp?
+-- The timestamp is for profiling purposes.
+-- Don't emit timestamps if you are running tests.
+data EmitterTy
+    = NoEmit
+    | Emit
+    | EmitWithTimestamp
+
 {- Note [Throwing exceptions in ST]
 This note represents MPJ's best understanding right now, might be wrong.
 
@@ -564,12 +573,16 @@ runCekM
     (PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> Bool
+    -> EmitterTy
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitting a = runST $ do
     exBudgetMode <- getExBudgetInfo
-    mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
+    mayLogsRef <-
+        case emitting of
+            Emit              -> Just <$> newSTRef DList.empty
+            NoEmit            -> pure Nothing
+            EmitWithTimestamp -> Just <$> newSTRef DList.empty
     let ?cekRuntime = runtime
         ?cekEmitter = mayLogsRef
         ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
@@ -790,7 +803,7 @@ runCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> Bool
+    -> EmitterTy
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
 runCek params mode emitting term =
