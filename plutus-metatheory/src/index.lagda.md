@@ -62,7 +62,6 @@ import Type
 import Type.RenamingSubstitution
 import Type.Equality
 import Type.ReductionS
-import Type.ReductionF
 import Type.ReductionC
 import Type.CC
 import Type.CK
