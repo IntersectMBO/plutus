@@ -271,10 +271,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
             _       -> EvaluationFailure
     toBuiltinMeaning ChooseList = makeBuiltinMeaning choosePlc mempty where
-        choosePlc :: Opaque term b -> Opaque term b -> SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term b)
-        choosePlc a b (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = case xs of
-            []    -> EvaluationSuccess a
-            _ : _ -> EvaluationSuccess b
+        choosePlc :: SomeConstantOf uni [] '[a] -> Opaque term b -> Opaque term b -> Opaque term b
+        choosePlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) a b = case xs of
+            []    -> a
+            _ : _ -> b
     toBuiltinMeaning ConstrData =
         makeBuiltinMeaning
             Constr
@@ -331,7 +331,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             mempty
     toBuiltinMeaning ChooseData =
         makeBuiltinMeaning
-            (\xConstr xMap xList xI xB -> \case
+            (\d xConstr xMap xList xI xB -> case d of
                 Constr {} -> xConstr
                 Map    {} -> xMap
                 List   {} -> xList
