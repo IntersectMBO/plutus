@@ -341,12 +341,12 @@ validator :: Future -> FutureAccounts -> Validator
 validator ft fos = Scripts.validatorScript (typedValidator ft fos)
 
 {-# INLINABLE verifyOracle #-}
-verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
+verifyOracle :: PlutusTx.FromData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
 verifyOracle pubKey sm =
     either (const Nothing) pure
     $ Oracle.verifySignedMessageConstraints pubKey sm
 
-verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (POSIXTime, a)
+verifyOracleOffChain :: PlutusTx.FromData a => Future -> SignedMessage (Observation a) -> Maybe (POSIXTime, a)
 verifyOracleOffChain Future{ftPriceOracle} sm =
     case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
         Left _                               -> Nothing

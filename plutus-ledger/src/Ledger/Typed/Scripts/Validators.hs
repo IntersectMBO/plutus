@@ -70,7 +70,7 @@ type WrappedValidatorType = BuiltinData -> BuiltinData -> BuiltinData -> ()
 {-# INLINABLE wrapValidator #-}
 wrapValidator
     :: forall d r
-    . (IsData d, IsData r)
+    . (UnsafeFromData d, UnsafeFromData r)
     => (d -> r -> Validation.ScriptContext -> Bool)
     -> WrappedValidatorType
 -- We can use unsafeFromBuiltinData here as we would fail immediately anyway if parsing failed

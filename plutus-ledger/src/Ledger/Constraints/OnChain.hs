@@ -11,7 +11,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Constraints.OnChain where
 
-import           PlutusTx                         (IsData (..))
+import           PlutusTx                         (ToData (..))
 import           PlutusTx.Prelude
 
 import           Ledger.Constraints.TxConstraints
@@ -34,7 +34,7 @@ checkOwnInputConstraint ScriptContext{scriptContextTxInfo} InputConstraint{icTxO
 
 {-# INLINABLE checkOwnOutputConstraint #-}
 checkOwnOutputConstraint
-    :: IsData o
+    :: ToData o
     => ScriptContext
     -> OutputConstraint o
     -> Bool
@@ -95,7 +95,7 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
 
 {-# INLINABLE checkScriptContext #-}
 -- | Does the 'ScriptContext' satisfy the constraints?
-checkScriptContext :: forall i o. IsData o => TxConstraints i o -> ScriptContext -> Bool
+checkScriptContext :: forall i o. ToData o => TxConstraints i o -> ScriptContext -> Bool
 checkScriptContext TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =
     traceIfFalse "checkScriptContext failed"
     $ all (checkTxConstraint ptx) txConstraints

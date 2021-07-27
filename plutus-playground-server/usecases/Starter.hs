@@ -38,10 +38,10 @@ import           PlutusTx.Prelude     hiding (Applicative (..))
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
-newtype MyDatum = MyDatum Integer deriving newtype PlutusTx.IsData
+newtype MyDatum = MyDatum Integer deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 PlutusTx.makeLift ''MyDatum
 
-newtype MyRedeemer = MyRedeemer Integer deriving newtype PlutusTx.IsData
+newtype MyRedeemer = MyRedeemer Integer deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 PlutusTx.makeLift ''MyRedeemer
 
 -- | This method is the spending validator (which gets lifted to
