@@ -22,7 +22,7 @@ import           PlutusCore.Name
 import           UntypedPlutusCore
 import           UntypedPlutusCore.Evaluation.Machine.Cek          hiding (evaluateCek, unsafeEvaluateCek)
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as Cek
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal (EmitterTy (Emit))
+import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal (EmitterOption (Emit))
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek

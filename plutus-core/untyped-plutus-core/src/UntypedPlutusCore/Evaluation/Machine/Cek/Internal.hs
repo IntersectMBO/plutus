@@ -34,7 +34,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , ExBudgetMode(..)
     , CekCarryingM (..)
     , CekM
-    , EmitterTy (..)
+    , EmitterOption (..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
@@ -311,7 +311,7 @@ they don't actually take the context as an argument even at the source level.
 -- | Implicit parameter for the builtin runtime.
 type GivenCekRuntime uni fun = (?cekRuntime :: (BuiltinsRuntime fun (CekValue uni fun)))
 -- | Implicit parameter for the log emitter reference.
-type GivenCekEmitter s = (?cekEmitter :: (Maybe (STRef s (DList String))))
+type GivenCekEmitter s = (?cekEmitter :: EmitterOption)
 -- | Implicit parameter for budget spender.
 type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
 type GivenCekSlippage = (?cekSlippage :: Slippage)
@@ -396,9 +396,8 @@ type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typea
 -- | Describe whether to emit or not. And if emitting, should it include timestamp?
 -- The timestamp is for profiling purposes.
 -- Don't emit timestamps if you are running tests.
-data EmitterTy
-    = NoEmit
-    | Emit
+data EmitterOption
+    = Emit
     | EmitWithTimestamp
 
 {- Note [Throwing exceptions in ST]
@@ -489,19 +488,21 @@ instance Pretty CekUserError where
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 
-emitCek :: GivenCekEmitter s => String -> CekM uni fun s ()
+
+emitCek :: String -> CekM uni fun s ()
 emitCek str = do
+    emitlog <- CekCarryingM $ newSTRef str
+    CekCarryingM $
+        modifySTRef emitlog id
+
+emitCekWithTime :: String -> CekM uni fun s ()
+emitCekWithTime str = do
     time <- (CekCarryingM . unsafeIOToST) getCurrentTime
-    let mayLogsRef = ?cekEmitter
-        withTime =
+    let withTime =
             "[" ++
             show time ++
             "]" ++ str
-    case mayLogsRef of
-        Nothing      -> pure ()
-        Just logsRef ->
-            CekCarryingM $
-                modifySTRef logsRef (`DList.snoc` withTime)
+    emitCek withTime
 
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
@@ -573,16 +574,10 @@ runCekM
     (PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> EmitterTy
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitting a = runST $ do
+runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) a = runST $ do
     exBudgetMode <- getExBudgetInfo
-    mayLogsRef <-
-        case emitting of
-            Emit              -> Just <$> newSTRef DList.empty
-            NoEmit            -> pure Nothing
-            EmitWithTimestamp -> Just <$> newSTRef DList.empty
     let ?cekRuntime = runtime
         ?cekEmitter = mayLogsRef
         ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
@@ -803,10 +798,9 @@ runCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> EmitterTy
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
-runCek params mode emitting term =
-    runCekM params mode emitting $ do
+runCek params mode term =
+    runCekM params mode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
         enterComputeCek NoFrame mempty term
