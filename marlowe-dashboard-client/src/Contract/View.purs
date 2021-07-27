@@ -28,7 +28,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
-import Halogen.Extra (lifeCycleEvent)
+import Halogen.Extra (lifeCycleSlot, LifecycleEvent(..))
 import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4_, input, p, span, span_, sup_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
@@ -129,14 +129,14 @@ contractScreen currentSlot state =
     paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element" ] ] [] ]
   in
     div
-      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ]
-      -- FIXME: This is causing problems with the tooltips
-      , lifeCycleEvent { onInit: Just CarouselOpened, onFinalize: Just CarouselClosed }
-      ]
-      {- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
-               because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
-               we need the cards container to grow (hence the flex-grow). -}
-      [ div [ classNames [ "flex-grow", "w-full" ] ]
+      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ] ]
+      [ lifeCycleSlot "carousel-lifecycle" case _ of
+          OnInit -> Just CarouselOpened
+          OnFinalize -> Just CarouselClosed
+      -- NOTE: The card is allowed to grow in an h-full container and the navigation buttons are absolute positioned
+      --       because the cards x-scrolling can't coexist with a visible y-overflow. To avoid clipping the cards shadow
+      --       we need the cards container to grow (hence the flex-grow).
+      , div [ classNames [ "flex-grow", "w-full" ] ]
           [ div
               [ classNames [ "flex", "items-center", "overflow-x-scroll", "h-full", "scrollbar-width-none", "relative" ]
               , ref scrollContainerRef

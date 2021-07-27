@@ -9,11 +9,13 @@ import Data.Foldable (for_)
 import Data.Lens (Lens', Traversal', preview, set, view)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (over)
+import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
-import Halogen (ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, getHTMLElementRef)
-import Halogen.HTML (IProp, div_)
+import Halogen (Component, ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, Slot, getHTMLElementRef, mkComponent)
+import Halogen as H
+import Halogen.HTML (HTML, IProp, div_, slot)
 import Halogen.HTML.Core (Prop)
 import Halogen.HTML.Core as Core
 import Halogen.Query (HalogenM)
@@ -122,16 +124,55 @@ scrollIntoView ref = do
   mElement <- getHTMLElementRef ref
   for_ mElement (liftEffect <<< runEffectFn1 scrollIntoView_)
 
--- FIXME: There is a problem with this implementation of lifeCycleEvent that makes the tooltips not appear
---        in branches of the component that includes this.
+-- NOTE:  There is a problem with this implementation of lifeCycleEvent that affect the use of normal components
+--        (like tooltips or hints) when a branch of the component tree uses this property.
 --        I think that by firing an Action and not using the RefUpdate we are "hijacking" halogen internals
 --        and not allowing the slots component Init state to kick in.
---        To fix this one option would be to change this IProp into a proper dumb component (used with slots)
---        and to re-use the lifecycle of that component through the output message to send an Init/Finilize message.
+--        The workaround for this issue is to use lifeCycleSlot instead, which is a little more verbose
+--        as it requires to be in the context of a ComponentHTML and also leaves an empty div in the DOM.
+--        I leave this code here to see if we can later come up with a solution that works as a property instead of a slot.
+--
 -- This HTML property dispatch lifecycle actions when the element is added or removed to the DOM
-lifeCycleEvent :: forall r action. { onInit :: Maybe action, onFinalize :: Maybe action } -> IProp r action
-lifeCycleEvent handlers = (unsafeCoerce :: Prop (Input action) -> IProp r action) $ Core.ref onLifecycleEvent
+lifeCycleEventProperty :: forall r action. { onInit :: Maybe action, onFinalize :: Maybe action } -> IProp r action
+lifeCycleEventProperty handlers = (unsafeCoerce :: Prop (Input action) -> IProp r action) $ Core.ref onLifecycleEvent
   where
   onLifecycleEvent (Just _) = Input.Action <$> handlers.onInit
 
   onLifecycleEvent Nothing = Input.Action <$> handlers.onFinalize
+
+_lifeCycleSlot :: SProxy "lifeCycleSlot"
+_lifeCycleSlot = SProxy
+
+data LifecycleEvent
+  = OnInit
+  | OnFinalize
+
+lifeCycleComponent ::
+  forall m query.
+  Component HTML query Unit LifecycleEvent m
+lifeCycleComponent =
+  mkComponent
+    { initialState: identity
+    , render: const $ div_ []
+    , eval:
+        H.mkEval
+          $ H.defaultEval
+              { handleAction = H.raise
+              , initialize = Just OnInit
+              , finalize = Just OnFinalize
+              }
+    }
+
+-- Helper function to fire life-cycle actions in a sub component.
+lifeCycleSlot ::
+  forall slots m action.
+  String ->
+  (LifecycleEvent -> Maybe action) ->
+  ComponentHTML action ( lifeCycleSlot :: forall query. Slot query LifecycleEvent String | slots ) m
+lifeCycleSlot ref handler =
+  slot
+    _lifeCycleSlot
+    ref
+    lifeCycleComponent
+    unit
+    handler
