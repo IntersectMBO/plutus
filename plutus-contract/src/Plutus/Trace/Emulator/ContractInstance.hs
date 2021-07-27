@@ -31,7 +31,7 @@ module Plutus.Trace.Emulator.ContractInstance(
     ) where
 
 import           Control.Lens
-import           Control.Monad                        (guard, unless, void, when)
+import           Control.Monad                        (guard, join, unless, void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error            (Error, throwError)
 import           Control.Monad.Freer.Extras.Log       (LogMessage, LogMsg (..), LogObserve, logDebug, logError, logInfo,
@@ -41,9 +41,15 @@ import           Control.Monad.Freer.Reader           (Reader, ask, runReader)
 import           Control.Monad.Freer.State            (State, evalState, get, gets, modify, put)
 import qualified Data.Aeson                           as JSON
 import           Data.Foldable                        (traverse_)
+import qualified Data.Map                             as Map
+import           Data.Maybe                           (listToMaybe, mapMaybe)
 import qualified Data.Text                            as T
+import           Ledger.Blockchain                    (OnChainTx (..))
+import           Ledger.Tx                            (txId)
 import           Plutus.Contract                      (Contract (..))
-import           Plutus.Contract.Effects              (PABReq, PABResp, matches)
+import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), TxValidity (..),
+                                                       matches)
+import qualified Plutus.Contract.Effects              as E
 import           Plutus.Contract.Resumable            (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable            as State
 import           Plutus.Contract.Trace                (handleBlockchainQueries)
@@ -156,6 +162,9 @@ runInstance contract event = do
             Just (ContractInstanceStateRequest sender) -> do
                 handleObservableStateRequest sender
                 mkAgentSysCall Normal WaitForMessage >>= runInstance contract
+            Just (NewSlot block _) -> do
+                processNewTransactions @w @s @e (join block)
+                runInstance contract Nothing
             _ -> waitForNextMessage True >>= runInstance contract
 
 -- | Run an instance to only answer to observable state requests even when the
@@ -235,6 +244,31 @@ decodeEvent vl =
 
 getHooks :: forall w s e effs. Member (State (ContractInstanceStateInternal w s e ())) effs => Eff effs [Request PABReq]
 getHooks = gets @(ContractInstanceStateInternal w s e ()) (State.unRequests . view requests . view resumableResult . cisiSuspState)
+
+-- | Update the contract instance with tx status information from the new block.
+processNewTransactions ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => [OnChainTx]
+    -> Eff effs ()
+processNewTransactions txns = do
+    -- Check whether the contract instance is waiting for a status change of any
+    -- of the new transactions. If that is the case, call 'addResponse' to send the
+    -- response.
+    let txWithStatus (Invalid tx) = (txId tx, TxInvalid)
+        txWithStatus (Valid tx)   = (txId tx, TxValid)
+        statusMap = Map.fromList $ fmap txWithStatus txns
+    hks <- mapMaybe (traverse (preview E._AwaitTxStatusChangeReq)) <$> getHooks @w @s @e
+    let mpReq Request{rqID, itID, rqRequest=txid} =
+            case Map.lookup txid statusMap of
+                Nothing -> Nothing
+                Just newStatus -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=AwaitTxStatusChangeResp txid (E.Committed newStatus)}
+        txStatusHk = listToMaybe $ mapMaybe mpReq hks
+    traverse_ (addResponse @w @s @e) txStatusHk
+    logResponse @w @s @e False txStatusHk
 
 -- | Add a 'Response' to the contract instance state
 addResponse

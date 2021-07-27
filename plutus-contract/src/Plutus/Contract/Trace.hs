@@ -33,7 +33,6 @@ module Plutus.Contract.Trace
     , handleUnbalancedTransactions
     , handlePendingTransactions
     , handleUtxoQueries
-    , handleTxConfirmedQueries
     , handleAddressChangedAtQueries
     , handleOwnInstanceIdQueries
     -- * Initial distributions of emulated chains
@@ -142,7 +141,6 @@ handleBlockchainQueries =
     handleUnbalancedTransactions
     <> handlePendingTransactions
     <> handleUtxoQueries
-    <> handleTxConfirmedQueries
     <> handleOwnPubKeyQueries
     <> handleAddressChangedAtQueries
     <> handleOwnInstanceIdQueries
@@ -189,14 +187,6 @@ handleUtxoQueries ::
     => RequestHandler effs PABReq PABResp
 handleUtxoQueries =
     generalise (preview E._UtxoAtReq) E.UtxoAtResp RequestHandler.handleUtxoQueries
-
-handleTxConfirmedQueries ::
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member ChainIndexEffect effs
-    )
-    => RequestHandler effs PABReq PABResp
-handleTxConfirmedQueries =
-    generalise (preview E._AwaitTxConfirmedReq) (E.AwaitTxConfirmedResp . E.unTxConfirmed) RequestHandler.handleTxConfirmedQueries
 
 handleAddressChangedAtQueries ::
     ( Member (LogObserve (LogMessage Text)) effs

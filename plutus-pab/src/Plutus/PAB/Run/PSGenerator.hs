@@ -36,7 +36,6 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import qualified PSGenerator.Common
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
-import           Plutus.Contract.Effects                    (TxConfirmed)
 import           Plutus.Contract.Resumable                  (Responses)
 import           Plutus.PAB.Effects.Contract.Builtin        (Builtin)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
@@ -104,7 +103,6 @@ pabTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
 
     -- Contract request / response types
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointStore)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(CheckpointStoreItem A))

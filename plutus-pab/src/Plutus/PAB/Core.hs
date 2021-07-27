@@ -56,7 +56,7 @@ module Plutus.PAB.Core
     , instanceState
     , observableState
     , waitForState
-    , waitForTxConfirmed
+    , waitForTxStatusChange
     , activeEndpoints
     , waitForEndpoint
     , currentSlot
@@ -103,7 +103,7 @@ import           Data.Text                               (Text)
 import           Ledger.Tx                               (Address, Tx)
 import           Ledger.TxId                             (TxId)
 import           Ledger.Value                            (Value)
-import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq, TxConfirmed)
+import           Plutus.Contract.Effects                 (ActiveEndpoint (..), PABReq, TxStatus (Unknown))
 import           Plutus.PAB.Core.ContractInstance        (ContractInstanceMsg, ContractInstanceState)
 import qualified Plutus.PAB.Core.ContractInstance        as ContractInstance
 import           Plutus.PAB.Core.ContractInstance.STM    (Activity (Active), BlockchainEnv, InstancesState,
@@ -466,10 +466,10 @@ waitForState extract instanceId = do
         maybe STM.retry pure (extract state)
 
 -- | Wait for the transaction to be confirmed on the blockchain.
-waitForTxConfirmed :: forall t env. TxId -> PABAction t env TxConfirmed
-waitForTxConfirmed t = do
+waitForTxStatusChange :: forall t env. TxId -> PABAction t env TxStatus
+waitForTxStatusChange t = do
     env <- asks @(PABEnvironment t env) blockchainEnv
-    liftIO $ STM.atomically $ Instances.waitForTxConfirmed t env
+    liftIO $ STM.atomically $ Instances.waitForTxStatusChange Unknown t env
 
 -- | The list of endpoints that are currently open
 activeEndpoints :: forall t env. ContractInstanceId -> PABAction t env (STM [OpenEndpoint])

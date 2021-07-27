@@ -70,11 +70,13 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show time
       ]
-  pretty (AwaitTxConfirmedResp txConfirmed) =
+  pretty (AwaitTxStatusChangeResp txConfirmed txStatus) =
     span_
-      [ text "AwaitTxConfirmedResponse:"
+      [ text "AwaitTxStatusChangeResponse:"
       , nbsp
       , text $ view _txId txConfirmed
+      , nbsp
+      , text $ show txStatus
       ]
   pretty (ExposeEndpointResp endpointDescription endpointValue) =
     span_
@@ -142,9 +144,9 @@ instance prettyContractPABRequest :: Pretty PABReq where
     span_
       [ text "CurrentTimeRequest"
       ]
-  pretty (AwaitTxConfirmedReq txId) =
+  pretty (AwaitTxStatusChangeReq txId) =
     span_
-      [ text "AwaitTxConfirmedRequest:"
+      [ text "AwaitTxStatusChangeReq:"
       , nbsp
       , text $ view _txId txId
       ]

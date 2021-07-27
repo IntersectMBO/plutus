@@ -47,7 +47,7 @@ module Plutus.PAB.Simulator(
     , waitForState
     , activeEndpoints
     , waitForEndpoint
-    , waitForTxConfirmed
+    , waitForTxStatusChange
     , currentSlot
     , waitUntilSlot
     , waitNSlots
@@ -106,7 +106,7 @@ import           Ledger.Crypto                                  (PubKey, pubKeyH
 import           Ledger.Fee                                     (FeeConfig)
 import qualified Ledger.Index                                   as UtxoIndex
 import           Ledger.Value                                   (Value, flattenValue)
-import           Plutus.Contract.Effects                        (TxConfirmed)
+import           Plutus.Contract.Effects                        (TxStatus)
 import           Plutus.PAB.Core                                (EffectHandlers (..))
 import qualified Plutus.PAB.Core                                as Core
 import qualified Plutus.PAB.Core.ContractInstance.BlockchainEnv as BlockchainEnv
@@ -384,9 +384,9 @@ finalResult = Core.finalResult
 waitUntilFinished :: forall t. ContractInstanceId -> Simulation t (Maybe JSON.Value)
 waitUntilFinished = Core.waitUntilFinished
 
--- | Wait until the transaction has been confirmed on the blockchain.
-waitForTxConfirmed :: forall t. TxId -> Simulation t TxConfirmed
-waitForTxConfirmed = Core.waitForTxConfirmed
+-- | Wait until the status of the transaction changes
+waitForTxStatusChange :: forall t. TxId -> Simulation t TxStatus
+waitForTxStatusChange = Core.waitForTxStatusChange
 
 -- | Wait until the endpoint becomes active.
 waitForEndpoint :: forall t. ContractInstanceId -> String -> Simulation t ()
@@ -542,11 +542,10 @@ handleChainIndexEffect ::
     => ChainIndexEffect
     ~> Eff effs
 handleChainIndexEffect = runChainIndexEffects @t . \case
-    StartWatching a           -> WalletEffects.startWatching a
-    WatchedAddresses          -> WalletEffects.watchedAddresses
-    ConfirmedBlocks           -> WalletEffects.confirmedBlocks
-    TransactionConfirmed txid -> WalletEffects.transactionConfirmed txid
-    AddressChanged r          -> WalletEffects.addressChanged r
+    StartWatching a  -> WalletEffects.startWatching a
+    WatchedAddresses -> WalletEffects.watchedAddresses
+    ConfirmedBlocks  -> WalletEffects.confirmedBlocks
+    AddressChanged r -> WalletEffects.addressChanged r
 
 handleChainIndexControlEffect ::
     forall t effs.

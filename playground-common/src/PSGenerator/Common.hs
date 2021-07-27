@@ -36,8 +36,9 @@ import           Ledger.Typed.Tx                           (ConnectionError, Wro
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
-import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, PABReq, PABResp,
-                                                            UtxoAtAddress, WriteBalancedTxResponse)
+import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, Depth, PABReq, PABResp,
+                                                            TxStatus, TxValidity, UtxoAtAddress,
+                                                            WriteBalancedTxResponse)
 import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
@@ -335,6 +336,9 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxValidity)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxStatus)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Depth)
     ]
 
 walletTypes :: [SumType 'Haskell]

@@ -30,12 +30,11 @@ module Wallet.Effects(
     , startWatching
     , watchedAddresses
     , confirmedBlocks
-    , transactionConfirmed
     , addressChanged
     ) where
 
 import           Control.Monad.Freer.TH      (makeEffect)
-import           Ledger                      (Address, Block, PubKey, Slot, Tx, TxId, Value)
+import           Ledger                      (Address, Block, PubKey, Slot, Tx, Value)
 import           Ledger.AddressMap           (AddressMap)
 import           Ledger.Constraints.OffChain (UnbalancedTx)
 import           Wallet.Emulator.Error       (WalletAPIError)
@@ -63,8 +62,6 @@ data ChainIndexEffect r where
     StartWatching :: Address -> ChainIndexEffect ()
     WatchedAddresses :: ChainIndexEffect AddressMap
     ConfirmedBlocks :: ChainIndexEffect [Block]
-    -- TODO: In the future we should have degrees of confirmation
-    TransactionConfirmed :: TxId -> ChainIndexEffect Bool
     AddressChanged :: AddressChangeRequest -> ChainIndexEffect AddressChangeResponse
 makeEffect ''ChainIndexEffect
 
