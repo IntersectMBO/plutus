@@ -2,6 +2,7 @@
   # 'supportedSystems' restricts the set of systems that we will evaluate for. Useful when you're evaluting
   # on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
+, rootsOnly ? false
 }:
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
@@ -54,12 +55,13 @@ let
           plutus = packages.plutus;
           isBuildable = platformFilterGeneric pkgs system;
         in
-        filterAttrsOnlyRecursive (_: drv: isBuildable drv) {
-          # build relevant top level attributes from default.nix
-          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab plutus-use-cases deployment;
+        filterAttrsOnlyRecursive (_: drv: isBuildable drv) ({
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
           # cache for users
           inherit (plutus.haskell.project) roots;
+        } // pkgs.lib.optionalAttrs (!rootsOnly) {
+          # build relevant top level attributes from default.nix
+          inherit (packages) docs tests plutus-playground marlowe-playground marlowe-dashboard marlowe-dashboard-fake-pab plutus-pab plutus-use-cases deployment;
 
           # Build the shell expression to be sure it works on all platforms
           #
@@ -75,7 +77,7 @@ let
 
           # build all haskell packages and tests
           haskell = pkgs.recurseIntoAttrs (mkHaskellDimension pkgs plutus.haskell.projectPackages);
-        };
+        });
     in
     dimension "System" systems select;
 in
