@@ -64,17 +64,6 @@ Two problems arise:
    'PLC.ScopedRenameM' is for performing the renaming (the second stage).
 -}
 
-{- Note [Mutual vs non-mutual recursion]
-
--}
-
-instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Term tyname name uni fun ann) where
-    -- See Note [Marking]
-    rename = through markNonFreshTerm >=> PLC.runRenameT . renameTermM
-
-instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Program tyname name uni fun ann) where
-    rename (Program ann term) = Program ann <$> PLC.rename term
-
 {- Note [Weird IR data types]
 We don't attempt to recognize in the renamer a family of mutually recursive data types where two
 or more data types have the same name, so the renamer's behavior in that case is undefined.
@@ -191,6 +180,27 @@ constructors in both the recursive and non-recursive cases letting us handle rec
 single line in the function renaming a data type.
 -}
 
+{- Note [Mutual vs non-mutual recursion]
+Note [Renaming of mutually recursive bindings] describes how we handle recursive bindings.
+There's nothing special about the way we handle non-recursive ones, however it's worth saying
+explicitly that in
+
+    let nonrec x = <...>
+
+@x@ is not visible in @<...>@, which makes it hard to share code between functions that handle
+recursive and non-recursive bindings, so we don't.
+
+Note [Renaming of constructors] describes how we managed to handle types of constructors of
+recursive and non-recursive data types with a single function.
+-}
+
+instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Term tyname name uni fun ann) where
+    -- See Note [Marking]
+    rename = through markNonFreshTerm >=> PLC.runRenameT . renameTermM
+
+instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Program tyname name uni fun ann) where
+    rename (Program ann term) = Program ann <$> PLC.rename term
+
 -- See Note [Renaming of constructors].
 -- | A wrapper around a function restoring some old context of the renamer.
 newtype Restorer ren m = Restorer
@@ -236,7 +246,8 @@ onNonRec NonRec f x = f x
 onNonRec Rec    _ x = x
 
 -- See Note [Weird IR data types]
--- See Note [Renaming of constructors]
+-- See Note [Renaming of constructors] (and make sure you understand all the intricacies in it
+-- before toucing this function).
 -- | Rename a 'Datatype' in the CPS-transformed 'ScopedRenameM' monad.
 renameDatatypeCM
     :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
