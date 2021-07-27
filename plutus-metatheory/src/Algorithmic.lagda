@@ -120,29 +120,44 @@ ISIG trace = ∅ ,, ∅ , con string ,, con unit
 ISIG equalsString = ∅ ,, ∅ , con string , con string ,, con bool
 ISIG encodeUtf8 = ∅ ,, ∅ , con string ,, con bytestring
 ISIG decodeUtf8 = ∅ ,, ∅ , con bytestring ,, con string
-ISIG fstPair = _ ,, ∅ ,⋆ * ,⋆ * , con (pair {!!} {!!})  ,, con integer
-ISIG sndPair = _ ,, ∅ , con (pair {!!} {!!}) ,, con integer
-ISIG nullList = _ ,, ∅ ,, con (list {!!})
-ISIG headList = _ ,, ∅ , con (list {!!}) ,, con integer
-ISIG tailList = _ ,, ∅ , con (list {!!}) ,, con (list {!!})
-ISIG chooseList = {!!}
-ISIG constrData = _ ,, ∅ , con integer , con (list {!!}) ,, con Data
-ISIG mapData = _ ,, ∅ ,, con Data -- TODO: fix this
-ISIG listData = _ ,, ∅ , con (list {!!}) ,, con Data
+ISIG fstPair =
+  _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` (S Z))
+ISIG sndPair = 
+  _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` Z)
+ISIG nullList = _ ,, ∅ ,⋆ * ,, con (list (ne (` Z)))
+ISIG headList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con integer
+ISIG tailList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con (list (ne (` Z)))
+ISIG chooseList =
+  _
+  ,,
+  ∅ ,⋆ * ,⋆ * , ne (` (S Z)) , ne (` (S Z)) , con (list (ne (` Z)))
+  ,,
+  ne (` (S Z)) 
+ISIG constrData = _ ,, ∅ , con integer , con (list (con Data)) ,, con Data
+ISIG mapData = _ ,, ∅ ,, con (pair (con Data) (con Data))
+ISIG listData = _ ,, ∅ , con (list (con Data)) ,, con Data
 ISIG iData = _ ,, ∅ , con integer ,, con Data
 ISIG bData = _ ,, ∅ , con bytestring ,, con Data
-ISIG unconstrData = {!!}
-ISIG unMapData = {!!}
-ISIG unListData = {! !}
+ISIG unconstrData =
+  _ ,, ∅ , con Data ,, con (pair (con integer) (con (list (con Data))))
+ISIG unMapData = _ ,, ∅ , con Data ,, con (pair (con Data) (con Data))
+ISIG unListData = _ ,, ∅ , con Data ,, con (list (con Data))
 ISIG unIData = _ ,, ∅ , con Data ,, con integer
 ISIG unBData = _ ,, ∅ , con Data ,, con bytestring
 ISIG equalsData = _ ,, ∅ , con Data , con Data ,, con bool
-ISIG chooseData = {!!}
-ISIG chooseUnit = {!!}
-ISIG mkPairData = {!!}
-ISIG mkNilData = {!!}
-ISIG mkNilPairData = {!!}
-ISIG mkConsData = {!!}
+ISIG chooseData =
+  _
+  ,,
+  ∅ ,⋆ * , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , con Data
+  ,,
+  ne (` Z)
+ISIG chooseUnit = _ ,, ∅ ,⋆ * , ne (` Z) , con unit ,, ne (` Z)
+ISIG mkPairData =
+  _ ,, ∅ , con Data , con Data ,, con (pair (con Data) (con Data)) 
+ISIG mkNilData = _ ,, ∅ ,, con (list (con Data))
+ISIG mkNilPairData = _ ,, ∅ ,, con (list (con (pair (con Data) (con Data))))
+ISIG mkConsData =
+  _ ,, ∅ , con Data , con (list (con Data)) ,, con (list (con Data))
 
 isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 isig2type .∅ ∅ C = C
