@@ -7,7 +7,7 @@ module Contract.View
 import Prelude hiding (div)
 import Contract.Lenses (_executionState, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
-import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
+import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, StepBalance, Tab(..), scrollContainerRef)
 import Css as Css
 import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
@@ -17,7 +17,7 @@ import Data.BigInteger (BigInteger, fromString)
 import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Lens ((^.))
-import Data.Map (keys, lookup, toUnfoldable) as Map
+import Data.Map (intersectionWith, keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
 import Data.Set as Set
@@ -33,6 +33,7 @@ import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4_, input, p, span, sp
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, id_, placeholder, ref, target, type_, value)
+import Hint.State (hint)
 import Humanize (contractIcon, formatDate, formatTime, humanizeDuration, humanizeValue)
 import LoadingSubmitButton.State (loadingSubmitButton)
 import LoadingSubmitButton.Types (Message(..))
@@ -43,7 +44,7 @@ import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Extended.Metadata (_contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), getEncompassBound)
+import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
@@ -53,7 +54,7 @@ import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
 import WalletData.State (adaToken, getAda)
 
-contractCard :: forall p. Slot -> State -> HTML p Action
+contractCard :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 contractCard currentSlot state =
   let
     currentStepNumber = (currentStep state) + 1
@@ -98,7 +99,7 @@ contractCard currentSlot state =
           ]
       , div
           [ classNames [ "h-dashboard-card-actions", "overflow-y-auto" ] ]
-          [ currentStepActions state ]
+          [ currentStepActions currentStepNumber state ]
       ]
 
 timeoutString :: Slot -> State -> String
@@ -345,7 +346,14 @@ renderContractCard stepNumber state currentTab cardBody =
       , div [ classNames [ "bg-white", "grid", "grid-rows-auto-1fr" ] ] cardBody
       ]
 
-renderPastStep :: forall p. Input -> State -> Int -> PreviousStep -> HTML p Action
+renderPastStep ::
+  forall m.
+  MonadAff m =>
+  Input ->
+  State ->
+  Int ->
+  PreviousStep ->
+  ComponentHTML Action ChildSlots m
 renderPastStep viewInput state stepNumber step =
   let
     currentTab = step ^. _tab
@@ -354,7 +362,7 @@ renderPastStep viewInput state stepNumber step =
 
     renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout viewInput stepNumber timeoutSlot
 
-    renderBody Balances { balances } = renderBalances state balances
+    renderBody Balances { balances } = renderBalances stepNumber state balances
 
     statusIndicator stepState =
       div
@@ -380,7 +388,7 @@ renderPastStep viewInput state stepNumber step =
               [ text $ "Step " <> show (stepNumber + 1) ]
           , statusIndicator step.state
           ]
-      , div [ classNames [ "overflow-y-auto", "px-4", "bg-gray" ] ]
+      , div [ classNames [ "overflow-y-auto", "bg-gray" ] ]
           [ renderBody currentTab step
           ]
       ]
@@ -416,10 +424,12 @@ renderPastActions viewInput state txInput =
   let
     actionsByParticipant = groupTransactionInputByParticipant txInput
   in
-    div_
+    div [ classNames [ "px-4" ] ]
       $ if Array.length actionsByParticipant == 0 then
           -- TODO: See if we can reach this state and what text describes it better.
-          [ text "An empty transaction was made to advance this step" ]
+          [ div [ classNames [ "bg-white", "rounded", "shadow-sm", "my-4" ] ]
+              [ text "An empty transaction was made to advance this step" ]
+          ]
         else
           renderPartyPastActions viewInput state <$> actionsByParticipant
 
@@ -488,7 +498,7 @@ renderTimeout { tzOffset } stepNumber timeoutSlot =
         (\dt -> formatDate tzOffset dt <> " at " <> formatTime tzOffset dt)
         (slotToDateTime timeoutSlot)
   in
-    div [ classNames [ "flex", "flex-col", "items-center" ] ]
+    div [ classNames [ "flex", "flex-col", "items-center", "px-4" ] ]
       -- NOTE: we use pt-16 instead of making the parent justify-center because in the design it's not actually
       --       centered and it has more space above than below.
       [ icon Icon.Timer [ "pb-2", "pt-16", "text-red", "text-big-icon" ]
@@ -496,7 +506,7 @@ renderTimeout { tzOffset } stepNumber timeoutSlot =
           [ text $ "Step " <> show (stepNumber + 1) <> " timed out on " <> timedOutDate ]
       ]
 
-renderCurrentStep :: forall p. Input -> State -> HTML p Action
+renderCurrentStep :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
 renderCurrentStep viewInput state =
   let
     stepNumber = currentStep state
@@ -508,6 +518,10 @@ renderCurrentStep viewInput state =
     contractIsClosed = isContractClosed state
 
     mNextTimeout = state ^. (_executionState <<< _mNextTimeout)
+
+    bodyBgColor = case currentTab of
+      Tasks -> "bg-white"
+      Balances -> "bg-gray"
 
     statusIndicator mIcon status =
       div
@@ -528,12 +542,12 @@ renderCurrentStep viewInput state =
               _, _ -> statusIndicator (Just Icon.Timer) (timeoutString viewInput.currentSlot state)
           ]
       , div
-          [ classNames [ "overflow-y-auto" ] ]
-          [ currentStepActions state ]
+          [ classNames [ "overflow-y-auto", bodyBgColor ] ]
+          [ currentStepActions stepNumber state ]
       ]
 
-currentStepActions :: forall p. State -> HTML p Action
-currentStepActions state =
+currentStepActions :: forall m. MonadAff m => Int -> State -> ComponentHTML Action ChildSlots m
+currentStepActions stepNumber state =
   let
     currentTab = state ^. _tab
 
@@ -541,15 +555,16 @@ currentStepActions state =
 
     participants = state ^. _participants
 
-    semanticState = state ^. (_executionState <<< _semanticState)
+    balancesAtStart = state ^. (_executionState <<< _semanticState <<< _accounts)
 
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] semanticState
+    expandedBalancesAtStart = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtStart
   in
     case currentTab, isContractClosed state, isJust pendingTransaction of
       Tasks, true, _ -> renderContractClose
       Tasks, _, true -> renderPendingStep
       Tasks, _, _ -> renderTasks state
-      Balances, _, _ -> renderBalances state balances
+      Balances, false, _ -> renderBalances stepNumber state { atStart: expandedBalancesAtStart, atEnd: Nothing }
+      Balances, true, _ -> renderBalances stepNumber state { atStart: expandedBalancesAtStart, atEnd: Just expandedBalancesAtStart }
 
 renderContractClose :: forall p a. HTML p a
 renderContractClose =
@@ -644,35 +659,46 @@ participantWithNickname state party =
       Role roleName, Just nickname -> roleName <> " (" <> nickname <> ")"
       Role roleName, Nothing -> roleName
 
+-- TODO: this is currently only suitable for a deposit, we may want to create a
+-- data Movement =
+--    PayIn AccountId Party Token Value -- a.k.a deposit
+--    Transfer Party Party Token Value
+--    PayOut Party AccountId Token Value
+-- and change this for renderMovement.
 renderDeposit :: State -> Party -> Party -> Token -> BigInteger -> forall p a. HTML p a
 renderDeposit state to from token value =
   div [ classNames [ "flex", "flex-col" ] ]
-    -- FIXME: The designs makes the distinction between Wallet and account, but a party is either
-    --        PK or Role, so we may need to rethink this part.
     [ renderParty [] state from
     , div [ classNames [ "flex", "justify-between", "items-center" ] ]
         [ icon Icon.South [ "text-purple", "text-xs", "ml-1" ]
         , span [ classNames [ "text-xs", "text-green" ] ] [ text $ humanizeValue token value ]
         ]
-    , renderParty [] state to
+    , renderPartyAccount [] state to
     ]
 
-firstLetterInCircle :: forall p a. Array String -> String -> HTML p a
-firstLetterInCircle colorStyles name =
+accountIndicator ::
+  forall p a.
+  { colorStyles :: Array String, otherStyles :: Array String, name :: String } ->
+  HTML p a
+accountIndicator { colorStyles, otherStyles, name } =
+  div [ classNames $ [ "relative" ] <> otherStyles ]
+    [ firstLetterInCircle { styles: colorStyles, name }
+    , icon Icon.ReadMore [ "absolute", "text-xs", "-top-1", "right-0", "bg-white", "rounded-full" ]
+    ]
+
+firstLetterInCircle ::
+  forall p a. { styles :: Array String, name :: String } -> HTML p a
+firstLetterInCircle { styles, name } =
   div
     [ classNames
-        $ [ "bg-gradient-to-r"
-          , "from-purple"
-          , "to-lightpurple"
-          , "text-white"
-          , "rounded-full"
+        $ [ "rounded-full"
           , "w-5"
           , "h-5"
           , "text-center"
           , "mr-1"
           , "font-semibold"
           ]
-        <> colorStyles
+        <> styles
     ]
     [ text $ take 1 name ]
 
@@ -686,7 +712,21 @@ renderParty styles state party =
     userParties = state ^. _userParties
   in
     div [ classNames $ [ "text-xs", "flex" ] <> styles ]
-      [ firstLetterInCircle [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ] participantName
+      [ firstLetterInCircle { styles: [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ], name: participantName }
+      , div [ classNames [ "font-semibold" ] ]
+          [ text $ if Set.member party userParties then participantName <> " (you)" else participantName
+          ]
+      ]
+
+renderPartyAccount :: forall p a. Array String -> State -> Party -> HTML p a
+renderPartyAccount styles state party =
+  let
+    participantName = participantWithNickname state party
+
+    userParties = state ^. _userParties
+  in
+    div [ classNames $ [ "text-xs", "flex" ] <> styles ]
+      [ accountIndicator { colorStyles: [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white" ], otherStyles: [], name: participantName }
       , div [ classNames [ "font-semibold" ] ]
           [ text $ if Set.member party userParties then participantName <> " (you)" else participantName
           ]
@@ -845,7 +885,6 @@ renderAction state party CloseContract =
       -- FIXME: revisit the text
       [ shortDescription isActiveParticipant "The contract is still open and needs to be manually closed by any participant for the remainder of the balances to be distributed (charges may apply)"
       , button
-          -- TODO: adapt to use button classes from Css module
           [ classNames $ Css.button <> Css.withAnimation <> [ "w-full", "mt-2" ]
               <> if isActiveParticipant || debugMode then
                   Css.bgBlueGradient <> Css.withShadow
@@ -857,27 +896,70 @@ renderAction state party CloseContract =
           [ text "Close contract" ]
       ]
 
-renderBalances :: forall p a. State -> Accounts -> HTML p a
-renderBalances state accounts =
+renderBalances :: forall m a. MonadAff m => Int -> State -> StepBalance -> ComponentHTML a ChildSlots m
+renderBalances stepNumber state stepBalance =
   let
     -- TODO: Right now we only have one type of Token (ada), but when we support multiple tokens we may want to group by
     --       participant and show the different tokens for each participant.
-    accounts' :: Array (Tuple (Tuple Party Token) BigInteger)
-    accounts' = Map.toUnfoldable accounts
+    -- NOTE: This transformation assumes that the balances at start and at end (if available) are
+    --       expanded to all participants, because intersectionWith only produces values for duplicated
+    --       keys. If a key is in one of the map but not the other, it won't be shown.
+    accounts' :: Array (Tuple (Tuple Party Token) { atStart :: BigInteger, atEnd :: Maybe BigInteger })
+    accounts' =
+      Map.toUnfoldable
+        $ maybe'
+            (\_ -> stepBalance.atStart <#> \balance -> { atStart: balance, atEnd: Nothing })
+            ( \balancesAtEnd ->
+                Map.intersectionWith
+                  (\atStart atEnd -> { atStart, atEnd: Just atEnd })
+                  stepBalance.atStart
+                  balancesAtEnd
+            )
+            stepBalance.atEnd
   in
     div [ classNames [ "text-xs" ] ]
-      ( append
-          [ div [ classNames [ "font-semibold", "py-3" ] ] [ text "Balance of accounts when the step was initiated." ]
+      [ div
+          [ classNames [ "bg-white", "py-1", "px-4", "mb-5", "flex", "items-center" ] ]
+          [ icon Icon.ReadMore [ "mr-1" ]
+          , span [ classNames [ "font-semibold" ] ] [ text "Balances of contract accounts" ]
+          , hint [ "relative", "-top-1" ] ("balances-" <> show stepNumber) Auto
+              -- FIXME: Revisit copy
+              
+              $ div_ [ text "This tab shows the amount of tokens that each role has in the contract account. A deposit is needed to get tokens from a wallet into the contract account, and a payment is needed to redeem tokens from the contract account into a user's wallet" ]
           ]
+      , div [ classNames [ "px-4" ] ]
           ( accounts'
-              <#> ( \((party /\ token) /\ amount) ->
-                    div [ classNames [ "flex", "justify-between", "py-3", "border-t" ] ]
-                      [ span_ [ text $ participantWithNickname state party ]
-                      , span [ classNames [ "font-semibold" ] ] [ text $ humanizeValue token amount ]
-                      ]
+              <#> ( \((party /\ token) /\ balance) ->
+                    let
+                      participantName = participantWithNickname state party
+                    in
+                      div [ classNames [ "grid", "grid-cols-2", "gap-y-1", "py-3", "px-4", "mb-3", "shadow-sm", "bg-white", "rounded" ] ]
+                        ( append
+                            [ div [ classNames [ "flex" ] ]
+                                [ accountIndicator
+                                    { colorStyles:
+                                        [ "bg-gradient-to-r", "from-purple", "to-lightpurple", "text-white", "mr-1" ]
+                                    , otherStyles:
+                                        [ "mr-1" ]
+                                    , name: participantName
+                                    }
+                                , span [ classNames [ "font-semibold" ] ] [ text participantName ]
+                                ]
+                            , div [ classNames [ "font-semibold", "justify-self-end" ] ] [ text "Balance:" ]
+                            , div [ classNames [] ] [ text "Step start:" ]
+                            , div [ classNames [ "justify-self-end" ] ] [ text $ humanizeValue token balance.atStart ]
+                            ]
+                            $ maybe []
+                                ( \balanceAtEnd ->
+                                    [ div [ classNames [] ] [ text "Step end:" ]
+                                    , div [ classNames [ "justify-self-end" ] ] [ text $ humanizeValue token balanceAtEnd ]
+                                    ]
+                                )
+                                balance.atEnd
+                        )
                 )
           )
-      )
+      ]
 
 shortDescription :: forall p a. Boolean -> String -> HTML p a
 shortDescription isActiveParticipant description =

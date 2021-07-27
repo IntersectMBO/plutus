@@ -10,7 +10,7 @@ import Data.BigInteger (BigInteger)
 import Data.List (List)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
-import Marlowe.Semantics (AccountId, Bound, ChoiceId, ChosenNum, Contract, Observation, Party, Payment, Slot, Token, TransactionInput, ValueId)
+import Marlowe.Semantics (AccountId, Bound, ChoiceId, ChosenNum, Contract, Observation, Party, Payment, Slot, Token, TransactionInput, ValueId, Accounts)
 import Marlowe.Semantics (State) as Semantic
 
 type State
@@ -22,8 +22,9 @@ type State
     }
 
 type PastState
-  = { initialSemanticState :: Semantic.State
+  = { balancesAtStart :: Accounts
     , txInput :: TransactionInput
+    , balancesAtEnd :: Accounts
     , resultingPayments :: List Payment
     }
 

@@ -48,6 +48,7 @@ data Icon
   | Play
   | Previous
   | Refresh
+  | ReadMore
   | Roles
   | Running
   | South
@@ -113,6 +114,8 @@ content Previous = "chevron_left"
 
 content Refresh = "refresh"
 
+content ReadMore = "read_more"
+
 content Roles = "person_pin_circle"
 
 content Running = "directions_run"
@@ -127,6 +130,9 @@ content Timer = "timer"
 
 content Tutorials = "school"
 
+-- This helper function allow us to add `with-icon-{iconClass}` class name
+-- which allow Icons in buttons to look correctly. Whenever a new icon is added
+-- here, we should update the `icons.css` file accordingly.
 iconClass :: Icon -> String
 iconClass Add = "add"
 
@@ -183,6 +189,8 @@ iconClass Play = "play"
 iconClass Previous = "previous"
 
 iconClass Refresh = "refresh"
+
+iconClass ReadMore = "read-more"
 
 iconClass Roles = "roles"
 

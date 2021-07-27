@@ -20,7 +20,7 @@ import Data.UUID (toString) as UUID
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Css (applyWhen, classNames)
-import Halogen.Extra (renderSubmodule)
+import Halogen.Extra (mapComponentAction, renderSubmodule)
 import Halogen.HTML (HTML, a, button, div, div_, footer, h2, h3, h4, header, img, input, label, main, nav, p, span, span_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_)
@@ -343,7 +343,7 @@ contractNavigation contractFilter =
           ]
       ]
 
-contractCards :: forall p. Slot -> State -> HTML p Action
+contractCards :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
 contractCards currentSlot { contractFilter: Running, contracts } =
   let
     runningContracts = filter (not isContractClosed) contracts
@@ -387,7 +387,7 @@ noContractsMessage contractFilter =
               [ text "You have no completed contracts." ]
           ]
 
-contractGrid :: forall p. Slot -> ContractFilter -> Map PlutusAppId Contract.State -> HTML p Action
+contractGrid :: forall m. MonadAff m => Slot -> ContractFilter -> Map PlutusAppId Contract.State -> ComponentHTML Action ChildSlots m
 contractGrid currentSlot contractFilter contracts =
   div
     [ classNames [ "grid", "pt-4", "pb-20", "lg:pb-4", "gap-8", "auto-rows-min", "mx-auto", "max-w-contracts-grid-sm", "md:max-w-none", "md:w-contracts-grid-md", "md:grid-cols-2", "lg:w-contracts-grid-lg", "lg:grid-cols-3" ] ]
@@ -405,7 +405,7 @@ contractGrid currentSlot contractFilter contracts =
       , span_ [ text "New smart contract from template" ]
       ]
 
-  dashboardContractCard (followerAppId /\ contractState) = ContractAction followerAppId <$> contractCard currentSlot contractState
+  dashboardContractCard (followerAppId /\ contractState) = mapComponentAction (ContractAction followerAppId) $ contractCard currentSlot contractState
 
 -- TODO: waiting new design for this from Russ
 currentWalletCard :: forall p. WalletDetails -> HTML p Action
