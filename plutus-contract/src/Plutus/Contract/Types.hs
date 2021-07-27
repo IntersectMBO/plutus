@@ -217,12 +217,16 @@ newtype Promise w (s :: Row *) e a = Promise { awaitPromise :: Contract w s e a 
 instance Apply (Promise w s e) where
   liftF2 f (Promise a) (Promise b) = Promise (f <$> a <*> b)
 
+-- | Run more `Contract` code after the `Promise`.
 promiseBind :: Promise w s e a -> (a -> Contract w s e b) -> Promise w s e b
 promiseBind (Promise ma) f = Promise (ma >>= f)
 
+-- | Lift a mapping function for `Contract` to a mapping function for `Promise`.
 promiseMap :: (Contract w1 s1 e1 a1 -> Contract w2 s2 e2 a2) -> Promise w1 s1 e1 a1 -> Promise w2 s2 e2 a2
 promiseMap f (Promise ma) = Promise (f ma)
 
+-- | Class of types that can be trivially converted to a `Contract`.
+-- For use with functions where it is convenient to accept both `Contract` and `Promise` types.
 class IsContract c where
   toContract :: c w s e a -> Contract w s e a
 

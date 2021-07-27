@@ -125,8 +125,8 @@ guess = endpoint @"guess" @GuessParams $ \(GuessParams theGuess) -> do
     let hashedSecretWord = findSecretWordValue utxos
         isCorrectSecretWord = fmap (`isGoodGuess` redeemer) hashedSecretWord == Just True
     if isCorrectSecretWord
-    then logWarn @Haskell.String "Correct secret word! Submitting the transaction"
-    else logWarn @Haskell.String "Incorrect secret word, but still submiting the transaction"
+        then logWarn @Haskell.String "Correct secret word! Submitting the transaction"
+        else logWarn @Haskell.String "Incorrect secret word, but still submiting the transaction"
 
     -- This is only for test purposes to have a possible failing transaction.
     -- In a real use-case, we would not submit the transaction if the guess is

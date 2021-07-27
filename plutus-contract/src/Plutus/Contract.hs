@@ -12,7 +12,7 @@ module Plutus.Contract(
     , handleError
     , mapError
     , runError
-    -- * Promises
+    -- * Select
     , Promise
     , awaitPromise
     , promiseMap
