@@ -151,7 +151,7 @@ fromResponse cid (SomeBuiltin contract) ContractResponse{newState=State{record}}
   let runUpdate (SomeBuiltinState oldS oldW) n = do
         case fromJSON (rspResponse (snd <$> n)) of
           Error e      -> throwError . OtherError $ "Couldn't decode JSON response when reconstruting state: " <> Text.pack e
-          Success resp -> updateBuiltin @effs @a cid oldS oldW resp
+          Success resp -> updateBuiltin @effs @a cid oldS oldW (resp <$ n)
 
   foldlM runUpdate initialState (responses record)
 
