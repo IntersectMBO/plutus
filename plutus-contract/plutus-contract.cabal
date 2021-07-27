@@ -171,6 +171,7 @@ test-suite plutus-contract-test
         Spec.Emulator
         Spec.Rows
         Spec.State
+        Spec.ThreadToken
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
