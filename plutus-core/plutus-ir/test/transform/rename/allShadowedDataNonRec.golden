@@ -2,10 +2,10 @@
   (nonrec)
   (datatypebind
     (datatype
-      (tyvardecl D_7 (type))
+      (tyvardecl D_5 (type))
 
-      match_D_6
-      (vardecl C_5 (all D_8 (type) (fun D_8 D_7)))
+      match_D_7
+      (vardecl C_6 (all D_8 (type) (fun D_8 D_5)))
     )
   )
   (abs a_9 (type) (lam x_10 a_9 x_10))

@@ -27,27 +27,6 @@ import qualified PlutusCore.Rename.Internal as PLC
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Cont   (ContT (..))
 
-{-
-freaking scoping... It's clear what
-
-```
-    data D x where
-        C : D x
-```
-
-What does
-
-```
-    data D x where
-        C : all x. D x
-```
-
-mean? It's a GADT-y thing that is not in fact a GADT and that `all x` does not have any effect in Haskell (just checked out of paranoia) or Agda.
--}
-
-
-
-
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring
 a name into the scope we need to use the following pattern:
@@ -85,6 +64,10 @@ Two problems arise:
    'PLC.ScopedRenameM' is for performing the renaming (the second stage).
 -}
 
+{- Note [Mutual vs non-mutual recursion]
+
+-}
+
 instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Term tyname name uni fun ann) where
     -- See Note [Marking]
     rename = through markNonFreshTerm >=> PLC.runRenameT . renameTermM
@@ -92,58 +75,12 @@ instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Term tynam
 instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Program tyname name uni fun ann) where
     rename (Program ann term) = Program ann <$> PLC.rename term
 
--- (let
---   (nonrec)
---   (datatypebind
---     (datatype
---       (tyvardecl M (fun (type) (type)))
---       (tyvardecl M (type))
---       match_M
---       (vardecl N [M M]) (vardecl J (fun M [M M]))
---     )
---   )
---   (abs a (type) (lam x a x))
--- )
-
-newtype Restorer ren m = Restorer
-    { unRestorer :: forall a. PLC.RenameT ren m a -> PLC.RenameT ren m a
-    }
-
-captureContext :: Monad m => (Restorer ren m -> PLC.RenameT ren m b) -> PLC.RenameT ren m b
-captureContext k = do
-    env <- ask
-    k $ Restorer $ local $ const env
-
--- visibility (Datatype x dataDecl params matchName constrs) rest =
---   dataDecl `visibleIn` constrs
---   dataDecl `visibleIn` rest
-
--- params `visibleIn` constrs
--- params `notVisibleIn` rest
-
--- nonrec: List_0 `notVisibleIn` constrs => List_0 `staysIn` constrs
--- rec:    List_0 `visibleIn` constrs    => List_0 `notStaysIn` constrs
-
--- data Scope = Scope
---    { inScope    :: Set Name
---    , notInScope :: Set Name
---    }
-
--- defaultConstrs dataName params = [name1 :: iterTyApp dataName params, name2 :: iterTyApp dataName params]
-
--- notVisibleInConstrs ::
-
--- nonrec data List_2 a_1 where
---     Nil  :: List_2 a_1
---     Cons :: a_1 -> List_0 a_1 -> List_2 a_1
-
--- rec data List_2 a_1 where
---     Nil  :: List_2 a_1
---     Cons :: a_1 -> List_2 a_1 -> List_2 a_1
-
-
-
 {- Note [Weird IR data types]
+We don't attempt to recognize in the renamer a family of mutually recursive data types where two
+or more data types have the same name, so the renamer's behavior in that case is undefined.
+The same applies to a data type having identically named constructors or when a constructor has
+the same name as the matcher etc.
+
 The AST of Plutus IR allows us to represent some weird data types like
 
     data D where
@@ -169,7 +106,17 @@ is perfectly unambiguous:
    regardless of recursivity.
 
 Note that @all D@ is existential quantification and the type checker wasn't able to handle that at
-the time this note was written. Note also that for example the following:
+the time this note was written.
+
+Similarly, in
+
+    data D D where
+        C : D -> D
+
+the parameter shadows the data type before @->@ and does not shadow it afterwards regardless of
+recursivity.
+
+Note also that for example the following:
 
     data D1 x where
         C1 : all x. D1 x
@@ -209,9 +156,55 @@ So what we do in the renamer is rename everything as normal apart from the head 
 after the final @->@ in the type of a constructor (let's call that "the final head"). Instead, the
 final head is renamed in the context that the whole data type is renamed in plus the name of the
 data type, which ensures that neither parameters nor @all@-bound variables in the type of the
-constructor can shadow the name of the data type in the final head.
+constructor can shadow the name of the data type in the final head. This effectively bans the
+GADT interpretation of the @data D D@ example from the above thus removing ambiguity.
+
+This agrees perfectly with what we need to do to handle recursivity in constructors, see
+Note [Renaming of constructors].
 -}
 
+{- Note [Renaming of constructors]
+Consider the following data type:
+
+    data Loop where
+        MkLoop : Loop -> Loop
+
+Whether the occurrence of @Loop@ before @->@ in the type of @MkLoop@ refers to @Loop@-the-data-type
+or not depends on whether the data type is declared as recursive or not. However the occurrence of
+@Loop@ after @->@ always refers to @Loop@-the-data-type. So we can't just directly rename the type
+of a constructor with some general 'renameTypeM' stuff, we have to actually traverse the type and
+rename things before the final @->@ differently depending on recursivity without doing so for the
+final type as was discussed in Note [Weird IR data types].
+
+However the current context is stored inside the 'RenameT' transformer and changing it manually
+would be quite unpleasant as 'RenameT' is designed specifically to abstract these details out.
+Instead, we provide a function that captures the current context in a 'Restorer' that allows us
+to restore that context later. We use the capturing function twice: right before binding the name
+of a data type and right after, which gives us two respective restorers. The former restorer is
+used when type checking constructors of non-recursive data types: binding the name of data type
+ensures that the data type is visible after the 'DatatypeBind' entry of the corresponding @let@
+and using the restorer ensures that the name of the data type is not visible in the type of
+constructors (as the data type is non-recursive) apart from the final head. And since recursivity
+has no impact on how the final head is renamed, we use the right-after-the-name-of-the-data-type
+restorer once we reach the final head. This gives us a single function for renaming types of
+constructors in both the recursive and non-recursive cases letting us handle recursivity with a
+single line in the function renaming a data type.
+-}
+
+-- See Note [Renaming of constructors].
+-- | A wrapper around a function restoring some old context of the renamer.
+newtype Restorer ren m = Restorer
+    { unRestorer :: forall a. PLC.RenameT ren m a -> PLC.RenameT ren m a
+    }
+
+-- | Capture the current context in a 'Restorer'.
+captureContext :: Monad m => ContT c (PLC.RenameT ren m) (Restorer ren m)
+captureContext = ContT $ \k -> do
+    env <- ask
+    k $ Restorer $ local $ const env
+
+-- | Rename the type of a constructor given a restorer dropping all variables bound after the
+-- name of the data type.
 renameConstrTypeM
     :: (PLC.HasRenaming ren PLC.TypeUnique, PLC.HasUniques (Type tyname uni ann), PLC.MonadQuote m)
     => Restorer ren m -> Type tyname uni ann -> PLC.RenameT ren m (Type tyname uni ann)
@@ -226,34 +219,24 @@ renameConstrTypeM (Restorer restoreAfterData) = renameScopeM where
     renameResultM _ =
         error "Panic: a constructor returns something that is not an iterated application of a type variable"
 
-withFreshenedConstr
+-- | Rename the name of a constructor immediately and defer renaming of its type until stage 2
+-- where all mutually recursive data types (if any) are bound.
+renameConstrCM
     :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
-    => VarDecl tyname name uni fun ann
-    -> ((Restorer PLC.ScopedRenaming m -> PLC.ScopedRenameT m (VarDecl tyname name uni fun ann)) ->
-            PLC.ScopedRenameT m c)
-    -> PLC.ScopedRenameT m c
-withFreshenedConstr (VarDecl ann name ty) cont =
-    PLC.withFreshenedName name $ \nameFr ->
-        cont $ \restorerAfterData ->
-            VarDecl ann nameFr <$> renameConstrTypeM restorerAfterData ty
+    => Restorer PLC.ScopedRenaming m
+    -> VarDecl tyname name uni fun ann
+    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (VarDecl tyname name uni fun ann))
+renameConstrCM restorerAfterData (VarDecl ann name ty) = do
+    nameFr <- ContT $ PLC.withFreshenedName name
+    pure $ VarDecl ann nameFr <$> renameConstrTypeM restorerAfterData ty
 
--- data Maybe a where
---     Nothing :: Maybe a
---     Just    :: a -> Maybe a
-
--- data List a where
---     Nil  :: List a
---     Cons :: a -> List a -> List a
-
--- TODO: talk about
--- data D where
---   C : all D. D -> D
-
-
+-- | Apply a function to a value in the non-recursive case and return the value unchanged otherwise.
 onNonRec :: Recursivity -> (a -> a) -> a -> a
 onNonRec NonRec f x = f x
 onNonRec Rec    _ x = x
 
+-- See Note [Weird IR data types]
+-- See Note [Renaming of constructors]
 -- | Rename a 'Datatype' in the CPS-transformed 'ScopedRenameM' monad.
 renameDatatypeCM
     :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
@@ -263,36 +246,37 @@ renameDatatypeCM
 renameDatatypeCM recy (Datatype x dataDecl params matchName constrs) = do
     -- The first stage (the data type itself, its constructors and its matcher get renamed).
     -- Note that all of these are visible downstream.
-    constrsRen         <- traverse (ContT . withFreshenedConstr) constrs
-    matchNameFr        <- ContT $ PLC.withFreshenedName matchName
-    restorerBeforeData <- ContT captureContext
+    restorerBeforeData <- captureContext
     dataDeclFr         <- ContT $ PLC.withFreshenedTyVarDecl dataDecl
-    restorerAfterData  <- ContT captureContext
+    restorerAfterData  <- captureContext
+    constrsRen         <- traverse (renameConstrCM restorerAfterData) constrs
+    matchNameFr        <- ContT $ PLC.withFreshenedName matchName
     -- The second stage (the type parameters and types of constructors get renamed).
     -- Note that parameters are only visible in the types of constructors and not downstream.
     pure . onNonRec recy (unRestorer restorerBeforeData) $
         runContT (traverse (ContT . PLC.withFreshenedTyVarDecl) params) $ \paramsFr ->
-            Datatype x dataDeclFr paramsFr matchNameFr <$>
-                traverse ($ restorerAfterData) constrsRen
+            Datatype x dataDeclFr paramsFr matchNameFr <$> sequence constrsRen
 
--- | Rename a 'Binding' in the CPS-transformed 'ScopedRenameM' monad.
+-- | Rename a 'Binding' from a non-recursive family in the CPS-transformed 'ScopedRenameM' monad.
 renameBindingNonRecC
     :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
     => Binding tyname name uni fun ann
     -> ContT c (PLC.ScopedRenameT m) (Binding tyname name uni fun ann)
-renameBindingNonRecC = \case
+renameBindingNonRecC binding = ContT $ \cont -> case binding of
     TermBind x s var term -> do
-        termFr <- lift $ renameTermM term
-        varFr <- lift =<< ContT (PLC.withFreshenedVarDecl var)
-        pure $ TermBind x s varFr termFr
+        termFr <- renameTermM term
+        PLC.withFreshenedVarDecl var $ \varRen -> do
+            varFr <- varRen
+            cont $ TermBind x s varFr termFr
     TypeBind x var ty -> do
-        tyFr <- lift $ PLC.renameTypeM ty
-        varFr <- ContT $ PLC.withFreshenedTyVarDecl var
-        pure $ TypeBind x varFr tyFr
-    DatatypeBind x datatype ->
-        fmap (DatatypeBind x) $ lift =<< renameDatatypeCM NonRec datatype
+        tyFr <- PLC.renameTypeM ty
+        PLC.withFreshenedTyVarDecl var $ \varFr ->
+            cont $ TypeBind x varFr tyFr
+    DatatypeBind x datatype -> do
+        runContT (renameDatatypeCM NonRec datatype) $ \datatypeRen ->
+            datatypeRen >>= cont . DatatypeBind x
 
--- | Rename a 'Binding' in the CPS-transformed 'ScopedRenameM' monad.
+-- | Rename a 'Binding' from a recursive family in the CPS-transformed 'ScopedRenameM' monad.
 renameBindingRecCM
     :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
     => Binding tyname name uni fun ann
