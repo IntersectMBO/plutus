@@ -61,6 +61,8 @@ datatypes :: TestNested
 datatypes = testNested "datatypes"
     [ goldenPlcFromPir term "maybe"
     , goldenPlcFromPir term "listMatch"
+    , goldenPlcFromPirCatch term "idleAll"
+    , goldenPlcFromPirCatch term "some"
     , goldenEvalPir term "listMatchEval"
     ]
 

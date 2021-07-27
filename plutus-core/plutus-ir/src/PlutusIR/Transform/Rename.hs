@@ -9,6 +9,8 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE GADTSyntax            #-}
+
 -- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name uni fun ann)@
 -- instance in scope.
 module PlutusIR.Transform.Rename () where
@@ -24,6 +26,27 @@ import qualified PlutusCore.Rename.Internal as PLC
 
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Cont   (ContT (..))
+
+{-
+freaking scoping... It's clear what
+
+```
+    data D x where
+        C : D x
+```
+
+What does
+
+```
+    data D x where
+        C : all x. D x
+```
+
+mean? It's a GADT-y thing that is not in fact a GADT and that `all x` does not have any effect in Haskell (just checked out of paranoia) or Agda.
+-}
+
+
+
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring
@@ -118,18 +141,89 @@ captureContext k = do
 --     Nil  :: List_2 a_1
 --     Cons :: a_1 -> List_2 a_1 -> List_2 a_1
 
--- TODO: handle 'TyForall' as well!
+
+
+{- Note [Weird IR data types]
+The AST of Plutus IR allows us to represent some weird data types like
+
+    data D where
+        C : integer -> (\d -> d) D
+
+    data D where
+        C : (\d -> d) (integer -> D)
+
+We don't pretend that we can handle those at all. The renamer calls 'error' upon seeing anything of
+this kind.
+
+However this one:
+
+    data D x where
+        C : all D. D x -> D x
+
+is perfectly unambiguous:
+
+1. the head (@D@) of the application (@D x@) in the type of the result (after @->@) has to refer to
+   the data type being defined and so @all D@ is not supposed to result in shadowing there
+2. @all D@ shadows the name of the data type everywhere before the final @->@, so it does not matter
+   whether @D@ is recursive or not as any @D@ before the final @->@ refers to the @all@-bound @D@
+   regardless of recursivity.
+
+Note that @all D@ is existential quantification and the type checker wasn't able to handle that at
+the time this note was written. Note also that for example the following:
+
+    data D1 x where
+        C1 : all x. D1 x
+
+is not existential quantification and should mean the same thing as
+
+    data D2 x where
+        C2 : D2 x
+
+but also was blowing up the type checker at the time the note was written.
+
+Haskell agrees that these two data types are isomorphic:
+
+    data D1 x where
+        C1 :: forall x. D1 x
+
+    data D2 x where
+        C2 :: D2 x
+
+    d12 :: D1 x -> D2 x
+    d12 C1 = C2
+
+    d21 :: D2 x -> D1 x
+    d21 C2 = C1
+
+Note @D1@ only requires @GADTSyntax@ and not full-blown @GADTs@.
+
+Speaking of GADTs, the following data type:
+
+    data D D where
+        C : D D
+
+is only unambiguous if we stipulate that GADTs are not allowed in Plutus IR (otherwise the last
+@D@ could be an index referring to the data type rather than the parameter).
+
+So what we do in the renamer is rename everything as normal apart from the head of the application
+after the final @->@ in the type of a constructor (let's call that "the final head"). Instead, the
+final head is renamed in the context that the whole data type is renamed in plus the name of the
+data type, which ensures that neither parameters nor @all@-bound variables in the type of the
+constructor can shadow the name of the data type in the final head.
+-}
 
 renameConstrTypeM
     :: (PLC.HasRenaming ren PLC.TypeUnique, PLC.HasUniques (Type tyname uni ann), PLC.MonadQuote m)
     => Restorer ren m -> Type tyname uni ann -> PLC.RenameT ren m (Type tyname uni ann)
-renameConstrTypeM (Restorer restoreAfterData) = renameTyFunM where
-    renameTyFunM (TyFun ann dom cod) = TyFun ann <$> PLC.renameTypeM dom <*> renameTyFunM cod
-    renameTyFunM ty                  = renameTyAppM ty
+renameConstrTypeM (Restorer restoreAfterData) = renameScopeM where
+    renameScopeM (TyForall ann name kind ty) =
+        PLC.withFreshenedName name $ \nameFr -> TyForall ann nameFr kind <$> renameScopeM ty
+    renameScopeM (TyFun ann dom cod) = TyFun ann <$> PLC.renameTypeM dom <*> renameScopeM cod
+    renameScopeM ty = renameResultM ty
 
-    renameTyAppM (TyApp ann fun arg) = TyApp ann <$> renameTyAppM fun <*> PLC.renameTypeM arg
-    renameTyAppM (TyVar ann name)    = TyVar ann <$> restoreAfterData (PLC.renameNameM name)
-    renameTyAppM _                   =
+    renameResultM (TyApp ann fun arg) = TyApp ann <$> renameResultM fun <*> PLC.renameTypeM arg
+    renameResultM (TyVar ann name) = TyVar ann <$> restoreAfterData (PLC.renameNameM name)
+    renameResultM _ =
         error "Panic: a constructor returns something that is not an iterated application of a type variable"
 
 withFreshenedConstr
@@ -142,9 +236,6 @@ withFreshenedConstr (VarDecl ann name ty) cont =
     PLC.withFreshenedName name $ \nameFr ->
         cont $ \restorerAfterData ->
             VarDecl ann nameFr <$> renameConstrTypeM restorerAfterData ty
-
--- withFreshenedVarDecl (VarDecl ann name ty) cont =
---     withFreshenedName name $ \nameFr -> cont $ VarDecl ann nameFr <$> renameTypeM ty
 
 -- data Maybe a where
 --     Nothing :: Maybe a

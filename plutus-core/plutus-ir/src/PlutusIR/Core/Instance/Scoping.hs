@@ -45,11 +45,12 @@ instance tyname ~ TyName => Reference TyName (Datatype tyname name uni fun) wher
 
             goConstr (VarDecl ann constrName constrTy) = VarDecl ann constrName $ goSpine constrTy
 
-            goSpine (TyFun ann dom cod) = TyFun ann (referenceVia reg tyname dom) $ goSpine cod
-            goSpine ty                  = TyFun NotAName tyVar $ goTyApp ty
+            goSpine (TyForall ann name kind ty) = TyForall ann name kind $ goSpine ty
+            goSpine (TyFun ann dom cod)         = TyFun ann (referenceVia reg tyname dom) $ goSpine cod
+            goSpine ty                          = TyFun NotAName tyVar $ goResult ty
 
-            goTyApp (TyApp ann fun arg) = TyApp ann (goTyApp fun) $ referenceVia reg tyname arg
-            goTyApp ty                  = TyApp NotAName ty tyVar
+            goResult (TyApp ann fun arg) = TyApp ann (goResult fun) $ referenceVia reg tyname arg
+            goResult ty                  = TyApp NotAName ty tyVar
 
 instance tyname ~ TyName => Reference TyName (Binding tyname name uni fun) where
     referenceVia reg tyname (TermBind ann strictness varDecl term) =
@@ -105,12 +106,19 @@ establishScopingConstrTy regSelf dataName params = goSpine where
         = mkIterTyApp NotAName (TyVar (reg dataName) dataName)
         $ map (\(TyVarDecl _ name _) -> TyVar (registerBound name) name) params
 
+    goSpine (TyForall _ nameDup kindDup ty) = do
+        name <- freshenTyName nameDup
+        kind <- establishScoping kindDup
+        TyFun NotAName (TyVar (registerOutOfScope name) name) .
+            TyForall (introduceBound name) name kind .
+                TyFun NotAName (TyVar (registerBound name) name) <$>
+                    goSpine ty
     goSpine (TyFun _ dom cod) = TyFun NotAName <$> establishScoping dom <*> goSpine cod
-    goSpine ty                = TyFun NotAName (toDataAppliedToParams regSelf) <$> goTyApp ty
+    goSpine ty                = TyFun NotAName (toDataAppliedToParams regSelf) <$> goResult ty
 
-    goTyApp (TyApp _ fun arg) = TyApp NotAName <$> goTyApp fun <*> establishScoping arg
+    goResult (TyApp _ fun arg) = TyApp NotAName <$> goResult fun <*> establishScoping arg
     -- TODO: mention the weird thing that this does.
-    goTyApp _                 = pure $ toDataAppliedToParams registerBound
+    goResult _                 = pure $ toDataAppliedToParams registerBound
 
 establishScopingConstrsNonRec
     :: MonadQuote m
