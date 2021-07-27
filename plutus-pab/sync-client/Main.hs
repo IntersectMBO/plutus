@@ -48,13 +48,18 @@ processBlock (Resume (ChainPoint (SlotNo slot) hsh)) _ =
           <> " at hash " <> show (serialiseToRawBytesHexText hsh)
 processBlock (Resume ChainPointAtGenesis) _ =
   putStrLn "Resuming from genesis block"
+processBlock (RollBackward (ChainPoint (SlotNo slot) hsh)) _ =
+  putStrLn $ "Rolling backward to slot " <> show slot
+          <> " at hash " <> show (serialiseToRawBytesHexText hsh)
+processBlock (RollBackward ChainPointAtGenesis) _ =
+  putStrLn $ "Rolling backward to genesis"
 
 hashParser :: ReadM ChainPoint
 hashParser = eitherReader $
   \chainPoint -> do
     idx <- maybeToRight ("Failed to parse chain point specification. The format" <>
-                         "should be HASH,SLOT")
-                        (elemIndex ',' chainPoint)
+                         "should be HASH,SLOT") $
+                        elemIndex ',' chainPoint
     let (hash, slot') = splitAt idx chainPoint
     slot <- readEither (drop 1 slot')
     hsh  <- maybeToRight ("Failed to parse hash " <> hash) $

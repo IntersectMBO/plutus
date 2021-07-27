@@ -77,7 +77,7 @@ networkIdParser =
     in p <|> pure C.Mainnet
 
 commandParser :: Parser Command
-commandParser = subparser $ mconcat [scriptsParser, transactionsParser]
+commandParser = hsubparser $ mconcat [scriptsParser, transactionsParser]
 
 scriptsParser :: Mod CommandFields Command
 scriptsParser =
