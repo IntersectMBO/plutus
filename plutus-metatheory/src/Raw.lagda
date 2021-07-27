@@ -10,7 +10,7 @@ open import Data.Integer.Show
 open import Data.Char using (Char)
 open import Data.Unit using (⊤)
 
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type ⊤ (λ _ → ⊤)
 open import Builtin
 
 open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
@@ -34,7 +34,7 @@ data RawTy : Set where
   Π   : RawKind → RawTy → RawTy
   ƛ   : RawKind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
-  con : TyCon → RawTy
+  con : TyCon _ → RawTy
   μ    : RawTy → RawTy → RawTy
 
 data RawTermCon : Set where
@@ -62,7 +62,7 @@ data RawTm : Set where
 -- we don't have a decicable equality instance for bytestring, so I
 -- converted this to bool for now
 
-decRTyCon : (C C' : TyCon) → Bool
+decRTyCon : (C C' : TyCon _) → Bool
 decRTyCon integer integer = true
 decRTyCon bytestring bytestring = true
 decRTyCon string     string     = true
