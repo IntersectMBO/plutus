@@ -59,16 +59,17 @@ import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain
+import           Ledger.Crypto
+import           Ledger.Scripts
 import qualified Ledger.TimeSlot                  as TimeSlot
+import           Ledger.Tx                        (txId)
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
 import qualified Plutus.V1.Ledger.Api             as Api
 import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
 import qualified Plutus.V1.Ledger.Contexts        as Validation
 import           Plutus.V1.Ledger.Credential      (Credential (..))
-import           Plutus.V1.Ledger.Crypto
 import qualified Plutus.V1.Ledger.Interval        as Interval
-import           Plutus.V1.Ledger.Scripts
 import qualified Plutus.V1.Ledger.Scripts         as Scripts
 import qualified Plutus.V1.Ledger.Slot            as Slot
 import           Plutus.V1.Ledger.Tx

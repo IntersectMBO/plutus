@@ -19,10 +19,7 @@ module Plutus.V1.Ledger.Tx(
     inputs,
     collateralInputs,
     outputs,
-    txOutRefs,
-    unspentOutputsTx,
     spentOutputs,
-    updateUtxo,
     updateUtxoCollateral,
     validValuesTx,
     mintScripts,
@@ -32,14 +29,11 @@ module Plutus.V1.Ledger.Tx(
     lookupSignature,
     lookupDatum,
     lookupRedeemer,
-    addSignature,
     mint,
     fee,
     ScriptTag (..),
     RedeemerPtr (..),
     Redeemers,
-    -- ** Hashing transactions
-    txId,
     -- ** Stripped transactions
     TxStripped(..),
     strip,
@@ -53,10 +47,7 @@ module Plutus.V1.Ledger.Tx(
     outValue,
     txOutPubKey,
     txOutDatum,
-    pubKeyTxOut,
     pubKeyHashTxOut,
-    scriptTxOut,
-    scriptTxOut',
     txOutTxDatum,
     -- * Transaction inputs
     TxInType(..),
@@ -77,7 +68,6 @@ import qualified Codec.CBOR.Write          as Write
 import           Codec.Serialise.Class     (Serialise, encode)
 import           Control.DeepSeq           (NFData)
 import           Control.Lens
-import           Crypto.Hash               (Digest, SHA256, hash)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
 import qualified Data.ByteArray            as BA
 import           Data.Map                  (Map)
@@ -87,7 +77,7 @@ import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 
-import qualified PlutusTx                  as PlutusTx
+import qualified PlutusTx
 import qualified PlutusTx.Bool             as PlutusTx
 import qualified PlutusTx.Eq               as PlutusTx
 import           PlutusTx.Lattice
@@ -148,22 +138,6 @@ data Tx = Tx {
     -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
-
-instance Pretty Tx where
-    pretty t@Tx{txInputs, txCollateral, txOutputs, txMint, txFee, txValidRange, txSignatures, txMintScripts, txData} =
-        let lines' =
-                [ hang 2 (vsep ("inputs:" : fmap pretty (Set.toList txInputs)))
-                , hang 2 (vsep ("collateral inputs:" : fmap pretty (Set.toList txCollateral)))
-                , hang 2 (vsep ("outputs:" : fmap pretty txOutputs))
-                , "mint:" <+> pretty txMint
-                , "fee:" <+> pretty txFee
-                , hang 2 (vsep ("mps:": fmap pretty (Set.toList txMintScripts)))
-                , hang 2 (vsep ("signatures:": fmap (pretty . fst) (Map.toList txSignatures)))
-                , "validity range:" <+> viaShow txValidRange
-                , hang 2 (vsep ("data:": fmap (pretty . snd) (Map.toList txData) ))
-                ]
-            txid = txId t
-        in nest 2 $ vsep ["Tx" <+> pretty txid <> colon, braces (vsep lines')]
 
 instance Semigroup Tx where
     tx1 <> tx2 = Tx {
@@ -272,15 +246,6 @@ strip :: Tx -> TxStripped
 strip Tx{..} = TxStripped i txOutputs txMint txFee where
     i = Set.map txInRef txInputs
 
--- | Compute the id of a transaction.
-txId :: Tx -> TxId
--- Double hash of a transaction, excluding its witnesses.
-txId tx = TxId $ BA.convert h' where
-    h :: Digest SHA256
-    h = hash $ Write.toStrictByteString $ encode $ strip tx
-    h' :: Digest SHA256
-    h' = hash h
-
 -- | A tag indicating the type of script that we are pointing to.
 -- NOTE: Cert/Reward are not supported right now.
 data ScriptTag = Spend | Mint | Cert | Reward
@@ -313,11 +278,6 @@ instance PlutusTx.Eq TxOutRef where
     l == r =
         txOutRefId l PlutusTx.== txOutRefId r
         PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r
-
--- | A list of a transaction's outputs paired with a 'TxOutRef's referring to them.
-txOutRefs :: Tx -> [(TxOut, TxOutRef)]
-txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
-    mkOut (i, o) = (o, TxOutRef (txId t) i)
 
 -- | The type of a transaction input.
 data TxInType =
@@ -435,48 +395,18 @@ data TxOutTx = TxOutTx { txOutTxTx :: Tx, txOutTxOut :: TxOut }
 txOutTxDatum :: TxOutTx -> Maybe Datum
 txOutTxDatum (TxOutTx tx out) = txOutDatum out >>= lookupDatum tx
 
--- | Create a transaction output locked by a validator script hash
---   with the given data script attached.
-scriptTxOut' :: Value -> Address -> Datum -> TxOut
-scriptTxOut' v a ds = TxOut a v (Just (datumHash ds))
-
--- | Create a transaction output locked by a validator script and with the given data script attached.
-scriptTxOut :: Value -> Validator -> Datum -> TxOut
-scriptTxOut v vs = scriptTxOut' v (scriptAddress vs)
-
--- | Create a transaction output locked by a public key.
-pubKeyTxOut :: Value -> PubKey -> TxOut
-pubKeyTxOut v pk = TxOut (pubKeyAddress pk) v Nothing
-
 -- | Create a transaction output locked by a public key.
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut
 pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v Nothing
-
--- | The unspent outputs of a transaction.
-unspentOutputsTx :: Tx -> Map TxOutRef TxOut
-unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
-    f (idx, o) = (TxOutRef (txId t) idx, o)
 
 -- | The transaction output references consumed by a transaction.
 spentOutputs :: Tx -> Set.Set TxOutRef
 spentOutputs = Set.map txInRef . txInputs
 
--- | Update a map of unspent transaction outputs and signatures based on the inputs
---   and outputs of a transaction.
-updateUtxo :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
-updateUtxo tx unspent = (unspent `Map.withoutKeys` spentOutputs tx) `Map.union` unspentOutputsTx tx
-
 -- | Update a map of unspent transaction outputs and signatures
 --   for a failed transaction using its collateral inputs.
 updateUtxoCollateral :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
 updateUtxoCollateral tx unspent = unspent `Map.withoutKeys` (Set.map txInRef . txCollateral $ tx)
-
--- | Sign the transaction with a 'PrivateKey' and add the signature to the
---   transaction's list of signatures.
-addSignature :: PrivateKey -> Tx -> Tx
-addSignature privK tx = tx & signatures . at pubK ?~ sig where
-    sig = signTx (txId tx) privK
-    pubK = toPublicKey privK
 
 PlutusTx.makeIsDataIndexed ''TxOut [('TxOut,0)]
 PlutusTx.makeLift ''TxOut
