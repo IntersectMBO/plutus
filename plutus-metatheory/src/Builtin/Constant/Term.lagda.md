@@ -7,7 +7,7 @@ module Builtin.Constant.Term
   (Ctx⋆ Kind : Set)
   (* : Kind)
   (_⊢⋆_ : Ctx⋆ → Kind → Set)
-  (con : ∀{φ} → TyCon → φ ⊢⋆ *)
+  (con : ∀{Φ} → TyCon Ctx⋆ (_⊢⋆ *) Φ → Φ ⊢⋆ *)
   where
 
 open import Builtin

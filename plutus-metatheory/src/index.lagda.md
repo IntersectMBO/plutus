@@ -90,7 +90,6 @@ types such as integers and bytestrings and operations on them.
 
 ```
 import Builtin
-import Builtin.Signature
 import Builtin.Constant.Type
 import Builtin.Constant.Term
 ```
