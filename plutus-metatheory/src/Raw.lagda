@@ -10,7 +10,6 @@ open import Data.Integer.Show
 open import Data.Char using (Char)
 open import Data.Unit using (⊤)
 
-open import Builtin.Constant.Type ⊤ (λ _ → ⊤)
 open import Builtin
 
 open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
@@ -28,7 +27,9 @@ data RawKind : Set where
   _⇒_ : RawKind → RawKind → RawKind
 
 
-data RawTy : Set where
+data RawTy : Set
+open import Builtin.Constant.Type ⊤ (λ _ → RawTy)
+data RawTy where
   `   : ℕ → RawTy
   _⇒_ : RawTy → RawTy → RawTy
   Π   : RawKind → RawTy → RawTy

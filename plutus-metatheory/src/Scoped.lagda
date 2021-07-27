@@ -20,9 +20,9 @@ open import Relation.Nullary
 open import Category.Monad
 import Level
 
-open import Builtin.Constant.Type
 open import Builtin
 open import Raw
+import Builtin.Constant.Type ⊤ (λ _ → RawTy) as R
 open import Utils
 \end{code}
 
@@ -61,13 +61,17 @@ arity⋆ _ = 0
 
 open import Type
 
-data ScopedTy (n : ℕ) : Set where
+data ScopedTy (n : ℕ) : Set
+
+import Builtin.Constant.Type ℕ ScopedTy as S
+
+data ScopedTy n where
   `    : Fin n → ScopedTy n
   _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
   Π    : Kind → ScopedTy (suc n) → ScopedTy n
   ƛ    : Kind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
-  con  : TyCon → ScopedTy n
+  con  : S.TyCon n → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
   missing : ScopedTy n -- for when things compute to error
 
@@ -280,6 +284,21 @@ data ScopeError : Set where
   return (T i)
 
 scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
+scopeCheckTyCon : ∀{n} → R.TyCon _ → Either ScopeError (S.TyCon n)
+
+scopeCheckTyCon R.integer    = inj₂ S.integer
+scopeCheckTyCon R.bytestring = inj₂ S.bytestring
+scopeCheckTyCon R.string     = inj₂ S.string
+scopeCheckTyCon R.char       = inj₂ S.char
+scopeCheckTyCon R.unit       = inj₂ S.unit
+scopeCheckTyCon R.bool       = inj₂ S.bool
+scopeCheckTyCon (R.list A)   = fmap S.list (scopeCheckTy A)
+scopeCheckTyCon (R.pair A B) = do
+  A ← scopeCheckTy A
+  B ← scopeCheckTy B
+  return (S.pair A B)
+scopeCheckTyCon R.Data       = inj₂ S.Data
+
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
@@ -291,7 +310,7 @@ scopeCheckTy (A · B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A · B)
-scopeCheckTy (con c) = inj₂ (con c)
+scopeCheckTy (con c) = fmap con (scopeCheckTyCon c)
 scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -353,14 +372,26 @@ unDeBruijnifyC unit           = unit
 
 \begin{code}
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
+extricateTyCon : ∀{n} → S.TyCon n → R.TyCon _
+
+extricateTyCon S.integer    = R.integer
+extricateTyCon S.bytestring = R.bytestring
+extricateTyCon S.string     = R.string
+extricateTyCon S.char       = R.char
+extricateTyCon S.unit       = R.unit
+extricateTyCon S.bool       = R.bool
+extricateTyCon (S.list A)   = R.list (extricateScopeTy A)
+extricateTyCon (S.pair A B) = R.pair (extricateScopeTy A) (extricateScopeTy B)
+extricateTyCon S.Data       = R.Data
+
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
 extricateScopeTy (Π K A) = Π (unDeBruijnifyK K) (extricateScopeTy A)
 extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
-extricateScopeTy (con c) = con c
+extricateScopeTy (con c) = con (extricateTyCon c)
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy missing = con bool -- TODO
+extricateScopeTy missing = con R.bool -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)
