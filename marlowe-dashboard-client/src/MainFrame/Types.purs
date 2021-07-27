@@ -16,6 +16,8 @@ import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Halogen as H
+import Halogen.Extra (LifecycleEvent)
+import LoadingSubmitButton.Types as LoadingSubmitButton
 import Marlowe.PAB (PlutusAppId, CombinedWSStreamToServer)
 import Marlowe.Semantics (Slot)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
@@ -50,6 +52,9 @@ instance showWebSocketStatus :: Show WebSocketStatus where
 ------------------------------------------------------------
 type ChildSlots
   = ( tooltipSlot :: forall query. H.Slot query Void ReferenceId
+    , hintSlot :: forall query. H.Slot query Void String
+    , submitButtonSlot :: H.Slot LoadingSubmitButton.Query LoadingSubmitButton.Message String
+    , lifeCycleSlot :: forall query. H.Slot query LifecycleEvent String
     )
 
 ------------------------------------------------------------

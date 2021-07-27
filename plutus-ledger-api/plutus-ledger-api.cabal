@@ -62,6 +62,7 @@ library
         containers -any,
         cryptonite >=0.25,
         cardano-crypto -any,
+        cardano-crypto-class -any,
         flat -any,
         hashable -any,
         plutus-core -any,

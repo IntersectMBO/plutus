@@ -31,7 +31,6 @@ Protocol: TPraos
 # The mainnet does not include the network magic into addresses. Testnets do.
 RequiresNetworkMagic: RequiresNoMagic
 
-
 ##### Update system parameters #####
 
 # This protocol version number gets used by block producing nodes as part
@@ -44,7 +43,6 @@ LastKnownBlockVersion-Alt: 0
 # We do this only for Byron compatibility now.
 ApplicationName: cardano-sl
 ApplicationVersion: 1
-
 
 ##### Logging configuration #####
 
@@ -168,10 +166,10 @@ TraceBlockchainTime: True
 TraceChainDb: False
 
 # Trace ChainSync client.
-TraceChainSyncClient: False
+TraceChainSyncClient: True
 
 # Trace ChainSync server (blocks).
-TraceChainSyncBlockServer: False
+TraceChainSyncBlockServer: True
 
 # Trace ChainSync server (headers).
 TraceChainSyncHeaderServer: False
@@ -198,10 +196,10 @@ TraceForge: False
 TraceHandshake: False
 
 # Trace IP Subscription messages.
-TraceIpSubscription: True
+TraceIpSubscription: False
 
 # Trace local ChainSync protocol messages.
-TraceLocalChainSyncProtocol: False
+TraceLocalChainSyncProtocol: True
 
 # Trace local Handshake protocol messages.
 TraceLocalHandshake: True

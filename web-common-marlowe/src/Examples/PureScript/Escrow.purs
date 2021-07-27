@@ -3,11 +3,13 @@ module Examples.PureScript.Escrow
   , fullExtendedContract
   , metaData
   , fixedTimeoutContract
+  , defaultSlotContent
   ) where
 
 import Prelude
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Map as Map
+import Data.Map (Map)
 import Data.Tuple.Nested (type (/\), (/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
@@ -16,23 +18,26 @@ import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ChoiceName)
 
 contractTemplate :: ContractTemplate
-contractTemplate = { metaData, extendedContract: fixedTimeoutContract }
+contractTemplate = { metaData, extendedContract: fullExtendedContract }
 
 fixedTimeoutContract :: Contract
 fixedTimeoutContract =
   fillTemplate
     ( TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Buyer's deposit timeout" /\ fromInt 600
-              , "Buyer's dispute timeout" /\ fromInt 1800
-              , "Seller's response timeout" /\ fromInt 2400
-              , "Timeout for arbitrage" /\ fromInt 3600
-              ]
+        { slotContent: defaultSlotContent
         , valueContent: Map.empty
         }
     )
     fullExtendedContract
+
+defaultSlotContent :: Map String BigInteger
+defaultSlotContent =
+  Map.fromFoldable
+    [ "Buyer's deposit timeout" /\ fromInt 600
+    , "Buyer's dispute timeout" /\ fromInt 1800
+    , "Seller's response timeout" /\ fromInt 2400
+    , "Timeout for arbitrage" /\ fromInt 3600
+    ]
 
 metaData :: MetaData
 metaData = Metadata.escrow

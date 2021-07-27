@@ -12,6 +12,7 @@ You can edit this file as you like.
   , "effect"
   , "formatters"
   , "halogen"
+  , "markdown"
   , "node-fs"
   , "now"
   , "prelude"

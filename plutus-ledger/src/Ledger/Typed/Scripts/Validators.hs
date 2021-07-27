@@ -48,8 +48,8 @@ instance ValidatorTypes Void where
     type DatumType Void = Void
 
 instance ValidatorTypes Any where
-    type RedeemerType Any = Data
-    type DatumType Any = Data
+    type RedeemerType Any = BuiltinData
+    type DatumType Any = BuiltinData
 
 {- Note [Scripts returning Bool]
 It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since
@@ -65,16 +65,16 @@ to the previous problem: apply a function which does a pattern match and returns
 otherwise. Then, as before, we just check for error in the overall evaluation.
 -}
 
-type WrappedValidatorType = Data -> Data -> Data -> ()
+type WrappedValidatorType = BuiltinData -> BuiltinData -> BuiltinData -> ()
 
 {-# INLINABLE wrapValidator #-}
 wrapValidator
     :: forall d r
-    . (IsData d, IsData r)
+    . (UnsafeFromData d, UnsafeFromData r)
     => (d -> r -> Validation.ScriptContext -> Bool)
     -> WrappedValidatorType
-wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = check $ f d r p
-wrapValidator _ _ _ _                                                          = check False
+-- We can use unsafeFromBuiltinData here as we would fail immediately anyway if parsing failed
+wrapValidator f d r p = check $ f (unsafeFromBuiltinData d) (unsafeFromBuiltinData r) (unsafeFromBuiltinData p)
 
 -- | A typed validator script with its 'ValidatorScript' and 'Address'.
 data TypedValidator (a :: Type) =

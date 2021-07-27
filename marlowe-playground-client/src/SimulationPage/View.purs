@@ -3,9 +3,11 @@ module SimulationPage.View where
 import Prelude hiding (div)
 import BottomPanel.Types as BottomPanelTypes
 import BottomPanel.View as BottomPanel
-import Data.Array (concatMap, intercalate, reverse, sortWith)
+import Data.Array (concatMap, intercalate, length, reverse, sortWith)
 import Data.Array as Array
+import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
+import Data.Enum (fromEnum)
 import Data.Lens (has, only, previewOn, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -69,16 +71,22 @@ render metadata state =
   where
   panelTitles =
     [ { title: "Current State", view: CurrentStateView, classes: [] }
+    , { title: problemsTitle, view: WarningsAndErrorsView, classes: [] }
     ]
 
-  currentStateClasses = if hasRuntimeWarnings || hasRuntimeError then [ ClassName "error-tab" ] else []
+  runtimeWarnings = view (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings) state
 
-  -- QUESTION: what are runtimeWarnings and runtimeError? how can I reach that state?
-  hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
-
+  hasRuntimeError :: Boolean
   hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
 
-  wrapBottomPanelContents panelView = BottomPanelTypes.PanelAction <$> panelContents metadata state panelView
+  numberOfProblems = length runtimeWarnings + fromEnum hasRuntimeError
+
+  problemsTitle = "Warnings and errors" <> if numberOfProblems == 0 then "" else " (" <> show numberOfProblems <> ")"
+
+  -- TODO: improve this wrapper helper
+  actionWrapper = BottomPanelTypes.PanelAction
+
+  wrapBottomPanelContents panelView = bimap (map actionWrapper) actionWrapper $ panelContents metadata state panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =

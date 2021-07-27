@@ -32,7 +32,11 @@ module Ledger.Index(
     validateTransactionOffChain,
     -- * Script validation events
     ScriptType(..),
-    ScriptValidationEvent(..)
+    ScriptValidationEvent(..),
+    Api.ExBudget(..),
+    Api.ExCPU(..),
+    Api.ExMemory(..),
+    Api.SatInt
     ) where
 
 import           Prelude                          hiding (lookup)
@@ -58,6 +62,7 @@ import           Ledger.Blockchain
 import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
+import qualified Plutus.V1.Ledger.Api             as Api
 import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
 import qualified Plutus.V1.Ledger.Contexts        as Validation
 import           Plutus.V1.Ledger.Credential      (Credential (..))
@@ -69,7 +74,7 @@ import qualified Plutus.V1.Ledger.Slot            as Slot
 import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value           as V
-import           PlutusTx                         (toData)
+import           PlutusTx                         (toBuiltinData)
 import qualified PlutusTx.Numeric                 as P
 
 -- | Context for validating transactions. We need access to the unspent
@@ -172,6 +177,7 @@ validateTransaction :: ValidationMonad m
 validateTransaction h t = do
     -- Phase 1 validation
     checkSlotRange h t
+    _ <- lkpOutputs $ toListOf (inputs . scriptTxIns) t
 
     -- see note [Minting of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
@@ -265,7 +271,7 @@ checkMintingScripts tx = do
         let cs :: V.CurrencySymbol
             cs = V.mpsSymbol $ mintingPolicyHash vl
             ctx :: Context
-            ctx = Context $ toData $ ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
+            ctx = Context $ toBuiltinData $ ScriptContext { scriptContextPurpose = Minting cs, scriptContextTxInfo = txinfo }
             ptr :: RedeemerPtr
             ptr = RedeemerPtr Mint (fromIntegral i)
         red <- case lookupRedeemer tx ptr of
@@ -326,7 +332,7 @@ checkMatch txinfo = \case
     ScriptMatch txOutRef vl r d -> do
         let
             ptx' = ScriptContext { scriptContextTxInfo = txinfo, scriptContextPurpose = Spending txOutRef }
-            vd = Context (toData ptx')
+            vd = Context (toBuiltinData ptx')
         case runExcept $ runScript vd vl d r of
             Left e -> do
                 tell [validatorScriptValidationEvent vd vl d r (Left e)]
@@ -401,13 +407,19 @@ data ScriptType = ValidatorScript | MintingPolicyScript
 data ScriptValidationEvent =
     ScriptValidationEvent
         { sveScript :: Script -- ^ The script applied to all arguments
-        , sveResult :: Either ScriptError [String] -- ^ Result of running the script: an error or the trace logs
+        , sveResult :: Either ScriptError (Api.ExBudget, [String]) -- ^ Result of running the script: an error or the 'ExBudget' and trace logs
         , sveType   :: ScriptType -- ^ What type of script it was
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+validatorScriptValidationEvent
+    :: Context
+    -> Validator
+    -> Datum
+    -> Redeemer
+    -> Either ScriptError (Api.ExBudget, [String])
+    -> ScriptValidationEvent
 validatorScriptValidationEvent ctx validator datum redeemer result =
     ScriptValidationEvent
         { sveScript = applyValidator ctx validator datum redeemer
@@ -415,7 +427,12 @@ validatorScriptValidationEvent ctx validator datum redeemer result =
         , sveType = ValidatorScript
         }
 
-mpsValidationEvent :: Context -> MintingPolicy -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+mpsValidationEvent
+    :: Context
+    -> MintingPolicy
+    -> Redeemer
+    -> Either ScriptError (Api.ExBudget, [String])
+    -> ScriptValidationEvent
 mpsValidationEvent ctx mps red result =
     ScriptValidationEvent
         { sveScript = applyMintingPolicyScript ctx mps red

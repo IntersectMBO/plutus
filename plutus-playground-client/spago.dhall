@@ -6,6 +6,7 @@ You can edit this file as you like.
 , dependencies =
   [ "prelude"
   , "aff"
+  , "aff-promise"
   , "bigints"
   , "concurrent-queues"
   , "console"

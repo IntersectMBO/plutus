@@ -19,6 +19,7 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE ViewPatterns              #-}
+{-# OPTIONS_GHC -Wno-orphans           #-}
 -- | Typed transaction inputs and outputs. This module defines typed versions
 --   of various ledger types. The ultimate goal is to make sure that the script
 --   types attached to inputs and outputs line up, to avoid type errors at
@@ -35,6 +36,9 @@ import qualified Plutus.V1.Ledger.Value    as Value
 
 import           PlutusTx
 
+import           Codec.Serialise           (deserialise, serialise)
+import qualified Data.ByteString.Lazy      as BSL
+
 import           Data.Aeson                (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Aeson.Types          (typeMismatch)
 import           Data.Text.Prettyprint.Doc (Pretty (pretty), viaShow, (<+>))
@@ -50,7 +54,7 @@ instance Eq (DatumType a) => Eq (TypedScriptTxIn a) where
         tyTxInTxIn l == tyTxInTxIn r
         && tyTxInOutRef l == tyTxInOutRef r
 
-instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxIn a) where
+instance (FromJSON (DatumType a), FromData (DatumType a), ToData (DatumType a)) => FromJSON (TypedScriptTxIn a) where
     parseJSON (Object v) =
         TypedScriptTxIn <$> v .: "tyTxInTxIn" <*> v .: "tyTxInOutRef"
     parseJSON invalid = typeMismatch "Object" invalid
@@ -62,15 +66,15 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxIn a) where
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
     :: forall inn
-    . (IsData (RedeemerType inn), IsData (DatumType inn))
+    . (ToData (RedeemerType inn), ToData (DatumType inn))
     => TypedValidator inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
     -> TypedScriptTxIn inn
 makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOutData=d}) =
     let vs = validatorScript si
-        rs = Redeemer (toData r)
-        ds = Datum (toData d)
+        rs = Redeemer (toBuiltinData r)
+        ds = Datum (toBuiltinData d)
         txInType = ConsumeScriptAddress vs rs ds
     in TypedScriptTxIn @inn (TxIn ref (Just txInType)) tyRef
 
@@ -87,14 +91,14 @@ makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
 makePubKeyTxIn ref = PubKeyTxIn . TxIn ref . Just $ ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
-data TypedScriptTxOut a = IsData (DatumType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DatumType a }
+data TypedScriptTxOut a = (FromData (DatumType a), ToData (DatumType a)) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DatumType a }
 
 instance Eq (DatumType a) => Eq (TypedScriptTxOut a) where
     l == r =
         tyTxOutTxOut l == tyTxOutTxOut r
         && tyTxOutData l == tyTxOutData r
 
-instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxOut a) where
+instance (FromJSON (DatumType a), FromData (DatumType a), ToData (DatumType a)) => FromJSON (TypedScriptTxOut a) where
     parseJSON (Object v) =
         TypedScriptTxOut <$> v .: "tyTxOutTxOut" <*> v .: "tyTxOutData"
     parseJSON invalid = typeMismatch "Object" invalid
@@ -106,13 +110,13 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxOut a) where
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
     :: forall out
-    . (IsData (DatumType out))
+    . (ToData (DatumType out), FromData (DatumType out))
     => TypedValidator out
     -> DatumType out
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
-    let outTy = datumHash $ Datum $ toData d
+    let outTy = datumHash $ Datum $ toBuiltinData d
     in TypedScriptTxOut @out TxOut{txOutAddress = validatorAddress ct, txOutValue=value, txOutDatumHash = Just outTy} d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
@@ -123,7 +127,7 @@ instance Eq (DatumType a) => Eq (TypedScriptTxOutRef a) where
         tyTxOutRefRef l == tyTxOutRefRef r
         && tyTxOutRefOut l == tyTxOutRefOut r
 
-instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxOutRef a) where
+instance (FromJSON (DatumType a), FromData (DatumType a), ToData (DatumType a)) => FromJSON (TypedScriptTxOutRef a) where
     parseJSON (Object v) =
         TypedScriptTxOutRef <$> v .: "tyTxOutRefRef" <*> v .: "tyTxOutRefOut"
     parseJSON invalid = typeMismatch "Object" invalid
@@ -154,12 +158,18 @@ data ConnectionError =
     | WrongInType TxInType
     | MissingInType
     | WrongValidatorType String
-    | WrongRedeemerType
-    | WrongDatumType
+    | WrongRedeemerType BuiltinData
+    | WrongDatumType BuiltinData
     | NoDatum TxId DatumHash
     | UnknownRef
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+-- TODO: these should probably live somewhere else
+instance ToJSON BuiltinData where
+    toJSON d = toJSON (BSL.toStrict (serialise (builtinDataToData d)))
+instance FromJSON BuiltinData where
+    parseJSON v = dataToBuiltinData . deserialise . BSL.fromStrict <$> parseJSON v
 
 instance Pretty ConnectionError where
     pretty = \case
@@ -168,8 +178,8 @@ instance Pretty ConnectionError where
         WrongInType t               -> "Wrong in type:" <+> viaShow t
         MissingInType               -> "Missing in type"
         WrongValidatorType t        -> "Wrong validator type:" <+> pretty t
-        WrongRedeemerType           -> "Wrong redeemer type"
-        WrongDatumType              -> "Wrong datum type"
+        WrongRedeemerType d         -> "Wrong redeemer type" <+> pretty (builtinDataToData d)
+        WrongDatumType d            -> "Wrong datum type" <+> pretty (builtinDataToData d)
         NoDatum t d                 -> "No datum with hash " <+> pretty d <+> "for tx" <+> pretty t
         UnknownRef                  -> "Unknown reference"
 
@@ -182,31 +192,33 @@ checkValidatorAddress ct actualAddr = do
 -- | Checks that the given redeemer script has the right type.
 checkRedeemer
     :: forall inn m
-    . (IsData (RedeemerType inn), MonadError ConnectionError m)
+    . (FromData (RedeemerType inn), MonadError ConnectionError m)
     => TypedValidator inn
     -> Redeemer
     -> m (RedeemerType inn)
 checkRedeemer _ (Redeemer d) =
-    case fromData d of
+    case fromBuiltinData d of
         Just v  -> pure v
-        Nothing -> throwError WrongRedeemerType
+        Nothing -> throwError $ WrongRedeemerType d
 
 -- | Checks that the given datum has the right type.
 checkDatum
-    :: forall a m . (IsData (DatumType a), MonadError ConnectionError m)
+    :: forall a m . (FromData (DatumType a), MonadError ConnectionError m)
     => TypedValidator a
     -> Datum
     -> m (DatumType a)
 checkDatum _ (Datum d) =
-    case fromData d of
+    case fromBuiltinData d of
         Just v  -> pure v
-        Nothing -> throwError WrongDatumType
+        Nothing -> throwError $ WrongDatumType d
 
 -- | Create a 'TypedScriptTxIn' from an existing 'TxIn' by checking the types of its parts.
 typeScriptTxIn
     :: forall inn m
-    . ( IsData (RedeemerType inn)
-      , IsData (DatumType inn)
+    . ( FromData (RedeemerType inn)
+      , ToData (RedeemerType inn)
+      , FromData (DatumType inn)
+      , ToData (DatumType inn)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
     -> TypedValidator inn
@@ -241,7 +253,8 @@ typePubKeyTxIn inn@TxIn{txInType} = do
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
 typeScriptTxOut
     :: forall out m
-    . ( IsData (DatumType out)
+    . ( FromData (DatumType out)
+      , ToData (DatumType out)
       , MonadError ConnectionError m)
     => TypedValidator out
     -> TxOutTx
@@ -262,7 +275,8 @@ typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValu
 -- reference points.
 typeScriptTxOutRef
     :: forall out m
-    . ( IsData (DatumType out)
+    . ( FromData (DatumType out)
+      , ToData (DatumType out)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
     -> TypedValidator out

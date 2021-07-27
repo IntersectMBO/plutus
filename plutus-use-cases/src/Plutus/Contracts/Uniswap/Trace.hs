@@ -78,7 +78,7 @@ setupTokens = do
 
     -- Need to wait one slot or else we will get stuck in an infinite loop
     -- when requesting the contract's observable state.
-    void $ waitNSlots 1
+    void $ waitNSlots 50
 
   where
     amount = 1000000

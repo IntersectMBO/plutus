@@ -6,7 +6,6 @@ module StaticAnalysis.BottomPanel
 
 import Prelude hiding (div)
 import Data.BigInteger (BigInteger)
-import Data.Foldable (foldMap)
 import Data.Lens (view, (^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
@@ -18,14 +17,15 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Classes (btn, spaceBottom, spaceRight, spaceTop, spanText)
-import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol, span_, text, ul)
+import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h3, li_, ol, span_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _valueParameterDescription)
-import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
+import Marlowe.Semantics (ChoiceId(..), Input(..), Slot(..), SlotInterval(..), TransactionInput(..))
 import Marlowe.Symbolic.Types.Response as R
 import Marlowe.Template (IntegerTemplateType(..))
+import Marlowe.ViewPartials (displayWarningList)
 import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
@@ -329,94 +329,4 @@ displayInput (INotify) =
   [ b_ [ text "INotify" ]
   , text " - The contract is notified that an observation became "
   , b_ [ text "True" ]
-  ]
-
-displayWarningList :: forall p action. Array TransactionWarning -> HTML p action
-displayWarningList transactionWarnings =
-  ol [ classes [ ClassName "indented-enum" ] ]
-    ( do
-        warning <- transactionWarnings
-        pure (li_ (displayWarning warning))
-    )
-
-displayWarnings :: forall p action. Array TransactionWarning -> HTML p action
-displayWarnings [] = text mempty
-
-displayWarnings warnings =
-  div
-    [ classes
-        [ ClassName "invalid-transaction"
-        , ClassName "input-composer"
-        ]
-    ]
-    [ h2 [] [ text "Warnings" ]
-    , ol
-        []
-        $ foldMap (\warning -> [ li_ (displayWarning warning) ]) warnings
-    ]
-
-displayWarning :: forall p action. TransactionWarning -> Array (HTML p action)
-displayWarning (TransactionNonPositiveDeposit party owner tok amount) =
-  [ b_ [ text "TransactionNonPositiveDeposit" ]
-  , text " - Party "
-  , b_ [ text $ show party ]
-  , text " is asked to deposit "
-  , b_ [ text $ show amount ]
-  , text " units of "
-  , b_ [ text $ showPrettyToken tok ]
-  , text " into account of "
-  , b_ [ text (show owner) ]
-  , text "."
-  ]
-
-displayWarning (TransactionNonPositivePay owner payee tok amount) =
-  [ b_ [ text "TransactionNonPositivePay" ]
-  , text " - The contract is supposed to make a payment of "
-  , b_ [ text $ show amount ]
-  , text " units of "
-  , b_ [ text $ showPrettyToken tok ]
-  , text " from account of "
-  , b_ [ text (show owner) ]
-  , text " to "
-  , b_
-      [ text case payee of
-          (Account owner2) -> ("account of " <> (show owner2))
-          (Party dest) -> ("party " <> (show dest))
-      ]
-  , text "."
-  ]
-
-displayWarning (TransactionPartialPay owner payee tok amount expected) =
-  [ b_ [ text "TransactionPartialPay" ]
-  , text " - The contract is supposed to make a payment of "
-  , b_ [ text $ show expected ]
-  , text " units of "
-  , b_ [ text $ showPrettyToken tok ]
-  , text " from account of "
-  , b_ [ text (show owner) ]
-  , text " to "
-  , b_
-      [ text case payee of
-          (Account owner2) -> ("account of " <> (show owner2))
-          (Party dest) -> ("party " <> (show dest))
-      ]
-  , text " but there is only "
-  , b_ [ text $ show amount ]
-  , text "."
-  ]
-
-displayWarning (TransactionShadowing valId oldVal newVal) =
-  [ b_ [ text "TransactionShadowing" ]
-  , text " - The contract defined the value with id "
-  , b_ [ text (show valId) ]
-  , text " before, it was assigned the value "
-  , b_ [ text (show oldVal) ]
-  , text " and now it is being assigned the value "
-  , b_ [ text (show newVal) ]
-  , text "."
-  ]
-
-displayWarning TransactionAssertionFailed =
-  [ b_ [ text "TransactionAssertionFailed" ]
-  , text " - An assertion in the contract did not hold."
   ]

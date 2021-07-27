@@ -5,7 +5,7 @@ import Clipboard (Action) as Clipboard
 import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Fold', Iso', Lens', Prism', Traversal', filtered, preview, prism', traversed)
+import Data.Lens (Fold', Iso', Lens', Prism', Traversal', anyOf, filtered, preview, prism', traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
@@ -141,7 +141,7 @@ findConsumptionPoint :: BigInteger -> TxId -> AnnotatedBlockchain -> Maybe Annot
 findConsumptionPoint outputIndex txId = preview (_AnnotatedBlocks <<< filtered isMatchingTx)
   where
   isMatchingTx :: AnnotatedTx -> Boolean
-  isMatchingTx tx = preview (_tx <<< _txInputs <<< traversed <<< _txInRef) tx == Just txOutRef
+  isMatchingTx tx = anyOf (_tx <<< _txInputs <<< traversed <<< _txInRef) ((==) txOutRef) tx
 
   txOutRef :: TxOutRef
   txOutRef =

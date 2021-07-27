@@ -520,7 +520,7 @@ toolbox =
 
 workspaceBlocks :: forall a b. HTML a b
 workspaceBlocks =
-  xml [ id_ "actusBlocklyWorkspace", style "display:none" ]
+  xml [ id_ "actusWorkspaceBlocks", style "display:none" ]
     [ block [ blockType (show BaseContractType), x "13", y "187", id_ rootBlockName ] []
     ]
 

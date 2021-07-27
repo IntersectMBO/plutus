@@ -31,6 +31,7 @@ import           Ledger.Bytes                as Bytes
 import qualified Ledger.Constraints.OffChain as OC
 import qualified Ledger.Contexts             as Validation
 import qualified Ledger.Crypto               as Crypto
+import           Ledger.Fee                  (FeeConfig (..), calcFees)
 import qualified Ledger.Generators           as Gen
 import qualified Ledger.Index                as Index
 import qualified Ledger.Interval             as Interval
@@ -72,8 +73,7 @@ tests = testGroup "all tests" [
     testGroup "Etc." [
         testProperty "splitVal" splitVal,
         testProperty "encodeByteString" encodeByteStringTest,
-        testProperty "encodeSerialise" encodeSerialiseTest,
-        testProperty "pubkey hash" pubkeyHashOnChainAndOffChain
+        testProperty "encodeSerialise" encodeSerialiseTest
         ],
     testGroup "LedgerBytes" [
         testProperty "show-fromHex" ledgerBytesShowFromHexProp,
@@ -95,6 +95,9 @@ tests = testGroup "all tests" [
                 in byteStringJson vlJson vlValue)),
     testGroup "Constraints" [
         testProperty "missing value spent" missingValueSpentProp
+        ],
+    testGroup "Fee" [
+        testProperty "calcFees" calcFeesTest
         ],
     testGroup "TimeSlot" [
         testProperty "time range of starting slot" initialSlotToTimeProp,
@@ -222,18 +225,6 @@ byteStringJson jsonString value =
     , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
     ]
 
--- | Check that the on-chain version and the off-chain version of 'pubKeyHash'
---   match.
-pubkeyHashOnChainAndOffChain :: Property
-pubkeyHashOnChainAndOffChain = property $ do
-    pk <- forAll $ PubKey . LedgerBytes <$> Gen.genSizedByteString 32 -- this won't generate a valid public key but that doesn't matter for the purposes of pubKeyHash
-    let offChainHash = Crypto.pubKeyHash pk
-        onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
-        onchainProg = $$(PlutusTx.compile [|| \pk expected -> if expected PlutusTx.== Validation.pubKeyHash pk then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
-        script = Scripts.fromCompiledCode $ onchainProg `applyCode` liftCode pk `applyCode` liftCode offChainHash
-        result = runExcept $ evaluateScript script
-    result Hedgehog.=== Right ["correct"]
-
 -- | Check that 'missingValueSpent' is the smallest value needed to
 --   meet the requirements.
 missingValueSpentProp :: Property
@@ -281,6 +272,11 @@ nonNegativeValue =
         <$> Gen.element mpsHashes
         <*> Gen.element tokenNames
         <*> Gen.integral (Range.linear 0 10000)
+
+calcFeesTest :: Property
+calcFeesTest = property $ do
+  let feeCfg = FeeConfig 10 0.3
+  Hedgehog.assert $ calcFees feeCfg 11 == Ada.lovelaceOf 13
 
 -- | Asserting that time range of 'scZeroSlotTime' to 'scZeroSlotTime + scSlotLength'
 -- is 'Slot 0' and the time after that is 'Slot 1'.

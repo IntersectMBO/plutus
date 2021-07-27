@@ -7,7 +7,13 @@ module PlutusTx (
     applyCode,
     BuiltinData,
     Data (..),
-    IsData (..),
+    ToData (..),
+    FromData (..),
+    UnsafeFromData (..),
+    toData,
+    fromData,
+    builtinDataToData,
+    dataToBuiltinData,
     unstableMakeIsData,
     makeIsDataIndexed,
     Lift,
@@ -17,9 +23,10 @@ module PlutusTx (
     liftCode) where
 
 import           PlutusCore.Data     (Data (..))
-import           PlutusTx.Builtins   (BuiltinData)
+import           PlutusTx.Builtins   (BuiltinData, builtinDataToData, dataToBuiltinData)
 import           PlutusTx.Code       (CompiledCode, CompiledCodeIn, applyCode, getPir, getPlc)
-import           PlutusTx.IsData     (IsData (..), makeIsDataIndexed, unstableMakeIsData)
+import           PlutusTx.IsData     (FromData (..), ToData (..), UnsafeFromData (..), fromData, makeIsDataIndexed,
+                                      toData, unstableMakeIsData)
 import           PlutusTx.Lift       (liftCode, makeLift, safeLiftCode)
 import           PlutusTx.Lift.Class (Lift, Typeable)
 import           PlutusTx.TH         as Export

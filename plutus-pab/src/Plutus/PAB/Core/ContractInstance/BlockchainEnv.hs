@@ -11,7 +11,7 @@ module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   , getClientEnv
   ) where
 
-import qualified Cardano.Protocol.Socket.Client       as Client
+import qualified Cardano.Protocol.Socket.Mock.Client  as Client
 import           Ledger                               (Address, Block, OnChainTx, Slot, TxId, eitherTx, txId)
 import           Ledger.AddressMap                    (AddressMap)
 import qualified Ledger.AddressMap                    as AddressMap

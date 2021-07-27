@@ -28,6 +28,10 @@ data Icon
   | Close
   | Contacts
   | Contract
+  | ContractContractForDifferences
+  | ContractLoan
+  | ContractPurchase
+  | Copy
   | Done
   | DoneWithCircle
   | ErrorOutline
@@ -35,6 +39,8 @@ data Icon
   | HelpOutline
   | History
   | Home
+  | Info
+  | Language
   | Menu
   | Next
   | NewContact
@@ -44,6 +50,7 @@ data Icon
   | Refresh
   | Roles
   | Running
+  | South
   | TaskAlt
   | Terms
   | Timer
@@ -54,7 +61,7 @@ content Add = "add"
 
 content AddBox = "add_box"
 
-content AddCircle = "add_circle_outline"
+content AddCircle = "add_circle"
 
 content ArrowRight = "east"
 
@@ -65,6 +72,14 @@ content Close = "close"
 content Contacts = "people"
 
 content Contract = "history_edu"
+
+content ContractContractForDifferences = "trending_up"
+
+content ContractLoan = "wrap_text" -- FIXME: this is the wrong icon (I can't find the right one)
+
+content ContractPurchase = "swap_horiz"
+
+content Copy = "copy_content"
 
 content Done = "done"
 
@@ -79,6 +94,10 @@ content HelpOutline = "help_outline"
 content History = "history"
 
 content Home = "home"
+
+content Info = "info"
+
+content Language = "language"
 
 content Menu = "short_text"
 
@@ -98,9 +117,11 @@ content Roles = "person_pin_circle"
 
 content Running = "directions_run"
 
+content South = "south"
+
 content TaskAlt = "task_alt"
 
-content Terms = "alarm_add"
+content Terms = "drive_file_rename_outline"
 
 content Timer = "timer"
 
@@ -123,6 +144,14 @@ iconClass Contacts = "contacts"
 
 iconClass Contract = "contract"
 
+iconClass ContractContractForDifferences = "contract-contract-for-differences"
+
+iconClass ContractLoan = "contract-loan"
+
+iconClass ContractPurchase = "contract-purchase"
+
+iconClass Copy = "copy"
+
 iconClass Done = "done"
 
 iconClass DoneWithCircle = "check-circle-outline"
@@ -136,6 +165,10 @@ iconClass HelpOutline = "help-outline"
 iconClass History = "history"
 
 iconClass Home = "home"
+
+iconClass Info = "info"
+
+iconClass Language = "language"
 
 iconClass Menu = "menu"
 
@@ -154,6 +187,8 @@ iconClass Refresh = "refresh"
 iconClass Roles = "roles"
 
 iconClass Running = "running"
+
+iconClass South = "south"
 
 iconClass TaskAlt = "task-alt"
 

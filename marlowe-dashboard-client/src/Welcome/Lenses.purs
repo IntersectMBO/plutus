@@ -15,9 +15,8 @@ import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletLibrary)
-import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError)
-import Welcome.Types (Card, State)
+import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNicknameError)
+import Welcome.Types (Card, State, WalletNicknameOrIdError)
 
 _card :: Lens' State (Maybe Card)
 _card = prop (SProxy :: SProxy "card")

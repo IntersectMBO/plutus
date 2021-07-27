@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
@@ -17,56 +18,59 @@ module Cardano.Wallet.Mock
     , distributeNewWalletFunds
     ) where
 
-import           Cardano.BM.Data.Trace            (Trace)
-import qualified Cardano.ChainIndex.Client        as ChainIndexClient
-import qualified Cardano.Node.Client              as NodeClient
-import qualified Cardano.Protocol.Socket.Client   as Client
-import           Cardano.Wallet.Types             (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
-                                                   WalletMsg (..), Wallets)
-import           Control.Concurrent               (MVar)
-import           Control.Concurrent.MVar          (putMVar, takeMVar)
-import           Control.Lens                     (at, (.~))
-import           Control.Monad.Error              (MonadError)
-import qualified Control.Monad.Except             as MonadError
+import           Cardano.BM.Data.Trace               (Trace)
+import qualified Cardano.ChainIndex.Client           as ChainIndexClient
+import qualified Cardano.Node.Client                 as NodeClient
+import qualified Cardano.Protocol.Socket.Client      as Client
+import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
+import           Cardano.Wallet.Types                (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
+                                                      WalletMsg (..), Wallets)
+import           Control.Concurrent                  (MVar)
+import           Control.Concurrent.MVar             (putMVar, takeMVar)
+import           Control.Lens                        (at, (.~))
+import           Control.Monad.Error                 (MonadError)
+import qualified Control.Monad.Except                as MonadError
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Reader       (runReader)
-import           Control.Monad.Freer.State        (State, evalState, get, put, runState)
-import           Control.Monad.IO.Class           (MonadIO, liftIO)
-import qualified Crypto.ECC.Ed25519Donna          as ED25519
-import           Crypto.Error                     (CryptoFailable (..))
-import           Crypto.PubKey.Ed25519            (secretKeySize)
-import           Crypto.Random                    (getRandomBytes)
-import           Data.Bits                        (shiftL, shiftR)
-import           Data.ByteArray                   (ScrubbedBytes, unpack)
-import qualified Data.ByteString                  as BS
-import qualified Data.ByteString.Lazy             as BSL
-import qualified Data.ByteString.Lazy.Char8       as BSL8
-import qualified Data.ByteString.Lazy.Char8       as Char8
-import           Data.Function                    ((&))
-import qualified Data.Map                         as Map
-import           Data.Text.Encoding               (encodeUtf8)
-import           Data.Text.Prettyprint.Doc        (pretty)
-import qualified Ledger.Ada                       as Ada
-import           Ledger.Address                   (pubKeyAddress)
-import           Ledger.Crypto                    (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
-                                                   toPublicKey)
-import           Ledger.Tx                        (Tx)
-import           Plutus.PAB.Arbitrary             ()
-import qualified Plutus.PAB.Monitoring.Monitoring as LM
-import qualified Plutus.V1.Ledger.Bytes           as KB
-import           Servant                          (ServerError (..), err400, err401, err404)
-import           Servant.Client                   (ClientEnv)
-import           Servant.Server                   (err500)
-import           Wallet.API                       (PubKey, WalletAPIError (..))
-import qualified Wallet.API                       as WAPI
-import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect)
-import qualified Wallet.Effects                   as WalletEffects
-import           Wallet.Emulator.LogMessages      (TxBalanceMsg)
-import           Wallet.Emulator.NodeClient       (emptyNodeClientState)
-import           Wallet.Emulator.Wallet           (Wallet (..), WalletState (..), defaultSigningProcess)
-import qualified Wallet.Emulator.Wallet           as Wallet
+import           Control.Monad.Freer.Reader          (runReader)
+import           Control.Monad.Freer.State           (State, evalState, get, put, runState)
+import           Control.Monad.IO.Class              (MonadIO, liftIO)
+import qualified Crypto.ECC.Ed25519Donna             as ED25519
+import           Crypto.Error                        (CryptoFailable (..))
+import           Crypto.PubKey.Ed25519               (secretKeySize)
+import           Crypto.Random                       (getRandomBytes)
+import           Data.Bits                           (shiftL, shiftR)
+import           Data.ByteArray                      (ScrubbedBytes, unpack)
+import qualified Data.ByteString                     as BS
+import qualified Data.ByteString.Lazy                as BSL
+import qualified Data.ByteString.Lazy.Char8          as BSL8
+import qualified Data.ByteString.Lazy.Char8          as Char8
+import           Data.Function                       ((&))
+import qualified Data.Map                            as Map
+import           Data.Text.Encoding                  (encodeUtf8)
+import           Data.Text.Prettyprint.Doc           (pretty)
+import           Ledger                              (Block)
+import qualified Ledger.Ada                          as Ada
+import           Ledger.Address                      (pubKeyAddress)
+import           Ledger.Crypto                       (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
+                                                      toPublicKey)
+import           Ledger.Fee                          (FeeConfig)
+import           Ledger.Tx                           (Tx)
+import           Plutus.PAB.Arbitrary                ()
+import qualified Plutus.PAB.Monitoring.Monitoring    as LM
+import qualified Plutus.V1.Ledger.Bytes              as KB
+import           Servant                             (ServerError (..), err400, err401, err404)
+import           Servant.Client                      (ClientEnv)
+import           Servant.Server                      (err500)
+import           Wallet.API                          (PubKey, WalletAPIError (..))
+import qualified Wallet.API                          as WAPI
+import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect)
+import qualified Wallet.Effects                      as WalletEffects
+import           Wallet.Emulator.LogMessages         (TxBalanceMsg)
+import           Wallet.Emulator.NodeClient          (emptyNodeClientState)
+import           Wallet.Emulator.Wallet              (Wallet (..), WalletState (..), defaultSigningProcess)
+import qualified Wallet.Emulator.Wallet              as Wallet
 
 newtype Seed = Seed ScrubbedBytes
 
@@ -104,7 +108,10 @@ newKeyPair = do
 -- | Get the public key of a 'Wallet' by converting the wallet identifier
 --   to a private key bytestring.
 walletPubKey :: Wallet -> PubKeyHash
-walletPubKey (Wallet i) = PubKeyHash $ integer2ByteString32 i
+walletPubKey (Wallet i) =
+    -- public key hashes are 28 bytes long, so we need to drop the first 4
+    -- (SCP-2208)
+    PubKeyHash $ BS.drop 4 $ integer2ByteString32 i
 
 -- | Get the 'Wallet' whose identifier is the integer representation of the
 --   pubkey hash.
@@ -122,8 +129,10 @@ handleMultiWallet :: forall m effs.
     , Member (LogMsg WalletMsg) effs
     , LastMember m effs
     , MonadIO m
-    ) => MultiWalletEffect ~> Eff effs
-handleMultiWallet = \case
+    )
+    => FeeConfig
+    -> MultiWalletEffect ~> Eff effs
+handleMultiWallet feeCfg = \case
     MultiWallet wallet action -> do
         wallets <- get @Wallets
         case Map.lookup wallet wallets of
@@ -131,7 +140,7 @@ handleMultiWallet = \case
                 (x, newState) <- runState walletState
                     $ action
                         & raiseEnd
-                        & interpret Wallet.handleWallet
+                        & interpret (Wallet.handleWallet feeCfg)
                         & interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
                 put @Wallets (wallets & at wallet .~ Just newState)
                 pure x
@@ -149,7 +158,7 @@ handleMultiWallet = \case
         let walletState = WalletState privateKey2 emptyNodeClientState mempty (defaultSigningProcess (Wallet 2))
         _ <- evalState walletState $
             interpret (mapLog @TxBalanceMsg @WalletMsg Balancing)
-            $ interpret Wallet.handleWallet
+            $ interpret (Wallet.handleWallet feeCfg)
             $ distributeNewWalletFunds pubKey
         WalletEffects.startWatching (pubKeyAddress pubKey)
         return $ WalletInfo{wiWallet = wallet, wiPubKey = pubKey, wiPubKeyHash = pubKeyHash pubKey}
@@ -159,15 +168,22 @@ handleMultiWallet = \case
 processWalletEffects ::
     (MonadIO m, MonadError ServerError m)
     => Trace IO WalletMsg -- ^ trace for logging
-    -> Client.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle -- ^ node client
+    -> MockClient.TxSendHandle -- ^ node client
+    -> Client.ChainSyncHandle Block -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
+    -> FeeConfig
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> m a
-processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState action = do
+processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg action = do
     oldState <- liftIO $ takeMVar mVarState
-    result <- liftIO $ runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv oldState action
+    result <- liftIO $ runWalletEffects trace
+                                        txSendHandle
+                                        chainSyncHandle
+                                        chainIndexEnv
+                                        oldState
+                                        feeCfg
+                                        action
     case result of
         Left e -> do
             liftIO $ putMVar mVarState oldState
@@ -179,14 +195,15 @@ processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState 
 -- | Interpret wallet effects
 runWalletEffects ::
     Trace IO WalletMsg -- ^ trace for logging
-    -> Client.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle -- ^ node client
+    -> MockClient.TxSendHandle -- ^ node client
+    -> Client.ChainSyncHandle Block -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
+    -> FeeConfig
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> IO (Either ServerError (a, Wallets))
-runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets action =
-    reinterpret handleMultiWallet action
+runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets feeCfg action =
+    reinterpret (handleMultiWallet feeCfg) action
     & interpret (LM.handleLogMsgTrace trace)
     & reinterpret2 NodeClient.handleNodeClientClient
     & runReader chainSyncHandle

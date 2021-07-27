@@ -72,6 +72,7 @@ data DefaultFun
     | NullList
     | HeadList
     | TailList
+    | ChooseList
     | ConstrData
     | MapData
     | ListData
@@ -269,6 +270,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         tailPlc (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) = case xs of
             _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
             _       -> EvaluationFailure
+    toBuiltinMeaning ChooseList = makeBuiltinMeaning choosePlc mempty where
+        choosePlc :: Opaque term b -> Opaque term b -> SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term b)
+        choosePlc a b (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = case xs of
+            []    -> EvaluationSuccess a
+            _ : _ -> EvaluationSuccess b
     toBuiltinMeaning ConstrData =
         makeBuiltinMeaning
             Constr
@@ -441,6 +447,7 @@ instance Flat DefaultFun where
               MkNilData                -> 50
               MkNilPairData            -> 51
               MkCons                   -> 52
+              ChooseList               -> 53
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -496,6 +503,7 @@ instance Flat DefaultFun where
               go 50 = pure MkNilData
               go 51 = pure MkNilPairData
               go 52 = pure MkCons
+              go 53 = pure ChooseList
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth

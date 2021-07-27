@@ -216,7 +216,7 @@ applyPendingInputs oldState@{ executionState: SimulationRunning executionState }
 
         newExecutionState =
           ( set _transactionError Nothing
-              <<< set _transactionWarnings (fromFoldable txOutWarnings)
+              <<< over _transactionWarnings (flip append $ fromFoldable txOutWarnings)
               <<< set _pendingInputs mempty
               <<< set _state txOutState
               <<< set _moneyInContract (moneyInContract txOutState)

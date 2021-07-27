@@ -8,6 +8,7 @@
 .with-icon::after {
   font-family: "Material Icons Round";
   font-size: 24px;
+  font-weight: normal;
   line-height: 1;
   white-space: nowrap;
   float: right;
@@ -23,7 +24,7 @@
 }
 
 .with-icon-add-circle::after {
-  content: "add_circle_outline";
+  content: "add_circle";
 }
 
 .with-icon-arrow-right::after {
@@ -40,6 +41,22 @@
 
 .with-icon-contract::after {
   content: "history_edu";
+}
+
+.with-icon-contract-contract-for-differences::after {
+  content: "trending_up";
+}
+
+.with-icon-contract-loan::after {
+  content: "wrap_text"; /* FIXME: this is the wrong icon */
+}
+
+.with-icon-contract-purchase::after {
+  content: "swap_horiz";
+}
+
+.with-icon-copy::after {
+  content: "copy";
 }
 
 .with-icon-help::after {
@@ -91,7 +108,7 @@
 }
 
 .with-icon-terms::after {
-  content: "alarm_add";
+  content: "drive_file_rename_outline";
 }
 
 .with-icon-timer::after {

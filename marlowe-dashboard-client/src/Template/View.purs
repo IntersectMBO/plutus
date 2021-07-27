@@ -1,175 +1,362 @@
-module Template.View
-  ( contractSetupScreen
-  , templateLibraryCard
-  , contractSetupConfirmationCard
-  ) where
+module Template.View (contractTemplateCard) where
 
 import Prelude hiding (div)
 import Css as Css
-import Data.Array (mapWithIndex)
-import Data.BigInteger (fromString) as BigInteger
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
 import Data.Map (Map, lookup, values)
 import Data.Map (toUnfoldable) as Map
-import Data.Maybe (Maybe(..), fromMaybe, isNothing)
-import Data.String (trim)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
-import Halogen.Css (applyWhen, classNames, hideWhen)
-import Halogen.HTML (HTML, a, br_, button, div, div_, h2, hr, input, label, li, p, p_, span, span_, text, ul, ul_)
-import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
-import Halogen.HTML.Properties (InputType(..), enabled, for, id_, placeholder, type_, value)
-import Humanize (humanizeValue)
+import Effect.Aff.Class (class MonadAff)
+import Halogen.Css (classNames)
+import Halogen.HTML (ComponentHTML, HTML, PlainHTML, a, button, div, div_, h2, h3, h4, h4_, label, li, p, p_, span, span_, text, ul, ul_)
+import Halogen.HTML.Events.Extra (onClick_)
+import Halogen.HTML.Properties (enabled, for, id_)
+import Hint.State (hint)
+import Humanize (contractIcon, humanizeValue)
+import InputField.Lenses (_value)
 import InputField.Types (State) as InputField
-import InputField.Types (inputErrorToString)
 import InputField.View (renderInput)
-import Marlowe.Extended (contractTypeInitials)
-import Marlowe.Extended.Metadata (MetaData, _contractName, _metaData, lovelaceFormat)
+import MainFrame.Types (ChildSlots)
+import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
-import Marlowe.Semantics (Assets, Slot, TokenName)
-import Marlowe.Template (TemplateContent, _valueContent)
-import Material.Icons (Icon(..), icon_)
-import Template.Format (formatText)
-import Template.Lenses (_contractNickname, _dummyNumberInput, _roleWalletInputs, _slotContentStrings, _template, _templateContent)
-import Template.Types (Action(..), State)
-import Template.Validation (RoleError, roleWalletsAreValid, slotError, templateContentIsValid, valueError)
+import Marlowe.Semantics (Assets, TokenName)
+import Material.Icons (Icon(..)) as Icon
+import Material.Icons (Icon, icon, icon_)
+import Popper (Placement(..))
+import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInputs, _slotContentInputs, _valueContentInputs)
+import Template.State (templateSetupIsValid)
+import Template.Types (Action(..), ContractSetupStage(..), RoleError, SlotError, State, ValueError)
+import Text.Markdown.TrimmedInline (markdownToHTML)
+import Tooltip.State (tooltip)
+import Tooltip.Types (ReferenceId(..))
 import WalletData.Lenses (_walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
 
-contractSetupScreen :: forall p. WalletLibrary -> Slot -> State -> HTML p Action
-contractSetupScreen walletLibrary currentSlot state =
+contractTemplateCard :: forall m. MonadAff m => WalletLibrary -> Assets -> State -> ComponentHTML Action ChildSlots m
+contractTemplateCard walletLibrary assets state =
   let
-    metaData = view (_template <<< _metaData) state
+    contractSetupStage = view _contractSetupStage state
+
+    contractTemplate = view _contractTemplate state
+  in
+    div
+      [ classNames [ "h-full", "grid", "grid-rows-auto-auto-1fr" ] ]
+      [ h2
+          [ classNames Css.cardHeader ]
+          [ text "Contract templates" ]
+      , contractTemplateBreadcrumb contractSetupStage contractTemplate
+      , case contractSetupStage of
+          Start -> contractSelection
+          Overview -> contractOverview contractTemplate
+          Setup -> contractSetup walletLibrary state
+          Review -> contractReview assets state
+      ]
+
+------------------------------------------------------------
+contractTemplateBreadcrumb :: forall p. ContractSetupStage -> ContractTemplate -> HTML p Action
+contractTemplateBreadcrumb contractSetupStage contractTemplate =
+  div
+    [ classNames [ "overflow-x-auto", "flex", "align-baseline", "px-4", "gap-1", "border-gray", "border-b", "text-xs" ] ] case contractSetupStage of
+    Start -> [ activeItem "Templates" ]
+    Overview ->
+      [ previousItem "Templates" Start
+      , arrow
+      , activeItem contractTemplate.metaData.contractName
+      ]
+    Setup ->
+      [ previousItem "Templates" Start
+      , arrow
+      , previousItem contractTemplate.metaData.contractName Overview
+      , arrow
+      , activeItem "Setup"
+      ]
+    Review ->
+      [ previousItem "Templates" Start
+      , arrow
+      , previousItem contractTemplate.metaData.contractName Overview
+      , arrow
+      , previousItem "Setup" Setup
+      , arrow
+      , activeItem "Review and pay"
+      ]
+  where
+  activeItem itemText =
+    span
+      [ classNames [ "whitespace-nowrap", "py-2.5", "border-black", "border-b-2", "font-semibold" ] ]
+      [ text itemText ]
+
+  previousItem itemText stage =
+    a
+      [ classNames [ "whitespace-nowrap", "py-2.5", "text-purple", "border-transparent", "border-b-2", "hover:border-purple", "font-semibold" ]
+      , onClick_ $ SetContractSetupStage stage
+      ]
+      [ text itemText ]
+
+  arrow = span [ classNames [ "mt-2" ] ] [ icon_ Icon.Next ]
+
+contractSelection :: forall p. HTML p Action
+contractSelection =
+  div
+    [ classNames [ "h-full", "overflow-y-auto" ] ]
+    [ ul_ $ contractTemplateLink <$> contractTemplates
+    ]
+  where
+  -- Cautionary tale: Initially I made these `divs` inside a `div`, but because they are very
+  -- similar to the overview div for the corresponding contract template, I got a weird event
+  -- propgation bug when clicking on the "back" button in the contract overview section. I'm not
+  -- entirely clear on what was going on, but either Halogen's diff of the DOM or the browser
+  -- itself ended up thinking that the "back" button in the contract overview was inside one of
+  -- these `divs` (even though they are never rendered at the same time). Anyway, changing these
+  -- to `li` items inside a `ul` (a perfectly reasonable semantic choice anyway) solves this
+  -- problem.
+  contractTemplateLink contractTemplate =
+    li
+      [ classNames [ "flex", "gap-4", "items-center", "p-4", "border-gray", "border-b", "cursor-pointer" ]
+      , onClick_ $ SetTemplate contractTemplate
+      ]
+      [ contractIcon contractTemplate.metaData.contractType
+      , div_
+          [ h2
+              [ classNames [ "font-semibold", "mb-2" ] ]
+              [ text contractTemplate.metaData.contractName ]
+          , p
+              [ classNames [ "font-xs" ] ]
+              $ markdownToHTML contractTemplate.metaData.contractDescription
+          ]
+      , icon_ Icon.Next
+      ]
+
+contractOverview :: forall p. ContractTemplate -> HTML p Action
+contractOverview contractTemplate =
+  div
+    [ classNames [ "h-full", "grid", "grid-rows-1fr-auto" ] ]
+    [ div
+        [ classNames [ "h-full", "overflow-y-auto", "p-4" ] ]
+        [ h2
+            [ classNames [ "flex", "gap-2", "items-center", "text-lg", "font-semibold", "mb-2" ] ]
+            [ contractIcon contractTemplate.metaData.contractType
+            , text $ contractTemplate.metaData.contractName <> " overview"
+            ]
+        , p_ $ markdownToHTML contractTemplate.metaData.contractDescription
+        ]
+    , div
+        [ classNames [ "flex", "items-baseline", "p-4", "border-gray", "border-t" ] ]
+        [ a
+            [ classNames [ "flex-1", "text-center" ]
+            , onClick_ $ SetContractSetupStage Start
+            ]
+            [ text "Back" ]
+        , button
+            [ classNames $ Css.primaryButton <> [ "flex-1", "text-left" ] <> Css.withIcon Icon.ArrowRight
+            , onClick_ $ SetContractSetupStage Setup
+            ]
+            [ text "Setup" ]
+        ]
+    ]
+
+contractSetup :: forall m. MonadAff m => WalletLibrary -> State -> ComponentHTML Action ChildSlots m
+contractSetup walletLibrary state =
+  let
+    metaData = view (_contractTemplate <<< _metaData) state
 
     contractName = view (_contractName) metaData
 
-    contractNickname = view _contractNickname state
+    contractNicknameInput = view _contractNicknameInput state
 
     roleWalletInputs = view _roleWalletInputs state
 
-    templateContent = view _templateContent state
+    slotContentInputs = view _slotContentInputs state
 
-    slotContentStrings = view _slotContentStrings state
+    valueContentInputs = view _valueContentInputs state
 
-    termsAreAccessible = roleWalletsAreValid roleWalletInputs
-
-    payIsAccessible = termsAreAccessible && templateContentIsValid templateContent slotContentStrings currentSlot
-
-    dummyNumberInput = view _dummyNumberInput state
-
-    dummyNumberInputOptions =
-      { baseCss: Css.input
-      , additionalCss: mempty
-      , id_: "dummyNumber"
-      , placeholder: mempty
+    contractNicknameInputDisplayOptions =
+      { additionalCss: mempty
+      , id_: "contractNickname"
+      , placeholder: "E.g. My Marlowe contract"
       , readOnly: false
-      , numberFormat: Just lovelaceFormat
+      , numberFormat: Nothing
       , valueOptions: mempty
       }
   in
     div
-      [ classNames [ "grid", "grid-rows-auto-auto-1fr", "h-full", "overflow-hidden" ] ]
-      [ navigationBar contractName
-      , contractNicknameDisplay contractName contractNickname
-      , div_ -- the containing grid sets the height of this div
-          [ div -- and then this fills that height fully
-              [ classNames [ "h-full", "overflow-y-auto", "px-4" ] ]
-              [ DummyNumberInputAction <$> renderInput dummyNumberInputOptions dummyNumberInput
-              , subHeader "top-0" true Roles "Roles" true
-              , roleInputs walletLibrary metaData roleWalletInputs
-              , subHeader "top-10" true Terms "Terms" termsAreAccessible
-              , parameterInputs currentSlot metaData templateContent slotContentStrings termsAreAccessible
-              , subHeader "top-20" false Pay "Review and pay" payIsAccessible
-              , reviewAndPay payIsAccessible metaData
+      [ classNames [ "h-full", "grid", "grid-rows-1fr-auto" ] ]
+      [ div
+          [ classNames [ "overflow-y-auto", "p-4" ] ]
+          [ h2
+              [ classNames [ "text-lg", "font-semibold", "mb-2" ] ]
+              [ text $ contractName <> " setup" ]
+          , div
+              [ classNames Css.hasNestedLabel ]
+              [ label
+                  [ classNames Css.nestedLabel ]
+                  [ text $ contractName <> " title" ]
+              , ContractNicknameInputAction <$> renderInput contractNicknameInputDisplayOptions contractNicknameInput
+              ]
+          , roleInputs walletLibrary metaData roleWalletInputs
+          , parameterInputs metaData slotContentInputs valueContentInputs
+          ]
+      , div
+          [ classNames [ "flex", "items-baseline", "p-4", "border-gray", "border-t" ] ]
+          [ a
+              [ classNames [ "flex-1", "text-center" ]
+              , onClick_ $ SetContractSetupStage Overview
+              ]
+              [ text "Back" ]
+          , button
+              [ classNames $ Css.primaryButton <> [ "flex-1", "text-left" ] <> Css.withIcon Icon.ArrowRight
+              , onClick_ $ SetContractSetupStage Review
+              , enabled $ templateSetupIsValid state
+              ]
+              [ text "Review" ]
+          ]
+      ]
+
+contractReview :: forall m. MonadAff m => Assets -> State -> ComponentHTML Action ChildSlots m
+contractReview assets state =
+  let
+    hasSufficientFunds = getAda assets >= contractCreationFee
+
+    metaData = view (_contractTemplate <<< _metaData) state
+
+    slotContentInputs = view _slotContentInputs state
+
+    valueContentInputs = view _valueContentInputs state
+  in
+    div
+      [ classNames [ "flex", "flex-col", "p-4", "gap-4" ] ]
+      [ div
+          [ classNames [ "rounded", "shadow" ] ]
+          [ h3
+              [ classNames [ "flex", "gap-1", "items-center", "leading-none", "text-sm", "font-semibold", "p-2", "mb-2", "border-gray", "border-b" ] ]
+              [ icon Icon.Terms [ "text-purple" ]
+              , text "Terms"
+              ]
+          , div
+              [ classNames [ "p-4" ] ]
+              [ ul_ $ slotParameter metaData <$> Map.toUnfoldable slotContentInputs
+              , ul_ $ valueParameter metaData <$> Map.toUnfoldable valueContentInputs
+              ]
+          ]
+      , div
+          [ classNames [ "rounded", "shadow" ] ]
+          [ h3
+              [ classNames [ "p-4", "flex", "justify-between", "bg-lightgray", "font-semibold", "rounded-t" ] ]
+              [ span_ [ text "Demo wallet balance:" ]
+              , span_ [ text $ humanizeValue adaToken $ getAda assets ]
+              ]
+          , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
+              [ p
+                  [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
+                  [ text "Confirm payment of:" ]
+              , p
+                  [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
+                  [ text $ humanizeValue adaToken contractCreationFee ]
+              , div
+                  [ classNames [ "flex", "items-baseline" ] ]
+                  [ a
+                      [ classNames [ "flex-1", "text-center" ]
+                      , onClick_ $ SetContractSetupStage Setup
+                      ]
+                      [ text "Back" ]
+                  , button
+                      [ classNames $ Css.primaryButton <> [ "flex-1" ]
+                      , onClick_ StartContract
+                      ]
+                      [ text "Pay and start" ]
+                  ]
+              , div
+                  [ classNames [ "mt-4", "text-sm", "text-red" ] ]
+                  if hasSufficientFunds then
+                    []
+                  else
+                    [ text "You have insufficient funds to initialise this contract." ]
               ]
           ]
       ]
 
-navigationBar :: forall p. String -> HTML p Action
-navigationBar contractName =
-  div
-    [ classNames [ "flex", "justify-between", "items-center", "px-4", "py-2", "border-b", "border-gray" ] ]
-    [ a
-        -- "-ml-1" makes the icon line up properly
-        [ classNames [ "flex", "items-center", "font-semibold", "-ml-1" ]
-        , onClick_ OpenTemplateLibraryCard
-        ]
-        [ icon_ Previous
-        , span_
-            [ text "Choose template" ]
-        ]
-    , span
-        [ classNames [ "text-sm", "uppercase" ] ]
-        [ text contractName ]
-    ]
+------------------------------------------------------------
+slotParameter :: forall m. MonadAff m => MetaData -> Tuple String (InputField.State SlotError) -> ComponentHTML Action ChildSlots m
+slotParameter metaData (key /\ slotContentInput) =
+  let
+    slotParameterDescriptions = view _slotParameterDescriptions metaData
 
-contractNicknameDisplay :: forall p. String -> String -> HTML p Action
-contractNicknameDisplay contractName contractNickname =
-  div
-    [ classNames [ "p-4" ] ]
-    [ input
-        [ classNames $ (Css.input $ contractNickname /= mempty) <> [ "font-semibold" ]
-        , type_ InputText
-        , placeholder "Contract name *"
-        , value contractNickname
-        , onValueInput_ SetContractNickname
-        ]
-    ]
+    description = fromMaybe "no description available" $ lookup key slotParameterDescriptions
 
-subHeader :: forall p. String -> Boolean -> Icon -> String -> Boolean -> HTML p Action
-subHeader topMargin border i title accessible =
-  div
+    value = view _value slotContentInput
+  in
+    parameter key description $ value <> " minutes"
+
+valueParameter :: forall m. MonadAff m => MetaData -> Tuple String (InputField.State ValueError) -> ComponentHTML Action ChildSlots m
+valueParameter metaData (key /\ valueContentInput) =
+  let
+    valueParameterFormats = map (view _valueParameterFormat) (view _valueParameterInfo metaData)
+
+    numberFormat = fromMaybe DefaultFormat $ lookup key valueParameterFormats
+
+    valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
+
+    description = fromMaybe "no description available" $ lookup key valueParameterDescriptions
+
+    value = view _value valueContentInput
+
+    formattedValue = case numberFormat of
+      DefaultFormat -> value
+      DecimalFormat _ prefix -> prefix <> " " <> value
+      TimeFormat -> value <> " minutes"
+  in
+    parameter key description formattedValue
+
+parameter :: forall m. MonadAff m => String -> String -> String -> ComponentHTML Action ChildSlots m
+parameter label description value =
+  li
     [ classNames [ "mb-2" ] ]
-    [ h2
-        [ classNames [ "py-1", "px-2", "text-lg", "font-semibold" ] ]
-        [ text title ]
-    , hr [ classNames [ "flex-1" ] ]
+    [ h4_
+        [ span
+            [ classNames [ "text-sm", "text-darkgray", "font-semibold" ] ]
+            [ text label ]
+        , hint
+            [ "ml-2" ]
+            ("template-parameter-" <> label)
+            Auto
+            (markdownHintWithTitle label description)
+        ]
+    , p_ [ text value ]
     ]
 
 -- We range over roleWalletInputs rather than all the parties in the contract. This excludes any `PK` parties.
 -- At the moment, this is a good thing: we don't have a design for them, and we only use a `PK` party in one
 -- special case, where it is read-only and would be confusing to show the user anyway. But if we ever need to
 -- use `PK` inputs properly (and make them editable) we will have to rethink this.
-roleInputs :: forall p. WalletLibrary -> MetaData -> Map TokenName (InputField.State RoleError) -> HTML p Action
+roleInputs :: forall m. MonadAff m => WalletLibrary -> MetaData -> Map TokenName (InputField.State RoleError) -> ComponentHTML Action ChildSlots m
 roleInputs walletLibrary metaData roleWalletInputs =
-  subSection true true
-    [ ul_
-        $ mapWithIndex roleInput
-        $ Map.toUnfoldable roleWalletInputs
-    ]
+  templateInputsSection Icon.Roles "Roles"
+    [ ul_ $ roleInput <$> Map.toUnfoldable roleWalletInputs ]
   where
-  roleInput index (tokenName /\ roleWalletInput) =
+  roleInput (tokenName /\ roleWalletInput) =
     let
       description = fromMaybe "no description available" $ lookup tokenName metaData.roleDescriptions
     in
-      li
-        [ classNames [ "mb-2", "last:mb-0" ] ]
-        [ label
-            [ classNames [ "block", "text-sm", "mb-2" ]
-            , for tokenName
-            ]
-            [ span
-                [ classNames [ "font-bold" ] ]
-                [ text $ "Role " <> (show $ index + 1) <> " (" <> tokenName <> ")*" ]
-            , br_
-            , span_ $ formatText description
-            ]
-        , div
+      templateInputItem tokenName description
+        [ div
             [ classNames [ "relative" ] ]
             [ RoleWalletInputAction tokenName <$> renderInput (roleWalletInputDisplayOptions tokenName) roleWalletInput
             , button
                 [ classNames [ "absolute", "top-4", "right-4" ]
                 , onClick_ $ OpenCreateWalletCard tokenName
+                , id_ $ "newContactForRole" <> tokenName
                 ]
-                [ icon_ AddCircle ]
+                [ icon Icon.NewContact [ "text-purple" ] ]
+            , tooltip "Create a new contact for this role" (RefId $ "newContactForRole" <> tokenName) Left
             ]
         ]
 
   roleWalletInputDisplayOptions tokenName =
-    { baseCss: Css.inputCardNoFocus
-    , additionalCss: [ "pr-9" ]
+    { additionalCss: [ "pr-9" ]
     , id_: tokenName
     , placeholder: "Choose any nickname"
     , readOnly: false
@@ -177,197 +364,96 @@ roleInputs walletLibrary metaData roleWalletInputs =
     , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
     }
 
-parameterInputs :: forall p. Slot -> MetaData -> TemplateContent -> Map String String -> Boolean -> HTML p Action
-parameterInputs currentSlot metaData templateContent slotContentStrings accessible =
-  let
-    valueContent = view _valueContent templateContent
-  in
-    subSection accessible true
-      [ ul
-          [ classNames [ "mb-4" ] ]
-          $ mapWithIndex slotInput (Map.toUnfoldable slotContentStrings)
-      , ul_
-          $ mapWithIndex valueInput (Map.toUnfoldable valueContent)
-      ]
-  where
-  slotInput index (key /\ dateTimeString) =
-    let
-      description = fromMaybe "no description available" $ lookup key metaData.slotParameterDescriptions
-
-      mParameterError = slotError currentSlot dateTimeString
-    in
-      li
-        [ classNames [ "mb-4", "last:mb-0" ] ]
-        [ label
-            [ classNames [ "block", "text-sm" ]
-            , for $ "slot-" <> key
-            ]
-            [ span
-                [ classNames [ "font-bold" ] ]
-                [ text $ "Timeout " <> (show $ index + 1) <> " (" <> key <> ")*" ]
-            , br_
-            , span_ $ formatText description
-            ]
-        , input
-            [ classNames $ Css.inputCard (isNothing mParameterError)
-            , id_ $ "slot-" <> key
-            , type_ InputDatetimeLocal
-            , onValueInput_ $ SetSlotContent key
-            , value dateTimeString
-            ]
-        , div
-            [ classNames Css.inputError ]
-            $ case mParameterError of
-                Just parameterError -> [ text $ inputErrorToString parameterError ]
-                Nothing -> []
-        ]
-
-  valueInput index (key /\ parameterValue) =
-    let
-      description =
-        fromMaybe "no description available"
-          ( case lookup key metaData.valueParameterInfo of
-              Just { valueParameterDescription }
-                | trim valueParameterDescription /= "" -> Just valueParameterDescription
-              _ -> Nothing
-          )
-
-      mParameterError = valueError parameterValue
-    in
-      li
-        [ classNames [ "mb-4", "last:mb-0" ] ]
-        [ label
-            [ classNames [ "block", "text-sm" ]
-            , for $ "value-" <> key
-            ]
-            [ span
-                [ classNames [ "font-bold" ] ]
-                [ text $ "Value " <> (show $ index + 1) <> " (" <> key <> ")*" ]
-            , br_
-            , span_ $ formatText description
-            ]
-        , input
-            [ classNames $ Css.inputCard (isNothing mParameterError)
-            , id_ $ "value-" <> key
-            , type_ InputNumber
-            , onValueInput_ $ SetValueContent key <<< BigInteger.fromString
-            , value $ show parameterValue
-            ]
-        , div
-            [ classNames Css.inputError ]
-            $ case mParameterError of
-                Just parameterError -> [ text $ inputErrorToString parameterError ]
-                Nothing -> []
-        ]
-
-reviewAndPay :: forall p. Boolean -> MetaData -> HTML p Action
-reviewAndPay accessible metaData =
-  subSection accessible false
-    [ div
-        [ classNames $ [ "mb-4", "bg-white", "p-4", "shadow", "rounded" ] ]
-        [ contractTitle metaData
-        , hr [ classNames [ "my-4" ] ]
-        , div_
-            [ p
-                [ classNames [ "text-sm" ] ]
-                [ text "Fee to pay:" ]
-            , p
-                [ classNames Css.funds ]
-                [ text $ humanizeValue adaToken contractCreationFee ]
-            ]
-        ]
-    , div
-        [ classNames [ "flex", "justify-end", "mb-4" ] ]
-        [ button
-            [ classNames Css.primaryButton
-            , onClick_ $ OpenSetupConfirmationCard
-            ]
-            [ text "Pay" ]
-        ]
-    ]
-
-subSection :: forall p. Boolean -> Boolean -> Array (HTML p Action) -> HTML p Action
-subSection accessible border content =
-  div
-    [ classNames $ [ "max-w-sm", "mx-auto", "px-4" ] ]
-    content
-
-------------------------------------------------------------
-templateLibraryCard :: forall p. HTML p Action
-templateLibraryCard =
-  div
-    [ classNames [ "p-4", "h-full", "overflow-y-auto" ] ]
-    [ h2
-        [ classNames [ "text-lg", "font-semibold", "mb-4" ] ]
-        [ text "Choose a contract template" ]
-    , div_ (templateBox <$> contractTemplates)
+parameterInputs :: forall m. MonadAff m => MetaData -> Map String (InputField.State SlotError) -> Map String (InputField.State ValueError) -> ComponentHTML Action ChildSlots m
+parameterInputs metaData slotContentInputs valueContentInputs =
+  templateInputsSection Icon.Terms "Terms"
+    [ ul
+        [ classNames [ "mb-4" ] ]
+        $ valueInput
+        <$> Map.toUnfoldable valueContentInputs
+    , ul_
+        $ slotInput
+        <$> Map.toUnfoldable slotContentInputs
     ]
   where
-  templateBox template =
-    div
-      [ classNames [ "bg-white", "p-4" ] ]
-      [ div
-          [ classNames [ "flex", "justify-between", "items-start", "mb-4" ] ]
-          [ contractTitle template.metaData
-          , button
-              [ classNames $ Css.primaryButton <> Css.withIcon ArrowRight <> [ "min-w-button" ]
-              , onClick_ $ SetTemplate template
-              ]
-              [ text "Setup" ]
-          ]
-      , p_ $ formatText template.metaData.contractDescription
-      ]
+  valueInput (key /\ inputField) =
+    let
+      valueParameterFormats = map (view _valueParameterFormat) (view _valueParameterInfo metaData)
 
--- TODO: This helper is really similar to contractCard in ContractHome.View, see if it makes sense to factor a component out
-contractTitle :: forall p. MetaData -> HTML p Action
-contractTitle metaData =
+      valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
+
+      numberFormat = fromMaybe DefaultFormat $ lookup key valueParameterFormats
+
+      description = fromMaybe "no description available" $ lookup key valueParameterDescriptions
+    in
+      templateInputItem key description
+        [ ValueContentInputAction key <$> renderInput (inputFieldOptions key false numberFormat) inputField ]
+
+  slotInput (key /\ inputField) =
+    let
+      slotParameterDescriptions = view _slotParameterDescriptions metaData
+
+      numberFormat = TimeFormat
+
+      description = fromMaybe "no description available" $ lookup key slotParameterDescriptions
+    in
+      templateInputItem key description
+        [ SlotContentInputAction key <$> renderInput (inputFieldOptions key true numberFormat) inputField ]
+
+  inputFieldOptions key readOnly numberFormat =
+    { additionalCss: mempty
+    , id_: key
+    , placeholder: key
+    , readOnly
+    , numberFormat: Just numberFormat
+    , valueOptions: mempty
+    }
+
+templateInputsSection :: forall p. Icon -> String -> Array (HTML p Action) -> HTML p Action
+templateInputsSection icon' heading content =
   div
-    [ classNames [ "flex", "items-start", "mr-1" ] ]
-    [ span
-        [ classNames [ "text-2xl", "leading-none", "font-semibold" ] ]
-        [ text $ contractTypeInitials metaData.contractType ]
-    , span
-        [ classNames [ "text-xs", "uppercase", "ml-2" ] ]
-        [ text $ metaData.contractName ]
-    ]
-
--- TODO: This is a lot like the `actionConfirmationCard` in `Contract.View`. Consider factoring out a shared component.
-contractSetupConfirmationCard :: forall p. Assets -> HTML p Action
-contractSetupConfirmationCard assets =
-  let
-    hasSufficientFunds = getAda assets >= contractCreationFee
-  in
-    div_
-      [ div [ classNames [ "flex", "font-semibold", "justify-between", "bg-lightgray", "p-5" ] ]
-          [ span_ [ text "Demo wallet balance:" ]
-          , span_ [ text $ humanizeValue adaToken $ getAda assets ]
-          ]
-      , div [ classNames [ "px-5", "pb-6", "md:pb-8" ] ]
-          [ p
-              [ classNames [ "mt-4", "text-sm", "font-semibold" ] ]
-              [ text "Confirm payment of:" ]
-          , p
-              [ classNames [ "mb-4", "text-purple", "font-semibold", "text-2xl" ] ]
-              [ text $ humanizeValue adaToken contractCreationFee ]
-          , div
-              [ classNames [ "flex" ] ]
-              [ button
-                  [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-2" ]
-                  , onClick_ CloseSetupConfirmationCard
-                  ]
-                  [ text "Cancel" ]
-              , button
-                  [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                  , onClick_ StartContract
-                  , enabled hasSufficientFunds
-                  ]
-                  [ text "Pay and run" ]
-              ]
-          , div
-              [ classNames [ "mt-4", "text-sm", "text-red" ] ]
-              if hasSufficientFunds then
-                []
-              else
-                [ text "You have insufficient funds to initialise this contract." ]
+    [ classNames [ "mt-4" ] ]
+    $ [ h3
+          [ classNames [ "flex", "gap-1", "items-center", "leading-none", "text-sm", "font-semibold", "pb-2", "mb-2", "border-gray", "border-b" ] ]
+          [ icon icon' [ "text-purple" ]
+          , text heading
           ]
       ]
+    <> content
+
+templateInputItem :: forall m. MonadAff m => String -> String -> Array (ComponentHTML Action ChildSlots m) -> ComponentHTML Action ChildSlots m
+templateInputItem id_ description content =
+  li
+    [ classNames [ "mb-2", "last:mb-0" ] ]
+    $ [ label
+          [ classNames [ "block", "mb-2" ]
+          , for id_
+          ]
+          [ span
+              [ classNames [ "text-sm", "font-semibold" ] ]
+              [ text id_ ]
+          , hint
+              [ "ml-2" ]
+              ("template-parameter-input-" <> id_)
+              Auto
+              (markdownHintWithTitle id_ description)
+          ]
+      ]
+    <> content
+
+-- TODO: This function is also included in the Marlowe Playground code. We could/should move it
+-- into a shared folder, but it's not obvious where. It could go in the Hint module, but then it
+-- would introduce an unnecessary markdown dependency into the Plutus Playground. So some more
+-- thought/restructuring is required.
+markdownHintWithTitle :: String -> String -> PlainHTML
+markdownHintWithTitle title markdown =
+  div_
+    $ [ h4
+          -- With min-w-max we define that the title should never break into
+          -- a different line.
+          [ classNames [ "no-margins", "text-lg", "font-semibold", "flex", "items-center", "pb-2", "min-w-max" ] ]
+          [ icon Icon.HelpOutline [ "mr-1", "font-normal" ]
+          , text title
+          ]
+      ]
+    <> markdownToHTML markdown

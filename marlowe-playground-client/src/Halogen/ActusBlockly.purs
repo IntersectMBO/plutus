@@ -142,9 +142,9 @@ handleAction :: forall m. MonadAff m => Action -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions toolbox) = do
   blocklyState /\ generator <-
     liftEffect do
-      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") toolbox
+      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") (ElementId "actusWorkspaceBlocks") toolbox
       Blockly.addBlockTypes state.blockly blockDefinitions
-      Blockly.initializeWorkspace state.blockly state.workspace
+      Blockly.initializeWorkspace state
       generator <- buildGenerator state.blockly
       pure $ Tuple state generator
   void $ H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace

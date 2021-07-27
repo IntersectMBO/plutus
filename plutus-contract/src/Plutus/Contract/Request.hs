@@ -56,9 +56,6 @@ module Plutus.Contract.Request(
     , submitTxConstraintsSpending
     , submitTxConstraintsWith
     , submitTxConfirmed
-    -- ** Sending notifications (deprecated)
-    , notifyInstance
-    , notifyInstanceUnsafe
     -- * Etc.
     , ContractRow
     , pabReq
@@ -71,7 +68,6 @@ import qualified Control.Monad.Freer.Error   as E
 import           Data.Aeson                  (FromJSON, ToJSON)
 import qualified Data.Aeson                  as JSON
 import qualified Data.Aeson.Types            as JSON
-import           Data.Foldable               (traverse_)
 import           Data.Proxy                  (Proxy (..))
 import           Data.Row
 import qualified Data.Text                   as Text
@@ -94,8 +90,7 @@ import           Plutus.Contract.Effects     (ActiveEndpoint (..), PABReq (..), 
 import qualified Plutus.Contract.Effects     as E
 import           Plutus.Contract.Schema      (Input, Output)
 import           Wallet.Types                (AddressChangeRequest (..), AddressChangeResponse (..), ContractInstanceId,
-                                              EndpointDescription (..), EndpointValue (..), Notification (..),
-                                              NotificationError (..), targetSlot)
+                                              EndpointDescription (..), EndpointValue (..), targetSlot)
 
 import           Plutus.Contract.Resumable
 import           Plutus.Contract.Types
@@ -307,37 +302,6 @@ awaitTxConfirmed i = void $ pabReq (AwaitTxConfirmedReq i) E._AwaitTxConfirmedRe
 ownInstanceId :: forall w s e. (AsContractError e) => Contract w s e ContractInstanceId
 ownInstanceId = pabReq OwnContractInstanceIdReq E._OwnContractInstanceIdResp
 
--- | Send a notification to a contract instance.
-notifyInstanceUnsafe :: forall ep w s.
-    ( KnownSymbol ep
-    )
-    => ContractInstanceId
-    -> JSON.Value
-    -> Contract w s NotificationError ()
-notifyInstanceUnsafe i a = do
-    let notification = Notification
-            { notificationContractID = i
-            , notificationContractEndpoint = endpointDescription (Proxy @ep)
-            , notificationContractArg = a
-            }
-    r <- mapError OtherNotificationError
-            $ pabReq (SendNotificationReq notification) E._SendNotificationResp
-    traverse_ throwError r
-
--- | Send a notification to an instance of another contract whose schema
---   is known. (This provides slightly more type-safety than 'notifyInstanceUnsafe')
---
---   TODO: In the future the runtime should check that the contract instance
---   does indeed conform with 'otherSchema'.
-notifyInstance :: forall ep a otherSchema w s.
-    ( HasEndpoint ep a otherSchema
-    , ToJSON a
-    )
-    => ContractInstanceId
-    -> a
-    -> Contract w s NotificationError ()
-notifyInstance i v = notifyInstanceUnsafe @ep i (JSON.toJSON v)
-
 type HasEndpoint l a s =
   ( HasType l (EndpointValue a) (Input s)
   , HasType l ActiveEndpoint (Output s)
@@ -449,8 +413,9 @@ submitTx = submitTxConstraintsWith @Void mempty
 --   contract's own public key to solve the constraints.
 submitTxConstraints
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => TypedValidator a
@@ -462,8 +427,9 @@ submitTxConstraints inst = submitTxConstraintsWith (Constraints.typedValidatorLo
 --   to resolve any input constraints (see 'Ledger.Constraints.TxConstraints.InputConstraint')
 submitTxConstraintsSpending
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => TypedValidator a
@@ -478,8 +444,9 @@ submitTxConstraintsSpending inst utxo =
 --   network. Using the given constraints.
 submitTxConstraintsWith
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => ScriptLookups a
@@ -493,4 +460,3 @@ submitTxConstraintsWith sl constraints = do
 --   confirmed on the ledger before returning.
 submitTxConfirmed :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e ()
 submitTxConfirmed t = submitUnbalancedTx t >>= awaitTxConfirmed . txId
-

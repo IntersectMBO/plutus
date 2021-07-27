@@ -50,7 +50,7 @@ tests =
         (doVoting 5 5 1)
 
     , goldenPir "test/Spec/governance.pir" $$(PlutusTx.compile [|| Gov.mkValidator ||])
-    , HUnit.testCase "script size is reasonable" (reasonable (Scripts.validatorScript $ Gov.typedValidator params) 20000)
+    , HUnit.testCase "script size is reasonable" (reasonable (Scripts.validatorScript $ Gov.typedValidator params) 23000)
     ]
 
 numberOfHolders :: Integer

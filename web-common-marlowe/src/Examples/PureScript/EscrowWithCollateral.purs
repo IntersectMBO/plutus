@@ -3,11 +3,13 @@ module Examples.PureScript.EscrowWithCollateral
   , fullExtendedContract
   , metaData
   , fixedTimeoutContract
+  , defaultSlotContent
   ) where
 
 import Prelude
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Map as Map
+import Data.Map (Map)
 import Data.Tuple.Nested (type (/\), (/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
@@ -16,24 +18,27 @@ import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Bound(..), ChoiceId(..), Party(..), Token(..), ChoiceName)
 
 contractTemplate :: ContractTemplate
-contractTemplate = { metaData, extendedContract: fixedTimeoutContract }
+contractTemplate = { metaData, extendedContract: fullExtendedContract }
 
 fixedTimeoutContract :: Contract
 fixedTimeoutContract =
   fillTemplate
     ( TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Collateral deposit by seller timeout" /\ fromInt 600
-              , "Deposit of collateral by buyer timeout" /\ fromInt 1200
-              , "Deposit of price by buyer timeout" /\ fromInt 1800
-              , "Dispute by buyer timeout" /\ fromInt 3000
-              , "Seller's response timeout" /\ fromInt 3600
-              ]
+        { slotContent: defaultSlotContent
         , valueContent: Map.empty
         }
     )
     fullExtendedContract
+
+defaultSlotContent :: Map String BigInteger
+defaultSlotContent =
+  Map.fromFoldable
+    [ "Collateral deposit by seller timeout" /\ fromInt 600
+    , "Deposit of collateral by buyer timeout" /\ fromInt 1200
+    , "Deposit of price by buyer timeout" /\ fromInt 1800
+    , "Dispute by buyer timeout" /\ fromInt 3000
+    , "Seller's response timeout" /\ fromInt 3600
+    ]
 
 metaData :: MetaData
 metaData = Metadata.escrowWithCollateral

@@ -17,6 +17,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
@@ -340,12 +341,12 @@ validator :: Future -> FutureAccounts -> Validator
 validator ft fos = Scripts.validatorScript (typedValidator ft fos)
 
 {-# INLINABLE verifyOracle #-}
-verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
+verifyOracle :: PlutusTx.FromData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
 verifyOracle pubKey sm =
     either (const Nothing) pure
     $ Oracle.verifySignedMessageConstraints pubKey sm
 
-verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (POSIXTime, a)
+verifyOracleOffChain :: PlutusTx.FromData a => Future -> SignedMessage (Observation a) -> Maybe (POSIXTime, a)
 verifyOracleOffChain Future{ftPriceOracle} sm =
     case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
         Left _                               -> Nothing
@@ -598,7 +599,7 @@ escrowParams
 escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
         address = Ledger.validatorHash $ Scripts.validatorScript $ SM.typedValidator $ SM.scInstance client
-        dataScript  = Ledger.Datum $ PlutusTx.toData $ initialState future
+        dataScript  = Ledger.Datum $ PlutusTx.toBuiltinData $ initialState future
         targets =
             [ Escrow.payToScriptTarget address
                 dataScript
@@ -623,7 +624,7 @@ testAccounts =
         $ Freer.runError @Folds.EmulatorFoldErr
         $ Stream.foldEmulatorStreamM fld
         $ Stream.takeUntilSlot 10
-        $ Trace.runEmulatorStream def setupTokensTrace
+        $ Trace.runEmulatorStream def def setupTokensTrace
 
 setupTokensTrace :: Trace.EmulatorTrace ()
 setupTokensTrace = do

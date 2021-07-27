@@ -55,14 +55,14 @@ import           Plutus.Contract
 import qualified Prelude                      as Haskell
 
 newtype HashedString = HashedString ByteString
-    deriving newtype (PlutusTx.IsData, Eq)
+    deriving newtype (Eq, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''HashedString
 
 newtype ClearString = ClearString ByteString
-    deriving newtype (PlutusTx.IsData, Eq)
+    deriving newtype (Eq, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 

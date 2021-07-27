@@ -15,7 +15,7 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_executionState, _followerAppId, _mMarloweParams, _namedActions, _nickname, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _nickname, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Control.Monad.Reader.Class (ask)
@@ -32,18 +32,19 @@ import Data.Newtype (unwrap)
 import Data.Ord (abs)
 import Data.Set (Set)
 import Data.Set as Set
+import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (traverse)
 import Data.Tuple.Nested ((/\))
-import Data.UUID as UUID
 import Data.Unfoldable as Unfoldable
 import Effect (Effect)
 import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Env (DataProvider(..), Env)
-import Halogen (HalogenM, getHTMLElementRef, liftEffect, subscribe, unsubscribe)
+import Halogen (HalogenM, getHTMLElementRef, liftEffect, query, subscribe, tell, unsubscribe)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
+import LoadingSubmitButton.Types (Query(..), _submitButtonSlot)
 import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
@@ -54,7 +55,7 @@ import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Execution.Types (PastState, State) as Execution
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
-import Marlowe.PAB (ContractHistory, PlutusAppId(..), MarloweParams)
+import Marlowe.PAB (ContractHistory, MarloweParams)
 import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _minSlot)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Toast.Types (ajaxErrorToast, successToast)
@@ -77,7 +78,6 @@ dummyState =
   , pendingTransaction: Nothing
   , previousSteps: mempty
   , mMarloweParams: Nothing
-  , followerAppId: emptyPlutusAppId
   , selectedStep: 0
   , metadata: emptyContractMetadata
   , participants: mempty
@@ -87,23 +87,20 @@ dummyState =
   where
   contract = Close
 
-  emptyPlutusAppId = PlutusAppId UUID.emptyUUID
-
   emptyMarloweData = { marloweContract: contract, marloweState: emptyMarloweState }
 
   emptyMarloweState = Semantic.State { accounts: mempty, choices: mempty, boundValues: mempty, minSlot: zero }
 
 -- this is for making a placeholder state for the user who created the contract, used for displaying
 -- something before we get the MarloweParams back from the WalletCompanion app
-mkPlaceholderState :: PlutusAppId -> String -> MetaData -> Contract -> State
-mkPlaceholderState followerAppId nickname metaData contract =
+mkPlaceholderState :: String -> MetaData -> Contract -> State
+mkPlaceholderState nickname metaData contract =
   { nickname
   , tab: Tasks
   , executionState: Execution.mkInitialState zero contract
   , pendingTransaction: Nothing
   , previousSteps: mempty
   , mMarloweParams: Nothing
-  , followerAppId
   , selectedStep: 0
   , metadata: metaData
   , participants: getParticipants contract
@@ -114,8 +111,8 @@ mkPlaceholderState followerAppId nickname metaData contract =
 -- this is for making a fully fleshed out state from nothing, used when someone who didn't create the
 -- contract is given a role in it, and gets the MarloweParams at the same time as they hear about
 -- everything else
-mkInitialState :: WalletDetails -> Slot -> PlutusAppId -> String -> ContractHistory -> Maybe State
-mkInitialState walletDetails currentSlot followerAppId nickname { chParams, chHistory } =
+mkInitialState :: WalletDetails -> Slot -> String -> ContractHistory -> Maybe State
+mkInitialState walletDetails currentSlot nickname { chParams, chHistory } =
   bind chParams \(marloweParams /\ marloweData) ->
     let
       contract = marloweData.marloweContract
@@ -135,7 +132,6 @@ mkInitialState walletDetails currentSlot followerAppId nickname { chParams, chHi
             , pendingTransaction: Nothing
             , previousSteps: mempty
             , mMarloweParams: Just marloweParams
-            , followerAppId
             , selectedStep: 0
             , metadata: template.metaData
             , participants: getParticipants contract
@@ -231,9 +227,10 @@ handleAction ::
   ManageMarloweStorage m =>
   Toast m =>
   Input -> Action -> HalogenM State Action ChildSlots Msg m Unit
-handleAction _ (SetNickname nickname) = do
+handleAction { followerAppId } SelectSelf = callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.SelectContract $ Just followerAppId
+
+handleAction { followerAppId } (SetNickname nickname) = do
   assign _nickname nickname
-  followerAppId <- use _followerAppId
   insertIntoContractNicknames followerAppId nickname
 
 handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = do
@@ -246,9 +243,12 @@ handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = 
       txInput = mkTx currentSlot (executionState ^. _contract) (Unfoldable.fromMaybe contractInput)
     ajaxApplyInputs <- applyTransactionInput walletDetails marloweParams txInput
     case ajaxApplyInputs of
-      Left ajaxError -> addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
+      Left ajaxError -> do
+        void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Left "Error")
+        addToast $ ajaxErrorToast "Failed to submit transaction." ajaxError
       Right _ -> do
         assign _pendingTransaction $ Just txInput
+        void $ query _submitButtonSlot "action-confirm-button" $ tell $ SubmitResult (Milliseconds 600.0) (Right "")
         addToast $ successToast "Transaction submitted, awating confirmation."
         { dataProvider } <- ask
         when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.UpdateFromStorage)

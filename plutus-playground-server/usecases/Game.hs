@@ -41,11 +41,11 @@ import qualified Prelude               as Haskell
 
 ------------------------------------------------------------
 
-newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
+newtype HashedString = HashedString ByteString deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 
 PlutusTx.makeLift ''HashedString
 
-newtype ClearString = ClearString ByteString deriving newtype PlutusTx.IsData
+newtype ClearString = ClearString ByteString deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 
 PlutusTx.makeLift ''ClearString
 
@@ -149,7 +149,7 @@ secretWordValue :: TxOutTx -> Maybe HashedString
 secretWordValue o = do
   dh <- Ledger.txOutDatum $ Ledger.txOutTxOut o
   Datum d <- Map.lookup dh $ Ledger.txData $ Ledger.txOutTxTx o
-  PlutusTx.fromData d
+  PlutusTx.fromBuiltinData d
 
 game :: AsContractError e => Contract () GameSchema e ()
 game = lock `select` guess

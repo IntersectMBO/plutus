@@ -56,7 +56,7 @@ import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
 
-import           PlutusTx                         (IsData (..))
+import           PlutusTx                         (FromData (..), ToData (..))
 import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
@@ -267,7 +267,7 @@ required v = ValueSpentBalances { vbsRequired = v, vbsProvided = mempty }
 -- | Some typed 'TxConstraints' and the 'ScriptLookups' needed to turn them
 --   into an 'UnbalancedTx'.
 data SomeLookupsAndConstraints where
-    SomeLookupsAndConstraints :: forall a. (IsData (DatumType a), IsData (RedeemerType a)) => ScriptLookups a -> TxConstraints (RedeemerType a) (DatumType a) -> SomeLookupsAndConstraints
+    SomeLookupsAndConstraints :: forall a. (FromData (DatumType a), ToData (DatumType a), ToData (RedeemerType a)) => ScriptLookups a -> TxConstraints (RedeemerType a) (DatumType a) -> SomeLookupsAndConstraints
 
 -- | Given a list of 'SomeLookupsAndConstraints' describing the constraints
 --   for several scripts, build a single transaction that runs all the scripts.
@@ -284,8 +284,9 @@ mkSomeTx xs =
 -- | Resolve some 'TxConstraints' by modifying the 'UnbalancedTx' in the
 --   'ConstraintProcessingState'
 processLookupsAndConstraints
-    :: ( IsData (DatumType a)
-       , IsData (RedeemerType a)
+    :: ( FromData (DatumType a)
+       , ToData (DatumType a)
+       , ToData (RedeemerType a)
        , MonadState ConstraintProcessingState m
        , MonadError MkTxError m
        )
@@ -306,8 +307,9 @@ processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, t
 --   'Plutus.Contract.submitTxConstraints'
 --   and related functions.
 mkTx
-    :: ( IsData (DatumType a)
-       , IsData (RedeemerType a))
+    :: ( FromData (DatumType a)
+       , ToData (DatumType a)
+       , ToData (RedeemerType a))
     => ScriptLookups a
     -> TxConstraints (RedeemerType a) (DatumType a)
     -> Either MkTxError UnbalancedTx
@@ -363,8 +365,9 @@ addOwnInput
     :: ( MonadReader (ScriptLookups a) m
         , MonadError MkTxError m
         , MonadState ConstraintProcessingState m
-        , IsData (DatumType a)
-        , IsData (RedeemerType a)
+        , FromData (DatumType a)
+        , ToData (DatumType a)
+        , ToData (RedeemerType a)
         )
     => InputConstraint (RedeemerType a)
     -> m ()
@@ -384,7 +387,8 @@ addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
 addOwnOutput
     :: ( MonadReader (ScriptLookups a) m
         , MonadState ConstraintProcessingState m
-        , IsData (DatumType a)
+        , FromData (DatumType a)
+        , ToData (DatumType a)
         , MonadError MkTxError m
         )
     => OutputConstraint (DatumType a)
@@ -393,7 +397,7 @@ addOwnOutput OutputConstraint{ocDatum, ocValue} = do
     ScriptLookups{slTypedValidator} <- ask
     inst <- maybe (throwError TypedValidatorMissing) pure slTypedValidator
     let txOut = Typed.makeTypedScriptTxOut inst ocDatum ocValue
-        dsV   = Datum (toData ocDatum)
+        dsV   = Datum (toBuiltinData ocDatum)
     unbalancedTx . tx . Tx.outputs %= (Typed.tyTxOutTxOut txOut :)
     unbalancedTx . tx . Tx.datumWitnesses . at (datumHash dsV) .= Just dsV
     valueSpentOutputs <>= provided ocValue

@@ -20,6 +20,7 @@ import Marlowe.Template (Placeholders(..), getPlaceholderIds)
 data NumberFormat
   = DefaultFormat
   | DecimalFormat Int String
+  | TimeFormat
 
 derive instance eqNumberFormat :: Eq NumberFormat
 
@@ -56,6 +57,7 @@ isDecimalFormat _ = false
 data NumberFormatType
   = DefaultFormatType
   | DecimalFormatType
+  | TimeFormatType
 
 derive instance eqNumberFormatType :: Eq NumberFormatType
 
@@ -63,6 +65,8 @@ toString :: NumberFormatType -> String
 toString DefaultFormatType = "DefaultFormatType"
 
 toString DecimalFormatType = "DecimalFormatType"
+
+toString TimeFormatType = "TimeFormatType"
 
 fromString :: String -> Maybe NumberFormatType
 fromString "DefaultFormatType" = Just DefaultFormatType
@@ -76,10 +80,14 @@ getFormatType DefaultFormat = DefaultFormatType
 
 getFormatType (DecimalFormat _ _) = DecimalFormatType
 
+getFormatType TimeFormat = TimeFormatType
+
 defaultForFormatType :: NumberFormatType -> NumberFormat
 defaultForFormatType DefaultFormatType = DefaultFormat
 
 defaultForFormatType DecimalFormatType = DecimalFormat 0 ""
+
+defaultForFormatType TimeFormatType = TimeFormat
 
 type ValueParameterInfo
   = { valueParameterFormat :: NumberFormat

@@ -53,7 +53,7 @@ import qualified Prelude          as Haskell
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
-    deriving newtype (Eq, Ord, IsData, NFData)
+    deriving newtype (Eq, Ord, ToData, FromData, UnsafeFromData, NFData)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
