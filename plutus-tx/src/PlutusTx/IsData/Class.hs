@@ -30,12 +30,16 @@ import           GHC.TypeLits               (ErrorMessage (..), TypeError)
 {- HLINT ignore -}
 
 -- | A typeclass for types that can be converted to and from 'BuiltinData'.
-class IsData (a :: Type) where
+class ToData (a :: Type) where
     -- | Convert a value to 'BuiltinData'.
     toBuiltinData :: a -> BuiltinData
+
+class FromData (a :: Type) where
     -- TODO: this should probably provide some kind of diagnostics
     -- | Convert a value from 'BuiltinData', returning 'Nothing' if this fails.
     fromBuiltinData :: BuiltinData -> Maybe a
+
+class UnsafeFromData (a :: Type) where
     -- | Convert a value from 'BuiltinData', calling 'error' if this fails.
     -- This is typically much faster than 'fromBuiltinData'.
     --
@@ -43,37 +47,47 @@ class IsData (a :: Type) where
     -- rather than 'fromBuiltinData' when converting substructures!
     unsafeFromBuiltinData :: BuiltinData -> a
 
-instance IsData BuiltinData where
+instance ToData BuiltinData where
     {-# INLINABLE toBuiltinData #-}
     toBuiltinData = id
+instance FromData BuiltinData where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData d = Just d
+instance UnsafeFromData BuiltinData where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData d = d
 
 instance (TypeError ('Text "Int is not supported, use Integer instead"))
-    => IsData Int where
+    => ToData Int where
     toBuiltinData = Prelude.error "unsupported"
+instance (TypeError ('Text "Int is not supported, use Integer instead"))
+    => FromData Int where
     fromBuiltinData = Prelude.error "unsupported"
+instance (TypeError ('Text "Int is not supported, use Integer instead"))
+    => UnsafeFromData Int where
     unsafeFromBuiltinData = Prelude.error "unsupported"
 
-instance IsData Integer where
+instance ToData Integer where
     {-# INLINABLE toBuiltinData #-}
     toBuiltinData i = mkI i
+instance FromData Integer where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData d = matchData' d (\_ _ -> Nothing) (const Nothing) (const Nothing) (\i -> Just i) (const Nothing)
+instance UnsafeFromData Integer where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = BI.unsafeDataAsI
 
-instance IsData ByteString where
+instance ToData ByteString where
     {-# INLINABLE toBuiltinData #-}
     toBuiltinData b = mkB b
+instance FromData ByteString where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData d = matchData' d (\_ _ -> Nothing) (const Nothing) (const Nothing) (const Nothing) (\b -> Just b)
+instance UnsafeFromData ByteString where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = BI.unsafeDataAsB
 
-instance IsData a => IsData [a] where
+instance ToData a => ToData [a] where
     {-# INLINABLE toBuiltinData #-}
     toBuiltinData l = BI.mkList (mapToBuiltin l)
         where
@@ -84,6 +98,7 @@ instance IsData a => IsData [a] where
                 go :: [a] -> BI.BuiltinList BI.BuiltinData
                 go []     = BI.mkNilData BI.unitval
                 go (x:xs) = BI.mkCons (toBuiltinData x) (go xs)
+instance FromData a => FromData [a] where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData d =
         matchData'
@@ -100,6 +115,7 @@ instance IsData a => IsData [a] where
             where
                 go :: BI.BuiltinList BI.BuiltinData -> Maybe [a]
                 go l = BI.chooseList (const (pure [])) (\_ -> liftA2 (:) (fromBuiltinData (BI.head l)) (go (BI.tail l))) l ()
+instance UnsafeFromData a => UnsafeFromData [a] where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData d = mapFromBuiltin (BI.unsafeDataAsList d)
         where
@@ -110,18 +126,20 @@ instance IsData a => IsData [a] where
                 go :: BI.BuiltinList BI.BuiltinData -> [a]
                 go l = BI.chooseList (const []) (\_ -> unsafeFromBuiltinData (BI.head l) : go (BI.tail l)) l ()
 
-instance IsData Void where
+instance ToData Void where
     {-# INLINABLE toBuiltinData #-}
     toBuiltinData v = absurd v
+instance FromData Void where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData _ = Nothing
+instance UnsafeFromData Void where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData _ = Builtins.error ()
 
 -- | Convert a value to 'PLC.Data'.
-toData :: (IsData a) => a -> PLC.Data
+toData :: (ToData a) => a -> PLC.Data
 toData a = builtinDataToData (toBuiltinData a)
 
 -- | Convert a value from 'PLC.Data', returning 'Nothing' if this fails.
-fromData :: (IsData a) => PLC.Data -> Maybe a
+fromData :: (FromData a) => PLC.Data -> Maybe a
 fromData d = fromBuiltinData (BuiltinData d)

@@ -94,7 +94,9 @@ module Plutus.V1.Ledger.Api (
     -- * Data
     , PLC.Data (..)
     , BuiltinData (..)
-    , IsData (..)
+    , ToData (..)
+    , FromData (..)
+    , UnsafeFromData (..)
     , toData
     , fromData
     , dataToBuiltinData
@@ -137,7 +139,8 @@ import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
 import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Pretty
-import           PlutusTx                                         (IsData (..), fromData, toData)
+import           PlutusTx                                         (FromData (..), ToData (..), UnsafeFromData (..),
+                                                                   fromData, toData)
 import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
                                                                    dataToBuiltinData)
 import qualified UntypedPlutusCore                                as UPLC
