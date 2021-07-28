@@ -7,7 +7,7 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
-module MarloweContracts(MarloweContracts(..), handlers) where
+module MarloweContract(MarloweContract(..), handlers) where
 
 import           Control.Monad.Freer                 (interpret)
 import           Data.Aeson                          (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
@@ -25,26 +25,26 @@ import           Plutus.PAB.Simulator                (SimulatorEffectHandlers)
 import qualified Plutus.PAB.Simulator                as Simulator
 import           Text.Read                           (readMaybe)
 
-data MarloweContracts =
+data MarloweContract =
     MarloweApp -- The main marlowe contract
     | WalletCompanion -- Wallet companion contract
     | MarloweFollower -- Follower contrat
     deriving (Eq, Ord, Show, Read, Generic)
 
-instance ToJSON MarloweContracts where
+instance ToJSON MarloweContract where
     toJSON k = object ["tag" .= show k]
 
-instance FromJSON MarloweContracts where
-    parseJSON = withObject "MarloweContracts" $ \m -> do
+instance FromJSON MarloweContract where
+    parseJSON = withObject "MarloweContract" $ \m -> do
         (tg :: String) <- m .: "tag"
         case readMaybe tg of
             Just tg' -> pure tg'
-            _        -> prependFailure "parsing MarloweContracts failed, " (fail $ "unexpected tag " <> tg)
+            _        -> prependFailure "parsing MarloweContract failed, " (fail $ "unexpected tag " <> tg)
 
-instance Pretty MarloweContracts where
+instance Pretty MarloweContract where
     pretty = viaShow
 
-instance HasDefinitions MarloweContracts where
+instance HasDefinitions MarloweContract where
     getDefinitions = [ MarloweApp
                      , WalletCompanion
                      , MarloweFollower
@@ -55,10 +55,10 @@ instance HasDefinitions MarloweContracts where
         WalletCompanion -> SomeBuiltin Marlowe.marloweCompanionContract
         MarloweFollower -> SomeBuiltin Marlowe.marloweFollowContract
 
-instance HasPSTypes MarloweContracts where
+instance HasPSTypes MarloweContract where
     psTypes p = [ (equal <*> (genericShow <*> mkSumType)) p ]
 
-handlers :: SimulatorEffectHandlers (Builtin MarloweContracts)
+handlers :: SimulatorEffectHandlers (Builtin MarloweContract)
 handlers =
     Simulator.mkSimulatorHandlers def def
     $ interpret (contractHandler Builtin.handleBuiltin)

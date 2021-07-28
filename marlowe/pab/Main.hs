@@ -19,7 +19,7 @@ import qualified Language.Marlowe.Semantics          as Marlowe
 import           Language.Marlowe.Util               (ada)
 import           Ledger                              (PubKeyHash, Slot, pubKeyHash)
 import qualified Ledger.Value                        as Val
-import           MarloweContracts                    (MarloweContracts (..), handlers)
+import           MarloweContract                     (MarloweContract (..), handlers)
 import           Plutus.PAB.Effects.Contract.Builtin (Builtin)
 import qualified Plutus.PAB.Effects.Contract.Builtin as Builtin
 import           Plutus.PAB.Run                      (runWith)
@@ -28,18 +28,18 @@ import qualified Plutus.PAB.Webserver.Server         as PAB.Server
 import qualified PlutusTx.AssocMap                   as AssocMap
 
 main :: IO ()
-main = runWith (Builtin.handleBuiltin @MarloweContracts)
+main = runWith (Builtin.handleBuiltin @MarloweContract)
 
 marloweTest :: IO ()
 marloweTest = void $ Simulator.runSimulationWith handlers $ do
-    Simulator.logString @(Builtin MarloweContracts) "Starting marlowe PAB webserver on port 8080. Press enter to exit."
+    Simulator.logString @(Builtin MarloweContract) "Starting marlowe PAB webserver on port 8080. Press enter to exit."
     shutdown <- PAB.Server.startServerDebug
-    (newWallet, newPubKey) <- Simulator.addWallet @(Builtin MarloweContracts)
-    Simulator.logString @(Builtin MarloweContracts) "Created new wallet"
+    (newWallet, newPubKey) <- Simulator.addWallet @(Builtin MarloweContract)
+    Simulator.logString @(Builtin MarloweContract) "Created new wallet"
     walletCompanionId <- Simulator.activateContract newWallet WalletCompanion
-    Simulator.logString @(Builtin MarloweContracts) "Activated companion contract"
+    Simulator.logString @(Builtin MarloweContract) "Activated companion contract"
     marloweContractId <- Simulator.activateContract newWallet MarloweApp
-    Simulator.logString @(Builtin MarloweContracts) "Activated marlowe contract"
+    Simulator.logString @(Builtin MarloweContract) "Activated marlowe contract"
 
     void $ Simulator.waitNSlots 10
 
@@ -47,18 +47,18 @@ marloweTest = void $ Simulator.runSimulationWith handlers $ do
     void $ Simulator.callEndpointOnInstance marloweContractId "create" args
 
     followerId <- Simulator.activateContract newWallet MarloweFollower
-    Simulator.logString @(Builtin MarloweContracts) "Activated marlowe follower"
+    Simulator.logString @(Builtin MarloweContract) "Activated marlowe follower"
 
-    mp <- Simulator.waitForState @(Builtin MarloweContracts) extractMarloweParams walletCompanionId
-    Simulator.logString @(Builtin MarloweContracts) $ "Found marlowe params: " <> show mp
+    mp <- Simulator.waitForState @(Builtin MarloweContract) extractMarloweParams walletCompanionId
+    Simulator.logString @(Builtin MarloweContract) $ "Found marlowe params: " <> show mp
 
     _ <- Simulator.waitForEndpoint followerId "follow"
-    Simulator.logString @(Builtin MarloweContracts) $ "Calling endpoint on marlowe follow"
+    Simulator.logString @(Builtin MarloweContract) $ "Calling endpoint on marlowe follow"
     _ <- Simulator.callEndpointOnInstance followerId "follow" mp
 
-    followState <- Simulator.waitForState @(Builtin MarloweContracts) extractFollowState followerId
+    followState <- Simulator.waitForState @(Builtin MarloweContract) extractFollowState followerId
 
-    Simulator.logString @(Builtin MarloweContracts) $ "Follow state: " <> show followState
+    Simulator.logString @(Builtin MarloweContract) $ "Follow state: " <> show followState
 
     shutdown
 
