@@ -9,7 +9,7 @@ import Contract.Types (State) as Contract
 import Contract.View (actionConfirmationCard, contractCard, contractScreen)
 import Css as Css
 import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
-import Dashboard.Types (Action(..), Card(..), ContractFilter(..), State)
+import Dashboard.Types (Action(..), Card(..), ContractFilter(..), State, Input)
 import Data.Lens (preview, view, (^.))
 import Data.Map (Map, filter, isEmpty, toUnfoldable)
 import Data.Maybe (Maybe(..), isJust)
@@ -42,10 +42,12 @@ import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletDetails)
 import WalletData.View (walletDataCard)
 
-dashboardScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-dashboardScreen currentSlot state =
+dashboardScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
+dashboardScreen { currentSlot, tzOffset } state =
   let
     walletNickname = state ^. (_walletDetails <<< _walletNickname)
+
+    walletDetails = state ^. _walletDetails
 
     menuOpen = state ^. _menuOpen
 
@@ -71,7 +73,13 @@ dashboardScreen currentSlot state =
               [ dashboardBreadcrumb selectedContract
               , main
                   [ classNames [ "relative" ] ] case selectedContractFollowerAppId of
-                  Just followerAppId -> [ renderSubmodule _selectedContract (ContractAction followerAppId) (contractScreen currentSlot) state ]
+                  Just followerAppId ->
+                    [ renderSubmodule
+                        _selectedContract
+                        (ContractAction followerAppId)
+                        (contractScreen { currentSlot, tzOffset, walletDetails, followerAppId })
+                        state
+                    ]
                   _ -> [ contractsScreen currentSlot state ]
               ]
           ]

@@ -13,6 +13,7 @@ import Analytics (class IsEvent, defaultEvent)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
+import Data.Time.Duration (Minutes)
 import Halogen (RefLabel(..))
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
@@ -64,6 +65,7 @@ derive instance eqTab :: Eq Tab
 
 type Input
   = { currentSlot :: Slot
+    , tzOffset :: Minutes
     , walletDetails :: WalletDetails
     , followerAppId :: PlutusAppId
     }

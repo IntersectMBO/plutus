@@ -7,7 +7,7 @@ module Contract.View
 import Prelude hiding (div)
 import Contract.Lenses (_executionState, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
-import Contract.Types (Action(..), PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
+import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Css as Css
 import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
@@ -43,7 +43,8 @@ import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Extended.Metadata (_contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Input(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), getEncompassBound)
+import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), getEncompassBound)
+import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
 import Material.Icons (icon, icon_)
@@ -97,7 +98,7 @@ contractCard currentSlot state =
           ]
       , div
           [ classNames [ "h-dashboard-card-actions", "overflow-y-auto" ] ]
-          [ currentStepActions currentSlot state ]
+          [ currentStepActions state ]
       ]
 
 timeoutString :: Slot -> State -> String
@@ -110,16 +111,16 @@ timeoutString currentSlot state =
       (\nextTimeout -> humanizeDuration $ secondsDiff nextTimeout currentSlot)
       mNextTimeout
 
-contractScreen :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-contractScreen currentSlot state =
+contractScreen :: forall m. MonadAff m => Input -> State -> ComponentHTML Action ChildSlots m
+contractScreen viewInput state =
   let
     nickname = state ^. _nickname
 
     metadata = state ^. _metadata
 
-    pastStepsCards = mapWithIndex (renderPastStep state) (state ^. _previousSteps)
+    pastStepsCards = mapWithIndex (renderPastStep viewInput state) (state ^. _previousSteps)
 
-    currentStepCard = [ renderCurrentStep currentSlot state ]
+    currentStepCard = [ renderCurrentStep viewInput state ]
 
     -- NOTE: Because the cards container is a flex element with a max width property, when there are more cards than
     --       can fit the view, the browser will try shrink them and remove any extra right margin/padding (not sure
@@ -344,14 +345,14 @@ renderContractCard stepNumber state currentTab cardBody =
       , div [ classNames [ "bg-white", "grid", "grid-rows-auto-1fr" ] ] cardBody
       ]
 
-renderPastStep :: forall p. State -> Int -> PreviousStep -> HTML p Action
-renderPastStep state stepNumber step =
+renderPastStep :: forall p. Input -> State -> Int -> PreviousStep -> HTML p Action
+renderPastStep viewInput state stepNumber step =
   let
     currentTab = step ^. _tab
 
-    renderBody Tasks { state: TransactionStep txInput } = renderPastActions state txInput
+    renderBody Tasks { state: TransactionStep txInput } = renderPastActions viewInput state txInput
 
-    renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout stepNumber timeoutSlot
+    renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout viewInput stepNumber timeoutSlot
 
     renderBody Balances { balances } = renderBalances state balances
 
@@ -385,7 +386,7 @@ renderPastStep state stepNumber step =
       ]
 
 type InputsByParty
-  = { inputs :: Array Input, interval :: SlotInterval, party :: Party }
+  = { inputs :: Array S.Input, interval :: SlotInterval, party :: Party }
 
 -- Normally we would expect that a TransactionInput has either no inputs or a single one
 -- but the types allows for them to be a list of different inputs, possibly made by different
@@ -402,7 +403,7 @@ groupTransactionInputByParticipant (TransactionInput { inputs, interval }) =
   sameParty a b = a.party == b.party
 
   mergeInputsFromSameParty ::
-    NonEmptyArray { inputs :: Array Input, party :: Party } ->
+    NonEmptyArray { inputs :: Array S.Input, party :: Party } ->
     InputsByParty
   mergeInputsFromSameParty elements =
     foldr
@@ -410,8 +411,8 @@ groupTransactionInputByParticipant (TransactionInput { inputs, interval }) =
       (NonEmptyArray.head elements # \{ party } -> { inputs: [], party, interval })
       elements
 
-renderPastActions :: forall p a. State -> TransactionInput -> HTML p a
-renderPastActions state txInput =
+renderPastActions :: forall p a. Input -> State -> TransactionInput -> HTML p a
+renderPastActions viewInput state txInput =
   let
     actionsByParticipant = groupTransactionInputByParticipant txInput
   in
@@ -420,22 +421,21 @@ renderPastActions state txInput =
           -- TODO: See if we can reach this state and what text describes it better.
           [ text "An empty transaction was made to advance this step" ]
         else
-          renderPartyPastActions state <$> actionsByParticipant
+          renderPartyPastActions viewInput state <$> actionsByParticipant
 
-renderPartyPastActions :: forall p a. State -> InputsByParty -> HTML p a
-renderPartyPastActions state { inputs, interval, party } =
+renderPartyPastActions :: forall p a. Input -> State -> InputsByParty -> HTML p a
+renderPartyPastActions { tzOffset } state { inputs, interval, party } =
   let
     -- We don't know exactly when a transaction was executed, we have an interval. But
     -- the design asks for an exact date so we use the lower end of the interval so that
     -- we don't show a value in the future
     (SlotInterval intervalFrom _) = interval
 
-    -- TODO: This time is in UTC, we need to localize.
     mTransactionDateTime = slotToDateTime intervalFrom
 
-    transactionDate = maybe "-" formatDate mTransactionDateTime
+    transactionDate = maybe "-" (formatDate tzOffset) mTransactionDateTime
 
-    transactionTime = maybe "-" formatTime mTransactionDateTime
+    transactionTime = maybe "-" (formatTime tzOffset) mTransactionDateTime
 
     renderPartyHeader =
       div [ classNames [ "flex", "justify-between", "items-center", "border-b", "border-gray", "px-3", "pb-4" ] ]
@@ -460,8 +460,8 @@ renderPartyPastActions state { inputs, interval, party } =
         (map renderPastAction inputs)
 
     renderPastAction = case _ of
-      IDeposit intoAccountOf by token value -> renderDeposit state intoAccountOf by token value
-      IChoice (ChoiceId choiceIdKey _) chosenNum ->
+      S.IDeposit intoAccountOf by token value -> renderDeposit state intoAccountOf by token value
+      S.IChoice (ChoiceId choiceIdKey _) chosenNum ->
         div []
           [ h4_ [ text "Chose:" ]
           -- NOTE: It would be neat if we could use the same trick that we use in renderAction.MakeChoice
@@ -479,13 +479,13 @@ renderPartyPastActions state { inputs, interval, party } =
       , renderFeesSummary
       ]
 
-renderTimeout :: forall p a. Int -> Slot -> HTML p a
-renderTimeout stepNumber timeoutSlot =
+renderTimeout :: forall p a. Input -> Int -> Slot -> HTML p a
+renderTimeout { tzOffset } stepNumber timeoutSlot =
   let
     timedOutDate =
       maybe
         "invalid date"
-        (\dt -> formatDate dt <> " at " <> formatTime dt)
+        (\dt -> formatDate tzOffset dt <> " at " <> formatTime tzOffset dt)
         (slotToDateTime timeoutSlot)
   in
     div [ classNames [ "flex", "flex-col", "items-center" ] ]
@@ -496,8 +496,8 @@ renderTimeout stepNumber timeoutSlot =
           [ text $ "Step " <> show (stepNumber + 1) <> " timed out on " <> timedOutDate ]
       ]
 
-renderCurrentStep :: forall p. Slot -> State -> HTML p Action
-renderCurrentStep currentSlot state =
+renderCurrentStep :: forall p. Input -> State -> HTML p Action
+renderCurrentStep viewInput state =
   let
     stepNumber = currentStep state
 
@@ -525,15 +525,15 @@ renderCurrentStep currentSlot state =
           , case contractIsClosed, isJust pendingTransaction of
               true, _ -> statusIndicator Nothing "Contract closed"
               _, true -> statusIndicator Nothing "Awaiting confirmation"
-              _, _ -> statusIndicator (Just Icon.Timer) (timeoutString currentSlot state)
+              _, _ -> statusIndicator (Just Icon.Timer) (timeoutString viewInput.currentSlot state)
           ]
       , div
           [ classNames [ "overflow-y-auto" ] ]
-          [ currentStepActions currentSlot state ]
+          [ currentStepActions state ]
       ]
 
-currentStepActions :: forall p. Slot -> State -> HTML p Action
-currentStepActions currentSlot state =
+currentStepActions :: forall p. State -> HTML p Action
+currentStepActions state =
   let
     currentTab = state ^. _tab
 
@@ -886,9 +886,9 @@ shortDescription isActiveParticipant description =
     , span_ [ text description ]
     ]
 
-getParty :: Input -> Maybe Party
-getParty (IDeposit _ p _ _) = Just p
+getParty :: S.Input -> Maybe Party
+getParty (S.IDeposit _ p _ _) = Just p
 
-getParty (IChoice (ChoiceId _ p) _) = Just p
+getParty (S.IChoice (ChoiceId _ p) _) = Just p
 
 getParty _ = Nothing
