@@ -462,7 +462,7 @@ mkStep client@StateMachineClient{scInstance} input = do
         Nothing -> pure $ Left $ InvalidTransition Nothing input
         Just (onChainState, utxo) -> do
             let (TypedScriptTxOut{tyTxOutData=currentState, tyTxOutTxOut}, txOutRef) = onChainState
-                oldState = State{stateData = currentState, stateValue = Ledger.txOutValue tyTxOutTxOut}
+                oldState = State{stateData = currentState, stateValue = Ledger.txOutValue tyTxOutTxOut <> inv (SM.threadTokenValueOrZero scInstance)}
                 inputConstraints = [InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }]
 
             case smTransition oldState input of

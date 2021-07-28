@@ -10203,7 +10203,31 @@
                                                         [
                                                           ww
                                                           [
-                                                            [ { State s } w ] vl
+                                                            [ { State s } w ]
+                                                            [
+                                                              [
+                                                                [
+                                                                  unionWith
+                                                                  addInteger
+                                                                ]
+                                                                vl
+                                                              ]
+                                                              [
+                                                                [
+                                                                  fAdditiveGroupValue_cscale
+                                                                  (con
+                                                                    integer -1
+                                                                  )
+                                                                ]
+                                                                [
+                                                                  [
+                                                                    threadTokenValueInner
+                                                                    ww
+                                                                  ]
+                                                                  [ ownHash w ]
+                                                                ]
+                                                              ]
+                                                            ]
                                                           ]
                                                         ]
                                                         w

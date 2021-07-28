@@ -115,7 +115,7 @@ mkValidator (StateMachine step isFinal check threadToken) currentState input ptx
         checkOk =
             traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
             && traceIfFalse "Thread token not found" (TT.checkThreadToken threadToken (ownHash ptx) vl 1)
-        oldState = State{stateData=currentState, stateValue=vl}
+        oldState = State{stateData = currentState, stateValue = vl <> inv (threadTokenValueInner threadToken (ownHash ptx)) }
         stateAndOutputsOk = case step oldState input of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})
                 | isFinal newData ->
