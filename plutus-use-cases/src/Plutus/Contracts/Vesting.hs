@@ -113,9 +113,9 @@ availableFrom (VestingTranche d v) range =
     in if validRange `Interval.contains` range then v else zero
 
 availableAt :: VestingParams -> POSIXTime -> Value
-availableAt VestingParams{vestingTranche1, vestingTranche2} sl =
+availableAt VestingParams{vestingTranche1, vestingTranche2} time =
     let f VestingTranche{vestingTrancheDate, vestingTrancheAmount} =
-            if sl >= vestingTrancheDate then vestingTrancheAmount else mempty
+            if time >= vestingTrancheDate then vestingTrancheAmount else mempty
     in foldMap f [vestingTranche1, vestingTranche2]
 
 {-# INLINABLE remainingFrom #-}
