@@ -40,7 +40,7 @@ import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Flat                          (flat)
+import           Flat                          (Flat, flat)
 
 import qualified Data.ByteString               as BS
 import qualified Data.ByteString.Unsafe        as BSUnsafe
@@ -53,6 +53,7 @@ import           ErrorCode
 import qualified FamInstEnv                    as GHC
 import           Text.Read                     (readMaybe)
 
+import           System.IO                     (openTempFile)
 import           System.IO.Unsafe              (unsafePerformIO)
 
 data PluginOptions = PluginOptions {
@@ -367,10 +368,12 @@ runCompiler opts expr = do
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
 
+    -- dumping binary pir
+    when (poDumpPir opts) . liftIO $ dumpFlatPir pirT "pir-term.flat"
+
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
     let spirP = PIR.Program () . void $ spirT
-    when (poDumpPir opts) . liftIO . print . PP.pretty $ spirP
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
@@ -391,6 +394,13 @@ runCompiler opts expr = do
         plcTcError <- runExceptT act
         -- also wrap the PLC Error annotations into Original provenances, to match our expected 'CompileError'
         liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) plcTcError
+
+      dumpFlatPir :: Flat a => PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun a -> String -> IO ()
+      dumpFlatPir pir fileName = do
+        let fpir = flat pir
+        (tPath, tHandle) <- openTempFile "." fileName
+        putStrLn $ "!!! dumping binary pir term to" ++ show tPath
+        BS.hPut tHandle fpir
 
 
 
