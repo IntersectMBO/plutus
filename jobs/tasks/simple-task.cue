@@ -8,10 +8,10 @@ import (
 	#flake: types.#flake
 
 	#namespace: string
-        #memory: uint
-        #fqdn: string
+	#memory: uint
 	#variant: string
-	#domain: string
+	#extraEnv: [string]: string
+	#envTemplate: *"foo" | string
 
 	driver: "exec"
 
@@ -31,21 +31,12 @@ import (
 		flake:   #flake
 		command: "/bin/entrypoint"
 	}
-	env: {
-		// TODO, only needs to be set for the server component
-		// TODO, should be based on fqdn
-		WEBGHC_URL: "web-ghc.plutus.aws.iohkdev.io)"
+	let baseEnv = {
 		PATH: "/bin"
-		FRONTEND_URL: "https://\(#domain)"
 	}
-	// TODO, only present for server component
+	env: baseEnv & #extraEnv
 	template: "secrets/env.txt": {
-		data: """
-			{{with secret "kv/nomad-cluster/\(#namespace)/\(#variant)/github"}}
-			GITHUB_CLIENT_ID="{{.Data.data.GITHUB_CLIENT_ID}}"
-			GITHUB_CLIENT_SECRET="{{.Data.data.GITHUB_CLIENT_SECRET}}"
-			{{end}}
-			"""
+		data: #envTemplate
 		change_mode: "restart"
 		env: true
 	}

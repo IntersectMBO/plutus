@@ -11,17 +11,12 @@ import (
 	#flakes: [string]: types.#flake
 	#hosts:          string
 	#variant:        string
-	#serverFlake: string
-	#clientFlake: string
 	#rateLimit: {
 		average: uint
 		burst:   uint
 		period:  types.#duration
 	}
 	#hosts: "`\(#domain)`,`client.\(#fqdn)`"
-  // these are needed to break infinite recursion later on, why?
-	#wut: "\(#domain)"
-	#wut2: #variant
 
 	namespace: string
 
@@ -79,20 +74,34 @@ import (
 			]
 		}
 
+		let ref = { variant: #variant, domain: #domain }
+
 		task: "client": tasks.#SimpleTask & {
-			#flake:     #clientFlake
+			#flake:     #flakes["\(#variant)-playground-client"]
 			#namespace: namespace
 			#memory: 32
-			#variant: #wut2
-			#domain: #wut
+			#variant: ref.variant
+			#domain: ref.domain
+      #envTemplate: "none"
 		}
 
 		task: "server": tasks.#SimpleTask & {
-			#flake:     #serverFlake
+			#flake:     #flakes["\(#variant)-playground-server"]
 			#namespace: namespace
 			#memory: 1024
-			#variant: #wut2
-			#domain: #wut
+			#variant: ref.variant
+			#domain: ref.domain
+			#extraEnv: {
+				WEBGHC_URL: "web-ghc.\(#fqdn)"
+				FRONTEND_URL: "https://\(#domain)"
+				GITHUB_CALLBACK_PATH: "/#/gh-oauth-cb"
+			}
+      #envTemplate: """
+        {{with secret "kv/nomad-cluster/\(#namespace)/\(#variant)/github"}}
+        GITHUB_CLIENT_ID="{{.Data.data.GITHUB_CLIENT_ID}}"
+        GITHUB_CLIENT_SECRET="{{.Data.data.GITHUB_CLIENT_SECRET}}"
+        {{end}}
+        """
 		}
 	}
 }

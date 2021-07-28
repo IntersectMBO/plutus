@@ -8,19 +8,6 @@ import (
 
 let fqdn = "plutus.aws.iohkdev.io"
 let opsRev = "95684007c17037c6ee139dceab7ee2417effb701"
-let plutusRev = "0e5520982b48daafac8f49ecbae2d61d1118773c"
-let hex = "[0-9a-f]"
-let seg = "[-a-zA-Z0-9]"
-let flakePath = "github:input-output-hk/\(seg)+\\?rev=\(hex){40}#\(seg)"
-let flakes = {
-  devBox: =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(opsRev)#devbox-entrypoint"
-  // frontend:                =~flakePath | *"github:input-output-hk/erc20-ops?rev=\(opsRev)#frontend-foo-entrypoint"
-  webGhcServer:                =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(opsRev)#web-ghc-server-entrypoint"
-  "plutus-playground-server":  =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(opsRev)#plutus-playground-server-entrypoint"
-  "plutus-playground-client":  =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(opsRev)#plutus-playground-client-entrypoint"
-  "marlowe-playground-server": =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(opsRev)#marlowe-playground-server-entrypoint"
-  "marlowe-playground-client": =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(opsRev)#marlowe-playground-client-entrypoint"
-}
 
 Namespace: [Name=_]: {
 	vars: {
@@ -34,7 +21,6 @@ Namespace: [Name=_]: {
 		#domain:     string
 		#fqdn:       fqdn
 		#opsRev:     =~"^\(hex){40}$" | *opsRev
-		#plutusRev:  =~"^\(hex){40}$" | *plutusRev
 		#flakes: [string]: types.#flake
 
 		#flakes: {
@@ -71,20 +57,11 @@ Namespace: [Name=_]: {
 			"plutus-playground": jobDef.#PlutusPlaygroundJob & {
 				#domain:      "plutus-playground.\(fqdn)"
 				#variant:     "plutus"
-				#clientFlake: flakes."plutus-playground-client"
-				#serverFlake: flakes."plutus-playground-server"
 			}
 			"marlowe-playground": jobDef.#PlutusPlaygroundJob & {
 				#domain:      "marlowe-playground.\(fqdn)"
 				#variant:     "marlowe"
-				#clientFlake: flakes."marlowe-playground-client"
-				#serverFlake: flakes."marlowe-playground-server"
 			}
-			// "devbox": jobDef.#DevBoxUnstableJob & {}
-
-			//"frontend": jobDef.#FrontendUnstable & {
-			// #domain:       "frontend-unstable.\(fqdn)"
-			//}
 		}
 	}
 }
