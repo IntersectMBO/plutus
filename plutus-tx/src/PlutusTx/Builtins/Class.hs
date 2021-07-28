@@ -159,10 +159,9 @@ instance FromBuiltin arep a => FromBuiltin (BuiltinList arep) [a] where
           -- actually help quite a bit here.
           {-# INLINABLE go #-}
           go :: BuiltinList arep -> [a]
-          -- Note that we are using builtin ifThenElse here so this is *strict* application! So we need to do
-          -- the manual laziness ourselves. We could instead convert the boolean to a Haskell boolean and use
-          -- normal if, but we might as well use the builtins directly here.
-          go l = chooseList (\_ -> []) (\_ -> fromBuiltin (head l):go (tail l)) l unitval
+          -- Note that we are using builtin chooseList here so this is *strict* application! So we need to do
+          -- the manual laziness ourselves.
+          go l = chooseList l (\_ -> []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
 
 instance ToBuiltin [BuiltinData] (BuiltinList BuiltinData) where
     {-# INLINABLE toBuiltin #-}

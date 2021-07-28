@@ -260,9 +260,9 @@ tail (BuiltinList (_:xs)) = coerce xs
 tail (BuiltinList [])     = Prelude.error "empty list"
 
 {-# NOINLINE chooseList #-}
-chooseList :: b -> b -> BuiltinList a -> b
-chooseList b1 _ (BuiltinList [])    = b1
-chooseList _ b2 (BuiltinList (_:_)) = b2
+chooseList :: BuiltinList a -> b -> b-> b
+chooseList (BuiltinList [])    b1 _ = b1
+chooseList (BuiltinList (_:_)) _ b2 = b2
 
 {-# NOINLINE mkNilData #-}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
@@ -308,8 +308,8 @@ dataToBuiltinData :: PLC.Data -> BuiltinData
 dataToBuiltinData = BuiltinData
 
 {-# NOINLINE chooseData #-}
-chooseData :: forall a . a -> a -> a -> a -> a -> BuiltinData -> a
-chooseData constrCase mapCase listCase iCase bCase (BuiltinData d) = case d of
+chooseData :: forall a . BuiltinData -> a -> a -> a -> a -> a -> a
+chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
     PLC.Constr{} -> constrCase
     PLC.Map{}    -> mapCase
     PLC.List{}   -> listCase
