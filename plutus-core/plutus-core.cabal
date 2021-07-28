@@ -303,6 +303,7 @@ library
         th-lift -any,
         th-lift-instances -any,
         th-utilities -any,
+        time -any,
         transformers -any,
         unordered-containers -any,
         witherable -any,
