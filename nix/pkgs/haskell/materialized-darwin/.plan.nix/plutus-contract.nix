@@ -181,6 +181,7 @@
             "Spec/Emulator"
             "Spec/Rows"
             "Spec/State"
+            "Spec/ThreadToken"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
