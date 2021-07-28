@@ -133,8 +133,8 @@ class Reference n t where
         -> t NameAnn
 
 -- | Reference the provided variable in the provided type\/term as an in-scope one.
-referenceInScope :: Reference n t => n -> t NameAnn -> t NameAnn
-referenceInScope = referenceVia registerBound
+referenceBound :: Reference n t => n -> t NameAnn -> t NameAnn
+referenceBound = referenceVia registerBound
 
 -- | Reference the provided variable in the provided type\/term as an out-of-scope one.
 referenceOutOfScope :: Reference n t => n -> t NameAnn -> t NameAnn
@@ -223,7 +223,7 @@ class Scoping t where
     2. handle variables with 'freshen*Name' + 'registerFree'
     3. everything else is direct recursion + 'Applicative' stuff
     -}
-    establishScoping :: MonadQuote m => t ann -> m (t NameAnn)
+    establishScoping :: t ann -> Quote (t NameAnn)
 
     {-| Collect scoping information after scoping was established and renaming was performed.
 
@@ -234,23 +234,23 @@ class Scoping t where
     -}
     collectScopeInfo :: t NameAnn -> ScopeErrorOrInfo
 
--- | Take a binder, a name bound by it, a sort (kind\/type), a value of that sort (type\/term)
--- and call 'establishScoping' on both the sort and its value and reassemble the original binder
--- with the annotated sort and its value, but also decorate the reassembled binder with
--- one out-of-scope variable and one in-scope one.
+-- | Take a constructor for a binder, a name bound by it, a sort (kind\/type), a value of that sort
+-- (type\/term) and call 'establishScoping' on both the sort and its value and reassemble the
+-- original binder with the annotated sort and its value, but also decorate the reassembled binder
+-- with one out-of-scope variable and one in-scope one.
 establishScopingBinder
-    :: (Reference name lower, ToScopedName name, Scoping upper, Scoping lower, MonadQuote m)
-    => (NameAnn -> name -> upper NameAnn -> lower NameAnn -> lower NameAnn)
+    :: (Reference name value, ToScopedName name, Scoping sort, Scoping value)
+    => (NameAnn -> name -> sort NameAnn -> value NameAnn -> value NameAnn)
     -> name
-    -> upper ann
-    -> lower ann
-    -> m (lower NameAnn)
-establishScopingBinder binder name upper lower = do
-    upperS <- establishScoping upper
+    -> sort ann
+    -> value ann
+    -> Quote (value NameAnn)
+establishScopingBinder binder name sort value = do
+    sortS <- establishScoping sort
     referenceOutOfScope name .
-        binder (introduceBound name) name upperS .
-            referenceInScope name <$>
-                establishScoping lower
+        binder (introduceBound name) name sortS .
+            referenceBound name <$>
+                establishScoping value
 
 -- #############################################
 -- ## Checking coherence of scope information ##
@@ -272,14 +272,14 @@ data ScopeError
     | NewBindingsClashWithFreeVariabes (Set ScopedName)
     deriving (Show)
 
--- | Overrisde the set at the provided 'ScopeEntry' to contain only the provided 'ScopedName'.
+-- | Override the set at the provided 'ScopeEntry' to contain only the provided 'ScopedName'.
 overrideSname :: ScopeEntry -> ScopedName -> ScopeInfo -> ScopeInfo
 overrideSname key = coerce . Map.insert key . Set.singleton
 
 -- | Use a 'Stays' to handle an unchanged old name.
 applyStays :: Stays -> ScopedName -> ScopeInfo
-applyStays persists sname = overrideSname key sname emptyScopeInfo where
-    key = case persists of
+applyStays stays sname = overrideSname key sname emptyScopeInfo where
+    key = case stays of
         StaysOutOfScopeVariable -> StayedOutOfScopeVariables
         StaysFreeVariable       -> StayedFreeVariables
 
@@ -294,9 +294,9 @@ applyDisappears disappears snameOld snameNew =
 -- | Use a 'NameAction' to handle an old and a new name.
 applyNameAction
     :: NameAction -> ScopedName -> ScopedName -> Either ScopeError ScopeInfo
-applyNameAction (Stays persists) snameOld snameNew =
+applyNameAction (Stays stays) snameOld snameNew =
     if snameOld == snameNew
-        then Right $ applyStays persists snameOld
+        then Right $ applyStays stays snameOld
         else Left $ NameUnexpectedlyDisappeared snameOld snameNew
 applyNameAction (Disappears disappears) snameOld snameNew =
     if snameOld == snameNew

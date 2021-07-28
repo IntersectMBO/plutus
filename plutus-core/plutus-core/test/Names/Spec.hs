@@ -125,7 +125,7 @@ test_equalityRename =
 
 test_equalityBrokenRename :: TestTree
 test_equalityBrokenRename =
-    testCase "no marking in renaming destroys scoping" $
+    testCase "equality does not survive wrong renaming" $
         checkBadRename $ prop_equalityFor brokenRenameProgram
 
 test_equalityNoMarkRename :: TestTree
@@ -160,7 +160,7 @@ test_scopingNoRename =
 
 test_scopingNoMarkRename :: TestTree
 test_scopingNoMarkRename =
-    testCase "equality does not survive wrong renaming" $
+    testCase "no marking renaming destroys scoping" $
         checkBadRename $ prop_scopingFor noMarkRenameProgram
 
 test_alphaEquality :: TestTree

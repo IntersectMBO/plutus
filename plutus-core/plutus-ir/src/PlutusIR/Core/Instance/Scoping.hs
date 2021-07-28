@@ -88,19 +88,18 @@ instance (Reference TyName t, Reference Name t) => Reference (Binding TyName Nam
     referenceVia reg (DatatypeBind _ datatype) = referenceVia reg datatype
 
 establishScopingParams
-    :: MonadQuote m => [TyVarDecl TyName ann] -> m [TyVarDecl TyName NameAnn]
+    :: [TyVarDecl TyName ann] -> Quote [TyVarDecl TyName NameAnn]
 establishScopingParams =
     traverse $ \(TyVarDecl _ paramNameDup paramKind) -> do
         paramName <- freshenTyName paramNameDup
         TyVarDecl (introduceBound paramName) paramName <$> establishScoping paramKind
 
 establishScopingConstrTy
-    :: MonadQuote m
-    => (TyName -> NameAnn)
+    :: (TyName -> NameAnn)
     -> TyName
     -> [TyVarDecl TyName NameAnn]
     -> Type TyName uni ann
-    -> m (Type TyName uni NameAnn)
+    -> Quote (Type TyName uni NameAnn)
 establishScopingConstrTy regSelf dataName params = goSpine where
     toDataAppliedToParams reg
         = mkIterTyApp NotAName (TyVar (reg dataName) dataName)
@@ -121,13 +120,12 @@ establishScopingConstrTy regSelf dataName params = goSpine where
     goResult _                 = pure $ toDataAppliedToParams registerBound
 
 establishScopingConstrsNonRec
-    :: MonadQuote m
-    => (TyName -> NameAnn)
+    :: (TyName -> NameAnn)
     -> ann
     -> TyName
     -> [TyVarDecl TyName NameAnn]
     -> [VarDecl TyName Name uni fun ann]
-    -> m [VarDecl TyName Name uni fun NameAnn]
+    -> Quote [VarDecl TyName Name uni fun NameAnn]
 establishScopingConstrsNonRec regSelf dataAnn dataName params constrs = do
     -- TODO: explain.
     cons0Name <- freshName "cons0"
@@ -138,10 +136,9 @@ establishScopingConstrsNonRec regSelf dataAnn dataName params constrs = do
         pure $ VarDecl (introduceBound constrName) constrName constrTy
 
 establishScopingBinding
-    :: MonadQuote m
-    => (forall name. ToScopedName name => name -> NameAnn)
+    :: (forall name. ToScopedName name => name -> NameAnn)
     -> Binding TyName Name uni fun ann
-    -> m (Binding TyName Name uni fun NameAnn)
+    -> Quote (Binding TyName Name uni fun NameAnn)
 establishScopingBinding regSelf (TermBind _ strictness (VarDecl _ nameDup ty) term) = do
     name <- freshenName nameDup
     varDecl <- VarDecl (introduceBound name) name <$> establishScoping ty
@@ -181,10 +178,9 @@ referenceBindingsBothWays regRec               -- Whether latter bindings are vi
     . referenceViaBindings registerBound       -- Former bindings are always visible in latter ones.
 
 establishScopingBindings
-    :: MonadQuote m
-    => (forall name. ToScopedName name => name -> NameAnn)
+    :: (forall name. ToScopedName name => name -> NameAnn)
     -> NonEmpty (Binding TyName Name uni fun ann)
-    -> m (NonEmpty (Binding TyName Name uni fun NameAnn))
+    -> Quote (NonEmpty (Binding TyName Name uni fun NameAnn))
 establishScopingBindings regRec =
     fmap (referenceBindingsBothWays regRec) . traverse (establishScopingBinding regRec)
 
@@ -221,7 +217,7 @@ registerByRecursivity NonRec = registerOutOfScope
 instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) where
     establishScoping (Let _ recy bindingsDup body) = do
         bindings <- establishScopingBindings (registerByRecursivity recy) bindingsDup
-        referenceOutOfScope bindings . Let NotAName recy bindings . referenceInScope bindings <$>
+        referenceOutOfScope bindings . Let NotAName recy bindings . referenceBound bindings <$>
             establishScoping body
     establishScoping (LamAbs _ nameDup ty body) = do
         name <- freshenName nameDup
