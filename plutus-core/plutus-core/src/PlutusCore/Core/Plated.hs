@@ -60,6 +60,7 @@ typeSubtypes f = \case
     TyForall ann tn k ty -> TyForall ann tn k <$> f ty
     TyLam ann tn k ty    -> TyLam ann tn k <$> f ty
     TyApp ann ty1 ty2    -> TyApp ann <$> f ty1 <*> f ty2
+    TyDelayed ann ty     -> TyDelayed ann <$> f ty
     b@TyBuiltin {}       -> pure b
     v@TyVar {}           -> pure v
 
@@ -107,6 +108,8 @@ termSubtypes f = \case
     v@Var {}            -> pure v
     c@Constant {}       -> pure c
     b@Builtin {}        -> pure b
+    t@Force {}          -> pure t
+    t@Delay {}          -> pure t
 
 -- | Get all the transitive child 'Type's of the given 'Term'.
 termSubtypesDeep :: Fold (Term tyname name uni fun ann) (Type tyname uni ann)
@@ -122,6 +125,8 @@ termSubterms f = \case
     TyAbs ann n k t     -> TyAbs ann n k <$> f t
     Apply ann t1 t2     -> Apply ann <$> f t1 <*> f t2
     Unwrap ann t        -> Unwrap ann <$> f t
+    Delay ann t         -> Delay ann <$> f t
+    Force ann t         -> Force ann <$> f t
     e@Error {}          -> pure e
     v@Var {}            -> pure v
     c@Constant {}       -> pure c

@@ -75,6 +75,7 @@ deBruijnTyM = \case
     TyFun ann i o -> TyFun ann <$> deBruijnTyM i <*> deBruijnTyM o
     TyApp ann fun arg -> TyApp ann <$> deBruijnTyM fun <*> deBruijnTyM arg
     TyIFix ann pat arg -> TyIFix ann <$> deBruijnTyM pat <*> deBruijnTyM arg
+    TyDelayed ann t -> TyDelayed ann <$> deBruijnTyM t
     -- boring non-recursive cases
     TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -98,6 +99,8 @@ deBruijnTermM = \case
     Unwrap ann t -> Unwrap ann <$> deBruijnTermM t
     IWrap ann pat arg t -> IWrap ann <$> deBruijnTyM pat <*> deBruijnTyM arg <*> deBruijnTermM t
     Error ann ty -> Error ann <$> deBruijnTyM ty
+    Force ann t -> Force ann <$> deBruijnTermM t
+    Delay ann t -> Delay ann <$> deBruijnTermM t
     -- boring non-recursive cases
     Constant ann con -> pure $ Constant ann con
     Builtin ann bn -> pure $ Builtin ann bn
@@ -138,6 +141,7 @@ unDeBruijnTyM = \case
     TyFun ann i o -> TyFun ann <$> unDeBruijnTyM i <*> unDeBruijnTyM o
     TyApp ann fun arg -> TyApp ann <$> unDeBruijnTyM fun <*> unDeBruijnTyM arg
     TyIFix ann pat arg -> TyIFix ann <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg
+    TyDelayed ann t -> TyDelayed ann <$> unDeBruijnTyM t
     -- boring non-recursive cases
     TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -161,6 +165,8 @@ unDeBruijnTermM = \case
     Unwrap ann t -> Unwrap ann <$> unDeBruijnTermM t
     IWrap ann pat arg t -> IWrap ann <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg <*> unDeBruijnTermM t
     Error ann ty -> Error ann <$> unDeBruijnTyM ty
+    Force ann t -> Force ann <$> unDeBruijnTermM t
+    Delay ann t -> Delay ann <$> unDeBruijnTermM t
     -- boring non-recursive cases
     Constant ann con -> pure $ Constant ann con
     Builtin ann bn -> pure $ Builtin ann bn

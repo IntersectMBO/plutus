@@ -34,6 +34,7 @@ data Keyword
     | KwAll
     | KwType
     | KwIFix
+    | KwDelayed
     | KwIWrap
     | KwUnwrap
     -- UPLC only
@@ -87,6 +88,7 @@ instance Pretty Keyword where
     pretty KwProgram = "program"
     pretty KwCon     = "con"
     pretty KwIWrap   = "iwrap"
+    pretty KwDelayed = "delayed"
     pretty KwBuiltin = "builtin"
     pretty KwUnwrap  = "unwrap"
     pretty KwError   = "error"

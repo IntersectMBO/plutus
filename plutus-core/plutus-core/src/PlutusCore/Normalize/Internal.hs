@@ -177,6 +177,8 @@ normalizeTypeM (TyFun ann dom cod)           =
     TyFun ann <<$>> normalizeTypeM dom <<*>> normalizeTypeM cod
 normalizeTypeM (TyLam ann name kind body)    =
     TyLam ann name kind <<$>> normalizeTypeM body
+normalizeTypeM (TyDelayed ann t)    =
+    TyDelayed ann <<$>> normalizeTypeM t
 normalizeTypeM (TyApp ann fun arg)           = do
     vFun <- normalizeTypeM fun
     vArg <- normalizeTypeM arg

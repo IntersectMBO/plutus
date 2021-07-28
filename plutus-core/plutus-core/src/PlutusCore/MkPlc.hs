@@ -65,6 +65,8 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     tyInst   :: ann -> term ann -> Type tyname uni ann -> term ann
     unwrap   :: ann -> term ann -> term ann
     iWrap    :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
+    force    :: ann -> term ann -> term ann
+    delay    :: ann -> term ann -> term ann
     error    :: ann -> Type tyname uni ann -> term ann
     termLet  :: ann -> TermDef term tyname name uni fun ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
@@ -108,6 +110,8 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     tyInst   = TyInst
     unwrap   = Unwrap
     iWrap    = IWrap
+    force    = Force
+    delay    = Delay
     error    = Error
 
 embed :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
@@ -121,6 +125,8 @@ embed = \case
     TyInst a t ty     -> tyInst a (embed t) ty
     Error a ty        -> error a ty
     Unwrap a t        -> unwrap a (embed t)
+    Force a t         -> force a (embed t)
+    Delay a t         -> delay a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
 
 -- | A "variable declaration", i.e. a name and a type for a variable.

@@ -76,6 +76,8 @@ eqTypeM (TyFun _ dom1 cod1) (TyFun _ dom2 cod2) = do
     eqTypeM cod1 cod2
 eqTypeM (TyBuiltin _ bi1) (TyBuiltin _ bi2) =
     eqM bi1 bi2
+eqTypeM (TyDelayed _ t1) (TyDelayed _ t2) =
+    eqTypeM t1 t2
 eqTypeM TyVar{}     _ = empty
 eqTypeM TyLam{}     _ = empty
 eqTypeM TyForall{}  _ = empty
@@ -83,6 +85,7 @@ eqTypeM TyIFix{}    _ = empty
 eqTypeM TyApp{}     _ = empty
 eqTypeM TyFun{}     _ = empty
 eqTypeM TyBuiltin{} _ = empty
+eqTypeM TyDelayed{} _ = empty
 
 -- See Note [Modulo alpha].
 -- See Note [Scope tracking]
@@ -118,6 +121,10 @@ eqTermM (Constant _ con1) (Constant _ con2) =
     eqM con1 con2
 eqTermM (Builtin _ bi1) (Builtin _ bi2) =
     eqM bi1 bi2
+eqTermM (Force _ t1) (Force _ t2) =
+    eqTermM t1 t2
+eqTermM (Delay _ t1) (Delay _ t2) =
+    eqTermM t1 t2
 eqTermM LamAbs{}   _ = empty
 eqTermM TyAbs{}    _ = empty
 eqTermM IWrap{}    _ = empty
@@ -128,6 +135,8 @@ eqTermM TyInst{}   _ = empty
 eqTermM Var{}      _ = empty
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
+eqTermM Force{}    _ = empty
+eqTermM Delay{}    _ = empty
 
 -- | Check equality of two 'Program's.
 eqProgramM

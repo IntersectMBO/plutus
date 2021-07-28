@@ -64,8 +64,11 @@ import Control.Monad.State
     type          { TkKeyword $$ KwType }
     program       { TkKeyword $$ KwProgram }
     iwrap         { TkKeyword $$ KwIWrap }
+    delayed       { TkKeyword $$ KwDelayed }
     unwrap        { TkKeyword $$ KwUnwrap }
     errorTerm     { TkKeyword $$ KwError }
+    force         { TkKeyword $$ KwForce }
+    delay         { TkKeyword $$ KwDelay }
 
     openParen     { TkSpecial $$ OpenParen }
     closeParen    { TkSpecial $$ CloseParen }
@@ -112,6 +115,8 @@ Term : Var                                                 { $1 }
      | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
      | openParen   builtin builtinfnid       closeParen    { % fmap (uncurry Builtin) (mkBuiltinFunction $2 (tkBuiltinFnId $3)) }
      | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
+     | openParen   force Term                closeParen    { Force $2 $3 }
+     | openParen   delay Term                closeParen    { Delay $2 $3 }
      | openParen   errorTerm Type            closeParen    { Error $2 $3 }
 
 Type : TyVar { $1 }
@@ -119,6 +124,7 @@ Type : TyVar { $1 }
      | openParen   all TyName Kind Type closeParen    { TyForall $2 $3 $4 $5 }
      | openParen   lam TyName Kind Type closeParen    { TyLam $2 $3 $4 $5 }
      | openParen   ifix Type Type       closeParen    { TyIFix $2 $3 $4 }
+     | openParen   delayed Type         closeParen    { TyDelayed $2 $3 }
      | openBracket Type some(Type)      closeBracket  { tyApps $1 $2 (NE.reverse $3) }
      -- % = monadic action
      | openParen   con builtintypeid    closeParen    { % mkBuiltinType (tkLoc $3) (tkBuiltinTypeId $3) }

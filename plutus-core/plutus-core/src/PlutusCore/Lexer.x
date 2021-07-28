@@ -144,6 +144,7 @@ tokens :-
     <kwd> type           { mkKeyword KwType        `andBegin` 0 }
     <kwd> program        { mkKeyword KwProgram     `andBegin` 0 }
     <kwd> iwrap          { mkKeyword KwIWrap       `andBegin` 0 }
+    <kwd> delayed        { mkKeyword KwDelayed     `andBegin` 0 }
     <kwd> unwrap         { mkKeyword KwUnwrap      `andBegin` 0 }
     <kwd> error          { mkKeyword KwError       `andBegin` 0 }
     <kwd> force          { mkKeyword KwForce       `andBegin` 0 }

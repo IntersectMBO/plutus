@@ -165,6 +165,12 @@ appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
 tyInstTerm :: PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni)) => Parametric uni fun
 tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
+forceTerm :: Parametric uni fun
+forceTerm tm = PIR.force <$> wordPos "force" <*> tm
+
+delayTerm :: Parametric uni fun
+delayTerm tm = PIR.delay <$> wordPos "delay" <*> tm
+
 term'
     :: ( PLC.Parsable (PLC.SomeTypeIn (PLC.Kinded uni))
        , PLC.Closed uni, uni `PLC.Everywhere` PLC.Parsable
@@ -172,7 +178,7 @@ term'
        )
     => Parametric uni fun
 term' other = (name >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
-    <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
+    <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> forceTerm self <|> delayTerm self <|> other)
     <|> inBraces (tyInstTerm self)
     <|> inBrackets (appTerm self)
     where self = term' other

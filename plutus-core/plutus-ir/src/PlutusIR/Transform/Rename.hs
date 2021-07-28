@@ -145,3 +145,7 @@ renameTermM = \case
         IWrap x <$> PLC.renameTypeM pat <*> PLC.renameTypeM arg <*> renameTermM term
     Unwrap x term ->
         Unwrap x <$> renameTermM term
+    Force x term ->
+        Force x <$> renameTermM term
+    Delay x term ->
+        Delay x <$> renameTermM term

@@ -203,6 +203,23 @@ inferTypeM (Unwrap ann term)        = do
 inferTypeM (Error ann ty)           = do
     checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
+
+-- [infer| G !- t : a]
+-- ----------------------------------
+-- [infer| G !- delay t : delayed a]
+inferTypeM (Delay _ term) = do
+    vTermTy <- inferTypeM term
+    pure $ TyDelayed () <$> vTermTy
+
+-- [infer| G !- t : delayed a]
+-- ----------------------------------
+-- [infer| G !- force t : a]
+inferTypeM (Force ann term) = do
+    vTermTy <- inferTypeM term
+    case unNormalized vTermTy of
+        TyDelayed _ vTy -> pure $ Normalized vTy
+        _               -> throwing _TypeError (TypeMismatch ann (void term) (TyDelayed () dummyType) vTermTy)
+
 -- ##############
 -- ## Port end ##
 -- ##############

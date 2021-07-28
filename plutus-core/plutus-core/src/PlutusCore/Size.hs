@@ -28,6 +28,7 @@ typeSize = cata a where
     a TyBuiltinF{}         = 1
     a (TyLamF _ _ k ty)    = 1 + kindSize k + ty
     a (TyAppF _ ty ty')    = 1 + ty + ty'
+    a (TyDelayedF _ ty)    = 1 + ty
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term tyname name uni fun ann -> Integer
@@ -42,6 +43,8 @@ termSize = cata a where
     a (UnwrapF _ t)       = 1 + t
     a (IWrapF _ ty ty' t) = 1 + typeSize ty + typeSize ty' + t
     a (ErrorF _ ty)       = 1 + typeSize ty
+    a (ForceF _ t)        = 1 + t
+    a (DelayF _ t)        = 1 + t
 
 -- | Count the number of AST nodes in a program.
 programSize :: Program tyname name uni fun ann -> Integer

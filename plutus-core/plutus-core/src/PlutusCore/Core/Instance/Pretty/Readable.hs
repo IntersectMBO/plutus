@@ -58,6 +58,9 @@ instance (PrettyReadableBy configName tyname, GShow uni) =>
         TyLam _ name kind body    ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
+        TyDelayed _ body    ->
+            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+                "delayed" <+> prettyEl body
 
 instance
         ( PrettyReadableBy configName tyname
@@ -88,6 +91,12 @@ instance
         Error _ ty             ->
             compoundDocM juxtFixity $ \prettyIn ->
                 "error" <+> braces (prettyIn ToTheRight botFixity ty)
+        Force _ body    ->
+            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+                "force" <+> prettyEl body
+        Delay _ body    ->
+            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+                "delay" <+> prettyEl body
 
 instance PrettyReadableBy configName (Term tyname name uni fun a) =>
         PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where

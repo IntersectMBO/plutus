@@ -105,7 +105,8 @@ genType = simpleRecursive nonRecursive recursive where
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
     tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
-    recursive = [funGen, applyGen]
+    delayedGen = TyDelayed () <$> genType
+    recursive = [funGen, applyGen, delayedGen]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
 genTerm :: AstGen (Term TyName Name DefaultUni DefaultFun ())
@@ -117,8 +118,10 @@ genTerm = simpleRecursive nonRecursive recursive where
     applyGen = Apply () <$> genTerm <*> genTerm
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
+    forceGen = Force () <$> genTerm
+    delayGen = Delay () <$> genTerm
     errorGen = Error () <$> genType
-    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
+    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, forceGen, delayGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: AstGen (Program TyName Name DefaultUni DefaultFun ())

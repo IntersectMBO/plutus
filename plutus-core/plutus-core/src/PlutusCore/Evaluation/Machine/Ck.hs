@@ -58,6 +58,7 @@ data CkValue uni fun =
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
+  | VDelay (Term TyName Name uni fun ())
     deriving (Show)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
@@ -78,6 +79,7 @@ ckValueToTerm = \case
     VLamAbs name ty body -> LamAbs () name ty body
     VIWrap  ty1 ty2 val  -> IWrap  () ty1 ty2 $ ckValueToTerm val
     VBuiltin term _      -> term
+    VDelay body          -> Delay  () body
 
 data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
@@ -137,6 +139,7 @@ data Frame uni fun
     | FrameApplyArg (Term TyName Name uni fun ())           -- ^ @[_ N]@
     | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
     | FrameUnwrap                                           -- ^ @(unwrap _)@
+    | FrameForce                                            -- ^ @(force _)@
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
 type Context uni fun = [Frame uni fun]
@@ -169,6 +172,8 @@ substituteDb varFor new = go where
          TyInst   () fun arg      -> TyInst   () (go fun) arg
          Unwrap   () term         -> Unwrap   () (go term)
          IWrap    () pat arg term -> IWrap    () pat arg (go term)
+         Force    () term         -> Force   () (go term)
+         Delay    () term         -> Delay   () (go term)
          b@Builtin{}              -> b
          e@Error  {}              -> e
     goUnder var term = if var == varFor then term else go term
@@ -189,6 +194,8 @@ substTyInTerm tn0 ty0 = go where
          TyInst  () fun ty       -> TyInst  () (go fun) (goTy ty)
          Unwrap  () term         -> Unwrap  () (go term)
          IWrap   () pat arg term -> IWrap   () (goTy pat) (goTy arg) (go term)
+         Force   () term         -> Force  () (go term)
+         Delay   () term         -> Delay  () (go term)
          Error   () ty           -> Error   () (goTy ty)
     goUnder tn term = if tn == tn0 then term else go term
     goTy = substTyInTy tn0 ty0
@@ -200,13 +207,14 @@ substTyInTy
     => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
 substTyInTy tn0 ty0 = go where
     go = \case
-         TyVar    () tn      -> if tn == tn0 then ty0 else TyVar () tn
-         TyFun    () ty1 ty2 -> TyFun    () (go ty1) (go ty2)
-         TyIFix   () ty1 ty2 -> TyIFix   () (go ty1) (go ty2)
-         TyApp    () ty1 ty2 -> TyApp    () (go ty1) (go ty2)
-         TyForall () tn k ty -> TyForall () tn k (goUnder tn ty)
-         TyLam    () tn k ty -> TyLam    () tn k (goUnder tn ty)
-         bt@TyBuiltin{}      -> bt
+         TyVar     () tn      -> if tn == tn0 then ty0 else TyVar () tn
+         TyFun     () ty1 ty2 -> TyFun     () (go ty1) (go ty2)
+         TyIFix    () ty1 ty2 -> TyIFix    () (go ty1) (go ty2)
+         TyApp     () ty1 ty2 -> TyApp     () (go ty1) (go ty2)
+         TyForall  () tn k ty -> TyForall  () tn k (goUnder tn ty)
+         TyLam     () tn k ty -> TyLam     () tn k (goUnder tn ty)
+         TyDelayed () ty      -> TyDelayed () (go ty)
+         bt@TyBuiltin{}       -> bt
     goUnder tn ty = if tn == tn0 then ty else go ty
 
 -- FIXME: make sure that the specification is up to date and that this matches.
@@ -228,6 +236,8 @@ stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
 stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
 stack |> IWrap   _ pat arg term  = FrameIWrap pat arg : stack |> term
 stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
+stack |> Force   _ term          = FrameForce         : stack |> term
+stack |> Delay   _ term          = stack <| VDelay term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
@@ -263,6 +273,10 @@ FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
     _               ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just $ ckValueToTerm wrapped
+FrameForce         : stack <| delayed = case delayed of
+    VDelay term -> stack |> term
+    _           ->
+        throwingWithCause _MachineError NonDelayedForcedError $ Just $ ckValueToTerm delayed
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application

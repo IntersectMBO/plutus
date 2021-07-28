@@ -55,6 +55,7 @@ allErrors =
    , 'PLC.FreeIndex
    , 'PLC.NonPolymorphicInstantiationMachineError
    , 'PLC.NonWrapUnwrappedMachineError
+   , 'PLC.NonDelayedForcedError
    , 'PLC.NonFunctionalApplicationMachineError
    , 'PLC.OpenTermEvaluatedMachineError
    , 'PLC.UnliftingErrorE

@@ -217,6 +217,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyBuiltin ann con     -> encodeType 4 <> encode ann <> encode con
         TyLam     ann n k t   -> encodeType 5 <> encode ann <> encode n   <> encode k <> encode t
         TyApp     ann t t'    -> encodeType 6 <> encode ann <> encode t   <> encode t'
+        TyDelayed ann t       -> encodeType 7 <> encode ann <> encode t
 
     decode = go =<< decodeType
         where go 0 = TyVar     <$> decode <*> decode
@@ -226,6 +227,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
               go 4 = TyBuiltin <$> decode <*> decode
               go 5 = TyLam     <$> decode <*> decode <*> decode <*> decode
               go 6 = TyApp     <$> decode <*> decode <*> decode
+              go 7 = TyDelayed <$> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
     size tm sz = typeTagWidth + sz + case tm of
@@ -236,6 +238,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyBuiltin ann con     -> getSize ann + getSize con
         TyLam     ann n k t   -> getSize ann + getSize n   + getSize k + getSize t
         TyApp     ann t t'    -> getSize ann + getSize t   + getSize t'
+        TyDelayed ann t       -> getSize ann + getSize t
 
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -264,19 +267,23 @@ instance ( Closed uni
         IWrap    ann pat arg t -> encodeTerm 7 <> encode ann <> encode pat <> encode arg <> encode t
         Error    ann ty        -> encodeTerm 8 <> encode ann <> encode ty
         Builtin  ann bn        -> encodeTerm 9 <> encode ann <> encode bn
+        Force    ann t         -> encodeTerm 10 <> encode ann <> encode t
+        Delay    ann t         -> encodeTerm 11 <> encode ann <> encode t
 
     decode = go =<< decodeTerm
-        where go 0 = Var      <$> decode <*> decode
-              go 1 = TyAbs    <$> decode <*> decode <*> decode <*> decode
-              go 2 = LamAbs   <$> decode <*> decode <*> decode <*> decode
-              go 3 = Apply    <$> decode <*> decode <*> decode
-              go 4 = Constant <$> decode <*> decode
-              go 5 = TyInst   <$> decode <*> decode <*> decode
-              go 6 = Unwrap   <$> decode <*> decode
-              go 7 = IWrap    <$> decode <*> decode <*> decode <*> decode
-              go 8 = Error    <$> decode <*> decode
-              go 9 = Builtin  <$> decode <*> decode
-              go _ = fail "Failed to decode Term TyName Name ()"
+        where go 0  = Var      <$> decode <*> decode
+              go 1  = TyAbs    <$> decode <*> decode <*> decode <*> decode
+              go 2  = LamAbs   <$> decode <*> decode <*> decode <*> decode
+              go 3  = Apply    <$> decode <*> decode <*> decode
+              go 4  = Constant <$> decode <*> decode
+              go 5  = TyInst   <$> decode <*> decode <*> decode
+              go 6  = Unwrap   <$> decode <*> decode
+              go 7  = IWrap    <$> decode <*> decode <*> decode <*> decode
+              go 8  = Error    <$> decode <*> decode
+              go 9  = Builtin  <$> decode <*> decode
+              go 10 = Force    <$> decode <*> decode
+              go 11 = Delay    <$> decode <*> decode
+              go _  = fail "Failed to decode Term TyName Name ()"
 
     size tm sz = termTagWidth + sz + case tm of
         Var      ann n         -> getSize ann + getSize n
@@ -289,6 +296,8 @@ instance ( Closed uni
         IWrap    ann pat arg t -> getSize ann + getSize pat + getSize arg + getSize t
         Error    ann ty        -> getSize ann + getSize ty
         Builtin  ann bn        -> getSize ann + getSize bn
+        Force    ann t         -> getSize ann + getSize t
+        Delay    ann t         -> getSize ann + getSize t
 
 instance ( Closed uni
          , Flat fun

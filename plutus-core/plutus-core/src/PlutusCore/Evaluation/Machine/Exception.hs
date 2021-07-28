@@ -56,6 +56,8 @@ data MachineError fun
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
       -- ^ An attempt to unwrap a not wrapped term.
+    | NonDelayedForcedError
+      -- ^ An attempt to force a not delayed term.
     | NonFunctionalApplicationMachineError
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
@@ -171,6 +173,8 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "Attempted to instantiate a non-polymorphic term."
     prettyBy _      NonWrapUnwrappedMachineError          =
         "Cannot unwrap a not wrapped term."
+    prettyBy _      NonDelayedForcedError          =
+        "Cannot force a not delayed term."
     prettyBy _      NonFunctionalApplicationMachineError   =
         "Attempted to apply a non-function."
     prettyBy _      OpenTermEvaluatedMachineError         =
@@ -224,6 +228,7 @@ instance HasErrorCode (MachineError err) where
       errorCode        OpenTermEvaluatedMachineError {}             = ErrorCode 27
       errorCode        NonFunctionalApplicationMachineError {}      = ErrorCode 26
       errorCode        NonWrapUnwrappedMachineError {}              = ErrorCode 25
+      errorCode        NonDelayedForcedError {}                     = ErrorCode 52
       errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
       errorCode        (UnliftingMachineError e)                    = errorCode e
       errorCode        UnknownBuiltin {}                            = ErrorCode 17

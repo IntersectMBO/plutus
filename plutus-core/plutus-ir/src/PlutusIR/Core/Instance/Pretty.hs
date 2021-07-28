@@ -76,6 +76,8 @@ instance ( PLC.PrettyClassicBy configName tyname
         Error _ ty -> parens' ("error" </> prettyBy config ty)
         IWrap _ ty1 ty2 t -> parens' ("iwrap" </> vsep' [ prettyBy config ty1, prettyBy config ty2, prettyBy config t ])
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
+        Force _ t -> parens' ("force" </> prettyBy config t)
+        Delay _ t -> parens' ("delay" </> prettyBy config t)
 
         where prettyTypeOf :: PLC.GShow t => PLC.Some (PLC.ValueOf t) -> Doc ann
               prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.SomeTypeIn uni

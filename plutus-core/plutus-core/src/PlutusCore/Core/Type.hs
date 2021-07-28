@@ -65,6 +65,7 @@ data Type tyname uni ann
     | TyBuiltin ann (SomeTypeIn uni) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
+    | TyDelayed ann (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
 data Term tyname name uni fun ann
@@ -77,6 +78,8 @@ data Term tyname name uni fun ann
     | TyInst ann (Term tyname name uni fun ann) (Type tyname uni ann)
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
+    | Force ann (Term tyname name uni fun ann)
+    | Delay ann (Term tyname name uni fun ann)
     | Error ann (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
@@ -149,6 +152,7 @@ typeAnn (TyForall ann _ _ _) = ann
 typeAnn (TyBuiltin ann _   ) = ann
 typeAnn (TyLam ann _ _ _   ) = ann
 typeAnn (TyApp ann _ _     ) = ann
+typeAnn (TyDelayed ann _   ) = ann
 
 termAnn :: Term tyname name uni fun ann -> ann
 termAnn (Var ann _       ) = ann
@@ -161,6 +165,8 @@ termAnn (Unwrap ann _    ) = ann
 termAnn (IWrap ann _ _ _ ) = ann
 termAnn (Error ann _     ) = ann
 termAnn (LamAbs ann _ _ _) = ann
+termAnn (Delay ann _     ) = ann
+termAnn (Force ann _     ) = ann
 
 -- | Map a function over the set of built-in functions.
 mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann
@@ -175,10 +181,11 @@ mapFun f = go where
     go (Var ann name)             = Var ann name
     go (Constant ann con)         = Constant ann con
     go (Builtin ann fun)          = Builtin ann (f fun)
+    go (Delay ann b)              = Delay ann (go b)
+    go (Force ann b)              = Force ann (go b)
 
 -- | This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
 -- and not where it is actually used (TyVar/Var..).
 -- This marking allows us to skip the (de)serialization of binders at LamAbs/TyAbs positions
 -- iff 'name' is DeBruijn-encoded (level or index). See for example the instance of  'UntypedPlutusCore.Core.Instance.Flat'
 newtype Binder name = Binder { unBinder :: name }
-

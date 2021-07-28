@@ -94,6 +94,8 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     tyInst   = \ann term _ -> Force ann term
     unwrap   = const id
     iWrap    = \_ _ _ -> id
+    force    = Force
+    delay    = Delay
     error    = \ann _ -> Error ann
 
 instance TPLC.AsConstant (Term name uni fun ann) where
@@ -160,6 +162,8 @@ erase (TPLC.Builtin ann bn)         = Builtin ann bn
 erase (TPLC.TyInst ann term _)      = Force ann (erase term)
 erase (TPLC.Unwrap _ term)          = erase term
 erase (TPLC.IWrap _ _ _ term)       = erase term
+erase (TPLC.Force ann term)         = Force ann (erase term)
+erase (TPLC.Delay ann term)         = Delay ann (erase term)
 erase (TPLC.Error ann _)            = Error ann
 
 -- | Erase a Typed Plutus Core Program to its untyped counterpart.

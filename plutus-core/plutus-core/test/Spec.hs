@@ -69,6 +69,8 @@ compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
     compareType pat1 pat2 && compareType arg1 arg2 && compareTerm t1 t2
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
+compareTerm (Delay _ t) (Delay _ t')               = compareTerm t t'
+compareTerm (Force _ t) (Force _ t')               = compareTerm t t'
 compareTerm _ _                                    = False
 
 compareType
@@ -81,6 +83,7 @@ compareType (TyForall _ n k t) (TyForall _ n' k' t')  = compareTyName n n' && k 
 compareType (TyBuiltin _ x) (TyBuiltin _ y)           = x == y
 compareType (TyLam _ n k t) (TyLam _ n' k' t')        = compareTyName n n' && k == k' && compareType t t'
 compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && compareType t' t'''
+compareType (TyDelayed _ t) (TyDelayed _ t')          = compareType t t'
 compareType _ _                                       = False
 
 compareProgram

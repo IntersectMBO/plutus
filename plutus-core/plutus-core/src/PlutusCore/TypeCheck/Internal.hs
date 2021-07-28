@@ -265,6 +265,13 @@ inferKindM (TyIFix ann pat arg)    = do
     checkKindOfPatternFunctorM ann pat k
     pure $ Type ()
 
+-- [check| G !- a :: *]
+-- --------------------------------------------
+-- [infer| G !- delayed a :: *]
+inferKindM (TyDelayed ann ty)    = do
+    checkKindM ann ty $ Type ()
+    pure $ Type ()
+
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
     :: (AsTypeError err term uni fun ann, ToKind uni)
@@ -406,6 +413,22 @@ inferTypeM (Unwrap ann term) = do
             -- Subparts of a normalized type, so normalized.
             unfoldIFixOf (Normalized vPat) (Normalized vArg) k
         _                  -> throwing _TypeError (TypeMismatch ann (void term) (TyIFix () dummyType dummyType) vTermTy)
+
+-- [infer| G !- t : a]
+-- ----------------------------------
+-- [infer| G !- delay t : delayed a]
+inferTypeM (Delay _ term) = do
+    vTermTy <- inferTypeM term
+    pure $ TyDelayed () <$> vTermTy
+
+-- [infer| G !- t : delayed a]
+-- ----------------------------------
+-- [infer| G !- force t : a]
+inferTypeM (Force ann term) = do
+    vTermTy <- inferTypeM term
+    case unNormalized vTermTy of
+        TyDelayed _ vTy -> pure $ Normalized vTy
+        _               -> throwing _TypeError (TypeMismatch ann (void term) (TyDelayed () dummyType) vTermTy)
 
 -- [check| G !- ty :: *]    ty ~> vTy
 -- ----------------------------------

@@ -44,6 +44,8 @@ instance tyname ~ TyName => Scoping (Type tyname uni) where
         name <- freshenTyName nameDup
         pure $ TyVar (registerFree name) name
     establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
+    establishScoping (TyDelayed _ t) =
+        TyDelayed NotAName <$> establishScoping t
 
     collectScopeInfo (TyLam ann name kind ty) =
         handleSname ann name <> collectScopeInfo kind <> collectScopeInfo ty
@@ -57,6 +59,7 @@ instance tyname ~ TyName => Scoping (Type tyname uni) where
         collectScopeInfo dom <> collectScopeInfo cod
     collectScopeInfo (TyVar ann name) = handleSname ann name
     collectScopeInfo (TyBuiltin _ _) = mempty
+    collectScopeInfo (TyDelayed _ t) = collectScopeInfo t
 
 instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) where
     establishScoping (LamAbs _ nameDup ty body)  = do
@@ -78,6 +81,8 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
         pure $ Var (registerFree name) name
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
+    establishScoping (Force _ term) = Force NotAName <$> establishScoping term
+    establishScoping (Delay _ term) = Delay NotAName <$> establishScoping term
 
     collectScopeInfo (LamAbs ann name ty body)  =
         handleSname ann name <> collectScopeInfo ty <> collectScopeInfo body
@@ -94,6 +99,8 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
     collectScopeInfo (Var ann name) = handleSname ann name
     collectScopeInfo (Constant _ _) = mempty
     collectScopeInfo (Builtin _ _) = mempty
+    collectScopeInfo (Force _ term) = collectScopeInfo term
+    collectScopeInfo (Delay _ term) = collectScopeInfo term
 
 instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun) where
     establishScoping (Program _ ver term) =

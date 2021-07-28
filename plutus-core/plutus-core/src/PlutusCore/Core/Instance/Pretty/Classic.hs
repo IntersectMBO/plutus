@@ -40,6 +40,7 @@ instance (PrettyClassicBy configName tyname, GShow uni) =>
         a (TyForallF _ n k t) = parens ("all" <+> prettyName n <+> prettyBy config k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> prettyName n <+> prettyBy config k <+> t)
+        a (TyDelayedF _ t)    = parens ("delayed" <+> t)
 
         prettyName = prettyBy config
 
@@ -61,6 +62,8 @@ instance
         a (UnwrapF _ t)        = parens' ("unwrap" </> t)
         a (IWrapF _ pat arg t) = parens' ("iwrap" </> vsep' [prettyBy config pat, prettyBy config arg, t])
         a (ErrorF _ ty)        = parens' ("error" </> prettyBy config ty)
+        a (ForceF _ t)         = parens' ("force" </> t)
+        a (DelayF _ t)         = parens' ("delay" </> t)
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
