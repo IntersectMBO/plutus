@@ -111,7 +111,7 @@ machineAddress = validatorAddress . typedValidator
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.ToData s) => StateMachine s i -> ValidatorType (StateMachine s i)
 mkValidator (StateMachine step isFinal check threadToken) currentState input ptx =
-    let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
+    let vl = maybe (traceError "Can't find validation input") (txOutValue . txInInfoResolved) (findOwnInput ptx)
         checkOk =
             traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
             && traceIfFalse "Thread token not found" (TT.checkThreadToken threadToken (ownHash ptx) vl 1)

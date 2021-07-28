@@ -491,7 +491,6 @@ ownerEndpoint = do
     e <- mapError absurd $ runError start
     void $ waitNSlots 1
     tell $ Last $ Just e
-    void $ waitNSlots 50
 
 -- | Provides the following endpoints for users of a Uniswap instance:
 --

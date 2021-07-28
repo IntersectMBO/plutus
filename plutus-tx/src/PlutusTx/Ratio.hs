@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
@@ -38,13 +39,15 @@ import qualified PlutusTx.IsData   as P
 import qualified PlutusTx.Lift     as P
 import qualified PlutusTx.Numeric  as P
 import qualified PlutusTx.Ord      as P
+import qualified PlutusTx.Trace    as P
 
 import qualified PlutusTx.Builtins as Builtins
 
 import           Data.Aeson        (FromJSON, ToJSON)
 import           GHC.Generics      (Generic)
 import qualified GHC.Real          as Ratio
-import           Prelude           (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), showParen, showString, (*))
+import           Prelude           (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), otherwise, showParen,
+                                    showString, (*))
 import qualified Prelude           as Haskell
 
 data Ratio a = a :% a
@@ -277,7 +280,7 @@ half = 1 :% 2
 -- their greatest common divisor.
 reduce :: Integer -> Integer -> Ratio Integer
 reduce x y
-    | y P.== 0 = Builtins.error ()
+    | y P.== 0 = P.traceError "Ratio has zero denominator"
     | True     =
         let d = gcd x y in
         (x `Builtins.quotientInteger` d) :% (y `Builtins.quotientInteger` d)
@@ -311,7 +314,7 @@ round x
     | sig P.== P.negate P.one = n
     | sig P.== P.zero         = if even n then n else m
     | sig P.== P.one          = m
-    | True                    = Builtins.error()
+    | otherwise               = P.traceError "round default defn: Bad value"
     where (n, r) = properFraction x
           m      = if r P.< P.zero then n P.- P.one else n P.+ P.one
           sig    = signumR (abs r P.- half)

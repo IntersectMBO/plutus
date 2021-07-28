@@ -78,6 +78,7 @@
           "PlutusTx/Sqrt"
           "PlutusTx/Traversable"
           "PlutusTx/AssocMap"
+          "PlutusTx/Trace"
           "PlutusTx/These"
           "PlutusTx/Code"
           "PlutusTx/Lift"

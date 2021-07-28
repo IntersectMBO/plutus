@@ -1,13 +1,15 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances  #-}
+
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module Ledger.Orphans where
 
 import qualified Data.Aeson.Extras       as JSON
 import           Data.Bifunctor          (bimap)
 import qualified Data.Text               as Text
-import           Plutus.V1.Ledger.Bytes
-import           Plutus.V1.Ledger.Crypto
+import           Plutus.V1.Ledger.Bytes  (LedgerBytes, bytes, fromBytes)
+import           Plutus.V1.Ledger.Crypto (PrivateKey (PrivateKey, getPrivateKey))
 import           Web.HttpApiData         (FromHttpApiData (..), ToHttpApiData (..))
 
 instance ToHttpApiData PrivateKey where

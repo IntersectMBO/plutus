@@ -35,10 +35,12 @@ import qualified Data.Map                 as Map
 import           Data.Monoid              (First (..))
 import qualified Data.Set                 as Set
 import           GHC.Generics             (Generic)
+import           Ledger.Tx                (spentOutputs, txId, unspentOutputsTx, updateUtxo, validValuesTx)
 
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Tx
+import           Plutus.V1.Ledger.Tx      (Tx, TxIn, TxOut, TxOutRef, collateralInputs, inputs, txOutDatum, txOutPubKey,
+                                           txOutRefId, txOutRefIdx, txOutValue, txOutputs, updateUtxoCollateral)
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value   (Value)
 
