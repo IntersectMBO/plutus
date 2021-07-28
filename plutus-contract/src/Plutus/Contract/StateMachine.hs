@@ -462,7 +462,11 @@ mkStep client@StateMachineClient{scInstance} input = do
         Nothing -> pure $ Left $ InvalidTransition Nothing input
         Just (onChainState, utxo) -> do
             let (TypedScriptTxOut{tyTxOutData=currentState, tyTxOutTxOut}, txOutRef) = onChainState
-                oldState = State{stateData = currentState, stateValue = Ledger.txOutValue tyTxOutTxOut <> inv (SM.threadTokenValueOrZero scInstance)}
+                oldState = State
+                    { stateData = currentState
+                      -- Hide the thread token value from the client code
+                    , stateValue = Ledger.txOutValue tyTxOutTxOut <> inv (SM.threadTokenValueOrZero scInstance)
+                    }
                 inputConstraints = [InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }]
 
             case smTransition oldState input of
@@ -475,7 +479,11 @@ mkStep client@StateMachineClient{scInstance} input = do
                         red = Ledger.Redeemer (PlutusTx.toBuiltinData (Scripts.validatorHash typedValidator, Burn))
                         unmint = if isFinal then mustMintValueWithRedeemer red (inv $ SM.threadTokenValueOrZero scInstance) else mempty
                         outputConstraints =
-                            [ OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState <> SM.threadTokenValueOrZero scInstance }
+                            [ OutputConstraint
+                                { ocDatum = stateData newState
+                                  -- Add the thread token value back to the output
+                                , ocValue = stateValue newState <> SM.threadTokenValueOrZero scInstance
+                                }
                             | not isFinal ]
                     in pure
                         $ Right
