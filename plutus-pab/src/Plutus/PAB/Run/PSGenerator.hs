@@ -38,6 +38,7 @@ import qualified PSGenerator.Common
 import           Plutus.Contract.Checkpoint                 (CheckpointKey, CheckpointStore, CheckpointStoreItem)
 import           Plutus.Contract.Effects                    (TxConfirmed)
 import           Plutus.Contract.Resumable                  (Responses)
+import qualified Plutus.PAB.Effects.Contract                as Contract
 import           Plutus.PAB.Effects.Contract.Builtin        (Builtin)
 import           Plutus.PAB.Events.ContractInstanceState    (PartiallyDecodedResponse)
 import qualified Plutus.PAB.Webserver.API                   as API
@@ -150,8 +151,8 @@ generateAPIModule _ outputDir = do
         mySettings
         outputDir
         pabBridgeProxy
-        (    Proxy @(API.API (Builtin a)
-        :<|> API.NewAPI (Builtin a) Text.Text
+        (    Proxy @(API.API (Contract.ContractDef (Builtin a))
+        :<|> API.NewAPI (Contract.ContractDef (Builtin a)) Text.Text
         :<|> API.WalletProxy Text.Text)
         )
 

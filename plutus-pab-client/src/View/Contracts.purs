@@ -21,7 +21,6 @@ import Icons (Icon(..), icon)
 import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (_FunctionSchema)
-import Plutus.PAB.Effects.Contract.Builtin (Builtin)
 import Plutus.Contract.Effects (PABReq)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Schema.Types (FormEvent)
@@ -36,7 +35,7 @@ installedContractsPane ::
   forall p a.
   Show a =>
   Boolean ->
-  Array (Builtin a) ->
+  Array a ->
   HTML p (HAction a)
 installedContractsPane buttonsDisabled installedContracts =
   card_
@@ -55,7 +54,7 @@ installedContractPane ::
   forall p a.
   Show a =>
   Boolean ->
-  Builtin a ->
+  a ->
   HTML p (HAction a)
 installedContractPane buttonsDisabled installedContract =
   row_
