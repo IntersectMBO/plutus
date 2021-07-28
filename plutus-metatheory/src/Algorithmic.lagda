@@ -124,8 +124,8 @@ ISIG fstPair =
   _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` (S Z))
 ISIG sndPair = 
   _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` Z)
-ISIG nullList = _ ,, ∅ ,⋆ * ,, con (list (ne (` Z)))
-ISIG headList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con integer
+ISIG nullList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con bool
+ISIG headList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, ne (` Z)
 ISIG tailList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con (list (ne (` Z)))
 ISIG chooseList =
   _
@@ -134,7 +134,7 @@ ISIG chooseList =
   ,,
   ne (` (S Z)) 
 ISIG constrData = _ ,, ∅ , con integer , con (list (con Data)) ,, con Data
-ISIG mapData = _ ,, ∅ ,, con (pair (con Data) (con Data))
+ISIG mapData = _ ,, ∅ , con (pair (con Data) (con Data)) ,, con Data
 ISIG listData = _ ,, ∅ , con (list (con Data)) ,, con Data
 ISIG iData = _ ,, ∅ , con integer ,, con Data
 ISIG bData = _ ,, ∅ , con bytestring ,, con Data
@@ -154,8 +154,8 @@ ISIG chooseData =
 ISIG chooseUnit = _ ,, ∅ ,⋆ * , ne (` Z) , con unit ,, ne (` Z)
 ISIG mkPairData =
   _ ,, ∅ , con Data , con Data ,, con (pair (con Data) (con Data)) 
-ISIG mkNilData = _ ,, ∅ ,, con (list (con Data))
-ISIG mkNilPairData = _ ,, ∅ ,, con (list (con (pair (con Data) (con Data))))
+ISIG mkNilData = _ ,, ∅ , con unit ,, con (list (con Data))
+ISIG mkNilPairData = _ ,, ∅ , con unit ,, con (list (con (pair (con Data) (con Data))))
 ISIG mkConsData =
   _ ,, ∅ , con Data , con (list (con Data)) ,, con (list (con Data))
 
