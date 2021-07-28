@@ -3,6 +3,7 @@
   # on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
 , rootsOnly ? false
+, checkMaterialization ? true
 }:
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
@@ -50,7 +51,7 @@ let
       # given a system ("x86_64-linux") return an attrset of derivations to build
       select = _: system:
         let
-          packages = import ./default.nix { inherit system; checkMaterialization = true; };
+          packages = import ./default.nix { inherit system checkMaterialization; };
           pkgs = packages.pkgs;
           plutus = packages.plutus;
           isBuildable = platformFilterGeneric pkgs system;
