@@ -218,11 +218,11 @@ captureContext = ContT $ \k -> do
 renameConstrTypeM
     :: (PLC.HasRenaming ren PLC.TypeUnique, PLC.HasUniques (Type tyname uni ann), PLC.MonadQuote m)
     => Restorer ren m -> Type tyname uni ann -> PLC.RenameT ren m (Type tyname uni ann)
-renameConstrTypeM (Restorer restoreAfterData) = renameScopeM where
-    renameScopeM (TyForall ann name kind ty) =
-        PLC.withFreshenedName name $ \nameFr -> TyForall ann nameFr kind <$> renameScopeM ty
-    renameScopeM (TyFun ann dom cod) = TyFun ann <$> PLC.renameTypeM dom <*> renameScopeM cod
-    renameScopeM ty = renameResultM ty
+renameConstrTypeM (Restorer restoreAfterData) = renameSpineM where
+    renameSpineM (TyForall ann name kind ty) =
+        PLC.withFreshenedName name $ \nameFr -> TyForall ann nameFr kind <$> renameSpineM ty
+    renameSpineM (TyFun ann dom cod) = TyFun ann <$> PLC.renameTypeM dom <*> renameSpineM cod
+    renameSpineM ty = renameResultM ty
 
     renameResultM (TyApp ann fun arg) = TyApp ann <$> renameResultM fun <*> PLC.renameTypeM arg
     renameResultM (TyVar ann name) = TyVar ann <$> restoreAfterData (PLC.renameNameM name)
