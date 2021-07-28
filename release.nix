@@ -1,8 +1,8 @@
 { supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
 , plutus ? null
-, rootsOnly ? true
-, checkMaterialization ? false
+, rootsOnly ? false
+, checkMaterialization ? true
 }:
 let
   inherit (import ./nix/lib/ci.nix) stripAttrsForHydra filterDerivations derivationAggregate;
