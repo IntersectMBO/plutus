@@ -1,4 +1,5 @@
 -- Need some extra imports from the Prelude for doctests, annoyingly
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
@@ -28,11 +29,9 @@ module PlutusTx.Prelude (
     otherwise,
     until,
     flip,
-    -- * String and tracing functions
-    trace,
-    traceIfTrue,
-    traceIfFalse,
-    traceError,
+    -- * Tracing functions
+    module Trace,
+    -- * String
     BuiltinString,
     appendString,
     emptyString,
@@ -90,7 +89,7 @@ import           PlutusTx.Bool        as Bool
 import           PlutusTx.Builtins    (BuiltinData, BuiltinString, ByteString, appendString, charToString, concatenate,
                                        dropByteString, emptyByteString, emptyString, encodeUtf8, equalsByteString,
                                        equalsString, error, greaterThanByteString, lessThanByteString, sha2_256,
-                                       sha3_256, takeByteString, trace, verifySignature)
+                                       sha3_256, takeByteString, verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either
 import           PlutusTx.Enum        as Enum
@@ -106,6 +105,7 @@ import           PlutusTx.Numeric     as Numeric
 import           PlutusTx.Ord         as Ord
 import           PlutusTx.Ratio       as Ratio
 import           PlutusTx.Semigroup   as Semigroup
+import           PlutusTx.Trace       as Trace
 import           PlutusTx.Traversable as Traversable
 import           Prelude              as Prelude hiding (Applicative (..), Enum (..), Eq (..), Foldable (..),
                                                   Functor (..), Monoid (..), Num (..), Ord (..), Rational,
@@ -134,22 +134,7 @@ import           Prelude              as Prelude (maximum, minimum)
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
-check b = if b then () else error ()
-
-{-# INLINABLE traceError #-}
--- | Log a message and then terminate the evaluation with an error.
-traceError :: Builtins.BuiltinString -> a
-traceError str = error (trace str ())
-
-{-# INLINABLE traceIfFalse #-}
--- | Emit the given 'BuiltinString' only if the argument evaluates to 'False'.
-traceIfFalse :: Builtins.BuiltinString -> Bool -> Bool
-traceIfFalse str a = if a then True else trace str False
-
-{-# INLINABLE traceIfTrue #-}
--- | Emit the given 'BuiltinString' only if the argument evaluates to 'True'.
-traceIfTrue :: Builtins.BuiltinString -> Bool -> Bool
-traceIfTrue str a = if a then trace str True else False
+check b = if b then () else traceError "Check has failed"
 
 {-# INLINABLE divide #-}
 -- | Integer division, rounding downwards

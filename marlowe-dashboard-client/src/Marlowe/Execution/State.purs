@@ -63,22 +63,37 @@ mkTx currentSlot contract inputs =
   in
     TransactionInput { interval, inputs }
 
+-- This function checks if the are any new timeouts in the current execution state
 timeoutState :: Slot -> State -> State
 timeoutState currentSlot { semanticState, contract, history, mPendingTimeouts, mNextTimeout } =
   let
-    Slot slot = currentSlot
+    -- We start of by getting a PendingTimeout structure from the execution state (because the
+    -- contract could already have some timeouts that were "advanced")
+    { nextSemanticState, continuationContract, timeouts } =
+      fromMaybe'
+        ( \_ ->
+            { nextSemanticState: semanticState, continuationContract: contract, timeouts: [] }
+        )
+        mPendingTimeouts
 
-    env = makeEnvironment slot slot
-
+    -- This helper function does all the leg work.
+    -- A contract step can be stale/timeouted but it does not advance on its own, it needs
+    -- an empty transaction or the next meaningfull transaction. With this function we check if
+    -- the contract has timeouted and calculate what would be the resulting continuation contract
+    -- and resulting state if we'd apply an empty transaction.
     advanceAllTimeouts ::
       Maybe Slot ->
       Array Slot ->
       Semantic.State ->
       Contract ->
       { mNextTimeout :: Maybe Slot, mPendingTimeouts :: Maybe PendingTimeouts }
-    advanceAllTimeouts mNextTimeout' newTimeouts state' contract'
-      | mNextTimeout' /= Nothing && mNextTimeout' <= Just currentSlot =
+    advanceAllTimeouts (Just timeoutSlot) newTimeouts state' contract'
+      | timeoutSlot <= currentSlot =
         let
+          Slot slot = currentSlot
+
+          env = makeEnvironment slot slot
+
           { txOutState, txOutContract } = case reduceContractUntilQuiescent env state' contract' of
             -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
             ContractQuiescent _ _ _ txOutState txOutContract -> { txOutState, txOutContract }
@@ -87,26 +102,20 @@ timeoutState currentSlot { semanticState, contract, history, mPendingTimeouts, m
 
           newNextTimeout = nextTimeout txOutContract
         in
-          advanceAllTimeouts newNextTimeout (Array.snoc newTimeouts currentSlot) txOutState txOutContract
-      | otherwise =
-        { mNextTimeout: mNextTimeout'
-        , mPendingTimeouts:
-            if newTimeouts == mempty then
-              Nothing
-            else
-              Just
-                { nextSemanticState: state'
-                , continuationContract: contract'
-                , timeouts: newTimeouts
-                }
-        }
+          advanceAllTimeouts newNextTimeout (Array.snoc newTimeouts timeoutSlot) txOutState txOutContract
 
-    { nextSemanticState, continuationContract, timeouts } =
-      fromMaybe'
-        ( \_ ->
-            { nextSemanticState: semanticState, continuationContract: contract, timeouts: [] }
-        )
-        mPendingTimeouts
+    advanceAllTimeouts mNextTimeout' newTimeouts state' contract' =
+      { mNextTimeout: mNextTimeout'
+      , mPendingTimeouts:
+          if newTimeouts == mempty then
+            Nothing
+          else
+            Just
+              { nextSemanticState: state'
+              , continuationContract: contract'
+              , timeouts: newTimeouts
+              }
+      }
 
     advancedTimeouts = advanceAllTimeouts mNextTimeout timeouts nextSemanticState continuationContract
   in

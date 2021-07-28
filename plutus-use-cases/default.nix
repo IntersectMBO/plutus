@@ -5,10 +5,10 @@ let
   generated-puc-scripts-output = pkgs.runCommand "plutus-use-cases-scripts-output" { } ''
     mkdir -p $out/scripts
     mkdir -p $out/transactions
-    ln -s ${haskell.packages.plutus-use-cases.src}/scripts/protocol-parameters.json protocol-parameters.json
     ${puc-scripts-invoker}/bin/plutus-use-cases-scripts $out/scripts scripts
+    ${puc-scripts-invoker}/bin/plutus-use-cases-scripts $out/scripts scripts -u
     # Mainnet address is used because no networkid is specified (with the '-n' flag)
-    ${puc-scripts-invoker}/bin/plutus-use-cases-scripts $out/transactions transactions -p protocol-parameters.json
+    ${puc-scripts-invoker}/bin/plutus-use-cases-scripts $out/transactions transactions -p ${haskell.packages.plutus-use-cases.src}/scripts/protocol-parameters.json
     tar zcf $out/all-outputs.tar.gz -C $out scripts transactions
   '';
 

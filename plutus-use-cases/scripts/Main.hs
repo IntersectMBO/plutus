@@ -3,7 +3,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
 module Main(main) where
 
@@ -28,7 +27,7 @@ import           Flat                           (flat)
 import           GHC.Generics                   (Generic)
 import qualified Ledger                         as Plutus
 import           Ledger.Constraints.OffChain    (UnbalancedTx (..))
-import           Ledger.Index                   (ScriptValidationEvent (..))
+import           Ledger.Index                   (ScriptType (..), ScriptValidationEvent (..))
 import           Options.Applicative
 import qualified Plutus.Contract.CardanoAPI     as CardanoAPI
 import qualified Plutus.Contracts.Crowdfunding  as Crowdfunding
@@ -57,13 +56,14 @@ import qualified Wallet.Emulator.Folds          as Folds
 import           Wallet.Emulator.Stream         (foldEmulatorStreamM)
 
 data Command =
-    Scripts
+    Scripts{ unappliedValidators :: ValidatorMode }
     | Transactions{ networkId :: C.NetworkId, protocolParamsJSON :: FilePath }
     deriving stock (Show, Eq)
 
 writeWhat :: Command -> String
-writeWhat Scripts        = "scripts"
-writeWhat Transactions{} = "transactions"
+writeWhat (Scripts FullyAppliedValidators) = "scripts (fully applied)"
+writeWhat (Scripts UnappliedValidators)    = "scripts (unapplied)"
+writeWhat Transactions{}                   = "transactions"
 
 pathParser :: Parser FilePath
 pathParser = strArgument (metavar "SCRIPT_PATH" <> help "output path")
@@ -83,7 +83,7 @@ scriptsParser :: Mod CommandFields Command
 scriptsParser =
     command "scripts" $
     info
-        (pure Scripts)
+        (Scripts <$> flag FullyAppliedValidators UnappliedValidators (long "unapplied-validators" <> short 'u' <> help "Write the unapplied validator scripts" <> showDefault))
         (fullDesc <> progDesc "Write fully applied validator scripts")
 
 transactionsParser :: Mod CommandFields Command
@@ -160,8 +160,8 @@ writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
 
     createDirectoryIfMissing True scPath
     case scCommand of
-        Scripts -> do
-            traverse_ (uncurry $ writeScript scPath prefix) (zip [1::Int ..] scriptEvents)
+        Scripts mode -> do
+            traverse_ (uncurry $ writeScript scPath prefix mode) (zip [1::Int ..] scriptEvents)
         Transactions{networkId, protocolParamsJSON} -> do
             bs <- BSL.readFile protocolParamsJSON
             case Aeson.eitherDecode bs of
@@ -174,11 +174,12 @@ writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
     just use unwrapped Flat because that's more convenient for use with the
     `plc` command, for example.
 -}
-writeScript :: FilePath -> String -> Int -> ScriptValidationEvent -> IO ()
-writeScript fp prefix idx ScriptValidationEvent{sveScript, sveResult} = do
-    let filename = fp </> prefix <> "-" <> show idx <> ".flat"
+writeScript :: FilePath -> String -> ValidatorMode -> Int -> ScriptValidationEvent -> IO ()
+writeScript fp prefix mode idx event@ScriptValidationEvent{sveResult} = do
+    let filename = fp </> prefix <> "-" <> show idx <> filenameSuffix mode <> ".flat"
     putStrLn $ "Writing script: " <> filename <> " (Cost: " <> either show (showBudget . fst) sveResult <> ")"
-    BSL.writeFile filename (BSL.fromStrict . flat . unScript $ sveScript)
+
+    BSL.writeFile filename (BSL.fromStrict . flat . unScript . getScript mode $ event)
     where
         showBudget (ExBudget exCPU exMemory) = show exCPU <> ", " <> show exMemory
 
@@ -235,3 +236,17 @@ mkLookups networkId = fmap (fmap $ uncurry ExportTxInput) . traverse (bitraverse
 
 mkSignatories :: Set Plutus.PubKeyHash -> Either CardanoAPI.ToCardanoError [C.Hash C.PaymentKey]
 mkSignatories = traverse CardanoAPI.toCardanoPaymentKeyHash . Set.toList
+
+data ValidatorMode = FullyAppliedValidators | UnappliedValidators
+    deriving (Eq, Ord, Show)
+
+getScript :: ValidatorMode -> ScriptValidationEvent -> Script
+getScript FullyAppliedValidators ScriptValidationEvent{sveScript} = sveScript
+getScript UnappliedValidators ScriptValidationEvent{sveType} =
+    case sveType of
+        ValidatorScript (Plutus.Validator script) _    -> script
+        MintingPolicyScript (Plutus.MintingPolicy mps) -> mps
+
+filenameSuffix :: ValidatorMode -> String
+filenameSuffix FullyAppliedValidators = ""
+filenameSuffix UnappliedValidators    = "-unapplied"
