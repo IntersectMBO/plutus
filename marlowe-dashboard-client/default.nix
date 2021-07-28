@@ -4,20 +4,20 @@ let
 
   generated-purescript = pkgs.runCommand "marlowe-pab-purescript" { } ''
     mkdir $out
-    ln -s ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
     ${plutus-pab.server-setup-invoker}/bin/plutus-pab-setup psgenerator $out
-    ${plutus-pab.test-generator}/bin/plutus-pab-test-psgenerator $out
-    ${marlowe-invoker}/bin/marlowe-pab --config plutus-pab.yaml psapigenerator $out
+    ${marlowe-invoker}/bin/marlowe-pab --config marlowe-pab.yaml psapigenerator $out
   '';
 
   generate-purescript = pkgs.writeShellScriptBin "marlowe-pab-generate-purs" ''
     generatedDir=./generated
     rm -rf $generatedDir
-    # There might be local modifications so only copy when missing
-    ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-setup-invoker)/bin/plutus-pab-setup psgenerator $generatedDir
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.test-generator)/bin/plutus-pab-test-psgenerator $generatedDir
-    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config plutus-pab.yaml psapigenerator $generatedDir
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config marlowe-pab.yaml psapigenerator $generatedDir
+  '';
+
+  start-backend = pkgs.writeShellScriptBin "marlowe-pab-server" ''
+    echo "marlowe-pab-server: for development use only"
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config marlowe-pab.yaml all-servers
   '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
@@ -46,6 +46,6 @@ let
   };
 in
 {
-  inherit (plutus-pab) server-setup-invoker start-backend;
-  inherit client marlowe-invoker generate-purescript generated-purescript;
+  inherit (plutus-pab) server-setup-invoker;
+  inherit client marlowe-invoker generate-purescript generated-purescript start-backend;
 }
