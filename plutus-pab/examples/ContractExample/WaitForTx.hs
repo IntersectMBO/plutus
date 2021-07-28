@@ -7,13 +7,12 @@ module ContractExample.WaitForTx (
     ) where
 
 import           Ledger          (TxId)
-import           Plutus.Contract (Contract, ContractError, Endpoint, awaitTxConfirmed, endpoint, logInfo)
+import           Plutus.Contract (ContractError, Endpoint, Promise, awaitTxConfirmed, endpoint, logInfo)
 
 type WaitForTxSchema = Endpoint "tx-id" TxId
 
-waitForTx :: Contract () WaitForTxSchema ContractError ()
-waitForTx = do
-    txid <- endpoint @"tx-id"
+waitForTx :: Promise () WaitForTxSchema ContractError ()
+waitForTx = endpoint @"tx-id" $ \txid -> do
     logInfo @String $ "Waiting for transaction " <> show txid
     awaitTxConfirmed txid
     logInfo @String "CONFIRMED"

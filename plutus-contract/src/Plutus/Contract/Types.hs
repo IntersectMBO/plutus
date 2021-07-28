@@ -22,9 +22,14 @@ module Plutus.Contract.Types(
     ContractEffs
     , handleContractEffs
     , Contract(..)
+    , IsContract(..)
     -- * Select
+    , Promise(..)
+    , promiseBind
+    , promiseMap
     , select
     , selectEither
+    , selectList
     -- * Error handling
     , ContractError(..)
     , AsContractError(..)
@@ -77,12 +82,12 @@ import qualified Control.Monad.Freer.Writer        as W
 import           Data.Aeson                        (Value)
 import qualified Data.Aeson                        as Aeson
 import           Data.Foldable                     (foldl')
+import           Data.Functor.Apply                (Apply (..))
 import qualified Data.IntervalSet                  as IS
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (fromMaybe)
 import           Data.Row                          (Row)
 import           Data.Sequence                     (Seq)
-import           Data.Void                         (Void)
 import           GHC.Generics                      (Generic)
 
 import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Checkpoint (..), CheckpointError (..),
@@ -202,14 +207,46 @@ instance PlutusTx.Applicative (Contract w s e) where
 instance Bifunctor (Contract w s) where
   bimap l r = mapError l . fmap r
 
+instance Semigroup a => Semigroup (Contract w s e a) where
+  Contract ma <> Contract ma' = Contract $ (<>) <$> ma <*> ma'
+
+-- | A wrapper indicating that this contract starts with a waiting action. For use with @select@.
+newtype Promise w (s :: Row *) e a = Promise { awaitPromise :: Contract w s e a }
+  deriving newtype (Functor, Bifunctor, Semigroup)
+
+instance Apply (Promise w s e) where
+  liftF2 f (Promise a) (Promise b) = Promise (f <$> a <*> b)
+
+-- | Run more `Contract` code after the `Promise`.
+promiseBind :: Promise w s e a -> (a -> Contract w s e b) -> Promise w s e b
+promiseBind (Promise ma) f = Promise (ma >>= f)
+
+-- | Lift a mapping function for `Contract` to a mapping function for `Promise`.
+promiseMap :: (Contract w1 s1 e1 a1 -> Contract w2 s2 e2 a2) -> Promise w1 s1 e1 a1 -> Promise w2 s2 e2 a2
+promiseMap f (Promise ma) = Promise (f ma)
+
+-- | Class of types that can be trivially converted to a `Contract`.
+-- For use with functions where it is convenient to accept both `Contract` and `Promise` types.
+class IsContract c where
+  toContract :: c w s e a -> Contract w s e a
+
+instance IsContract Contract where
+  toContract = id
+
+instance IsContract Promise where
+  toContract = awaitPromise
+
 -- | @select@ returns the contract that makes progress first, discarding the
 --   other one.
-select :: forall w s e a. Contract w s e a -> Contract w s e a -> Contract w s e a
-select (Contract l) (Contract r) = Contract (Resumable.select @PABResp @PABReq @(ContractEffs w e) l r)
+select :: forall w s e a. Promise w s e a -> Promise w s e a -> Promise w s e a
+select (Promise (Contract l)) (Promise (Contract r)) = Promise (Contract (Resumable.select @PABResp @PABReq @(ContractEffs w e) l r))
 
 -- | A variant of @select@ for contracts with different return types.
-selectEither :: forall w s e a b. Contract w s e a -> Contract w s e b -> Contract w s e (Either a b)
+selectEither :: forall w s e a b. Promise w s e a -> Promise w s e b -> Promise w s e (Either a b)
 selectEither l r = (Left <$> l) `select` (Right <$> r)
+
+selectList :: [Promise w s e a] -> Contract w s e a
+selectList = awaitPromise . foldr1 select
 
 -- | Write the current state of the contract to a checkpoint.
 checkpoint :: forall w s e a. (AsCheckpointError e, Aeson.FromJSON a, Aeson.ToJSON a) => Contract w s e a -> Contract w s e a
@@ -227,12 +264,12 @@ mapError ::
 mapError f = handleError (throwError . f)
 
 -- | Turn a contract with error type 'e' and return type 'a' into one with
---   error type 'Void' (ie. throwing no errors) that returns 'Either e a'
+--   any error type (ie. throwing no errors) that returns 'Either e a'
 runError ::
-  forall w s e a.
+  forall w s e e0 a.
   Contract w s e a
-  -> Contract w s Void (Either e a)
-runError (Contract r) = Contract (E.runError $ raiseUnderN @'[E.Error Void] r)
+  -> Contract w s e0 (Either e a)
+runError (Contract r) = Contract (E.runError $ raiseUnderN @'[E.Error e0] r)
 
 -- | Handle errors, potentially throwing new errors.
 handleError ::

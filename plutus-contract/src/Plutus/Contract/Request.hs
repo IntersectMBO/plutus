@@ -17,9 +17,11 @@ module Plutus.Contract.Request(
     -- * PAB requests
     -- ** Waiting
     awaitSlot
+    , isSlot
     , currentSlot
     , waitNSlots
     , awaitTime
+    , isTime
     , currentTime
     , waitNMilliSeconds
     -- ** Querying the UTXO set
@@ -34,6 +36,7 @@ module Plutus.Contract.Request(
     , watchAddressUntilTime
     -- ** Tx confirmation
     , awaitTxConfirmed
+    , isTxConfirmed
     -- ** Contract instances
     , ownInstanceId
     -- ** Exposing endpoints
@@ -41,6 +44,7 @@ module Plutus.Contract.Request(
     , EndpointDescription(..)
     , Endpoint
     , endpoint
+    , handleEndpoint
     , endpointWithMeta
     , endpointDescription
     , endpointReq
@@ -128,6 +132,15 @@ awaitSlot ::
     -> Contract w s e Slot
 awaitSlot s = pabReq (AwaitSlotReq s) E._AwaitSlotResp
 
+-- | Wait until the slot
+isSlot ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => Slot
+    -> Promise w s e Slot
+isSlot = Promise . awaitSlot
+
 -- | Get the current slot number
 currentSlot ::
     forall w s e.
@@ -159,6 +172,16 @@ awaitTime ::
     => POSIXTime
     -> Contract w s e POSIXTime
 awaitTime s = pabReq (AwaitTimeReq s) E._AwaitTimeResp
+
+-- | Wait until the slot where the given time falls into and return latest time
+-- we know has passed.
+isTime ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => POSIXTime
+    -> Promise w s e POSIXTime
+isTime = Promise . awaitTime
 
 -- | Get the latest time of the current slot.
 --
@@ -225,10 +248,10 @@ addressChangeRequest ::
     ( AsContractError e
     )
     => AddressChangeRequest
-    -> Contract w s e AddressChangeResponse
-addressChangeRequest r = do
-  _ <- awaitSlot (targetSlot r)
-  pabReq (AddressChangeReq r) E._AddressChangeResp
+    -> Promise w s e AddressChangeResponse
+addressChangeRequest r = isSlot (targetSlot r) `promiseBind` \_ -> do
+  resp <- pabReq (AddressChangeReq r) E._AddressChangeResp
+  pure resp
 
 -- | Call 'addresssChangeRequest' for the address in each slot, until at least one
 --   transaction is returned that modifies the address.
@@ -244,7 +267,7 @@ nextTransactionsAt addr = do
         go sl = do
             let request = AddressChangeRequest{acreqSlotRangeFrom = sl, acreqSlotRangeTo = sl, acreqAddress=addr}
             _ <- awaitSlot (targetSlot request)
-            txns <- acrTxns <$> addressChangeRequest request
+            txns <- acrTxns <$> awaitPromise (addressChangeRequest request)
             if null txns
                 then pure $ Right (succ sl)
                 else pure $ Left txns
@@ -298,6 +321,10 @@ fundsAtAddressGeq addr vl =
 awaitTxConfirmed :: forall w s e. (AsContractError e) => TxId -> Contract w s e ()
 awaitTxConfirmed i = void $ pabReq (AwaitTxConfirmedReq i) E._AwaitTxConfirmedResp
 
+-- | Wait until a transaction is confirmed (added to the ledger).
+isTxConfirmed :: forall w s e. (AsContractError e) => TxId -> Promise w s e ()
+isTxConfirmed = Promise . awaitTxConfirmed
+
 -- | Get the 'ContractInstanceId' of this instance.
 ownInstanceId :: forall w s e. (AsContractError e) => Contract w s e ContractInstanceId
 ownInstanceId = pabReq OwnContractInstanceIdReq E._OwnContractInstanceIdResp
@@ -324,38 +351,58 @@ endpointDesc :: forall (l :: Symbol). KnownSymbol l => EndpointDescription
 endpointDesc = EndpointDescription $ symbolVal (Proxy @l)
 
 endpointResp :: forall l a s. (HasEndpoint l a s, ToJSON a) => a -> PABResp
-endpointResp =  ExposeEndpointResp (endpointDesc @l) . EndpointValue . JSON.toJSON
+endpointResp = ExposeEndpointResp (endpointDesc @l) . EndpointValue . JSON.toJSON
 
 -- | Expose an endpoint, return the data that was entered
 endpoint
-  :: forall l a w s e.
+  :: forall l a w s e b.
      ( HasEndpoint l a s
      , AsContractError e
      , FromJSON a
      )
-  => Contract w s e a
-endpoint = pabReq (ExposeEndpointReq $ endpointReq @l @a @s) E._ExposeEndpointResp >>= decode . snd
+  => (a -> Contract w s e b) -> Promise w s e b
+endpoint f = Promise $ do
+    (_, endpointValue) <- pabReq (ExposeEndpointReq $ endpointReq @l @a @s) E._ExposeEndpointResp
+    a <- decode endpointValue
+    f a
 
 decode :: forall a w s e. (FromJSON a, AsContractError e) => EndpointValue JSON.Value -> Contract w s e a
 decode EndpointValue{unEndpointValue} =
     either (throwError . review _OtherError . Text.pack) pure
     $ JSON.parseEither JSON.parseJSON unEndpointValue
 
--- | Expose an endpoint with some metadata. Return the data that was entered.
-endpointWithMeta
-  :: forall l a w s e b.
+handleEndpoint
+  :: forall l a w s e1 e2 b.
      ( HasEndpoint l a s
-     , AsContractError e
-     , ToJSON b
+     , AsContractError e1
      , FromJSON a
      )
-  => b
-  -> Contract w s e a
-endpointWithMeta b = pabReq (ExposeEndpointReq s) E._ExposeEndpointResp >>= decode . snd
+  => (Either e1 a -> Contract w s e2 b) -> Promise w s e2 b
+handleEndpoint f = Promise $ do
+  a <- runError $ do
+      (_, endpointValue) <- pabReq (ExposeEndpointReq $ endpointReq @l @a @s) E._ExposeEndpointResp
+      decode endpointValue
+  f a
+
+-- | Expose an endpoint with some metadata. Return the data that was entered.
+endpointWithMeta
+  :: forall l a w s e meta b.
+     ( HasEndpoint l a s
+     , AsContractError e
+     , ToJSON meta
+     , FromJSON a
+     )
+  => meta
+  -> (a -> Contract w s e b)
+  -> Promise w s e b
+endpointWithMeta meta f = Promise $ do
+    (_, endpointValue) <- pabReq (ExposeEndpointReq s) E._ExposeEndpointResp
+    a <- decode endpointValue
+    f a
     where
         s = ActiveEndpoint
                 { aeDescription = endpointDesc @l
-                , aeMetadata    = Just $ JSON.toJSON b
+                , aeMetadata    = Just $ JSON.toJSON meta
                 }
 
 endpointDescription :: forall l. KnownSymbol l => Proxy l -> EndpointDescription

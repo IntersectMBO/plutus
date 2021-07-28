@@ -70,7 +70,7 @@ account :: Account
 account =
     let con = Accounts.newAccount @() @TokenAccountSchema @TokenAccountError tokenName (Ledger.pubKeyHash $ walletPubKey w1)
         fld = Folds.instanceOutcome @() con (Trace.walletInstanceTag w1)
-        trace = Trace.activateContractWallet @() w1 (void con) >> Trace.waitNSlots 2
+        trace = Trace.activateContractWallet @_ @() w1 (void con) >> Trace.waitNSlots 2
         getOutcome (Done a) = a
         getOutcome _        = error "not finished"
     in

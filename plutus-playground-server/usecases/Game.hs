@@ -105,20 +105,15 @@ newtype GuessParams = GuessParams
     deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
-lock :: AsContractError e => Contract () GameSchema e ()
-lock = do
-    logInfo @Haskell.String "Waiting for lock endpoint..."
-    LockParams secret amt <- endpoint @"lock" @LockParams
+lock :: AsContractError e => Promise () GameSchema e ()
+lock = endpoint @"lock" @LockParams $ \(LockParams secret amt) -> do
     logInfo @Haskell.String $ "Pay " <> Haskell.show amt <> " to the script"
     let tx         = Constraints.mustPayToTheScript (hashString secret) amt
     void (submitTxConstraints gameInstance tx)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: AsContractError e => Contract () GameSchema e ()
-guess = do
-    -- Wait for a call on the guess endpoint
-    logInfo @Haskell.String "Waiting for guess endpoint..."
-    GuessParams theGuess <- endpoint @"guess" @GuessParams
+guess :: AsContractError e => Promise () GameSchema e ()
+guess = endpoint @"guess" @GuessParams $ \(GuessParams theGuess) -> do
     -- Wait for script to have a UTxO of a least 1 lovelace
     logInfo @Haskell.String "Waiting for script to have a UTxO of at least 1 lovelace"
     utxos <- fundsAtAddressGeq gameAddress (Ada.lovelaceValueOf 1)
@@ -130,8 +125,8 @@ guess = do
     let hashedSecretWord = findSecretWordValue utxos
         isCorrectSecretWord = fmap (`isGoodGuess` redeemer) hashedSecretWord == Just True
     if isCorrectSecretWord
-       then logWarn @Haskell.String "Correct secret word! Submitting the transaction"
-       else logWarn @Haskell.String "Incorrect secret word, but still submiting the transaction"
+        then logWarn @Haskell.String "Correct secret word! Submitting the transaction"
+        else logWarn @Haskell.String "Incorrect secret word, but still submiting the transaction"
 
     -- This is only for test purposes to have a possible failing transaction.
     -- In a real use-case, we would not submit the transaction if the guess is
@@ -152,7 +147,9 @@ secretWordValue o = do
   PlutusTx.fromBuiltinData d
 
 game :: AsContractError e => Contract () GameSchema e ()
-game = lock `select` guess
+game = do
+    logInfo @Haskell.String "Waiting for guess or lock endpoint..."
+    selectList [lock, guess]
 
 {- Note [Contract endpoints]
 

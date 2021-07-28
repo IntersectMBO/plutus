@@ -146,14 +146,13 @@ contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.validatorAddress . typedValidator
 
 vestingContract :: VestingParams -> Contract () VestingSchema T.Text ()
-vestingContract vesting = vest `select` retrieve
+vestingContract vesting = selectList [vest, retrieve]
   where
-    vest = endpoint @"vest funds" >> vestFundsC vesting
-    retrieve = do
-        payment <- endpoint @"retrieve funds"
+    vest = endpoint @"vest funds" $ \_ -> vestFundsC vesting
+    retrieve = endpoint @"retrieve funds" $ \payment -> do
         liveness <- retrieveFundsC vesting payment
         case liveness of
-            Alive -> retrieve
+            Alive -> awaitPromise retrieve
             Dead  -> pure ()
 
 payIntoContract :: Value -> TxConstraints () ()

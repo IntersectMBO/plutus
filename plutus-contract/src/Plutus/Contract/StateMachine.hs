@@ -237,7 +237,7 @@ waitForUpdateUntilSlot ::
 waitForUpdateUntilSlot StateMachineClient{scInstance, scChooser} timeoutSlot = do
     let addr = Scripts.validatorAddress $ typedValidator scInstance
     let go sl = do
-            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest
+            txns <- fmap acrTxns . awaitPromise $ addressChangeRequest AddressChangeRequest
                 { acreqSlotRangeFrom = sl
                 , acreqSlotRangeTo = sl
                 , acreqAddress = addr

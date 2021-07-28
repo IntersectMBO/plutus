@@ -104,7 +104,8 @@ import qualified Plutus.Contract.Effects               as Requests
 import qualified Plutus.Contract.Request               as Request
 import           Plutus.Contract.Resumable             (Request (..), Response (..))
 import qualified Plutus.Contract.Resumable             as State
-import           Plutus.Contract.Types                 (Contract (..), ResumableResult, shrinkResumableResult)
+import           Plutus.Contract.Types                 (Contract (..), IsContract (..), ResumableResult,
+                                                        shrinkResumableResult)
 import           PlutusTx                              (CompiledCode, FromData (..), getPir)
 import qualified PlutusTx.Prelude                      as P
 
@@ -456,10 +457,11 @@ assertResumableResult contract inst shrinking p nm =
 -- | A 'TracePredicate' checking that the wallet's contract instance finished
 --   without errors.
 assertDone
-    :: forall w s e a.
+    :: forall contract w s e a.
     ( Monoid w
+    , IsContract contract
     )
-    => Contract w s e a
+    => contract w s e a
     -> ContractInstanceTag
     -> (a -> Bool)
     -> String
@@ -469,10 +471,11 @@ assertDone contract inst pr = assertOutcome contract inst (\case { Done a -> pr 
 -- | A 'TracePredicate' checking that the wallet's contract instance is
 --   waiting for input.
 assertNotDone
-    :: forall w s e a.
+    :: forall contract w s e a.
     ( Monoid w
+    , IsContract contract
     )
-    => Contract w s e a
+    => contract w s e a
     -> ContractInstanceTag
     -> String
     -> TracePredicate
@@ -481,10 +484,11 @@ assertNotDone contract inst = assertOutcome contract inst (\case { NotDone -> Tr
 -- | A 'TracePredicate' checking that the wallet's contract instance
 --   failed with an error.
 assertContractError
-    :: forall w s e a.
+    :: forall contract w s e a.
     ( Monoid w
+    , IsContract contract
     )
-    => Contract w s e a
+    => contract w s e a
     -> ContractInstanceTag
     -> (e -> Bool)
     -> String
@@ -492,16 +496,17 @@ assertContractError
 assertContractError contract inst p = assertOutcome contract inst (\case { Failed err -> p err; _ -> False })
 
 assertOutcome
-    :: forall w s e a.
+    :: forall contract w s e a.
        ( Monoid w
+       , IsContract contract
        )
-    => Contract w s e a
+    => contract w s e a
     -> ContractInstanceTag
     -> (Outcome e a -> Bool)
     -> String
     -> TracePredicate
 assertOutcome contract inst p nm =
-    flip postMapM (Folds.instanceOutcome contract inst) $ \outcome -> do
+    flip postMapM (Folds.instanceOutcome (toContract contract) inst) $ \outcome -> do
         let result = p outcome
         unless result $ do
             tell @(Doc Void) $ vsep
@@ -607,17 +612,18 @@ assertUserLog pred' = flip postMapM (L.generalize Folds.userLog) $ \lg -> do
 -- | Make an assertion about the accumulated state @w@ of
 --   a contract instance.
 assertAccumState ::
-    forall w s e a.
+    forall contract w s e a.
     ( Monoid w
     , Show w
+    , IsContract contract
     )
-    => Contract w s e a
+    => contract w s e a
     -> ContractInstanceTag
     -> (w -> Bool)
     -> String
     -> TracePredicate
 assertAccumState contract inst p nm =
-    flip postMapM (Folds.instanceAccumState contract inst) $ \w -> do
+    flip postMapM (Folds.instanceAccumState (toContract contract) inst) $ \w -> do
         let result = p w
         unless result $ do
             tell @(Doc Void) $ vsep

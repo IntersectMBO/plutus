@@ -31,6 +31,7 @@ import qualified ContractExample.AtomicSwap          as Contracts.AtomicSwap
 import qualified ContractExample.PayToWallet         as Contracts.PayToWallet
 import           Data.Text.Extras                    (tshow)
 import           Playground.Types                    (FunctionSchema)
+import           Plutus.Contract                     (awaitPromise)
 import qualified Plutus.Contracts.Currency           as Contracts.Currency
 import qualified Plutus.Contracts.GameStateMachine   as Contracts.GameStateMachine
 import qualified Plutus.Contracts.PingPong           as Contracts.PingPong
@@ -64,9 +65,9 @@ getTestContractsSchema = \case
 getTestContracts :: TestContracts -> SomeBuiltin
 getTestContracts = \case
     GameStateMachine -> SomeBuiltin game
-    Currency         -> SomeBuiltin currency
-    AtomicSwap       -> SomeBuiltin swp
-    PayToWallet      -> SomeBuiltin payToWallet
+    Currency         -> SomeBuiltin $ awaitPromise currency
+    AtomicSwap       -> SomeBuiltin $ awaitPromise swp
+    PayToWallet      -> SomeBuiltin $ awaitPromise payToWallet
     PingPong         -> SomeBuiltin pingPong
     where
         game = Contracts.GameStateMachine.contract

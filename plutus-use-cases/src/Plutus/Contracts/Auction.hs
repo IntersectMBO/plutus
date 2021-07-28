@@ -265,25 +265,27 @@ waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -
 waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     t <- currentTime
     let
-        auctionOver = awaitTime apEndTime >> pure (AuctionIsOver lastHighestBid)
-        submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
+        auctionOver = AuctionIsOver lastHighestBid Haskell.<$ isTime apEndTime
+        submitOwnBid = endpoint @"bid" $ pure . SubmitOwnBid
         otherBid = do
             let address = Scripts.validatorAddress (SM.typedValidator (SM.scInstance client))
                 targetTime = TimeSlot.slotToBeginPOSIXTime def
                            $ Haskell.succ
                            $ TimeSlot.posixTimeToEnclosingSlot def t
-            AddressChangeResponse{acrTxns} <- addressChangeRequest
-                AddressChangeRequest
-                { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot def targetTime
-                , acreqSlotRangeTo = TimeSlot.posixTimeToEnclosingSlot def targetTime
-                , acreqAddress = address
-                }
-            case acrTxns of
-                [] -> pure (NoChange lastHighestBid)
-                _  -> currentState client >>= pure . maybe (AuctionIsOver lastHighestBid) OtherBid
+            promiseBind
+                (addressChangeRequest
+                    AddressChangeRequest
+                    { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot def targetTime
+                    , acreqSlotRangeTo = TimeSlot.posixTimeToEnclosingSlot def targetTime
+                    , acreqAddress = address
+                    })
+                $ \AddressChangeResponse{acrTxns} ->
+                    case acrTxns of
+                        [] -> pure (NoChange lastHighestBid)
+                        _  -> maybe (AuctionIsOver lastHighestBid) OtherBid <$> currentState client
 
     -- see note [Buyer client]
-    auctionOver `select` submitOwnBid `select` otherBid
+    selectList [auctionOver, submitOwnBid, otherBid]
 
 handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract AuctionOutput BuyerSchema AuctionError (Either HighestBid ())
 handleEvent client lastHighestBid change =
@@ -316,7 +318,7 @@ auctionBuyer currency params = do
         client = machineClient inst currency params
 
         -- the actual loop, see note [Buyer client]
-        loop         = loopM (\h -> waitForChange params client h >>= handleEvent client h)
+        loop   = loopM (\h -> waitForChange params client h >>= handleEvent client h)
     tell $ threadTokenOut currency
     initial <- currentState client
     case initial of
