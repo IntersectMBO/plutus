@@ -124,7 +124,7 @@ fromInternalState t i wallet resp =
             let hks' = mapMaybe (traverse (preview _ExposeEndpointReq)) (hooks resp)
             in resp { hooks = hks' }
         , cicWallet = wallet
-        , cicDefintion = t
+        , cicDefinition = t
         }
 
 -- HANDLERS
