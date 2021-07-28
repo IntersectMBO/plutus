@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -20,6 +21,7 @@ import qualified PlutusTx.Builtins.Internal as BI
 
 import           PlutusTx.Applicative
 import           PlutusTx.Functor
+import           PlutusTx.Trace
 
 import           Data.Kind
 import           Data.Void
@@ -134,7 +136,7 @@ instance FromData Void where
     fromBuiltinData _ = Nothing
 instance UnsafeFromData Void where
     {-# INLINABLE unsafeFromBuiltinData #-}
-    unsafeFromBuiltinData _ = Builtins.error ()
+    unsafeFromBuiltinData _ = traceError "unsafeFromBuiltinData: Void is not supported"
 
 -- | Convert a value to 'PLC.Data'.
 toData :: (ToData a) => a -> PLC.Data

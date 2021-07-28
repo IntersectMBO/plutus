@@ -1,13 +1,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Ord (Ord(..), Max (..), Min (..), Ordering(..)) where
+module PlutusTx.Ord (Ord(..), Ordering(..)) where
 
-import qualified PlutusTx.Builtins  as Builtins
+import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Eq
-import           PlutusTx.Semigroup
 
 import           PlutusCore.Data
 
-import           Prelude            hiding (Eq (..), Ord (..), Semigroup (..))
+import           Prelude           hiding (Eq (..), Ord (..))
 
 {- HLINT ignore -}
 
@@ -116,23 +115,3 @@ instance Ord Data where
     compare I{} _                             = LT
     compare _ I{}                             = GT
     compare (B b) (B b')                      = compare b b'
-
-newtype Max a = Max { getMax :: a }
-
-instance Functor Max where
-    {-# INLINABLE fmap #-}
-    fmap f (Max a) = Max (f a)
-
-instance Ord a => Semigroup (Max a) where
-    {-# INLINABLE (<>) #-}
-    (Max a1) <> (Max a2) = Max (max a1 a2)
-
-newtype Min a = Min { getMin :: a }
-
-instance Functor Min where
-    {-# INLINABLE fmap #-}
-    fmap f (Min a) = Min (f a)
-
-instance Ord a => Semigroup (Min a) where
-    {-# INLINABLE (<>) #-}
-    (Min a1) <> (Min a2) = Min (min a1 a2)

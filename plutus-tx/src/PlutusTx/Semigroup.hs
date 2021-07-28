@@ -1,11 +1,13 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Semigroup (Semigroup (..)) where
+module PlutusTx.Semigroup (Semigroup (..), Max (..), Min (..)) where
 
 import           Data.Monoid       (First (..))
 import           Data.Semigroup    (Dual (..), Endo (..))
 import qualified PlutusTx.Builtins as Builtins
+import           PlutusTx.Functor
 import           PlutusTx.List
-import           Prelude           hiding (Functor (..), Semigroup (..), (++))
+import           PlutusTx.Ord      (Ord (..))
+import           Prelude           hiding (Functor (..), Ord (..), Semigroup (..), (++))
 
 {- HLINT ignore -}
 
@@ -60,3 +62,23 @@ instance Semigroup (First a) where
     {-# INLINABLE (<>) #-}
     First Nothing <> b = b
     a             <> _ = a
+
+newtype Max a = Max { getMax :: a }
+
+instance Functor Max where
+    {-# INLINABLE fmap #-}
+    fmap f (Max a) = Max (f a)
+
+instance Ord a => Semigroup (Max a) where
+    {-# INLINABLE (<>) #-}
+    (Max a1) <> (Max a2) = Max (max a1 a2)
+
+newtype Min a = Min { getMin :: a }
+
+instance Functor Min where
+    {-# INLINABLE fmap #-}
+    fmap f (Min a) = Min (f a)
+
+instance Ord a => Semigroup (Min a) where
+    {-# INLINABLE (<>) #-}
+    (Min a1) <> (Min a2) = Min (min a1 a2)
