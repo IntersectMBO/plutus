@@ -498,9 +498,9 @@ noEmitCek _ = pure ()
 emitCek :: GivenCekEmitter s => String -> CekM uni fun s ()
 emitCek str =
     let mayLogsRef = ?cekEmitter
-        in case mayLogsRef of
-            Nothing      -> pure ()
-            Just logsRef -> CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
+    in case mayLogsRef of
+        Nothing      -> pure ()
+        Just logsRef -> CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
 -- | Emitter for when @EmitterOption@ is @EmitWithTimestamp@.
 -- Emits log along with timestamps
 emitCekWithTime :: GivenCekEmitter s => String -> CekM uni fun s ()
