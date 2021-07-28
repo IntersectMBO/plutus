@@ -20,10 +20,10 @@ import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame.State (mkMainFrame)
 import MainFrame.Types (Action(..), Msg(..), Query(..))
-import Marlowe.PAB (CombinedWSStreamToServer)
 import Plutus.PAB.Webserver (SPParams_(SPParams_))
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
+import Types (CombinedWSStreamToServer)
 import WebSocket.Support (WebSocketManager, mkWebSocketManager)
 import WebSocket.Support as WS
 
@@ -41,7 +41,7 @@ mkEnvironment = do
   pure
     { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
     , contractStepCarouselSubscription
-    , dataProvider: LocalStorage
+    , dataProvider: MarlowePAB
     }
 
 main :: Effect Unit

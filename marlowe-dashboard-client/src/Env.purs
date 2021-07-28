@@ -1,7 +1,6 @@
 module Env
   ( Env
   , DataProvider(..)
-  , PABType(..)
   ) where
 
 import Prelude
@@ -25,19 +24,12 @@ type Env
     , dataProvider :: DataProvider
     }
 
--- The frontend app can be run with three different data providers: the regular PAB (with the Marlowe PAB
--- contracts installed on disk alongside it), the "Marlowe PAB" (the PAB bundled up with the Marlowe PAB
--- contracts in one executable), or with the browser's localStorage giving the local illusion of persistent
--- and shared data. How this env property is set determines the implementation of the functions in the
--- ManageMarlowe capability monad.
+-- The frontend app can be run with two different data providers: the Marlowe PAB (the PAB bundled
+-- up with the Marlowe Plutus contracts in one executable), or with the browser's localStorage
+-- giving the local illusion of persistent and shared data. How this env property is set determines
+-- the implementation of the functions in the ManageMarlowe capability monad.
 data DataProvider
-  = PAB PABType
+  = MarlowePAB
   | LocalStorage
 
 derive instance eqDataProvider :: Eq DataProvider
-
-data PABType
-  = Plain
-  | WithMarloweContracts
-
-derive instance eqPABType :: Eq PABType
