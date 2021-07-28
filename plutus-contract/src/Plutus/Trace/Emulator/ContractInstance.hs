@@ -1,7 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
@@ -9,7 +8,6 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -134,13 +132,14 @@ contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
             logCurrentRequests @w @s @e
             msg <- mkAgentSysCall @_ @EmulatorMessage Normal WaitForMessage
             runInstance chContract msg
+            runInstanceObservableState chContract msg
 
 registerInstance :: forall effs.
     ( Member (State EmulatorThreads) effs )
     => ContractInstanceId
     -> ThreadId
     -> Eff effs ()
-registerInstance i t = modify (instanceIdThreads . at i .~ Just t)
+registerInstance i t = modify (instanceIdThreads . at i ?~ t)
 
 getThread :: forall effs.
     ( Member (State EmulatorThreads) effs
@@ -161,7 +160,7 @@ logStopped :: forall w e effs.
 logStopped ResumableResult{_finalState} =
     case _finalState of
         Left e  -> logWarn $ StoppedWithError $ show e
-        Right _ -> logInfo $ StoppedNoError
+        Right _ -> logInfo StoppedNoError
 
 -- | Run an instance of a contract
 runInstance :: forall w s e effs.
@@ -179,7 +178,7 @@ runInstance contract event = do
     hks <- getHooks @w @s @e
     when (null hks) $
         gets @(ContractInstanceStateInternal w s e ()) (view resumableResult . cisiSuspState) >>= logStopped
-    unless (null hks) $ do
+    unless (null hks) $
         case event of
             Just Freeze -> do
                 logInfo Freezing
@@ -191,31 +190,69 @@ runInstance contract event = do
                 _ <- respondToEvent @w @s @e e
                 mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             Just (ContractInstanceStateRequest sender) -> do
-                state <- get @(ContractInstanceStateInternal w s e ())
-
-                -- TODO: Maybe we should send it as a 'Dynamic' instead of
-                -- JSON? It all stays in the same process, and it would save
-                -- us having to convert to 'Value' and back.
-                let stateJSON = JSON.toJSON $ toInstanceState state
-                logInfo $ SendingContractState sender
-                void $ mkAgentSysCall Normal (Message sender $ ContractInstanceStateResponse stateJSON)
+                handleObservableStateRequest sender
                 mkAgentSysCall Normal WaitForMessage >>= runInstance contract
-            _ -> do
-                response <- respondToRequest @w @s @e handleBlockchainQueries
-                let prio =
-                        maybe
-                            -- If no events could be handled we go to sleep
-                            -- with the lowest priority, waking only after
-                            -- some external event has happened, for example
-                            -- when a new block was added.
-                            Sleeping
+            _ -> waitForNextMessage True >>= runInstance contract
 
-                            -- If an event was handled we go to sleep with
-                            -- the 'Normal' priority, trying again after all
-                            -- other active threads have had their turn
-                            (const Normal)
-                            response
-                mkAgentSysCall prio WaitForMessage >>= runInstance contract
+-- | Run an instance to only answer to observable state requests even when the
+-- contract has stopped.
+runInstanceObservableState :: forall w s e effs.
+    ( ContractConstraints s
+    , Member (Error EmulatorRuntimeError) effs
+    , Show e
+    , JSON.ToJSON e
+    , JSON.ToJSON w
+    , Monoid w
+    )
+    => Contract w s e ()
+    -> Maybe EmulatorMessage
+    -> Eff (ContractInstanceThreadEffs w s e effs) ()
+runInstanceObservableState contract event = do
+    case event of
+        Just (ContractInstanceStateRequest sender) -> do
+            handleObservableStateRequest sender
+            mkAgentSysCall Normal WaitForMessage >>= runInstanceObservableState contract
+        _ -> waitForNextMessage False >>= runInstanceObservableState contract
+
+-- | Contract instance state request handler.
+handleObservableStateRequest :: forall w s e effs.
+    ( JSON.ToJSON e
+    , JSON.ToJSON w
+    )
+    => ThreadId -- ^ Thread ID sending the request
+    -> Eff (ContractInstanceThreadEffs w s e effs) ()
+handleObservableStateRequest sender = do
+    state <- get @(ContractInstanceStateInternal w s e ())
+
+    -- TODO: Maybe we should send it as a 'Dynamic' instead of
+    -- JSON? It all stays in the same process, and it would save
+    -- us having to convert to 'Value' and back.
+    let stateJSON = JSON.toJSON $ toInstanceState state
+    logInfo $ SendingContractState sender
+    void $ mkAgentSysCall Normal (Message sender $ ContractInstanceStateResponse stateJSON)
+
+-- | Wait for the next emulator message.
+waitForNextMessage :: forall w s e effs.
+    ( Monoid w
+    )
+    => Bool -- ^ Flag on whether to log 'NoRequestsHandled' messages
+    -> Eff (ContractInstanceThreadEffs w s e effs) (Maybe EmulatorMessage)
+waitForNextMessage isLogShowed = do
+    response <- respondToRequest @w @s @e isLogShowed handleBlockchainQueries
+    let prio =
+            maybe
+                -- If no events could be handled we go to sleep
+                -- with the lowest priority, waking only after
+                -- some external event has happened, for example
+                -- when a new block was added.
+                Sleeping
+
+                -- If an event was handled we go to sleep with
+                -- the 'Normal' priority, trying again after all
+                -- other active threads have had their turn
+                (const Normal)
+                response
+    mkAgentSysCall prio WaitForMessage
 
 decodeEvent ::
     forall effs.
@@ -253,7 +290,7 @@ addResponse e = do
 type ContractInstanceRequests effs =
         Reader ContractInstanceId
          ': ContractRuntimeEffect
-         ': (EmulatedWalletEffects' effs)
+         ': EmulatedWalletEffects' effs
 
 -- | Respond to a specific event
 respondToEvent ::
@@ -267,7 +304,7 @@ respondToEvent ::
     )
     => PABResp
     -> Eff effs (Maybe (Response PABResp))
-respondToEvent e = respondToRequest @w @s @e $ RequestHandler $ \h -> do
+respondToEvent e = respondToRequest @w @s @e True $ RequestHandler $ \h -> do
     guard $ h `matches` e
     pure e
 
@@ -282,16 +319,17 @@ respondToRequest :: forall w s e effs.
     , Members EmulatedWalletEffects effs
     , Monoid w
     )
-    => RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) PABReq PABResp
+    => Bool -- ^ Flag on whether to log 'NoRequestsHandled' messages.
+    -> RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) PABReq PABResp
     -- ^ How to respond to the requests.
     ->  Eff effs (Maybe (Response PABResp))
-respondToRequest f = do
+respondToRequest isLogShowed f = do
     hks <- getHooks @w @s @e
     let hdl :: (Eff (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Maybe (Response PABResp))) = tryHandler (wrapHandler f) hks
         hdl' :: (Eff (ContractInstanceRequests effs) (Maybe (Response PABResp))) = raiseEnd hdl
 
         response_ :: Eff effs (Maybe (Response PABResp)) =
-                subsume @(LogMsg T.Text)
+            subsume @(LogMsg T.Text)
                     $ subsume @(LogMsg TxBalanceMsg)
                     $ subsume @(LogMsg RequestHandlerLogMsg)
                     $ subsume @(LogObserve (LogMessage T.Text))
@@ -303,7 +341,7 @@ respondToRequest f = do
                     $ subsume @(Reader ContractInstanceId) hdl'
     response <- response_
     traverse_ (addResponse @w @s @e) response
-    logResponse @w @s @e response
+    logResponse @w @s @e isLogShowed response
     pure response
 
 ---
@@ -314,10 +352,11 @@ logResponse ::  forall w s e effs.
     ( Member (LogMsg ContractInstanceMsg) effs
     , Member (State (ContractInstanceStateInternal w s e ())) effs
     )
-    => Maybe (Response PABResp)
+    => Bool -- ^ Flag on whether to log 'NoRequestsHandled' messages
+    -> Maybe (Response PABResp)
     -> Eff effs ()
-logResponse = \case
-    Nothing -> logDebug NoRequestsHandled
+logResponse isLogShowed = \case
+    Nothing -> when isLogShowed $ logDebug NoRequestsHandled
     Just rsp -> do
         logDebug $ HandledRequest $ fmap JSON.toJSON rsp
         logCurrentRequests @w @s @e
