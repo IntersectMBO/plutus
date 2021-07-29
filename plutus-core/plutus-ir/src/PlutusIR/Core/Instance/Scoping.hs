@@ -17,16 +17,6 @@ import           Data.List.NonEmpty       (NonEmpty (..), (<|))
 import qualified Data.List.NonEmpty       as NonEmpty
 import           Data.Traversable
 
--- That will retraverse the same type multiple times. Should we have @referenceListVia@ as a
--- primitive instead and derive 'referenceVia' in terms of it for better performance?
--- Should we only pick an arbitrary sublist of the provided list instead of using the whole list
--- for better performance? That requires enhancing 'Reference' with @Hedgehog.Gen@ or something.
-instance Reference n t => Reference [n] t where
-    referenceVia reg = flip . foldr $ referenceVia reg
-
-instance Reference n t => Reference (NonEmpty n) t where
-    referenceVia reg = referenceVia reg . NonEmpty.toList
-
 instance tyname ~ TyName => Reference TyName (Term tyname name uni fun) where
     referenceVia reg tyname term = TyInst NotAName term $ TyVar (reg tyname) tyname
 
@@ -37,7 +27,8 @@ instance tyname ~ TyName => Reference TyName (VarDecl tyname name uni fun) where
     referenceVia reg tyname (VarDecl ann varName ty) =
         VarDecl ann varName $ referenceVia reg tyname ty
 
--- TODO: describe the paranoia.
+-- | Scoping for data types is hard, so we employ some extra paranoia and reference the provided
+-- 'TyName' in the type of every single constructor, and also apply the final head to that 'TyName'.
 instance tyname ~ TyName => Reference TyName (Datatype tyname name uni fun) where
     referenceVia reg tyname (Datatype dataAnn dataDecl params matchName constrs) =
         Datatype dataAnn dataDecl params matchName $ map goConstr constrs where
@@ -46,10 +37,10 @@ instance tyname ~ TyName => Reference TyName (Datatype tyname name uni fun) wher
             goConstr (VarDecl ann constrName constrTy) = VarDecl ann constrName $ goSpine constrTy
 
             goSpine (TyForall ann name kind ty) = TyForall ann name kind $ goSpine ty
-            goSpine (TyFun ann dom cod)         = TyFun ann (referenceVia reg tyname dom) $ goSpine cod
+            goSpine (TyFun ann dom cod)         = TyFun ann dom $ goSpine cod
             goSpine ty                          = TyFun NotAName tyVar $ goResult ty
 
-            goResult (TyApp ann fun arg) = TyApp ann (goResult fun) $ referenceVia reg tyname arg
+            goResult (TyApp ann fun arg) = TyApp ann (goResult fun) arg
             goResult ty                  = TyApp NotAName ty tyVar
 
 instance tyname ~ TyName => Reference TyName (Binding tyname name uni fun) where
@@ -60,8 +51,9 @@ instance tyname ~ TyName => Reference TyName (Binding tyname name uni fun) where
     referenceVia reg tyname (DatatypeBind ann datatype) =
         DatatypeBind ann $ referenceVia reg tyname datatype
 
--- Note that unlike other 'Reference' instances this one does not guarantee that the name will
--- actually be referenced.
+-- | Unlike other 'Reference' instances this one does not guarantee that the name will actually be
+-- referenced, but it's too convenient to have this instance to give up on it, without it would be
+-- awkward to express \"reference this binding in this thing\".
 instance name ~ Name => Reference Name (Binding tyname name uni fun) where
     referenceVia reg name (TermBind ann strictness varDecl term) =
         TermBind ann strictness varDecl $ referenceVia reg name term
@@ -87,13 +79,24 @@ instance (Reference TyName t, Reference Name t) => Reference (Binding TyName Nam
     referenceVia reg (TypeBind _ tyVarDecl _)  = referenceVia reg tyVarDecl
     referenceVia reg (DatatypeBind _ datatype) = referenceVia reg datatype
 
-establishScopingParams
-    :: [TyVarDecl TyName ann] -> Quote [TyVarDecl TyName NameAnn]
+-- | Establish scoping for each of the parameters by only annotating every parameter with
+-- 'introduceBound'.
+establishScopingParams :: [TyVarDecl TyName ann] -> Quote [TyVarDecl TyName NameAnn]
 establishScopingParams =
     traverse $ \(TyVarDecl _ paramNameDup paramKind) -> do
         paramName <- freshenTyName paramNameDup
         TyVarDecl (introduceBound paramName) paramName <$> establishScoping paramKind
 
+-- See Note [Weird IR data types].
+-- | Establish scoping for the type of a constructor. After mangling the updated constructor expects
+-- an argument of the \"the data type applied to all its parameters\" type, plus the final head
+-- gets applied to the same thing as well (because it's legal to generate a data type whose
+-- constructors do not return the data type applied to its parameters as program generation can be
+-- entirely arbitrary (no pun intended). All this means that mangling turns well-formed programs
+-- into weirdly shaped mess, but we only care about testing scoping here, so that's fine.
+-- Whether the name of the data type is referenced as in-scope or out-of-scope one in the types of
+-- arguments of constructors is controlled by the first argument, which ultimately depends on the
+-- recursivity of the data type.
 establishScopingConstrTy
     :: (TyName -> NameAnn)
     -> TyName
@@ -106,6 +109,9 @@ establishScopingConstrTy regSelf dataName params = goSpine where
         $ map (\(TyVarDecl _ name _) -> TyVar (registerBound name) name) params
 
     goSpine (TyForall _ nameDup kindDup ty) = do
+        -- Similar to 'establishScopingBinder', but uses 'TyFun' rather than whatever 'registerVia'
+        -- uses in order not to break the invariants described in Note [Weird IR data types].
+        -- Also calls 'goSpine' recursively rather than 'establishScoping'.
         name <- freshenTyName nameDup
         kind <- establishScoping kindDup
         TyFun NotAName (TyVar (registerOutOfScope name) name) .
@@ -116,9 +122,13 @@ establishScopingConstrTy regSelf dataName params = goSpine where
     goSpine ty                = TyFun NotAName (toDataAppliedToParams regSelf) <$> goResult ty
 
     goResult (TyApp _ fun arg) = TyApp NotAName <$> goResult fun <*> establishScoping arg
-    -- TODO: mention the weird thing that this does.
     goResult _                 = pure $ toDataAppliedToParams registerBound
 
+-- | Establish scoping for all constructors of a non-recursive data type by establishing scoping
+-- for each of them individually. If there are no constructors, then a dummy one is added, because
+-- we need to maintain the invariant that every binding is referenced as an in-scope one somewhere
+-- and the only place where parameters of a data type can be referenced this way is a constructor
+-- of that data type.
 establishScopingConstrsNonRec
     :: (TyName -> NameAnn)
     -> ann
@@ -126,15 +136,18 @@ establishScopingConstrsNonRec
     -> [TyVarDecl TyName NameAnn]
     -> [VarDecl TyName Name uni fun ann]
     -> Quote [VarDecl TyName Name uni fun NameAnn]
-establishScopingConstrsNonRec regSelf dataAnn dataName params constrs = do
-    -- TODO: explain.
+establishScopingConstrsNonRec regSelf dataAnn dataName params constrsPossiblyEmpty = do
     cons0Name <- freshName "cons0"
     let cons0 = VarDecl dataAnn cons0Name $ TyVar dataAnn dataName
-    for (cons0 : constrs) $ \(VarDecl _ constrNameDup constrTyDup) -> do
+        constrs = if null constrsPossiblyEmpty then [cons0] else constrsPossiblyEmpty
+    for constrs $ \(VarDecl _ constrNameDup constrTyDup) -> do
         constrName <- freshenName constrNameDup
         constrTy <- establishScopingConstrTy regSelf dataName params constrTyDup
         pure $ VarDecl (introduceBound constrName) constrName constrTy
 
+-- | Establish scoping of a binding. Each bindings gets referenced in its own body either as an
+-- in-scope or out-of-scope, which is controlled by the first argument and ultimately depends on
+-- the recursivity of the binding.
 establishScopingBinding
     :: (forall name. ToScopedName name => name -> NameAnn)
     -> Binding TyName Name uni fun ann
@@ -148,7 +161,8 @@ establishScopingBinding regSelf (TypeBind _ (TyVarDecl _ nameDup kind) ty) = do
     tyVarDecl <- TyVarDecl (introduceBound name) name <$> establishScoping kind
     TypeBind NotAName tyVarDecl . referenceVia regSelf name <$> establishScoping ty
 establishScopingBinding regSelf (DatatypeBind dataAnn datatypeDup) = do
-    let Datatype _ (TyVarDecl _ dataNameDup dataKind) paramsDup matchNameDup constrsDup = datatypeDup
+    let Datatype _ dataDeclDup paramsDup matchNameDup constrsDup = datatypeDup
+        TyVarDecl _ dataNameDup dataKind = dataDeclDup
     dataName <- freshenTyName dataNameDup
     dataDecl <- TyVarDecl (introduceBound dataName) dataName <$> establishScoping dataKind
     params <- establishScopingParams paramsDup
@@ -157,7 +171,7 @@ establishScopingBinding regSelf (DatatypeBind dataAnn datatypeDup) = do
     let datatype = Datatype (introduceBound matchName) dataDecl params matchName constrs
     pure $ DatatypeBind NotAName datatype
 
--- TODO: Mention that it's only the final one.
+-- | Reference each binding in the last one apart from itself.
 referenceViaBindings
     :: (forall name. ToScopedName name => name -> NameAnn)
     -> NonEmpty (Binding TyName Name uni fun NameAnn)
@@ -167,6 +181,10 @@ referenceViaBindings reg (b0 :| bs0) = go [] b0 bs0 where
     go prevs b []       = referenceVia reg prevs b :| []
     go prevs b (c : bs) = b <| go (b : prevs) c bs
 
+-- | Reference each binding in the first one apart from itself and in the last one also apart from
+-- itself. Former bindings are always visible in latter ones and whether latter bindings are visible
+-- in former ones is controlled by the first argument and ultimately depends on the recursivity
+-- of the family of bindings.
 referenceBindingsBothWays
     :: (forall name. ToScopedName name => name -> NameAnn)
     -> NonEmpty (Binding TyName Name uni fun NameAnn)
@@ -177,48 +195,30 @@ referenceBindingsBothWays regRec               -- Whether latter bindings are vi
     . NonEmpty.reverse
     . referenceViaBindings registerBound       -- Former bindings are always visible in latter ones.
 
+-- | Establish scoping for a family of bindings.
 establishScopingBindings
     :: (forall name. ToScopedName name => name -> NameAnn)
     -> NonEmpty (Binding TyName Name uni fun ann)
     -> Quote (NonEmpty (Binding TyName Name uni fun NameAnn))
 establishScopingBindings regRec =
+    -- Note that mutual recursion and self-recursion are handled separately.
     fmap (referenceBindingsBothWays regRec) . traverse (establishScopingBinding regRec)
 
-collectScopeInfoTyVarDecl :: TyVarDecl TyName NameAnn -> ScopeErrorOrInfo
-collectScopeInfoTyVarDecl (TyVarDecl ann tyname kind) =
-    handleSname ann tyname <> collectScopeInfo kind
-
-collectScopeInfoVarDecl :: VarDecl TyName Name uni fun NameAnn -> ScopeErrorOrInfo
-collectScopeInfoVarDecl (VarDecl ann name ty) =
-    handleSname ann name <> collectScopeInfo ty
-
-collectScopeInfoDatatype :: Datatype TyName Name uni fun NameAnn -> ScopeErrorOrInfo
-collectScopeInfoDatatype (Datatype matchAnn dataDecl params matchName constrs) = fold
-    [ collectScopeInfoTyVarDecl dataDecl
-    , foldMap collectScopeInfoTyVarDecl params
-    , handleSname matchAnn matchName
-    , foldMap collectScopeInfoVarDecl constrs
-    ]
-
--- TODO: use a type class for collecting.
-collectScopeInfoBinding :: Binding TyName Name uni fun NameAnn -> ScopeErrorOrInfo
-collectScopeInfoBinding (TermBind _ _ varDecl term) =
-    collectScopeInfoVarDecl varDecl <> collectScopeInfo term
-collectScopeInfoBinding (TypeBind _ tyVarDecl ty) =
-    collectScopeInfoTyVarDecl tyVarDecl <> collectScopeInfo ty
-collectScopeInfoBinding (DatatypeBind _ datatype) =
-    collectScopeInfoDatatype datatype
-
+-- | Return a registering function depending on the recursivity.
 registerByRecursivity :: ToScopedName name => Recursivity -> name -> NameAnn
 registerByRecursivity Rec    = registerBound
 registerByRecursivity NonRec = registerOutOfScope
 
--- DON'T FORGET TO HANDLE OUT OF SCOPE THINGS (IN PARTICULAR, PARAMS)
-instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) where
+instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name uni fun) where
     establishScoping (Let _ recy bindingsDup body) = do
         bindings <- establishScopingBindings (registerByRecursivity recy) bindingsDup
-        referenceOutOfScope bindings . Let NotAName recy bindings . referenceBound bindings <$>
-            establishScoping body
+        -- Follows the shape of 'establishScopingBinder', but subtly differs (for example,
+        -- does not bind a single name, does not have a @sort@ etc), hence we write things out
+        -- manually.
+        referenceOutOfScope bindings .
+            Let NotAName recy bindings .
+                referenceBound bindings <$>
+                    establishScoping body
     establishScoping (LamAbs _ nameDup ty body) = do
         name <- freshenName nameDup
         establishScopingBinder LamAbs name ty body
@@ -239,26 +239,44 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
 
+instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
+    establishScoping (Program _ term) = Program NotAName <$> establishScoping term
+
+instance tyname ~ TyName => CollectScopeInfo (TyVarDecl tyname) where
+    collectScopeInfo (TyVarDecl ann tyname kind) = handleSname ann tyname <> collectScopeInfo kind
+
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (VarDecl tyname name uni fun) where
+    collectScopeInfo (VarDecl ann name ty) = handleSname ann name <> collectScopeInfo ty
+
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Datatype tyname name uni fun) where
+    collectScopeInfo (Datatype matchAnn dataDecl params matchName constrs) = fold
+        [ collectScopeInfo dataDecl
+        , foldMap collectScopeInfo params
+        , handleSname matchAnn matchName
+        , foldMap collectScopeInfo constrs
+        ]
+
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Binding tyname name uni fun) where
+    collectScopeInfo (TermBind _ _ varDecl term) = collectScopeInfo varDecl <> collectScopeInfo term
+    collectScopeInfo (TypeBind _ tyVarDecl ty)   = collectScopeInfo tyVarDecl <> collectScopeInfo ty
+    collectScopeInfo (DatatypeBind _ datatype)   = collectScopeInfo datatype
+
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name uni fun) where
     collectScopeInfo (Let _ _ bindings body) =
-        foldMap collectScopeInfoBinding bindings <> collectScopeInfo body
+        foldMap collectScopeInfo bindings <> collectScopeInfo body
     collectScopeInfo (LamAbs ann name ty body) =
         handleSname ann name <> collectScopeInfo ty <> collectScopeInfo body
     collectScopeInfo (TyAbs ann name kind body) =
         handleSname ann name <> collectScopeInfo kind <> collectScopeInfo body
     collectScopeInfo (IWrap _ pat arg term) =
         collectScopeInfo pat <> collectScopeInfo arg <> collectScopeInfo term
-    collectScopeInfo (Apply _ fun arg) =
-        collectScopeInfo fun <> collectScopeInfo arg
+    collectScopeInfo (Apply _ fun arg) = collectScopeInfo fun <> collectScopeInfo arg
     collectScopeInfo (Unwrap _ term) = collectScopeInfo term
     collectScopeInfo (Error _ ty) = collectScopeInfo ty
-    collectScopeInfo (TyInst _ term ty) =
-        collectScopeInfo term <> collectScopeInfo ty
+    collectScopeInfo (TyInst _ term ty) = collectScopeInfo term <> collectScopeInfo ty
     collectScopeInfo (Var ann name) = handleSname ann name
     collectScopeInfo (Constant _ _) = mempty
     collectScopeInfo (Builtin _ _) = mempty
 
-instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun) where
-    establishScoping (Program _ term) =
-        Program NotAName <$> establishScoping term
-
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Program tyname name uni fun) where
     collectScopeInfo (Program _ term) = collectScopeInfo term
