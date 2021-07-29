@@ -33,7 +33,7 @@ import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, da
                                                        validatorMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, citxOutputs)
-import           Plutus.ChainIndex.Types              (Tip, pageOf)
+import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoPosition, InsertUtxoSuccess (..), RollbackResult (..),
                                                        UtxoIndex, isUnspentOutput, tip)
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
@@ -82,18 +82,18 @@ handleQuery = \case
     UtxoSetMembership r -> do
         utxoState <- gets (measure . view utxoIndex)
         case tip utxoState of
-            Nothing -> throwError QueryFailedNoTip
-            Just tp -> pure (tp, isUnspentOutput r utxoState)
+            TipAtGenesis -> throwError QueryFailedNoTip
+            tp           -> pure (tp, isUnspentOutput r utxoState)
     UtxoSetAtAddress cred -> do
         state <- get
         let outRefs = view (diskState . addressMap . at cred) state
             utxoState = view (utxoIndex . to measure) state
             page = pageOf def $ Set.filter (\r -> isUnspentOutput r utxoState) (fromMaybe mempty outRefs)
         case tip utxoState of
-            Nothing -> throwError QueryFailedNoTip
-            Just tp -> pure (tp, page)
+            TipAtGenesis -> throwError QueryFailedNoTip
+            tp           -> pure (tp, page)
     GetTip ->
-        gets (tip . measure . view utxoIndex) >>= maybe (throwError QueryFailedNoTip) pure
+        gets (tip . measure . view utxoIndex)
 
 handleControl ::
     forall effs.
