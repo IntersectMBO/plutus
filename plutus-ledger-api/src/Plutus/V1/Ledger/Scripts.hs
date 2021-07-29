@@ -166,7 +166,7 @@ fromPlc (UPLC.Program a v t) =
 
 data ScriptError =
     EvaluationError [Haskell.String] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
-    | EvaluationException Haskell.String -- ^ Unexpected behavior of the engine (a bug)
+    | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     | MalformedScript Haskell.String -- ^ Script is wrong in some way
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
@@ -194,7 +194,7 @@ evaluateScript s = do
     case result of
         Right _ -> Haskell.pure ()
         Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
-            InternalEvaluationError {}    -> EvaluationException $ Haskell.show errWithCause
+            InternalEvaluationError internalEvalError    -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
             UserEvaluationError evalError -> EvaluationError logOut (PLC.show evalError)  -- TODO fix this error channel fuckery
     Haskell.pure (budget, logOut)
 
