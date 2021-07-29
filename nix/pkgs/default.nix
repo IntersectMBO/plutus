@@ -8,7 +8,7 @@
 let
   inherit (pkgs) stdenv;
 
-  gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
+  gitignore-nix = pkgs.callPackage (sources."gitignore.nix" or sources.gitignore-nix) { };
 
   # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
@@ -110,7 +110,7 @@ let
   # By default pre-commit-hooks.nix uses its own pinned version of nixpkgs. In order to
   # to get it to use our version we have to (somewhat awkwardly) use `nix/default.nix`
   # to which both `nixpkgs` and `system` can be passed.
-  nix-pre-commit-hooks = (pkgs.callPackage ((sources."pre-commit-hooks.nix") + "/nix/default.nix") {
+  nix-pre-commit-hooks = (pkgs.callPackage ((sources."pre-commit-hooks.nix" or sources.pre-commit-hooks-nix) + "/nix/default.nix") {
     inherit system;
     inherit (sources) nixpkgs;
   });
