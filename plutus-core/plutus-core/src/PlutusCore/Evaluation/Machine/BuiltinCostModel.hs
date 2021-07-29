@@ -53,28 +53,28 @@ type BuiltinCostModel = BuiltinCostModelBase CostingFun
 -- generated. Calibrated for the CEK machine.
 data BuiltinCostModelBase f =
     BuiltinCostModelBase
-    { paramAddInteger           :: f ModelTwoArguments
-    , paramSubtractInteger      :: f ModelTwoArguments
-    , paramMultiplyInteger      :: f ModelTwoArguments
-    , paramDivideInteger        :: f ModelTwoArguments
-    , paramQuotientInteger      :: f ModelTwoArguments
-    , paramRemainderInteger     :: f ModelTwoArguments
-    , paramModInteger           :: f ModelTwoArguments
-    , paramLessThanInteger      :: f ModelTwoArguments
-    , paramLessThanEqInteger    :: f ModelTwoArguments
-    , paramGreaterThanInteger   :: f ModelTwoArguments
-    , paramGreaterThanEqInteger :: f ModelTwoArguments
-    , paramEqInteger            :: f ModelTwoArguments
-    , paramConcatenate          :: f ModelTwoArguments
-    , paramTakeByteString       :: f ModelTwoArguments
-    , paramDropByteString       :: f ModelTwoArguments
-    , paramSHA2                 :: f ModelOneArgument
-    , paramSHA3                 :: f ModelOneArgument
-    , paramVerifySignature      :: f ModelThreeArguments
-    , paramEqByteString         :: f ModelTwoArguments
-    , paramLtByteString         :: f ModelTwoArguments
-    , paramGtByteString         :: f ModelTwoArguments
-    , paramIfThenElse           :: f ModelThreeArguments
+    { paramAddInteger               :: f ModelTwoArguments
+    , paramSubtractInteger          :: f ModelTwoArguments
+    , paramMultiplyInteger          :: f ModelTwoArguments
+    , paramDivideInteger            :: f ModelTwoArguments
+    , paramQuotientInteger          :: f ModelTwoArguments
+    , paramRemainderInteger         :: f ModelTwoArguments
+    , paramModInteger               :: f ModelTwoArguments
+    , paramLessThanInteger          :: f ModelTwoArguments
+    , paramLessThanEqualsInteger    :: f ModelTwoArguments
+    , paramGreaterThanInteger       :: f ModelTwoArguments
+    , paramGreaterThanEqualsInteger :: f ModelTwoArguments
+    , paramEqualsInteger            :: f ModelTwoArguments
+    , paramConcatenate              :: f ModelTwoArguments
+    , paramTakeByteString           :: f ModelTwoArguments
+    , paramDropByteString           :: f ModelTwoArguments
+    , paramSha2_256                 :: f ModelOneArgument
+    , paramSha3_256                 :: f ModelOneArgument
+    , paramVerifySignature          :: f ModelThreeArguments
+    , paramEqualsByteString         :: f ModelTwoArguments
+    , paramLessThanByteString       :: f ModelTwoArguments
+    , paramGreaterThanByteString    :: f ModelTwoArguments
+    , paramIfThenElse               :: f ModelThreeArguments
     }
     deriving (Generic, FunctorB, TraversableB, ConstraintsB)
 

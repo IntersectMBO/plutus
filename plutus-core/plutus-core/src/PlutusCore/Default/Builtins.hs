@@ -157,7 +157,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning LessThanEqualsInteger =
         makeBuiltinMeaning
             ((<=) @Integer)
-            (runCostingFunTwoArguments . paramLessThanEqInteger)
+            (runCostingFunTwoArguments . paramLessThanEqualsInteger)
     toBuiltinMeaning GreaterThanInteger =
         makeBuiltinMeaning
             ((>) @Integer)
@@ -165,11 +165,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning GreaterThanEqualsInteger =
         makeBuiltinMeaning
             ((>=) @Integer)
-            (runCostingFunTwoArguments . paramGreaterThanEqInteger)
+            (runCostingFunTwoArguments . paramGreaterThanEqualsInteger)
     toBuiltinMeaning EqualsInteger =
         makeBuiltinMeaning
             ((==) @Integer)
-            (runCostingFunTwoArguments . paramEqInteger)
+            (runCostingFunTwoArguments . paramEqualsInteger)
     toBuiltinMeaning Concatenate =
         makeBuiltinMeaning
             BS.append
@@ -185,11 +185,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
             Hash.sha2
-            (runCostingFunOneArgument . paramSHA2)
+            (runCostingFunOneArgument . paramSha2_256)
     toBuiltinMeaning Sha3_256 =
         makeBuiltinMeaning
             Hash.sha3
-            (runCostingFunOneArgument . paramSHA3)
+            (runCostingFunOneArgument . paramSha3_256)
     toBuiltinMeaning VerifySignature =
         makeBuiltinMeaning
             (verifySignature @EvaluationResult)
@@ -197,15 +197,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning EqualsByteString =
         makeBuiltinMeaning
             ((==) @BS.ByteString)
-            (runCostingFunTwoArguments . paramEqByteString)
+            (runCostingFunTwoArguments . paramEqualsByteString)
     toBuiltinMeaning LessThanByteString =
         makeBuiltinMeaning
             ((<) @BS.ByteString)
-            (runCostingFunTwoArguments . paramLtByteString)
+            (runCostingFunTwoArguments . paramLessThanByteString)
     toBuiltinMeaning GreaterThanByteString =
         makeBuiltinMeaning
             ((>) @BS.ByteString)
-            (runCostingFunTwoArguments . paramGtByteString)
+            (runCostingFunTwoArguments . paramGreaterThanByteString)
     toBuiltinMeaning IfThenElse =
        makeBuiltinMeaning
             (\b x y -> if b then x else y)

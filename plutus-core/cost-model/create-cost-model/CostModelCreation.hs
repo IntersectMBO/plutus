@@ -43,28 +43,28 @@ msToPs = ceiling . (1e6 *)
 -- The names of the models in R
 builtinCostModelNames :: BuiltinCostModelBase (Const Text)
 builtinCostModelNames = BuiltinCostModelBase
-  { paramAddInteger           = "addIntegerModel"
-  , paramSubtractInteger      = "subtractIntegerModel"
-  , paramMultiplyInteger      = "multiplyIntegerModel"
-  , paramDivideInteger        = "divideIntegerModel"
-  , paramModInteger           = "modIntegerModel"
-  , paramQuotientInteger      = "quotientIntegerModel"
-  , paramRemainderInteger     = "remainderIntegerModel"
-  , paramEqInteger            = "eqIntegerModel"
-  , paramLessThanInteger      = "lessThanIntegerModel"
-  , paramLessThanEqInteger    = "lessThanEqIntegerModel"
-  , paramGreaterThanInteger   = "greaterThanIntegerModel"
-  , paramGreaterThanEqInteger = "greaterThanEqIntegerModel"
-  , paramConcatenate          = "concatenateModel"
-  , paramTakeByteString       = "takeByteStringModel"
-  , paramDropByteString       = "dropByteStringModel"
-  , paramSHA2                 = "sHA2Model"
-  , paramSHA3                 = "sHA3Model"
-  , paramVerifySignature      = "verifySignatureModel"
-  , paramEqByteString         = "eqByteStringModel"
-  , paramLtByteString         = "ltByteStringModel"
-  , paramGtByteString         = "gtByteStringModel"
-  , paramIfThenElse           = "ifThenElseModel"
+  { paramAddInteger               = "addIntegerModel"
+  , paramSubtractInteger          = "subtractIntegerModel"
+  , paramMultiplyInteger          = "multiplyIntegerModel"
+  , paramDivideInteger            = "divideIntegerModel"
+  , paramModInteger               = "modIntegerModel"
+  , paramQuotientInteger          = "quotientIntegerModel"
+  , paramRemainderInteger         = "remainderIntegerModel"
+  , paramEqualsInteger            = "equalsIntegerModel"
+  , paramLessThanInteger          = "lessThanIntegerModel"
+  , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
+  , paramGreaterThanInteger       = "greaterThanIntegerModel"
+  , paramGreaterThanEqualsInteger = "greaterThanEqualsIntegerModel"
+  , paramConcatenate              = "concatenateModel"
+  , paramTakeByteString           = "takeByteStringModel"
+  , paramDropByteString           = "dropByteStringModel"
+  , paramSha2_256                 = "sha2_256Model"
+  , paramSha3_256                 = "sha3_256Model"
+  , paramVerifySignature          = "verifySignatureModel"
+  , paramEqualsByteString         = "equalsByteStringModel"
+  , paramLessThanByteString       = "lessThanByteStringModel"
+  , paramGreaterThanByteString    = "greaterThanByteStringModel"
+  , paramIfThenElse               = "ifThenElseModel"
   }
 
 -- Loads the models from R
@@ -87,28 +87,28 @@ createBuiltinCostModel =
     models <- costModelsR
     -- TODO: refactor with barbies
     let getParams x y = x (getConst $ y models)
-    paramAddInteger           <- getParams addInteger           paramAddInteger
-    paramSubtractInteger      <- getParams subtractInteger      paramSubtractInteger
-    paramMultiplyInteger      <- getParams multiplyInteger      paramMultiplyInteger
-    paramDivideInteger        <- getParams divideInteger        paramDivideInteger
-    paramQuotientInteger      <- getParams quotientInteger      paramQuotientInteger
-    paramRemainderInteger     <- getParams remainderInteger     paramRemainderInteger
-    paramModInteger           <- getParams modInteger           paramModInteger
-    paramLessThanInteger      <- getParams lessThanInteger      paramLessThanInteger
-    paramGreaterThanInteger   <- getParams greaterThanInteger   paramGreaterThanInteger
-    paramLessThanEqInteger    <- getParams lessThanEqInteger    paramLessThanEqInteger
-    paramGreaterThanEqInteger <- getParams greaterThanEqInteger paramGreaterThanEqInteger
-    paramEqInteger            <- getParams eqInteger            paramEqInteger
-    paramConcatenate          <- getParams concatenate          paramConcatenate
-    paramTakeByteString       <- getParams takeByteString       paramTakeByteString
-    paramDropByteString       <- getParams dropByteString       paramDropByteString
-    paramSHA2                 <- getParams sHA2                 paramSHA2
-    paramSHA3                 <- getParams sHA3                 paramSHA3
-    paramVerifySignature      <- getParams verifySignature      paramVerifySignature
-    paramEqByteString         <- getParams eqByteString         paramEqByteString
-    paramLtByteString         <- getParams ltByteString         paramLtByteString
-    paramGtByteString         <- getParams gtByteString         paramGtByteString
-    paramIfThenElse           <- getParams ifThenElse           paramIfThenElse
+    paramAddInteger               <- getParams addInteger               paramAddInteger
+    paramSubtractInteger          <- getParams subtractInteger          paramSubtractInteger
+    paramMultiplyInteger          <- getParams multiplyInteger          paramMultiplyInteger
+    paramDivideInteger            <- getParams divideInteger            paramDivideInteger
+    paramQuotientInteger          <- getParams quotientInteger          paramQuotientInteger
+    paramRemainderInteger         <- getParams remainderInteger         paramRemainderInteger
+    paramModInteger               <- getParams modInteger               paramModInteger
+    paramLessThanInteger          <- getParams lessThanInteger          paramLessThanInteger
+    paramGreaterThanInteger       <- getParams greaterThanInteger       paramGreaterThanInteger
+    paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger    paramLessThanEqualsInteger
+    paramGreaterThanEqualsInteger <- getParams greaterThanEqualsInteger paramGreaterThanEqualsInteger
+    paramEqualsInteger            <- getParams equalsInteger            paramEqualsInteger
+    paramConcatenate              <- getParams concatenate              paramConcatenate
+    paramTakeByteString           <- getParams takeByteString           paramTakeByteString
+    paramDropByteString           <- getParams dropByteString           paramDropByteString
+    paramSha2_256                 <- getParams sha2_256                 paramSha2_256
+    paramSha3_256                 <- getParams sha3_256                 paramSha3_256
+    paramVerifySignature          <- getParams verifySignature          paramVerifySignature
+    paramEqualsByteString         <- getParams equalsByteString         paramEqualsByteString
+    paramLessThanByteString       <- getParams lessThanByteString       paramLessThanByteString
+    paramGreaterThanByteString    <- getParams greaterThanByteString    paramGreaterThanByteString
+    paramIfThenElse               <- getParams ifThenElse               paramIfThenElse
 
     pure $ BuiltinCostModelBase {..}
 
@@ -245,8 +245,8 @@ quotientInteger cpuModelR = do
 remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 remainderInteger = quotientInteger
 
-eqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-eqInteger cpuModelR = do
+equalsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+equalsInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
@@ -258,26 +258,26 @@ lessThanInteger cpuModelR = do
 greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanInteger = lessThanInteger
 
-lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-lessThanEqInteger cpuModelR = do
+lessThanEqualsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+lessThanEqualsInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
-greaterThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanEqInteger = lessThanEqInteger
+greaterThanEqualsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+greaterThanEqualsInteger = lessThanEqualsInteger
 
-eqByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-eqByteString cpuModelR = do
+equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+equalsByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
-ltByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-ltByteString cpuModelR = do
+lessThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+lessThanByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
-gtByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-gtByteString = ltByteString
+greaterThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+greaterThanByteString = lessThanByteString
 
 concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 concatenate cpuModelR = do
@@ -303,14 +303,14 @@ dropByteString cpuModelR = do
 memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
 memoryUsageAsCostingInteger x = coerce $ memoryUsage x
 
-sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sHA2 cpuModelR = do
+sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+sha2_256 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
   let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
-sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sHA3 cpuModelR = do
+sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+sha3_256 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
   let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
