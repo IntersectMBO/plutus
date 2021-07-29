@@ -58,16 +58,18 @@ handleNodeClientClient ::
     ( LastMember m effs
     , MonadIO m
     , Member (Reader MockClient.TxSendHandle) effs
-    , Member (Reader (Client.ChainSyncHandle Block)) effs
+    , Member (Reader ChainSyncHandle) effs
     )
     => SlotConfig
     -> NodeClientEffect
     ~> Eff effs
 handleNodeClientClient slotCfg e = do
     txSendHandle <- ask @MockClient.TxSendHandle
-    chainSyncHandle <- ask @(Client.ChainSyncHandle Block)
+    chainSyncHandle <- ask @ChainSyncHandle
     case e of
-        PublishTx tx  ->
-            liftIO $ MockClient.queueTx txSendHandle tx
-        GetClientSlot -> liftIO $ MockClient.getCurrentSlot chainSyncHandle
+        PublishTx tx  -> liftIO $ MockClient.queueTx txSendHandle tx
+        GetClientSlot ->
+            either (liftIO . MockClient.getCurrentSlot) (liftIO . Client.getCurrentSlot) chainSyncHandle
         GetClientSlotConfig -> pure slotCfg
+
+type ChainSyncHandle = Either (Client.ChainSyncHandle Block) (Client.ChainSyncHandle Client.ChainSyncEvent)

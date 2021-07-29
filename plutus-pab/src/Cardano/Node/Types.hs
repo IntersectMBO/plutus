@@ -37,7 +37,7 @@ module Cardano.Node.Types
 
     -- * Config types
     , MockServerConfig (..)
-    , MockServerMode (..)
+    , NodeMode (..)
 
     -- * newtype wrappers
     , NodeUrl (..)
@@ -99,13 +99,12 @@ We use this approach for the "proper" pab executable.
 newtype NodeUrl = NodeUrl BaseUrl
     deriving (Show, Eq) via BaseUrl
 
--- | The mock node server can be replaced with a cardano node, in which case
---   we don't want to start it.
-data MockServerMode =
-      WithMockServer
-    | WithoutMockServer
-    deriving (Show, Eq, Generic)
-    deriving anyclass ToJSON
+-- | Which node we're connecting to
+data NodeMode =
+    MockNode -- ^ Connect to the PAB mock node.
+    | AlonzoNode -- ^ Connect to an Alonzo node
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 -- | Mock Node server configuration
 data MockServerConfig =
@@ -127,8 +126,11 @@ data MockServerConfig =
         -- multiply size-dependent scripts fee.
         , mscNetworkId        :: NetworkIdWrapper
         -- ^ NetworkId that's used with the CardanoAPI.
+        , mscNodeMode         :: NodeMode
+        -- ^ Whether to connect to an Alonzo node or a mock node
         }
-    deriving (Show, Eq, Generic, FromJSON)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (FromJSON)
 
 
 defaultMockServerConfig :: MockServerConfig
@@ -147,6 +149,7 @@ defaultMockServerConfig =
       , mscSlotConfig = def
       , mscFeeConfig  = def
       , mscNetworkId = testnetNetworkId
+      , mscNodeMode  = MockNode
       }
 
 instance Default MockServerConfig where

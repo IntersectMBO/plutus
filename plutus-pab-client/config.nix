@@ -42,6 +42,7 @@
       - getWallet: 1
       - getWallet: 2
       - getWallet: 3
+    mscNodeMode = "MockNode";
 
   chainIndexConfig:
     ciBaseUrl: http://localhost:${ chain-index-port }

@@ -27,12 +27,12 @@ import           Cardano.BM.Data.Trace                 (Trace)
 import qualified Cardano.ChainIndex.Server             as ChainIndex
 import qualified Cardano.Metadata.Server               as Metadata
 import qualified Cardano.Node.Server                   as NodeServer
-import           Cardano.Node.Types                    (MockServerConfig (..))
+import           Cardano.Node.Types                    (MockServerConfig (..), NodeMode (..))
 import qualified Cardano.Wallet.Server                 as WalletServer
 import           Cardano.Wallet.Types
 import           Control.Concurrent                    (takeMVar)
 import           Control.Concurrent.Async              (Async, async, waitAny)
-import           Control.Concurrent.Availability       (Availability, starting)
+import           Control.Concurrent.Availability       (Availability, available, starting)
 import qualified Control.Concurrent.STM                as STM
 import           Control.Monad                         (forM, forM_, void)
 import           Control.Monad.Freer                   (Eff, LastMember, Member, interpret, runM)
@@ -130,12 +130,16 @@ runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServer
         ccaAvailability
 
 -- Run mock node server
-runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServerConfig},ccaAvailability} (MockNode withoutMockServer) =
-    liftIO $ NodeServer.main
-        (toMockNodeServerLog ccaTrace)
-        nodeServerConfig
-        withoutMockServer
-        ccaAvailability
+runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServerConfig},ccaAvailability} StartMockNode =
+    case mscNodeMode nodeServerConfig of
+        MockNode -> do
+            liftIO $ NodeServer.main
+                (toMockNodeServerLog ccaTrace)
+                nodeServerConfig
+                ccaAvailability
+        AlonzoNode -> do
+            available ccaAvailability
+            pure () -- TODO: Log message that we're connecting to the real Alonzo node
 
 -- Run mock metadata server
 runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {metadataServerConfig}, ccaAvailability} Metadata =
