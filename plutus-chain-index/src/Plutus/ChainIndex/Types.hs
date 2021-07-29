@@ -12,20 +12,14 @@ module Plutus.ChainIndex.Types(
     , Tip(..)
     ) where
 
-import           Data.Aeson      (FromJSON, ToJSON)
-import qualified Data.ByteString as BS
-import           Data.Default    (Default (..))
-import           Data.Set        (Set)
-import qualified Data.Set        as Set
-import           GHC.Generics    (Generic)
-import           Ledger.Bytes    (LedgerBytes (..))
-import           Ledger.Slot     (Slot)
-import           Numeric.Natural (Natural)
-
--- | Block identifier (usually a hash)
-newtype BlockId = BlockId { getBlockId :: BS.ByteString }
-    deriving stock (Eq, Ord, Generic)
-    deriving (ToJSON, FromJSON,Show) via LedgerBytes
+import           Data.Aeson        (FromJSON, ToJSON)
+import           Data.Default      (Default (..))
+import           Data.Set          (Set)
+import qualified Data.Set          as Set
+import           GHC.Generics      (Generic)
+import           Ledger.Blockchain (BlockId (..))
+import           Ledger.Slot       (Slot)
+import           Numeric.Natural   (Natural)
 
 newtype PageSize = PageSize { getPageSize :: Natural }
     deriving stock (Eq, Ord, Show, Generic)

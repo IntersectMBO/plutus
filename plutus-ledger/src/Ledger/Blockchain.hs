@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -8,6 +9,7 @@ module Ledger.Blockchain (
     _Valid,
     _Invalid,
     Block,
+    BlockId(..),
     Blockchain,
     Context(..),
     eitherTx,
@@ -30,6 +32,7 @@ import           Control.DeepSeq          (NFData)
 import           Control.Lens             (makePrisms, view)
 import           Control.Monad            (join)
 import           Data.Aeson               (FromJSON, ToJSON)
+import qualified Data.ByteString          as BS
 import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
 import           Data.Monoid              (First (..))
@@ -37,12 +40,18 @@ import qualified Data.Set                 as Set
 import           GHC.Generics             (Generic)
 import           Ledger.Tx                (spentOutputs, txId, unspentOutputsTx, updateUtxo, validValuesTx)
 
+import           Plutus.V1.Ledger.Bytes   (LedgerBytes (..))
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Scripts
 import           Plutus.V1.Ledger.Tx      (Tx, TxIn, TxOut, TxOutRef, collateralInputs, inputs, txOutDatum, txOutPubKey,
                                            txOutRefId, txOutRefIdx, txOutValue, txOutputs, updateUtxoCollateral)
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value   (Value)
+
+-- | Block identifier (usually a hash)
+newtype BlockId = BlockId { getBlockId :: BS.ByteString }
+    deriving stock (Eq, Ord, Generic)
+    deriving (ToJSON, FromJSON, Show) via LedgerBytes
 
 -- | A transaction on the blockchain.
 -- Invalid transactions are still put on the chain to be able to collect fees.

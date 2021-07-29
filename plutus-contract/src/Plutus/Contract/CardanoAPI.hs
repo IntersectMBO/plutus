@@ -8,7 +8,8 @@ Interface to the transaction types from 'cardano-api'
 
 -}
 module Plutus.Contract.CardanoAPI(
-    fromCardanoTx
+    fromCardanoBlock
+  , fromCardanoTx
   , fromCardanoTxIn
   , fromCardanoTxInsCollateral
   , fromCardanoTxInWitness
@@ -39,7 +40,6 @@ module Plutus.Contract.CardanoAPI(
 
 import qualified Cardano.Api                 as C
 import qualified Cardano.Api.Shelley         as C
-import qualified Cardano.Ledger.Era          as C
 import qualified Codec.Serialise             as Codec
 import           Data.Bifunctor              (first)
 import           Data.ByteString             as BS
