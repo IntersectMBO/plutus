@@ -5,16 +5,15 @@
 # developing Plutus.
 #
 ########################################################################
-
 { system ? builtins.currentSystem
 , crossSystem ? null
 , config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
 , sourcesOverride ? { }
 , sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
-, haskellNix ? import (sources."haskell.nix" or sources.haskell-nix) {
+, haskellNix ? import sources.haskell-nix {
     sourcesOverride = {
-      hackage = sources."hackage.nix" or sources.hackage-nix;
-      stackage = sources."stackage.nix" or sources.stackage-nix;
+      hackage = sources.hackage-nix;
+      stackage = sources.stackage-nix;
     };
   }
 , packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix checkMaterialization enableHaskellProfiling; }

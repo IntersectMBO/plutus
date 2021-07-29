@@ -139,10 +139,10 @@ For the moment you have to do this by hand, using the following command to get t
 
 We pin versions of some git repositories that are used by Nix, for example `nixpkgs`.
 
-These are specified in link:./nix/sources.json[`sources.json`].
-This file is managed by https://github.com/nmattia/niv[`niv`].
-You can edit it by hand, but we wouldn't recommend it.
-See the `niv` website for usage instructions, but the simplest action is `niv update <dependency>`, which will update it to the latest version on the tracked branch.
+We use Nix flakes to manage these dependencies, even though we do not
+actually use flakes for normal Nix builds. To manage the dependencies,
+see https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs[the Nix flake inputs documentation]
+and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-update.html[the Nix flake update command].
 
 [[update-index-state]]
 === How to update the Hackage index state
@@ -157,7 +157,7 @@ Note that `cabal` itself keeps track of what index states it knows about, so you
 The Nix code which builds our packages also cares about the index state.
 The set of index states which it knows about is controlled by `hackage.nix`, which is a Nix representation of Hackage.
 This therefore needs to be newer than the index state.
-You can update it xref:update-nix-pins[with `niv`].
+You can update it xref:update-nix-pins[with the Nix flake commands].
 
 You will need to update the xref:update-generated[package set] after this to reflect the new build plan that Cabal will pick.
 

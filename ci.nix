@@ -7,7 +7,6 @@
 }:
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
-  sources = import ./nix/sources.nix;
   # limit supportedSystems to what the CI can actually build
   # currently that is linux and darwin.
   systems = filterSystems supportedSystems;
