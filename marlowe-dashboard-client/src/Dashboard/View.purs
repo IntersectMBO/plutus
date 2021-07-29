@@ -6,7 +6,7 @@ module Dashboard.View
 import Prelude hiding (div)
 import Contract.State (isContractClosed)
 import Contract.Types (State) as Contract
-import Contract.View (actionConfirmationCard, contractCard, contractScreen)
+import Contract.View (actionConfirmationCard, contractPreviewCard, contractScreen)
 import Css as Css
 import Dashboard.Lenses (_card, _cardOpen, _contractFilter, _contract, _menuOpen, _selectedContract, _selectedContractFollowerAppId, _templateState, _walletDetails, _walletDataState)
 import Dashboard.Types (Action(..), Card(..), ContractFilter(..), State, Input)
@@ -242,7 +242,7 @@ dashboardFooter =
 
 dashboardLinks :: forall p. Warn (Text "We need to add the dashboard links.") => Array (HTML p Action)
 dashboardLinks =
-  -- FIXME: Add link to Docs
+  -- FIXME: SCP-2589 Add link to Docs
   [ link "Docs" ""
   , link "marlowe-finance.io" "https://marlowe-finance.io"
   , link "play.marlowe-finance.io" "https://play.marlowe-finance.io"
@@ -405,7 +405,7 @@ contractGrid currentSlot contractFilter contracts =
       , span_ [ text "New smart contract from template" ]
       ]
 
-  dashboardContractCard (followerAppId /\ contractState) = mapComponentAction (ContractAction followerAppId) $ contractCard currentSlot contractState
+  dashboardContractCard (followerAppId /\ contractState) = mapComponentAction (ContractAction followerAppId) $ contractPreviewCard currentSlot contractState
 
 -- TODO: waiting new design for this from Russ
 currentWalletCard :: forall p. WalletDetails -> HTML p Action

@@ -1,5 +1,5 @@
 module Contract.View
-  ( contractCard
+  ( contractPreviewCard
   , contractScreen
   , actionConfirmationCard
   ) where
@@ -16,7 +16,7 @@ import Data.Array.NonEmpty as NonEmptyArray
 import Data.BigInteger (BigInteger, fromString)
 import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
-import Data.Lens ((^.))
+import Data.Lens (set, (^.))
 import Data.Map (intersectionWith, keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
 import Data.Set (Set)
@@ -44,7 +44,7 @@ import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Extended.Metadata (_contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
@@ -54,8 +54,9 @@ import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
 import WalletData.State (adaToken, getAda)
 
-contractCard :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-contractCard currentSlot state =
+-- This card shows a preview of the contract (intended to be used in the dashboard)
+contractPreviewCard :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
+contractPreviewCard currentSlot state =
   let
     currentStepNumber = (currentStep state) + 1
 
@@ -99,7 +100,10 @@ contractCard currentSlot state =
           ]
       , div
           [ classNames [ "h-dashboard-card-actions", "overflow-y-auto" ] ]
-          [ currentStepActions currentStepNumber state ]
+          -- NOTE: We use a slightly modification of the state here in order
+          --       to ensure that the preview card always shows the Task tab
+          --       and not the balance tab.
+          [ currentStepActions currentStepNumber $ set _tab Tasks state ]
       ]
 
 timeoutString :: Slot -> State -> String
