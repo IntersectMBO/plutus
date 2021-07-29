@@ -10,6 +10,7 @@
 , gitignore-nix
 , z3
 , R
+, libsodium-vrf
 , checkMaterialization
 , compiler-nix-name
 , enableHaskellProfiling
@@ -157,6 +158,10 @@ let
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
           # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
           ieee.components.library.libs = lib.mkForce [ ];
+
+          # See https://github.com/input-output-hk/iohk-nix/pull/488
+          cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
+          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
         };
       }
     ] ++ lib.optional enableHaskellProfiling {
