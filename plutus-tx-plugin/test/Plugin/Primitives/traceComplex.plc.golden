@@ -58,16 +58,15 @@
     (lam
       ds
       Bool
-      [
+      (force
         [
           [
-            { [ Bool_match ds ] (fun Unit Unit) }
-            (lam thunk Unit [ [ { trace Unit } (con string "yes") ] Unit ])
+            { [ Bool_match ds ] (delayed Unit) }
+            (delay [ [ { trace Unit } (con string "yes") ] Unit ])
           ]
-          (lam thunk Unit [ { traceError Unit } (con string "no") ])
+          (delay [ { traceError Unit } (con string "no") ])
         ]
-        Unit
-      ]
+      )
     )
   )
 )

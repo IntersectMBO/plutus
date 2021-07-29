@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -31,7 +28,7 @@
         (lam
           y
           (con integer)
-          [
+          (force
             [
               [
                 {
@@ -48,14 +45,12 @@
                       False
                     ]
                   ]
-                  (fun Unit Ordering)
+                  (delayed Ordering)
                 }
-                (lam thunk Unit EQ)
+                (delay EQ)
               ]
-              (lam
-                thunk
-                Unit
-                [
+              (delay
+                (force
                   [
                     [
                       {
@@ -72,18 +67,16 @@
                             False
                           ]
                         ]
-                        (fun Unit Ordering)
+                        (delayed Ordering)
                       }
-                      (lam thunk Unit LT)
+                      (delay LT)
                     ]
-                    (lam thunk Unit GT)
+                    (delay GT)
                   ]
-                  Unit
-                ]
+                )
               )
             ]
-            Unit
-          ]
+          )
         )
       )
     )
@@ -98,7 +91,7 @@
         (lam
           y
           (con integer)
-          [
+          (force
             [
               [
                 {
@@ -115,14 +108,13 @@
                       False
                     ]
                   ]
-                  (fun Unit (con integer))
+                  (delayed (con integer))
                 }
-                (lam thunk Unit y)
+                (delay y)
               ]
-              (lam thunk Unit x)
+              (delay x)
             ]
-            Unit
-          ]
+          )
         )
       )
     )
@@ -137,7 +129,7 @@
         (lam
           y
           (con integer)
-          [
+          (force
             [
               [
                 {
@@ -154,14 +146,13 @@
                       False
                     ]
                   ]
-                  (fun Unit (con integer))
+                  (delayed (con integer))
                 }
-                (lam thunk Unit x)
+                (delay x)
               ]
-              (lam thunk Unit y)
+              (delay y)
             ]
-            Unit
-          ]
+          )
         )
       )
     )
@@ -368,22 +359,21 @@
             (lam
               b
               a
-              [
+              (force
                 [
                   [
                     [
                       {
                         [ Ordering_match [ [ [ { compare a } dOrd ] a ] b ] ]
-                        (fun Unit Ordering)
+                        (delayed Ordering)
                       }
-                      (lam thunk Unit EQ)
+                      (delay EQ)
                     ]
-                    (lam thunk Unit LT)
+                    (delay LT)
                   ]
-                  (lam thunk Unit GT)
+                  (delay GT)
                 ]
-                Unit
-              ]
+              )
             )
           )
         )

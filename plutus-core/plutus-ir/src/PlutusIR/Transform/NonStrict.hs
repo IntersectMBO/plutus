@@ -28,25 +28,49 @@ Since we are constructing a global substitution, so we need globally unique
 names to avoid clashes.
 -}
 
+{- Note [Using unit versus force/delay]
+We have force/delay in PIR, so we can use that for non-strict bindings, which is quite nice.
+
+However, we retain the *option* to use unit-lambdas instead, since we rely on this pass to
+handle recursive, non-function bindings and give them function types. `delayed x` is not a
+function type but `() -> x` is!
+-}
+
 type Substs uni fun a = Map.Map Name (Term TyName Name uni fun a)
 
 -- | Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
 -- unique names.
-compileNonStrictBindings :: MonadQuote m => Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
-compileNonStrictBindings t = do
-    (t', substs) <- liftQuote $ flip runStateT mempty $ strictifyTerm t
+compileNonStrictBindings :: MonadQuote m => Bool -> Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
+compileNonStrictBindings useUnit t = do
+    (t', substs) <- liftQuote $ flip runStateT mempty $ strictifyTerm useUnit t
     -- See Note [Compiling non-strict bindings]
     pure $ termSubstNames (\n -> Map.lookup n substs) t'
 
 strictifyTerm
     :: (MonadState (Substs uni fun a) m, MonadQuote m)
-    => Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
-strictifyTerm = transformMOf termSubterms (traverseOf termBindings strictifyBinding)
+    => Bool -> Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
+strictifyTerm useUnit =
+    -- See Note [Using unit versus force/delay]
+    let transformation = if useUnit then strictifyBindingWithUnit else strictifyBinding
+    in transformMOf termSubterms (traverseOf termBindings transformation)
 
 strictifyBinding
-    :: (MonadState (Substs uni fun a) m, MonadQuote m)
+    :: (MonadState (Substs uni fun a) m)
     => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
 strictifyBinding = \case
+    TermBind x NonStrict (VarDecl x' name ty) rhs -> do
+        let ann = x
+
+        -- See Note [Compiling non-strict bindings]
+        modify $ Map.insert name $ Force ann (Var ann name)
+
+        pure $ TermBind x Strict (VarDecl x' name (TyDelayed ann ty)) (Delay ann rhs)
+    x -> pure x
+
+strictifyBindingWithUnit
+    :: (MonadState (Substs uni fun a) m, MonadQuote m)
+    => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
+strictifyBindingWithUnit = \case
     TermBind x NonStrict (VarDecl x' name ty) rhs -> do
         let ann = x
 

@@ -36,13 +36,10 @@
             )
           )
         )
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
         (let
           (rec)
           (termbind
-            (nonstrict)
+            (strict)
             (vardecl
               mapDirect
               (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
@@ -59,11 +56,11 @@
                   (lam
                     l
                     [List a]
-                    [
+                    (force
                       [
                         [
-                          { [ { Nil_match a } l ] (fun Unit [List b]) }
-                          (lam thunk Unit { Nil b })
+                          { [ { Nil_match a } l ] (delayed [List b]) }
+                          (delay { Nil b })
                         ]
                         (lam
                           x
@@ -71,9 +68,7 @@
                           (lam
                             xs
                             [List a]
-                            (lam
-                              thunk
-                              Unit
+                            (delay
                               [
                                 [ { Cons b } [ f x ] ]
                                 [ [ { { mapDirect a } b } f ] xs ]
@@ -82,8 +77,7 @@
                           )
                         )
                       ]
-                      Unit
-                    ]
+                    )
                   )
                 )
               )

@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -20,7 +17,7 @@
         (lam
           n
           (con integer)
-          [
+          (force
             [
               [
                 {
@@ -37,20 +34,17 @@
                       False
                     ]
                   ]
-                  (fun Unit Bool)
+                  (delayed Bool)
                 }
-                (lam thunk Unit True)
+                (delay True)
               ]
-              (lam
-                thunk
-                Unit
+              (delay
                 [
                   oddDirect [ [ (builtin subtractInteger) n ] (con integer 1) ]
                 ]
               )
             ]
-            Unit
-          ]
+          )
         )
       )
       (termbind
@@ -59,7 +53,7 @@
         (lam
           n
           (con integer)
-          [
+          (force
             [
               [
                 {
@@ -76,20 +70,17 @@
                       False
                     ]
                   ]
-                  (fun Unit Bool)
+                  (delayed Bool)
                 }
-                (lam thunk Unit False)
+                (delay False)
               ]
-              (lam
-                thunk
-                Unit
+              (delay
                 [
                   evenDirect [ [ (builtin subtractInteger) n ] (con integer 1) ]
                 ]
               )
             ]
-            Unit
-          ]
+          )
         )
       )
       [ evenDirect (con integer 4) ]

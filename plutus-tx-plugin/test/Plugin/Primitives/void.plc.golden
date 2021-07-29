@@ -31,9 +31,6 @@
         )
       )
     )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
     (lam
       ds
       (con integer)
@@ -47,32 +44,28 @@
             (vardecl fail (fun (all a (type) a) Bool))
             (lam ds (all a (type) a) False)
           )
-          [
+          (force
             [
               [
-                { [ Bool_match [ [ equalsInteger ds ] ds ] ] (fun Unit Bool) }
-                (lam
-                  thunk
-                  Unit
-                  [
+                { [ Bool_match [ [ equalsInteger ds ] ds ] ] (delayed Bool) }
+                (delay
+                  (force
                     [
                       [
                         {
                           [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                          (fun Unit Bool)
+                          (delayed Bool)
                         }
-                        (lam thunk Unit True)
+                        (delay True)
                       ]
-                      (lam thunk Unit [ fail (abs e (type) (error e)) ])
+                      (delay [ fail (abs e (type) (error e)) ])
                     ]
-                    Unit
-                  ]
+                  )
                 )
               ]
-              (lam thunk Unit [ fail (abs e (type) (error e)) ])
+              (delay [ fail (abs e (type) (error e)) ])
             ]
-            Unit
-          ]
+          )
         )
       )
     )

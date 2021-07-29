@@ -29,29 +29,22 @@
         (lam
           y
           Bool
-          [
+          (force
             [
               [
-                { [ Bool_match x ] (fun Unit Unit) }
-                (lam
-                  thunk
-                  Unit
-                  [
+                { [ Bool_match x ] (delayed Unit) }
+                (delay
+                  (force
                     [
-                      [
-                        { [ Bool_match y ] (fun Unit Unit) }
-                        (lam thunk Unit joinError)
-                      ]
-                      (lam thunk Unit Unit)
+                      [ { [ Bool_match y ] (delayed Unit) } (delay joinError) ]
+                      (delay Unit)
                     ]
-                    Unit
-                  ]
+                  )
                 )
               ]
-              (lam thunk Unit Unit)
+              (delay Unit)
             ]
-            Unit
-          ]
+          )
         )
       )
     )

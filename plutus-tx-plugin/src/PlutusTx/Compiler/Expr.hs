@@ -182,7 +182,7 @@ compileAlt
 compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
-        body' <- compileExpr body >>= maybeDelay mustDelay
+        body' <- maybeDelay mustDelay <$> compileExpr body
         -- need to consume the args
         argTypes <- mapM compileTypeNorm instArgTys
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
@@ -191,7 +191,7 @@ compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "C
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> mkIterLamAbsScoped vars (compileExpr body >>= maybeDelay mustDelay)
+    GHC.DataAlt _ -> mkIterLamAbsScoped vars (maybeDelay mustDelay <$> compileExpr body)
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -548,7 +548,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-                resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
+                resultType <- maybeDelayType lazyCase <$> compileTypeNorm t
                 let instantiated = PIR.TyInst () matched resultType
 
                 branches <- forM dcs $ \dc ->
@@ -560,7 +560,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]
-                mainCase <- maybeForce lazyCase applied
+                let mainCase = maybeForce lazyCase applied
 
                 -- See Note [At patterns]
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'

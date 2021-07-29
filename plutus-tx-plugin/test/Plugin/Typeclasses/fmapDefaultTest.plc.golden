@@ -59,13 +59,10 @@
             )
           )
         )
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
         (let
           (rec)
           (termbind
-            (nonstrict)
+            (strict)
             (vardecl
               fFoldableNil_cfoldMap
               (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
@@ -92,11 +89,11 @@
                       (lam
                         ds
                         [List a]
-                        [
+                        (force
                           [
                             [
-                              { [ { Nil_match a } ds ] (fun Unit m) }
-                              (lam thunk Unit [ { mempty m } dMonoid ])
+                              { [ { Nil_match a } ds ] (delayed m) }
+                              (delay [ { mempty m } dMonoid ])
                             ]
                             (lam
                               x
@@ -104,9 +101,7 @@
                               (lam
                                 xs
                                 [List a]
-                                (lam
-                                  thunk
-                                  Unit
+                                (delay
                                   [
                                     [ dSemigroup [ ds x ] ]
                                     [
@@ -124,8 +119,7 @@
                               )
                             )
                           ]
-                          Unit
-                        ]
+                        )
                       )
                     )
                   )
@@ -136,7 +130,7 @@
           (let
             (rec)
             (termbind
-              (nonstrict)
+              (strict)
               (vardecl
                 fFunctorNil_cfmap
                 (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
@@ -153,11 +147,11 @@
                     (lam
                       l
                       [List a]
-                      [
+                      (force
                         [
                           [
-                            { [ { Nil_match a } l ] (fun Unit [List b]) }
-                            (lam thunk Unit { Nil b })
+                            { [ { Nil_match a } l ] (delayed [List b]) }
+                            (delay { Nil b })
                           ]
                           (lam
                             x
@@ -165,9 +159,7 @@
                             (lam
                               xs
                               [List a]
-                              (lam
-                                thunk
-                                Unit
+                              (delay
                                 [
                                   [ { Cons b } [ f x ] ]
                                   [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
@@ -176,8 +168,7 @@
                             )
                           )
                         ]
-                        Unit
-                      ]
+                      )
                     )
                   )
                 )
@@ -301,7 +292,7 @@
               (let
                 (rec)
                 (termbind
-                  (nonstrict)
+                  (strict)
                   (vardecl
                     fTraversableNil_ctraverse
                     (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [List a] [f [List b]]))))))
@@ -324,16 +315,14 @@
                             (lam
                               ds
                               [List a]
-                              [
+                              (force
                                 [
                                   [
                                     {
                                       [ { Nil_match a } ds ]
-                                      (fun Unit [f [List b]])
+                                      (delayed [f [List b]])
                                     }
-                                    (lam
-                                      thunk
-                                      Unit
+                                    (delay
                                       [
                                         { [ { pure f } dApplicative ] [List b] }
                                         { Nil b }
@@ -346,9 +335,7 @@
                                     (lam
                                       xs
                                       [List a]
-                                      (lam
-                                        thunk
-                                        Unit
+                                      (delay
                                         [
                                           [
                                             {
@@ -399,8 +386,7 @@
                                     )
                                   )
                                 ]
-                                Unit
-                              ]
+                              )
                             )
                           )
                         )

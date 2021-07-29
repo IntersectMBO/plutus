@@ -32,9 +32,6 @@
       (let
         (nonrec)
         (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
-        (datatypebind
           (datatype
             (tyvardecl Bool (type))
 
@@ -97,15 +94,12 @@
             (lam
               ds
               Bool
-              [
+              (force
                 [
-                  [
-                    { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit True)
-                  ]
-                  (lam thunk Unit ds)
+                  [ { [ Bool_match ds ] (delayed Bool) } (delay True) ]
+                  (delay ds)
                 ]
-                Unit
-              ]
+              )
             )
           )
         )
@@ -165,7 +159,7 @@
         (let
           (rec)
           (termbind
-            (nonstrict)
+            (strict)
             (vardecl
               fFoldableNil_cfoldMap
               (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
@@ -192,11 +186,11 @@
                       (lam
                         ds
                         [List a]
-                        [
+                        (force
                           [
                             [
-                              { [ { Nil_match a } ds ] (fun Unit m) }
-                              (lam thunk Unit [ { mempty m } dMonoid ])
+                              { [ { Nil_match a } ds ] (delayed m) }
+                              (delay [ { mempty m } dMonoid ])
                             ]
                             (lam
                               x
@@ -204,9 +198,7 @@
                               (lam
                                 xs
                                 [List a]
-                                (lam
-                                  thunk
-                                  Unit
+                                (delay
                                   [
                                     [ dSemigroup [ ds x ] ]
                                     [
@@ -224,8 +216,7 @@
                               )
                             )
                           ]
-                          Unit
-                        ]
+                        )
                       )
                     )
                   )
@@ -236,7 +227,7 @@
           (let
             (rec)
             (termbind
-              (nonstrict)
+              (strict)
               (vardecl
                 fFunctorNil_cfmap
                 (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
@@ -253,11 +244,11 @@
                     (lam
                       l
                       [List a]
-                      [
+                      (force
                         [
                           [
-                            { [ { Nil_match a } l ] (fun Unit [List b]) }
-                            (lam thunk Unit { Nil b })
+                            { [ { Nil_match a } l ] (delayed [List b]) }
+                            (delay { Nil b })
                           ]
                           (lam
                             x
@@ -265,9 +256,7 @@
                             (lam
                               xs
                               [List a]
-                              (lam
-                                thunk
-                                Unit
+                              (delay
                                 [
                                   [ { Cons b } [ f x ] ]
                                   [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
@@ -276,8 +265,7 @@
                             )
                           )
                         ]
-                        Unit
-                      ]
+                      )
                     )
                   )
                 )
@@ -356,7 +344,7 @@
               (let
                 (rec)
                 (termbind
-                  (nonstrict)
+                  (strict)
                   (vardecl
                     foldr
                     (all a (type) (all b (type) (fun (fun a (fun b b)) (fun b (fun [List a] b)))))
@@ -376,11 +364,11 @@
                           (lam
                             l
                             [List a]
-                            [
+                            (force
                               [
                                 [
-                                  { [ { Nil_match a } l ] (fun Unit b) }
-                                  (lam thunk Unit acc)
+                                  { [ { Nil_match a } l ] (delayed b) }
+                                  (delay acc)
                                 ]
                                 (lam
                                   x
@@ -388,9 +376,7 @@
                                   (lam
                                     xs
                                     [List a]
-                                    (lam
-                                      thunk
-                                      Unit
+                                    (delay
                                       [
                                         [ f x ]
                                         [ [ [ { { foldr a } b } f ] acc ] xs ]
@@ -399,8 +385,7 @@
                                   )
                                 )
                               ]
-                              Unit
-                            ]
+                            )
                           )
                         )
                       )
@@ -502,7 +487,7 @@
                                                     (lam
                                                       ds
                                                       r
-                                                      [
+                                                      (force
                                                         [
                                                           [
                                                             {
@@ -564,13 +549,11 @@
                                                                   ds
                                                                 ]
                                                               ]
-                                                              (fun Unit [List [[Tuple2 k] r]])
+                                                              (delayed [List [[Tuple2 k] r]])
                                                             }
-                                                            (lam thunk Unit xs)
+                                                            (delay xs)
                                                           ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
+                                                          (delay
                                                             [
                                                               [
                                                                 {
@@ -583,8 +566,7 @@
                                                             ]
                                                           )
                                                         ]
-                                                        Unit
-                                                      ]
+                                                      )
                                                     )
                                                   )
                                                 ]
@@ -628,7 +610,7 @@
                                                   (lam
                                                     ds
                                                     [List [[Tuple2 k] r]]
-                                                    [
+                                                    (force
                                                       [
                                                         [
                                                           {
@@ -639,11 +621,9 @@
                                                               }
                                                               ds
                                                             ]
-                                                            (fun Unit [[These v] r])
+                                                            (delayed [[These v] r])
                                                           }
-                                                          (lam
-                                                            thunk
-                                                            Unit
+                                                          (delay
                                                             [
                                                               { { This v } r } i
                                                             ]
@@ -655,9 +635,7 @@
                                                           (lam
                                                             xs
                                                             [List [[Tuple2 k] r]]
-                                                            (lam
-                                                              thunk
-                                                              Unit
+                                                            (delay
                                                               [
                                                                 {
                                                                   [
@@ -678,7 +656,7 @@
                                                                   (lam
                                                                     i
                                                                     r
-                                                                    [
+                                                                    (force
                                                                       [
                                                                         [
                                                                           {
@@ -692,11 +670,9 @@
                                                                                 c
                                                                               ]
                                                                             ]
-                                                                            (fun Unit [[These v] r])
+                                                                            (delayed [[These v] r])
                                                                           }
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
+                                                                          (delay
                                                                             [
                                                                               [
                                                                                 {
@@ -712,17 +688,14 @@
                                                                             ]
                                                                           )
                                                                         ]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
+                                                                        (delay
                                                                           [
                                                                             go
                                                                             xs
                                                                           ]
                                                                         )
                                                                       ]
-                                                                      Unit
-                                                                    ]
+                                                                    )
                                                                   )
                                                                 )
                                                               ]
@@ -730,8 +703,7 @@
                                                           )
                                                         )
                                                       ]
-                                                      Unit
-                                                    ]
+                                                    )
                                                   )
                                                 )
                                                 [
@@ -782,7 +754,7 @@
                             (lam
                               ds
                               [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
-                              [
+                              (force
                                 [
                                   [
                                     {
@@ -793,11 +765,9 @@
                                         }
                                         ds
                                       ]
-                                      (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
+                                      (delayed [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
                                     }
-                                    (lam
-                                      thunk
-                                      Unit
+                                    (delay
                                       {
                                         Nil
                                         [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
@@ -810,9 +780,7 @@
                                     (lam
                                       xs
                                       [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
-                                      (lam
-                                        thunk
-                                        Unit
+                                      (delay
                                         [
                                           {
                                             [
@@ -879,7 +847,7 @@
                                                                 (lam
                                                                   ds
                                                                   [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                  [
+                                                                  (force
                                                                     [
                                                                       [
                                                                         {
@@ -890,11 +858,9 @@
                                                                             }
                                                                             ds
                                                                           ]
-                                                                          (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
+                                                                          (delayed [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
                                                                         }
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
+                                                                        (delay
                                                                           {
                                                                             Nil
                                                                             [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
@@ -907,9 +873,7 @@
                                                                         (lam
                                                                           xs
                                                                           [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
+                                                                          (delay
                                                                             [
                                                                               {
                                                                                 [
@@ -971,8 +935,7 @@
                                                                         )
                                                                       )
                                                                     ]
-                                                                    Unit
-                                                                  ]
+                                                                  )
                                                                 )
                                                               )
                                                               [ go b ]
@@ -1021,7 +984,7 @@
                                                             (lam
                                                               ds
                                                               [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                              [
+                                                              (force
                                                                 [
                                                                   [
                                                                     {
@@ -1032,11 +995,9 @@
                                                                         }
                                                                         ds
                                                                       ]
-                                                                      (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
+                                                                      (delayed [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
                                                                     }
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
+                                                                    (delay
                                                                       {
                                                                         Nil
                                                                         [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
@@ -1049,9 +1010,7 @@
                                                                     (lam
                                                                       xs
                                                                       [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
+                                                                      (delay
                                                                         [
                                                                           {
                                                                             [
@@ -1113,8 +1072,7 @@
                                                                     )
                                                                   )
                                                                 ]
-                                                                Unit
-                                                              ]
+                                                              )
                                                             )
                                                           )
                                                           [ go a ]
@@ -1132,8 +1090,7 @@
                                     )
                                   )
                                 ]
-                                Unit
-                              ]
+                              )
                             )
                           )
                           [
@@ -1185,7 +1142,7 @@
                               (lam
                                 ds
                                 [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                [
+                                (force
                                   [
                                     [
                                       {
@@ -1196,11 +1153,9 @@
                                           }
                                           ds
                                         ]
-                                        (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
+                                        (delayed [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
                                       }
-                                      (lam
-                                        thunk
-                                        Unit
+                                      (delay
                                         {
                                           Nil
                                           [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
@@ -1213,9 +1168,7 @@
                                       (lam
                                         xs
                                         [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                        (lam
-                                          thunk
-                                          Unit
+                                        (delay
                                           [
                                             {
                                               [
@@ -1247,7 +1200,7 @@
                                                     (lam
                                                       ds
                                                       [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                      [
+                                                      (force
                                                         [
                                                           [
                                                             {
@@ -1258,11 +1211,9 @@
                                                                 }
                                                                 ds
                                                               ]
-                                                              (fun Unit [List [[Tuple2 (con bytestring)] (con integer)]])
+                                                              (delayed [List [[Tuple2 (con bytestring)] (con integer)]])
                                                             }
-                                                            (lam
-                                                              thunk
-                                                              Unit
+                                                            (delay
                                                               {
                                                                 Nil
                                                                 [[Tuple2 (con bytestring)] (con integer)]
@@ -1275,9 +1226,7 @@
                                                             (lam
                                                               xs
                                                               [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                              (lam
-                                                                thunk
-                                                                Unit
+                                                              (delay
                                                                 [
                                                                   {
                                                                     [
@@ -1390,8 +1339,7 @@
                                                             )
                                                           )
                                                         ]
-                                                        Unit
-                                                      ]
+                                                      )
                                                     )
                                                   )
                                                   [
@@ -1424,8 +1372,7 @@
                                       )
                                     )
                                   ]
-                                  Unit
-                                ]
+                                )
                               )
                             )
                             [ go [ [ unionVal ls ] rs ] ]
@@ -1490,7 +1437,7 @@
                               (lam
                                 xs
                                 [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                [
+                                (force
                                   [
                                     [
                                       {
@@ -1501,9 +1448,9 @@
                                           }
                                           xs
                                         ]
-                                        (fun Unit Bool)
+                                        (delayed Bool)
                                       }
-                                      (lam thunk Unit True)
+                                      (delay True)
                                     ]
                                     (lam
                                       ds
@@ -1511,9 +1458,7 @@
                                       (lam
                                         xs
                                         [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                        (lam
-                                          thunk
-                                          Unit
+                                        (delay
                                           [
                                             {
                                               [
@@ -1545,7 +1490,7 @@
                                                     (lam
                                                       xs
                                                       [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                      [
+                                                      (force
                                                         [
                                                           [
                                                             {
@@ -1556,13 +1501,9 @@
                                                                 }
                                                                 xs
                                                               ]
-                                                              (fun Unit Bool)
+                                                              (delayed Bool)
                                                             }
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [ go xs ]
-                                                            )
+                                                            (delay [ go xs ])
                                                           ]
                                                           (lam
                                                             ds
@@ -1570,9 +1511,7 @@
                                                             (lam
                                                               xs
                                                               [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                              (lam
-                                                                thunk
-                                                                Unit
+                                                              (delay
                                                                 [
                                                                   {
                                                                     [
@@ -1612,7 +1551,7 @@
                                                                             (lam
                                                                               b
                                                                               (con integer)
-                                                                              [
+                                                                              (force
                                                                                 [
                                                                                   [
                                                                                     {
@@ -1629,25 +1568,20 @@
                                                                                           b
                                                                                         ]
                                                                                       ]
-                                                                                      (fun Unit Bool)
+                                                                                      (delayed Bool)
                                                                                     }
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
+                                                                                    (delay
                                                                                       [
                                                                                         go
                                                                                         xs
                                                                                       ]
                                                                                     )
                                                                                   ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
+                                                                                  (delay
                                                                                     False
                                                                                   )
                                                                                 ]
-                                                                                Unit
-                                                                              ]
+                                                                              )
                                                                             )
                                                                           ]
                                                                           (lam
@@ -1656,7 +1590,7 @@
                                                                             (lam
                                                                               b
                                                                               (con integer)
-                                                                              [
+                                                                              (force
                                                                                 [
                                                                                   [
                                                                                     {
@@ -1670,32 +1604,27 @@
                                                                                           b
                                                                                         ]
                                                                                       ]
-                                                                                      (fun Unit Bool)
+                                                                                      (delayed Bool)
                                                                                     }
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
+                                                                                    (delay
                                                                                       [
                                                                                         go
                                                                                         xs
                                                                                       ]
                                                                                     )
                                                                                   ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
+                                                                                  (delay
                                                                                     False
                                                                                   )
                                                                                 ]
-                                                                                Unit
-                                                                              ]
+                                                                              )
                                                                             )
                                                                           )
                                                                         ]
                                                                         (lam
                                                                           a
                                                                           (con integer)
-                                                                          [
+                                                                          (force
                                                                             [
                                                                               [
                                                                                 {
@@ -1712,25 +1641,20 @@
                                                                                       )
                                                                                     ]
                                                                                   ]
-                                                                                  (fun Unit Bool)
+                                                                                  (delayed Bool)
                                                                                 }
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
+                                                                                (delay
                                                                                   [
                                                                                     go
                                                                                     xs
                                                                                   ]
                                                                                 )
                                                                               ]
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
+                                                                              (delay
                                                                                 False
                                                                               )
                                                                             ]
-                                                                            Unit
-                                                                          ]
+                                                                          )
                                                                         )
                                                                       ]
                                                                     )
@@ -1740,8 +1664,7 @@
                                                             )
                                                           )
                                                         ]
-                                                        Unit
-                                                      ]
+                                                      )
                                                     )
                                                   )
                                                   [ go x ]
@@ -1753,8 +1676,7 @@
                                       )
                                     )
                                   ]
-                                  Unit
-                                ]
+                                )
                               )
                             )
                             [ go [ [ unionVal l ] r ] ]
@@ -1789,11 +1711,11 @@
                                 (lam
                                   ds
                                   [List a]
-                                  [
+                                  (force
                                     [
                                       [
-                                        { [ { Nil_match a } ds ] (fun Unit b) }
-                                        (lam thunk Unit z)
+                                        { [ { Nil_match a } ds ] (delayed b) }
+                                        (delay z)
                                       ]
                                       (lam
                                         y
@@ -1801,12 +1723,11 @@
                                         (lam
                                           ys
                                           [List a]
-                                          (lam thunk Unit [ [ k y ] [ go ys ] ])
+                                          (delay [ [ k y ] [ go ys ] ])
                                         )
                                       )
                                     ]
-                                    Unit
-                                  ]
+                                  )
                                 )
                               )
                               go
@@ -1819,7 +1740,7 @@
                   (let
                     (rec)
                     (termbind
-                      (nonstrict)
+                      (strict)
                       (vardecl
                         map
                         (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
@@ -1836,13 +1757,11 @@
                             (lam
                               l
                               [List a]
-                              [
+                              (force
                                 [
                                   [
-                                    {
-                                      [ { Nil_match a } l ] (fun Unit [List b])
-                                    }
-                                    (lam thunk Unit { Nil b })
+                                    { [ { Nil_match a } l ] (delayed [List b]) }
+                                    (delay { Nil b })
                                   ]
                                   (lam
                                     x
@@ -1850,9 +1769,7 @@
                                     (lam
                                       xs
                                       [List a]
-                                      (lam
-                                        thunk
-                                        Unit
+                                      (delay
                                         [
                                           [ { Cons b } [ f x ] ]
                                           [ [ { { map a } b } f ] xs ]
@@ -1861,8 +1778,7 @@
                                     )
                                   )
                                 ]
-                                Unit
-                              ]
+                              )
                             )
                           )
                         )
@@ -1874,6 +1790,14 @@
                         (strict)
                         (vardecl error (all a (type) (fun (con unit) a)))
                         (abs a (type) (lam thunk (con unit) (error a)))
+                      )
+                      (datatypebind
+                        (datatype
+                          (tyvardecl Unit (type))
+
+                          Unit_match
+                          (vardecl Unit Unit)
+                        )
                       )
                       (datatypebind
                         (datatype
@@ -1897,7 +1821,7 @@
                           (lam
                             r
                             TxOutRef
-                            [
+                            (force
                               [
                                 [
                                   {
@@ -1940,11 +1864,9 @@
                                         False
                                       ]
                                     ]
-                                    (fun Unit Bool)
+                                    (delayed Bool)
                                   }
-                                  (lam
-                                    thunk
-                                    Unit
+                                  (delay
                                     [
                                       [
                                         [
@@ -1983,10 +1905,9 @@
                                     ]
                                   )
                                 ]
-                                (lam thunk Unit False)
+                                (delay False)
                               ]
-                              Unit
-                            ]
+                            )
                           )
                         )
                       )
@@ -2176,19 +2097,18 @@
                             (lam
                               b
                               [(lam a (type) [Maybe a]) a]
-                              [
+                              (force
                                 [
                                   [
                                     {
                                       [ { Maybe_match a } ds ]
-                                      (fun Unit [(lam a (type) [Maybe a]) a])
+                                      (delayed [(lam a (type) [Maybe a]) a])
                                     }
-                                    (lam ipv a (lam thunk Unit ds))
+                                    (lam ipv a (delay ds))
                                   ]
-                                  (lam thunk Unit b)
+                                  (delay b)
                                 ]
-                                Unit
-                              ]
+                              )
                             )
                           )
                         )
@@ -2259,7 +2179,7 @@
                                                     (lam
                                                       ds
                                                       (con bytestring)
-                                                      [
+                                                      (force
                                                         [
                                                           [
                                                             [
@@ -2269,14 +2189,12 @@
                                                                     ScriptPurpose_match
                                                                     ds
                                                                   ]
-                                                                  (fun Unit [Maybe TxInInfo])
+                                                                  (delayed [Maybe TxInInfo])
                                                                 }
                                                                 (lam
                                                                   default_arg0
                                                                   DCert
-                                                                  (lam
-                                                                    thunk
-                                                                    Unit
+                                                                  (delay
                                                                     {
                                                                       Nothing
                                                                       TxInInfo
@@ -2287,9 +2205,7 @@
                                                               (lam
                                                                 default_arg0
                                                                 (con bytestring)
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
+                                                                (delay
                                                                   {
                                                                     Nothing
                                                                     TxInInfo
@@ -2300,9 +2216,7 @@
                                                             (lam
                                                               default_arg0
                                                               StakingCredential
-                                                              (lam
-                                                                thunk
-                                                                Unit
+                                                              (delay
                                                                 {
                                                                   Nothing
                                                                   TxInInfo
@@ -2313,9 +2227,7 @@
                                                           (lam
                                                             txOutRef
                                                             TxOutRef
-                                                            (lam
-                                                              thunk
-                                                              Unit
+                                                            (delay
                                                               [
                                                                 [
                                                                   [
@@ -2348,7 +2260,7 @@
                                                                         (lam
                                                                           ds
                                                                           TxOut
-                                                                          [
+                                                                          (force
                                                                             [
                                                                               [
                                                                                 {
@@ -2362,11 +2274,9 @@
                                                                                       txOutRef
                                                                                     ]
                                                                                   ]
-                                                                                  (fun Unit [Maybe TxInInfo])
+                                                                                  (delayed [Maybe TxInInfo])
                                                                                 }
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
+                                                                                (delay
                                                                                   [
                                                                                     {
                                                                                       Just
@@ -2376,17 +2286,14 @@
                                                                                   ]
                                                                                 )
                                                                               ]
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
+                                                                              (delay
                                                                                 {
                                                                                   Nothing
                                                                                   TxInInfo
                                                                                 }
                                                                               )
                                                                             ]
-                                                                            Unit
-                                                                          ]
+                                                                          )
                                                                         )
                                                                       )
                                                                     ]
@@ -2397,8 +2304,7 @@
                                                             )
                                                           )
                                                         ]
-                                                        Unit
-                                                      ]
+                                                      )
                                                     )
                                                   )
                                                 )
@@ -2465,7 +2371,7 @@
                                 ]
                               )
                             )
-                            [
+                            (force
                               [
                                 [
                                   {
@@ -2473,14 +2379,12 @@
                                       { Maybe_match TxInInfo }
                                       [ findOwnInput ds ]
                                     ]
-                                    (fun Unit [[Tuple2 (con bytestring)] (con bytestring)])
+                                    (delayed [[Tuple2 (con bytestring)] (con bytestring)])
                                   }
                                   (lam
                                     ds
                                     TxInInfo
-                                    (lam
-                                      thunk
-                                      Unit
+                                    (delay
                                       [
                                         {
                                           [ TxInInfo_match ds ]
@@ -2542,7 +2446,7 @@
                                                             (lam
                                                               s
                                                               (con bytestring)
-                                                              [
+                                                              (force
                                                                 [
                                                                   [
                                                                     {
@@ -2553,14 +2457,12 @@
                                                                         }
                                                                         ds
                                                                       ]
-                                                                      (fun Unit [[Tuple2 (con bytestring)] (con bytestring)])
+                                                                      (delayed [[Tuple2 (con bytestring)] (con bytestring)])
                                                                     }
                                                                     (lam
                                                                       dh
                                                                       (con bytestring)
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
+                                                                      (delay
                                                                         [
                                                                           [
                                                                             {
@@ -2577,9 +2479,7 @@
                                                                       )
                                                                     )
                                                                   ]
-                                                                  (lam
-                                                                    thunk
-                                                                    Unit
+                                                                  (delay
                                                                     [
                                                                       fail
                                                                       (abs
@@ -2591,8 +2491,7 @@
                                                                     ]
                                                                   )
                                                                 ]
-                                                                Unit
-                                                              ]
+                                                              )
                                                             )
                                                           ]
                                                         )
@@ -2608,12 +2507,9 @@
                                     )
                                   )
                                 ]
-                                (lam
-                                  thunk Unit [ fail (abs e (type) (error e)) ]
-                                )
+                                (delay [ fail (abs e (type) (error e)) ])
                               ]
-                              Unit
-                            ]
+                            )
                           )
                         )
                       )
@@ -2640,7 +2536,7 @@
                                 (lam
                                   ds
                                   [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                  [
+                                  (force
                                     [
                                       [
                                         {
@@ -2651,11 +2547,9 @@
                                             }
                                             ds
                                           ]
-                                          (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
+                                          (delayed [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
                                         }
-                                        (lam
-                                          thunk
-                                          Unit
+                                        (delay
                                           {
                                             Nil
                                             [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
@@ -2668,9 +2562,7 @@
                                         (lam
                                           xs
                                           [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                          (lam
-                                            thunk
-                                            Unit
+                                          (delay
                                             [
                                               {
                                                 [
@@ -2702,7 +2594,7 @@
                                                       (lam
                                                         ds
                                                         [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                        [
+                                                        (force
                                                           [
                                                             [
                                                               {
@@ -2713,11 +2605,9 @@
                                                                   }
                                                                   ds
                                                                 ]
-                                                                (fun Unit [List [[Tuple2 (con bytestring)] (con integer)]])
+                                                                (delayed [List [[Tuple2 (con bytestring)] (con integer)]])
                                                               }
-                                                              (lam
-                                                                thunk
-                                                                Unit
+                                                              (delay
                                                                 {
                                                                   Nil
                                                                   [[Tuple2 (con bytestring)] (con integer)]
@@ -2730,9 +2620,7 @@
                                                               (lam
                                                                 xs
                                                                 [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
+                                                                (delay
                                                                   [
                                                                     {
                                                                       [
@@ -2793,8 +2681,7 @@
                                                               )
                                                             )
                                                           ]
-                                                          Unit
-                                                        ]
+                                                        )
                                                       )
                                                     )
                                                     [
@@ -2827,8 +2714,7 @@
                                         )
                                       )
                                     ]
-                                    Unit
-                                  ]
+                                  )
                                 )
                               )
                               [ go ds ]
@@ -2858,7 +2744,7 @@
                           (lam
                             y
                             (con integer)
-                            [
+                            (force
                               [
                                 [
                                   {
@@ -2875,14 +2761,12 @@
                                         False
                                       ]
                                     ]
-                                    (fun Unit Ordering)
+                                    (delayed Ordering)
                                   }
-                                  (lam thunk Unit EQ)
+                                  (delay EQ)
                                 ]
-                                (lam
-                                  thunk
-                                  Unit
-                                  [
+                                (delay
+                                  (force
                                     [
                                       [
                                         {
@@ -2907,18 +2791,16 @@
                                               False
                                             ]
                                           ]
-                                          (fun Unit Ordering)
+                                          (delayed Ordering)
                                         }
-                                        (lam thunk Unit LT)
+                                        (delay LT)
                                       ]
-                                      (lam thunk Unit GT)
+                                      (delay GT)
                                     ]
-                                    Unit
-                                  ]
+                                  )
                                 )
                               ]
-                              Unit
-                            ]
+                            )
                           )
                         )
                       )
@@ -2934,7 +2816,7 @@
                           (lam
                             y
                             (con integer)
-                            [
+                            (force
                               [
                                 [
                                   {
@@ -2957,14 +2839,13 @@
                                         False
                                       ]
                                     ]
-                                    (fun Unit (con integer))
+                                    (delayed (con integer))
                                   }
-                                  (lam thunk Unit y)
+                                  (delay y)
                                 ]
-                                (lam thunk Unit x)
+                                (delay x)
                               ]
-                              Unit
-                            ]
+                            )
                           )
                         )
                       )
@@ -2980,7 +2861,7 @@
                           (lam
                             y
                             (con integer)
-                            [
+                            (force
                               [
                                 [
                                   {
@@ -3003,14 +2884,13 @@
                                         False
                                       ]
                                     ]
-                                    (fun Unit (con integer))
+                                    (delayed (con integer))
                                   }
-                                  (lam thunk Unit x)
+                                  (delay x)
                                 ]
-                                (lam thunk Unit y)
+                                (delay y)
                               ]
-                              Unit
-                            ]
+                            )
                           )
                         )
                       )
@@ -3252,21 +3132,123 @@
                                     )
                                     (lam ds (all a (type) a) (error Ordering))
                                   )
-                                  [
-                                    [
-                                      [
+                                  (termbind
+                                    (strict)
+                                    (vardecl
+                                      fail (fun (all a (type) a) Ordering)
+                                    )
+                                    (lam
+                                      ds
+                                      (all a (type) a)
+                                      (force
                                         [
-                                          {
-                                            [ { Extended_match a } ds ]
-                                            (fun Unit Ordering)
-                                          }
-                                          (lam
-                                            default_arg0
-                                            a
-                                            (lam
-                                              thunk
-                                              Unit
-                                              [
+                                          [
+                                            [
+                                              {
+                                                [ { Extended_match a } ds ]
+                                                (delayed Ordering)
+                                              }
+                                              (lam
+                                                default_arg0
+                                                a
+                                                (delay
+                                                  (force
+                                                    [
+                                                      [
+                                                        [
+                                                          {
+                                                            [
+                                                              {
+                                                                Extended_match a
+                                                              }
+                                                              ds
+                                                            ]
+                                                            (delayed Ordering)
+                                                          }
+                                                          (lam
+                                                            l
+                                                            a
+                                                            (delay
+                                                              (force
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          {
+                                                                            Extended_match
+                                                                            a
+                                                                          }
+                                                                          ds
+                                                                        ]
+                                                                        (delayed Ordering)
+                                                                      }
+                                                                      (lam
+                                                                        r
+                                                                        a
+                                                                        (delay
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                {
+                                                                                  compare
+                                                                                  a
+                                                                                }
+                                                                                dOrd
+                                                                              ]
+                                                                              l
+                                                                            ]
+                                                                            r
+                                                                          ]
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                    (delay
+                                                                      [
+                                                                        fail
+                                                                        (abs
+                                                                          e
+                                                                          (type)
+                                                                          (error
+                                                                            e
+                                                                          )
+                                                                        )
+                                                                      ]
+                                                                    )
+                                                                  ]
+                                                                  (delay
+                                                                    [
+                                                                      fail
+                                                                      (abs
+                                                                        e
+                                                                        (type)
+                                                                        (error e
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                  )
+                                                                ]
+                                                              )
+                                                            )
+                                                          )
+                                                        ]
+                                                        (delay
+                                                          [
+                                                            fail
+                                                            (abs
+                                                              e (type) (error e)
+                                                            )
+                                                          ]
+                                                        )
+                                                      ]
+                                                      (delay GT)
+                                                    ]
+                                                  )
+                                                )
+                                              )
+                                            ]
+                                            (delay
+                                              (force
                                                 [
                                                   [
                                                     [
@@ -3275,14 +3257,348 @@
                                                           { Extended_match a }
                                                           ds
                                                         ]
-                                                        (fun Unit Ordering)
+                                                        (delayed Ordering)
                                                       }
                                                       (lam
-                                                        default_arg0
+                                                        l
                                                         a
+                                                        (delay
+                                                          (force
+                                                            [
+                                                              [
+                                                                [
+                                                                  {
+                                                                    [
+                                                                      {
+                                                                        Extended_match
+                                                                        a
+                                                                      }
+                                                                      ds
+                                                                    ]
+                                                                    (delayed Ordering)
+                                                                  }
+                                                                  (lam
+                                                                    r
+                                                                    a
+                                                                    (delay
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              compare
+                                                                              a
+                                                                            }
+                                                                            dOrd
+                                                                          ]
+                                                                          l
+                                                                        ]
+                                                                        r
+                                                                      ]
+                                                                    )
+                                                                  )
+                                                                ]
+                                                                (delay
+                                                                  [
+                                                                    fail
+                                                                    (abs
+                                                                      e
+                                                                      (type)
+                                                                      (error e)
+                                                                    )
+                                                                  ]
+                                                                )
+                                                              ]
+                                                              (delay
+                                                                [
+                                                                  fail
+                                                                  (abs
+                                                                    e
+                                                                    (type)
+                                                                    (error e)
+                                                                  )
+                                                                ]
+                                                              )
+                                                            ]
+                                                          )
+                                                        )
+                                                      )
+                                                    ]
+                                                    (delay
+                                                      [
+                                                        fail
+                                                        (abs e (type) (error e))
+                                                      ]
+                                                    )
+                                                  ]
+                                                  (delay GT)
+                                                ]
+                                              )
+                                            )
+                                          ]
+                                          (delay LT)
+                                        ]
+                                      )
+                                    )
+                                  )
+                                  (force
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [ { Extended_match a } ds ]
+                                            (delayed Ordering)
+                                          }
+                                          (lam
+                                            default_arg0
+                                            a
+                                            (let
+                                              (nonrec)
+                                              (termbind
+                                                (strict)
+                                                (vardecl
+                                                  fail
+                                                  (fun (all a (type) a) Ordering)
+                                                )
+                                                (lam
+                                                  ds
+                                                  (all a (type) a)
+                                                  (force
+                                                    [
+                                                      [
+                                                        [
+                                                          {
+                                                            [
+                                                              {
+                                                                Extended_match a
+                                                              }
+                                                              ds
+                                                            ]
+                                                            (delayed Ordering)
+                                                          }
+                                                          (lam
+                                                            default_arg0
+                                                            a
+                                                            (delay
+                                                              (force
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          {
+                                                                            Extended_match
+                                                                            a
+                                                                          }
+                                                                          ds
+                                                                        ]
+                                                                        (delayed Ordering)
+                                                                      }
+                                                                      (lam
+                                                                        l
+                                                                        a
+                                                                        (delay
+                                                                          (force
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  {
+                                                                                    [
+                                                                                      {
+                                                                                        Extended_match
+                                                                                        a
+                                                                                      }
+                                                                                      ds
+                                                                                    ]
+                                                                                    (delayed Ordering)
+                                                                                  }
+                                                                                  (lam
+                                                                                    r
+                                                                                    a
+                                                                                    (delay
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            {
+                                                                                              compare
+                                                                                              a
+                                                                                            }
+                                                                                            dOrd
+                                                                                          ]
+                                                                                          l
+                                                                                        ]
+                                                                                        r
+                                                                                      ]
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                                (delay
+                                                                                  [
+                                                                                    fail
+                                                                                    (abs
+                                                                                      e
+                                                                                      (type)
+                                                                                      (error
+                                                                                        e
+                                                                                      )
+                                                                                    )
+                                                                                  ]
+                                                                                )
+                                                                              ]
+                                                                              (delay
+                                                                                [
+                                                                                  fail
+                                                                                  (abs
+                                                                                    e
+                                                                                    (type)
+                                                                                    (error
+                                                                                      e
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
+                                                                            ]
+                                                                          )
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                    (delay
+                                                                      [
+                                                                        fail
+                                                                        (abs
+                                                                          e
+                                                                          (type)
+                                                                          (error
+                                                                            e
+                                                                          )
+                                                                        )
+                                                                      ]
+                                                                    )
+                                                                  ]
+                                                                  (delay GT)
+                                                                ]
+                                                              )
+                                                            )
+                                                          )
+                                                        ]
+                                                        (delay
+                                                          (force
+                                                            [
+                                                              [
+                                                                [
+                                                                  {
+                                                                    [
+                                                                      {
+                                                                        Extended_match
+                                                                        a
+                                                                      }
+                                                                      ds
+                                                                    ]
+                                                                    (delayed Ordering)
+                                                                  }
+                                                                  (lam
+                                                                    l
+                                                                    a
+                                                                    (delay
+                                                                      (force
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              {
+                                                                                [
+                                                                                  {
+                                                                                    Extended_match
+                                                                                    a
+                                                                                  }
+                                                                                  ds
+                                                                                ]
+                                                                                (delayed Ordering)
+                                                                              }
+                                                                              (lam
+                                                                                r
+                                                                                a
+                                                                                (delay
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        {
+                                                                                          compare
+                                                                                          a
+                                                                                        }
+                                                                                        dOrd
+                                                                                      ]
+                                                                                      l
+                                                                                    ]
+                                                                                    r
+                                                                                  ]
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                            (delay
+                                                                              [
+                                                                                fail
+                                                                                (abs
+                                                                                  e
+                                                                                  (type)
+                                                                                  (error
+                                                                                    e
+                                                                                  )
+                                                                                )
+                                                                              ]
+                                                                            )
+                                                                          ]
+                                                                          (delay
+                                                                            [
+                                                                              fail
+                                                                              (abs
+                                                                                e
+                                                                                (type)
+                                                                                (error
+                                                                                  e
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                          )
+                                                                        ]
+                                                                      )
+                                                                    )
+                                                                  )
+                                                                ]
+                                                                (delay
+                                                                  [
+                                                                    fail
+                                                                    (abs
+                                                                      e
+                                                                      (type)
+                                                                      (error e)
+                                                                    )
+                                                                  ]
+                                                                )
+                                                              ]
+                                                              (delay GT)
+                                                            ]
+                                                          )
+                                                        )
+                                                      ]
+                                                      (delay LT)
+                                                    ]
+                                                  )
+                                                )
+                                              )
+                                              (delay
+                                                (force
+                                                  [
+                                                    [
+                                                      [
+                                                        {
+                                                          [
+                                                            { Extended_match a }
+                                                            ds
+                                                          ]
+                                                          (delayed Ordering)
+                                                        }
                                                         (lam
-                                                          thunk
-                                                          Unit
+                                                          default_arg0
+                                                          a
                                                           (let
                                                             (nonrec)
                                                             (termbind
@@ -3294,7 +3610,7 @@
                                                               (lam
                                                                 ds
                                                                 (all a (type) a)
-                                                                [
+                                                                (force
                                                                   [
                                                                     [
                                                                       [
@@ -3306,15 +3622,13 @@
                                                                             }
                                                                             ds
                                                                           ]
-                                                                          (fun Unit Ordering)
+                                                                          (delayed Ordering)
                                                                         }
                                                                         (lam
                                                                           default_arg0
                                                                           a
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
+                                                                          (delay
+                                                                            (force
                                                                               [
                                                                                 [
                                                                                   [
@@ -3326,15 +3640,13 @@
                                                                                         }
                                                                                         ds
                                                                                       ]
-                                                                                      (fun Unit Ordering)
+                                                                                      (delayed Ordering)
                                                                                     }
                                                                                     (lam
                                                                                       l
                                                                                       a
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        [
+                                                                                      (delay
+                                                                                        (force
                                                                                           [
                                                                                             [
                                                                                               [
@@ -3346,14 +3658,12 @@
                                                                                                     }
                                                                                                     ds
                                                                                                   ]
-                                                                                                  (fun Unit Ordering)
+                                                                                                  (delayed Ordering)
                                                                                                 }
                                                                                                 (lam
                                                                                                   r
                                                                                                   a
-                                                                                                  (lam
-                                                                                                    thunk
-                                                                                                    Unit
+                                                                                                  (delay
                                                                                                     [
                                                                                                       [
                                                                                                         [
@@ -3370,9 +3680,7 @@
                                                                                                   )
                                                                                                 )
                                                                                               ]
-                                                                                              (lam
-                                                                                                thunk
-                                                                                                Unit
+                                                                                              (delay
                                                                                                 [
                                                                                                   fail
                                                                                                   (abs
@@ -3385,9 +3693,7 @@
                                                                                                 ]
                                                                                               )
                                                                                             ]
-                                                                                            (lam
-                                                                                              thunk
-                                                                                              Unit
+                                                                                            (delay
                                                                                               [
                                                                                                 fail
                                                                                                 (abs
@@ -3400,14 +3706,11 @@
                                                                                               ]
                                                                                             )
                                                                                           ]
-                                                                                          Unit
-                                                                                        ]
+                                                                                        )
                                                                                       )
                                                                                     )
                                                                                   ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
+                                                                                  (delay
                                                                                     [
                                                                                       fail
                                                                                       (abs
@@ -3420,21 +3723,16 @@
                                                                                     ]
                                                                                   )
                                                                                 ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
+                                                                                (delay
                                                                                   GT
                                                                                 )
                                                                               ]
-                                                                              Unit
-                                                                            ]
+                                                                            )
                                                                           )
                                                                         )
                                                                       ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        [
+                                                                      (delay
+                                                                        (force
                                                                           [
                                                                             [
                                                                               [
@@ -3446,15 +3744,13 @@
                                                                                     }
                                                                                     ds
                                                                                   ]
-                                                                                  (fun Unit Ordering)
+                                                                                  (delayed Ordering)
                                                                                 }
                                                                                 (lam
                                                                                   l
                                                                                   a
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    [
+                                                                                  (delay
+                                                                                    (force
                                                                                       [
                                                                                         [
                                                                                           [
@@ -3466,14 +3762,12 @@
                                                                                                 }
                                                                                                 ds
                                                                                               ]
-                                                                                              (fun Unit Ordering)
+                                                                                              (delayed Ordering)
                                                                                             }
                                                                                             (lam
                                                                                               r
                                                                                               a
-                                                                                              (lam
-                                                                                                thunk
-                                                                                                Unit
+                                                                                              (delay
                                                                                                 [
                                                                                                   [
                                                                                                     [
@@ -3490,9 +3784,7 @@
                                                                                               )
                                                                                             )
                                                                                           ]
-                                                                                          (lam
-                                                                                            thunk
-                                                                                            Unit
+                                                                                          (delay
                                                                                             [
                                                                                               fail
                                                                                               (abs
@@ -3505,9 +3797,7 @@
                                                                                             ]
                                                                                           )
                                                                                         ]
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
+                                                                                        (delay
                                                                                           [
                                                                                             fail
                                                                                             (abs
@@ -3520,14 +3810,11 @@
                                                                                           ]
                                                                                         )
                                                                                       ]
-                                                                                      Unit
-                                                                                    ]
+                                                                                    )
                                                                                   )
                                                                                 )
                                                                               ]
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
+                                                                              (delay
                                                                                 [
                                                                                   fail
                                                                                   (abs
@@ -3540,420 +3827,124 @@
                                                                                 ]
                                                                               )
                                                                             ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
+                                                                            (delay
                                                                               GT
                                                                             )
                                                                           ]
-                                                                          Unit
-                                                                        ]
+                                                                        )
                                                                       )
                                                                     ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      LT
+                                                                    (delay LT)
+                                                                  ]
+                                                                )
+                                                              )
+                                                            )
+                                                            (delay
+                                                              (force
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        [
+                                                                          {
+                                                                            Extended_match
+                                                                            a
+                                                                          }
+                                                                          ds
+                                                                        ]
+                                                                        (delayed Ordering)
+                                                                      }
+                                                                      (lam
+                                                                        default_arg0
+                                                                        a
+                                                                        (delay
+                                                                          [
+                                                                            fail
+                                                                            (abs
+                                                                              e
+                                                                              (type)
+                                                                              (error
+                                                                                e
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                    (delay
+                                                                      [
+                                                                        fail
+                                                                        (abs
+                                                                          e
+                                                                          (type)
+                                                                          (error
+                                                                            e
+                                                                          )
+                                                                        )
+                                                                      ]
                                                                     )
                                                                   ]
-                                                                  Unit
+                                                                  (delay
+                                                                    (force
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              [
+                                                                                {
+                                                                                  Extended_match
+                                                                                  a
+                                                                                }
+                                                                                ds
+                                                                              ]
+                                                                              (delayed Ordering)
+                                                                            }
+                                                                            (lam
+                                                                              default_arg0
+                                                                              a
+                                                                              (delay
+                                                                                [
+                                                                                  fail
+                                                                                  (abs
+                                                                                    e
+                                                                                    (type)
+                                                                                    (error
+                                                                                      e
+                                                                                    )
+                                                                                  )
+                                                                                ]
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                          (delay
+                                                                            [
+                                                                              fail
+                                                                              (abs
+                                                                                e
+                                                                                (type)
+                                                                                (error
+                                                                                  e
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                          )
+                                                                        ]
+                                                                        (delay
+                                                                          EQ
+                                                                        )
+                                                                      ]
+                                                                    )
+                                                                  )
                                                                 ]
                                                               )
                                                             )
-                                                            [
-                                                              [
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      [
-                                                                        {
-                                                                          Extended_match
-                                                                          a
-                                                                        }
-                                                                        ds
-                                                                      ]
-                                                                      (fun Unit Ordering)
-                                                                    }
-                                                                    (lam
-                                                                      default_arg0
-                                                                      a
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        [
-                                                                          fail
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                      )
-                                                                    )
-                                                                  ]
-                                                                  (lam
-                                                                    thunk
-                                                                    Unit
-                                                                    [
-                                                                      fail
-                                                                      (abs
-                                                                        e
-                                                                        (type)
-                                                                        (error e
-                                                                        )
-                                                                      )
-                                                                    ]
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              {
-                                                                                Extended_match
-                                                                                a
-                                                                              }
-                                                                              ds
-                                                                            ]
-                                                                            (fun Unit Ordering)
-                                                                          }
-                                                                          (lam
-                                                                            default_arg0
-                                                                            a
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                fail
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          [
-                                                                            fail
-                                                                            (abs
-                                                                              e
-                                                                              (type)
-                                                                              (error
-                                                                                e
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        EQ
-                                                                      )
-                                                                    ]
-                                                                    Unit
-                                                                  ]
-                                                                )
-                                                              ]
-                                                              Unit
-                                                            ]
                                                           )
                                                         )
-                                                      )
+                                                      ]
+                                                      (delay GT)
                                                     ]
-                                                    (lam thunk Unit GT)
-                                                  ]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    (let
-                                                      (nonrec)
-                                                      (termbind
-                                                        (strict)
-                                                        (vardecl
-                                                          fail
-                                                          (fun (all a (type) a) Ordering)
-                                                        )
-                                                        (lam
-                                                          ds
-                                                          (all a (type) a)
-                                                          [
-                                                            [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        a
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    (fun Unit Ordering)
-                                                                  }
-                                                                  (lam
-                                                                    default_arg0
-                                                                    a
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  {
-                                                                                    Extended_match
-                                                                                    a
-                                                                                  }
-                                                                                  ds
-                                                                                ]
-                                                                                (fun Unit Ordering)
-                                                                              }
-                                                                              (lam
-                                                                                l
-                                                                                a
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    [
-                                                                                      [
-                                                                                        [
-                                                                                          {
-                                                                                            [
-                                                                                              {
-                                                                                                Extended_match
-                                                                                                a
-                                                                                              }
-                                                                                              ds
-                                                                                            ]
-                                                                                            (fun Unit Ordering)
-                                                                                          }
-                                                                                          (lam
-                                                                                            r
-                                                                                            a
-                                                                                            (lam
-                                                                                              thunk
-                                                                                              Unit
-                                                                                              [
-                                                                                                [
-                                                                                                  [
-                                                                                                    {
-                                                                                                      compare
-                                                                                                      a
-                                                                                                    }
-                                                                                                    dOrd
-                                                                                                  ]
-                                                                                                  l
-                                                                                                ]
-                                                                                                r
-                                                                                              ]
-                                                                                            )
-                                                                                          )
-                                                                                        ]
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            fail
-                                                                                            (abs
-                                                                                              e
-                                                                                              (type)
-                                                                                              (error
-                                                                                                e
-                                                                                              )
-                                                                                            )
-                                                                                          ]
-                                                                                        )
-                                                                                      ]
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
-                                                                                        [
-                                                                                          fail
-                                                                                          (abs
-                                                                                            e
-                                                                                            (type)
-                                                                                            (error
-                                                                                              e
-                                                                                            )
-                                                                                          )
-                                                                                        ]
-                                                                                      )
-                                                                                    ]
-                                                                                    Unit
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                fail
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            GT
-                                                                          )
-                                                                        ]
-                                                                        Unit
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              {
-                                                                                Extended_match
-                                                                                a
-                                                                              }
-                                                                              ds
-                                                                            ]
-                                                                            (fun Unit Ordering)
-                                                                          }
-                                                                          (lam
-                                                                            l
-                                                                            a
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                [
-                                                                                  [
-                                                                                    [
-                                                                                      {
-                                                                                        [
-                                                                                          {
-                                                                                            Extended_match
-                                                                                            a
-                                                                                          }
-                                                                                          ds
-                                                                                        ]
-                                                                                        (fun Unit Ordering)
-                                                                                      }
-                                                                                      (lam
-                                                                                        r
-                                                                                        a
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            [
-                                                                                              [
-                                                                                                {
-                                                                                                  compare
-                                                                                                  a
-                                                                                                }
-                                                                                                dOrd
-                                                                                              ]
-                                                                                              l
-                                                                                            ]
-                                                                                            r
-                                                                                          ]
-                                                                                        )
-                                                                                      )
-                                                                                    ]
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
-                                                                                      [
-                                                                                        fail
-                                                                                        (abs
-                                                                                          e
-                                                                                          (type)
-                                                                                          (error
-                                                                                            e
-                                                                                          )
-                                                                                        )
-                                                                                      ]
-                                                                                    )
-                                                                                  ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    [
-                                                                                      fail
-                                                                                      (abs
-                                                                                        e
-                                                                                        (type)
-                                                                                        (error
-                                                                                          e
-                                                                                        )
-                                                                                      )
-                                                                                    ]
-                                                                                  )
-                                                                                ]
-                                                                                Unit
-                                                                              ]
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          [
-                                                                            fail
-                                                                            (abs
-                                                                              e
-                                                                              (type)
-                                                                              (error
-                                                                                e
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        GT
-                                                                      )
-                                                                    ]
-                                                                    Unit
-                                                                  ]
-                                                                )
-                                                              ]
-                                                              (lam thunk Unit LT
-                                                              )
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      )
-                                                      [
+                                                    (delay
+                                                      (force
                                                         [
                                                           [
                                                             [
@@ -3965,14 +3956,12 @@
                                                                   }
                                                                   ds
                                                                 ]
-                                                                (fun Unit Ordering)
+                                                                (delayed Ordering)
                                                               }
                                                               (lam
                                                                 default_arg0
                                                                 a
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
+                                                                (delay
                                                                   [
                                                                     fail
                                                                     (abs
@@ -3984,9 +3973,7 @@
                                                                 )
                                                               )
                                                             ]
-                                                            (lam
-                                                              thunk
-                                                              Unit
+                                                            (delay
                                                               [
                                                                 fail
                                                                 (abs
@@ -3997,10 +3984,8 @@
                                                               ]
                                                             )
                                                           ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            [
+                                                          (delay
+                                                            (force
                                                               [
                                                                 [
                                                                   [
@@ -4012,14 +3997,12 @@
                                                                         }
                                                                         ds
                                                                       ]
-                                                                      (fun Unit Ordering)
+                                                                      (delayed Ordering)
                                                                     }
                                                                     (lam
                                                                       default_arg0
                                                                       a
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
+                                                                      (delay
                                                                         [
                                                                           fail
                                                                           (abs
@@ -4033,9 +4016,7 @@
                                                                       )
                                                                     )
                                                                   ]
-                                                                  (lam
-                                                                    thunk
-                                                                    Unit
+                                                                  (delay
                                                                     [
                                                                       fail
                                                                       (abs
@@ -4047,171 +4028,132 @@
                                                                     ]
                                                                   )
                                                                 ]
-                                                                (lam
-                                                                  thunk Unit EQ
-                                                                )
+                                                                (delay EQ)
                                                               ]
-                                                              Unit
-                                                            ]
+                                                            )
                                                           )
                                                         ]
-                                                        Unit
-                                                      ]
+                                                      )
                                                     )
-                                                  )
-                                                ]
-                                                Unit
-                                              ]
+                                                  ]
+                                                )
+                                              )
                                             )
                                           )
                                         ]
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
+                                        (delay
+                                          (force
                                             [
                                               [
                                                 [
                                                   {
                                                     [ { Extended_match a } ds ]
-                                                    (fun Unit Ordering)
+                                                    (delayed Ordering)
                                                   }
-                                                  (lam
-                                                    default_arg0
-                                                    a
-                                                    (lam thunk Unit LT)
+                                                  (lam default_arg0 a (delay LT)
                                                   )
                                                 ]
-                                                (lam thunk Unit EQ)
+                                                (delay EQ)
                                               ]
-                                              (lam thunk Unit LT)
+                                              (delay LT)
                                             ]
-                                            Unit
-                                          ]
+                                          )
                                         )
                                       ]
-                                      (lam
-                                        thunk
-                                        Unit
-                                        [
+                                      (delay
+                                        (force
                                           [
                                             [
                                               [
                                                 {
                                                   [ { Extended_match a } ds ]
-                                                  (fun Unit Ordering)
+                                                  (delayed Ordering)
                                                 }
                                                 (lam
                                                   default_arg0
                                                   a
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    (let
-                                                      (nonrec)
-                                                      (termbind
-                                                        (strict)
-                                                        (vardecl
-                                                          fail
-                                                          (fun (all a (type) a) Ordering)
-                                                        )
-                                                        (lam
-                                                          ds
-                                                          (all a (type) a)
+                                                  (let
+                                                    (nonrec)
+                                                    (termbind
+                                                      (strict)
+                                                      (vardecl
+                                                        fail
+                                                        (fun (all a (type) a) Ordering)
+                                                      )
+                                                      (lam
+                                                        ds
+                                                        (all a (type) a)
+                                                        (force
                                                           [
                                                             [
                                                               [
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        Extended_match
-                                                                        a
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    (fun Unit Ordering)
-                                                                  }
-                                                                  (lam
-                                                                    default_arg0
-                                                                    a
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
+                                                                {
+                                                                  [
+                                                                    {
+                                                                      Extended_match
+                                                                      a
+                                                                    }
+                                                                    ds
+                                                                  ]
+                                                                  (delayed Ordering)
+                                                                }
+                                                                (lam
+                                                                  default_arg0
+                                                                  a
+                                                                  (delay
+                                                                    (force
                                                                       [
                                                                         [
                                                                           [
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  {
-                                                                                    Extended_match
-                                                                                    a
-                                                                                  }
-                                                                                  ds
-                                                                                ]
-                                                                                (fun Unit Ordering)
-                                                                              }
-                                                                              (lam
-                                                                                l
-                                                                                a
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
+                                                                            {
+                                                                              [
+                                                                                {
+                                                                                  Extended_match
+                                                                                  a
+                                                                                }
+                                                                                ds
+                                                                              ]
+                                                                              (delayed Ordering)
+                                                                            }
+                                                                            (lam
+                                                                              l
+                                                                              a
+                                                                              (delay
+                                                                                (force
                                                                                   [
                                                                                     [
                                                                                       [
-                                                                                        [
-                                                                                          {
+                                                                                        {
+                                                                                          [
+                                                                                            {
+                                                                                              Extended_match
+                                                                                              a
+                                                                                            }
+                                                                                            ds
+                                                                                          ]
+                                                                                          (delayed Ordering)
+                                                                                        }
+                                                                                        (lam
+                                                                                          r
+                                                                                          a
+                                                                                          (delay
                                                                                             [
-                                                                                              {
-                                                                                                Extended_match
-                                                                                                a
-                                                                                              }
-                                                                                              ds
-                                                                                            ]
-                                                                                            (fun Unit Ordering)
-                                                                                          }
-                                                                                          (lam
-                                                                                            r
-                                                                                            a
-                                                                                            (lam
-                                                                                              thunk
-                                                                                              Unit
                                                                                               [
                                                                                                 [
-                                                                                                  [
-                                                                                                    {
-                                                                                                      compare
-                                                                                                      a
-                                                                                                    }
-                                                                                                    dOrd
-                                                                                                  ]
-                                                                                                  l
+                                                                                                  {
+                                                                                                    compare
+                                                                                                    a
+                                                                                                  }
+                                                                                                  dOrd
                                                                                                 ]
-                                                                                                r
+                                                                                                l
                                                                                               ]
-                                                                                            )
+                                                                                              r
+                                                                                            ]
                                                                                           )
-                                                                                        ]
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            fail
-                                                                                            (abs
-                                                                                              e
-                                                                                              (type)
-                                                                                              (error
-                                                                                                e
-                                                                                              )
-                                                                                            )
-                                                                                          ]
                                                                                         )
                                                                                       ]
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
+                                                                                      (delay
                                                                                         [
                                                                                           fail
                                                                                           (abs
@@ -4224,99 +4166,7 @@
                                                                                         ]
                                                                                       )
                                                                                     ]
-                                                                                    Unit
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                fail
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            GT
-                                                                          )
-                                                                        ]
-                                                                        Unit
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              {
-                                                                                Extended_match
-                                                                                a
-                                                                              }
-                                                                              ds
-                                                                            ]
-                                                                            (fun Unit Ordering)
-                                                                          }
-                                                                          (lam
-                                                                            l
-                                                                            a
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                [
-                                                                                  [
-                                                                                    [
-                                                                                      {
-                                                                                        [
-                                                                                          {
-                                                                                            Extended_match
-                                                                                            a
-                                                                                          }
-                                                                                          ds
-                                                                                        ]
-                                                                                        (fun Unit Ordering)
-                                                                                      }
-                                                                                      (lam
-                                                                                        r
-                                                                                        a
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            [
-                                                                                              [
-                                                                                                {
-                                                                                                  compare
-                                                                                                  a
-                                                                                                }
-                                                                                                dOrd
-                                                                                              ]
-                                                                                              l
-                                                                                            ]
-                                                                                            r
-                                                                                          ]
-                                                                                        )
-                                                                                      )
-                                                                                    ]
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
+                                                                                    (delay
                                                                                       [
                                                                                         fail
                                                                                         (abs
@@ -4329,203 +4179,33 @@
                                                                                       ]
                                                                                     )
                                                                                   ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    [
-                                                                                      fail
-                                                                                      (abs
-                                                                                        e
-                                                                                        (type)
-                                                                                        (error
-                                                                                          e
-                                                                                        )
-                                                                                      )
-                                                                                    ]
-                                                                                  )
-                                                                                ]
-                                                                                Unit
-                                                                              ]
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          [
-                                                                            fail
-                                                                            (abs
-                                                                              e
-                                                                              (type)
-                                                                              (error
-                                                                                e
+                                                                                )
                                                                               )
                                                                             )
                                                                           ]
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        GT
-                                                                      )
-                                                                    ]
-                                                                    Unit
-                                                                  ]
-                                                                )
-                                                              ]
-                                                              (lam thunk Unit LT
-                                                              )
-                                                            ]
-                                                            Unit
-                                                          ]
-                                                        )
-                                                      )
-                                                      [
-                                                        [
-                                                          [
-                                                            [
-                                                              {
-                                                                [
-                                                                  {
-                                                                    Extended_match
-                                                                    a
-                                                                  }
-                                                                  ds
-                                                                ]
-                                                                (fun Unit Ordering)
-                                                              }
-                                                              (lam
-                                                                default_arg0
-                                                                a
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  [
-                                                                    fail
-                                                                    (abs
-                                                                      e
-                                                                      (type)
-                                                                      (error e)
-                                                                    )
-                                                                  ]
-                                                                )
-                                                              )
-                                                            ]
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [
-                                                                fail
-                                                                (abs
-                                                                  e
-                                                                  (type)
-                                                                  (error e)
-                                                                )
-                                                              ]
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            [
-                                                              [
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      [
-                                                                        {
-                                                                          Extended_match
-                                                                          a
-                                                                        }
-                                                                        ds
-                                                                      ]
-                                                                      (fun Unit Ordering)
-                                                                    }
-                                                                    (lam
-                                                                      default_arg0
-                                                                      a
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        [
-                                                                          fail
-                                                                          (abs
-                                                                            e
-                                                                            (type)
-                                                                            (error
-                                                                              e
-                                                                            )
+                                                                          (delay
+                                                                            [
+                                                                              fail
+                                                                              (abs
+                                                                                e
+                                                                                (type)
+                                                                                (error
+                                                                                  e
+                                                                                )
+                                                                              )
+                                                                            ]
                                                                           )
                                                                         ]
-                                                                      )
-                                                                    )
-                                                                  ]
-                                                                  (lam
-                                                                    thunk
-                                                                    Unit
-                                                                    [
-                                                                      fail
-                                                                      (abs
-                                                                        e
-                                                                        (type)
-                                                                        (error e
+                                                                        (delay
+                                                                          GT
                                                                         )
-                                                                      )
-                                                                    ]
+                                                                      ]
+                                                                    )
                                                                   )
-                                                                ]
-                                                                (lam
-                                                                  thunk Unit EQ
                                                                 )
                                                               ]
-                                                              Unit
-                                                            ]
-                                                          )
-                                                        ]
-                                                        Unit
-                                                      ]
-                                                    )
-                                                  )
-                                                )
-                                              ]
-                                              (lam thunk Unit GT)
-                                            ]
-                                            (lam
-                                              thunk
-                                              Unit
-                                              (let
-                                                (nonrec)
-                                                (termbind
-                                                  (strict)
-                                                  (vardecl
-                                                    fail
-                                                    (fun (all a (type) a) Ordering)
-                                                  )
-                                                  (lam
-                                                    ds
-                                                    (all a (type) a)
-                                                    [
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Extended_match
-                                                                  a
-                                                                }
-                                                                ds
-                                                              ]
-                                                              (fun Unit Ordering)
-                                                            }
-                                                            (lam
-                                                              default_arg0
-                                                              a
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
+                                                              (delay
+                                                                (force
                                                                   [
                                                                     [
                                                                       [
@@ -4537,15 +4217,13 @@
                                                                             }
                                                                             ds
                                                                           ]
-                                                                          (fun Unit Ordering)
+                                                                          (delayed Ordering)
                                                                         }
                                                                         (lam
                                                                           l
                                                                           a
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
+                                                                          (delay
+                                                                            (force
                                                                               [
                                                                                 [
                                                                                   [
@@ -4557,14 +4235,12 @@
                                                                                         }
                                                                                         ds
                                                                                       ]
-                                                                                      (fun Unit Ordering)
+                                                                                      (delayed Ordering)
                                                                                     }
                                                                                     (lam
                                                                                       r
                                                                                       a
-                                                                                      (lam
-                                                                                        thunk
-                                                                                        Unit
+                                                                                      (delay
                                                                                         [
                                                                                           [
                                                                                             [
@@ -4581,9 +4257,7 @@
                                                                                       )
                                                                                     )
                                                                                   ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
+                                                                                  (delay
                                                                                     [
                                                                                       fail
                                                                                       (abs
@@ -4596,9 +4270,7 @@
                                                                                     ]
                                                                                   )
                                                                                 ]
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
+                                                                                (delay
                                                                                   [
                                                                                     fail
                                                                                     (abs
@@ -4611,14 +4283,11 @@
                                                                                   ]
                                                                                 )
                                                                               ]
-                                                                              Unit
-                                                                            ]
+                                                                            )
                                                                           )
                                                                         )
                                                                       ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
+                                                                      (delay
                                                                         [
                                                                           fail
                                                                           (abs
@@ -4631,182 +4300,18 @@
                                                                         ]
                                                                       )
                                                                     ]
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      GT
-                                                                    )
+                                                                    (delay GT)
                                                                   ]
-                                                                  Unit
-                                                                ]
-                                                              )
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            [
-                                                              [
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      [
-                                                                        {
-                                                                          Extended_match
-                                                                          a
-                                                                        }
-                                                                        ds
-                                                                      ]
-                                                                      (fun Unit Ordering)
-                                                                    }
-                                                                    (lam
-                                                                      l
-                                                                      a
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        [
-                                                                          [
-                                                                            [
-                                                                              [
-                                                                                {
-                                                                                  [
-                                                                                    {
-                                                                                      Extended_match
-                                                                                      a
-                                                                                    }
-                                                                                    ds
-                                                                                  ]
-                                                                                  (fun Unit Ordering)
-                                                                                }
-                                                                                (lam
-                                                                                  r
-                                                                                  a
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    [
-                                                                                      [
-                                                                                        [
-                                                                                          {
-                                                                                            compare
-                                                                                            a
-                                                                                          }
-                                                                                          dOrd
-                                                                                        ]
-                                                                                        l
-                                                                                      ]
-                                                                                      r
-                                                                                    ]
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
-                                                                                [
-                                                                                  fail
-                                                                                  (abs
-                                                                                    e
-                                                                                    (type)
-                                                                                    (error
-                                                                                      e
-                                                                                    )
-                                                                                  )
-                                                                                ]
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
-                                                                              [
-                                                                                fail
-                                                                                (abs
-                                                                                  e
-                                                                                  (type)
-                                                                                  (error
-                                                                                    e
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                            )
-                                                                          ]
-                                                                          Unit
-                                                                        ]
-                                                                      )
-                                                                    )
-                                                                  ]
-                                                                  (lam
-                                                                    thunk
-                                                                    Unit
-                                                                    [
-                                                                      fail
-                                                                      (abs
-                                                                        e
-                                                                        (type)
-                                                                        (error e
-                                                                        )
-                                                                      )
-                                                                    ]
-                                                                  )
-                                                                ]
-                                                                (lam
-                                                                  thunk Unit GT
                                                                 )
-                                                              ]
-                                                              Unit
-                                                            ]
-                                                          )
-                                                        ]
-                                                        (lam thunk Unit LT)
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                )
-                                                [
-                                                  [
-                                                    [
-                                                      [
-                                                        {
-                                                          [
-                                                            { Extended_match a }
-                                                            ds
-                                                          ]
-                                                          (fun Unit Ordering)
-                                                        }
-                                                        (lam
-                                                          default_arg0
-                                                          a
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            [
-                                                              fail
-                                                              (abs
-                                                                e
-                                                                (type)
-                                                                (error e)
                                                               )
                                                             ]
-                                                          )
+                                                            (delay LT)
+                                                          ]
                                                         )
-                                                      ]
-                                                      (lam
-                                                        thunk
-                                                        Unit
-                                                        [
-                                                          fail
-                                                          (abs
-                                                            e (type) (error e)
-                                                          )
-                                                        ]
                                                       )
-                                                    ]
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      [
+                                                    )
+                                                    (delay
+                                                      (force
                                                         [
                                                           [
                                                             [
@@ -4818,14 +4323,12 @@
                                                                   }
                                                                   ds
                                                                 ]
-                                                                (fun Unit Ordering)
+                                                                (delayed Ordering)
                                                               }
                                                               (lam
                                                                 default_arg0
                                                                 a
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
+                                                                (delay
                                                                   [
                                                                     fail
                                                                     (abs
@@ -4837,9 +4340,7 @@
                                                                 )
                                                               )
                                                             ]
-                                                            (lam
-                                                              thunk
-                                                              Unit
+                                                            (delay
                                                               [
                                                                 fail
                                                                 (abs
@@ -4850,23 +4351,147 @@
                                                               ]
                                                             )
                                                           ]
-                                                          (lam thunk Unit EQ)
+                                                          (delay
+                                                            (force
+                                                              [
+                                                                [
+                                                                  [
+                                                                    {
+                                                                      [
+                                                                        {
+                                                                          Extended_match
+                                                                          a
+                                                                        }
+                                                                        ds
+                                                                      ]
+                                                                      (delayed Ordering)
+                                                                    }
+                                                                    (lam
+                                                                      default_arg0
+                                                                      a
+                                                                      (delay
+                                                                        [
+                                                                          fail
+                                                                          (abs
+                                                                            e
+                                                                            (type)
+                                                                            (error
+                                                                              e
+                                                                            )
+                                                                          )
+                                                                        ]
+                                                                      )
+                                                                    )
+                                                                  ]
+                                                                  (delay
+                                                                    [
+                                                                      fail
+                                                                      (abs
+                                                                        e
+                                                                        (type)
+                                                                        (error e
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                  )
+                                                                ]
+                                                                (delay EQ)
+                                                              ]
+                                                            )
+                                                          )
                                                         ]
-                                                        Unit
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                              ]
+                                              (delay GT)
+                                            ]
+                                            (delay
+                                              (force
+                                                [
+                                                  [
+                                                    [
+                                                      {
+                                                        [
+                                                          { Extended_match a }
+                                                          ds
+                                                        ]
+                                                        (delayed Ordering)
+                                                      }
+                                                      (lam
+                                                        default_arg0
+                                                        a
+                                                        (delay
+                                                          [
+                                                            fail
+                                                            (abs
+                                                              e (type) (error e)
+                                                            )
+                                                          ]
+                                                        )
+                                                      )
+                                                    ]
+                                                    (delay
+                                                      [
+                                                        fail
+                                                        (abs e (type) (error e))
                                                       ]
                                                     )
                                                   ]
-                                                  Unit
+                                                  (delay
+                                                    (force
+                                                      [
+                                                        [
+                                                          [
+                                                            {
+                                                              [
+                                                                {
+                                                                  Extended_match
+                                                                  a
+                                                                }
+                                                                ds
+                                                              ]
+                                                              (delayed Ordering)
+                                                            }
+                                                            (lam
+                                                              default_arg0
+                                                              a
+                                                              (delay
+                                                                [
+                                                                  fail
+                                                                  (abs
+                                                                    e
+                                                                    (type)
+                                                                    (error e)
+                                                                  )
+                                                                ]
+                                                              )
+                                                            )
+                                                          ]
+                                                          (delay
+                                                            [
+                                                              fail
+                                                              (abs
+                                                                e
+                                                                (type)
+                                                                (error e)
+                                                              )
+                                                            ]
+                                                          )
+                                                        ]
+                                                        (delay EQ)
+                                                      ]
+                                                    )
+                                                  )
                                                 ]
                                               )
                                             )
                                           ]
-                                          Unit
-                                        ]
+                                        )
                                       )
                                     ]
-                                    Unit
-                                  ]
+                                  )
                                 )
                               )
                             )
@@ -4907,7 +4532,7 @@
                                           (lam
                                             in
                                             Bool
-                                            [
+                                            (force
                                               [
                                                 [
                                                   [
@@ -4927,32 +4552,28 @@
                                                           v
                                                         ]
                                                       ]
-                                                      (fun Unit Bool)
+                                                      (delayed Bool)
                                                     }
-                                                    (lam
-                                                      thunk
-                                                      Unit
-                                                      [
+                                                    (delay
+                                                      (force
                                                         [
                                                           [
                                                             {
                                                               [ Bool_match in ]
-                                                              (fun Unit Bool)
+                                                              (delayed Bool)
                                                             }
-                                                            (lam thunk Unit in)
+                                                            (delay in)
                                                           ]
-                                                          (lam thunk Unit True)
+                                                          (delay True)
                                                         ]
-                                                        Unit
-                                                      ]
+                                                      )
                                                     )
                                                   ]
-                                                  (lam thunk Unit False)
+                                                  (delay False)
                                                 ]
-                                                (lam thunk Unit True)
+                                                (delay True)
                                               ]
-                                              Unit
-                                            ]
+                                            )
                                           )
                                         )
                                       ]
@@ -5022,7 +4643,7 @@
                                                       (lam
                                                         in
                                                         Bool
-                                                        [
+                                                        (force
                                                           [
                                                             [
                                                               [
@@ -5043,12 +4664,10 @@
                                                                       v
                                                                     ]
                                                                   ]
-                                                                  (fun Unit Bool)
+                                                                  (delayed Bool)
                                                                 }
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  [
+                                                                (delay
+                                                                  (force
                                                                     [
                                                                       [
                                                                         {
@@ -5056,12 +4675,10 @@
                                                                             Bool_match
                                                                             in
                                                                           ]
-                                                                          (fun Unit Bool)
+                                                                          (delayed Bool)
                                                                         }
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          [
+                                                                        (delay
+                                                                          (force
                                                                             [
                                                                               [
                                                                                 {
@@ -5069,11 +4686,9 @@
                                                                                     Bool_match
                                                                                     in
                                                                                   ]
-                                                                                  (fun Unit Bool)
+                                                                                  (delayed Bool)
                                                                                 }
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
+                                                                                (delay
                                                                                   [
                                                                                     [
                                                                                       [
@@ -5089,19 +4704,14 @@
                                                                                   ]
                                                                                 )
                                                                               ]
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
+                                                                              (delay
                                                                                 False
                                                                               )
                                                                             ]
-                                                                            Unit
-                                                                          ]
+                                                                          )
                                                                         )
                                                                       ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
+                                                                      (delay
                                                                         [
                                                                           [
                                                                             [
@@ -5117,17 +4727,12 @@
                                                                         ]
                                                                       )
                                                                     ]
-                                                                    Unit
-                                                                  ]
+                                                                  )
                                                                 )
                                                               ]
-                                                              (lam
-                                                                thunk Unit False
-                                                              )
+                                                              (delay False)
                                                             ]
-                                                            (lam
-                                                              thunk
-                                                              Unit
+                                                            (delay
                                                               [
                                                                 [
                                                                   [
@@ -5143,8 +4748,7 @@
                                                               ]
                                                             )
                                                           ]
-                                                          Unit
-                                                        ]
+                                                        )
                                                       )
                                                     )
                                                   ]
@@ -5183,7 +4787,7 @@
                                   [
                                     fAdditiveGroupValue_cscale (con integer -1)
                                   ]
-                                  [
+                                  (force
                                     [
                                       [
                                         {
@@ -5228,21 +4832,18 @@
                                               w
                                             ]
                                           ]
-                                          (fun Unit [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
+                                          (delayed [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]])
                                         }
-                                        (lam thunk Unit ww)
+                                        (delay ww)
                                       ]
-                                      (lam
-                                        thunk
-                                        Unit
+                                      (delay
                                         {
                                           Nil
                                           [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                         }
                                       )
                                     ]
-                                    Unit
-                                  ]
+                                  )
                                 ]
                               ]
                             )
@@ -5355,7 +4956,7 @@
                                                                   (lam
                                                                     ds
                                                                     [Maybe (con bytestring)]
-                                                                    [
+                                                                    (force
                                                                       [
                                                                         [
                                                                           {
@@ -5366,14 +4967,12 @@
                                                                               }
                                                                               ds
                                                                             ]
-                                                                            (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]])
+                                                                            (delayed [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]])
                                                                           }
                                                                           (lam
                                                                             ds
                                                                             (con bytestring)
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
+                                                                            (delay
                                                                               [
                                                                                 {
                                                                                   [
@@ -5406,7 +5005,7 @@
                                                                                       (lam
                                                                                         s
                                                                                         (con bytestring)
-                                                                                        [
+                                                                                        (force
                                                                                           [
                                                                                             [
                                                                                               {
@@ -5436,11 +5035,9 @@
                                                                                                     False
                                                                                                   ]
                                                                                                 ]
-                                                                                                (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]])
+                                                                                                (delayed [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]])
                                                                                               }
-                                                                                              (lam
-                                                                                                thunk
-                                                                                                Unit
+                                                                                              (delay
                                                                                                 [
                                                                                                   [
                                                                                                     {
@@ -5465,14 +5062,11 @@
                                                                                                 ]
                                                                                               )
                                                                                             ]
-                                                                                            (lam
-                                                                                              thunk
-                                                                                              Unit
+                                                                                            (delay
                                                                                               xs
                                                                                             )
                                                                                           ]
-                                                                                          Unit
-                                                                                        ]
+                                                                                        )
                                                                                       )
                                                                                     ]
                                                                                   )
@@ -5481,14 +5075,11 @@
                                                                             )
                                                                           )
                                                                         ]
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
+                                                                        (delay
                                                                           xs
                                                                         )
                                                                       ]
-                                                                      Unit
-                                                                    ]
+                                                                    )
                                                                   )
                                                                 )
                                                               )
@@ -5583,7 +5174,7 @@
                                                 (lam
                                                   ds
                                                   (con bytestring)
-                                                  [
+                                                  (force
                                                     [
                                                       [
                                                         {
@@ -5610,7 +5201,7 @@
                                                                 (lam
                                                                   x
                                                                   (con bytestring)
-                                                                  [
+                                                                  (force
                                                                     [
                                                                       [
                                                                         {
@@ -5640,11 +5231,9 @@
                                                                               False
                                                                             ]
                                                                           ]
-                                                                          (fun Unit [Maybe (con bytestring)])
+                                                                          (delayed [Maybe (con bytestring)])
                                                                         }
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
+                                                                        (delay
                                                                           [
                                                                             {
                                                                               Just
@@ -5654,34 +5243,30 @@
                                                                           ]
                                                                         )
                                                                       ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
+                                                                      (delay
                                                                         {
                                                                           Nothing
                                                                           (con bytestring)
                                                                         }
                                                                       )
                                                                     ]
-                                                                    Unit
-                                                                  ]
+                                                                  )
                                                                 )
                                                               ]
                                                               ds
                                                             ]
                                                           ]
-                                                          (fun Unit Bool)
+                                                          (delayed Bool)
                                                         }
                                                         (lam
                                                           ds
                                                           (con bytestring)
-                                                          (lam thunk Unit True)
+                                                          (delay True)
                                                         )
                                                       ]
-                                                      (lam thunk Unit False)
+                                                      (delay False)
                                                     ]
-                                                    Unit
-                                                  ]
+                                                  )
                                                 )
                                               )
                                             )
@@ -5771,7 +5356,7 @@
                                                                       (lam
                                                                         ds
                                                                         (con bytestring)
-                                                                        [
+                                                                        (force
                                                                           [
                                                                             [
                                                                               {
@@ -5877,11 +5462,9 @@
                                                                                     ]
                                                                                   ]
                                                                                 ]
-                                                                                (fun Unit Bool)
+                                                                                (delayed Bool)
                                                                               }
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
+                                                                              (delay
                                                                                 [
                                                                                   [
                                                                                     txSignedBy
@@ -5891,14 +5474,11 @@
                                                                                 ]
                                                                               )
                                                                             ]
-                                                                            (lam
-                                                                              thunk
-                                                                              Unit
+                                                                            (delay
                                                                               False
                                                                             )
                                                                           ]
-                                                                          Unit
-                                                                        ]
+                                                                        )
                                                                       )
                                                                     )
                                                                   )

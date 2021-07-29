@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -21,26 +18,19 @@
         (lam
           ds
           Bool
-          [
+          (force
             [
-              [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False) ]
-              (lam
-                thunk
-                Unit
-                [
+              [ { [ Bool_match ds ] (delayed Bool) } (delay False) ]
+              (delay
+                (force
                   [
-                    [
-                      { [ Bool_match ds ] (fun Unit Bool) }
-                      (lam thunk Unit False)
-                    ]
-                    (lam thunk Unit True)
+                    [ { [ Bool_match ds ] (delayed Bool) } (delay False) ]
+                    (delay True)
                   ]
-                  Unit
-                ]
+                )
               )
             ]
-            Unit
-          ]
+          )
         )
       )
     )
@@ -70,7 +60,7 @@
       (let
         (rec)
         (termbind
-          (nonstrict)
+          (strict)
           (vardecl
             allDirect (all a (type) (fun (fun a Bool) (fun [List a] Bool)))
           )
@@ -83,28 +73,22 @@
               (lam
                 l
                 [List a]
-                [
+                (force
                   [
-                    [
-                      { [ { Nil_match a } l ] (fun Unit Bool) }
-                      (lam thunk Unit True)
-                    ]
+                    [ { [ { Nil_match a } l ] (delayed Bool) } (delay True) ]
                     (lam
                       h
                       a
                       (lam
                         t
                         [List a]
-                        (lam
-                          thunk
-                          Unit
+                        (delay
                           [ [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ] ]
                         )
                       )
                     )
                   ]
-                  Unit
-                ]
+                )
               )
             )
           )

@@ -33,16 +33,15 @@
     (lam
       ds
       MyEnum
-      [
+      (force
         [
           [
-            { [ MyEnum_match ds ] (fun Unit (con integer)) }
-            (lam thunk Unit (con integer 1))
+            { [ MyEnum_match ds ] (delayed (con integer)) }
+            (delay (con integer 1))
           ]
-          (lam thunk Unit [ { error (con integer) } Unit ])
+          (delay [ { error (con integer) } Unit ])
         ]
-        Unit
-      ]
+      )
     )
   )
 )

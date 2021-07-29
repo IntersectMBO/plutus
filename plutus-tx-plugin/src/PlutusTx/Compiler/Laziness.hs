@@ -5,16 +5,9 @@
 -- | Simulating laziness.
 module PlutusTx.Compiler.Laziness where
 
-import {-# SOURCE #-}           PlutusTx.Compiler.Expr
-import                          PlutusTx.Compiler.Type
-import                          PlutusTx.Compiler.Types
-import                          PlutusTx.PIRTypes
+import           PlutusTx.PIRTypes
 
-import                qualified PlutusIR                as PIR
-
-import                          PlutusCore.Quote
-
-import                qualified GhcPlugins              as GHC
+import qualified PlutusIR          as PIR
 
 {- Note [Object- vs meta-language combinators]
 Many of the things we define as *meta*-langugage combinators (i.e. operations on terms) could be defined
@@ -28,32 +21,26 @@ with the standard library because it makes the generated terms simpler without t
 a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
-delay :: Compiling uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
-delay body = PIR.LamAbs () <$> liftQuote (freshName "thunk") <*> compileType GHC.unitTy <*> pure body
+delay :: PIRTerm uni fun -> PIRTerm uni fun
+delay = PIR.Delay ()
 
-delayType :: Compiling uni fun m => PIRType uni -> m (PIRType uni)
-delayType orig = PIR.TyFun () <$> compileType GHC.unitTy <*> pure orig
+delayType :: PIRType uni -> PIRType uni
+delayType = PIR.TyDelayed ()
 
-delayVar :: Compiling uni fun m => PIRVar uni fun -> m (PIRVar uni fun)
-delayVar (PIR.VarDecl () n ty) = do
-    ty' <- delayType ty
-    pure $ PIR.VarDecl () n ty'
+delayVar :: PIRVar uni fun -> PIRVar uni fun
+delayVar (PIR.VarDecl () n ty) = PIR.VarDecl () n $ delayType ty
 
-force
-    :: CompilingDefault uni fun m
-    => PIRTerm uni fun -> m (PIRTerm uni fun)
-force thunk = PIR.Apply () thunk <$> compileExpr (GHC.Var GHC.unitDataConId)
+force :: PIRTerm uni fun -> PIRTerm uni fun
+force = PIR.Force ()
 
-maybeDelay :: Compiling uni fun m => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
-maybeDelay yes t = if yes then delay t else pure t
+maybeDelay :: Bool -> PIRTerm uni fun -> PIRTerm uni fun
+maybeDelay yes t = if yes then delay t else t
 
-maybeDelayVar :: Compiling uni fun m => Bool -> PIRVar uni fun -> m (PIRVar uni fun)
-maybeDelayVar yes v = if yes then delayVar v else pure v
+maybeDelayVar :: Bool -> PIRVar uni fun -> PIRVar uni fun
+maybeDelayVar yes v = if yes then delayVar v else v
 
-maybeDelayType :: Compiling uni fun m => Bool -> PIRType uni -> m (PIRType uni)
-maybeDelayType yes t = if yes then delayType t else pure t
+maybeDelayType :: Bool -> PIRType uni -> PIRType uni
+maybeDelayType yes t = if yes then delayType t else t
 
-maybeForce
-    :: CompilingDefault uni fun m
-    => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
-maybeForce yes t = if yes then force t else pure t
+maybeForce :: Bool -> PIRTerm uni fun -> PIRTerm uni fun
+maybeForce yes t = if yes then force t else t
