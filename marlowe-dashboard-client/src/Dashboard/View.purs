@@ -218,7 +218,7 @@ dashboardBreadcrumb mSelectedContractState =
           ]
         <> case mSelectedContractState of
             Just { nickname } ->
-              [ span [ classNames [ "font-semibold" ] ] [ text ">" ] -- FIXME: change > for an Icon
+              [ icon_ Icon.Next
               , tooltip "Go to dashboard" (RefId "goToDashboard") Bottom
               , span_ [ text if nickname == mempty then "My new contract" else nickname ]
               ]
