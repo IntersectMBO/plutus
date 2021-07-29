@@ -58,7 +58,6 @@ _SCHED_TD_PAM scfg _TD =
 
 _SCHED_IP_PAM scfg _IPNR _IED _IPANX _IPCL _IPCED _MD =
     let maybeS  | isNothing _IPANX && isNothing _IPCL  = Nothing
-                -- | isJust _IPCED                       = _IPCED -- present in the specification, but not correct, according to pam18 test case
                 | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL
                 | otherwise                           = _IPANX
 
@@ -72,7 +71,6 @@ _SCHED_IP_PAM scfg _IPNR _IED _IPANX _IPCL _IPCED _MD =
 _SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED _MD _IPNR =
     -- calculate IP sched:
     let maybeS  | isNothing _IPANX && isNothing _IPCL  = Nothing
-                -- | isJust _IPCED                       = _IPCED -- present in the specification, but not correct, according to pam18 test case
                 | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL
                 | otherwise                           = _IPANX
 
