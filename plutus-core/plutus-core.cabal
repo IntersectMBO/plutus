@@ -141,6 +141,7 @@ library
         UntypedPlutusCore.DeBruijn
         UntypedPlutusCore.Evaluation.HOAS
         UntypedPlutusCore.Evaluation.Machine.Cek
+        UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
         UntypedPlutusCore.Check.Uniques
@@ -235,7 +236,6 @@ library
         UntypedPlutusCore.Core.Plated
         UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
         UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-        UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Mark
         UntypedPlutusCore.Rename.Internal
         UntypedPlutusCore.Size
