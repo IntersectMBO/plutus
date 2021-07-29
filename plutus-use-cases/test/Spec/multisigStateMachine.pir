@@ -3579,25 +3579,36 @@
                                                                                                     (con integer)
                                                                                                   }
                                                                                                   [
-                                                                                                    {
+                                                                                                    [
+                                                                                                      (builtin
+                                                                                                        subtractInteger
+                                                                                                      )
                                                                                                       [
-                                                                                                        Payment_match
-                                                                                                        pmt
-                                                                                                      ]
-                                                                                                      (con integer)
-                                                                                                    }
-                                                                                                    (lam
-                                                                                                      ds
-                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                      (lam
-                                                                                                        ds
-                                                                                                        (con bytestring)
+                                                                                                        {
+                                                                                                          [
+                                                                                                            Payment_match
+                                                                                                            pmt
+                                                                                                          ]
+                                                                                                          (con integer)
+                                                                                                        }
                                                                                                         (lam
                                                                                                           ds
-                                                                                                          (con integer)
-                                                                                                          ds
+                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                          (lam
+                                                                                                            ds
+                                                                                                            (con bytestring)
+                                                                                                            (lam
+                                                                                                              ds
+                                                                                                              (con integer)
+                                                                                                              ds
+                                                                                                            )
+                                                                                                          )
                                                                                                         )
-                                                                                                      )
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                    (con
+                                                                                                      integer
+                                                                                                        1
                                                                                                     )
                                                                                                   ]
                                                                                                 ]

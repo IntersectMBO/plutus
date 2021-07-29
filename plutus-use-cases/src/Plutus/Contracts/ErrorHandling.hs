@@ -22,7 +22,7 @@ import           Data.Aeson               (FromJSON, ToJSON)
 import           Data.Text                (Text)
 import           GHC.Generics             (Generic)
 
-import           Data.Default             (Default (def))
+import           Ledger.TimeSlot          (SlotConfig)
 import qualified Ledger.TimeSlot          as TimeSlot
 import           Plutus.Contract
 
@@ -71,19 +71,21 @@ throwAndCatch =
     in catching _Error1 throw handleError1
 
 -- | Handle an error from another contract (in this case, 'awaitTime)
-catchContractError :: (AsMyError e) => Contract w s e ()
-catchContractError =
+catchContractError :: (AsMyError e) => SlotConfig -> Contract w s e ()
+catchContractError slotCfg = do
     catching _MyContractError
-        (void $ mapError (review _MyContractError) $ awaitTime $ TimeSlot.slotToBeginPOSIXTime def 10)
+        (void $ mapError (review _MyContractError) $
+            awaitTime $ TimeSlot.scSlotZeroTime slotCfg + 10000)
         (\_ -> throwing_ _Error2)
 
 contract
     :: ( AsMyError e
        , AsContractError e
        )
-    => Contract w Schema e ()
-contract = selectList
+    => SlotConfig
+    -> Contract w Schema e ()
+contract slotCfg = selectList
     [ endpoint @"throwError" $ const throw
     , endpoint @"catchError" $ const throwAndCatch
-    , endpoint @"catchContractError" $ const catchContractError
+    , endpoint @"catchContractError" $ const (catchContractError slotCfg)
     ]

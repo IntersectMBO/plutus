@@ -31,6 +31,7 @@ import qualified Streaming.Prelude                  as S
 import qualified Wallet.Emulator.Folds              as Folds
 import qualified Wallet.Emulator.Stream             as Stream
 
+import           Ledger.TimeSlot                    (SlotConfig)
 import qualified Ledger.TimeSlot                    as TimeSlot
 import qualified Ledger.Value                       as Value
 import           Plutus.Contract.Test.ContractModel
@@ -42,12 +43,15 @@ import           Test.QuickCheck                    hiding ((.&&.))
 import           Test.Tasty
 import           Test.Tasty.QuickCheck              (testProperty)
 
+slotCfg :: SlotConfig
+slotCfg = def
+
 params :: AuctionParams
 params =
     AuctionParams
         { apOwner   = pubKeyHash $ walletPubKey w1
         , apAsset   = theToken
-        , apEndTime = TimeSlot.slotToEndPOSIXTime def 100
+        , apEndTime = TimeSlot.scSlotZeroTime slotCfg + 100000
         }
 
 -- | The token that we are auctioning off.
@@ -62,7 +66,7 @@ theToken =
 auctionEmulatorCfg :: Trace.EmulatorConfig
 auctionEmulatorCfg =
     let initialDistribution = defaultDist & over (ix w1) ((<>) theToken)
-    in def & Trace.initialChainState .~ Left initialDistribution
+    in (def & Trace.initialChainState .~ Left initialDistribution) & Trace.slotConfig .~ slotCfg
 
 -- | 'CheckOptions' that includes our own 'auctionEmulatorCfg'.
 options :: CheckOptions
@@ -72,7 +76,7 @@ seller :: Contract AuctionOutput SellerSchema AuctionError ()
 seller = auctionSeller (apAsset params) (apEndTime params)
 
 buyer :: ThreadToken -> Contract AuctionOutput BuyerSchema AuctionError ()
-buyer cur = auctionBuyer cur params
+buyer cur = auctionBuyer slotCfg cur params
 
 w1, w2, w3 :: Wallet
 w1 = Wallet 1
@@ -92,7 +96,6 @@ auctionTrace1 = do
     Trace.callEndpoint @"bid" hdl2 trace1WinningBid
     void $ Trace.waitUntilTime $ apEndTime params
     void $ Trace.waitNSlots 2
-
 
 trace2WinningBid :: Ada
 trace2WinningBid = 70
@@ -152,7 +155,7 @@ threadToken =
         $ Freer.runError @Folds.EmulatorFoldErr
         $ Stream.foldEmulatorStreamM fld
         $ Stream.takeUntilSlot 10
-        $ Trace.runEmulatorStream (options ^. emulatorConfig) (options ^. feeConfig)
+        $ Trace.runEmulatorStream (options ^. emulatorConfig)
         $ do
             void $ Trace.activateContractWallet w1 (void con)
             Trace.waitNSlots 3
@@ -183,10 +186,12 @@ instance ContractModel AuctionModel where
     data Action AuctionModel = Init | Bid Wallet Integer | WaitUntil Slot
         deriving (Eq, Show)
 
-    initialState = AuctionModel { _currentBid = 0
-                                , _winner     = w1
-                                , _endSlot    = TimeSlot.posixTimeToEnclosingSlot def $ apEndTime params
-                                , _phase      = NotStarted }
+    initialState = AuctionModel
+        { _currentBid = 0
+        , _winner     = w1
+        , _endSlot    = TimeSlot.posixTimeToEnclosingSlot def $ apEndTime params
+        , _phase      = NotStarted
+        }
 
     arbitraryAction s
         | p /= NotStarted =
