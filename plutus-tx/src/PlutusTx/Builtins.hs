@@ -220,12 +220,12 @@ encodeUtf8 :: BuiltinString -> ByteString
 encodeUtf8 s = fromBuiltin (BI.encodeUtf8 s)
 
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList (\_ -> nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) l ()
+matchList l nilCase consCase = BI.chooseList l (\_ -> nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
 
 {-# INLINABLE chooseData #-}
 -- | Given five values for the five different constructors of 'BuiltinData', selects
 -- one depending on which corresponds to the actual constructor of the given value.
-chooseData :: forall a . a -> a -> a -> a -> a -> BuiltinData -> a
+chooseData :: forall a . BuiltinData -> a -> a -> a -> a -> a -> a
 chooseData = BI.chooseData
 
 {-# INLINABLE mkConstr #-}
@@ -296,12 +296,12 @@ matchData
     -> r
 matchData d constrCase mapCase listCase iCase bCase =
    chooseData
+   d
    (\_ -> uncurry constrCase (unsafeDataAsConstr d))
    (\_ -> mapCase (unsafeDataAsMap d))
    (\_ -> listCase (unsafeDataAsList d))
    (\_ -> iCase (unsafeDataAsI d))
    (\_ -> bCase (unsafeDataAsB d))
-   d
    ()
 
 {-# INLINABLE matchData' #-}
@@ -317,10 +317,10 @@ matchData'
     -> r
 matchData' d constrCase mapCase listCase iCase bCase =
    chooseData
+   d
    (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
    (\_ -> mapCase (BI.unsafeDataAsMap d))
    (\_ -> listCase (BI.unsafeDataAsList d))
    (\_ -> iCase (unsafeDataAsI d))
    (\_ -> bCase (unsafeDataAsB d))
-   d
    ()

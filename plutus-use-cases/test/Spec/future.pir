@@ -2605,23 +2605,21 @@
                                       (builtin chooseData)
                                       (fun Unit [Maybe (con integer)])
                                     }
-                                    (lam ds Unit { Nothing (con integer) })
+                                    d
                                   ]
                                   (lam ds Unit { Nothing (con integer) })
                                 ]
                                 (lam ds Unit { Nothing (con integer) })
                               ]
-                              (lam
-                                ds
-                                Unit
-                                [
-                                  { Just (con integer) } [ (builtin unIData) d ]
-                                ]
-                              )
+                              (lam ds Unit { Nothing (con integer) })
                             ]
-                            (lam ds Unit { Nothing (con integer) })
+                            (lam
+                              ds
+                              Unit
+                              [ { Just (con integer) } [ (builtin unIData) d ] ]
+                            )
                           ]
-                          d
+                          (lam ds Unit { Nothing (con integer) })
                         ]
                         Unit
                       ]
@@ -2653,273 +2651,169 @@
                                           (builtin chooseData)
                                           (fun Unit [Maybe [Observation a]])
                                         }
-                                        (lam
-                                          ds
-                                          Unit
-                                          (let
-                                            (nonrec)
-                                            (termbind
-                                              (nonstrict)
-                                              (vardecl
-                                                tup
-                                                [[(con pair) (con integer)] [(con list) (con data)]]
-                                              )
-                                              [ (builtin unConstrData) d ]
+                                        d
+                                      ]
+                                      (lam
+                                        ds
+                                        Unit
+                                        (let
+                                          (nonrec)
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl
+                                              tup
+                                              [[(con pair) (con integer)] [(con list) (con data)]]
                                             )
-                                            (termbind
-                                              (nonstrict)
-                                              (vardecl l [(con list) (con data)]
-                                              )
-                                              [
+                                            [ (builtin unConstrData) d ]
+                                          )
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl l [(con list) (con data)])
+                                            [
+                                              {
                                                 {
-                                                  {
-                                                    (builtin sndPair)
-                                                    (con integer)
-                                                  }
-                                                  [(con list) (con data)]
+                                                  (builtin sndPair)
+                                                  (con integer)
                                                 }
-                                                tup
-                                              ]
+                                                [(con list) (con data)]
+                                              }
+                                              tup
+                                            ]
+                                          )
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl l [(con list) (con data)])
+                                            [
+                                              { (builtin tailList) (con data) }
+                                              l
+                                            ]
+                                          )
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl
+                                              nilCase [Maybe [Observation a]]
                                             )
-                                            (termbind
-                                              (nonstrict)
-                                              (vardecl l [(con list) (con data)]
-                                              )
-                                              [
-                                                {
-                                                  (builtin tailList) (con data)
-                                                }
-                                                l
-                                              ]
-                                            )
-                                            (termbind
-                                              (nonstrict)
-                                              (vardecl
-                                                nilCase [Maybe [Observation a]]
-                                              )
+                                            [
                                               [
                                                 [
-                                                  [
-                                                    {
+                                                  {
+                                                    [
+                                                      { Maybe_match a }
                                                       [
-                                                        { Maybe_match a }
+                                                        dFromData
                                                         [
-                                                          dFromData
-                                                          [
-                                                            {
-                                                              (builtin headList)
-                                                              (con data)
-                                                            }
-                                                            l
-                                                          ]
+                                                          {
+                                                            (builtin headList)
+                                                            (con data)
+                                                          }
+                                                          l
                                                         ]
                                                       ]
-                                                      (fun Unit [Maybe [Observation a]])
-                                                    }
+                                                    ]
+                                                    (fun Unit [Maybe [Observation a]])
+                                                  }
+                                                  (lam
+                                                    ipv
+                                                    a
                                                     (lam
-                                                      ipv
-                                                      a
-                                                      (lam
-                                                        thunk
-                                                        Unit
+                                                      thunk
+                                                      Unit
+                                                      [
                                                         [
                                                           [
-                                                            [
-                                                              {
+                                                            {
+                                                              [
+                                                                {
+                                                                  Maybe_match
+                                                                  (con integer)
+                                                                }
                                                                 [
-                                                                  {
-                                                                    Maybe_match
-                                                                    (con integer)
-                                                                  }
-                                                                  [
-                                                                    fFromDataInteger_cfromBuiltinData
-                                                                    [
-                                                                      {
-                                                                        (builtin
-                                                                          headList
-                                                                        )
-                                                                        (con data)
-                                                                      }
-                                                                      l
-                                                                    ]
-                                                                  ]
-                                                                ]
-                                                                (fun Unit [Maybe [Observation a]])
-                                                              }
-                                                              (lam
-                                                                ipv
-                                                                (con integer)
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
+                                                                  fFromDataInteger_cfromBuiltinData
                                                                   [
                                                                     {
-                                                                      Just
-                                                                      [Observation a]
+                                                                      (builtin
+                                                                        headList
+                                                                      )
+                                                                      (con data)
                                                                     }
+                                                                    l
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                              (fun Unit [Maybe [Observation a]])
+                                                            }
+                                                            (lam
+                                                              ipv
+                                                              (con integer)
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                [
+                                                                  {
+                                                                    Just
+                                                                    [Observation a]
+                                                                  }
+                                                                  [
                                                                     [
-                                                                      [
-                                                                        {
-                                                                          Observation
-                                                                          a
-                                                                        }
-                                                                        ipv
-                                                                      ]
+                                                                      {
+                                                                        Observation
+                                                                        a
+                                                                      }
                                                                       ipv
                                                                     ]
+                                                                    ipv
                                                                   ]
-                                                                )
+                                                                ]
                                                               )
-                                                            ]
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              {
-                                                                Nothing
-                                                                [Observation a]
-                                                              }
                                                             )
                                                           ]
-                                                          Unit
+                                                          (lam
+                                                            thunk
+                                                            Unit
+                                                            {
+                                                              Nothing
+                                                              [Observation a]
+                                                            }
+                                                          )
                                                         ]
-                                                      )
+                                                        Unit
+                                                      ]
                                                     )
-                                                  ]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    { Nothing [Observation a] }
                                                   )
                                                 ]
-                                                Unit
+                                                (lam
+                                                  thunk
+                                                  Unit
+                                                  { Nothing [Observation a] }
+                                                )
                                               ]
-                                            )
-                                            (termbind
-                                              (nonstrict)
-                                              (vardecl
-                                                lvl [Maybe [Observation a]]
-                                              )
-                                              [
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        {
-                                                          (builtin chooseList)
-                                                          (fun Unit [Maybe [Observation a]])
-                                                        }
-                                                        (con data)
-                                                      }
-                                                      (lam ds Unit nilCase)
-                                                    ]
-                                                    (lam
-                                                      ds
-                                                      Unit
-                                                      {
-                                                        Nothing [Observation a]
-                                                      }
-                                                    )
-                                                  ]
-                                                  [
-                                                    {
-                                                      (builtin tailList)
-                                                      (con data)
-                                                    }
-                                                    l
-                                                  ]
-                                                ]
-                                                Unit
-                                              ]
-                                            )
-                                            (termbind
-                                              (nonstrict)
-                                              (vardecl
-                                                lvl [Maybe [Observation a]]
-                                              )
-                                              [
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        {
-                                                          (builtin chooseList)
-                                                          (fun Unit [Maybe [Observation a]])
-                                                        }
-                                                        (con data)
-                                                      }
-                                                      (lam
-                                                        ds
-                                                        Unit
-                                                        {
-                                                          Nothing
-                                                          [Observation a]
-                                                        }
-                                                      )
-                                                    ]
-                                                    (lam ds Unit lvl)
-                                                  ]
-                                                  l
-                                                ]
-                                                Unit
-                                              ]
-                                            )
-                                            (termbind
-                                              (nonstrict)
-                                              (vardecl x [Maybe [Observation a]]
-                                              )
-                                              [
-                                                [
-                                                  [
-                                                    [
-                                                      {
-                                                        {
-                                                          (builtin chooseList)
-                                                          (fun Unit [Maybe [Observation a]])
-                                                        }
-                                                        (con data)
-                                                      }
-                                                      (lam
-                                                        ds
-                                                        Unit
-                                                        {
-                                                          Nothing
-                                                          [Observation a]
-                                                        }
-                                                      )
-                                                    ]
-                                                    (lam ds Unit lvl)
-                                                  ]
-                                                  l
-                                                ]
-                                                Unit
-                                              ]
+                                              Unit
+                                            ]
+                                          )
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl lvl [Maybe [Observation a]]
                                             )
                                             [
                                               [
                                                 [
                                                   [
                                                     {
-                                                      (builtin ifThenElse)
+                                                      {
+                                                        (builtin chooseList)
+                                                        (con data)
+                                                      }
                                                       (fun Unit [Maybe [Observation a]])
                                                     }
                                                     [
-                                                      [
-                                                        (builtin equalsInteger)
-                                                        [
-                                                          {
-                                                            {
-                                                              (builtin fstPair)
-                                                              (con integer)
-                                                            }
-                                                            [(con list) (con data)]
-                                                          }
-                                                          tup
-                                                        ]
-                                                      ]
-                                                      (con integer 0)
+                                                      {
+                                                        (builtin tailList)
+                                                        (con data)
+                                                      }
+                                                      l
                                                     ]
                                                   ]
-                                                  (lam ds Unit x)
+                                                  (lam ds Unit nilCase)
                                                 ]
                                                 (lam
                                                   ds
@@ -2930,9 +2824,98 @@
                                               Unit
                                             ]
                                           )
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl lvl [Maybe [Observation a]]
+                                            )
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      {
+                                                        (builtin chooseList)
+                                                        (con data)
+                                                      }
+                                                      (fun Unit [Maybe [Observation a]])
+                                                    }
+                                                    l
+                                                  ]
+                                                  (lam
+                                                    ds
+                                                    Unit
+                                                    { Nothing [Observation a] }
+                                                  )
+                                                ]
+                                                (lam ds Unit lvl)
+                                              ]
+                                              Unit
+                                            ]
+                                          )
+                                          (termbind
+                                            (nonstrict)
+                                            (vardecl x [Maybe [Observation a]])
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      {
+                                                        (builtin chooseList)
+                                                        (con data)
+                                                      }
+                                                      (fun Unit [Maybe [Observation a]])
+                                                    }
+                                                    l
+                                                  ]
+                                                  (lam
+                                                    ds
+                                                    Unit
+                                                    { Nothing [Observation a] }
+                                                  )
+                                                ]
+                                                (lam ds Unit lvl)
+                                              ]
+                                              Unit
+                                            ]
+                                          )
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  {
+                                                    (builtin ifThenElse)
+                                                    (fun Unit [Maybe [Observation a]])
+                                                  }
+                                                  [
+                                                    [
+                                                      (builtin equalsInteger)
+                                                      [
+                                                        {
+                                                          {
+                                                            (builtin fstPair)
+                                                            (con integer)
+                                                          }
+                                                          [(con list) (con data)]
+                                                        }
+                                                        tup
+                                                      ]
+                                                    ]
+                                                    (con integer 0)
+                                                  ]
+                                                ]
+                                                (lam ds Unit x)
+                                              ]
+                                              (lam
+                                                ds
+                                                Unit
+                                                { Nothing [Observation a] }
+                                              )
+                                            ]
+                                            Unit
+                                          ]
                                         )
-                                      ]
-                                      (lam ds Unit { Nothing [Observation a] })
+                                      )
                                     ]
                                     (lam ds Unit { Nothing [Observation a] })
                                   ]
@@ -2940,7 +2923,7 @@
                                 ]
                                 (lam ds Unit { Nothing [Observation a] })
                               ]
-                              d
+                              (lam ds Unit { Nothing [Observation a] })
                             ]
                             Unit
                           ]
@@ -2980,296 +2963,182 @@
                                               (builtin chooseData)
                                               (fun Unit [Maybe [[Tuple2 a] b]])
                                             }
-                                            (lam
-                                              ds
-                                              Unit
-                                              (let
-                                                (nonrec)
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    tup
-                                                    [[(con pair) (con integer)] [(con list) (con data)]]
-                                                  )
-                                                  [ (builtin unConstrData) d ]
+                                            d
+                                          ]
+                                          (lam
+                                            ds
+                                            Unit
+                                            (let
+                                              (nonrec)
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  tup
+                                                  [[(con pair) (con integer)] [(con list) (con data)]]
                                                 )
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    l [(con list) (con data)]
-                                                  )
-                                                  [
+                                                [ (builtin unConstrData) d ]
+                                              )
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  l [(con list) (con data)]
+                                                )
+                                                [
+                                                  {
                                                     {
-                                                      {
-                                                        (builtin sndPair)
-                                                        (con integer)
-                                                      }
-                                                      [(con list) (con data)]
+                                                      (builtin sndPair)
+                                                      (con integer)
                                                     }
-                                                    tup
-                                                  ]
+                                                    [(con list) (con data)]
+                                                  }
+                                                  tup
+                                                ]
+                                              )
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  l [(con list) (con data)]
                                                 )
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    l [(con list) (con data)]
-                                                  )
-                                                  [
-                                                    {
-                                                      (builtin tailList)
-                                                      (con data)
-                                                    }
-                                                    l
-                                                  ]
+                                                [
+                                                  {
+                                                    (builtin tailList)
+                                                    (con data)
+                                                  }
+                                                  l
+                                                ]
+                                              )
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  nilCase [Maybe [[Tuple2 a] b]]
                                                 )
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    nilCase
-                                                    [Maybe [[Tuple2 a] b]]
-                                                  )
+                                                [
                                                   [
                                                     [
-                                                      [
-                                                        {
+                                                      {
+                                                        [
+                                                          { Maybe_match a }
                                                           [
-                                                            { Maybe_match a }
+                                                            dFromData
                                                             [
-                                                              dFromData
-                                                              [
-                                                                {
-                                                                  (builtin
-                                                                    headList
-                                                                  )
-                                                                  (con data)
-                                                                }
-                                                                l
-                                                              ]
+                                                              {
+                                                                (builtin
+                                                                  headList
+                                                                )
+                                                                (con data)
+                                                              }
+                                                              l
                                                             ]
                                                           ]
-                                                          (fun Unit [Maybe [[Tuple2 a] b]])
-                                                        }
+                                                        ]
+                                                        (fun Unit [Maybe [[Tuple2 a] b]])
+                                                      }
+                                                      (lam
+                                                        ipv
+                                                        a
                                                         (lam
-                                                          ipv
-                                                          a
-                                                          (lam
-                                                            thunk
-                                                            Unit
+                                                          thunk
+                                                          Unit
+                                                          [
                                                             [
                                                               [
-                                                                [
-                                                                  {
+                                                                {
+                                                                  [
+                                                                    {
+                                                                      Maybe_match
+                                                                      b
+                                                                    }
                                                                     [
-                                                                      {
-                                                                        Maybe_match
-                                                                        b
-                                                                      }
-                                                                      [
-                                                                        dFromData
-                                                                        [
-                                                                          {
-                                                                            (builtin
-                                                                              headList
-                                                                            )
-                                                                            (con data)
-                                                                          }
-                                                                          l
-                                                                        ]
-                                                                      ]
-                                                                    ]
-                                                                    (fun Unit [Maybe [[Tuple2 a] b]])
-                                                                  }
-                                                                  (lam
-                                                                    ipv
-                                                                    b
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
+                                                                      dFromData
                                                                       [
                                                                         {
-                                                                          Just
-                                                                          [[Tuple2 a] b]
+                                                                          (builtin
+                                                                            headList
+                                                                          )
+                                                                          (con data)
                                                                         }
+                                                                        l
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                  (fun Unit [Maybe [[Tuple2 a] b]])
+                                                                }
+                                                                (lam
+                                                                  ipv
+                                                                  b
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      {
+                                                                        Just
+                                                                        [[Tuple2 a] b]
+                                                                      }
+                                                                      [
                                                                         [
-                                                                          [
+                                                                          {
                                                                             {
-                                                                              {
-                                                                                Tuple2
-                                                                                a
-                                                                              }
-                                                                              b
+                                                                              Tuple2
+                                                                              a
                                                                             }
-                                                                            ipv
-                                                                          ]
+                                                                            b
+                                                                          }
                                                                           ipv
                                                                         ]
+                                                                        ipv
                                                                       ]
-                                                                    )
+                                                                    ]
                                                                   )
-                                                                ]
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  {
-                                                                    Nothing
-                                                                    [[Tuple2 a] b]
-                                                                  }
                                                                 )
                                                               ]
-                                                              Unit
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                {
+                                                                  Nothing
+                                                                  [[Tuple2 a] b]
+                                                                }
+                                                              )
                                                             ]
-                                                          )
+                                                            Unit
+                                                          ]
                                                         )
-                                                      ]
-                                                      (lam
-                                                        thunk
-                                                        Unit
-                                                        {
-                                                          Nothing [[Tuple2 a] b]
-                                                        }
                                                       )
                                                     ]
-                                                    Unit
+                                                    (lam
+                                                      thunk
+                                                      Unit
+                                                      { Nothing [[Tuple2 a] b] }
+                                                    )
                                                   ]
-                                                )
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    lvl [Maybe [[Tuple2 a] b]]
-                                                  )
-                                                  [
-                                                    [
-                                                      [
-                                                        [
-                                                          {
-                                                            {
-                                                              (builtin
-                                                                chooseList
-                                                              )
-                                                              (fun Unit [Maybe [[Tuple2 a] b]])
-                                                            }
-                                                            (con data)
-                                                          }
-                                                          (lam ds Unit nilCase)
-                                                        ]
-                                                        (lam
-                                                          ds
-                                                          Unit
-                                                          {
-                                                            Nothing
-                                                            [[Tuple2 a] b]
-                                                          }
-                                                        )
-                                                      ]
-                                                      [
-                                                        {
-                                                          (builtin tailList)
-                                                          (con data)
-                                                        }
-                                                        l
-                                                      ]
-                                                    ]
-                                                    Unit
-                                                  ]
-                                                )
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    lvl [Maybe [[Tuple2 a] b]]
-                                                  )
-                                                  [
-                                                    [
-                                                      [
-                                                        [
-                                                          {
-                                                            {
-                                                              (builtin
-                                                                chooseList
-                                                              )
-                                                              (fun Unit [Maybe [[Tuple2 a] b]])
-                                                            }
-                                                            (con data)
-                                                          }
-                                                          (lam
-                                                            ds
-                                                            Unit
-                                                            {
-                                                              Nothing
-                                                              [[Tuple2 a] b]
-                                                            }
-                                                          )
-                                                        ]
-                                                        (lam ds Unit lvl)
-                                                      ]
-                                                      l
-                                                    ]
-                                                    Unit
-                                                  ]
-                                                )
-                                                (termbind
-                                                  (nonstrict)
-                                                  (vardecl
-                                                    x [Maybe [[Tuple2 a] b]]
-                                                  )
-                                                  [
-                                                    [
-                                                      [
-                                                        [
-                                                          {
-                                                            {
-                                                              (builtin
-                                                                chooseList
-                                                              )
-                                                              (fun Unit [Maybe [[Tuple2 a] b]])
-                                                            }
-                                                            (con data)
-                                                          }
-                                                          (lam
-                                                            ds
-                                                            Unit
-                                                            {
-                                                              Nothing
-                                                              [[Tuple2 a] b]
-                                                            }
-                                                          )
-                                                        ]
-                                                        (lam ds Unit lvl)
-                                                      ]
-                                                      l
-                                                    ]
-                                                    Unit
-                                                  ]
+                                                  Unit
+                                                ]
+                                              )
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  lvl [Maybe [[Tuple2 a] b]]
                                                 )
                                                 [
                                                   [
                                                     [
                                                       [
                                                         {
-                                                          (builtin ifThenElse)
+                                                          {
+                                                            (builtin chooseList)
+                                                            (con data)
+                                                          }
                                                           (fun Unit [Maybe [[Tuple2 a] b]])
                                                         }
                                                         [
-                                                          [
-                                                            (builtin
-                                                              equalsInteger
-                                                            )
-                                                            [
-                                                              {
-                                                                {
-                                                                  (builtin
-                                                                    fstPair
-                                                                  )
-                                                                  (con integer)
-                                                                }
-                                                                [(con list) (con data)]
-                                                              }
-                                                              tup
-                                                            ]
-                                                          ]
-                                                          (con integer 0)
+                                                          {
+                                                            (builtin tailList)
+                                                            (con data)
+                                                          }
+                                                          l
                                                         ]
                                                       ]
-                                                      (lam ds Unit x)
+                                                      (lam ds Unit nilCase)
                                                     ]
                                                     (lam
                                                       ds
@@ -3280,10 +3149,106 @@
                                                   Unit
                                                 ]
                                               )
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  lvl [Maybe [[Tuple2 a] b]]
+                                                )
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        {
+                                                          {
+                                                            (builtin chooseList)
+                                                            (con data)
+                                                          }
+                                                          (fun Unit [Maybe [[Tuple2 a] b]])
+                                                        }
+                                                        l
+                                                      ]
+                                                      (lam
+                                                        ds
+                                                        Unit
+                                                        {
+                                                          Nothing [[Tuple2 a] b]
+                                                        }
+                                                      )
+                                                    ]
+                                                    (lam ds Unit lvl)
+                                                  ]
+                                                  Unit
+                                                ]
+                                              )
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl
+                                                  x [Maybe [[Tuple2 a] b]]
+                                                )
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        {
+                                                          {
+                                                            (builtin chooseList)
+                                                            (con data)
+                                                          }
+                                                          (fun Unit [Maybe [[Tuple2 a] b]])
+                                                        }
+                                                        l
+                                                      ]
+                                                      (lam
+                                                        ds
+                                                        Unit
+                                                        {
+                                                          Nothing [[Tuple2 a] b]
+                                                        }
+                                                      )
+                                                    ]
+                                                    (lam ds Unit lvl)
+                                                  ]
+                                                  Unit
+                                                ]
+                                              )
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      {
+                                                        (builtin ifThenElse)
+                                                        (fun Unit [Maybe [[Tuple2 a] b]])
+                                                      }
+                                                      [
+                                                        [
+                                                          (builtin equalsInteger
+                                                          )
+                                                          [
+                                                            {
+                                                              {
+                                                                (builtin fstPair
+                                                                )
+                                                                (con integer)
+                                                              }
+                                                              [(con list) (con data)]
+                                                            }
+                                                            tup
+                                                          ]
+                                                        ]
+                                                        (con integer 0)
+                                                      ]
+                                                    ]
+                                                    (lam ds Unit x)
+                                                  ]
+                                                  (lam
+                                                    ds
+                                                    Unit
+                                                    { Nothing [[Tuple2 a] b] }
+                                                  )
+                                                ]
+                                                Unit
+                                              ]
                                             )
-                                          ]
-                                          (lam
-                                            ds Unit { Nothing [[Tuple2 a] b] }
                                           )
                                         ]
                                         (lam ds Unit { Nothing [[Tuple2 a] b] })
@@ -3292,7 +3257,7 @@
                                     ]
                                     (lam ds Unit { Nothing [[Tuple2 a] b] })
                                   ]
-                                  d
+                                  (lam ds Unit { Nothing [[Tuple2 a] b] })
                                 ]
                                 Unit
                               ]
@@ -3322,7 +3287,7 @@
                                       (builtin chooseData)
                                       (fun Unit [Maybe (con bytestring)])
                                     }
-                                    (lam ds Unit { Nothing (con bytestring) })
+                                    d
                                   ]
                                   (lam ds Unit { Nothing (con bytestring) })
                                 ]
@@ -3330,16 +3295,15 @@
                               ]
                               (lam ds Unit { Nothing (con bytestring) })
                             ]
-                            (lam
-                              ds
-                              Unit
-                              [
-                                { Just (con bytestring) }
-                                [ (builtin unBData) d ]
-                              ]
-                            )
+                            (lam ds Unit { Nothing (con bytestring) })
                           ]
-                          d
+                          (lam
+                            ds
+                            Unit
+                            [
+                              { Just (con bytestring) } [ (builtin unBData) d ]
+                            ]
+                          )
                         ]
                         Unit
                       ]
@@ -3400,106 +3364,98 @@
                                       [
                                         [
                                           {
-                                            {
-                                              (builtin chooseList)
-                                              (fun Unit [Maybe [List a]])
-                                            }
-                                            (con data)
+                                            { (builtin chooseList) (con data) }
+                                            (fun Unit [Maybe [List a]])
                                           }
-                                          (lam ds Unit x)
+                                          l
                                         ]
-                                        (lam
-                                          ds
-                                          Unit
+                                        (lam ds Unit x)
+                                      ]
+                                      (lam
+                                        ds
+                                        Unit
+                                        [
                                           [
                                             [
-                                              [
-                                                {
+                                              {
+                                                [
+                                                  { Maybe_match a }
                                                   [
-                                                    { Maybe_match a }
+                                                    dFromData
                                                     [
-                                                      dFromData
-                                                      [
-                                                        {
-                                                          (builtin headList)
-                                                          (con data)
-                                                        }
-                                                        l
-                                                      ]
+                                                      {
+                                                        (builtin headList)
+                                                        (con data)
+                                                      }
+                                                      l
                                                     ]
                                                   ]
-                                                  (fun Unit [Maybe [List a]])
-                                                }
+                                                ]
+                                                (fun Unit [Maybe [List a]])
+                                              }
+                                              (lam
+                                                a
+                                                a
                                                 (lam
-                                                  a
-                                                  a
-                                                  (lam
-                                                    thunk
-                                                    Unit
+                                                  thunk
+                                                  Unit
+                                                  [
                                                     [
                                                       [
-                                                        [
-                                                          {
+                                                        {
+                                                          [
+                                                            {
+                                                              Maybe_match
+                                                              [List a]
+                                                            }
                                                             [
-                                                              {
-                                                                Maybe_match
-                                                                [List a]
-                                                              }
-                                                              [
-                                                                go
-                                                                [
-                                                                  {
-                                                                    (builtin
-                                                                      tailList
-                                                                    )
-                                                                    (con data)
-                                                                  }
-                                                                  l
-                                                                ]
-                                                              ]
-                                                            ]
-                                                            (fun Unit [Maybe [List a]])
-                                                          }
-                                                          (lam
-                                                            ipv
-                                                            [List a]
-                                                            (lam
-                                                              thunk
-                                                              Unit
+                                                              go
                                                               [
                                                                 {
-                                                                  Just [List a]
+                                                                  (builtin
+                                                                    tailList
+                                                                  )
+                                                                  (con data)
                                                                 }
-                                                                [
-                                                                  [
-                                                                    { Cons a } a
-                                                                  ]
-                                                                  ipv
-                                                                ]
+                                                                l
                                                               ]
-                                                            )
-                                                          )
-                                                        ]
+                                                            ]
+                                                          ]
+                                                          (fun Unit [Maybe [List a]])
+                                                        }
                                                         (lam
-                                                          thunk
-                                                          Unit
-                                                          { Nothing [List a] }
+                                                          ipv
+                                                          [List a]
+                                                          (lam
+                                                            thunk
+                                                            Unit
+                                                            [
+                                                              { Just [List a] }
+                                                              [
+                                                                [ { Cons a } a ]
+                                                                ipv
+                                                              ]
+                                                            ]
+                                                          )
                                                         )
                                                       ]
-                                                      Unit
+                                                      (lam
+                                                        thunk
+                                                        Unit
+                                                        { Nothing [List a] }
+                                                      )
                                                     ]
-                                                  )
+                                                    Unit
+                                                  ]
                                                 )
-                                              ]
-                                              (lam
-                                                thunk Unit { Nothing [List a] }
                                               )
                                             ]
-                                            Unit
+                                            (lam thunk Unit { Nothing [List a] }
+                                            )
                                           ]
-                                        )
-                                      ]
-                                      l
+                                          Unit
+                                        ]
+                                      )
                                     ]
                                     Unit
                                   ]
@@ -3517,21 +3473,19 @@
                                             (builtin chooseData)
                                             (fun Unit [Maybe [List a]])
                                           }
-                                          (lam ds Unit { Nothing [List a] })
+                                          d
                                         ]
                                         (lam ds Unit { Nothing [List a] })
                                       ]
-                                      (lam
-                                        ds
-                                        Unit
-                                        [ go [ (builtin unListData) d ] ]
-                                      )
+                                      (lam ds Unit { Nothing [List a] })
                                     ]
-                                    (lam ds Unit { Nothing [List a] })
+                                    (lam
+                                      ds Unit [ go [ (builtin unListData) d ] ]
+                                    )
                                   ]
                                   (lam ds Unit { Nothing [List a] })
                                 ]
-                                d
+                                (lam ds Unit { Nothing [List a] })
                               ]
                               Unit
                             ]
