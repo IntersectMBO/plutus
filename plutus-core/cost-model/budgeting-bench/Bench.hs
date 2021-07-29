@@ -33,10 +33,10 @@ runTermBench :: String -> PlainTerm -> Benchmark
 runTermBench name term = env
     (do
         (_result, budget) <-
-          pure $ (unsafeEvaluateCek defaultCekParameters) term
+          pure $ (unsafeEvaluateCek False defaultCekParameters) term
         pure budget
         )
-    $ \_ -> bench name $ nf (unsafeEvaluateCek defaultCekParameters) term
+    $ \_ -> bench name $ nf (unsafeEvaluateCek False defaultCekParameters) term
 
 
 ---------------- Constructing PLC terms for benchmarking ----------------
