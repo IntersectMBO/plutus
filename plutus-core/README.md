@@ -8,7 +8,7 @@ The Haskell package `plutus-core` implements a range of functionality for manipu
 
 * Parser and pretty-printer for textual Plutus Core representation as per the Plutus Core specification
 
-* Binary serialisation and deserialisation using the `cborg` package (coordinate with Duncan)
+* Binary serialisation and deserialisation using the `flat` package
 
 * Plutus Core abstract syntax
 
