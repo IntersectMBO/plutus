@@ -40,9 +40,6 @@
         )
       )
     )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
     (let
       (rec)
       (datatypebind
@@ -56,7 +53,7 @@
       (let
         (rec)
         (termbind
-          (nonstrict)
+          (strict)
           (vardecl
             fFunctorNil_cfmap
             (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
@@ -73,11 +70,11 @@
                 (lam
                   l
                   [List a]
-                  [
+                  {
                     [
                       [
-                        { [ { Nil_match a } l ] (fun Unit [List b]) }
-                        (lam thunk Unit { Nil b })
+                        { [ { Nil_match a } l ] (all dead (type) [List b]) }
+                        (abs dead (type) { Nil b })
                       ]
                       (lam
                         x
@@ -85,9 +82,9 @@
                         (lam
                           xs
                           [List a]
-                          (lam
-                            thunk
-                            Unit
+                          (abs
+                            dead
+                            (type)
                             [
                               [ { Cons b } [ f x ] ]
                               [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
@@ -96,8 +93,8 @@
                         )
                       )
                     ]
-                    Unit
-                  ]
+                    (all dead (type) dead)
+                  }
                 )
               )
             )

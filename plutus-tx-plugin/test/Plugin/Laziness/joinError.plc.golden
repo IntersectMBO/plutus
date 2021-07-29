@@ -29,29 +29,29 @@
         (lam
           y
           Bool
-          [
+          {
             [
               [
-                { [ Bool_match x ] (fun Unit Unit) }
-                (lam
-                  thunk
-                  Unit
-                  [
+                { [ Bool_match x ] (all dead (type) Unit) }
+                (abs
+                  dead
+                  (type)
+                  {
                     [
                       [
-                        { [ Bool_match y ] (fun Unit Unit) }
-                        (lam thunk Unit joinError)
+                        { [ Bool_match y ] (all dead (type) Unit) }
+                        (abs dead (type) joinError)
                       ]
-                      (lam thunk Unit Unit)
+                      (abs dead (type) Unit)
                     ]
-                    Unit
-                  ]
+                    (all dead (type) dead)
+                  }
                 )
               ]
-              (lam thunk Unit Unit)
+              (abs dead (type) Unit)
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )

@@ -58,16 +58,16 @@
     (lam
       ds
       Bool
-      [
+      {
         [
           [
-            { [ Bool_match ds ] (fun Unit Unit) }
-            (lam thunk Unit [ [ { trace Unit } (con string "yes") ] Unit ])
+            { [ Bool_match ds ] (all dead (type) Unit) }
+            (abs dead (type) [ [ { trace Unit } (con string "yes") ] Unit ])
           ]
-          (lam thunk Unit [ { traceError Unit } (con string "no") ])
+          (abs dead (type) [ { traceError Unit } (con string "no") ])
         ]
-        Unit
-      ]
+        (all dead (type) dead)
+      }
     )
   )
 )
