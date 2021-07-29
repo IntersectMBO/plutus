@@ -45,10 +45,17 @@ nextState { semanticState, contract, history } txInput =
       -- FIXME: Change nextState to return an Either
       -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
       (Error _) -> { txOutState: semanticState, txOutContract: contract, txOutPayments: mempty }
+
+    pastState =
+      { balancesAtStart: semanticState ^. _accounts
+      , txInput
+      , balancesAtEnd: txOutState ^. _accounts
+      , resultingPayments: txOutPayments
+      }
   in
     { semanticState: txOutState
     , contract: txOutContract
-    , history: Array.snoc history { initialSemanticState: semanticState, txInput, resultingPayments: txOutPayments }
+    , history: Array.snoc history pastState
     , mPendingTimeouts: Nothing
     , mNextTimeout: nextTimeout txOutContract
     }
@@ -198,19 +205,16 @@ extractActionsFromContract _ _ _ = [ Evaluate mempty ]
 
 -- This function expands the balances inside the Semantic.State to all participants and tokens,
 -- using zero if the participant does not have balance for that token.
-expandBalances :: Array Party -> Array Token -> Semantic.State -> Accounts
-expandBalances participants tokens semanticState =
-  let
-    stateAccounts = semanticState ^. _accounts
-  in
-    Map.fromFoldable do
-      party <- participants
-      tokens
-        <#> \token ->
-            let
-              key = party /\ token
-            in
-              key /\ (fromMaybe zero $ Map.lookup key stateAccounts)
+expandBalances :: Array Party -> Array Token -> Accounts -> Accounts
+expandBalances participants tokens stateAccounts =
+  Map.fromFoldable do
+    party <- participants
+    tokens
+      <#> \token ->
+          let
+            key = party /\ token
+          in
+            key /\ (fromMaybe zero $ Map.lookup key stateAccounts)
 
 mkInterval :: Slot -> Contract -> SlotInterval
 mkInterval currentSlot contract = case nextTimeout contract of

@@ -1,5 +1,6 @@
 module Contract.Types
   ( State
+  , StepBalance
   , PreviousStep
   , PreviousStepState(..)
   , Tab(..)
@@ -46,10 +47,15 @@ type State
     , namedActions :: Array NamedAction
     }
 
+type StepBalance
+  = { atStart :: Accounts
+    , atEnd :: Maybe Accounts
+    }
+
 -- Represents a historical step in a contract's life.
 type PreviousStep
   = { tab :: Tab
-    , balances :: Accounts
+    , balances :: StepBalance
     , state :: PreviousStepState
     }
 

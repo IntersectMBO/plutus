@@ -56,7 +56,7 @@ import Marlowe.Execution.Types (PastState, State) as Execution
 import Marlowe.Extended.Metadata (MetaData, emptyContractMetadata)
 import Marlowe.HasParties (getParties)
 import Marlowe.PAB (ContractHistory, MarloweParams)
-import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _minSlot)
+import Marlowe.Semantics (Contract(..), Party(..), Slot, SlotInterval(..), TransactionInput(..), _accounts, _minSlot)
 import Marlowe.Semantics (Input(..), State(..)) as Semantic
 import Toast.Types (ajaxErrorToast, successToast)
 import WalletData.Lenses (_assets, _pubKeyHash, _walletInfo)
@@ -344,13 +344,15 @@ toInput (MakeNotify _) = Just $ Semantic.INotify
 toInput _ = Nothing
 
 transactionsToStep :: State -> Execution.PastState -> PreviousStep
-transactionsToStep { participants } { initialSemanticState, txInput } =
+transactionsToStep { participants } { balancesAtStart, balancesAtEnd, txInput } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
 
     -- TODO: When we add support for multiple tokens we should extract the possible tokens from the
     --       contract, store it in ContractState and pass them here.
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] initialSemanticState
+    expandedBalancesAtStart = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtStart
+
+    expandedBalancesAtEnd = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtEnd
 
     stepState =
       -- For the moment the only way to get an empty transaction is if there was a timeout,
@@ -362,19 +364,26 @@ transactionsToStep { participants } { initialSemanticState, txInput } =
         TransactionStep txInput
   in
     { tab: Tasks
-    , balances
+    , balances:
+        { atStart:
+            expandedBalancesAtStart
+        , atEnd: Just expandedBalancesAtEnd
+        }
     , state: stepState
     }
 
 timeoutToStep :: State -> Slot -> PreviousStep
 timeoutToStep { participants, executionState } slot =
   let
-    semanticState = executionState ^. _semanticState
+    balances = executionState ^. (_semanticState <<< _accounts)
 
-    balances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] semanticState
+    expandedBalances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balances
   in
     { tab: Tasks
-    , balances
+    , balances:
+        { atStart: expandedBalances
+        , atEnd: Nothing
+        }
     , state: TimeoutStep slot
     }
 
