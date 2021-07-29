@@ -14,8 +14,8 @@
       identifier = { name = "plutus-core"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
-      maintainer = "vanessa.mchale@iohk.io";
-      author = "Vanessa McHale";
+      maintainer = "michael.peyton-jones@iohk.io";
+      author = "Plutus Core Team ";
       homepage = "";
       url = "";
       synopsis = "Language library for Plutus Core";
