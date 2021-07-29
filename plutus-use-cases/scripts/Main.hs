@@ -53,6 +53,7 @@ import qualified Spec.Vesting                   as Vesting
 import qualified Streaming.Prelude              as S
 import           System.Directory               (createDirectoryIfMissing)
 import           System.FilePath                ((</>))
+import           Text.Printf                    (printf)
 import qualified Wallet.Emulator.Folds          as Folds
 import           Wallet.Emulator.Stream         (foldEmulatorStreamM)
 
@@ -178,9 +179,11 @@ writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
 writeScript :: FilePath -> String -> ValidatorMode -> Int -> ScriptValidationEvent -> IO ()
 writeScript fp prefix mode idx event@ScriptValidationEvent{sveResult} = do
     let filename = fp </> prefix <> "-" <> show idx <> filenameSuffix mode <> ".flat"
-    putStrLn $ "Writing script: " <> filename <> " (Cost: " <> either show (showBudget . fst) sveResult <> ")"
+        bytes = BSL.fromStrict . flat . unScript . getScript mode $ event
+        size = printf ("%.1f"::String) (fromIntegral (BSL.length bytes) / 1024.0 :: Double)
+    putStrLn $ "Writing script: " <> filename <> " (Cost: " <> either show (showBudget . fst) sveResult <> ", size: " <> size <> "kB)"
 
-    BSL.writeFile filename (BSL.fromStrict . flat . unScript . getScript mode $ event)
+    BSL.writeFile filename bytes
     where
         showBudget (ExBudget exCPU exMemory) = show exCPU <> ", " <> show exMemory
 
