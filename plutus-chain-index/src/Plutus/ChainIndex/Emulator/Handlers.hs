@@ -90,7 +90,9 @@ handleQuery = \case
             utxoState = view (utxoIndex . to measure) state
             page = pageOf def $ Set.filter (\r -> isUnspentOutput r utxoState) (fromMaybe mempty outRefs)
         case tip utxoState of
-            TipAtGenesis -> throwError QueryFailedNoTip
+            TipAtGenesis -> do
+                logWarn TipIsGenesis
+                pure (TipAtGenesis, pageOf def Set.empty)
             tp           -> pure (tp, page)
     GetTip ->
         gets (tip . measure . view utxoIndex)
@@ -148,3 +150,4 @@ data ChainIndexLog =
     | RollbackSuccess Tip
     | Err ChainIndexError
     | TxNotFound TxId
+    | TipIsGenesis

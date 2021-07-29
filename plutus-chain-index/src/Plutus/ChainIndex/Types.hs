@@ -47,7 +47,7 @@ pageOf (PageSize ps) items =
         , pageItems = take ps' $ Set.toList items
         }
 
--- | The tip of the chain index
+-- | The tip of the chain index.
 data Tip =
       TipAtGenesis
     | Tip
@@ -59,9 +59,6 @@ data Tip =
     deriving anyclass (ToJSON, FromJSON)
 
 -- | This mirrors the previously defined Tip which used the Last monoid definition.
---   However, I am not sure what the meaning of Tip being a monoid really is. What
---   if the right Tip is more recent than the left one, do we need to maintain (and
---   document) some other invariants here?
 instance Semigroup Tip where
     t <> TipAtGenesis = t
     _ <> t            = t
