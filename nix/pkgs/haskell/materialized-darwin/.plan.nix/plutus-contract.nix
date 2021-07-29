@@ -118,7 +118,6 @@
           "Wallet/Emulator/Folds"
           "Wallet/Emulator/LogMessages"
           "Wallet/Emulator/NodeClient"
-          "Wallet/Emulator/Notify"
           "Wallet/Emulator/MultiAgent"
           "Wallet/Emulator/Stream"
           "Wallet/Emulator/Wallet"
@@ -174,6 +173,7 @@
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [

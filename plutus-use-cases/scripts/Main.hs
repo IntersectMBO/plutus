@@ -4,6 +4,7 @@
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeFamilies       #-}
+
 module Main(main) where
 
 import qualified Cardano.Api                    as C
@@ -156,7 +157,7 @@ writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
             S.fst'
             $ run
             $ foldEmulatorStreamM (L.generalize theFold)
-            $ Trace.runEmulatorStream emulatorCfg def trace
+            $ Trace.runEmulatorStream emulatorCfg trace
 
     createDirectoryIfMissing True scPath
     case scCommand of

@@ -15,6 +15,7 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Data.Time.Duration (Minutes)
 import Halogen as H
 import Halogen.Extra (LifecycleEvent)
 import LoadingSubmitButton.Types as LoadingSubmitButton
@@ -34,6 +35,7 @@ import Welcome.Types (Action, State) as Welcome
 type State
   = { webSocketStatus :: WebSocketStatus
     , currentSlot :: Slot
+    , tzOffset :: Minutes
     , subState :: Either Welcome.State Dashboard.State
     , toast :: Toast.State
     }

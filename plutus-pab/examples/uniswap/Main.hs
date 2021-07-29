@@ -100,11 +100,11 @@ instance HasDefinitions UniswapContracts where
         UniswapStart  -> Builtin.endpointsToSchemas @Uniswap.UniswapOwnerSchema
         Init          -> Builtin.endpointsToSchemas @Empty
     getContract = \case
-        UniswapUser us -> SomeBuiltin $ Uniswap.userEndpoints us
+        UniswapUser us -> SomeBuiltin . awaitPromise $ Uniswap.userEndpoints us
         UniswapStart   -> SomeBuiltin Uniswap.ownerEndpoint
         Init           -> SomeBuiltin US.setupTokens
 
 handlers :: SimulatorEffectHandlers (Builtin UniswapContracts)
 handlers =
-    Simulator.mkSimulatorHandlers @(Builtin UniswapContracts) def
+    Simulator.mkSimulatorHandlers def def
     $ interpret (contractHandler (Builtin.handleBuiltin @UniswapContracts))

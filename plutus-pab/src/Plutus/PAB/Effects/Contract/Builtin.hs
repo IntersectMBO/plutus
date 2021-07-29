@@ -54,7 +54,7 @@ import qualified Data.Text                                        as Text
 import           GHC.Generics                                     (Generic)
 import           Playground.Schema                                (endpointsToSchemas)
 import           Playground.Types                                 (FunctionSchema)
-import           Plutus.Contract                                  (Contract, ContractInstanceId, EmptySchema)
+import           Plutus.Contract                                  (ContractInstanceId, EmptySchema, IsContract (..))
 import           Plutus.Contract.Resumable                        (Response, responses, rspResponse)
 import           Plutus.Contract.Schema                           (Input, Output)
 import           Plutus.Contract.State                            (ContractResponse (..), State (..))
@@ -85,7 +85,9 @@ type ContractConstraints w schema error =
 -- | Plutus contract with all parameters existentially quantified. Can be any contract that satisfies the
 --   'ContractConstraints'.
 data SomeBuiltin where
-    SomeBuiltin :: forall w schema error a. ContractConstraints w schema error => Contract w schema error a -> SomeBuiltin
+    SomeBuiltin
+        :: forall contract w schema error a. (ContractConstraints w schema error, IsContract contract)
+        => contract w schema error a -> SomeBuiltin
 
 data SomeBuiltinState a where
     SomeBuiltinState ::
@@ -156,15 +158,16 @@ fromResponse cid (SomeBuiltin contract) ContractResponse{newState=State{record}}
   foldlM runUpdate initialState (responses record)
 
 initBuiltin ::
-    forall effs a w schema error b.
+    forall effs a contract w schema error b.
     ( ContractConstraints w schema error
     , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
+    , IsContract contract
     )
     => ContractInstanceId
-    -> Contract w schema error b
+    -> contract w schema error b
     -> Eff effs (SomeBuiltinState a)
 initBuiltin i con = do
-    let initialState = Emulator.emptyInstanceState con
+    let initialState = Emulator.emptyInstanceState (toContract con)
     logNewMessages @a i initialState
     pure $ SomeBuiltinState initialState mempty
 

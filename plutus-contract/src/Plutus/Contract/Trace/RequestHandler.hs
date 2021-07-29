@@ -28,7 +28,6 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleTxConfirmedQueries
     , handleAddressChangedAtQueries
     , handleOwnInstanceIdQueries
-    , handleContractNotifications
     ) where
 
 import           Control.Applicative            (Alternative (empty, (<|>)))
@@ -58,12 +57,11 @@ import qualified Ledger.TimeSlot                as TimeSlot
 import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..))
 import qualified Plutus.Contract.Wallet         as Wallet
 import           Wallet.API                     (WalletAPIError)
-import           Wallet.Effects                 (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
-                                                 WalletEffect)
+import           Wallet.Effects                 (ChainIndexEffect, NodeClientEffect, WalletEffect)
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg (..))
 import           Wallet.Types                   (AddressChangeRequest (..), AddressChangeResponse, ContractInstanceId,
-                                                 Notification, NotificationError, slotRange, targetSlot)
+                                                 slotRange, targetSlot)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -265,12 +263,3 @@ handleOwnInstanceIdQueries ::
     => RequestHandler effs a ContractInstanceId
 handleOwnInstanceIdQueries = RequestHandler $ \_ ->
     surroundDebug @Text "handleOwnInstanceIdQueries" ask
-
-handleContractNotifications ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member ContractRuntimeEffect effs
-    )
-    => RequestHandler effs Notification (Maybe NotificationError)
-handleContractNotifications = RequestHandler $
-    surroundDebug @Text "handleContractNotifications" . Wallet.Effects.sendNotification

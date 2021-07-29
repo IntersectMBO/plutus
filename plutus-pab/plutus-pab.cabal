@@ -97,7 +97,6 @@ library
         Plutus.PAB.Db.Memory.ContractStore
         Plutus.PAB.Effects.Contract
         Plutus.PAB.Effects.Contract.Builtin
-        Plutus.PAB.Effects.ContractRuntime
         Plutus.PAB.Effects.DbStore
         Plutus.PAB.Effects.TimeEffect
         Plutus.PAB.Effects.UUID

@@ -3,9 +3,11 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
+
 {-
 
 An effect for inspecting & changing the internal state of the emulator.
@@ -19,6 +21,7 @@ module Plutus.Trace.Effects.EmulatorControl(
     , thawContractInstance
     , chainState
     , handleEmulatorControl
+    , getSlotConfig
     ) where
 
 import           Control.Lens                           (at, view)
@@ -29,6 +32,7 @@ import           Control.Monad.Freer.Error              (Error)
 import           Control.Monad.Freer.State              (State, gets)
 import           Control.Monad.Freer.TH                 (makeEffect)
 import           Data.Maybe                             (fromMaybe)
+import           Ledger.TimeSlot                        (SlotConfig)
 import           Plutus.Trace.Emulator.ContractInstance (EmulatorRuntimeError, getThread)
 import           Plutus.Trace.Emulator.Types            (EmulatorMessage (Freeze), EmulatorThreads)
 import           Plutus.Trace.Scheduler                 (EmSystemCall, MessageCall (Message), Priority (Normal),
@@ -64,6 +68,7 @@ data EmulatorControl r where
     FreezeContractInstance :: ContractInstanceId -> EmulatorControl ()
     ThawContractInstance :: ContractInstanceId -> EmulatorControl ()
     ChainState :: EmulatorControl ChainState
+    GetSlotConfig :: EmulatorControl SlotConfig
 
 -- | Interpret the 'EmulatorControl' effect in the 'MultiAgentEffect' and
 --   scheduler system calls.
@@ -75,9 +80,10 @@ handleEmulatorControl ::
     , Member MultiAgentControlEffect effs
     , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     )
-    => EmulatorControl
+    => SlotConfig
+    -> EmulatorControl
     ~> Eff effs
-handleEmulatorControl = \case
+handleEmulatorControl slotCfg = \case
     SetSigningProcess wllt sp -> walletControlAction wllt $ W.setSigningProcess sp
     AgentState wllt -> gets @EmulatorState (fromMaybe (W.emptyWalletState wllt) . view (EM.walletStates . at wllt))
     FreezeContractInstance i -> do
@@ -89,5 +95,6 @@ handleEmulatorControl = \case
         -- see note [Freeze and Thaw]
         void $ mkSysCall @effs2 @EmulatorMessage Normal (Right $ Thaw threadId)
     ChainState -> gets (view EM.chainState)
+    GetSlotConfig -> return slotCfg
 
 makeEffect ''EmulatorControl

@@ -19,7 +19,7 @@ currencyTrace :: Trace.EmulatorTrace ()
 currencyTrace = do
     _ <- Trace.activateContractWallet w1 (void theContract)
     _ <- Trace.nextSlot
-    void $ Trace.nextSlot
+    void Trace.nextSlot
 
 tests :: TestTree
 tests = testGroup "currency"

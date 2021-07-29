@@ -28,7 +28,6 @@ type State
     , contracts :: Map PlutusAppId Contract.State
     , contractFilter :: ContractFilter
     , selectedContractFollowerAppId :: Maybe PlutusAppId
-    , timezoneOffset :: Minutes
     , templateState :: Template.State
     }
 
@@ -49,6 +48,7 @@ derive instance eqContractFilter :: Eq ContractFilter
 
 type Input
   = { currentSlot :: Slot
+    , tzOffset :: Minutes
     }
 
 data Action
