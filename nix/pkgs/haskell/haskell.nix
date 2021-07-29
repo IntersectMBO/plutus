@@ -150,11 +150,6 @@ let
 
           inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
 
-          # Haddock doesn't work for some reason
-          eventful-sql-common.doHaddock = false;
-          # Needs some extra options to work with newer persistent
-          eventful-sql-common.ghcOptions = [ "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses" ];
-
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
           # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
           ieee.components.library.libs = lib.mkForce [ ];
