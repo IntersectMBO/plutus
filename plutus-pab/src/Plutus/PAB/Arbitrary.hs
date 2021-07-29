@@ -173,7 +173,6 @@ instance Arbitrary PABReq where
         oneof
             [ AwaitSlotReq <$> arbitrary
             , pure CurrentSlotReq
-            , AwaitTxConfirmedReq <$> arbitrary
             , pure OwnContractInstanceIdReq
             , ExposeEndpointReq <$> arbitrary
             , UtxoAtReq <$> arbitrary
@@ -215,8 +214,7 @@ instance Arbitrary ActiveEndpoint where
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
 genResponse :: PABReq -> Maybe (Gen PABResp)
-genResponse (AwaitSlotReq slot)        = Just . pure . AwaitSlotResp $ slot
-genResponse (AwaitTxConfirmedReq txId) = Just . pure . AwaitTxConfirmedResp $ txId
-genResponse (ExposeEndpointReq _)      = Just $ ExposeEndpointResp <$> arbitrary <*> (EndpointValue <$> arbitrary)
-genResponse OwnPublicKeyReq            = Just $ OwnPublicKeyResp <$> arbitrary
-genResponse _                          = Nothing
+genResponse (AwaitSlotReq slot)   = Just . pure . AwaitSlotResp $ slot
+genResponse (ExposeEndpointReq _) = Just $ ExposeEndpointResp <$> arbitrary <*> (EndpointValue <$> arbitrary)
+genResponse OwnPublicKeyReq       = Just $ OwnPublicKeyResp <$> arbitrary
+genResponse _                     = Nothing

@@ -108,8 +108,6 @@ handleChainIndex = interpret $ \case
         s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses
     ConfirmedBlocks -> gets _idxConfirmedBlocks
-    TransactionConfirmed txid ->
-        Map.member txid <$> gets _idxConfirmedTransactions
     AddressChanged r@AddressChangeRequest{acreqAddress} -> do
         idx <- gets _idxIdx
         let itms = Index.transactionsAt idx (slotRange r) acreqAddress

@@ -25,7 +25,6 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleUnbalancedTransactions
     , handlePendingTransactions
     , handleUtxoQueries
-    , handleTxConfirmedQueries
     , handleAddressChangedAtQueries
     , handleOwnInstanceIdQueries
     ) where
@@ -50,11 +49,11 @@ import qualified Ledger.AddressMap              as AM
 import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
-import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, PubKey, Slot, Tx, TxId)
+import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, PubKey, Slot, Tx)
 import           Ledger.AddressMap              (AddressMap (..))
 import           Ledger.Constraints.OffChain    (UnbalancedTx)
 import qualified Ledger.TimeSlot                as TimeSlot
-import           Plutus.Contract.Effects        (TxConfirmed (..), UtxoAtAddress (..))
+import           Plutus.Contract.Effects        (UtxoAtAddress (..))
 import qualified Plutus.Contract.Wallet         as Wallet
 import           Wallet.API                     (WalletAPIError)
 import           Wallet.Effects                 (ChainIndexEffect, NodeClientEffect, WalletEffect)
@@ -221,18 +220,6 @@ handleUtxoQueries = RequestHandler $ \addr ->
                 logWarn $ UtxoAtFailed addr
                 empty
             Just s  -> pure (UtxoAtAddress addr s)
-
-handleTxConfirmedQueries ::
-    forall effs.
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member ChainIndexEffect effs
-    )
-    => RequestHandler effs TxId TxConfirmed
-handleTxConfirmedQueries = RequestHandler $ \txid ->
-    surroundDebug @Text "handleTxConfirmedQueries" $ do
-        conf <- Wallet.Effects.transactionConfirmed txid
-        guard conf
-        pure (TxConfirmed txid)
 
 handleAddressChangedAtQueries ::
     forall effs.
