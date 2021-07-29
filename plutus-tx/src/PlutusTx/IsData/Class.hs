@@ -136,7 +136,7 @@ instance FromData Void where
     fromBuiltinData _ = Nothing
 instance UnsafeFromData Void where
     {-# INLINABLE unsafeFromBuiltinData #-}
-    unsafeFromBuiltinData _ = traceError "unsafeFromBuiltinData: Void is not supported"
+    unsafeFromBuiltinData _ = traceError "Pg" {-"unsafeFromBuiltinData: Void is not supported"-}
 
 -- | Convert a value to 'PLC.Data'.
 toData :: (ToData a) => a -> PLC.Data

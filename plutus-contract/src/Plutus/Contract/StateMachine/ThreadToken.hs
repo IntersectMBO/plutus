@@ -52,13 +52,13 @@ checkPolicy (TxOutRef refHash refIdx) (vHash, mintingPolarity) ctx@V.ScriptConte
         -- currency that we expect
         mintOK =
             let v = checkThreadTokenInner ownSymbol vHash minted expected
-            in traceIfFalse "Value minted different from expected" v
+            in traceIfFalse "S7" {-"Value minted different from expected"-} v
 
         -- True if the pending transaction spends the output
         -- identified by @(refHash, refIdx)@
         txOutputSpent =
             let v = V.spendsOutput txinfo refHash refIdx
-            in  traceIfFalse "Pending transaction does not spend the designated transaction output" v
+            in  traceIfFalse "S8" {-"Pending transaction does not spend the designated transaction output"-} v
 
     in mintOK && (if mintingPolarity == Mint then txOutputSpent else True)
 

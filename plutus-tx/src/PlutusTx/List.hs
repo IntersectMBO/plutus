@@ -104,8 +104,8 @@ findIndex p l = listToMaybe (findIndices p l)
 --
 infixl 9 !!
 (!!) :: [a] -> Integer -> a
-_        !! n | n < 0 = traceError "PlutusTx.List.!!: negative index"
-[]       !! _ = traceError "PlutusTx.List.!!: index too large"
+_        !! n | n < 0 = traceError "P9" {-"PlutusTx.List.!!: negative index"-}
+[]       !! _ = traceError "Pa" {-"PlutusTx.List.!!: index too large"-}
 (x : xs) !! i = if Builtins.equalsInteger i 0
     then x
     else xs !! Builtins.subtractInteger i 1
@@ -130,14 +130,14 @@ zip (a:as) (b:bs) = (a,b) : zip as bs
 {-# INLINABLE head #-}
 -- | Plutus Tx version of 'Data.List.head'.
 head :: [a] -> a
-head []      = traceError "PlutusTx.List.head: empty list"
+head []      = traceError "Pb" {-"PlutusTx.List.head: empty list"-}
 head (x : _) = x
 
 {-# INLINABLE tail #-}
 -- | Plutus Tx version of 'Data.List.tail'.
 tail :: [a] -> [a]
 tail (_:as) =  as
-tail []     =  traceError "PlutusTx.List.tail: empty list"
+tail []     =  traceError "Pc" {-"PlutusTx.List.tail: empty list"-}
 
 {-# INLINABLE take #-}
 -- | Plutus Tx version of 'Data.List.take'.

@@ -2448,11 +2448,7 @@
                                           [
                                             { (builtin chooseUnit) Unit }
                                             [
-                                              (builtin trace)
-                                              (con
-                                                string
-                                                  "Can't get validator and datum hashes"
-                                              )
+                                              (builtin trace) (con string "Lg")
                                             ]
                                           ]
                                           Unit

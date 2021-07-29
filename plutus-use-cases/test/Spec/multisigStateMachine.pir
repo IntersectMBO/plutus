@@ -4277,7 +4277,7 @@
                                                                         )
                                                                         (con
                                                                           string
-                                                                            "Input constraint"
+                                                                            "L0"
                                                                         )
                                                                       ]
                                                                     ]
@@ -5444,13 +5444,7 @@
                                     [
                                       [
                                         { (builtin chooseUnit) Unit }
-                                        [
-                                          (builtin trace)
-                                          (con
-                                            string
-                                              "Can't get any continuing outputs"
-                                          )
-                                        ]
+                                        [ (builtin trace) (con string "Lf") ]
                                       ]
                                       Unit
                                     ]
@@ -5674,10 +5668,7 @@
                                                     }
                                                     [
                                                       (builtin trace)
-                                                      (con
-                                                        string
-                                                          "Output constraint"
-                                                      )
+                                                      (con string "L1")
                                                     ]
                                                   ]
                                                   False
@@ -9165,8 +9156,7 @@
                                                                   (builtin trace
                                                                   )
                                                                   (con
-                                                                    string
-                                                                      "Missing signature"
+                                                                    string "L4"
                                                                   )
                                                                 ]
                                                               ]
@@ -9199,9 +9189,7 @@
                                                               }
                                                               [
                                                                 (builtin trace)
-                                                                (con
-                                                                  string
-                                                                    "MustHashDatum"
+                                                                (con string "Lc"
                                                                 )
                                                               ]
                                                             ]
@@ -9400,7 +9388,7 @@
                                                                                     )
                                                                                     (con
                                                                                       string
-                                                                                        "Missing datum"
+                                                                                        "L2"
                                                                                     )
                                                                                   ]
                                                                                 ]
@@ -9543,8 +9531,7 @@
                                                                   (builtin trace
                                                                   )
                                                                   (con
-                                                                    string
-                                                                      "Value minted not OK"
+                                                                    string "L9"
                                                                   )
                                                                 ]
                                                               ]
@@ -9852,7 +9839,7 @@
                                                                                       )
                                                                                       (con
                                                                                         string
-                                                                                          "MustPayToOtherScript"
+                                                                                          "Lb"
                                                                                       )
                                                                                     ]
                                                                                   ]
@@ -9919,10 +9906,7 @@
                                                         }
                                                         [
                                                           (builtin trace)
-                                                          (con
-                                                            string
-                                                              "MustPayToPubKey"
-                                                          )
+                                                          (con string "La")
                                                         ]
                                                       ]
                                                       False
@@ -9968,10 +9952,7 @@
                                                     }
                                                     [
                                                       (builtin trace)
-                                                      (con
-                                                        string
-                                                          "Produced value not OK"
-                                                      )
+                                                      (con string "L6")
                                                     ]
                                                   ]
                                                   False
@@ -10117,10 +10098,7 @@
                                                   { (builtin chooseUnit) Bool }
                                                   [
                                                     (builtin trace)
-                                                    (con
-                                                      string
-                                                        "Spent value not OK"
-                                                    )
+                                                    (con string "L5")
                                                   ]
                                                 ]
                                                 False
@@ -10144,10 +10122,7 @@
                                               { (builtin chooseUnit) Bool }
                                               [
                                                 (builtin trace)
-                                                (con
-                                                  string
-                                                    "Public key output not spent"
-                                                )
+                                                (con string "L7")
                                               ]
                                             ]
                                             False
@@ -10280,10 +10255,7 @@
                                                 { (builtin chooseUnit) Bool }
                                                 [
                                                   (builtin trace)
-                                                  (con
-                                                    string
-                                                      "Script output not spent"
-                                                  )
+                                                  (con string "L8")
                                                 ]
                                               ]
                                               False
@@ -10372,11 +10344,7 @@
                                           [
                                             { (builtin chooseUnit) Bool }
                                             [
-                                              (builtin trace)
-                                              (con
-                                                string
-                                                  "Wrong validation interval"
-                                              )
+                                              (builtin trace) (con string "L3")
                                             ]
                                           ]
                                           False
@@ -10435,10 +10403,7 @@
                                               { (builtin chooseUnit) Bool }
                                               [
                                                 (builtin trace)
-                                                (con
-                                                  string
-                                                    "checkScriptContext failed"
-                                                )
+                                                (con string "Ld")
                                               ]
                                             ]
                                             False
@@ -10818,13 +10783,7 @@
                                     [
                                       [
                                         { (builtin chooseUnit) Unit }
-                                        [
-                                          (builtin trace)
-                                          (con
-                                            string
-                                              "Can't get validator and datum hashes"
-                                          )
-                                        ]
+                                        [ (builtin trace) (con string "Lg") ]
                                       ]
                                       Unit
                                     ]
@@ -11230,9 +11189,7 @@
                                                               }
                                                               [
                                                                 (builtin trace)
-                                                                (con
-                                                                  string
-                                                                    "Can't find validation input"
+                                                                (con string "S0"
                                                                 )
                                                               ]
                                                             ]
@@ -11417,7 +11374,7 @@
                                                                                           )
                                                                                           (con
                                                                                             string
-                                                                                              "State transition invalid - constraints not satisfied by ScriptContext"
+                                                                                              "S4"
                                                                                           )
                                                                                         ]
                                                                                       ]
@@ -11470,7 +11427,7 @@
                                                                                                   )
                                                                                                   (con
                                                                                                     string
-                                                                                                      "Non-zero value allocated in final state"
+                                                                                                      "S3"
                                                                                                   )
                                                                                                 ]
                                                                                               ]
@@ -11644,7 +11601,7 @@
                                                                                     )
                                                                                     (con
                                                                                       string
-                                                                                        "State transition invalid - constraints not satisfied by ScriptContext"
+                                                                                        "S5"
                                                                                     )
                                                                                   ]
                                                                                 ]
@@ -11678,10 +11635,7 @@
                                                       }
                                                       [
                                                         (builtin trace)
-                                                        (con
-                                                          string
-                                                            "State transition invalid - input is not a valid transition at the current state"
-                                                        )
+                                                        (con string "S6")
                                                       ]
                                                     ]
                                                     False
@@ -11801,7 +11755,7 @@
                                                                             )
                                                                             (con
                                                                               string
-                                                                                "Thread token not found"
+                                                                                "S2"
                                                                             )
                                                                           ]
                                                                         ]
@@ -11865,9 +11819,7 @@
                                                               }
                                                               [
                                                                 (builtin trace)
-                                                                (con
-                                                                  string
-                                                                    "State transition invalid - checks failed"
+                                                                (con string "S1"
                                                                 )
                                                               ]
                                                             ]

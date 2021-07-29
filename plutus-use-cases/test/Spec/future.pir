@@ -3761,7 +3761,7 @@
                                                 }
                                                 [
                                                   (builtin trace)
-                                                  (con string "DecodingError")
+                                                  (con string "Li")
                                                 ]
                                               ]
                                               [

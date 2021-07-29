@@ -134,7 +134,7 @@ import           Prelude              as Prelude (maximum, minimum)
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
-check b = if b then () else traceError "Check has failed"
+check b = if b then () else traceError "Pd" {-"Check has failed"-}
 
 {-# INLINABLE divide #-}
 -- | Integer division, rounding downwards

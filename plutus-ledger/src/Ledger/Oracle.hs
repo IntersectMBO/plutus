@@ -132,7 +132,7 @@ checkHashConstraints ::
     -> Either SignedMessageCheckError (a, TxConstraints i o)
 checkHashConstraints SignedMessage{osmMessageHash, osmDatum=Datum dt} =
     maybe
-        (trace "DecodingError" $ Left DecodingError)
+        (trace "Li" {-"DecodingError"-} $ Left DecodingError)
         (\a -> pure (a, Constraints.mustHashDatum osmMessageHash (Datum dt)))
         (fromBuiltinData dt)
 
