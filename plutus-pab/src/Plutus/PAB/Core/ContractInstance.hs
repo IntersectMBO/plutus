@@ -54,8 +54,7 @@ import           Plutus.Contract.Trace.RequestHandler             (RequestHandle
                                                                    maybeToHandler, tryHandler', wrapHandler)
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (..))
 
-import           Wallet.Effects                                   (ChainIndexEffect, ContractRuntimeEffect,
-                                                                   NodeClientEffect, WalletEffect)
+import           Wallet.Effects                                   (ChainIndexEffect, NodeClientEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                      (TxBalanceMsg)
 
 import           Plutus.Contract                                  (AddressChangeRequest (..))
@@ -247,7 +246,6 @@ type AppBackendConstraints t m effs =
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member ChainIndexEffect effs
     , Member WalletEffect effs
-    , Member ContractRuntimeEffect effs
     , Member NodeClientEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogObserve (LogMessage Text.Text)) effs

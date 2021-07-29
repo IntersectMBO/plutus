@@ -21,31 +21,30 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     RequestSize(..)
     ) where
 
-import           Data.Aeson                         (FromJSON, ToJSON, Value)
-import qualified Data.Aeson                         as JSON
-import           Data.Text                          (Text)
-import           Data.Text.Prettyprint.Doc          (Pretty (..), colon, viaShow, (<+>))
-import           GHC.Generics                       (Generic)
+import           Data.Aeson                       (FromJSON, ToJSON, Value)
+import qualified Data.Aeson                       as JSON
+import           Data.Text                        (Text)
+import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, viaShow, (<+>))
+import           GHC.Generics                     (Generic)
 
-import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras      (StructuredLog, Tagged (..), mkObjectStr)
-import           Cardano.ChainIndex.Types           (ChainIndexServerMsg)
-import           Cardano.Metadata.Types             (MetadataLogMessage)
-import           Cardano.Node.Types                 (MockServerLogMsg)
-import           Cardano.Wallet.Types               (WalletMsg)
-import           Data.Aeson.Text                    (encodeToLazyText)
-import qualified Data.Text                          as T
-import           Plutus.Contract.Effects            (PABReq)
-import           Plutus.Contract.Resumable          (Response)
-import           Plutus.Contract.State              (ContractResponse)
-import           Plutus.PAB.Core.ContractInstance   (ContractInstanceMsg (..))
-import           Plutus.PAB.Effects.Contract        (PABContract (..))
-import           Plutus.PAB.Effects.ContractRuntime (ContractRuntimeMsg)
-import           Plutus.PAB.Events.Contract         (ContractInstanceId)
-import           Plutus.PAB.Instances               ()
-import           Wallet.Emulator.LogMessages        (TxBalanceMsg)
-import           Wallet.Emulator.MultiAgent         (EmulatorEvent)
-import           Wallet.Emulator.Wallet             (Wallet)
+import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras    (StructuredLog, Tagged (..), mkObjectStr)
+import           Cardano.ChainIndex.Types         (ChainIndexServerMsg)
+import           Cardano.Metadata.Types           (MetadataLogMessage)
+import           Cardano.Node.Types               (MockServerLogMsg)
+import           Cardano.Wallet.Types             (WalletMsg)
+import           Data.Aeson.Text                  (encodeToLazyText)
+import qualified Data.Text                        as T
+import           Plutus.Contract.Effects          (PABReq)
+import           Plutus.Contract.Resumable        (Response)
+import           Plutus.Contract.State            (ContractResponse)
+import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg (..))
+import           Plutus.PAB.Effects.Contract      (PABContract (..))
+import           Plutus.PAB.Events.Contract       (ContractInstanceId)
+import           Plutus.PAB.Instances             ()
+import           Wallet.Emulator.LogMessages      (TxBalanceMsg)
+import           Wallet.Emulator.MultiAgent       (EmulatorEvent)
+import           Wallet.Emulator.Wallet           (Wallet)
 
 data AppMsg t =
     ActiveContractsMsg
@@ -139,7 +138,6 @@ data PABMultiAgentMsg t =
     EmulatorMsg EmulatorEvent
     | MetadataLog MetadataLogMessage
     | ContractInstanceLog (ContractInstanceMsg t)
-    | RuntimeLog ContractRuntimeMsg
     | UserLog T.Text
     | SqlLog String
     | StartingPABBackendServer Int
@@ -152,7 +150,6 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         EmulatorMsg e              -> mkObjectStr "emulator message" (Tagged @"payload" e)
         MetadataLog m              -> toObject v m
         ContractInstanceLog m      -> toObject v m
-        RuntimeLog m               -> toObject v m
         UserLog t                  -> toObject v t
         SqlLog s                   -> toObject v s
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
@@ -168,7 +165,6 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         EmulatorMsg m         -> pretty m
         MetadataLog m         -> pretty m
         ContractInstanceLog m -> pretty m
-        RuntimeLog m          -> pretty m
         UserLog m             -> pretty m
         SqlLog m              -> pretty m
         StartingPABBackendServer port ->
