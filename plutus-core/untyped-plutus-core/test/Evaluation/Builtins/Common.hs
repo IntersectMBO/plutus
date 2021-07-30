@@ -39,7 +39,7 @@ typecheckEvaluateCek
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
     -> m (EvaluationResult (UPLC.Term Name uni fun ()), [String])
-typecheckEvaluateCek = typecheckAnd $ unsafeEvaluateCek False
+typecheckEvaluateCek = typecheckAnd $ unsafeEvaluateCek Emit
 
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit

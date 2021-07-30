@@ -3,6 +3,7 @@
 -- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
 -- The CEK machines handles name capture by design.
 
+
 {-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
@@ -34,7 +35,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , ExBudgetMode(..)
     , CekCarryingM (..)
     , CekM
-    , EmitterOption (..)
+    , EmitMode (..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
@@ -76,7 +77,7 @@ import           Data.Proxy
 import           Data.STRef
 import           Data.Semigroup                                           (stimes)
 import           Data.Text.Prettyprint.Doc
-import           Data.Time.Clock                                          (UTCTime, getCurrentTime)
+import           Data.Time.Clock                                          (getCurrentTime)
 import           Data.Word64Array.Word8
 import           Universe
 
@@ -283,6 +284,43 @@ type Slippage = Word8
 defaultSlippage :: Slippage
 defaultSlippage = 200
 
+-- | Describe whether to emit or not. And if emitting, should it include timestamp?
+-- The timestamp is for profiling purposes.
+-- Don't emit timestamps if you are running tests.
+data EmitMode
+    = NoEmit
+    | Emit
+    | EmitWithTimestamp
+    deriving (Eq)
+
+type CekEmitter uni fun s = String -> CekM uni fun s ()
+
+data CekEmitterInfo uni fun s = CekEmitterInfo {
+    _cekEmitterInfoEmit       :: CekEmitter uni fun  s
+    , _cekEmitterInfoGetFinal :: ST s (DList String)
+    }
+
+-- | Emitter for when @EmitterOption@ is @NoEmit@.
+mkNoEmitter :: ST s (CekEmitterInfo uni fun s)
+mkNoEmitter = pure $ CekEmitterInfo (\_ -> pure ()) (pure mempty)
+
+-- | Emitter for when @EmitterOption@ is @Emit@. Emits log but not timestamp.
+mkEmitter :: ST s (CekEmitterInfo uni fun s)
+mkEmitter = do
+    logsRef <- newSTRef DList.empty
+    let emitter str = CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
+    pure $ CekEmitterInfo emitter (readSTRef logsRef)
+
+-- | Emitter for when @EmitterOption@ is @EmitWithTimestamp@. Emits log with timestamp.
+mkEmitterWithTime :: ST s (CekEmitterInfo uni fun s)
+mkEmitterWithTime = do
+    logsRef <- newSTRef DList.empty
+    let emitter str = CekCarryingM $ do
+            time <- unsafeIOToST getCurrentTime
+            let withTime = "[" ++ show time ++ "]" ++ " " ++ str
+            modifySTRef logsRef (`DList.snoc` withTime)
+    pure $ CekEmitterInfo emitter (readSTRef logsRef)
+
 {- Note [Implicit parameters in the machine]
 The traditional way to pass context into a function is to use 'ReaderT'. However, 'ReaderT' has some
 disadvantages.
@@ -311,14 +349,14 @@ they don't actually take the context as an argument even at the source level.
 -- | Implicit parameter for the builtin runtime.
 type GivenCekRuntime uni fun = (?cekRuntime :: (BuiltinsRuntime fun (CekValue uni fun)))
 -- | Implicit parameter for the log emitter reference.
-type GivenCekEmitter s = (?cekEmitter :: (Maybe (STRef s (DList String))))
+type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
 type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
 type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 
 -- | Constraint requiring all of the machine's implicit parameters.
-type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
+type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
@@ -328,15 +366,6 @@ data CekUserError
 instance HasErrorCode CekUserError where
     errorCode CekEvaluationFailure {} = ErrorCode 37
     errorCode CekOutOfExError {}      = ErrorCode 36
-
--- | Describe whether to emit or not. And if emitting, should it include timestamp?
--- The timestamp is for profiling purposes.
--- Don't emit timestamps if you are running tests.
-data EmitterOption
-    = NoEmit
-    | Emit
-    | EmitWithTimestamp
-    deriving (Eq)
 
 {- Note [Being generic over 'term' in errors]
 Our error for the CEK machine carries a term with it as a possible 'cause'. This is defined in
@@ -382,14 +411,6 @@ type CekCarryingM :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type 
 newtype CekCarryingM term uni fun s a = CekCarryingM
     { unCekCarryingM :: ST s a
     } deriving newtype (Functor, Applicative, Monad)
-
-instance Show (CekCarryingM term uni fun s UTCTime) where
-    show (CekCarryingM x) = show x
-
--- We need this show instance to show the UTCTime properly.
--- The default Show (ST s a) instance is the string "ST actions".
-instance {-# OVERLAPS #-} Show (ST s UTCTime) where
-    showsPrec _ x  = showString $ show x
 
 type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
 
@@ -490,28 +511,6 @@ instance Pretty CekUserError where
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 
--- | Emitter for when @EmitterOption@ is @NoEmit@.
-noEmitCek :: String -> CekM uni fun s ()
-noEmitCek _ = pure ()
-
--- | Emitter for when @EmitterOption@ is @Emit@. Emits log but not timestamp.
-emitCek :: GivenCekEmitter s => String -> CekM uni fun s ()
-emitCek str =
-    let mayLogsRef = ?cekEmitter
-    in case mayLogsRef of
-        Nothing      -> pure ()
-        Just logsRef -> CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
--- | Emitter for when @EmitterOption@ is @EmitWithTimestamp@.
--- Emits log along with timestamps
-emitCekWithTime :: GivenCekEmitter s => String -> CekM uni fun s ()
-emitCekWithTime str = do
-    time <- (CekCarryingM . unsafeIOToST) getCurrentTime
-    let withTime =
-            "[" ++
-            show time ++
-            "]" ++ str
-    emitCek withTime
-
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
@@ -582,14 +581,17 @@ runCekM
     (PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> EmitterOption
+    -> EmitMode
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitter a = runST $ do
+runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitMode a = runST $ do
     exBudgetMode <- getExBudgetInfo
-    mayLogsRef <- if emitter == NoEmit then pure Nothing else Just <$> newSTRef DList.empty
+    emitter <- case emitMode of
+            Emit              -> mkEmitter
+            EmitWithTimestamp -> mkEmitterWithTime
+            NoEmit            -> mkNoEmitter
     let ?cekRuntime = runtime
-        ?cekEmitter = mayLogsRef
+        ?cekEmitter = _cekEmitterInfoEmit emitter
         ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
@@ -597,9 +599,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitter
     errValOrErrTermOrRes <- unCekCarryingM . tryError . withTermErrors $ tryError a
     let errOrRes = join $ first (mapCauseInMachineException dischargeCekValue) errValOrErrTermOrRes
     st' <- _exBudgetModeGetFinal exBudgetMode
-    logs <- case mayLogsRef of
-        Nothing      -> pure []
-        Just logsRef -> DList.toList <$> readSTRef logsRef
+    logs <- DList.toList <$> _cekEmitterInfoGetFinal emitter
     pure (errOrRes, st', logs)
 
 -- | Extend an environment with a variable name, the value the variable stands for
@@ -620,21 +620,15 @@ lookupVarName varName varEnv =
 -- fully saturated or not.
 evalBuiltinApp
     :: (GivenCekReqs uni fun s, PrettyUni uni fun)
-    => EmitterOption
-    -> fun
+    => fun
     -> Term Name uni fun ()
     -> CekValEnv uni fun
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp emitter fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
+evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     TypeSchemeResult _ -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        let chosenEmitter =
-                case emitter of
-                    NoEmit            -> noEmitCek
-                    Emit              -> emitCek
-                    EmitWithTimestamp -> emitCekWithTime
-        flip unWithEmitterT chosenEmitter $ makeKnown x
+        flip unWithEmitterT ?cekEmitter $ makeKnown x
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 
@@ -643,12 +637,11 @@ evalBuiltinApp emitter fun term env runtime@(BuiltinRuntime sch x cost) = case s
 enterComputeCek
     :: forall uni fun s
     . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
-    => EmitterOption
-    -> Context uni fun
+    => Context uni fun
     -> CekValEnv uni fun
     -> Term Name uni fun ()
     -> CekM uni fun s (Term Name uni fun ())
-enterComputeCek emitting = computeCek emitting (toWordArray 0) where
+enterComputeCek = computeCek (toWordArray 0) where
     -- | The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -656,43 +649,42 @@ enterComputeCek emitting = computeCek emitting (toWordArray 0) where
     -- 3. throws 'EvaluationFailure' ('Error')
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
-        :: EmitterOption
-        -> WordArray
+        :: WordArray
         -> Context uni fun
         -> CekValEnv uni fun
         -> Term Name uni fun ()
         -> CekM uni fun s (Term Name uni fun ())
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
-    computeCek emitter !unbudgetedSteps !ctx !env (Var _ varName) = do
+    computeCek !unbudgetedSteps !ctx !env (Var _ varName) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BVar unbudgetedSteps
         val <- lookupVarName varName env
-        returnCek emitter unbudgetedSteps' ctx val
-    computeCek emitter !unbudgetedSteps !ctx !_ (Constant _ val) = do
+        returnCek unbudgetedSteps' ctx val
+    computeCek !unbudgetedSteps !ctx !_ (Constant _ val) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BConst unbudgetedSteps
-        returnCek emitter unbudgetedSteps' ctx (VCon val)
-    computeCek emitter !unbudgetedSteps !ctx !env (LamAbs _ name body) = do
+        returnCek unbudgetedSteps' ctx (VCon val)
+    computeCek !unbudgetedSteps !ctx !env (LamAbs _ name body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BLamAbs unbudgetedSteps
-        returnCek emitter unbudgetedSteps' ctx (VLamAbs name body env)
-    computeCek emitter !unbudgetedSteps !ctx !env (Delay _ body) = do
+        returnCek unbudgetedSteps' ctx (VLamAbs name body env)
+    computeCek !unbudgetedSteps !ctx !env (Delay _ body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
-        returnCek emitter unbudgetedSteps' ctx (VDelay body env)
+        returnCek unbudgetedSteps' ctx (VDelay body env)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-    computeCek emitter !unbudgetedSteps !ctx !env (Force _ body) = do
+    computeCek !unbudgetedSteps !ctx !env (Force _ body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BForce unbudgetedSteps
-        computeCek emitter unbudgetedSteps' (FrameForce ctx) env body
+        computeCek unbudgetedSteps' (FrameForce ctx) env body
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
-    computeCek emitter !unbudgetedSteps !ctx !env (Apply _ fun arg) = do
+    computeCek !unbudgetedSteps !ctx !env (Apply _ fun arg) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
-        computeCek emitter unbudgetedSteps' (FrameApplyArg env arg ctx) env fun
+        computeCek unbudgetedSteps' (FrameApplyArg env arg ctx) env fun
     -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-    computeCek emitter !unbudgetedSteps !ctx !env term@(Builtin _ bn) = do
+    computeCek !unbudgetedSteps !ctx !env term@(Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
         meaning <- lookupBuiltin bn ?cekRuntime
-        returnCek emitter unbudgetedSteps' ctx (VBuiltin bn term env meaning)
+        returnCek unbudgetedSteps' ctx (VBuiltin bn term env meaning)
     -- s ; ρ ▻ error A  ↦  <> A
-    computeCek _ !_ !_ !_ (Error _) =
+    computeCek !_ !_ !_ (Error _) =
         throwing_ _EvaluationFailure
 
     {- | The returning phase of the CEK machine.
@@ -704,26 +696,25 @@ enterComputeCek emitting = computeCek emitting (toWordArray 0) where
       * 'FrameApplyFun': call 'applyEvaluate' to attempt to apply the function
           stored in the frame to an argument.
     -}
-    returnCek ::
-        EmitterOption ->
-        WordArray ->
-        Context uni fun ->
-        CekValue uni fun ->
-        CekM uni fun s (Term Name uni fun ())
+    returnCek
+        :: WordArray
+        -> Context uni fun
+        -> CekValue uni fun
+        -> CekM uni fun s (Term Name uni fun ())
     --- Instantiate all the free variable of the resulting term in case there are any.
     -- . ◅ V           ↦  [] V
-    returnCek _ !unbudgetedSteps NoFrame val = do
+    returnCek !unbudgetedSteps NoFrame val = do
         spendAccumulatedBudget unbudgetedSteps
         pure $ dischargeCekValue val
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
-    returnCek emitter !unbudgetedSteps (FrameForce ctx) fun = forceEvaluate emitter unbudgetedSteps ctx fun
+    returnCek !unbudgetedSteps (FrameForce ctx) fun = forceEvaluate unbudgetedSteps ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek emitter !unbudgetedSteps (FrameApplyArg argVarEnv arg ctx) fun =
-        computeCek emitter unbudgetedSteps (FrameApplyFun fun ctx) argVarEnv arg
+    returnCek !unbudgetedSteps (FrameApplyArg argVarEnv arg ctx) fun =
+        computeCek unbudgetedSteps (FrameApplyFun fun ctx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME: add rule for VBuiltin once it's in the specification.
-    returnCek emitter !unbudgetedSteps (FrameApplyFun fun ctx) arg =
-        applyEvaluate emitter unbudgetedSteps ctx fun arg
+    returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
+        applyEvaluate unbudgetedSteps ctx fun arg
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -732,13 +723,12 @@ enterComputeCek emitting = computeCek emitting (toWordArray 0) where
     -- representation depending on whether the application is saturated or not,
     -- if v is anything else, fail.
     forceEvaluate
-        :: EmitterOption
-        -> WordArray
+        :: WordArray
         -> Context uni fun
         -> CekValue uni fun
         -> CekM uni fun s (Term Name uni fun ())
-    forceEvaluate emitter !unbudgetedSteps !ctx (VDelay body env) = computeCek emitter unbudgetedSteps ctx env body
-    forceEvaluate emitter !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) = do
+    forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
+    forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) = do
         let term' = Force () term
         case sch of
             -- It's only possible to force a builtin application if the builtin expects a type
@@ -748,11 +738,11 @@ enterComputeCek emitting = computeCek emitting (toWordArray 0) where
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                res <- evalBuiltinApp emitter fun term' env runtime'
-                returnCek emitter unbudgetedSteps ctx res
+                res <- evalBuiltinApp fun term' env runtime'
+                returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
-    forceEvaluate _ !_ !_ val =
+    forceEvaluate !_ !_ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
     -- | Apply a function to an argument and proceed.
@@ -763,17 +753,16 @@ enterComputeCek emitting = computeCek emitting (toWordArray 0) where
     -- representation depending on whether the application is saturated or not.
     -- If v is anything else, fail.
     applyEvaluate
-        :: EmitterOption
-        -> WordArray
+        :: WordArray
         -> Context uni fun
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term Name uni fun ())
-    applyEvaluate emitter !unbudgetedSteps !ctx (VLamAbs name body env) arg =
-        computeCek emitter unbudgetedSteps ctx (extendEnv name arg env) body
+    applyEvaluate !unbudgetedSteps !ctx (VLamAbs name body env) arg =
+        computeCek unbudgetedSteps ctx (extendEnv name arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate emitter !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
+    applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
         let term' = Apply () term $ dischargeCekValue arg
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
@@ -786,11 +775,11 @@ enterComputeCek emitting = computeCek emitting (toWordArray 0) where
                 -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                 -- Maybe we could fuse the two?
                 let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
-                res <- evalBuiltinApp emitter fun term' env runtime'
-                returnCek emitter unbudgetedSteps ctx res
+                res <- evalBuiltinApp fun term' env runtime'
+                returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
-    applyEvaluate _ !_ !_ val _ =
+    applyEvaluate !_ !_ val _ =
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
@@ -823,10 +812,10 @@ runCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> EmitterOption
+    -> EmitMode
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
-runCek params mode emitter term =
-    runCekM params mode emitter $ do
+runCek params mode emitMode term =
+    runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
-        enterComputeCek emitter NoFrame mempty term
+        enterComputeCek NoFrame mempty term

@@ -101,17 +101,17 @@ module Plutus.V1.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import qualified Codec.Serialise                                   as CBOR
+import qualified Codec.Serialise                                  as CBOR
 import           Control.Monad.Except
 import           Control.Monad.Writer
 import           Data.Bifunctor
-import           Data.ByteString.Lazy                              (fromStrict)
+import           Data.ByteString.Lazy                             (fromStrict)
 import           Data.ByteString.Short
 import           Data.Either
-import           Data.Maybe                                        (isJust)
+import           Data.Maybe                                       (isJust)
 import           Data.SatInt
-import           Data.Text                                         (Text)
-import qualified Data.Text                                         as Text
+import           Data.Text                                        (Text)
+import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import           Plutus.V1.Ledger.Ada
@@ -121,27 +121,26 @@ import           Plutus.V1.Ledger.Contexts
 import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.DCert
-import           Plutus.V1.Ledger.Interval                         hiding (singleton)
-import           Plutus.V1.Ledger.Scripts                          hiding (mkTermToEvaluate)
-import qualified Plutus.V1.Ledger.Scripts                          as Scripts
+import           Plutus.V1.Ledger.Interval                        hiding (singleton)
+import           Plutus.V1.Ledger.Scripts                         hiding (mkTermToEvaluate)
+import qualified Plutus.V1.Ledger.Scripts                         as Scripts
 import           Plutus.V1.Ledger.Time
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value
-import           PlutusCore                                        as PLC
-import qualified PlutusCore.Data                                   as PLC
-import           PlutusCore.Evaluation.Machine.CostModelInterface  (CostModelParams, applyCostModelParams)
-import           PlutusCore.Evaluation.Machine.ExBudget            (ExBudget (..))
-import qualified PlutusCore.Evaluation.Machine.ExBudget            as PLC
-import           PlutusCore.Evaluation.Machine.ExMemory            (ExCPU (..), ExMemory (..))
+import           PlutusCore                                       as PLC
+import qualified PlutusCore.Data                                  as PLC
+import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
+import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
+import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
+import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Pretty
-import           PlutusTx                                          (FromData (..), ToData (..), UnsafeFromData (..),
-                                                                    fromData, toData)
-import           PlutusTx.Builtins.Internal                        (BuiltinData (..), builtinDataToData,
-                                                                    dataToBuiltinData)
-import qualified UntypedPlutusCore                                 as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal (EmitterOption (Emit, NoEmit))
+import           PlutusTx                                         (FromData (..), ToData (..), UnsafeFromData (..),
+                                                                   fromData, toData)
+import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
+                                                                   dataToBuiltinData)
+import qualified UntypedPlutusCore                                as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 
 plutusScriptEnvelopeType :: Text
 plutusScriptEnvelopeType = "PlutusV1Script"
@@ -234,7 +233,7 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
             UPLC.runCek
                 (toMachineParameters model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
-                (if verbose == Verbose then Emit else NoEmit)
+                (if verbose == Verbose then UPLC.Emit else UPLC.NoEmit)
                 appliedTerm
 
     tell $ Prelude.map Text.pack logs
@@ -258,7 +257,7 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
             UPLC.runCek
                 (toMachineParameters model)
                 UPLC.counting
-                (if verbose == Verbose then Emit else NoEmit)
+                (if verbose == Verbose then UPLC.Emit else UPLC.NoEmit)
                 appliedTerm
 
     tell $ Prelude.map Text.pack logs

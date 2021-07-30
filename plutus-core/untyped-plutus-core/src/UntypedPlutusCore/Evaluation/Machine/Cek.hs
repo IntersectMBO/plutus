@@ -16,6 +16,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , StepKind(..)
     , CekExTally(..)
     , ExBudgetMode(..)
+    , EmitMode(..)
     , CountingSt (..)
     , TallyingSt (..)
     , RestrictingSt (..)
@@ -95,18 +96,12 @@ unsafeRunCekNoEmit params mode =
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    =>
-    -- | Turn on time tracing? If @True@, log comes with timestamp.
-    Bool ->
-    MachineParameters CekMachineCosts CekValue uni fun ->
-    Term Name uni fun () ->
-    (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
-evaluateCek emitTime params term =
-    if emitTime then
-        case runCek params restrictingEnormous EmitWithTimestamp term of
-        (errOrRes, _, logs) -> (errOrRes, logs)
-    else
-        case runCek params restrictingEnormous Emit term of
+    => EmitMode
+    -> MachineParameters CekMachineCosts CekValue uni fun
+    -> Term Name uni fun ()
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
+evaluateCek emitMode params term =
+    case runCek params restrictingEnormous emitMode term of
         (errOrRes, _, logs) -> (errOrRes, logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
@@ -123,12 +118,10 @@ unsafeEvaluateCek
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    =>
-    -- | Turn on time tracing? If @True@, log comes with timestamp.
-    Bool ->
-    MachineParameters CekMachineCosts CekValue uni fun ->
-    Term Name uni fun () ->
-    (EvaluationResult (Term Name uni fun ()), [String])
+    => EmitMode
+    -> MachineParameters CekMachineCosts CekValue uni fun
+    -> Term Name uni fun ()
+    -> (EvaluationResult (Term Name uni fun ()), [String])
 unsafeEvaluateCek emitTime params = first unsafeExtractEvaluationResult . evaluateCek emitTime params
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.

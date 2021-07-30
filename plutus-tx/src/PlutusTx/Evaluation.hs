@@ -15,14 +15,13 @@ module PlutusTx.Evaluation
     )
 where
 
-import qualified PlutusCore                                        as PLC
+import qualified PlutusCore                               as PLC
 import           PlutusCore.Default
 import           PlutusCore.Name
 
 import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.Machine.Cek          hiding (evaluateCek, unsafeEvaluateCek)
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek          as Cek
-import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal (EmitterOption (Emit))
+import           UntypedPlutusCore.Evaluation.Machine.Cek hiding (evaluateCek, unsafeEvaluateCek)
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek
@@ -43,5 +42,5 @@ evaluateCekTrace
     => Program Name uni fun ()
     -> ([String], TallyingSt fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
-    case runCek PLC.defaultCekParameters Cek.tallying Emit t of
+    case runCek PLC.defaultCekParameters Cek.tallying Cek.Emit t of
         (errOrRes, st, logs) -> (logs, st, errOrRes)
