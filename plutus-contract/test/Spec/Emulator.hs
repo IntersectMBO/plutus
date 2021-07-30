@@ -255,7 +255,7 @@ invalidScript = property $ do
                 , Chain.SlotAdd _
                 , Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidationFail _ _ txn (ScriptFailure (EvaluationError ["I always fail everything"])) _
+                , Chain.TxnValidationFail _ _ txn (ScriptFailure (EvaluationError ["I always fail everything"] "CekEvaluationFailure")) _
                 , Chain.SlotAdd _
                 ] -> txn == invalidTxn
             _ -> False
