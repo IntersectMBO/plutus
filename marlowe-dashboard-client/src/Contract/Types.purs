@@ -15,6 +15,7 @@ import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Time.Duration (Minutes)
+import Data.Tuple (Tuple)
 import Halogen (RefLabel(..))
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
@@ -41,10 +42,12 @@ type State
     , selectedStep :: Int
     , metadata :: MetaData
     , participants :: Map Party (Maybe WalletNickname)
+    -- Theser are the roles and PK's that the "logged-in" user has in this contract.
     , userParties :: Set Party
-    -- These are the possible actions a user can make in the current step. We store this mainly because
-    -- extractNamedActions could potentially be unperformant to compute.
-    , namedActions :: Array NamedAction
+    -- These are the possible actions a user can make in the current step (grouped by part). We store this
+    -- mainly because extractNamedActions and expandAndGroupByRole could potentially be unperformant to compute
+    -- for every render.
+    , namedActions :: Array (Tuple Party (Array NamedAction))
     }
 
 type StepBalance

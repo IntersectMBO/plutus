@@ -1,5 +1,5 @@
 module Contract.View
-  ( contractCard
+  ( contractPreviewCard
   , contractScreen
   , actionConfirmationCard
   ) where
@@ -14,16 +14,14 @@ import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NonEmptyArray
 import Data.BigInteger (BigInteger, fromString)
-import Data.Foldable (foldMap)
 import Data.FunctorWithIndex (mapWithIndex)
-import Data.Lens ((^.))
+import Data.Lens (set, (^.))
 import Data.Map (intersectionWith, keys, lookup, toUnfoldable) as Map
 import Data.Maybe (Maybe(..), isJust, maybe, maybe')
-import Data.Set (Set)
 import Data.Set as Set
 import Data.String (take, trim)
 import Data.String.Extra (capitalize)
-import Data.Tuple (Tuple(..), fst, uncurry)
+import Data.Tuple (Tuple, fst, uncurry)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
@@ -39,12 +37,12 @@ import LoadingSubmitButton.State (loadingSubmitButton)
 import LoadingSubmitButton.Types (Message(..))
 import MainFrame.Types (ChildSlots)
 import Marlowe.Execution.Lenses (_semanticState, _mNextTimeout)
-import Marlowe.Execution.State (expandBalances, getActionParticipant)
+import Marlowe.Execution.State (expandBalances)
 import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Extended.Metadata (_contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Accounts, Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
@@ -54,8 +52,9 @@ import Tooltip.State (tooltip)
 import Tooltip.Types (ReferenceId(..))
 import WalletData.State (adaToken, getAda)
 
-contractCard :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
-contractCard currentSlot state =
+-- This card shows a preview of the contract (intended to be used in the dashboard)
+contractPreviewCard :: forall m. MonadAff m => Slot -> State -> ComponentHTML Action ChildSlots m
+contractPreviewCard currentSlot state =
   let
     currentStepNumber = (currentStep state) + 1
 
@@ -99,7 +98,10 @@ contractCard currentSlot state =
           ]
       , div
           [ classNames [ "h-dashboard-card-actions", "overflow-y-auto" ] ]
-          [ currentStepActions currentStepNumber state ]
+          -- NOTE: We use a slightly modification of the state here in order
+          --       to ensure that the preview card always shows the Task tab
+          --       and not the balance tab.
+          [ currentStepActions currentStepNumber $ set _tab Tasks state ]
       ]
 
 timeoutString :: Slot -> State -> String
@@ -131,7 +133,7 @@ contractScreen viewInput state =
     paddingElement = [ div [ classNames [ "flex-shrink-0", "-ml-3", "w-carousel-padding-element" ] ] [] ]
   in
     div
-      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full" ] ]
+      [ classNames [ "flex", "flex-col", "items-center", "pt-5", "h-full", "relative" ] ]
       [ lifeCycleSlot "carousel-lifecycle" case _ of
           OnInit -> Just CarouselOpened
           OnFinalize -> Just CarouselClosed
@@ -146,11 +148,27 @@ contractScreen viewInput state =
               (paddingElement <> pastStepsCards <> currentStepCard <> paddingElement)
           ]
       , cardNavigationButtons state
-      -- TODO: Add a status indicator for the
-      --  "Waiting for <participant>"
-      --  "Contract starting"
-      --  "Your turn"
+      , div [ classNames [ "absolute", "font-bold", "bottom-4", "right-4" ] ] [ text $ statusIndicatorMessage state ]
       ]
+
+statusIndicatorMessage :: State -> String
+statusIndicatorMessage state =
+  let
+    userParties = state ^. _userParties
+
+    participantsWithAction = Set.fromFoldable $ map fst $ state ^. _namedActions
+  -- FIXME: as part of SCP-2551 add"Contract starting"
+  in
+    if Set.isEmpty (Set.intersection userParties participantsWithAction) then
+      "Waiting for "
+        <> if Set.size participantsWithAction > 1 then
+            "multiple participants"
+          else case Set.findMin participantsWithAction of
+            Just (Role roleName) -> roleName
+            Just (PK pubKey) -> take 4 pubKey
+            Nothing -> " a timeout"
+    else
+      "Your turn..."
 
 cardNavigationButtons :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
 cardNavigationButtons state =
@@ -552,19 +570,22 @@ currentStepActions stepNumber state =
     currentTab = state ^. _tab
 
     pendingTransaction = state ^. _pendingTransaction
-
-    participants = state ^. _participants
-
-    balancesAtStart = state ^. (_executionState <<< _semanticState <<< _accounts)
-
-    expandedBalancesAtStart = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtStart
   in
     case currentTab, isContractClosed state, isJust pendingTransaction of
       Tasks, true, _ -> renderContractClose
       Tasks, _, true -> renderPendingStep
       Tasks, _, _ -> renderTasks state
-      Balances, false, _ -> renderBalances stepNumber state { atStart: expandedBalancesAtStart, atEnd: Nothing }
-      Balances, true, _ -> renderBalances stepNumber state { atStart: expandedBalancesAtStart, atEnd: Just expandedBalancesAtStart }
+      Balances, isClosed, _ ->
+        let
+          participants = state ^. _participants
+
+          balancesAtStart = state ^. (_executionState <<< _semanticState <<< _accounts)
+
+          atStart = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balancesAtStart
+
+          atEnd = if isClosed then Just atStart else Nothing
+        in
+          renderBalances stepNumber state { atStart, atEnd }
 
 renderContractClose :: forall p a. HTML p a
 renderContractClose =
@@ -588,59 +609,15 @@ renderPendingStep =
   div [ classNames [ "px-4", "mt-4" ] ]
     [ text "Your transaction has been submitted. You will be notified when confirmation is received." ]
 
--- This helper function expands actions that can be taken by anybody,
--- then groups by participant and sorts it so that the owner starts first and the rest go
--- in alphabetical order
-expandAndGroupByRole ::
-  Set Party ->
-  Set Party ->
-  Array NamedAction ->
-  Array (Tuple Party (Array NamedAction))
-expandAndGroupByRole userParties allParticipants actions =
-  expandedActions
-    # Array.sortBy currentPartiesFirst
-    # Array.groupBy sameParty
-    # map extractGroupedParty
-  where
-  -- If an action has a participant, just use that, if it doesn't expand it to all
-  -- participants
-  expandedActions :: Array (Tuple Party NamedAction)
-  expandedActions =
-    actions
-      # foldMap \action -> case getActionParticipant action of
-          Just participant -> [ participant /\ action ]
-          Nothing -> Set.toUnfoldable allParticipants <#> \participant -> participant /\ action
-
-  currentPartiesFirst (Tuple party1 _) (Tuple party2 _)
-    | Set.member party1 userParties = LT
-    | Set.member party2 userParties = GT
-    | otherwise = compare party1 party2
-
-  sameParty a b = fst a == fst b
-
-  extractGroupedParty :: NonEmptyArray (Tuple Party NamedAction) -> Tuple Party (Array NamedAction)
-  extractGroupedParty group = case NonEmptyArray.unzip group of
-    tokens /\ actions' -> NonEmptyArray.head tokens /\ NonEmptyArray.toArray actions'
-
 renderTasks :: forall p. State -> HTML p Action
 renderTasks state =
   let
-    executionState = state ^. _executionState
-
-    userParties = state ^. _userParties
-
-    actions = state ^. _namedActions
-
-    expandedActions =
-      expandAndGroupByRole
-        userParties
-        (Map.keys $ state ^. _participants)
-        actions
+    namedActions = state ^. _namedActions
   in
-    if length expandedActions > 0 then
+    if length namedActions > 0 then
       div
         [ classNames [ "px-4", "pb-4" ] ]
-        $ expandedActions
+        $ namedActions
         <#> uncurry (renderPartyTasks state)
     else
       div

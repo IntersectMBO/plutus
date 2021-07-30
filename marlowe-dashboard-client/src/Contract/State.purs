@@ -15,16 +15,19 @@ import Capability.MainFrameLoop (class MainFrameLoop, callMainFrameAction)
 import Capability.Marlowe (class ManageMarlowe, applyTransactionInput)
 import Capability.MarloweStorage (class ManageMarloweStorage, insertIntoContractNicknames)
 import Capability.Toast (class Toast, addToast)
-import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _nickname, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _mMarloweParams, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
 import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, Tab(..), scrollContainerRef)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Control.Monad.Reader.Class (ask)
 import Dashboard.Types (Action(..)) as Dashboard
 import Data.Array (difference, filter, foldl, index, length, mapMaybe, modifyAt)
+import Data.Array as Array
+import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (assign, modifying, over, set, to, toArrayOf, traversed, use, view, (^.))
+import Data.Lens (_2, assign, modifying, over, set, to, toArrayOf, traversed, use, view, (^.))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isNothing)
@@ -34,6 +37,7 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Data.Unfoldable as Unfoldable
 import Effect (Effect)
@@ -49,7 +53,7 @@ import MainFrame.Types (Action(..)) as MainFrame
 import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Deinstantiate (findTemplate)
 import Marlowe.Execution.Lenses (_contract, _semanticState, _history, _pendingTimeouts, _previousTransactions)
-import Marlowe.Execution.State (expandBalances, extractNamedActions, isClosed, mkTx, nextState, timeoutState)
+import Marlowe.Execution.State (expandBalances, extractNamedActions, getActionParticipant, isClosed, mkTx, nextState, timeoutState)
 import Marlowe.Execution.State (mkInitialState) as Execution
 import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Execution.Types (PastState, State) as Execution
@@ -253,7 +257,7 @@ handleAction input@{ currentSlot, walletDetails } (ConfirmAction namedAction) = 
         { dataProvider } <- ask
         when (dataProvider == LocalStorage) (callMainFrameAction $ MainFrame.DashboardAction $ Dashboard.UpdateFromStorage)
 
-handleAction _ (ChangeChoice choiceId chosenNum) = modifying _namedActions (map changeChoice)
+handleAction _ (ChangeChoice choiceId chosenNum) = modifying (_namedActions <<< traversed <<< _2 <<< traversed) changeChoice
   where
   changeChoice (MakeChoice choiceId' bounds _)
     | choiceId == choiceId' = MakeChoice choiceId bounds chosenNum
@@ -400,9 +404,54 @@ regenerateStepCards currentSlot state =
 
     previousSteps = confirmedSteps <> pendingTimeoutSteps
 
-    namedActions = extractNamedActions currentSlot (state ^. _executionState)
+    executionState = state ^. _executionState
+
+    userParties = state ^. _userParties
+
+    participants = state ^. _participants
+
+    namedActions =
+      expandAndGroupByRole
+        userParties
+        (Map.keys participants)
+        (extractNamedActions currentSlot executionState)
   in
     state { previousSteps = previousSteps, namedActions = namedActions }
+
+-- This helper function expands actions that can be taken by anybody,
+-- then groups by participant and sorts it so that the owner starts first and the rest go
+-- in alphabetical order
+expandAndGroupByRole ::
+  Set Party ->
+  Set Party ->
+  Array NamedAction ->
+  Array (Tuple Party (Array NamedAction))
+expandAndGroupByRole userParties allParticipants actions =
+  expandedActions
+    # Array.sortBy currentPartiesFirst
+    # Array.groupBy sameParty
+    # map extractGroupedParty
+  where
+  -- If an action has a participant, just use that, if it doesn't expand it to all
+  -- participants
+  expandedActions :: Array (Tuple Party NamedAction)
+  expandedActions =
+    actions
+      # foldMap \action -> case getActionParticipant action of
+          Just participant -> [ participant /\ action ]
+          Nothing -> Set.toUnfoldable allParticipants <#> \participant -> participant /\ action
+
+  isUserParty party = Set.member party userParties
+
+  currentPartiesFirst (Tuple party1 _) (Tuple party2 _)
+    | isUserParty party1 == isUserParty party2 = compare party1 party2
+    | otherwise = if isUserParty party1 then LT else GT
+
+  sameParty a b = fst a == fst b
+
+  extractGroupedParty :: NonEmptyArray (Tuple Party NamedAction) -> Tuple Party (Array NamedAction)
+  extractGroupedParty group = case NonEmptyArray.unzip group of
+    tokens /\ actions' -> NonEmptyArray.head tokens /\ NonEmptyArray.toArray actions'
 
 selectLastStep :: State -> State
 selectLastStep state@{ previousSteps } = state { selectedStep = length previousSteps }
