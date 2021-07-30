@@ -212,7 +212,13 @@ data ExportTx =
 
 data ExportTxInput = ExportTxInput{txIn :: C.TxIn, txOut :: C.TxOut C.AlonzoEra}
     deriving stock (Generic, Typeable)
-    deriving anyclass (ToJSON)
+
+instance ToJSON ExportTxInput where
+    toJSON ExportTxInput{txIn, txOut} =
+        object
+            [ "tx_in" .= toJSON txIn
+            , "tx_out" .= toJSON txOut
+            ]
 
 instance ToJSON ExportTx where
     toJSON ExportTx{partialTx, lookups, signatories} =
