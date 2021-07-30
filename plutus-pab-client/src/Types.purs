@@ -31,7 +31,6 @@ import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
 import Plutus.Contract.Effects (PABReq, ActiveEndpoint, _ExposeEndpointReq)
-import Plutus.PAB.Effects.Contract.Builtin (Builtin)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, _ChainReport, _ContractReport, _ContractSignatureResponse, CombinedWSStreamToClient, CombinedWSStreamToServer)
 import Schema (FormSchema)
@@ -67,7 +66,7 @@ data HAction a
   = Init
   | ChangeView View
   | LoadFullReport
-  | ActivateContract (Builtin a)
+  | ActivateContract a
   | ChainAction Chain.Action
   | ClipboardAction Clipboard.Action
   | ChangeContractEndpointCall ContractInstanceId Int FormEvent
@@ -78,14 +77,14 @@ type ContractStates
 
 newtype ContractSignatures a
   = ContractSignatures
-  { unContractSignatures :: Array (ContractSignatureResponse (Builtin a))
+  { unContractSignatures :: Array (ContractSignatureResponse a)
   }
 
 derive instance genericContractSignatures :: Generic (ContractSignatures a) _
 
 derive instance newtypeContractSignatures :: Newtype (ContractSignatures a) _
 
-_ContractSignatures :: forall a. Iso' (ContractSignatures a) { unContractSignatures :: Array (ContractSignatureResponse (Builtin a)) }
+_ContractSignatures :: forall a. Iso' (ContractSignatures a) { unContractSignatures :: Array (ContractSignatureResponse a) }
 _ContractSignatures = _Newtype
 
 data WebSocketStatus
@@ -172,7 +171,7 @@ _crActiveContractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveCo
 _csrDefinition :: forall t. Lens' (ContractSignatureResponse t) t
 _csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefinition")
 
-_unContractSignatures :: forall t. Lens' (ContractSignatures t) (Array (ContractSignatureResponse (Builtin t)))
+_unContractSignatures :: forall t. Lens' (ContractSignatures t) (Array (ContractSignatureResponse t))
 _unContractSignatures = _ContractSignatures <<< prop (SProxy :: SProxy "unContractSignatures")
 
 -- _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId

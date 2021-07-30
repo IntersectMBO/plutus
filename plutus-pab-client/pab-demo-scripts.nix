@@ -99,6 +99,7 @@ let
     echo "PAB database path: $DB_PATH"
     cat $CFG_PATH
     echo "-----------------------------------------------------------------------------"
+    ${pab-exes.plutus-pab-examples}/bin/plutus-pab-examples --config=$CFG_PATH ${cmd}
   '';
 
   start-all-servers = runWithContracts (mkSetup primary-config) "all-servers";
