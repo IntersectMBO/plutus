@@ -41,10 +41,6 @@ let
       };
       mscNetworkId = ""; # Empty string for Mainnet. Put a network magic number in the string to use the Testnet.
       mscKeptBlocks = 100000;
-      mscBlockReaper = {
-        brcInterval = 6000000;
-        brcBlocksToKeep = 100000;
-      };
       mscInitialTxWallets = [
         { getWallet = 1; }
         { getWallet = 2; }

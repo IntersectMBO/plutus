@@ -37,7 +37,6 @@ module Cardano.Node.Types
 
     -- * Config types
     , MockServerConfig (..)
-    , BlockReaperConfig (..)
     , MockServerMode (..)
 
     -- * newtype wrappers
@@ -115,8 +114,6 @@ data MockServerConfig =
         -- ^ base url of the service
         , mscRandomTxInterval :: Maybe Second
         -- ^ Time between two randomly generated transactions
-        , mscBlockReaper      :: Maybe BlockReaperConfig
-        -- ^ When to discard old blocks
         , mscInitialTxWallets :: [Wallet]
         -- ^ The wallets that receive money from the initial transaction.
         , mscSocketPath       :: FilePath
@@ -132,15 +129,6 @@ data MockServerConfig =
         -- ^ NetworkId that's used with the CardanoAPI.
         }
     deriving (Show, Eq, Generic, FromJSON)
-
--- | Configuration for 'Cardano.Node.Mock.blockReaper'
-data BlockReaperConfig =
-    BlockReaperConfig
-        { brcInterval     :: Second -- ^ interval in seconds for discarding blocks
-        , brcBlocksToKeep :: Int    -- ^ number of blocks to keep
-        }
-    deriving (Show, Eq, Generic, FromJSON)
-
 
 -- Logging ------------------------------------------------------------------------------------------------------------
 
