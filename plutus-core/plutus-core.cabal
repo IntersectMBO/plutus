@@ -260,6 +260,7 @@ library
         composition-prelude >=1.1.0.1,
         containers -any,
         cryptonite -any,
+        data-default -any,
         data-default-class -any,
         deepseq -any,
         dependent-map >=0.4.0.0,

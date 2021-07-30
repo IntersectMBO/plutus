@@ -38,6 +38,7 @@ import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Barbies
 import           Data.Aeson
+import           Data.Char                              (toLower)
 import           Data.Default.Class
 import           Data.Hashable
 import qualified Data.Kind                              as Kind
@@ -51,6 +52,10 @@ type BuiltinCostModel = BuiltinCostModelBase CostingFun
 -- | The main model which contains all data required to predict the cost of
 -- builtin functions. See Note [Creation of the Cost Model] for how this is
 -- generated. Calibrated for the CEK machine.
+
+-- See Note [Modifying the cost model] in ExBudgetingDefaults.hs for an
+-- explanation of how to regenerate the cost model file when this is changed.
+
 data BuiltinCostModelBase f =
     BuiltinCostModelBase
     { paramAddInteger               :: f ModelTwoArguments
@@ -78,9 +83,16 @@ data BuiltinCostModelBase f =
     }
     deriving (Generic, FunctorB, TraversableB, ConstraintsB)
 
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+-- This lets us produce JSON objects where the names ofthe fields are exactly
+-- the same as the names of the builtins.
+data LowerIntialCharacter
+instance StringModifier LowerIntialCharacter where
+  getStringModifier ""       = ""
+  getStringModifier (c : xs) = toLower c : xs
+
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
 
 type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
