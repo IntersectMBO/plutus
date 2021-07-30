@@ -32,7 +32,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Events.Extra (onClick_, onValueInput_)
 import Halogen.HTML.Properties (InputType(..), enabled, href, id_, placeholder, ref, target, type_, value)
 import Hint.State (hint)
-import Humanize (contractIcon, formatDate, formatTime, humanizeDuration, humanizeValue)
+import Humanize (contractIcon, formatDate, formatTime, humanizeDuration, humanizeOffset, humanizeValue)
 import LoadingSubmitButton.State (loadingSubmitButton)
 import LoadingSubmitButton.Types (Message(..))
 import MainFrame.Types (ChildSlots)
@@ -376,7 +376,7 @@ renderPastStep viewInput state stepNumber step =
   let
     currentTab = step ^. _tab
 
-    renderBody Tasks { state: TransactionStep txInput } = renderPastActions viewInput state txInput
+    renderBody Tasks { state: TransactionStep txInput } = renderPastActions stepNumber viewInput state txInput
 
     renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout viewInput stepNumber timeoutSlot
 
@@ -437,8 +437,15 @@ groupTransactionInputByParticipant (TransactionInput { inputs, interval }) =
       (NonEmptyArray.head elements # \{ party } -> { inputs: [], party, interval })
       elements
 
-renderPastActions :: forall p a. Input -> State -> TransactionInput -> HTML p a
-renderPastActions viewInput state txInput =
+renderPastActions ::
+  forall m action.
+  MonadAff m =>
+  Int ->
+  Input ->
+  State ->
+  TransactionInput ->
+  ComponentHTML action ChildSlots m
+renderPastActions stepNumber viewInput state txInput =
   let
     actionsByParticipant = groupTransactionInputByParticipant txInput
   in
@@ -449,10 +456,17 @@ renderPastActions viewInput state txInput =
               [ text "An empty transaction was made to advance this step" ]
           ]
         else
-          renderPartyPastActions viewInput state <$> actionsByParticipant
+          renderPartyPastActions stepNumber viewInput state <$> actionsByParticipant
 
-renderPartyPastActions :: forall p a. Input -> State -> InputsByParty -> HTML p a
-renderPartyPastActions { tzOffset } state { inputs, interval, party } =
+renderPartyPastActions ::
+  forall m action.
+  MonadAff m =>
+  Int ->
+  Input ->
+  State ->
+  InputsByParty ->
+  ComponentHTML action ChildSlots m
+renderPartyPastActions stepNumber { tzOffset } state { inputs, interval, party } =
   let
     -- We don't know exactly when a transaction was executed, we have an interval. But
     -- the design asks for an exact date so we use the lower end of the interval so that
@@ -465,14 +479,28 @@ renderPartyPastActions { tzOffset } state { inputs, interval, party } =
 
     transactionTime = maybe "-" (formatTime tzOffset) mTransactionDateTime
 
+    timeId = "pastActionTime" <> show stepNumber
+
+    selectedStep = state ^. _selectedStep
+
     renderPartyHeader =
       div [ classNames [ "flex", "justify-between", "items-center", "border-b", "border-gray", "px-3", "pb-4" ] ]
-        [ renderParty [] state party
-        , div [ classNames [ "flex", "flex-col", "items-end", "text-xs" ] ]
-            [ span [] [ text $ transactionDate ]
-            , span [ classNames [ "font-semibold" ] ] [ text transactionTime ]
+        ( append
+            [ renderParty [] state party
+            , div [ classNames [ "flex", "flex-col", "items-end", "text-xs" ], id_ timeId ]
+                [ span [] [ text $ transactionDate ]
+                , span [ classNames [ "font-semibold" ] ] [ text $ transactionTime ]
+                ]
             ]
-        ]
+            -- The tooltip is placed in a wrong place if it's not the current step (most likely
+            -- because non current steps have a transform:scale), so we only show the tooltip
+            -- when you hover over the current step
+            if selectedStep == stepNumber then
+              [ tooltip ("Times are in " <> humanizeOffset tzOffset) (RefId timeId) Top
+              ]
+            else
+              []
+        )
 
     renderFeesSummary =
       div [ classNames [ "pt-4", "px-3", "border-t", "border-gray", "flex", "items-center", "text-xs" ] ]
