@@ -3,11 +3,13 @@ module Examples.PureScript.ZeroCouponBond
   , fullExtendedContract
   , metaData
   , fixedTimeoutContract
+  , defaultSlotContent
   ) where
 
 import Prelude
-import Data.BigInteger (fromInt)
+import Data.BigInteger (BigInteger, fromInt)
 import Data.Map as Map
+import Data.Map (Map)
 import Data.Tuple.Nested ((/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Payee(..), Timeout(..), Value(..))
@@ -16,22 +18,24 @@ import Marlowe.Template (TemplateContent(..), fillTemplate)
 import Marlowe.Semantics (Party(..), Token(..))
 
 contractTemplate :: ContractTemplate
-contractTemplate = { metaData, extendedContract: fixedTimeoutContract }
+contractTemplate = { metaData, extendedContract: fullExtendedContract }
 
 fixedTimeoutContract :: Contract
 fixedTimeoutContract =
   fillTemplate
     ( TemplateContent
-        { slotContent:
-            Map.fromFoldable
-              [ "Initial exchange deadline" /\ fromInt 600
-              , "Maturity exchange deadline" /\ fromInt 1500
-              ]
-        , valueContent:
-            Map.empty
+        { slotContent: defaultSlotContent
+        , valueContent: Map.empty
         }
     )
     fullExtendedContract
+
+defaultSlotContent :: Map String BigInteger
+defaultSlotContent =
+  Map.fromFoldable
+    [ "Initial exchange deadline" /\ fromInt 600
+    , "Maturity exchange deadline" /\ fromInt 1500
+    ]
 
 metaData :: MetaData
 metaData = Metadata.zeroCouponBond

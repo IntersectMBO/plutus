@@ -13,7 +13,6 @@ import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
-import Plutus.PAB.Effects.Contract.ContractExe (ContractExe(..))
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
 import Plutus.PAB.Webserver.Types (ContractActivationArgs(..))
 import Wallet.Types (EndpointDescription)
@@ -32,9 +31,6 @@ withHeading prefix content =
         ]
     , content
     ]
-
-instance prettyContractExe :: Pretty ContractExe where
-  pretty ((ContractExe { contractPath })) = text contractPath
 
 instance prettyResponse :: Pretty a => Pretty (Response a) where
   pretty (Response { rspRqID, rspItID, rspResponse }) =
@@ -74,11 +70,13 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show time
       ]
-  pretty (AwaitTxConfirmedResp txConfirmed) =
+  pretty (AwaitTxStatusChangeResp txConfirmed txStatus) =
     span_
-      [ text "AwaitTxConfirmedResponse:"
+      [ text "AwaitTxStatusChangeResponse:"
       , nbsp
       , text $ view _txId txConfirmed
+      , nbsp
+      , text $ show txStatus
       ]
   pretty (ExposeEndpointResp endpointDescription endpointValue) =
     span_
@@ -146,9 +144,9 @@ instance prettyContractPABRequest :: Pretty PABReq where
     span_
       [ text "CurrentTimeRequest"
       ]
-  pretty (AwaitTxConfirmedReq txId) =
+  pretty (AwaitTxStatusChangeReq txId) =
     span_
-      [ text "AwaitTxConfirmedRequest:"
+      [ text "AwaitTxStatusChangeReq:"
       , nbsp
       , text $ view _txId txId
       ]

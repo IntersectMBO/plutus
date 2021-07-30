@@ -82,7 +82,7 @@ import           PlutusTx.These
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  NFData)
 
 instance ToJSON CurrencySymbol where
@@ -122,7 +122,7 @@ currencySymbol = CurrencySymbol
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (Hashable, NFData)
     deriving Pretty via (PrettyShow TokenName)
 
@@ -182,7 +182,7 @@ tokenName = TokenName
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, PlutusTx.IsData, Serialise)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (Hashable, NFData, ToJSON, FromJSON)
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
@@ -210,7 +210,7 @@ makeLift ''AssetClass
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Generic)
     deriving anyclass (ToJSON, FromJSON, Hashable, NFData)
-    deriving newtype (Serialise, PlutusTx.IsData)
+    deriving newtype (Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
 
 instance Haskell.Show Value where

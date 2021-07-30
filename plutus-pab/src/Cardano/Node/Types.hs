@@ -37,7 +37,6 @@ module Cardano.Node.Types
 
     -- * Config types
     , MockServerConfig (..)
-    , BlockReaperConfig (..)
     , MockServerMode (..)
 
     -- * newtype wrappers
@@ -45,36 +44,37 @@ module Cardano.Node.Types
     )
         where
 
-import           Control.Lens                   (makeLenses, view)
-import           Control.Monad.Freer.TH         (makeEffect)
-import           Control.Monad.IO.Class         (MonadIO (..))
-import           Data.Aeson                     (FromJSON, ToJSON)
-import qualified Data.Map                       as Map
-import           Data.Text.Prettyprint.Doc      (Pretty (..), pretty, viaShow, (<+>))
-import           Data.Time.Clock                (UTCTime)
-import qualified Data.Time.Format.ISO8601       as F
-import           Data.Time.Units                (Millisecond, Second)
-import           Data.Time.Units.Extra          ()
-import           GHC.Generics                   (Generic)
-import           Ledger                         (Tx, txId)
-import           Servant.Client                 (BaseUrl)
+import           Control.Lens                        (makeLenses, view)
+import           Control.Monad.Freer.TH              (makeEffect)
+import           Control.Monad.IO.Class              (MonadIO (..))
+import           Data.Aeson                          (FromJSON, ToJSON)
+import qualified Data.Map                            as Map
+import           Data.Text.Prettyprint.Doc           (Pretty (..), pretty, viaShow, (<+>))
+import           Data.Time.Clock                     (UTCTime)
+import qualified Data.Time.Format.ISO8601            as F
+import           Data.Time.Units                     (Millisecond, Second)
+import           Data.Time.Units.Extra               ()
+import           GHC.Generics                        (Generic)
+import           Ledger                              (Tx, txId)
+import           Servant.Client                      (BaseUrl)
 
-import           Cardano.BM.Data.Tracer         (ToObject (..))
-import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Cardano.Chain                  (MockNodeServerChainState, fromEmulatorChainState)
-import qualified Cardano.Protocol.Socket.Client as Client
-import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg (..))
-import           Control.Monad.Freer.Reader     (Reader)
-import           Control.Monad.Freer.State      (State)
-import           Ledger.TimeSlot                (SlotConfig)
-import qualified Plutus.Contract.Trace          as Trace
-import           Wallet.Emulator                (Wallet)
-import qualified Wallet.Emulator                as EM
-import           Wallet.Emulator.Chain          (ChainControlEffect, ChainEffect, ChainEvent)
-import qualified Wallet.Emulator.MultiAgent     as MultiAgent
+import           Cardano.BM.Data.Tracer              (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras       (Tagged (..), mkObjectStr)
+import           Cardano.Chain                       (MockNodeServerChainState, fromEmulatorChainState)
+import qualified Cardano.Protocol.Socket.Mock.Client as Client
+import           Control.Monad.Freer.Extras.Log      (LogMessage, LogMsg (..))
+import           Control.Monad.Freer.Reader          (Reader)
+import           Control.Monad.Freer.State           (State)
+import           Ledger.TimeSlot                     (SlotConfig)
+import qualified Plutus.Contract.Trace               as Trace
+import           Wallet.Emulator                     (Wallet)
+import qualified Wallet.Emulator                     as EM
+import           Wallet.Emulator.Chain               (ChainControlEffect, ChainEffect, ChainEvent)
+import qualified Wallet.Emulator.MultiAgent          as MultiAgent
 
-import           Ledger.Fee                     (FeeConfig)
-import           Plutus.PAB.Arbitrary           ()
+import           Cardano.Api.NetworkId.Extra         (NetworkIdWrapper (..))
+import           Ledger.Fee                          (FeeConfig)
+import           Plutus.PAB.Arbitrary                ()
 
 -- Configuration ------------------------------------------------------------------------------------------------------
 
@@ -114,8 +114,6 @@ data MockServerConfig =
         -- ^ base url of the service
         , mscRandomTxInterval :: Maybe Second
         -- ^ Time between two randomly generated transactions
-        , mscBlockReaper      :: Maybe BlockReaperConfig
-        -- ^ When to discard old blocks
         , mscInitialTxWallets :: [Wallet]
         -- ^ The wallets that receive money from the initial transaction.
         , mscSocketPath       :: FilePath
@@ -127,17 +125,10 @@ data MockServerConfig =
         , mscFeeConfig        :: FeeConfig
         -- ^ Configure constant fee per transaction and ratio by which to
         -- multiply size-dependent scripts fee.
+        , mscNetworkId        :: NetworkIdWrapper
+        -- ^ NetworkId that's used with the CardanoAPI.
         }
     deriving (Show, Eq, Generic, FromJSON)
-
--- | Configuration for 'Cardano.Node.Mock.blockReaper'
-data BlockReaperConfig =
-    BlockReaperConfig
-        { brcInterval     :: Second -- ^ interval in seconds for discarding blocks
-        , brcBlocksToKeep :: Int    -- ^ number of blocks to keep
-        }
-    deriving (Show, Eq, Generic, FromJSON)
-
 
 -- Logging ------------------------------------------------------------------------------------------------------------
 

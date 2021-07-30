@@ -54,7 +54,7 @@ runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeE
 runPlcCekTrace values = do
      ps <- Haskell.traverse toUPlc values
      let p = Haskell.foldl1 UPLC.applyProgram ps
-     let (logOut, tally, result) = evaluateCekTrace p
+     let (logOut, TallyingSt tally _, result) = evaluateCekTrace p
      res <- either (throwError . SomeException) Haskell.pure result
      Haskell.pure (logOut, tally, res)
 
@@ -111,7 +111,7 @@ traceRepeatedly = $$(compile
 
 data SomeType = One Integer | Two | Three ()
 
-someData :: (Data, Data, Data)
-someData = (toData (One 1), toData Two, toData (Three ()))
+someData :: (BuiltinData, BuiltinData, BuiltinData)
+someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
 
 makeIsDataIndexed ''SomeType [('Two, 0), ('One, 1), ('Three, 2)]

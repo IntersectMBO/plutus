@@ -42,15 +42,12 @@ extra-deps:
 - dependent-map-0.4.0.0
 - dependent-sum-0.7.1.0
 - dependent-sum-template-0.1.0.3
-- eventful-memory-0.2.0
 - barbies-2.0.2.0
 - nothunks-0.1.2
 - indexed-traversable-instances-0.1
 - base16-bytestring-1.0.1.0
 # A revision was added to keep the bounds down, we don't actually want this!
 # we work around the newer persistent-template by adding flags below
-- eventful-sql-common-0.2.0@rev:0
-- eventful-sqlite-0.2.0
 - monoidal-containers-0.6.0.1
 - recursion-schemes-5.1.3
 - row-types-0.4.0.0
@@ -149,11 +146,6 @@ extra-deps:
 allow-newer: true
 
 extra-package-dbs: []
-
-ghc-options:
-  # Newer versions of persistent-template require some extra language extensions. Fortunately
-  # we can hack around this here rather than having to fork eventful & co (for now)
-  eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses"
 
 nix:
   shell-file: shell.nix

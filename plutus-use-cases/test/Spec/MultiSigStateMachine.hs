@@ -5,16 +5,18 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
+
 {-# OPTIONS_GHC -fno-strictness  #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
+
 module Spec.MultiSigStateMachine(tests, lockProposeSignPay) where
 
-import           Data.Default                          (Default (def))
 import           Data.Foldable                         (traverse_)
 
 import qualified Ledger
 import qualified Ledger.Ada                            as Ada
+import           Ledger.Time                           (POSIXTime)
 import qualified Ledger.TimeSlot                       as TimeSlot
 import qualified Ledger.Typed.Scripts                  as Scripts
 import qualified Wallet.Emulator                       as EM
@@ -70,12 +72,12 @@ params = MS.Params keys 3 where
     keys = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..5]
 
 -- | A payment of 5 Ada to the public key address of wallet 2
-payment :: MS.Payment
-payment =
+payment :: POSIXTime -> MS.Payment
+payment startTime =
     MS.Payment
         { MS.paymentAmount    = Ada.lovelaceValueOf 5
         , MS.paymentRecipient = Ledger.pubKeyHash $ EM.walletPubKey w2
-        , MS.paymentDeadline  = TimeSlot.slotToEndPOSIXTime def 20
+        , MS.paymentDeadline  = startTime + 20000
         }
 
 -- | Lock some funds in the contract, then propose the payment
@@ -92,8 +94,9 @@ lockProposeSignPay signatures rounds = do
     handles <- traverse activate (drop 2 wallets)
     _ <- Trace.callEndpoint @"lock" handle1 (Ada.lovelaceValueOf 10)
     _ <- Trace.waitNSlots 1
+    startTime <- TimeSlot.scSlotZeroTime <$> Trace.getSlotConfig
     let proposeSignPay = do
-            Trace.callEndpoint @"propose-payment" handle2 payment
+            Trace.callEndpoint @"propose-payment" handle2 (payment startTime)
             _ <- Trace.waitNSlots 1
             -- Call @"add-signature"@ @signatures@ times
             traverse_ (\hdl -> Trace.callEndpoint @"add-signature" hdl () >> Trace.waitNSlots 1) (handle1:handle2:handles)
@@ -102,4 +105,4 @@ lockProposeSignPay signatures rounds = do
             Trace.callEndpoint @"pay" handle1 ()
             Trace.waitNSlots 1
 
-    traverse_ (\_ -> proposeSignPay) [1..rounds]
+    traverse_ (const proposeSignPay) [1..rounds]

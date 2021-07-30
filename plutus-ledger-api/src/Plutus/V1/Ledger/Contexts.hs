@@ -32,8 +32,6 @@ module Plutus.V1.Ledger.Contexts
     , findContinuingOutputs
     , getContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
-    , scriptCurrencySymbol
-    , pubKeyHash
     -- * Validator functions
     -- ** Signatures
     , txSignedBy
@@ -54,9 +52,9 @@ module Plutus.V1.Ledger.Contexts
     , fromSymbol
     ) where
 
+import           Data.Text.Prettyprint.Doc   (Pretty (..), nest, viaShow, vsep, (<+>))
 import           GHC.Generics                (Generic)
 import           PlutusTx
-import qualified PlutusTx.Builtins           as Builtins
 import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Ada        (Ada)
@@ -64,14 +62,14 @@ import qualified Plutus.V1.Ledger.Ada        as Ada
 import           Plutus.V1.Ledger.Address    (Address (..), toPubKeyHash)
 import           Plutus.V1.Ledger.Bytes      (LedgerBytes (..))
 import           Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
-import           Plutus.V1.Ledger.Crypto     (PubKey (..), PubKeyHash (..), Signature (..), pubKeyHash)
+import           Plutus.V1.Ledger.Crypto     (PubKey (..), PubKeyHash (..), Signature (..))
 import           Plutus.V1.Ledger.DCert      (DCert (..))
 import           Plutus.V1.Ledger.Scripts
 import           Plutus.V1.Ledger.Time       (POSIXTimeRange)
 import           Plutus.V1.Ledger.Tx         (TxOut (..), TxOutRef (..))
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value      (CurrencySymbol (..), Value)
-import qualified Plutus.V1.Ledger.Value      as Value
+import qualified Prelude                     as Haskell
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of
@@ -88,7 +86,11 @@ redeemer and data scripts of all of its inputs and outputs.
 data TxInInfo = TxInInfo
     { txInInfoOutRef   :: TxOutRef
     , txInInfoResolved :: TxOut
-    } deriving (Generic)
+    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+instance Pretty TxInInfo where
+    pretty TxInInfo{txInInfoOutRef, txInInfoResolved} =
+        pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
 -- | Purpose of the script that is currently running
 data ScriptPurpose
@@ -96,6 +98,10 @@ data ScriptPurpose
     | Spending TxOutRef
     | Rewarding StakingCredential
     | Certifying DCert
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+instance Pretty ScriptPurpose where
+    pretty = viaShow
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
@@ -111,9 +117,32 @@ data TxInfo = TxInfo
     , txInfoData        :: [(DatumHash, Datum)]
     , txInfoId          :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
-    } deriving (Generic)
+    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+instance Pretty TxInfo where
+    pretty TxInfo{txInfoInputs, txInfoOutputs, txInfoFee, txInfoForge, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoData, txInfoId} =
+        vsep
+            [ "TxId:" <+> pretty txInfoId
+            , "Inputs:" <+> pretty txInfoInputs
+            , "Outputs:" <+> pretty txInfoOutputs
+            , "Fee:" <+> pretty txInfoFee
+            , "Value minted:" <+> pretty txInfoForge
+            , "DCerts:" <+> pretty txInfoDCert
+            , "Wdrl:" <+> pretty txInfoWdrl
+            , "Valid range:" <+> pretty txInfoValidRange
+            , "Signatories:" <+> pretty txInfoSignatories
+            , "Datums:" <+> pretty txInfoData
+            ]
 
 data ScriptContext = ScriptContext{scriptContextTxInfo :: TxInfo, scriptContextPurpose :: ScriptPurpose }
+    deriving stock (Generic, Haskell.Eq, Haskell.Show)
+
+instance Pretty ScriptContext where
+    pretty ScriptContext{scriptContextTxInfo, scriptContextPurpose} =
+        vsep
+            [ "Purpose:" <+> pretty scriptContextPurpose
+            , nest 2 $ vsep ["TxInfo:", pretty scriptContextTxInfo]
+            ]
 
 {-# INLINABLE findOwnInput #-}
 -- | Find the input currently being validated.
@@ -148,14 +177,14 @@ findContinuingOutputs :: ScriptContext -> [Integer]
 findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
-findContinuingOutputs _ = Builtins.error()
+findContinuingOutputs _ = traceError "Can't find any continuing outputs"
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
-getContinuingOutputs _ = Builtins.error()
+getContinuingOutputs _ = traceError "Can't get any continuing outputs"
 
 {- Note [Hashes in validator scripts]
 
@@ -181,11 +210,6 @@ them from the correct types in Haskell, and for comparing them (in
 
 -}
 
-{-# INLINABLE scriptCurrencySymbol #-}
--- | The 'CurrencySymbol' of a 'MintingPolicy'
-scriptCurrencySymbol :: MintingPolicy -> CurrencySymbol
-scriptCurrencySymbol scrpt = let (MintingPolicyHash hsh) = mintingPolicyHash scrpt in Value.currencySymbol hsh
-
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> PubKeyHash -> Bool
@@ -202,7 +226,7 @@ pubKeyOutput TxOut{txOutAddress} = toPubKeyHash txOutAddress
 -- | Get the validator and datum hashes of the output that is curently being validated
 ownHashes :: ScriptContext -> (ValidatorHash, DatumHash)
 ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}}) = (s,dh)
-ownHashes _                                                        = Builtins.error ()
+ownHashes _ = traceError "Can't get validator and datum hashes"
 
 {-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.
@@ -269,7 +293,7 @@ valueProduced = foldMap txOutValue . txInfoOutputs
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: ScriptContext -> CurrencySymbol
 ownCurrencySymbol ScriptContext{scriptContextPurpose=Minting cs} = cs
-ownCurrencySymbol _                                              = Builtins.error ()
+ownCurrencySymbol _ = traceError "Can't get currency symbol of the current validator script"
 
 {-# INLINABLE spendsOutput #-}
 -- | Check if the pending transaction spends a specific transaction output

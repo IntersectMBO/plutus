@@ -156,8 +156,7 @@ type MarloweContractState = LastResult
 
 
 marloweFollowContract :: Contract ContractHistory MarloweFollowSchema MarloweError ()
-marloweFollowContract = do
-    params <- endpoint @"follow"
+marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params -> do
     slot <- currentSlot
     checkpointLoop follow (0, slot, params)
   where
@@ -165,7 +164,7 @@ marloweFollowContract = do
         let client@StateMachineClient{scInstance} = mkMarloweClient params
         let inst = SM.typedValidator scInstance
         let address = Scripts.validatorAddress inst
-        AddressChangeResponse{acrTxns} <- addressChangeRequest
+        AddressChangeResponse{acrTxns} <- awaitPromise $ addressChangeRequest
                 AddressChangeRequest
                 { acreqSlotRangeFrom = ifrom
                 , acreqSlotRangeTo = ito
@@ -223,7 +222,7 @@ marloweFollowContract = do
         let marloweTxInputs = filter (\(validator, _, _) -> validator == script) inputs
         case marloweTxInputs of
             []                          -> Nothing
-            [(_, Ledger.Redeemer d, _)] -> PlutusTx.fromData d
+            [(_, Ledger.Redeemer d, _)] -> PlutusTx.fromBuiltinData d
             _                           -> Nothing
 
 {-  This is a control contract.
@@ -234,13 +233,12 @@ marlowePlutusContract :: Contract MarloweContractState MarloweSchema MarloweErro
 marlowePlutusContract = do
     catching _MarloweError
         (void $ mapError (review _MarloweError) $
-            create `select` apply `select` auto `select` redeem `select` close)
+            selectList [create, apply, auto, redeem, close])
         (\er -> do
             tell $ SomeError er
             marlowePlutusContract)
   where
-    create = do
-        (owners, contract) <- endpoint @"create"
+    create = endpoint @"create" $ \(owners, contract) -> do
         (params, distributeRoleTokens) <- setupMarloweParams owners contract
         slot <- currentSlot
         let StateMachineClient{scInstance} = mkMarloweClient params
@@ -254,18 +252,15 @@ marlowePlutusContract = do
         utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
         submitTxConfirmed utx
         marlowePlutusContract
-    apply = do
-        (params, slotInterval, inputs) <- endpoint @"apply-inputs"
+    apply = endpoint @"apply-inputs" $ \(params, slotInterval, inputs) -> do
         _ <- applyInputs params slotInterval inputs
         tell OK
         marlowePlutusContract
-    redeem = mapError (review _MarloweError) $ do
-        (MarloweParams{rolesCurrency}, role, pkh) <-
-            endpoint @"redeem"
+    redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(MarloweParams{rolesCurrency}, role, pkh) -> do
         let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
         utxos <- utxoAt address
         let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
-                expectedDatumHash = datumHash (Datum $ PlutusTx.toData role)
+                expectedDatumHash = datumHash (Datum $ PlutusTx.toBuiltinData role)
                 amount = txOutValue txOutTxOut
                 in case txOutDatum txOutTxOut of
                     Just datumHash | datumHash == expectedDatumHash ->
@@ -288,8 +283,7 @@ marlowePlutusContract = do
         _ <- submitUnbalancedTx tx
         tell OK
         marlowePlutusContract
-    auto = do
-        (params, party, untilSlot) <- endpoint @"auto"
+    auto = endpoint @"auto" $ \(params, party, untilSlot) -> do
         let theClient = mkMarloweClient params
         let continueWith :: MarloweData -> Contract MarloweContractState MarloweSchema MarloweError ()
             continueWith md@MarloweData{marloweContract} =
@@ -316,9 +310,7 @@ marlowePlutusContract = do
             Just ((st, _), _) -> do
                 let marloweData = tyTxOutData st
                 continueWith marloweData
-    close = do
-        endpoint @"close"
-        tell OK
+    close = endpoint @"close" $ \_ -> tell OK
 
 
     autoExecuteContract :: StateMachineClient MarloweData MarloweInput
@@ -338,7 +330,7 @@ marlowePlutusContract = do
                             SM.TransitionFailure e -> throwing _TransitionError e
                             SM.TransitionSuccess d -> continueWith d
 
-                catching (_StateMachineError) payDeposit $ \err -> do
+                catching _StateMachineError payDeposit $ \err -> do
                     logWarn @String $ "Error " <> show err
                     logInfo @String $ "Retry PayDeposit in 2 slots"
                     _ <- awaitSlot (slot + 2)
@@ -408,7 +400,7 @@ getAction :: MarloweSlotRange -> Party -> MarloweData -> PartyAction
 getAction slotRange party MarloweData{marloweContract,marloweState} = let
     env = Environment slotRange
     in case reduceContractUntilQuiescent env marloweState marloweContract of
-        ContractQuiescent _warnings _payments state contract ->
+        ContractQuiescent _reduced _warnings _payments state contract ->
             -- here the contract is either When or Close
             case contract of
                 When [Case (Deposit acc depositParty tok value) _] _ _
@@ -421,7 +413,7 @@ getAction slotRange party MarloweData{marloweContract,marloweState} = let
                 When [] timeout _ -> WaitForTimeout timeout
                 Close -> CloseContract
                 _ -> NotSure
-        -- When's timeout is in the slot range
+        -- When timeout is in the slot range
         RRAmbiguousSlotIntervalError ->
             {- FIXME
                 Consider contract:
@@ -445,14 +437,14 @@ canAutoExecuteContractForParty party = check
   where
     check cont =
         case cont of
-            Close                                      -> True
-            When [] _ cont                             -> check cont
-            When [Case (Deposit{}) cont] _ timeoutCont -> check cont && check timeoutCont
-            When cases _ timeoutCont                   -> all checkCase cases && check timeoutCont
-            Pay _ _ _ _ cont                           -> check cont
-            If _ c1 c2                                 -> check c1 && check c2
-            Let _ _ cont                               -> check cont
-            Assert _ cont                              -> check cont
+            Close                                    -> True
+            When [] _ cont                           -> check cont
+            When [Case Deposit{} cont] _ timeoutCont -> check cont && check timeoutCont
+            When cases _ timeoutCont                 -> all checkCase cases && check timeoutCont
+            Pay _ _ _ _ cont                         -> check cont
+            If _ c1 c2                               -> check c1 && check c2
+            Let _ _ cont                             -> check cont
+            Assert _ cont                            -> check cont
 
 
     checkCase (Case (Choice (ChoiceId _ p) _) cont) | p /= party = check cont
@@ -596,7 +588,7 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
         payoutToTxOut (party, value) = case party of
             PK pk  -> mustPayToPubKey pk value
             Role role -> let
-                dataValue = Datum $ PlutusTx.toData role
+                dataValue = Datum $ PlutusTx.toBuiltinData role
                 in mustPayToOtherScript (rolePayoutValidatorHash params) dataValue value
 
         payoutByParty (Payment _ (Party party) money) = AssocMap.singleton party money
@@ -606,8 +598,7 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
 
 {-# INLINABLE isFinal #-}
 isFinal :: MarloweData -> Bool
-isFinal MarloweData{marloweContract=c} = c P.== Close
-
+isFinal MarloweData{marloweContract=c} = isClose c
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: MarloweParams -> Scripts.ValidatorType MarloweStateMachine

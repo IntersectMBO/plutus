@@ -29,7 +29,7 @@ import qualified Data.Text                     as T
 -- and thus its type can escape, or nested and thus not allowed to escape.
 data AllowEscape = YesEscape | NoEscape
 
--- | extending theh plc typecheck config with AllowEscape
+-- | extending the plc typecheck config with AllowEscape
 data PirTCConfig uni fun = PirTCConfig {
       _pirConfigTCConfig      :: PLC.TypeCheckConfig uni fun
       , _pirConfigAllowEscape :: AllowEscape
@@ -40,14 +40,15 @@ makeLenses ''PirTCConfig
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
-newtype CompilationOpts = CompilationOpts {
-    _coOptimize :: Bool
+data CompilationOpts = CompilationOpts {
+    _coOptimize               :: Bool
+    , _coParanoidTypechecking :: Bool
     } deriving (Eq, Show)
 
 makeLenses ''CompilationOpts
 
 defaultCompilationOpts :: CompilationOpts
-defaultCompilationOpts = CompilationOpts True
+defaultCompilationOpts = CompilationOpts True False
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts

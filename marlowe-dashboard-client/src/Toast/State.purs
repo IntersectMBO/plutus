@@ -13,7 +13,7 @@ import Effect.Aff (error)
 import Effect.Aff as Aff
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, RefLabel(..), getHTMLElementRef, subscribe, unsubscribe)
-import Halogen.Animation (animateAndWaitUntilFinish)
+import Halogen.Animation (animateAndWaitUntilFinishSubscription)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
 import Toast.Lenses (_expanded, _mToast, _timeoutSubscription)
@@ -56,4 +56,4 @@ handleAction CloseToast = assign _mToast Nothing
 
 handleAction ToastTimeout = do
   mElement <- getHTMLElementRef (RefLabel "collapsed-toast")
-  for_ mElement $ subscribe <<< animateAndWaitUntilFinish "to-bottom" CloseToast
+  for_ mElement $ subscribe <<< animateAndWaitUntilFinishSubscription "to-bottom" CloseToast

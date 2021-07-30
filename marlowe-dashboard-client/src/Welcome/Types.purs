@@ -2,16 +2,21 @@ module Welcome.Types
   ( State
   , Card(..)
   , Action(..)
+  , WalletNicknameOrIdError(..)
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Clipboard (Action) as Clipboard
 import Data.Maybe (Maybe(..))
 import InputField.Types (Action, State) as InputField
+import InputField.Types (class InputFieldError)
 import Types (WebData)
-import WalletData.Types (WalletDetails, WalletLibrary, WalletNickname)
-import WalletData.Validation (WalletIdError, WalletNicknameError, WalletNicknameOrIdError)
+import WalletData.Types (WalletDetails, WalletIdError, WalletLibrary, WalletNickname, WalletNicknameError)
 
+-- TODO (possibly): The WalletData submodule used in the Dashboard has some properties and
+-- functionality that's similar to some of what goes on here. It might be worth generalising it so
+-- it works in both cases, and including it as a submodule here too.
 type State
   = { card :: Maybe Card
     -- Note [CardOpen]: As well as making the card a Maybe, we add an additional cardOpen flag.
@@ -29,6 +34,16 @@ type State
     , remoteWalletDetails :: WebData WalletDetails
     , enteringDashboardState :: Boolean
     }
+
+data WalletNicknameOrIdError
+  = UnconfirmedWalletNicknameOrId
+  | NonexistentWalletNicknameOrId
+
+derive instance eqWalletNicknameOrIdError :: Eq WalletNicknameOrIdError
+
+instance inputFieldErrorWalletNicknameOrIdError :: InputFieldError WalletNicknameOrIdError where
+  inputErrorToString UnconfirmedWalletNicknameOrId = "Looking up wallet..."
+  inputErrorToString NonexistentWalletNicknameOrId = "Wallet not found"
 
 data Card
   = GetStartedHelpCard
@@ -49,9 +64,9 @@ data Action
   | WalletIdInputAction (InputField.Action WalletIdError)
   | UseWallet WalletNickname
   | ClearLocalStorage
+  | ClipboardAction Clipboard.Action
 
--- | Here we decide which top-level queries to track as GA events, and
--- how to classify them.
+-- | Here we decide which top-level queries to track as GA events, and how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent (OpenCard _) = Nothing
   toEvent CloseCard = Nothing
@@ -62,3 +77,4 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (WalletIdInputAction inputFieldAction) = toEvent inputFieldAction
   toEvent (UseWallet _) = Just $ defaultEvent "UseWallet"
   toEvent ClearLocalStorage = Just $ defaultEvent "ClearLocalStorage"
+  toEvent (ClipboardAction _) = Just $ defaultEvent "ClipboardAction"

@@ -8,6 +8,7 @@
 .with-icon::after {
   font-family: "Material Icons Round";
   font-size: 24px;
+  font-weight: normal;
   line-height: 1;
   white-space: nowrap;
   float: right;
@@ -23,11 +24,15 @@
 }
 
 .with-icon-add-circle::after {
-  content: "add_circle_outline";
+  content: "add_circle";
 }
 
 .with-icon-arrow-right::after {
   content: "east";
+}
+
+.with-icon-arrow-left::after {
+  content: "west";
 }
 
 .with-icon-close::after {
@@ -54,8 +59,28 @@
   content: "swap_horiz";
 }
 
+.with-icon-copy::after {
+  content: "copy";
+}
+
+.with-icon-done::after {
+  content: "done";
+}
+
+.with-icon-check-circle-outline::after {
+  content: "check_circle_outline";
+}
+
+.with-icon-error-outline::after {
+  content: "error_outline";
+}
+
 .with-icon-help::after {
   content: "help";
+}
+
+.with-icon-help-outline::after {
+  content: "help_outline";
 }
 
 .with-icon-history::after {
@@ -64,6 +89,14 @@
 
 .with-icon-home::after {
   content: "home";
+}
+
+.with-icon-info::after {
+  content: "info";
+}
+
+.with-icon-language::after {
+  content: "language";
 }
 
 .with-icon-menu::after {
@@ -94,12 +127,24 @@
   content: "refresh";
 }
 
+.with-icon-read-more::after {
+  content: "read_more";
+}
+
 .with-icon-roles::after {
   content: "person_pin_circle";
 }
 
 .with-icon-running::after {
   content: "directions_run";
+}
+
+.with-icon-south::after {
+  content: "south";
+}
+
+.with-icon-task-alt::after {
+  content: "task_alt";
 }
 
 .with-icon-terms::after {

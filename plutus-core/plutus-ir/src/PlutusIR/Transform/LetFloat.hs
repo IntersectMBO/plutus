@@ -144,7 +144,7 @@ data Rank =
   -- | a let is directly surrounded by the lambda signified by the location lamDepth :: 'Int', lamUnique :: 'PLC.Unique'
   -- NB: the lamDepth (Int) should be strictly positive (1,2..)
      | Dep Int PLC.Unique
-  deriving Eq
+  deriving (Eq, Show)
 
 -- | Lens-style getter function for depth
 -- NB: Top is arbitrarily defined as having depth 0.
@@ -214,18 +214,21 @@ p1Term pir = toFloatData $ runReader
       LamAbs _ n _ tBody  -> withAnchor (n^.PLC.theUnique) $ goTerm tBody
       TyAbs _ n _ tBody   -> withAnchor (n^.PLC.theUnique) $ goTerm tBody
 
-      Let _ _ bs tIn    -> do
-        resBs <- mconcat <$> forM (NE.toList bs) goBinding
+      Let _ r bs tIn    -> do
+        let cantMove b = case r of
+                Rec    -> any nonMovableBinding bs
+                NonRec -> nonMovableBinding b
+        resBs <- mconcat <$> forM (NE.toList bs) (goBinding cantMove)
         resIn <- goTerm tIn
         pure $ resBs <> resIn
 
       -- recurse and then accumulate the return values
       t -> mconcat <$> traverse goTerm (t^..termSubterms)
 
-    goBinding :: Binding tyname name uni fun a -> Reader P1Ctx P1Data
-    goBinding b =
+    goBinding :: (Binding tyname name uni fun a -> Bool) -> Binding tyname name uni fun a -> Reader P1Ctx P1Data
+    goBinding cantMove b =
       let subtermRanks = mconcat <$> traverse goTerm (b^..bindingSubterms)
-      in if mayHaveEffects b
+      in if cantMove b
          -- leteffectful bindings are anchors themselves like lam/Lam/Top
          then withAnchor (b^.principal) subtermRanks
          -- for all other let bindings we record their ranks
@@ -302,8 +305,11 @@ removeLets t =
          TyAbs a n k tBody  -> TyAbs a n k <$> local (+1) (go tBody)
 
          Let a r bs tIn -> do
+          let cantMove b = case r of
+                  Rec    -> any nonMovableBinding bs
+                  NonRec -> nonMovableBinding b
           bs' <- forM bs $ \b ->
-            if mayHaveEffects b
+            if cantMove b
             -- increment depth since it is an anchor
             then local (+1) $ do
                 b' <- b & traverseOf bindingSubterms go
@@ -596,6 +602,12 @@ mayHaveEffects
 -- We could maybe do better here, but not worth it at the moment
 mayHaveEffects (TermBind _ Strict _ t') = not $ isPure (const NonStrict) t'
 mayHaveEffects _                        = False
+
+nonMovableBinding
+    :: PLC.ToBuiltinMeaning uni fun
+    => Binding tyname name uni fun a
+    -> Bool
+nonMovableBinding b = mayHaveEffects b
 
 {- Note [Versus the "Let-floating"-paper]
 

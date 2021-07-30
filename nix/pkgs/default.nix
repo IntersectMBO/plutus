@@ -8,7 +8,7 @@
 let
   inherit (pkgs) stdenv;
 
-  gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
+  gitignore-nix = pkgs.callPackage sources.gitignore-nix { };
 
   # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
@@ -113,7 +113,7 @@ let
   # By default pre-commit-hooks.nix uses its own pinned version of nixpkgs. In order to
   # to get it to use our version we have to (somewhat awkwardly) use `nix/default.nix`
   # to which both `nixpkgs` and `system` can be passed.
-  nix-pre-commit-hooks = (pkgs.callPackage ((sources."pre-commit-hooks.nix") + "/nix/default.nix") {
+  nix-pre-commit-hooks = (pkgs.callPackage (sources.pre-commit-hooks-nix + "/nix/default.nix") {
     inherit system;
     inherit (sources) nixpkgs;
   });
@@ -155,7 +155,8 @@ let
   # If it succeeds:
   #
   # * Merge your new `inherit (easyPS) spago2nix` with the one above.
-  # * Run `niv delete spago2nix`.
+  # * Remove spago2nix from flake.nix
+  # * Run `nix --experimental-features 'nix-command flakes' flake lock`
   #
   spago2nix = pkgs.callPackage (sources.spago2nix) { };
 

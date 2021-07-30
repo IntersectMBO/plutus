@@ -13,7 +13,7 @@ module.exports = {
       current: "currentColor",
       black: "#283346",
       lightgray: "#eeeeee",
-      gray: "#dfdfdf",
+      gray: "#f2f2f2",
       green: "#00a551",
       lightgreen: "#00e872",
       darkgray: "#b7b7b7",
@@ -48,6 +48,13 @@ module.exports = {
       lg: "25px",
       full: "9999px",
     },
+    dropShadow: {
+      DEFAULT: [
+        "0 5px 5px rgba(0, 0, 0, 0.15)",
+        "5px 5px 5px rgba(0, 0, 0, 0.06)",
+      ],
+      lg: ["0 10px 5px rgba(0, 0, 0, 0.2)", "5px 10px 5px rgba(0, 0, 0, 0.04)"],
+    },
     boxShadow: {
       none: "none",
       sm: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
@@ -56,15 +63,20 @@ module.exports = {
       lg: "0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.04)",
       xl: "0 25px 50px -12px rgba(0,0,0,0.25)",
       deep: "0 2.5px 5px 0 rgba(0, 0, 0, 0.22)",
+      flat: "0 0 20px 0 rgba(0, 0, 0, 0.3)",
     },
     extend: {
       animation: {
         "from-below": "from-below 250ms ease-out 1",
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
-      backgroundImage: theme => ({
+      transitionProperty: {
+        width: "width",
+      },
+      backgroundImage: (theme) => ({
         "background-shape": "url('/static/images/background-shape.svg')",
-        "get-started-thumbnail": "url('/static/images/get-started-thumbnail.jpg')",
+        "get-started-thumbnail":
+          "url('/static/images/get-started-thumbnail.jpg')",
         "link-highlight": "url('/static/images/link-highlight.svg')",
       }),
       keyframes: {
@@ -95,19 +107,21 @@ module.exports = {
       },
       spacing: {
         "2+2px": "calc(0.5rem + 2px)",
-        "4.5": "1.125rem",
-        "22": "5.5rem",
-        "160": "40rem",
-        "256": "64rem",
+        4.5: "1.125rem",
+        22: "5.5rem",
+        160: "40rem",
+        256: "64rem",
         "16:9": "56.25%", // this is used for video containers to maintain a 16:9 aspect ratio
-        "sidebar": "350px",
+        sidebar: "350px",
       },
       width: {
         sm: "375px",
         md: "640px",
         lg: "768px",
         "welcome-box": "400px",
-        "sidebar": "350px",
+        sidebar: "350px",
+        "contracts-grid-md": "632px", // 2 cards of 300px + 1 gap of 32px
+        "contracts-grid-lg": "964px", // 3 cards of 300px + 2 gaps of 32px
         "contract-card": "264px",
         /* This width is used by a padding element in both sides of the carousel and is enough
            to push the first and last card to the center */
@@ -115,7 +129,8 @@ module.exports = {
       },
       height: {
         "welcome-box": "227px",
-        "contract-card": "467px",
+        "dashboard-card-actions": "200px",
+        "contract-card": "415px",
         "90pc": "90%",
       },
       borderWidth: {
@@ -126,12 +141,14 @@ module.exports = {
         md: "640px",
         lg: "768px",
         xl: "1440px",
+        "contracts-grid-sm": "300px", // 1 card of 300px
         "90pc": "90%",
       },
       minWidth: {
         button: "120px",
         "90pc": "90%",
         sm: "375px",
+        hint: "270px",
       },
     },
   },
@@ -157,6 +174,7 @@ module.exports = {
     divideColor: false,
     divideStyle: false,
     divideOpacity: false,
+    dropShadow: true,
     accessibility: false,
     appearance: false,
     backgroundAttachment: false,
@@ -172,7 +190,7 @@ module.exports = {
     borderColor: true,
     borderOpacity: false,
     borderRadius: true,
-    borderStyle: false,
+    borderStyle: true,
     borderWidth: true,
     boxSizing: false,
     cursor: true,
@@ -187,14 +205,14 @@ module.exports = {
     alignSelf: true,
     justifyItems: false,
     justifyContent: true,
-    justifySelf: false,
+    justifySelf: true,
     flex: true,
     flexGrow: true,
     flexShrink: true,
     order: false,
     float: true,
     clear: false,
-    fontFamily: false,
+    fontFamily: true,
     fontWeight: true,
     height: true,
     lineHeight: true,
@@ -223,6 +241,7 @@ module.exports = {
     ringColor: true,
     ringOpacity: false,
     fill: false,
+    filter: true,
     stroke: false,
     strokeWidth: false,
     tableLayout: false,
@@ -235,7 +254,7 @@ module.exports = {
     fontSmoothing: false,
     fontVariantNumeric: false,
     letterSpacing: false,
-    userSelect: false,
+    userSelect: true,
     verticalAlign: false,
     visibility: true,
     whitespace: true,

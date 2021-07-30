@@ -17,6 +17,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
@@ -210,8 +211,8 @@ instance AsEscrowError FutureError where
 
 futureContract :: Future -> Contract () FutureSchema FutureError ()
 futureContract ft = do
-    client <- joinFuture ft `select` initialiseFuture ft
-    void $ loopM (const $ selectEither (increaseMargin client) (settleFuture client `select` settleEarly client)) ()
+    client <- awaitPromise (joinFuture ft `select` initialiseFuture ft)
+    void $ loopM (const . awaitPromise $ selectEither (increaseMargin client) (settleFuture client `select` settleEarly client)) ()
 
 -- | The data needed to initialise the futures contract.
 data FutureSetup =
@@ -340,12 +341,12 @@ validator :: Future -> FutureAccounts -> Validator
 validator ft fos = Scripts.validatorScript (typedValidator ft fos)
 
 {-# INLINABLE verifyOracle #-}
-verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
+verifyOracle :: PlutusTx.FromData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
 verifyOracle pubKey sm =
     either (const Nothing) pure
     $ Oracle.verifySignedMessageConstraints pubKey sm
 
-verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (POSIXTime, a)
+verifyOracleOffChain :: PlutusTx.FromData a => Future -> SignedMessage (Observation a) -> Maybe (POSIXTime, a)
 verifyOracleOffChain Future{ftPriceOracle} sm =
     case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
         Left _                               -> Nothing
@@ -466,9 +467,8 @@ initialiseFuture
        , AsFutureError e
        )
     => Future
-    -> Contract w s e (SM.StateMachineClient FutureState FutureAction)
-initialiseFuture future = mapError (review _FutureError) $ do
-    (s, ownRole) <- endpoint @"initialise-future" @(FutureSetup, Role)
+    -> Promise w s e (SM.StateMachineClient FutureState FutureAction)
+initialiseFuture future = promiseMap (mapError (review _FutureError)) $ endpoint @"initialise-future" @(FutureSetup, Role) $ \(s, ownRole) -> do
     -- Start by setting up the two tokens for the short and long positions.
     ftos <- setupTokens
 
@@ -517,9 +517,8 @@ settleFuture
        , AsFutureError e
        )
     => SM.StateMachineClient FutureState FutureAction
-    -> Contract w s e ()
-settleFuture client = mapError (review _FutureError) $ do
-    ov <- endpoint @"settle-future"
+    -> Promise w s e ()
+settleFuture client = promiseMap (mapError (review _FutureError)) $ endpoint @"settle-future" $ \ov -> do
     void $ SM.runStep client (Settle ov)
 
 -- | The @"settle-early"@ endpoint. Given an oracle value with the current spot
@@ -533,9 +532,8 @@ settleEarly
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
-    -> Contract w s e ()
-settleEarly client = do
-    ov <- endpoint @"settle-early"
+    -> Promise w s e ()
+settleEarly client = endpoint @"settle-early" $ \ov -> do
     void $ SM.runStep client (SettleEarly ov)
 
 -- | The @"increase-margin"@ endpoint. Increses the margin of one of
@@ -546,9 +544,8 @@ increaseMargin
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
-    -> Contract w s e ()
-increaseMargin client = do
-    (value, role) <- endpoint @"increase-margin"
+    -> Promise w s e ()
+increaseMargin client = endpoint @"increase-margin" $ \(value, role) -> do
     void $ SM.runStep client (AdjustMargin role value)
 
 -- | The @"join-future"@ endpoint. Join a future contract by paying the initial
@@ -558,9 +555,8 @@ joinFuture
        , AsFutureError e
        )
     => Future
-    -> Contract w s e (SM.StateMachineClient FutureState FutureAction)
-joinFuture ft = mapError (review _FutureError) $ do
-    (owners, stp) <- endpoint @"join-future" @(FutureAccounts, FutureSetup)
+    -> Promise w s e (SM.StateMachineClient FutureState FutureAction)
+joinFuture ft = promiseMap (mapError (review _FutureError)) $ endpoint @"join-future" @(FutureAccounts, FutureSetup) $ \(owners, stp) -> do
     inst <- checkpoint $ pure (typedValidator ft owners)
     let client = machineClient inst ft owners
         escr = escrowParams client ft owners stp
@@ -598,7 +594,7 @@ escrowParams
 escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
         address = Ledger.validatorHash $ Scripts.validatorScript $ SM.typedValidator $ SM.scInstance client
-        dataScript  = Ledger.Datum $ PlutusTx.toData $ initialState future
+        dataScript  = Ledger.Datum $ PlutusTx.toBuiltinData $ initialState future
         targets =
             [ Escrow.payToScriptTarget address
                 dataScript
@@ -623,7 +619,7 @@ testAccounts =
         $ Freer.runError @Folds.EmulatorFoldErr
         $ Stream.foldEmulatorStreamM fld
         $ Stream.takeUntilSlot 10
-        $ Trace.runEmulatorStream def def setupTokensTrace
+        $ Trace.runEmulatorStream def setupTokensTrace
 
 setupTokensTrace :: Trace.EmulatorTrace ()
 setupTokensTrace = do

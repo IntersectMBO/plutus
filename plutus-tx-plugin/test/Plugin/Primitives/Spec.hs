@@ -17,6 +17,7 @@ import qualified PlutusTx.Builtins          as Builtins
 import qualified PlutusTx.Builtins.Class    as Builtins
 import qualified PlutusTx.Builtins.Internal as BI
 import           PlutusTx.Code
+import           PlutusTx.IsData
 import           PlutusTx.Lift
 import           PlutusTx.Plugin
 import qualified PlutusTx.Prelude           as P

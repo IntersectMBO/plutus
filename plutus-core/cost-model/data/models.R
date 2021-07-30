@@ -65,7 +65,7 @@ get.bench.data <- function(path) {
         stringsAsFactors=FALSE
     )
 
-    benchname <- regex("([:alnum:]+)/ExMemory (\\d+)(?:/ExMemory (\\d+))?(?:/ExMemory (\\d+))?")
+    benchname <- regex("([[:alnum:]_]+)/ExMemory (\\d+)(?:/ExMemory (\\d+))?(?:/ExMemory (\\d+))?")
     ## We have benchmark names like "AddInteger/ExMemory 11/ExMemory 22".  This extracts the name
     ## and up to three numbers, returning "NA" for any that are missing.  If we ever have builtins
     ## with more than three arguments we'lll need to extend this and add names for the new arguments.
@@ -88,6 +88,16 @@ get.bench.data <- function(path) {
     cbind(dat, mutated) %>%
         mutate(across(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), seconds.to.milliseconds))
 }
+
+filter.and.check.nonempty <- function (frame, name) {
+    filtered <- filter (frame, BuiltinName == name)
+##    cat (sprintf ("Reading data for %s\n", name))
+    if (nrow(filtered) == 0) {
+        stop ("No data found for ", name)
+    } else filtered
+
+}
+
 
 discard.overhead <- function(frame, overhead) {
     mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x-overhead }))
@@ -152,35 +162,38 @@ modelFun <- function(path) {
     ## filtered leaks from one model to the next, so make sure you don't mistype!
 
     addIntegerModel <- {
+        fname <- "AddInteger"
         filtered <- data %>%
-            filter(BuiltinName == "AddInteger")  %>%
-            discard.upper.outliers("AddInteger") %>%
+            filter.and.check.nonempty(fname)  %>%
+            discard.upper.outliers(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmax(x_mem, y_mem), filtered)
-        adjustModel (m, "AddInteger")
+        adjustModel (m, fname)
     }
 
     subtractIntegerModel <- addIntegerModel
 
     multiplyIntegerModel <- {
+        fname <- "MultiplyInteger"
         filtered <- data %>%
-            filter(BuiltinName == "MultiplyInteger")  %>%
+            filter.and.check.nonempty(fname)  %>%
             filter(x_mem != 0) %>% filter(y_mem != 0) %>%
-            discard.upper.outliers("MultiplyInteger") %>%
+            discard.upper.outliers(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ I(x_mem + y_mem), filtered)
-        adjustModel (m, "MultiplyInteger")
+        adjustModel (m, fname)
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
     divideIntegerModel <- {
+        fname <- "DivideInteger"
         filtered <- data %>%
-            filter(BuiltinName == "DivideInteger")    %>%
+            filter.and.check.nonempty(fname)    %>%
             filter(x_mem != 0) %>% filter(y_mem != 0) %>%
-            discard.upper.outliers("DivideInteger")   %>%
+            discard.upper.outliers(fname)   %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ ifelse(x_mem > y_mem, I(x_mem * y_mem), 0) , filtered)
-        adjustModel(m,"DivideInteger")
+        adjustModel(m,fname)
     }
     ## This one does seem to underestimate the cost by a factor of two.
     ## TODO: fix this.  It's hard to see what's going on, but an estimate of
@@ -190,136 +203,147 @@ modelFun <- function(path) {
     remainderIntegerModel <- divideIntegerModel
     modIntegerModel       <- divideIntegerModel
 
-    eqIntegerModel <- {
+    equalsIntegerModel <- {
+        fname <- "EqualsInteger"
         filtered <- data %>%
-            filter(BuiltinName == "EqInteger") %>%
+            filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem != 0) %>%
-            discard.upper.outliers("EqInteger") %>%
+            discard.upper.outliers("EqualsInteger") %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
-        adjustModel(m,"EqInteger")
+        adjustModel(m,fname)
     }
 
     lessThanIntegerModel <- {
+        fname <- "LessThanInteger"
         filtered <- data %>%
-            filter(BuiltinName == "LessThanInteger") %>%
+            filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem != 0) %>%
-            discard.upper.outliers("LessThanInteger") %>%
+            discard.upper.outliers(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
-        adjustModel(m,"LessThanInteger")
+        adjustModel(m,fname)
     }
 
     greaterThanIntegerModel <- lessThanIntegerModel
 
-    lessThanEqIntegerModel <- {
+    lessThanEqualsIntegerModel <- {
+        fname <- "LessThanEqualsInteger"
         filtered <- data %>%
-            filter(BuiltinName == "LessThanEqInteger") %>%
+            filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem != 0) %>%
-            discard.upper.outliers("LessThanEqInteger") %>%
+            discard.upper.outliers(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
-        adjustModel(m,"LessThanEqInteger")
+        adjustModel(m,fname)
     }
 
-    greaterThanEqIntegerModel <- lessThanEqIntegerModel
+    greaterThanEqualsIntegerModel <- lessThanEqualsIntegerModel
 
-    eqByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
+    equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
+        fname <- "EqualsByteString"
         filtered <- data %>%
-            filter(BuiltinName == "EqByteString") %>%
+            filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
-        adjustModel(m,"EqByteString")
+        adjustModel(m,fname)
     }
 
-    ltByteStringModel <- {
+    lessThanByteStringModel <- {
+        fname <- "LessThanByteString"
         filtered <- data %>%
-            filter(BuiltinName == "LtByteString") %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
-        adjustModel(m,"LtByteString")
+        adjustModel(m,fname)
     }
 
-    gtByteStringModel <- ltByteStringModel
+    greaterThanByteStringModel <- lessThanByteStringModel
 
     concatenateModel <- {
+        fname <- "Concatenate"
         filtered <- data %>%
-            filter(BuiltinName == "Concatenate") %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
-        adjustModel(m,"Concatenate")
+        adjustModel(m,fname)
     }
     ## TODO: is this symmetrical in the arguments?  The data suggests so, but check the implementation.
 
     takeByteStringModel <- {
+        fname <- "TakeByteString"
         filtered <- data %>%
-            filter(BuiltinName == "TakeByteString") %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ 1, data=filtered)
-        adjustModel(m,"TakeByteString")
+        adjustModel(m,fname)
     }
 
     dropByteStringModel <- {
+        fname <- "DropByteString"
         filtered <- data %>%
-            filter(BuiltinName == "DropByteString") %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead (two.args.overhead)
         m <- lm(Mean ~ 1, data=filtered)
-        adjustModel(m,"DropByteString")
+        adjustModel(m,fname)
     }
 
-    sHA2Model <- {
+    sha2_256Model <- {
+        fname <- "Sha2_256"
         filtered <- data %>%
-            filter(BuiltinName == "SHA2") %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead (one.arg.overhead)
         m <- lm(Mean ~ x_mem, data=filtered)
-        adjustModel(m,"SHA2")
+        adjustModel(m,fname)
     }
 
-    sHA3Model <- {
+    sha3_256Model <- {
+        fname <- "Sha3_256"
         filtered <- data %>%
-            filter(BuiltinName == "SHA3") %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead (one.arg.overhead)
       m <- lm(Mean ~ x_mem, data=filtered)
-      adjustModel(m,"SHA3")
+      adjustModel(m,fname)
     }
 
     verifySignatureModel <- {
+        fname <- "VerifySignature"
         filtered <- data %>%
-            filter(BuiltinName == "VerifySignature") %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead (three.args.overhead)
         m <- lm(Mean ~ 1, data=filtered)
-        adjustModel(m,"VerifySignature")
+        adjustModel(m,fname)
     }
 
     ifThenElseModel <- 0
 
     list(
-        addIntegerModel            = addIntegerModel,
-        eqIntegerModel             = eqIntegerModel,
-        subtractIntegerModel       = subtractIntegerModel,
-        multiplyIntegerModel       = multiplyIntegerModel,
-        divideIntegerModel         = divideIntegerModel,
-        quotientIntegerModel       = quotientIntegerModel,
-        remainderIntegerModel      = remainderIntegerModel,
-        modIntegerModel            = modIntegerModel,
-        lessThanIntegerModel       = lessThanIntegerModel,
-        greaterThanIntegerModel    = greaterThanIntegerModel,
-        lessThanEqIntegerModel     = lessThanEqIntegerModel,
-        greaterThanEqIntegerModel  = greaterThanEqIntegerModel,
-        concatenateModel           = concatenateModel,
-        takeByteStringModel        = takeByteStringModel,
-        dropByteStringModel        = dropByteStringModel,
-        sHA2Model                  = sHA2Model,
-        sHA3Model                  = sHA3Model,
-        eqByteStringModel          = eqByteStringModel,
-        ltByteStringModel          = ltByteStringModel,
-        gtByteStringModel          = gtByteStringModel,
-        verifySignatureModel       = verifySignatureModel,
-        ifThenElseModel            = ifThenElseModel
+        addIntegerModel               = addIntegerModel,
+        equalsIntegerModel            = equalsIntegerModel,
+        subtractIntegerModel          = subtractIntegerModel,
+        multiplyIntegerModel          = multiplyIntegerModel,
+        divideIntegerModel            = divideIntegerModel,
+        quotientIntegerModel          = quotientIntegerModel,
+        remainderIntegerModel         = remainderIntegerModel,
+        modIntegerModel               = modIntegerModel,
+        lessThanIntegerModel          = lessThanIntegerModel,
+        greaterThanIntegerModel       = greaterThanIntegerModel,
+        lessThanEqualsIntegerModel    = lessThanEqualsIntegerModel,
+        greaterThanEqualsIntegerModel = greaterThanEqualsIntegerModel,
+        concatenateModel              = concatenateModel,
+        takeByteStringModel           = takeByteStringModel,
+        dropByteStringModel           = dropByteStringModel,
+        sha2_256Model                 = sha2_256Model,
+        sha3_256Model                 = sha3_256Model,
+        equalsByteStringModel         = equalsByteStringModel,
+        lessThanByteStringModel       = lessThanByteStringModel,
+        greaterThanByteStringModel    = greaterThanByteStringModel,
+        verifySignatureModel          = verifySignatureModel,
+        ifThenElseModel               = ifThenElseModel
     )
 
 }

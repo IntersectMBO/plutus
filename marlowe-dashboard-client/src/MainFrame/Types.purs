@@ -15,7 +15,10 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
+import Data.Time.Duration (Minutes)
 import Halogen as H
+import Halogen.Extra (LifecycleEvent)
+import LoadingSubmitButton.Types as LoadingSubmitButton
 import Marlowe.PAB (PlutusAppId, CombinedWSStreamToServer)
 import Marlowe.Semantics (Slot)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient)
@@ -32,6 +35,7 @@ import Welcome.Types (Action, State) as Welcome
 type State
   = { webSocketStatus :: WebSocketStatus
     , currentSlot :: Slot
+    , tzOffset :: Minutes
     , subState :: Either Welcome.State Dashboard.State
     , toast :: Toast.State
     }
@@ -50,6 +54,9 @@ instance showWebSocketStatus :: Show WebSocketStatus where
 ------------------------------------------------------------
 type ChildSlots
   = ( tooltipSlot :: forall query. H.Slot query Void ReferenceId
+    , hintSlot :: forall query. H.Slot query Void String
+    , submitButtonSlot :: H.Slot LoadingSubmitButton.Query LoadingSubmitButton.Message String
+    , lifeCycleSlot :: forall query. H.Slot query LifecycleEvent String
     )
 
 ------------------------------------------------------------

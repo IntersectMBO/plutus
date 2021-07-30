@@ -6,8 +6,9 @@ module Marlowe.Execution.Lenses
   , _mPendingTimeouts
   , _pendingTimeouts
   , _mNextTimeout
-  , _initialSemanticState
+  , _balancesAtStart
   , _txInput
+  , _balancesAtEnd
   , _resultingPayments
   , _nextSemanticState
   , _continuationContract
@@ -21,7 +22,7 @@ import Data.List (List)
 import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
 import Marlowe.Execution.Types (PastState, PendingTimeouts, State)
-import Marlowe.Semantics (Contract, Payment, Slot, TransactionInput)
+import Marlowe.Semantics (Contract, Payment, Slot, TransactionInput, Accounts)
 import Marlowe.Semantics (State) as Semantic
 
 _semanticState :: Lens' State Semantic.State
@@ -46,11 +47,14 @@ _mNextTimeout :: Lens' State (Maybe Slot)
 _mNextTimeout = prop (SProxy :: SProxy "mNextTimeout")
 
 ----------
-_initialSemanticState :: Lens' PastState Semantic.State
-_initialSemanticState = prop (SProxy :: SProxy "initialSemanticState")
+_balancesAtStart :: Lens' PastState Accounts
+_balancesAtStart = prop (SProxy :: SProxy "balancesAtStart")
 
 _txInput :: Lens' PastState TransactionInput
 _txInput = prop (SProxy :: SProxy "txInput")
+
+_balancesAtEnd :: Lens' PastState Accounts
+_balancesAtEnd = prop (SProxy :: SProxy "balancesAtEnd")
 
 _resultingPayments :: Lens' PastState (List Payment)
 _resultingPayments = prop (SProxy :: SProxy "resultingPayments")

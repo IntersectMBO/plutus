@@ -30,12 +30,13 @@
     mscSocketPath: /tmp/node-server.sock
     mscRandomTxInterval: 20000000
     mscSlotConfig:
-      scZeroSlotTime: 1596059091000 # POSIX time of 2020-07-29T21:44:51Z (Wednesday, July 29, 2020 21:44:51) - Shelley launch time
+      scSlotZeroTime: 1596059091000 # POSIX time of 2020-07-29T21:44:51Z (Wednesday, July 29, 2020 21:44:51) - Shelley launch time
       scSlotLength: 1000 # In milliseconds
     mscFeeConfig:
       fcConstantFee:
         getLovelace: 10 # Constant fee per transaction in lovelace
       fcScriptsFeeFactor: 1.0 # Factor by which to multiply the size-dependent scripts fee in lovelace
+    mscNetworkId = "" # Empty string for Mainnet. Put a network magic number in the string to use the Testnet.
     mscKeptBlocks: 100000
     mscInitialTxWallets:
       - getWallet: 1

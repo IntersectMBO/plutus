@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap");
 
 @import "tabs.css";
 @import "../../web-common/static/icons.css";
@@ -28,4 +28,11 @@ hr {
 
 .scrollbar-width-none::-webkit-scrollbar {
   display: none;
+}
+
+/* This "utility" is used by the loading submit button. Tailwind does not
+  generate the directional-border utility colors as they would generate a lot
+  of clases, so we manually define the one we use.  */
+.border-left-green {
+  border-left-color: #00a551;
 }

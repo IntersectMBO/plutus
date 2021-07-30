@@ -20,8 +20,7 @@ import Data.Symbol (SProxy(..))
 import InputField.Types (State) as InputField
 import Marlowe.Extended.Metadata (ContractTemplate)
 import Marlowe.Semantics (TokenName)
-import Template.Types (ContractSetupStage, State)
-import Template.Validation (ContractNicknameError, RoleError, SlotError, ValueError)
+import Template.Types (ContractSetupStage, ContractNicknameError, RoleError, SlotError, State, ValueError)
 
 _contractSetupStage :: Lens' State ContractSetupStage
 _contractSetupStage = prop (SProxy :: SProxy "contractSetupStage")

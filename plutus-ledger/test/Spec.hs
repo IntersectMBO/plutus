@@ -73,8 +73,7 @@ tests = testGroup "all tests" [
     testGroup "Etc." [
         testProperty "splitVal" splitVal,
         testProperty "encodeByteString" encodeByteStringTest,
-        testProperty "encodeSerialise" encodeSerialiseTest,
-        testProperty "pubkey hash" pubkeyHashOnChainAndOffChain
+        testProperty "encodeSerialise" encodeSerialiseTest
         ],
     testGroup "LedgerBytes" [
         testProperty "show-fromHex" ledgerBytesShowFromHexProp,
@@ -226,18 +225,6 @@ byteStringJson jsonString value =
     , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
     ]
 
--- | Check that the on-chain version and the off-chain version of 'pubKeyHash'
---   match.
-pubkeyHashOnChainAndOffChain :: Property
-pubkeyHashOnChainAndOffChain = property $ do
-    pk <- forAll $ PubKey . LedgerBytes <$> Gen.genSizedByteString 32 -- this won't generate a valid public key but that doesn't matter for the purposes of pubKeyHash
-    let offChainHash = Crypto.pubKeyHash pk
-        onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
-        onchainProg = $$(PlutusTx.compile [|| \pk expected -> if expected PlutusTx.== Validation.pubKeyHash pk then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
-        script = Scripts.fromCompiledCode $ onchainProg `applyCode` liftCode pk `applyCode` liftCode offChainHash
-        result = runExcept $ evaluateScript script
-    result Hedgehog.=== Right ["correct"]
-
 -- | Check that 'missingValueSpent' is the smallest value needed to
 --   meet the requirements.
 missingValueSpentProp :: Property
@@ -291,25 +278,25 @@ calcFeesTest = property $ do
   let feeCfg = FeeConfig 10 0.3
   Hedgehog.assert $ calcFees feeCfg 11 == Ada.lovelaceOf 13
 
--- | Asserting that time range of 'scZeroSlotTime' to 'scZeroSlotTime + scSlotLength'
+-- | Asserting that time range of 'scSlotZeroTime' to 'scSlotZeroTime + scSlotLength'
 -- is 'Slot 0' and the time after that is 'Slot 1'.
 initialSlotToTimeProp :: Property
 initialSlotToTimeProp = property $ do
   sc <- forAll slotConfigGen
   n <- forAll $ Gen.int (fromInteger <$> Range.linear 0 (fromIntegral $ scSlotLength sc))
   let diff = DiffMilliSeconds $ toInteger n
-  let time = TimeSlot.scZeroSlotTime sc + fromMilliSeconds diff
+  let time = TimeSlot.scSlotZeroTime sc + fromMilliSeconds diff
   if diff >= fromIntegral (scSlotLength sc)
      then Hedgehog.assert $ TimeSlot.posixTimeToEnclosingSlot sc time == Slot 1
      else Hedgehog.assert $ TimeSlot.posixTimeToEnclosingSlot sc time == Slot 0
 
--- | Property that the interval time of 'Slot 0' goes from 'scZeroSlotTime' to
--- 'scZeroSlotTime + scSlotLength - 1'
+-- | Property that the interval time of 'Slot 0' goes from 'scSlotZeroTime' to
+-- 'scSlotZeroTime + scSlotLength - 1'
 initialTimeToSlotProp :: Property
 initialTimeToSlotProp = property $ do
   sc <- forAll slotConfigGen
-  let beginTime = TimeSlot.scZeroSlotTime sc
-      endTime = TimeSlot.scZeroSlotTime sc + fromIntegral (TimeSlot.scSlotLength sc) - 1
+  let beginTime = TimeSlot.scSlotZeroTime sc
+      endTime = TimeSlot.scSlotZeroTime sc + fromIntegral (TimeSlot.scSlotLength sc) - 1
       expectedTimeRange = interval beginTime endTime
   Hedgehog.assert $ TimeSlot.slotToPOSIXTimeRange sc 0 == expectedTimeRange
 
@@ -386,15 +373,15 @@ timeRangeGen sc = intervalGen $ posixTimeGen sc
 slotGen :: (Hedgehog.MonadGen m) => m Slot
 slotGen = Slot <$> Gen.integral (fromIntegral <$> Range.linear 0 10000)
 
--- | Generate a 'POSIXTime' where the lowest value is 'scZeroSlotTime' given a
+-- | Generate a 'POSIXTime' where the lowest value is 'scSlotZeroTime' given a
 -- 'SlotConfig'.
 posixTimeGen :: (Hedgehog.MonadGen m) => SlotConfig -> m POSIXTime
 posixTimeGen sc = do
-  let beginTime = getPOSIXTime $ TimeSlot.scZeroSlotTime sc
+  let beginTime = getPOSIXTime $ TimeSlot.scSlotZeroTime sc
   POSIXTime <$> Gen.integral (Range.linear beginTime (beginTime + 10000000))
 
 -- | Generate a 'SlotConfig' where the slot length goes from 1 to 100000
--- ms and the time of Slot 0 is the default 'scZeroSlotTime'.
+-- ms and the time of Slot 0 is the default 'scSlotZeroTime'.
 slotConfigGen :: Hedgehog.MonadGen m => m SlotConfig
 slotConfigGen = do
   sl <- Gen.integral (Range.linear 1 1000000)

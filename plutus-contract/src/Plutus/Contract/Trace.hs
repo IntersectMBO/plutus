@@ -33,7 +33,6 @@ module Plutus.Contract.Trace
     , handleUnbalancedTransactions
     , handlePendingTransactions
     , handleUtxoQueries
-    , handleTxConfirmedQueries
     , handleAddressChangedAtQueries
     , handleOwnInstanceIdQueries
     -- * Initial distributions of emulated chains
@@ -45,14 +44,12 @@ module Plutus.Contract.Trace
     , EM.walletPubKey
     , EM.walletPrivKey
     , allWallets
-    , makeTimed
     ) where
 
-import           Control.Lens                         (makeClassyPrisms, preview, review, view)
+import           Control.Lens                         (makeClassyPrisms, preview)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Extras.Log       (LogMessage, LogMsg, LogObserve)
 import           Control.Monad.Freer.Reader           (Reader)
-import           Control.Monad.Freer.State            (State, gets)
 import qualified Data.Aeson.Types                     as JSON
 import           Data.Map                             (Map)
 import qualified Data.Map                             as Map
@@ -71,11 +68,9 @@ import           Ledger.Value                         (Value)
 
 import           Plutus.Trace.Emulator.Types          (EmulatedWalletEffects)
 import           Wallet.API                           (ChainIndexEffect)
-import           Wallet.Effects                       (ContractRuntimeEffect, NodeClientEffect, WalletEffect)
-import           Wallet.Emulator                      (EmulatorState, Wallet)
+import           Wallet.Effects                       (NodeClientEffect, WalletEffect)
+import           Wallet.Emulator                      (Wallet)
 import qualified Wallet.Emulator                      as EM
-import qualified Wallet.Emulator.MultiAgent           as EM
-import           Wallet.Emulator.Notify               (EmulatorNotifyLogMsg (..))
 import           Wallet.Types                         (ContractInstanceId, EndpointDescription (..),
                                                        NotificationError (..))
 
@@ -102,11 +97,6 @@ data TraceError e =
     deriving (Eq, Show)
 
 type InitialDistribution = Map Wallet Value
-
-makeTimed :: Member (State EmulatorState) effs => EmulatorNotifyLogMsg -> Eff effs EM.EmulatorEvent
-makeTimed e = do
-    emulatorTime <- gets (view (EM.chainState . EM.currentSlot))
-    pure $ review (EM.emulatorTimeEvent emulatorTime) (EM.NotificationEvent e)
 
 handleSlotNotifications ::
     ( Member (LogObserve (LogMessage Text)) effs
@@ -144,14 +134,13 @@ handleCurrentTimeQueries =
 
 handleBlockchainQueries ::
     RequestHandler
-        (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects)
+        (Reader ContractInstanceId ': EmulatedWalletEffects)
         PABReq
         PABResp
 handleBlockchainQueries =
     handleUnbalancedTransactions
     <> handlePendingTransactions
     <> handleUtxoQueries
-    <> handleTxConfirmedQueries
     <> handleOwnPubKeyQueries
     <> handleAddressChangedAtQueries
     <> handleOwnInstanceIdQueries
@@ -198,14 +187,6 @@ handleUtxoQueries ::
     => RequestHandler effs PABReq PABResp
 handleUtxoQueries =
     generalise (preview E._UtxoAtReq) E.UtxoAtResp RequestHandler.handleUtxoQueries
-
-handleTxConfirmedQueries ::
-    ( Member (LogObserve (LogMessage Text)) effs
-    , Member ChainIndexEffect effs
-    )
-    => RequestHandler effs PABReq PABResp
-handleTxConfirmedQueries =
-    generalise (preview E._AwaitTxConfirmedReq) (E.AwaitTxConfirmedResp . E.unTxConfirmed) RequestHandler.handleTxConfirmedQueries
 
 handleAddressChangedAtQueries ::
     ( Member (LogObserve (LogMessage Text)) effs

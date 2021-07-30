@@ -6,6 +6,8 @@
 {-# LANGUAGE UndecidableInstances     #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.Builtins.Class where
@@ -157,10 +159,9 @@ instance FromBuiltin arep a => FromBuiltin (BuiltinList arep) [a] where
           -- actually help quite a bit here.
           {-# INLINABLE go #-}
           go :: BuiltinList arep -> [a]
-          -- Note that we are using builtin ifThenElse here so this is *strict* application! So we need to do
-          -- the manual laziness ourselves. We could instead convert the boolean to a Haskell boolean and use
-          -- normal if, but we might as well use the builtins directly here.
-          go l = ifThenElse (null l) (\_ -> []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
+          -- Note that we are using builtin chooseList here so this is *strict* application! So we need to do
+          -- the manual laziness ourselves.
+          go l = chooseList l (\_ -> []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
 
 instance ToBuiltin [BuiltinData] (BuiltinList BuiltinData) where
     {-# INLINABLE toBuiltin #-}

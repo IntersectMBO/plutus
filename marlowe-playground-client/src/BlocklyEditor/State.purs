@@ -66,6 +66,14 @@ handleAction (HandleBlocklyMessage (Blockly.BlockSelection selection)) = case mB
     Map.lookup blockType MB.definitionsMap
 
 handleAction (InitBlocklyProject code) = do
+  -- NOTE: We already save the code in session storage as part of the processBlocklyCode.
+  --       The reason to also add it here was to solve a small bug introduced in PR 3478.
+  --       The problem is that when we create a new project, the BlocklyReady event is
+  --       fired some time between the first InitBlocklyProject and processBlocklyCode, so
+  --       a second InitBlocklyProject was called with the previous code.
+  --       Saving the code twice solves the problem but we are still firing 2 InitBlocklyProject
+  --       when we start a new project, so we might want to revisit this later.
+  liftEffect $ SessionStorage.setItem marloweBufferLocalStorageKey code
   void $ query _blocklySlot unit $ H.tell $ Blockly.SetCode code
   processBlocklyCode
   -- Reset the toolbox

@@ -139,17 +139,27 @@ module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
+    , LowerIntialCharacter
     , enormousBudget
     )
 where
 
 import           PlutusPrelude                          hiding (toList)
 
+import           Data.Char                              (toLower)
 import           Data.Semigroup
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
 import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
+
+
+-- | This is used elsewhere to convert cost models into JSON objects where the
+-- names of the fields are exactly the same as the names of the builtins.
+data LowerIntialCharacter
+instance StringModifier LowerIntialCharacter where
+  getStringModifier ""       = ""
+  getStringModifier (c : xs) = toLower c : xs
 
 -- | A class for injecting a 'Builtin' into an @exBudgetCat@.
 -- We need it, because the constant application machinery calls 'spendBudget' before reducing a
@@ -165,7 +175,8 @@ instance ExBudgetBuiltin fun () where
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
     deriving anyclass (PrettyBy config, NFData)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] ExBudget
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
+    -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
 
 -- These functions are performance critical, so we can't use GenericSemigroupMonoid, and we insist that they be inlined.
 instance Semigroup ExBudget where

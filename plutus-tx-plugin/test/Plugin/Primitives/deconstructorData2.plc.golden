@@ -157,10 +157,10 @@
                     [
                       [
                         {
-                          (builtin ifThenElse)
+                          { (builtin chooseList) (con data) }
                           (fun (con unit) [List (con data)])
                         }
-                        [ { (builtin nullList) (con data) } l ]
+                        l
                       ]
                       (lam ds (con unit) { Nil (con data) })
                     ]

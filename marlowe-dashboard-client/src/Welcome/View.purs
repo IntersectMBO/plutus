@@ -4,8 +4,9 @@ module Welcome.View
   ) where
 
 import Prelude hiding (div)
+import Clipboard (Action(..)) as Clipboard
 import Css as Css
-import Data.Lens (view)
+import Data.Lens (view, (^.))
 import Data.List (foldMap)
 import Data.List (toUnfoldable) as List
 import Data.Map (values)
@@ -19,10 +20,12 @@ import InputField.Lenses (_value)
 import InputField.State (validate)
 import InputField.Types (InputDisplayOptions)
 import InputField.View (renderInput)
-import Material.Icons (Icon(..), icon, icon_)
+import Material.Icons (Icon(..)) as Icon
+import Material.Icons (icon, icon_)
 import Network.RemoteData (isSuccess)
 import Prim.TypeError (class Warn, Text)
 import WalletData.Lenses (_walletNickname)
+import WalletData.View (walletIdTip)
 import Welcome.Lenses (_card, _cardOpen, _enteringDashboardState, _remoteWalletDetails, _walletIdInput, _walletLibrary, _walletNicknameInput, _walletNicknameOrIdInput)
 import Welcome.Types (Action(..), Card(..), State)
 
@@ -50,9 +53,9 @@ welcomeScreen state =
 welcomeCard :: forall p. State -> HTML p Action
 welcomeCard state =
   let
-    card = view _card state
+    card = state ^. _card
 
-    cardOpen = view _cardOpen state
+    cardOpen = state ^. _cardOpen
 
     cardClasses = if card == Just GetStartedHelpCard then Css.videoCard else Css.card
   in
@@ -72,11 +75,11 @@ welcomeCard state =
 useWalletBox :: forall p. Warn (Text "We need to add the documentation link.") => State -> HTML p Action
 useWalletBox state =
   let
-    walletLibrary = view _walletLibrary state
+    walletLibrary = state ^. _walletLibrary
 
-    remoteWalletDetails = view _remoteWalletDetails state
+    remoteWalletDetails = state ^. _remoteWalletDetails
 
-    walletNicknameOrIdInput = view _walletNicknameOrIdInput state
+    walletNicknameOrIdInput = state ^. _walletNicknameOrIdInput
 
     walletNicknameOrIdInputDisplayOptions =
       { additionalCss: mempty
@@ -117,7 +120,7 @@ useWalletBox state =
               [ classNames [ "flex", "font-bold" ]
               , href "https://staging.marlowe-web.iohkdev.io"
               ]
-              [ icon_ Previous
+              [ icon_ Icon.Previous
               , text "Back to home page"
               ]
           , a
@@ -134,7 +137,7 @@ useWalletBox state =
       [ classNames [ "block", "p-4", "hover:bg-black", "hover:text-white" ]
       , onClick_ $ OpenUseWalletCardWithDetails walletDetails
       ]
-      [ text $ view _walletNickname walletDetails ]
+      [ text $ walletDetails ^. _walletNickname ]
 
 gettingStartedBox :: forall p. HTML p Action
 gettingStartedBox =
@@ -144,7 +147,7 @@ gettingStartedBox =
         [ classNames [ "text-purple", "text-center", "lg:hidden" ]
         , onClick_ $ OpenCard GetStartedHelpCard
         ]
-        [ icon Play $ Css.bgBlueGradient <> [ "text-3xl", "text-white", "rounded-full" ]
+        [ icon Icon.Play $ Css.bgBlueGradient <> [ "text-3xl", "text-white", "rounded-full" ]
         , br_
         , text "Watch our get started tutorial"
         ]
@@ -154,7 +157,7 @@ gettingStartedBox =
             [ classNames [ "block", "relative", "rounded-lg", "shadow-lg", "bg-get-started-thumbnail", "bg-cover", "w-full", "h-welcome-box", "mb-6" ]
             , onClick_ $ OpenCard GetStartedHelpCard
             ]
-            [ icon Play $ Css.bgBlueGradient <> [ "absolute", "bottom-4", "right-4", "text-3xl", "text-white", "rounded-full" ] ]
+            [ icon Icon.Play $ Css.bgBlueGradient <> [ "absolute", "bottom-4", "right-4", "text-3xl", "text-white", "rounded-full" ] ]
         , p
             [ classNames [ "font-semibold", "text-lg", "text-center" ] ]
             [ text "New to Marlowe Run?" ]
@@ -171,7 +174,7 @@ getStartedHelpCard =
       [ classNames [ "absolute", "-top-10", "right-0", "lg:-right-10" ]
       , onClick_ CloseCard
       ]
-      [ icon Close [ "text-lg", "rounded-full", "bg-white", "p-2" ] ]
+      [ icon Icon.Close [ "text-lg", "rounded-full", "bg-white", "p-2" ] ]
   , div
       [ classNames $ Css.embeddedVideoContainer <> [ "rounded", "overflow-hidden" ] ]
       [ iframe
@@ -203,9 +206,9 @@ generateWalletHelpCard =
           [ classNames [ "mb-4" ] ]
           [ text "Demo wallets are used so you can play around with the app and all its incredible features without using your own tokens from your real wallet." ]
       , div
-          [ classNames [ "flex" ] ]
+          [ classNames [ "flex", "gap-4" ] ]
           [ button
-              [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+              [ classNames $ Css.secondaryButton <> [ "flex-1" ]
               , onClick_ CloseCard
               ]
               [ text "Cancel" ]
@@ -221,19 +224,23 @@ generateWalletHelpCard =
 useNewWalletCard :: forall p. State -> Array (HTML p Action)
 useNewWalletCard state =
   let
-    enteringDashboardState = view _enteringDashboardState state
+    enteringDashboardState = state ^. _enteringDashboardState
 
-    remoteWalletDetails = view _remoteWalletDetails state
+    remoteWalletDetails = state ^. _remoteWalletDetails
 
-    walletNicknameInput = view _walletNicknameInput state
+    walletNicknameInput = state ^. _walletNicknameInput
 
-    walletIdInput = view _walletIdInput state
+    walletNickname = walletNicknameInput ^. _value
+
+    walletIdInput = state ^. _walletIdInput
+
+    walletId = walletIdInput ^. _value
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
         , onClick_ CloseCard
         ]
-        [ icon_ Close ]
+        [ icon_ Icon.Close ]
     , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
         [ h2
             [ classNames [ "font-bold", "my-4" ] ]
@@ -244,30 +251,38 @@ useNewWalletCard state =
                   [ classNames $ Css.nestedLabel
                   , for "walletNickname"
                   ]
-                  [ text "Nickname" ]
+                  [ text "Wallet nickname" ]
               , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions false) walletNicknameInput
               ]
         , div
-            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
-            [ label
-                [ classNames Css.nestedLabel
-                , for "walletID"
+            [ classNames [ "relative", "mb-4" ] ]
+            [ div
+                [ classNames Css.hasNestedLabel ]
+                [ label
+                    [ classNames Css.nestedLabel
+                    , for "walletID"
+                    ]
+                    [ text "Demo wallet ID" ]
+                , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
                 ]
-                [ text "Wallet ID" ]
-            , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
             , walletIdTip
+            , a
+                [ classNames [ "w-6", "absolute", "top-10", "right-4" ]
+                , onClick_ $ ClipboardAction $ Clipboard.CopyToClipboard walletId
+                ]
+                [ icon Icon.Copy [ "w-6" ] ]
             ]
         , div
-            [ classNames [ "flex" ] ]
+            [ classNames [ "flex", "gap-4" ] ]
             [ button
-                [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+                [ classNames $ Css.secondaryButton <> [ "flex-1" ]
                 , onClick_ CloseCard
                 ]
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
                 , disabled $ isJust (validate walletNicknameInput) || enteringDashboardState || not isSuccess remoteWalletDetails
-                , onClick_ $ UseWallet $ view _value walletNicknameInput
+                , onClick_ $ UseWallet walletNickname
                 ]
                 [ text if enteringDashboardState then "Loading..." else "Use" ]
             ]
@@ -277,52 +292,64 @@ useNewWalletCard state =
 useWalletCard :: forall p. State -> Array (HTML p Action)
 useWalletCard state =
   let
-    enteringDashboardState = view _enteringDashboardState state
+    enteringDashboardState = state ^. _enteringDashboardState
 
-    remoteWalletDetails = view _remoteWalletDetails state
+    remoteWalletDetails = state ^. _remoteWalletDetails
 
-    walletNicknameInput = view _walletNicknameInput state
+    walletNicknameInput = state ^. _walletNicknameInput
 
-    walletIdInput = view _walletIdInput state
+    walletNickname = walletNicknameInput ^. _value
+
+    walletIdInput = state ^. _walletIdInput
+
+    walletId = walletIdInput ^. _value
   in
     [ a
         [ classNames [ "absolute", "top-4", "right-4" ]
         , onClick_ CloseCard
         ]
-        [ icon_ Close ]
+        [ icon_ Icon.Close ]
     , div [ classNames [ "p-5", "pb-6", "lg:pb-8" ] ]
         [ h2
             [ classNames [ "font-bold", "my-4", "truncate", "w-11/12" ] ]
-            [ text $ "Demo wallet " <> view _value walletNicknameInput ]
+            [ text $ "Demo wallet " <> walletNickname ]
         , div
             [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
             $ [ label
                   [ classNames $ Css.nestedLabel
                   , for "walletNickname"
                   ]
-                  [ text "Nickname" ]
+                  [ text "Wallet nickname" ]
               , WalletNicknameInputAction <$> renderInput (walletNicknameInputDisplayOptions true) walletNicknameInput
               ]
         , div
-            [ classNames $ Css.hasNestedLabel <> [ "mb-4" ] ]
-            [ label
-                [ classNames Css.nestedLabel
-                , for "walletId"
+            [ classNames [ "relative", "mb-4" ] ]
+            [ div
+                [ classNames Css.hasNestedLabel ]
+                [ label
+                    [ classNames Css.nestedLabel
+                    , for "walletID"
+                    ]
+                    [ text "Demo wallet ID" ]
+                , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
                 ]
-                [ text "Wallet ID" ]
-            , WalletIdInputAction <$> renderInput walletIdInputDisplayOptions walletIdInput
             , walletIdTip
+            , a
+                [ classNames [ "w-6", "absolute", "top-10", "right-4" ]
+                , onClick_ $ ClipboardAction $ Clipboard.CopyToClipboard walletId
+                ]
+                [ icon Icon.Copy [ "w-6" ] ]
             ]
         , div
-            [ classNames [ "flex" ] ]
+            [ classNames [ "flex", "gap-4" ] ]
             [ button
-                [ classNames $ Css.secondaryButton <> [ "flex-1", "mr-4" ]
+                [ classNames $ Css.secondaryButton <> [ "flex-1" ]
                 , onClick_ CloseCard
                 ]
                 [ text "Cancel" ]
             , button
                 [ classNames $ Css.primaryButton <> [ "flex-1" ]
-                , onClick_ $ UseWallet $ view _value walletNicknameInput
+                , onClick_ $ UseWallet walletNickname
                 , disabled $ enteringDashboardState || not isSuccess remoteWalletDetails
                 ]
                 [ text if enteringDashboardState then "Loading..." else "Use" ]
@@ -342,19 +369,13 @@ walletNicknameInputDisplayOptions readOnly =
 
 walletIdInputDisplayOptions :: InputDisplayOptions
 walletIdInputDisplayOptions =
-  { additionalCss: mempty
+  { additionalCss: [ "font-mono", "text-xs", "pt-5" ]
   , id_: "walletId"
-  , placeholder: "Wallet ID"
+  , placeholder: "Demo wallet ID"
   , readOnly: true
   , numberFormat: Nothing
   , valueOptions: mempty
   }
-
-walletIdTip :: forall p. HTML p Action
-walletIdTip =
-  p
-    [ classNames [ "text-sm", "font-semibold" ] ]
-    [ text "Tip: Copy and share your wallet ID with others so they can add you to their contracts" ]
 
 localWalletMissingCard :: forall p. Array (HTML p Action)
 localWalletMissingCard =
@@ -364,9 +385,9 @@ localWalletMissingCard =
           [ classNames [ "absolute", "top-4", "right-4" ]
           , onClick_ CloseCard
           ]
-          [ icon_ Close ]
+          [ icon_ Icon.Close ]
       , div [ classNames [ "flex", "font-semibold", "px-5", "py-4", "bg-gray" ] ]
-          [ icon ErrorOutline [ "mr-2" ]
+          [ icon Icon.ErrorOutline [ "mr-2" ]
           , span_ [ text "Wallet not found" ]
           ]
       , div

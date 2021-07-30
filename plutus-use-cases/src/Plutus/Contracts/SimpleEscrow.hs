@@ -18,7 +18,7 @@
 module Plutus.Contracts.SimpleEscrow
   where
 
-import           Control.Lens             (makeClassyPrisms, review)
+import           Control.Lens             (makeClassyPrisms)
 import           Control.Monad            (void)
 import           Control.Monad.Error.Lens (throwing)
 import           Data.Aeson               (FromJSON, ToJSON)
@@ -108,7 +108,7 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
   case action of
     Redeem ->
           -- Can't redeem after the deadline
-      let notLapsed = (deadline params + 1) `after` txInfoValidRange txInfo
+      let notLapsed = deadline params `after` txInfoValidRange txInfo
           -- Payee has to have been paid
           paid      = valuePaidTo txInfo (payee params) `geq` expecting params
        in traceIfFalse "escrow-deadline-lapsed" notLapsed
@@ -117,15 +117,15 @@ validate params action ScriptContext{scriptContextTxInfo=txInfo} =
           -- Has to be the person that locked value requesting the refund
       let signed = txInfo `txSignedBy` payee params
           -- And we only refund after the deadline has passed
-          lapsed = deadline params `before` txInfoValidRange txInfo
+          lapsed = (deadline params - 1) `before` txInfoValidRange txInfo
        in traceIfFalse "escrow-not-signed" signed
+          -- && traceIfFalse "refund-too-early" lapsed
           && traceIfFalse "refund-too-early" lapsed
 
 -- | Lock the 'paying' 'Value' in the output of this script, with the
 -- requirement that the transaction validates before the 'deadline'.
-lockEp :: Contract () EscrowSchema EscrowError ()
-lockEp = do
-  params <- endpoint @"lock"
+lockEp :: Promise () EscrowSchema EscrowError ()
+lockEp = endpoint @"lock" $ \params -> do
   let valRange = Interval.to (Haskell.pred $ deadline params)
       tx = Constraints.mustPayToTheScript params (paying params)
             <> Constraints.mustValidateIn valRange
@@ -133,8 +133,8 @@ lockEp = do
 
 -- | Attempts to redeem the 'Value' locked into this script by paying in from
 -- the callers address to the payee.
-redeemEp :: Contract () EscrowSchema EscrowError RedeemSuccess
-redeemEp = mapError (review _EscrowError) $ endpoint @"redeem" >>= redeem
+redeemEp :: Promise () EscrowSchema EscrowError RedeemSuccess
+redeemEp = endpoint @"redeem" redeem
   where
     redeem params = do
       time <- currentTime
@@ -154,14 +154,14 @@ redeemEp = mapError (review _EscrowError) $ endpoint @"redeem" >>= redeem
       else RedeemSuccess . txId <$> do submitTxConstraintsSpending escrowInstance unspentOutputs tx
 
 -- | Refunds the locked amount back to the 'payee'.
-refundEp :: Contract () EscrowSchema EscrowError RefundSuccess
-refundEp = mapError (review _EscrowError) $ endpoint @"refund" >>= refund
+refundEp :: Promise () EscrowSchema EscrowError RefundSuccess
+refundEp = endpoint @"refund" refund
   where
     refund params = do
       unspentOutputs <- utxoAt escrowAddress
 
       let tx = Typed.collectFromScript unspentOutputs Refund
-                  <> Constraints.mustValidateIn (Interval.from (Haskell.succ $ deadline params))
+                  <> Constraints.mustValidateIn (Interval.from (deadline params))
 
       if Constraints.modifiesUtxoSet tx
       then RefundSuccess . txId <$> submitTxConstraintsSpending escrowInstance unspentOutputs tx

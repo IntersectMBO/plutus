@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.List (
     map,
@@ -21,8 +22,10 @@ module PlutusTx.List (
 import           PlutusTx.Bool     ((||))
 import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Eq       (Eq, (==))
+import           PlutusTx.Ord      ((<))
+import           PlutusTx.Trace    (traceError)
 import           Prelude           hiding (Eq (..), all, any, elem, filter, foldl, foldr, head, length, map, null,
-                                    reverse, tail, take, zip, (!!), (&&), (++), (||))
+                                    reverse, tail, take, zip, (!!), (&&), (++), (<), (||))
 
 {- HLINT ignore -}
 
@@ -101,7 +104,8 @@ findIndex p l = listToMaybe (findIndices p l)
 --
 infixl 9 !!
 (!!) :: [a] -> Integer -> a
-[]       !! _ = Builtins.error ()
+_        !! n | n < 0 = traceError "PlutusTx.List.!!: negative index"
+[]       !! _ = traceError "PlutusTx.List.!!: index too large"
 (x : xs) !! i = if Builtins.equalsInteger i 0
     then x
     else xs !! Builtins.subtractInteger i 1
@@ -126,14 +130,14 @@ zip (a:as) (b:bs) = (a,b) : zip as bs
 {-# INLINABLE head #-}
 -- | Plutus Tx version of 'Data.List.head'.
 head :: [a] -> a
-head []      = Builtins.error ()
+head []      = traceError "PlutusTx.List.head: empty list"
 head (x : _) = x
 
 {-# INLINABLE tail #-}
 -- | Plutus Tx version of 'Data.List.tail'.
 tail :: [a] -> [a]
 tail (_:as) =  as
-tail []     =  Builtins.error ()
+tail []     =  traceError "PlutusTx.List.tail: empty list"
 
 {-# INLINABLE take #-}
 -- | Plutus Tx version of 'Data.List.take'.

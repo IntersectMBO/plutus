@@ -1,0 +1,272 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        Tuple2_match
+        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl error (all a (type) (fun (con unit) a)))
+      (abs a (type) (lam thunk (con unit) (error a)))
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fUnsafeFromDataTuple2_cunsafeFromBuiltinData
+        (all a (type) (all b (type) (fun [(lam a (type) (fun (con data) a)) a] (fun [(lam a (type) (fun (con data) a)) b] (fun (con data) [[Tuple2 a] b])))))
+      )
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            dUnsafeFromData
+            [(lam a (type) (fun (con data) a)) a]
+            (lam
+              dUnsafeFromData
+              [(lam a (type) (fun (con data) a)) b]
+              (lam
+                d
+                (con data)
+                (let
+                  (nonrec)
+                  (termbind
+                    (nonstrict)
+                    (vardecl x [[Tuple2 a] b])
+                    [ { error [[Tuple2 a] b] } (con unit ()) ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl
+                      tup [[(con pair) (con integer)] [(con list) (con data)]]
+                    )
+                    [ (builtin unConstrData) d ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl t [(con list) (con data)])
+                    [
+                      {
+                        { (builtin sndPair) (con integer) }
+                        [(con list) (con data)]
+                      }
+                      tup
+                    ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl x b)
+                    [
+                      dUnsafeFromData
+                      [
+                        { (builtin headList) (con data) }
+                        [ { (builtin tailList) (con data) } t ]
+                      ]
+                    ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl x a)
+                    [ dUnsafeFromData [ { (builtin headList) (con data) } t ] ]
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl x [[Tuple2 a] b])
+                    [ [ { { Tuple2 a } b } x ] x ]
+                  )
+                  [
+                    [
+                      [
+                        [
+                          { (builtin ifThenElse) (fun Unit [[Tuple2 a] b]) }
+                          [
+                            [
+                              (builtin equalsInteger)
+                              [
+                                {
+                                  { (builtin fstPair) (con integer) }
+                                  [(con list) (con data)]
+                                }
+                                tup
+                              ]
+                            ]
+                            (con integer 0)
+                          ]
+                        ]
+                        (lam ds Unit x)
+                      ]
+                      (lam ds Unit x)
+                    ]
+                    Unit
+                  ]
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+    (termbind
+      (nonstrict)
+      (vardecl
+        dUnsafeFromData
+        [(lam a (type) (fun (con data) a)) [[Tuple2 (con integer)] (con integer)]]
+      )
+      [
+        [
+          {
+            { fUnsafeFromDataTuple2_cunsafeFromBuiltinData (con integer) }
+            (con integer)
+          }
+          (builtin unIData)
+        ]
+        (builtin unIData)
+      ]
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Maybe (fun (type) (type)))
+        (tyvardecl a (type))
+        Maybe_match
+        (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fUnsafeFromDataMaybe_cunsafeFromBuiltinData
+        (all a (type) (fun [(lam a (type) (fun (con data) a)) a] (fun (con data) [Maybe a])))
+      )
+      (abs
+        a
+        (type)
+        (lam
+          dUnsafeFromData
+          [(lam a (type) (fun (con data) a)) a]
+          (lam
+            d
+            (con data)
+            (let
+              (nonrec)
+              (termbind
+                (nonstrict)
+                (vardecl x [Maybe a])
+                [ { error [Maybe a] } (con unit ()) ]
+              )
+              (termbind
+                (nonstrict)
+                (vardecl
+                  tup [[(con pair) (con integer)] [(con list) (con data)]]
+                )
+                [ (builtin unConstrData) d ]
+              )
+              (termbind
+                (nonstrict)
+                (vardecl index (con integer))
+                [
+                  {
+                    { (builtin fstPair) (con integer) } [(con list) (con data)]
+                  }
+                  tup
+                ]
+              )
+              (termbind
+                (nonstrict)
+                (vardecl x [Maybe a])
+                [
+                  [
+                    [
+                      [
+                        { (builtin ifThenElse) (fun Unit [Maybe a]) }
+                        [ [ (builtin equalsInteger) index ] (con integer 1) ]
+                      ]
+                      (lam ds Unit { Nothing a })
+                    ]
+                    (lam ds Unit x)
+                  ]
+                  Unit
+                ]
+              )
+              (termbind
+                (nonstrict)
+                (vardecl x a)
+                [
+                  dUnsafeFromData
+                  [
+                    { (builtin headList) (con data) }
+                    [
+                      {
+                        { (builtin sndPair) (con integer) }
+                        [(con list) (con data)]
+                      }
+                      tup
+                    ]
+                  ]
+                ]
+              )
+              (termbind (nonstrict) (vardecl x [Maybe a]) [ { Just a } x ])
+              [
+                [
+                  [
+                    [
+                      { (builtin ifThenElse) (fun Unit [Maybe a]) }
+                      [ [ (builtin equalsInteger) index ] (con integer 0) ]
+                    ]
+                    (lam ds Unit x)
+                  ]
+                  (lam ds Unit x)
+                ]
+                Unit
+              ]
+            )
+          )
+        )
+      )
+    )
+    (termbind
+      (nonstrict)
+      (vardecl
+        dUnsafeFromData
+        [(lam a (type) (fun (con data) a)) [Maybe [[Tuple2 (con integer)] (con integer)]]]
+      )
+      [
+        {
+          fUnsafeFromDataMaybe_cunsafeFromBuiltinData
+          [[Tuple2 (con integer)] (con integer)]
+        }
+        dUnsafeFromData
+      ]
+    )
+    (termbind
+      (strict)
+      (vardecl
+        unsafeFromBuiltinData
+        (all a (type) (fun [(lam a (type) (fun (con data) a)) a] (fun (con data) a)))
+      )
+      (abs a (type) (lam v [(lam a (type) (fun (con data) a)) a] v))
+    )
+    (lam
+      ds
+      (con data)
+      [
+        [
+          {
+            unsafeFromBuiltinData [Maybe [[Tuple2 (con integer)] (con integer)]]
+          }
+          dUnsafeFromData
+        ]
+        ds
+      ]
+    )
+  )
+)

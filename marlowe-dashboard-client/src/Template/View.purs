@@ -9,31 +9,35 @@ import Data.Map (toUnfoldable) as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
+import Effect.Aff.Class (class MonadAff)
 import Halogen.Css (classNames)
-import Halogen.HTML (HTML, a, button, div, div_, h2, h3, h4, img, label, li, p, p_, span, span_, text, ul, ul_)
+import Halogen.HTML (ComponentHTML, HTML, PlainHTML, a, button, div, div_, h2, h3, h4, h4_, label, li, p, p_, span, span_, text, ul, ul_)
 import Halogen.HTML.Events.Extra (onClick_)
-import Halogen.HTML.Properties (enabled, for, src)
-import Humanize (humanizeValue)
-import Images (cfdIcon, loanIcon, purchaseIcon)
+import Halogen.HTML.Properties (enabled, for, id_)
+import Hint.State (hint)
+import Humanize (contractIcon, humanizeValue)
 import InputField.Lenses (_value)
 import InputField.Types (State) as InputField
 import InputField.View (renderInput)
-import Marlowe.Extended (ContractType(..))
+import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, TokenName)
-import Material.Icons (Icon(..), icon, icon_)
-import Template.Format (formatText)
+import Material.Icons (Icon(..)) as Icon
+import Material.Icons (Icon, icon, icon_)
+import Popper (Placement(..))
 import Template.Lenses (_contractNicknameInput, _contractSetupStage, _contractTemplate, _roleWalletInputs, _slotContentInputs, _valueContentInputs)
 import Template.State (templateSetupIsValid)
-import Template.Types (Action(..), ContractSetupStage(..), State)
-import Template.Validation (RoleError, SlotError, ValueError)
+import Template.Types (Action(..), ContractSetupStage(..), RoleError, SlotError, State, ValueError)
+import Text.Markdown.TrimmedInline (markdownToHTML)
+import Tooltip.State (tooltip)
+import Tooltip.Types (ReferenceId(..))
 import WalletData.Lenses (_walletNickname)
 import WalletData.State (adaToken, getAda)
 import WalletData.Types (WalletLibrary)
 
-contractTemplateCard :: forall p. WalletLibrary -> Assets -> State -> HTML p Action
+contractTemplateCard :: forall m. MonadAff m => WalletLibrary -> Assets -> State -> ComponentHTML Action ChildSlots m
 contractTemplateCard walletLibrary assets state =
   let
     contractSetupStage = view _contractSetupStage state
@@ -46,11 +50,11 @@ contractTemplateCard walletLibrary assets state =
           [ classNames Css.cardHeader ]
           [ text "Contract templates" ]
       , contractTemplateBreadcrumb contractSetupStage contractTemplate
-      , div [] case contractSetupStage of
-          Start -> [ contractSelection ]
-          Overview -> [ contractOverview contractTemplate ]
-          Setup -> [ contractSetup walletLibrary state ]
-          Review -> [ contractReview assets state ]
+      , case contractSetupStage of
+          Start -> contractSelection
+          Overview -> contractOverview contractTemplate
+          Setup -> contractSetup walletLibrary state
+          Review -> contractReview assets state
       ]
 
 ------------------------------------------------------------
@@ -93,7 +97,7 @@ contractTemplateBreadcrumb contractSetupStage contractTemplate =
       ]
       [ text itemText ]
 
-  arrow = span [ classNames [ "mt-2" ] ] [ icon_ Next ]
+  arrow = span [ classNames [ "mt-2" ] ] [ icon_ Icon.Next ]
 
 contractSelection :: forall p. HTML p Action
 contractSelection =
@@ -122,9 +126,9 @@ contractSelection =
               [ text contractTemplate.metaData.contractName ]
           , p
               [ classNames [ "font-xs" ] ]
-              $ formatText contractTemplate.metaData.contractDescription
+              $ markdownToHTML contractTemplate.metaData.contractDescription
           ]
-      , icon_ Next
+      , icon_ Icon.Next
       ]
 
 contractOverview :: forall p. ContractTemplate -> HTML p Action
@@ -138,7 +142,7 @@ contractOverview contractTemplate =
             [ contractIcon contractTemplate.metaData.contractType
             , text $ contractTemplate.metaData.contractName <> " overview"
             ]
-        , p_ $ formatText contractTemplate.metaData.contractDescription
+        , p_ $ markdownToHTML contractTemplate.metaData.contractDescription
         ]
     , div
         [ classNames [ "flex", "items-baseline", "p-4", "border-gray", "border-t" ] ]
@@ -148,14 +152,14 @@ contractOverview contractTemplate =
             ]
             [ text "Back" ]
         , button
-            [ classNames $ Css.primaryButton <> [ "flex-1", "text-left" ] <> Css.withIcon ArrowRight
+            [ classNames $ Css.primaryButton <> [ "flex-1", "text-left" ] <> Css.withIcon Icon.ArrowRight
             , onClick_ $ SetContractSetupStage Setup
             ]
             [ text "Setup" ]
         ]
     ]
 
-contractSetup :: forall p. WalletLibrary -> State -> HTML p Action
+contractSetup :: forall m. MonadAff m => WalletLibrary -> State -> ComponentHTML Action ChildSlots m
 contractSetup walletLibrary state =
   let
     metaData = view (_contractTemplate <<< _metaData) state
@@ -204,7 +208,7 @@ contractSetup walletLibrary state =
               ]
               [ text "Back" ]
           , button
-              [ classNames $ Css.primaryButton <> [ "flex-1", "text-left" ] <> Css.withIcon ArrowRight
+              [ classNames $ Css.primaryButton <> [ "flex-1", "text-left" ] <> Css.withIcon Icon.ArrowRight
               , onClick_ $ SetContractSetupStage Review
               , enabled $ templateSetupIsValid state
               ]
@@ -212,7 +216,7 @@ contractSetup walletLibrary state =
           ]
       ]
 
-contractReview :: forall p. Assets -> State -> HTML p Action
+contractReview :: forall m. MonadAff m => Assets -> State -> ComponentHTML Action ChildSlots m
 contractReview assets state =
   let
     hasSufficientFunds = getAda assets >= contractCreationFee
@@ -229,7 +233,7 @@ contractReview assets state =
           [ classNames [ "rounded", "shadow" ] ]
           [ h3
               [ classNames [ "flex", "gap-1", "items-center", "leading-none", "text-sm", "font-semibold", "p-2", "mb-2", "border-gray", "border-b" ] ]
-              [ icon Terms [ "text-purple" ]
+              [ icon Icon.Terms [ "text-purple" ]
               , text "Terms"
               ]
           , div
@@ -276,16 +280,7 @@ contractReview assets state =
       ]
 
 ------------------------------------------------------------
-contractIcon :: forall p. ContractType -> HTML p Action
-contractIcon contractType =
-  img
-    [ src case contractType of
-        Escrow -> purchaseIcon
-        ZeroCouponBond -> loanIcon
-        _ -> cfdIcon
-    ]
-
-slotParameter :: forall p. MetaData -> Tuple String (InputField.State SlotError) -> HTML p Action
+slotParameter :: forall m. MonadAff m => MetaData -> Tuple String (InputField.State SlotError) -> ComponentHTML Action ChildSlots m
 slotParameter metaData (key /\ slotContentInput) =
   let
     slotParameterDescriptions = view _slotParameterDescriptions metaData
@@ -294,14 +289,14 @@ slotParameter metaData (key /\ slotContentInput) =
 
     value = view _value slotContentInput
   in
-    parameter key description value
+    parameter key description $ value <> " minutes"
 
-valueParameter :: forall p. MetaData -> Tuple String (InputField.State ValueError) -> HTML p Action
+valueParameter :: forall m. MonadAff m => MetaData -> Tuple String (InputField.State ValueError) -> ComponentHTML Action ChildSlots m
 valueParameter metaData (key /\ valueContentInput) =
   let
     valueParameterFormats = map (view _valueParameterFormat) (view _valueParameterInfo metaData)
 
-    format = fromMaybe DefaultFormat $ lookup key valueParameterFormats
+    numberFormat = fromMaybe DefaultFormat $ lookup key valueParameterFormats
 
     valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
 
@@ -309,20 +304,27 @@ valueParameter metaData (key /\ valueContentInput) =
 
     value = view _value valueContentInput
 
-    formattedValue = case format of
+    formattedValue = case numberFormat of
       DefaultFormat -> value
       DecimalFormat _ prefix -> prefix <> " " <> value
+      TimeFormat -> value <> " minutes"
   in
     parameter key description formattedValue
 
-parameter :: forall p. String -> String -> String -> HTML p Action
+parameter :: forall m. MonadAff m => String -> String -> String -> ComponentHTML Action ChildSlots m
 parameter label description value =
   li
     [ classNames [ "mb-2" ] ]
-    [ h4
-        [ classNames [ "text-sm", "text-darkgray", "font-semibold" ] ]
-        [ text label ]
-    -- TODO: show description in tooltip
+    [ h4_
+        [ span
+            [ classNames [ "text-sm", "text-darkgray", "font-semibold" ] ]
+            [ text label ]
+        , hint
+            [ "ml-2" ]
+            ("template-parameter-" <> label)
+            Auto
+            (markdownHintWithTitle label description)
+        ]
     , p_ [ text value ]
     ]
 
@@ -330,9 +332,9 @@ parameter label description value =
 -- At the moment, this is a good thing: we don't have a design for them, and we only use a `PK` party in one
 -- special case, where it is read-only and would be confusing to show the user anyway. But if we ever need to
 -- use `PK` inputs properly (and make them editable) we will have to rethink this.
-roleInputs :: forall p. WalletLibrary -> MetaData -> Map TokenName (InputField.State RoleError) -> HTML p Action
+roleInputs :: forall m. MonadAff m => WalletLibrary -> MetaData -> Map TokenName (InputField.State RoleError) -> ComponentHTML Action ChildSlots m
 roleInputs walletLibrary metaData roleWalletInputs =
-  templateInputsSection Roles "Roles"
+  templateInputsSection Icon.Roles "Roles"
     [ ul_ $ roleInput <$> Map.toUnfoldable roleWalletInputs ]
   where
   roleInput (tokenName /\ roleWalletInput) =
@@ -346,8 +348,10 @@ roleInputs walletLibrary metaData roleWalletInputs =
             , button
                 [ classNames [ "absolute", "top-4", "right-4" ]
                 , onClick_ $ OpenCreateWalletCard tokenName
+                , id_ $ "newContactForRole" <> tokenName
                 ]
-                [ icon_ AddCircle ]
+                [ icon Icon.NewContact [ "text-purple" ] ]
+            , tooltip "Create a new contact for this role" (RefId $ "newContactForRole" <> tokenName) Left
             ]
         ]
 
@@ -360,9 +364,9 @@ roleInputs walletLibrary metaData roleWalletInputs =
     , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
     }
 
-parameterInputs :: forall p. MetaData -> Map String (InputField.State SlotError) -> Map String (InputField.State ValueError) -> HTML p Action
+parameterInputs :: forall m. MonadAff m => MetaData -> Map String (InputField.State SlotError) -> Map String (InputField.State ValueError) -> ComponentHTML Action ChildSlots m
 parameterInputs metaData slotContentInputs valueContentInputs =
-  templateInputsSection Terms "Terms"
+  templateInputsSection Icon.Terms "Terms"
     [ ul
         [ classNames [ "mb-4" ] ]
         $ valueInput
@@ -378,30 +382,30 @@ parameterInputs metaData slotContentInputs valueContentInputs =
 
       valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
 
-      format = fromMaybe DefaultFormat $ lookup key valueParameterFormats
+      numberFormat = fromMaybe DefaultFormat $ lookup key valueParameterFormats
 
       description = fromMaybe "no description available" $ lookup key valueParameterDescriptions
     in
       templateInputItem key description
-        [ ValueContentInputAction key <$> renderInput (inputFieldOptions key format description) inputField ]
+        [ ValueContentInputAction key <$> renderInput (inputFieldOptions key false numberFormat) inputField ]
 
   slotInput (key /\ inputField) =
     let
       slotParameterDescriptions = view _slotParameterDescriptions metaData
 
-      format = DefaultFormat
+      numberFormat = TimeFormat
 
       description = fromMaybe "no description available" $ lookup key slotParameterDescriptions
     in
       templateInputItem key description
-        [ SlotContentInputAction key <$> renderInput (inputFieldOptions key format description) inputField ]
+        [ SlotContentInputAction key <$> renderInput (inputFieldOptions key true numberFormat) inputField ]
 
-  inputFieldOptions key format description =
+  inputFieldOptions key readOnly numberFormat =
     { additionalCss: mempty
     , id_: key
     , placeholder: key
-    , readOnly: false
-    , numberFormat: Just format
+    , readOnly
+    , numberFormat: Just numberFormat
     , valueOptions: mempty
     }
 
@@ -417,16 +421,39 @@ templateInputsSection icon' heading content =
       ]
     <> content
 
-templateInputItem :: forall p. String -> String -> Array (HTML p Action) -> HTML p Action
+templateInputItem :: forall m. MonadAff m => String -> String -> Array (ComponentHTML Action ChildSlots m) -> ComponentHTML Action ChildSlots m
 templateInputItem id_ description content =
   li
     [ classNames [ "mb-2", "last:mb-0" ] ]
-    -- TODO: show description in tooltip
-    
     $ [ label
-          [ classNames [ "block", "text-sm", "font-semibold", "mb-2" ]
+          [ classNames [ "block", "mb-2" ]
           , for id_
           ]
-          [ text id_ ]
+          [ span
+              [ classNames [ "text-sm", "font-semibold" ] ]
+              [ text id_ ]
+          , hint
+              [ "ml-2" ]
+              ("template-parameter-input-" <> id_)
+              Auto
+              (markdownHintWithTitle id_ description)
+          ]
       ]
     <> content
+
+-- TODO: This function is also included in the Marlowe Playground code. We could/should move it
+-- into a shared folder, but it's not obvious where. It could go in the Hint module, but then it
+-- would introduce an unnecessary markdown dependency into the Plutus Playground. So some more
+-- thought/restructuring is required.
+markdownHintWithTitle :: String -> String -> PlainHTML
+markdownHintWithTitle title markdown =
+  div_
+    $ [ h4
+          -- With min-w-max we define that the title should never break into
+          -- a different line.
+          [ classNames [ "no-margins", "text-lg", "font-semibold", "flex", "items-center", "pb-2", "min-w-max" ] ]
+          [ icon Icon.HelpOutline [ "mr-1", "font-normal" ]
+          , text title
+          ]
+      ]
+    <> markdownToHTML markdown

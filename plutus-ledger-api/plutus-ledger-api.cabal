@@ -60,8 +60,6 @@ library
         bytestring -any,
         cborg -any,
         containers -any,
-        cryptonite >=0.25,
-        cardano-crypto -any,
         flat -any,
         hashable -any,
         plutus-core -any,
