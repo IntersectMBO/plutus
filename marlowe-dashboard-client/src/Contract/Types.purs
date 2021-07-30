@@ -5,12 +5,14 @@ module Contract.Types
   , PreviousStepState(..)
   , Tab(..)
   , Input
+  , Movement(..)
   , Action(..)
   , scrollContainerRef
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
+import Data.BigInteger (BigInteger)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
@@ -21,7 +23,7 @@ import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (MarloweParams, PlutusAppId)
-import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
+import Marlowe.Semantics (AccountId, Accounts, Value, ChoiceId, ChosenNum, Party, Payment, Slot, Token(..), TransactionInput)
 import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
@@ -58,6 +60,8 @@ type StepBalance
 -- Represents a historical step in a contract's life.
 type PreviousStep
   = { tab :: Tab
+    , expandPayments :: Boolean
+    , resultingPayments :: Array Payment
     , balances :: StepBalance
     , state :: PreviousStepState
     }
@@ -79,12 +83,18 @@ type Input
     , followerAppId :: PlutusAppId
     }
 
+data Movement
+  = PayIn AccountId Party Token BigInteger -- a.k.a deposit
+  | Transfer Party Party Token BigInteger
+  | PayOut Party AccountId Token BigInteger
+
 data Action
   = SelectSelf
   | SetNickname String
   | ConfirmAction NamedAction
   | ChangeChoice ChoiceId (Maybe ChosenNum)
   | SelectTab Int Tab
+  | ToggleExpandPayment Int
   | AskConfirmation NamedAction
   | CancelConfirmation
   -- The SelectStep action is what changes the model and causes the card to seem bigger.
@@ -100,6 +110,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SetNickname _) = Just $ defaultEvent "SetNickname"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
   toEvent (SelectTab _ _) = Just $ defaultEvent "SelectTab"
+  toEvent (ToggleExpandPayment _) = Just $ defaultEvent "ToggleExpandPayment"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
   toEvent (SelectStep _) = Just $ defaultEvent "SelectStep"

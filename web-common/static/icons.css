@@ -75,6 +75,14 @@
   content: "error_outline";
 }
 
+.with-icon-expand-more::after {
+  content: "expand_more";
+}
+
+.with-icon-expand-less::after {
+  content: "expand_less";
+}
+
 .with-icon-help::after {
   content: "help";
 }

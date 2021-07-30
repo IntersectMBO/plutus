@@ -27,7 +27,9 @@ import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either(..))
 import Data.Foldable (foldMap, for_)
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (_2, assign, modifying, over, set, to, toArrayOf, traversed, use, view, (^.))
+import Data.Lens (assign, modifying, over, set, to, toArrayOf, traversed, use, view, (^.))
+import Data.Lens.Lens.Tuple (_2)
+import Data.List (toUnfoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isNothing)
@@ -272,6 +274,13 @@ handleAction _ (SelectTab stepNumber tab) = do
     -- otherwise we update the tab of the current step
     Nothing -> assign _tab tab
 
+handleAction _ (ToggleExpandPayment stepNumber) = do
+  previousSteps <- use _previousSteps
+  case modifyAt stepNumber (\previousStep -> previousStep { expandPayments = not previousStep.expandPayments }) previousSteps of
+    -- TODO: after expanding we should scroll the summary into view
+    Just modifiedPreviousSteps -> assign _previousSteps modifiedPreviousSteps
+    Nothing -> pure unit
+
 handleAction _ (AskConfirmation action) = pure unit -- Managed by Dashboard.State
 
 handleAction _ CancelConfirmation = pure unit -- Managed by Dashboard.State
@@ -348,7 +357,7 @@ toInput (MakeNotify _) = Just $ Semantic.INotify
 toInput _ = Nothing
 
 transactionsToStep :: State -> Execution.PastState -> PreviousStep
-transactionsToStep { participants } { balancesAtStart, balancesAtEnd, txInput } =
+transactionsToStep { participants } { balancesAtStart, balancesAtEnd, txInput, resultingPayments } =
   let
     TransactionInput { interval: SlotInterval minSlot maxSlot, inputs } = txInput
 
@@ -368,6 +377,8 @@ transactionsToStep { participants } { balancesAtStart, balancesAtEnd, txInput } 
         TransactionStep txInput
   in
     { tab: Tasks
+    , expandPayments: false
+    , resultingPayments: toUnfoldable resultingPayments
     , balances:
         { atStart:
             expandedBalancesAtStart
@@ -384,6 +395,9 @@ timeoutToStep { participants, executionState } slot =
     expandedBalances = expandBalances (Set.toUnfoldable $ Map.keys participants) [ adaToken ] balances
   in
     { tab: Tasks
+    , expandPayments: false
+    -- FIXME: Revisit how should we treat payments from timeout steps, for now they are not displayed
+    , resultingPayments: []
     , balances:
         { atStart: expandedBalances
         , atEnd: Nothing

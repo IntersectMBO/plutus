@@ -5,9 +5,9 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Contract.Lenses (_executionState, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _selectedStep, _tab, _userParties)
+import Contract.Lenses (_executionState, _expandPayments, _metadata, _namedActions, _nickname, _participants, _pendingTransaction, _previousSteps, _resultingPayments, _selectedStep, _tab, _userParties)
 import Contract.State (currentStep, isContractClosed)
-import Contract.Types (Action(..), Input, PreviousStep, PreviousStepState(..), State, StepBalance, Tab(..), scrollContainerRef)
+import Contract.Types (Action(..), Input, Movement(..), PreviousStep, PreviousStepState(..), State, StepBalance, Tab(..), scrollContainerRef)
 import Css as Css
 import Data.Array (foldr, intercalate, length)
 import Data.Array as Array
@@ -42,7 +42,7 @@ import Marlowe.Execution.Types (NamedAction(..))
 import Marlowe.Extended (contractTypeName)
 import Marlowe.Extended.Metadata (_contractType)
 import Marlowe.PAB (transactionFee)
-import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Party(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
+import Marlowe.Semantics (Assets, Bound(..), ChoiceId(..), Party(..), Payee(..), Payment(..), Slot, SlotInterval(..), Token, TransactionInput(..), _accounts, getEncompassBound)
 import Marlowe.Semantics (Input(..)) as S
 import Marlowe.Slot (secondsDiff, slotToDateTime)
 import Material.Icons (Icon(..)) as Icon
@@ -376,7 +376,7 @@ renderPastStep viewInput state stepNumber step =
   let
     currentTab = step ^. _tab
 
-    renderBody Tasks { state: TransactionStep txInput } = renderPastActions stepNumber viewInput state txInput
+    renderBody Tasks { state: TransactionStep txInput } = renderPastStepTasksTab viewInput stepNumber state txInput step
 
     renderBody Tasks { state: TimeoutStep timeoutSlot } = renderTimeout viewInput stepNumber timeoutSlot
 
@@ -437,17 +437,20 @@ groupTransactionInputByParticipant (TransactionInput { inputs, interval }) =
       (NonEmptyArray.head elements # \{ party } -> { inputs: [], party, interval })
       elements
 
-renderPastActions ::
-  forall m action.
+renderPastStepTasksTab ::
+  forall m.
   MonadAff m =>
-  Int ->
   Input ->
+  Int ->
   State ->
   TransactionInput ->
-  ComponentHTML action ChildSlots m
-renderPastActions stepNumber viewInput state txInput =
+  PreviousStep ->
+  ComponentHTML Action ChildSlots m
+renderPastStepTasksTab viewInput stepNumber state txInput step =
   let
     actionsByParticipant = groupTransactionInputByParticipant txInput
+
+    resultingPayments = step ^. _resultingPayments
   in
     div [ classNames [ "px-4" ] ]
       $ if Array.length actionsByParticipant == 0 then
@@ -456,7 +459,46 @@ renderPastActions stepNumber viewInput state txInput =
               [ text "An empty transaction was made to advance this step" ]
           ]
         else
-          renderPartyPastActions stepNumber viewInput state <$> actionsByParticipant
+          append
+            (renderPartyPastActions stepNumber viewInput state <$> actionsByParticipant)
+            if length resultingPayments == 0 then
+              []
+            else
+              [ renderPaymentSummary stepNumber state step ]
+
+renderPaymentSummary :: forall p. Int -> State -> PreviousStep -> HTML p Action
+renderPaymentSummary stepNumber state step =
+  let
+    expanded = step ^. _expandPayments
+
+    -- TODO: This function is currently hard-coded to ADA, we should rethink how to deal with this
+    --       when we support multiple tokens
+    paymentToMovement (Payment from (Account to) money) = Transfer to from adaToken $ getAda money
+
+    paymentToMovement (Payment from (Party to) money) = PayOut to from adaToken $ getAda money
+
+    movements = paymentToMovement <$> step ^. _resultingPayments
+
+    expandIcon = if expanded then Icon.ExpandLess else Icon.ExpandMore
+  in
+    div [ classNames [ "bg-white", "rounded", "shadow-sm", "my-4" ] ]
+      ( append
+          [ a
+              [ classNames [ "px-4", "py-2", "flex", "justify-between", "items-center", "text-xs", "font-semibold", "select-none" ]
+              , onClick_ $ ToggleExpandPayment stepNumber
+              ]
+              [ text "Payment summary"
+              , icon_ expandIcon
+              ]
+          ]
+          if not expanded then
+            []
+          else
+            [ div [ classNames [ "px-4", "border-t", "border-gray" ] ]
+                ( movements <#> \movement -> div [ classNames [ "py-4" ] ] [ renderMovement state movement ]
+                )
+            ]
+      )
 
 renderPartyPastActions ::
   forall m action.
@@ -516,7 +558,7 @@ renderPartyPastActions stepNumber { tzOffset } state { inputs, interval, party }
         (map renderPastAction inputs)
 
     renderPastAction = case _ of
-      S.IDeposit intoAccountOf by token value -> renderDeposit state intoAccountOf by token value
+      S.IDeposit intoAccountOf by token value -> renderMovement state (PayIn intoAccountOf by token value)
       S.IChoice (ChoiceId choiceIdKey _) chosenNum ->
         div []
           [ h4_ [ text "Chose:" ]
@@ -664,22 +706,37 @@ participantWithNickname state party =
       Role roleName, Just nickname -> roleName <> " (" <> nickname <> ")"
       Role roleName, Nothing -> roleName
 
--- TODO: this is currently only suitable for a deposit, we may want to create a
--- data Movement =
---    PayIn AccountId Party Token Value -- a.k.a deposit
---    Transfer Party Party Token Value
---    PayOut Party AccountId Token Value
--- and change this for renderMovement.
-renderDeposit :: State -> Party -> Party -> Token -> BigInteger -> forall p a. HTML p a
-renderDeposit state to from token value =
-  div [ classNames [ "flex", "flex-col" ] ]
-    [ renderParty [] state from
-    , div [ classNames [ "flex", "justify-between", "items-center" ] ]
-        [ icon Icon.South [ "text-purple", "text-xs", "ml-1" ]
-        , span [ classNames [ "text-xs", "text-green" ] ] [ text $ humanizeValue token value ]
-        ]
-    , renderPartyAccount [] state to
-    ]
+renderMovement :: State -> Movement -> forall p a. HTML p a
+renderMovement state movement =
+  let
+    fromParty = case movement of
+      PayIn _ from _ _ -> renderParty [] state from
+      Transfer _ from _ _ -> renderPartyAccount [] state from
+      PayOut _ from _ _ -> renderPartyAccount [] state from
+
+    toParty = case movement of
+      PayIn to _ _ _ -> renderPartyAccount [] state to
+      Transfer to _ _ _ -> renderPartyAccount [] state to
+      PayOut to _ _ _ -> renderParty [] state to
+
+    token = case movement of
+      PayIn _ _ t _ -> t
+      Transfer _ _ t _ -> t
+      PayOut _ _ t _ -> t
+
+    value = case movement of
+      PayIn _ _ _ v -> v
+      Transfer _ _ _ v -> v
+      PayOut _ _ _ v -> v
+  in
+    div [ classNames [ "flex", "flex-col" ] ]
+      [ fromParty
+      , div [ classNames [ "flex", "justify-between", "items-center" ] ]
+          [ icon Icon.South [ "text-purple", "text-xs", "ml-1" ]
+          , span [ classNames [ "text-xs", "text-green" ] ] [ text $ humanizeValue token value ]
+          ]
+      , toParty
+      ]
 
 accountIndicator ::
   forall p a.
@@ -929,7 +986,7 @@ renderBalances stepNumber state stepBalance =
           , span [ classNames [ "font-semibold" ] ] [ text "Balances of contract accounts" ]
           , hint [ "relative", "-top-1" ] ("balances-" <> show stepNumber) Auto
               -- FIXME: Revisit copy
-              
+
               $ div_ [ text "This tab shows the amount of tokens that each role has in the contract account. A deposit is needed to get tokens from a wallet into the contract account, and a payment is needed to redeem tokens from the contract account into a user's wallet" ]
           ]
       , div [ classNames [ "px-4" ] ]

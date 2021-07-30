@@ -35,6 +35,8 @@ data Icon
   | Done
   | DoneWithCircle
   | ErrorOutline
+  | ExpandMore
+  | ExpandLess
   | Help
   | HelpOutline
   | History
@@ -87,6 +89,10 @@ content Done = "done"
 content DoneWithCircle = "check_circle_outline"
 
 content ErrorOutline = "error_outline"
+
+content ExpandMore = "expand_more"
+
+content ExpandLess = "expand_less"
 
 content Help = "help"
 
@@ -163,6 +169,10 @@ iconClass Done = "done"
 iconClass DoneWithCircle = "check-circle-outline"
 
 iconClass ErrorOutline = "error-outline"
+
+iconClass ExpandMore = "expand-more"
+
+iconClass ExpandLess = "expand-less"
 
 iconClass Help = "help"
 
