@@ -98,6 +98,12 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ show utxoAtAddress
       ]
+  pretty (ChainIndexQueryResp chainIndexQueryResponse) =
+    span_
+      [ text "ChainIndexQueryResponse:"
+      , nbsp
+      , text $ show chainIndexQueryResponse
+      ]
   pretty (AddressChangeResp addressChangeResponse) =
     span_
       [ text "AddressChangedAtResponse:"
@@ -165,6 +171,12 @@ instance prettyContractPABRequest :: Pretty PABReq where
       [ text "UtxoAtRequest:"
       , nbsp
       , text $ show utxoAtAddress
+      ]
+  pretty (ChainIndexQueryReq chainIndexQueryRequest) =
+    span_
+      [ text "ChainIndexQueryRequest:"
+      , nbsp
+      , text $ show chainIndexQueryRequest
       ]
   pretty (AddressChangeReq addressChangeRequest) =
     span_

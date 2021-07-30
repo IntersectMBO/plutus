@@ -47,13 +47,12 @@ library
         aeson -any,
         base >=4.7 && <5,
         containers -any,
+        data-default -any,
         fingertree -any,
         freer-simple -any,
         lens -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,
-        bytestring -any,
-        data-default -any
 
 test-suite plutus-chain-index-test
     import: lang

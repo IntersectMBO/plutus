@@ -1,7 +1,7 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-| Misc. types used in this package
 -}
 module Plutus.ChainIndex.Types(
@@ -20,6 +20,7 @@ import           GHC.Generics      (Generic)
 import           Ledger.Blockchain (BlockId (..))
 import           Ledger.Slot       (Slot)
 import           Numeric.Natural   (Natural)
+import           Prettyprinter     (Pretty (..), (<+>))
 
 newtype PageSize = PageSize { getPageSize :: Natural }
     deriving stock (Eq, Ord, Show, Generic)
@@ -70,3 +71,14 @@ instance Ord Tip where
     TipAtGenesis <= _            = True
     _            <= TipAtGenesis = False
     (Tip _ _ ln) <= (Tip _ _ rn) = ln <= rn
+
+instance Pretty Tip where
+    pretty TipAtGenesis = "TipAtGenesis"
+    pretty Tip {tipSlot, tipBlockId, tipBlockNo} =
+            "Tip(slot="
+        <+> pretty tipSlot
+        <>  ", blockId="
+        <+> pretty tipBlockId
+        <> ", blockNo="
+        <+> pretty tipBlockNo
+        <>  ")"
