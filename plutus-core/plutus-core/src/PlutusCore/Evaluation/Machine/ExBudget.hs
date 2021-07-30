@@ -139,17 +139,27 @@ module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
+    , LowerIntialCharacter
     , enormousBudget
     )
 where
 
 import           PlutusPrelude                          hiding (toList)
 
+import           Data.Char                              (toLower)
 import           Data.Semigroup
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
 import           Language.Haskell.TH.Lift               (Lift)
 import           PlutusCore.Evaluation.Machine.ExMemory
+
+
+-- | This is used elsewhere to convert cost models into JSON objects where the
+-- names of the fields are exactly the same as the names of the builtins.
+data LowerIntialCharacter
+instance StringModifier LowerIntialCharacter where
+  getStringModifier ""       = ""
+  getStringModifier (c : xs) = toLower c : xs
 
 -- | A class for injecting a 'Builtin' into an @exBudgetCat@.
 -- We need it, because the constant application machinery calls 'spendBudget' before reducing a

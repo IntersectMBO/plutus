@@ -38,7 +38,6 @@ import           PlutusCore.Evaluation.Machine.ExMemory
 
 import           Barbies
 import           Data.Aeson
-import           Data.Char                              (toLower)
 import           Data.Default.Class
 import           Data.Hashable
 import qualified Data.Kind                              as Kind
@@ -82,13 +81,6 @@ data BuiltinCostModelBase f =
     , paramIfThenElse               :: f ModelThreeArguments
     }
     deriving (Generic, FunctorB, TraversableB, ConstraintsB)
-
--- This lets us produce JSON objects where the names ofthe fields are exactly
--- the same as the names of the builtins.
-data LowerIntialCharacter
-instance StringModifier LowerIntialCharacter where
-  getStringModifier ""       = ""
-  getStringModifier (c : xs) = toLower c : xs
 
 deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)

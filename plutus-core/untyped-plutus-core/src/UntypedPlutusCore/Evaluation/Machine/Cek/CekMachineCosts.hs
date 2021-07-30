@@ -39,7 +39,7 @@ data CekMachineCosts =
     -- happen if calling 'Error' caused the budget to be exceeded?
     }
     deriving (Eq, Show, Generic, Lift)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (CamelToSnake)] CekMachineCosts
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] CekMachineCosts
 
 -- Charge a unit CPU cost for AST nodes: this allows us to count the number of
 -- times each node type is evaluated.  For actual prediction/costing we use
