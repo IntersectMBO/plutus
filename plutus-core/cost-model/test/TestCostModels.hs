@@ -39,6 +39,10 @@ import           Unsafe.Coerce                                  (unsafeCoerce)
    CostingIntegers.  To deal with (A), we don't check for exact equality of the
    outputs but instead check that the R result and the Haskell result agreee to
    within a factor of 1/10000 (one hundredth of a percent).
+
+   This executes all of the R code (reading the CSV file and constructing all of
+   the models) for every instance of every test, so it takes a moderately long
+   time (maybe 3 minutes).
 -}
 
 
