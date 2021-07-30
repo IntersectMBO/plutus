@@ -316,11 +316,11 @@ benchNop3 gen =
    benchmark the functions on the right; the benchmarks take a long time to run,
    so this speeds things up a lot.
 
-   AddInteger:        SubtractInteger
-   DivideInteger:     RemainderInteger, QuotientInteger, ModInteger
-   LessThanInteger:   GreaterThanInteger
-   LessThanEqInteger: GreaterThanEqInteger
-   LessThanByteString:      GreaterThanByteString
+   AddInteger:            SubtractInteger
+   DivideInteger:         RemainderInteger, QuotientInteger, ModInteger
+   LessThanInteger:       GreaterThanInteger
+   LessThanEqualsInteger: GreaterThanEqualsInteger
+   LessThanByteString:    GreaterThanByteString
 -}
 main :: IO ()
 main = do
