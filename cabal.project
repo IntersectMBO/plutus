@@ -38,19 +38,9 @@ benchmarks: true
 -- The only sensible test display option
 test-show-details: streaming
 
--- This is also needed so evenful-sql-common will build with a
--- newer version of persistent. See stack.yaml for the mirrored
--- configuration.
-package eventful-sql-common
-  ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses
-
 allow-newer:
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
            size-based:template-haskell
-
-           -- The following two dependencies are needed by plutus.
-           , eventful-sql-common:persistent
-           , eventful-sql-common:persistent-template
            , ouroboros-consensus-byron:formatting
            , beam-core:aeson
            , beam-sqlite:aeson
@@ -60,8 +50,6 @@ allow-newer:
 constraints:
   -- big breaking change here, inline-r doens't have an upper bound
   singletons < 3.0
-  -- breaks eventful even more than it already was
-  , persistent-template < 2.12
   -- bizarre issue: in earlier versions they define their own 'GEq', in newer
   -- ones they reuse the one from 'some', but there isn't e.g. a proper version
   -- constraint from dependent-sum-template (which is the library we actually use).
