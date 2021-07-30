@@ -441,10 +441,11 @@ expandAndGroupByRole userParties allParticipants actions =
           Just participant -> [ participant /\ action ]
           Nothing -> Set.toUnfoldable allParticipants <#> \participant -> participant /\ action
 
+  isUserParty party = Set.member party userParties
+
   currentPartiesFirst (Tuple party1 _) (Tuple party2 _)
-    | Set.member party1 userParties = LT
-    | Set.member party2 userParties = GT
-    | otherwise = compare party1 party2
+    | isUserParty party1 == isUserParty party2 = compare party1 party2
+    | otherwise = if isUserParty party1 then LT else GT
 
   sameParty a b = fst a == fst b
 
