@@ -74,6 +74,9 @@ module.exports = {
         logo: "100px",
         "logo-wider": "85px",
       },
+      width: {
+        pinkM: "280px",
+      },
 
       borderWidth: {
         3: "3px",

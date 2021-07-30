@@ -10,9 +10,7 @@ body {
   font-family: Barlow, sans-serif;
 }
 
-/* Russ CSS */
-
-.external a::after {
+.new-tab a::after {
   content: url("/static/img/chevron-external-light.svg");
   width: 24px;
   background-size: 24px;
@@ -38,8 +36,7 @@ body {
 
 .section-circle-top-right {
   position: absolute;
-  display: inline-block;
-  width: 300px;
+  @apply w-80;
   right: 0;
   top: 0;
   z-index: 0;
@@ -47,8 +44,7 @@ body {
 
 .section-circle-bottom-left {
   position: absolute;
-  display: inline-block;
-  width: 300px;
+  @apply w-80;
   left: 0;
   bottom: 0;
   z-index: 0;
@@ -56,37 +52,30 @@ body {
 
 .section-m-top-right {
   position: absolute;
-  display: inline-block;
   width: 1440px;
   right: 0;
   top: 0;
-  z-index: 0 !important;
+  opacity: 0.8;
+}
+
+.pink-m-left,
+.pink-m-right {
+  position: absolute;
+  z-index: 0;
   opacity: 0.8;
 }
 
 .pink-m-left {
-  position: absolute;
-  display: inline-block;
-  width: 280px;
   left: 0;
   top: 0;
-  z-index: 0 !important;
-  opacity: 0.8;
 }
 
 .pink-m-right {
-  position: absolute;
-  display: inline-block;
-  width: 280px;
   right: 0;
   bottom: 0;
-  z-index: 0 !important;
-  opacity: 0.8;
 }
 
 .scale img {
-  -webkit-transition: all 0.2s ease-in-out;
-  -moz-transition: all 0.2s ease-in-out;
   transition: all 0.2s ease-in-out;
 }
 
