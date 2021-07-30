@@ -40,12 +40,10 @@ import           Control.Monad                                    (when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
-import           Data.Aeson                                       (FromJSON, Result (..), ToJSON, Value, fromJSON)
+import           Data.Aeson                                       (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                                       as JSON
-import           Data.Bifunctor                                   (Bifunctor (first))
 import           Data.Foldable                                    (foldlM, traverse_)
 import           Data.Row
-import qualified Data.Text                                        as Text
 import           GHC.Generics                                     (Generic)
 import           Playground.Schema                                (endpointsToSchemas)
 import           Playground.Types                                 (FunctionSchema)
@@ -128,10 +126,9 @@ handleBuiltin = BuiltinHandler $ \case
     UpdateContract i _ state p -> case state of SomeBuiltinState s w -> updateBuiltin i s w p
     ExportSchema a             -> pure $ getSchema a
 
-getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value Value PABReq
+getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value PABResp PABReq
 getResponse (SomeBuiltinState s w) =
-    first JSON.toJSON
-    $ ContractState.mapE JSON.toJSON
+    ContractState.mapE JSON.toJSON
     $ ContractState.mapW JSON.toJSON
     $ ContractState.mkResponse w
     $ Emulator.instContractState
@@ -145,21 +142,12 @@ fromResponse :: forall a effs.
   )
   => ContractInstanceId
   -> SomeBuiltin
-  -> ContractResponse Value Value Value PABReq
+  -> ContractResponse Value Value PABResp PABReq
   -> Eff effs (SomeBuiltinState a)
 fromResponse cid (SomeBuiltin contract) ContractResponse{newState=State{record}} = do
   initialState <- initBuiltinSilently @effs @a cid contract
-
   let runUpdate (SomeBuiltinState oldS oldW) n = do
-        let v = snd <$> n
-            m :: Result (Response PABResp)
-            m = traverse fromJSON v
-        case m of
-          Error e      -> throwError $ AesonDecodingError
-                                      ("Couldn't decode JSON response when reconstructing state: " <> Text.pack e <> ".")
-                                      ( Text.pack $ show $ v )
-          Success resp -> updateBuiltinSilently @effs @a cid oldS oldW resp
-
+          updateBuiltinSilently @effs @a cid oldS oldW (snd <$> n)
   foldlM runUpdate initialState (responses record)
 
 initBuiltin, initBuiltinSilently ::

@@ -315,7 +315,7 @@ updateState ::
     , MonadIO m
     , Member (Reader InstanceState) effs
     )
-    => ContractResponse Value Value Value PABReq
+    => ContractResponse Value Value PABResp PABReq
     -> Eff effs ()
 updateState ContractResponse{newState = State{observableState}, hooks} = do
     state <- ask
