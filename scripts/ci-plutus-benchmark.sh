@@ -30,7 +30,7 @@ if [ -z "$PR_NUMBER" ] ; then
    exit 1
 fi
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for PR $PR_NUMBER"
-PR_BRANCH_REF=$(git rev-parse HEAD)
+PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
@@ -43,7 +43,7 @@ git fetch origin
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD origin/master)"
-BASE_BRANCH_REF=$(git rev-parse HEAD)
+BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
 nix-shell --run "cabal bench plutus-benchmark:validation >bench-base.log 2>&1"
