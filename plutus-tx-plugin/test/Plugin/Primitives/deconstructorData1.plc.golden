@@ -4,7 +4,12 @@
     (termbind
       (strict)
       (vardecl unsafeDataAsI (fun (con data) (con integer)))
-      (lam d (con data) [ (builtin unIData) d ])
+      (builtin unIData)
+    )
+    (termbind
+      (strict)
+      (vardecl unsafeDataAsI (fun (con data) (con integer)))
+      (lam d (con data) [ unsafeDataAsI d ])
     )
     unsafeDataAsI
   )

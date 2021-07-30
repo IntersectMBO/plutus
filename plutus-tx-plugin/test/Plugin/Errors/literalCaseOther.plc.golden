@@ -31,75 +31,91 @@
                                           cfromString_i0
                                           [
                                             (lam
-                                              fromString_i0
-                                              (lam
-                                                x_i0
-                                                (force
-                                                  [
-                                                    [
-                                                      (force
+                                              fIsStringAType_i0
+                                              [
+                                                (lam
+                                                  fromString_i0
+                                                  (lam
+                                                    x_i0
+                                                    (force
+                                                      [
                                                         [
-                                                          Bool_match_i8
-                                                          [
-                                                            [ c_i7 x_i1 ]
+                                                          (force
                                                             [
+                                                              Bool_match_i9
                                                               [
-                                                                (force
-                                                                  fromString_i2
-                                                                )
-                                                                cfromString_i3
-                                                              ]
-                                                              [
-                                                                [
-                                                                  (force Cons_i5
-                                                                  )
-                                                                  (con char 'a')
-                                                                ]
+                                                                [ c_i8 x_i1 ]
                                                                 [
                                                                   [
                                                                     (force
-                                                                      Cons_i5
+                                                                      fromString_i2
                                                                     )
-                                                                    (con
-                                                                      char 'b'
+                                                                    (force
+                                                                      fIsStringAType_i3
                                                                     )
                                                                   ]
                                                                   [
                                                                     [
                                                                       (force
-                                                                        Cons_i5
+                                                                        Cons_i6
                                                                       )
                                                                       (con
-                                                                        char 'c'
+                                                                        char 'a'
                                                                       )
                                                                     ]
-                                                                    (force
-                                                                      Nil_i6
-                                                                    )
+                                                                    [
+                                                                      [
+                                                                        (force
+                                                                          Cons_i6
+                                                                        )
+                                                                        (con
+                                                                          char
+                                                                            'b'
+                                                                        )
+                                                                      ]
+                                                                      [
+                                                                        [
+                                                                          (force
+                                                                            Cons_i6
+                                                                          )
+                                                                          (con
+                                                                            char
+                                                                              'c'
+                                                                          )
+                                                                        ]
+                                                                        (force
+                                                                          Nil_i7
+                                                                        )
+                                                                      ]
+                                                                    ]
                                                                   ]
                                                                 ]
                                                               ]
                                                             ]
-                                                          ]
+                                                          )
+                                                          (delay
+                                                            [
+                                                              [
+                                                                (force
+                                                                  fromString_i2
+                                                                )
+                                                                (force
+                                                                  fIsStringAType_i3
+                                                                )
+                                                              ]
+                                                              (force Nil_i7)
+                                                            ]
+                                                          )
                                                         ]
-                                                      )
-                                                      (delay
-                                                        [
-                                                          [
-                                                            (force fromString_i2
-                                                            )
-                                                            cfromString_i3
-                                                          ]
-                                                          (force Nil_i6)
-                                                        ]
-                                                      )
-                                                    ]
-                                                    (delay x_i1)
-                                                  ]
+                                                        (delay x_i1)
+                                                      ]
+                                                    )
+                                                  )
                                                 )
-                                              )
+                                                (delay (lam v_i0 v_i1))
+                                              ]
                                             )
-                                            (delay (lam v_i0 v_i1))
+                                            (delay cfromString_i1)
                                           ]
                                         )
                                         (lam ds_i0 AType_i10)

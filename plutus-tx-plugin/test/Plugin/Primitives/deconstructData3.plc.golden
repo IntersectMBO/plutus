@@ -1,18 +1,18 @@
 (delay
   (lam
-    case_Nil_18
+    case_Nil_23
     (lam
-      case_Cons_19
+      case_Cons_24
       [
-        [ case_Cons_19 (con data #02) ]
+        [ case_Cons_24 (con data #02) ]
         (delay
           (lam
-            case_Nil_18
+            case_Nil_23
             (lam
-              case_Cons_19
+              case_Cons_24
               [
-                [ case_Cons_19 (con data #03) ]
-                (delay (lam case_Nil_14 (lam case_Cons_15 case_Nil_14)))
+                [ case_Cons_24 (con data #03) ]
+                (delay (lam case_Nil_19 (lam case_Cons_20 case_Nil_19)))
               ]
             )
           )

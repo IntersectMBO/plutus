@@ -159,24 +159,7 @@
               (lam
                 s_i0
                 [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) (fun a_i4 b_i3)]
-                (lam
-                  x_i0
-                  a_i5
-                  [
-                    [
-                      f_i3
-                      [
-                        (lam
-                          s_i0
-                          [(lam a_i0 (type) (ifix (lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) a_i1)) (fun a_i6 b_i5)]
-                          [ (unwrap s_i1) s_i1 ]
-                        )
-                        s_i2
-                      ]
-                    ]
-                    x_i1
-                  ]
-                )
+                (lam x_i0 a_i5 [ [ f_i3 [ (unwrap s_i2) s_i2 ] ] x_i1 ])
               )
             )
           ]

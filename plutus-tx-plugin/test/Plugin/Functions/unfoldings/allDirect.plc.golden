@@ -130,6 +130,21 @@
           (termbind
             (strict)
             (vardecl
+              greaterThanInteger
+              (fun (con integer) (fun (con integer) (con bool)))
+            )
+            (builtin greaterThanInteger)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              ifThenElse (all a (type) (fun (con bool) (fun a (fun a a))))
+            )
+            (builtin ifThenElse)
+          )
+          (termbind
+            (strict)
+            (vardecl
               greaterThanInteger (fun (con integer) (fun (con integer) Bool))
             )
             (lam
@@ -140,11 +155,7 @@
                 (con integer)
                 [
                   [
-                    [
-                      { (builtin ifThenElse) Bool }
-                      [ [ (builtin greaterThanInteger) x ] y ]
-                    ]
-                    True
+                    [ { ifThenElse Bool } [ [ greaterThanInteger x ] y ] ] True
                   ]
                   False
                 ]

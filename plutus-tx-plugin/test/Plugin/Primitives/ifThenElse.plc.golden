@@ -11,6 +11,16 @@
     )
     (termbind
       (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
+      (builtin equalsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
+    )
+    (termbind
+      (strict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -18,16 +28,7 @@
         (lam
           y
           (con integer)
-          [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin equalsInteger) x ] y ]
-              ]
-              True
-            ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
         )
       )
     )

@@ -272,6 +272,7 @@ library
         deriving-compat -any,
         dlist -any,
         exceptions -any,
+        extra -any,
         filepath -any,
         flat -any,
         ghc-prim -any,
