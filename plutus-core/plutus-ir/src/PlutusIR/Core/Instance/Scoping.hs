@@ -79,8 +79,8 @@ instance (Reference TyName t, Reference Name t) => Reference (Binding TyName Nam
     referenceVia reg (TypeBind _ tyVarDecl _)  = referenceVia reg tyVarDecl
     referenceVia reg (DatatypeBind _ datatype) = referenceVia reg datatype
 
--- | Establish scoping for each of the parameters by only annotating every parameter with
--- 'introduceBound'.
+-- | Establish scoping for each of the parameters of a datatype by only annotating every parameter
+-- with 'introduceBound'.
 establishScopingParams :: [TyVarDecl TyName ann] -> Quote [TyVarDecl TyName NameAnn]
 establishScopingParams =
     traverse $ \(TyVarDecl _ paramNameDup paramKind) -> do
@@ -124,19 +124,19 @@ establishScopingConstrTy regSelf dataName params = goSpine where
     goResult (TyApp _ fun arg) = TyApp NotAName <$> goResult fun <*> establishScoping arg
     goResult _                 = pure $ toDataAppliedToParams registerBound
 
--- | Establish scoping for all constructors of a non-recursive data type by establishing scoping
--- for each of them individually. If there are no constructors, then a dummy one is added, because
--- we need to maintain the invariant that every binding is referenced as an in-scope one somewhere
--- and the only place where parameters of a data type can be referenced this way is a constructor
--- of that data type.
-establishScopingConstrsNonRec
+-- | Establish scoping for all constructors of a data type by establishing scoping for each of them
+-- individually. If there are no constructors, then a dummy one is added, because we need to
+-- maintain the invariant that every binding is referenced as an in-scope one somewhere and the only
+-- place where parameters of a data type can be referenced this way is a constructor of that data
+-- type.
+establishScopingConstrs
     :: (TyName -> NameAnn)
     -> ann
     -> TyName
     -> [TyVarDecl TyName NameAnn]
     -> [VarDecl TyName Name uni fun ann]
     -> Quote [VarDecl TyName Name uni fun NameAnn]
-establishScopingConstrsNonRec regSelf dataAnn dataName params constrsPossiblyEmpty = do
+establishScopingConstrs regSelf dataAnn dataName params constrsPossiblyEmpty = do
     cons0Name <- freshName "cons0"
     let cons0 = VarDecl dataAnn cons0Name $ TyVar dataAnn dataName
         constrs = if null constrsPossiblyEmpty then [cons0] else constrsPossiblyEmpty
@@ -146,7 +146,7 @@ establishScopingConstrsNonRec regSelf dataAnn dataName params constrsPossiblyEmp
         pure $ VarDecl (introduceBound constrName) constrName constrTy
 
 -- | Establish scoping of a binding. Each bindings gets referenced in its own body either as an
--- in-scope or out-of-scope, which is controlled by the first argument and ultimately depends on
+-- in-scope or out-of-scope one, which is controlled by the first argument and ultimately depends on
 -- the recursivity of the binding.
 establishScopingBinding
     :: (forall name. ToScopedName name => name -> NameAnn)
@@ -167,7 +167,7 @@ establishScopingBinding regSelf (DatatypeBind dataAnn datatypeDup) = do
     dataDecl <- TyVarDecl (introduceBound dataName) dataName <$> establishScoping dataKind
     params <- establishScopingParams paramsDup
     matchName <- freshenName matchNameDup
-    constrs <- establishScopingConstrsNonRec regSelf dataAnn dataName params constrsDup
+    constrs <- establishScopingConstrs regSelf dataAnn dataName params constrsDup
     let datatype = Datatype (introduceBound matchName) dataDecl params matchName constrs
     pure $ DatatypeBind NotAName datatype
 
@@ -189,11 +189,11 @@ referenceBindingsBothWays
     :: (forall name. ToScopedName name => name -> NameAnn)
     -> NonEmpty (Binding TyName Name uni fun NameAnn)
     -> NonEmpty (Binding TyName Name uni fun NameAnn)
-referenceBindingsBothWays regRec               -- Whether latter bindings are visible in former ones
-    = NonEmpty.reverse                         -- or not depends on the recursivity and so we have
-    . referenceViaBindings regRec              -- the registering function as an argument.
+referenceBindingsBothWays regRec          -- Whether latter bindings are visible in former ones
+    = NonEmpty.reverse                    -- or not depends on the recursivity and so we have
+    . referenceViaBindings regRec         -- the registering function as an argument.
     . NonEmpty.reverse
-    . referenceViaBindings registerBound       -- Former bindings are always visible in latter ones.
+    . referenceViaBindings registerBound  -- Former bindings are always visible in latter ones.
 
 -- | Establish scoping for a family of bindings.
 establishScopingBindings

@@ -229,8 +229,8 @@ renameConstrTypeM (Restorer restoreAfterData) = renameSpineM where
     renameResultM _ =
         error "Panic: a constructor returns something that is not an iterated application of a type variable"
 
--- | Rename the name of a constructor immediately and defer renaming of its type until stage 2
--- where all mutually recursive data types (if any) are bound.
+-- | Rename the name of a constructor immediately and defer renaming of its type until the second
+-- stage where all mutually recursive data types (if any) are bound.
 renameConstrCM
     :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
     => Restorer PLC.ScopedRenaming m
@@ -303,9 +303,11 @@ renameBindingRecCM = \case
         varFr <- ContT $ PLC.withFreshenedTyVarDecl var
         -- The second stage (the RHS gets renamed).
         pure $ TypeBind x varFr <$> PLC.renameTypeM ty
-    DatatypeBind x datatype ->
-        -- Both the stages of 'renameDatatypeCM'.
-        fmap (DatatypeBind x) <$> renameDatatypeCM Rec datatype
+    DatatypeBind x datatype -> do
+        -- The first stage.
+        datatypeRen <- renameDatatypeCM Rec datatype
+        -- The second stage.
+        pure $ DatatypeBind x <$> datatypeRen
 
 -- | Replace the uniques in the names stored in a bunch of bindings by new uniques,
 -- save the mapping from the old uniques to the new ones, rename the RHSs and
