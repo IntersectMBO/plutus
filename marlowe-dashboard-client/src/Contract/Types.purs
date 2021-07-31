@@ -84,9 +84,9 @@ type Input
     }
 
 data Movement
-  = PayIn AccountId Party Token BigInteger -- a.k.a deposit
+  = PayIn Party AccountId Token BigInteger -- a.k.a deposit
   | Transfer Party Party Token BigInteger
-  | PayOut Party AccountId Token BigInteger
+  | PayOut AccountId Party Token BigInteger
 
 data Action
   = SelectSelf

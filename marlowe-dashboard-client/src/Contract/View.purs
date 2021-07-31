@@ -473,9 +473,9 @@ renderPaymentSummary stepNumber state step =
 
     -- TODO: This function is currently hard-coded to ADA, we should rethink how to deal with this
     --       when we support multiple tokens
-    paymentToMovement (Payment from (Account to) money) = Transfer to from adaToken $ getAda money
+    paymentToMovement (Payment from (Account to) money) = Transfer from to adaToken $ getAda money
 
-    paymentToMovement (Payment from (Party to) money) = PayOut to from adaToken $ getAda money
+    paymentToMovement (Payment from (Party to) money) = PayOut from to adaToken $ getAda money
 
     movements = paymentToMovement <$> step ^. _resultingPayments
 
@@ -558,7 +558,7 @@ renderPartyPastActions stepNumber { tzOffset } state { inputs, interval, party }
         (map renderPastAction inputs)
 
     renderPastAction = case _ of
-      S.IDeposit intoAccountOf by token value -> renderMovement state (PayIn intoAccountOf by token value)
+      S.IDeposit intoAccountOf by token value -> renderMovement state (PayIn by intoAccountOf token value)
       S.IChoice (ChoiceId choiceIdKey _) chosenNum ->
         div []
           [ h4_ [ text "Chose:" ]
@@ -710,14 +710,14 @@ renderMovement :: State -> Movement -> forall p a. HTML p a
 renderMovement state movement =
   let
     fromParty = case movement of
-      PayIn _ from _ _ -> renderParty [] state from
-      Transfer _ from _ _ -> renderPartyAccount [] state from
-      PayOut _ from _ _ -> renderPartyAccount [] state from
+      PayIn from _ _ _ -> renderParty [] state from
+      Transfer from _ _ _ -> renderPartyAccount [] state from
+      PayOut from _ _ _ -> renderPartyAccount [] state from
 
     toParty = case movement of
-      PayIn to _ _ _ -> renderPartyAccount [] state to
-      Transfer to _ _ _ -> renderPartyAccount [] state to
-      PayOut to _ _ _ -> renderParty [] state to
+      PayIn _ to _ _ -> renderPartyAccount [] state to
+      Transfer _ to _ _ -> renderPartyAccount [] state to
+      PayOut _ to _ _ -> renderParty [] state to
 
     token = case movement of
       PayIn _ _ t _ -> t
