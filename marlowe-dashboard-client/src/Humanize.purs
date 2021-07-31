@@ -8,6 +8,7 @@ module Humanize
   , getTimezoneOffset
   , humanizeInterval
   , humanizeValue
+  , humanizeOffset
   , contractIcon
   ) where
 
@@ -21,7 +22,8 @@ import Data.Int (toNumber) as Int
 import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap, wrap)
-import Data.Time.Duration (Minutes, Seconds(..))
+import Data.Ord (abs)
+import Data.Time.Duration (Minutes(..), Seconds(..))
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
@@ -92,6 +94,34 @@ getTimezoneOffset = wrap <<< negate <<< unwrap <$> Now.getTimezoneOffset
 -- the original value
 adjustTimeZone :: Minutes -> DateTime -> DateTime
 adjustTimeZone tzOffset dt = fromMaybe dt (adjust tzOffset dt)
+
+minutesFormatter :: Number.Formatter
+minutesFormatter =
+  Number.Formatter
+    { sign: false
+    , before: 2
+    , comma: false
+    , after: 0
+    , abbreviations: false
+    }
+
+formatMinutes :: Int -> String
+formatMinutes = Number.format minutesFormatter <<< Int.toNumber
+
+humanizeOffset :: Minutes -> String
+humanizeOffset (Minutes 0.0) = "GMT"
+
+humanizeOffset (Minutes min) = "GMT" <> (if min < zero then "-" else "+") <> offsetString
+  where
+  min' = floor $ abs min
+
+  hours = min' / 60
+
+  offsetString =
+    if min' `mod` 60 == zero then
+      show hours
+    else
+      show hours <> ":" <> formatMinutes (min' - hours * 60)
 
 formatDate :: Minutes -> DateTime -> String
 formatDate tzOffset dt = formatDate' $ adjustTimeZone tzOffset dt

@@ -13,7 +13,7 @@ import Halogen (Component, HalogenM, Slot, get, getHTMLElementRef, liftEffect, m
 import Halogen as H
 import Halogen.HTML (ComponentHTML, HTML, slot)
 import Halogen.Query.EventSource (eventListenerEventSource)
-import Popper (OffsetOption(..), PaddingOption(..), Placement, PositioningStrategy(..), arrow, createPopper, defaultModifiers, defaultPreventOverflow, destroyPopper, forceUpdate, offset, pAll, preventOverflow)
+import Popper (OffsetOption(..), PaddingOption(..), Placement, PositioningStrategy(..), arrow, createPopper, defaultFlip, defaultModifiers, defaultPreventOverflow, destroyPopper, flipPlacement, forceUpdate, offset, pAll, preventOverflow)
 import Tooltip.Lenses (_active, _mPopperInstance, _message, _placement)
 import Tooltip.Types (Action(..), Input, ReferenceId(..), State, arrowRef, tooltipRef)
 import Tooltip.View (render)
@@ -83,6 +83,7 @@ handleAction Init = do
             <> [ arrow arrowElem (PaddingValue $ pAll 0.0)
               , offset (OffsetValue { skidding: 0.0, distance: 8.0 })
               , preventOverflow defaultPreventOverflow
+              , flipPlacement defaultFlip
               ]
       refElem <- MaybeT $ liftEffect $ getElementById' refId
       tooltipElem <- MaybeT $ getHTMLElementRef tooltipRef
