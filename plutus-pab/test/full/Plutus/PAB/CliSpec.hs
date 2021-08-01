@@ -33,6 +33,7 @@ import           Control.Concurrent.Availability     (available, newToken, start
 import           Control.Monad                       (forM_, void, when)
 import           Data.Aeson                          (FromJSON, ToJSON, toJSON)
 import           Data.Coerce                         (coerce)
+import           Data.Default                        (def)
 import           Data.Either                         (isLeft)
 import           Data.Proxy                          (Proxy (Proxy))
 import qualified Data.Text                           as Text
@@ -40,7 +41,8 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Yaml                           (decodeFileThrow)
 import           GHC.Generics                        (Generic)
 import           Ledger.Ada                          (lovelaceValueOf)
-import           Network.HTTP.Client                 (defaultManagerSettings, newManager)
+import           Network.HTTP.Client                 (ManagerSettings (managerResponseTimeout), defaultManagerSettings,
+                                                      newManager, responseTimeoutNone)
 import           Plutus.Contract
 import qualified Plutus.Contracts.PingPong           as PingPong
 import           Plutus.PAB.App                      (StorageBackend (..))
@@ -89,6 +91,16 @@ instance HasPSTypes TestingContracts where
 instance Pretty TestingContracts where
   pretty = viaShow
 
+-- | A testing config that mostly relies on the defaults, but overrides some
+-- settings to make sure that all the ports are in a similar space, and we
+-- have a good delay for endpoint availability.
+defaultPabConfig :: Config
+defaultPabConfig
+  = def
+      -- Note: We rely on a large timeout here to wait for endpoints to be
+      -- available (i.e. transactions to be completed).
+      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 200 }
+      }
 
 -- | Bump all the default ports, and any other needed things so that we
 -- can run two PABs side-by-side.
@@ -154,7 +166,7 @@ startPab pabConfig = do
 
 getClientEnv :: Config -> IO ClientEnv
 getClientEnv pabConfig = do
-  manager <- newManager defaultManagerSettings
+  manager <- newManager $ defaultManagerSettings { managerResponseTimeout = responseTimeoutNone }
 
   let newApiUrl = PAB.Types.baseUrl (pabWebserverConfig pabConfig)
 
@@ -208,14 +220,15 @@ restoreContractStateTests =
         -- This isn't testing anything related to restoring state; but simply
         -- provides evidence that if the subsequent tests _fail_, then that is
         -- an genuine error.
-        pabConfig <- decodeFileThrow @IO "./test/full/testing-plutus-pab.yaml"
+        let pabConfig = defaultPabConfig
         startPab pabConfig
         ci <- startPingPongContract pabConfig
+
         runPabInstanceEndpoints pabConfig ci (map Succeed ["initialise", "pong", "ping"])
 
     , testCase "PingPong contract state is maintained across PAB instances" $ do
         -- We'll check the following: Init, Pong, <STOP>, <RESTART>, Ping works.
-        pabConfig <- bumpConfig 10 "db1" <$> decodeFileThrow @IO "./test/full/testing-plutus-pab.yaml"
+        let pabConfig = bumpConfig 10 "db1" defaultPabConfig
         startPab pabConfig
         ci <- startPingPongContract pabConfig
 
@@ -233,7 +246,7 @@ restoreContractStateTests =
         -- Note: We bump the ports by 100 here because the two calls above.
         -- This should mean that no matter the order of these tests, there
         -- will be no clashes.
-        pabConfig <- bumpConfig 100 "db2" <$> decodeFileThrow @IO "./test/full/testing-plutus-pab.yaml"
+        let pabConfig = bumpConfig 100 "db2" defaultPabConfig
         startPab pabConfig
         ci <- startPingPongContract pabConfig
 

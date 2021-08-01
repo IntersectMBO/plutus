@@ -14,10 +14,11 @@ import           Control.Lens                   (makeLenses)
 import           Control.Monad.Freer.Extras.Log (LogMessage)
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
+import           Data.Default                   (Default, def)
 import           Data.Sequence                  (Seq)
 import           Data.Text.Prettyprint.Doc      (Pretty (..), parens, (<+>))
 import           GHC.Generics                   (Generic)
-import           Servant.Client                 (BaseUrl)
+import           Servant.Client                 (BaseUrl (..), Scheme (..))
 
 import           Cardano.BM.Data.Trace          (Trace)
 import           Cardano.BM.Data.Tracer         (ToObject (..))
@@ -55,6 +56,16 @@ data ChainIndexConfig =
         }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+defaultChainIndexConfig :: ChainIndexConfig
+defaultChainIndexConfig =
+  ChainIndexConfig
+    { ciBaseUrl = ChainIndexUrl $ BaseUrl Http "localhost" 9083 ""
+    , ciWatchedAddresses = []
+    }
+
+instance Default ChainIndexConfig where
+  def = defaultChainIndexConfig
 
 makeLenses ''AppState
 makeLenses ''ChainIndexConfig
