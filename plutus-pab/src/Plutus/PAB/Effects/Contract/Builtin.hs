@@ -36,6 +36,7 @@ module Plutus.PAB.Effects.Contract.Builtin(
     ) where
 
 
+import           Control.Monad                                    (when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
@@ -147,7 +148,7 @@ fromResponse :: forall a effs.
   -> ContractResponse Value Value Value PABReq
   -> Eff effs (SomeBuiltinState a)
 fromResponse cid (SomeBuiltin contract) ContractResponse{newState=State{record}} = do
-  initialState <- initBuiltin @effs @a cid contract
+  initialState <- initBuiltinSilently @effs @a cid contract
 
   let runUpdate (SomeBuiltinState oldS oldW) n = do
         let v = snd <$> n
@@ -157,11 +158,11 @@ fromResponse cid (SomeBuiltin contract) ContractResponse{newState=State{record}}
           Error e      -> throwError $ AesonDecodingError
                                       ("Couldn't decode JSON response when reconstructing state: " <> Text.pack e <> ".")
                                       ( Text.pack $ show $ v )
-          Success resp -> updateBuiltin @effs @a cid oldS oldW resp
+          Success resp -> updateBuiltinSilently @effs @a cid oldS oldW resp
 
   foldlM runUpdate initialState (responses record)
 
-initBuiltin ::
+initBuiltin, initBuiltinSilently ::
     forall effs a contract w schema error b.
     ( ContractConstraints w schema error
     , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
@@ -170,12 +171,25 @@ initBuiltin ::
     => ContractInstanceId
     -> contract w schema error b
     -> Eff effs (SomeBuiltinState a)
-initBuiltin i con = do
+initBuiltin = initBuiltin' False
+initBuiltinSilently = initBuiltin' True
+
+initBuiltin' ::
+    forall effs a contract w schema error b.
+    ( ContractConstraints w schema error
+    , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
+    , IsContract contract
+    )
+    => Bool -- ^ If True, log new messages, otherwise stay silent.
+    -> ContractInstanceId
+    -> contract w schema error b
+    -> Eff effs (SomeBuiltinState a)
+initBuiltin' silent i con = do
     let initialState = Emulator.emptyInstanceState (toContract con)
-    logNewMessages @a i initialState
+    when (not silent) $ logNewMessages @a i initialState
     pure $ SomeBuiltinState initialState mempty
 
-updateBuiltin ::
+updateBuiltin, updateBuiltinSilently ::
     forall effs a w schema error b.
     ( ContractConstraints w schema error
     , Member (Error PABError) effs
@@ -186,12 +200,27 @@ updateBuiltin ::
     -> w
     -> Response PABResp
     -> Eff effs (SomeBuiltinState a)
-updateBuiltin i oldState oldW resp = do
+updateBuiltin = updateBuiltin' False
+updateBuiltinSilently = updateBuiltin' True
+
+updateBuiltin' ::
+    forall effs a w schema error b.
+    ( ContractConstraints w schema error
+    , Member (Error PABError) effs
+    , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
+    )
+    => Bool
+    -> ContractInstanceId
+    -> Emulator.ContractInstanceStateInternal w schema error b
+    -> w
+    -> Response PABResp
+    -> Eff effs (SomeBuiltinState a)
+updateBuiltin' silent i oldState oldW resp = do
     let newState = Emulator.addEventInstanceState resp oldState
     case newState of
         Just k -> do
             logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i resp)
-            logNewMessages @a i k
+            when (not silent) $ logNewMessages @a i k
             let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
             pure (SomeBuiltinState k newW)
         _      -> throwError $ ContractCommandError 0 "failed to update contract"
