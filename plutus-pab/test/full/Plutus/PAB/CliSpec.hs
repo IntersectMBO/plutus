@@ -99,7 +99,8 @@ defaultPabConfig
   = def
       -- Note: We rely on a large timeout here to wait for endpoints to be
       -- available (i.e. transactions to be completed).
-      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 200 }
+      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 300 }
+      , nodeServerConfig = def { Node.Types.mscSocketPath = "/tmp/node-server.sock" }
       }
 
 -- | Bump all the default ports, and any other needed things so that we
@@ -131,7 +132,7 @@ startPab :: Config -> IO ()
 startPab pabConfig = do
   logConfig <- defaultConfig
 
-  CM.setMinSeverity logConfig Error
+  CM.setMinSeverity logConfig Info
 
   (trace :: Trace IO (PrettyObject (AppMsg (Builtin a))), switchboard) <- setupTrace_ logConfig "pab"
 
@@ -208,7 +209,7 @@ runPabInstanceEndpoints pabConfig instanceId endpoints = do
     x <- runClientM (endpoint (ep e) (toJSON ())) apiClientEnv
     case e of
       Succeed _ -> do
-          assertEqual "Got the right thing back from the API" (Right ()) x
+          assertEqual "Got the wrong thing back from the API" (Right ()) x
       Fail _ -> do
           assertBool "Endpoint call succeeded (it should've failed.)" (isLeft x)
 
@@ -228,7 +229,7 @@ restoreContractStateTests =
 
     , testCase "PingPong contract state is maintained across PAB instances" $ do
         -- We'll check the following: Init, Pong, <STOP>, <RESTART>, Ping works.
-        let pabConfig = bumpConfig 10 "db1" defaultPabConfig
+        let pabConfig = bumpConfig 50 "db1" defaultPabConfig
         startPab pabConfig
         ci <- startPingPongContract pabConfig
 
@@ -237,7 +238,7 @@ restoreContractStateTests =
 
         -- Then, check 'ping' works on a different PAB instance (that will
         -- have restored from the same DB.)
-        let newConfig = bumpConfig 10 "db1" pabConfig
+        let newConfig = bumpConfig 50 "db1" pabConfig
         startPab newConfig
 
         runPabInstanceEndpoints newConfig ci [Succeed "ping"]
