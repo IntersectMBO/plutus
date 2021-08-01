@@ -101,7 +101,8 @@ activateContractSTM' c@ContractInstanceState{contractState} activeContractInstan
   Contract.putState @t a activeContractInstanceId contractState
   startContractInstanceThread' c activeContractInstanceId runAppBackend a
 
--- | Spin up the STM Instance thread for the provided contract.
+-- | Spin up the STM Instance thread for the provided contract and add it to
+-- the STM instance state.
 startContractInstanceThread' ::
     forall t m appBackend effs.
     ( Member (LogMsg (ContractInstanceMsg t)) effs
