@@ -52,8 +52,7 @@ commandParser :: Parser NoConfigCommand
 commandParser =
     subparser $
     mconcat
-        [ migrationParser
-        , psGeneratorCommandParser
+        [ psGeneratorCommandParser
         , defaultConfigParser
         ]
 
@@ -78,14 +77,3 @@ psGeneratorCommandParser =
                 (metavar "OUTPUT_DIR" <>
                  help "Output directory to write PureScript files to.")
         pure $ PSGenerator {psGenOutputDir}
-
-migrationParser :: Mod CommandFields NoConfigCommand
-migrationParser =
-    command "migrate" $
-    flip info (fullDesc <> progDesc "Update the database with the latest schema.") $ do
-        dbPath <-
-            argument
-                str
-                (metavar "DATABASE" <>
-                 help "The sqlite database file.")
-        pure $ Migrate{dbPath}

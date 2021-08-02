@@ -27,8 +27,7 @@ let
   migrate = pkgs.writeShellScriptBin "plutus-pab-migrate" ''
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
-    # TODO: Change the migrate to read the config file instead and get the db path from there
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-setup-invoker)/bin/plutus-pab-setup migrate $(yq -r '.dbConfig.dbConfigFile' plutus-pab.yaml)
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-examples-invoker)/bin/plutus-pab-examples --config=plutus-pab.yaml migrate
   '';
 
   # For dev usage
