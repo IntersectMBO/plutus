@@ -14,8 +14,8 @@
       identifier = { name = "plutus-core"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
-      maintainer = "vanessa.mchale@iohk.io";
-      author = "Vanessa McHale";
+      maintainer = "michael.peyton-jones@iohk.io";
+      author = "Plutus Core Team";
       homepage = "";
       url = "";
       synopsis = "Language library for Plutus Core";
@@ -94,6 +94,7 @@
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
@@ -171,7 +172,7 @@
           "UntypedPlutusCore/Core/Plated"
           "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
-          "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/EmitterMode"
           "UntypedPlutusCore/Mark"
           "UntypedPlutusCore/Rename/Internal"
           "UntypedPlutusCore/Size"
@@ -281,6 +282,7 @@
           "UntypedPlutusCore/DeBruijn"
           "UntypedPlutusCore/Evaluation/HOAS"
           "UntypedPlutusCore/Evaluation/Machine/Cek"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
           "UntypedPlutusCore/Check/Uniques"
