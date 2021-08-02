@@ -277,6 +277,22 @@ renameBindingNonRecC
     :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
     => Binding tyname name uni fun ann
     -> ContT c m (Binding tyname name uni fun ann)
+-- Unlike in the recursive case we don't have any stage separation here.
+--
+-- 'TypeBind' is the simplest case: the body of the binding gets renamed first, then the name of
+-- the binding is brought in scope (not the other way around! As that would bring the name of the
+-- binding in scope in its own body, which is very wrong in the non-recursive case) and the
+-- renamed 'TypeBind' is passed to the continuation.
+--
+-- 'TermBind' also requires us to discharge the computation returning a variable with a renamed term-- before feeding the continuation. The reason why 'withFreshenedVarDecl' provides the caller with a
+-- computation rather than a pure term is because that is how we bring mutually recursive bindings
+-- in scope first without renaming their types right away (as those can reference type bindings from
+-- the same family) while still being able to perform the renaming later. But we don't need that
+-- stage separation in the non-recursive case, hence the type of the binding is renamed right away.
+--
+-- 'DatatypeBind' is handled the same way as 'TermBind' except all the work is performed in
+-- 'renameDatatypeCM' and here we just unwrap from 'ContT' and perform all the renaming saved for
+-- stage two immediately just like in the 'TermBind' case and for the same reason.
 renameBindingNonRecC binding = ContT $ \cont -> case binding of
     TermBind x s var term -> do
         termFr <- renameTermM term

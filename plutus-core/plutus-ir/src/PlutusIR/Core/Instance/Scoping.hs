@@ -88,15 +88,25 @@ establishScopingParams =
         TyVarDecl (introduceBound paramName) paramName <$> establishScoping paramKind
 
 -- See Note [Weird IR data types].
--- | Establish scoping for the type of a constructor. After mangling the updated constructor expects
--- an argument of the \"the data type applied to all its parameters\" type, plus the final head
--- gets applied to the same thing as well (because it's legal to generate a data type whose
--- constructors do not return the data type applied to its parameters as program generation can be
--- entirely arbitrary (no pun intended)). All this means that mangling turns well-formed programs
--- into weirdly shaped mess, but we only care about testing scoping here, so that's fine.
--- Whether the name of the data type is referenced as in-scope or out-of-scope one in the types of
--- arguments of constructors is controlled by the first argument, which ultimately depends on the
--- recursivity of the data type.
+{- | Establish scoping for the type of a constructor. The updated constructor expects an argument
+of the \"the data type applied to all its parameters\" type (that argument is the last one) and
+always returns that exact type as a result. For example, this functions turns the following
+generated type of constructor
+
+    integer -> a -> <a_non_->_type>
+
+into
+
+    integer -> a -> D a b -> D a b
+
+assuming the constructor is supposed to construct a data type @D@ parameterized by two parameters
+@a@ and @b@. Note that @<a_non_->_type>@ can be anything as the generator is allowed to generate
+mess such as a constructor not actually constructing a value of the data type.
+
+Whether the name of the data type is referenced as in-scope or out-of-scope one in the types of
+arguments of constructors is controlled by the first argument, which ultimately depends on the
+recursivity of the data type.
+-}
 establishScopingConstrTy
     :: (TyName -> NameAnn)
     -> TyName
@@ -119,10 +129,8 @@ establishScopingConstrTy regSelf dataName params = goSpine where
                 TyFun NotAName (TyVar (registerBound name) name) <$>
                     goSpine ty
     goSpine (TyFun _ dom cod) = TyFun NotAName <$> establishScoping dom <*> goSpine cod
-    goSpine ty                = TyFun NotAName (toDataAppliedToParams regSelf) <$> goResult ty
-
-    goResult (TyApp _ fun arg) = TyApp NotAName <$> goResult fun <*> establishScoping arg
-    goResult _                 = pure $ toDataAppliedToParams registerBound
+    goSpine _                 =
+        pure . TyFun NotAName (toDataAppliedToParams regSelf) $ toDataAppliedToParams registerBound
 
 -- | Establish scoping for all constructors of a data type by establishing scoping for each of them
 -- individually. If there are no constructors, then a dummy one is added, because we need to
