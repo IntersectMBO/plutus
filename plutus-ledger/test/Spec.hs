@@ -308,16 +308,16 @@ slotIsPositiveProp = property $ do
     Hedgehog.assert $ TimeSlot.posixTimeToEnclosingSlot sc posixTime >= 0
 
 -- | Inverse property between 'slotRangeToPOSIXTimeRange' and
--- 'posixTimeRangeToSlotRange' from a 'SlotRange'.
+-- 'posixTimeRangeToContainedSlotRange' from a 'SlotRange'.
 slotToTimeInverseProp :: Property
 slotToTimeInverseProp = property $ do
     sc <- forAll slotConfigGen
     slotRange <- forAll slotRangeGen
-    let slotRange' = TimeSlot.posixTimeRangeToSlotRange sc (TimeSlot.slotRangeToPOSIXTimeRange sc slotRange)
+    let slotRange' = TimeSlot.posixTimeRangeToContainedSlotRange sc (TimeSlot.slotRangeToPOSIXTimeRange sc slotRange)
     Hedgehog.footnoteShow (slotRange, slotRange')
     Hedgehog.assert $ slotRange == slotRange'
 
--- | Inverse property between 'posixTimeRangeToSlotRange' and
+-- | Inverse property between 'posixTimeRangeToContainedSlotRange' and
 -- 'slotRangeToPOSIXTimeRange' from a 'POSIXTimeRange'.
 timeToSlotInverseProp :: Property
 timeToSlotInverseProp = property $ do
@@ -326,7 +326,7 @@ timeToSlotInverseProp = property $ do
     Hedgehog.assert $
         Interval.contains
             timeRange
-            (TimeSlot.slotRangeToPOSIXTimeRange sc (TimeSlot.posixTimeRangeToSlotRange sc timeRange))
+            (TimeSlot.slotRangeToPOSIXTimeRange sc (TimeSlot.posixTimeRangeToContainedSlotRange sc timeRange))
 
 -- | 'POSIXTimeRange' from 'Slot' should have lower bound lower or equal than upper bound
 slotToTimeRangeHasLowerAndUpperBoundsProp :: Property

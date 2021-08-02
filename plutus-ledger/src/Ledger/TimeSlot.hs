@@ -18,7 +18,7 @@ module Ledger.TimeSlot(
 , slotToPOSIXTimeRange
 , slotToBeginPOSIXTime
 , slotToEndPOSIXTime
-, posixTimeRangeToSlotRange
+, posixTimeRangeToContainedSlotRange
 , posixTimeToEnclosingSlot
 , currentSlot
 ) where
@@ -101,11 +101,11 @@ slotToEndPOSIXTime :: SlotConfig -> Slot -> POSIXTime
 slotToEndPOSIXTime sc@SlotConfig{scSlotLength} slot =
   slotToBeginPOSIXTime sc slot + POSIXTime (scSlotLength - 1)
 
-{-# INLINABLE posixTimeRangeToSlotRange #-}
+{-# INLINABLE posixTimeRangeToContainedSlotRange #-}
 -- | Convert a 'POSIXTimeRange' to 'SlotRange' given a 'SlotConfig'. This gives
 -- the biggest slot range that is entirely contained by the given time range.
-posixTimeRangeToSlotRange :: SlotConfig -> POSIXTimeRange -> SlotRange
-posixTimeRangeToSlotRange sc ptr = case fmap (posixTimeToEnclosingSlot sc) ptr of
+posixTimeRangeToContainedSlotRange :: SlotConfig -> POSIXTimeRange -> SlotRange
+posixTimeRangeToContainedSlotRange sc ptr = case fmap (posixTimeToEnclosingSlot sc) ptr of
   Interval (LowerBound start startIncl) (UpperBound end endIncl) ->
     Interval
       (LowerBound start (case start of Finite s -> slotToBeginPOSIXTime sc s `member` ptr; _ -> startIncl))
