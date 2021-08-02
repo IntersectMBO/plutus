@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
@@ -63,9 +64,27 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
 
+import           Hedgehog.Internal.Config
+import           Hedgehog.Internal.Region
+import           Hedgehog.Internal.Report
+import           Hedgehog.Internal.Runner
+
+-- | @check@ is supposed to just check if the property fails or not, but for some stupid reason it
+-- also performs shrinking and prints the counterexample and other junk. This function is like
+-- @check@, but doesn't do any of that.
+checkQuiet :: MonadIO m => Property -> m Bool
+checkQuiet prop = do
+    color <- detectColor
+    -- This is what causes @hedgehog@ to shut up.
+    region <- liftIO newEmptyRegion
+    -- For some reason @hedgehog@ thinks it's a good idea to shrink a counterexample in case of
+    -- an expected failure, so we suppress that.
+    let propNoShrink = withShrinks 0 prop
+    liftIO $ (== OK) . reportStatus <$> checkNamed region color Nothing propNoShrink
+
 -- | Check that the given 'Property' fails.
 checkFails :: Property -> IO ()
-checkFails prop = check prop >>= \res -> res @?= False
+checkFails = checkQuiet >=> \res -> res @?= False
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
 -- from the process should be caught.
@@ -244,15 +263,17 @@ prop_scopingFor gen ren = property $ do
         Right (Left err) -> fail $ show err
         Right (Right ()) -> success
 
+-- | Test that a good renamer does not destroy scoping.
 test_scopingGood
     :: (Pretty (t ann), Scoping t)
     => AstGen (t ann)
     -> (t NameAnn -> TPLC.Quote (t NameAnn))
     -> TestTree
 test_scopingGood gen ren =
-    testProperty "renaming does not destroy scoping" $
+    testProperty "renamer does not destroy scoping" $
         prop_scopingFor gen ren
 
+-- | Test that a renaming machinery destroys scoping when a bad renamer is chosen.
 test_scopingBad
     :: (Pretty (t ann), Scoping t, Monoid ren)
     => AstGen (t ann)
@@ -265,6 +286,6 @@ test_scopingBad gen mark renM =
             checkFails . prop_scopingFor gen $ brokenRename mark renM
         , testCase "no renaming does not result in global uniqueness" $
             checkFails . prop_scopingFor gen $ noRename mark renM
-        , testCase "no marking renaming destroys scoping" $
+        , testCase "renaming with no marking destroys scoping" $
             checkFails . prop_scopingFor gen $ noMarkRename renM
         ]
