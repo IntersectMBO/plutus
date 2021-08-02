@@ -88,6 +88,7 @@
           (hsPkgs."sop-core" or (errorHandler.buildDepError "sop-core"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
+          (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
