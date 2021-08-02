@@ -11,11 +11,9 @@ module PlutusCore.Evaluation.Machine.ExMemory
 ( CostingInteger
 , ExMemory(..)
 , ExCPU(..)
-, GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
 ) where
 
-import           PlutusCore.Core
 import           PlutusCore.Data
 import           PlutusCore.Name
 import           PlutusCore.Pretty
@@ -27,7 +25,6 @@ import qualified Data.ByteString            as BS
 import           Data.Proxy
 import           Data.SatInt
 import qualified Data.Text                  as T
-import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
@@ -121,53 +118,11 @@ instance Pretty ExCPU where
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
 
--- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
-class GExMemoryUsage f where
-  gmemoryUsage' :: f a -> ExMemory
-
-gmemoryUsage :: (Generic a, GExMemoryUsage (Rep a)) => a -> ExMemory
-gmemoryUsage x = gmemoryUsage' (from x)
-
-instance GExMemoryUsage U1 where
-  gmemoryUsage' _ = 1 -- No constructor
-
-instance GExMemoryUsage V1 where
-  gmemoryUsage' _ = 1 -- Empty datatype
-
-instance ExMemoryUsage a => GExMemoryUsage (K1 i a) where
-  gmemoryUsage' (K1 x) = memoryUsage x
-
-instance GExMemoryUsage f => GExMemoryUsage (M1 i c f) where
-  gmemoryUsage' (M1 x) = gmemoryUsage' x
-
-instance (GExMemoryUsage f, GExMemoryUsage g) => GExMemoryUsage (f :*: g) where
-  gmemoryUsage' (x1 :*: x2) = gmemoryUsage' x1 + gmemoryUsage' x2
-
-instance (GExMemoryUsage f, GExMemoryUsage g) => GExMemoryUsage (f :+: g) where
-  gmemoryUsage' (L1 x) = gmemoryUsage' x
-  gmemoryUsage' (R1 x) = gmemoryUsage' x
-
-newtype GenericExMemoryUsage a = GenericExMemoryUsage { getGenericExMemoryUsage :: a }
-instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUsage a) where
-  memoryUsage (GenericExMemoryUsage x) = gmemoryUsage x
-
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
-deriving via (GenericExMemoryUsage (Either a b)) instance
-    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (Either a b)
-deriving via (GenericExMemoryUsage (a, b)) instance
-    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b)
-
-deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
-deriving via (GenericExMemoryUsage (Type tyname uni ann)) instance
-    (ExMemoryUsage tyname, ExMemoryUsage ann) => ExMemoryUsage (Type tyname uni ann)
-deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
-deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
-    ( ExMemoryUsage tyname, ExMemoryUsage name, ExMemoryUsage ann
-    , Closed uni, uni `Everywhere` ExMemoryUsage, ExMemoryUsage fun
-    ) => ExMemoryUsage (Term tyname name uni fun ann)
-deriving newtype instance ExMemoryUsage TyName
+instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
+    memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
 instance ExMemoryUsage SatInt where
     memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
 deriving newtype instance ExMemoryUsage ExMemory
