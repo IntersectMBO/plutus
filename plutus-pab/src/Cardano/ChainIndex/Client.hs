@@ -15,7 +15,7 @@ import           Control.Monad.Freer.Error  (Error, throwError)
 import           Control.Monad.Freer.Reader (Reader, ask)
 import           Control.Monad.IO.Class     (MonadIO (..))
 import           Data.Proxy                 (Proxy (Proxy))
-import           Ledger                     (Address, TxId)
+import           Ledger                     (Address)
 import           Ledger.AddressMap          (AddressMap)
 import           Ledger.Blockchain          (Block)
 import           Servant                    (NoContent, (:<|>) (..))
@@ -27,12 +27,11 @@ healthCheck :: ClientM NoContent
 startWatching :: Address -> ClientM NoContent
 watchedAddresses :: ClientM AddressMap
 confirmedBlocks :: ClientM [Block]
-transactionConfirmed :: TxId -> ClientM Bool
 addressChanged :: AddressChangeRequest -> ClientM AddressChangeResponse
-(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed, addressChanged) =
-  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_, addressChanged_)
+(healthCheck, startWatching, watchedAddresses, confirmedBlocks, addressChanged) =
+  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, addressChanged_)
   where
-    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  :<|> addressChanged_ =
+    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> addressChanged_ =
         client (Proxy @API)
 
 handleChainIndexClient ::
@@ -49,8 +48,7 @@ handleChainIndexClient event = do
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     case event of
-        StartWatching a           -> void (runClient (startWatching a))
-        WatchedAddresses          -> runClient watchedAddresses
-        ConfirmedBlocks           -> runClient confirmedBlocks
-        TransactionConfirmed txid -> runClient (transactionConfirmed txid)
-        AddressChanged req        -> runClient (addressChanged req)
+        StartWatching a    -> void (runClient (startWatching a))
+        WatchedAddresses   -> runClient watchedAddresses
+        ConfirmedBlocks    -> runClient confirmedBlocks
+        AddressChanged req -> runClient (addressChanged req)

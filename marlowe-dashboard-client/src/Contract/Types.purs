@@ -1,24 +1,29 @@
 module Contract.Types
   ( State
+  , StepBalance
   , PreviousStep
   , PreviousStepState(..)
   , Tab(..)
   , Input
+  , Movement(..)
   , Action(..)
   , scrollContainerRef
   ) where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
+import Data.BigInteger (BigInteger)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
+import Data.Time.Duration (Minutes)
+import Data.Tuple (Tuple)
 import Halogen (RefLabel(..))
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
-import Marlowe.PAB (PlutusAppId, MarloweParams)
-import Marlowe.Semantics (ChoiceId, ChosenNum, Party, Slot, TransactionInput, Accounts)
+import Marlowe.PAB (MarloweParams, PlutusAppId)
+import Marlowe.Semantics (AccountId, Accounts, Value, ChoiceId, ChosenNum, Party, Payment, Slot, Token(..), TransactionInput)
 import WalletData.Types (WalletDetails, WalletNickname)
 
 type State
@@ -29,7 +34,6 @@ type State
     -- can advance the contract. This enables us to show immediate feedback to the user while we wait.
     , pendingTransaction :: Maybe TransactionInput
     , previousSteps :: Array PreviousStep
-    , followerAppId :: PlutusAppId
     -- Every contract needs MarloweParams, but this is a Maybe because we want to create "placeholder"
     -- contracts when a user creates a contract, to show on the page until the blockchain settles and
     -- we get the MarloweParams back from the PAB (through the MarloweFollower app).
@@ -40,16 +44,25 @@ type State
     , selectedStep :: Int
     , metadata :: MetaData
     , participants :: Map Party (Maybe WalletNickname)
+    -- Theser are the roles and PK's that the "logged-in" user has in this contract.
     , userParties :: Set Party
-    -- These are the possible actions a user can make in the current step. We store this mainly because
-    -- extractNamedActions could potentially be unperformant to compute.
-    , namedActions :: Array NamedAction
+    -- These are the possible actions a user can make in the current step (grouped by part). We store this
+    -- mainly because extractNamedActions and expandAndGroupByRole could potentially be unperformant to compute
+    -- for every render.
+    , namedActions :: Array (Tuple Party (Array NamedAction))
+    }
+
+type StepBalance
+  = { atStart :: Accounts
+    , atEnd :: Maybe Accounts
     }
 
 -- Represents a historical step in a contract's life.
 type PreviousStep
   = { tab :: Tab
-    , balances :: Accounts
+    , expandPayments :: Boolean
+    , resultingPayments :: Array Payment
+    , balances :: StepBalance
     , state :: PreviousStepState
     }
 
@@ -65,14 +78,23 @@ derive instance eqTab :: Eq Tab
 
 type Input
   = { currentSlot :: Slot
+    , tzOffset :: Minutes
     , walletDetails :: WalletDetails
+    , followerAppId :: PlutusAppId
     }
 
+data Movement
+  = PayIn Party AccountId Token BigInteger -- a.k.a deposit
+  | Transfer Party Party Token BigInteger
+  | PayOut AccountId Party Token BigInteger
+
 data Action
-  = SetNickname String
+  = SelectSelf
+  | SetNickname String
   | ConfirmAction NamedAction
   | ChangeChoice ChoiceId (Maybe ChosenNum)
   | SelectTab Int Tab
+  | ToggleExpandPayment Int
   | AskConfirmation NamedAction
   | CancelConfirmation
   -- The SelectStep action is what changes the model and causes the card to seem bigger.
@@ -83,10 +105,12 @@ data Action
   | CarouselClosed
 
 instance actionIsEvent :: IsEvent Action where
+  toEvent SelectSelf = Nothing
   toEvent (ConfirmAction _) = Just $ defaultEvent "ConfirmAction"
   toEvent (SetNickname _) = Just $ defaultEvent "SetNickname"
   toEvent (ChangeChoice _ _) = Just $ defaultEvent "ChangeChoice"
   toEvent (SelectTab _ _) = Just $ defaultEvent "SelectTab"
+  toEvent (ToggleExpandPayment _) = Just $ defaultEvent "ToggleExpandPayment"
   toEvent (AskConfirmation _) = Just $ defaultEvent "AskConfirmation"
   toEvent CancelConfirmation = Just $ defaultEvent "CancelConfirmation"
   toEvent (SelectStep _) = Just $ defaultEvent "SelectStep"

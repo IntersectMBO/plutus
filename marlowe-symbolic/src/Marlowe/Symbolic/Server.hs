@@ -31,7 +31,7 @@ import           System.Clock                          (Clock (Monotonic), diffT
 import           System.Process                        (system)
 import           Text.PrettyPrint.Leijen               (displayS, renderCompact)
 
-type API = "marlowe-analysis" :> ReqBody '[JSON] Request :> Post '[JSON] Response
+type API = "api" :> "marlowe-analysis" :> ReqBody '[JSON] Request :> Post '[JSON] Response
 
 makeResult ::
   Either String (Maybe (Slot, [TransactionInput], [TransactionWarning])) ->

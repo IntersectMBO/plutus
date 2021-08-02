@@ -413,7 +413,7 @@ handleAction (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms
 handleAction (HandleActusBlocklyMessage ActusBlockly.CodeChange) = setUnsavedChangesForLanguage Actus true
 
 -- TODO: modify gist action type to take a gistid as a parameter
--- https://github.com/input-output-hk/plutus/pull/2498/files#r533478042
+-- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533478042
 handleAction (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
   assign _createGistResult Loading
   res <-
@@ -685,7 +685,6 @@ createFiles = do
 
 handleGistAction ::
   forall m.
-  Warn (Text "Check if the handler for LoadGist is being used") =>
   Warn (Text "SCP-1591 Saving failure does not provide enough information") =>
   MonadAff m =>
   MonadAsk Env m =>
@@ -723,10 +722,13 @@ handleGistAction (SetGistUrl url) = do
         )
     Left _ -> pure unit
 
--- TODO: I think this action is not being called.
--- > The issue is that for historical reasons, the gist actions rely on gist id stored in the state,
--- > so we need to set the appropriate state before handling the gist action. This should probably be
--- > changed to have gist action type taking gist id as a parameter.
+-- TODO: This action is only called when loading the site with a gistid param, something like
+-- https://<base_url>/#/marlowe?gistid=<gist_id>
+-- But it's not loading the gist correctly. For now I'm leaving it as it is, but we should rethink
+-- this functionality in the redesign.
+--
+-- A separate issue is that the gistid is loaded in the state instead of passing it as a parameter
+-- to the LoadGist action
 -- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533478042
 handleGistAction LoadGist = do
   res <-

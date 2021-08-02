@@ -12,7 +12,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , emptyBlockchainEnv
     , awaitSlot
     , awaitEndpointResponse
-    , waitForTxConfirmed
+    , waitForTxStatusChange
     , valueAt
     , currentSlot
     -- * State of a contract instance
@@ -29,9 +29,6 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , callEndpoint
     , finalResult
     , Activity(..)
-    , Depth(..)
-    , TxStatus(..)
-    , increaseDepth
     -- * State of all running contract instances
     , InstancesState
     , emptyInstancesState
@@ -61,7 +58,7 @@ import           Ledger                           (Address, Slot, TxId, txOutTxO
 import           Ledger.AddressMap                (AddressMap)
 import qualified Ledger.AddressMap                as AM
 import qualified Ledger.Value                     as Value
-import           Plutus.Contract.Effects          (ActiveEndpoint (..), TxConfirmed (..))
+import           Plutus.Contract.Effects          (ActiveEndpoint (..), TxStatus (..))
 import           Plutus.Contract.Resumable        (IterationID, Request (..), RequestID)
 import           Wallet.Emulator.ChainIndex.Index (ChainIndex)
 import           Wallet.Types                     (ContractInstanceId, EndpointDescription, EndpointValue (..),
@@ -125,55 +122,14 @@ data OpenEndpoint =
             , oepResponse :: TMVar (EndpointValue Value) -- ^ A place to write the response to.
             }
 
-{- Note [TxStatus state machine]
-
-The status of a transaction is described by the following state machine.
-
-Current state        | New state(s)
------------------------------------------------------
-InMemPool            | Invalid, TentativelyConfirmed
-Invalid              | -
-TentativelyConfirmed | InMemPool, DefinitelyConfirmed
-DefinitelyConfirmed  | -
-
-The initial state after submitting the transaction is InMemPool.
-
--}
-
--- | How many blocks deep the tx is on the chain
-newtype Depth = Depth Int
-    deriving stock (Eq, Ord, Show)
-    deriving newtype (Num, Real, Enum, Integral)
-
--- | Status of a transaction from the perspective of the contract.
---   See note [TxStatus state machine]
-data TxStatus =
-    InMemPool -- ^ Not on chain yet
-    | Invalid -- ^ Invalid (its inputs were spent or its validation range has passed)
-    | TentativelyConfirmed Depth -- ^ On chain, can still be rolled back
-    | DefinitelyConfirmed -- ^ Cannot be rolled back
-    deriving (Eq, Ord, Show)
-
--- | Whether a 'TxStatus' counts as confirmed given the minimum depth
-isConfirmed :: Depth -> TxStatus -> Bool
-isConfirmed minDepth = \case
-    TentativelyConfirmed d | d >= minDepth -> True
-    DefinitelyConfirmed                    -> True
-    _                                      -> False
-
--- | Increase the depth of a tentatively confirmed transaction
-increaseDepth :: TxStatus -> TxStatus
-increaseDepth (TentativelyConfirmed d) = TentativelyConfirmed (d + 1)
-increaseDepth e                        = e
-
 -- | Data about the blockchain that contract instances
 --   may be interested in.
 data BlockchainEnv =
     BlockchainEnv
         { beCurrentSlot :: TVar Slot -- ^ Current slot
-        , beAddressMap  :: TVar AddressMap -- ^ Address map used for updating the chain index
-        , beTxIndex     :: TVar ChainIndex -- ^ Local chain index (not persisted)
-        , beTxChanges   :: TVar (Map TxId TxStatus) -- ^ Map of transaction IDs to statuses
+        , beAddressMap  :: TVar AddressMap -- ^ Address map used for updating the chain index. TODO: Should not be part of 'BlockchainEnv'
+        , beTxIndex     :: TVar ChainIndex -- ^ Local chain index (not persisted). TODO: Should not be part of 'BlockchainEnv'
+        , beTxChanges   :: TVar (Map TxId (TVar TxStatus)) -- ^ Map of transaction IDs to statuses
         }
 
 -- | Initialise an empty 'BlockchainEnv' value
@@ -363,13 +319,16 @@ watchedTransactions (InstancesState m) = do
     allSets <- traverse (STM.readTVar . issTransactions) (snd <$> Map.toList mp)
     pure $ fold allSets
 
--- | Wait for the status of a transaction to be confirmed. TODO: Should be "status changed", some txns may never get to confirmed status
-waitForTxConfirmed :: TxId -> BlockchainEnv -> STM TxConfirmed
-waitForTxConfirmed tx BlockchainEnv{beTxChanges} = do
+-- | Wait for the status of a transaction to change.
+waitForTxStatusChange :: TxStatus -> TxId -> BlockchainEnv -> STM TxStatus
+waitForTxStatusChange oldStatus tx BlockchainEnv{beTxChanges} = do
     idx <- STM.readTVar beTxChanges
-    let minDepth = 8 -- how many blocks the tx must be into the chain
-    guard $ maybe False (isConfirmed minDepth) (Map.lookup tx idx)
-    pure (TxConfirmed tx)
+    case Map.lookup tx idx of
+        Nothing -> empty -- TODO: should be an error?
+        Just tv' -> do
+            newStatus <- STM.readTVar tv'
+            guard $ oldStatus /= newStatus
+            pure newStatus
 
 -- | The value at an address
 valueAt :: Address -> BlockchainEnv -> STM Value.Value

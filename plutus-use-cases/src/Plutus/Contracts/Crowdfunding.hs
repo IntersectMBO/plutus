@@ -48,35 +48,36 @@ module Plutus.Contracts.Crowdfunding (
     , successfulCampaign
     ) where
 
-import           Control.Applicative      (Applicative (..))
-import           Control.Monad            (void)
-import           Data.Aeson               (FromJSON, ToJSON)
-import           Data.Text                (Text)
-import qualified Data.Text                as Text
-import           GHC.Generics             (Generic)
+import           Control.Applicative                  (Applicative (..))
+import           Control.Monad                        (void)
+import           Data.Aeson                           (FromJSON, ToJSON)
+import           Data.Text                            (Text)
+import qualified Data.Text                            as Text
+import           GHC.Generics                         (Generic)
 
-import           Data.Default             (Default (def))
-import           Ledger                   (POSIXTime, POSIXTimeRange, PubKeyHash, Validator, txId)
+import           Ledger                               (POSIXTime, POSIXTimeRange, PubKeyHash, Validator, txId)
 import qualified Ledger
-import qualified Ledger.Ada               as Ada
-import qualified Ledger.Constraints       as Constraints
-import           Ledger.Contexts          as V
-import qualified Ledger.Interval          as Interval
-import qualified Ledger.Scripts           as Scripts
-import qualified Ledger.TimeSlot          as TimeSlot
-import qualified Ledger.Typed.Scripts     as Scripts hiding (validatorHash)
-import           Ledger.Value             (Value)
+import qualified Ledger.Ada                           as Ada
+import qualified Ledger.Constraints                   as Constraints
+import           Ledger.Contexts                      as V
+import qualified Ledger.Interval                      as Interval
+import qualified Ledger.Scripts                       as Scripts
+import qualified Ledger.TimeSlot                      as TimeSlot
+import qualified Ledger.Typed.Scripts                 as Scripts hiding (validatorHash)
+import           Ledger.Value                         (Value)
 import           Plutus.Contract
-import qualified Plutus.Contract.Typed.Tx as Typed
-import           Plutus.Trace.Emulator    (ContractHandle, EmulatorTrace)
-import qualified Plutus.Trace.Emulator    as Trace
+import qualified Plutus.Contract.Typed.Tx             as Typed
+import           Plutus.Trace.Effects.EmulatorControl (getSlotConfig)
+import           Plutus.Trace.Emulator                (ContractHandle, EmulatorTrace)
+import qualified Plutus.Trace.Emulator                as Trace
 import qualified PlutusTx
-import           PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), return, (<$>), (>>), (>>=))
-import           Prelude                  (Semigroup (..))
-import qualified Prelude                  as Haskell
-import           Schema                   (ToArgument, ToSchema)
-import           Wallet.Emulator          (Wallet (..))
-import qualified Wallet.Emulator          as Emulator
+import           PlutusTx.Prelude                     hiding (Applicative (..), Semigroup (..), return, (<$>), (>>),
+                                                       (>>=))
+import           Prelude                              (Semigroup (..), (<$>))
+import qualified Prelude                              as Haskell
+import           Schema                               (ToArgument, ToSchema)
+import           Wallet.Emulator                      (Wallet (..))
+import qualified Wallet.Emulator                      as Emulator
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -124,13 +125,13 @@ mkCampaign ddl collectionDdl ownerWallet =
 {-# INLINABLE collectionRange #-}
 collectionRange :: Campaign -> POSIXTimeRange
 collectionRange cmp =
-    Interval.interval (campaignDeadline cmp + 1) (campaignCollectionDeadline cmp)
+    Interval.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp - 1)
 
 -- | The 'POSIXTimeRange' during which a refund may be claimed
 {-# INLINABLE refundRange #-}
 refundRange :: Campaign -> POSIXTimeRange
 refundRange cmp =
-    Interval.from (campaignCollectionDeadline cmp + 1)
+    Interval.from (campaignCollectionDeadline cmp)
 
 data Crowdfunding
 instance Scripts.ValidatorTypes Crowdfunding where
@@ -187,13 +188,13 @@ campaignAddress = Scripts.validatorHash . contributionScript
 
 -- | The crowdfunding contract for the 'Campaign'.
 crowdfunding :: Campaign -> Contract () CrowdfundingSchema ContractError ()
-crowdfunding c = contribute c `select` scheduleCollection c
+crowdfunding c = selectList [contribute c, scheduleCollection c]
 
 -- | A sample campaign
-theCampaign :: Campaign
-theCampaign = Campaign
-    { campaignDeadline = TimeSlot.slotToEndPOSIXTime def 20
-    , campaignCollectionDeadline = TimeSlot.slotToEndPOSIXTime def 30
+theCampaign :: POSIXTime -> Campaign
+theCampaign startTime = Campaign
+    { campaignDeadline = startTime + 20000
+    , campaignCollectionDeadline = startTime + 30000
     , campaignOwner = pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 1)
     }
 
@@ -201,14 +202,13 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding was not collected.
-contribute :: Campaign -> Contract () CrowdfundingSchema ContractError ()
-contribute cmp = do
-    Contribution{contribValue} <- endpoint @"contribute"
+contribute :: Campaign -> Promise () CrowdfundingSchema ContractError ()
+contribute cmp = endpoint @"contribute" $ \Contribution{contribValue} -> do
     logInfo @Text $ "Contributing " <> Text.pack (Haskell.show contribValue)
     contributor <- ownPubKey
     let inst = typedValidator cmp
         tx = Constraints.mustPayToTheScript (pubKeyHash contributor) contribValue
-                <> Constraints.mustValidateIn (Ledger.interval 1 (campaignDeadline cmp))
+                <> Constraints.mustValidateIn (Interval.to (campaignDeadline cmp))
     txid <- fmap txId (submitTxConstraints inst tx)
 
     utxo <- watchAddressUntilTime (Scripts.validatorAddress inst) $ campaignCollectionDeadline cmp
@@ -230,14 +230,13 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: Campaign -> Contract () CrowdfundingSchema ContractError ()
-scheduleCollection cmp = do
+scheduleCollection :: Campaign -> Promise () CrowdfundingSchema ContractError ()
+scheduleCollection cmp = endpoint @"schedule collection" $ \() -> do
     let inst = typedValidator cmp
 
     -- Expose an endpoint that lets the user fire the starting gun on the
     -- campaign. (This endpoint isn't technically necessary, we could just
     -- run the 'trg' action right away)
-    () <- endpoint @"schedule collection"
     logInfo @Text "Campaign started. Waiting for campaign deadline to collect funds."
 
     _ <- awaitTime $ campaignDeadline cmp
@@ -253,14 +252,16 @@ scheduleCollection cmp = do
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign :: EmulatorTrace (ContractHandle () CrowdfundingSchema ContractError)
 startCampaign = do
-    hdl <- Trace.activateContractWallet (Wallet 1) (crowdfunding theCampaign)
+    startTime <- TimeSlot.scSlotZeroTime <$> getSlotConfig
+    hdl <- Trace.activateContractWallet (Wallet 1) (crowdfunding $ theCampaign startTime)
     Trace.callEndpoint @"schedule collection" hdl ()
     pure hdl
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution :: Wallet -> Value -> EmulatorTrace ()
 makeContribution w v = do
-    hdl <- Trace.activateContractWallet w (crowdfunding theCampaign)
+    startTime <- TimeSlot.scSlotZeroTime <$> getSlotConfig
+    hdl <- Trace.activateContractWallet w (crowdfunding $ theCampaign startTime)
     Trace.callEndpoint @"contribute" hdl Contribution{contribValue=v}
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.

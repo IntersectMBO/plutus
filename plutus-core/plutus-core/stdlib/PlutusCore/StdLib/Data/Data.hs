@@ -37,13 +37,13 @@ dataTy = mkTyBuiltin @_ @Data ()
 -- >       (fI : integer -> r)
 -- >       (fB : bytestring -> r) ->
 -- >           chooseData
+-- >               d
 -- >               {unit -> r}
 -- >               (\(u : unit) -> uncurry {integer} {list data} {r} fConstr (unConstrB d))
 -- >               (\(u : unit) -> fMap (unMapB d))
 -- >               (\(u : unit) -> fList (unListB d))
 -- >               (\(u : unit) -> fI (unIB d))
 -- >               (\(u : unit) -> fB (unBB d))
--- >               d
 -- >               unitval
 caseData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 caseData = runQuote $ do
@@ -65,7 +65,8 @@ caseData = runQuote $ do
         . lamAbs () fI (TyFun () integer $ TyVar () r)
         . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) $ TyVar () r)
         $ mkIterApp () (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
-            [ lamAbs () u unit $ mkIterApp () (mkIterInst () uncurry [integer, listData, TyVar () r])
+            [ var () d
+            , lamAbs () u unit $ mkIterApp () (mkIterInst () uncurry [integer, listData, TyVar () r])
                 [ var () fConstr
                 , apply () (builtin () UnConstrData) $ var () d
                 ]
@@ -73,6 +74,5 @@ caseData = runQuote $ do
             , lamAbs () u unit . apply () (var () fList) . apply () (builtin () UnListData) $ var () d
             , lamAbs () u unit . apply () (var () fI)    . apply () (builtin () UnIData)    $ var () d
             , lamAbs () u unit . apply () (var () fB)    . apply () (builtin () UnBData)    $ var () d
-            , var () d
             , unitval
             ]

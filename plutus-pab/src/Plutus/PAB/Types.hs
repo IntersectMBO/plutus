@@ -21,7 +21,7 @@ import           Data.Default              (Default, def)
 import           Data.Map.Strict           (Map)
 import qualified Data.Map.Strict           as Map
 import           Data.Text                 (Text)
-import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow, (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty, line, pretty, viaShow, (<+>))
 import           Data.Time.Units           (Second)
 import           Data.UUID                 (UUID)
 import qualified Data.UUID.Extras          as UUID
@@ -54,6 +54,8 @@ data PABError
     | WalletNotFound Wallet
     | MissingConfigFileOption
     | ContractStateNotFound ContractInstanceId
+    | AesonDecodingError Text Text
+    | MigrationNotDoneError Text
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -75,8 +77,13 @@ instance Pretty PABError where
         EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
         InstanceAlreadyStopped i   -> "Instance already stopped:" <+> pretty i
         WalletNotFound w           -> "Wallet not found:" <+> pretty w
-        MissingConfigFileOption    -> "The --config-file option is required"
+        MissingConfigFileOption    -> "The --config option is required"
         ContractStateNotFound i    -> "State for contract instance not found:" <+> pretty i
+        AesonDecodingError msg o   -> "Error while Aeson decoding: " <+> pretty msg <+> pretty o
+        MigrationNotDoneError msg  -> pretty msg
+                                   <> line
+                                   <> "Did you forget to run the 'migrate' command ?"
+                                   <+> "(ex. 'plutus-pab-migrate' or 'plutus-pab-setup migrate pab-core.db')"
 
 data DbConfig =
     DbConfig

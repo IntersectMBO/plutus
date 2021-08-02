@@ -146,14 +146,13 @@ contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.validatorAddress . typedValidator
 
 vestingContract :: VestingParams -> Contract () VestingSchema T.Text ()
-vestingContract vesting = vest `select` retrieve
+vestingContract vesting = selectList [vest, retrieve]
   where
-    vest = endpoint @"vest funds" >> vestFundsC vesting
-    retrieve = do
-        payment <- endpoint @"retrieve funds"
+    vest = endpoint @"vest funds" $ \_ -> vestFundsC vesting
+    retrieve = endpoint @"retrieve funds" $ \payment -> do
         liveness <- retrieveFundsC vesting payment
         case liveness of
-            Alive -> retrieve
+            Alive -> awaitPromise retrieve
             Dead  -> pure ()
 
 payIntoContract :: Value -> TxConstraints () ()
@@ -217,10 +216,10 @@ endpoints = vestingContract vestingParams
         VestingParams {vestingTranche1, vestingTranche2, vestingOwner}
     vestingTranche1 =
         VestingTranche
-            {vestingTrancheDate = TimeSlot.slotToBeginPOSIXTime def 20, vestingTrancheAmount = Ada.lovelaceValueOf 50_000_000}
+            {vestingTrancheDate = TimeSlot.scSlotZeroTime def + 20000, vestingTrancheAmount = Ada.lovelaceValueOf 50_000_000}
     vestingTranche2 =
         VestingTranche
-            {vestingTrancheDate = TimeSlot.slotToBeginPOSIXTime def 40, vestingTrancheAmount = Ada.lovelaceValueOf 30_000_000}
+            {vestingTrancheDate = TimeSlot.scSlotZeroTime def + 40000, vestingTrancheAmount = Ada.lovelaceValueOf 30_000_000}
 
 mkSchemaDefinitions ''VestingSchema
 

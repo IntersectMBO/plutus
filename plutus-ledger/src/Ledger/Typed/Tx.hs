@@ -16,21 +16,20 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
-{-# LANGUAGE ViewPatterns              #-}
+
 {-# OPTIONS_GHC -Wno-orphans           #-}
+
 -- | Typed transaction inputs and outputs. This module defines typed versions
 --   of various ledger types. The ultimate goal is to make sure that the script
 --   types attached to inputs and outputs line up, to avoid type errors at
 --   validation time.
 module Ledger.Typed.Tx where
 
+import           Ledger.Scripts
+import           Ledger.Tx
 import           Ledger.Typed.Scripts
-import           Plutus.V1.Ledger.Address
 import           Plutus.V1.Ledger.Crypto
-import           Plutus.V1.Ledger.Scripts
-import           Plutus.V1.Ledger.Tx
 import           Plutus.V1.Ledger.TxId
 import qualified Plutus.V1.Ledger.Value    as Value
 
@@ -54,7 +53,7 @@ instance Eq (DatumType a) => Eq (TypedScriptTxIn a) where
         tyTxInTxIn l == tyTxInTxIn r
         && tyTxInOutRef l == tyTxInOutRef r
 
-instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxIn a) where
+instance (FromJSON (DatumType a), FromData (DatumType a), ToData (DatumType a)) => FromJSON (TypedScriptTxIn a) where
     parseJSON (Object v) =
         TypedScriptTxIn <$> v .: "tyTxInTxIn" <*> v .: "tyTxInOutRef"
     parseJSON invalid = typeMismatch "Object" invalid
@@ -66,7 +65,7 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxIn a) where
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
     :: forall inn
-    . (IsData (RedeemerType inn), IsData (DatumType inn))
+    . (ToData (RedeemerType inn), ToData (DatumType inn))
     => TypedValidator inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
@@ -91,14 +90,14 @@ makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
 makePubKeyTxIn ref = PubKeyTxIn . TxIn ref . Just $ ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
-data TypedScriptTxOut a = IsData (DatumType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DatumType a }
+data TypedScriptTxOut a = (FromData (DatumType a), ToData (DatumType a)) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DatumType a }
 
 instance Eq (DatumType a) => Eq (TypedScriptTxOut a) where
     l == r =
         tyTxOutTxOut l == tyTxOutTxOut r
         && tyTxOutData l == tyTxOutData r
 
-instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxOut a) where
+instance (FromJSON (DatumType a), FromData (DatumType a), ToData (DatumType a)) => FromJSON (TypedScriptTxOut a) where
     parseJSON (Object v) =
         TypedScriptTxOut <$> v .: "tyTxOutTxOut" <*> v .: "tyTxOutData"
     parseJSON invalid = typeMismatch "Object" invalid
@@ -110,7 +109,7 @@ instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxOut a) where
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
     :: forall out
-    . (IsData (DatumType out))
+    . (ToData (DatumType out), FromData (DatumType out))
     => TypedValidator out
     -> DatumType out
     -> Value.Value
@@ -127,7 +126,7 @@ instance Eq (DatumType a) => Eq (TypedScriptTxOutRef a) where
         tyTxOutRefRef l == tyTxOutRefRef r
         && tyTxOutRefOut l == tyTxOutRefOut r
 
-instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxOutRef a) where
+instance (FromJSON (DatumType a), FromData (DatumType a), ToData (DatumType a)) => FromJSON (TypedScriptTxOutRef a) where
     parseJSON (Object v) =
         TypedScriptTxOutRef <$> v .: "tyTxOutRefRef" <*> v .: "tyTxOutRefOut"
     parseJSON invalid = typeMismatch "Object" invalid
@@ -192,7 +191,7 @@ checkValidatorAddress ct actualAddr = do
 -- | Checks that the given redeemer script has the right type.
 checkRedeemer
     :: forall inn m
-    . (IsData (RedeemerType inn), MonadError ConnectionError m)
+    . (FromData (RedeemerType inn), MonadError ConnectionError m)
     => TypedValidator inn
     -> Redeemer
     -> m (RedeemerType inn)
@@ -203,7 +202,7 @@ checkRedeemer _ (Redeemer d) =
 
 -- | Checks that the given datum has the right type.
 checkDatum
-    :: forall a m . (IsData (DatumType a), MonadError ConnectionError m)
+    :: forall a m . (FromData (DatumType a), MonadError ConnectionError m)
     => TypedValidator a
     -> Datum
     -> m (DatumType a)
@@ -215,8 +214,10 @@ checkDatum _ (Datum d) =
 -- | Create a 'TypedScriptTxIn' from an existing 'TxIn' by checking the types of its parts.
 typeScriptTxIn
     :: forall inn m
-    . ( IsData (RedeemerType inn)
-      , IsData (DatumType inn)
+    . ( FromData (RedeemerType inn)
+      , ToData (RedeemerType inn)
+      , FromData (DatumType inn)
+      , ToData (DatumType inn)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
     -> TypedValidator inn
@@ -251,7 +252,8 @@ typePubKeyTxIn inn@TxIn{txInType} = do
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
 typeScriptTxOut
     :: forall out m
-    . ( IsData (DatumType out)
+    . ( FromData (DatumType out)
+      , ToData (DatumType out)
       , MonadError ConnectionError m)
     => TypedValidator out
     -> TxOutTx
@@ -272,7 +274,8 @@ typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValu
 -- reference points.
 typeScriptTxOutRef
     :: forall out m
-    . ( IsData (DatumType out)
+    . ( FromData (DatumType out)
+      , ToData (DatumType out)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
     -> TypedValidator out

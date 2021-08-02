@@ -71,11 +71,11 @@ mkValidator Swap{..} SwapOwners{..} redeemer p@ScriptContext{scriptContextTxInfo
         extractVerifyAt :: SignedMessage (Observation Rational) -> PubKey -> POSIXTime -> Rational
         extractVerifyAt sm pk time =
             case Oracle.verifySignedMessageOnChain p pk sm of
-                Left _ -> trace "checkSignatureAndDecode failed" (error ())
+                Left _ -> traceError "checkSignatureAndDecode failed"
                 Right Observation{obsValue, obsTime} ->
                     if obsTime == time
                         then obsValue
-                        else trace "wrong time" (error ())
+                        else traceError "wrong time"
 
         -- | Convert an [[Integer]] to a [[Rational]]
         fromInt :: Integer -> Rational

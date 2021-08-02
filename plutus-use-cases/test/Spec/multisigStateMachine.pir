@@ -1,1937 +1,350 @@
 (program
   (let
-    (nonrec)
+    (rec)
     (datatypebind
       (datatype
-        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
-        (tyvardecl a (type)) (tyvardecl b (type))
-        Tuple2_match
-        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+        (tyvardecl List (fun (type) (type)))
+        (tyvardecl a (type))
+        Nil_match
+        (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
       )
     )
     (let
-      (rec)
+      (nonrec)
+      (datatypebind
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      )
+      (termbind
+        (strict)
+        (vardecl
+          fToDataByteString_ctoBuiltinData (fun (con bytestring) (con data))
+        )
+        (lam b (con bytestring) [ (builtin bData) b ])
+      )
+      (termbind
+        (strict)
+        (vardecl fToDataInteger_ctoBuiltinData (fun (con integer) (con data)))
+        (lam i (con integer) [ (builtin iData) i ])
+      )
       (datatypebind
         (datatype
-          (tyvardecl List (fun (type) (type)))
-          (tyvardecl a (type))
-          Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+          (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+          (tyvardecl a (type)) (tyvardecl b (type))
+          Tuple2_match
+          (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
         )
       )
-      (let
-        (nonrec)
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (termbind
+        (strict)
+        (vardecl
+          fToDataTuple2_ctoBuiltinData
+          (all a (type) (all b (type) (fun [(lam a (type) (fun a (con data))) a] (fun [(lam a (type) (fun a (con data))) b] (fun [[Tuple2 a] b] (con data))))))
         )
-        (datatypebind
-          (datatype
-            (tyvardecl Bool (type))
-
-            Bool_match
-            (vardecl True Bool) (vardecl False Bool)
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl These (fun (type) (fun (type) (type))))
-            (tyvardecl a (type)) (tyvardecl b (type))
-            These_match
-            (vardecl That (fun b [[These a] b]))
-            (vardecl These (fun a (fun b [[These a] b])))
-            (vardecl This (fun a [[These a] b]))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl Payment (type))
-
-            Payment_match
-            (vardecl
-              Payment
-              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun (con bytestring) (fun (con integer) Payment)))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl MSState (type))
-
-            MSState_match
-            (vardecl
-              CollectingSignatures
-              (fun Payment (fun [List (con bytestring)] MSState))
-            )
-            (vardecl Holding MSState)
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl Maybe (fun (type) (type)))
-            (tyvardecl a (type))
-            Maybe_match
-            (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataByteString_cfromBuiltinData
-            (fun (con data) [Maybe (con bytestring)])
-          )
-          (lam
-            d
-            (con data)
-            [
-              [
-                [
+        (abs
+          a
+          (type)
+          (abs
+            b
+            (type)
+            (lam
+              dToData
+              [(lam a (type) (fun a (con data))) a]
+              (lam
+                dToData
+                [(lam a (type) (fun a (con data))) b]
+                (lam
+                  ds
+                  [[Tuple2 a] b]
                   [
-                    [
-                      [
-                        [
-                          {
-                            (builtin chooseData)
-                            (fun Unit [Maybe (con bytestring)])
-                          }
-                          (lam ds Unit { Nothing (con bytestring) })
-                        ]
-                        (lam ds Unit { Nothing (con bytestring) })
-                      ]
-                      (lam ds Unit { Nothing (con bytestring) })
-                    ]
-                    (lam ds Unit { Nothing (con bytestring) })
-                  ]
-                  (lam
-                    ds
-                    Unit
-                    [ { Just (con bytestring) } [ (builtin unBData) d ] ]
-                  )
-                ]
-                d
-              ]
-              Unit
-            ]
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataByteString_ctoBuiltinData (fun (con bytestring) (con data))
-          )
-          (lam b (con bytestring) [ (builtin bData) b ])
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl IsData (fun (type) (type)))
-            (tyvardecl a (type))
-            IsData_match
-            (vardecl
-              CConsIsData
-              (fun (fun a (con data)) (fun (fun (con data) [Maybe a]) (fun (fun (con data) a) [IsData a])))
-            )
-          )
-        )
-        (termbind
-          (nonstrict)
-          (vardecl fIsDataCurrencySymbol [IsData (con bytestring)])
-          [
-            [
-              [
-                { CConsIsData (con bytestring) }
-                fIsDataByteString_ctoBuiltinData
-              ]
-              fIsDataByteString_cfromBuiltinData
-            ]
-            (builtin unBData)
-          ]
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataInteger_cfromBuiltinData
-            (fun (con data) [Maybe (con integer)])
-          )
-          (lam
-            d
-            (con data)
-            [
-              [
-                [
-                  [
-                    [
-                      [
-                        [
-                          {
-                            (builtin chooseData)
-                            (fun Unit [Maybe (con integer)])
-                          }
-                          (lam ds Unit { Nothing (con integer) })
-                        ]
-                        (lam ds Unit { Nothing (con integer) })
-                      ]
-                      (lam ds Unit { Nothing (con integer) })
-                    ]
+                    { [ { { Tuple2_match a } b } ds ] (con data) }
                     (lam
-                      ds Unit [ { Just (con integer) } [ (builtin unIData) d ] ]
-                    )
-                  ]
-                  (lam ds Unit { Nothing (con integer) })
-                ]
-                d
-              ]
-              Unit
-            ]
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl fIsDataInteger_ctoBuiltinData (fun (con integer) (con data)))
-          (lam i (con integer) [ (builtin iData) i ])
-        )
-        (termbind
-          (nonstrict)
-          (vardecl fIsDataInteger [IsData (con integer)])
-          [
-            [
-              [ { CConsIsData (con integer) } fIsDataInteger_ctoBuiltinData ]
-              fIsDataInteger_cfromBuiltinData
-            ]
-            (builtin unIData)
-          ]
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fromBuiltinData
-            (all a (type) (fun [IsData a] (fun (con data) [Maybe a])))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [IsData a]
-              [
-                { [ { IsData_match a } v ] (fun (con data) [Maybe a]) }
-                (lam
-                  v
-                  (fun a (con data))
-                  (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v)
-                  )
-                )
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataTuple2_cfromBuiltinData
-            (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun (con data) [Maybe [[Tuple2 a] b]])))))
-          )
-          (abs
-            a
-            (type)
-            (abs
-              b
-              (type)
-              (lam
-                dIsData
-                [IsData a]
-                (lam
-                  dIsData
-                  [IsData b]
-                  (lam
-                    d
-                    (con data)
-                    [
-                      [
-                        [
-                          [
-                            [
-                              [
-                                [
-                                  {
-                                    (builtin chooseData)
-                                    (fun Unit [Maybe [[Tuple2 a] b]])
-                                  }
-                                  (lam
-                                    ds
-                                    Unit
-                                    (let
-                                      (nonrec)
-                                      (termbind
-                                        (nonstrict)
-                                        (vardecl
-                                          tup
-                                          [[(con pair) (con integer)] [(con list) (con data)]]
-                                        )
-                                        [ (builtin unConstrData) d ]
-                                      )
-                                      (termbind
-                                        (nonstrict)
-                                        (vardecl l [(con list) (con data)])
-                                        [
-                                          {
-                                            { (builtin sndPair) (con integer) }
-                                            [(con list) (con data)]
-                                          }
-                                          tup
-                                        ]
-                                      )
-                                      (termbind
-                                        (nonstrict)
-                                        (vardecl l [(con list) (con data)])
-                                        [ { (builtin tailList) (con data) } l ]
-                                      )
-                                      (termbind
-                                        (nonstrict)
-                                        (vardecl nilCase [Maybe [[Tuple2 a] b]])
-                                        [
-                                          [
-                                            [
-                                              {
-                                                [
-                                                  { Maybe_match a }
-                                                  [
-                                                    [
-                                                      { fromBuiltinData a }
-                                                      dIsData
-                                                    ]
-                                                    [
-                                                      {
-                                                        (builtin headList)
-                                                        (con data)
-                                                      }
-                                                      l
-                                                    ]
-                                                  ]
-                                                ]
-                                                (fun Unit [Maybe [[Tuple2 a] b]])
-                                              }
-                                              (lam
-                                                ipv
-                                                a
-                                                (lam
-                                                  thunk
-                                                  Unit
-                                                  [
-                                                    [
-                                                      [
-                                                        {
-                                                          [
-                                                            { Maybe_match b }
-                                                            [
-                                                              [
-                                                                {
-                                                                  fromBuiltinData
-                                                                  b
-                                                                }
-                                                                dIsData
-                                                              ]
-                                                              [
-                                                                {
-                                                                  (builtin
-                                                                    headList
-                                                                  )
-                                                                  (con data)
-                                                                }
-                                                                l
-                                                              ]
-                                                            ]
-                                                          ]
-                                                          (fun Unit [Maybe [[Tuple2 a] b]])
-                                                        }
-                                                        (lam
-                                                          ipv
-                                                          b
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            [
-                                                              {
-                                                                Just
-                                                                [[Tuple2 a] b]
-                                                              }
-                                                              [
-                                                                [
-                                                                  {
-                                                                    { Tuple2 a }
-                                                                    b
-                                                                  }
-                                                                  ipv
-                                                                ]
-                                                                ipv
-                                                              ]
-                                                            ]
-                                                          )
-                                                        )
-                                                      ]
-                                                      (lam
-                                                        thunk
-                                                        Unit
-                                                        {
-                                                          Nothing [[Tuple2 a] b]
-                                                        }
-                                                      )
-                                                    ]
-                                                    Unit
-                                                  ]
-                                                )
-                                              )
-                                            ]
-                                            (lam
-                                              thunk
-                                              Unit
-                                              { Nothing [[Tuple2 a] b] }
-                                            )
-                                          ]
-                                          Unit
-                                        ]
-                                      )
-                                      (termbind
-                                        (nonstrict)
-                                        (vardecl lvl [Maybe [[Tuple2 a] b]])
-                                        [
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  {
-                                                    (builtin chooseList)
-                                                    (fun Unit [Maybe [[Tuple2 a] b]])
-                                                  }
-                                                  (con data)
-                                                }
-                                                (lam ds Unit nilCase)
-                                              ]
-                                              (lam
-                                                ds
-                                                Unit
-                                                { Nothing [[Tuple2 a] b] }
-                                              )
-                                            ]
-                                            [
-                                              { (builtin tailList) (con data) }
-                                              l
-                                            ]
-                                          ]
-                                          Unit
-                                        ]
-                                      )
-                                      (termbind
-                                        (nonstrict)
-                                        (vardecl lvl [Maybe [[Tuple2 a] b]])
-                                        [
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  {
-                                                    (builtin chooseList)
-                                                    (fun Unit [Maybe [[Tuple2 a] b]])
-                                                  }
-                                                  (con data)
-                                                }
-                                                (lam
-                                                  ds
-                                                  Unit
-                                                  { Nothing [[Tuple2 a] b] }
-                                                )
-                                              ]
-                                              (lam ds Unit lvl)
-                                            ]
-                                            l
-                                          ]
-                                          Unit
-                                        ]
-                                      )
-                                      (termbind
-                                        (nonstrict)
-                                        (vardecl x [Maybe [[Tuple2 a] b]])
-                                        [
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  {
-                                                    (builtin chooseList)
-                                                    (fun Unit [Maybe [[Tuple2 a] b]])
-                                                  }
-                                                  (con data)
-                                                }
-                                                (lam
-                                                  ds
-                                                  Unit
-                                                  { Nothing [[Tuple2 a] b] }
-                                                )
-                                              ]
-                                              (lam ds Unit lvl)
-                                            ]
-                                            l
-                                          ]
-                                          Unit
-                                        ]
-                                      )
-                                      [
-                                        [
-                                          [
-                                            [
-                                              {
-                                                (builtin ifThenElse)
-                                                (fun Unit [Maybe [[Tuple2 a] b]])
-                                              }
-                                              [
-                                                [
-                                                  (builtin equalsInteger)
-                                                  [
-                                                    {
-                                                      {
-                                                        (builtin fstPair)
-                                                        (con integer)
-                                                      }
-                                                      [(con list) (con data)]
-                                                    }
-                                                    tup
-                                                  ]
-                                                ]
-                                                (con integer 0)
-                                              ]
-                                            ]
-                                            (lam ds Unit x)
-                                          ]
-                                          (lam
-                                            ds Unit { Nothing [[Tuple2 a] b] }
-                                          )
-                                        ]
-                                        Unit
-                                      ]
-                                    )
-                                  )
-                                ]
-                                (lam ds Unit { Nothing [[Tuple2 a] b] })
-                              ]
-                              (lam ds Unit { Nothing [[Tuple2 a] b] })
-                            ]
-                            (lam ds Unit { Nothing [[Tuple2 a] b] })
-                          ]
-                          (lam ds Unit { Nothing [[Tuple2 a] b] })
-                        ]
-                        d
-                      ]
-                      Unit
-                    ]
-                  )
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            toBuiltinData (all a (type) (fun [IsData a] (fun a (con data))))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [IsData a]
-              [
-                { [ { IsData_match a } v ] (fun a (con data)) }
-                (lam
-                  v
-                  (fun a (con data))
-                  (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v)
-                  )
-                )
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataTuple2_ctoBuiltinData
-            (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun [[Tuple2 a] b] (con data))))))
-          )
-          (abs
-            a
-            (type)
-            (abs
-              b
-              (type)
-              (lam
-                dIsData
-                [IsData a]
-                (lam
-                  dIsData
-                  [IsData b]
-                  (lam
-                    ds
-                    [[Tuple2 a] b]
-                    [
-                      { [ { { Tuple2_match a } b } ds ] (con data) }
+                      arg
+                      a
                       (lam
                         arg
-                        a
-                        (lam
-                          arg
-                          b
+                        b
+                        [
+                          [ (builtin constrData) (con integer 0) ]
                           [
-                            [ (builtin constrData) (con integer 0) ]
+                            [ { (builtin mkCons) (con data) } [ dToData arg ] ]
                             [
                               [
-                                { (builtin mkCons) (con data) }
-                                [ [ { toBuiltinData a } dIsData ] arg ]
+                                { (builtin mkCons) (con data) } [ dToData arg ]
                               ]
-                              [
-                                [
-                                  { (builtin mkCons) (con data) }
-                                  [ [ { toBuiltinData b } dIsData ] arg ]
-                                ]
-                                [ (builtin mkNilData) (con unit ()) ]
-                              ]
+                              [ (builtin mkNilData) (con unit ()) ]
                             ]
                           ]
-                        )
-                      )
-                    ]
-                  )
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl error (all a (type) (fun (con unit) a)))
-          (abs a (type) (lam thunk (con unit) (error a)))
-        )
-        (termbind
-          (strict)
-          (vardecl
-            unsafeFromBuiltinData
-            (all a (type) (fun [IsData a] (fun (con data) a)))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [IsData a]
-              [
-                { [ { IsData_match a } v ] (fun (con data) a) }
-                (lam
-                  v
-                  (fun a (con data))
-                  (lam v (fun (con data) [Maybe a]) (lam v (fun (con data) a) v)
-                  )
-                )
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataTuple2_cunsafeFromBuiltinData
-            (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] (fun (con data) [[Tuple2 a] b])))))
-          )
-          (abs
-            a
-            (type)
-            (abs
-              b
-              (type)
-              (lam
-                dIsData
-                [IsData a]
-                (lam
-                  dIsData
-                  [IsData b]
-                  (lam
-                    d
-                    (con data)
-                    (let
-                      (nonrec)
-                      (termbind
-                        (nonstrict)
-                        (vardecl x [[Tuple2 a] b])
-                        [ { error [[Tuple2 a] b] } (con unit ()) ]
-                      )
-                      (termbind
-                        (nonstrict)
-                        (vardecl
-                          tup
-                          [[(con pair) (con integer)] [(con list) (con data)]]
-                        )
-                        [ (builtin unConstrData) d ]
-                      )
-                      (termbind
-                        (nonstrict)
-                        (vardecl t [(con list) (con data)])
-                        [
-                          {
-                            { (builtin sndPair) (con integer) }
-                            [(con list) (con data)]
-                          }
-                          tup
                         ]
                       )
-                      (termbind
-                        (nonstrict)
-                        (vardecl x b)
-                        [
-                          [ { unsafeFromBuiltinData b } dIsData ]
-                          [
-                            { (builtin headList) (con data) }
-                            [ { (builtin tailList) (con data) } t ]
-                          ]
-                        ]
-                      )
-                      (termbind
-                        (nonstrict)
-                        (vardecl x a)
-                        [
-                          [ { unsafeFromBuiltinData a } dIsData ]
-                          [ { (builtin headList) (con data) } t ]
-                        ]
-                      )
-                      (termbind
-                        (nonstrict)
-                        (vardecl x [[Tuple2 a] b])
-                        [ [ { { Tuple2 a } b } x ] x ]
-                      )
-                      [
-                        [
-                          [
-                            [
-                              { (builtin ifThenElse) (fun Unit [[Tuple2 a] b]) }
-                              [
-                                [
-                                  (builtin equalsInteger)
-                                  [
-                                    {
-                                      { (builtin fstPair) (con integer) }
-                                      [(con list) (con data)]
-                                    }
-                                    tup
-                                  ]
-                                ]
-                                (con integer 0)
-                              ]
-                            ]
-                            (lam ds Unit x)
-                          ]
-                          (lam ds Unit x)
-                        ]
-                        Unit
-                      ]
                     )
-                  )
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataTuple2
-            (all a (type) (all b (type) (fun [IsData a] (fun [IsData b] [IsData [[Tuple2 a] b]]))))
-          )
-          (abs
-            a
-            (type)
-            (abs
-              b
-              (type)
-              (lam
-                v
-                [IsData a]
-                (lam
-                  v
-                  [IsData b]
-                  [
-                    [
-                      [
-                        { CConsIsData [[Tuple2 a] b] }
-                        [ [ { { fIsDataTuple2_ctoBuiltinData a } b } v ] v ]
-                      ]
-                      [ [ { { fIsDataTuple2_cfromBuiltinData a } b } v ] v ]
-                    ]
-                    [ [ { { fIsDataTuple2_cunsafeFromBuiltinData a } b } v ] v ]
                   ]
                 )
               )
             )
           )
         )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataNil_cunsafeFromBuiltinData
-            (all a (type) (fun [IsData a] (fun (con data) [List a])))
-          )
+      )
+      (termbind
+        (nonstrict)
+        (vardecl fToDataMap [(con list) (con data)])
+        [ (builtin mkNilData) (con unit ()) ]
+      )
+      (termbind
+        (strict)
+        (vardecl
+          fToDataMap_ctoBuiltinData
+          (all k (type) (all v (type) (fun [(lam a (type) (fun a (con data))) k] (fun [(lam a (type) (fun a (con data))) v] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v] (con data))))))
+        )
+        (abs
+          k
+          (type)
           (abs
-            a
+            v
             (type)
             (lam
-              dIsData
-              [IsData a]
+              dToData
+              [(lam a (type) (fun a (con data))) k]
               (lam
-                d
-                (con data)
-                (let
-                  (rec)
-                  (termbind
-                    (strict)
-                    (vardecl go (fun [(con list) (con data)] [List a]))
-                    (lam
-                      l
-                      [(con list) (con data)]
-                      [
+                dToData
+                [(lam a (type) (fun a (con data))) v]
+                (lam
+                  eta
+                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v]
+                  (let
+                    (rec)
+                    (termbind
+                      (strict)
+                      (vardecl
+                        go (fun [List [[Tuple2 k] v]] [(con list) (con data)])
+                      )
+                      (lam
+                        ds
+                        [List [[Tuple2 k] v]]
                         [
                           [
                             [
                               {
-                                { (builtin chooseList) (fun Unit [List a]) }
-                                (con data)
+                                [ { Nil_match [[Tuple2 k] v] } ds ]
+                                (fun Unit [(con list) (con data)])
                               }
-                              (lam ds Unit { Nil a })
+                              (lam thunk Unit fToDataMap)
                             ]
                             (lam
-                              ds
-                              Unit
-                              [
-                                [
-                                  { Cons a }
-                                  [
-                                    [ { unsafeFromBuiltinData a } dIsData ]
-                                    [ { (builtin headList) (con data) } l ]
-                                  ]
-                                ]
-                                [ go [ { (builtin tailList) (con data) } l ] ]
-                              ]
-                            )
-                          ]
-                          l
-                        ]
-                        Unit
-                      ]
-                    )
-                  )
-                  [ go [ (builtin unListData) d ] ]
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataMap
-            (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] (fun (con data) [List [[Tuple2 k] v]])))))
-          )
-          (abs
-            k
-            (type)
-            (abs
-              v
-              (type)
-              (lam
-                dIsData
-                [IsData k]
-                (lam
-                  dIsData
-                  [IsData v]
-                  [
-                    { fIsDataNil_cunsafeFromBuiltinData [[Tuple2 k] v] }
-                    [ [ { { fIsDataTuple2 k } v } dIsData ] dIsData ]
-                  ]
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataNil_cfromBuiltinData
-            (all a (type) (fun [IsData a] (fun (con data) [Maybe [List a]])))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              dIsData
-              [IsData a]
-              (lam
-                d
-                (con data)
-                (let
-                  (rec)
-                  (termbind
-                    (strict)
-                    (vardecl go (fun [(con list) (con data)] [Maybe [List a]]))
-                    (lam
-                      l
-                      [(con list) (con data)]
-                      (let
-                        (nonrec)
-                        (termbind
-                          (nonstrict)
-                          (vardecl x [Maybe [List a]])
-                          [ { Just [List a] } { Nil a } ]
-                        )
-                        [
-                          [
-                            [
-                              [
-                                {
-                                  {
-                                    (builtin chooseList)
-                                    (fun Unit [Maybe [List a]])
-                                  }
-                                  (con data)
-                                }
-                                (lam ds Unit x)
-                              ]
+                              x
+                              [[Tuple2 k] v]
                               (lam
-                                ds
-                                Unit
-                                [
+                                xs
+                                [List [[Tuple2 k] v]]
+                                (lam
+                                  thunk
+                                  Unit
                                   [
                                     [
-                                      {
+                                      { (builtin mkCons) (con data) }
+                                      [
                                         [
-                                          { Maybe_match a }
                                           [
-                                            [ { fromBuiltinData a } dIsData ]
-                                            [
-                                              { (builtin headList) (con data) }
-                                              l
-                                            ]
+                                            {
+                                              { fToDataTuple2_ctoBuiltinData k }
+                                              v
+                                            }
+                                            dToData
                                           ]
+                                          dToData
                                         ]
-                                        (fun Unit [Maybe [List a]])
-                                      }
-                                      (lam
-                                        a
-                                        a
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [
-                                                    { Maybe_match [List a] }
-                                                    [
-                                                      go
-                                                      [
-                                                        {
-                                                          (builtin tailList)
-                                                          (con data)
-                                                        }
-                                                        l
-                                                      ]
-                                                    ]
-                                                  ]
-                                                  (fun Unit [Maybe [List a]])
-                                                }
-                                                (lam
-                                                  ipv
-                                                  [List a]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      { Just [List a] }
-                                                      [ [ { Cons a } a ] ipv ]
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (lam
-                                                thunk Unit { Nothing [List a] }
-                                              )
-                                            ]
-                                            Unit
-                                          ]
-                                        )
-                                      )
+                                        x
+                                      ]
                                     ]
-                                    (lam thunk Unit { Nothing [List a] })
+                                    [ go xs ]
                                   ]
-                                  Unit
-                                ]
+                                )
                               )
-                            ]
-                            l
+                            )
                           ]
                           Unit
                         ]
                       )
                     )
+                    [ (builtin listData) [ go eta ] ]
                   )
-                  [
-                    [
-                      [
-                        [
-                          [
-                            [
-                              [
-                                {
-                                  (builtin chooseData)
-                                  (fun Unit [Maybe [List a]])
-                                }
-                                (lam ds Unit { Nothing [List a] })
-                              ]
-                              (lam ds Unit { Nothing [List a] })
-                            ]
-                            (lam ds Unit [ go [ (builtin unListData) d ] ])
-                          ]
-                          (lam ds Unit { Nothing [List a] })
-                        ]
-                        (lam ds Unit { Nothing [List a] })
-                      ]
-                      d
-                    ]
-                    Unit
-                  ]
                 )
               )
             )
           )
         )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataMap
-            (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] (fun (con data) [Maybe [List [[Tuple2 k] v]]])))))
-          )
-          (abs
-            k
-            (type)
-            (abs
-              v
-              (type)
-              (lam
-                dIsData
-                [IsData k]
-                (lam
-                  dIsData
-                  [IsData v]
-                  [
-                    { fIsDataNil_cfromBuiltinData [[Tuple2 k] v] }
-                    [ [ { { fIsDataTuple2 k } v } dIsData ] dIsData ]
-                  ]
-                )
-              )
-            )
-          )
+      )
+      (termbind
+        (nonstrict)
+        (vardecl
+          fToDataValue
+          (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)] (con data))
         )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataNil_ctoBuiltinData
-            (all a (type) (fun [IsData a] (fun [List a] (con data))))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              dIsData
-              [IsData a]
-              (lam
-                l
-                [List a]
-                (let
-                  (rec)
-                  (termbind
-                    (strict)
-                    (vardecl go (fun [List a] [(con list) (con data)]))
-                    (lam
-                      ds
-                      [List a]
-                      [
-                        [
-                          [
-                            {
-                              [ { Nil_match a } ds ]
-                              (fun Unit [(con list) (con data)])
-                            }
-                            (lam
-                              thunk Unit [ (builtin mkNilData) (con unit ()) ]
-                            )
-                          ]
-                          (lam
-                            x
-                            a
-                            (lam
-                              xs
-                              [List a]
-                              (lam
-                                thunk
-                                Unit
-                                [
-                                  [
-                                    { (builtin mkCons) (con data) }
-                                    [ [ { toBuiltinData a } dIsData ] x ]
-                                  ]
-                                  [ go xs ]
-                                ]
-                              )
-                            )
-                          )
-                        ]
-                        Unit
-                      ]
-                    )
-                  )
-                  [ (builtin listData) [ go l ] ]
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataMap
-            (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] (fun [List [[Tuple2 k] v]] (con data))))))
-          )
-          (abs
-            k
-            (type)
-            (abs
-              v
-              (type)
-              (lam
-                dIsData
-                [IsData k]
-                (lam
-                  dIsData
-                  [IsData v]
-                  [
-                    { fIsDataNil_ctoBuiltinData [[Tuple2 k] v] }
-                    [ [ { { fIsDataTuple2 k } v } dIsData ] dIsData ]
-                  ]
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataMap
-            (all k (type) (all v (type) (fun [IsData k] (fun [IsData v] [IsData [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v]]))))
-          )
-          (abs
-            k
-            (type)
-            (abs
-              v
-              (type)
-              (lam
-                v
-                [IsData k]
-                (lam
-                  v
-                  [IsData v]
-                  [
-                    [
-                      [
-                        {
-                          CConsIsData
-                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) k] v]
-                        }
-                        [ [ { { fIsDataMap k } v } v ] v ]
-                      ]
-                      [ [ { { fIsDataMap k } v } v ] v ]
-                    ]
-                    [ [ { { fIsDataMap k } v } v ] v ]
-                  ]
-                )
-              )
-            )
-          )
-        )
-        (termbind
-          (nonstrict)
-          (vardecl fIsDataTokenName [IsData (con bytestring)])
+        [
           [
-            [
-              [
-                { CConsIsData (con bytestring) }
-                fIsDataByteString_ctoBuiltinData
-              ]
-              fIsDataByteString_cfromBuiltinData
-            ]
-            (builtin unBData)
+            { { fToDataMap_ctoBuiltinData (con bytestring) } (con integer) }
+            fToDataByteString_ctoBuiltinData
           ]
-        )
-        (termbind
-          (nonstrict)
+          fToDataInteger_ctoBuiltinData
+        ]
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl Payment (type))
+
+          Payment_match
           (vardecl
-            fIsDataValue
-            [IsData [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-          )
-          [
-            [
-              { { fIsDataMap (con bytestring) } (con integer) } fIsDataTokenName
-            ]
-            fIsDataInteger
-          ]
-        )
-        (termbind
-          (nonstrict)
-          (vardecl
-            fIsDataValue
-            [IsData [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-          )
-          [
-            [
-              {
-                { fIsDataTuple2 (con bytestring) }
-                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-              }
-              fIsDataCurrencySymbol
-            ]
-            fIsDataValue
-          ]
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataInput_cfromBuiltinData (fun (con data) [Maybe Payment])
-          )
-          (lam
-            d
-            (con data)
-            [
-              [
-                [
-                  [
-                    [
-                      [
-                        [
-                          { (builtin chooseData) (fun Unit [Maybe Payment]) }
-                          (lam
-                            ds
-                            Unit
-                            (let
-                              (nonrec)
-                              (termbind
-                                (nonstrict)
-                                (vardecl
-                                  tup
-                                  [[(con pair) (con integer)] [(con list) (con data)]]
-                                )
-                                [ (builtin unConstrData) d ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [
-                                  {
-                                    { (builtin sndPair) (con integer) }
-                                    [(con list) (con data)]
-                                  }
-                                  tup
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [ { (builtin tailList) (con data) } l ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [ { (builtin tailList) (con data) } l ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl nilCase [Maybe Payment])
-                                [
-                                  [
-                                    [
-                                      {
-                                        [
-                                          {
-                                            Maybe_match
-                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                          }
-                                          [
-                                            [
-                                              {
-                                                fIsDataNil_cfromBuiltinData
-                                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                              }
-                                              fIsDataValue
-                                            ]
-                                            [
-                                              { (builtin headList) (con data) }
-                                              l
-                                            ]
-                                          ]
-                                        ]
-                                        (fun Unit [Maybe Payment])
-                                      }
-                                      (lam
-                                        ipv
-                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [
-                                                    {
-                                                      Maybe_match
-                                                      (con bytestring)
-                                                    }
-                                                    [
-                                                      fIsDataByteString_cfromBuiltinData
-                                                      [
-                                                        {
-                                                          (builtin headList)
-                                                          (con data)
-                                                        }
-                                                        l
-                                                      ]
-                                                    ]
-                                                  ]
-                                                  (fun Unit [Maybe Payment])
-                                                }
-                                                (lam
-                                                  ipv
-                                                  (con bytestring)
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      [
-                                                        [
-                                                          {
-                                                            [
-                                                              {
-                                                                Maybe_match
-                                                                (con integer)
-                                                              }
-                                                              [
-                                                                fIsDataInteger_cfromBuiltinData
-                                                                [
-                                                                  {
-                                                                    (builtin
-                                                                      headList
-                                                                    )
-                                                                    (con data)
-                                                                  }
-                                                                  l
-                                                                ]
-                                                              ]
-                                                            ]
-                                                            (fun Unit [Maybe Payment])
-                                                          }
-                                                          (lam
-                                                            ipv
-                                                            (con integer)
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [
-                                                                { Just Payment }
-                                                                [
-                                                                  [
-                                                                    [
-                                                                      Payment
-                                                                      ipv
-                                                                    ]
-                                                                    ipv
-                                                                  ]
-                                                                  ipv
-                                                                ]
-                                                              ]
-                                                            )
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          thunk
-                                                          Unit
-                                                          { Nothing Payment }
-                                                        )
-                                                      ]
-                                                      Unit
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (lam
-                                                thunk Unit { Nothing Payment }
-                                              )
-                                            ]
-                                            Unit
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                    (lam thunk Unit { Nothing Payment })
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe Payment])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe Payment])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit nilCase)
-                                      ]
-                                      (lam ds Unit { Nothing Payment })
-                                    ]
-                                    [ { (builtin tailList) (con data) } l ]
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe Payment])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe Payment])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing Payment })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe Payment])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe Payment])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing Payment })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl x [Maybe Payment])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe Payment])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing Payment })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              [
-                                [
-                                  [
-                                    [
-                                      {
-                                        (builtin ifThenElse)
-                                        (fun Unit [Maybe Payment])
-                                      }
-                                      [
-                                        [
-                                          (builtin equalsInteger)
-                                          [
-                                            {
-                                              {
-                                                (builtin fstPair) (con integer)
-                                              }
-                                              [(con list) (con data)]
-                                            }
-                                            tup
-                                          ]
-                                        ]
-                                        (con integer 0)
-                                      ]
-                                    ]
-                                    (lam ds Unit x)
-                                  ]
-                                  (lam ds Unit { Nothing Payment })
-                                ]
-                                Unit
-                              ]
-                            )
-                          )
-                        ]
-                        (lam ds Unit { Nothing Payment })
-                      ]
-                      (lam ds Unit { Nothing Payment })
-                    ]
-                    (lam ds Unit { Nothing Payment })
-                  ]
-                  (lam ds Unit { Nothing Payment })
-                ]
-                d
-              ]
-              Unit
-            ]
-          )
-        )
-        (termbind
-          (nonstrict)
-          (vardecl fIsDataPubKeyHash [IsData (con bytestring)])
-          [
-            [
-              [
-                { CConsIsData (con bytestring) }
-                fIsDataByteString_ctoBuiltinData
-              ]
-              fIsDataByteString_cfromBuiltinData
-            ]
-            (builtin unBData)
-          ]
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataMSState_cfromBuiltinData (fun (con data) [Maybe MSState])
-          )
-          (lam
-            d
-            (con data)
-            [
-              [
-                [
-                  [
-                    [
-                      [
-                        [
-                          { (builtin chooseData) (fun Unit [Maybe MSState]) }
-                          (lam
-                            ds
-                            Unit
-                            (let
-                              (nonrec)
-                              (termbind
-                                (nonstrict)
-                                (vardecl nilCase [Maybe MSState])
-                                [ { Just MSState } Holding ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl
-                                  tup
-                                  [[(con pair) (con integer)] [(con list) (con data)]]
-                                )
-                                [ (builtin unConstrData) d ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl args [(con list) (con data)])
-                                [
-                                  {
-                                    { (builtin sndPair) (con integer) }
-                                    [(con list) (con data)]
-                                  }
-                                  tup
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl x [Maybe MSState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe MSState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit nilCase)
-                                      ]
-                                      (lam ds Unit { Nothing MSState })
-                                    ]
-                                    args
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl index (con integer))
-                                [
-                                  {
-                                    { (builtin fstPair) (con integer) }
-                                    [(con list) (con data)]
-                                  }
-                                  tup
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl x [Maybe MSState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          (builtin ifThenElse)
-                                          (fun Unit [Maybe MSState])
-                                        }
-                                        [
-                                          [ (builtin equalsInteger) index ]
-                                          (con integer 0)
-                                        ]
-                                      ]
-                                      (lam ds Unit x)
-                                    ]
-                                    (lam ds Unit { Nothing MSState })
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl l [(con list) (con data)])
-                                [ { (builtin tailList) (con data) } args ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl nilCase [Maybe MSState])
-                                [
-                                  [
-                                    [
-                                      {
-                                        [
-                                          { Maybe_match Payment }
-                                          [
-                                            fIsDataInput_cfromBuiltinData
-                                            [
-                                              { (builtin headList) (con data) }
-                                              args
-                                            ]
-                                          ]
-                                        ]
-                                        (fun Unit [Maybe MSState])
-                                      }
-                                      (lam
-                                        ipv
-                                        Payment
-                                        (lam
-                                          thunk
-                                          Unit
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [
-                                                    {
-                                                      Maybe_match
-                                                      [List (con bytestring)]
-                                                    }
-                                                    [
-                                                      [
-                                                        {
-                                                          fIsDataNil_cfromBuiltinData
-                                                          (con bytestring)
-                                                        }
-                                                        fIsDataPubKeyHash
-                                                      ]
-                                                      [
-                                                        {
-                                                          (builtin headList)
-                                                          (con data)
-                                                        }
-                                                        l
-                                                      ]
-                                                    ]
-                                                  ]
-                                                  (fun Unit [Maybe MSState])
-                                                }
-                                                (lam
-                                                  ipv
-                                                  [List (con bytestring)]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      { Just MSState }
-                                                      [
-                                                        [
-                                                          CollectingSignatures
-                                                          ipv
-                                                        ]
-                                                        ipv
-                                                      ]
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                              (lam
-                                                thunk Unit { Nothing MSState }
-                                              )
-                                            ]
-                                            Unit
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                    (lam thunk Unit { Nothing MSState })
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe MSState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe MSState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit nilCase)
-                                      ]
-                                      (lam ds Unit { Nothing MSState })
-                                    ]
-                                    [ { (builtin tailList) (con data) } l ]
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl lvl [Maybe MSState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe MSState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing MSState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    l
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              (termbind
-                                (nonstrict)
-                                (vardecl x [Maybe MSState])
-                                [
-                                  [
-                                    [
-                                      [
-                                        {
-                                          {
-                                            (builtin chooseList)
-                                            (fun Unit [Maybe MSState])
-                                          }
-                                          (con data)
-                                        }
-                                        (lam ds Unit { Nothing MSState })
-                                      ]
-                                      (lam ds Unit lvl)
-                                    ]
-                                    args
-                                  ]
-                                  Unit
-                                ]
-                              )
-                              [
-                                [
-                                  [
-                                    [
-                                      {
-                                        (builtin ifThenElse)
-                                        (fun Unit [Maybe MSState])
-                                      }
-                                      [
-                                        [ (builtin equalsInteger) index ]
-                                        (con integer 1)
-                                      ]
-                                    ]
-                                    (lam ds Unit x)
-                                  ]
-                                  (lam ds Unit x)
-                                ]
-                                Unit
-                              ]
-                            )
-                          )
-                        ]
-                        (lam ds Unit { Nothing MSState })
-                      ]
-                      (lam ds Unit { Nothing MSState })
-                    ]
-                    (lam ds Unit { Nothing MSState })
-                  ]
-                  (lam ds Unit { Nothing MSState })
-                ]
-                d
-              ]
-              Unit
-            ]
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl fIsDataInput_ctoBuiltinData (fun Payment (con data)))
-          (lam
-            ds
             Payment
-            [
-              { [ Payment_match ds ] (con data) }
+            (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun (con bytestring) (fun (con integer) Payment)))
+          )
+        )
+      )
+      (termbind
+        (strict)
+        (vardecl fToDataInput_ctoBuiltinData (fun Payment (con data)))
+        (lam
+          ds
+          Payment
+          [
+            { [ Payment_match ds ] (con data) }
+            (lam
+              arg
+              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
               (lam
                 arg
-                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                (con bytestring)
                 (lam
                   arg
-                  (con bytestring)
-                  (lam
-                    arg
-                    (con integer)
+                  (con integer)
+                  [
+                    [ (builtin constrData) (con integer 0) ]
                     [
-                      [ (builtin constrData) (con integer 0) ]
                       [
+                        { (builtin mkCons) (con data) }
                         [
-                          { (builtin mkCons) (con data) }
                           [
                             [
                               {
-                                fIsDataNil_ctoBuiltinData
-                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                { fToDataMap_ctoBuiltinData (con bytestring) }
+                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                               }
-                              fIsDataValue
+                              fToDataByteString_ctoBuiltinData
                             ]
-                            arg
+                            fToDataValue
                           ]
+                          arg
+                        ]
+                      ]
+                      [
+                        [
+                          { (builtin mkCons) (con data) }
+                          [ (builtin bData) arg ]
                         ]
                         [
                           [
                             { (builtin mkCons) (con data) }
-                            [ (builtin bData) arg ]
+                            [ (builtin iData) arg ]
                           ]
-                          [
-                            [
-                              { (builtin mkCons) (con data) }
-                              [ (builtin iData) arg ]
-                            ]
-                            [ (builtin mkNilData) (con unit ()) ]
-                          ]
+                          [ (builtin mkNilData) (con unit ()) ]
                         ]
                       ]
                     ]
-                  )
+                  ]
                 )
               )
-            ]
-          )
+            )
+          ]
         )
-        (termbind
-          (strict)
-          (vardecl fIsDataMSState_ctoBuiltinData (fun MSState (con data)))
-          (lam
-            ds
-            MSState
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl MSState (type))
+
+          MSState_match
+          (vardecl
+            CollectingSignatures
+            (fun Payment (fun [List (con bytestring)] MSState))
+          )
+          (vardecl Holding MSState)
+        )
+      )
+      (termbind
+        (strict)
+        (vardecl fToDataMSState_ctoBuiltinData (fun MSState (con data)))
+        (lam
+          ds
+          MSState
+          [
             [
               [
-                [
-                  { [ MSState_match ds ] (fun Unit (con data)) }
+                { [ MSState_match ds ] (fun Unit (con data)) }
+                (lam
+                  arg
+                  Payment
                   (lam
                     arg
-                    Payment
+                    [List (con bytestring)]
                     (lam
-                      arg
-                      [List (con bytestring)]
-                      (lam
-                        thunk
-                        Unit
+                      thunk
+                      Unit
+                      (let
+                        (rec)
+                        (termbind
+                          (strict)
+                          (vardecl
+                            go
+                            (fun [List (con bytestring)] [(con list) (con data)])
+                          )
+                          (lam
+                            ds
+                            [List (con bytestring)]
+                            [
+                              [
+                                [
+                                  {
+                                    [ { Nil_match (con bytestring) } ds ]
+                                    (fun Unit [(con list) (con data)])
+                                  }
+                                  (lam
+                                    thunk
+                                    Unit
+                                    [ (builtin mkNilData) (con unit ()) ]
+                                  )
+                                ]
+                                (lam
+                                  x
+                                  (con bytestring)
+                                  (lam
+                                    xs
+                                    [List (con bytestring)]
+                                    (lam
+                                      thunk
+                                      Unit
+                                      [
+                                        [
+                                          { (builtin mkCons) (con data) }
+                                          [ (builtin bData) x ]
+                                        ]
+                                        [ go xs ]
+                                      ]
+                                    )
+                                  )
+                                )
+                              ]
+                              Unit
+                            ]
+                          )
+                        )
                         [
                           [ (builtin constrData) (con integer 1) ]
                           [
                             [
                               { (builtin mkCons) (con data) }
-                              [ fIsDataInput_ctoBuiltinData arg ]
+                              [ fToDataInput_ctoBuiltinData arg ]
                             ]
                             [
                               [
                                 { (builtin mkCons) (con data) }
-                                [
-                                  [
-                                    {
-                                      fIsDataNil_ctoBuiltinData (con bytestring)
-                                    }
-                                    fIsDataPubKeyHash
-                                  ]
-                                  arg
-                                ]
+                                [ (builtin listData) [ go arg ] ]
                               ]
                               [ (builtin mkNilData) (con unit ()) ]
                             ]
@@ -1940,890 +353,584 @@
                       )
                     )
                   )
-                ]
-                (lam
-                  thunk
-                  Unit
-                  [
-                    [ (builtin constrData) (con integer 0) ]
-                    [ (builtin mkNilData) (con unit ()) ]
-                  ]
                 )
               ]
-              Unit
-            ]
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl fIsDataInput_cunsafeFromBuiltinData (fun (con data) Payment))
-          (lam
-            d
-            (con data)
-            (let
-              (nonrec)
-              (termbind
-                (nonstrict)
-                (vardecl x Payment)
-                [ { error Payment } (con unit ()) ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl
-                  tup [[(con pair) (con integer)] [(con list) (con data)]]
-                )
-                [ (builtin unConstrData) d ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl t [(con list) (con data)])
-                [
-                  {
-                    { (builtin sndPair) (con integer) } [(con list) (con data)]
-                  }
-                  tup
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl t [(con list) (con data)])
-                [ { (builtin tailList) (con data) } t ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con integer))
-                [
-                  (builtin unIData)
-                  [
-                    { (builtin headList) (con data) }
-                    [ { (builtin tailList) (con data) } t ]
-                  ]
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x (con bytestring))
-                [ (builtin unBData) [ { (builtin headList) (con data) } t ] ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl
-                  x
-                  [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                )
-                [
-                  [
-                    {
-                      fIsDataNil_cunsafeFromBuiltinData
-                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                    }
-                    fIsDataValue
-                  ]
-                  [ { (builtin headList) (con data) } t ]
-                ]
-              )
-              (termbind
-                (nonstrict) (vardecl x Payment) [ [ [ Payment x ] x ] x ]
-              )
-              [
-                [
-                  [
-                    [
-                      { (builtin ifThenElse) (fun Unit Payment) }
-                      [
-                        [
-                          (builtin equalsInteger)
-                          [
-                            {
-                              { (builtin fstPair) (con integer) }
-                              [(con list) (con data)]
-                            }
-                            tup
-                          ]
-                        ]
-                        (con integer 0)
-                      ]
-                    ]
-                    (lam ds Unit x)
-                  ]
-                  (lam ds Unit x)
-                ]
+              (lam
+                thunk
                 Unit
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fIsDataMSState_cunsafeFromBuiltinData (fun (con data) MSState)
-          )
-          (lam
-            d
-            (con data)
-            (let
-              (nonrec)
-              (termbind
-                (nonstrict)
-                (vardecl x MSState)
-                [ { error MSState } (con unit ()) ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl
-                  tup [[(con pair) (con integer)] [(con list) (con data)]]
-                )
-                [ (builtin unConstrData) d ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl index (con integer))
                 [
-                  {
-                    { (builtin fstPair) (con integer) } [(con list) (con data)]
-                  }
-                  tup
+                  [ (builtin constrData) (con integer 0) ]
+                  [ (builtin mkNilData) (con unit ()) ]
                 ]
               )
-              (termbind
-                (nonstrict)
-                (vardecl x MSState)
-                [
-                  [
-                    [
-                      [
-                        { (builtin ifThenElse) (fun Unit MSState) }
-                        [ [ (builtin equalsInteger) index ] (con integer 0) ]
-                      ]
-                      (lam ds Unit Holding)
-                    ]
-                    (lam ds Unit x)
-                  ]
-                  Unit
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl t [(con list) (con data)])
-                [
-                  {
-                    { (builtin sndPair) (con integer) } [(con list) (con data)]
-                  }
-                  tup
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x [List (con bytestring)])
-                [
-                  [
-                    { fIsDataNil_cunsafeFromBuiltinData (con bytestring) }
-                    fIsDataPubKeyHash
-                  ]
-                  [
-                    { (builtin headList) (con data) }
-                    [ { (builtin tailList) (con data) } t ]
-                  ]
-                ]
-              )
-              (termbind
-                (nonstrict)
-                (vardecl x Payment)
-                [
-                  fIsDataInput_cunsafeFromBuiltinData
-                  [ { (builtin headList) (con data) } t ]
-                ]
-              )
-              (termbind
-                (nonstrict) (vardecl x MSState) [ [ CollectingSignatures x ] x ]
-              )
-              [
-                [
-                  [
-                    [
-                      { (builtin ifThenElse) (fun Unit MSState) }
-                      [ [ (builtin equalsInteger) index ] (con integer 1) ]
-                    ]
-                    (lam ds Unit x)
-                  ]
-                  (lam ds Unit x)
-                ]
-                Unit
-              ]
-            )
-          )
-        )
-        (termbind
-          (nonstrict)
-          (vardecl fIsDataMSState [IsData MSState])
-          [
-            [
-              [ { CConsIsData MSState } fIsDataMSState_ctoBuiltinData ]
-              fIsDataMSState_cfromBuiltinData
             ]
-            fIsDataMSState_cunsafeFromBuiltinData
+            Unit
           ]
         )
-        (datatypebind
-          (datatype
-            (tyvardecl Credential (type))
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl Credential (type))
 
-            Credential_match
-            (vardecl PubKeyCredential (fun (con bytestring) Credential))
-            (vardecl ScriptCredential (fun (con bytestring) Credential))
-          )
+          Credential_match
+          (vardecl PubKeyCredential (fun (con bytestring) Credential))
+          (vardecl ScriptCredential (fun (con bytestring) Credential))
         )
-        (datatypebind
-          (datatype
-            (tyvardecl StakingCredential (type))
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl StakingCredential (type))
 
-            StakingCredential_match
-            (vardecl StakingHash (fun Credential StakingCredential))
-            (vardecl
-              StakingPtr
-              (fun (con integer) (fun (con integer) (fun (con integer) StakingCredential)))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl DCert (type))
-
-            DCert_match
-            (vardecl DCertDelegDeRegKey (fun StakingCredential DCert))
-            (vardecl
-              DCertDelegDelegate
-              (fun StakingCredential (fun (con bytestring) DCert))
-            )
-            (vardecl DCertDelegRegKey (fun StakingCredential DCert))
-            (vardecl DCertGenesis DCert)
-            (vardecl DCertMir DCert)
-            (vardecl
-              DCertPoolRegister
-              (fun (con bytestring) (fun (con bytestring) DCert))
-            )
-            (vardecl
-              DCertPoolRetire (fun (con bytestring) (fun (con integer) DCert))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxOutRef (type))
-
-            TxOutRef_match
-            (vardecl
-              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl ScriptPurpose (type))
-
-            ScriptPurpose_match
-            (vardecl Certifying (fun DCert ScriptPurpose))
-            (vardecl Minting (fun (con bytestring) ScriptPurpose))
-            (vardecl Rewarding (fun StakingCredential ScriptPurpose))
-            (vardecl Spending (fun TxOutRef ScriptPurpose))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl Extended (fun (type) (type)))
-            (tyvardecl a (type))
-            Extended_match
-            (vardecl Finite (fun a [Extended a]))
-            (vardecl NegInf [Extended a])
-            (vardecl PosInf [Extended a])
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl LowerBound (fun (type) (type)))
-            (tyvardecl a (type))
-            LowerBound_match
-            (vardecl LowerBound (fun [Extended a] (fun Bool [LowerBound a])))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl UpperBound (fun (type) (type)))
-            (tyvardecl a (type))
-            UpperBound_match
-            (vardecl UpperBound (fun [Extended a] (fun Bool [UpperBound a])))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl Interval (fun (type) (type)))
-            (tyvardecl a (type))
-            Interval_match
-            (vardecl
-              Interval (fun [LowerBound a] (fun [UpperBound a] [Interval a]))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl Address (type))
-
-            Address_match
-            (vardecl
-              Address (fun Credential (fun [Maybe StakingCredential] Address))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxOut (type))
-
-            TxOut_match
-            (vardecl
-              TxOut
-              (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe (con bytestring)] TxOut)))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxInInfo (type))
-
-            TxInInfo_match
-            (vardecl TxInInfo (fun TxOutRef (fun TxOut TxInInfo)))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxInfo (type))
-
-            TxInfo_match
-            (vardecl
-              TxInfo
-              (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [List DCert] (fun [List [[Tuple2 StakingCredential] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] (con data)]] (fun (con bytestring) TxInfo))))))))))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl ScriptContext (type))
-
-            ScriptContext_match
-            (vardecl
-              ScriptContext (fun TxInfo (fun ScriptPurpose ScriptContext))
-            )
-          )
-        )
-        (termbind
-          (strict)
+          StakingCredential_match
+          (vardecl StakingHash (fun Credential StakingCredential))
           (vardecl
-            mkStateMachine
-            (all s (type) (all i (type) (fun s (fun i (fun ScriptContext Bool)))))
+            StakingPtr
+            (fun (con integer) (fun (con integer) (fun (con integer) StakingCredential)))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl DCert (type))
+
+          DCert_match
+          (vardecl DCertDelegDeRegKey (fun StakingCredential DCert))
+          (vardecl
+            DCertDelegDelegate
+            (fun StakingCredential (fun (con bytestring) DCert))
+          )
+          (vardecl DCertDelegRegKey (fun StakingCredential DCert))
+          (vardecl DCertGenesis DCert)
+          (vardecl DCertMir DCert)
+          (vardecl
+            DCertPoolRegister
+            (fun (con bytestring) (fun (con bytestring) DCert))
+          )
+          (vardecl
+            DCertPoolRetire (fun (con bytestring) (fun (con integer) DCert))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl TxOutRef (type))
+
+          TxOutRef_match
+          (vardecl TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef)))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl ScriptPurpose (type))
+
+          ScriptPurpose_match
+          (vardecl Certifying (fun DCert ScriptPurpose))
+          (vardecl Minting (fun (con bytestring) ScriptPurpose))
+          (vardecl Rewarding (fun StakingCredential ScriptPurpose))
+          (vardecl Spending (fun TxOutRef ScriptPurpose))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl Extended (fun (type) (type)))
+          (tyvardecl a (type))
+          Extended_match
+          (vardecl Finite (fun a [Extended a]))
+          (vardecl NegInf [Extended a])
+          (vardecl PosInf [Extended a])
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl Bool (type))
+
+          Bool_match
+          (vardecl True Bool) (vardecl False Bool)
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl LowerBound (fun (type) (type)))
+          (tyvardecl a (type))
+          LowerBound_match
+          (vardecl LowerBound (fun [Extended a] (fun Bool [LowerBound a])))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl UpperBound (fun (type) (type)))
+          (tyvardecl a (type))
+          UpperBound_match
+          (vardecl UpperBound (fun [Extended a] (fun Bool [UpperBound a])))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl Interval (fun (type) (type)))
+          (tyvardecl a (type))
+          Interval_match
+          (vardecl
+            Interval (fun [LowerBound a] (fun [UpperBound a] [Interval a]))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl Maybe (fun (type) (type)))
+          (tyvardecl a (type))
+          Maybe_match
+          (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl Address (type))
+
+          Address_match
+          (vardecl
+            Address (fun Credential (fun [Maybe StakingCredential] Address))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl TxOut (type))
+
+          TxOut_match
+          (vardecl
+            TxOut
+            (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Maybe (con bytestring)] TxOut)))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl TxInInfo (type))
+
+          TxInInfo_match
+          (vardecl TxInInfo (fun TxOutRef (fun TxOut TxInInfo)))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl TxInfo (type))
+
+          TxInfo_match
+          (vardecl
+            TxInfo
+            (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [List DCert] (fun [List [[Tuple2 StakingCredential] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] (con data)]] (fun (con bytestring) TxInfo))))))))))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl ScriptContext (type))
+
+          ScriptContext_match
+          (vardecl ScriptContext (fun TxInfo (fun ScriptPurpose ScriptContext)))
+        )
+      )
+      (termbind
+        (strict)
+        (vardecl
+          mkStateMachine
+          (all s (type) (all i (type) (fun s (fun i (fun ScriptContext Bool)))))
+        )
+        (abs
+          s
+          (type)
+          (abs i (type) (lam ds s (lam ds i (lam ds ScriptContext True))))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl ThreadToken (type))
+
+          ThreadToken_match
+          (vardecl ThreadToken (fun TxOutRef (fun (con bytestring) ThreadToken))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl State (fun (type) (type)))
+          (tyvardecl s (type))
+          State_match
+          (vardecl
+            State
+            (fun s (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [State s]))
+          )
+        )
+      )
+      (datatypebind (datatype (tyvardecl Void (type))  Void_match ))
+      (datatypebind
+        (datatype
+          (tyvardecl InputConstraint (fun (type) (type)))
+          (tyvardecl a (type))
+          InputConstraint_match
+          (vardecl InputConstraint (fun a (fun TxOutRef [InputConstraint a])))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl OutputConstraint (fun (type) (type)))
+          (tyvardecl a (type))
+          OutputConstraint_match
+          (vardecl
+            OutputConstraint
+            (fun a (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [OutputConstraint a]))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl TxConstraint (type))
+
+          TxConstraint_match
+          (vardecl MustBeSignedBy (fun (con bytestring) TxConstraint))
+          (vardecl
+            MustHashDatum (fun (con bytestring) (fun (con data) TxConstraint))
+          )
+          (vardecl MustIncludeDatum (fun (con data) TxConstraint))
+          (vardecl
+            MustMintValue
+            (fun (con bytestring) (fun (con data) (fun (con bytestring) (fun (con integer) TxConstraint))))
+          )
+          (vardecl
+            MustPayToOtherScript
+            (fun (con bytestring) (fun (con data) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)))
+          )
+          (vardecl
+            MustPayToPubKey
+            (fun (con bytestring) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint))
+          )
+          (vardecl
+            MustProduceAtLeast
+            (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
+          )
+          (vardecl
+            MustSpendAtLeast
+            (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
+          )
+          (vardecl MustSpendPubKeyOutput (fun TxOutRef TxConstraint))
+          (vardecl
+            MustSpendScriptOutput (fun TxOutRef (fun (con data) TxConstraint))
+          )
+          (vardecl MustValidateIn (fun [Interval (con integer)] TxConstraint))
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl TxConstraints (fun (type) (fun (type) (type))))
+          (tyvardecl i (type)) (tyvardecl o (type))
+          TxConstraints_match
+          (vardecl
+            TxConstraints
+            (fun [List TxConstraint] (fun [List [InputConstraint i]] (fun [List [OutputConstraint o]] [[TxConstraints i] o])))
+          )
+        )
+      )
+      (datatypebind
+        (datatype
+          (tyvardecl StateMachine (fun (type) (fun (type) (type))))
+          (tyvardecl s (type)) (tyvardecl i (type))
+          StateMachine_match
+          (vardecl
+            StateMachine
+            (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] [[StateMachine s] i]))))
+          )
+        )
+      )
+      (let
+        (rec)
+        (termbind
+          (nonstrict)
+          (vardecl
+            fFunctorNil_cfmap
+            (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
           )
           (abs
-            s
+            a
             (type)
-            (abs i (type) (lam ds s (lam ds i (lam ds ScriptContext True))))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl ThreadToken (type))
-
-            ThreadToken_match
-            (vardecl
-              ThreadToken (fun TxOutRef (fun (con bytestring) ThreadToken))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl State (fun (type) (type)))
-            (tyvardecl s (type))
-            State_match
-            (vardecl
-              State
-              (fun s (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [State s]))
-            )
-          )
-        )
-        (datatypebind (datatype (tyvardecl Void (type))  Void_match ))
-        (datatypebind
-          (datatype
-            (tyvardecl InputConstraint (fun (type) (type)))
-            (tyvardecl a (type))
-            InputConstraint_match
-            (vardecl InputConstraint (fun a (fun TxOutRef [InputConstraint a])))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl OutputConstraint (fun (type) (type)))
-            (tyvardecl a (type))
-            OutputConstraint_match
-            (vardecl
-              OutputConstraint
-              (fun a (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [OutputConstraint a]))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxConstraint (type))
-
-            TxConstraint_match
-            (vardecl MustBeSignedBy (fun (con bytestring) TxConstraint))
-            (vardecl
-              MustHashDatum (fun (con bytestring) (fun (con data) TxConstraint))
-            )
-            (vardecl MustIncludeDatum (fun (con data) TxConstraint))
-            (vardecl
-              MustMintValue
-              (fun (con bytestring) (fun (con data) (fun (con bytestring) (fun (con integer) TxConstraint))))
-            )
-            (vardecl
-              MustPayToOtherScript
-              (fun (con bytestring) (fun (con data) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)))
-            )
-            (vardecl
-              MustPayToPubKey
-              (fun (con bytestring) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint))
-            )
-            (vardecl
-              MustProduceAtLeast
-              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
-            )
-            (vardecl
-              MustSpendAtLeast
-              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
-            )
-            (vardecl MustSpendPubKeyOutput (fun TxOutRef TxConstraint))
-            (vardecl
-              MustSpendScriptOutput (fun TxOutRef (fun (con data) TxConstraint))
-            )
-            (vardecl MustValidateIn (fun [Interval (con integer)] TxConstraint))
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxConstraints (fun (type) (fun (type) (type))))
-            (tyvardecl i (type)) (tyvardecl o (type))
-            TxConstraints_match
-            (vardecl
-              TxConstraints
-              (fun [List TxConstraint] (fun [List [InputConstraint i]] (fun [List [OutputConstraint o]] [[TxConstraints i] o])))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl StateMachine (fun (type) (fun (type) (type))))
-            (tyvardecl s (type)) (tyvardecl i (type))
-            StateMachine_match
-            (vardecl
-              StateMachine
-              (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] [[StateMachine s] i]))))
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            fAdditiveGroupValue_cscale
-            (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
-          )
-          (lam
-            i
-            (con integer)
-            (lam
-              ds
-              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-              (let
-                (rec)
-                (termbind
-                  (strict)
-                  (vardecl
-                    go
-                    (fun [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]] [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
-                  )
-                  (lam
-                    ds
-                    [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+            (abs
+              b
+              (type)
+              (lam
+                f
+                (fun a b)
+                (lam
+                  l
+                  [List a]
+                  [
                     [
                       [
-                        [
-                          {
-                            [
-                              {
-                                Nil_match
-                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                              }
-                              ds
-                            ]
-                            (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
-                          }
+                        { [ { Nil_match a } l ] (fun Unit [List b]) }
+                        (lam thunk Unit { Nil b })
+                      ]
+                      (lam
+                        x
+                        a
+                        (lam
+                          xs
+                          [List a]
                           (lam
                             thunk
                             Unit
-                            {
-                              Nil
-                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                            }
-                          )
-                        ]
-                        (lam
-                          ds
-                          [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                          (lam
-                            xs
-                            [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                            (lam
-                              thunk
-                              Unit
-                              [
-                                {
-                                  [
-                                    {
-                                      { Tuple2_match (con bytestring) }
-                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                    }
-                                    ds
-                                  ]
-                                  [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                }
-                                (lam
-                                  c
-                                  (con bytestring)
-                                  (lam
-                                    i
-                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                    (let
-                                      (rec)
-                                      (termbind
-                                        (strict)
-                                        (vardecl
-                                          go
-                                          (fun [List [[Tuple2 (con bytestring)] (con integer)]] [List [[Tuple2 (con bytestring)] (con integer)]])
-                                        )
-                                        (lam
-                                          ds
-                                          [List [[Tuple2 (con bytestring)] (con integer)]]
-                                          [
-                                            [
-                                              [
-                                                {
-                                                  [
-                                                    {
-                                                      Nil_match
-                                                      [[Tuple2 (con bytestring)] (con integer)]
-                                                    }
-                                                    ds
-                                                  ]
-                                                  (fun Unit [List [[Tuple2 (con bytestring)] (con integer)]])
-                                                }
-                                                (lam
-                                                  thunk
-                                                  Unit
-                                                  {
-                                                    Nil
-                                                    [[Tuple2 (con bytestring)] (con integer)]
-                                                  }
-                                                )
-                                              ]
-                                              (lam
-                                                ds
-                                                [[Tuple2 (con bytestring)] (con integer)]
-                                                (lam
-                                                  xs
-                                                  [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                  (lam
-                                                    thunk
-                                                    Unit
-                                                    [
-                                                      {
-                                                        [
-                                                          {
-                                                            {
-                                                              Tuple2_match
-                                                              (con bytestring)
-                                                            }
-                                                            (con integer)
-                                                          }
-                                                          ds
-                                                        ]
-                                                        [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                      }
-                                                      (lam
-                                                        c
-                                                        (con bytestring)
-                                                        (lam
-                                                          i
-                                                          (con integer)
-                                                          [
-                                                            [
-                                                              {
-                                                                Cons
-                                                                [[Tuple2 (con bytestring)] (con integer)]
-                                                              }
-                                                              [
-                                                                [
-                                                                  {
-                                                                    {
-                                                                      Tuple2
-                                                                      (con bytestring)
-                                                                    }
-                                                                    (con integer)
-                                                                  }
-                                                                  c
-                                                                ]
-                                                                [
-                                                                  [
-                                                                    (builtin
-                                                                      multiplyInteger
-                                                                    )
-                                                                    i
-                                                                  ]
-                                                                  i
-                                                                ]
-                                                              ]
-                                                            ]
-                                                            [ go xs ]
-                                                          ]
-                                                        )
-                                                      )
-                                                    ]
-                                                  )
-                                                )
-                                              )
-                                            ]
-                                            Unit
-                                          ]
-                                        )
-                                      )
-                                      [
-                                        [
-                                          {
-                                            Cons
-                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                          }
-                                          [
-                                            [
-                                              {
-                                                { Tuple2 (con bytestring) }
-                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                              }
-                                              c
-                                            ]
-                                            [ go i ]
-                                          ]
-                                        ]
-                                        [ go xs ]
-                                      ]
-                                    )
-                                  )
-                                )
-                              ]
-                            )
+                            [
+                              [ { Cons b } [ f x ] ]
+                              [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
+                            ]
                           )
                         )
-                      ]
-                      Unit
+                      )
                     ]
-                  )
+                    Unit
+                  ]
                 )
-                [ go ds ]
               )
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            addInteger (fun (con integer) (fun (con integer) (con integer)))
-          )
-          (lam
-            x
-            (con integer)
-            (lam y (con integer) [ [ (builtin addInteger) x ] y ])
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            equalsByteString (fun (con bytestring) (fun (con bytestring) Bool))
-          )
-          (lam
-            x
-            (con bytestring)
-            (lam
-              y
-              (con bytestring)
-              [
-                [
-                  [
-                    { (builtin ifThenElse) Bool }
-                    [ [ (builtin equalsByteString) x ] y ]
-                  ]
-                  True
-                ]
-                False
-              ]
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl AdditiveMonoid (fun (type) (type)))
-            (tyvardecl a (type))
-            AdditiveMonoid_match
-            (vardecl
-              CConsAdditiveMonoid
-              (fun [(lam a (type) (fun a (fun a a))) a] (fun a [AdditiveMonoid a]))
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl bad_name (fun Bool (fun Bool Bool)))
-          (lam
-            ds
-            Bool
-            (lam
-              ds
-              Bool
-              [
-                [
-                  [
-                    { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit True)
-                  ]
-                  (lam thunk Unit ds)
-                ]
-                Unit
-              ]
-            )
-          )
-        )
-        (termbind
-          (nonstrict)
-          (vardecl fAdditiveMonoidBool [AdditiveMonoid Bool])
-          [ [ { CConsAdditiveMonoid Bool } bad_name ] False ]
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl Monoid (fun (type) (type)))
-            (tyvardecl a (type))
-            Monoid_match
-            (vardecl
-              CConsMonoid
-              (fun [(lam a (type) (fun a (fun a a))) a] (fun a [Monoid a]))
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl
-            p1Monoid
-            (all a (type) (fun [Monoid a] [(lam a (type) (fun a (fun a a))) a]))
-          )
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [Monoid a]
-              [
-                {
-                  [ { Monoid_match a } v ] [(lam a (type) (fun a (fun a a))) a]
-                }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
-              ]
-            )
-          )
-        )
-        (termbind
-          (strict)
-          (vardecl mempty (all a (type) (fun [Monoid a] a)))
-          (abs
-            a
-            (type)
-            (lam
-              v
-              [Monoid a]
-              [
-                { [ { Monoid_match a } v ] a }
-                (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
-              ]
             )
           )
         )
         (let
-          (rec)
+          (nonrec)
           (termbind
-            (nonstrict)
+            (strict)
             (vardecl
-              fFoldableNil_cfoldMap
-              (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
+              fAdditiveGroupValue_cscale
+              (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
             )
-            (abs
-              m
-              (type)
-              (abs
-                a
-                (type)
-                (lam
-                  dMonoid
-                  [Monoid m]
-                  (let
-                    (nonrec)
-                    (termbind
-                      (nonstrict)
-                      (vardecl dSemigroup [(lam a (type) (fun a (fun a a))) m])
-                      [ { p1Monoid m } dMonoid ]
-                    )
+            (lam
+              i
+              (con integer)
+              (lam
+                ds
+                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                [
+                  [
+                    {
+                      {
+                        fFunctorNil_cfmap
+                        [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                      }
+                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                    }
                     (lam
                       ds
-                      (fun a m)
-                      (lam
-                        ds
-                        [List a]
-                        [
+                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                      [
+                        {
                           [
-                            [
-                              { [ { Nil_match a } ds ] (fun Unit m) }
-                              (lam thunk Unit [ { mempty m } dMonoid ])
-                            ]
-                            (lam
-                              x
-                              a
-                              (lam
-                                xs
-                                [List a]
-                                (lam
-                                  thunk
-                                  Unit
-                                  [
-                                    [ dSemigroup [ ds x ] ]
-                                    [
-                                      [
-                                        [
-                                          { { fFoldableNil_cfoldMap m } a }
-                                          dMonoid
-                                        ]
-                                        ds
-                                      ]
-                                      xs
-                                    ]
-                                  ]
-                                )
-                              )
-                            )
+                            {
+                              { Tuple2_match (con bytestring) }
+                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                            }
+                            ds
                           ]
-                          Unit
-                        ]
-                      )
+                          [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                        }
+                        (lam
+                          c
+                          (con bytestring)
+                          (lam
+                            a
+                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                            [
+                              [
+                                {
+                                  { Tuple2 (con bytestring) }
+                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                }
+                                c
+                              ]
+                              [
+                                [
+                                  {
+                                    {
+                                      fFunctorNil_cfmap
+                                      [[Tuple2 (con bytestring)] (con integer)]
+                                    }
+                                    [[Tuple2 (con bytestring)] (con integer)]
+                                  }
+                                  (lam
+                                    ds
+                                    [[Tuple2 (con bytestring)] (con integer)]
+                                    [
+                                      {
+                                        [
+                                          {
+                                            { Tuple2_match (con bytestring) }
+                                            (con integer)
+                                          }
+                                          ds
+                                        ]
+                                        [[Tuple2 (con bytestring)] (con integer)]
+                                      }
+                                      (lam
+                                        c
+                                        (con bytestring)
+                                        (lam
+                                          a
+                                          (con integer)
+                                          [
+                                            [
+                                              {
+                                                { Tuple2 (con bytestring) }
+                                                (con integer)
+                                              }
+                                              c
+                                            ]
+                                            [
+                                              [ (builtin multiplyInteger) i ] a
+                                            ]
+                                          ]
+                                        )
+                                      )
+                                    ]
+                                  )
+                                ]
+                                a
+                              ]
+                            ]
+                          )
+                        )
+                      ]
                     )
-                  )
-                )
+                  ]
+                  ds
+                ]
+              )
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl
+              addInteger (fun (con integer) (fun (con integer) (con integer)))
+            )
+            (lam
+              x
+              (con integer)
+              (lam y (con integer) [ [ (builtin addInteger) x ] y ])
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl
+              equalsByteString
+              (fun (con bytestring) (fun (con bytestring) Bool))
+            )
+            (lam
+              x
+              (con bytestring)
+              (lam
+                y
+                (con bytestring)
+                [
+                  [
+                    [
+                      { (builtin ifThenElse) Bool }
+                      [ [ (builtin equalsByteString) x ] y ]
+                    ]
+                    True
+                  ]
+                  False
+                ]
+              )
+            )
+          )
+          (datatypebind
+            (datatype
+              (tyvardecl These (fun (type) (fun (type) (type))))
+              (tyvardecl a (type)) (tyvardecl b (type))
+              These_match
+              (vardecl That (fun b [[These a] b]))
+              (vardecl These (fun a (fun b [[These a] b])))
+              (vardecl This (fun a [[These a] b]))
+            )
+          )
+          (datatypebind
+            (datatype
+              (tyvardecl AdditiveMonoid (fun (type) (type)))
+              (tyvardecl a (type))
+              AdditiveMonoid_match
+              (vardecl
+                CConsAdditiveMonoid
+                (fun [(lam a (type) (fun a (fun a a))) a] (fun a [AdditiveMonoid a]))
+              )
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl bad_name (fun Bool (fun Bool Bool)))
+            (lam
+              ds
+              Bool
+              (lam
+                ds
+                Bool
+                [
+                  [
+                    [
+                      { [ Bool_match ds ] (fun Unit Bool) }
+                      (lam thunk Unit True)
+                    ]
+                    (lam thunk Unit ds)
+                  ]
+                  Unit
+                ]
+              )
+            )
+          )
+          (termbind
+            (nonstrict)
+            (vardecl fAdditiveMonoidBool [AdditiveMonoid Bool])
+            [ [ { CConsAdditiveMonoid Bool } bad_name ] False ]
+          )
+          (datatypebind
+            (datatype
+              (tyvardecl Monoid (fun (type) (type)))
+              (tyvardecl a (type))
+              Monoid_match
+              (vardecl
+                CConsMonoid
+                (fun [(lam a (type) (fun a (fun a a))) a] (fun a [Monoid a]))
+              )
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl
+              p1Monoid
+              (all a (type) (fun [Monoid a] [(lam a (type) (fun a (fun a a))) a]))
+            )
+            (abs
+              a
+              (type)
+              (lam
+                v
+                [Monoid a]
+                [
+                  {
+                    [ { Monoid_match a } v ]
+                    [(lam a (type) (fun a (fun a a))) a]
+                  }
+                  (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                ]
+              )
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl mempty (all a (type) (fun [Monoid a] a)))
+            (abs
+              a
+              (type)
+              (lam
+                v
+                [Monoid a]
+                [
+                  { [ { Monoid_match a } v ] a }
+                  (lam v [(lam a (type) (fun a (fun a a))) a] (lam v a v))
+                ]
               )
             )
           )
@@ -2832,46 +939,68 @@
             (termbind
               (nonstrict)
               (vardecl
-                fFunctorNil_cfmap
-                (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
+                fFoldableNil_cfoldMap
+                (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
               )
               (abs
-                a
+                m
                 (type)
                 (abs
-                  b
+                  a
                   (type)
                   (lam
-                    f
-                    (fun a b)
-                    (lam
-                      l
-                      [List a]
-                      [
-                        [
+                    dMonoid
+                    [Monoid m]
+                    (let
+                      (nonrec)
+                      (termbind
+                        (nonstrict)
+                        (vardecl dSemigroup [(lam a (type) (fun a (fun a a))) m]
+                        )
+                        [ { p1Monoid m } dMonoid ]
+                      )
+                      (lam
+                        ds
+                        (fun a m)
+                        (lam
+                          ds
+                          [List a]
                           [
-                            { [ { Nil_match a } l ] (fun Unit [List b]) }
-                            (lam thunk Unit { Nil b })
-                          ]
-                          (lam
-                            x
-                            a
-                            (lam
-                              xs
-                              [List a]
+                            [
+                              [
+                                { [ { Nil_match a } ds ] (fun Unit m) }
+                                (lam thunk Unit [ { mempty m } dMonoid ])
+                              ]
                               (lam
-                                thunk
-                                Unit
-                                [
-                                  [ { Cons b } [ f x ] ]
-                                  [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
-                                ]
+                                x
+                                a
+                                (lam
+                                  xs
+                                  [List a]
+                                  (lam
+                                    thunk
+                                    Unit
+                                    [
+                                      [ dSemigroup [ ds x ] ]
+                                      [
+                                        [
+                                          [
+                                            { { fFoldableNil_cfoldMap m } a }
+                                            dMonoid
+                                          ]
+                                          ds
+                                        ]
+                                        xs
+                                      ]
+                                    ]
+                                  )
+                                )
                               )
-                            )
-                          )
-                        ]
-                        Unit
-                      ]
+                            ]
+                            Unit
+                          ]
+                        )
+                      )
                     )
                   )
                 )
@@ -3054,7 +1183,7 @@
                                               c
                                               k
                                               (lam
-                                                b
+                                                a
                                                 r
                                                 [
                                                   [
@@ -3063,7 +1192,7 @@
                                                     }
                                                     c
                                                   ]
-                                                  [ { { That v } r } b ]
+                                                  [ { { That v } r } a ]
                                                 ]
                                               )
                                             )
@@ -3365,391 +1494,240 @@
                       (lam
                         ds
                         [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                        (let
-                          (rec)
-                          (termbind
-                            (strict)
-                            (vardecl
-                              go
-                              (fun [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]] [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
-                            )
+                        [
+                          [
+                            {
+                              {
+                                fFunctorNil_cfmap
+                                [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                              }
+                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                            }
                             (lam
                               ds
-                              [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
+                              [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
                               [
-                                [
+                                {
                                   [
                                     {
+                                      { Tuple2_match (con bytestring) }
+                                      [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                    }
+                                    ds
+                                  ]
+                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                }
+                                (lam
+                                  c
+                                  (con bytestring)
+                                  (lam
+                                    a
+                                    [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                    [
                                       [
                                         {
-                                          Nil_match
-                                          [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                          { Tuple2 (con bytestring) }
+                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
                                         }
-                                        ds
+                                        c
                                       ]
-                                      (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]])
-                                    }
-                                    (lam
-                                      thunk
-                                      Unit
-                                      {
-                                        Nil
-                                        [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                      }
-                                    )
-                                  ]
-                                  (lam
-                                    ds
-                                    [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                    (lam
-                                      xs
-                                      [List [[Tuple2 (con bytestring)] [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]]
-                                      (lam
-                                        thunk
-                                        Unit
+                                      [
                                         [
-                                          {
-                                            [
-                                              {
+                                          [
+                                            {
+                                              [
                                                 {
-                                                  Tuple2_match (con bytestring)
+                                                  {
+                                                    These_match
+                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                  }
+                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                                                 }
-                                                [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                              }
-                                              ds
-                                            ]
-                                            [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                          }
-                                          (lam
-                                            c
-                                            (con bytestring)
+                                                a
+                                              ]
+                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                            }
                                             (lam
-                                              i
-                                              [[These [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                              b
+                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                                               [
                                                 [
                                                   {
-                                                    Cons
-                                                    [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                                    {
+                                                      fFunctorNil_cfmap
+                                                      [[Tuple2 (con bytestring)] (con integer)]
+                                                    }
+                                                    [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
                                                   }
-                                                  [
+                                                  (lam
+                                                    ds
+                                                    [[Tuple2 (con bytestring)] (con integer)]
                                                     [
                                                       {
-                                                        {
-                                                          Tuple2
-                                                          (con bytestring)
-                                                        }
-                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                      }
-                                                      c
-                                                    ]
-                                                    [
-                                                      [
                                                         [
                                                           {
+                                                            {
+                                                              Tuple2_match
+                                                              (con bytestring)
+                                                            }
+                                                            (con integer)
+                                                          }
+                                                          ds
+                                                        ]
+                                                        [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                      }
+                                                      (lam
+                                                        c
+                                                        (con bytestring)
+                                                        (lam
+                                                          a
+                                                          (con integer)
+                                                          [
                                                             [
                                                               {
                                                                 {
-                                                                  These_match
-                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                  Tuple2
+                                                                  (con bytestring)
                                                                 }
-                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                                                [[These (con integer)] (con integer)]
                                                               }
-                                                              i
+                                                              c
                                                             ]
-                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                          }
-                                                          (lam
-                                                            b
-                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                            (let
-                                                              (rec)
-                                                              (termbind
-                                                                (strict)
-                                                                (vardecl
-                                                                  go
-                                                                  (fun [List [[Tuple2 (con bytestring)] (con integer)]] [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                                )
-                                                                (lam
-                                                                  ds
-                                                                  [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            {
-                                                                              Nil_match
-                                                                              [[Tuple2 (con bytestring)] (con integer)]
-                                                                            }
-                                                                            ds
-                                                                          ]
-                                                                          (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                                        }
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          {
-                                                                            Nil
-                                                                            [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                          }
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        ds
-                                                                        [[Tuple2 (con bytestring)] (con integer)]
-                                                                        (lam
-                                                                          xs
-                                                                          [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                          (lam
-                                                                            thunk
-                                                                            Unit
-                                                                            [
-                                                                              {
-                                                                                [
-                                                                                  {
-                                                                                    {
-                                                                                      Tuple2_match
-                                                                                      (con bytestring)
-                                                                                    }
-                                                                                    (con integer)
-                                                                                  }
-                                                                                  ds
-                                                                                ]
-                                                                                [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                              }
-                                                                              (lam
-                                                                                c
-                                                                                (con bytestring)
-                                                                                (lam
-                                                                                  i
-                                                                                  (con integer)
-                                                                                  [
-                                                                                    [
-                                                                                      {
-                                                                                        Cons
-                                                                                        [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                      }
-                                                                                      [
-                                                                                        [
-                                                                                          {
-                                                                                            {
-                                                                                              Tuple2
-                                                                                              (con bytestring)
-                                                                                            }
-                                                                                            [[These (con integer)] (con integer)]
-                                                                                          }
-                                                                                          c
-                                                                                        ]
-                                                                                        [
-                                                                                          {
-                                                                                            {
-                                                                                              That
-                                                                                              (con integer)
-                                                                                            }
-                                                                                            (con integer)
-                                                                                          }
-                                                                                          i
-                                                                                        ]
-                                                                                      ]
-                                                                                    ]
-                                                                                    [
-                                                                                      go
-                                                                                      xs
-                                                                                    ]
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                          )
-                                                                        )
-                                                                      )
-                                                                    ]
-                                                                    Unit
-                                                                  ]
-                                                                )
-                                                              )
-                                                              [ go b ]
-                                                            )
-                                                          )
-                                                        ]
-                                                        (lam
-                                                          a
-                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                          (lam
-                                                            b
-                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                                                             [
-                                                              [
-                                                                [
-                                                                  {
-                                                                    {
-                                                                      {
-                                                                        union
-                                                                        (con bytestring)
-                                                                      }
-                                                                      (con integer)
-                                                                    }
-                                                                    (con integer)
-                                                                  }
-                                                                  equalsByteString
-                                                                ]
-                                                                a
-                                                              ]
-                                                              b
+                                                              {
+                                                                {
+                                                                  That
+                                                                  (con integer)
+                                                                }
+                                                                (con integer)
+                                                              }
+                                                              a
                                                             ]
-                                                          )
-                                                        )
-                                                      ]
-                                                      (lam
-                                                        a
-                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                        (let
-                                                          (rec)
-                                                          (termbind
-                                                            (strict)
-                                                            (vardecl
-                                                              go
-                                                              (fun [List [[Tuple2 (con bytestring)] (con integer)]] [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                            )
-                                                            (lam
-                                                              ds
-                                                              [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                              [
-                                                                [
-                                                                  [
-                                                                    {
-                                                                      [
-                                                                        {
-                                                                          Nil_match
-                                                                          [[Tuple2 (con bytestring)] (con integer)]
-                                                                        }
-                                                                        ds
-                                                                      ]
-                                                                      (fun Unit [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]])
-                                                                    }
-                                                                    (lam
-                                                                      thunk
-                                                                      Unit
-                                                                      {
-                                                                        Nil
-                                                                        [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                      }
-                                                                    )
-                                                                  ]
-                                                                  (lam
-                                                                    ds
-                                                                    [[Tuple2 (con bytestring)] (con integer)]
-                                                                    (lam
-                                                                      xs
-                                                                      [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        [
-                                                                          {
-                                                                            [
-                                                                              {
-                                                                                {
-                                                                                  Tuple2_match
-                                                                                  (con bytestring)
-                                                                                }
-                                                                                (con integer)
-                                                                              }
-                                                                              ds
-                                                                            ]
-                                                                            [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                                          }
-                                                                          (lam
-                                                                            c
-                                                                            (con bytestring)
-                                                                            (lam
-                                                                              i
-                                                                              (con integer)
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    Cons
-                                                                                    [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                                  }
-                                                                                  [
-                                                                                    [
-                                                                                      {
-                                                                                        {
-                                                                                          Tuple2
-                                                                                          (con bytestring)
-                                                                                        }
-                                                                                        [[These (con integer)] (con integer)]
-                                                                                      }
-                                                                                      c
-                                                                                    ]
-                                                                                    [
-                                                                                      {
-                                                                                        {
-                                                                                          This
-                                                                                          (con integer)
-                                                                                        }
-                                                                                        (con integer)
-                                                                                      }
-                                                                                      i
-                                                                                    ]
-                                                                                  ]
-                                                                                ]
-                                                                                [
-                                                                                  go
-                                                                                  xs
-                                                                                ]
-                                                                              ]
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                      )
-                                                                    )
-                                                                  )
-                                                                ]
-                                                                Unit
-                                                              ]
-                                                            )
-                                                          )
-                                                          [ go a ]
+                                                          ]
                                                         )
                                                       )
                                                     ]
-                                                  ]
+                                                  )
                                                 ]
-                                                [ go xs ]
+                                                b
+                                              ]
+                                            )
+                                          ]
+                                          (lam
+                                            a
+                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                            (lam
+                                              b
+                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      {
+                                                        {
+                                                          union (con bytestring)
+                                                        }
+                                                        (con integer)
+                                                      }
+                                                      (con integer)
+                                                    }
+                                                    equalsByteString
+                                                  ]
+                                                  a
+                                                ]
+                                                b
                                               ]
                                             )
                                           )
                                         ]
-                                      )
-                                    )
+                                        (lam
+                                          a
+                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                          [
+                                            [
+                                              {
+                                                {
+                                                  fFunctorNil_cfmap
+                                                  [[Tuple2 (con bytestring)] (con integer)]
+                                                }
+                                                [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                              }
+                                              (lam
+                                                ds
+                                                [[Tuple2 (con bytestring)] (con integer)]
+                                                [
+                                                  {
+                                                    [
+                                                      {
+                                                        {
+                                                          Tuple2_match
+                                                          (con bytestring)
+                                                        }
+                                                        (con integer)
+                                                      }
+                                                      ds
+                                                    ]
+                                                    [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                  }
+                                                  (lam
+                                                    c
+                                                    (con bytestring)
+                                                    (lam
+                                                      a
+                                                      (con integer)
+                                                      [
+                                                        [
+                                                          {
+                                                            {
+                                                              Tuple2
+                                                              (con bytestring)
+                                                            }
+                                                            [[These (con integer)] (con integer)]
+                                                          }
+                                                          c
+                                                        ]
+                                                        [
+                                                          {
+                                                            {
+                                                              This (con integer)
+                                                            }
+                                                            (con integer)
+                                                          }
+                                                          a
+                                                        ]
+                                                      ]
+                                                    )
+                                                  )
+                                                ]
+                                              )
+                                            ]
+                                            a
+                                          ]
+                                        )
+                                      ]
+                                    ]
                                   )
-                                ]
-                                Unit
+                                )
                               ]
                             )
-                          )
+                          ]
                           [
-                            go
                             [
                               [
-                                [
+                                {
                                   {
-                                    {
-                                      { union (con bytestring) }
-                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                    }
+                                    { union (con bytestring) }
                                     [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                                   }
-                                  equalsByteString
-                                ]
-                                ds
+                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                }
+                                equalsByteString
                               ]
                               ds
                             ]
+                            ds
                           ]
-                        )
+                        ]
                       )
                     )
                   )
@@ -3768,262 +1746,150 @@
                         (lam
                           rs
                           [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                          (let
-                            (rec)
-                            (termbind
-                              (strict)
-                              (vardecl
-                                go
-                                (fun [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]] [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
-                              )
+                          [
+                            [
+                              {
+                                {
+                                  fFunctorNil_cfmap
+                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                }
+                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                              }
                               (lam
                                 ds
-                                [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
+                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
                                 [
-                                  [
+                                  {
                                     [
                                       {
+                                        { Tuple2_match (con bytestring) }
+                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                      }
+                                      ds
+                                    ]
+                                    [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                  }
+                                  (lam
+                                    c
+                                    (con bytestring)
+                                    (lam
+                                      a
+                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                      [
                                         [
                                           {
-                                            Nil_match
-                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                            { Tuple2 (con bytestring) }
+                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                                           }
-                                          ds
+                                          c
                                         ]
-                                        (fun Unit [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]])
-                                      }
-                                      (lam
-                                        thunk
-                                        Unit
-                                        {
-                                          Nil
-                                          [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                        }
-                                      )
-                                    ]
-                                    (lam
-                                      ds
-                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                      (lam
-                                        xs
-                                        [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                        (lam
-                                          thunk
-                                          Unit
+                                        [
                                           [
                                             {
-                                              [
-                                                {
-                                                  {
-                                                    Tuple2_match
-                                                    (con bytestring)
-                                                  }
-                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                }
-                                                ds
-                                              ]
-                                              [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                                              {
+                                                fFunctorNil_cfmap
+                                                [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                              }
+                                              [[Tuple2 (con bytestring)] (con integer)]
                                             }
                                             (lam
-                                              c
-                                              (con bytestring)
-                                              (lam
-                                                i
-                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                (let
-                                                  (rec)
-                                                  (termbind
-                                                    (strict)
-                                                    (vardecl
-                                                      go
-                                                      (fun [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]] [List [[Tuple2 (con bytestring)] (con integer)]])
-                                                    )
-                                                    (lam
-                                                      ds
-                                                      [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
+                                              ds
+                                              [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                              [
+                                                {
+                                                  [
+                                                    {
+                                                      {
+                                                        Tuple2_match
+                                                        (con bytestring)
+                                                      }
+                                                      [[These (con integer)] (con integer)]
+                                                    }
+                                                    ds
+                                                  ]
+                                                  [[Tuple2 (con bytestring)] (con integer)]
+                                                }
+                                                (lam
+                                                  c
+                                                  (con bytestring)
+                                                  (lam
+                                                    a
+                                                    [[These (con integer)] (con integer)]
+                                                    [
+                                                      [
+                                                        {
+                                                          {
+                                                            Tuple2
+                                                            (con bytestring)
+                                                          }
+                                                          (con integer)
+                                                        }
+                                                        c
+                                                      ]
                                                       [
                                                         [
                                                           [
                                                             {
                                                               [
                                                                 {
-                                                                  Nil_match
-                                                                  [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                                  {
+                                                                    These_match
+                                                                    (con integer)
+                                                                  }
+                                                                  (con integer)
                                                                 }
-                                                                ds
+                                                                a
                                                               ]
-                                                              (fun Unit [List [[Tuple2 (con bytestring)] (con integer)]])
+                                                              (con integer)
                                                             }
                                                             (lam
-                                                              thunk
-                                                              Unit
-                                                              {
-                                                                Nil
-                                                                [[Tuple2 (con bytestring)] (con integer)]
-                                                              }
+                                                              b
+                                                              (con integer)
+                                                              [
+                                                                [
+                                                                  f
+                                                                  (con integer 0
+                                                                  )
+                                                                ]
+                                                                b
+                                                              ]
                                                             )
                                                           ]
                                                           (lam
-                                                            ds
-                                                            [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                                            a
+                                                            (con integer)
                                                             (lam
-                                                              xs
-                                                              [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        {
-                                                                          Tuple2_match
-                                                                          (con bytestring)
-                                                                        }
-                                                                        [[These (con integer)] (con integer)]
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                                  }
-                                                                  (lam
-                                                                    c
-                                                                    (con bytestring)
-                                                                    (lam
-                                                                      i
-                                                                      [[These (con integer)] (con integer)]
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            Cons
-                                                                            [[Tuple2 (con bytestring)] (con integer)]
-                                                                          }
-                                                                          [
-                                                                            [
-                                                                              {
-                                                                                {
-                                                                                  Tuple2
-                                                                                  (con bytestring)
-                                                                                }
-                                                                                (con integer)
-                                                                              }
-                                                                              c
-                                                                            ]
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    [
-                                                                                      {
-                                                                                        {
-                                                                                          These_match
-                                                                                          (con integer)
-                                                                                        }
-                                                                                        (con integer)
-                                                                                      }
-                                                                                      i
-                                                                                    ]
-                                                                                    (con integer)
-                                                                                  }
-                                                                                  (lam
-                                                                                    b
-                                                                                    (con integer)
-                                                                                    [
-                                                                                      [
-                                                                                        f
-                                                                                        (con
-                                                                                          integer
-                                                                                            0
-                                                                                        )
-                                                                                      ]
-                                                                                      b
-                                                                                    ]
-                                                                                  )
-                                                                                ]
-                                                                                (lam
-                                                                                  a
-                                                                                  (con integer)
-                                                                                  (lam
-                                                                                    b
-                                                                                    (con integer)
-                                                                                    [
-                                                                                      [
-                                                                                        f
-                                                                                        a
-                                                                                      ]
-                                                                                      b
-                                                                                    ]
-                                                                                  )
-                                                                                )
-                                                                              ]
-                                                                              (lam
-                                                                                a
-                                                                                (con integer)
-                                                                                [
-                                                                                  [
-                                                                                    f
-                                                                                    a
-                                                                                  ]
-                                                                                  (con
-                                                                                    integer
-                                                                                      0
-                                                                                  )
-                                                                                ]
-                                                                              )
-                                                                            ]
-                                                                          ]
-                                                                        ]
-                                                                        [
-                                                                          go xs
-                                                                        ]
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                              )
+                                                              b
+                                                              (con integer)
+                                                              [ [ f a ] b ]
                                                             )
                                                           )
                                                         ]
-                                                        Unit
-                                                      ]
-                                                    )
-                                                  )
-                                                  [
-                                                    [
-                                                      {
-                                                        Cons
-                                                        [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                      }
-                                                      [
-                                                        [
-                                                          {
-                                                            {
-                                                              Tuple2
-                                                              (con bytestring)
-                                                            }
-                                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                                          }
-                                                          c
-                                                        ]
-                                                        [ go i ]
+                                                        (lam
+                                                          a
+                                                          (con integer)
+                                                          [
+                                                            [ f a ]
+                                                            (con integer 0)
+                                                          ]
+                                                        )
                                                       ]
                                                     ]
-                                                    [ go xs ]
-                                                  ]
+                                                  )
                                                 )
-                                              )
+                                              ]
                                             )
                                           ]
-                                        )
-                                      )
+                                          a
+                                        ]
+                                      ]
                                     )
-                                  ]
-                                  Unit
+                                  )
                                 ]
                               )
-                            )
-                            [ go [ [ unionVal ls ] rs ] ]
-                          )
+                            ]
+                            [ [ unionVal ls ] rs ]
+                          ]
                         )
                       )
                     )
@@ -4080,6 +1946,236 @@
                       (vardecl ProposePayment (fun Payment Input))
                     )
                   )
+                  (datatypebind
+                    (datatype
+                      (tyvardecl MultiplicativeMonoid (fun (type) (type)))
+                      (tyvardecl a (type))
+                      MultiplicativeMonoid_match
+                      (vardecl
+                        CConsMultiplicativeMonoid
+                        (fun [(lam a (type) (fun a (fun a a))) a] (fun a [MultiplicativeMonoid a]))
+                      )
+                    )
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl
+                      p1MultiplicativeMonoid
+                      (all a (type) (fun [MultiplicativeMonoid a] [(lam a (type) (fun a (fun a a))) a]))
+                    )
+                    (abs
+                      a
+                      (type)
+                      (lam
+                        v
+                        [MultiplicativeMonoid a]
+                        [
+                          {
+                            [ { MultiplicativeMonoid_match a } v ]
+                            [(lam a (type) (fun a (fun a a))) a]
+                          }
+                          (lam
+                            v [(lam a (type) (fun a (fun a a))) a] (lam v a v)
+                          )
+                        ]
+                      )
+                    )
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl one (all a (type) (fun [MultiplicativeMonoid a] a))
+                    )
+                    (abs
+                      a
+                      (type)
+                      (lam
+                        v
+                        [MultiplicativeMonoid a]
+                        [
+                          { [ { MultiplicativeMonoid_match a } v ] a }
+                          (lam
+                            v [(lam a (type) (fun a (fun a a))) a] (lam v a v)
+                          )
+                        ]
+                      )
+                    )
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl
+                      fMonoidProduct
+                      (all a (type) (fun [MultiplicativeMonoid a] [Monoid [(lam a (type) a) a]]))
+                    )
+                    (abs
+                      a
+                      (type)
+                      (lam
+                        v
+                        [MultiplicativeMonoid a]
+                        [
+                          [
+                            { CConsMonoid [(lam a (type) a) a] }
+                            (lam
+                              eta
+                              [(lam a (type) a) a]
+                              (lam
+                                eta
+                                [(lam a (type) a) a]
+                                [
+                                  [ [ { p1MultiplicativeMonoid a } v ] eta ] eta
+                                ]
+                              )
+                            )
+                          ]
+                          [ { one a } v ]
+                        ]
+                      )
+                    )
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl bad_name (fun Bool (fun Bool Bool)))
+                    (lam
+                      ds
+                      Bool
+                      (lam
+                        x
+                        Bool
+                        [
+                          [
+                            [
+                              { [ Bool_match ds ] (fun Unit Bool) }
+                              (lam thunk Unit x)
+                            ]
+                            (lam thunk Unit False)
+                          ]
+                          Unit
+                        ]
+                      )
+                    )
+                  )
+                  (termbind
+                    (nonstrict)
+                    (vardecl
+                      fMultiplicativeMonoidBool [MultiplicativeMonoid Bool]
+                    )
+                    [ [ { CConsMultiplicativeMonoid Bool } bad_name ] True ]
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl
+                      checkPred
+                      (fun (fun [[These (con integer)] (con integer)] Bool) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] Bool)))
+                    )
+                    (lam
+                      f
+                      (fun [[These (con integer)] (con integer)] Bool)
+                      (lam
+                        l
+                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                        (lam
+                          r
+                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                          (let
+                            (nonrec)
+                            (termbind
+                              (nonstrict)
+                              (vardecl dMonoid [Monoid [(lam a (type) a) Bool]])
+                              [
+                                { fMonoidProduct Bool }
+                                fMultiplicativeMonoidBool
+                              ]
+                            )
+                            [
+                              [
+                                [
+                                  {
+                                    {
+                                      fFoldableNil_cfoldMap
+                                      [(lam a (type) a) Bool]
+                                    }
+                                    [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                  }
+                                  [
+                                    { fMonoidProduct Bool }
+                                    fMultiplicativeMonoidBool
+                                  ]
+                                ]
+                                (lam
+                                  ds
+                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
+                                  [
+                                    {
+                                      [
+                                        {
+                                          { Tuple2_match (con bytestring) }
+                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                        }
+                                        ds
+                                      ]
+                                      [(lam a (type) a) Bool]
+                                    }
+                                    (lam
+                                      ds
+                                      (con bytestring)
+                                      (lam
+                                        a
+                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
+                                        [
+                                          [
+                                            [
+                                              {
+                                                {
+                                                  fFoldableNil_cfoldMap
+                                                  [(lam a (type) a) Bool]
+                                                }
+                                                [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                              }
+                                              dMonoid
+                                            ]
+                                            (lam
+                                              ds
+                                              [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
+                                              [
+                                                {
+                                                  [
+                                                    {
+                                                      {
+                                                        Tuple2_match
+                                                        (con bytestring)
+                                                      }
+                                                      [[These (con integer)] (con integer)]
+                                                    }
+                                                    ds
+                                                  ]
+                                                  [(lam a (type) a) Bool]
+                                                }
+                                                (lam
+                                                  ds
+                                                  (con bytestring)
+                                                  (lam
+                                                    a
+                                                    [[These (con integer)] (con integer)]
+                                                    [ f a ]
+                                                  )
+                                                )
+                                              ]
+                                            )
+                                          ]
+                                          a
+                                        ]
+                                      )
+                                    )
+                                  ]
+                                )
+                              ]
+                              [ [ unionVal l ] r ]
+                            ]
+                          )
+                        )
+                      )
+                    )
+                  )
                   (termbind
                     (strict)
                     (vardecl
@@ -4095,286 +2191,50 @@
                         (lam
                           r
                           [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                          (let
-                            (rec)
-                            (termbind
-                              (strict)
-                              (vardecl
-                                go
-                                (fun [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]] Bool)
-                              )
-                              (lam
-                                xs
-                                [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                [
+                          [
+                            [
+                              [
+                                checkPred
+                                (lam
+                                  k
+                                  [[These (con integer)] (con integer)]
                                   [
                                     [
-                                      {
-                                        [
-                                          {
-                                            Nil_match
-                                            [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                          }
-                                          xs
-                                        ]
-                                        (fun Unit Bool)
-                                      }
-                                      (lam thunk Unit True)
-                                    ]
-                                    (lam
-                                      ds
-                                      [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]
-                                      (lam
-                                        xs
-                                        [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]]]
-                                        (lam
-                                          thunk
-                                          Unit
+                                      [
+                                        {
                                           [
                                             {
-                                              [
-                                                {
-                                                  {
-                                                    Tuple2_match
-                                                    (con bytestring)
-                                                  }
-                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                }
-                                                ds
-                                              ]
-                                              Bool
+                                              { These_match (con integer) }
+                                              (con integer)
                                             }
-                                            (lam
-                                              ds
-                                              (con bytestring)
-                                              (lam
-                                                x
-                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[These (con integer)] (con integer)]]
-                                                (let
-                                                  (rec)
-                                                  (termbind
-                                                    (strict)
-                                                    (vardecl
-                                                      go
-                                                      (fun [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]] Bool)
-                                                    )
-                                                    (lam
-                                                      xs
-                                                      [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                      [
-                                                        [
-                                                          [
-                                                            {
-                                                              [
-                                                                {
-                                                                  Nil_match
-                                                                  [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                                }
-                                                                xs
-                                                              ]
-                                                              (fun Unit Bool)
-                                                            }
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [ go xs ]
-                                                            )
-                                                          ]
-                                                          (lam
-                                                            ds
-                                                            [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]
-                                                            (lam
-                                                              xs
-                                                              [List [[Tuple2 (con bytestring)] [[These (con integer)] (con integer)]]]
-                                                              (lam
-                                                                thunk
-                                                                Unit
-                                                                [
-                                                                  {
-                                                                    [
-                                                                      {
-                                                                        {
-                                                                          Tuple2_match
-                                                                          (con bytestring)
-                                                                        }
-                                                                        [[These (con integer)] (con integer)]
-                                                                      }
-                                                                      ds
-                                                                    ]
-                                                                    Bool
-                                                                  }
-                                                                  (lam
-                                                                    ds
-                                                                    (con bytestring)
-                                                                    (lam
-                                                                      x
-                                                                      [[These (con integer)] (con integer)]
-                                                                      [
-                                                                        [
-                                                                          [
-                                                                            {
-                                                                              [
-                                                                                {
-                                                                                  {
-                                                                                    These_match
-                                                                                    (con integer)
-                                                                                  }
-                                                                                  (con integer)
-                                                                                }
-                                                                                x
-                                                                              ]
-                                                                              Bool
-                                                                            }
-                                                                            (lam
-                                                                              b
-                                                                              (con integer)
-                                                                              [
-                                                                                [
-                                                                                  [
-                                                                                    {
-                                                                                      [
-                                                                                        Bool_match
-                                                                                        [
-                                                                                          [
-                                                                                            f
-                                                                                            (con
-                                                                                              integer
-                                                                                                0
-                                                                                            )
-                                                                                          ]
-                                                                                          b
-                                                                                        ]
-                                                                                      ]
-                                                                                      (fun Unit Bool)
-                                                                                    }
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
-                                                                                      [
-                                                                                        go
-                                                                                        xs
-                                                                                      ]
-                                                                                    )
-                                                                                  ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    False
-                                                                                  )
-                                                                                ]
-                                                                                Unit
-                                                                              ]
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            a
-                                                                            (con integer)
-                                                                            (lam
-                                                                              b
-                                                                              (con integer)
-                                                                              [
-                                                                                [
-                                                                                  [
-                                                                                    {
-                                                                                      [
-                                                                                        Bool_match
-                                                                                        [
-                                                                                          [
-                                                                                            f
-                                                                                            a
-                                                                                          ]
-                                                                                          b
-                                                                                        ]
-                                                                                      ]
-                                                                                      (fun Unit Bool)
-                                                                                    }
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
-                                                                                      [
-                                                                                        go
-                                                                                        xs
-                                                                                      ]
-                                                                                    )
-                                                                                  ]
-                                                                                  (lam
-                                                                                    thunk
-                                                                                    Unit
-                                                                                    False
-                                                                                  )
-                                                                                ]
-                                                                                Unit
-                                                                              ]
-                                                                            )
-                                                                          )
-                                                                        ]
-                                                                        (lam
-                                                                          a
-                                                                          (con integer)
-                                                                          [
-                                                                            [
-                                                                              [
-                                                                                {
-                                                                                  [
-                                                                                    Bool_match
-                                                                                    [
-                                                                                      [
-                                                                                        f
-                                                                                        a
-                                                                                      ]
-                                                                                      (con
-                                                                                        integer
-                                                                                          0
-                                                                                      )
-                                                                                    ]
-                                                                                  ]
-                                                                                  (fun Unit Bool)
-                                                                                }
-                                                                                (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  [
-                                                                                    go
-                                                                                    xs
-                                                                                  ]
-                                                                                )
-                                                                              ]
-                                                                              (lam
-                                                                                thunk
-                                                                                Unit
-                                                                                False
-                                                                              )
-                                                                            ]
-                                                                            Unit
-                                                                          ]
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                ]
-                                                              )
-                                                            )
-                                                          )
-                                                        ]
-                                                        Unit
-                                                      ]
-                                                    )
-                                                  )
-                                                  [ go x ]
-                                                )
-                                              )
-                                            )
+                                            k
                                           ]
+                                          Bool
+                                        }
+                                        (lam
+                                          b
+                                          (con integer)
+                                          [ [ f (con integer 0) ] b ]
                                         )
+                                      ]
+                                      (lam
+                                        a
+                                        (con integer)
+                                        (lam b (con integer) [ [ f a ] b ])
                                       )
+                                    ]
+                                    (lam
+                                      a
+                                      (con integer)
+                                      [ [ f a ] (con integer 0) ]
                                     )
                                   ]
-                                  Unit
-                                ]
-                              )
-                            )
-                            [ go [ [ unionVal l ] r ] ]
-                          )
+                                )
+                              ]
+                              l
+                            ]
+                            r
+                          ]
                         )
                       )
                     )
@@ -5342,25 +3202,36 @@
                                                                                                     (con integer)
                                                                                                   }
                                                                                                   [
-                                                                                                    {
+                                                                                                    [
+                                                                                                      (builtin
+                                                                                                        subtractInteger
+                                                                                                      )
                                                                                                       [
-                                                                                                        Payment_match
-                                                                                                        pmt
-                                                                                                      ]
-                                                                                                      (con integer)
-                                                                                                    }
-                                                                                                    (lam
-                                                                                                      ds
-                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                                                                                      (lam
-                                                                                                        ds
-                                                                                                        (con bytestring)
+                                                                                                        {
+                                                                                                          [
+                                                                                                            Payment_match
+                                                                                                            pmt
+                                                                                                          ]
+                                                                                                          (con integer)
+                                                                                                        }
                                                                                                         (lam
                                                                                                           ds
-                                                                                                          (con integer)
-                                                                                                          ds
+                                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                          (lam
+                                                                                                            ds
+                                                                                                            (con bytestring)
+                                                                                                            (lam
+                                                                                                              ds
+                                                                                                              (con integer)
+                                                                                                              ds
+                                                                                                            )
+                                                                                                          )
                                                                                                         )
-                                                                                                      )
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                    (con
+                                                                                                      integer
+                                                                                                        1
                                                                                                     )
                                                                                                   ]
                                                                                                 ]
@@ -5669,148 +3540,8 @@
                   )
                   (termbind
                     (strict)
-                    (vardecl
-                      fIsDataVoid_cfromBuiltinData (fun (con data) [Maybe Void])
-                    )
-                    (lam ds (con data) { Nothing Void })
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl
-                      fIsDataVoid_cunsafeFromBuiltinData (fun (con data) Void)
-                    )
-                    (lam ds (con data) [ { error Void } (con unit ()) ])
-                  )
-                  (termbind
-                    (strict)
                     (vardecl absurd (all a (type) (fun Void a)))
                     (abs a (type) (lam a Void { [ Void_match a ] a }))
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl fIsDataVoid [IsData Void])
-                    [
-                      [
-                        [ { CConsIsData Void } { absurd (con data) } ]
-                        fIsDataVoid_cfromBuiltinData
-                      ]
-                      fIsDataVoid_cunsafeFromBuiltinData
-                    ]
-                  )
-                  (datatypebind
-                    (datatype
-                      (tyvardecl MultiplicativeMonoid (fun (type) (type)))
-                      (tyvardecl a (type))
-                      MultiplicativeMonoid_match
-                      (vardecl
-                        CConsMultiplicativeMonoid
-                        (fun [(lam a (type) (fun a (fun a a))) a] (fun a [MultiplicativeMonoid a]))
-                      )
-                    )
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl
-                      p1MultiplicativeMonoid
-                      (all a (type) (fun [MultiplicativeMonoid a] [(lam a (type) (fun a (fun a a))) a]))
-                    )
-                    (abs
-                      a
-                      (type)
-                      (lam
-                        v
-                        [MultiplicativeMonoid a]
-                        [
-                          {
-                            [ { MultiplicativeMonoid_match a } v ]
-                            [(lam a (type) (fun a (fun a a))) a]
-                          }
-                          (lam
-                            v [(lam a (type) (fun a (fun a a))) a] (lam v a v)
-                          )
-                        ]
-                      )
-                    )
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl one (all a (type) (fun [MultiplicativeMonoid a] a))
-                    )
-                    (abs
-                      a
-                      (type)
-                      (lam
-                        v
-                        [MultiplicativeMonoid a]
-                        [
-                          { [ { MultiplicativeMonoid_match a } v ] a }
-                          (lam
-                            v [(lam a (type) (fun a (fun a a))) a] (lam v a v)
-                          )
-                        ]
-                      )
-                    )
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl
-                      fMonoidProduct
-                      (all a (type) (fun [MultiplicativeMonoid a] [Monoid [(lam a (type) a) a]]))
-                    )
-                    (abs
-                      a
-                      (type)
-                      (lam
-                        v
-                        [MultiplicativeMonoid a]
-                        [
-                          [
-                            { CConsMonoid [(lam a (type) a) a] }
-                            (lam
-                              eta
-                              [(lam a (type) a) a]
-                              (lam
-                                eta
-                                [(lam a (type) a) a]
-                                [
-                                  [ [ { p1MultiplicativeMonoid a } v ] eta ] eta
-                                ]
-                              )
-                            )
-                          ]
-                          [ { one a } v ]
-                        ]
-                      )
-                    )
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl bad_name (fun Bool (fun Bool Bool)))
-                    (lam
-                      ds
-                      Bool
-                      (lam
-                        x
-                        Bool
-                        [
-                          [
-                            [
-                              { [ Bool_match ds ] (fun Unit Bool) }
-                              (lam thunk Unit x)
-                            ]
-                            (lam thunk Unit False)
-                          ]
-                          Unit
-                        ]
-                      )
-                    )
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl
-                      fMultiplicativeMonoidBool [MultiplicativeMonoid Bool]
-                    )
-                    [ [ { CConsMultiplicativeMonoid Bool } bad_name ] True ]
                   )
                   (termbind
                     (strict)
@@ -6054,7 +3785,7 @@
                                                                         )
                                                                         (con
                                                                           string
-                                                                            "Input constraint"
+                                                                            "L0"
                                                                         )
                                                                       ]
                                                                     ]
@@ -6812,6 +4543,11 @@
                   )
                   (termbind
                     (strict)
+                    (vardecl error (all a (type) (fun (con unit) a)))
+                    (abs a (type) (lam thunk (con unit) (error a)))
+                  )
+                  (termbind
+                    (strict)
                     (vardecl findOwnInput (fun ScriptContext [Maybe TxInInfo]))
                     (lam
                       ds
@@ -7205,7 +4941,27 @@
                             )
                           ]
                           (lam
-                            thunk Unit [ { error [List TxOut] } (con unit ()) ]
+                            thunk
+                            Unit
+                            [
+                              { error [List TxOut] }
+                              [
+                                {
+                                  [
+                                    Unit_match
+                                    [
+                                      [
+                                        { (builtin chooseUnit) Unit }
+                                        [ (builtin trace) (con string "Lf") ]
+                                      ]
+                                      Unit
+                                    ]
+                                  ]
+                                  (con unit)
+                                }
+                                (con unit ())
+                              ]
+                            ]
                           )
                         ]
                         Unit
@@ -7216,14 +4972,14 @@
                     (strict)
                     (vardecl
                       checkOwnOutputConstraint
-                      (all o (type) (fun [IsData o] (fun ScriptContext (fun [OutputConstraint o] Bool))))
+                      (all o (type) (fun [(lam a (type) (fun a (con data))) o] (fun ScriptContext (fun [OutputConstraint o] Bool))))
                     )
                     (abs
                       o
                       (type)
                       (lam
-                        dIsData
-                        [IsData o]
+                        dToData
+                        [(lam a (type) (fun a (con data))) o]
                         (lam
                           ctx
                           ScriptContext
@@ -7254,15 +5010,7 @@
                                               hsh [Maybe (con bytestring)]
                                             )
                                             [
-                                              [
-                                                findDatumHash
-                                                [
-                                                  [
-                                                    { toBuiltinData o } dIsData
-                                                  ]
-                                                  ds
-                                                ]
-                                              ]
+                                              [ findDatumHash [ dToData ds ] ]
                                               ds
                                             ]
                                           )
@@ -7428,10 +5176,7 @@
                                                     }
                                                     [
                                                       (builtin trace)
-                                                      (con
-                                                        string
-                                                          "Output constraint"
-                                                      )
+                                                      (con string "L1")
                                                     ]
                                                   ]
                                                   False
@@ -10919,8 +8664,7 @@
                                                                   (builtin trace
                                                                   )
                                                                   (con
-                                                                    string
-                                                                      "Missing signature"
+                                                                    string "L4"
                                                                   )
                                                                 ]
                                                               ]
@@ -10953,9 +8697,7 @@
                                                               }
                                                               [
                                                                 (builtin trace)
-                                                                (con
-                                                                  string
-                                                                    "MustHashDatum"
+                                                                (con string "Lc"
                                                                 )
                                                               ]
                                                             ]
@@ -11154,7 +8896,7 @@
                                                                                     )
                                                                                     (con
                                                                                       string
-                                                                                        "Missing datum"
+                                                                                        "L2"
                                                                                     )
                                                                                   ]
                                                                                 ]
@@ -11297,8 +9039,7 @@
                                                                   (builtin trace
                                                                   )
                                                                   (con
-                                                                    string
-                                                                      "Value minted not OK"
+                                                                    string "L9"
                                                                   )
                                                                 ]
                                                               ]
@@ -11606,7 +9347,7 @@
                                                                                       )
                                                                                       (con
                                                                                         string
-                                                                                          "MustPayToOtherScript"
+                                                                                          "Lb"
                                                                                       )
                                                                                     ]
                                                                                   ]
@@ -11673,10 +9414,7 @@
                                                         }
                                                         [
                                                           (builtin trace)
-                                                          (con
-                                                            string
-                                                              "MustPayToPubKey"
-                                                          )
+                                                          (con string "La")
                                                         ]
                                                       ]
                                                       False
@@ -11722,10 +9460,7 @@
                                                     }
                                                     [
                                                       (builtin trace)
-                                                      (con
-                                                        string
-                                                          "Produced value not OK"
-                                                      )
+                                                      (con string "L6")
                                                     ]
                                                   ]
                                                   False
@@ -11871,10 +9606,7 @@
                                                   { (builtin chooseUnit) Bool }
                                                   [
                                                     (builtin trace)
-                                                    (con
-                                                      string
-                                                        "Spent value not OK"
-                                                    )
+                                                    (con string "L5")
                                                   ]
                                                 ]
                                                 False
@@ -11898,10 +9630,7 @@
                                               { (builtin chooseUnit) Bool }
                                               [
                                                 (builtin trace)
-                                                (con
-                                                  string
-                                                    "Public key output not spent"
-                                                )
+                                                (con string "L7")
                                               ]
                                             ]
                                             False
@@ -12034,10 +9763,7 @@
                                                 { (builtin chooseUnit) Bool }
                                                 [
                                                   (builtin trace)
-                                                  (con
-                                                    string
-                                                      "Script output not spent"
-                                                  )
+                                                  (con string "L8")
                                                 ]
                                               ]
                                               False
@@ -12126,11 +9852,7 @@
                                           [
                                             { (builtin chooseUnit) Bool }
                                             [
-                                              (builtin trace)
-                                              (con
-                                                string
-                                                  "Wrong validation interval"
-                                              )
+                                              (builtin trace) (con string "L3")
                                             ]
                                           ]
                                           False
@@ -12151,7 +9873,7 @@
                     (strict)
                     (vardecl
                       checkScriptContext
-                      (all i (type) (all o (type) (fun [IsData o] (fun [[TxConstraints i] o] (fun ScriptContext Bool)))))
+                      (all i (type) (all o (type) (fun [(lam a (type) (fun a (con data))) o] (fun [[TxConstraints i] o] (fun ScriptContext Bool)))))
                     )
                     (abs
                       i
@@ -12160,8 +9882,8 @@
                         o
                         (type)
                         (lam
-                          dIsData
-                          [IsData o]
+                          dToData
+                          [(lam a (type) (fun a (con data))) o]
                           (lam
                             ds
                             [[TxConstraints i] o]
@@ -12189,10 +9911,7 @@
                                               { (builtin chooseUnit) Bool }
                                               [
                                                 (builtin trace)
-                                                (con
-                                                  string
-                                                    "checkScriptContext failed"
-                                                )
+                                                (con string "Ld")
                                               ]
                                             ]
                                             False
@@ -12301,7 +10020,7 @@
                                                                             checkOwnOutputConstraint
                                                                             o
                                                                           }
-                                                                          dIsData
+                                                                          dToData
                                                                         ]
                                                                         ptx
                                                                       ]
@@ -12352,191 +10071,115 @@
                       ds
                       [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                       (let
-                        (rec)
+                        (nonrec)
                         (termbind
-                          (strict)
-                          (vardecl
-                            go
-                            (fun [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]] Bool)
-                          )
-                          (lam
-                            xs
-                            [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
+                          (nonstrict)
+                          (vardecl dMonoid [Monoid [(lam a (type) a) Bool]])
+                          [ { fMonoidProduct Bool } fMultiplicativeMonoidBool ]
+                        )
+                        [
+                          [
                             [
+                              {
+                                {
+                                  fFoldableNil_cfoldMap [(lam a (type) a) Bool]
+                                }
+                                [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                              }
                               [
-                                [
-                                  {
-                                    [
-                                      {
-                                        Nil_match
-                                        [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                      }
-                                      xs
-                                    ]
-                                    (fun Unit Bool)
-                                  }
-                                  (lam thunk Unit True)
-                                ]
+                                { fMonoidProduct Bool }
+                                fMultiplicativeMonoidBool
+                              ]
+                            ]
+                            (lam
+                              ds
+                              [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                              [
+                                {
+                                  [
+                                    {
+                                      { Tuple2_match (con bytestring) }
+                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                    }
+                                    ds
+                                  ]
+                                  [(lam a (type) a) Bool]
+                                }
                                 (lam
                                   ds
-                                  [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                  (con bytestring)
                                   (lam
-                                    xs
-                                    [List [[Tuple2 (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
-                                    (lam
-                                      thunk
-                                      Unit
+                                    a
+                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                    [
                                       [
-                                        {
-                                          [
+                                        [
+                                          {
                                             {
-                                              { Tuple2_match (con bytestring) }
-                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
+                                              fFoldableNil_cfoldMap
+                                              [(lam a (type) a) Bool]
                                             }
-                                            ds
-                                          ]
-                                          Bool
-                                        }
+                                            [[Tuple2 (con bytestring)] (con integer)]
+                                          }
+                                          dMonoid
+                                        ]
                                         (lam
                                           ds
-                                          (con bytestring)
-                                          (lam
-                                            x
-                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
-                                            (let
-                                              (rec)
-                                              (termbind
-                                                (strict)
-                                                (vardecl
-                                                  go
-                                                  (fun [List [[Tuple2 (con bytestring)] (con integer)]] Bool)
-                                                )
-                                                (lam
-                                                  xs
-                                                  [List [[Tuple2 (con bytestring)] (con integer)]]
+                                          [[Tuple2 (con bytestring)] (con integer)]
+                                          [
+                                            {
+                                              [
+                                                {
+                                                  {
+                                                    Tuple2_match
+                                                    (con bytestring)
+                                                  }
+                                                  (con integer)
+                                                }
+                                                ds
+                                              ]
+                                              [(lam a (type) a) Bool]
+                                            }
+                                            (lam
+                                              ds
+                                              (con bytestring)
+                                              (lam
+                                                a
+                                                (con integer)
+                                                [
                                                   [
                                                     [
+                                                      {
+                                                        (builtin ifThenElse)
+                                                        Bool
+                                                      }
                                                       [
-                                                        {
-                                                          [
-                                                            {
-                                                              Nil_match
-                                                              [[Tuple2 (con bytestring)] (con integer)]
-                                                            }
-                                                            xs
-                                                          ]
-                                                          (fun Unit Bool)
-                                                        }
-                                                        (lam
-                                                          thunk Unit [ go xs ]
-                                                        )
-                                                      ]
-                                                      (lam
-                                                        ds
-                                                        [[Tuple2 (con bytestring)] (con integer)]
-                                                        (lam
-                                                          xs
-                                                          [List [[Tuple2 (con bytestring)] (con integer)]]
-                                                          (lam
-                                                            thunk
-                                                            Unit
-                                                            [
-                                                              {
-                                                                [
-                                                                  {
-                                                                    {
-                                                                      Tuple2_match
-                                                                      (con bytestring)
-                                                                    }
-                                                                    (con integer)
-                                                                  }
-                                                                  ds
-                                                                ]
-                                                                Bool
-                                                              }
-                                                              (lam
-                                                                ds
-                                                                (con bytestring)
-                                                                (lam
-                                                                  x
-                                                                  (con integer)
-                                                                  [
-                                                                    [
-                                                                      [
-                                                                        {
-                                                                          [
-                                                                            Bool_match
-                                                                            [
-                                                                              [
-                                                                                [
-                                                                                  {
-                                                                                    (builtin
-                                                                                      ifThenElse
-                                                                                    )
-                                                                                    Bool
-                                                                                  }
-                                                                                  [
-                                                                                    [
-                                                                                      (builtin
-                                                                                        equalsInteger
-                                                                                      )
-                                                                                      (con
-                                                                                        integer
-                                                                                          0
-                                                                                      )
-                                                                                    ]
-                                                                                    x
-                                                                                  ]
-                                                                                ]
-                                                                                True
-                                                                              ]
-                                                                              False
-                                                                            ]
-                                                                          ]
-                                                                          (fun Unit Bool)
-                                                                        }
-                                                                        (lam
-                                                                          thunk
-                                                                          Unit
-                                                                          [
-                                                                            go
-                                                                            xs
-                                                                          ]
-                                                                        )
-                                                                      ]
-                                                                      (lam
-                                                                        thunk
-                                                                        Unit
-                                                                        False
-                                                                      )
-                                                                    ]
-                                                                    Unit
-                                                                  ]
-                                                                )
-                                                              )
-                                                            ]
+                                                        [
+                                                          (builtin equalsInteger
                                                           )
-                                                        )
-                                                      )
+                                                          (con integer 0)
+                                                        ]
+                                                        a
+                                                      ]
                                                     ]
-                                                    Unit
+                                                    True
                                                   ]
-                                                )
+                                                  False
+                                                ]
                                               )
-                                              [ go x ]
                                             )
-                                          )
+                                          ]
                                         )
                                       ]
-                                    )
+                                      a
+                                    ]
                                   )
                                 )
                               ]
-                              Unit
-                            ]
-                          )
-                        )
-                        [ go ds ]
+                            )
+                          ]
+                          ds
+                        ]
                       )
                     )
                   )
@@ -12549,156 +10192,185 @@
                     (lam
                       ds
                       ScriptContext
-                      [
-                        [
-                          [
-                            {
-                              [ { Maybe_match TxInInfo } [ findOwnInput ds ] ]
-                              (fun Unit [[Tuple2 (con bytestring)] (con bytestring)])
-                            }
-                            (lam
-                              ds
-                              TxInInfo
-                              (lam
-                                thunk
-                                Unit
-                                [
-                                  {
-                                    [ TxInInfo_match ds ]
-                                    [[Tuple2 (con bytestring)] (con bytestring)]
-                                  }
-                                  (lam
-                                    ds
-                                    TxOutRef
-                                    (lam
-                                      ds
-                                      TxOut
-                                      [
-                                        {
-                                          [ TxOut_match ds ]
-                                          [[Tuple2 (con bytestring)] (con bytestring)]
-                                        }
-                                        (lam
-                                          ds
-                                          Address
-                                          (lam
-                                            ds
-                                            [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
-                                            (lam
-                                              ds
-                                              [Maybe (con bytestring)]
-                                              [
-                                                {
-                                                  [ Address_match ds ]
-                                                  [[Tuple2 (con bytestring)] (con bytestring)]
-                                                }
-                                                (lam
-                                                  ds
-                                                  Credential
-                                                  (lam
-                                                    ds
-                                                    [Maybe StakingCredential]
-                                                    [
-                                                      [
-                                                        {
-                                                          [
-                                                            Credential_match ds
-                                                          ]
-                                                          [[Tuple2 (con bytestring)] (con bytestring)]
-                                                        }
-                                                        (lam
-                                                          ipv
-                                                          (con bytestring)
-                                                          [
-                                                            {
-                                                              error
-                                                              [[Tuple2 (con bytestring)] (con bytestring)]
-                                                            }
-                                                            (con unit ())
-                                                          ]
-                                                        )
-                                                      ]
-                                                      (lam
-                                                        s
-                                                        (con bytestring)
-                                                        [
-                                                          [
-                                                            [
-                                                              {
-                                                                [
-                                                                  {
-                                                                    Maybe_match
-                                                                    (con bytestring)
-                                                                  }
-                                                                  ds
-                                                                ]
-                                                                (fun Unit [[Tuple2 (con bytestring)] (con bytestring)])
-                                                              }
-                                                              (lam
-                                                                dh
-                                                                (con bytestring)
-                                                                (lam
-                                                                  thunk
-                                                                  Unit
-                                                                  [
-                                                                    [
-                                                                      {
-                                                                        {
-                                                                          Tuple2
-                                                                          (con bytestring)
-                                                                        }
-                                                                        (con bytestring)
-                                                                      }
-                                                                      s
-                                                                    ]
-                                                                    dh
-                                                                  ]
-                                                                )
-                                                              )
-                                                            ]
-                                                            (lam
-                                                              thunk
-                                                              Unit
-                                                              [
-                                                                {
-                                                                  error
-                                                                  [[Tuple2 (con bytestring)] (con bytestring)]
-                                                                }
-                                                                (con unit ())
-                                                              ]
-                                                            )
-                                                          ]
-                                                          Unit
-                                                        ]
-                                                      )
-                                                    ]
-                                                  )
-                                                )
-                                              ]
-                                            )
-                                          )
-                                        )
-                                      ]
-                                    )
-                                  )
-                                ]
-                              )
-                            )
-                          ]
+                      (let
+                        (nonrec)
+                        (termbind
+                          (strict)
+                          (vardecl
+                            fail
+                            (fun (all a (type) a) [[Tuple2 (con bytestring)] (con bytestring)])
+                          )
                           (lam
-                            thunk
-                            Unit
+                            ds
+                            (all a (type) a)
                             [
                               {
                                 error
                                 [[Tuple2 (con bytestring)] (con bytestring)]
                               }
-                              (con unit ())
+                              [
+                                {
+                                  [
+                                    Unit_match
+                                    [
+                                      [
+                                        { (builtin chooseUnit) Unit }
+                                        [ (builtin trace) (con string "Lg") ]
+                                      ]
+                                      Unit
+                                    ]
+                                  ]
+                                  (con unit)
+                                }
+                                (con unit ())
+                              ]
                             ]
                           )
+                        )
+                        [
+                          [
+                            [
+                              {
+                                [ { Maybe_match TxInInfo } [ findOwnInput ds ] ]
+                                (fun Unit [[Tuple2 (con bytestring)] (con bytestring)])
+                              }
+                              (lam
+                                ds
+                                TxInInfo
+                                (lam
+                                  thunk
+                                  Unit
+                                  [
+                                    {
+                                      [ TxInInfo_match ds ]
+                                      [[Tuple2 (con bytestring)] (con bytestring)]
+                                    }
+                                    (lam
+                                      ds
+                                      TxOutRef
+                                      (lam
+                                        ds
+                                        TxOut
+                                        [
+                                          {
+                                            [ TxOut_match ds ]
+                                            [[Tuple2 (con bytestring)] (con bytestring)]
+                                          }
+                                          (lam
+                                            ds
+                                            Address
+                                            (lam
+                                              ds
+                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                              (lam
+                                                ds
+                                                [Maybe (con bytestring)]
+                                                [
+                                                  {
+                                                    [ Address_match ds ]
+                                                    [[Tuple2 (con bytestring)] (con bytestring)]
+                                                  }
+                                                  (lam
+                                                    ds
+                                                    Credential
+                                                    (lam
+                                                      ds
+                                                      [Maybe StakingCredential]
+                                                      [
+                                                        [
+                                                          {
+                                                            [
+                                                              Credential_match
+                                                              ds
+                                                            ]
+                                                            [[Tuple2 (con bytestring)] (con bytestring)]
+                                                          }
+                                                          (lam
+                                                            ipv
+                                                            (con bytestring)
+                                                            [
+                                                              fail
+                                                              (abs
+                                                                e
+                                                                (type)
+                                                                (error e)
+                                                              )
+                                                            ]
+                                                          )
+                                                        ]
+                                                        (lam
+                                                          s
+                                                          (con bytestring)
+                                                          [
+                                                            [
+                                                              [
+                                                                {
+                                                                  [
+                                                                    {
+                                                                      Maybe_match
+                                                                      (con bytestring)
+                                                                    }
+                                                                    ds
+                                                                  ]
+                                                                  (fun Unit [[Tuple2 (con bytestring)] (con bytestring)])
+                                                                }
+                                                                (lam
+                                                                  dh
+                                                                  (con bytestring)
+                                                                  (lam
+                                                                    thunk
+                                                                    Unit
+                                                                    [
+                                                                      [
+                                                                        {
+                                                                          {
+                                                                            Tuple2
+                                                                            (con bytestring)
+                                                                          }
+                                                                          (con bytestring)
+                                                                        }
+                                                                        s
+                                                                      ]
+                                                                      dh
+                                                                    ]
+                                                                  )
+                                                                )
+                                                              ]
+                                                              (lam
+                                                                thunk
+                                                                Unit
+                                                                [
+                                                                  fail
+                                                                  (abs
+                                                                    e
+                                                                    (type)
+                                                                    (error e)
+                                                                  )
+                                                                ]
+                                                              )
+                                                            ]
+                                                            Unit
+                                                          ]
+                                                        )
+                                                      ]
+                                                    )
+                                                  )
+                                                ]
+                                              )
+                                            )
+                                          )
+                                        ]
+                                      )
+                                    )
+                                  ]
+                                )
+                              )
+                            ]
+                            (lam thunk Unit [ fail (abs e (type) (error e)) ])
+                          ]
+                          Unit
                         ]
-                        Unit
-                      ]
+                      )
                     )
                   )
                   (termbind
@@ -12833,7 +10505,7 @@
                     (strict)
                     (vardecl
                       wmkValidator
-                      (all s (type) (all i (type) (fun [IsData s] (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] (fun s (fun i (fun ScriptContext Bool))))))))))
+                      (all s (type) (all i (type) (fun [(lam a (type) (fun a (con data))) s] (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] (fun s (fun i (fun ScriptContext Bool))))))))))
                     )
                     (abs
                       s
@@ -12843,7 +10515,7 @@
                         (type)
                         (lam
                           w
-                          [IsData s]
+                          [(lam a (type) (fun a (con data))) s]
                           (lam
                             ww
                             (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]]))
@@ -12935,7 +10607,31 @@
                                                       error
                                                       [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                     }
-                                                    (con unit ())
+                                                    [
+                                                      {
+                                                        [
+                                                          Unit_match
+                                                          [
+                                                            [
+                                                              {
+                                                                (builtin
+                                                                  chooseUnit
+                                                                )
+                                                                Unit
+                                                              }
+                                                              [
+                                                                (builtin trace)
+                                                                (con string "S0"
+                                                                )
+                                                              ]
+                                                            ]
+                                                            Unit
+                                                          ]
+                                                        ]
+                                                        (con unit)
+                                                      }
+                                                      (con unit ())
+                                                    ]
                                                   ]
                                                 )
                                               ]
@@ -12958,7 +10654,31 @@
                                                         [
                                                           ww
                                                           [
-                                                            [ { State s } w ] vl
+                                                            [ { State s } w ]
+                                                            [
+                                                              [
+                                                                [
+                                                                  unionWith
+                                                                  addInteger
+                                                                ]
+                                                                vl
+                                                              ]
+                                                              [
+                                                                [
+                                                                  fAdditiveGroupValue_cscale
+                                                                  (con
+                                                                    integer -1
+                                                                  )
+                                                                ]
+                                                                [
+                                                                  [
+                                                                    threadTokenValueInner
+                                                                    ww
+                                                                  ]
+                                                                  [ ownHash w ]
+                                                                ]
+                                                              ]
+                                                            ]
                                                           ]
                                                         ]
                                                         w
@@ -13051,7 +10771,10 @@
                                                                                                 }
                                                                                                 Void
                                                                                               }
-                                                                                              fIsDataVoid
+                                                                                              {
+                                                                                                absurd
+                                                                                                (con data)
+                                                                                              }
                                                                                             ]
                                                                                             newConstraints
                                                                                           ]
@@ -13083,7 +10806,7 @@
                                                                                           )
                                                                                           (con
                                                                                             string
-                                                                                              "State transition invalid - constraints not satisfied by ScriptContext"
+                                                                                              "S4"
                                                                                           )
                                                                                         ]
                                                                                       ]
@@ -13136,7 +10859,7 @@
                                                                                                   )
                                                                                                   (con
                                                                                                     string
-                                                                                                      "Non-zero value allocated in final state"
+                                                                                                      "S3"
                                                                                                   )
                                                                                                 ]
                                                                                               ]
@@ -13310,7 +11033,7 @@
                                                                                     )
                                                                                     (con
                                                                                       string
-                                                                                        "State transition invalid - constraints not satisfied by ScriptContext"
+                                                                                        "S5"
                                                                                     )
                                                                                   ]
                                                                                 ]
@@ -13344,10 +11067,7 @@
                                                       }
                                                       [
                                                         (builtin trace)
-                                                        (con
-                                                          string
-                                                            "State transition invalid - input is not a valid transition at the current state"
-                                                        )
+                                                        (con string "S6")
                                                       ]
                                                     ]
                                                     False
@@ -13467,7 +11187,7 @@
                                                                             )
                                                                             (con
                                                                               string
-                                                                                "Thread token not found"
+                                                                                "S2"
                                                                             )
                                                                           ]
                                                                         ]
@@ -13531,9 +11251,7 @@
                                                               }
                                                               [
                                                                 (builtin trace)
-                                                                (con
-                                                                  string
-                                                                    "State transition invalid - checks failed"
+                                                                (con string "S1"
                                                                 )
                                                               ]
                                                             ]
@@ -13568,7 +11286,7 @@
                     (strict)
                     (vardecl
                       mkValidator
-                      (all s (type) (all i (type) (fun [IsData s] (fun [[StateMachine s] i] (fun s (fun i (fun ScriptContext Bool)))))))
+                      (all s (type) (all i (type) (fun [(lam a (type) (fun a (con data))) s] (fun [[StateMachine s] i] (fun s (fun i (fun ScriptContext Bool)))))))
                     )
                     (abs
                       s
@@ -13578,7 +11296,7 @@
                         (type)
                         (lam
                           w
-                          [IsData s]
+                          [(lam a (type) (fun a (con data))) s]
                           (lam
                             w
                             [[StateMachine s] i]
@@ -13658,7 +11376,10 @@
                       params
                       Params
                       [
-                        [ { { mkValidator MSState } Input } fIsDataMSState ]
+                        [
+                          { { mkValidator MSState } Input }
+                          fToDataMSState_ctoBuiltinData
+                        ]
                         [ machine params ]
                       ]
                     )

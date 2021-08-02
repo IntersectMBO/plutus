@@ -27,7 +27,6 @@ module Plutus.Contracts.Auction(
 
 import           Control.Lens                     (makeClassyPrisms)
 import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Default                     (Default (def))
 import           Data.Monoid                      (Last (..))
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           GHC.Generics                     (Generic)
@@ -37,6 +36,7 @@ import qualified Ledger.Ada                       as Ada
 import qualified Ledger.Constraints               as Constraints
 import           Ledger.Constraints.TxConstraints (TxConstraints)
 import qualified Ledger.Interval                  as Interval
+import           Ledger.TimeSlot                  (SlotConfig)
 import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (TypedScriptTxOut (..))
@@ -126,7 +126,7 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
         (Ongoing HighestBid{highestBid, highestBidder}, Bid{newBid, newBidder}) | newBid > highestBid -> -- if the new bid is higher,
             let constraints =
                     Constraints.mustPayToPubKey highestBidder (Ada.toValue highestBid) -- we pay back the previous highest bid
-                    <> Constraints.mustValidateIn (Interval.to apEndTime) -- but only if we haven't gone past 'apEndTime'
+                    <> Constraints.mustValidateIn (Interval.to $ apEndTime - 1) -- but only if we haven't gone past 'apEndTime'
                 newState =
                     State
                         { stateData = Ongoing HighestBid{highestBid = newBid, highestBidder = newBidder}
@@ -136,7 +136,7 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
 
         (Ongoing h@HighestBid{highestBidder, highestBid}, Payout) ->
             let constraints =
-                    Constraints.mustValidateIn (Interval.from (apEndTime + 1)) -- When the auction has ended,
+                    Constraints.mustValidateIn (Interval.from apEndTime) -- When the auction has ended,
                     <> Constraints.mustPayToPubKey apOwner (Ada.toValue highestBid) -- the owner receives the payment
                     <> Constraints.mustPayToPubKey highestBidder apAsset -- and the highest bidder the asset
                 newState = State { stateData = Finished h, stateValue = mempty }
@@ -261,29 +261,31 @@ data BuyerEvent =
         | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
         | NoChange HighestBid -- ^ Nothing has changed
 
-waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract AuctionOutput BuyerSchema AuctionError BuyerEvent
-waitForChange AuctionParams{apEndTime} client lastHighestBid = do
+waitForChange :: SlotConfig -> AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract AuctionOutput BuyerSchema AuctionError BuyerEvent
+waitForChange slotCfg AuctionParams{apEndTime} client lastHighestBid = do
     t <- currentTime
     let
-        auctionOver = awaitTime apEndTime >> pure (AuctionIsOver lastHighestBid)
-        submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
+        auctionOver = AuctionIsOver lastHighestBid Haskell.<$ isTime apEndTime
+        submitOwnBid = endpoint @"bid" $ pure . SubmitOwnBid
         otherBid = do
             let address = Scripts.validatorAddress (SM.typedValidator (SM.scInstance client))
-                targetTime = TimeSlot.slotToBeginPOSIXTime def
+                targetTime = TimeSlot.slotToBeginPOSIXTime slotCfg
                            $ Haskell.succ
-                           $ TimeSlot.posixTimeToEnclosingSlot def t
-            AddressChangeResponse{acrTxns} <- addressChangeRequest
-                AddressChangeRequest
-                { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot def targetTime
-                , acreqSlotRangeTo = TimeSlot.posixTimeToEnclosingSlot def targetTime
-                , acreqAddress = address
-                }
-            case acrTxns of
-                [] -> pure (NoChange lastHighestBid)
-                _  -> currentState client >>= pure . maybe (AuctionIsOver lastHighestBid) OtherBid
+                           $ TimeSlot.posixTimeToEnclosingSlot slotCfg t
+            promiseBind
+                (addressChangeRequest
+                    AddressChangeRequest
+                    { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot slotCfg targetTime
+                    , acreqSlotRangeTo = TimeSlot.posixTimeToEnclosingSlot slotCfg targetTime
+                    , acreqAddress = address
+                    })
+                $ \AddressChangeResponse{acrTxns} ->
+                    case acrTxns of
+                        [] -> pure (NoChange lastHighestBid)
+                        _  -> maybe (AuctionIsOver lastHighestBid) OtherBid <$> currentState client
 
     -- see note [Buyer client]
-    auctionOver `select` submitOwnBid `select` otherBid
+    selectList [auctionOver, submitOwnBid, otherBid]
 
 handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract AuctionOutput BuyerSchema AuctionError (Either HighestBid ())
 handleEvent client lastHighestBid change =
@@ -310,13 +312,14 @@ handleEvent client lastHighestBid change =
             continue s
         NoChange s -> continue s
 
-auctionBuyer :: ThreadToken -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
-auctionBuyer currency params = do
+auctionBuyer :: SlotConfig -> ThreadToken -> AuctionParams -> Contract AuctionOutput BuyerSchema AuctionError ()
+auctionBuyer slotCfg currency params = do
     let inst   = typedValidator (currency, params)
         client = machineClient inst currency params
 
         -- the actual loop, see note [Buyer client]
-        loop         = loopM (\h -> waitForChange params client h >>= handleEvent client h)
+        loop   = loopM (\h -> waitForChange slotCfg params client h >>= handleEvent client h)
+
     tell $ threadTokenOut currency
     initial <- currentState client
     case initial of

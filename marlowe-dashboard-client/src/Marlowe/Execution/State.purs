@@ -45,10 +45,17 @@ nextState { semanticState, contract, history } txInput =
       -- FIXME: Change nextState to return an Either
       -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
       (Error _) -> { txOutState: semanticState, txOutContract: contract, txOutPayments: mempty }
+
+    pastState =
+      { balancesAtStart: semanticState ^. _accounts
+      , txInput
+      , balancesAtEnd: txOutState ^. _accounts
+      , resultingPayments: txOutPayments
+      }
   in
     { semanticState: txOutState
     , contract: txOutContract
-    , history: Array.snoc history { initialSemanticState: semanticState, txInput, resultingPayments: txOutPayments }
+    , history: Array.snoc history pastState
     , mPendingTimeouts: Nothing
     , mNextTimeout: nextTimeout txOutContract
     }
@@ -63,50 +70,59 @@ mkTx currentSlot contract inputs =
   in
     TransactionInput { interval, inputs }
 
+-- This function checks if the are any new timeouts in the current execution state
 timeoutState :: Slot -> State -> State
 timeoutState currentSlot { semanticState, contract, history, mPendingTimeouts, mNextTimeout } =
   let
-    Slot slot = currentSlot
-
-    env = makeEnvironment slot slot
-
-    advanceAllTimeouts ::
-      Maybe Slot ->
-      Array Slot ->
-      Semantic.State ->
-      Contract ->
-      { mNextTimeout :: Maybe Slot, mPendingTimeouts :: Maybe PendingTimeouts }
-    advanceAllTimeouts mNextTimeout' newTimeouts state' contract'
-      | mNextTimeout' /= Nothing && mNextTimeout' <= Just currentSlot =
-        let
-          { txOutState, txOutContract } = case reduceContractUntilQuiescent env state' contract' of
-            -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
-            ContractQuiescent _ _ txOutState txOutContract -> { txOutState, txOutContract }
-            -- FIXME: Change timeoutState to return an Either
-            RRAmbiguousSlotIntervalError -> { txOutState: state', txOutContract: contract' }
-
-          newNextTimeout = nextTimeout txOutContract
-        in
-          advanceAllTimeouts newNextTimeout (Array.snoc newTimeouts currentSlot) txOutState txOutContract
-      | otherwise =
-        { mNextTimeout: mNextTimeout'
-        , mPendingTimeouts:
-            if newTimeouts == mempty then
-              Nothing
-            else
-              Just
-                { nextSemanticState: state'
-                , continuationContract: contract'
-                , timeouts: newTimeouts
-                }
-        }
-
+    -- We start of by getting a PendingTimeout structure from the execution state (because the
+    -- contract could already have some timeouts that were "advanced")
     { nextSemanticState, continuationContract, timeouts } =
       fromMaybe'
         ( \_ ->
             { nextSemanticState: semanticState, continuationContract: contract, timeouts: [] }
         )
         mPendingTimeouts
+
+    -- This helper function does all the leg work.
+    -- A contract step can be stale/timeouted but it does not advance on its own, it needs
+    -- an empty transaction or the next meaningfull transaction. With this function we check if
+    -- the contract has timeouted and calculate what would be the resulting continuation contract
+    -- and resulting state if we'd apply an empty transaction.
+    advanceAllTimeouts ::
+      Maybe Slot ->
+      Array Slot ->
+      Semantic.State ->
+      Contract ->
+      { mNextTimeout :: Maybe Slot, mPendingTimeouts :: Maybe PendingTimeouts }
+    advanceAllTimeouts (Just timeoutSlot) newTimeouts state' contract'
+      | timeoutSlot <= currentSlot =
+        let
+          Slot slot = currentSlot
+
+          env = makeEnvironment slot slot
+
+          { txOutState, txOutContract } = case reduceContractUntilQuiescent env state' contract' of
+            -- TODO: SCP-2088 We need to discuss how to display the warnings that computeTransaction may give
+            ContractQuiescent _ _ _ txOutState txOutContract -> { txOutState, txOutContract }
+            -- FIXME: Change timeoutState to return an Either
+            RRAmbiguousSlotIntervalError -> { txOutState: state', txOutContract: contract' }
+
+          newNextTimeout = nextTimeout txOutContract
+        in
+          advanceAllTimeouts newNextTimeout (Array.snoc newTimeouts timeoutSlot) txOutState txOutContract
+
+    advanceAllTimeouts mNextTimeout' newTimeouts state' contract' =
+      { mNextTimeout: mNextTimeout'
+      , mPendingTimeouts:
+          if newTimeouts == mempty then
+            Nothing
+          else
+            Just
+              { nextSemanticState: state'
+              , continuationContract: contract'
+              , timeouts: newTimeouts
+              }
+      }
 
     advancedTimeouts = advanceAllTimeouts mNextTimeout timeouts nextSemanticState continuationContract
   in
@@ -189,19 +205,16 @@ extractActionsFromContract _ _ _ = [ Evaluate mempty ]
 
 -- This function expands the balances inside the Semantic.State to all participants and tokens,
 -- using zero if the participant does not have balance for that token.
-expandBalances :: Array Party -> Array Token -> Semantic.State -> Accounts
-expandBalances participants tokens semanticState =
-  let
-    stateAccounts = semanticState ^. _accounts
-  in
-    Map.fromFoldable do
-      party <- participants
-      tokens
-        <#> \token ->
-            let
-              key = party /\ token
-            in
-              key /\ (fromMaybe zero $ Map.lookup key stateAccounts)
+expandBalances :: Array Party -> Array Token -> Accounts -> Accounts
+expandBalances participants tokens stateAccounts =
+  Map.fromFoldable do
+    party <- participants
+    tokens
+      <#> \token ->
+          let
+            key = party /\ token
+          in
+            key /\ (fromMaybe zero $ Map.lookup key stateAccounts)
 
 mkInterval :: Slot -> Contract -> SlotInterval
 mkInterval currentSlot contract = case nextTimeout contract of

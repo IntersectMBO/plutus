@@ -33,7 +33,7 @@ randomCekCosts =
                     }
 
 cekVarCostCpuKey :: Text.Text
-cekVarCostCpuKey = "cek_var_cost-_ex_budget_cpu"  -- This is the result of flatten . camelToSnake
+cekVarCostCpuKey = "cekVarCost-_exBudgetCPU"  -- This is the result of flatten . toJSON
 
 randomCekCostModel :: CekCostModel
 randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel
@@ -92,7 +92,7 @@ testSelfUpdateWithMissingEntry :: CekCostModel -> IO ()
 testSelfUpdateWithMissingEntry model =
     do
       params <- extractParams model
-      assertBool "CekVarCost not found in params" (Map.member cekVarCostCpuKey params)
+      assertBool (Text.unpack cekVarCostCpuKey ++ " not found in params") (Map.member cekVarCostCpuKey params)
       let params' = Map.delete cekVarCostCpuKey params
       model' <- applyParams model params'
       model' @?= model
@@ -103,9 +103,9 @@ testOtherUpdateWithMissingEntry :: CekCostModel -> CekCostModel -> IO ()
 testOtherUpdateWithMissingEntry model1 model2 =
     do
       params2 <- extractParams model2
-      assertBool "CekVarCost not found in params" (Map.member cekVarCostCpuKey params2)
+      assertBool (Text.unpack cekVarCostCpuKey ++ " not found in params") (Map.member cekVarCostCpuKey params2)
       let params2' = Map.delete cekVarCostCpuKey params2
-      assertBool "CekVarCost still in params" (not (Map.member cekVarCostCpuKey params2'))
+      assertBool (Text.unpack cekVarCostCpuKey ++ " still in params") (not (Map.member cekVarCostCpuKey params2'))
       assertBool "params are the same" (params2 /= params2')
       model1' <- applyParams model1 params2'
       assertBool "The updated model is the same as the other model" (model1' /= model2)

@@ -65,7 +65,7 @@ analyseContract extendedContract = do
   where
   emptySemanticState = emptyState zero
 
-  checkContractForWarnings settings state contract = traverse logAndStripDuration =<< (runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state })))
+  checkContractForWarnings settings state contract = traverse logAndStripDuration =<< (runAjax $ (flip runReaderT) settings (Server.postApiMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state })))
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -221,7 +221,7 @@ checkContractForFailedAssertions ::
   HalogenM state action slots Void m (WebData Result)
 checkContractForFailedAssertions contract state = do
   settings <- asks _.ajaxSettings
-  traverse logAndStripDuration =<< (runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: true, contract: contract, state: state })))
+  traverse logAndStripDuration =<< (runAjax $ (flip runReaderT) settings (Server.postApiMarloweanalysis (MSReq.Request { onlyAssertions: true, contract: contract, state: state })))
 
 startMultiStageAnalysis ::
   forall m state action slots.

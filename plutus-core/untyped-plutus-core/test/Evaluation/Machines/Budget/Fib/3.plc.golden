@@ -23,7 +23,7 @@
 | BBuiltinApp AddInteger causes ({ cpu: 474914
 | mem: 4
 })
-| BBuiltinApp SubtractInteger causes ({ cpu: 1012512
+| BBuiltinApp SubtractInteger causes ({ cpu: 949828
 | mem: 8
 })
 | BBuiltinApp LessThanEqualsInteger causes ({ cpu: 1083570
@@ -35,7 +35,7 @@
 | BStartup causes ({ cpu: 1000000
 | mem: 0
 })})
-| budget: ({ cpu: 13437996
+| budget: ({ cpu: 13375312
 | mem: 2547
 })
 }) )

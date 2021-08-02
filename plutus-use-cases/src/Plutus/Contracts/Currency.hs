@@ -95,13 +95,13 @@ checkPolicy c@(OneShotCurrency (refHash, refIdx) _) _ ctx@V.ScriptContext{V.scri
         -- currency that we expect
         mintOK =
             let v = expected == minted
-            in traceIfFalse "Value minted different from expected" v
+            in traceIfFalse "C0" {-"Value minted different from expected"-} v
 
         -- True if the pending transaction spends the output
         -- identified by @(refHash, refIdx)@
         txOutputSpent =
             let v = V.spendsOutput txinfo refHash refIdx
-            in  traceIfFalse "Pending transaction does not spend the designated transaction output" v
+            in  traceIfFalse "C1" {-"Pending transaction does not spend the designated transaction output"-} v
 
     in mintOK && txOutputSpent
 
@@ -181,9 +181,8 @@ type CurrencySchema =
 
 -- | Use 'mintContract' to create the currency specified by a 'SimpleMPS'
 mintCurrency
-    :: Contract (Maybe (Last OneShotCurrency)) CurrencySchema CurrencyError OneShotCurrency
-mintCurrency = do
-    SimpleMPS{tokenName, amount} <- endpoint @"Create native token"
+    :: Promise (Maybe (Last OneShotCurrency)) CurrencySchema CurrencyError OneShotCurrency
+mintCurrency = endpoint @"Create native token" $ \SimpleMPS{tokenName, amount} -> do
     ownPK <- pubKeyHash <$> ownPubKey
     cur <- mintContract ownPK [(tokenName, amount)]
     tell (Just (Last cur))

@@ -28,6 +28,7 @@ import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Lazy.Char8      as LBS
 import           Data.Function                   ((&))
+import           Data.Monoid                     (Endo (..))
 import           Data.Proxy                      (Proxy (Proxy))
 import           Ledger.Crypto                   (pubKeyHash)
 import qualified Network.Wai.Handler.Warp        as Warp
@@ -120,7 +121,7 @@ startServer ::
 startServer WebserverConfig{baseUrl, staticDir, permissiveCorsPolicy} walletClient availability = do
     when permissiveCorsPolicy $
       logWarn @(LM.PABMultiAgentMsg t) (LM.UserLog "Warning: Using a very permissive CORS policy! *Any* website serving JavaScript can interact with these endpoints.")
-    startServer' mw (baseUrlPort baseUrl) walletClient staticDir availability
+    startServer' [mw] (baseUrlPort baseUrl) walletClient staticDir availability
       where
         mw = if permissiveCorsPolicy then simpleCors else id
 
@@ -134,13 +135,13 @@ startServer' ::
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
-    => Middleware -- ^ Optional wai middleware
+    => [Middleware] -- ^ Optional wai middleware
     -> Int -- ^ Port
     -> Either ClientEnv (PABAction t env WalletInfo) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
     -> Maybe FilePath -- ^ Optional file path for static assets
     -> Availability
     -> PABAction t env (MVar (), PABAction t env ())
-startServer' waiMiddleware port walletClient staticPath availability = do
+startServer' waiMiddlewares port walletClient staticPath availability = do
     simRunner <- Core.pabRunner
     shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
     mvar <- liftIO newEmptyMVar
@@ -155,10 +156,12 @@ startServer' waiMiddleware port walletClient staticPath availability = do
             & Warp.setPort port
             & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
+        middleware = appEndo $ foldMap Endo waiMiddlewares
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
     void $ liftIO $
         forkFinally
-            (Warp.runSettings warpSettings $ waiMiddleware $ app staticPath walletClient simRunner)
+            (Warp.runSettings warpSettings $ middleware
+               $ app staticPath walletClient simRunner)
             (\_ -> putMVar mvar ())
 
     pure (mvar, liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())

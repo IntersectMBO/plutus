@@ -51,37 +51,41 @@ type BuiltinCostModel = BuiltinCostModelBase CostingFun
 -- | The main model which contains all data required to predict the cost of
 -- builtin functions. See Note [Creation of the Cost Model] for how this is
 -- generated. Calibrated for the CEK machine.
+
+-- See Note [Modifying the cost model] in ExBudgetingDefaults.hs for an
+-- explanation of how to regenerate the cost model file when this is changed.
+
 data BuiltinCostModelBase f =
     BuiltinCostModelBase
-    { paramAddInteger           :: f ModelTwoArguments
-    , paramSubtractInteger      :: f ModelTwoArguments
-    , paramMultiplyInteger      :: f ModelTwoArguments
-    , paramDivideInteger        :: f ModelTwoArguments
-    , paramQuotientInteger      :: f ModelTwoArguments
-    , paramRemainderInteger     :: f ModelTwoArguments
-    , paramModInteger           :: f ModelTwoArguments
-    , paramLessThanInteger      :: f ModelTwoArguments
-    , paramLessThanEqInteger    :: f ModelTwoArguments
-    , paramGreaterThanInteger   :: f ModelTwoArguments
-    , paramGreaterThanEqInteger :: f ModelTwoArguments
-    , paramEqInteger            :: f ModelTwoArguments
-    , paramConcatenate          :: f ModelTwoArguments
-    , paramTakeByteString       :: f ModelTwoArguments
-    , paramDropByteString       :: f ModelTwoArguments
-    , paramSHA2                 :: f ModelOneArgument
-    , paramSHA3                 :: f ModelOneArgument
-    , paramVerifySignature      :: f ModelThreeArguments
-    , paramEqByteString         :: f ModelTwoArguments
-    , paramLtByteString         :: f ModelTwoArguments
-    , paramGtByteString         :: f ModelTwoArguments
-    , paramIfThenElse           :: f ModelThreeArguments
-    , paramBlake2b              :: f ModelOneArgument
+    { paramAddInteger               :: f ModelTwoArguments
+    , paramSubtractInteger          :: f ModelTwoArguments
+    , paramMultiplyInteger          :: f ModelTwoArguments
+    , paramDivideInteger            :: f ModelTwoArguments
+    , paramQuotientInteger          :: f ModelTwoArguments
+    , paramRemainderInteger         :: f ModelTwoArguments
+    , paramModInteger               :: f ModelTwoArguments
+    , paramLessThanInteger          :: f ModelTwoArguments
+    , paramLessThanEqualsInteger    :: f ModelTwoArguments
+    , paramGreaterThanInteger       :: f ModelTwoArguments
+    , paramGreaterThanEqualsInteger :: f ModelTwoArguments
+    , paramEqualsInteger            :: f ModelTwoArguments
+    , paramConcatenate              :: f ModelTwoArguments
+    , paramTakeByteString           :: f ModelTwoArguments
+    , paramDropByteString           :: f ModelTwoArguments
+    , paramSha2_256                 :: f ModelOneArgument
+    , paramSha3_256                 :: f ModelOneArgument
+    , paramVerifySignature          :: f ModelThreeArguments
+    , paramEqualsByteString         :: f ModelTwoArguments
+    , paramLessThanByteString       :: f ModelTwoArguments
+    , paramGreaterThanByteString    :: f ModelTwoArguments
+    , paramIfThenElse               :: f ModelThreeArguments
+    , paramBlake2b                  :: f ModelOneArgument
     }
     deriving (Generic, FunctorB, TraversableB, ConstraintsB)
 
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)]
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
 
 type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =

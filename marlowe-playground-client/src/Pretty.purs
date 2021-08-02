@@ -67,3 +67,5 @@ showPrettyChoice :: NumberFormat -> BigInteger -> String
 showPrettyChoice DefaultFormat num = showBigIntegerAsCurrency num 0
 
 showPrettyChoice (DecimalFormat numDecimals strLabel) num = strLabel <> " " <> showBigIntegerAsCurrency num numDecimals
+
+showPrettyChoice TimeFormat num = show num

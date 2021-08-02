@@ -25,6 +25,7 @@ module Plutus.V1.Ledger.Api (
     , ExBudget (..)
     , ExCPU (..)
     , ExMemory (..)
+    , SatInt
     -- ** Cost model
     , validateCostModelParams
     , defaultCostModelParams
@@ -78,22 +79,20 @@ module Plutus.V1.Ledger.Api (
     , mkValidatorScript
     , unValidatorScript
     , ValidatorHash (..)
-    , validatorHash
     , MintingPolicy (..)
     , mkMintingPolicyScript
     , unMintingPolicyScript
     , MintingPolicyHash (..)
-    , mintingPolicyHash
     , Redeemer (..)
     , RedeemerHash (..)
-    , redeemerHash
     , Datum (..)
     , DatumHash (..)
-    , datumHash
     -- * Data
     , PLC.Data (..)
     , BuiltinData (..)
-    , IsData (..)
+    , ToData (..)
+    , FromData (..)
+    , UnsafeFromData (..)
     , toData
     , fromData
     , dataToBuiltinData
@@ -110,6 +109,7 @@ import           Data.ByteString.Lazy                             (fromStrict)
 import           Data.ByteString.Short
 import           Data.Either
 import           Data.Maybe                                       (isJust)
+import           Data.SatInt
 import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
@@ -122,21 +122,21 @@ import           Plutus.V1.Ledger.Credential
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.DCert
 import           Plutus.V1.Ledger.Interval                        hiding (singleton)
-import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Scripts                         hiding (mkTermToEvaluate)
+import qualified Plutus.V1.Ledger.Scripts                         as Scripts
 import           Plutus.V1.Ledger.Time
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value
 import           PlutusCore                                       as PLC
 import qualified PlutusCore.Data                                  as PLC
-import qualified PlutusCore.DeBruijn                              as PLC
 import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
 import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
 import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
 import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
-import qualified PlutusCore.MkPlc                                 as PLC
 import           PlutusCore.Pretty
-import           PlutusTx                                         (IsData (..), fromData, toData)
+import           PlutusTx                                         (FromData (..), ToData (..), UnsafeFromData (..),
+                                                                   fromData, toData)
 import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
                                                                    dataToBuiltinData)
 import qualified UntypedPlutusCore                                as UPLC
@@ -206,12 +206,10 @@ instance Pretty EvaluationError where
 -- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, and un-deBruijn-ifies it.
 mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
-    (Script (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
+    s@(Script (UPLC.Program _ v _)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
-    let namedTerm = UPLC.termMapNames PLC.fakeNameDeBruijn t
-        termArgs = fmap (PLC.mkConstant ()) args
-        applied = PLC.mkIterApp () namedTerm termArgs
-    liftEither $ first DeBruijnError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm applied
+    UPLC.Program _ _ t <- liftEither $ first DeBruijnError $ Scripts.mkTermToEvaluate (Scripts.applyArguments s args)
+    pure t
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model.  There's a default cost

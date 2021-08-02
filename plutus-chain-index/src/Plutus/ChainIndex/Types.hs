@@ -12,20 +12,14 @@ module Plutus.ChainIndex.Types(
     , Tip(..)
     ) where
 
-import           Data.Aeson      (FromJSON, ToJSON)
-import qualified Data.ByteString as BS
-import           Data.Default    (Default (..))
-import           Data.Set        (Set)
-import qualified Data.Set        as Set
-import           GHC.Generics    (Generic)
-import           Ledger.Bytes    (LedgerBytes (..))
-import           Ledger.Slot     (Slot)
-import           Numeric.Natural (Natural)
-
--- | Block identifier (usually a hash)
-newtype BlockId = BlockId { getBlockId :: BS.ByteString }
-    deriving stock (Eq, Ord, Generic)
-    deriving (ToJSON, FromJSON,Show) via LedgerBytes
+import           Data.Aeson        (FromJSON, ToJSON)
+import           Data.Default      (Default (..))
+import           Data.Set          (Set)
+import qualified Data.Set          as Set
+import           GHC.Generics      (Generic)
+import           Ledger.Blockchain (BlockId (..))
+import           Ledger.Slot       (Slot)
+import           Numeric.Natural   (Natural)
 
 newtype PageSize = PageSize { getPageSize :: Natural }
     deriving stock (Eq, Ord, Show, Generic)
@@ -53,14 +47,26 @@ pageOf (PageSize ps) items =
         , pageItems = take ps' $ Set.toList items
         }
 
--- | The tip of the chain index
+-- | The tip of the chain index.
 data Tip =
-    -- TODO: Add genesis block tip
-    Tip
+      TipAtGenesis
+    | Tip
         { tipSlot    :: Slot -- ^ Last slot
         , tipBlockId :: BlockId -- ^ Last block ID
         , tipBlockNo :: Int -- ^ Last block number
         }
-    deriving stock (Eq, Ord, Show, Generic)
+    deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
+-- | This mirrors the previously defined Tip which used the Last monoid definition.
+instance Semigroup Tip where
+    t <> TipAtGenesis = t
+    _ <> t            = t
+
+instance Monoid Tip where
+    mempty = TipAtGenesis
+
+instance Ord Tip where
+    TipAtGenesis <= _            = True
+    _            <= TipAtGenesis = False
+    (Tip _ _ ln) <= (Tip _ _ rn) = ln <= rn

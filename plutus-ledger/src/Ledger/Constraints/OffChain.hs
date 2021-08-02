@@ -56,26 +56,26 @@ import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
 
-import           PlutusTx                         (IsData (..))
+import           PlutusTx                         (FromData (..), ToData (..))
 import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
 import           Data.Default                     (Default (def))
+import           Ledger.Address                   (Address (..), pubKeyHashAddress)
+import qualified Ledger.Address                   as Address
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Orphans                   ()
+import           Ledger.Scripts                   (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash,
+                                                   Redeemer (..), Validator, datumHash, mintingPolicyHash)
 import qualified Ledger.TimeSlot                  as TimeSlot
+import           Ledger.Tx                        (RedeemerPtr (..), ScriptTag (..), Tx, TxOut (..), TxOutRef,
+                                                   TxOutTx (..))
+import qualified Ledger.Tx                        as Tx
 import           Ledger.Typed.Scripts             (TypedValidator, ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (ConnectionError)
 import qualified Ledger.Typed.Tx                  as Typed
-import           Plutus.V1.Ledger.Address         (Address (..), pubKeyHashAddress)
-import qualified Plutus.V1.Ledger.Address         as Address
 import           Plutus.V1.Ledger.Crypto          (PubKeyHash)
-import           Plutus.V1.Ledger.Scripts         (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash,
-                                                   Redeemer (..), Validator, datumHash, mintingPolicyHash)
-import           Plutus.V1.Ledger.Tx              (RedeemerPtr (..), ScriptTag (..), Tx, TxOut (..), TxOutRef,
-                                                   TxOutTx (..))
-import qualified Plutus.V1.Ledger.Tx              as Tx
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
@@ -267,7 +267,7 @@ required v = ValueSpentBalances { vbsRequired = v, vbsProvided = mempty }
 -- | Some typed 'TxConstraints' and the 'ScriptLookups' needed to turn them
 --   into an 'UnbalancedTx'.
 data SomeLookupsAndConstraints where
-    SomeLookupsAndConstraints :: forall a. (IsData (DatumType a), IsData (RedeemerType a)) => ScriptLookups a -> TxConstraints (RedeemerType a) (DatumType a) -> SomeLookupsAndConstraints
+    SomeLookupsAndConstraints :: forall a. (FromData (DatumType a), ToData (DatumType a), ToData (RedeemerType a)) => ScriptLookups a -> TxConstraints (RedeemerType a) (DatumType a) -> SomeLookupsAndConstraints
 
 -- | Given a list of 'SomeLookupsAndConstraints' describing the constraints
 --   for several scripts, build a single transaction that runs all the scripts.
@@ -284,8 +284,9 @@ mkSomeTx xs =
 -- | Resolve some 'TxConstraints' by modifying the 'UnbalancedTx' in the
 --   'ConstraintProcessingState'
 processLookupsAndConstraints
-    :: ( IsData (DatumType a)
-       , IsData (RedeemerType a)
+    :: ( FromData (DatumType a)
+       , ToData (DatumType a)
+       , ToData (RedeemerType a)
        , MonadState ConstraintProcessingState m
        , MonadError MkTxError m
        )
@@ -306,8 +307,9 @@ processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, t
 --   'Plutus.Contract.submitTxConstraints'
 --   and related functions.
 mkTx
-    :: ( IsData (DatumType a)
-       , IsData (RedeemerType a))
+    :: ( FromData (DatumType a)
+       , ToData (DatumType a)
+       , ToData (RedeemerType a))
     => ScriptLookups a
     -> TxConstraints (RedeemerType a) (DatumType a)
     -> Either MkTxError UnbalancedTx
@@ -363,8 +365,9 @@ addOwnInput
     :: ( MonadReader (ScriptLookups a) m
         , MonadError MkTxError m
         , MonadState ConstraintProcessingState m
-        , IsData (DatumType a)
-        , IsData (RedeemerType a)
+        , FromData (DatumType a)
+        , ToData (DatumType a)
+        , ToData (RedeemerType a)
         )
     => InputConstraint (RedeemerType a)
     -> m ()
@@ -384,7 +387,8 @@ addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
 addOwnOutput
     :: ( MonadReader (ScriptLookups a) m
         , MonadState ConstraintProcessingState m
-        , IsData (DatumType a)
+        , FromData (DatumType a)
+        , ToData (DatumType a)
         , MonadError MkTxError m
         )
     => OutputConstraint (DatumType a)

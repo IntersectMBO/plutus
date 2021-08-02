@@ -32,7 +32,11 @@ module Ledger.Index(
     validateTransactionOffChain,
     -- * Script validation events
     ScriptType(..),
-    ScriptValidationEvent(..)
+    ScriptValidationEvent(..),
+    Api.ExBudget(..),
+    Api.ExCPU(..),
+    Api.ExMemory(..),
+    Api.SatInt
     ) where
 
 import           Prelude                          hiding (lookup)
@@ -55,15 +59,17 @@ import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
 import           Ledger.Blockchain
+import           Ledger.Crypto
+import           Ledger.Scripts
 import qualified Ledger.TimeSlot                  as TimeSlot
+import           Ledger.Tx                        (txId)
 import qualified Plutus.V1.Ledger.Ada             as Ada
 import           Plutus.V1.Ledger.Address
+import qualified Plutus.V1.Ledger.Api             as Api
 import           Plutus.V1.Ledger.Contexts        (ScriptContext (..), ScriptPurpose (..), TxInfo (..))
 import qualified Plutus.V1.Ledger.Contexts        as Validation
 import           Plutus.V1.Ledger.Credential      (Credential (..))
-import           Plutus.V1.Ledger.Crypto
 import qualified Plutus.V1.Ledger.Interval        as Interval
-import           Plutus.V1.Ledger.Scripts
 import qualified Plutus.V1.Ledger.Scripts         as Scripts
 import qualified Plutus.V1.Ledger.Slot            as Slot
 import           Plutus.V1.Ledger.Tx
@@ -172,6 +178,7 @@ validateTransaction :: ValidationMonad m
 validateTransaction h t = do
     -- Phase 1 validation
     checkSlotRange h t
+    _ <- lkpOutputs $ toListOf (inputs . scriptTxIns) t
 
     -- see note [Minting of Ada]
     emptyUtxoSet <- reader (Map.null . getIndex)
@@ -393,32 +400,46 @@ mkIn TxIn{txInRef} = do
     txOut <- lkpTxOut txInRef
     pure $ Validation.TxInInfo{Validation.txInInfoOutRef = txInRef, Validation.txInInfoResolved=txOut}
 
-data ScriptType = ValidatorScript | MintingPolicyScript
+data ScriptType = ValidatorScript Validator Datum | MintingPolicyScript MintingPolicy
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | A script (MPS or validator) that was run during transaction validation
 data ScriptValidationEvent =
     ScriptValidationEvent
-        { sveScript :: Script -- ^ The script applied to all arguments
-        , sveResult :: Either ScriptError [String] -- ^ Result of running the script: an error or the trace logs
-        , sveType   :: ScriptType -- ^ What type of script it was
+        { sveScript   :: Script -- ^ The script applied to all arguments
+        , sveResult   :: Either ScriptError (Api.ExBudget, [String]) -- ^ Result of running the script: an error or the 'ExBudget' and trace logs
+        , sveRedeemer :: Redeemer
+        , sveType     :: ScriptType -- ^ What type of script it was
         }
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+validatorScriptValidationEvent
+    :: Context
+    -> Validator
+    -> Datum
+    -> Redeemer
+    -> Either ScriptError (Api.ExBudget, [String])
+    -> ScriptValidationEvent
 validatorScriptValidationEvent ctx validator datum redeemer result =
     ScriptValidationEvent
         { sveScript = applyValidator ctx validator datum redeemer
         , sveResult = result
-        , sveType = ValidatorScript
+        , sveRedeemer = redeemer
+        , sveType = ValidatorScript validator datum
         }
 
-mpsValidationEvent :: Context -> MintingPolicy -> Redeemer -> Either ScriptError [String] -> ScriptValidationEvent
+mpsValidationEvent
+    :: Context
+    -> MintingPolicy
+    -> Redeemer
+    -> Either ScriptError (Api.ExBudget, [String])
+    -> ScriptValidationEvent
 mpsValidationEvent ctx mps red result =
     ScriptValidationEvent
         { sveScript = applyMintingPolicyScript ctx mps red
         , sveResult = result
-        , sveType = MintingPolicyScript
+        , sveRedeemer = red
+        , sveType = MintingPolicyScript mps
         }

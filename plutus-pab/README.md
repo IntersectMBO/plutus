@@ -101,7 +101,7 @@ $ cabal run plutus-pab -- migrate
 
 #### Description
 
-Migrates the database in `pab-core.db` to the current schema.  The database contains the state for the eventful library. Please refer to the  [eventful docs](https://hackage.haskell.org/package/eventful-sqlite-0.2.0/docs/Eventful-Store-Sqlite.html) for more information.
+Migrates the database in `pab-core.db` to the current schema.  The database contains the state for the contract instances.
 
 #### Source
 [Plutus.PAB.App.migrate](https://github.com/input-output-hk/plutus/blob/master/plutus-pab/src/Plutus/PAB/App.hs#L283)
@@ -322,7 +322,7 @@ $ cabal run plutus-pab -- contracts process-outboxes
 
 #### Description
 
-A service that regularly lokks at the contract instances requests and handles them
+A service that regularly looks at the contract instances requests and handles them
 
 #### Dependencies
 

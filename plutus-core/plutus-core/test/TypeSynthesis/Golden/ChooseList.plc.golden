@@ -1,1 +1,1 @@
-(all a (type) (all b (type) (fun a (fun a (fun [(con list) b] a)))))
+(all a (type) (all b (type) (fun [(con list) a] (fun b (fun b b)))))

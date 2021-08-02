@@ -35,9 +35,25 @@ defaultBuiltinCostModel :: BuiltinCostModel
 defaultBuiltinCostModel =
   $$(readJSONFromFile DFP.builtinCostModelFile)
 
--- Use this one when you've changed the type of `CostModel` and you can't load the json.
--- Then rerun
---  cabal run language-plutus-core-create-cost-model
+{- Note [Modifying the cost model]
+   When the Haskell representation of the cost model is changed, for example by
+   adding a new builtin or changing the name of an existing one,
+   readJSONFromFile will fail when it tries to read a JSON file generated using
+   the previous version.  When this happens, uncomment the three lines below (and
+   comment out the three above) then rerun
+
+      cabal run plutus-core:update-cost-model
+
+   This will generate a new JSON file filled with default values.  After that,
+   restore this file to its previous state and then run "update-cost-model"
+   again to fill in the JSON file with the correct values (assuming that
+   suitable benchmarking data is in benching.csv and that models.R contains R
+   code to generate cost models for any new functions).
+
+   Alternatively, modify builtinCostModelFile by hand so that it matches the new
+   format.
+ -}
+
 -- import           Data.Default
 -- defaultBuiltinCostModel :: BuiltinCostModel
 -- defaultBuiltinCostModel = def

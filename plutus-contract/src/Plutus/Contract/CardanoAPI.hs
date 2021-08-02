@@ -8,7 +8,8 @@ Interface to the transaction types from 'cardano-api'
 
 -}
 module Plutus.Contract.CardanoAPI(
-    fromCardanoTx
+    fromCardanoBlock
+  , fromCardanoTx
   , fromCardanoTxIn
   , fromCardanoTxInsCollateral
   , fromCardanoTxInWitness
@@ -39,7 +40,6 @@ module Plutus.Contract.CardanoAPI(
 
 import qualified Cardano.Api                 as C
 import qualified Cardano.Api.Shelley         as C
-import qualified Cardano.Ledger.Era          as C
 import qualified Codec.Serialise             as Codec
 import           Data.Bifunctor              (first)
 import           Data.ByteString             as BS
@@ -55,7 +55,11 @@ import qualified Plutus.V1.Ledger.Credential as Credential
 import qualified Plutus.V1.Ledger.Value      as Value
 import qualified PlutusCore.Data             as Data
 
-fromCardanoTx :: C.Era era => C.Tx era -> Either FromCardanoError P.Tx
+fromCardanoBlock :: C.BlockInMode mode -> Either FromCardanoError P.Block
+fromCardanoBlock (C.BlockInMode (C.Block (C.BlockHeader _ _ _) txs) _) =
+  traverse (fmap P.Valid . fromCardanoTx) txs
+
+fromCardanoTx :: C.Tx era -> Either FromCardanoError P.Tx
 fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
     txOutputs <- traverse fromCardanoTxOut txOuts
     pure $ P.Tx
@@ -71,8 +75,12 @@ fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
         , txRedeemers = mempty -- only available with a Build Tx
         }
 
-toCardanoTxBody :: C.NetworkId -> P.Tx -> Either ToCardanoError (C.TxBody C.AlonzoEra)
-toCardanoTxBody networkId P.Tx{..} = do
+toCardanoTxBody ::
+    Maybe C.ProtocolParameters -- ^ Protocol parameters to use. Building Plutus transactions will fail if this is 'Nothing'
+    -> C.NetworkId -- ^ Network ID
+    -> P.Tx
+    -> Either ToCardanoError (C.TxBody C.AlonzoEra)
+toCardanoTxBody protocolParams networkId P.Tx{..} = do
     txIns <- traverse toCardanoTxInBuild $ Set.toList txInputs
     txInsCollateral <- toCardanoTxInsCollateral txCollateral
     txOuts <- traverse (toCardanoTxOut networkId) txOutputs
@@ -91,7 +99,7 @@ toCardanoTxBody networkId P.Tx{..} = do
         , txMetadata = C.TxMetadataNone
         , txAuxScripts = C.TxAuxScriptsNone
         , txExtraKeyWits = C.TxExtraKeyWitnessesNone
-        , txProtocolParams = C.BuildTxWith Nothing
+        , txProtocolParams = C.BuildTxWith protocolParams
         , txWithdrawals = C.TxWithdrawalsNone
         , txCertificates = C.TxCertificatesNone
         , txUpdateProposal = C.TxUpdateProposalNone

@@ -12,7 +12,7 @@ module Plutus.Contracts.Uniswap.Trace(
     , wallets
     ) where
 
-import           Control.Monad                     (forM_, void, when)
+import           Control.Monad                     (forM_, when)
 import           Control.Monad.Freer.Error         (throwError)
 import qualified Data.Map                          as Map
 import qualified Data.Monoid                       as Monoid
@@ -45,8 +45,8 @@ uniswapTrace = do
     us <- Emulator.observableState cidStart >>= \case
                 Monoid.Last (Just (Right v)) -> pure v
                 _                            -> throwError $ GenericError "initialisation failed"
-    cid1 <- Emulator.activateContractWallet (Wallet 2) (userEndpoints us)
-    cid2 <- Emulator.activateContractWallet (Wallet 3) (userEndpoints us)
+    cid1 <- Emulator.activateContractWallet (Wallet 2) (awaitPromise $ userEndpoints us)
+    cid2 <- Emulator.activateContractWallet (Wallet 3) (awaitPromise $ userEndpoints us)
     _ <- Emulator.waitNSlots 5
 
     let cp = OffChain.CreateParams ada (coins Map.! "A") 100000 500000
@@ -75,10 +75,6 @@ setupTokens = do
             awaitTxConfirmed $ txId tx
 
     tell $ Just $ Semigroup.Last cur
-
-    -- Need to wait one slot or else we will get stuck in an infinite loop
-    -- when requesting the contract's observable state.
-    void $ waitNSlots 50
 
   where
     amount = 1000000
