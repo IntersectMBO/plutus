@@ -28,6 +28,7 @@ import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Lazy.Char8      as LBS
 import           Data.Function                   ((&))
+import           Data.Monoid                     (Endo (..))
 import           Data.Proxy                      (Proxy (Proxy))
 import           Ledger.Crypto                   (pubKeyHash)
 import qualified Network.Wai.Handler.Warp        as Warp
@@ -155,18 +156,15 @@ startServer' waiMiddlewares port walletClient staticPath availability = do
             & Warp.setPort port
             & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
+        middleware = appEndo $ foldMap Endo waiMiddlewares
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
     void $ liftIO $
         forkFinally
-            (Warp.runSettings warpSettings $ applyMiddlewares waiMiddlewares
+            (Warp.runSettings warpSettings $ middleware
                $ app staticPath walletClient simRunner)
             (\_ -> putMVar mvar ())
 
     pure (mvar, liftIO $ STM.atomically $ STM.putTMVar shutdownVar ())
- where
-  applyMiddlewares :: [Middleware] -> Application -> Application
-  applyMiddlewares  (middleware : rest) a = applyMiddlewares rest (middleware a)
-  applyMiddlewares  []                  a = id a
 
 -- | Start the server using a default configuration for debugging.
 startServerDebug ::
