@@ -65,6 +65,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramLessThanByteString       = "lessThanByteStringModel"
   , paramGreaterThanByteString    = "greaterThanByteStringModel"
   , paramIfThenElse               = "ifThenElseModel"
+  , paramBlake2b                  = "blake2bModel"
   }
 
 -- Loads the models from R
@@ -109,6 +110,7 @@ createBuiltinCostModel =
     paramLessThanByteString       <- getParams lessThanByteString       paramLessThanByteString
     paramGreaterThanByteString    <- getParams greaterThanByteString    paramGreaterThanByteString
     paramIfThenElse               <- getParams ifThenElse               paramIfThenElse
+    paramBlake2b                  <- getParams blake2b                  paramBlake2b
 
     pure $ BuiltinCostModelBase {..}
 
@@ -313,6 +315,12 @@ sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha3_256 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
   let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
+  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
+
+blake2b :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+blake2b cpuModelR = do
+  cpuModel <- readModelLinear cpuModelR
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)

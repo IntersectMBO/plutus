@@ -280,7 +280,6 @@ library
         lazy-search -any,
         lens -any,
         megaparsec -any,
-        memory -any,
         mmorph -any,
         monoidal-containers,
         mtl -any,
@@ -308,7 +307,8 @@ library
         transformers -any,
         unordered-containers -any,
         witherable -any,
-        word-array -any
+        word-array -any,
+        cardano-crypto-class -any
 
 test-suite satint-test
   import: lang
