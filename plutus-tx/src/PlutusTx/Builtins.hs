@@ -209,6 +209,7 @@ charToString c = BI.charToString (toBuiltin c)
 -- | Check if two strings are equal
 equalsString :: BuiltinString -> BuiltinString -> Bool
 equalsString x y = fromBuiltin (BI.equalsString x y)
+
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
 trace :: BuiltinString -> a -> a

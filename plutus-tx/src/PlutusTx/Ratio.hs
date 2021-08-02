@@ -280,7 +280,7 @@ half = 1 :% 2
 -- their greatest common divisor.
 reduce :: Integer -> Integer -> Ratio Integer
 reduce x y
-    | y P.== 0 = P.traceError "Ratio has zero denominator"
+    | y P.== 0 = P.traceError "Pe" {-"Ratio has zero denominator"-}
     | True     =
         let d = gcd x y in
         (x `Builtins.quotientInteger` d) :% (y `Builtins.quotientInteger` d)
@@ -314,7 +314,7 @@ round x
     | sig P.== P.negate P.one = n
     | sig P.== P.zero         = if even n then n else m
     | sig P.== P.one          = m
-    | otherwise               = P.traceError "round default defn: Bad value"
+    | otherwise               = P.traceError "Pf" {-"round default defn: Bad value"-}
     where (n, r) = properFraction x
           m      = if r P.< P.zero then n P.- P.one else n P.+ P.one
           sig    = signumR (abs r P.- half)

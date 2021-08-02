@@ -32,14 +32,14 @@ instance Enum Integer where
 
 instance Enum () where
   {-# INLINABLE succ #-}
-  succ _ = traceError "PlutusTx.Enum.().succ: bad argument"
+  succ _ = traceError "P0" {-"PlutusTx.Enum.().succ: bad argument"-}
 
   {-# INLINABLE pred #-}
-  pred _ = traceError "PlutusTx.Enum.().pred: bad argument"
+  pred _ = traceError "P1" {-"PlutusTx.Enum.().pred: bad argument"-}
 
   {-# INLINABLE toEnum #-}
   toEnum x | x == 0 = ()
-           | otherwise = traceError "PlutusTx.Enum.().toEnum: bad argument"
+           | otherwise = traceError "P2" {-"PlutusTx.Enum.().toEnum: bad argument"-}
 
   {-# INLINABLE fromEnum #-}
   fromEnum () = 0
@@ -47,16 +47,16 @@ instance Enum () where
 instance Enum Bool where
   {-# INLINABLE succ #-}
   succ False = True
-  succ True  = traceError "PlutusTx.Enum.Bool.succ: bad argument"
+  succ True  = traceError "P3" {-"PlutusTx.Enum.Bool.succ: bad argument"-}
 
   {-# INLINABLE pred #-}
   pred True  = False
-  pred False = traceError "PlutusTx.Enum.Bool.pred: bad argument"
+  pred False = traceError "P4" {-"PlutusTx.Enum.Bool.pred: bad argument"-}
 
   {-# INLINABLE toEnum #-}
   toEnum n | n == 0    = False
            | n == 1    = True
-           | otherwise = traceError "PlutusTx.Enum.Bool.toEnum: bad argument"
+           | otherwise = traceError "P5" {-"PlutusTx.Enum.Bool.toEnum: bad argument"-}
 
   {-# INLINABLE fromEnum #-}
   fromEnum False = 0
@@ -66,18 +66,18 @@ instance Enum Ordering where
   {-# INLINABLE succ #-}
   succ LT = EQ
   succ EQ = GT
-  succ GT = traceError "PlutusTx.Enum.Ordering.succ: bad argument"
+  succ GT = traceError "P6" {-"PlutusTx.Enum.Ordering.succ: bad argument"-}
 
   {-# INLINABLE pred #-}
   pred GT = EQ
   pred EQ = LT
-  pred LT = traceError "PlutusTx.Enum.Ordering.pred: bad argument"
+  pred LT = traceError "P7" {-"PlutusTx.Enum.Ordering.pred: bad argument"-}
 
   {-# INLINABLE toEnum #-}
   toEnum n | n == 0 = LT
            | n == 1 = EQ
            | n == 2 = GT
-  toEnum _ = traceError "PlutusTx.Enum.Ordering.toEnum: bad argument"
+  toEnum _ = traceError "P8" {-"PlutusTx.Enum.Ordering.toEnum: bad argument"-}
 
   {-# INLINABLE fromEnum #-}
   fromEnum LT = 0

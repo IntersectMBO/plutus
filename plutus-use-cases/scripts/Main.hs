@@ -18,8 +18,10 @@ import           Data.Bitraversable             (bitraverse)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Default                   (Default (..))
 import           Data.Foldable                  (traverse_)
+import           Data.Int                       (Int64)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
+import           Data.Monoid                    (Sum (..))
 import           Data.Set                       (Set)
 import qualified Data.Set                       as Set
 import           Data.Text.Prettyprint.Doc      (Pretty (..))
@@ -53,6 +55,7 @@ import qualified Spec.Vesting                   as Vesting
 import qualified Streaming.Prelude              as S
 import           System.Directory               (createDirectoryIfMissing)
 import           System.FilePath                ((</>))
+import           Text.Printf                    (printf)
 import qualified Wallet.Emulator.Folds          as Folds
 import           Wallet.Emulator.Stream         (foldEmulatorStreamM)
 
@@ -116,7 +119,7 @@ main = execParser progParser >>= writeScripts
 writeScripts :: ScriptsConfig -> IO ()
 writeScripts config = do
     putStrLn $ "Writing " <> writeWhat (scCommand config) <> " to: " <> scPath config
-    traverse_ (uncurry3 (writeScriptsTo config))
+    (Sum size, exBudget) <- foldMap (uncurry3 (writeScriptsTo config))
         [ ("auction_1", Auction.auctionTrace1, Auction.auctionEmulatorCfg)
         , ("auction_2", Auction.auctionTrace2, Auction.auctionEmulatorCfg)
         , ("crowdfunding-success", Crowdfunding.successfulCampaign, def)
@@ -142,6 +145,9 @@ writeScripts config = do
         , ("vesting", Vesting.retrieveFundsTrace, def)
         , ("uniswap", Uniswap.uniswapTrace, def)
         ]
+    if size > 0 then
+        putStrLn $ "Total " <> showStats size exBudget
+    else pure ()
 
 {-| Run an emulator trace and write the applied scripts to a file in Flat format
     using the name as a prefix.
@@ -151,7 +157,7 @@ writeScriptsTo
     -> String
     -> EmulatorTrace a
     -> EmulatorConfig
-    -> IO ()
+    -> IO (Sum Int64, ExBudget)
 writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
     let (scriptEvents, balanceEvents) =
             S.fst'
@@ -162,12 +168,13 @@ writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
     createDirectoryIfMissing True scPath
     case scCommand of
         Scripts mode -> do
-            traverse_ (uncurry $ writeScript scPath prefix mode) (zip [1::Int ..] scriptEvents)
+            foldMap (uncurry $ writeScript scPath prefix mode) (zip [1::Int ..] scriptEvents)
         Transactions{networkId, protocolParamsJSON} -> do
             bs <- BSL.readFile protocolParamsJSON
             case Aeson.eitherDecode bs of
                 Left err -> putStrLn err
                 Right params -> traverse_ (uncurry $ writeTransaction params networkId scPath prefix) (zip [1::Int ..] balanceEvents)
+            pure mempty
 
 {- There's an instance of Codec.Serialise for
     Script in Scripts.hs (see Note [Using Flat inside CBOR instance of Script]),
@@ -175,14 +182,19 @@ writeScriptsTo ScriptsConfig{scPath, scCommand} prefix trace emulatorCfg = do
     just use unwrapped Flat because that's more convenient for use with the
     `plc` command, for example.
 -}
-writeScript :: FilePath -> String -> ValidatorMode -> Int -> ScriptValidationEvent -> IO ()
+writeScript :: FilePath -> String -> ValidatorMode -> Int -> ScriptValidationEvent -> IO (Sum Int64, ExBudget)
 writeScript fp prefix mode idx event@ScriptValidationEvent{sveResult} = do
     let filename = fp </> prefix <> "-" <> show idx <> filenameSuffix mode <> ".flat"
-    putStrLn $ "Writing script: " <> filename <> " (Cost: " <> either show (showBudget . fst) sveResult <> ")"
+        bytes = BSL.fromStrict . flat . unScript . getScript mode $ event
+        byteSize = BSL.length bytes
+    putStrLn $ "Writing script: " <> filename <> " (" <> either show (showStats byteSize . fst) sveResult <> ")"
+    BSL.writeFile filename bytes
+    pure (Sum byteSize, foldMap fst sveResult)
 
-    BSL.writeFile filename (BSL.fromStrict . flat . unScript . getScript mode $ event)
+showStats :: Int64 -> ExBudget -> String
+showStats byteSize (ExBudget exCPU exMemory) = "Size: " <> size <> "kB, Cost: " <> show exCPU <> ", " <> show exMemory
     where
-        showBudget (ExBudget exCPU exMemory) = show exCPU <> ", " <> show exMemory
+        size = printf ("%.1f"::String) (fromIntegral byteSize / 1024.0 :: Double)
 
 writeTransaction :: C.ProtocolParameters -> C.NetworkId -> FilePath -> String -> Int -> UnbalancedTx -> IO ()
 writeTransaction params networkId fp prefix idx tx = do

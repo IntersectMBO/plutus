@@ -104,8 +104,8 @@ findIndex p l = listToMaybe (findIndices p l)
 --
 infixl 9 !!
 (!!) :: [a] -> Integer -> a
-_        !! n | n < 0 = traceError "PlutusTx.List.!!: negative index"
-[]       !! _ = traceError "PlutusTx.List.!!: index too large"
+_        !! n | n < 0 = traceError "P9" {-"PlutusTx.List.!!: negative index"-}
+[]       !! _ = traceError "Pa" {-"PlutusTx.List.!!: index too large"-}
 (x : xs) !! i = if Builtins.equalsInteger i 0
     then x
     else xs !! Builtins.subtractInteger i 1
@@ -116,8 +116,8 @@ _        !! n | n < 0 = traceError "PlutusTx.List.!!: negative index"
 reverse :: [a] -> [a]
 reverse l = rev l []
   where
-    rev []      a = a
-    rev (x:xs) a  = rev xs (x:a)
+    rev []     a = a
+    rev (x:xs) a = rev xs (x:a)
 
 
 {-# INLINABLE zip #-}
@@ -130,14 +130,14 @@ zip (a:as) (b:bs) = (a,b) : zip as bs
 {-# INLINABLE head #-}
 -- | Plutus Tx version of 'Data.List.head'.
 head :: [a] -> a
-head []      = traceError "PlutusTx.List.head: empty list"
+head []      = traceError "Pb" {-"PlutusTx.List.head: empty list"-}
 head (x : _) = x
 
 {-# INLINABLE tail #-}
 -- | Plutus Tx version of 'Data.List.tail'.
 tail :: [a] -> [a]
 tail (_:as) =  as
-tail []     =  traceError "PlutusTx.List.tail: empty list"
+tail []     =  traceError "Pc" {-"PlutusTx.List.tail: empty list"-}
 
 {-# INLINABLE take #-}
 -- | Plutus Tx version of 'Data.List.take'.
@@ -151,18 +151,18 @@ take n (x:xs)          =  x : take (n-1) xs
 nub :: (Eq a) => [a] -> [a]
 nub =  nubBy (==)
 
-{-# INLINABLE elem_by #-}
--- | Plutus Tx version of 'Data.List.elem_by'.
-elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
-elem_by _  _ []     =  False
-elem_by eq y (x:xs) =  x `eq` y || elem_by eq y xs
+{-# INLINABLE elemBy #-}
+-- | Plutus Tx version of 'Data.List.elemBy'.
+elemBy :: (a -> a -> Bool) -> a -> [a] -> Bool
+elemBy _  _ []     =  False
+elemBy eq y (x:xs) =  x `eq` y || elemBy eq y xs
 
 {-# INLINABLE nubBy #-}
 -- | Plutus Tx version of 'Data.List.nubBy'.
 nubBy :: (a -> a -> Bool) -> [a] -> [a]
 nubBy eq l              = nubBy' l []
   where
-    nubBy' [] _         = []
+    nubBy' [] xs        = xs
     nubBy' (y:ys) xs
-       | elem_by eq y xs = nubBy' ys xs
-       | otherwise       = y : nubBy' ys (y:xs)
+       | elemBy eq y xs = nubBy' ys xs
+       | otherwise      = nubBy' ys (y:xs)
