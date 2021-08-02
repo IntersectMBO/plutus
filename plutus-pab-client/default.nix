@@ -27,7 +27,8 @@ let
   migrate = pkgs.writeShellScriptBin "plutus-pab-migrate" ''
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-setup-invoker)/bin/plutus-pab-setup migrate
+    # TODO: Change the migrate to read the config file instead and get the db path from there
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-setup-invoker)/bin/plutus-pab-setup migrate $(yq -r '.dbConfig.dbConfigFile' plutus-pab.yaml)
   '';
 
   # For dev usage
@@ -36,6 +37,8 @@ let
     export WEBGHC_URL=http://localhost:8080
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
+    # Only execute the migration when the database file does not exist
+    ! test -f ./$(yq -r '.dbConfig.dbConfigFile' plutus-pab.yaml) && plutus-pab-migrate
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-examples-invoker)/bin/plutus-pab-examples --config=plutus-pab.yaml webserver
   '';
 
@@ -45,6 +48,8 @@ let
     export WEBGHC_URL=http://localhost:8080
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
+    # Only execute the migration when the database file does not exist
+    ! test -f ./$(yq -r '.dbConfig.dbConfigFile' plutus-pab.yaml) && plutus-pab-migrate
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-examples-invoker)/bin/plutus-pab-examples --config=plutus-pab.yaml all-servers
   '';
 
@@ -54,6 +59,8 @@ let
     export WEBGHC_URL=http://localhost:8080
     # There might be local modifications so only copy when missing
     ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
+    # Only execute the migration when the database file does not exist
+    ! test -f ./$(yq -r '.dbConfig.dbConfigFile' plutus-pab.yaml) && plutus-pab-migrate
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-examples-invoker)/bin/plutus-pab-examples --config=plutus-pab.yaml -m all-servers
   '';
 

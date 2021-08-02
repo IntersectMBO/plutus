@@ -41,12 +41,14 @@ import           Control.Monad.Freer.Error             (throwError)
 import           Control.Monad.Freer.Extras.Log        (logInfo)
 import           Control.Monad.Freer.Reader            (ask, runReader)
 import           Control.Monad.IO.Class                (liftIO)
+import           Control.Monad.Logger                  (logErrorN, runStdoutLoggingT)
 import           Data.Aeson                            (FromJSON, ToJSON)
 import           Data.Foldable                         (traverse_)
 import qualified Data.Map                              as Map
 import           Data.Proxy                            (Proxy (..))
 import qualified Data.Set                              as Set
 import qualified Data.Text                             as Text
+import           Data.Text.Extras                      (tshow)
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Data.Time.Units                       (Second)
@@ -71,6 +73,7 @@ import           Plutus.PAB.Types                      (Config (..), DbConfig (.
 import qualified Plutus.PAB.Webserver.Server           as PABServer
 import           Plutus.PAB.Webserver.Types            (ContractActivationArgs (..))
 import qualified Servant
+import           System.Exit                           (ExitCode (ExitFailure), exitWith)
 import qualified Wallet.Types                          as Wallet
 
 runNoConfigCommand ::
@@ -162,8 +165,7 @@ runConfigCommand contractHandler ConfigCommandArgs{ccaTrace, ccaPABConfig=config
                     pure priorContract
 
         -- Then, start the server
-        fmap (either (error . show) id)
-          $ App.runApp ccaStorageBackend (toPABMsg ccaTrace) contractHandler config
+        result <- App.runApp ccaStorageBackend (toPABMsg ccaTrace) contractHandler config
           $ do
               env <- ask @(Core.PABEnvironment (Builtin a) (App.AppEnv a))
               -- But first, spin up all the previous contracts
@@ -180,6 +182,11 @@ runConfigCommand contractHandler ConfigCommandArgs{ccaTrace, ccaPABConfig=config
               let walletClientEnv = App.walletClientEnv (Core.appEnv env)
               (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) ccaAvailability
               liftIO $ takeMVar mvar
+        either handleError return result
+  where
+    handleError err = do
+        runStdoutLoggingT $ (logErrorN . tshow . pretty) err
+        exitWith (ExitFailure 2)
 
 -- Fork a list of commands
 runConfigCommand contractHandler c@ConfigCommandArgs{ccaAvailability} (ForkCommands commands) =

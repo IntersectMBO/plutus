@@ -55,6 +55,7 @@ let
   nixpkgsInputs = (with pkgs; [
     cacert
     ghcid
+    jq
     morph
     nixFlakes
     nixpkgs-fmt
@@ -62,6 +63,7 @@ let
     shellcheck
     sqlite-interactive
     stack
+    yq
     z3
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
