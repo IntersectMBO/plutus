@@ -19,7 +19,6 @@ module PlutusCore.Examples.Builtins where
 import           PlutusCore
 import           PlutusCore.Constant
 import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Pretty
 
@@ -112,7 +111,6 @@ data ExtensionFun
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
-    deriving (ExMemoryUsage) via (GenericExMemoryUsage ExtensionFun)
 
 instance Pretty ExtensionFun where pretty = viaShow
 

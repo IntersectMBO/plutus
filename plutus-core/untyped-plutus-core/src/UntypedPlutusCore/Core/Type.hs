@@ -24,11 +24,10 @@ module UntypedPlutusCore.Core.Type
 import           Data.Functor.Identity
 import           PlutusPrelude
 
-import qualified PlutusCore.Constant                    as TPLC
-import qualified PlutusCore.Core                        as TPLC
-import           PlutusCore.Evaluation.Machine.ExMemory
+import qualified PlutusCore.Constant   as TPLC
+import qualified PlutusCore.Core       as TPLC
 import           PlutusCore.MkPlc
-import qualified PlutusCore.Name                        as TPLC
+import qualified PlutusCore.Name       as TPLC
 import           Universe
 
 {- Note [Term constructor ordering and numbers]
@@ -105,11 +104,6 @@ instance TPLC.FromConstant (Term name uni fun ()) where
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
-
-deriving via GenericExMemoryUsage (Term name uni fun ann) instance
-    ( ExMemoryUsage name, ExMemoryUsage fun, ExMemoryUsage ann
-    , Closed uni, uni `Everywhere` ExMemoryUsage
-    ) => ExMemoryUsage (Term name uni fun ann)
 
 toTerm :: Program name uni fun ann -> Term name uni fun ann
 toTerm (Program _ _ term) = term
