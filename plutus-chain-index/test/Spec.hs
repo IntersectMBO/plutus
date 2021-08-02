@@ -105,12 +105,12 @@ rollback = property $ do
         let tip1 = fst block1
         RollbackResult{rolledBackIndex=ix1'} <- liftRollback $ UtxoState.rollback tip1 ix3
         sendM $ UtxoState.unspentOutputs (UtxoState.utxoState ix1) === UtxoState.unspentOutputs (UtxoState.utxoState ix1')
-        sendM $ UtxoState.tip (UtxoState.utxoState ix1') === Just tip1
+        sendM $ UtxoState.tip (UtxoState.utxoState ix1') === tip1
 
         InsertUtxoSuccess{newIndex=ix4} <- liftInsert $ UtxoState.insert (uncurry UtxoState.fromBlock block4) ix1
         InsertUtxoSuccess{newIndex=ix4'} <- liftInsert $ UtxoState.insert (uncurry UtxoState.fromBlock block4) ix1'
         sendM $ UtxoState.unspentOutputs (UtxoState.utxoState ix4) === UtxoState.unspentOutputs (UtxoState.utxoState ix4')
-        sendM $ UtxoState.tip (UtxoState.utxoState ix4') === Just (fst block4)
+        sendM $ UtxoState.tip (UtxoState.utxoState ix4') === (fst block4)
     annotateShow result
     assert $ isRight result
 
@@ -130,5 +130,9 @@ block_number_ascending = property $ do
             annotateShow e
             failure
         Right InsertUtxoSuccess{newIndex} -> do
-            let items = fmap tipBlockNo . UtxoState.tip <$> toList newIndex
+            let items = tipBlockNo' . UtxoState.tip <$> toList newIndex
             items === sort items
+    where
+        tipBlockNo' :: Tip -> Int
+        tipBlockNo' TipAtGenesis = error "There should be no empty UtxoState."
+        tipBlockNo' (Tip _ _ no) = no

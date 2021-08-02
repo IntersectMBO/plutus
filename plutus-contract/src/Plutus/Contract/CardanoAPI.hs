@@ -8,7 +8,8 @@ Interface to the transaction types from 'cardano-api'
 
 -}
 module Plutus.Contract.CardanoAPI(
-    fromCardanoTx
+    fromCardanoBlock
+  , fromCardanoTx
   , fromCardanoTxIn
   , fromCardanoTxInsCollateral
   , fromCardanoTxInWitness
@@ -39,7 +40,6 @@ module Plutus.Contract.CardanoAPI(
 
 import qualified Cardano.Api                 as C
 import qualified Cardano.Api.Shelley         as C
-import qualified Cardano.Ledger.Era          as C
 import qualified Codec.Serialise             as Codec
 import           Data.Bifunctor              (first)
 import           Data.ByteString             as BS
@@ -55,7 +55,11 @@ import qualified Plutus.V1.Ledger.Credential as Credential
 import qualified Plutus.V1.Ledger.Value      as Value
 import qualified PlutusCore.Data             as Data
 
-fromCardanoTx :: C.Era era => C.Tx era -> Either FromCardanoError P.Tx
+fromCardanoBlock :: C.BlockInMode mode -> Either FromCardanoError P.Block
+fromCardanoBlock (C.BlockInMode (C.Block (C.BlockHeader _ _ _) txs) _) =
+  traverse (fmap P.Valid . fromCardanoTx) txs
+
+fromCardanoTx :: C.Tx era -> Either FromCardanoError P.Tx
 fromCardanoTx (C.Tx (C.TxBody C.TxBodyContent{..}) _keyWitnesses) = do
     txOutputs <- traverse fromCardanoTxOut txOuts
     pure $ P.Tx

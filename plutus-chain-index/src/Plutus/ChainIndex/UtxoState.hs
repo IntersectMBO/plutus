@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-| The UTXO state, kept in memory by the chain index.
 -}
 module Plutus.ChainIndex.UtxoState(
@@ -33,7 +34,7 @@ module Plutus.ChainIndex.UtxoState(
 import           Control.Lens            (makeLenses, view)
 import           Data.FingerTree         (FingerTree, Measured (..))
 import qualified Data.FingerTree         as FT
-import           Data.Monoid             (Last (..))
+import           Data.Function           (on)
 import           Data.Semigroup.Generic  (GenericSemigroupMonoid (..))
 import           Data.Set                (Set)
 import qualified Data.Set                as Set
@@ -68,7 +69,7 @@ instance Monoid TxUtxoBalance where
 data UtxoState =
     UtxoState
         { _usTxUtxoBalance :: TxUtxoBalance
-        , _usTip           :: Last Tip -- ^ Tip of our chain sync client
+        , _usTip           :: Tip -- ^ Tip of our chain sync client
         }
         deriving stock (Eq, Show, Generic)
         deriving (Semigroup, Monoid) via (GenericSemigroupMonoid UtxoState)
@@ -93,8 +94,11 @@ utxoState = measure
 isUnspentOutput :: TxOutRef -> UtxoState -> Bool
 isUnspentOutput r = Set.member r . view (usTxUtxoBalance . tubUnspentOutputs)
 
-tip :: UtxoState -> Maybe Tip
-tip = getLast . view usTip
+tip :: UtxoState -> Tip
+tip = view usTip
+
+instance Ord UtxoState where
+    compare = compare `on` tip
 
 -- | The UTXO set
 unspentOutputs :: UtxoState -> Set TxOutRef
@@ -105,7 +109,7 @@ fromBlock :: Tip -> [ChainIndexTx] -> UtxoState
 fromBlock tip_ transactions =
     UtxoState
             { _usTxUtxoBalance = foldMap fromTx transactions
-            , _usTip           = Last (Just tip_)
+            , _usTip           = tip_
             }
 
 -- | Outcome of inserting a 'UtxoState' into the utxo index
@@ -128,15 +132,13 @@ data InsertUtxoFailed =
 
 -- | Insert a 'UtxoState' into the index
 insert :: UtxoState -> UtxoIndex -> Either InsertUtxoFailed InsertUtxoSuccess
-insert UtxoState{_usTip=Last Nothing} _ = Left InsertUtxoNoTip
-insert s@UtxoState{_usTip=Last(Just Tip{tipBlockNo=thisBlockNo})} ix =
-    let gt UtxoState{_usTip=Last otherTip} = maybe False (\Tip{tipBlockNo=otherBlockNo} -> otherBlockNo >= thisBlockNo) otherTip
-        (before, after) = FT.split gt ix
-    in case _usTip (measure after) of
-        Last Nothing -> Right $ InsertUtxoSuccess{newIndex = before FT.|> s, insertPosition = InsertAtEnd}
-        Last (Just t@Tip{tipBlockNo=otherBlockNo})
-            | otherBlockNo > thisBlockNo -> Right $ InsertUtxoSuccess{newIndex = (before FT.|> s) <> after, insertPosition = InsertBeforeEnd}
-            | otherwise -> Left $ DuplicateBlock t
+insert   UtxoState{_usTip=TipAtGenesis} _ = Left InsertUtxoNoTip
+insert s@UtxoState{_usTip=thisTip} ix =
+    let (before, after) = FT.split (s <=)  ix
+    in case tip (measure after) of
+        TipAtGenesis -> Right $ InsertUtxoSuccess{newIndex = before FT.|> s, insertPosition = InsertAtEnd}
+        t | t > thisTip -> Right $ InsertUtxoSuccess{newIndex = (before FT.|> s) <> after, insertPosition = InsertBeforeEnd}
+          | otherwise   -> Left  $ DuplicateBlock t
 
 -- | Reason why the 'rollback' operation failed
 data RollbackFailed =
@@ -151,17 +153,19 @@ data RollbackResult =
         , rolledBackIndex :: UtxoIndex
         }
 
+viewTip :: UtxoIndex -> Tip
+viewTip = tip . measure
+
 -- | Perform a rollback on the utxo index
 rollback :: Tip -> UtxoIndex -> Either RollbackFailed RollbackResult
-rollback targetTip@Tip{tipBlockNo=targetBlockNo} idx = case tip (measure idx) of
-    Nothing -> Left RollbackNoTip
-    Just currentTip@Tip{tipBlockNo=currentBlockNo}
-        | currentBlockNo < targetBlockNo -> Left TipMismatch{foundTip=currentTip, targetTip}
-        | otherwise -> do
-            let gt UtxoState{_usTip=Last otherTip} = maybe False (\Tip{tipBlockNo=otherBlockNo} -> otherBlockNo > targetBlockNo) otherTip
-                (before, _) = FT.split gt idx
+rollback _             (viewTip -> TipAtGenesis) = Left RollbackNoTip
+rollback targetTip idx@(viewTip -> currentTip)
+    -- The rollback happened sometime after the current tip.
+    | currentTip < targetTip = Left TipMismatch{foundTip=currentTip, targetTip}
+    | otherwise = do
+        let (before, _) = FT.split ((> targetTip) . tip) idx
 
-            case tip (measure before) of
-                Nothing -> Left $ OldTipNotFound targetTip
-                Just oldTip | oldTip == targetTip -> Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
-                            | otherwise           -> Left $ TipMismatch{foundTip=oldTip, targetTip}
+        case tip (measure before) of
+            TipAtGenesis -> Left $ OldTipNotFound targetTip
+            oldTip | oldTip == targetTip -> Right RollbackResult{newTip=oldTip, rolledBackIndex=before}
+                   | otherwise           -> Left  TipMismatch{foundTip=oldTip, targetTip}
