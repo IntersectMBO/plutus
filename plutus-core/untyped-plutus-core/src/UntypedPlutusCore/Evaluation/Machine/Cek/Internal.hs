@@ -33,9 +33,11 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekBudgetSpender(..)
     , ExBudgetInfo(..)
     , ExBudgetMode(..)
+    , CekEmitter
+    , CekEmitterInfo(..)
+    , EmitterMode(..)
     , CekCarryingM (..)
     , CekM
-    , EmitMode (..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
@@ -69,15 +71,11 @@ import           Control.Monad.Except
 import           Control.Monad.ST
 import           Control.Monad.ST.Unsafe
 import           Data.Array
-import           Data.DList                                               (DList)
-import qualified Data.DList                                               as DList
 import           Data.Hashable                                            (Hashable)
 import qualified Data.Kind                                                as GHC
 import           Data.Proxy
-import           Data.STRef
 import           Data.Semigroup                                           (stimes)
 import           Data.Text.Prettyprint.Doc
-import           Data.Time.Clock                                          (getCurrentTime)
 import           Data.Word64Array.Word8
 import           Universe
 
@@ -207,9 +205,7 @@ data CekValue uni fun =
 
 type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
--- | The CEK machine is parameterized over a @spendBudget@ function that has (roughly) the same type
--- as the one from the 'SpendBudget' class (and so the @SpendBudget@ instance for 'CekM'
--- defers to the function stored in the environment). This makes the budgeting machinery extensible
+-- | The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 -- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
 -- of all possible budgeting state types during evaluation.
 newtype CekBudgetSpender uni fun s = CekBudgetSpender
@@ -284,42 +280,19 @@ type Slippage = Word8
 defaultSlippage :: Slippage
 defaultSlippage = 200
 
--- | Describe whether to emit or not. And if emitting, should it include timestamp?
--- The timestamp is for profiling purposes.
--- Don't emit timestamps if you are running tests.
-data EmitMode
-    = NoEmit
-    | Emit
-    | EmitWithTimestamp
-    deriving (Eq)
-
+-- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
 type CekEmitter uni fun s = String -> CekM uni fun s ()
 
+-- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
     _cekEmitterInfoEmit       :: CekEmitter uni fun  s
-    , _cekEmitterInfoGetFinal :: ST s (DList String)
+    , _cekEmitterInfoGetFinal :: ST s [String]
     }
 
--- | Emitter for when @EmitterOption@ is @NoEmit@.
-mkNoEmitter :: ST s (CekEmitterInfo uni fun s)
-mkNoEmitter = pure $ CekEmitterInfo (\_ -> pure ()) (pure mempty)
-
--- | Emitter for when @EmitterOption@ is @Emit@. Emits log but not timestamp.
-mkEmitter :: ST s (CekEmitterInfo uni fun s)
-mkEmitter = do
-    logsRef <- newSTRef DList.empty
-    let emitter str = CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
-    pure $ CekEmitterInfo emitter (readSTRef logsRef)
-
--- | Emitter for when @EmitterOption@ is @EmitWithTimestamp@. Emits log with timestamp.
-mkEmitterWithTime :: ST s (CekEmitterInfo uni fun s)
-mkEmitterWithTime = do
-    logsRef <- newSTRef DList.empty
-    let emitter str = CekCarryingM $ do
-            time <- unsafeIOToST getCurrentTime
-            let withTime = "[" ++ show time ++ "]" ++ " " ++ str
-            modifySTRef logsRef (`DList.snoc` withTime)
-    pure $ CekEmitterInfo emitter (readSTRef logsRef)
+-- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
+newtype EmitterMode uni fun = EmitterMode
+    { unEmitterMode :: forall s. ST s (CekEmitterInfo uni fun s)
+    }
 
 {- Note [Implicit parameters in the machine]
 The traditional way to pass context into a function is to use 'ReaderT'. However, 'ReaderT' has some
@@ -581,15 +554,12 @@ runCekM
     (PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> EmitMode
+    -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException uni fun) a, cost, [String])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitMode a = runST $ do
+runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     exBudgetMode <- getExBudgetInfo
-    emitter <- case emitMode of
-            Emit              -> mkEmitter
-            EmitWithTimestamp -> mkEmitterWithTime
-            NoEmit            -> mkNoEmitter
+    emitter <- getEmitterMode
     let ?cekRuntime = runtime
         ?cekEmitter = _cekEmitterInfoEmit emitter
         ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
@@ -598,9 +568,9 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) emitMod
     -- See Note Note [Being generic over 'term' in errors].
     errValOrErrTermOrRes <- unCekCarryingM . tryError . withTermErrors $ tryError a
     let errOrRes = join $ first (mapCauseInMachineException dischargeCekValue) errValOrErrTermOrRes
-    st' <- _exBudgetModeGetFinal exBudgetMode
-    logs <- DList.toList <$> _cekEmitterInfoGetFinal emitter
-    pure (errOrRes, st', logs)
+    st <- _exBudgetModeGetFinal exBudgetMode
+    logs <- _cekEmitterInfoGetFinal emitter
+    pure (errOrRes, st, logs)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
@@ -812,7 +782,7 @@ runCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
-    -> EmitMode
+    -> EmitterMode uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
 runCek params mode emitMode term =

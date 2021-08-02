@@ -15,7 +15,7 @@
       license = "Apache-2.0";
       copyright = "";
       maintainer = "michael.peyton-jones@iohk.io";
-      author = "Plutus Core Team ";
+      author = "Plutus Core Team";
       homepage = "";
       url = "";
       synopsis = "Language library for Plutus Core";
@@ -172,6 +172,7 @@
           "UntypedPlutusCore/Core/Plated"
           "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/EmitterMode"
           "UntypedPlutusCore/Mark"
           "UntypedPlutusCore/Rename/Internal"
           "UntypedPlutusCore/Size"

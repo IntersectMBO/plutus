@@ -6,7 +6,7 @@ license-files:
   LICENSE
   NOTICE
 maintainer: michael.peyton-jones@iohk.io
-author: Plutus Core Team 
+author: Plutus Core Team
 tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
 synopsis: Language library for Plutus Core
 description:
@@ -236,6 +236,7 @@ library
         UntypedPlutusCore.Core.Plated
         UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
         UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+        UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
         UntypedPlutusCore.Mark
         UntypedPlutusCore.Rename.Internal
         UntypedPlutusCore.Size

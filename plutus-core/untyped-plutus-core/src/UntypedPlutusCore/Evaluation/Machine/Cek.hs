@@ -5,38 +5,47 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek
-    ( EvaluationResult(..)
-    , CekValue(..)
-    , CekUserError(..)
-    , CekEvaluationException
-    , CekBudgetSpender(..)
-    , ErrorWithCause(..)
-    , EvaluationError(..)
-    , ExBudgetCategory(..)
-    , StepKind(..)
-    , CekExTally(..)
-    , ExBudgetMode(..)
-    , EmitMode(..)
-    , CountingSt (..)
-    , TallyingSt (..)
-    , RestrictingSt (..)
-    , CekMachineCosts
-    , Hashable
-    , PrettyUni
-    , counting
-    , tallying
-    , restricting
-    , restrictingEnormous
-    , extractEvaluationResult
-    , runCek
+    (
+    -- * Running the machine
+    runCek
     , runCekNoEmit
     , unsafeRunCekNoEmit
     , evaluateCek
     , evaluateCekNoEmit
     , unsafeEvaluateCek
     , unsafeEvaluateCekNoEmit
-    , readKnownCek
+    , EvaluationResult(..)
+    , extractEvaluationResult
+    -- * Errors
+    , CekUserError(..)
+    , ErrorWithCause(..)
+    , CekEvaluationException
+    , EvaluationError(..)
+    -- * Costing
+    , ExBudgetCategory(..)
+    , CekBudgetSpender(..)
+    , ExBudgetMode(..)
+    , StepKind(..)
+    , CekExTally(..)
+    , CountingSt (..)
+    , TallyingSt (..)
+    , RestrictingSt (..)
+    , CekMachineCosts
+    -- ** Costing modes
+    , counting
+    , tallying
+    , restricting
+    , restrictingEnormous
     , enormousBudget
+    -- * Emitter modes
+    , noEmitter
+    , logEmitter
+    , logWithTimeEmitter
+    -- * Misc
+    , CekValue(..)
+    , readKnownCek
+    , Hashable
+    , PrettyUni
     )
 where
 
@@ -44,6 +53,7 @@ import           PlutusPrelude
 
 import           UntypedPlutusCore.Core
 import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
@@ -76,7 +86,7 @@ runCekNoEmit
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost)
 runCekNoEmit params mode term =
-    case runCek params mode NoEmit term of
+    case runCek params mode noEmitter term of
         (errOrRes, cost', _) -> (errOrRes, cost')
 
 -- | Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
@@ -96,7 +106,7 @@ unsafeRunCekNoEmit params mode =
 -- | Evaluate a term using the CEK machine with logging enabled.
 evaluateCek
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
-    => EmitMode
+    => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
@@ -118,7 +128,7 @@ unsafeEvaluateCek
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
-    => EmitMode
+    => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
     -> (EvaluationResult (Term Name uni fun ()), [String])

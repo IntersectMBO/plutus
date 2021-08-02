@@ -233,7 +233,7 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
             UPLC.runCek
                 (toMachineParameters model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
-                (if verbose == Verbose then UPLC.Emit else UPLC.NoEmit)
+                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
 
     tell $ Prelude.map Text.pack logs
@@ -257,7 +257,7 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
             UPLC.runCek
                 (toMachineParameters model)
                 UPLC.counting
-                (if verbose == Verbose then UPLC.Emit else UPLC.NoEmit)
+                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
 
     tell $ Prelude.map Text.pack logs
