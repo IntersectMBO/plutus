@@ -134,7 +134,7 @@ startServer' ::
     , Contract.PABContract t
     , Servant.MimeUnrender Servant.JSON (Contract.ContractDef t)
     )
-    => [Middleware] -- ^ Optional wai middleware
+    => [Middleware] -- ^ Optional wai middlewares. Note that the are applied left-to-right.
     -> Int -- ^ Port
     -> Either ClientEnv (PABAction t env WalletInfo) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
     -> Maybe FilePath -- ^ Optional file path for static assets
