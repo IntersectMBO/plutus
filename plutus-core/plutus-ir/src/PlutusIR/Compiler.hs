@@ -90,9 +90,6 @@ compileToReadable =
     >=> PLC.rename
     >=> through typeCheckTerm
     >=> simplifyTerm
-    >=> through check
-    >=> (pure . ThunkRec.thunkRecursions)
-    >=> through check
     >=> floatTerm
     >=> through check
 
@@ -101,7 +98,13 @@ compileToReadable =
 -- Note: the result *does* have globally unique names.
 compileReadableToPlc :: Compiling m e uni fun a => Term TyName Name uni fun (Provenance a) -> m (PLCTerm uni fun a)
 compileReadableToPlc =
-    NonStrict.compileNonStrictBindings
+    NonStrict.compileNonStrictBindings False
+    >=> through check
+    >=> (pure . ThunkRec.thunkRecursions)
+    >=> through check
+    -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
+    -- See Note [Using unit versus force/delay]
+    >=> NonStrict.compileNonStrictBindings True
     >=> through check
     >=> Let.compileLets Let.DataTypes
     >=> through check

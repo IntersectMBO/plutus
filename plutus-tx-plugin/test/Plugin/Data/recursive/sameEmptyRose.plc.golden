@@ -4,76 +4,30 @@
       fix1_i0
       [
         [
-          (lam
-            Unit_i0
+          [
             (lam
-              Unit_match_i0
-              [
-                [
+              Nil_i0
+              (lam
+                Cons_i0
+                (lam
+                  Nil_match_i0
                   [
-                    (lam
-                      Nil_i0
+                    [
                       (lam
-                        Cons_i0
+                        EmptyRose_i0
                         (lam
-                          Nil_match_i0
+                          EmptyRose_match_i0
                           [
-                            [
-                              (lam
-                                EmptyRose_i0
+                            (lam
+                              tup_i0
+                              [
                                 (lam
-                                  EmptyRose_match_i0
+                                  map_i0
                                   [
                                     (lam
                                       tup_i0
                                       [
-                                        (lam
-                                          map_i0
-                                          [
-                                            (lam
-                                              tup_i0
-                                              [
-                                                (lam go_i0 go_i1)
-                                                [
-                                                  (force tup_i1)
-                                                  (lam arg_0_i0 arg_0_i1)
-                                                ]
-                                              ]
-                                            )
-                                            (delay
-                                              (lam
-                                                f_i0
-                                                [
-                                                  f_i1
-                                                  [
-                                                    (force (force fix1_i11))
-                                                    (lam
-                                                      go_i0
-                                                      (lam
-                                                        x_i0
-                                                        [
-                                                          EmptyRose_i7
-                                                          [
-                                                            [ map_i4 go_i2 ]
-                                                            [
-                                                              (force
-                                                                [
-                                                                  EmptyRose_match_i6
-                                                                  x_i1
-                                                                ]
-                                                              )
-                                                              (lam x_i0 x_i1)
-                                                            ]
-                                                          ]
-                                                        ]
-                                                      )
-                                                    )
-                                                  ]
-                                                ]
-                                              )
-                                            )
-                                          ]
-                                        )
+                                        (lam go_i0 go_i1)
                                         [
                                           (force tup_i1) (lam arg_0_i0 arg_0_i1)
                                         ]
@@ -87,48 +41,24 @@
                                           [
                                             (force (force fix1_i9))
                                             (lam
-                                              map_i0
+                                              go_i0
                                               (lam
-                                                ds_i0
-                                                (lam
-                                                  ds_i0
+                                                x_i0
+                                                [
+                                                  EmptyRose_i7
                                                   [
+                                                    [ map_i4 go_i2 ]
                                                     [
-                                                      [
-                                                        (force
-                                                          [
-                                                            (force Nil_match_i7)
-                                                            ds_i1
-                                                          ]
-                                                        )
-                                                        (lam
-                                                          thunk_i0
-                                                          (force Nil_i10)
-                                                        )
-                                                      ]
-                                                      (lam
-                                                        x_i0
-                                                        (lam
-                                                          xs_i0
-                                                          (lam
-                                                            thunk_i0
-                                                            [
-                                                              [
-                                                                (force Cons_i11)
-                                                                [ ds_i5 x_i3 ]
-                                                              ]
-                                                              [
-                                                                [ map_i6 ds_i5 ]
-                                                                xs_i2
-                                                              ]
-                                                            ]
-                                                          )
-                                                        )
+                                                      (force
+                                                        [
+                                                          EmptyRose_match_i6
+                                                          x_i1
+                                                        ]
                                                       )
+                                                      (lam x_i0 x_i1)
                                                     ]
-                                                    Unit_i11
                                                   ]
-                                                )
+                                                ]
                                               )
                                             )
                                           ]
@@ -137,51 +67,87 @@
                                     )
                                   ]
                                 )
-                              )
+                                [ (force tup_i1) (lam arg_0_i0 arg_0_i1) ]
+                              ]
+                            )
+                            (delay
                               (lam
-                                arg_0_i0
-                                (delay
-                                  (lam
-                                    case_EmptyRose_i0
-                                    [ case_EmptyRose_i1 arg_0_i2 ]
-                                  )
-                                )
+                                f_i0
+                                [
+                                  f_i1
+                                  [
+                                    (force (force fix1_i7))
+                                    (lam
+                                      map_i0
+                                      (lam
+                                        ds_i0
+                                        (lam
+                                          ds_i0
+                                          (force
+                                            [
+                                              [
+                                                (force
+                                                  [ (force Nil_match_i7) ds_i1 ]
+                                                )
+                                                (delay (force Nil_i9))
+                                              ]
+                                              (lam
+                                                x_i0
+                                                (lam
+                                                  xs_i0
+                                                  (delay
+                                                    [
+                                                      [
+                                                        (force Cons_i10)
+                                                        [ ds_i4 x_i2 ]
+                                                      ]
+                                                      [ [ map_i5 ds_i4 ] xs_i1 ]
+                                                    ]
+                                                  )
+                                                )
+                                              )
+                                            ]
+                                          )
+                                        )
+                                      )
+                                    )
+                                  ]
+                                ]
                               )
-                            ]
-                            (lam x_i0 x_i1)
+                            )
                           ]
                         )
                       )
-                    )
-                    (delay
-                      (delay (lam case_Nil_i0 (lam case_Cons_i0 case_Nil_i2)))
-                    )
-                  ]
-                  (delay
-                    (lam
-                      arg_0_i0
                       (lam
-                        arg_1_i0
+                        arg_0_i0
                         (delay
-                          (lam
-                            case_Nil_i0
-                            (lam
-                              case_Cons_i0
-                              [ [ case_Cons_i1 arg_0_i4 ] arg_1_i3 ]
-                            )
-                          )
+                          (lam case_EmptyRose_i0 [ case_EmptyRose_i1 arg_0_i2 ])
                         )
                       )
-                    )
+                    ]
+                    (lam x_i0 x_i1)
+                  ]
+                )
+              )
+            )
+            (delay (delay (lam case_Nil_i0 (lam case_Cons_i0 case_Nil_i2))))
+          ]
+          (delay
+            (lam
+              arg_0_i0
+              (lam
+                arg_1_i0
+                (delay
+                  (lam
+                    case_Nil_i0
+                    (lam case_Cons_i0 [ [ case_Cons_i1 arg_0_i4 ] arg_1_i3 ])
                   )
-                ]
-                (delay (lam x_i0 x_i1))
-              ]
+                )
+              )
             )
           )
-          (delay (lam case_Unit_i0 case_Unit_i1))
         ]
-        (lam x_i0 x_i1)
+        (delay (lam x_i0 x_i1))
       ]
     )
     (delay

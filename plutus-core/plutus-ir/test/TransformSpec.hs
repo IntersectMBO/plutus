@@ -43,7 +43,7 @@ thunkRecursions = testNested "thunkRecursions"
 
 nonStrict :: TestNested
 nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "nonStrict1"
     ]
 
