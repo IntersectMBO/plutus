@@ -92,7 +92,7 @@ establishScopingParams =
 -- an argument of the \"the data type applied to all its parameters\" type, plus the final head
 -- gets applied to the same thing as well (because it's legal to generate a data type whose
 -- constructors do not return the data type applied to its parameters as program generation can be
--- entirely arbitrary (no pun intended). All this means that mangling turns well-formed programs
+-- entirely arbitrary (no pun intended)). All this means that mangling turns well-formed programs
 -- into weirdly shaped mess, but we only care about testing scoping here, so that's fine.
 -- Whether the name of the data type is referenced as in-scope or out-of-scope one in the types of
 -- arguments of constructors is controlled by the first argument, which ultimately depends on the

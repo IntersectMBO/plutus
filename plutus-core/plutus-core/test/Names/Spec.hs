@@ -5,10 +5,9 @@
 
 module Names.Spec where
 
-import           PlutusPrelude
+import           PlcTestUtils
 
 import           PlutusCore
-import           PlutusCore.Check.Scoping
 import           PlutusCore.DeBruijn
 import           PlutusCore.Mark
 import           PlutusCore.Pretty
@@ -18,8 +17,6 @@ import           PlutusCore.Generators
 import           PlutusCore.Generators.AST         as AST
 import           PlutusCore.Generators.Interesting
 
-import           Control.Monad.Reader
-import           Control.Monad.State
 import           Hedgehog                          hiding (Var)
 import qualified Hedgehog.Gen                      as Gen
 import           Test.Tasty
@@ -52,63 +49,6 @@ test_mangle = testProperty "equality does not survive mangling" . property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
--- See Note [Marking].
--- | A version of 'RenameT' that fails to take free variables into account.
-newtype NoMarkRenameT ren m a = NoMarkRenameT
-    { unNoMarkRenameT :: RenameT ren m a
-    } deriving newtype
-        ( Functor, Applicative, Alternative, Monad
-        , MonadReader ren
-        , MonadQuote
-        )
-
-noMarkRenameProgram
-    :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
-    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
-noMarkRenameProgram = runRenameT . unNoMarkRenameT . renameProgramM
-
--- | A version of 'RenameT' that does not perform any renaming at all.
-newtype NoRenameT ren m a = NoRenameT
-    { unNoRenameT :: m a
-    } deriving newtype
-        ( Functor, Applicative, Alternative, Monad
-        , MonadQuote
-        )
-
-instance (Monad m, Monoid ren) => MonadReader ren (NoRenameT ren m) where
-    ask = pure mempty
-    local _ = id
-
-noRenameProgram
-    :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
-    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
-noRenameProgram = through markNonFreshProgram >=> unNoRenameT . renameProgramM
-
--- | A broken version of 'RenameT' whose 'local' updates the scope globally (as opposed to locally).
-newtype BrokenRenameT ren m a = BrokenRenameT
-    { unBrokenRenameT :: StateT ren m a
-    } deriving newtype
-        ( Functor, Applicative, Alternative, Monad
-        , MonadState ren
-        , MonadQuote
-        )
-
-instance Monad m => MonadReader ren (BrokenRenameT ren m) where
-    ask = get
-    local f a = modify f *> a
-
-runBrokenRenameT :: (Monad m, Monoid ren) => BrokenRenameT ren m a -> m a
-runBrokenRenameT = flip evalStateT mempty . unBrokenRenameT
-
-brokenRenameProgram
-    :: (MonadQuote m, HasUniques (Program tyname name uni fun ann))
-    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
-brokenRenameProgram = through markNonFreshProgram >=> runBrokenRenameT . renameProgramM
-
--- | Check that the given 'Property' fails.
-checkBadRename :: Property -> IO ()
-checkBadRename prop = check prop >>= \res -> res @?= False
-
 -- | Test equality of a program and its renamed version, given a renamer.
 prop_equalityFor
     :: program ~ Program TyName Name DefaultUni DefaultFun ()
@@ -126,42 +66,12 @@ test_equalityRename =
 test_equalityBrokenRename :: TestTree
 test_equalityBrokenRename =
     testCase "equality does not survive wrong renaming" $
-        checkBadRename $ prop_equalityFor brokenRenameProgram
+        checkFails . prop_equalityFor $ brokenRename markNonFreshProgram renameProgramM
 
 test_equalityNoMarkRename :: TestTree
 test_equalityNoMarkRename =
     testCase "equality does not survive renaming without marking" $
-        checkBadRename $ prop_equalityFor noMarkRenameProgram
-
--- | Test scoping for a renamer.
-prop_scopingFor
-    :: program ~ Program TyName Name DefaultUni DefaultFun NameAnn
-    => (program -> Quote program) -> Property
-prop_scopingFor ren = property $ do
-    prog <- forAllPretty $ runAstGen genProgram
-    case checkRespectsScoping (runQuote . ren) prog of
-        Left err -> fail $ show err
-        Right () -> success
-
-test_scopingRename :: TestTree
-test_scopingRename =
-    testProperty "renaming does not destroy scoping" $
-        prop_scopingFor rename
-
-test_scopingBrokenRename :: TestTree
-test_scopingBrokenRename =
-    testCase "wrong renaming destroys scoping" $
-        checkBadRename $ prop_scopingFor brokenRenameProgram
-
-test_scopingNoRename :: TestTree
-test_scopingNoRename =
-    testCase "no renaming does not result in global uniqueness" $
-        checkBadRename $ prop_scopingFor noRenameProgram
-
-test_scopingNoMarkRename :: TestTree
-test_scopingNoMarkRename =
-    testCase "no marking renaming destroys scoping" $
-        checkBadRename $ prop_scopingFor noMarkRenameProgram
+        checkFails . prop_equalityFor $ noMarkRename renameProgramM
 
 test_alphaEquality :: TestTree
 test_alphaEquality = testCase "alphaEquality" $ do
@@ -264,10 +174,8 @@ test_names =
         , test_equalityRename
         , test_equalityBrokenRename
         , test_equalityNoMarkRename
-        , test_scopingRename
-        , test_scopingBrokenRename
-        , test_scopingNoRename
-        , test_scopingNoMarkRename
+        , test_scopingGood genProgram rename
+        , test_scopingBad genProgram markNonFreshProgram renameProgramM
         , test_alphaEquality
         , test_rebindShadowedVariable
         , test_rebindCapturedVariable

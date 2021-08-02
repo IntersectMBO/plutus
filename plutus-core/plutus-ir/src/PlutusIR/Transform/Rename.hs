@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -9,11 +10,12 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE GADTSyntax            #-}
-
 -- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name uni fun ann)@
 -- instance in scope.
-module PlutusIR.Transform.Rename () where
+module PlutusIR.Transform.Rename
+    ( renameTermM
+    , renameProgramM
+    ) where
 
 import           PlutusPrelude
 
@@ -203,21 +205,23 @@ instance PLC.HasUniques (Term tyname name uni fun ann) => PLC.Rename (Program ty
 
 -- See Note [Renaming of constructors].
 -- | A wrapper around a function restoring some old context of the renamer.
-newtype Restorer ren m = Restorer
-    { unRestorer :: forall a. PLC.RenameT ren m a -> PLC.RenameT ren m a
+newtype Restorer m = Restorer
+    { unRestorer :: forall a. m a -> m a
     }
 
 -- | Capture the current context in a 'Restorer'.
-captureContext :: Monad m => ContT c (PLC.RenameT ren m) (Restorer ren m)
+captureContext :: MonadReader ren m => ContT c m (Restorer m)
 captureContext = ContT $ \k -> do
     env <- ask
     k $ Restorer $ local $ const env
 
+type MonadRename m = (PLC.MonadQuote m, MonadReader PLC.ScopedRenaming m)
+
 -- | Rename the type of a constructor given a restorer dropping all variables bound after the
 -- name of the data type.
 renameConstrTypeM
-    :: (PLC.HasRenaming ren PLC.TypeUnique, PLC.HasUniques (Type tyname uni ann), PLC.MonadQuote m)
-    => Restorer ren m -> Type tyname uni ann -> PLC.RenameT ren m (Type tyname uni ann)
+    :: (MonadRename m, PLC.HasUniques (Type tyname uni ann))
+    => Restorer m -> Type tyname uni ann -> m (Type tyname uni ann)
 renameConstrTypeM (Restorer restoreAfterData) = renameSpineM where
     renameSpineM (TyForall ann name kind ty) =
         PLC.withFreshenedName name $ \nameFr -> TyForall ann nameFr kind <$> renameSpineM ty
@@ -232,10 +236,10 @@ renameConstrTypeM (Restorer restoreAfterData) = renameSpineM where
 -- | Rename the name of a constructor immediately and defer renaming of its type until the second
 -- stage where all mutually recursive data types (if any) are bound.
 renameConstrCM
-    :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
-    => Restorer PLC.ScopedRenaming m
+    :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
+    => Restorer m
     -> VarDecl tyname name uni fun ann
-    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (VarDecl tyname name uni fun ann))
+    -> ContT c m (m (VarDecl tyname name uni fun ann))
 renameConstrCM restorerAfterData (VarDecl ann name ty) = do
     nameFr <- ContT $ PLC.withFreshenedName name
     pure $ VarDecl ann nameFr <$> renameConstrTypeM restorerAfterData ty
@@ -250,10 +254,10 @@ onNonRec Rec    _ x = x
 -- before toucing this function).
 -- | Rename a 'Datatype' in the CPS-transformed 'ScopedRenameM' monad.
 renameDatatypeCM
-    :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
+    :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
     => Recursivity
     -> Datatype tyname name uni fun ann
-    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Datatype tyname name uni fun ann))
+    -> ContT c m (m (Datatype tyname name uni fun ann))
 renameDatatypeCM recy (Datatype x dataDecl params matchName constrs) = do
     -- The first stage (the data type itself, its constructors and its matcher get renamed).
     -- Note that all of these are visible downstream.
@@ -270,9 +274,9 @@ renameDatatypeCM recy (Datatype x dataDecl params matchName constrs) = do
 
 -- | Rename a 'Binding' from a non-recursive family in the CPS-transformed 'ScopedRenameM' monad.
 renameBindingNonRecC
-    :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
+    :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
     => Binding tyname name uni fun ann
-    -> ContT c (PLC.ScopedRenameT m) (Binding tyname name uni fun ann)
+    -> ContT c m (Binding tyname name uni fun ann)
 renameBindingNonRecC binding = ContT $ \cont -> case binding of
     TermBind x s var term -> do
         termFr <- renameTermM term
@@ -289,9 +293,9 @@ renameBindingNonRecC binding = ContT $ \cont -> case binding of
 
 -- | Rename a 'Binding' from a recursive family in the CPS-transformed 'ScopedRenameM' monad.
 renameBindingRecCM
-    :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
+    :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
     => Binding tyname name uni fun ann
-    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Binding tyname name uni fun ann))
+    -> ContT c m (m (Binding tyname name uni fun ann))
 renameBindingRecCM = \case
     TermBind x s var term -> do
         -- The first stage (the variable gets renamed).
@@ -313,11 +317,11 @@ renameBindingRecCM = \case
 -- save the mapping from the old uniques to the new ones, rename the RHSs and
 -- supply the updated bindings to a continuation.
 withFreshenedBindings
-    :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
+    :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
     => Recursivity
     -> NonEmpty (Binding tyname name uni fun ann)
-    -> (NonEmpty (Binding tyname name uni fun ann) -> PLC.ScopedRenameT m c)
-    -> PLC.ScopedRenameT m c
+    -> (NonEmpty (Binding tyname name uni fun ann) -> m c)
+    -> m c
 withFreshenedBindings recy binds cont = case recy of
     -- Bring each binding in scope, rename its RHS straight away, collect all the results and
     -- supply them to the continuation.
@@ -328,8 +332,8 @@ withFreshenedBindings recy binds cont = case recy of
 
 -- | Rename a 'Term' in the 'ScopedRenameM' monad.
 renameTermM
-    :: (PLC.HasUniques (Term tyname name uni fun ann), PLC.MonadQuote m)
-    => Term tyname name uni fun ann -> PLC.ScopedRenameT m (Term tyname name uni fun ann)
+    :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
+    => Term tyname name uni fun ann -> m (Term tyname name uni fun ann)
 renameTermM = \case
     Let x r binds term ->
         withFreshenedBindings r binds $ \bindsFr ->
@@ -356,3 +360,9 @@ renameTermM = \case
         IWrap x <$> PLC.renameTypeM pat <*> PLC.renameTypeM arg <*> renameTermM term
     Unwrap x term ->
         Unwrap x <$> renameTermM term
+
+-- | Rename a 'Term' in the 'ScopedRenameM' monad.
+renameProgramM
+    :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
+    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
+renameProgramM (Program ann term) = Program ann <$> renameTermM term

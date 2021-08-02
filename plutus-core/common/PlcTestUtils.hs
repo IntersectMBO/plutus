@@ -1,11 +1,13 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module PlcTestUtils (
+    checkFails,
     ToTPlc(..),
     ToUPlc(..),
     pureTry,
@@ -20,25 +22,50 @@ module PlcTestUtils (
     goldenTEval,
     goldenUEval,
     goldenTEvalCatch,
-    goldenUEvalCatch) where
+    goldenUEvalCatch,
+    NoMarkRenameT(..),
+    noMarkRename,
+    NoRenameT(..),
+    noRename,
+    BrokenRenameT(..),
+    runBrokenRenameT,
+    brokenRename,
+    prop_scopingFor,
+    test_scopingGood,
+    test_scopingBad
+    ) where
 
 import           PlutusPrelude
 
 import           Common
 
 import qualified PlutusCore                               as TPLC
+import           PlutusCore.Check.Scoping
 import           PlutusCore.DeBruijn
 import           PlutusCore.Default.Universe
 import qualified PlutusCore.Evaluation.Machine.Ck         as TPLC
+import           PlutusCore.Generators
+import           PlutusCore.Generators.AST
 import           PlutusCore.Pretty
+import qualified PlutusCore.Rename.Monad                  as TPLC
 
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Control.Exception
 import           Control.Monad.Except
+import           Control.Monad.Reader
+import           Control.Monad.State
 import qualified Data.Text.Prettyprint.Doc                as PP
+import           Hedgehog
 import           System.IO.Unsafe
+import           Test.Tasty
+import           Test.Tasty.HUnit
+import           Test.Tasty.Hedgehog
+
+-- | Check that the given 'Property' fails.
+checkFails :: Property -> IO ()
+checkFails prop = check prop >>= \res -> res @?= False
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
 -- from the process should be caught.
@@ -143,3 +170,101 @@ goldenUEvalCatch
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenUEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runUPlc values
+
+-- See Note [Marking].
+-- | A version of 'RenameT' that fails to take free variables into account.
+newtype NoMarkRenameT ren m a = NoMarkRenameT
+    { unNoMarkRenameT :: TPLC.RenameT ren m a
+    } deriving newtype
+        ( Functor, Applicative, Alternative, Monad
+        , MonadReader ren
+        , TPLC.MonadQuote
+        )
+
+noMarkRename
+    :: Monoid ren
+    => (t -> NoMarkRenameT ren m t)
+    -> t
+    -> m t
+noMarkRename renM = TPLC.runRenameT . unNoMarkRenameT . renM
+
+-- | A version of 'RenameT' that does not perform any renaming at all.
+newtype NoRenameT ren m a = NoRenameT
+    { unNoRenameT :: m a
+    } deriving newtype
+        ( Functor, Applicative, Alternative, Monad
+        , TPLC.MonadQuote
+        )
+
+instance (Monad m, Monoid ren) => MonadReader ren (NoRenameT ren m) where
+    ask = pure mempty
+    local _ = id
+
+noRename
+    :: TPLC.MonadQuote m
+    => (t -> m ())
+    -> (t -> NoRenameT ren m t)
+    -> t
+    -> m t
+noRename mark renM = through mark >=> unNoRenameT . renM
+
+-- | A broken version of 'RenameT' whose 'local' updates the scope globally (as opposed to locally).
+newtype BrokenRenameT ren m a = BrokenRenameT
+    { unBrokenRenameT :: StateT ren m a
+    } deriving newtype
+        ( Functor, Applicative, Alternative, Monad
+        , MonadState ren
+        , TPLC.MonadQuote
+        )
+
+instance Monad m => MonadReader ren (BrokenRenameT ren m) where
+    ask = get
+    local f a = modify f *> a
+
+runBrokenRenameT :: (Monad m, Monoid ren) => BrokenRenameT ren m a -> m a
+runBrokenRenameT = flip evalStateT mempty . unBrokenRenameT
+
+brokenRename
+    :: (TPLC.MonadQuote m, Monoid ren)
+    => (t -> m ())
+    -> (t -> BrokenRenameT ren m t)
+    -> t
+    -> m t
+brokenRename mark renM = through mark >=> runBrokenRenameT . renM
+
+-- | Test scoping for a renamer.
+prop_scopingFor
+    :: (Pretty (t ann), Scoping t)
+    => AstGen (t ann) -> (t NameAnn -> TPLC.Quote (t NameAnn)) -> Property
+prop_scopingFor gen ren = property $ do
+    prog <- forAllPretty $ runAstGen gen
+    let catchEverything = unsafePerformIO . try @SomeException . evaluate
+    case catchEverything $ checkRespectsScoping (TPLC.runQuote . ren) prog of
+        Left  exc        -> fail $ show exc
+        Right (Left err) -> fail $ show err
+        Right (Right ()) -> success
+
+test_scopingGood
+    :: (Pretty (t ann), Scoping t)
+    => AstGen (t ann)
+    -> (t NameAnn -> TPLC.Quote (t NameAnn))
+    -> TestTree
+test_scopingGood gen ren =
+    testProperty "renaming does not destroy scoping" $
+        prop_scopingFor gen ren
+
+test_scopingBad
+    :: (Pretty (t ann), Scoping t, Monoid ren)
+    => AstGen (t ann)
+    -> (t NameAnn -> TPLC.Quote ())
+    -> (forall m. (TPLC.MonadQuote m, MonadReader ren m) => t NameAnn -> m (t NameAnn))
+    -> TestTree
+test_scopingBad gen mark renM =
+    testGroup "scoping bad"
+        [ testCase "wrong renaming destroys scoping" $
+            checkFails . prop_scopingFor gen $ brokenRename mark renM
+        , testCase "no renaming does not result in global uniqueness" $
+            checkFails . prop_scopingFor gen $ noRename mark renM
+        , testCase "no marking renaming destroys scoping" $
+            checkFails . prop_scopingFor gen $ noMarkRename renM
+        ]
