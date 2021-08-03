@@ -18,9 +18,9 @@ import           Language.PureScript.Bridge                (BridgePart, Language
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (Address, DatumHash, MintingPolicy, OnChainTx, PubKey,
-                                                            PubKeyHash, RedeemerPtr, ScriptTag, Signature, Tx, TxId,
-                                                            TxIn, TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
+import           Ledger                                    (Address, BlockId, DatumHash, MintingPolicy, OnChainTx,
+                                                            PubKey, PubKeyHash, RedeemerPtr, ScriptTag, Signature, Tx,
+                                                            TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
                                                             ValidationPhase, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError, UnbalancedTx)
@@ -36,10 +36,12 @@ import           Ledger.TimeSlot                           (SlotConfig)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
+import           Plutus.ChainIndex.Tx                      (ChainIndexTx)
+import           Plutus.ChainIndex.Types                   (Page, PageSize, Tip)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
-import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, Depth, PABReq, PABResp,
-                                                            TxStatus, TxValidity, UtxoAtAddress,
-                                                            WriteBalancedTxResponse)
+import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, ChainIndexQuery,
+                                                            ChainIndexResponse, Depth, PABReq, PABResp, TxStatus,
+                                                            TxValidity, UtxoAtAddress, WriteBalancedTxResponse)
 import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
@@ -209,6 +211,12 @@ datumBridge = do
     typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
+redeemerHashBridge :: BridgePart
+redeemerHashBridge = do
+    typeName ^== "RedeemerHash"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
+    pure psString
+
 redeemerBridge :: BridgePart
 redeemerBridge = do
     typeName ^== "Redeemer"
@@ -235,7 +243,13 @@ ledgerBytesBridge = do
 
 ledgerBridge :: BridgePart
 ledgerBridge =
-    scriptBridge <|> redeemerBridge <|> datumBridge <|> validatorHashBridge <|> mpsHashBridge <|> ledgerBytesBridge
+        scriptBridge
+    <|> redeemerHashBridge
+    <|> redeemerBridge
+    <|> datumBridge
+    <|> validatorHashBridge
+    <|> mpsHashBridge
+    <|> ledgerBytesBridge
 
 ------------------------------------------------------------
 headersBridge :: BridgePart
@@ -293,6 +307,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationPhase)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @BlockId)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DatumHash)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKeyHash)
@@ -330,6 +345,12 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptType)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABReq)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABResp)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexQuery)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexTx)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Page A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tip)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PageSize)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))

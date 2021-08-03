@@ -65,6 +65,7 @@ library
         newtype-generics -any,
         process -any,
         prometheus >=2,
+        plutus-chain-index -any,
         plutus-contract -any,
         plutus-ledger -any,
         row-types -any,
