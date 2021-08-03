@@ -1,41 +1,41 @@
 ( (Right (1))
-, ({ tally: ({ BStep BConst causes ({ cpu: 351000
+, ({ tally: ({ BStep BConst causes ({ cpu: 279000
 | mem: 90
 })
-| BStep BVar causes ({ cpu: 1404000
+| BStep BVar causes ({ cpu: 1116000
 | mem: 360
 })
-| BStep BLamAbs causes ({ cpu: 1170000
+| BStep BLamAbs causes ({ cpu: 930000
 | mem: 300
 })
-| BStep BApply causes ({ cpu: 2028000
+| BStep BApply causes ({ cpu: 1612000
 | mem: 520
 })
-| BStep BDelay causes ({ cpu: 351000
+| BStep BDelay causes ({ cpu: 279000
 | mem: 90
 })
-| BStep BForce causes ({ cpu: 468000
+| BStep BForce causes ({ cpu: 372000
 | mem: 120
 })
-| BStep BBuiltin causes ({ cpu: 351000
+| BStep BBuiltin causes ({ cpu: 279000
 | mem: 90
 })
-| BBuiltinApp AddInteger causes ({ cpu: 237457
+| BBuiltinApp AddInteger causes ({ cpu: 37885
 | mem: 2
 })
-| BBuiltinApp SubtractInteger causes ({ cpu: 474914
+| BBuiltinApp SubtractInteger causes ({ cpu: 75770
 | mem: 4
 })
-| BBuiltinApp LessThanEqualsInteger causes ({ cpu: 650142
+| BBuiltinApp LessThanEqualsInteger causes ({ cpu: 2673
 | mem: 3
 })
 | BBuiltinApp IfThenElse causes ({ cpu: 0
 | mem: 0
 })
-| BStartup causes ({ cpu: 1000000
+| BStartup causes ({ cpu: 0
 | mem: 0
 })})
-| budget: ({ cpu: 8485513
+| budget: ({ cpu: 4983328
 | mem: 1579
 })
 }) )
