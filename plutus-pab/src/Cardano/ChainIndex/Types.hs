@@ -60,6 +60,7 @@ data ChainIndexConfig =
 defaultChainIndexConfig :: ChainIndexConfig
 defaultChainIndexConfig =
   ChainIndexConfig
+    -- See Note [pab-ports] in "test/full/Plutus/PAB/CliSpec.hs".
     { ciBaseUrl = ChainIndexUrl $ BaseUrl Http "localhost" 9083 ""
     , ciWatchedAddresses = []
     }

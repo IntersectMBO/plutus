@@ -134,6 +134,7 @@ data MockServerConfig =
 defaultMockServerConfig :: MockServerConfig
 defaultMockServerConfig =
     MockServerConfig
+      -- See Note [pab-ports] in 'test/full/Plutus/PAB/CliSpec.hs'.
       { mscBaseUrl = BaseUrl Http "localhost" 9082 ""
       , mscRandomTxInterval = Just 20
       , mscInitialTxWallets =

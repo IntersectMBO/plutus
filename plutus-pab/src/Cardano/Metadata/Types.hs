@@ -90,10 +90,10 @@ newtype MetadataConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON)
 
-
 defaultMetadataConfig :: MetadataConfig
 defaultMetadataConfig =
   MetadataConfig
+    -- See Note [pab-ports] in 'test/full/Plutus/PAB/CliSpec.hs'.
     { mdBaseUrl = BaseUrl Http "localhost" 9085 ""
     }
 

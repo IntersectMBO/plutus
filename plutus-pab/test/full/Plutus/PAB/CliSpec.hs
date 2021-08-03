@@ -214,6 +214,19 @@ runPabInstanceEndpoints pabConfig instanceId endpoints = do
           assertBool "Endpoint call succeeded (it should've failed.)" (isLeft x)
 
 
+{- Note [pab-ports]
+
+The tests below run several PABs simultaneously. As a result, we need to make
+sure that the port allocations don't overlap. The function 'bumpConfig' bumps
+the ports (and the socket path) so that this overlap doesn't occur. It does
+mean that you need to be a bit mindful of the magic numbers that are used in
+the 'restoreContractStateTests' below, and ensure that there won't ever be an
+overlap with the numbers that are used if they are all running at the same
+time.
+
+-}
+
+
 restoreContractStateTests :: TestTree
 restoreContractStateTests =
   testGroup "restoreContractState scenarios"

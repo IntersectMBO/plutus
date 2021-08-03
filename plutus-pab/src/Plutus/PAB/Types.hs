@@ -164,6 +164,7 @@ data WebserverConfig =
 defaultWebServerConfig :: WebserverConfig
 defaultWebServerConfig =
   WebserverConfig
+    -- See Note [pab-ports] in test/full/Plutus/PAB/CliSpec.hs.
     { baseUrl              = BaseUrl Http "localhost" 9080 ""
     , staticDir            = Nothing
     , permissiveCorsPolicy = False
