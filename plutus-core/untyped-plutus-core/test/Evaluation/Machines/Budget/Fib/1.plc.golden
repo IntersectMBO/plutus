@@ -27,9 +27,9 @@
 | mem: 0
 })
 | BStartup causes ({ cpu: 100
-| mem: 0
+| mem: 10
 })})
 | budget: ({ cpu: 1891991
-| mem: 611
+| mem: 621
 })
 }) )
