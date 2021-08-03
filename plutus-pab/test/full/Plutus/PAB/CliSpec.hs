@@ -99,7 +99,7 @@ defaultPabConfig
   = def
       -- Note: We rely on a large timeout here to wait for endpoints to be
       -- available (i.e. transactions to be completed).
-      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 300 }
+      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 1000 }
       , nodeServerConfig = def { Node.Types.mscSocketPath = "/tmp/node-server.sock" }
       }
 
