@@ -47,7 +47,6 @@ import           Data.Foldable                         (traverse_)
 import qualified Data.Map                              as Map
 import           Data.Proxy                            (Proxy (..))
 import qualified Data.Set                              as Set
-import qualified Data.Text                             as Text
 import           Data.Text.Extras                      (tshow)
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
@@ -68,8 +67,8 @@ import qualified Plutus.PAB.Monitoring.Monitoring      as LM
 import           Plutus.PAB.Run.Command
 import           Plutus.PAB.Run.PSGenerator            (HasPSTypes (..))
 import qualified Plutus.PAB.Run.PSGenerator            as PSGenerator
-import           Plutus.PAB.Types                      (Config (..), DbConfig (..), chainIndexConfig,
-                                                        metadataServerConfig, nodeServerConfig, walletServerConfig)
+import           Plutus.PAB.Types                      (Config (..), chainIndexConfig, metadataServerConfig,
+                                                        nodeServerConfig, walletServerConfig)
 import qualified Plutus.PAB.Webserver.Server           as PABServer
 import           Plutus.PAB.Webserver.Types            (ContractActivationArgs (..))
 import qualified Servant
@@ -77,15 +76,9 @@ import           System.Exit                           (ExitCode (ExitFailure), 
 import qualified Wallet.Types                          as Wallet
 
 runNoConfigCommand ::
-    Trace IO (LM.AppMsg (Builtin a))  -- ^ PAB Tracer logging instance
-    -> NoConfigCommand
+    NoConfigCommand
     -> IO ()
-runNoConfigCommand trace = \case
-
-    -- Run database migration
-    Migrate{dbPath} ->
-        let conf = DbConfig{dbConfigPoolSize=10, dbConfigFile=Text.pack dbPath} in
-        App.migrate (LM.convertLog LM.PABMsg trace) conf
+runNoConfigCommand = \case
 
     -- Generate PureScript bridge code
     PSGenerator {psGenOutputDir} -> do
@@ -120,6 +113,10 @@ runConfigCommand :: forall a.
     -> ConfigCommandArgs a
     -> ConfigCommand
     -> IO ()
+
+-- Run the database migration
+runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} Migrate =
+    App.migrate (toPABMsg ccaTrace) dbConfig
 
 -- Run mock wallet service
 runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServerConfig, chainIndexConfig, walletServerConfig},ccaAvailability} MockWallet =

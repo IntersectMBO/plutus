@@ -45,11 +45,11 @@ let
     in
     runCommand "pab-setup" { } ''
       echo "Creating PAB database"
-      ${pab-setup} migrate ${conf.db-file}
-      ${sqlite-interactive}/bin/sqlite3 ${conf.db-file} '.tables'
       mkdir $out
-      cp ${conf.db-file}* $out/
       cp ${cfg} $out/plutus-pab.yaml
+      ${pab-exes.plutus-pab-examples}/bin/plutus-pab-examples --config=$out/plutus-pab.yaml migrate
+      ${sqlite-interactive}/bin/sqlite3 ${conf.db-file} '.tables'
+      cp ${conf.db-file}* $out/
     '';
 
   # mock node, needs to be the same for all PABs

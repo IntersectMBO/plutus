@@ -83,7 +83,7 @@ instance Pretty PABError where
         MigrationNotDoneError msg  -> pretty msg
                                    <> line
                                    <> "Did you forget to run the 'migrate' command ?"
-                                   <+> "(ex. 'plutus-pab-migrate' or 'plutus-pab-setup migrate pab-core.db')"
+                                   <+> "(ex. 'plutus-pab-migrate' or 'plutus-pab-examples --config <CONFIG_FILE> migrate')"
 
 data DbConfig =
     DbConfig
