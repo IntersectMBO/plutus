@@ -23,10 +23,13 @@ module Plutus.Contracts.PingPong(
     PingPongSchema,
     runPing,
     runPong,
+    ping,
+    pong,
     initialise,
     runStop,
     runWaitForUpdate,
-    combined
+    combined,
+    simplePingPong
     ) where
 
 import           Control.Lens
@@ -158,6 +161,13 @@ combined = forever (selectList [initialise, ping, pong, runStop, wait]) where
             Just (TypedScriptTxOut{tyTxOutData=s}, _) -> do
                 logInfo $ "new state: " <> Haskell.show s
                 tell (Last $ Just s)
+
+simplePingPong :: Contract (Last PingPongState) PingPongSchema PingPongError ()
+simplePingPong =
+  awaitPromise initialise
+  >> awaitPromise pong
+  >> awaitPromise ping
+  >> awaitPromise pong
 
 PlutusTx.unstableMakeIsData ''PingPongState
 PlutusTx.makeLift ''PingPongState

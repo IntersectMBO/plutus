@@ -95,6 +95,18 @@ data DbConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
+-- | Default database config uses an in-memory sqlite database that is shared
+-- between all threads in the process.
+defaultDbConfig :: DbConfig
+defaultDbConfig
+  = DbConfig
+      { dbConfigFile = "file::memory:?cache=shared"
+      , dbConfigPoolSize = 20
+      }
+
+instance Default DbConfig where
+  def = defaultDbConfig
+
 data Config =
     Config
         { dbConfig                :: DbConfig
@@ -104,9 +116,23 @@ data Config =
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , requestProcessingConfig :: RequestProcessingConfig
-        , endpointTimeout         :: Maybe Second
         }
     deriving (Show, Eq, Generic, FromJSON)
+
+defaultConfig :: Config
+defaultConfig =
+  Config
+    { dbConfig = def
+    , walletServerConfig = def
+    , nodeServerConfig = def
+    , metadataServerConfig = def
+    , pabWebserverConfig = def
+    , chainIndexConfig = def
+    , requestProcessingConfig = def
+    }
+
+instance Default Config where
+  def = defaultConfig
 
 newtype RequestProcessingConfig =
     RequestProcessingConfig
@@ -115,11 +141,21 @@ newtype RequestProcessingConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON)
 
+defaultRequestProcessingConfig :: RequestProcessingConfig
+defaultRequestProcessingConfig =
+  RequestProcessingConfig
+    { requestProcessingInterval = 1
+    }
+
+instance Default RequestProcessingConfig where
+  def = defaultRequestProcessingConfig
+
 data WebserverConfig =
     WebserverConfig
         { baseUrl              :: BaseUrl
         , staticDir            :: Maybe FilePath
         , permissiveCorsPolicy :: Bool -- ^ If true; use a very permissive CORS policy (any website can interact.)
+        , endpointTimeout      :: Maybe Second
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -128,9 +164,11 @@ data WebserverConfig =
 defaultWebServerConfig :: WebserverConfig
 defaultWebServerConfig =
   WebserverConfig
-    { baseUrl              = BaseUrl Http "localhost" 8080 "/"
+    -- See Note [pab-ports] in test/full/Plutus/PAB/CliSpec.hs.
+    { baseUrl              = BaseUrl Http "localhost" 9080 ""
     , staticDir            = Nothing
     , permissiveCorsPolicy = False
+    , endpointTimeout      = Nothing
     }
 
 instance Default WebserverConfig where

@@ -421,9 +421,13 @@ test-suite plutus-pab-test-full
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
     other-modules:
+        ContractExample
+        ContractExample.WaitForTx
         ContractExample.AtomicSwap
         ContractExample.PayToWallet
         Plutus.PAB.CoreSpec
+        Plutus.PAB.CliSpec
+        Plutus.PAB.Effects.Contract.BuiltinSpec
         Plutus.PAB.Effects.Contract.ContractTest
         Plutus.PAB.Simulator.Test
 
@@ -458,7 +462,14 @@ test-suite plutus-pab-test-full
         prettyprinter -any,
         row-types -any,
         plutus-tx -any,
-        playground-common -any
+        playground-common -any,
+        yaml -any,
+        iohk-monitoring -any,
+        servant-server -any,
+        purescript-bridge -any,
+        async -any,
+        servant-client -any,
+        uuid -any,
 
 executable tx-inject
     import:           lang

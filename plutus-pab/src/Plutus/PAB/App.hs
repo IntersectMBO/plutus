@@ -69,8 +69,9 @@ import           Plutus.PAB.Monitoring.Monitoring               (handleLogMsgTra
 import           Plutus.PAB.Monitoring.PABLogMsg                (PABLogMsg (..), PABMultiAgentMsg (UserLog))
 import           Plutus.PAB.Timeout                             (Timeout (..))
 import           Plutus.PAB.Types                               (Config (Config), DbConfig (..), PABError (..),
-                                                                 chainIndexConfig, dbConfig, endpointTimeout,
-                                                                 nodeServerConfig, walletServerConfig)
+                                                                 WebserverConfig (..), chainIndexConfig, dbConfig,
+                                                                 endpointTimeout, nodeServerConfig, pabWebserverConfig,
+                                                                 walletServerConfig)
 import           Servant.Client                                 (ClientEnv, mkClientEnv)
 
 ------------------------------------------------------------
@@ -183,7 +184,7 @@ runApp ::
     -> Config -- ^ Client configuration
     -> App a b -- ^ Action
     -> IO (Either PABError b)
-runApp storageBackend trace contractHandler config@Config{endpointTimeout} = Core.runPAB (Timeout endpointTimeout) (appEffectHandlers storageBackend config trace contractHandler)
+runApp storageBackend trace contractHandler config@Config{pabWebserverConfig=WebserverConfig{endpointTimeout}} = Core.runPAB (Timeout endpointTimeout) (appEffectHandlers storageBackend config trace contractHandler)
 
 type App a b = PABAction (Builtin a) (AppEnv a) b
 

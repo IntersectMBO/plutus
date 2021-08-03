@@ -140,6 +140,8 @@ data PABMultiAgentMsg t =
     | ContractInstanceLog (ContractInstanceMsg t)
     | UserLog T.Text
     | SqlLog String
+    | PABStateRestored
+    | RestoringPABState
     | StartingPABBackendServer Int
     | StartingMetadataServer Int
     | WalletBalancingMsg Wallet TxBalanceMsg
@@ -152,6 +154,8 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         ContractInstanceLog m      -> toObject v m
         UserLog t                  -> toObject v t
         SqlLog s                   -> toObject v s
+        RestoringPABState          -> mkObjectStr "Restoring PAB state ..." ()
+        PABStateRestored           -> mkObjectStr "PAB state restored." ()
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
         StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
         WalletBalancingMsg w m     -> mkObjectStr "balancing" (Tagged @"wallet" w, Tagged @"message" m)
@@ -167,6 +171,8 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         ContractInstanceLog m -> pretty m
         UserLog m             -> pretty m
         SqlLog m              -> pretty m
+        RestoringPABState     -> "Restoring PAB state ..."
+        PABStateRestored      -> "PAB state restored."
         StartingPABBackendServer port ->
             "Starting PAB backend server on port:" <+> pretty port
         StartingMetadataServer port ->
