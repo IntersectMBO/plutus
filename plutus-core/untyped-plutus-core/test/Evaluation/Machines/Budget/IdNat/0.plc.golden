@@ -20,10 +20,10 @@
 | BStep BBuiltin causes ({ cpu: 0
 | mem: 0
 })
-| BStartup causes ({ cpu: 1000
+| BStartup causes ({ cpu: 100
 | mem: 0
 })})
-| budget: ({ cpu: 12990000
+| budget: ({ cpu: 12989100
 | mem: 4190
 })
 }) )
