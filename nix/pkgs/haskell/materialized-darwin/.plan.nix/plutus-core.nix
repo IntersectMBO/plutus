@@ -87,6 +87,7 @@
           (hsPkgs."sop-core" or (errorHandler.buildDepError "sop-core"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
+          (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -256,6 +257,7 @@
           "PlutusIR/Core"
           "PlutusIR/Core/Instance"
           "PlutusIR/Core/Instance/Pretty"
+          "PlutusIR/Core/Instance/Scoping"
           "PlutusIR/Core/Plated"
           "PlutusIR/Core/Type"
           "PlutusIR/Compiler"
@@ -427,7 +429,13 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "TransformSpec" "ParserSpec" "TypeSpec" "TestLib" ];
+          modules = [
+            "NamesSpec"
+            "ParserSpec"
+            "TestLib"
+            "TransformSpec"
+            "TypeSpec"
+            ];
           hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };

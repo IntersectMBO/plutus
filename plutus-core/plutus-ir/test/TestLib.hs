@@ -92,7 +92,7 @@ goldenPirM op parser name = withGoldenFileM name parseOrError
     where parseOrError = either (return . T.pack . show) (fmap display . op)
                          . parse parser name
 
-ppThrow :: PrettyBy PrettyConfigPlc a => ExceptT SomeException IO a -> IO T.Text
+ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
