@@ -96,7 +96,7 @@ data DefaultFun
     | MkNilPairData
     | MkCons
     | Blake2b_256
-    -- ** ANY NEW BUILTINS SHOULD BE ADDED BEFORE THIS LINE **
+    -- ## ANY NEW BUILTINS SHOULD BE ADDED BEFORE THIS LINE ##
     -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
     | Nop1
     | Nop2
