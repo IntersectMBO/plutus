@@ -848,15 +848,16 @@
         "stackage-nix": "stackage-nix"
       },
       "locked": {
-        "lastModified": 1627979861,
-        "narHash": "sha256-TGw/XjUS7RIb5TfTgvMveWIaXR174UDcEICTZg0ueAA=",
-        "owner": "input-output-hk",
+        "lastModified": 1627990032,
+        "narHash": "sha256-paR1rln5UvWPpfOXsnaBmX9hBY7KtT1Qj2z/LEEnfP8=",
+        "owner": "shlevy",
         "repo": "plutus",
-        "rev": "bc8aa656e7761dd0bad2a8f5d03775dad033e0f9",
+        "rev": "42feff6f30d80e9915c11845519d603445f564a6",
         "type": "github"
       },
       "original": {
-        "owner": "input-output-hk",
+        "owner": "shlevy",
+        "ref": "bitte-from-master",
         "repo": "plutus",
         "type": "github"
       }
