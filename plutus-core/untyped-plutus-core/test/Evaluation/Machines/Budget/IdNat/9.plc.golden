@@ -2,31 +2,31 @@
 , ({ tally: ({ BStep BConst causes ({ cpu: 0
 | mem: 0
 })
-| BStep BVar causes ({ cpu: 5460000
+| BStep BVar causes ({ cpu: 4340000
 | mem: 1400
 })
-| BStep BLamAbs causes ({ cpu: 3666000
+| BStep BLamAbs causes ({ cpu: 2914000
 | mem: 940
 })
-| BStep BApply causes ({ cpu: 5109000
+| BStep BApply causes ({ cpu: 4061000
 | mem: 1310
 })
-| BStep BDelay causes ({ cpu: 1443000
+| BStep BDelay causes ({ cpu: 1147000
 | mem: 370
 })
-| BStep BForce causes ({ cpu: 1365000
+| BStep BForce causes ({ cpu: 1085000
 | mem: 350
 })
-| BStep BBuiltin causes ({ cpu: 351000
+| BStep BBuiltin causes ({ cpu: 279000
 | mem: 90
 })
 | BBuiltinApp Id causes ({ cpu: 9
 | mem: 0
 })
-| BStartup causes ({ cpu: 1000000
-| mem: 0
+| BStartup causes ({ cpu: 100
+| mem: 10
 })})
-| budget: ({ cpu: 18394009
-| mem: 4460
+| budget: ({ cpu: 13826109
+| mem: 4470
 })
 }) )

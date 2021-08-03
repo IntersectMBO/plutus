@@ -321,6 +321,9 @@ modelFun <- function(path) {
 
     ifThenElseModel <- 0
 
+    blake2bModel <- sha2_256Model
+    ## TODO: Fix this and add other missing models
+
     list(
         addIntegerModel               = addIntegerModel,
         equalsIntegerModel            = equalsIntegerModel,
@@ -343,7 +346,8 @@ modelFun <- function(path) {
         lessThanByteStringModel       = lessThanByteStringModel,
         greaterThanByteStringModel    = greaterThanByteStringModel,
         verifySignatureModel          = verifySignatureModel,
-        ifThenElseModel               = ifThenElseModel
+        ifThenElseModel               = ifThenElseModel,
+        blake2bModel                  = blake2bModel
     )
 
 }
