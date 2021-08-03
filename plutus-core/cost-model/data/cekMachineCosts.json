@@ -1,11 +1,11 @@
 {
-    "cekStartupCost" : {"_exBudgetCPU": 1000000, "_exBudgetMemory":  0},
-    "cekVarCost"     : {"_exBudgetCPU":   39000, "_exBudgetMemory": 10},
-    "cekConstCost"   : {"_exBudgetCPU":   39000, "_exBudgetMemory": 10},
-    "cekLamCost"     : {"_exBudgetCPU":   39000, "_exBudgetMemory": 10},
-    "cekDelayCost"   : {"_exBudgetCPU":   39000, "_exBudgetMemory": 10},
-    "cekForceCost"   : {"_exBudgetCPU":   39000, "_exBudgetMemory": 10},
-    "cekApplyCost"   : {"_exBudgetCPU":   39000, "_exBudgetMemory": 10},
-    "cekBuiltinCost" : {"_exBudgetCPU":   39000, "_exBudgetMemory": 10}
+    "cekStartupCost" : {"_exBudgetCPU":       0, "_exBudgetMemory":  0},
+    "cekVarCost"     : {"_exBudgetCPU":   31000, "_exBudgetMemory": 10},
+    "cekConstCost"   : {"_exBudgetCPU":   31000, "_exBudgetMemory": 10},
+    "cekLamCost"     : {"_exBudgetCPU":   31000, "_exBudgetMemory": 10},
+    "cekDelayCost"   : {"_exBudgetCPU":   31000, "_exBudgetMemory": 10},
+    "cekForceCost"   : {"_exBudgetCPU":   31000, "_exBudgetMemory": 10},
+    "cekApplyCost"   : {"_exBudgetCPU":   31000, "_exBudgetMemory": 10},
+    "cekBuiltinCost" : {"_exBudgetCPU":   31000, "_exBudgetMemory": 10}
 }
 
