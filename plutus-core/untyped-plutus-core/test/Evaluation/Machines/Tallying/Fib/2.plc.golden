@@ -20,10 +20,10 @@
 | BStep BBuiltin causes ({ cpu: 279000
 | mem: 90
 })
-| BBuiltinApp AddInteger causes ({ cpu: 37885
+| BBuiltinApp AddInteger causes ({ cpu: 38885
 | mem: 2
 })
-| BBuiltinApp SubtractInteger causes ({ cpu: 75770
+| BBuiltinApp SubtractInteger causes ({ cpu: 77770
 | mem: 4
 })
 | BBuiltinApp LessThanEqualsInteger causes ({ cpu: 2673
@@ -32,10 +32,10 @@
 | BBuiltinApp IfThenElse causes ({ cpu: 0
 | mem: 0
 })
-| BStartup causes ({ cpu: 0
+| BStartup causes ({ cpu: 1000
 | mem: 0
 })})
-| budget: ({ cpu: 4983328
+| budget: ({ cpu: 4987328
 | mem: 1579
 })
 }) )

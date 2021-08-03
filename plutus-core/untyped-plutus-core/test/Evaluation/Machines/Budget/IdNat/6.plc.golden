@@ -23,10 +23,10 @@
 | BBuiltinApp Id causes ({ cpu: 6
 | mem: 0
 })
-| BStartup causes ({ cpu: 0
+| BStartup causes ({ cpu: 1000
 | mem: 0
 })})
-| budget: ({ cpu: 13547006
+| budget: ({ cpu: 13548006
 | mem: 4370
 })
 }) )

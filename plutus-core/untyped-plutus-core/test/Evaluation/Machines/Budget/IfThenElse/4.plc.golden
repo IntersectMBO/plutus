@@ -23,10 +23,10 @@
 | BBuiltinApp IfThenElse causes ({ cpu: 0
 | mem: 0
 })
-| BStartup causes ({ cpu: 0
+| BStartup causes ({ cpu: 1000
 | mem: 0
 })})
-| budget: ({ cpu: 15376000
+| budget: ({ cpu: 15377000
 | mem: 4960
 })
 }) )
