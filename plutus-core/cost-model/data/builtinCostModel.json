@@ -6,7 +6,7 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 0,
+                "slope": 100,
                 "intercept": 11501
             },
             "type": "min_size"
@@ -19,7 +19,7 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 0,
+                "slope": 100,
                 "intercept": 11501
             },
             "type": "min_size"
@@ -184,7 +184,7 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 0,
+                "slope": 1000,
                 "intercept": 37885
             },
             "type": "max_size"
@@ -216,7 +216,7 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 0,
+                "slope": 1000,
                 "intercept": 37885
             },
             "type": "max_size"
