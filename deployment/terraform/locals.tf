@@ -23,30 +23,31 @@ locals {
     tobias      = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEJLsCDY+XVTYMKBnVJtJmq7uDvXNZRuaaqMG1KRWSeFpeH8Uz2jWOuGgT5NCUQhafpQqwdhIIhWLLPVuBPJkoggqOc0VUh23jL71j1t285f7uRKytmN7BvoOV8o16Jiqgk1w4ugNFhgiu7hZNOIOoM7CgP855A4buzDxGM4QNTjAE2s5rmyyLsNzyL3863yccw0t3YDcvHF7hFkkJ5bGEc/aQOFo7bRFrgIGi6+EOSG7Pcx5Wh34C8mGQd8WwUQ9uQN722PINSVgxEE3WwuNqu8MjA06mwCmU4BKNB0FYm177oRkbNUWOQn4y+SFs6ajK+z6c1yNHDzwWoK80Vb5N gilligan@monoid"
     bozhidar    = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjoAB+Z1YyhKMV8tRqSTfkt4BYcYU2Y97WrVGOALOU6m5AGA/fHIq23ELalovG1Im1UWCDA/uMd7Avl9nUB2CxMhm33K2whUA62A6iUp6HdlxQg4C5c2uhxiJzhwLT8dUj5ACmxCGDVuy5o/2fQXyPXii/IjJnJv0Os39u1jipqRTeWfittZBVeIlu6e23H8HHuUmMvHyDPZZ6z1lER7ZaJh/fYN357mw5oJq7jee1SRsgu056v1550lhjWcKvKvaC4osvGBoxRDuPmlFaC/TBBld+kEaSV8GX+FsqCDTaezY+EpcDfLwpp+OsRvth48/8Bxx73e8izUdd/regbzUb boko@boko"
     dimitar     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/GZjyhqoOMCbCEANAqpXOzVZsKnnAXkaZQICSSibk2AZxokgplHi9CpAX63M5fRhxy8YfA5v7iOUTYt8OYQEYm1EFlPWkf9CtUWIKp89uT5618SC6vbrFDY5qHXrgZRPSoyhO0/XNQSiGB34JwBQ5rvD1SAXSnoCNT6SvbgNuJfcCRVrIPdn60qmwNfyJmrHDyqbyENhDlYBdrBgncpki0SW51pJ0Q4OwC+686Mjo0I3IJcw9BHIrNoCxc84vR6o4IhjdSOs8lDej5iBccYQ833jI/EAnbhVbTKphPUzbnAeQnPcKV9DH/uv6J0c2jKcMXsSTSGsb2cLLt4xUy9I5 dimitar@dimitar-HP-ProBook-450-G4"
+    shlevy      = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID/fJqgjwPG7b5SRPtCovFmtjmAksUSNg3xHWyqBM4Cs shlevy@shlevy-laptop"
   }
 
   # Anyone who wants ssh access to a machine needs ssh access to the bastion hosts
   bastion_ssh_keys_ks = {
-    alpha      = ["pablo", "tobias", "ci-deployer"]
+    alpha      = ["pablo", "tobias", "shlevy", "ci-deployer"]
     pablo      = ["pablo"]
-    production = ["tobias", "ci-deployer"]
-    playground = ["tobias"]
-    testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
+    production = ["tobias", "shlevy, "ci-deployer"]
+    playground = ["tobias", "shlevy"]
+    testing    = ["pablo", "tobias", "shlevy", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     tobias     = ["tobias", "ci-deployer"]
-    staging    = ["pablo", "ci-deployer"]
+    staging    = ["pablo", "shlevy", "ci-deployer"]
   }
   bastion_ssh_keys = [for k in local.bastion_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
   # root users are able to deploy to the machines using morph
   root_ssh_keys_ks = {
-    alpha      = ["pablo", "tobias", "ci-deployer"]
+    alpha      = ["pablo", "tobias", "shlevy", "ci-deployer"]
     pablo      = ["pablo"]
-    production = ["tobias", "ci-deployer"]
-    testing    = ["pablo", "tobias", "bozhidar", "dimitar"]
+    production = ["tobias", "shlevy", "ci-deployer"]
+    testing    = ["pablo", "tobias", "shlevy", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     tobias     = ["tobias", "ci-deployer"]
-    staging    = ["pablo", "ci-deployer"]
+    staging    = ["pablo", "shlevy", "ci-deployer"]
   }
   root_ssh_keys = [for k in local.root_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
