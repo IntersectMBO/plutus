@@ -5,6 +5,7 @@ let
   generated-purescript = pkgs.runCommand "marlowe-pab-purescript" { } ''
     mkdir $out
     ${plutus-pab.server-setup-invoker}/bin/plutus-pab-setup psgenerator $out
+    ln -s ${./plutus-pab.yaml} plutus-pab.yaml
     ${marlowe-invoker}/bin/marlowe-pab --config plutus-pab.yaml psapigenerator $out
   '';
 
