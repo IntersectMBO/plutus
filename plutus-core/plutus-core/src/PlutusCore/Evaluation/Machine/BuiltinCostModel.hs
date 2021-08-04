@@ -69,7 +69,7 @@ data BuiltinCostModelBase f =
     , paramGreaterThanInteger       :: f ModelTwoArguments
     , paramGreaterThanEqualsInteger :: f ModelTwoArguments
     , paramEqualsInteger            :: f ModelTwoArguments
-    , paramConcatenate              :: f ModelTwoArguments
+    , paramAppendByteString         :: f ModelTwoArguments
     , paramTakeByteString           :: f ModelTwoArguments
     , paramDropByteString           :: f ModelTwoArguments
     , paramSha2_256                 :: f ModelOneArgument

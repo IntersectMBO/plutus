@@ -72,6 +72,10 @@ package ouroboros-consensus-cardano
 package cardano-api
   optimization: False
 
+-- Turn off the tests for a while
+package plutus-metatheory
+  tests: False
+
 -- Drops an instance breaking our code. Should be released to Hackage eventually.
 source-repository-package
   type: git

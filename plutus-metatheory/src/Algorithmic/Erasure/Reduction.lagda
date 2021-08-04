@@ -62,7 +62,7 @@ erase-arity-lem lessThanEqualsInteger refl refl = refl
 erase-arity-lem greaterThanInteger refl refl = refl
 erase-arity-lem greaterThanEqualsInteger refl refl = refl
 erase-arity-lem equalsInteger refl refl = refl
-erase-arity-lem concatenate refl refl = refl
+erase-arity-lem appendByteString refl refl = refl
 erase-arity-lem takeByteString refl refl = refl
 erase-arity-lem dropByteString refl refl = refl
 erase-arity-lem lessThanByteString refl refl = refl
@@ -150,7 +150,7 @@ erase-BUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _
 erase-BUILTIN equalsInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (integer i')) with i ≟ i'
 ... | yes p = refl
 ... | no ¬p = refl
-erase-BUILTIN concatenate σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
+erase-BUILTIN appendByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN takeByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN dropByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN lessThanByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl

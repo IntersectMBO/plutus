@@ -62,9 +62,13 @@ module PlutusTx.Prelude (
     zipWith,
     -- * ByteStrings
     BuiltinByteString,
-    concatenate,
+    appendByteString,
+    consByteString,
     takeByteString,
     dropByteString,
+    sliceByteString,
+    lengthOfByteString,
+    indexByteString,
     emptyByteString,
     decodeUtf8,
     -- * Hashes and Signatures
@@ -88,10 +92,11 @@ import           Data.String          (IsString (..))
 import           PlutusCore.Data      (Data (..))
 import           PlutusTx.Applicative as Applicative
 import           PlutusTx.Bool        as Bool
-import           PlutusTx.Builtins    (BuiltinByteString, BuiltinData, BuiltinString, appendString, concatenate,
-                                       decodeUtf8, dropByteString, emptyByteString, emptyString, encodeUtf8,
-                                       equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString,
-                                       lessThanByteString, sha2_256, sha3_256, takeByteString, toBuiltin, trace,
+import           PlutusTx.Builtins    (BuiltinByteString, BuiltinData, BuiltinString, appendByteString, appendString,
+                                       consByteString, decodeUtf8, dropByteString, emptyByteString, emptyString,
+                                       encodeUtf8, equalsByteString, equalsString, error, fromBuiltin,
+                                       greaterThanByteString, indexByteString, lengthOfByteString, lessThanByteString,
+                                       sha2_256, sha3_256, sliceByteString, takeByteString, toBuiltin, trace,
                                        verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either

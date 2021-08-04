@@ -448,11 +448,11 @@ lemV .(ibuiltin equalsInteger · _)
 lemV M (V-I⇒ equalsInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-lemV .(ibuiltin concatenate)
-     (V-I⇒ concatenate (start .(Term ∷ Term ∷ [])) base)
+lemV .(ibuiltin appendByteString)
+     (V-I⇒ appendByteString (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
-lemV .(ibuiltin concatenate · _)
-     (V-I⇒ concatenate (bubble (start .(Term ∷ Term ∷ [])))
+lemV .(ibuiltin appendByteString · _)
+     (V-I⇒ appendByteString (bubble (start .(Term ∷ Term ∷ [])))
      (step .(start (Term ∷ Term ∷ [])) base v))
      E = step*
   refl
@@ -462,7 +462,7 @@ lemV .(ibuiltin concatenate · _)
            (step**
              (lemV (deval v) v (extEC E (_ ·-)))
              (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ concatenate {as' = as'} (bubble (bubble {as = as} p)) q) E
+lemV M (V-I⇒ appendByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
 lemV .(ibuiltin takeByteString)
@@ -619,7 +619,7 @@ lemV M (V-IΠ greaterThanEqualsInteger {as' = as'} (bubble p) q) E with <>>-canc
 ... | X ,, Y ,, ()
 lemV M (V-IΠ equalsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
-lemV M (V-IΠ concatenate {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+lemV M (V-IΠ appendByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
 lemV M (V-IΠ takeByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()

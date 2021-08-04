@@ -122,7 +122,7 @@ typedBuiltins
     . insertBuiltin GreaterThanInteger
     . insertBuiltin GreaterThanEqualsInteger
     . insertBuiltin EqualsInteger
-    . insertBuiltin Concatenate
+    . insertBuiltin AppendByteString
     . insertBuiltin TakeByteString
     . insertBuiltin DropByteString
     . insertBuiltin Sha2_256

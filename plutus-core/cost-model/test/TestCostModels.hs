@@ -101,9 +101,9 @@ prop_equalsInteger :: Property
 prop_equalsInteger =
     testPredictTwo equalsInteger (getConst . paramEqualsInteger)
 
-prop_concatenate :: Property
-prop_concatenate =
-    testPredictTwo concatenate (getConst . paramConcatenate)
+prop_appendByteString :: Property
+prop_appendByteString =
+    testPredictTwo appendByteString (getConst . paramAppendByteString)
 
 prop_takeByteString :: Property
 prop_takeByteString =

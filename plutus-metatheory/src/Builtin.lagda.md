@@ -26,7 +26,7 @@ data Builtin : Set where
   greaterThanInteger       : Builtin
   greaterThanEqualsInteger : Builtin
   equalsInteger            : Builtin
-  concatenate              : Builtin
+  appendByteString         : Builtin
   takeByteString           : Builtin
   dropByteString           : Builtin
   lessThanByteString       : Builtin
@@ -52,7 +52,7 @@ data Builtin : Set where
                                           | GreaterThanInteger
                                           | GreaterThanEqualsInteger
                                           | EqualsInteger
-                                          | Concatenate
+                                          | AppendByteString
                                           | TakeByteString
                                           | DropByteString
                                           | LessThanByteString
