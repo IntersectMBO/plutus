@@ -139,6 +139,11 @@ runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServer
                 ccaAvailability
         AlonzoNode -> do
             available ccaAvailability
+            runM
+                $ interpret (LM.handleLogMsgTrace ccaTrace)
+                $ logInfo @(LM.AppMsg (Builtin a))
+                $ LM.PABMsg
+                $ LM.SCoreMsg LM.ConnectingToAlonzoNode
             pure () -- TODO: Log message that we're connecting to the real Alonzo node
 
 -- Run mock metadata server

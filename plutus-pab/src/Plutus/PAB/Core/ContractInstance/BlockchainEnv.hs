@@ -28,6 +28,7 @@ import qualified Ledger.AddressMap                    as AddressMap
 import           Plutus.Contract.Effects              (TxStatus (..), TxValidity (..), increaseDepth)
 import           Plutus.PAB.Core.ContractInstance.STM (BlockchainEnv (..), InstancesState, emptyBlockchainEnv)
 import qualified Plutus.PAB.Core.ContractInstance.STM as S
+import           Plutus.V1.Ledger.Api                 (toBuiltin)
 
 import           Control.Concurrent.STM               (STM)
 import qualified Control.Concurrent.STM               as STM
@@ -84,7 +85,7 @@ txEvent (C.Tx body _) _ =
   in (txi, TxValid)  -- TODO: Validity for Alonzo transactions (not available in cardano-api yet (?))
 
 fromCardanoTxId :: C.TxId -> TxId
-fromCardanoTxId = TxId . C.serialiseToRawBytes
+fromCardanoTxId = TxId . toBuiltin . C.serialiseToRawBytes
 
 -- | Get transaction ID and validity from an emulator transaction
 txMockEvent :: OnChainTx -> (TxId, TxValidity)

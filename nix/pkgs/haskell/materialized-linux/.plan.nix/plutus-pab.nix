@@ -258,7 +258,6 @@
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."cardano-api" or (errorHandler.buildDepError "cardano-api"))
             ];
           buildable = true;
           modules = [
