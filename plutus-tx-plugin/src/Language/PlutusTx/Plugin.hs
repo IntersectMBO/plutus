@@ -439,8 +439,8 @@ instance (Dumpable name) => Dumpable (Constructor tyname name uni fun a) where
       arity (PIR.TyFun _ _a b) = 1 + arity b
       arity _                  = 0
 
-instance (Dumpable name, Dumpable tyname) => Dumpable (PIR.Datatype tyname name uni fun a) where
-  dump (PIR.Datatype _ tvdecl tvdecls name constructors) = apps "Datatype" [dump tvdecl, dump tvdecls, dump name, dump (List.map Constructor constructors)]
+instance (Dumpable name, Dumpable tyname, forall b. Dumpable (uni b), PLC.Closed uni, PLC.Everywhere uni Dumpable) => Dumpable (PIR.Datatype tyname name uni fun a) where
+  dump (PIR.Datatype _ tvdecl tvdecls name constructors) = apps "Datatype" [dump tvdecl, dump tvdecls, dump name, dump constructors]
 instance Dumpable (PLC.TyName) where dump (PLC.TyName name) = apps "TyName" [dump name]
 
 
