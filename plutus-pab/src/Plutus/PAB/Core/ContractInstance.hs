@@ -189,6 +189,15 @@ processEndpointRequestsSTM =
     maybeToHandler (traverse (extract Contract.Effects._ExposeEndpointReq))
     >>> (RequestHandler $ \q@Request{rqID, itID, rqRequest} -> fmap (Response rqID itID) (fmap (ExposeEndpointResp (aeDescription rqRequest)) . InstanceState.awaitEndpointResponse q <$> ask))
 
+processAwaitTimeRequestsSTM ::
+    forall effs.
+    ( Member (Reader BlockchainEnv) effs
+    )
+    => RequestHandler effs PABReq (STM PABResp)
+processAwaitTimeRequestsSTM =
+    maybeToHandler (extract Contract.Effects._AwaitTimeReq)
+    >>> (RequestHandler $ \time -> fmap AwaitTimeResp . InstanceState.awaitTime time <$> ask)
+
 -- | 'RequestHandler' that uses TVars to wait for events
 stmRequestHandler ::
     forall effs.
@@ -213,12 +222,14 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> RequestHandler.handleOwnInstanceIdQueries @effs
         <> RequestHandler.handleAddressChangedAtQueries @effs
         <> RequestHandler.handleCurrentSlotQueries @effs
+        <> RequestHandler.handleCurrentTimeQueries @effs
 
     -- requests that wait for changes to happen
     blockingRequests =
         wrapHandler (processAwaitSlotRequestsSTM @effs)
         <> wrapHandler (processTxStatusChangeRequestsSTM @effs)
         <> processEndpointRequestsSTM @effs
+        <> wrapHandler (processAwaitTimeRequestsSTM @effs)
 
 -- | Start the thread for the contract instance
 startSTMInstanceThread' ::

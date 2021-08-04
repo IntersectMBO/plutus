@@ -11,6 +11,7 @@ module Plutus.PAB.Core.ContractInstance.STM(
     BlockchainEnv(..)
     , emptyBlockchainEnv
     , awaitSlot
+    , awaitTime
     , awaitEndpointResponse
     , waitForTxStatusChange
     , valueAt
@@ -49,6 +50,7 @@ import qualified Control.Concurrent.STM           as STM
 import           Control.Lens                     (view)
 import           Control.Monad                    (guard)
 import           Data.Aeson                       (Value)
+import           Data.Default                     (def)
 import           Data.Foldable                    (fold)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
@@ -57,6 +59,8 @@ import qualified Data.Set                         as Set
 import           Ledger                           (Address, Slot, TxId, txOutTxOut, txOutValue)
 import           Ledger.AddressMap                (AddressMap)
 import qualified Ledger.AddressMap                as AM
+import           Ledger.Time                      (POSIXTime (..))
+import qualified Ledger.TimeSlot                  as TimeSlot
 import qualified Ledger.Value                     as Value
 import           Plutus.Contract.Effects          (ActiveEndpoint (..), TxStatus (..))
 import           Plutus.Contract.Resumable        (IterationID, Request (..), RequestID)
@@ -148,6 +152,13 @@ awaitSlot targetSlot BlockchainEnv{beCurrentSlot} = do
     current <- STM.readTVar beCurrentSlot
     guard (current >= targetSlot)
     pure current
+
+-- | Wait until the current time is greater than or equal to the
+-- target time, then return the current time.
+awaitTime :: POSIXTime -> BlockchainEnv -> STM POSIXTime
+awaitTime targetTime be = do
+    let targetSlot = TimeSlot.posixTimeToEnclosingSlot def targetTime
+    TimeSlot.slotToEndPOSIXTime def <$> awaitSlot targetSlot be
 
 -- | Wait for an endpoint response.
 awaitEndpointResponse :: Request ActiveEndpoint -> InstanceState -> STM (EndpointValue Value)
