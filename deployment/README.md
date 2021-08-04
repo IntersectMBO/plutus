@@ -36,17 +36,19 @@ There are several environments to deploy to. All available environments are list
 Environments are deployed to `<env>.iohkdev.io`.
 
 #### Deployment Versions
-`alpha` is the staging environment to which the `master` branch is deployed automatically. The `production` environment is reserved for the live environment. Additional environments are available for testing purposes.
+`staging` is the staging environment to which the `master` branch is deployed automatically. The `production` environment is reserved for the live environment. Additional environments are available for testing purposes.
 
-Ideally the `alpha` deployment should always reflect the current state of `master`, and `production` should always reflect the current state of the `production` branch. This can be verified using the `/version` endpoint:
+Ideally the `staging` deployment should always reflect the current state of `master`, and `production` should always reflect the current state of the `production` branch. This can be verified using the `/version` endpoint:
 
 ```shell
-$ curl https://alpha.plutus.iohkdev.io/version
+$ curl https://staging.plutus.iohkdev.io/version
 {"rev": "13342f6981faabdc2bb7e88a9cb5a3990f7a4930"}
 
 $ curl https://production.plutus.iohkdev.io/version
 {"rev": "acc7a4486d50844690fb485b74abab44908bd39b"}
 ```
+
+There is also an `alpha` environment, deployed automatically from the `alpha` branch.
 
 ## Usage
 
