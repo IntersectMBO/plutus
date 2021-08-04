@@ -180,8 +180,6 @@ builtinNames = [
     , 'Builtins.modInteger
     , 'Builtins.quotientInteger
     , 'Builtins.remainderInteger
-    , 'Builtins.greaterThanInteger
-    , 'Builtins.greaterThanEqInteger
     , 'Builtins.lessThanInteger
     , 'Builtins.lessThanEqInteger
     , 'Builtins.equalsInteger
@@ -301,8 +299,6 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.modInteger $ mkBuiltin PLC.ModInteger
     defineBuiltinTerm 'Builtins.quotientInteger $ mkBuiltin PLC.QuotientInteger
     defineBuiltinTerm 'Builtins.remainderInteger $ mkBuiltin PLC.RemainderInteger
-    defineBuiltinTerm 'Builtins.greaterThanInteger $ mkBuiltin PLC.GreaterThanInteger
-    defineBuiltinTerm 'Builtins.greaterThanEqInteger $ mkBuiltin PLC.GreaterThanEqualsInteger
     defineBuiltinTerm 'Builtins.lessThanInteger $ mkBuiltin PLC.LessThanInteger
     defineBuiltinTerm 'Builtins.lessThanEqInteger $ mkBuiltin PLC.LessThanEqualsInteger
     defineBuiltinTerm 'Builtins.equalsInteger $ mkBuiltin PLC.EqualsInteger

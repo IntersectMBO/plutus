@@ -183,9 +183,9 @@
     (termbind
       (strict)
       (vardecl
-        greaterThanEqInteger (fun (con integer) (fun (con integer) (con bool)))
+        lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
       )
-      (builtin greaterThanEqualsInteger)
+      (builtin lessThanInteger)
     )
     (termbind
       (strict)
@@ -197,19 +197,9 @@
         (lam
           y
           (con integer)
-          [
-            [ [ { ifThenElse Bool } [ [ greaterThanEqInteger x ] y ] ] True ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] False ] True ]
         )
       )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        greaterThanInteger (fun (con integer) (fun (con integer) (con bool)))
-      )
-      (builtin greaterThanInteger)
     )
     (termbind
       (strict)
@@ -221,8 +211,7 @@
           y
           (con integer)
           [
-            [ [ { ifThenElse Bool } [ [ greaterThanInteger x ] y ] ] True ]
-            False
+            [ [ { ifThenElse Bool } [ [ lessThanEqInteger x ] y ] ] False ] True
           ]
         )
       )
@@ -241,13 +230,6 @@
           ]
         )
       )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
-      )
-      (builtin lessThanInteger)
     )
     (termbind
       (strict)
