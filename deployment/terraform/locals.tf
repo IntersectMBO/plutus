@@ -30,7 +30,7 @@ locals {
   bastion_ssh_keys_ks = {
     alpha      = ["pablo", "tobias", "shlevy", "ci-deployer"]
     pablo      = ["pablo"]
-    production = ["tobias", "shlevy, "ci-deployer"]
+    production = ["tobias", "shlevy", "ci-deployer"]
     playground = ["tobias", "shlevy"]
     testing    = ["pablo", "tobias", "shlevy", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
