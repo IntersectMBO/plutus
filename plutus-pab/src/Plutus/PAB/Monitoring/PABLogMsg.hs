@@ -22,7 +22,6 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     ) where
 
 import           Data.Aeson                       (FromJSON, ToJSON, Value)
-import qualified Data.Aeson                       as JSON
 import           Data.Text                        (Text)
 import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, viaShow, (<+>))
 import           GHC.Generics                     (Generic)
@@ -35,7 +34,7 @@ import           Cardano.Node.Types               (MockServerLogMsg)
 import           Cardano.Wallet.Types             (WalletMsg)
 import           Data.Aeson.Text                  (encodeToLazyText)
 import qualified Data.Text                        as T
-import           Plutus.Contract.Effects          (PABReq)
+import           Plutus.Contract.Effects          (PABReq, PABResp)
 import           Plutus.Contract.Resumable        (Response)
 import           Plutus.Contract.State            (ContractResponse)
 import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg (..))
@@ -52,7 +51,7 @@ data AppMsg t =
     | PABMsg (PABLogMsg t)
     | AvailableContract Text
     | ContractInstances (ContractDef t) [ContractInstanceId]
-    | ContractHistoryItem ContractInstanceId (Response JSON.Value)
+    | ContractHistoryItem ContractInstanceId (Response PABResp)
     deriving stock (Generic)
 
 deriving stock instance (Show (ContractDef t)) => Show (AppMsg t)
@@ -181,7 +180,7 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
 
 data CoreMsg t =
     FindingContract ContractInstanceId
-    | FoundContract (Maybe (ContractResponse Value Value Value PABReq))
+    | FoundContract (Maybe (ContractResponse Value Value PABResp PABReq))
     deriving stock Generic
 
 deriving stock instance (Show (ContractDef t)) => Show (CoreMsg t)
