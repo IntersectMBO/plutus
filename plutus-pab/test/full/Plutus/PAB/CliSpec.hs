@@ -205,7 +205,7 @@ runPabInstanceEndpoints pabConfig instanceId endpoints = do
   apiClientEnv <- getClientEnv pabConfig
 
   let _ :<|> _ :<|> activateContract :<|> instance' :<|> _ = client (Proxy @(API TestingContracts Integer))
-  let status' :<|> endpoint :<|> stop' = instance' . Text.pack . show . unContractInstanceId $ instanceId
+  let _ :<|> _ :<|> endpoint :<|> _ = instance' . Text.pack . show . unContractInstanceId $ instanceId
 
   forM_ endpoints $ \e -> do
     x <- runClientM (endpoint (ep e) (toJSON ())) apiClientEnv

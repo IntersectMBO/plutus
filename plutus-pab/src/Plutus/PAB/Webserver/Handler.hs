@@ -94,6 +94,7 @@ apiHandler ::
        :<|> PABAction t env (FullReport (Contract.ContractDef t))
        :<|> (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
               :<|> (Text -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
+                                          :<|> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
                                           :<|> (String -> JSON.Value -> PABAction t env ())
                                           :<|> PABAction t env ()
                                           )
@@ -105,7 +106,7 @@ apiHandler =
         healthcheck
         :<|> getFullReport
         :<|> activateContract
-              :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z) :<|> (parseContractId x >>= shutdown))
+              :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> contractSchema x :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z) :<|> (parseContractId x >>= shutdown))
               :<|> instancesForWallets
               :<|> allInstanceStates
               :<|> availableContracts
