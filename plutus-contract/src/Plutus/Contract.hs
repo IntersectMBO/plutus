@@ -48,6 +48,8 @@ module Plutus.Contract(
     , Request.watchAddressUntilTime
     , Request.fundsAtAddressGt
     , Request.fundsAtAddressGeq
+    , Request.awaitUtxoSpent
+    , Request.awaitUtxoProduced
     -- * UTXO set
     , UtxoMap
     , Request.utxoAt

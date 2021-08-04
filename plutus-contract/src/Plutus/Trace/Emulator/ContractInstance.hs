@@ -41,11 +41,13 @@ import           Control.Monad.Freer.Reader           (Reader, ask, runReader)
 import           Control.Monad.Freer.State            (State, evalState, get, gets, modify, put)
 import qualified Data.Aeson                           as JSON
 import           Data.Foldable                        (traverse_)
+import           Data.List.NonEmpty                   (NonEmpty (..))
 import qualified Data.Map                             as Map
 import           Data.Maybe                           (listToMaybe, mapMaybe)
+import qualified Data.Set                             as Set
 import qualified Data.Text                            as T
-import           Ledger.Blockchain                    (OnChainTx (..))
-import           Ledger.Tx                            (txId)
+import           Ledger.Blockchain                    (OnChainTx (..), consumableInputs, outputsProduced)
+import           Ledger.Tx                            (TxIn (..), TxOut (..), txId)
 import           Plutus.Contract                      (Contract (..))
 import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), TxValidity (..),
                                                        matches)
@@ -245,7 +247,7 @@ decodeEvent vl =
 getHooks :: forall w s e effs. Member (State (ContractInstanceStateInternal w s e ())) effs => Eff effs [Request PABReq]
 getHooks = gets @(ContractInstanceStateInternal w s e ()) (State.unRequests . view requests . view resumableResult . cisiSuspState)
 
--- | Update the contract instance with tx status information from the new block.
+-- | Update the contract instance with information from the new block.
 processNewTransactions ::
     forall w s e effs.
     ( Member (State (ContractInstanceStateInternal w s e ())) effs
@@ -255,6 +257,21 @@ processNewTransactions ::
     => [OnChainTx]
     -> Eff effs ()
 processNewTransactions txns = do
+    updateTxStatus @w @s @e txns
+    updateTxOutSpent @w @s @e txns
+    updateTxOutProduced @w @s @e txns
+
+-- | Update the contract instance with transaction status information from the
+--   new block.
+updateTxStatus ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => [OnChainTx]
+    -> Eff effs ()
+updateTxStatus txns = do
     -- Check whether the contract instance is waiting for a status change of any
     -- of the new transactions. If that is the case, call 'addResponse' to send the
     -- response.
@@ -269,6 +286,53 @@ processNewTransactions txns = do
         txStatusHk = listToMaybe $ mapMaybe mpReq hks
     traverse_ (addResponse @w @s @e) txStatusHk
     logResponse @w @s @e False txStatusHk
+
+-- | Update the contract instance with transaction output information from the
+--   new block.
+updateTxOutProduced ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => [OnChainTx]
+    -> Eff effs ()
+updateTxOutProduced []        = pure ()
+updateTxOutProduced (t:txns) = do
+    let txOutputs tx = fmap (\TxOut{txOutAddress} -> (txOutAddress, tx :| [])) (outputsProduced tx)
+        addrMap = Map.fromListWith (<>) ((t:txns) >>= txOutputs)
+    -- Check whether the contract instance is waiting for address changes
+    hks <- mapMaybe (traverse (preview E._AwaitUtxoProducedReq)) <$> getHooks @w @s @e
+    let mpReq Request{rqID, itID, rqRequest=addr} =
+            case Map.lookup addr addrMap of
+                Nothing      -> Nothing
+                Just newTxns -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=E.AwaitUtxoProducedResp newTxns}
+        utxoResp = listToMaybe $ mapMaybe mpReq hks
+    traverse_ (addResponse @w @s @e) utxoResp
+    logResponse @w @s @e False utxoResp
+
+-- | Update the contract instance with transaction input information from the
+--   new block.
+updateTxOutSpent ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => [OnChainTx]
+    -> Eff effs ()
+updateTxOutSpent txns = do
+    let txInputs tx = fmap (\TxIn{txInRef} -> (txInRef, tx)) (Set.toList $ consumableInputs tx)
+        addrMap = Map.fromList (txns >>= txInputs)
+    -- Check whether the contract instance is waiting for address changes
+    hks <- mapMaybe (traverse (preview E._AwaitUtxoSpentReq)) <$> getHooks @w @s @e
+    let mpReq Request{rqID, itID, rqRequest=addr} =
+            case Map.lookup addr addrMap of
+                Nothing      -> Nothing
+                Just newTxns -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=E.AwaitUtxoSpentResp newTxns}
+        utxoResp = listToMaybe $ mapMaybe mpReq hks
+    traverse_ (addResponse @w @s @e) utxoResp
+    logResponse @w @s @e False utxoResp
 
 -- | Add a 'Response' to the contract instance state
 addResponse
