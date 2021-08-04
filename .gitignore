@@ -106,7 +106,7 @@ gh-pages
 *.db-shm
 *.db-wal
 hie.yaml
-node-server.sock
+node-server.sock*
 node.sock
 **/node?/db
 .pre-commit-config.yaml

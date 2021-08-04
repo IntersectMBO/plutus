@@ -62,6 +62,7 @@ import qualified Data.Aeson                        as JSON
 import           Data.Aeson.Extras                 (decodeByteString, encodeByteString)
 import           Data.Aeson.Types                  (Parser)
 import qualified Data.ByteString                   as BS
+import           Data.Default                      (Default, def)
 import           Data.List.NonEmpty                (NonEmpty)
 import           Data.Set                          (Set)
 import           Data.Text                         (Text)
@@ -77,7 +78,7 @@ import           Plutus.PAB.Arbitrary              ()
 import           Plutus.PAB.Instances              ()
 import qualified PlutusTx.Prelude                  as PlutusTx
 import           Servant.API                       (FromHttpApiData, ToHttpApiData)
-import           Servant.Client                    (BaseUrl, ClientError)
+import           Servant.Client                    (BaseUrl (..), ClientError, Scheme (..))
 import           Test.QuickCheck.Arbitrary.Generic (Arbitrary, arbitrary, genericArbitrary)
 
 newtype MetadataUrl = MetadataUrl BaseUrl
@@ -89,6 +90,16 @@ newtype MetadataConfig =
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON)
+
+defaultMetadataConfig :: MetadataConfig
+defaultMetadataConfig =
+  MetadataConfig
+    -- See Note [pab-ports] in 'test/full/Plutus/PAB/CliSpec.hs'.
+    { mdBaseUrl = BaseUrl Http "localhost" 9085 ""
+    }
+
+instance Default MetadataConfig where
+  def = defaultMetadataConfig
 
 ------------------------------------------------------------
 newtype Subject =

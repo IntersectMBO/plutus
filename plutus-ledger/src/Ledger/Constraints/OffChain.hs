@@ -106,7 +106,6 @@ instance Semigroup (ScriptLookups a) where
             -- 'First' to match the semigroup instance of Map (left-biased)
             , slTypedValidator = fmap getFirst $ (First <$> slTypedValidator l) <> (First <$> slTypedValidator r)
             , slOwnPubkey = fmap getFirst $ (First <$> slOwnPubkey l) <> (First <$> slOwnPubkey r)
-
             }
 
 instance Monoid (ScriptLookups a) where
