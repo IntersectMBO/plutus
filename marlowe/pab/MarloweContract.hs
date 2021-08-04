@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
@@ -10,8 +11,7 @@
 module MarloweContract(MarloweContract(..), handlers) where
 
 import           Control.Monad.Freer                 (interpret)
-import           Data.Aeson                          (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
-import           Data.Aeson.Types                    (prependFailure)
+import           Data.Aeson                          (FromJSON, ToJSON)
 import           Data.Default                        (Default (def))
 import           Data.Text.Prettyprint.Doc           (Pretty (..), viaShow)
 import           GHC.Generics                        (Generic)
@@ -23,23 +23,13 @@ import qualified Plutus.PAB.Effects.Contract.Builtin as Builtin
 import           Plutus.PAB.Run.PSGenerator          (HasPSTypes (psTypes))
 import           Plutus.PAB.Simulator                (SimulatorEffectHandlers)
 import qualified Plutus.PAB.Simulator                as Simulator
-import           Text.Read                           (readMaybe)
 
 data MarloweContract =
     MarloweApp -- The main marlowe contract
     | WalletCompanion -- Wallet companion contract
-    | MarloweFollower -- Follower contrat
+    | MarloweFollower -- Follower contract
     deriving (Eq, Ord, Show, Read, Generic)
-
-instance ToJSON MarloweContract where
-    toJSON k = object ["tag" .= show k]
-
-instance FromJSON MarloweContract where
-    parseJSON = withObject "MarloweContract" $ \m -> do
-        (tg :: String) <- m .: "tag"
-        case readMaybe tg of
-            Just tg' -> pure tg'
-            _        -> prependFailure "parsing MarloweContract failed, " (fail $ "unexpected tag " <> tg)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty MarloweContract where
     pretty = viaShow
