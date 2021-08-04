@@ -10,13 +10,21 @@
 -- Most users should not use this module directly, but rather use 'PlutusTx.Builtins'.
 module PlutusTx.Builtins.Internal where
 
+import           Codec.Serialise
+import           Control.DeepSeq           (NFData)
 import qualified Crypto
-import           Data.ByteString      as BS
-import qualified Data.ByteString.Hash as Hash
+import qualified Data.ByteArray            as BA
+import           Data.ByteString           as BS
+import           Data.ByteString.Char8     as Char8
+import qualified Data.ByteString.Hash      as Hash
 import           Data.Coerce
-import           Data.Maybe           (fromMaybe)
-import qualified PlutusCore.Data      as PLC
+import           Data.Hashable             (Hashable)
+import           Data.Maybe                (fromMaybe)
+import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow)
+import           GHC.Generics              (Generic)
+import qualified PlutusCore.Data           as PLC
 import           PlutusTx.Utils
+import           Prelude                   as Haskell
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.
@@ -139,56 +147,63 @@ equalsInteger = coerce ((==) @Integer)
 BYTESTRING
 -}
 
-type BuiltinByteString = ByteString
+-- | An opaque type representing Plutus Core ByteStrings.
+newtype BuiltinByteString = BuiltinByteString ByteString
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
+  deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
+
+instance Pretty BuiltinByteString where
+    pretty = viaShow
 
 {-# NOINLINE concatenate #-}
 concatenate :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
-concatenate = BS.append
+concatenate (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteString $ BS.append b1 b2
 
 {-# NOINLINE takeByteString #-}
 takeByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-takeByteString n = BS.take (fromIntegral n)
+takeByteString n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) b
 
 {-# NOINLINE dropByteString #-}
 dropByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-dropByteString n = BS.drop (fromIntegral n)
+dropByteString n (BuiltinByteString b) = BuiltinByteString $ BS.drop (fromIntegral n) b
 
 {-# NOINLINE emptyByteString #-}
 emptyByteString :: BuiltinByteString
-emptyByteString = BS.empty
+emptyByteString = BuiltinByteString $ BS.empty
 
 {-# NOINLINE sha2_256 #-}
 sha2_256 :: BuiltinByteString -> BuiltinByteString
-sha2_256 = Hash.sha2
+sha2_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha2 b
 
 {-# NOINLINE sha3_256 #-}
 sha3_256 :: BuiltinByteString -> BuiltinByteString
-sha3_256 = Hash.sha3
+sha3_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha3 b
 
 {-# NOINLINE blake2b_256 #-}
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
-blake2b_256 = Hash.blake2b
+blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b b
 
 {-# NOINLINE verifySignature #-}
 verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
-verifySignature pubKey message signature =
+verifySignature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
   coerce (fromMaybe False (Crypto.verifySignature pubKey message signature))
 
 {-# NOINLINE equalsByteString #-}
 equalsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-equalsByteString = coerce ((==) @ByteString)
+equalsByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((==) @ByteString) b1 b2
 
 {-# NOINLINE lessThanByteString #-}
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-lessThanByteString = coerce ((<) @ByteString)
+lessThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((<) @ByteString) b1 b2
 
 {-# NOINLINE greaterThanByteString #-}
 greaterThanByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-greaterThanByteString = coerce ((>) @ByteString)
+greaterThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((>) @ByteString) b1 b2
 
 {-# NOINLINE decodeUtf8 #-}
 decodeUtf8 :: BuiltinByteString -> BuiltinString
-decodeUtf8 = mustBeReplaced "decodeUtf8"
+decodeUtf8 (BuiltinByteString b) = BuiltinString $ Char8.unpack b
 
 {-
 STRING
@@ -200,19 +215,19 @@ newtype BuiltinString = BuiltinString String
 
 {-# NOINLINE appendString #-}
 appendString :: BuiltinString -> BuiltinString -> BuiltinString
-appendString = mustBeReplaced "appendString"
+appendString (BuiltinString s1) (BuiltinString s2) = BuiltinString (s1 ++ s2)
 
 {-# NOINLINE emptyString #-}
 emptyString :: BuiltinString
-emptyString = mustBeReplaced "emptyString"
+emptyString = BuiltinString ""
 
 {-# NOINLINE charToString #-}
 charToString :: BuiltinChar -> BuiltinString
-charToString = mustBeReplaced "charToString"
+charToString c = BuiltinString $ [c]
 
 {-# NOINLINE equalsString #-}
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool
-equalsString = mustBeReplaced "equalsString"
+equalsString (BuiltinString s1) (BuiltinString s2) = coerce $ ((==) @String) s1 s2
 
 {-# NOINLINE trace #-}
 trace :: BuiltinString -> BuiltinUnit
@@ -220,7 +235,7 @@ trace _ = unitval
 
 {-# NOINLINE encodeUtf8 #-}
 encodeUtf8 :: BuiltinString -> BuiltinByteString
-encodeUtf8 = mustBeReplaced "encodeUtf8"
+encodeUtf8 (BuiltinString s) = BuiltinByteString $ Char8.pack s
 
 {-
 PAIR
@@ -256,12 +271,12 @@ null (BuiltinList [])    = coerce True
 {-# NOINLINE head #-}
 head :: BuiltinList a -> a
 head (BuiltinList (x:_)) = x
-head (BuiltinList [])    = Prelude.error "empty list"
+head (BuiltinList [])    = Haskell.error "empty list"
 
 {-# NOINLINE tail #-}
 tail :: BuiltinList a -> BuiltinList a
 tail (BuiltinList (_:xs)) = coerce xs
-tail (BuiltinList [])     = Prelude.error "empty list"
+tail (BuiltinList [])     = Haskell.error "empty list"
 
 {-# NOINLINE chooseList #-}
 chooseList :: BuiltinList a -> b -> b-> b
@@ -338,33 +353,33 @@ mkI i = BuiltinData (PLC.I i)
 
 {-# NOINLINE mkB #-}
 mkB :: BuiltinByteString -> BuiltinData
-mkB b = BuiltinData (PLC.B b)
+mkB (BuiltinByteString b) = BuiltinData (PLC.B b)
 
 {-# NOINLINE unsafeDataAsConstr #-}
 unsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
 unsafeDataAsConstr (BuiltinData (PLC.Constr i args)) = BuiltinPair (i, coerce args)
-unsafeDataAsConstr _                                 = Prelude.error "not a Constr"
+unsafeDataAsConstr _                                 = Haskell.error "not a Constr"
 
 {-# NOINLINE unsafeDataAsMap #-}
 unsafeDataAsMap :: BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
 unsafeDataAsMap (BuiltinData (PLC.Map m)) = coerce m
-unsafeDataAsMap _                         = Prelude.error "not a Map"
+unsafeDataAsMap _                         = Haskell.error "not a Map"
 
 {-# NOINLINE unsafeDataAsList #-}
 unsafeDataAsList :: BuiltinData -> BuiltinList BuiltinData
 unsafeDataAsList (BuiltinData (PLC.List l)) = coerce l
-unsafeDataAsList _                          = Prelude.error "not a List"
+unsafeDataAsList _                          = Haskell.error "not a List"
 
 {-# NOINLINE unsafeDataAsI #-}
 unsafeDataAsI :: BuiltinData -> BuiltinInteger
 unsafeDataAsI (BuiltinData (PLC.I i)) = i
-unsafeDataAsI _                       = Prelude.error "not an I"
+unsafeDataAsI _                       = Haskell.error "not an I"
 
 {-# NOINLINE unsafeDataAsB #-}
 unsafeDataAsB :: BuiltinData -> BuiltinByteString
-unsafeDataAsB (BuiltinData (PLC.B b)) = b
-unsafeDataAsB _                       = Prelude.error "not a B"
+unsafeDataAsB (BuiltinData (PLC.B b)) = BuiltinByteString b
+unsafeDataAsB _                       = Haskell.error "not a B"
 
 {-# NOINLINE equalsData #-}
 equalsData :: BuiltinData -> BuiltinData -> BuiltinBool
-equalsData (BuiltinData b1) (BuiltinData b2) = coerce $ b1 Prelude.== b2
+equalsData (BuiltinData b1) (BuiltinData b2) = coerce $ b1 Haskell.== b2

@@ -199,14 +199,14 @@ jsonRoundTrip gen = property $ do
 
 ledgerBytesShowFromHexProp :: Property
 ledgerBytesShowFromHexProp = property $ do
-    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString 32
+    bts <- forAll $ LedgerBytes . PlutusTx.toBuiltin <$> Gen.genSizedByteString 32
     let result = Bytes.fromHex $ fromString $ show bts
 
     Hedgehog.assert $ result == Right bts
 
 ledgerBytesToJSONProp :: Property
 ledgerBytesToJSONProp = property $ do
-    bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString 32
+    bts <- forAll $ LedgerBytes . PlutusTx.toBuiltin <$> Gen.genSizedByteString 32
     let enc    = JSON.toJSON bts
         result = Aeson.iparse JSON.parseJSON enc
 

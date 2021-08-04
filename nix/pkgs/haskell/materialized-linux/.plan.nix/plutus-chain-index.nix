@@ -46,6 +46,8 @@
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
           ];
         buildable = true;
         modules = [

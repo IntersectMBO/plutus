@@ -53,6 +53,9 @@ library
         lens -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,
+        bytestring -any,
+        data-default -any,
+        text -any
 
 test-suite plutus-chain-index-test
     import: lang

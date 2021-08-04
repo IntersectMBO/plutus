@@ -20,7 +20,7 @@ class Semigroup a where
     -- sconcat and stimes deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
-instance Semigroup Builtins.ByteString where
+instance Semigroup Builtins.BuiltinByteString where
     {-# INLINABLE (<>) #-}
     (<>) = Builtins.concatenate
 

@@ -76,6 +76,7 @@ import           Ledger.Crypto                     (PubKey (PubKey), PubKeyHash,
                                                     getPubKeyHash, getSignature)
 import           Plutus.PAB.Arbitrary              ()
 import           Plutus.PAB.Instances              ()
+import qualified PlutusTx.Prelude                  as PlutusTx
 import           Servant.API                       (FromHttpApiData, ToHttpApiData)
 import           Servant.Client                    (BaseUrl (..), ClientError, Scheme (..))
 import           Test.QuickCheck.Arbitrary.Generic (Arbitrary, arbitrary, genericArbitrary)
@@ -121,6 +122,9 @@ class ToSubject a where
 
 instance ToSubject BS.ByteString where
     toSubject x = Subject $ encodeByteString x
+
+instance ToSubject PlutusTx.BuiltinByteString where
+    toSubject x = Subject $ encodeByteString $ PlutusTx.fromBuiltin x
 
 instance ToSubject LedgerBytes where
     toSubject = toSubject . LedgerBytes.bytes
@@ -253,7 +257,7 @@ instance FromJSON (AnnotatedSignature 'ExternalEncoding) where
         withObject "AnnotatedSignature" $ \o -> do
             sigRaw <- o .: "signature"
             sigBytes <- decodeByteString sigRaw
-            let sig = Signature sigBytes
+            let sig = Signature $ PlutusTx.toBuiltin sigBytes
             pubKeyRaw :: Text <- o .: "publicKey"
             case PubKey <$> LedgerBytes.fromHex (encodeUtf8 pubKeyRaw) of
                 Right pubKey -> pure $ AnnotatedSignature pubKey sig
@@ -262,7 +266,7 @@ instance FromJSON (AnnotatedSignature 'ExternalEncoding) where
 instance ToJSON (AnnotatedSignature 'ExternalEncoding) where
     toJSON (AnnotatedSignature pubKey sig) =
         JSON.object
-            [ "signature" .= encodeByteString (getSignature sig)
+            [ "signature" .= encodeByteString (PlutusTx.fromBuiltin $ getSignature sig)
             , "publicKey" .= getPubKey pubKey
             ]
 

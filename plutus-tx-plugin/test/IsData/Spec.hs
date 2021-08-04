@@ -40,7 +40,7 @@ instance P.Eq NestedRecord where
     {-# INLINABLE (==) #-}
     (NestedRecord i1) == (NestedRecord i2) = i1 P.== i2
 
-data WrappedBS = WrappedBS { unWrap :: Builtins.ByteString }
+data WrappedBS = WrappedBS { unWrap :: Builtins.BuiltinByteString }
 IsData.unstableMakeIsData ''WrappedBS
 
 instance P.Eq WrappedBS where

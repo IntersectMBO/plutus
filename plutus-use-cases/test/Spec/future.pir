@@ -2968,7 +2968,7 @@
                     (termbind
                       (strict)
                       (vardecl
-                        fFromDataByteString_cfromBuiltinData
+                        fFromDataBuiltinByteString_cfromBuiltinData
                         (fun (con data) [Maybe (con bytestring)])
                       )
                       (lam
@@ -3022,7 +3022,7 @@
                             }
                             (con integer)
                           }
-                          fFromDataByteString_cfromBuiltinData
+                          fFromDataBuiltinByteString_cfromBuiltinData
                         ]
                         fFromDataInteger_cfromBuiltinData
                       ]
@@ -3239,7 +3239,7 @@
                             }
                             [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]
                           }
-                          fFromDataByteString_cfromBuiltinData
+                          fFromDataBuiltinByteString_cfromBuiltinData
                         ]
                         fFromDataValue
                       ]

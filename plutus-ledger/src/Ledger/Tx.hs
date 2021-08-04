@@ -29,10 +29,9 @@ import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc (Pretty (pretty), braces, colon, hang, nest, viaShow, vsep, (<+>))
 import           Ledger.Address            (pubKeyAddress, scriptAddress)
 import           Ledger.Crypto             (PrivateKey, PubKey, signTx, toPublicKey)
-import           Ledger.Scripts            (Datum, Validator, datumHash)
+import           Ledger.Scripts            (datumHash)
+import           Plutus.V1.Ledger.Api
 import           Plutus.V1.Ledger.Tx       as Export
-import           Plutus.V1.Ledger.TxId     (TxId (..))
-import           Plutus.V1.Ledger.Value
 
 instance Pretty Tx where
     pretty t@Tx{txInputs, txCollateral, txOutputs, txMint, txFee, txValidRange, txSignatures, txMintScripts, txData} =
@@ -53,7 +52,8 @@ instance Pretty Tx where
 -- | Compute the id of a transaction.
 txId :: Tx -> TxId
 -- Double hash of a transaction, excluding its witnesses.
-txId tx = TxId $ digest (Proxy @SHA256)
+txId tx = TxId $ toBuiltin
+               $ digest (Proxy @SHA256)
                $ digest (Proxy @SHA256)
                (Write.toStrictByteString $ encode $ strip tx)
 

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -97,6 +98,12 @@ instance uni `PLC.Includes` Data => Typeable uni BuiltinData where
 
 instance uni `PLC.Includes` Data => Lift uni BuiltinData where
     lift d = liftBuiltin (builtinDataToData d)
+
+instance uni `PLC.Includes` BS.ByteString => Typeable uni BuiltinByteString where
+    typeRep _proxyPByteString = typeRepBuiltin (Proxy @BS.ByteString)
+
+instance uni `PLC.Includes` BS.ByteString => Lift uni BuiltinByteString where
+    lift b = liftBuiltin $ fromBuiltin b
 
 -- Standard types
 -- These need to be in a separate file for TH staging reasons

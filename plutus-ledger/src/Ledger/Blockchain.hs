@@ -32,16 +32,18 @@ import           Control.DeepSeq          (NFData)
 import           Control.Lens             (makePrisms, view)
 import           Control.Monad            (join)
 import           Data.Aeson               (FromJSON, ToJSON)
+import qualified Data.Aeson               as JSON
+import qualified Data.Aeson.Extras        as JSON
 import qualified Data.ByteString          as BS
 import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
 import           Data.Monoid              (First (..))
 import qualified Data.Set                 as Set
+import qualified Data.Text                as Text
 import           Data.Text.Encoding       (decodeUtf8)
 import           GHC.Generics             (Generic)
 import           Ledger.Tx                (spentOutputs, txId, unspentOutputsTx, updateUtxo, validValuesTx)
 
-import           Plutus.V1.Ledger.Bytes   (LedgerBytes (..))
 import           Plutus.V1.Ledger.Crypto
 import           Plutus.V1.Ledger.Scripts
 import           Plutus.V1.Ledger.Tx      (Tx, TxIn, TxOut, TxOutRef, collateralInputs, inputs, txOutDatum, txOutPubKey,
@@ -53,7 +55,15 @@ import           Prettyprinter            (Pretty (..))
 -- | Block identifier (usually a hash)
 newtype BlockId = BlockId { getBlockId :: BS.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving (ToJSON, FromJSON, Show) via LedgerBytes
+
+instance Show BlockId where
+    show = Text.unpack . JSON.encodeByteString . getBlockId
+
+instance ToJSON BlockId where
+    toJSON = JSON.String . JSON.encodeByteString . getBlockId
+
+instance FromJSON BlockId where
+    parseJSON v = BlockId <$> JSON.decodeByteString v
 
 instance Pretty BlockId where
     pretty (BlockId blockId) = "BlockId(" <> pretty (decodeUtf8 blockId) <> ")"
