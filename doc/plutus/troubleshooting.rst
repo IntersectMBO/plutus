@@ -45,3 +45,72 @@ Plutus needs a custom version of HLS which is provided by Nix. So get this worki
   Change this to just ``haskell-language-server``.
 
 If this doesn't work, run ``which haskell-language-server`` in `nix-shell`, and use this absolute path in the configuration of your editor.
+
+
+Error codes
+-----------
+
+To reduce code size, on-chain errors only output codes. Here's what they mean:
+
+..
+  This list can be generated with:
+  grep -rEoh "\btrace\w*\s+\"[^\"]{1,5}\"\s+(--.*|\{-\".*\"-\})" *
+
+- Ledger errors
+
+  - ``L0: Input constraint``
+  - ``L1: Output constraint``
+  - ``L2: Missing datum``
+  - ``L3: Wrong validation interval``
+  - ``L4: Missing signature``
+  - ``L5: Spent value not OK``
+  - ``L6: Produced value not OK``
+  - ``L7: Public key output not spent``
+  - ``L8: Script output not spent``
+  - ``L9: Value minted not OK``
+  - ``La: MustPayToPubKey``
+  - ``Lb: MustPayToOtherScript``
+  - ``Lc: MustHashDatum``
+  - ``Ld: checkScriptContext failed``
+  - ``Le: Can't find any continuing outputs``
+  - ``Lf: Can't get any continuing outputs``
+  - ``Lg: Can't get validator and datum hashes``
+  - ``Lh: Can't get currency symbol of the current validator script``
+  - ``Li: DecodingError``
+
+- Prelude errors
+
+  - ``P0: PlutusTx.Enum.().succ: bad argument``
+  - ``P1: PlutusTx.Enum.().pred: bad argument``
+  - ``P2: PlutusTx.Enum.().toEnum: bad argument``
+  - ``P3: PlutusTx.Enum.Bool.succ: bad argument``
+  - ``P4: PlutusTx.Enum.Bool.pred: bad argument``
+  - ``P5: PlutusTx.Enum.Bool.toEnum: bad argument``
+  - ``P6: PlutusTx.Enum.Ordering.succ: bad argument``
+  - ``P7: PlutusTx.Enum.Ordering.pred: bad argument``
+  - ``P8: PlutusTx.Enum.Ordering.toEnum: bad argument``
+  - ``P9: PlutusTx.List.!!: negative index``
+  - ``Pa: PlutusTx.List.!!: index too large``
+  - ``Pb: PlutusTx.List.head: empty list``
+  - ``Pc: PlutusTx.List.tail: empty list``
+  - ``Pd: Check has failed``
+  - ``Pe: Ratio has zero denominator``
+  - ``Pf: round default defn: Bad value``
+  - ``Pg: unsafeFromBuiltinData: Void is not supported``
+
+- State machine errors
+
+  - ``S0: Can't find validation input``
+  - ``S1: State transition invalid - checks failed``
+  - ``S2: Thread token not found``
+  - ``S3: Non-zero value allocated in final state``
+  - ``S4: State transition invalid - constraints not satisfied by ScriptContext``
+  - ``S5: State transition invalid - constraints not satisfied by ScriptContext``
+  - ``S6: State transition invalid - input is not a valid transition at the current state``
+  - ``S7: Value minted different from expected``
+  - ``S8: Pending transaction does not spend the designated transaction output``
+
+- Currency errors
+
+  - ``C0: Value minted different from expected``
+  - ``C1: Pending transaction does not spend the designated transaction output``
