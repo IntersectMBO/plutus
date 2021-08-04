@@ -51,17 +51,24 @@ let
     };
   };
 
+  nixFlakesAlias = pkgs.runCommand "nix-flakes-alias" { } ''
+    mkdir -p $out/bin
+    ln -sv ${pkgs.nixFlakes}/bin/nix $out/bin/nix-flakes
+  '';
+
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
     cacert
     ghcid
+    jq
     morph
-    nixFlakes
+    nixFlakesAlias
     nixpkgs-fmt
     nodejs
     shellcheck
     sqlite-interactive
     stack
+    yq
     z3
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));

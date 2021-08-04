@@ -118,12 +118,17 @@ startServer ::
     -> Either ClientEnv (PABAction t env WalletInfo)
     -> Availability
     -> PABAction t env (MVar (), PABAction t env ())
-startServer WebserverConfig{baseUrl, staticDir, permissiveCorsPolicy} walletClient availability = do
+startServer WebserverConfig{baseUrl, staticDir, permissiveCorsPolicy, endpointTimeout} walletClient availability = do
     when permissiveCorsPolicy $
       logWarn @(LM.PABMultiAgentMsg t) (LM.UserLog "Warning: Using a very permissive CORS policy! *Any* website serving JavaScript can interact with these endpoints.")
-    startServer' [mw] (baseUrlPort baseUrl) walletClient staticDir availability
+    startServer' [mw] (baseUrlPort baseUrl) walletClient staticDir availability (timeout endpointTimeout)
       where
         mw = if permissiveCorsPolicy then simpleCors else id
+        -- By default we use the normal request timeout: 30 seconds. But if
+        -- someone has asked for a longer endpoint timeout, we need to set
+        -- that to be the webserver timeout as well.
+        timeout Nothing  = 30
+        timeout (Just s) = fromIntegral $ max s 30
 
 -- | Start the server. Returns an action that shuts it down
 --   again, and an MVar that is filled when the webserver
@@ -140,8 +145,9 @@ startServer' ::
     -> Either ClientEnv (PABAction t env WalletInfo) -- ^ How to generate a new wallet, either by proxying the request to the wallet API, or by running the PAB action
     -> Maybe FilePath -- ^ Optional file path for static assets
     -> Availability
+    -> Int
     -> PABAction t env (MVar (), PABAction t env ())
-startServer' waiMiddlewares port walletClient staticPath availability = do
+startServer' waiMiddlewares port walletClient staticPath availability timeout = do
     simRunner <- Core.pabRunner
     shutdownVar <- liftIO $ STM.atomically $ STM.newEmptyTMVar @()
     mvar <- liftIO newEmptyMVar
@@ -156,6 +162,7 @@ startServer' waiMiddlewares port walletClient staticPath availability = do
             & Warp.setPort port
             & Warp.setInstallShutdownHandler shutdownHandler
             & Warp.setBeforeMainLoop (available availability)
+            & Warp.setTimeout timeout
         middleware = appEndo $ foldMap Endo waiMiddlewares
     logInfo @(LM.PABMultiAgentMsg t) (LM.StartingPABBackendServer port)
     void $ liftIO $

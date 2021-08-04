@@ -69,6 +69,9 @@ extra-deps:
 - beam-core-0.9.0.0@sha256:e5b1cb4d5b8a8a166f3373e8718672a3884feb9a5a133404b047b0af76538023,5282
 - beam-migrate-0.5.0.0@sha256:d3f7e333ec9e96122ccec6be0d38a88f766dfc248323be73fd0b3cee245ea421,4923
 - beam-sqlite-0.5.0.0@sha256:d785bf40101235a72b80652ce27be9c8048de5f7c171ccb23e1e62b8f1ce6e7c,3496
+- Unique-0.4.7.8
+- moo-1.2
+- gray-code-0.3.1
 
 # cabal.project is the source of truth for these pins, they are explained there
 # and need to be kept in sync.
@@ -81,8 +84,9 @@ extra-deps:
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: ce8f1934e4b6252084710975bd9bbc0a4648ece4
 - git: https://github.com/input-output-hk/ouroboros-network
-  commit: e50613562d6d4a0f933741fcf590b0f69a1eda67
+  commit: e338f2cf8e1078fbda9555dd2b169c6737ef6774
   subdirs:
+    - monoidal-synchronisation
     - typed-protocols
     - typed-protocols-examples
     - ouroboros-network
@@ -93,7 +97,7 @@ extra-deps:
     - ouroboros-consensus-cardano
     - ouroboros-consensus-shelley
     - io-sim
-    - io-sim-classes
+    - io-classes
     - network-mux
 - git: https://github.com/input-output-hk/cardano-prelude
   commit: fd773f7a58412131512b9f694ab95653ac430852
@@ -111,7 +115,7 @@ extra-deps:
     - cardano-crypto-praos
     - strict-containers
 - git: https://github.com/input-output-hk/cardano-ledger-specs
-  commit: a3ef848542961079b7cd53d599e5385198a3035c
+  commit: b8f1ebb46a91f1c634e616feb89ae34de5937e17
   subdirs:
     - byron/chain/executable-spec
     - byron/crypto
@@ -135,13 +139,15 @@ extra-deps:
     - tracer-transformers
     - plugins/backend-ekg
 - git: https://github.com/input-output-hk/cardano-node.git
-  commit: b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6
+  commit: f3ef4ed72894499160f2330b91572a159005c148
   subdirs:
     - cardano-api
 - git: https://github.com/input-output-hk/Win32-network
   commit: 94153b676617f8f33abe8d8182c37377d2784bd1
 - git: https://github.com/input-output-hk/hedgehog-extras
   commit: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
+- git: https://github.com/input-output-hk/goblins
+  commit: cde90a2b27f79187ca8310b6549331e59595e7ba
 
 allow-newer: true
 

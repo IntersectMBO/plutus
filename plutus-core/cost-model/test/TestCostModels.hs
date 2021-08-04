@@ -121,6 +121,10 @@ prop_sha3_256 :: Property
 prop_sha3_256 =
     testPredictOne sha3_256 (getConst . paramSha3_256)
 
+prop_blake2b :: Property
+prop_blake2b =
+    testPredictOne blake2b (getConst . paramBlake2b)
+
 prop_verifySignature :: Property
 prop_verifySignature =
     testPredictThree verifySignature (getConst . paramVerifySignature)

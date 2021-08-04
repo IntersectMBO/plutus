@@ -5,8 +5,8 @@ license: Apache-2.0
 license-files:
   LICENSE
   NOTICE
-maintainer: vanessa.mchale@iohk.io
-author: Vanessa McHale
+maintainer: michael.peyton-jones@iohk.io
+author: Plutus Core Team
 tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
 synopsis: Language library for Plutus Core
 description:
@@ -114,6 +114,7 @@ library
         PlutusIR.Core
         PlutusIR.Core.Instance
         PlutusIR.Core.Instance.Pretty
+        PlutusIR.Core.Instance.Scoping
         PlutusIR.Core.Plated
         PlutusIR.Core.Type
         PlutusIR.Compiler
@@ -141,6 +142,7 @@ library
         UntypedPlutusCore.DeBruijn
         UntypedPlutusCore.Evaluation.HOAS
         UntypedPlutusCore.Evaluation.Machine.Cek
+        UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
         UntypedPlutusCore.Check.Uniques
@@ -235,7 +237,7 @@ library
         UntypedPlutusCore.Core.Plated
         UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
         UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-        UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+        UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
         UntypedPlutusCore.Mark
         UntypedPlutusCore.Rename.Internal
         UntypedPlutusCore.Size
@@ -279,7 +281,6 @@ library
         lazy-search -any,
         lens -any,
         megaparsec -any,
-        memory -any,
         mmorph -any,
         monoidal-containers,
         mtl -any,
@@ -297,16 +298,19 @@ library
         sop-core -any,
         tasty -any,
         tasty-golden -any,
+        tasty-hedgehog -any,
         tasty-hunit -any,
         template-haskell -any,
         text -any,
         th-lift -any,
         th-lift-instances -any,
         th-utilities -any,
+        time -any,
         transformers -any,
         unordered-containers -any,
         witherable -any,
-        word-array -any
+        word-array -any,
+        cardano-crypto-class -any
 
 test-suite satint-test
   import: lang
@@ -355,7 +359,6 @@ test-suite plutus-core-test
         tasty-golden -any,
         tasty-hedgehog -any,
         tasty-hunit -any,
-        tasty-hunit -any,
         text -any,
         transformers -any
 
@@ -365,10 +368,11 @@ test-suite plutus-ir-test
     main-is: Spec.hs
     hs-source-dirs: plutus-ir/test
     other-modules:
-        TransformSpec
+        NamesSpec
         ParserSpec
-        TypeSpec
         TestLib
+        TransformSpec
+        TypeSpec
     build-depends:
         base >=4.9 && <5,
         plutus-core -any,

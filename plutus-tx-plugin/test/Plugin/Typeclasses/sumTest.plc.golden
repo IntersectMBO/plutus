@@ -82,13 +82,10 @@
             )
           )
         )
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
         (let
           (rec)
           (termbind
-            (nonstrict)
+            (strict)
             (vardecl
               fFoldableNil_cfoldMap
               (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
@@ -115,11 +112,11 @@
                       (lam
                         ds
                         [List a]
-                        [
+                        {
                           [
                             [
-                              { [ { Nil_match a } ds ] (fun Unit m) }
-                              (lam thunk Unit [ { mempty m } dMonoid ])
+                              { [ { Nil_match a } ds ] (all dead (type) m) }
+                              (abs dead (type) [ { mempty m } dMonoid ])
                             ]
                             (lam
                               x
@@ -127,9 +124,9 @@
                               (lam
                                 xs
                                 [List a]
-                                (lam
-                                  thunk
-                                  Unit
+                                (abs
+                                  dead
+                                  (type)
                                   [
                                     [ dSemigroup [ ds x ] ]
                                     [
@@ -147,8 +144,8 @@
                               )
                             )
                           ]
-                          Unit
-                        ]
+                          (all dead (type) dead)
+                        }
                       )
                     )
                   )

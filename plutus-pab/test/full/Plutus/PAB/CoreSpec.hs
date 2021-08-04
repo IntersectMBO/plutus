@@ -14,6 +14,8 @@ module Plutus.PAB.CoreSpec
     , stopContractInstanceTest
     , walletFundsChangeTest
     , observableStateChangeTest
+    , runScenario
+    , assertEqual
     ) where
 
 import           Control.Lens                             ((&), (+~), (^.))

@@ -42,5 +42,5 @@ evaluateCekTrace
     => Program Name uni fun ()
     -> ([String], TallyingSt fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
-    case runCek PLC.defaultCekParameters Cek.tallying True t of
+    case runCek PLC.defaultCekParameters Cek.tallying Cek.logEmitter t of
         (errOrRes, st, logs) -> (logs, st, errOrRes)

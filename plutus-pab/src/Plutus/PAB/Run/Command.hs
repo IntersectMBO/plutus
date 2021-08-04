@@ -21,7 +21,8 @@ import           Wallet.Types       (ContractInstanceId)
 
 -- | A command for which a config.yaml file is required
 data ConfigCommand =
-    MockNode MockServerMode -- ^ Run the mock node service without starting the server
+    Migrate
+    | MockNode MockServerMode -- ^ Run the mock node service without starting the server
     | MockWallet -- ^ Run the mock wallet service
     | ChainIndex -- ^ Run the chain index service
     | Metadata -- ^ Run the mock meta-data service
@@ -38,8 +39,7 @@ data ConfigCommand =
     deriving anyclass JSON.ToJSON
 
 data NoConfigCommand =
-    Migrate { dbPath :: !FilePath } -- ^ Execute a database migration
-    | PSGenerator -- ^ Generate purescript bridge code
+    PSGenerator -- ^ Generate purescript bridge code
           { psGenOutputDir :: !FilePath -- ^ Path to write generated code to
           }
     | WriteDefaultConfig -- ^ Write default logging configuration

@@ -209,7 +209,10 @@ runPAB' env@PABEnvironment{effectHandlers} action = runM $ runError $ do
         onShutdown
         pure result
 
--- | Start a new instance of a contract, with a given state.
+-- | Start a new instance of a contract, with a given state. Note that we skip
+-- running the effects that push the state into the contract store, because we
+-- assume that if you're providing the state, it's already present in the
+-- store.
 activateContract' :: forall t env. PABContract t => ContractInstanceState t -> ContractInstanceId -> Wallet -> ContractDef t -> PABAction t env ContractInstanceId
 activateContract' state cid w def = do
     PABRunner{runPABAction} <- pabRunner
@@ -219,7 +222,7 @@ activateContract' state cid w def = do
         args :: ContractActivationArgs (ContractDef t)
         args = ContractActivationArgs{caWallet = w, caID = def}
     handleAgentThread w
-        $ ContractInstance.activateContractSTM' @t @IO @(ContractInstanceEffects t env '[IO]) state cid handler args
+        $ ContractInstance.startContractInstanceThread' @t @IO @(ContractInstanceEffects t env '[IO]) state cid handler args
 
 -- | Start a new instance of a contract
 activateContract :: forall t env. PABContract t => Wallet -> ContractDef t -> PABAction t env ContractInstanceId

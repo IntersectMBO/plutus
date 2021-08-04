@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -9,6 +10,7 @@ import           TestLib
 import           PlutusCore.Quote
 
 import qualified PlutusCore                         as PLC
+import qualified PlutusCore.Pretty                  as PLC
 
 import           PlutusIR.Parser
 import qualified PlutusIR.Transform.Beta            as Beta
@@ -32,6 +34,7 @@ transform = testNested "transform" [
     , beta
     , unwrapCancel
     , deadCode
+    , rename
     ]
 
 thunkRecursions :: TestNested
@@ -43,7 +46,7 @@ thunkRecursions = testNested "thunkRecursions"
 
 nonStrict :: TestNested
 nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "nonStrict1"
     ]
 
@@ -136,3 +139,14 @@ deadCode =
     , "recBindingSimple"
     , "recBindingComplex"
     ]
+
+rename :: TestNested
+rename =
+    testNested "rename"
+    $ map (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    [ "allShadowedDataNonRec"
+    , "allShadowedDataRec"
+    , "paramShadowedDataNonRec"
+    , "paramShadowedDataRec"
+    ] where
+        debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName

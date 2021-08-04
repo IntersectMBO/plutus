@@ -45,7 +45,7 @@ reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorField
             [|
                 let indexMatchCase = $(handleList argNames argsExpr)
                     fallthrough = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) ()
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) BI.unitval
             |]
     body
 
@@ -90,7 +90,7 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructo
             [|
                 let indexMatchCase = $(handleList argNames argsExpr)
                     fallthrough = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) ()
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) BI.unitval
             |]
     body
 

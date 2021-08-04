@@ -10,15 +10,15 @@
       )
     )
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Maybe (fun (type) (type)))
         (tyvardecl a (type))
         Maybe_match
         (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
       )
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (termbind
       (strict)
@@ -86,7 +86,7 @@
                                 (termbind
                                   (nonstrict)
                                   (vardecl nilCase [Maybe [[Tuple2 a] b]])
-                                  [
+                                  {
                                     [
                                       [
                                         {
@@ -102,15 +102,15 @@
                                               ]
                                             ]
                                           ]
-                                          (fun Unit [Maybe [[Tuple2 a] b]])
+                                          (all dead (type) [Maybe [[Tuple2 a] b]])
                                         }
                                         (lam
                                           ipv
                                           a
-                                          (lam
-                                            thunk
-                                            Unit
-                                            [
+                                          (abs
+                                            dead
+                                            (type)
+                                            {
                                               [
                                                 [
                                                   {
@@ -127,14 +127,14 @@
                                                         ]
                                                       ]
                                                     ]
-                                                    (fun Unit [Maybe [[Tuple2 a] b]])
+                                                    (all dead (type) [Maybe [[Tuple2 a] b]])
                                                   }
                                                   (lam
                                                     ipv
                                                     b
-                                                    (lam
-                                                      thunk
-                                                      Unit
+                                                    (abs
+                                                      dead
+                                                      (type)
                                                       [
                                                         { Just [[Tuple2 a] b] }
                                                         [
@@ -148,22 +148,23 @@
                                                     )
                                                   )
                                                 ]
-                                                (lam
-                                                  thunk
-                                                  Unit
+                                                (abs
+                                                  dead
+                                                  (type)
                                                   { Nothing [[Tuple2 a] b] }
                                                 )
                                               ]
-                                              Unit
-                                            ]
+                                              (all dead (type) dead)
+                                            }
                                           )
                                         )
                                       ]
-                                      (lam thunk Unit { Nothing [[Tuple2 a] b] }
+                                      (abs
+                                        dead (type) { Nothing [[Tuple2 a] b] }
                                       )
                                     ]
-                                    Unit
-                                  ]
+                                    (all dead (type) dead)
+                                  }
                                 )
                                 (termbind
                                   (nonstrict)
@@ -233,7 +234,7 @@
                                       [
                                         {
                                           (builtin ifThenElse)
-                                          (fun Unit [Maybe [[Tuple2 a] b]])
+                                          (fun (con unit) [Maybe [[Tuple2 a] b]])
                                         }
                                         [
                                           [
@@ -252,11 +253,13 @@
                                           (con integer 0)
                                         ]
                                       ]
-                                      (lam ds Unit x)
+                                      (lam ds (con unit) x)
                                     ]
-                                    (lam ds Unit { Nothing [[Tuple2 a] b] })
+                                    (lam
+                                      ds (con unit) { Nothing [[Tuple2 a] b] }
+                                    )
                                   ]
-                                  Unit
+                                  (con unit ())
                                 ]
                               )
                             )

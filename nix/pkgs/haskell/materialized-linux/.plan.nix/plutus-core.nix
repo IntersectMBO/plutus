@@ -14,8 +14,8 @@
       identifier = { name = "plutus-core"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
-      maintainer = "vanessa.mchale@iohk.io";
-      author = "Vanessa McHale";
+      maintainer = "michael.peyton-jones@iohk.io";
+      author = "Plutus Core Team";
       homepage = "";
       url = "";
       synopsis = "Language library for Plutus Core";
@@ -70,7 +70,6 @@
           (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
-          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
           (hsPkgs."monoidal-containers" or (errorHandler.buildDepError "monoidal-containers"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -88,16 +87,19 @@
           (hsPkgs."sop-core" or (errorHandler.buildDepError "sop-core"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
+          (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
+          (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))
@@ -171,7 +173,7 @@
           "UntypedPlutusCore/Core/Plated"
           "UntypedPlutusCore/Evaluation/Machine/Cek/CekMachineCosts"
           "UntypedPlutusCore/Evaluation/Machine/Cek/ExBudgetMode"
-          "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/EmitterMode"
           "UntypedPlutusCore/Mark"
           "UntypedPlutusCore/Rename/Internal"
           "UntypedPlutusCore/Size"
@@ -255,6 +257,7 @@
           "PlutusIR/Core"
           "PlutusIR/Core/Instance"
           "PlutusIR/Core/Instance/Pretty"
+          "PlutusIR/Core/Instance/Scoping"
           "PlutusIR/Core/Plated"
           "PlutusIR/Core/Type"
           "PlutusIR/Compiler"
@@ -281,6 +284,7 @@
           "UntypedPlutusCore/DeBruijn"
           "UntypedPlutusCore/Evaluation/HOAS"
           "UntypedPlutusCore/Evaluation/Machine/Cek"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
           "UntypedPlutusCore/Check/Uniques"
@@ -425,7 +429,13 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "TransformSpec" "ParserSpec" "TypeSpec" "TestLib" ];
+          modules = [
+            "NamesSpec"
+            "ParserSpec"
+            "TestLib"
+            "TransformSpec"
+            "TypeSpec"
+            ];
           hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };

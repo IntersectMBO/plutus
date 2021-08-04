@@ -83,7 +83,8 @@ commandParser :: Parser ConfigCommand
 commandParser =
     subparser $
     mconcat
-        [ allServersParser
+        [ migrationParser
+        , allServersParser
         , clientServicesParser
         , mockWalletParser
         , pabWebserverParser
@@ -103,6 +104,12 @@ commandParser =
                    (fullDesc <> progDesc "Manage your smart contracts."))
         , psGeneratorCommandParser
         ]
+
+migrationParser :: Mod CommandFields ConfigCommand
+migrationParser =
+    command "migrate" $
+    flip info (fullDesc <> progDesc "Update the database with the latest schema.") $
+        pure Migrate
 
 psGeneratorCommandParser :: Mod CommandFields ConfigCommand
 psGeneratorCommandParser =

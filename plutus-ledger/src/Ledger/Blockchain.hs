@@ -1,9 +1,9 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Ledger.Blockchain (
     OnChainTx(..),
     _Valid,
@@ -37,6 +37,7 @@ import           Data.Map                 (Map)
 import qualified Data.Map                 as Map
 import           Data.Monoid              (First (..))
 import qualified Data.Set                 as Set
+import           Data.Text.Encoding       (decodeUtf8)
 import           GHC.Generics             (Generic)
 import           Ledger.Tx                (spentOutputs, txId, unspentOutputsTx, updateUtxo, validValuesTx)
 
@@ -47,11 +48,15 @@ import           Plutus.V1.Ledger.Tx      (Tx, TxIn, TxOut, TxOutRef, collateral
                                            txOutRefId, txOutRefIdx, txOutValue, txOutputs, updateUtxoCollateral)
 import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value   (Value)
+import           Prettyprinter            (Pretty (..))
 
 -- | Block identifier (usually a hash)
 newtype BlockId = BlockId { getBlockId :: BS.ByteString }
     deriving stock (Eq, Ord, Generic)
     deriving (ToJSON, FromJSON, Show) via LedgerBytes
+
+instance Pretty BlockId where
+    pretty (BlockId blockId) = "BlockId(" <> pretty (decodeUtf8 blockId) <> ")"
 
 -- | A transaction on the blockchain.
 -- Invalid transactions are still put on the chain to be able to collect fees.

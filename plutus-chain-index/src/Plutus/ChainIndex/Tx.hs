@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE NamedFieldPuns  #-}
@@ -21,6 +22,7 @@ module Plutus.ChainIndex.Tx(
     ) where
 
 import           Control.Lens (makeLenses)
+import           Data.Aeson   (FromJSON, ToJSON)
 import           Data.Map     (Map)
 import qualified Data.Map     as Map
 import           Data.Set     (Set)
@@ -40,7 +42,7 @@ data ChainIndexTx = ChainIndexTx {
     _citxRedeemers       :: Map RedeemerHash Redeemer,
     _citxMintingPolicies :: Map MintingPolicyHash MintingPolicy,
     _citxValidators      :: Map ValidatorHash Validator
-    } deriving (Show, Eq, Generic)
+    } deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 makeLenses ''ChainIndexTx
 

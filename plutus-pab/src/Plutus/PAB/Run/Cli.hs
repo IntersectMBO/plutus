@@ -41,12 +41,13 @@ import           Control.Monad.Freer.Error             (throwError)
 import           Control.Monad.Freer.Extras.Log        (logInfo)
 import           Control.Monad.Freer.Reader            (ask, runReader)
 import           Control.Monad.IO.Class                (liftIO)
+import           Control.Monad.Logger                  (logErrorN, runStdoutLoggingT)
 import           Data.Aeson                            (FromJSON, ToJSON)
 import           Data.Foldable                         (traverse_)
 import qualified Data.Map                              as Map
 import           Data.Proxy                            (Proxy (..))
 import qualified Data.Set                              as Set
-import qualified Data.Text                             as Text
+import           Data.Text.Extras                      (tshow)
 import           Data.Text.Prettyprint.Doc             (Pretty (..), defaultLayoutOptions, layoutPretty, pretty)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Data.Time.Units                       (Second)
@@ -66,23 +67,18 @@ import qualified Plutus.PAB.Monitoring.Monitoring      as LM
 import           Plutus.PAB.Run.Command
 import           Plutus.PAB.Run.PSGenerator            (HasPSTypes (..))
 import qualified Plutus.PAB.Run.PSGenerator            as PSGenerator
-import           Plutus.PAB.Types                      (Config (..), DbConfig (..), chainIndexConfig,
-                                                        metadataServerConfig, nodeServerConfig, walletServerConfig)
+import           Plutus.PAB.Types                      (Config (..), chainIndexConfig, metadataServerConfig,
+                                                        nodeServerConfig, walletServerConfig)
 import qualified Plutus.PAB.Webserver.Server           as PABServer
 import           Plutus.PAB.Webserver.Types            (ContractActivationArgs (..))
 import qualified Servant
+import           System.Exit                           (ExitCode (ExitFailure), exitWith)
 import qualified Wallet.Types                          as Wallet
 
 runNoConfigCommand ::
-    Trace IO (LM.AppMsg (Builtin a))  -- ^ PAB Tracer logging instance
-    -> NoConfigCommand
+    NoConfigCommand
     -> IO ()
-runNoConfigCommand trace = \case
-
-    -- Run database migration
-    Migrate{dbPath} ->
-        let conf = DbConfig{dbConfigPoolSize=10, dbConfigFile=Text.pack dbPath} in
-        App.migrate (LM.convertLog LM.PABMsg trace) conf
+runNoConfigCommand = \case
 
     -- Generate PureScript bridge code
     PSGenerator {psGenOutputDir} -> do
@@ -117,6 +113,10 @@ runConfigCommand :: forall a.
     -> ConfigCommandArgs a
     -> ConfigCommand
     -> IO ()
+
+-- Run the database migration
+runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig=Config{dbConfig}} Migrate =
+    App.migrate (toPABMsg ccaTrace) dbConfig
 
 -- Run mock wallet service
 runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServerConfig, chainIndexConfig, walletServerConfig},ccaAvailability} MockWallet =
@@ -162,24 +162,30 @@ runConfigCommand contractHandler ConfigCommandArgs{ccaTrace, ccaPABConfig=config
                     pure priorContract
 
         -- Then, start the server
-        fmap (either (error . show) id)
-          $ App.runApp ccaStorageBackend (toPABMsg ccaTrace) contractHandler config
+        result <- App.runApp ccaStorageBackend (toPABMsg ccaTrace) contractHandler config
           $ do
               env <- ask @(Core.PABEnvironment (Builtin a) (App.AppEnv a))
+
               -- But first, spin up all the previous contracts
+              logInfo @(LM.PABMultiAgentMsg (Builtin a)) LM.RestoringPABState
               case previousContracts of
-                -- TODO: Log this error a bit better? Or handle it earlier?
                 Left err -> throwError err
                 Right ts -> do
                     forM_ ts $ \(s, cid, args) -> do
                       action <- buildPABAction @a @(App.AppEnv a) s cid args
-                      liftIO $ Core.runPAB' env action
+                      liftIO . async $ Core.runPAB' env action
                       pure ()
+                    logInfo @(LM.PABMultiAgentMsg (Builtin a)) LM.PABStateRestored
 
               -- then, actually start the server.
               let walletClientEnv = App.walletClientEnv (Core.appEnv env)
               (mvar, _) <- PABServer.startServer pabWebserverConfig (Left walletClientEnv) ccaAvailability
               liftIO $ takeMVar mvar
+        either handleError return result
+  where
+    handleError err = do
+        runStdoutLoggingT $ (logErrorN . tshow . pretty) err
+        exitWith (ExitFailure 2)
 
 -- Fork a list of commands
 runConfigCommand contractHandler c@ConfigCommandArgs{ccaAvailability} (ForkCommands commands) =

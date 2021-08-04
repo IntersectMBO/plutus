@@ -3,7 +3,7 @@
 
 module Evaluation.Machines
     ( test_machines
-    , test_memory
+    --, test_memory
     , test_budget
     , test_tallying
     ) where
@@ -15,7 +15,6 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek        as Cek
 import qualified PlutusCore                                      as Plc
 import           PlutusCore.Constant
 import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.Exception
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.FsTree
@@ -24,14 +23,11 @@ import           PlutusCore.MkPlc
 import           PlutusCore.Pretty
 
 import           PlutusCore.Examples.Builtins
-import           PlutusCore.Examples.Everything                  (examples)
 import qualified PlutusCore.StdLib.Data.Nat                      as Plc
-import           PlutusCore.StdLib.Everything                    (stdLib)
 import           PlutusCore.StdLib.Meta
 import           PlutusCore.StdLib.Meta.Data.Function            (etaExpand)
 
 import           Common
-import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
 import           GHC.Ix
@@ -60,22 +56,6 @@ test_machines =
         [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
         , testMachine "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
         ]
-
-testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
-testMemory name = nestedGoldenVsText name . fromString . show . memoryUsage
-
-test_memory :: TestTree
-test_memory =
-    testGroup "Bundles"
-        [ folder stdLib
-        , folder examples
-        ]
-  where
-    folder :: ExMemoryUsage fun => PlcFolderContents DefaultUni fun -> TestTree
-    folder
-        = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
-        . testNested "Memory"
-        . foldPlcFolderContents testNested testMemory testMemory
 
 testBudget
     :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)

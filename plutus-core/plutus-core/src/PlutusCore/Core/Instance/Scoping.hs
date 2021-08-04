@@ -23,11 +23,14 @@ instance name ~ Name => Reference Name (Term tyname name uni fun) where
     referenceVia reg name term = Apply NotAName term $ Var (reg name) name
 
 -- Kinds have no names, hence the simple instance.
-instance Scoping Kind where
+instance EstablishScoping Kind where
     establishScoping kind = pure $ NotAName <$ kind
+
+-- Kinds have no names, hence the simple instance.
+instance CollectScopeInfo Kind where
     collectScopeInfo _ = mempty
 
-instance tyname ~ TyName => Scoping (Type tyname uni) where
+instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
     establishScoping (TyLam _ nameDup kind ty) = do
         name <- freshenTyName nameDup
         establishScopingBinder TyLam name kind ty
@@ -45,20 +48,7 @@ instance tyname ~ TyName => Scoping (Type tyname uni) where
         pure $ TyVar (registerFree name) name
     establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
 
-    collectScopeInfo (TyLam ann name kind ty) =
-        handleSname ann name <> collectScopeInfo kind <> collectScopeInfo ty
-    collectScopeInfo (TyForall ann name kind ty) =
-        handleSname ann name <> collectScopeInfo kind <> collectScopeInfo ty
-    collectScopeInfo (TyIFix _ pat arg) =
-        collectScopeInfo pat <> collectScopeInfo arg
-    collectScopeInfo (TyApp _ fun arg) =
-        collectScopeInfo fun <> collectScopeInfo arg
-    collectScopeInfo (TyFun _ dom cod) =
-        collectScopeInfo dom <> collectScopeInfo cod
-    collectScopeInfo (TyVar ann name) = handleSname ann name
-    collectScopeInfo (TyBuiltin _ _) = mempty
-
-instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) where
+instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name uni fun) where
     establishScoping (LamAbs _ nameDup ty body)  = do
         name <- freshenName nameDup
         establishScopingBinder LamAbs name ty body
@@ -79,24 +69,35 @@ instance (tyname ~ TyName, name ~ Name) => Scoping (Term tyname name uni fun) wh
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
 
+instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
+    establishScoping (Program _ ver term) =
+        Program NotAName (NotAName <$ ver) <$> establishScoping term
+
+instance tyname ~ TyName => CollectScopeInfo (Type tyname uni) where
+    collectScopeInfo (TyLam ann name kind ty) =
+        handleSname ann name <> collectScopeInfo kind <> collectScopeInfo ty
+    collectScopeInfo (TyForall ann name kind ty) =
+        handleSname ann name <> collectScopeInfo kind <> collectScopeInfo ty
+    collectScopeInfo (TyIFix _ pat arg) = collectScopeInfo pat <> collectScopeInfo arg
+    collectScopeInfo (TyApp _ fun arg) = collectScopeInfo fun <> collectScopeInfo arg
+    collectScopeInfo (TyFun _ dom cod) = collectScopeInfo dom <> collectScopeInfo cod
+    collectScopeInfo (TyVar ann name) = handleSname ann name
+    collectScopeInfo (TyBuiltin _ _) = mempty
+
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name uni fun) where
     collectScopeInfo (LamAbs ann name ty body)  =
         handleSname ann name <> collectScopeInfo ty <> collectScopeInfo body
     collectScopeInfo (TyAbs ann name kind body) =
         handleSname ann name <> collectScopeInfo kind <> collectScopeInfo body
     collectScopeInfo (IWrap _ pat arg term)   =
         collectScopeInfo pat <> collectScopeInfo arg <> collectScopeInfo term
-    collectScopeInfo (Apply _ fun arg) =
-        collectScopeInfo fun <> collectScopeInfo arg
+    collectScopeInfo (Apply _ fun arg) = collectScopeInfo fun <> collectScopeInfo arg
     collectScopeInfo (Unwrap _ term) = collectScopeInfo term
     collectScopeInfo (Error _ ty) = collectScopeInfo ty
-    collectScopeInfo (TyInst _ term ty) =
-        collectScopeInfo term <> collectScopeInfo ty
+    collectScopeInfo (TyInst _ term ty) = collectScopeInfo term <> collectScopeInfo ty
     collectScopeInfo (Var ann name) = handleSname ann name
     collectScopeInfo (Constant _ _) = mempty
     collectScopeInfo (Builtin _ _) = mempty
 
-instance (tyname ~ TyName, name ~ Name) => Scoping (Program tyname name uni fun) where
-    establishScoping (Program _ ver term) =
-        Program NotAName (NotAName <$ ver) <$> establishScoping term
-
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Program tyname name uni fun) where
     collectScopeInfo (Program _ _ term) = collectScopeInfo term

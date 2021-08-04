@@ -219,7 +219,7 @@ in
           rm -rf ${cfg.dbFile}
 
           echo "[pab-init-cmd]: Creating new DB '${cfg.dbFile}'"
-          ${cfg.pab-setup}/bin/plutus-pab-setup migrate ${cfg.dbFile}
+          ${cfg.pab-package}/bin/plutus-pab-examples --config=${pabYaml} migrate;
         '';
       in
       {

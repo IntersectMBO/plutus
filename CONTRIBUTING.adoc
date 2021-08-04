@@ -144,6 +144,8 @@ actually use flakes for normal Nix builds. To manage the dependencies,
 see https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs[the Nix flake inputs documentation]
 and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-update.html[the Nix flake update command].
 
+Inside of the project nix-shell, a version of Nix with flakes is available under the alias `nix-flakes`.
+
 [[update-index-state]]
 === How to update the Hackage index state
 

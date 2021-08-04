@@ -12,6 +12,7 @@ import           Common
 import           PlutusPrelude
 import           TestLib
 
+import           NamesSpec
 import           ParserSpec
 import           TransformSpec
 import           TypeSpec
@@ -37,6 +38,7 @@ tests = testGroup "plutus-ir" <$> sequence
     , recursion
     , serialization
     , errors
+    , pure names
     , transform
     , types
     , typeErrors
@@ -59,6 +61,8 @@ datatypes :: TestNested
 datatypes = testNested "datatypes"
     [ goldenPlcFromPir term "maybe"
     , goldenPlcFromPir term "listMatch"
+    , goldenPlcFromPirCatch term "idleAll"
+    , goldenPlcFromPirCatch term "some"
     , goldenEvalPir term "listMatchEval"
     ]
 

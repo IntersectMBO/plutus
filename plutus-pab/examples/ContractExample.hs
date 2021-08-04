@@ -31,6 +31,7 @@ import           Language.PureScript.Bridge.TypeParameters (A)
 import           Playground.Types                          (FunctionSchema)
 import qualified Plutus.Contracts.Currency                 as Contracts.Currency
 import qualified Plutus.Contracts.GameStateMachine         as Contracts.GameStateMachine
+import qualified Plutus.Contracts.PingPong                 as Contracts.PingPong
 import qualified Plutus.Contracts.Prism.Mirror             as Contracts.Prism
 import qualified Plutus.Contracts.Prism.Unlock             as Contracts.Prism
 import           Plutus.Contracts.Uniswap                  (Uniswap)
@@ -55,6 +56,7 @@ data ExampleContracts = UniswapInit
                       | PrismUnlockExchange
                       | PrismUnlockSto
                       | WaitForTx
+                      | PingPong
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -81,6 +83,7 @@ instance HasDefinitions ExampleContracts where
                      , PrismUnlockExchange
                      , PrismUnlockSto
                      , WaitForTx
+                     , PingPong
                      ]
     getContract = getExampleContracts
     getSchema = getExampleContractsSchema
@@ -98,6 +101,7 @@ getExampleContractsSchema = \case
     PrismUnlockExchange -> Builtin.endpointsToSchemas @Contracts.Prism.UnlockExchangeSchema
     PrismUnlockSto      -> Builtin.endpointsToSchemas @Contracts.Prism.STOSubscriberSchema
     WaitForTx           -> Builtin.endpointsToSchemas @Contracts.WaitForTx.WaitForTxSchema
+    PingPong            -> Builtin.endpointsToSchemas @Contracts.PingPong.PingPongSchema
 
 getExampleContracts :: ExampleContracts -> SomeBuiltin
 getExampleContracts = \case
@@ -112,6 +116,7 @@ getExampleContracts = \case
     PrismUnlockExchange -> SomeBuiltin (Contracts.Prism.unlockExchange @() @Contracts.Prism.UnlockExchangeSchema)
     PrismUnlockSto      -> SomeBuiltin (Contracts.Prism.subscribeSTO @() @Contracts.Prism.STOSubscriberSchema)
     WaitForTx           -> SomeBuiltin Contracts.WaitForTx.waitForTx
+    PingPong            -> SomeBuiltin Contracts.PingPong.simplePingPong
 
 handlers :: SimulatorEffectHandlers (Builtin ExampleContracts)
 handlers =

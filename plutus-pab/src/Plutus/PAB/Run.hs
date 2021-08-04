@@ -35,7 +35,7 @@ import           Plutus.PAB.Run.Cli
 import           Plutus.PAB.Run.CommandParser
 import           Plutus.PAB.Run.PSGenerator          (HasPSTypes)
 import           Plutus.PAB.Types                    (PABError (MissingConfigFileOption))
-import           Prettyprinter                       (Pretty)
+import           Prettyprinter                       (Pretty (pretty))
 import qualified Servant
 import           System.Exit                         (ExitCode (ExitFailure), exitSuccess, exitWith)
 
@@ -85,5 +85,5 @@ runWith userContractHandler = do
         where
 
             handleError (err :: PABError) = do
-                runStdoutLoggingT $ (logErrorN . tshow) err
+                runStdoutLoggingT $ (logErrorN . tshow . pretty) err
                 exitWith (ExitFailure 1)
