@@ -476,7 +476,7 @@ processConstraint = \case
         let theHash = datumHash dv in
         unbalancedTx . tx . Tx.datumWitnesses . at theHash .= Just dv
     MustValidateIn timeRange ->
-        unbalancedTx . tx . Tx.validRange %= (TimeSlot.posixTimeRangeToSlotRange def timeRange /\)
+        unbalancedTx . tx . Tx.validRange %= (TimeSlot.posixTimeRangeToContainedSlotRange def timeRange /\)
     MustBeSignedBy pk ->
         unbalancedTx . requiredSignatories %= Set.insert pk
     MustSpendAtLeast vl -> valueSpentInputs <>= required vl

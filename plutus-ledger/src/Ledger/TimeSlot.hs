@@ -18,7 +18,7 @@ module Ledger.TimeSlot(
 , slotToPOSIXTimeRange
 , slotToBeginPOSIXTime
 , slotToEndPOSIXTime
-, posixTimeRangeToSlotRange
+, posixTimeRangeToContainedSlotRange
 , posixTimeToEnclosingSlot
 , currentSlot
 ) where
@@ -31,7 +31,8 @@ import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import qualified Data.Time.Clock           as Time
 import qualified Data.Time.Clock.POSIX     as Time
 import           GHC.Generics              (Generic)
-import           Plutus.V1.Ledger.Interval (Interval (Interval, ivFrom, ivTo), interval)
+import           Plutus.V1.Ledger.Interval (Extended (..), Interval (Interval), LowerBound (..), UpperBound (..),
+                                            interval, member)
 import           Plutus.V1.Ledger.Slot     (Slot (Slot), SlotRange)
 import           Plutus.V1.Ledger.Time     (POSIXTime (POSIXTime, getPOSIXTime), POSIXTimeRange)
 import           PlutusTx.Lift             (makeLift)
@@ -75,10 +76,10 @@ beginningOfTime = 1596059091000
 -- resulting 'POSIXTimeRange' refers to the starting time of the lower bound of
 -- the 'SlotRange' and the ending time of the upper bound of the 'SlotRange'.
 slotRangeToPOSIXTimeRange :: SlotConfig -> SlotRange -> POSIXTimeRange
-slotRangeToPOSIXTimeRange sc sr =
-  let lbound = fmap (slotToBeginPOSIXTime sc) $ ivFrom sr
-      ubound = fmap (slotToEndPOSIXTime sc) $ ivTo sr
-   in Interval lbound ubound
+slotRangeToPOSIXTimeRange sc (Interval (LowerBound start startIncl) (UpperBound end endIncl)) =
+  let lbound = fmap (if startIncl then slotToBeginPOSIXTime sc else slotToEndPOSIXTime sc) start
+      ubound = fmap (if endIncl   then slotToEndPOSIXTime sc   else slotToBeginPOSIXTime sc) end
+   in Interval (LowerBound lbound startIncl) (UpperBound ubound endIncl)
 
 {-# INLINABLE slotToPOSIXTimeRange #-}
 -- | Convert a 'Slot' to a 'POSIXTimeRange' given a 'SlotConfig'. Each 'Slot'
@@ -100,11 +101,15 @@ slotToEndPOSIXTime :: SlotConfig -> Slot -> POSIXTime
 slotToEndPOSIXTime sc@SlotConfig{scSlotLength} slot =
   slotToBeginPOSIXTime sc slot + POSIXTime (scSlotLength - 1)
 
-{-# INLINABLE posixTimeRangeToSlotRange #-}
+{-# INLINABLE posixTimeRangeToContainedSlotRange #-}
 -- | Convert a 'POSIXTimeRange' to 'SlotRange' given a 'SlotConfig'. This gives
--- the smallest slot range that entirely contains the given time range.
-posixTimeRangeToSlotRange :: SlotConfig -> POSIXTimeRange -> SlotRange
-posixTimeRangeToSlotRange sc = fmap (posixTimeToEnclosingSlot sc)
+-- the biggest slot range that is entirely contained by the given time range.
+posixTimeRangeToContainedSlotRange :: SlotConfig -> POSIXTimeRange -> SlotRange
+posixTimeRangeToContainedSlotRange sc ptr = case fmap (posixTimeToEnclosingSlot sc) ptr of
+  Interval (LowerBound start startIncl) (UpperBound end endIncl) ->
+    Interval
+      (LowerBound start (case start of Finite s -> slotToBeginPOSIXTime sc s `member` ptr; _ -> startIncl))
+      (UpperBound end (case end of Finite e -> slotToEndPOSIXTime sc e `member` ptr; _ -> endIncl))
 
 {-# INLINABLE posixTimeToEnclosingSlot #-}
 -- | Convert a 'POSIXTime' to 'Slot' given a 'SlotConfig'.
