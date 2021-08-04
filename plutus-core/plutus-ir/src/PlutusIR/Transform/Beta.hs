@@ -27,12 +27,14 @@ betaStep = \case
             bindings = binding :| []
         in
             Let a NonRec bindings body
-    TyInst a (TyAbs _ tyname kind body) typ ->
-        let tyVarDecl = TyVarDecl a tyname kind
-            tyBinding = TypeBind a tyVarDecl typ
-            bindings  = tyBinding :| []
-        in
-            Let a NonRec bindings body
+    -- NOTE:  This is not a type safe transformation due to let bindings not
+    --        being transparent.
+    -- TyInst a (TyAbs _ tyname kind body) typ ->
+    --     let tyVarDecl = TyVarDecl a tyname kind
+    --         tyBinding = TypeBind a tyVarDecl typ
+    --         bindings  = tyBinding :| []
+    --     in
+    --         Let a NonRec bindings body
     t -> t
 
 {-|
