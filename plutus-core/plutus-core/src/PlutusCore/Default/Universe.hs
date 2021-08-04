@@ -22,7 +22,6 @@ module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair
-    , pattern DefaultUniString
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
@@ -75,7 +74,7 @@ feature and have meta-constructors as built-in functions.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni (Esc Integer)
     DefaultUniByteString :: DefaultUni (Esc BS.ByteString)
-    DefaultUniChar       :: DefaultUni (Esc Char)
+    DefaultUniText       :: DefaultUni (Esc Text.Text)
     DefaultUniUnit       :: DefaultUni (Esc ())
     DefaultUniBool       :: DefaultUni (Esc Bool)
     DefaultUniProtoList  :: DefaultUni (Esc [])
@@ -90,7 +89,6 @@ pattern DefaultUniList uniA =
 pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 -- Just for backwards compatibility, probably should be removed at some point.
-pattern DefaultUniString = DefaultUniList DefaultUniChar
 
 deriveGEq ''DefaultUni
 
@@ -101,7 +99,7 @@ noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 instance ToKind DefaultUni where
     toKind DefaultUniInteger        = kindOf DefaultUniInteger
     toKind DefaultUniByteString     = kindOf DefaultUniByteString
-    toKind DefaultUniChar           = kindOf DefaultUniChar
+    toKind DefaultUniText           = kindOf DefaultUniText
     toKind DefaultUniUnit           = kindOf DefaultUniUnit
     toKind DefaultUniBool           = kindOf DefaultUniBool
     toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
@@ -121,14 +119,14 @@ instance GShow DefaultUni where gshowsPrec = showsPrec
 instance Show (DefaultUni a) where
     show DefaultUniInteger             = "integer"
     show DefaultUniByteString          = "bytestring"
-    show DefaultUniChar                = "char"
+    show DefaultUniText                = "text"
     show DefaultUniUnit                = "unit"
     show DefaultUniBool                = "bool"
     show DefaultUniProtoList           = "list"
     show DefaultUniProtoPair           = "pair"
     show (uniF `DefaultUniApply` uniB) = case uniF of
         DefaultUniProtoList -> case uniB of
-            DefaultUniChar -> "string"
+            DefaultUniText -> "string"
             _              -> concat ["list (", show uniB, ")"]
         DefaultUniProtoPair -> concat ["pair (", show uniB, ")"]
         DefaultUniProtoPair `DefaultUniApply` uniA -> concat ["pair (", show uniA, ") (", show uniB, ")"]
@@ -139,10 +137,9 @@ instance Show (DefaultUni a) where
 instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
     parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
     parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
-    parse "char"       = Just . SomeTypeIn $ Kinded DefaultUniChar
+    parse "text"       = Just . SomeTypeIn $ Kinded DefaultUniText
     parse "integer"    = Just . SomeTypeIn $ Kinded DefaultUniInteger
     parse "unit"       = Just . SomeTypeIn $ Kinded DefaultUniUnit
-    parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
     parse text         = asum
         [ do
             aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
@@ -167,7 +164,7 @@ instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
 instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
-instance DefaultUni `Contains` Char          where knownUni = DefaultUniChar
+instance DefaultUni `Contains` Text.Text          where knownUni = DefaultUniText
 instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
 instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoList
@@ -189,7 +186,7 @@ instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =
         ( constr `Permits` Integer
         , constr `Permits` BS.ByteString
-        , constr `Permits` Char
+        , constr `Permits` Text.Text
         , constr `Permits` ()
         , constr `Permits` Bool
         , constr `Permits` []
@@ -200,7 +197,7 @@ instance Closed DefaultUni where
     -- See Note [Stable encoding of tags].
     encodeUni DefaultUniInteger           = [0]
     encodeUni DefaultUniByteString        = [1]
-    encodeUni DefaultUniChar              = [2]
+    encodeUni DefaultUniText              = [2]
     encodeUni DefaultUniUnit              = [3]
     encodeUni DefaultUniBool              = [4]
     encodeUni DefaultUniProtoList         = [5]
@@ -213,7 +210,7 @@ instance Closed DefaultUni where
     withDecodedUni k = peelUniTag >>= \case
         0 -> k DefaultUniInteger
         1 -> k DefaultUniByteString
-        2 -> k DefaultUniChar
+        2 -> k DefaultUniText
         3 -> k DefaultUniUnit
         4 -> k DefaultUniBool
         5 -> k DefaultUniProtoList
@@ -231,7 +228,7 @@ instance Closed DefaultUni where
         => proxy constr -> DefaultUni (Esc a) -> (constr a => r) -> r
     bring _ DefaultUniInteger    r = r
     bring _ DefaultUniByteString r = r
-    bring _ DefaultUniChar       r = r
+    bring _ DefaultUniText       r = r
     bring _ DefaultUniUnit       r = r
     bring _ DefaultUniBool       r = r
     bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
