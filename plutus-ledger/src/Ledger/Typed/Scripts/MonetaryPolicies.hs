@@ -10,6 +10,9 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:verbose #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:pedantic #-}
+
 module Ledger.Typed.Scripts.MonetaryPolicies (
     WrappedMintingPolicyType
     , wrapMintingPolicy
