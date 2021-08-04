@@ -5,19 +5,19 @@ let
   generated-purescript = pkgs.runCommand "marlowe-pab-purescript" { } ''
     mkdir $out
     ${plutus-pab.server-setup-invoker}/bin/plutus-pab-setup psgenerator $out
-    ${marlowe-invoker}/bin/marlowe-pab --config marlowe-pab.yaml psapigenerator $out
+    ${marlowe-invoker}/bin/marlowe-pab --config plutus-pab.yaml psapigenerator $out
   '';
 
   generate-purescript = pkgs.writeShellScriptBin "marlowe-pab-generate-purs" ''
     generatedDir=./generated
     rm -rf $generatedDir
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-setup-invoker)/bin/plutus-pab-setup psgenerator $generatedDir
-    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config marlowe-pab.yaml psapigenerator $generatedDir
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config plutus-pab.yaml psapigenerator $generatedDir
   '';
 
   start-backend = pkgs.writeShellScriptBin "marlowe-pab-server" ''
     echo "marlowe-pab-server: for development use only"
-    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config marlowe-pab.yaml all-servers
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config plutus-pab.yaml all-servers
   '';
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
