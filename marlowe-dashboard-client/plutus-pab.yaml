@@ -10,7 +10,7 @@ dbConfig:
 pabWebserverConfig:
   baseUrl: http://localhost:9080
   staticDir: marlowe-dashboard-client/dist
-  permissiveCorsPolicy: True
+  permissiveCorsPolicy: False
 
 walletServerConfig:
   baseUrl: http://localhost:9081
