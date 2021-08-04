@@ -99,7 +99,9 @@ defaultPabConfig
   = def
       -- Note: We rely on a large timeout here to wait for endpoints to be
       -- available (i.e. transactions to be completed).
-      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 1000 }
+      -- TODO: Note that this timeout is very high. If it exceeds 900, Hydra
+      -- assumes the CI is unresponsive (not unreasonably...)
+      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 500 }
       , nodeServerConfig = def { Node.Types.mscSocketPath = "/tmp/node-server.sock" }
       }
 
