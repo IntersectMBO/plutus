@@ -14,7 +14,10 @@
   services.marlowe-playground = {
     enable = true;
     port = 4001;
-    frontendURL = "https://${tfinfo.environment}.${tfinfo.marloweTld}";
+    frontendURL =
+      if tfinfo.environment == "production"
+      then "https://play.marlowe-finance.io"
+      else "https://${tfinfo.environment}.${tfinfo.marloweTld}";
     playground-server-package = pkgs.marlowe-playground.server;
   };
 
