@@ -2,7 +2,8 @@
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
 , plutus ? null
 , rootsOnly ? false
-, checkMaterialization ? true
+  # We explicitly pass true here in the GitHub action but don't want to slow down hydra
+, checkMaterialization ? false
 }:
 let
   inherit (import ./nix/lib/ci.nix) stripAttrsForHydra filterDerivations derivationAggregate;
