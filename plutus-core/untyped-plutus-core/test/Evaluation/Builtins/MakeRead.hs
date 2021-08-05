@@ -25,6 +25,8 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
 
+import           Data.Text                               (Text)
+
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
 readMakeHetero
@@ -63,7 +65,7 @@ builtinRoundtrip genX = property $ do
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip =
     testProperty "stringRoundtrip" . builtinRoundtrip $
-        Gen.string (Range.linear 0 20) Gen.unicode
+        Gen.text (Range.linear 0 20) Gen.unicode
 
 -- | Generate a bunch of 'String's, put each of them into a 'Term', apply a builtin over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
@@ -76,9 +78,9 @@ test_stringRoundtrip =
 -- handle pure things and 'unsafePerformIO' is the way to pretend an effectful thing is pure.
 test_collectStrings :: TestTree
 test_collectStrings = testProperty "collectStrings" . property $ do
-    strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 20) Gen.unicode
+    strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
     let step arg rest = mkIterApp () sequ
-            [ apply () (builtin () Trace) $ mkConstant @String @DefaultUni () arg
+            [ apply () (builtin () Trace) $ mkConstant @Text @DefaultUni () arg
             , rest
             ]
         term = foldr step unitval strs
@@ -94,7 +96,7 @@ test_noticeEvaluationFailure =
         isEvaluationFailure $ do
             _ <- readMake True
             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
-            readMake 'a'
+            readMake ("a"::Text)
 
 test_makeRead :: TestTree
 test_makeRead =

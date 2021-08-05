@@ -27,6 +27,7 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 import           Data.Bifunctor
 import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as BSL
+import           Data.Text                                (Text)
 import           Data.Text.Encoding                       (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -149,10 +150,10 @@ twentytwo :: Term TyName Name DefaultUni DefaultFun ()
 twentytwo = mkConstant @Integer () 22
 
 stringResultTrue :: Term TyName Name DefaultUni DefaultFun ()
-stringResultTrue = mkConstant @String () "11 <= 22"
+stringResultTrue = mkConstant @Text () "11 <= 22"
 
 stringResultFalse :: Term TyName Name DefaultUni DefaultFun ()
-stringResultFalse = mkConstant @String () "¬(11 <= 22)"
+stringResultFalse = mkConstant @Text () "¬(11 <= 22)"
 
 -- 11 <= 22
 lteExpr :: Term TyName Name DefaultUni DefaultFun ()

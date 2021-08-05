@@ -33,8 +33,10 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 import           Control.Exception
 import           Data.Either
 import           Data.Proxy
+import           Data.Text                                       (Text)
 import           Hedgehog                                        hiding (Opaque, Size, Var)
 import qualified Hedgehog.Gen                                    as Gen
+import qualified Hedgehog.Range                                  as Range
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
@@ -62,12 +64,12 @@ test_Factorial =
 test_Const :: TestTree
 test_Const =
     testProperty "Const" . property $ do
-        c <- forAll Gen.unicode
+        c <- forAll $ Gen.text (Range.linear 0 100) Gen.unicode
         b <- forAll Gen.bool
         let tC = mkConstant () c
             tB = mkConstant () b
-            char = toTypeAst @_ @DefaultUni @Char Proxy
-            runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
+            text = toTypeAst @_ @DefaultUni @Text Proxy
+            runConst con = mkIterApp () (mkIterInst () con [text, bool]) [tC, tB]
             lhs = typecheckReadKnownCek defaultCekParametersExt $ runConst $ builtin () (Right Const)
             rhs = typecheckReadKnownCek defaultCekParametersExt $ runConst $ mapFun Left Plc.const
         lhs === Right (Right c)
