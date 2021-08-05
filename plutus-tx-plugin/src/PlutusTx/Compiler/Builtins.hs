@@ -48,6 +48,7 @@ import           Control.Monad.Reader
 import qualified Data.ByteString               as BS
 import qualified Data.Map                      as Map
 import           Data.Proxy
+import           Data.Text                     (Text)
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -187,7 +188,7 @@ builtinNames = [
     , 'Builtins.error
 
     , ''Builtins.BuiltinString
-    , ''Char
+    , ''Text
     , 'Builtins.appendString
     , 'Builtins.emptyString
     , 'Builtins.charToString
@@ -310,8 +311,7 @@ defineBuiltinTerms = do
 
     -- Strings and chars
     defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.Append
-    defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: String)
-    defineBuiltinTerm 'Builtins.charToString $ mkBuiltin PLC.CharToString
+    defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: Text)
     defineBuiltinTerm 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
     defineBuiltinTerm 'Builtins.trace $ mkBuiltin PLC.Trace
     defineBuiltinTerm 'Builtins.encodeUtf8 $ mkBuiltin PLC.EncodeUtf8
@@ -352,8 +352,8 @@ defineBuiltinTypes = do
     defineBuiltinType ''Integer $ PLC.toTypeAst $ Proxy @Integer
     defineBuiltinType ''Builtins.BuiltinBool $ PLC.toTypeAst $ Proxy @Bool
     defineBuiltinType ''Builtins.BuiltinUnit $ PLC.toTypeAst $ Proxy @()
-    defineBuiltinType ''Builtins.BuiltinString $ PLC.toTypeAst $ Proxy @String
-    defineBuiltinType ''Char $ PLC.toTypeAst $ Proxy @Char
+    defineBuiltinType ''Builtins.BuiltinString $ PLC.toTypeAst $ Proxy @Text
+    defineBuiltinType ''Text $ PLC.toTypeAst $ Proxy @Text
     defineBuiltinType ''Builtins.BuiltinData $ PLC.toTypeAst $ Proxy @PLC.Data
     defineBuiltinType ''Builtins.BuiltinPair $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
     defineBuiltinType ''Builtins.BuiltinList $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
