@@ -25,6 +25,7 @@ module Plutus.PAB.Webserver.Handler
 import qualified Cardano.Wallet.Client                   as Wallet.Client
 import           Cardano.Wallet.Types                    (WalletInfo (..))
 import           Control.Lens                            (preview)
+import           Control.Monad                           ((>=>))
 import           Control.Monad.Freer                     (sendM)
 import           Control.Monad.Freer.Error               (throwError)
 import           Control.Monad.IO.Class                  (MonadIO (..))
@@ -34,6 +35,8 @@ import qualified Data.Map                                as Map
 import           Data.Maybe                              (mapMaybe)
 import           Data.Proxy                              (Proxy (..))
 import qualified Data.Set                                as Set
+import           Data.Text                               (Text)
+import qualified Data.UUID                               as UUID
 import           Ledger                                  (Value, pubKeyHash)
 import           Ledger.Constraints.OffChain             (UnbalancedTx)
 import           Ledger.Tx                               (Tx)
@@ -70,8 +73,8 @@ getFullReport = do
     contractReport <- getContractReport @t
     pure FullReport {contractReport, chainReport = emptyChainReport}
 
-contractSchema :: forall t env. Contract.PABContract t => ContractInstanceId -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
-contractSchema contractId = do
+contractSchema :: forall t env. Contract.PABContract t => Text -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+contractSchema = parseContractId @t @env >=> \contractId -> do
     def <- Contract.getDefinition @t contractId
     case def of
         Just ContractActivationArgs{caID} -> ContractSignatureResponse caID <$> Contract.exportSchema @t caID

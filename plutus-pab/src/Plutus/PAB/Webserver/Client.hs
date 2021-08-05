@@ -8,6 +8,7 @@ module Plutus.PAB.Webserver.Client (
 
 import           Data.Aeson                 (FromJSON, ToJSON (..))
 import qualified Data.Aeson                 as JSON
+import           Data.Text                  (Text)
 
 import           Servant.API
 import           Servant.Client
@@ -20,10 +21,14 @@ import           Data.Proxy
 
 -- | Client for PAB. The first type-argument is contract type that is used for PAB-simulator.
 data PabClient t walletId = PabClient
-  { activateContract :: ContractActivationArgs t -> ClientM ContractInstanceId
+  { healthcheck      :: ClientM ()
+      -- ^ call healthcheck method
+  , fullreport       :: ClientM (FullReport t)
+      -- ^ call fullreport method
+  , activateContract :: ContractActivationArgs t -> ClientM ContractInstanceId
       -- ^ call activate contract method
-  , instanceClient   :: ContractInstanceId -> InstanceClient t
-      -- ^ call methods for instance client
+  , instanceClient   :: Text -> InstanceClient t
+      -- ^ call methods for instance client. We should turn @ContractInstanceId@ to @Text@ for the first argument.
   , getWallet        :: walletId -> ClientM [ContractInstanceClientState t]
       -- ^ get wallet
   , getInstances     :: ClientM [ContractInstanceClientState t]
@@ -36,6 +41,8 @@ data PabClient t walletId = PabClient
 data InstanceClient t = InstanceClient
   { getInstanceStatus    :: ClientM (ContractInstanceClientState t)
       -- ^ get instance status
+  , getInstanceSchema    :: ClientM (ContractSignatureResponse t)
+      -- ^ get instance schema
   , callInstanceEndpoint :: String -> JSON.Value -> ClientM ()
       -- ^ call instance endpoint
   , stopInstance         :: ClientM ()
@@ -46,14 +53,20 @@ data InstanceClient t = InstanceClient
 pabClient :: (ToJSON t, FromJSON t, ToHttpApiData walletId) => PabClient t walletId
 pabClient = PabClient{..}
   where
-    (activateContract
+    (healthcheck
+      :<|> fullreport
+      :<|> activateContract
       :<|> toInstanceClient
       :<|> getWallet
       :<|> getInstances
       :<|> getDefinitions
-      ) = client (Proxy :: Proxy (NewAPI t walletId))
+      ) = client (Proxy :: Proxy (API t walletId))
 
     instanceClient cid = InstanceClient{..}
         where
-          getInstanceStatus :<|> callInstanceEndpoint :<|> stopInstance = toInstanceClient cid
+          (getInstanceStatus
+            :<|> getInstanceSchema
+            :<|> callInstanceEndpoint
+            :<|> stopInstance
+            ) = toInstanceClient cid
 

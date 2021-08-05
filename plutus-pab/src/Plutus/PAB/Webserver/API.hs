@@ -12,6 +12,7 @@ module Plutus.PAB.Webserver.API
 
 import qualified Cardano.Wallet.API         as Wallet
 import qualified Data.Aeson                 as JSON
+import           Data.Text                  (Text)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs, ContractInstanceClientState,
                                              ContractSignatureResponse, FullReport)
 import           Servant.API                (Capture, Get, JSON, Post, Put, ReqBody, (:<|>), (:>))
