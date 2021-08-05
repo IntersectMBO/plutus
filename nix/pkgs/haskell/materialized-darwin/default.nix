@@ -1337,6 +1337,7 @@
           "cardano-crypto-wrapper".components.library.planned = lib.mkOverride 900 true;
           "ansi-terminal".components.library.planned = lib.mkOverride 900 true;
           "typed-protocols".components.library.planned = lib.mkOverride 900 true;
+          "plutus-core".components.exes."pir".planned = lib.mkOverride 900 true;
           "Stream".components.library.planned = lib.mkOverride 900 true;
           "wai-websockets".components.library.planned = lib.mkOverride 900 true;
           "cardano-api".components.sublibs."gen".planned = lib.mkOverride 900 true;
