@@ -30,6 +30,7 @@ module Plutus.Contract.Trace
     , handleOwnPubKeyQueries
     , handleCurrentSlotQueries
     , handleCurrentTimeQueries
+    , handleTimeToSlotConversions
     , handleUnbalancedTransactions
     , handlePendingTransactions
     , handleUtxoQueries
@@ -132,6 +133,14 @@ handleCurrentTimeQueries ::
 handleCurrentTimeQueries =
     generalise (preview E._CurrentTimeReq) E.CurrentTimeResp RequestHandler.handleCurrentTime
 
+handleTimeToSlotConversions ::
+    ( Member (LogObserve (LogMessage Text)) effs
+    , Member NodeClientEffect effs
+    )
+    => RequestHandler effs PABReq PABResp
+handleTimeToSlotConversions =
+    generalise (preview E._PosixTimeRangeToContainedSlotRangeReq) (E.PosixTimeRangeToContainedSlotRangeResp . Right) RequestHandler.handleTimeToSlotConversions
+
 handleBlockchainQueries ::
     RequestHandler
         (Reader ContractInstanceId ': EmulatedWalletEffects)
@@ -148,6 +157,7 @@ handleBlockchainQueries =
     <> handleCurrentSlotQueries
     <> handleTimeNotifications
     <> handleCurrentTimeQueries
+    <> handleTimeToSlotConversions
 
 handleUnbalancedTransactions ::
     ( Member (LogObserve (LogMessage Text)) effs

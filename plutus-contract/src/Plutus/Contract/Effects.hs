@@ -21,6 +21,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _BalanceTxReq,
     _WriteBalancedTxReq,
     _ExposeEndpointReq,
+    _PosixTimeRangeToContainedSlotRangeReq,
     -- ** Chain index query effect types
     _DatumFromHash,
     _ValidatorFromHash,
@@ -46,6 +47,7 @@ module Plutus.Contract.Effects( -- TODO: Move to Requests.Internal
     _BalanceTxResp,
     _WriteBalancedTxResp,
     _ExposeEndpointResp,
+    _PosixTimeRangeToContainedSlotRangeResp,
     -- ** Chain index response effect types
     _DatumHashResponse,
     _ValidatorHashResponse,
@@ -88,8 +90,9 @@ import           Ledger.AddressMap                (UtxoMap)
 import           Ledger.Constraints.OffChain      (UnbalancedTx)
 import           Ledger.Credential                (Credential)
 import           Ledger.Scripts                   (Validator)
-import           Ledger.Slot                      (Slot (..))
-import           Ledger.Time                      (POSIXTime (..))
+import           Ledger.Slot                      (Slot (..), SlotRange)
+import           Ledger.Time                      (POSIXTime (..), POSIXTimeRange)
+import           Ledger.TimeSlot                  (SlotConversionError)
 import           Ledger.Tx                        (TxOut)
 import           Plutus.ChainIndex                (Tip)
 import           Plutus.ChainIndex.Tx             (ChainIndexTx (_citxTxId))
@@ -114,24 +117,26 @@ data PABReq =
     | BalanceTxReq UnbalancedTx
     | WriteBalancedTxReq Tx
     | ExposeEndpointReq ActiveEndpoint
+    | PosixTimeRangeToContainedSlotRangeReq POSIXTimeRange
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty PABReq where
   pretty = \case
-    AwaitSlotReq s              -> "Await slot:" <+> pretty s
-    AwaitTimeReq s              -> "Await time:" <+> pretty s
-    CurrentSlotReq              -> "Current slot"
-    CurrentTimeReq              -> "Current time"
-    AwaitTxStatusChangeReq txid -> "Await tx status change:" <+> pretty txid
-    OwnContractInstanceIdReq    -> "Own contract instance ID"
-    OwnPublicKeyReq             -> "Own public key"
-    UtxoAtReq addr              -> "Utxo at:" <+> pretty addr
-    ChainIndexQueryReq q        -> "Chain index query:" <+> pretty q
-    AddressChangeReq req        -> "Address change:" <+> pretty req
-    BalanceTxReq utx            -> "Balance tx:" <+> pretty utx
-    WriteBalancedTxReq tx       -> "Write balanced tx:" <+> pretty tx
-    ExposeEndpointReq ep        -> "Expose endpoint:" <+> pretty ep
+    AwaitSlotReq s                          -> "Await slot:" <+> pretty s
+    AwaitTimeReq s                          -> "Await time:" <+> pretty s
+    CurrentSlotReq                          -> "Current slot"
+    CurrentTimeReq                          -> "Current time"
+    AwaitTxStatusChangeReq txid             -> "Await tx status change:" <+> pretty txid
+    OwnContractInstanceIdReq                -> "Own contract instance ID"
+    OwnPublicKeyReq                         -> "Own public key"
+    UtxoAtReq addr                          -> "Utxo at:" <+> pretty addr
+    ChainIndexQueryReq q                    -> "Chain index query:" <+> pretty q
+    AddressChangeReq req                    -> "Address change:" <+> pretty req
+    BalanceTxReq utx                        -> "Balance tx:" <+> pretty utx
+    WriteBalancedTxReq tx                   -> "Write balanced tx:" <+> pretty tx
+    ExposeEndpointReq ep                    -> "Expose endpoint:" <+> pretty ep
+    PosixTimeRangeToContainedSlotRangeReq r -> "Posix time range to contained slot range:" <+> pretty r
 
 -- | Responses that 'Contract's receive
 data PABResp =
@@ -148,24 +153,26 @@ data PABResp =
     | BalanceTxResp BalanceTxResponse
     | WriteBalancedTxResp WriteBalancedTxResponse
     | ExposeEndpointResp EndpointDescription (EndpointValue JSON.Value)
+    | PosixTimeRangeToContainedSlotRangeResp (Either SlotConversionError SlotRange)
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty PABResp where
   pretty = \case
-    AwaitSlotResp s                     -> "Slot:" <+> pretty s
-    AwaitTimeResp s                     -> "Time:" <+> pretty s
-    CurrentSlotResp s                   -> "Current slot:" <+> pretty s
-    CurrentTimeResp s                   -> "Current time:" <+> pretty s
-    AwaitTxStatusChangeResp txid status -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
-    OwnContractInstanceIdResp i         -> "Own contract instance ID:" <+> pretty i
-    OwnPublicKeyResp k                  -> "Own public key:" <+> pretty k
-    UtxoAtResp rsp                      -> "Utxo at:" <+> pretty rsp
-    ChainIndexQueryResp rsp             -> pretty rsp
-    AddressChangeResp rsp               -> "Address change:" <+> pretty rsp
-    BalanceTxResp r                     -> "Balance tx:" <+> pretty r
-    WriteBalancedTxResp r               -> "Write balanced tx:" <+> pretty r
-    ExposeEndpointResp desc rsp         -> "Call endpoint" <+> pretty desc <+> "with" <+> pretty rsp
+    AwaitSlotResp s                          -> "Slot:" <+> pretty s
+    AwaitTimeResp s                          -> "Time:" <+> pretty s
+    CurrentSlotResp s                        -> "Current slot:" <+> pretty s
+    CurrentTimeResp s                        -> "Current time:" <+> pretty s
+    AwaitTxStatusChangeResp txid status      -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
+    OwnContractInstanceIdResp i              -> "Own contract instance ID:" <+> pretty i
+    OwnPublicKeyResp k                       -> "Own public key:" <+> pretty k
+    UtxoAtResp rsp                           -> "Utxo at:" <+> pretty rsp
+    ChainIndexQueryResp rsp                  -> pretty rsp
+    AddressChangeResp rsp                    -> "Address change:" <+> pretty rsp
+    BalanceTxResp r                          -> "Balance tx:" <+> pretty r
+    WriteBalancedTxResp r                    -> "Write balanced tx:" <+> pretty r
+    ExposeEndpointResp desc rsp              -> "Call endpoint" <+> pretty desc <+> "with" <+> pretty rsp
+    PosixTimeRangeToContainedSlotRangeResp r -> "Slot range:" <+> pretty r
 
 matches :: PABReq -> PABResp -> Bool
 matches a b = case (a, b) of
@@ -183,6 +190,7 @@ matches a b = case (a, b) of
   (WriteBalancedTxReq{}, WriteBalancedTxResp{})            -> True
   (ExposeEndpointReq ActiveEndpoint{aeDescription}, ExposeEndpointResp desc _)
     | aeDescription == desc -> True
+  (PosixTimeRangeToContainedSlotRangeReq{}, PosixTimeRangeToContainedSlotRangeResp{}) -> True
   _                                                        -> False
 
 chainIndexMatches :: ChainIndexQuery -> ChainIndexResponse -> Bool
