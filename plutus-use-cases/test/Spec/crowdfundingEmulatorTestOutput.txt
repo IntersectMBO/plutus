@@ -29,11 +29,13 @@ Slot 1: W2: Balancing an unbalanced transaction:
                   fee: Value (Map [])
                   mps:
                   signatures:
-                  validity range: Interval {ivFrom = LowerBound NegInf True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) False}
+                  validity range: Interval {ivFrom = LowerBound NegInf True, ivTo = UpperBound PosInf True}
                   data:
                     "\151~\251\&5\171b\GS9\219\235rt\236w\149\163G\b\255M%\160\SUB\GS\240L\US'"}
               Requires signatures:
               Utxo index:
+              Validity range:
+                (-∞ , POSIXTime 1596059111000 ]
 Slot 1: W2: Finished balancing. bad077d0a2104d83f2507bb46c25ddea185cba3928a1b60d766e93d81745075f
 Slot 1: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 4}:
           Contract instance started
@@ -55,11 +57,13 @@ Slot 1: W3: Balancing an unbalanced transaction:
                   fee: Value (Map [])
                   mps:
                   signatures:
-                  validity range: Interval {ivFrom = LowerBound NegInf True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) False}
+                  validity range: Interval {ivFrom = LowerBound NegInf True, ivTo = UpperBound PosInf True}
                   data:
                     "\DEL\138v\192\235\170J\210\r\253\205Q\165\222\a\n\183q\244\191\&7\DEL,A\230\183\FS\n"}
               Requires signatures:
               Utxo index:
+              Validity range:
+                (-∞ , POSIXTime 1596059111000 ]
 Slot 1: W3: Finished balancing. 633fe898ba05bbe0e104b2231c597b7dad95b6046f63268dd95f54462e86b6d8
 Slot 1: W3: Submitting tx: 633fe898ba05bbe0e104b2231c597b7dad95b6046f63268dd95f54462e86b6d8
 Slot 1: W3: TxSubmit: 633fe898ba05bbe0e104b2231c597b7dad95b6046f63268dd95f54462e86b6d8
@@ -75,11 +79,13 @@ Slot 1: W4: Balancing an unbalanced transaction:
                   fee: Value (Map [])
                   mps:
                   signatures:
-                  validity range: Interval {ivFrom = LowerBound NegInf True, ivTo = UpperBound (Finite (Slot {getSlot = 20})) False}
+                  validity range: Interval {ivFrom = LowerBound NegInf True, ivTo = UpperBound PosInf True}
                   data:
                     "\188\192\131\173\227\253\208\163r\203lC\239\NUL\239\STX\252\181.\149\&2\148\DC1\ETB\215`\157j"}
               Requires signatures:
               Utxo index:
+              Validity range:
+                (-∞ , POSIXTime 1596059111000 ]
 Slot 1: W4: Finished balancing. 8ad38d6daa7f6509810ca3f79b6ccb80a39e89b9fdec4f4382ae0d6bccdbdacf
 Slot 1: W4: Submitting tx: 8ad38d6daa7f6509810ca3f79b6ccb80a39e89b9fdec4f4382ae0d6bccdbdacf
 Slot 1: W4: TxSubmit: 8ad38d6daa7f6509810ca3f79b6ccb80a39e89b9fdec4f4382ae0d6bccdbdacf
@@ -104,7 +110,7 @@ Slot 20: W1: Balancing an unbalanced transaction:
                    fee: Value (Map [])
                    mps:
                    signatures:
-                   validity range: Interval {ivFrom = LowerBound (Finite (Slot {getSlot = 20})) True, ivTo = UpperBound (Finite (Slot {getSlot = 29})) True}
+                   validity range: Interval {ivFrom = LowerBound NegInf True, ivTo = UpperBound PosInf True}
                    data:}
                Requires signatures:
                Utxo index:
@@ -117,6 +123,8 @@ Slot 20: W1: Balancing an unbalanced transaction:
                  ( bad077d0a2104d83f2507bb46c25ddea185cba3928a1b60d766e93d81745075f!1
                  , - Value (Map [(,Map [("",100)])]) addressed to
                      addressed to ScriptCredential: d2d012ff2f40ceea2a795878b3fb7bb6c74e7ce62c038bcdd78350cc (no staking credential) )
+               Validity range:
+                 [ POSIXTime 1596059111000 , POSIXTime 1596059120999 ]
 Slot 20: W1: Finished balancing. 6482037d7095ab78b68500c15a6b6de1f757fbbdee7af81fac4114a24a3eaef7
 Slot 20: W1: Submitting tx: 6482037d7095ab78b68500c15a6b6de1f757fbbdee7af81fac4114a24a3eaef7
 Slot 20: W1: TxSubmit: 6482037d7095ab78b68500c15a6b6de1f757fbbdee7af81fac4114a24a3eaef7
