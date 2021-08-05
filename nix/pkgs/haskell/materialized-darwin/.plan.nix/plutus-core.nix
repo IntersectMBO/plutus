@@ -278,6 +278,7 @@
           "PlutusIR/Transform/Rename"
           "PlutusIR/Transform/NonStrict"
           "PlutusIR/Transform/LetFloat"
+          "PlutusIR/Transform/LetMerge"
           "PlutusIR/Transform/Inline"
           "PlutusIR/Transform/Beta"
           "PlutusIR/Transform/Unwrap"
