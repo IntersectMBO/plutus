@@ -39,6 +39,7 @@ import           Data.Coolean                      (Cool, false, toCool, true, (
 import qualified Data.Map                          as Map
 import qualified Data.Stream                       as Stream
 import qualified Data.Text                         as Text
+import           Data.Text.Encoding                (decodeUtf8)
 import           PlutusCore
 import           PlutusCore.Generators.NEAT.Common
 import           Text.Printf
@@ -96,12 +97,14 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
 instance Enumerable ByteString where
   enumerate = share $ fmap pack access
 
+instance (Enumerable Text.Text) where
+  enumerate = share $ fmap (decodeUtf8 . pack) access
+
 data TermConstantG = TmIntegerG Integer
                    | TmByteStringG ByteString
-                   | TmStringG String
+                   | TmTextG Text.Text
                    | TmBoolG Bool
                    | TmUnitG ()
-                   | TmCharG Char
                    deriving (Show, Eq)
 
 deriveEnumerable ''TermConstantG
@@ -215,10 +218,10 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
 convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
 convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
-convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
+convertTermConstant (TmTextG s)       = Some $ ValueOf DefaultUniText s
 convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
 convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
-convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniText c
+-- convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniText c
 
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
@@ -361,9 +364,8 @@ instance Check (TypeG n) TermConstantG where
   check (TyBuiltinG TyByteStringG) (TmByteStringG _) = true
   check (TyBuiltinG TyIntegerG   ) (TmIntegerG    _) = true
   check (TyBuiltinG TyBoolG      ) (TmBoolG       _) = true
-  check (TyBuiltinG TyCharG      ) (TmCharG       _) = true
   check (TyBuiltinG TyUnitG      ) (TmUnitG       _) = true
-  check TypeStringG                (TmStringG     _) = true
+  check TypeStringG                (TmTextG     _)   = true
   check _                          _                 = false
 
 
@@ -384,8 +386,6 @@ defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuilt
                    ,[EqualsByteString,LessThanByteString,GreaterThanByteString])
                   ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
                    ,[IfThenElse])
-                  ,(TyFunG (TyBuiltinG TyCharG) TypeStringG
-                   ,[CharToString])
                   ,(TyFunG TypeStringG (TyFunG TypeStringG TypeStringG)
                    ,[Append])
                   ,(TyFunG TypeStringG (TyBuiltinG TyUnitG)
