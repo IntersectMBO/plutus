@@ -149,8 +149,7 @@ generateAPIModule _ outputDir = do
         mySettings
         outputDir
         pabBridgeProxy
-        (    Proxy @(API.API (Contract.ContractDef (Builtin a))
-        :<|> API.NewAPI (Contract.ContractDef (Builtin a)) Text.Text
+        (    Proxy @(API.API (Contract.ContractDef (Builtin a)) Text.Text
         :<|> API.WalletProxy Text.Text)
         )
 

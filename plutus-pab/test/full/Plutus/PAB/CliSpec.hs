@@ -58,7 +58,7 @@ import           Plutus.PAB.Run.Command              (ConfigCommand (..), MockSe
 import           Plutus.PAB.Run.PSGenerator          (HasPSTypes (..))
 import           Plutus.PAB.Types                    (Config (..))
 import qualified Plutus.PAB.Types                    as PAB.Types
-import           Plutus.PAB.Webserver.API            (NewAPI)
+import           Plutus.PAB.Webserver.API            (API)
 import           Plutus.PAB.Webserver.Types          (ContractActivationArgs (..))
 import           Prettyprinter                       (Pretty)
 import           Servant                             ((:<|>) (..))
@@ -184,7 +184,7 @@ startPingPongContract pabConfig = do
                 , caWallet = Wallet 1
                 }
 
-  let (activateContract :<|> instance' :<|> _) = client (Proxy @(NewAPI TestingContracts Integer))
+  let _ :<|> _ :<|> activateContract :<|> instance' :<|> _ = client (Proxy @(API TestingContracts Integer))
 
   eci <- runClientM (activateContract ca) apiClientEnv
 
@@ -204,8 +204,8 @@ runPabInstanceEndpoints :: Config -> ContractInstanceId -> [EndpointCall] -> IO 
 runPabInstanceEndpoints pabConfig instanceId endpoints = do
   apiClientEnv <- getClientEnv pabConfig
 
-  let activateContract :<|> instance' :<|> _ = client (Proxy @(NewAPI TestingContracts Integer))
-  let status' :<|> endpoint :<|> stop' = instance' . Text.pack . show . unContractInstanceId $ instanceId
+  let _ :<|> _ :<|> activateContract :<|> instance' :<|> _ = client (Proxy @(API TestingContracts Integer))
+  let _ :<|> _ :<|> endpoint :<|> _ = instance' . Text.pack . show . unContractInstanceId $ instanceId
 
   forM_ endpoints $ \e -> do
     x <- runClientM (endpoint (ep e) (toJSON ())) apiClientEnv

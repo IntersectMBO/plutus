@@ -18,11 +18,13 @@ module Plutus.PAB.Webserver.Server
     , startServerDebug'
     ) where
 
+import           Cardano.Wallet.Types            (WalletInfo (..))
 import           Control.Concurrent              (MVar, forkFinally, forkIO, newEmptyMVar, putMVar)
 import           Control.Concurrent.Availability (Availability, available, newToken)
 import qualified Control.Concurrent.STM          as STM
 import           Control.Monad                   (void, when)
 import           Control.Monad.Except            (ExceptT (ExceptT))
+import           Control.Monad.Freer.Extras.Log  (logInfo, logWarn)
 import           Control.Monad.IO.Class          (liftIO)
 import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Bifunctor                  (first)
@@ -31,26 +33,23 @@ import           Data.Function                   ((&))
 import           Data.Monoid                     (Endo (..))
 import           Data.Proxy                      (Proxy (Proxy))
 import           Ledger.Crypto                   (pubKeyHash)
-import qualified Network.Wai.Handler.Warp        as Warp
-import           Plutus.PAB.Simulator            (Simulation)
-import qualified Plutus.PAB.Simulator            as Simulator
-import           Servant                         (Application, Handler (Handler), Raw, ServerT, err500, errBody,
-                                                  hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
-import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
-
-import           Cardano.Wallet.Types            (WalletInfo (..))
-import           Control.Monad.Freer.Extras.Log  (logInfo, logWarn)
 import           Network.Wai                     (Middleware)
+import qualified Network.Wai.Handler.Warp        as Warp
 import           Network.Wai.Middleware.Cors     (simpleCors)
 import           Plutus.PAB.Core                 (PABAction, PABRunner (..))
 import qualified Plutus.PAB.Core                 as Core
 import qualified Plutus.PAB.Effects.Contract     as Contract
 import qualified Plutus.PAB.Monitoring.PABLogMsg as LM
+import           Plutus.PAB.Simulator            (Simulation)
+import qualified Plutus.PAB.Simulator            as Simulator
 import           Plutus.PAB.Types                (PABError, WebserverConfig (..), baseUrl, defaultWebServerConfig)
-import           Plutus.PAB.Webserver.API        (API, NewAPI, WSAPI, WalletProxy)
-import           Plutus.PAB.Webserver.Handler    (handlerNew, handlerOld, walletProxy, walletProxyClientEnv)
+import           Plutus.PAB.Webserver.API        (API, WSAPI, WalletProxy)
+import           Plutus.PAB.Webserver.Handler    (apiHandler, walletProxy, walletProxyClientEnv)
 import qualified Plutus.PAB.Webserver.WebSocket  as WS
+import           Servant                         (Application, Handler (Handler), Raw, ServerT, err500, errBody,
+                                                  hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import qualified Servant
+import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv)
 
 asHandler :: forall t env a. PABRunner t env -> PABAction t env a -> Handler a
 asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapError) . runPABAction where
@@ -58,9 +57,8 @@ asHandler PABRunner{runPABAction} = Servant.Handler . ExceptT . fmap (first mapE
     mapError e = Servant.err500 { Servant.errBody = LBS.pack $ show e }
 
 type CombinedAPI t =
-      API (Contract.ContractDef t)
+      API (Contract.ContractDef t) Integer
       :<|> WSAPI
-      :<|> NewAPI (Contract.ContractDef t) Integer
 
 app ::
     forall t env.
@@ -79,7 +77,7 @@ app fp walletClient pabRunner = do
             Servant.hoistServer
                 (Proxy @(CombinedAPI t))
                 (asHandler pabRunner)
-                (handlerOld :<|> WS.wsHandler :<|> handlerNew)
+                (apiHandler :<|> WS.wsHandler)
 
     case fp of
         Nothing -> do

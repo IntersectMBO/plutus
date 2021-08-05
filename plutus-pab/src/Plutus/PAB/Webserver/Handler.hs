@@ -14,8 +14,7 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module Plutus.PAB.Webserver.Handler
-    ( handlerNew
-    , handlerOld
+    ( apiHandler
     , walletProxy
     , walletProxyClientEnv
     -- * Reports
@@ -53,28 +52,7 @@ import           Servant.Client                          (ClientEnv, ClientM, ru
 import qualified Wallet.Effects
 import           Wallet.Emulator.Error                   (WalletAPIError)
 import           Wallet.Emulator.Wallet                  (Wallet (..))
-import           Wallet.Types                            (ContractInstanceId (..), NotificationError)
-
--- | Handler for the "old" API
-handlerOld ::
-    forall t env.
-    Contract.PABContract t =>
-    PABAction t env ()
-    :<|> (PABAction t env (FullReport (Contract.ContractDef t))
-        :<|> (Contract.ContractDef t -> PABAction t env ContractInstanceId)
-        :<|> (Text -> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
-            :<|> (String -> JSON.Value -> PABAction t env (Maybe NotificationError))
-            )
-        )
-handlerOld =
-    healthcheck
-        :<|> (getFullReport
-            :<|> (\def -> activateContract ContractActivationArgs{caID=def, caWallet=Wallet 1}) -- TODO: Delete "contract/activate" route without wallet argument
-            :<|> byContractInstanceId
-        )
-    where
-        byContractInstanceId :: Text -> (PABAction t env (ContractSignatureResponse (Contract.ContractDef t)) :<|> (String -> JSON.Value -> PABAction t env (Maybe NotificationError)))
-        byContractInstanceId rawInstanceId = contractSchema rawInstanceId :<|> undefined -- FIXME undefined
+import           Wallet.Types                            (ContractInstanceId (..))
 
 healthcheck :: forall t env. PABAction t env ()
 healthcheck = pure ()
@@ -108,24 +86,30 @@ parseContractId t =
         Just uuid -> pure $ ContractInstanceId uuid
         Nothing   -> throwError $ InvalidUUIDError t
 
--- | Handler for the "new" API
-handlerNew ::
+-- | Handler for the API
+apiHandler ::
        forall t env.
        Contract.PABContract t =>
-       (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
-            :<|> (Text -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
-                                        :<|> (String -> JSON.Value -> PABAction t env ())
-                                        :<|> PABAction t env ()
-                                        )
-            :<|> (Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
-            :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
-            :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
-handlerNew =
-        activateContract
-            :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z) :<|> (parseContractId x >>= shutdown))
-            :<|> instancesForWallets
-            :<|> allInstanceStates
-            :<|> availableContracts
+       PABAction t env ()
+       :<|> PABAction t env (FullReport (Contract.ContractDef t))
+       :<|> (ContractActivationArgs (Contract.ContractDef t) -> PABAction t env ContractInstanceId)
+              :<|> (Text -> PABAction t env (ContractInstanceClientState (Contract.ContractDef t))
+                                          :<|> PABAction t env (ContractSignatureResponse (Contract.ContractDef t))
+                                          :<|> (String -> JSON.Value -> PABAction t env ())
+                                          :<|> PABAction t env ()
+                                          )
+              :<|> (Integer -> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)])
+              :<|> PABAction t env [ContractInstanceClientState (Contract.ContractDef t)]
+              :<|> PABAction t env [ContractSignatureResponse (Contract.ContractDef t)]
+
+apiHandler =
+        healthcheck
+        :<|> getFullReport
+        :<|> activateContract
+              :<|> (\x -> (parseContractId x >>= contractInstanceState) :<|> contractSchema x :<|> (\y z -> parseContractId x >>= \x' -> callEndpoint x' y z) :<|> (parseContractId x >>= shutdown))
+              :<|> instancesForWallets
+              :<|> allInstanceStates
+              :<|> availableContracts
 
 fromInternalState ::
     t
