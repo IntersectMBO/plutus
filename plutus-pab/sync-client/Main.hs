@@ -15,6 +15,7 @@ import           Cardano.Api                    (Block (..), BlockHeader (..), B
                                                  HasTypeProxy (..), deserialiseFromRawBytesHex,
                                                  serialiseToRawBytesHexText)
 import           Cardano.Protocol.Socket.Client (ChainSyncEvent (..), runChainSync)
+import           Cardano.Protocol.Socket.Type   (cfgNetworkId)
 import           Cardano.Slotting.Slot          (SlotNo (..))
 import           Ledger                         (Slot)
 import           Ledger.TimeSlot                (SlotConfig (..))
@@ -88,6 +89,7 @@ main = do
   print    cfg
   _ <- runChainSync (cSocketPath cfg)
                     slotConfig
+                    cfgNetworkId
                     [(cResumeHash cfg)]
                     processBlock
   _ <- forever $ threadDelay 1000000

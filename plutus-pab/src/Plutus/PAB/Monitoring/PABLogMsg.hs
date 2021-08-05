@@ -181,6 +181,7 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
 data CoreMsg t =
     FindingContract ContractInstanceId
     | FoundContract (Maybe (ContractResponse Value Value PABResp PABReq))
+    | ConnectingToAlonzoNode
     deriving stock Generic
 
 deriving stock instance (Show (ContractDef t)) => Show (CoreMsg t)
@@ -189,8 +190,9 @@ deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (CoreMsg t)
 
 instance Pretty (ContractDef t) => Pretty (CoreMsg t) where
     pretty = \case
-        FindingContract i -> "Finding contract" <+> pretty i
-        FoundContract c   -> "Found contract" <+> viaShow c
+        FindingContract i      -> "Finding contract" <+> pretty i
+        FoundContract c        -> "Found contract" <+> viaShow c
+        ConnectingToAlonzoNode -> "Connecting to Alonzo node"
 
 instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (CoreMsg t) where
     toObject v = \case
@@ -201,6 +203,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (Co
                 case v of
                     MaximalVerbosity -> Left (Tagged @"contract" state)
                     _                -> Right ()
+        ConnectingToAlonzoNode -> mkObjectStr "Connecting to Alonzo node" ()
 
 newtype RequestSize = RequestSize Int
     deriving stock (Show)

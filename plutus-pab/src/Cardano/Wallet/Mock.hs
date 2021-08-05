@@ -21,7 +21,6 @@ module Cardano.Wallet.Mock
 import           Cardano.BM.Data.Trace               (Trace)
 import qualified Cardano.ChainIndex.Client           as ChainIndexClient
 import qualified Cardano.Node.Client                 as NodeClient
-import qualified Cardano.Protocol.Socket.Client      as Client
 import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
 import           Cardano.Wallet.Types                (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
                                                       WalletMsg (..), Wallets)
@@ -50,7 +49,6 @@ import           Data.Function                       ((&))
 import qualified Data.Map                            as Map
 import           Data.Text.Encoding                  (encodeUtf8)
 import           Data.Text.Prettyprint.Doc           (pretty)
-import           Ledger                              (Block)
 import qualified Ledger.Ada                          as Ada
 import           Ledger.Address                      (pubKeyAddress)
 import           Ledger.Crypto                       (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
@@ -171,7 +169,7 @@ processWalletEffects ::
     (MonadIO m, MonadError ServerError m)
     => Trace IO WalletMsg -- ^ trace for logging
     -> MockClient.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle Block -- ^ node client
+    -> NodeClient.ChainSyncHandle -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
     -> FeeConfig
@@ -200,7 +198,7 @@ processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState 
 runWalletEffects ::
     Trace IO WalletMsg -- ^ trace for logging
     -> MockClient.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle Block -- ^ node client
+    -> NodeClient.ChainSyncHandle -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
     -> FeeConfig

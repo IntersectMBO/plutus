@@ -15,7 +15,7 @@ module Cardano.Wallet.Server
 import           Cardano.BM.Data.Trace               (Trace)
 import qualified Cardano.ChainIndex.Client           as ChainIndexClient
 import           Cardano.ChainIndex.Types            (ChainIndexUrl (..))
-import qualified Cardano.Protocol.Socket.Client      as Client
+import           Cardano.Node.Client                 as NodeClient
 import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
 import           Cardano.Wallet.API                  (API)
 import           Cardano.Wallet.Mock
@@ -32,7 +32,6 @@ import           Data.Coerce                         (coerce)
 import           Data.Function                       ((&))
 import qualified Data.Map.Strict                     as Map
 import           Data.Proxy                          (Proxy (Proxy))
-import           Ledger                              (Block)
 import           Ledger.Crypto                       (pubKeyHash)
 import           Ledger.Fee                          (FeeConfig)
 import           Ledger.TimeSlot                     (SlotConfig)
@@ -49,7 +48,7 @@ import qualified Wallet.Emulator.Wallet              as Wallet
 
 app :: Trace IO WalletMsg
     -> MockClient.TxSendHandle
-    -> Client.ChainSyncHandle Block
+    -> NodeClient.ChainSyncHandle
     -> ClientEnv
     -> MVar Wallets
     -> FeeConfig
@@ -73,7 +72,7 @@ main trace WalletConfig { baseUrl, wallet } feeCfg serverSocket slotCfg (ChainIn
     let knownWallets = Map.fromList $ (\w -> (w, emptyWalletState w)) . Wallet.Wallet <$> [1..10]
     mVarState <- liftIO $ newMVar knownWallets
     txSendHandle    <- liftIO $ MockClient.runTxSender   serverSocket
-    chainSyncHandle <- liftIO $ MockClient.runChainSync' serverSocket slotCfg
+    chainSyncHandle <- Left <$> (liftIO $ MockClient.runChainSync' serverSocket slotCfg)
     runClient chainIndexEnv
     logInfo $ StartingWallet (Port servicePort)
     liftIO $ Warp.runSettings warpSettings

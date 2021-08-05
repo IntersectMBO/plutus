@@ -125,10 +125,9 @@ psGeneratorCommandParser =
 mockNodeParser :: Mod CommandFields ConfigCommand
 mockNodeParser =
     command "node-server" $
-    flip info (fullDesc <> progDesc "Run a mock version of the Cardano node API server.") $ do
-        withoutMockServer <- flag WithMockServer WithoutMockServer
-                                  (long "without-mock-node")
-        pure $ MockNode withoutMockServer
+        info
+            (pure StartMockNode)
+            (fullDesc <> progDesc "Run a mock version of the Cardano node API server.")
 
 mockWalletParser :: Mod CommandFields ConfigCommand
 mockWalletParser =
@@ -152,10 +151,8 @@ allServersParser :: Mod CommandFields ConfigCommand
 allServersParser =
     command "all-servers" $
     flip info (fullDesc <> progDesc "Run all the mock servers needed.") $ do
-        withoutMockServer <- flag WithMockServer WithoutMockServer
-                                  (long "without-mock-node")
         pure  (ForkCommands
-                   [ MockNode withoutMockServer
+                   [ StartMockNode
                    , ChainIndex
                    , Metadata
                    , MockWallet

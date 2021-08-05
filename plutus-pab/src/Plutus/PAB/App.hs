@@ -28,12 +28,13 @@ module Plutus.PAB.App(
     handleContractDefinition
     ) where
 
+import           Cardano.Api.NetworkId.Extra                    (NetworkIdWrapper (..))
 import           Cardano.BM.Trace                               (Trace, logDebug)
 import           Cardano.ChainIndex.Client                      (handleChainIndexClient)
 import qualified Cardano.ChainIndex.Types                       as ChainIndex
 import           Cardano.Node.Client                            (handleNodeClientClient)
+import qualified Cardano.Node.Client                            as NodeClient
 import           Cardano.Node.Types                             (MockServerConfig (..))
-import qualified Cardano.Protocol.Socket.Client                 as Client
 import qualified Cardano.Protocol.Socket.Mock.Client            as MockClient
 import qualified Cardano.Wallet.Client                          as WalletClient
 import qualified Cardano.Wallet.Types                           as Wallet
@@ -51,7 +52,6 @@ import qualified Database.Beam.Sqlite                           as Sqlite
 import qualified Database.Beam.Sqlite.Migrate                   as Sqlite
 import           Database.SQLite.Simple                         (open)
 import qualified Database.SQLite.Simple                         as Sqlite
-import           Ledger                                         (Block)
 import           Network.HTTP.Client                            (managerModifyRequest, newManager,
                                                                  setRequestIgnoreStatus)
 import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
@@ -84,7 +84,7 @@ data AppEnv a =
         , nodeClientEnv         :: ClientEnv
         , chainIndexEnv         :: ClientEnv
         , txSendHandle          :: MockClient.TxSendHandle
-        , chainSyncHandle       :: Client.ChainSyncHandle Block
+        , chainSyncHandle       :: NodeClient.ChainSyncHandle
         , appConfig             :: Config
         , appTrace              :: Trace IO (PABLogMsg (Builtin a))
         , appInMemContractStore :: InMemInstances (Builtin a)
@@ -106,9 +106,9 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
     EffectHandlers
         { initialiseEnvironment = do
             env <- liftIO $ mkEnv trace config
-            let Config{nodeServerConfig=MockServerConfig{mscSocketPath, mscSlotConfig}} = config
+            let Config{nodeServerConfig=MockServerConfig{mscSocketPath, mscSlotConfig, mscNodeMode, mscNetworkId=NetworkIdWrapper networkId}} = config
             instancesState <- liftIO $ STM.atomically Instances.emptyInstancesState
-            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscSlotConfig
+            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscNodeMode mscSlotConfig networkId
             pure (instancesState, blockchainEnv, env)
 
         , handleLogMessages =
@@ -146,7 +146,7 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
             -- handle 'NodeClientEffect'
             flip handleError (throwError . NodeClientError)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
-            . reinterpret (Core.handleMappedReader @(AppEnv a) @(Client.ChainSyncHandle Block) chainSyncHandle)
+            . reinterpret (Core.handleMappedReader @(AppEnv a) @NodeClient.ChainSyncHandle chainSyncHandle)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
             . reinterpret (Core.handleMappedReader @(AppEnv a) @MockClient.TxSendHandle txSendHandle)
             . interpret (Core.handleUserEnvReader @(Builtin a) @(AppEnv a))
@@ -203,7 +203,7 @@ mkEnv appTrace appConfig@Config { dbConfig
     dbConnection <- dbConnect appTrace dbConfig
     txSendHandle <- liftIO $ MockClient.runTxSender mscSocketPath
     -- This is for access to the slot number in the interpreter
-    chainSyncHandle <- liftIO $ MockClient.runChainSync' mscSocketPath mscSlotConfig
+    chainSyncHandle <- Left <$> (liftIO $ MockClient.runChainSync' mscSocketPath mscSlotConfig)
     appInMemContractStore <- liftIO initialInMemInstances
     pure AppEnv {..}
   where

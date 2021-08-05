@@ -46,6 +46,7 @@ let
         { getWallet = 2; }
         { getWallet = 3; }
       ];
+      mscNodeMode = "MockNode";
     };
 
     chainIndexConfig = {

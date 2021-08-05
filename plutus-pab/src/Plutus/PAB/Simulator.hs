@@ -444,7 +444,7 @@ handleChainControl slotCfg = \case
         (txns, slot) <- runChainEffects @t @_ slotCfg ((,) <$> Chain.processBlock <*> Chain.getCurrentSlot)
         runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
 
-        void $ liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv txns slot
+        void $ liftIO $ STM.atomically $ BlockchainEnv.processMockBlock blockchainEnv txns slot
 
         pure txns
     Chain.ModifySlot f -> do

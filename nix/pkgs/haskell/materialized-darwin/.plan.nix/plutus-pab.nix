@@ -261,10 +261,10 @@
             ];
           buildable = true;
           modules = [
-            "ContractExample"
             "ContractExample/AtomicSwap"
             "ContractExample/PayToWallet"
             "ContractExample/WaitForTx"
+            "ContractExample"
             ];
           hsSourceDirs = [ "examples" ];
           mainPath = [ "Main.hs" ];
