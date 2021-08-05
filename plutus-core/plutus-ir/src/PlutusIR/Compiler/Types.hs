@@ -18,6 +18,7 @@ import           Control.Lens
 
 import qualified PlutusCore                    as PLC
 import qualified PlutusCore.MkPlc              as PLC
+import qualified PlutusCore.Pretty             as PLC
 import           PlutusCore.Quote
 import qualified PlutusCore.StdLib.Type        as Types
 import qualified PlutusCore.TypeCheck.Internal as PLC
@@ -41,14 +42,22 @@ instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
 data CompilationOpts = CompilationOpts {
-    _coOptimize               :: Bool
-    , _coParanoidTypechecking :: Bool
+    _coOptimize                         :: Bool
+    , _coPedantic                       :: Bool
+    , _coVerbose                        :: Bool
+    , _coDebug                          :: Bool
+    , _coMaxSimplifierIterations        :: Int
+    -- Simplifier passes
+    , _coDoSimplifierUnwrapCancel       :: Bool
+    , _coDoSimplifierBeta               :: Bool
+    , _coDoSimplifierInline             :: Bool
+    , _coDoSimplifierRemoveDeadBindings :: Bool
     } deriving (Eq, Show)
 
 makeLenses ''CompilationOpts
 
 defaultCompilationOpts :: CompilationOpts
-defaultCompilationOpts = CompilationOpts True False
+defaultCompilationOpts = CompilationOpts True False False False 8 True True True True
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts
@@ -68,10 +77,17 @@ getEnclosing = view ccEnclosing
 withEnclosing :: MonadReader (CompilationCtx uni fun a) m => (Provenance a -> Provenance a) -> m b -> m b
 withEnclosing f = local (over ccEnclosing f)
 
+runIf
+  :: MonadReader (CompilationCtx uni fun a) m
+  => m Bool
+  -> (b -> m b)
+  -> (b -> m b)
+runIf condition pass arg = do
+  doPass <- condition
+  if doPass then pass arg else pure arg
+
 runIfOpts :: MonadReader (CompilationCtx uni fun a) m => (b -> m b) -> (b -> m b)
-runIfOpts pass arg = do
-    doOpt <- view (ccOpts . coOptimize)
-    if doOpt then pass arg else pure arg
+runIfOpts = runIf $ view (ccOpts . coOptimize)
 
 type PLCTerm uni fun a = PLC.Term PLC.TyName PLC.Name uni fun (Provenance a)
 type PLCType uni a = PLC.Type PLC.TyName uni (Provenance a)
@@ -113,6 +129,11 @@ type Compiling m e uni fun a =
     , Ord a
     , PLC.Typecheckable uni fun
     , PLC.GEq uni
+    -- Pretty printing instances
+    , PLC.Pretty fun
+    , PLC.Closed uni
+    , PLC.GShow uni
+    , uni `PLC.Everywhere` PLC.PrettyConst
     )
 
 type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a) (PIR.Term tyname name uni fun a)

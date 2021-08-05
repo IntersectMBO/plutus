@@ -108,5 +108,6 @@ test-suite plutus-tx-tests
         hedgehog -any,
         lens -any,
         ghc-prim -any,
-    -- this makes the plugin give better errors
-    ghc-options: -g
+    -- NOTE: -g makes the plugin give better errors
+    -- NOTE: we disable the simplifier as it simplifies away some tests
+    ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0

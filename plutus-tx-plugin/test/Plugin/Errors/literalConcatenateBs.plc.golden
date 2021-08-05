@@ -1,3 +1,18 @@
 (program 1.0.0
-  (lam x_i0 [ [ (builtin concatenate) (con bytestring #68656c6c6f) ] x_i1 ])
+  [
+    (lam
+      concatenate_i0
+      [
+        (lam
+          concatenate_i0
+          (lam
+            x_i0
+            [ [ (force concatenate_i2) (con bytestring #68656c6c6f) ] x_i1 ]
+          )
+        )
+        (delay concatenate_i1)
+      ]
+    )
+    (builtin concatenate)
+  ]
 )

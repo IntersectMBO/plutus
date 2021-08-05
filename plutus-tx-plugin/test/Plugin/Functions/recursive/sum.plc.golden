@@ -16,9 +16,14 @@
         (vardecl
           addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
-        (lam
-          x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ])
+        (builtin addInteger)
+      )
+      (termbind
+        (strict)
+        (vardecl
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
+        (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
       )
       (let
         (rec)

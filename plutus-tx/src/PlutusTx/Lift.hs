@@ -44,6 +44,8 @@ import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import qualified Data.Typeable                   as GHC
 
+type PrettyPrintable uni fun = ( PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
+
 type Throwable uni fun =
     ( PLC.GShow uni, PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni
     , Pretty fun, GHC.Typeable fun
@@ -57,12 +59,15 @@ safeLift
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
+       , PrettyPrintable uni fun
        )
     => a -> m (UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift x = do
     lifted <- liftQuote $ runDefT () $ Lift.lift x
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
-    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm lifted
+    -- NOTE:  Disabling simplifier, as it takes a lot of time during runtime
+    let ccConfig = set (ccOpts . coMaxSimplifierIterations) 0 (toDefaultCompilationCtx tcConfig)
+    compiled <- flip runReaderT ccConfig $ compileTerm lifted
     let erased = UPLC.erase compiled
     db <- UPLC.deBruijnTerm $ UPLC.simplifyTerm erased
     pure $ void db
@@ -75,6 +80,7 @@ safeLiftProgram
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
+       , PrettyPrintable uni fun
        )
     => a -> m (UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgram x = UPLC.Program () (PLC.defaultVersion ()) <$> safeLift x
@@ -86,6 +92,7 @@ safeLiftCode
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
+       , PrettyPrintable uni fun
        )
     => a -> m (CompiledCodeIn uni fun a)
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
@@ -145,6 +152,7 @@ typeCheckAgainst
        , MonadError e m, MonadQuote m
        , PLC.GEq uni
        , PLC.Typecheckable uni fun
+       , PrettyPrintable uni fun
        )
     => Proxy a
     -> PLC.Term PLC.TyName PLC.Name uni fun ()
@@ -178,6 +186,7 @@ typeCode
        , MonadError e m, MonadQuote m
        , PLC.GEq uni
        , PLC.Typecheckable uni fun
+       , PrettyPrintable uni fun
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()
