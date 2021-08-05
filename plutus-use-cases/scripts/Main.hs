@@ -9,6 +9,7 @@ module Main(main) where
 
 import qualified Cardano.Api                    as C
 import qualified Cardano.Api.Shelley            as C
+import           Codec.Serialise                (serialise)
 import qualified Control.Foldl                  as L
 import           Control.Monad.Freer            (run)
 import           Data.Aeson                     (ToJSON (..), object, (.=))
@@ -187,9 +188,15 @@ writeScript fp prefix mode idx event@ScriptValidationEvent{sveResult} = do
     let filename = fp </> prefix <> "-" <> show idx <> filenameSuffix mode <> ".flat"
         bytes = BSL.fromStrict . flat . unScript . getScript mode $ event
         byteSize = BSL.length bytes
+    let
+        filename2 = fp </> prefix <> "-" <> show idx <> filenameSuffix mode <> ".flat.z.cbor"
+        bytes2 = serialise . getScript mode $ event
+        byteSize2 = BSL.length bytes2
     putStrLn $ "Writing script: " <> filename <> " (" <> either show (showStats byteSize . fst) sveResult <> ")"
     BSL.writeFile filename bytes
-    pure (Sum byteSize, foldMap fst sveResult)
+    putStrLn $ "Writing script: " <> filename2 <> " (" <> either show (showStats byteSize2 . fst) sveResult <> ")"
+    BSL.writeFile filename2 bytes2
+    pure (Sum byteSize2, foldMap fst sveResult)
 
 showStats :: Int64 -> ExBudget -> String
 showStats byteSize (ExBudget exCPU exMemory) = "Size: " <> size <> "kB, Cost: " <> show exCPU <> ", " <> show exMemory
