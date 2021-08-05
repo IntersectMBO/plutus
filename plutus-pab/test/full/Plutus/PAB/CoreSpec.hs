@@ -18,6 +18,7 @@ module Plutus.PAB.CoreSpec
     , assertEqual
     ) where
 
+import           Control.Concurrent.STM.Extra             (readN, readOne)
 import           Control.Lens                             ((&), (+~), (^.))
 import           Control.Monad                            (unless, void)
 import           Control.Monad.Freer                      (Eff, Member, Members)
@@ -152,7 +153,7 @@ slotChangeTest :: IO ()
 slotChangeTest = runScenario $ do
     env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
     let stream = WS.slotChange env
-    ns <- liftIO (WS.readN 5 stream)
+    ns <- liftIO (readN 5 stream)
     assertEqual "Should wait for five slots" 5 (length ns)
 
 walletFundsChangeTest :: IO ()
@@ -163,17 +164,17 @@ walletFundsChangeTest = runScenario $ do
 
     env <- Core.askBlockchainEnv @(Builtin TestContracts) @(Simulator.SimulatorState (Builtin TestContracts))
     let stream = WS.walletFundsChange defaultWallet env
-    (initialValue, next) <- liftIO (WS.readOne stream)
+    (initialValue, next) <- liftIO (readOne stream)
     (wllt, pk) <- Simulator.addWallet
     _ <- Simulator.payToPublicKey defaultWallet pk payment
     nextStream <- case next of { Nothing -> throwError (OtherError "no next value"); Just a -> pure a; }
-    (finalValue, _) <- liftIO (WS.readOne nextStream)
+    (finalValue, _) <- liftIO (readOne nextStream)
     let difference = initialValue <> inv finalValue
     assertEqual "defaultWallet should make a payment" difference (payment <> fee)
 
     -- Check that the funds are correctly registered in the newly created wallet
     let stream2 = WS.walletFundsChange wllt env
-    vl2 <- liftIO (WS.readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
+    vl2 <- liftIO (readN 1 stream2) >>= \case { [newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
     assertEqual "generated wallet should receive a payment" (initialBalance <> payment) vl2
 
 observableStateChangeTest :: IO ()
@@ -187,7 +188,7 @@ observableStateChangeTest = runScenario $ do
     instanceId <- Simulator.activateContract defaultWallet Currency
     createCurrency instanceId SimpleMPS{tokenName="my token", amount = 10000}
     let stream = WS.observableStateChange instanceId env
-    vl2 <- liftIO (WS.readN 2 stream) >>= \case { [_, newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
+    vl2 <- liftIO (readN 2 stream) >>= \case { [_, newVal] -> pure newVal; _ -> throwError (OtherError "newVal not found")}
     assertBool "observable state should change" (isJust $ getCurrency vl2)
 
 currencyTest :: TestTree
