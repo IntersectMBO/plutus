@@ -30,6 +30,7 @@ module Plutus.Contract.Types(
     , select
     , selectEither
     , selectList
+    , never
     -- * Error handling
     , ContractError(..)
     , AsContractError(..)
@@ -94,7 +95,7 @@ import           Plutus.Contract.Checkpoint        (AsCheckpointError (..), Chec
                                                     CheckpointKey, CheckpointLogMsg, CheckpointStore,
                                                     completedIntervals, handleCheckpoint, jsonCheckpoint,
                                                     jsonCheckpointLoop)
-import           Plutus.Contract.Resumable         hiding (responses, select)
+import           Plutus.Contract.Resumable         hiding (never, responses, select)
 import qualified Plutus.Contract.Resumable         as Resumable
 
 import           Plutus.Contract.Effects           (PABReq, PABResp)
@@ -216,6 +217,10 @@ newtype Promise w (s :: Row *) e a = Promise { awaitPromise :: Contract w s e a 
 
 instance Apply (Promise w s e) where
   liftF2 f (Promise a) (Promise b) = Promise (f <$> a <*> b)
+
+-- | A `Promise` that is never fulfilled. This is the identity of `select`.
+never :: Promise w s e a
+never = Promise (Contract $ Resumable.never @PABResp @PABReq)
 
 -- | Run more `Contract` code after the `Promise`.
 promiseBind :: Promise w s e a -> (a -> Contract w s e b) -> Promise w s e b
