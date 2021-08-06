@@ -98,7 +98,7 @@ consumableInputs = eitherTx (view collateralInputs) (view inputs)
 
 -- | Outputs added to the UTXO set by the 'OnChainTx'
 outputsProduced :: OnChainTx -> [TxOut]
-outputsProduced = eitherTx (const []) (txOutputs)
+outputsProduced = eitherTx (const []) txOutputs
 
 -- | A map of UTXO refs to 'TxOutTx' values for a single on-chain
 --   transaction.

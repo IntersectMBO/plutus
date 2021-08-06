@@ -28,7 +28,8 @@ import qualified Ledger.Typed.Scripts                as Scripts
 import           Ledger.Value                        (TokenName)
 import           Plutus.Contract
 import           Plutus.Contract.StateMachine        (AsSMContractError (..), SMContractError,
-                                                      StateMachineTransition (..), mkStep, runInitialise)
+                                                      StateMachineTransition (..))
+import qualified Plutus.Contract.StateMachine        as SM
 import           Plutus.Contracts.Prism.Credential   (Credential (..), CredentialAuthority (..))
 import qualified Plutus.Contracts.Prism.Credential   as Credential
 import           Plutus.Contracts.Prism.StateMachine as StateMachine
@@ -82,7 +83,7 @@ createTokens authority = endpoint @"issue" $ \CredentialOwnerReference{coTokenNa
             tx <- submitTxConstraintsWith @Scripts.Any lookups constraints
             awaitTxConfirmed (txId tx)
     let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
-    void $ mapError StateMachineError $ runInitialise stateMachine Active theToken
+    void $ mapError StateMachineError $ SM.runInitialise stateMachine Active theToken
 
 revokeToken ::
     ( HasEndpoint "revoke" CredentialOwnerReference s
@@ -93,7 +94,7 @@ revokeToken authority = endpoint @"revoke" $ \CredentialOwnerReference{coTokenNa
     let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
         lookups = Constraints.mintingPolicy (Credential.policy authority) <>
                   Constraints.ownPubKeyHash  (Credential.unCredentialAuthority authority)
-    t <- mapError StateMachineError $ mkStep stateMachine RevokeCredential
+    t <- mapError StateMachineError $ SM.mkStep stateMachine RevokeCredential
     case t of
         Left{} -> return () -- Ignore invalid transitions
         Right StateMachineTransition{smtConstraints=constraints, smtLookups=lookups'} -> do

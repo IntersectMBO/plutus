@@ -61,15 +61,16 @@ import           PlutusTx                         (FromData (..), ToData (..))
 import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
-import           Ledger.Address                   (Address (..), pubKeyHashAddress)
+import           Ledger.Address                   (pubKeyHashAddress)
 import qualified Ledger.Address                   as Address
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Crypto                    (pubKeyHash)
 import           Ledger.Orphans                   ()
 import           Ledger.Scripts                   (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash,
-                                                   Redeemer (..), Validator, datumHash, mintingPolicyHash)
-import           Ledger.Tx                        (RedeemerPtr (..), ScriptTag (..), Tx, TxOut (..), TxOutRef,
-                                                   TxOutTx (..))
+                                                   Redeemer (..), Validator, ValidatorHash, datumHash,
+                                                   mintingPolicyHash, validatorHash)
+import           Ledger.Tx                        (ChainIndexTxOut, RedeemerPtr (..), ScriptTag (..), Tx, TxOut (..),
+                                                   TxOutRef)
 import qualified Ledger.Tx                        as Tx
 import           Ledger.Typed.Scripts             (TypedValidator, ValidatorTypes (..))
 import qualified Ledger.Typed.Scripts             as Scripts
@@ -84,9 +85,9 @@ data ScriptLookups a =
     ScriptLookups
         { slMPS            :: Map MintingPolicyHash MintingPolicy
         -- ^ Minting policies that the script interacts with
-        , slTxOutputs      :: Map TxOutRef TxOutTx
+        , slTxOutputs      :: Map TxOutRef ChainIndexTxOut
         -- ^ Unspent outputs that the script may want to spend
-        , slOtherScripts   :: Map Address Validator
+        , slOtherScripts   :: Map ValidatorHash Validator
         -- ^ Validators of scripts other than "our script"
         , slOtherData      :: Map DatumHash Datum
         -- ^ Datums that we might need
@@ -133,7 +134,7 @@ typedValidatorLookups inst =
 
 -- | A script lookups value that uses the map of unspent outputs to resolve
 --   input constraints.
-unspentOutputs :: Map TxOutRef TxOutTx -> ScriptLookups a
+unspentOutputs :: Map TxOutRef ChainIndexTxOut -> ScriptLookups a
 unspentOutputs mp = mempty { slTxOutputs = mp }
 
 -- | A script lookups value with a minting policy script
@@ -145,8 +146,8 @@ mintingPolicy pl =
 -- | A script lookups value with a validator script
 otherScript :: Validator -> ScriptLookups a
 otherScript vl =
-    let addr = Address.scriptAddress vl in
-    mempty { slOtherScripts = Map.singleton addr vl }
+    let vh = validatorHash vl in
+    mempty { slOtherScripts = Map.singleton vh vl }
 
 -- | A script lookups value with a datum
 otherData :: Datum -> ScriptLookups a
@@ -368,18 +369,18 @@ updateUtxoIndex
     => m ()
 updateUtxoIndex = do
     ScriptLookups{slTxOutputs} <- ask
-    unbalancedTx . utxoIndex <>= fmap txOutTxOut slTxOutputs
+    unbalancedTx . utxoIndex <>= fmap Tx.toTxOut slTxOutputs
 
 -- | Add a typed input, checking the type of the output it spends. Return the value
 --   of the spent output.
 addOwnInput
     :: ( MonadReader (ScriptLookups a) m
-        , MonadError MkTxError m
-        , MonadState ConstraintProcessingState m
-        , FromData (DatumType a)
-        , ToData (DatumType a)
-        , ToData (RedeemerType a)
-        )
+       , MonadError MkTxError m
+       , MonadState ConstraintProcessingState m
+       , FromData (DatumType a)
+       , ToData (DatumType a)
+       , ToData (RedeemerType a)
+       )
     => InputConstraint (RedeemerType a)
     -> m ()
 addOwnInput InputConstraint{icRedeemer, icTxOutRef} = do
@@ -419,7 +420,7 @@ data MkTxError =
     | TxOutRefWrongType TxOutRef
     | DatumNotFound DatumHash
     | MintingPolicyNotFound MintingPolicyHash
-    | ValidatorHashNotFound Address
+    | ValidatorHashNotFound ValidatorHash
     | OwnPubKeyMissing
     | TypedValidatorMissing
     | DatumWrongHash DatumHash Datum
@@ -444,7 +445,7 @@ lookupTxOutRef
     :: ( MonadReader (ScriptLookups a) m
        , MonadError MkTxError m )
     => TxOutRef
-    -> m TxOutTx
+    -> m ChainIndexTxOut
 lookupTxOutRef outRef =
     let err = throwError (TxOutRefNotFound outRef) in
     asks slTxOutputs >>= maybe err pure . view (at outRef)
@@ -470,11 +471,11 @@ lookupMintingPolicy mph =
 lookupValidator
     :: ( MonadReader (ScriptLookups a) m
        , MonadError MkTxError m )
-    => Address
+    => ValidatorHash
     -> m Validator
-lookupValidator addr =
-    let err = throwError (ValidatorHashNotFound addr) in
-    asks slOtherScripts >>= maybe err pure . view (at addr)
+lookupValidator vh =
+    let err = throwError (ValidatorHashNotFound vh) in
+    asks slOtherScripts >>= maybe err pure . view (at vh)
 
 -- | Get the 'Map.Map PubKeyHash (Maybe PubKey)' for a pub key hash,
 --   associating the pub key hash with the public key (if known).
@@ -485,7 +486,7 @@ getSignatories ::
     => PubKeyHash
     -> m (Map.Map PubKeyHash (Maybe PubKey))
 getSignatories pkh =
-    Map.singleton pkh <$> asks (Map.lookup pkh . slPubKeyHashes)
+    asks (Map.singleton pkh . Map.lookup pkh . slPubKeyHashes)
 
 -- | Modify the 'UnbalancedTx' so that it satisfies the constraints, if
 --   possible. Fails if a hash is missing from the lookups, or if an output
@@ -508,30 +509,33 @@ processConstraint = \case
     MustSpendAtLeast vl -> valueSpentInputs <>= required vl
     MustProduceAtLeast vl -> valueSpentOutputs <>= required vl
     MustSpendPubKeyOutput txo -> do
-        TxOutTx{txOutTxOut} <- lookupTxOutRef txo
-        case Address.toPubKeyHash (Tx.txOutAddress txOutTxOut) of
-            Just{} -> do
-                unbalancedTx . tx . Tx.inputs %= Set.insert (Tx.pubKeyTxIn txo)
-                valueSpentInputs <>= provided (Tx.txOutValue txOutTxOut)
-            _                 -> throwError (TxOutRefWrongType txo)
+        txout <- lookupTxOutRef txo
+        case txout of
+          Tx.PublicKeyChainIndexTxOut { Tx._ciTxOutValue } -> do
+              unbalancedTx . tx . Tx.inputs %= Set.insert (Tx.pubKeyTxIn txo)
+              valueSpentInputs <>= provided _ciTxOutValue
+          _ -> throwError (TxOutRefWrongType txo)
     MustSpendScriptOutput txo red -> do
-        txOutTx <- lookupTxOutRef txo
-        case Tx.txOutDatumHash (txOutTxOut txOutTx) of
-            Just dvh -> do
-                let addr = view Tx.outAddress (Tx.txOutTxOut txOutTx)
-                validator <- lookupValidator addr
+        txout <- lookupTxOutRef txo
+        case txout of
+          Tx.ScriptChainIndexTxOut { Tx._ciTxOutValidator, Tx._ciTxOutDatum, Tx._ciTxOutValue } -> do
+            -- first check in the 'ChainIndexTx' for the validator, then
+            -- look for it in the 'slOtherScripts map.
+            validator <- either lookupValidator pure _ciTxOutValidator
 
-                -- first check the 'txOutTx' for the datum, then
-                -- look for it in the 'slOtherData' map.
-                dataValue <- maybe (lookupDatum dvh) pure (Tx.txOutTxDatum txOutTx)
-                -- TODO: When witnesses are properly segregated we can
-                --       probably get rid of the 'slOtherData' map and of
-                --       'lookupDatum'
-                let input = Tx.scriptTxIn txo validator red dataValue
-                unbalancedTx . tx . Tx.inputs %= Set.insert input
-                unbalancedTx . tx . Tx.datumWitnesses . at dvh .= Just dataValue
-                valueSpentInputs <>= provided (Tx.txOutValue (txOutTxOut txOutTx))
-            _                 -> throwError (TxOutRefWrongType txo)
+            -- first check in the 'ChainIndexTx' for the datum, then
+            -- look for it in the 'slOtherData' map.
+            dataValue <- either lookupDatum pure _ciTxOutDatum
+            let dvh = datumHash dataValue
+
+            -- TODO: When witnesses are properly segregated we can
+            --       probably get rid of the 'slOtherData' map and of
+            --       'lookupDatum'
+            let input = Tx.scriptTxIn txo validator red dataValue
+            unbalancedTx . tx . Tx.inputs %= Set.insert input
+            unbalancedTx . tx . Tx.datumWitnesses . at dvh .= Just dataValue
+            valueSpentInputs <>= provided _ciTxOutValue
+          _ -> throwError (TxOutRefWrongType txo)
 
     MustMintValue mpsHash red tn i -> do
         mintingPolicyScript <- lookupMintingPolicy mpsHash

@@ -95,7 +95,7 @@ auctionTrace1 = do
     _ <- Trace.waitNSlots 1
     Trace.callEndpoint @"bid" hdl2 trace1WinningBid
     void $ Trace.waitUntilTime $ apEndTime params
-    void $ Trace.waitNSlots 2
+    void $ Trace.waitNSlots 1
 
 trace2WinningBid :: Ada
 trace2WinningBid = 70
@@ -121,7 +121,7 @@ auctionTrace2 = do
     _ <- Trace.waitNSlots 35
     Trace.callEndpoint @"bid" hdl2 trace2WinningBid
     void $ Trace.waitUntilTime $ apEndTime params
-    void $ Trace.waitNSlots 2
+    void $ Trace.waitNSlots 1
 
 trace1FinalState :: AuctionOutput
 trace1FinalState =
@@ -279,7 +279,7 @@ tests =
         [ checkPredicateOptions options "run an auction"
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone (buyer threadToken) (Trace.walletInstanceTag w2) (const True) "buyer should be done"
-            .&&. assertAccumState (buyer threadToken) (Trace.walletInstanceTag w2) ((==) trace1FinalState ) "final state should be OK"
+            .&&. assertAccumState (buyer threadToken) (Trace.walletInstanceTag w2) ((==) trace1FinalState ) "wallet 2 final state should be OK"
             .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken)
             .&&. walletFundsChange w2 (inv (Ada.toValue trace1WinningBid) <> theToken))
             auctionTrace1
@@ -287,7 +287,8 @@ tests =
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone (buyer threadToken) (Trace.walletInstanceTag w2) (const True) "buyer should be done"
             .&&. assertDone (buyer threadToken) (Trace.walletInstanceTag w3) (const True) "3rd party should be done"
-            .&&. assertAccumState (buyer threadToken) (Trace.walletInstanceTag w2) ((==) trace2FinalState) "final state should be OK"
+            .&&. assertAccumState (buyer threadToken) (Trace.walletInstanceTag w2) ((==) trace2FinalState) "wallet 2 final state should be OK"
+            .&&. assertAccumState (buyer threadToken) (Trace.walletInstanceTag w3) ((==) trace2FinalState) "wallet 3 final state should be OK"
             .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken)
             .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
             .&&. walletFundsChange w3 mempty)

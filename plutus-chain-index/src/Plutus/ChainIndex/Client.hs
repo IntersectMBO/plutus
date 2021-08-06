@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 module Plutus.ChainIndex.Client(
@@ -27,7 +26,7 @@ import           Data.Proxy                   (Proxy (..))
 import           Ledger                       (Datum, DatumHash, MintingPolicy, MintingPolicyHash, StakeValidator,
                                                StakeValidatorHash, TxId, Validator, ValidatorHash)
 import           Ledger.Credential            (Credential)
-import           Ledger.Tx                    (TxOut, TxOutRef)
+import           Ledger.Tx                    (ChainIndexTxOut, TxOutRef)
 import           Network.HTTP.Types.Status    (Status (..))
 import           Plutus.ChainIndex.Api        (API)
 import           Plutus.ChainIndex.Effects    (ChainIndexQueryEffect (..))
@@ -45,7 +44,7 @@ getValidator :: ValidatorHash -> ClientM Validator
 getMintingPolicy :: MintingPolicyHash -> ClientM MintingPolicy
 getStakeValidator :: StakeValidatorHash -> ClientM StakeValidator
 
-getTxOut :: TxOutRef -> ClientM TxOut
+getTxOut :: TxOutRef -> ClientM ChainIndexTxOut
 getTx :: TxId -> ClientM ChainIndexTx
 getIsUtxo :: TxOutRef -> ClientM (Tip, Bool)
 getUtxoAtAddress :: Credential -> ClientM (Tip, Page TxOutRef)

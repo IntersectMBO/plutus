@@ -155,11 +155,11 @@ mintContract
     -> Contract w s e OneShotCurrency
 mintContract pk amounts = mapError (review _CurrencyError) $ do
     txOutRef <- getUnspentOutput
-    utxo <- utxoAt (pubKeyHashAddress pk) -- TODO: use chain index
+    utxos <- utxosAt (pubKeyHashAddress pk)
     let theCurrency = mkCurrency txOutRef amounts
         curVali     = curPolicy theCurrency
         lookups     = Constraints.mintingPolicy curVali
-                        <> Constraints.unspentOutputs utxo
+                        <> Constraints.unspentOutputs utxos
         mintTx      = Constraints.mustSpendPubKeyOutput txOutRef
                         <> Constraints.mustMintValue (mintedValue theCurrency)
     tx <- submitTxConstraintsWith @Scripts.Any lookups mintTx

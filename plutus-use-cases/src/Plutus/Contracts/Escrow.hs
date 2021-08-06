@@ -40,14 +40,14 @@ module Plutus.Contracts.Escrow(
     , EscrowSchema
     ) where
 
-import           Control.Lens             (makeClassyPrisms, review)
+import           Control.Lens             (makeClassyPrisms, review, view)
 import           Control.Monad            (void)
 import           Control.Monad.Error.Lens (throwing)
 import           Data.Aeson               (FromJSON, ToJSON)
 import           GHC.Generics             (Generic)
 
-import           Ledger                   (Datum (..), DatumHash, POSIXTime, PubKeyHash, TxId, TxOutTx (..),
-                                           ValidatorHash, interval, scriptOutputsAt, txId, txSignedBy, valuePaidTo)
+import           Ledger                   (Datum (..), DatumHash, POSIXTime, PubKeyHash, TxId, ValidatorHash, interval,
+                                           scriptOutputsAt, txId, txSignedBy, valuePaidTo)
 import qualified Ledger
 import           Ledger.Constraints       (TxConstraints)
 import qualified Ledger.Constraints       as Constraints
@@ -219,7 +219,7 @@ escrowContract escrow =
             _ <- awaitTime $ escrowDeadline escrow
             refund inst escrow
     in selectList
-        [ void $ payAndRefund
+        [ void payAndRefund
         , void $ redeemEp escrow
         ]
 
@@ -281,7 +281,7 @@ redeem ::
 redeem inst escrow = mapError (review _EscrowError) $ do
     let addr = Scripts.validatorAddress inst
     current <- currentTime
-    unspentOutputs <- utxoAt addr
+    unspentOutputs <- utxosAt addr
     let
         valRange = Interval.to (Haskell.pred $ escrowDeadline escrow)
         tx = Typed.collectFromScript unspentOutputs Redeem
@@ -289,7 +289,7 @@ redeem inst escrow = mapError (review _EscrowError) $ do
                 <> Constraints.mustValidateIn valRange
     if current >= escrowDeadline escrow
     then throwing _RedeemFailed DeadlinePassed
-    else if foldMap (Tx.txOutValue . Tx.txOutTxOut) unspentOutputs `lt` targetTotal escrow
+    else if foldMap (view Tx.ciTxOutValue) unspentOutputs `lt` targetTotal escrow
          then throwing _RedeemFailed NotEnoughFundsAtAddress
          else RedeemSuccess . txId <$> submitTxConstraintsSpending inst unspentOutputs tx
 
@@ -314,8 +314,8 @@ refund ::
     -> Contract w s EscrowError RefundSuccess
 refund inst escrow = do
     pk <- ownPubKey
-    unspentOutputs <- utxoAt (Scripts.validatorAddress inst)
-    let flt _ (TxOutTx _ txOut) = Ledger.txOutDatum txOut == Just (Ledger.datumHash $ Datum (PlutusTx.toBuiltinData $ Ledger.pubKeyHash pk))
+    unspentOutputs <- utxosAt (Scripts.validatorAddress inst)
+    let flt _ ciTxOut = either id Ledger.datumHash (Tx._ciTxOutDatum ciTxOut) == Ledger.datumHash (Datum (PlutusTx.toBuiltinData $ Ledger.pubKeyHash pk))
         tx' = Typed.collectFromScriptFilter flt unspentOutputs Refund
                 <> Constraints.mustValidateIn (from (Haskell.succ $ escrowDeadline escrow))
     if Constraints.modifiesUtxoSet tx'
@@ -333,8 +333,8 @@ payRedeemRefund ::
 payRedeemRefund params vl = do
     let inst = typedValidator params
         go = do
-            cur <- utxoAt (Scripts.validatorAddress inst)
-            let presentVal = foldMap (Tx.txOutValue . Tx.txOutTxOut) cur
+            cur <- utxosAt (Scripts.validatorAddress inst)
+            let presentVal = foldMap (view Tx.ciTxOutValue) cur
             if presentVal `geq` targetTotal params
                 then Right <$> redeem inst params
                 else do

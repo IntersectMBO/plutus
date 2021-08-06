@@ -24,7 +24,7 @@ Slot 1: W2: Balancing an unbalanced transaction:
                   collateral inputs:
                   outputs:
                     - Value (Map [(,Map [("",100)])]) addressed to
-                      addressed to ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential)
+                      ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential)
                   mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
@@ -52,7 +52,7 @@ Slot 1: W3: Balancing an unbalanced transaction:
                   collateral inputs:
                   outputs:
                     - Value (Map [(,Map [("",100)])]) addressed to
-                      addressed to ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential)
+                      ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential)
                   mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
@@ -74,7 +74,7 @@ Slot 1: W4: Balancing an unbalanced transaction:
                   collateral inputs:
                   outputs:
                     - Value (Map [(,Map [("",25)])]) addressed to
-                      addressed to ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential)
+                      ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential)
                   mint: Value (Map [])
                   fee: Value (Map [])
                   mps:
@@ -116,13 +116,13 @@ Slot 20: W1: Balancing an unbalanced transaction:
                Utxo index:
                  ( 6872ac2e61e2b0d6123bac7d93b803e9f60206e459d0d02690fe89a64a07556e!1
                  , - Value (Map [(,Map [("",25)])]) addressed to
-                     addressed to ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential) )
+                     ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential) )
                  ( 6c3047550550c2e9671a694b57c05ebab1b86a347da79a963b8bcc1154c14888!1
                  , - Value (Map [(,Map [("",100)])]) addressed to
-                     addressed to ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential) )
+                     ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential) )
                  ( f63468ac827c4bcbe30e8aac779cfedb1576945270797c4de7b85ef68e2bd738!1
                  , - Value (Map [(,Map [("",100)])]) addressed to
-                     addressed to ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential) )
+                     ScriptCredential: 6681212a6a0117b469d34534a513d30ca911feeac0736297d25aeec9 (no staking credential) )
                Validity range:
                  [ POSIXTime 1596059111000 , POSIXTime 1596059120999 ]
 Slot 20: W1: Finished balancing. 1575f1a7b735d02d4cb1c388e0d578f532dff4ce275ebc7da6471a1703259782
