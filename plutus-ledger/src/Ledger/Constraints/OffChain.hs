@@ -414,6 +414,7 @@ data MkTxError =
     | OwnPubKeyMissing
     | TypedValidatorMissing
     | DatumWrongHash DatumHash Datum
+    | CannotSatisfyAny
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -428,6 +429,7 @@ instance Pretty MkTxError where
         OwnPubKeyMissing        -> "Own public key is missing"
         TypedValidatorMissing   -> "Script instance is missing"
         DatumWrongHash h d      -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
+        CannotSatisfyAny        -> "Cannot satisfy any of the required constraints"
 
 lookupTxOutRef
     :: ( MonadReader (ScriptLookups a) m
@@ -538,3 +540,10 @@ processConstraint = \case
         unless (datumHash dv == dvh)
             (throwError $ DatumWrongHash dvh dv)
         unbalancedTx . tx . Tx.datumWitnesses . at dvh .= Just dv
+    MustSatisfyAnyOf xs -> do
+        s <- get
+        let tryNext [] =
+                throwError CannotSatisfyAny
+            tryNext (h:q) = do
+                processConstraint h `catchError` \_ -> put s >> tryNext q
+        tryNext xs
