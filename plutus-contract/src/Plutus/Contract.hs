@@ -49,7 +49,9 @@ module Plutus.Contract(
     , Request.fundsAtAddressGt
     , Request.fundsAtAddressGeq
     , Request.awaitUtxoSpent
+    , Request.utxoIsSpent
     , Request.awaitUtxoProduced
+    , Request.utxoIsProduced
     -- * UTXO set
     , UtxoMap
     , Request.utxoAt

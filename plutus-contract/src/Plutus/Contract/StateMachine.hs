@@ -64,7 +64,6 @@ import           Data.Void                                    (Void, absurd)
 import           GHC.Generics                                 (Generic)
 import           Ledger                                       (POSIXTime, Slot, Value, scriptCurrencySymbol)
 import qualified Ledger
-import           Ledger.AddressMap                            (outputsMapFromTxForAddress)
 import           Ledger.Constraints                           (ScriptLookups, TxConstraints (..), mintingPolicy,
                                                                mustMintValueWithRedeemer, mustPayToTheScript,
                                                                mustSpendPubKeyOutput)
@@ -211,14 +210,12 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
                 Left err    -> throwing _SMContractError err
                 Right state -> pure $ Just (state, utxo)
 
-
-data WaitingResult a
-    = Timeout Slot
+data WaitingResult t a
+    = Timeout t
     | ContractEnded
     | WaitingResult a
-  deriving (Show,Generic)
+  deriving stock (Show,Generic,Functor)
   deriving anyclass (ToJSON, FromJSON)
-
 
 -- | Wait for the on-chain state of the state machine instance to change until timeoutSlot,
 --   and return the new state, or return 'ContractEnded' if the instance has been
@@ -233,29 +230,8 @@ waitForUpdateUntilSlot ::
     )
     => StateMachineClient state i
     -> Slot
-    -> Contract w schema e (WaitingResult state)
-waitForUpdateUntilSlot StateMachineClient{scInstance, scChooser} timeoutSlot = do
-    let addr = Scripts.validatorAddress $ typedValidator scInstance
-    let go sl = do
-            txns <- fmap acrTxns . awaitPromise $ addressChangeRequest AddressChangeRequest
-                { acreqSlotRangeFrom = sl
-                , acreqSlotRangeTo = sl
-                , acreqAddress = addr
-                }
-            if null txns && sl < timeoutSlot
-                then go (succ sl)
-                else pure txns
-
-    initial <- currentSlot
-    txns <- go initial
-    slot <- currentSlot -- current slot, can be after timeout
-    let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
-    case states of
-        [] | slot < timeoutSlot -> pure ContractEnded
-        [] | slot >= timeoutSlot -> pure $ Timeout timeoutSlot
-        xs -> case scChooser xs of
-                Left err         -> throwing _SMContractError err
-                Right (state, _) -> pure $ WaitingResult (tyTxOutData state)
+    -> Contract w schema e (WaitingResult Slot state)
+waitForUpdateUntilSlot client timeoutSlot = waitForUpdateTimeout client (isSlot timeoutSlot) >>= fmap (fmap (tyTxOutData . fst)) . awaitPromise
 
 -- | Same as 'waitForUpdateUntilSlot', but works with 'POSIXTime' instead.
 waitForUpdateUntilTime ::
@@ -266,31 +242,14 @@ waitForUpdateUntilTime ::
     )
     => StateMachineClient state i
     -> POSIXTime
-    -> Contract w schema e (WaitingResult state)
-waitForUpdateUntilTime sm timeoutTime = do
-    waitForUpdateUntilSlot sm $ TimeSlot.posixTimeToEnclosingSlot def timeoutTime
+    -> Contract w schema e (WaitingResult Slot state)
+waitForUpdateUntilTime sm timeoutTime = waitForUpdateUntilSlot sm (TimeSlot.posixTimeToEnclosingSlot def timeoutTime)
 
 -- | Wait until the on-chain state of the state machine instance has changed,
 --   and return the new state, or return 'Nothing' if the instance has been
 --   terminated. If 'waitForUpdate' is called before the instance has even
 --   started then it returns the first state of the instance as soon as it
 --   has started.
--- waitForUpdate ::
---     ( AsSMContractError e
---     , AsContractError e
---     , PlutusTx.FromData state
---     , PlutusTx.ToData state
---     )
---     => StateMachineClient state i
---     -> Contract w schema e (Maybe (OnChainState state i))
--- waitForUpdate StateMachineClient{scInstance, scChooser} = do
---     let addr = Scripts.validatorAddress $ typedValidator scInstance
---     txns <- nextTransactionsAt addr
---     let states = txns >>= getStates scInstance . outputsMapFromTxForAddress addr
---     case states of
---         [] -> pure Nothing
---         xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)
-
 waitForUpdate ::
     forall state i w schema e.
     ( AsSMContractError e
@@ -300,25 +259,42 @@ waitForUpdate ::
     )
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i))
-waitForUpdate client@StateMachineClient{scInstance, scChooser} = do
+waitForUpdate client = waitForUpdateTimeout client never >>= awaitPromise >>= \case
+    Timeout t       -> absurd t
+    ContractEnded   -> pure Nothing
+    WaitingResult r -> pure (Just r)
+
+-- | Wait until the on-chain state of the state machine changes, or a timeout.
+waitForUpdateTimeout ::
+    forall state i t w schema e.
+    ( AsSMContractError e
+    , AsContractError e
+    , PlutusTx.FromData state
+    , PlutusTx.ToData state
+    )
+    => StateMachineClient state i -- ^ The state machine client
+    -> Promise w schema e t -- ^ The timeout
+    -> Contract w schema e (Promise w schema e (WaitingResult t (OnChainState state i)))
+waitForUpdateTimeout client@StateMachineClient{scInstance, scChooser} timeout = do
     currentState <- getOnChainState client
-    case currentState of
-        Nothing -> do
-            -- There is no on-chain state, so we wait for an output to appear
-            -- at the address. Any output that appears needs to be checked
-            -- with scChooser
-            let addr = Scripts.validatorAddress $ typedValidator scInstance
-            produced <- getStates @state @i scInstance . foldMap Ledger.toOutRefMap <$> awaitUtxoProduced addr
-            case scChooser produced of
-                Left _             -> error "waitForUpdate: scChooser produced: error"
-                Right onChainState -> pure (Just onChainState)
-        Just ((_, Typed.TypedScriptTxOutRef{Typed.tyTxOutRefRef}), _) -> do
-            newStates <- getStates @state @i scInstance . Ledger.toOutRefMap <$> awaitUtxoSpent tyTxOutRefRef
-            case newStates of
-                [] -> pure Nothing
-                xs -> case scChooser xs of
-                    Left _  -> error "waitForUpdate: scChooser newStates: error"
-                    Right s -> pure (Just s)
+    let success = case currentState of
+                    Nothing ->
+                        -- There is no on-chain state, so we wait for an output to appear
+                        -- at the address. Any output that appears needs to be checked
+                        -- with scChooser
+                        let addr = Scripts.validatorAddress $ typedValidator scInstance in
+                        promiseBind (getStates @state @i scInstance . foldMap Ledger.toOutRefMap <$> utxoIsProduced addr) $ \produced ->
+                            case scChooser produced of
+                                Left _             -> error "waitForUpdate: scChooser produced: error"
+                                Right onChainState -> pure $ WaitingResult onChainState
+                    Just ((_, Typed.TypedScriptTxOutRef{Typed.tyTxOutRefRef}), _) ->
+                        promiseBind (getStates @state @i scInstance . Ledger.toOutRefMap <$> utxoIsSpent tyTxOutRefRef) $ \newStates ->
+                            case newStates of
+                                [] -> pure ContractEnded
+                                xs -> case scChooser xs of
+                                    Left _  -> error "waitForUpdate: scChooser newStates: error"
+                                    Right s -> pure (WaitingResult s)
+    pure $ select success (Timeout <$> timeout)
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
 -- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.
