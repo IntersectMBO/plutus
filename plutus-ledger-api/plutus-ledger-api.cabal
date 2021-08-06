@@ -70,18 +70,13 @@ library
         template-haskell -any,
         text -any,
         prettyprinter -any,
-        pure-zlib -any,
         transformers -any,
         base16-bytestring >= 1,
         deepseq -any,
         newtype-generics -any,
         tagged -any,
         lens -any,
-        scientific -any,
-        zlib -any
-    mixins:
-        pure-zlib (Codec.Compression.Zlib as PureZlib.Zlib),
-        zlib (Codec.Compression.Zlib as CZlib.Zlib)
+        scientific -any
 
 test-suite plutus-ledger-api-test
     import: lang
