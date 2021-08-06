@@ -26,12 +26,13 @@ import qualified PlutusCore                 as PLC
 import qualified PlutusCore.Default         as PLC
 
 import           Data.Proxy
+import           Data.Text                  (Text)
 
 import           GHC.Magic
 
 primitives :: TestNested
 primitives = testNested "Primitives" [
-    goldenPir "string" string
+    goldenPir "text" text
   , goldenPir "int" int
   , goldenPir "int2" int2
   , goldenPir "bool" bool
@@ -63,7 +64,7 @@ primitives = testNested "Primitives" [
   , goldenPir "traceComplex" traceComplex
   , goldenPir "stringLiteral" stringLiteral
   , goldenPir "stringConvert" stringConvert
-  , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: String), liftProgram ("hello" :: String)]
+  , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: Text), liftProgram ("hello" :: Text)]
   , goldenPir "encodeUtf8" stringEncode
   , goldenUEval "constructData1" [ constructData1 ]
   -- It's interesting to look at one of these to make sure all the specialisation is working out nicely and for
@@ -77,8 +78,8 @@ primitives = testNested "Primitives" [
   , goldenUEval "deconstructData3" [ toUPlc deconstructData3, toUPlc constructData3 ]
   ]
 
-string :: CompiledCode String
-string = plc (Proxy @"string") "test"
+text :: CompiledCode Text
+text = plc (Proxy @"text") "test"
 
 int :: CompiledCode Integer
 int = plc (Proxy @"int") (1::Integer)
@@ -156,8 +157,8 @@ stringLiteral = plc (Proxy @"stringLiteral") ("abc"::Builtins.BuiltinString)
 stringConvert :: CompiledCode (Builtins.BuiltinString)
 stringConvert = plc (Proxy @"stringConvert") ((noinline Builtins.stringToBuiltinString) "abc")
 
-stringEquals :: CompiledCode (String -> String -> Bool)
-stringEquals = plc (Proxy @"string32Equals") (\(x :: String) (y :: String) -> Builtins.equalsString (Builtins.stringToBuiltinString x) (Builtins.stringToBuiltinString y))
+stringEquals :: CompiledCode (Text -> Text -> Bool)
+stringEquals = plc (Proxy @"string32Equals") (\(x :: Text) (y :: Text) -> Builtins.equalsString (Builtins.stringToBuiltinString x) (Builtins.stringToBuiltinString y))
 
 stringEncode :: CompiledCode (Builtins.BuiltinByteString)
 stringEncode = plc (Proxy @"stringEncode") (Builtins.encodeUtf8 "abc")

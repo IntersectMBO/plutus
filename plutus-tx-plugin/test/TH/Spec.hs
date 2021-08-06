@@ -41,6 +41,7 @@ import           Control.Exception
 import           Control.Lens.Combinators  (_1)
 import           Control.Monad.Except
 
+import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
@@ -50,7 +51,10 @@ runPlcCek values = do
      let p = Haskell.foldl1 UPLC.applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException Haskell.IO ([Haskell.String], CekExTally PLC.DefaultFun, (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()))
+runPlcCekTrace ::
+     ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
+     [a] ->
+     ExceptT SomeException Haskell.IO ([Text], CekExTally PLC.DefaultFun, Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCekTrace values = do
      ps <- Haskell.traverse toUPlc values
      let p = Haskell.foldl1 UPLC.applyProgram ps
@@ -62,7 +66,7 @@ goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Haskell.String -> [a]
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
 
 goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Haskell.String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . (view _1)) Haskell.<$> (rethrow $ runPlcCekTrace values)
+goldenEvalCekLog name values = nestedGoldenVsDocM name $ pretty . view _1 Haskell.<$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested
 tests = testNested "TH" [

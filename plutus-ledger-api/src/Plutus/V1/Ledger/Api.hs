@@ -119,7 +119,6 @@ import           Data.Either
 import           Data.Maybe                                       (isJust)
 import           Data.SatInt
 import           Data.Text                                        (Text)
-import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import           Plutus.V1.Ledger.Ada
@@ -245,7 +244,7 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
 
-    tell $ Prelude.map Text.pack logs
+    tell logs
     liftEither $ first CekError $ void res
 
 -- | Evaluates a script, returning the minimum budget that the script would need
@@ -269,6 +268,6 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
 
-    tell $ Prelude.map Text.pack logs
+    tell logs
     liftEither $ first CekError $ void res
     pure final
