@@ -97,8 +97,9 @@
           "Ledger/Tokens"
           "Ledger/Tx"
           "Ledger/Typed/Scripts"
-          "Ledger/Typed/Scripts/Validators"
           "Ledger/Typed/Scripts/MonetaryPolicies"
+          "Ledger/Typed/Scripts/StakeValidators"
+          "Ledger/Typed/Scripts/Validators"
           "Ledger/Typed/Tx"
           "Ledger/Typed/TypeUtils"
           ];

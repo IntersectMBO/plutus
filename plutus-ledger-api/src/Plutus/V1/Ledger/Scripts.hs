@@ -28,8 +28,10 @@ module Plutus.V1.Ledger.Scripts(
     evaluateScript,
     runScript,
     runMintingPolicyScript,
+    runStakeValidatorScript,
     applyValidator,
     applyMintingPolicyScript,
+    applyStakeValidatorScript,
     mkTermToEvaluate,
     applyArguments,
     -- * Script wrappers
@@ -41,12 +43,16 @@ module Plutus.V1.Ledger.Scripts(
     mkMintingPolicyScript,
     MintingPolicy (..),
     unMintingPolicyScript,
+    mkStakeValidatorScript,
+    StakeValidator (..),
+    unStakeValidatorScript,
     Context(..),
     -- * Hashes
     DatumHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
     MintingPolicyHash (..),
+    StakeValidatorHash (..),
     -- * Example scripts
     unitRedeemer,
     unitDatum,
@@ -235,6 +241,12 @@ mkMintingPolicyScript = MintingPolicy . fromCompiledCode
 unMintingPolicyScript :: MintingPolicy -> Script
 unMintingPolicyScript = getMintingPolicy
 
+mkStakeValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> ()) -> StakeValidator
+mkStakeValidatorScript = StakeValidator . fromCompiledCode
+
+unStakeValidatorScript :: StakeValidator -> Script
+unStakeValidatorScript = getStakeValidator
+
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
@@ -292,6 +304,22 @@ instance BA.ByteArrayAccess MintingPolicy where
     withByteArray =
         BA.withByteArray . BSL.toStrict . serialise
 
+-- | 'StakeValidator' is a wrapper around 'Script's which are used as validators for withdrawals and stake address certificates.
+newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
+  deriving stock (Generic)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
+  deriving anyclass (ToJSON, FromJSON, NFData)
+  deriving Pretty via (PrettyShow MintingPolicy)
+
+instance Haskell.Show StakeValidator where
+    show = const "StakeValidator { <script> }"
+
+instance BA.ByteArrayAccess StakeValidator where
+    length =
+        BA.length . BSL.toStrict . serialise
+    withByteArray =
+        BA.withByteArray . BSL.toStrict . serialise
+
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
     ValidatorHash Builtins.BuiltinByteString
@@ -319,6 +347,14 @@ newtype RedeemerHash =
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
+    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+
+-- | Script runtime representation of a @Digest SHA256@.
+newtype StakeValidatorHash =
+    StakeValidatorHash Builtins.BuiltinByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
@@ -369,6 +405,25 @@ runMintingPolicyScript
 runMintingPolicyScript context mps red = do
     evaluateScript (applyMintingPolicyScript context mps red)
 
+-- | Apply 'StakeValidator' to its 'Context' and 'Redeemer'.
+applyStakeValidatorScript
+    :: Context
+    -> StakeValidator
+    -> Redeemer
+    -> Script
+applyStakeValidatorScript (Context (BuiltinData valData)) (StakeValidator validator) (Redeemer (BuiltinData red)) =
+    applyArguments validator [red, valData]
+
+-- | Evaluate a 'StakeValidator' with its 'Context' and 'Redeemer', returning the log.
+runStakeValidatorScript
+    :: (MonadError ScriptError m)
+    => Context
+    -> StakeValidator
+    -> Redeemer
+    -> m (PLC.ExBudget, [Haskell.String])
+runStakeValidatorScript context wps red = do
+    evaluateScript (applyStakeValidatorScript context wps red)
+
 -- | @()@ as a datum.
 unitDatum :: Datum
 unitDatum = Datum $ toBuiltinData ()
@@ -379,9 +434,11 @@ unitRedeemer = Redeemer $ toBuiltinData ()
 
 makeLift ''ValidatorHash
 
-makeLift ''DatumHash
-
 makeLift ''MintingPolicyHash
+
+makeLift ''StakeValidatorHash
+
+makeLift ''DatumHash
 
 makeLift ''RedeemerHash
 
