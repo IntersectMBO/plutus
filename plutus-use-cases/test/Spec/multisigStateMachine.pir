@@ -2674,7 +2674,7 @@
                                       { (builtin ifThenElse) Bool }
                                       [
                                         [
-                                          (builtin greaterThanEqualsInteger)
+                                          (builtin lessThanInteger)
                                           [
                                             [
                                               {
@@ -2767,9 +2767,9 @@
                                         numReq
                                       ]
                                     ]
-                                    True
+                                    False
                                   ]
-                                  False
+                                  True
                                 ]
                               )
                             )
@@ -5539,11 +5539,11 @@
                             [
                               [
                                 { (builtin ifThenElse) Bool }
-                                [ [ (builtin greaterThanEqualsInteger) x ] y ]
+                                [ [ (builtin lessThanInteger) x ] y ]
                               ]
-                              True
+                              False
                             ]
-                            False
+                            True
                           ]
                         )
                       )
@@ -5564,11 +5564,11 @@
                             [
                               [
                                 { (builtin ifThenElse) Bool }
-                                [ [ (builtin greaterThanInteger) x ] y ]
+                                [ [ (builtin lessThanEqualsInteger) x ] y ]
                               ]
-                              True
+                              False
                             ]
-                            False
+                            True
                           ]
                         )
                       )

@@ -102,7 +102,7 @@ allDirect p l = case l of
     h:t -> andDirect (p h) (allDirect p t)
 
 allPlcDirect :: CompiledCode Bool
-allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x::Integer) -> Builtins.greaterThanInteger x 5) [7, 6])
+allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x::Integer) -> Builtins.lessThanInteger x 5) [7, 6])
 
 mutualRecursionUnfoldings :: CompiledCode Bool
 mutualRecursionUnfoldings = plc (Proxy @"mutualRecursionUnfoldings") (evenDirect 4)

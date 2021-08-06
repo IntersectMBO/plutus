@@ -5046,16 +5046,16 @@
                                                                                                         [
                                                                                                           [
                                                                                                             (builtin
-                                                                                                              greaterThanInteger
+                                                                                                              lessThanEqualsInteger
                                                                                                             )
                                                                                                             ds
                                                                                                           ]
                                                                                                           ds
                                                                                                         ]
                                                                                                       ]
-                                                                                                      True
+                                                                                                      False
                                                                                                     ]
-                                                                                                    False
+                                                                                                    True
                                                                                                   ]
                                                                                                 ]
                                                                                                 (all dead (type) [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State FutureState]]])

@@ -21,6 +21,7 @@ module Plutus.Contract(
     , selectEither
     , select
     , selectList
+    , never
     -- * Dealing with time
     , Request.awaitSlot
     , Request.isSlot
@@ -98,7 +99,7 @@ import qualified Plutus.Contract.Schema         as Schema
 import           Plutus.Contract.Typed.Tx       as Tx
 import           Plutus.Contract.Types          (AsCheckpointError (..), AsContractError (..), CheckpointError (..),
                                                  Contract (..), ContractError (..), IsContract (..), Promise (..),
-                                                 checkpoint, checkpointLoop, handleError, mapError, promiseBind,
+                                                 checkpoint, checkpointLoop, handleError, mapError, never, promiseBind,
                                                  promiseMap, runError, select, selectEither, selectList, throwError)
 
 import qualified Control.Monad.Freer.Extras.Log as L
