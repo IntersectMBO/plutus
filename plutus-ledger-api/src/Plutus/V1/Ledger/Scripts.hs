@@ -54,9 +54,7 @@ module Plutus.V1.Ledger.Scripts(
 
 import qualified Prelude                                  as Haskell
 
-import           CZlib.Zlib                               as CZlib
 import           Codec.CBOR.Decoding                      (decodeBytes)
-import           Codec.CBOR.Encoding                      (encodeBytes)
 import           Codec.Serialise                          (Serialise, decode, encode, serialise)
 import           Control.DeepSeq                          (NFData)
 import           Control.Monad.Except                     (MonadError, runExceptT, throwError)
@@ -84,15 +82,14 @@ import           PlutusTx.Builtins                        as Builtins
 import           PlutusTx.Builtins.Internal               as BI
 import           PlutusTx.Evaluation                      (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
 import           PlutusTx.Prelude
-import           PureZlib.Zlib                            as PZlib
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
-    deriving stock Generic
+  deriving stock Generic
 
-{- Note [Using Flat inside CBOR instance for Script]
+{-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
 choice to use Flat was made to have a more efficient (most wins are in uncompressed
 size) data serialisation format and use less space on-chain.
@@ -106,31 +103,13 @@ Because Flat is not self-describing and it gets used in the encoding of Programs
 data structures that include scripts (for example, transactions) no-longer benefit
 for CBOR's ability to self-describe it's format.
 -}
-
-{- Note [Using compression for script serialization]
-Compression gains us 30-40% off script size, which is enough that we can't ignore it.
-Unfortunately, using compression is somewhat fraught. In particular, it is too risky
-to use a C compression library in the main line of the Cardano node, since such things
-tend to be prone to exploits.
-
-Instead we use a pure Haskell implementation of (just enough of) zlib, `pure-zlib` for
-decompression, and the Haskell C-wrapper around `zlib` for compression.
--}
-
 instance Serialise Script where
-    -- See Note [Using Flat inside the CBOR instance for Script]
-    -- See Note [Using compression for script serialization]
-    encode = encodeBytes . BSL.toStrict . CZlib.compressWith (CZlib.defaultCompressParams{compressLevel=CZlib.bestCompression}) . BSL.fromStrict . Flat.flat . unScript
-    decode = do
-        bs <- decodeBytes
-        -- See Note [Using compression for script serialization]
-        bs' <- case PZlib.decompress $ BSL.fromStrict bs of
-            Left err           -> Haskell.fail (Haskell.show err)
-            Right decompressed -> return decompressed
-        -- See Note [Using Flat inside the CBOR instance for Script]
-        case Flat.unflat bs' of
-            Left  err    -> Haskell.fail (Haskell.show err)
-            Right script -> return $ Script script
+  encode = encode . Flat.flat . unScript
+  decode = do
+    bs <- decodeBytes
+    case Flat.unflat bs of
+      Left  err    -> Haskell.fail (Haskell.show err)
+      Right script -> return $ Script script
 
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.

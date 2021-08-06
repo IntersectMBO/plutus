@@ -646,7 +646,6 @@
         "hourglass".revision = (((hackage."hourglass")."0.2.12").revisions).default;
         "appar".revision = (((hackage."appar")."0.1.8").revisions).default;
         "indexed-traversable-instances".revision = (((hackage."indexed-traversable-instances")."0.1").revisions).default;
-        "pure-zlib".revision = (((hackage."pure-zlib")."0.6.7").revisions).default;
         "testing-type-modifiers".revision = (((hackage."testing-type-modifiers")."0.1.0.1").revisions).default;
         "th-desugar".revision = (((hackage."th-desugar")."1.11").revisions).default;
         "mime-types".revision = (((hackage."mime-types")."0.1.0.9").revisions).default;
@@ -1144,7 +1143,6 @@
           "signal".components.exes."test".planned = lib.mkOverride 900 true;
           "indexed-traversable-instances".components.library.planned = lib.mkOverride 900 true;
           "appar".components.library.planned = lib.mkOverride 900 true;
-          "pure-zlib".components.library.planned = lib.mkOverride 900 true;
           "hspec-discover".components.exes."hspec-discover".planned = lib.mkOverride 900 true;
           "prettyprinter-configurable".components.setup.planned = lib.mkOverride 900 true;
           "MonadRandom".components.library.planned = lib.mkOverride 900 true;
@@ -1247,7 +1245,6 @@
           "auto-update".components.library.planned = lib.mkOverride 900 true;
           "http-conduit".components.library.planned = lib.mkOverride 900 true;
           "ouroboros-consensus-byron".components.library.planned = lib.mkOverride 900 true;
-          "pure-zlib".components.exes."deflate".planned = lib.mkOverride 900 true;
           "tls".components.library.planned = lib.mkOverride 900 true;
           "process".components.library.planned = lib.mkOverride 900 true;
           "criterion".components.library.planned = lib.mkOverride 900 true;
