@@ -156,6 +156,7 @@ genTx = do
         <*> pure mempty
         <*> pure mempty
         <*> pure mempty
+        <*> pure mempty
 
 -- | Generate a 'TxUtxoBalance' based on the state of utxo changes produced so
 --   far. Ensures that tx outputs are created before they are spent, and that
