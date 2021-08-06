@@ -180,6 +180,19 @@ processTxStatusChangeRequestsSTM =
             env <- ask
             pure (AwaitTxStatusChangeResp txId <$> InstanceState.waitForTxStatusChange Unknown txId env)
 
+processUtxoSpentRequestsSTM ::
+    forall effs.
+    ( Member (Reader BlockchainEnv) effs
+    )
+    => RequestHandler effs (Request PABReq) (Response (STM PABResp))
+processUtxoSpentRequestsSTM =
+    maybeToHandler (extract Contract.Effects._AwaitUtxoSpentReq)
+    >>> RequestHandler handler
+    where
+        handler txOutRef = do
+            env <- ask
+            pure (AwaitUtxoSpentResp . _ <$> InstanceState.waitForUtxoSpent txOutRef)
+
 processEndpointRequestsSTM ::
     forall effs.
     ( Member (Reader InstanceState) effs
@@ -230,6 +243,7 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> wrapHandler (processTxStatusChangeRequestsSTM @effs)
         <> processEndpointRequestsSTM @effs
         <> wrapHandler (processAwaitTimeRequestsSTM @effs)
+        <> wrapHandler (processUtxoSpentRequestsSTM @effs)
 
 -- | Start the thread for the contract instance
 startSTMInstanceThread' ::

@@ -20,6 +20,8 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , InstanceState(..)
     , emptyInstanceState
     , OpenEndpoint(..)
+    , OpenTxOutProducedRequest(..)
+    , OpenTxOutSpentRequest(..)
     , clearEndpoints
     , addEndpoint
     , addAddress
@@ -52,11 +54,12 @@ import           Control.Monad                    (guard)
 import           Data.Aeson                       (Value)
 import           Data.Default                     (def)
 import           Data.Foldable                    (fold)
+import           Data.List.NonEmpty               (NonEmpty)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
-import           Ledger                           (Address, Slot, TxId, txOutTxOut, txOutValue)
+import           Ledger                           (Address, OnChainTx, Slot, TxId, TxOutRef, txOutTxOut, txOutValue)
 import           Ledger.AddressMap                (AddressMap)
 import qualified Ledger.AddressMap                as AM
 import           Ledger.Time                      (POSIXTime (..))
@@ -126,6 +129,19 @@ data OpenEndpoint =
             , oepResponse :: TMVar (EndpointValue Value) -- ^ A place to write the response to.
             }
 
+-- | A TxOutRef that a contract instance is watching
+data OpenTxOutSpentRequest =
+    OpenTxOutSpentRequest
+        { osrOutRef     :: TxOutRef -- ^ The 'TxOutRef' that the instance is watching
+        , osrSpendingTx :: TMVar OnChainTx -- ^ A place to write the spending transaction to
+        }
+
+data OpenTxOutProducedRequest =
+    OpenTxOutProducedRequest
+        { otxAddress       :: Address -- ^ 'Address' that the contract instance is watching (TODO: Should be ViewAddress -- SCP-2628)
+        , otxProducingTxns :: TMVar (NonEmpty OnChainTx) -- ^ A place to write the producing transactions to
+        }
+
 -- | Data about the blockchain that contract instances
 --   may be interested in.
 data BlockchainEnv =
@@ -180,11 +196,13 @@ data Activity =
 data InstanceState =
     InstanceState
         { issEndpoints       :: TVar (Map (RequestID, IterationID) OpenEndpoint) -- ^ Open endpoints that can be responded to.
-        , issAddresses       :: TVar (Set Address) -- ^ Addresses that the contract wants to watch
+        , issAddresses       :: TVar (Set Address) -- ^ Addresses that the contract wants to watch -- FIXME: Delete?
         , issTransactions    :: TVar (Set TxId) -- ^ Transactions whose status the contract is interested in
         , issStatus          :: TVar Activity -- ^ Whether the instance is still running.
         , issObservableState :: TVar (Maybe Value) -- ^ Serialised observable state of the contract instance (if available)
         , issStop            :: TMVar () -- ^ Stop the instance if a value is written into the TMVar.
+        , issTxOutRefs       :: TVar (Map (RequestID, IterationID) OpenTxOutSpentRequest)
+        , issAddressRefs     :: TVar (Map (RequestID, IterationID) OpenTxOutProducedRequest)
         }
 
 -- | An 'InstanceState' value with empty fields
@@ -197,6 +215,8 @@ emptyInstanceState =
         <*> STM.newTVar Active
         <*> STM.newTVar Nothing
         <*> STM.newEmptyTMVar
+        <*> STM.newTVar mempty
+        <*> STM.newTVar mempty
 
 -- | Add an address to the set of addresses that the instance is watching
 addAddress :: Address -> InstanceState -> STM ()
