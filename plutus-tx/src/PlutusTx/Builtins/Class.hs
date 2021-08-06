@@ -174,7 +174,7 @@ instance FromBuiltin arep a => FromBuiltin (BuiltinList arep) [a] where
           go :: BuiltinList arep -> [a]
           -- Note that we are using builtin chooseList here so this is *strict* application! So we need to do
           -- the manual laziness ourselves.
-          go l = chooseList l (\_ -> []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
+          go l = chooseList l (const []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
 
 instance ToBuiltin [BuiltinData] (BuiltinList BuiltinData) where
     {-# INLINABLE toBuiltin #-}
