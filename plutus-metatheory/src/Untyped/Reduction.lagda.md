@@ -68,8 +68,6 @@ arity remainderInteger = [] :< Term :< Term
 arity modInteger = [] :< Term :< Term
 arity lessThanInteger = [] :< Term :< Term
 arity lessThanEqualsInteger = [] :< Term :< Term
-arity greaterThanInteger = [] :< Term :< Term
-arity greaterThanEqualsInteger = [] :< Term :< Term
 arity equalsInteger = [] :< Term :< Term
 arity concatenate = [] :< Term :< Term
 arity takeByteString = [] :< Term :< Term
@@ -128,7 +126,7 @@ data Value  : 0 ⊢ → Set where
             → ITel b ls
             → (t : 0 ⊢)
             → Value t
-  
+
 ITel b []          = ⊤
 ITel b (ls :< Type) = ITel b ls
 ITel b (ls :< Term) = ITel b ls × Σ (0 ⊢) Value
@@ -143,7 +141,7 @@ IBUILTIN addInteger
 IBUILTIN subtractInteger
   ((tt , (t , V-con (integer i))) , (t' , V-con (integer i')))
   = _ , inl (V-con (integer (i - i')))
-IBUILTIN multiplyInteger 
+IBUILTIN multiplyInteger
   ((tt , (t , V-con (integer i))) , (t' , V-con (integer i')))
   = _ , inl (V-con (integer (i * i')))
 IBUILTIN divideInteger
@@ -174,16 +172,6 @@ IBUILTIN lessThanInteger
 IBUILTIN lessThanEqualsInteger
   ((tt , (t , V-con (integer i))) , (t' , V-con (integer i')))
   with i ≤? i'
-... | no ¬p = _ , inl (V-con (bool false))
-... | yes p = _ , inl (V-con (bool true))
-IBUILTIN greaterThanInteger
-  ((tt , (t , V-con (integer i))) , (t' , V-con (integer i')))
-  with i I>? i'
-... | no ¬p = _ , inl (V-con (bool false))
-... | yes p = _ , inl (V-con (bool true))
-IBUILTIN greaterThanEqualsInteger
-  ((tt , (t , V-con (integer i))) , (t' , V-con (integer i')))
-  with i I≥? i'
 ... | no ¬p = _ , inl (V-con (bool false))
 ... | yes p = _ , inl (V-con (bool true))
 IBUILTIN equalsInteger
@@ -364,10 +352,6 @@ ival modInteger = V-F (V-builtin modInteger refl (skipTerm base) _ _)
 ival lessThanInteger = V-F (V-builtin lessThanInteger refl (skipTerm base) _ _)
 ival lessThanEqualsInteger =
   V-F (V-builtin lessThanEqualsInteger refl (skipTerm base) _ _)
-ival greaterThanInteger =
-  V-F (V-builtin greaterThanInteger refl (skipTerm base) _ _)
-ival greaterThanEqualsInteger =
-  V-F (V-builtin greaterThanEqualsInteger refl (skipTerm base) _ _)
 ival equalsInteger = V-F (V-builtin equalsInteger refl (skipTerm base) _ _)
 ival concatenate = V-F (V-builtin concatenate refl (skipTerm base) _ _)
 ival takeByteString = V-F (V-builtin takeByteString refl (skipTerm base) _ _)

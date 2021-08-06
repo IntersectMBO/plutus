@@ -318,8 +318,6 @@ benchNop3 gen =
 
    AddInteger:            SubtractInteger
    DivideInteger:         RemainderInteger, QuotientInteger, ModInteger
-   LessThanInteger:       GreaterThanInteger
-   LessThanEqualsInteger: GreaterThanEqualsInteger
    LessThanByteString:    GreaterThanByteString
 -}
 main :: IO ()

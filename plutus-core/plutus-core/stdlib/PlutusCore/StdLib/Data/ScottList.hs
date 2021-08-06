@@ -212,9 +212,9 @@ reverse = runQuote $ do
 -- >     fix {integer} {list (integer)}
 -- >         (\(rec : integer -> list (integer)) (n' : integer) ->
 -- >             ifThenElse {list (integer)}
--- >                 (greaterThanInteger n' m)
--- >                 (nil {integer})
--- >                 (cons {integer} n' (rec (succInteger n'))))
+-- >                 (lessThanEqualsInteger n' m)
+-- >                 (cons {integer} n' (rec (succInteger n')))
+-- >                 (nil {integer}))
 -- >         n
 enumFromTo
     :: ( TermLike term TyName Name uni DefaultFun
@@ -227,7 +227,7 @@ enumFromTo = runQuote $ do
     rec <- freshName "rec"
     n'  <- freshName "n'"
     u   <- freshName "u"
-    let gtInteger  = builtin () GreaterThanInteger
+    let leqInteger  = builtin () LessThanEqualsInteger
         int = mkTyBuiltin @_ @Integer ()
         listInt = TyApp () listTy int
     return
@@ -237,14 +237,14 @@ enumFromTo = runQuote $ do
         $ [   lamAbs () rec (TyFun () int listInt)
             . lamAbs () n' int
             . mkIterApp () (tyInst () ifThenElse listInt)
-            $ [ mkIterApp () gtInteger [ var () n' , var () m]
-              , lamAbs () u unit $ tyInst () nil int
+            $ [ mkIterApp () leqInteger [ var () n' , var () m]
               , lamAbs () u unit $ mkIterApp () (tyInst () cons int)
                     [ var () n'
                     ,    apply () (var () rec)
                        . apply () succInteger
                        $ var () n'
                     ]
+              , lamAbs () u unit $ tyInst () nil int
               ]
           , var () n
           ]

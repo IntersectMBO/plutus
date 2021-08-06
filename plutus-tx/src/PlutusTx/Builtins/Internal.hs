@@ -123,14 +123,6 @@ quotientInteger = coerce (quot @Integer)
 remainderInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinInteger
 remainderInteger = coerce (rem @Integer)
 
-{-# NOINLINE greaterThanInteger #-}
-greaterThanInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
-greaterThanInteger = coerce ((>) @Integer)
-
-{-# NOINLINE greaterThanEqInteger #-}
-greaterThanEqInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
-greaterThanEqInteger = coerce ((>=) @Integer)
-
 {-# NOINLINE lessThanInteger #-}
 lessThanInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
 lessThanInteger = coerce ((<) @Integer)

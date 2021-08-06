@@ -15,7 +15,6 @@ import           PlutusTx.Compiler.Builtins
 import           PlutusTx.Compiler.Error
 import           PlutusTx.Compiler.Laziness
 import           PlutusTx.Compiler.Names
-import           PlutusTx.Compiler.Primitives
 import           PlutusTx.Compiler.Type
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
@@ -468,7 +467,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar () var
 
         -- Special kinds of id
-        GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> compilePrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
 
         -- See Note [Unfoldings]

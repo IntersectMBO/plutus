@@ -172,12 +172,12 @@ remainderInteger x y = fromBuiltin (BI.remainderInteger (toBuiltin x) (toBuiltin
 {-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = fromBuiltin (BI.greaterThanInteger (toBuiltin x) (toBuiltin y))
+greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqInteger x y ) False True
 
 {-# INLINABLE greaterThanEqInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
 greaterThanEqInteger :: Integer -> Integer -> Bool
-greaterThanEqInteger x y = fromBuiltin (BI.greaterThanEqInteger (toBuiltin x) (toBuiltin y))
+greaterThanEqInteger x y = BI.ifThenElse (BI.lessThanInteger x y) False True
 
 {-# INLINABLE lessThanInteger #-}
 -- | Check whether one 'Integer' is less than another.

@@ -57,7 +57,6 @@
           "PlutusTx/Compiler/Kind"
           "PlutusTx/Compiler/Laziness"
           "PlutusTx/Compiler/Names"
-          "PlutusTx/Compiler/Primitives"
           "PlutusTx/Compiler/Type"
           "PlutusTx/Compiler/Types"
           "PlutusTx/Compiler/Utils"
