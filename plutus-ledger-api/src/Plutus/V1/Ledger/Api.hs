@@ -87,6 +87,10 @@ module Plutus.V1.Ledger.Api (
     , mkMintingPolicyScript
     , unMintingPolicyScript
     , MintingPolicyHash (..)
+    , StakeValidator (..)
+    , mkStakeValidatorScript
+    , unStakeValidatorScript
+    , StakeValidatorHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)
