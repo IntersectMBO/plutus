@@ -32,7 +32,7 @@ deactivateContract ::
   MonadError AjaxError m =>
   MonadAff m =>
   ContractInstanceId -> m Unit
-deactivateContract contractInstanceId = doPutRequest $ "api/contract/instance/" <> toUrlPiece contractInstanceId <> "/stop"
+deactivateContract contractInstanceId = doPutRequest $ "/api/contract/instance/" <> toUrlPiece contractInstanceId <> "/stop"
 
 getContractInstanceClientState ::
   forall m.
