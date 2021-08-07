@@ -3,6 +3,7 @@ module View.Pretty where
 import Prelude
 import Bootstrap (alertDanger_, nbsp)
 import Data.Array (length)
+import Data.Either (Either(..))
 import Data.Lens (view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
@@ -11,6 +12,9 @@ import Halogen.HTML (HTML, b_, div_, span_, text)
 import Plutus.Contract.Effects (ActiveEndpoint, BalanceTxResponse(..), WriteBalancedTxResponse(..), PABReq(..), PABResp(..))
 import Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
+import Plutus.V1.Ledger.Interval (Interval(..), Extended(..), LowerBound(..), UpperBound(..))
+import Plutus.V1.Ledger.Slot (Slot(..))
+import Plutus.V1.Ledger.Time (POSIXTime(..))
 import Plutus.V1.Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse(..))
@@ -128,6 +132,18 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , text $ view _contractInstanceIdString ownInstanceResponse
       ]
+  pretty (PosixTimeRangeToContainedSlotRangeResp (Left slotConversionError)) =
+    span_
+      [ text "SlotConversionError:"
+      , nbsp
+      , text $ show slotConversionError
+      ]
+  pretty (PosixTimeRangeToContainedSlotRangeResp (Right slotRange)) =
+    span_
+      [ text "SlotRange:"
+      , nbsp
+      , pretty slotRange
+      ]
 
 instance prettyContractPABRequest :: Pretty PABReq where
   pretty (AwaitSlotReq slot) =
@@ -198,7 +214,13 @@ instance prettyContractPABRequest :: Pretty PABReq where
       ]
   pretty OwnContractInstanceIdReq =
     span_
-      [ text "OwnInstanceIdRequest:"
+      [ text "OwnInstanceIdRequest"
+      ]
+  pretty (PosixTimeRangeToContainedSlotRangeReq timeRange) =
+    span_
+      [ text "PosixTimeRangeToContainedSlotRangeReq:"
+      , nbsp
+      , pretty timeRange
       ]
 
 instance prettyBalanceTxResponse :: Pretty BalanceTxResponse where
@@ -250,6 +272,27 @@ instance prettyActiveEndpoint :: Pretty ActiveEndpoint where
 
 instance prettyEndpointDescription :: Pretty EndpointDescription where
   pretty description = text $ show $ view _getEndpointDescription description
+
+instance prettyLowerBound :: Pretty a => Pretty (LowerBound a) where
+  pretty (LowerBound PosInf _) = text "(+∞"
+  pretty (LowerBound NegInf _) = text "(-∞"
+  pretty (LowerBound (Finite a) true) = span_ [ text "[", pretty a ]
+  pretty (LowerBound (Finite a) false) = span_ [ text "(", pretty a ]
+
+instance prettyUpperBound :: Pretty a => Pretty (UpperBound a) where
+  pretty (UpperBound PosInf _) = text "+∞)"
+  pretty (UpperBound NegInf _) = text "-∞)"
+  pretty (UpperBound (Finite a) true) = span_ [ pretty a, text "]" ]
+  pretty (UpperBound (Finite a) false) = span_ [ pretty a, text ")" ]
+
+instance prettyInterval :: Pretty a => Pretty (Interval a) where
+  pretty (Interval { ivFrom, ivTo }) = span_ [ pretty ivFrom, text ", ", pretty ivTo ]
+
+instance prettyPOSIXTime :: Pretty POSIXTime where
+  pretty (POSIXTime { getPOSIXTime }) = span_ [ text "POSIXTime:", nbsp, text $ show getPOSIXTime ]
+
+instance prettySlot :: Pretty Slot where
+  pretty (Slot { getSlot }) = span_ [ text "Slot:", nbsp, text $ show getSlot ]
 
 -- | Yes, this is dumb and only handles _most_ English words, but it's and better than saying '1 input(s)'.
 -- And hey, "most English words" is still a lot of words.
