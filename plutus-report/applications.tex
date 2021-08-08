@@ -230,6 +230,49 @@ However, we plan to switch to a simpler database model.
 
 Applications need to access \glspl{datum} for outputs (see \cref{req:app-chain-data}), so we need some kind of system that monitors the chain and records (at least) the \glspl{datum}.
 
+The \Gls{chain-index} is a program that follows the blockchain and syncs useful Smart Contract data to a database, like various hash values and transaction information.
+
+The \Gls{chain-index} is intended to be used primarily by the PAB, but its HTTP interface can be accessed by other applications also.
+DApp builders can also customize and extend it to structure their application-specific cache to improve certain data queries. Then expose those read-only endpoints to both internal and external applications.
+
+Design goals:
+\begin{itemize}
+\item
+  Minimise RAM usage.
+  \begin{itemize}
+  \item
+    Keep most data on disk and store only the tx out references in RAM.
+  \end{itemize}
+\item
+  Allow for time and space efficient query answering.
+  \begin{itemize}
+  \item
+    Most queries are single lookups in a key-value store.
+  \item
+    The maximum size of responses to chain index queries is fixed and independent of the UTXO set.
+  \end{itemize}
+\item
+  Allow for for fast updating of the utxo set.
+  \begin{itemize}
+  \item
+    Rollbacks can be processed in log time (relative to the chain constant k).
+  \item
+    Deletion of old data from disk storage can be performed out-of-band (garbage collection style).
+  \end{itemize}
+\item
+  Allow for fast initial indexing.
+  \begin{itemize}
+  \item
+    Chunks of transactions can be processed in parallel while the chain index is catching up.
+  \end{itemize}
+\item
+  Limit disk usage.
+  \begin{itemize}
+  \item
+    Disk storage required is proportional to UTXO set, not to the length of the chain.
+  \end{itemize}
+\end{itemize}
+
 \subsubsection{Client interface}
 
 For external clients (other programs), including graphical \glspl{wallet-frontend} to talk to.

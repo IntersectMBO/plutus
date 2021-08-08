@@ -3,7 +3,8 @@
 The chain index is a program that follows the cardano blockchain and stores information from the chain in a database.
 The information that is stored is useful for Plutus smart contracts: Various hash values and transaction information.
 
-The chain index is intended to be used primarily by the PAB, but its HTTP interface can be accessed by other applications also.
+The chain index is intended to be used primarily by the PAB, but its HTTP interface can be accessed by other applications also. DApp builders can also customize and extend this component to structure their application-specific cache to improve certain data queries. Then expose those read-only endpoints to both internal and external applications.
+
 
 ## Design goals
 
