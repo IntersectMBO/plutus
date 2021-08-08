@@ -42,12 +42,12 @@ The \glsfirst{paf} is our response to this problem: a disciplined framework for 
 \subsection{Requirements}
 \begin{requirement}[Backups]
 \label{req:app-backups}
-\Glspl{app} need to be easy to back up, if they are to be used in production.
+\Glspl{app} need to be easy to back up if they are to be used in production.
 \end{requirement}
 
 \begin{requirement}[Monitoring]
 \label{req:app-monitoring}
-\Glspl{app} need to be easy to monitor, if they are to be used in production.
+\Glspl{app} need to be easy to monitor if they are to be used in production.
 \end{requirement}
 
 \begin{requirement}[Synchronization]
@@ -58,7 +58,7 @@ This is quite important for consumer-type users.
 
 \begin{requirement}[Reproducibility]
 \label{req:app-reproducibility}
-\Gls{app} behaviour should be reliable and reproducible on different environments and devices.
+\Gls{app} behaviour should be reliable and reproducible in different environments and devices.
 For example, \glspl{app-inst} that have had their state synchronized (\cref{req:app-synch}) should behave identically.
 \end{requirement}
 
@@ -67,7 +67,7 @@ For example, \glspl{app-inst} that have had their state synchronized (\cref{req:
 \Glspl{app} need to be distributed to users somehow.
 Different users may have different needs here, for example:
 \begin{itemize}
-\item A consumer user may want to download an \gls{app} from a centrally managed ``app store'' in their \gls{wallet-frontend}.
+\item A consumer user may want to download a \gls{app} from a centrally managed ``app store'' in their \gls{wallet-frontend}.
 \item A business user may want to download a native application via their usual package manager, or directly from the author.
 \end{itemize}
 \end{requirement}
@@ -102,7 +102,7 @@ Suppose that Alice promises to send 10 \gls{ada} to Bob, provided that Bob sends
 The following events occur:
 \begin{enumerate}
 \item Bob pays 20 \gls{ada} to Carol in transaction T1.
-\item Alice observes T1, and proceeds to pay 10 \gls{ada} to Bob in transaction T2.
+\item Alice observes T1 and proceeds to pay 10 \gls{ada} to Bob in transaction T2.
 \item A rollback occurs. After the rollback, T1 and T2 go back into the mempool, but T1 is now invalid.
 \item T2 alone is reapplied.
 \end{enumerate}
@@ -148,7 +148,7 @@ The lifecycle of a \gls{app} is as follows:
 \item
   \Glspl{app} are installed into an instance of the \gls{pab}. The \gls{pab} just knows about the compiled \gls{app-exe} provided by the \gls{app}.
 \item
-  A \gls{app} can be instantiated into a \gls{app-inst} by running the \gls{app-exe} and providing any parameters that it needs.
+  A \gls{app} can be instantiated into an \gls{app-inst} by running the \gls{app-exe} and providing any parameters that it needs.
   There can be multiple \glspl{app-inst} per \gls{app}, and they are managed by the \gls{pab}.
 \item
   The \gls{pab} manages and handles the requirements of the \gls{app-inst} throughout its lifecycle, including interaction with external clients such as \glspl{wallet-frontend}.
@@ -181,7 +181,7 @@ The purpose of the \gls{pab} is to:
 \item Work in an emulated environment (\cref{req:app-emulation})
 \end{itemize}
 
-The \gls{pab} is a series of components which produce/consume events, and a message bus.
+The \gls{pab} is a series of components that produce/consume events and a message bus.
 
 Some of the components have additional complexity, e.g. the application management component needs to manage the state of \glspl{app-inst}.
 
@@ -199,12 +199,12 @@ The \gls{pab} needs to talk to the \gls{wallet-backend} for a number of things:
 
 You might think that since the \gls{pab} has a node client itself, it could do its own transaction submission, and only rely on the \gls{wallet-backend} for signing.
 However, transactions made by the \gls{pab} will likely use outputs ``owned'' by the \gls{wallet-backend} (e.g. those selected by coin selection from the user's outputs).
-Hence it is important that the \gls{wallet-backend} knows about such outputs, so that it does not attempt to spend them somewhere else.
+Hence it is important that the \gls{wallet-backend} knows about such outputs so that it does not attempt to spend them somewhere else.
 
 \subsubsection{Concurrency}
 
-\glspl{app-inst} managed by the \gls{pab} spend most of their time waiting for changes to the blockchain, user input, or the passage of time.
-When they are not waiting, they are making requests to services managed by the \gls{pab}, for example the \gls{chain-index} or the \gls{wallet-backend}.
+\Glspl{app-inst} managed by the \gls{pab} spend most of their time waiting for changes to the blockchain, user input, or the passage of time.
+When they are not waiting, they are making requests to services managed by the \gls{pab}, for example, the \gls{chain-index} or the \gls{wallet-backend}.
 
 % In addition, the persistence story for \glspl{app-inst} involves persisting their incoming events, so this is a good fit.
 
@@ -214,7 +214,7 @@ However, we plan to switch to a simpler database model.
 
 \subsubsection{Application management}
 
-\Gls{app-inst} need to be managed, created, destroyed, fed with events, etc.
+\Glspl{app-inst} need to be managed, created, destroyed, fed with events, etc.
 
 \begin{itemize}
 \item Create \glspl{app-inst}
@@ -247,13 +247,13 @@ At present, we have (or expect to have) emulators for:
 \begin{itemize}
 \item
   The \gls{node} using our ledger extensions.
-  In the long run we should be able to use the real Goguen \gls{node}.
+  In the long run, we should be able to use the real Goguen \gls{node}.
 \item
   The parts of the \gls{wallet-backend} that we need.
-  In the long run we will be able to use the real \gls{wallet-backend}.
+  In the long run, we will be able to use the real \gls{wallet-backend}.
 \item
   Basic \gls{wallet-frontend} functionality, such as displaying balances and interacting with \glspl{app-inst}.
-  In the long run we \emph{might} be able to use the real \gls{wallet-frontend}, but this seems unlikely as it is quite heavyweight.
+  In the long run, we \emph{might} be able to use the real \gls{wallet-frontend}, but this seems unlikely as it is quite heavyweight.
   Having our own component here has the advantage that we can reuse it in the \gls{plutus-playground}.
 \end{itemize}
 
@@ -285,11 +285,11 @@ There is no one-to-one correspondence between \glspl{app} and script outputs, or
 
 \subsubsection{On-chain}
 
-To reason about the behavior of the on-chain parts of \glspl{app} we use a type of state machines called constraint-emitting machines (\gls{cem}), state machines that produce constraints on the next transition in every step.
+To reason about the behavior of the on-chain parts of \glspl{app}, we use a type of state machines called constraint-emitting machines (\gls{cem}), state machines that produce constraints on the next transition in every step.
 This approach has been published in \cite{DBLP:conf/isola/Chakravarty0MMM20a}.
 The \gls{plutus-sdk} offers support for writing \glspl{cem} in Haskell.
 
-An advantage of writing \glspl{script} as \glspl{cem} over directly writing the \gls{validator} function in Haskell is that the constraints can be used not only to verify the spending transaction on-chain, but also to construct it off-chain.
+An advantage of writing \glspl{script} as \glspl{cem} over directly writing the \gls{validator} function in Haskell is that the constraints can be used not only to verify the spending transaction on-chain but also to construct it off-chain.
 Building a transaction that spends an output with a hand-written \gls{validator} often involves code that is very similar, but not quite identical, to the validator code itself.
 With \glspl{cem} we can capture exactly this overlap and reduce duplication.
 
@@ -343,7 +343,7 @@ Transactions start out in the node's \emph{mempool}.
 Then their status changes to \emph{tentatively confirmed} or to \emph{rejected}.
 Finally, a transaction that is tentatively confirmed can revert back to \emph{mempool} or it can become \emph{permantently confirmed} when enough blocks have been added to make it irreversible.
 
-For each of the four states of a transaction there is one place in the petri net, as shown in \ref{fig:petri-net-txn}.
+For each of the four states of a transaction, there is one place in the petri net, as shown in \ref{fig:petri-net-txn}.
 % TODO: Should probably use colored tokens here for different transactions that we can distinguish.
 
 \begin{figure}
@@ -410,16 +410,16 @@ Endpoints are places $e_1, \ldots, e_n$ in the petri net (see \ref{fig:petri-net
 
 \paragraph{Apps}
 
-Given the places for time, transaction status and endpoints we can describe \glspl{app} as sequences of transitions.
+Given the places for time, transaction status, and endpoints we can describe \glspl{app} as sequences of transitions.
 The states of the app are represented by places.
-\ref{fig:plutus-app-net} shows a \gls{app} with three possible state, $s_1$, $s_2$ and $s_3$.
+\ref{fig:plutus-app-net} shows a \gls{app} with three possible states, $s_1$, $s_2$ and $s_3$.
 As soon as a transaction is confirmed, the state can progress from $s_1$ to $s_2$.
 
 After that, endpoint $e_1$ becomes \emph{active}, meaning that the app can make progress as soon as input is provided. The next state depends on which of two possible events happens first: The endpoint being called by the user, or the clock reaching slot ten.
 
 The app transitions (green) involve queries to the \gls{chain-index}, transaction submission, etc.
 These requests are not shown in the petri net.
-We still record their responses however, in order to meet the replayability requirements (see \ref{req:app-synch} and \ref{req:app-reproducibility}).
+We still record their responses, however, in order to meet the replayability requirements (see \ref{req:app-synch} and \ref{req:app-reproducibility}).
 
 \begin{figure}
   \centering

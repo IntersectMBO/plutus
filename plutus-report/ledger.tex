@@ -20,14 +20,14 @@ This is in contrast to account-based ledgers, where account balances are global.
 We aim not to disturb this property, since it is helpful in a number of ways.
 For example, it allows a greater degree of parallel processing.
 In \textcite{chakravartyhydra} this property is used to enable fast optimistic settlement of transactions off-chain, \emph{including} support for the scripting model we use.
-This would not be possible if we followed Ethereum's actor model and had contract instances with global state.
+This would not be possible if we followed Ethereum's actor model and had contract instances with a global state.
 \end{requirement}
 
 \begin{requirement}[Determinism]
 \label{req:ledger-determinism}
 We would like our ledger rules to be \emph{deterministic}, that is, the outcome of transaction validation is entirely determined by the transaction in question (and the current state of the ledger of course).
-This means that the whole process can be simulated accurately by the user \emph{before} submitting a transaction: thus both the outcome of validation and the amount of resources consumed can be determined ahead of time.
-This is helpful for systems that charge for \gls{script} execution, since users can reliably compute how much they will need to pay ahead of time.
+This means that the whole process can be simulated accurately by the user \emph{before} submitting a transaction: thus both the outcome of validation and the amount of resource consumed can be determined ahead of time.
+This is helpful for systems that charge for \gls{script} execution since users can reliably compute how much they will need to pay ahead of time.
 
 A common way for systems to violate this property is by providing \glspl{script} with access to some piece of mutable information, such as the current time (in our system, the current slot has this role).
 \Glspl{script} can then branch on this information, leading to non-deterministic behaviour.
@@ -58,7 +58,7 @@ However, this requires us to turn such arguments into values in our scripting la
 
 We have opted to use a single, structured datatype for interchange with \glspl{script}.
 We call this type \gls{data}, and it is described further in \textcite{eutxo}.\footnote{
-  In practice it is very similar to other forms of structured data, such as JSON, but optimized to work with CBOR \autocite{cbor}.
+  In practice, it is very similar to other forms of structured data, such as JSON, but optimized to work with CBOR \autocite{cbor}.
 }
 This means that the \gls{redeemer} and \gls{datum} are of type \gls{data}, and the \gls{context} is encoded as \gls{data} before being passed to the \gls{validator}.
 
@@ -81,7 +81,7 @@ For example, a pair of a transaction ID and an index into the (ordered) set of i
 
 For a transaction to be \emph{valid} against an existing \gls{utxo} ledger, it must be the case that:
 \begin{itemize}
-\item All inputs refer to outputs which exist in the ledger and have not been spent by another transaction in the ledger.
+\item All inputs refer to outputs that exist in the ledger and have not been spent by another transaction in the ledger.
 \item The transaction balances: the sum of the value on the spent outputs equals the sum of the value on the transaction outputs.
 \item The transaction is authorized: for each spent output locked by a public key, the transaction contains a witness (a signature over the transaction body) from the corresponding private key.
 \end{itemize}
@@ -95,7 +95,7 @@ Hence ownership in a \gls{utxo} ledger consists in having the right to spend an 
 \todompj{This section is a mess and doesn't tell the story well.}
 
 The first addition we make is to support scripting.
-Our approach is based of existing models for \gls{utxo} ledgers with scripts (e.g. \textcite{Zahnentferner18-UTxO}), but we make a number of additions.
+Our approach is based on existing models for \gls{utxo} ledgers with scripts (e.g. \textcite{Zahnentferner18-UTxO}), but we make a number of additions.
 
 We make the following changes to the \gls{utxo} model:
 
@@ -134,10 +134,10 @@ The information provided by the \gls{context} is entirely determined by the tran
 This ensures that we satisfy \cref{req:ledger-determinism}.
 
 We handle the issue of time by providing only the validation interval of the transaction.
-This serves to give the \gls{validator} a window within which the current time must lie: in practice this is enough to establish that the current time is ``definitely before'' or ``definitely after'' some particular time, which is the most common kind of constraint.
+This serves to give the \gls{validator} a window within which the current time must lie: in practice, this is enough to establish that the current time is ``definitely before'' or ``definitely after'' some particular time, which is the most common kind of constraint.
 
 Some additional responsibility passes to the author of the transaction as a result of this.
-If the \gls{validator} they are trying to satisfy requires that the transaction occur before some time $T$, then they must not only submit the transaction before $T$, they must ensure that the upper bound of the validity interval is below $T$.
+If the \gls{validator} they are trying to satisfy requires that the transaction occurs before some time $T$, then they must not only submit the transaction before $T$, they must ensure that the upper bound of the validity interval is below $T$.
 This doesn't make the transaction less likely to validate (it would not have validated after $T$ regardless!), but it does require some more work from the \gls{off-chain}.
 
 \subsubsection{EUTXO-1 validity}
@@ -186,7 +186,7 @@ type Value = Map CurrencyID (Map TokenName Quantity)
 \end{quote}
 
 The \gls{currency-id} indicates the \emph{controller} of the currency, specifically it is the hash of the \gls{mps} that controls when tokens of that currency may be forged or destroyed (see \cref{sec:forging}).
-The \gls{token-name} separates different \emph{classes} of \gls{token} within the currency. Only \glspl{token} of the same currency and \gls{token-name} are \gls{fungible} with each other.
+The \gls{token-name} separates different \emph{classes} of \gls{token}s within the currency. Only \glspl{token} of the same currency and \gls{token-name} are \gls{fungible} with each other.
 Hence one could use a currency to track items in a game: different kinds of items would have different \glspl{token-name}, and an asset bundle could consist of e.g. 3 swords, 7 hats, and a cheesecake.
 
 Operations on \gls{value} are defined as if it were a finitely-supported function.
@@ -207,8 +207,8 @@ The \glspl{script} which control the forging of \glspl{token} are called \glsfir
 Since these are able to see the \gls{context}, and hence the whole transaction being validated, they can enforce a wide range of properties on the transaction.
 
 \subsubsection{\glsentrylong{nft}s}
-A \gls{nft} is a unique \gls{token} which can be transferred to another user, but not duplicated.
-\Glspl{nft} have proven useful in a number of blockchain applications (see \textcite{ERC-721}); for example, they can represent ownership of some object in a game, or shares in a company, or many other kinds of asset.
+A \gls{nft} is a unique \gls{token} that can be transferred to another user, but not duplicated.
+\Glspl{nft} have proven useful in a number of blockchain applications (see \textcite{ERC-721}); for example, they can represent ownership of some object in a game, or shares in a company, and many other kinds of assets.
 We can implement \glspl{nft} as token classes within a \gls{currency} whose supply is limited to a single \gls{token}.
 
 Ensuring that the tokens are unique is not trivial, since uniqueness is a global property and transactions only have access to local information.
@@ -218,8 +218,8 @@ Two approaches are:
   Use a \gls{one-shot} \gls{mps}.
   This ensures that the \gls{mps} can only be run once, and then so long as you do not issue any duplicates there, you will have uniqueness.
 \item
-  Run a unique state machine (beginning with a \gls{one-shot} transaction to ensure uniqueness) which keeps all the issued tokens in its state.
-  This effectively introduces global state that must be consulted before each forging, allowing uniqueness to be maintained.
+  Run a unique state machine (beginning with a \gls{one-shot} transaction to ensure uniqueness) that keeps all the issued tokens in its state.
+  This effectively introduces a global state that must be consulted before each forging, allowing uniqueness to be maintained.
 \end{itemize}
 
 \subsubsection{EUTXO-2 validity}

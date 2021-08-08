@@ -178,8 +178,8 @@
 \newcommand{\compute}{\triangleright}
 \newcommand{\return}{\triangleleft}
 
-\newcommand{\bcompute}{\color{blue}\compute}  
-\newcommand{\breturn}{\color{blue}\return}  
+\newcommand{\bcompute}{\color{blue}\compute}
+\newcommand{\breturn}{\color{blue}\return}
 \newcommand{\bmapsto}{\color{blue}\mapsto}
 % This is to get blue symbols after an '&' inside an alignat
 % environment.  It seems to mess up the spacing if you do anything
@@ -339,7 +339,7 @@ experimentation and debugging.
 
 Lexemes are described in standard regular expression notation.  The
 following lexemes are reserved as keywords for use in concrete syntax:
-\texttt{abs}, \texttt{all}, \texttt{builtin}, 
+\texttt{abs}, \texttt{all}, \texttt{builtin},
 \texttt{con}, \texttt{error}, \texttt{fun}, \texttt{ifix},
 \texttt{iwrap}, \texttt{lam}, \texttt{program},
 \texttt{type}, \texttt{unwrap}.  The only other lexemes
@@ -708,7 +708,7 @@ types introduce terms for wrapping and unwrapping recursive values
 (\textsf{wrap},\textsf{unwrap}), and to support constants and builtins
 we have \textsf{con}, \textsf{builtin} and \textsf{error}.
 Higher-kinding introduces computation in types so we need the rule
-\textsf{conv}. 
+\textsf{conv}.
 
 %% ---------------- Type synthesis ---------------- %%
 
@@ -1022,7 +1022,7 @@ integer.
   (lam n (con integer)
      [
        [
-        { (builtin ifThenElse) (con integer) } 
+        { (builtin ifThenElse) (con integer) }
            [(builtin lessThanInteger) n (con integer 0)]
        ]
        [(builtin subtractInteger) (con integer 0) n]
@@ -1042,7 +1042,7 @@ know the outcome of the test:
   (lam n (con integer)
     [
      [
-      { (builtin ifThenElse) (fun (con unit) (con integer)) } 
+      { (builtin ifThenElse) (fun (con unit) (con integer)) }
         [(builtin lessThanInteger) n (con integer 0)]
          (lam u (con unit) [(builtin subtractInteger) (con integer 0) n])
          (lam u (con unit) n)
@@ -1284,7 +1284,7 @@ Figure~\ref{fig:builtins}.
 
 \item For closures $C_1, \ldots, C_n$,
   $\builtin{bn}{A_1 \ldots A_k}{C_1 \ldots C_n}$
-evaluates to a value $V$ in the CEK machine if and only if 
+evaluates to a value $V$ in the CEK machine if and only if
   $\builtin{bn}{A_1 \ldots A_k}{\discharge{C_1} \ldots \discharge{C_n}}$
 evaluates to the same value $V$ according to Figure~\ref{fig:builtins}.% <- No space before footnote marker.
 \footnote{One way to ensure that these conditions hold would be to discharge all of the
@@ -1367,9 +1367,9 @@ $1 \le i \le n$.
 \begin{itemize}
 \item Evaluation of built-in functions always terminates, returning either a value or \texttt{(error)}.
 
-\item In the untyped CEK machine, evaluation of 
+\item In the untyped CEK machine, evaluation of
   $\builtinU{bn}{C_1 \ldots C_n}$
-fails (returning $\errorU$) if and only if evaluation of 
+fails (returning $\errorU$) if and only if evaluation of
   $\builtin{bn}{A_1 \ldots A_k}{V_1 \ldots V_n}$
 fails according to Figure~\ref{fig:builtins}.
 
@@ -1515,7 +1515,7 @@ functions of which 25 are used.
 
 \vspace{1cm}
 
-\noindent Encoding primtive values:
+\noindent Encoding primitive values:
 
 \begin{itemize}
   \item Unsigned \texttt{Integer}s and \texttt{ByteString}s are encoded using the
@@ -1562,9 +1562,9 @@ Now, let's take a look at the output.
 We define `Program` in the `PlutusCore.Core.Type` haskell module like this:
 
 \begin{verbatim}
--- | A 'Program' is simply a 'Term' coupled with a 'Version' 
+-- | A 'Program' is simply a 'Term' coupled with a 'Version'
 --   of the core language.
-data Program tyname name uni fun ann = 
+data Program tyname name uni fun ann =
        Program ann (Version ann) (Term tyname name uni fun ann)
          deriving (Show, Functor, Generic, NFData, Hashable)
 \end{verbatim}
@@ -1635,22 +1635,22 @@ cbor             13005   3.5757492    1.0
 
 ** Contract: escrow-indices **
 Codec            Size    Of minimum   Of maximum
-flat             8529    2.2004645    0.6302838 
+flat             8529    2.2004645    0.6302838
 cbor             13532   3.491228     1.0
 
 ** Contract: future-indices **
 Codec            Size    Of minimum   Of maximum
-flat             17654   2.19141      0.6628619 
+flat             17654   2.19141      0.6628619
 cbor             26633   3.305983     1.0
 
 ** Contract: game-indices **
 Codec            Size   Of minimum   Of maximum
-flat             5158   2.2290406    0.6254395 
+flat             5158   2.2290406    0.6254395
 cbor             8247   3.5639584    1.0
 
 ** Contract: vesting-indices **
 Codec            Size    Of minimum   Of maximum
-flat             8367    2.2288227    0.6273525 
+flat             8367    2.2288227    0.6273525
 cbor             13337   3.5527437    1.0
 \end{verbatim}
 

@@ -12,7 +12,7 @@ We give a high-level overview of the language here, further details can be found
 Designing a new programming language is hard.
 It is very easy to make choices that come back to haunt you.
 
-Moreover, whatever language we choose for our scripting language will be very hard to change, since it will be involved in transaction validation, and we want to be able to validate old transactions.
+Moreover, whatever language we choose for our scripting language will be very hard to change since it will be involved in transaction validation, and we want to be able to validate old transactions.
 So we can release new versions, but we must support old versions forever.
 
 This combination means that it is hard for us to get the language right first time, and it is also hard for us to iterate on it.
@@ -25,7 +25,7 @@ Conservatism also makes requirements such as \cref{req:script-lang-formalization
 \label{req:script-lang-minimalism}
 The smaller our language, the less there is to go wrong, and the less there is to reason about.
 
-Minimalism makes requirements such as \cref{req:script-lang-formalization} easier to satisfy, since there is less to formalize.
+Minimalism makes requirements such as \cref{req:script-lang-formalization} easier to satisfy since there is less to formalize.
 
 However, this is a tradeoff, as a simpler target language often means more complexity in the compilers that target that language.
 But it is much easier for us to change the compilers than it is to change the scripting language, so this is worth it.
@@ -34,7 +34,7 @@ But it is much easier for us to change the compilers than it is to change the sc
 \begin{requirement}[Safety]
 \label{req:script-lang-reasoning}
 Once submitted as part of a blockchain transaction, scripts are immutable.
-Therefore we want as much certainty as we can get about what the code will do, otherwise there is risk that the value involved will be lost or stolen.
+Therefore we want as much certainty as we can get about what the code will do, otherwise, there is a risk that the value involved will be lost or stolen.
 \end{requirement}
 
 \begin{requirement}[Formalization]
@@ -73,7 +73,7 @@ But if we can cheaply make this easier then that is good.
 \subsection{Designing Plutus Core}
 
 How do we design our scripting language?
-\Cref{req:script-lang-conservatism,req:script-lang-minimalism} suggest adhering to existing languages as much as possible, and picking a small, well-studied language.
+\Cref{req:script-lang-conservatism,req:script-lang-minimalism} suggest adhering to existing languages as much as possible and picking a small, well-studied language.
 We also want to use a statically-typed functional programming language, since we intend to use functional programming languages (starting with Haskell) as our source languages.
 
 This suggests using some variant of the lambda calculus.
@@ -92,14 +92,14 @@ As a result, the formal specification of our language can be described in one li
 If we do not have primitive datatypes, how \emph{do} we deal with datatypes?
 The answer is that it is up to the compiler to encode them --- another example of the tradeoff discussed in \cref{req:script-lang-minimalism}.
 
-In our case \gls{plutus-ir} does have datatypes, so this is handled by the \gls{plutus-ir} compiler. See \cref{sec:plutus-ir} for more details.
+In our case \gls{plutus-ir}, does have datatypes, so this is handled by the \gls{plutus-ir} compiler. See \cref{sec:plutus-ir} for more details.
 
 \subsection{Recursive types}
 
 The one-line description above turns out not to be as unambiguous as one might hope. We have
 to choose between equirecursive types and isorecursive types \autocite[chapter 21]{pierce2002types}.
 
-There is a tradeoff here between simplicity of writing code in the language, and simplicity of the language's metatheory.
+There is a tradeoff here between the simplicity of writing code in the language and the simplicity of the language's metatheory.
 Since \gls{plutus-core} is a compilation target rather than a source language, we opted to go for isorecursive types, which have the simpler metatheory (aiding \cref{req:script-lang-formalization}).
 The complexity is handled by the \gls{plutus-ir} compiler.
 
@@ -135,7 +135,7 @@ The key issue is that we may want to have \emph{different} sets of builtins in d
 For example:
 \begin{enumerate}
 \item
-  During testing it can be convenient to have a builtin which implements \emph{tracing}: emitting log lines to a global trace output.
+  During testing, it can be convenient to have a builtin which implements \emph{tracing}: emitting log lines to the global trace output.
   But we don't want this functionality on-chain, so we want to remove the builtin (or replace it with a no-op).
 \item
   We may need different builtins for different ledgers (see \cref{req:script-lang-extensibility}).
@@ -150,14 +150,14 @@ However, values of builtin types (``constants'' in \gls{plutus-core}) are tricki
 It's easy to say what a \code{Integer} constant should be: an integer!
 However, what about constants of extensible builtin types?
 
-We adopt an approach familiar from generic programming in dependently-typed languages, where we use a \emph{universe} of types to represent the types our programs can operate over.\footnote{
+We adopt an approach familiar with generic programming in dependently-typed languages, where we use a \emph{universe} of types to represent the types our programs can operate over.\footnote{
   Where do these types themselves come from?
   We assume that we are working in some ``metalanguage'' which has types such as \code{Integer} that we can reuse in Plutus Core.
 }
 In our case, we are entirely parametric over the universe itself, with different universes corresponding to different sets of builtin types.
-A constant then is then \emph{tagged} with a value corresponding to a type in that universe, and a value of that type.
+A constant is then \emph{tagged} with a value corresponding to a type in that universe, and a value of that type.
 
-This does complicate interpretation of \gls{plutus-core} programs, since in order to interpret a program, you also need to know what universe of types it is expecting.
+This does complicate interpretation of \gls{plutus-core} programs as in order to interpret a program, you also need to know what universe of types it is expecting.
 In practice this is not so bad: for most users (e.g. the \gls{cardano} ledger) there will be a single universe that they use, and from there on they can simply act as though we did not have extensible builtins.
 
 \paragraph{Builtin datatypes}
@@ -181,7 +181,7 @@ This seems feasible in principle, but we have not worked the details out yet.
 \subsubsection{Builtin functions}
 
 We could implement extensible builtin functions in a similar way to extensible builtin types: use some type (like the universe for types) that catalogues the available builtin functions.
-However, in practice we don't need to model the available functions quite as precisely, since the syntax doesn't depend on the available functions as it does on the available types.
+However, in practice, we don't need to model the available functions quite as precisely, since the syntax doesn't depend on the available functions as it does on the available types.
 
 So instead we adopt a much simpler approach where the available builtin functions can be provided at runtime simply indexed by a name.
 We may change this in future to use the explicit catalogue of functions.
@@ -204,18 +204,18 @@ These must necessarily be able to process arbitrary terms (since they can be ins
 For example, \code{ifThenElse} must be able to produce a value of type \code{Integer -> Integer}, even though this is not a builtin type.
 
 It is possible in principle to use polymorphic \emph{evaluators} to implement polymorphic builtin functions \autocite{lindley2012embedding}.
-Unfortunately this is quite a heavyweight and complex encoding for such a key usecase.
+Unfortunately, this is quite a heavyweight and complex encoding for such a key use case.
 
 Instead, we require evaluators for polymorphic functions to be \emph{parametric}, which means in particular that they do not inspect their polymorphic arguments.
 We can thus pass the \emph{term itself} as the polymorphic argument, instead of needing to extract a value of an appropriate type in the metalanguage, as we do for other arguments.
-Thus, an evaluator for a builtin function which implements \code{const :: forall a b . a -> b -> a} would take two \emph{terms} and return the first one.
+Thus, an evaluator for a builtin function that implements \code{const :: forall a b . a -> b -> a} would take two \emph{terms} and return the first one.
 
 \paragraph{Saturated builtin application}
 
 When including builtin function application in the AST, we have two options:
 \begin{enumerate}
 \item
-  Builtin functions can stand alone as a value with the builtin's function type, and are applied to their arguments with normal function application.
+  Builtin functions can stand alone as a value with the builtin's function type and are applied to their arguments with normal function application.
 \item
   Builtin functions must always appear \emph{saturated}, that is, with all of their arguments.
 \end{enumerate}
@@ -249,7 +249,7 @@ Given that we care about size (\cref{req:script-lang-size}), this was too compel
 Hence we decided to instead use \emph{type-erased} \gls{plutus-core} as our scripting language instead, with typed \gls{plutus-core} as a (useful) intermediary language.
 
 We were initially concerned that if we did not typecheck the application of the \gls{validator} to its arguments (which we cannot do if we've erased the types of the \gls{validator}!), then that might allow a malicious attacker to pass a script ill-typed arguments, potentially causing unexpected behaviour.
-However, given the current design where all the arguments to the \gls{validator} are of type \gls{data}, and are constructed by the validating node (which is a trusted party), it is no longer possible for the arguments to be ill-typed.
+However, given the current design where all the arguments to the \gls{validator} are of type \gls{data} and are constructed by the validating node (which is a trusted party), it is no longer possible for the arguments to be ill-typed.
 
 Erased \gls{plutus-core} is much closer to the untyped lambda calculus, and as such is also an easier compilation target (e.g. for a dependently-typed language, or a non-statically-typed language), hence this also helps with \cref{req:source-lang-multiple}.
 

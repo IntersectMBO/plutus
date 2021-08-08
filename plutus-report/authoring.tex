@@ -11,14 +11,14 @@ In fact, in other systems off-chain code often executes in a web browser as well
 
 Why is this decomposition necessary? The on-chain code contains the \gls{app}'s enforceable components.
 It needs to enforce that only transactions that meet the enforceable obligations are successfully validated and added to the chain.
-In other words, the integrity of an \gls{app} depends on the integrity of the on-chain code: thus we need to store it on the cryptographically immutable blockchain to prevent tampering.
+In other words, the integrity of a \gls{app} depends on the integrity of the on-chain code: thus we need to store it on the cryptographically immutable blockchain to prevent tampering.
 Moreover, \glspl{slot-leader} need to execute on-chain code to check that it is in fact satisfied.
 
 Conversely, the \gls{off-chain}, which submits new transactions to the chain for validation and inclusion, necessarily needs to run in close association with a contract user’s wallet.
 After all, each transaction needs to be paid for with transaction fees, and a wallet is the only place where the necessary credentials are held (anything else would compromise the security of the funds).
 
-Existing blockchains and their smart contract and dapp frameworks use separate languages for the \gls{on-chain} and \gls{off-chain} (in Ethereum, Solidity and JavaScript), and they tend to invent new languages for the on-chain component (e.g., Solidity).
-This comes with the same disadvantages as using different languages for the client and server component of web apps.
+Existing blockchains and their smart contract and dapp frameworks use separate languages for the \gls{on-chain} and \gls{off-chain} (in Ethereum, Solidity, and JavaScript), and they tend to invent new languages for the on-chain component (e.g., Solidity).
+This comes with the same disadvantages as using different languages for the client and server components of web apps.
 However, when new languages are invented the situation is even worse because of the enormous overhead involved in creating a new language, compilers and other tools, libraries, teaching material, and generally growing a new language community. We would like to avoid this (\cref{req:source-lang-conservatism}).
 
 We overcome these problems by using Haskell for both \gls{on-chain} and \gls{off-chain} code.
@@ -44,7 +44,7 @@ It must be possible to parameterize them or partially generate them at runtime.
 
 One reason for this is that we may want to configure our code.
 For example, a crowdfunding \gls{app} might want to parameterize its \gls{on-chain} by the crowdfunding target, or the beneficiary of the funds.\footnote{
-In some instances one can get away with putting this information in the \gls{datum}.
+In some instances, one can get away with putting this information in the \gls{datum}.
 The crowdfunding example is interesting because many people pay to the \gls{address} spontaneously, and the owner cannot control what those people put in the \glspl{datum}.
 But they can control the \gls{address} people send to, and hence the \gls{script}.
 So it is necessary to bake the parameters into the \gls{script} in this instance.
@@ -66,9 +66,9 @@ This is just generally a very handy thing to be able to do and we want to be abl
 \label{req:compilation-stability}
 When the \gls{plutus-core} program that makes up the \gls{on-chain} of a \gls{app} changes, so does its hash, and hence its \gls{address}.
 This can be a big problem for applications: you cannot spend a \gls{script-output} without presenting a \gls{script} with \emph{exactly} that hash.
-If your tooling won't produce such a \gls{script} any more, then you can't get the money!
+If your tooling won't produce such a \gls{script} anymore, then you can't get the money!
 
-We therefore want our tooling to be as stable and deterministic as possible, so we don't change the output unnecessarily.
+We, therefore, want our tooling to be as stable and deterministic as possible, so we don't change the output unnecessarily.
 
 At the very least, we must not be sensitive to:
 \begin{itemize}
@@ -82,7 +82,7 @@ At the very least, we must not be sensitive to:
 As discussed in \cref{req:compilation-stability}, if the output of compilation changes unexpectedly, then that can be a big problem.
 But if the user changes their source or their tooling (e.g. their version of GHC), then that may just genuinely change the input to our compiler.
 
-In this instance there is not a great deal we can do at a technical level, except help people to build their applications reproducibly, so that
+In this instance, there is not a great deal we can do at a technical level, except help people to build their applications reproducibly, so that
 they can at least revert to previous states reliably.
 \end{requirement}
 
@@ -102,7 +102,7 @@ We decided to use Haskell for a number of reasons:
   We are familiar with it as a team and a company.
 \end{itemize}
 
-However, this means we need a way to compile (as subsection of) a Haskell program into \gls{plutus-core}.
+However, this means we need a way to compile (as a subsection of) a Haskell program into \gls{plutus-core}.
 Our solution to this is \gls{plutus-tx}.
 
 \subsection{Plutus Tx}
@@ -117,9 +117,9 @@ This approach allows us to support all of source Haskell while only having to de
 GHC core-to-core plugins enable us to inject our own code including the \gls{plutus-tx} compiler into the GHC pipeline.
 The \gls{plutus-tx} plugin,
 \begin{enumerate}
-\item locates \gls{ghc-core} fragments representing to \gls{on-chain},
+\item locates \gls{ghc-core} fragments representing \gls{on-chain},
 \item compiles them to \gls{plutus-core}, and
-\item replaces each \gls{ghc-core} AST subtree representing \gls{on-chain} code with an AST representing a serialised version of the generated \gls{plutus-core}.
+\item replaces each \gls{ghc-core} AST subtree representing \gls{on-chain} with an AST representing a serialised version of the generated \gls{plutus-core}.
 \end{enumerate}
 
 Overall, we end up with compiled \gls{off-chain} that embeds blobs of \gls{on-chain} in its serialised \gls{plutus-core} representation, ready to be submitted to the blockchain attached to transactions generated by the \gls{off-chain}.
@@ -132,12 +132,12 @@ There just seem to be two problems:
 }
 \end{inparaenum}
 We achieve this using a trick that to the best of our knowledge was first used in the \code{inline-java} package embedding Java into Haskell.
-This packages uses GHC plugins to extract type information at a Template Haskell splice point \autocite{inline-java-blog-post}.
+This package uses GHC plugins to extract type information at a Template Haskell splice point \autocite{inline-java-blog-post}.
 The idea is to wrap the target Haskell code inside a splice of a Template Haskell function that inserts a marker around that AST fragment.
 
 This function does not actually compile the AST of the target program fragment.
 Instead, it inserts a marker function that is picked up by the \gls{plutus-tx} compiler injected with the plugin.
-When the plugin runs, it finds the marker, compiles the code, and inserts the serialized form back into the program.
+When the plugin runs, it finds the marker, compiles the code and inserts the serialized form back into the program.
 By taking a little care over the types of our marker function, we can ensure that the expression in question remains well-typed at each stage of this process.
 
 \subsubsection{Compiling GHC Core to Plutus Core}
@@ -200,9 +200,9 @@ How can we compile a lazy language into a strict language efficiently?
 
 The answer is that we handle this partially.
 We generally compile Haskell as though it were strict, but the key exception is for non-value let-bindings.
-That is, if we see a let-binding whose right-hand-side is not a value (i.e. may evaluate further), then we compile it as a non-strict let-binding (see \cref{sec:pir-non-strict}).
+That is, if we see a let-binding whose right-hand side is not a value (i.e. may evaluate further), then we compile it as a non-strict let-binding (see \cref{sec:pir-non-strict}).
 
-Unfortunately we have no proof that this approach is sound, which is an area for future work.
+Unfortunately, we have no proof that this approach is sound, which is an area for future work.
 
 \subsubsection{Lifting values at runtime}
 \label{sec:plutus-tx-lifting}
@@ -210,10 +210,10 @@ Unfortunately we have no proof that this approach is sound, which is an area for
 We are going to great lengths to compile \gls{on-chain} \glspl{validator} at \gls{off-chain} compile time.
 However, we may also need to create some \gls{plutus-core} programs from \emph{runtime} values (\cref{req:runtime-args}).
 
-Unfortunately we cannot use the main \gls{plutus-tx} compiler for this: the \gls{plutus-tx} compiler turns Haskell \emph{programs} represented as \gls{ghc-core} into \gls{plutus-core}.
+Unfortunately, we cannot use the main \gls{plutus-tx} compiler for this: the \gls{plutus-tx} compiler turns Haskell \emph{programs} represented as \gls{ghc-core} into \gls{plutus-core}.
 It cannot do anything with the \emph{runtime} representation of a Haskell value!
 
-We therefore need to replicate what we \emph{would} do with the \gls{plutus-tx} compiler, but at runtime.
+We, therefore, need to replicate what we \emph{would} do with the \gls{plutus-tx} compiler, but at runtime.
 Fortunately, we can reuse the \gls{plutus-ir} compiler, which helps a lot.
 We define a pair of typeclasses inspired by the Haskell typeclasses for ``lifting'' runtime values into metaprograms: \code{Lift} and \code{Typeable}.
 Our typeclasses look something like this (\code{Term} and \code{Type} are the types for \gls{plutus-ir} terms and types; class constraints on the methods are omitted for simplicity):
@@ -253,10 +253,10 @@ Compiling recursive datatypes and recursive values are the two trickiest compila
 \label{sec:pir-non-strict}
 
 \Gls{plutus-ir} has an additional feature which isn't discussed in \textcite{peytonjones2019unraveling}: non-strict let-bindings.
-By default (and in the paper), let-bindings are \emph{strict}, meaning that the right-hand-side of the binding is evaluated before the body of the term.
+By default (and in the paper), let-bindings are \emph{strict}, meaning that the right-hand side of the binding is evaluated before the body of the term.
 
 However, it is useful to support \emph{non-strict} let-bindings, particularly because these correspond more closely to the semantics of Haskell (see \cref{sec:plutus-tx-strictness}).
-We can desugar these into strict let-bindings simply by inserting a \code{delay} on the binding right-hand-side and a \code{force} at every use site.
+We can desugar these into strict let-bindings simply by inserting a \code{delay} on the binding right-hand side and a \code{force} at every use site.
 
 \subsubsection{Optimization}
 
@@ -266,11 +266,11 @@ We don't want to do too much in case we make the generated code too unstable (\c
 \paragraph{Dead code elimination}
 \label{para:dead-code}
 
-Dead code elimination is a straightforward optimization and close to a clear win:
+Dead code elimination is a straightforward optimization and is close to a clear win:
 \begin{inparaenum}
 \item it reduces code size,
 \item it makes the code easier to read, and
-\item it has no effect on the semantics.
+\item it has no effect on semantics.
 \end{inparaenum}
 
 It is particularly helpful as the \gls{plutus-tx} compiler introduces definitions for all the builtins, some of which will be unused.
@@ -301,8 +301,8 @@ The current approach is to target Javascript or WebAssembly as our format for di
 
 At the moment IOHK is working on two cross-compilation efforts:
 \begin{description}
-  \item[GHCJS] GHCJS is a Haskell cross-compiler which targets Javascript \autocite{ghcjs-repo}.
-  \item[Asterius] Asterius is a Haskell cross-compiler which targets WebAssembly \autocite{asterius-repo}.
+  \item[GHCJS] GHCJS is a Haskell cross-compiler that targets Javascript \autocite{ghcjs-repo}.
+  \item[Asterius] Asterius is a Haskell cross-compiler that targets WebAssembly \autocite{asterius-repo}.
 \end{description}
 
 \noindent We may use either or both of these in the end.
