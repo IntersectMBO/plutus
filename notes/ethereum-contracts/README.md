@@ -25,7 +25,7 @@ implementation of user-defined _token currencies_ on the Ethereum
 chain and ERC-721 introduces non-fungible tokens which can be used to
 represent ownership of some digital or physical asset.  To use either
 of these you implement a smart contract which conforms to a specified
-API which acts as the monetary policy.  For example in the case of
+API which acts as the minting policy.  For example in the case of
 ERC-20 you implement a contract with functions which return the total
 supply or the number of tokens owned by a specified individual, or
 allow a user to transfer funds to another user, and so on.
@@ -556,7 +556,7 @@ Not sure. Has something to do with something called Escape Plan.
 
 41: [0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d](https://etherscan.io/address/0x0e55c54249f25f70d519b7fb1c20e3331e7ba76d).
 This is called NectarController.  It appears to belong to an organisation called [ETHFINEX](https://www.ethfinex.com/) and
-th Nectar token looks like shares in the organisation.  The controller is the thing that implements the monetary policy.
+th Nectar token looks like shares in the organisation.  The controller is the thing that implements the minting policy.
 The full source is [here](https://github.com/ethfinex/nectar/blob/master/contracts/NectarController.sol).
 
 42: [0xd4a0972123ee41e8304ae3cbcc85420e02015ff4](https://etherscan.io/address/0xd4a0972123ee41e8304ae3cbcc85420e02015ff4).

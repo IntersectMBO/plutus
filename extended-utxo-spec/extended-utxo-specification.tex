@@ -781,7 +781,7 @@ allow, among other things, the implementation of new currencies and
 
 \paragraph{Multiple currencies.} The EUTXO-2 model allows an unlimited
 number of \textit{currencies}.  Each custom currency has a unique
-identifier and a \textit{monetary policy script} which may be used to
+identifier and a \textit{minting policy script} which may be used to
 limit the way in which the currency is used (for example, by only
 allowing specified users to create units of the currency).
 
@@ -816,7 +816,7 @@ currencies.  We also change the type of the \forge{} field on
 transactions to \qtymap{}, to allow the creation and destruction of
 funds in all currencies; the supply of a currency can be reduced by
 forging a negative amount of that currency, as in EUTXO-1.  In
-addition, transactions now have a set $\forgeScripts$ of monetary policy
+addition, transactions now have a set $\forgeScripts$ of minting policy
 scripts, each of which takes a single $\Data$ argument summarising the
 current transaction; we assume that there is a function $\toTxData:
 \eutxotx \rightarrow \Data$ which creates such objects.
@@ -897,7 +897,7 @@ function. This is well-defined since finitely-supported functions form a monoid.
 The \ctx{} type must be also be updated for the EUTXO-2 model.  All
 that is required is to replace \qty{} by \qtymap{} everywhere in
 \cref{fig:ptx-1-types} except for the \fee{} field, and to add the
-monetary policy scripts: for reference, the details are given in
+minting policy scripts: for reference, the details are given in
 \cref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
@@ -1020,7 +1020,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 
 \item
   \label{rule:all-mpss-run}
-  \textbf{All monetary policy scripts evaluate to true}
+  \textbf{All minting policy scripts evaluate to true}
   \begin{displaymath}
     \textrm{For all } s \in t.\forgeScripts,\ \applyMPScript{s}(\toTxData(t)) = \true
   \end{displaymath}
@@ -1031,10 +1031,10 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 \end{ruledfigure}
 
 \subsection{Remarks}
-\paragraph{Monetary policies.}
+\paragraph{Minting policies.}
 Rules~\ref{rule:custom-forge} and~\ref{rule:all-mpss-run} can be used
-to enforce monetary policies for custom currencies: see
-Note~\ref{note:monetary-policies} for a detailed explanation.
+to enforce minting policies for custom currencies: see
+Note~\ref{note:minting-policies} for a detailed explanation.
 
 \paragraph{Preservation of value over \qtymap{}.}
 In \cref{rule:value-is-preserved-2},
@@ -1069,7 +1069,7 @@ asserts that fees are paid exclusively in the native currency.
 \subsection{The EUTXO-2 model in practice.}
 See~\cite{Plutus-book} for examples of contracts which make use of the
 features of the EUTXO-2 model.  See also
-\cref{note:monetary-policies,note:eutxo-2-implications,note:eutxo-2-performance}
+\cref{note:minting-policies,note:eutxo-2-implications,note:eutxo-2-performance}
 for comments on some technical aspects of the model.
 
 \appendix
@@ -1113,7 +1113,7 @@ be done over the union of the weak support.
 Mathematically, most of our finiteness restrictions are not strictly
 required.  For example, in the EUTXO-2 model
 (Section~\ref{sec:eutxo-2}) we could allow transactions with
-infinitely many monetary policy scripts and outputs with
+infinitely many minting policy scripts and outputs with
 non-finitely-supported quantities of token currencies;  as long as the
 number of inputs and outputs of each transaction is finite the model
 remains mathematically sound.  However, the finite model presented in
@@ -1300,15 +1300,15 @@ inputs refer to existing unspent outputs, and in these circumstances,
 $\lookupTx$ will always succeed for the transactions of interest.
 
 
-\note{Monetary policies for custom currencies.}
-\label{note:monetary-policies}
+\note{Minting policies for custom currencies.}
+\label{note:minting-policies}
 The new \textbf{Forging} rule in \cref{fig:eutxo-2-validity} enables
-custom currencies to implement their own monetary policies: for
+custom currencies to implement their own minting policies: for
 example, one might wish to place some limit on the amount of a
 currency that can be forged, or restrict the creation of the currency
 to owners of particular public keys.
 
-The idea is that a custom currency has a monetary policy which is
+The idea is that a custom currency has a minting policy which is
 defined by some script $H$, and the address $h = \scriptAddr(H)$ is
 used as the identifier of the currency.
 
@@ -1320,10 +1320,10 @@ successfully executed; $H$ is provided with the details of the
 transaction via the $\Data$ object produced by $\toTxData$, so it has
 access to the \forge{} field of the transaction and knows how much of
 the currency is to be forged and can respond
-appropriately.\footnote{We do not insist that every monetary policy
+appropriately.\footnote{We do not insist that every minting policy
   script in a transaction is associated with a currency which the
   transaction is actually forging, so a transaction may include
-  apparently unnecessary monetary policy scripts.  The creator of the
+  apparently unnecessary minting policy scripts.  The creator of the
   transaction is responsible for providing the contents of the
   $\forgeScripts$ field and is free to include or exclude such scripts
   as they see fit.}
@@ -1334,9 +1334,9 @@ introduce any extra blockchain infrastructure such as a central
 registry of custom currencies.
 
 In practice, some refinement of this scheme will be required in order
-to (a) allow re-use of a monetary policy for different currencies, and
+to (a) allow re-use of a minting policy for different currencies, and
 (b) prevent unauthorised forging of a currency. To deal with (a) we
-can make the monetary policy script unique by including a nonce. This
+can make the minting policy script unique by including a nonce. This
 still doesn't prevent unauthorised people from using the script $H$ to
 produce currency, but this can be prevented by, for instance,
 embedding a reference to an unspent output in the script and requiring
@@ -1346,7 +1346,7 @@ at the same time, so it can only be forged once.
 \note{Implications of the EUTXO-2 model.}
 \label{note:eutxo-2-implications}
 The EUTXO-2 model and the techniques described in
-\cref{note:monetary-policies} allow us to implement fungible
+\cref{note:minting-policies} allow us to implement fungible
 (normal) and non-fungible token currencies, as well as ``mixed
 states'':
 \begin{itemize}

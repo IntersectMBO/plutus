@@ -39,7 +39,7 @@ Glossary
       actually distributed to users and run by the PAB.
 
     currency
-      A class of token whose minting is controlled by a particular monetary
+      A class of token whose minting is controlled by a particular minting
       policy script. On the Cardano ledger there is a special currency
       called Ada which can never be minted and which is controlled
       separately.

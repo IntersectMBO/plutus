@@ -10,7 +10,7 @@ a source of large/real validators.
 The following contracts are implemented:
 
 * `Crowdfunding`: A crowdfunding campaign
-* `Currency`: A custom currency with a monetary policy that allows the forging of a fixed amount of units
+* `Currency`: A custom currency with a minting policy that allows the forging of a fixed amount of units
 * `ErrorHandling`: Demonstrates how to deal with errors in Plutus contracts
 * `Escrow`: A general-purpose escrow contract
 * `Future`: A tokenised financial contract (future), using the state machine library

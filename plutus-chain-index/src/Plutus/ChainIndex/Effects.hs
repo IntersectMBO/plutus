@@ -38,7 +38,7 @@ data ChainIndexQueryEffect r where
     -- | Get the validator from a validator hash (if available)
     ValidatorFromHash :: ValidatorHash -> ChainIndexQueryEffect (Maybe Validator)
 
-    -- | Get the monetary policy from an MPS hash (if available)
+    -- | Get the minting policy from an MPS hash (if available)
     MintingPolicyFromHash :: MintingPolicyHash -> ChainIndexQueryEffect (Maybe MintingPolicy)
 
     -- | Get the stake validator from a stake validator hash (if available)
