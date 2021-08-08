@@ -148,7 +148,7 @@ of such tokens, both humans and programmatic users such as layer-two protocols
 (e.g. Lightning). For example, it would be necessary to ensure that spending
 policies are not in conflict with forging or output-locking scripts (any time the asset is spent).
 
-Forging tokens requires a specific action by the user (providing and satisfying a forging policy script), but this action is always taken knowingly by a user who is specifically trying to forge those tokens.
+Forging tokens requires a specific action by the user (providing and satisfying a forging policy script), but this action is always taken knowingly by a user who is specifically trying to mint those tokens.
 \emph{Spending} tokens is, however, a completely generic operation that works over arbitrary bundles of tokens.
 Indeed, a virtue of our system is that custom tokens all look and behave uniformly.
 In contrast, spending policies make custom tokens extremely difficult to handle in a generic way, in particular for automated systems.
@@ -175,7 +175,7 @@ order to maintain their ability to revoke it).
 
 There are limitations of our model due to the fact that global information about the ledger is not available to the forging policy script.
 Many global state constraints can be accommodated with workarounds (such as in the case of provably unique fresh tokens), but some cannot:
-for example, a forging policy that allows a variable amount to be forged in every block depending on the current total supply of assets of another policy.
+for example, a forging policy that allows a variable amount to be minted in every block depending on the current total supply of assets of another policy.
 This is an odd policy to have, but nevertheless, not one that can be defined in our model.
 
 \subsection{Conclusions}
@@ -218,7 +218,7 @@ We consider these worthy directions for future improvements to our model.
 %  \item infer the fungibility relation directly by looking at the names and IDs of
 %  token classes, without executing code
 %  \item retain the ability to impose fungibility constraints, as tokens under a single
-%  policy are minted and burned, by rejecting attempts to forge tokens that do not satisfy them
+%  policy are minted and burned, by rejecting attempts to mint tokens that do not satisfy them
 %\end{itemize}
 
 %As promised, we gave examples of clauses that a language would need in order to express

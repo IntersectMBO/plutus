@@ -124,8 +124,8 @@
 \newcommand{\idx}{\mi{index}}
 \newcommand{\inputs}{\mi{inputs}}
 \newcommand{\outputs}{\mi{outputs}}
-\newcommand{\forge}{\mi{forge}}
-\newcommand{\forgeScripts}{\mi{forgeScripts}}
+\newcommand{\mint}{\mi{mint}}
+\newcommand{\mintScripts}{\mi{mintScripts}}
 \newcommand{\fee}{\mi{fee}}
 \newcommand{\addr}{\mi{addr}}
 \newcommand{\val}{\mi{value}}  %% \value is already defined
@@ -471,7 +471,7 @@ the ledger.
                    & &\ \i{validityInterval}: \Interval{\slotnum},\\
                    & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                    & &\ \fee: \qty,\\
-                   & &\ \forge: \qty) \\
+                   & &\ \mint: \qty) \\
      \\
      \s{Ledger } &=&\!\List{\eutxotx}\\
   \end{array}
@@ -584,7 +584,7 @@ related types.
                & &\ \i{validityInterval}: \Interval{\slotnum},\\
                & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qty,\\
-               & &\ \forge: \qty)\\
+               & &\ \mint: \qty)\\
      \\
      \mkContext: \eutxotx \times \s{Input} \times \s{Ledger} \rightarrow \ctx
       && \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
@@ -603,7 +603,7 @@ related types.
 \paragraph{The contents of \ctx{}.}
 The \ctx{} type is essentially a summary of the information contained
 in the $\eutxotx$ type in \cref{fig:eutxo-1-types}. The \fee{},
-\forge{}, and \i{validityInterval} fields are copied directly from the
+\mint{}, and \i{validityInterval} fields are copied directly from the
 pending transaction.  The \i{outputInfo} field contains information
 about the outputs which will be produced if the pending transaction
 validates successfully: it contains only the address of the relevant
@@ -708,11 +708,11 @@ differing from the latter in \cref{rule:all-inputs-validate}.
   \end{displaymath}
 
 \item
-  \label{rule:forging}
-  \textbf{Forging}
+  \label{rule:minting}
+  \textbf{Minting}
 
 %% Don't delete this blank line ^
-  A transaction with a non-zero \forge{}
+  A transaction with a non-zero \mint{}
   field is only valid if the ledger $l$ is empty (that
   is, if it is the initial transaction).
 
@@ -720,7 +720,7 @@ differing from the latter in \cref{rule:all-inputs-validate}.
   \label{rule:value-is-preserved}
   \textbf{Value is preserved}
   \begin{displaymath}
-    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l).\val = t.\fee + \sum_{o \in t.\outputs} o.\val
+    t.\mint + \sum_{i \in t.\inputs} \getSpent(i, l).\val = t.\fee + \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
@@ -812,11 +812,11 @@ with the sub-currency for each token limited to a supply of one.
 The changes to the basic EUTXO-1 types are quite simple: see
 \cref{fig:eutxo-2-types}.  We change the type of the $\val$ field in
 the \s{Output} type to be \qtymap{}, representing values of all
-currencies.  We also change the type of the \forge{} field on
+currencies.  We also change the type of the \mint{} field on
 transactions to \qtymap{}, to allow the creation and destruction of
 funds in all currencies; the supply of a currency can be reduced by
-forging a negative amount of that currency, as in EUTXO-1.  In
-addition, transactions now have a set $\forgeScripts$ of minting policy
+minting a negative amount of that currency, as in EUTXO-1.  In
+addition, transactions now have a set $\mintScripts$ of minting policy
 scripts, each of which takes a single $\Data$ argument summarising the
 current transaction; we assume that there is a function $\toTxData:
 \eutxotx \rightarrow \Data$ which creates such objects.
@@ -855,8 +855,8 @@ current transaction; we assume that there is a function $\toTxData:
                & &\ \i{validityInterval}: \Interval{\slotnum},\\
                & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qtymap,\\
-               & &\ \forge: \qtymap,\\
-               & &\ \forgeScripts: \FinSet{\script})\\
+               & &\ \mint: \qtymap,\\
+               & &\ \mintScripts: \FinSet{\script})\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
     \end{array}
@@ -918,8 +918,8 @@ minting policy scripts: for reference, the details are given in
                  & &\ \i{validityInterval}: \Interval{\slotnum},\\
                  & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                  & &\ \fee: \qtymap,\\
-                 & &\ \forge: \qtymap,\\
-                 & &\ \forgeScripts: \FinSet{\script})\\
+                 & &\ \mint: \qtymap,\\
+                 & &\ \mintScripts: \FinSet{\script})\\
     \\
     \mkContext_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow \ctx_2 &&
       \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
@@ -968,24 +968,24 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \end{displaymath}
 
 \item
-  \label{rule:forging-2}
-  \textbf{Forging}
+  \label{rule:minting-2}
+  \textbf{Minting}
 
   %% Don't delete this blank line ^
-  A transaction with a non-zero \forge{} field is only
+  A transaction with a non-zero \mint{} field is only
   valid if either:
   \begin{enumerate}
     \item the ledger $l$ is empty (that is if it is the initial transaction).
-    \item \label{rule:custom-forge}
-      for every key $h \in \support(t.\forge)$, there
-      exists $s \in t.\forgeScripts$ with $\scriptAddr(s) = h$.
+    \item \label{rule:custom-mint}
+      for every key $h \in \support(t.\mint)$, there
+      exists $s \in t.\mintScripts$ with $\scriptAddr(s) = h$.
   \end{enumerate}
 
 \item
   \label{rule:value-is-preserved-2}
   \textbf{Values are preserved}
   \begin{displaymath}
-    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l) = t.\fee + \sum_{o \in t.\outputs} o.\val
+    t.\mint + \sum_{i \in t.\inputs} \getSpent(i, l) = t.\fee + \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
@@ -1022,7 +1022,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \label{rule:all-mpss-run}
   \textbf{All minting policy scripts evaluate to true}
   \begin{displaymath}
-    \textrm{For all } s \in t.\forgeScripts,\ \applyMPScript{s}(\toTxData(t)) = \true
+    \textrm{For all } s \in t.\mintScripts,\ \applyMPScript{s}(\toTxData(t)) = \true
   \end{displaymath}
 
 \end{enumerate}
@@ -1032,7 +1032,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 
 \subsection{Remarks}
 \paragraph{Minting policies.}
-Rules~\ref{rule:custom-forge} and~\ref{rule:all-mpss-run} can be used
+Rules~\ref{rule:custom-mint} and~\ref{rule:all-mpss-run} can be used
 to enforce minting policies for custom currencies: see
 Note~\ref{note:minting-policies} for a detailed explanation.
 
@@ -1045,8 +1045,8 @@ in this model essentially requires that the
 quantities of each of the individual currencies involved in the
 transaction are preserved.
 
-\paragraph{Preservation of value and forging.}
-Recall that values in $\forge$ can be negative whereas values in
+\paragraph{Preservation of value and minting.}
+Recall that values in $\mint$ can be negative whereas values in
 outputs must be non-negative. This allows a currency to be destroyed as
 well as created. Rule~\ref{rule:value-is-preserved-2} implies that a
 transaction is invalid if it attempts to destroy more of a currency
@@ -1302,30 +1302,30 @@ $\lookupTx$ will always succeed for the transactions of interest.
 
 \note{Minting policies for custom currencies.}
 \label{note:minting-policies}
-The new \textbf{Forging} rule in \cref{fig:eutxo-2-validity} enables
+The new \textbf{Minting} rule in \cref{fig:eutxo-2-validity} enables
 custom currencies to implement their own minting policies: for
 example, one might wish to place some limit on the amount of a
-currency that can be forged, or restrict the creation of the currency
+currency that can be minted, or restrict the creation of the currency
 to owners of particular public keys.
 
 The idea is that a custom currency has a minting policy which is
 defined by some script $H$, and the address $h = \scriptAddr(H)$ is
 used as the identifier of the currency.
 
-Whenever a new quantity of the currency is forged,
-Rules~\ref{rule:custom-forge} and~\ref{rule:all-mpss-run} of
+Whenever a new quantity of the currency is minted,
+Rules~\ref{rule:custom-mint} and~\ref{rule:all-mpss-run} of
 Figure~\ref{fig:eutxo-2-validity} imply that $H$ must be contained in
-the $\forgeScripts$ field of the transaction and that it must be
+the $\mintScripts$ field of the transaction and that it must be
 successfully executed; $H$ is provided with the details of the
 transaction via the $\Data$ object produced by $\toTxData$, so it has
-access to the \forge{} field of the transaction and knows how much of
-the currency is to be forged and can respond
+access to the \mint{} field of the transaction and knows how much of
+the currency is to be mintd and can respond
 appropriately.\footnote{We do not insist that every minting policy
   script in a transaction is associated with a currency which the
-  transaction is actually forging, so a transaction may include
+  transaction is actually minting, so a transaction may include
   apparently unnecessary minting policy scripts.  The creator of the
   transaction is responsible for providing the contents of the
-  $\forgeScripts$ field and is free to include or exclude such scripts
+  $\mintScripts$ field and is free to include or exclude such scripts
   as they see fit.}
 
 The advantage of this scheme is that custom currencies can be handled
@@ -1335,13 +1335,13 @@ registry of custom currencies.
 
 In practice, some refinement of this scheme will be required in order
 to (a) allow re-use of a minting policy for different currencies, and
-(b) prevent unauthorised forging of a currency. To deal with (a) we
+(b) prevent unauthorised minting of a currency. To deal with (a) we
 can make the minting policy script unique by including a nonce. This
 still doesn't prevent unauthorised people from using the script $H$ to
 produce currency, but this can be prevented by, for instance,
 embedding a reference to an unspent output in the script and requiring
-that the currency can only be forged if the referenced output is spent
-at the same time, so it can only be forged once.
+that the currency can only be minted if the referenced output is spent
+at the same time, so it can only be minted once.
 
 \note{Implications of the EUTXO-2 model.}
 \label{note:eutxo-2-implications}

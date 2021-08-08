@@ -4,7 +4,7 @@
 
 * We currently have the model in "An Abstract Model of UTxO-based Cryptocurrencies with Scripts" [1], with modifications to the transaction data type and to the transaction validation function (see section "Current State"). We now want to add support for user-issued currencies and tokens to the ledger
 * The approach in "Multi-Currency Ledger" [2] introduces additional global state in form of a registry of known currencies
-* We propose a different solution that uses the UTXO set and pay-to-script outputs to forge value, allowing for a light-weight implementation of user-defined currencies
+* We propose a different solution that uses the UTXO set and pay-to-script outputs to mint value, allowing for a light-weight implementation of user-defined currencies
 
 ## Current State
 
@@ -22,7 +22,7 @@ The mockchain uses the following data type for transactions:
 data Tx = Tx {
     txInputs     :: Set.Set TxIn,
     txOutputs    :: [TxOut],
-    txForge      :: !Value,
+    txMint      :: !Value,
     txFee        :: !Ada,
     txValidRange :: !SlotRange
     }
@@ -62,8 +62,8 @@ Every `TxIn` refers to a unique `TxOut` via `TxOutRef`, and when we talk about t
 
 The ledger rules are a set of conditions that need to hold for a transaction to be considered valid in a given ledger. The following rules are important for this proposal. In the current (single-currency) ledger we have:
 
-1. **(balanced)** The sum of the values of the `txInputs` field plus the `txForge` value must be equal to the sum of the values of the `txOutputs` field plus the `txFee` field.
-2. **(forging)** A transaction with a non-zero `txForge` field is only valid if the ledger is empty (that is, if it is the initial transaction). Note that the details of this rule depend on the minting policy of the ledger itself, as there may be other transactions that forge value.
+1. **(balanced)** The sum of the values of the `txInputs` field plus the `txMint` value must be equal to the sum of the values of the `txOutputs` field plus the `txFee` field.
+2. **(forging)** A transaction with a non-zero `txMint` field is only valid if the ledger is empty (that is, if it is the initial transaction). Note that the details of this rule depend on the minting policy of the ledger itself, as there may be other transactions that mint value.
 3. **(legitimacy)** Every transaction must prove that it is allowed to spend the inputs. To spend a `PayToPubKey` transaction output, the signature provided in `ConsumePublicKeyAddress` must match the public key. For a `PayToScript` transaction output, the hash of the `ConsumeScriptAddress` input's `Validator` must be equal to the output's `ScriptHash`, and evaluation of the `Validator` applied to the output's `DataValue`, the input's `RedeemerValue` and the `PendingTx` value of the spending transaction must finish successfully.
 4. **(no double spending)** Every transaction output may be spent at most once. That is, a `Tx` is only valid if none of the `TxOut` values referred to by its `txInputs` field has been spent by a transaction already in the ledger.
 
@@ -71,7 +71,7 @@ For details of the implementation of the ledger rules please refer to `validateT
 
 ## Problem
 
-The `Value` type used in transactions has been introduced in preparation for the multi-currency ledger. This is only one half of adding multi-currency support at the ledger level because we still need a way to actually generate (forge) values of new currencies.
+The `Value` type used in transactions has been introduced in preparation for the multi-currency ledger. This is only one half of adding multi-currency support at the ledger level because we still need a way to actually generate (mint) values of new currencies.
 
 To enable the forging of currency value, the paper [2] envisages a new type of transaction called `CurrencyTx` (see [2, Def. 2]). `CurrencyTx` creates a new *known currency*, by registering the currency's name as a unique (across the ledger) string, and associating it with a `Script` representing the minting policy for that currency.
 
@@ -81,27 +81,27 @@ This makes multi-currency based on the `CurrencyTx` proposal potentially unsuita
 
 ## Proposed solution
 
-We propose a new extension to the UTXO model with scripts, an extension that has the same effects as adding a `CurrencyTx` transaction type (namely, the ability to forge value of user-defined currencies) but without the added overhead of a currency registry.
+We propose a new extension to the UTXO model with scripts, an extension that has the same effects as adding a `CurrencyTx` transaction type (namely, the ability to mint value of user-defined currencies) but without the added overhead of a currency registry.
 
 The proposal consists of two changes.
 
 1. Instead of using a `String` value to identify a currency, we use the `ScriptHash` type (a ByteString)
-2. We replace the **(forging)** rule above with the following rule: **(forging2)** A transaction with a non-zero `txForge` field is only valid if for every key `h` in `txForge`, the transaction's set of inputs `txIn` contains a `TxIn` that spends a `TxOut` whose address is `h`.
+2. We replace the **(forging)** rule above with the following rule: **(forging2)** A transaction with a non-zero `txMint` field is only valid if for every key `h` in `txMint`, the transaction's set of inputs `txIn` contains a `TxIn` that spends a `TxOut` whose address is `h`.
 
-The **(forging2)** rule, together with the **(legitimacy)** rule, ensures that the script `H` (with hash `h`) is run whenever new value of the currency `h` is forged. Because `H` is provided with the `txForge` field of the spending transaction, via the `PendingTx` type, it can block or authorise any amount of value that is created of its currency. There is no need for a registry of currencies because the thing that identifies a currency is (the hash of) its minting policy.
+The **(forging2)** rule, together with the **(legitimacy)** rule, ensures that the script `H` (with hash `h`) is run whenever new value of the currency `h` is minted. Because `H` is provided with the `txMint` field of the spending transaction, via the `PendingTx` type, it can block or authorise any amount of value that is created of its currency. There is no need for a registry of currencies because the thing that identifies a currency is (the hash of) its minting policy.
 
 With this proposal a custom currency is no different from any other smart contract, and currencies don't require a separate cost model.
 
-We can write minting policy as a state machine that keeps track of the current supply and forges more value when necessary.
+We can write minting policy as a state machine that keeps track of the current supply and mints more value when necessary.
 
-By allowing values in the `txForge` field to be negative, we can reduce the supply of a currency.
+By allowing values in the `txMint` field to be negative, we can reduce the supply of a currency.
 
 ## Example (creating a currency)
 
-To illustrate the approach, suppose we have written a validator script `H` that controls the minting policy of our new currency. To forge a value of `hash(H)`, we need two transactions.
+To illustrate the approach, suppose we have written a validator script `H` that controls the minting policy of our new currency. To mint a value of `hash(H)`, we need two transactions.
 
-1. `tx1` produces an `o :: TxOut` that is locked with a ByteString  `h = hash(H)`. The `txForge` field of `tx1` is zero.
-2. `tx2` consumes the `TxOut` produced by `tx1`. Its `txForge` field has an entry `{ h -> 1000 }`, so `tx2` forges 1000 units of our currency. For `tx2` to be valid, the `TxIn` that refers to `o` must provide the validator script (ie. the minting policy) `H` and an appropriate redeemer. The outputs of `tx2` contain (among others) 1000 units of the `h`, which can be spent freely from now on, without referring to the script `H`. `o` is removed from the UTXO set when `tx2` is added to the ledger.
+1. `tx1` produces an `o :: TxOut` that is locked with a ByteString  `h = hash(H)`. The `txMint` field of `tx1` is zero.
+2. `tx2` consumes the `TxOut` produced by `tx1`. Its `txMint` field has an entry `{ h -> 1000 }`, so `tx2` mints 1000 units of our currency. For `tx2` to be valid, the `TxIn` that refers to `o` must provide the validator script (ie. the minting policy) `H` and an appropriate redeemer. The outputs of `tx2` contain (among others) 1000 units of the `h`, which can be spent freely from now on, without referring to the script `H`. `o` is removed from the UTXO set when `tx2` is added to the ledger.
 
 ## Example (NFT)
 
@@ -116,25 +116,25 @@ data NFT = NFT { nftName :: String, nftBootstrapTxOut :: TxOutput }
  nftValidator :: NFT -> Data -> Redeemer -> PendingTx -> ()
  nftValidator (NFT nm txout) _ _ ptx =
   let con1 = ptx `spends` txout
-      con2 = ptx `forges` 1 (ownAdress ptx)
+      con2 = ptx `mints` 1 (ownAdress ptx)
   in if con1 && con2 then () else error
 ```
 
-`spends :: PendingTx -> TxOut -> Bool` checks if the pending transaction spends the tx output (uniquely identified by transaction hash + index into its list of outputs). `forges :: PendingTx -> Int -> ByteString -> Bool` checks if the pending transaction forges the given amount of the address. `Data` and `Redeemer` are the types (in PLC) of the data and redeemer scripts, which we ignore here (so effectively `type Data = ()` and `type Redeemer = ()`). For an actual currency we could the data script to keep track of the current supply.
+`spends :: PendingTx -> TxOut -> Bool` checks if the pending transaction spends the tx output (uniquely identified by transaction hash + index into its list of outputs). `mints :: PendingTx -> Int -> ByteString -> Bool` checks if the pending transaction mints the given amount of the address. `Data` and `Redeemer` are the types (in PLC) of the data and redeemer scripts, which we ignore here (so effectively `type Data = ()` and `type Redeemer = ()`). For an actual currency we could the data script to keep track of the current supply.
 
 Note that the validator script for a given `NFT` definition is given by `nftValidator nft`, so its address is the hash of `nftValidator nft`.
 
-The key is the `nftBootstrapTxOut` field. Condition `con1` ensures that there is only a single transaction that can forge a value of the NFT, because `txout` can only be spent once, thanks to the **(no-double-spending rule)**. Condition `con2` ensures that only a single token of the currency is created, effectively making it non-fungible.
+The key is the `nftBootstrapTxOut` field. Condition `con1` ensures that there is only a single transaction that can mint a value of the NFT, because `txout` can only be spent once, thanks to the **(no-double-spending rule)**. Condition `con2` ensures that only a single token of the currency is created, effectively making it non-fungible.
 
 It is of course possible to produce multiple script outputs to the same address of `nftValidator nft` but only one of them can be spent, because the referenced tx output can only be spent once.
 
-Note that creating an NFT with this contract requires three transactions: One for the `nftBootstrapTxOut` transaction output, one for producing an output to the NFT address, and one that forges the token, consuming the output from the NFT address and the `nftBootstrapTxOut`. Note that the bootstrap transaction output can be any unspent transaction output owned by us, in particular it can be the same output that pays the fees for the forging transaction.
+Note that creating an NFT with this contract requires three transactions: One for the `nftBootstrapTxOut` transaction output, one for producing an output to the NFT address, and one that mints the token, consuming the output from the NFT address and the `nftBootstrapTxOut`. Note that the bootstrap transaction output can be any unspent transaction output owned by us, in particular it can be the same output that pays the fees for the forging transaction.
 
 ## Example (Currency with minting policy)
 
-The following contract implements a minting policy of a currency `c` that can be forged repeatedly, up to a predefined maximum amount.
+The following contract implements a minting policy of a currency `c` that can be minted repeatedly, up to a predefined maximum amount.
 
-We use the data script to keep track of how much `c` has been issued so far. However, when authorising the forging of new `c` (that is, when running the validator script whose hash is `c`) we cannot verify that the data script we received contains the correct amount of `c` in circulation, because anyone can produce a pay-to-script transaction output locked by `c` and with an arbitrary data script. To prevent this kind of unauthorised forging of `c` we use a *reserve currency*, `c*`. This reserve currency represents the potential amount of `c` that can still be forged. Whenever we increase the supply of `c`, we destroy the same amount of `c*` and vice versa. The total circulation of `c` plus the total supply of `c*` equals the maximum supply of `c` at all times. To legitimise the forging of `c` we require the forger to present the entire amount of `c*` that exists.
+We use the data script to keep track of how much `c` has been issued so far. However, when authorising the forging of new `c` (that is, when running the validator script whose hash is `c`) we cannot verify that the data script we received contains the correct amount of `c` in circulation, because anyone can produce a pay-to-script transaction output locked by `c` and with an arbitrary data script. To prevent this kind of unauthorised forging of `c` we use a *reserve currency*, `c*`. This reserve currency represents the potential amount of `c` that can still be minted. Whenever we increase the supply of `c`, we destroy the same amount of `c*` and vice versa. The total circulation of `c` plus the total supply of `c*` equals the maximum supply of `c` at all times. To legitimise the forging of `c` we require the minter to present the entire amount of `c*` that exists.
 
 We can think of `c` as paper notes and `c*` as a gold bar that we keep in our vault. Every unit of `c` is a claim to some of our gold bar. We can trade this claim away but we always keep the gold (although now the amount of gold that is available is smaller).
 
@@ -146,8 +146,8 @@ data CurRole = ActualCurrency | ReserveCurrency
 
 newtype Currency = Currency {
     curMaxCirculation :: Int,
-    -- ^ Maximum amount of currency that can be forged
-    curRole :: CurRole,
+    -- ^ Maximum amount of currency that can be minted
+    curRole           :: CurRole,
     -- ^ Which of the two currencies (c or c*) lives at this address
     curBootstrapTxOut :: TxOut
     -- ^ Transaction output for initialising the currency
@@ -156,20 +156,20 @@ newtype Currency = Currency {
 -- | Current state of the state machine
 newtype CurState =
   InitialState
-  -- ^ Initial state, the reserve currency has not been forged
+  -- ^ Initial state, the reserve currency has not been minted
   | Circulating {
       csCurrentSupply :: Int,
       -- ^ How much of c has been issued
-      csReserveAddr :: ByteString,
+      csReserveAddr   :: ByteString,
       -- ^ Identifier of the reserve currency
-      csCurAddr    :: ByteString
+      csCurAddr       :: ByteString
       -- ^ Identifier of the currency itself
       }
 
 -- | State machine input
 data CurAction =
   Initialise { caReserve :: ByteString, caActual :: ByteString }
-  | CurForge { cfForge :: Int }
+  | CurMint { cfMint :: Int }
 
 -- | Data needed to verify a change in the circulation of the currency
 --   (forging or destroying value)
@@ -179,9 +179,9 @@ data CirculationChange = CirculationChange {
     ccCurAddr            :: ByteString,
     -- ^ Address of the currency itself
     ccCurrentSupply      :: Int,
-    -- ^ How much of the currency has already been forged
-    ccForge              :: Int
-    -- ^ How much we want to forge (can be negative)
+    -- ^ How much of the currency has already been minted
+    ccMint               :: Int
+    -- ^ How much we want to mint (can be negative)
   }
 
 -- | Create the validator script for a `Currency`.
@@ -195,41 +195,41 @@ currencyScript cur = Validator val where
       -- and c* preserves the invariant of "supply(c) + supply(c*) = maxSupply",
       -- and produces the entire amount of c* that is left.
       balancesOk :: CirculationChange -> PendingTx -> Bool
-      balancesOk (CirculationChange reserveAddr curAdr currentCirc forged) ptx =
-        let newCirc = currentCirc + forged
+      balancesOk (CirculationChange reserveAddr curAdr currentCirc minted) ptx =
+        let newCirc = currentCirc + minted
         in
-             -- the required amount of c is forged by ptx
-             ptx `forges` forged curAdr
+             -- the required amount of c is minted by ptx
+             ptx `mints` minted curAdr
 
              -- the same amount of c* is destroyed
-          && ptx `forges` (negate forged) reserveAddr
+          && ptx `mints` (negate minted) reserveAddr
 
              -- ptx produces the entire remaining amount of c*
           && ptx `outputs` (maxCirc - newCirc) reserveAddr
 
       -- A state machine for the reserve currency, c*.
-      -- In the initial state we verify the transaction forges an amount of
+      -- In the initial state we verify the transaction mints an amount of
       -- c* equal to `maxCirc`, and 0 of c. We also check that the script addresses
       -- from the `Initialise` argument match those of the pending transaction.
       -- In all other states we check that the action preserves the currency invariant.
       reserveStateMachine :: CurState -> CurAction -> PendingTx -> CurState
       reserveStateMachine InitialState (Initialise reserve actual) ptx =
         if
-             ptx `forges` 0 actual
-          && ptx `forges`  maxCirc (ownAddress ptx)
+             ptx `mints` 0 actual
+          && ptx `mints`  maxCirc (ownAddress ptx)
           && ptx `spends` txout
           && addressEq reserve (ownAddress ptx)
           && ptx `spendsFrom` actual
         then Circulating 0 reserve actual
         else $$(P.error)
-      reserveStateMachine (Circulating currentCirc reserveAdr curAdr) (CurForge forged) ptx =
-        if balancesOk (CirculationChange reserveAdr curAdr currentCirc forged)
+      reserveStateMachine (Circulating currentCirc reserveAdr curAdr) (CurMint minted) ptx =
+        if balancesOk (CirculationChange reserveAdr curAdr currentCirc minted)
            && addressEq reserveAdr (ownAddress ptx)
         then Circulating newCirc actualCur
         else $$(P.error)
 
       -- A state machine for the actual currency, c.
-      -- In the initial state we verify the transaction forges an amount of
+      -- In the initial state we verify the transaction mints an amount of
       -- c* equal to `maxCirc`, and 0 of c. We also check that the script addresses
       -- from the `Initialise` argument match those of the pending transaction.
       -- In all other states we check that the action preserves the currency
@@ -237,14 +237,14 @@ currencyScript cur = Validator val where
       currencyStateMachine :: CurState -> CurAction -> PendingTx -> CurState
       currencyStateMachine InitialState (Initialise reserve actual) ptx =
         if
-             ptx `forges` 0 (ownAddress ptx)
-          && ptx `forges`  maxCirc reserve
+             ptx `mints` 0 (ownAddress ptx)
+          && ptx `mints`  maxCirc reserve
           && ptx `spends` txout
           && addressEq actual (ownAddress ptx)
         then Circulating 0 reserve actual
         else $$(P.error)
-      currencyStateMachine (Circulating currentCirc reserveAdr curAdr) (CurForge forged) ptx =
-        if balancesOk (CirculationChange reserveAdr curAdr currentCirc forged)
+      currencyStateMachine (Circulating currentCirc reserveAdr curAdr) (CurMint minted) ptx =
+        if balancesOk (CirculationChange reserveAdr curAdr currentCirc minted)
            && addressEq curAdr (ownAddress ptx)
         then Circulating newCirc actualCur
         else $$(P.error)
@@ -263,15 +263,15 @@ To create a new currency with a maximum supply of 10000 and an initial supply of
 
 1. Select an unspent transaction output `txout` owned by us
 2. Define `dsCur :: Validator, dsReserve :: Validator` with `dsCur = currencyScript (Currency 10000 ActualCurrency txout)` and `dsReserve = currencyScript (Currency 10000 MirrorCurrency txout)`. Their hashes are `hCur :: ByteString = hash dsCur` and `hRes :: ByteString = hash dsReserve`. `hCur` identifies the new currency, and `hRes` identifies its reserve currency.
-3. Create a transaction `tx1`. `tx1` produces two pay-to-script outputs: `cur1` and `res1`. The address of `cur1` is `hCur`. The address of `res1` is `hRes`. `cur1` and `res1` have the same data script, `(InitialState, Initialise hRes hCur)` (see below for an explanation of the (state, action) tuples in data and redeemer scripts). The `valueForged` field of `tx1` is empty.
-4. Create a transaction `tx2`. `tx2` spends `cur1` and `res1`, using the redeemer `r = (Circulating hRes hCur 0, Initialise hRes hCur)` for both outputs. `tx2` also spends `txout` and potentially other outputs that are needed to cover the fee. `tx2` produces pay-to-script outputs `cur2` and `res2`. The address of `cur2` is `hCur` and the address of `res2` is `hRes`. The outputs `cur2` and `res2` have the same data script: `r`, and their value is zero. In addition `tx2` produces an output `o` of `10000 hRes` to a pubkey address owned by us. The `valueForged` field of `tx2` is `{ hResror -> 10000 }`.
-5. To issue `100 hCur` currency, create a transaction `tx3`. `tx3` spends `o` as well as `cur2` and `res2`, using the redeemer `r = (Circulating hRes hCur 100, Forge 100)`. `tx3` produces outputs `cur3` and `res3` to the addresses `hCur` and `hRes` respectively, using the data script `r`. In addition, `tx3` produces an output `p` with a value of `100 hCur`, and an output `q` with a value of `9900 hRes`. The address of `q` is a public key address owned by us. The address of `p` can be any public key or script address (wherever we want to send the new currency). The `valueForged` field of `tx3` is `{ hRes -> -100, hCur -> 100 }`.
+3. Create a transaction `tx1`. `tx1` produces two pay-to-script outputs: `cur1` and `res1`. The address of `cur1` is `hCur`. The address of `res1` is `hRes`. `cur1` and `res1` have the same data script, `(InitialState, Initialise hRes hCur)` (see below for an explanation of the (state, action) tuples in data and redeemer scripts). The `valueMinted` field of `tx1` is empty.
+4. Create a transaction `tx2`. `tx2` spends `cur1` and `res1`, using the redeemer `r = (Circulating hRes hCur 0, Initialise hRes hCur)` for both outputs. `tx2` also spends `txout` and potentially other outputs that are needed to cover the fee. `tx2` produces pay-to-script outputs `cur2` and `res2`. The address of `cur2` is `hCur` and the address of `res2` is `hRes`. The outputs `cur2` and `res2` have the same data script: `r`, and their value is zero. In addition `tx2` produces an output `o` of `10000 hRes` to a pubkey address owned by us. The `valueMinted` field of `tx2` is `{ hResror -> 10000 }`.
+5. To issue `100 hCur` currency, create a transaction `tx3`. `tx3` spends `o` as well as `cur2` and `res2`, using the redeemer `r = (Circulating hRes hCur 100, Mint 100)`. `tx3` produces outputs `cur3` and `res3` to the addresses `hCur` and `hRes` respectively, using the data script `r`. In addition, `tx3` produces an output `p` with a value of `100 hCur`, and an output `q` with a value of `9900 hRes`. The address of `q` is a public key address owned by us. The address of `p` can be any public key or script address (wherever we want to send the new currency). The `valueMinted` field of `tx3` is `{ hRes -> -100, hCur -> 100 }`.
 
 The reason why the data and redeemer scripts used in steps 2-5 are of the form `(state, input)` is that this is currently the only way we have of [validating the next data script](https://github.com/input-output-hk/plutus/issues/426). The linked github issue explains the encoding under the heading "Possible Solutions", third item.
 
 #### A different minting policy
 
-Suppose we wanted define a currency with a variable maximum supply, for example bound to interest rate. We can use the same pattern (reserve currency), we just need to change the `reserveStateMachine` function to allow transactions that forge the reserve currency without destroying the same amount of the actual currency at the same time.
+Suppose we wanted define a currency with a variable maximum supply, for example bound to interest rate. We can use the same pattern (reserve currency), we just need to change the `reserveStateMachine` function to allow transactions that mint the reserve currency without destroying the same amount of the actual currency at the same time.
 
 # Native NFT support
 

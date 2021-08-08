@@ -26,7 +26,7 @@ Finitely-supported functions are easily implemented as finite maps, with a faile
 
 \subsection{Ledger types}
 
-The formal definition of the \EUTXOma\ model integrates token bundles and forge fields from the plain \UTXOma\ model~\cite{plain-multicurrency} into the single currency \EUTXO\ model definition, while adapting forging policy scripts to enjoy the full expressiveness of validators in \EUTXO\ (rather than the limited domain-specific language of \UTXOma). Figures~\ref{fig:eutxo-types} and~\ref{fig:ctx-types} define the ledger types for \EUTXOma.
+The formal definition of the \EUTXOma\ model integrates token bundles and mint fields from the plain \UTXOma\ model~\cite{plain-multicurrency} into the single currency \EUTXO\ model definition, while adapting forging policy scripts to enjoy the full expressiveness of validators in \EUTXO\ (rather than the limited domain-specific language of \UTXOma). Figures~\ref{fig:eutxo-types} and~\ref{fig:ctx-types} define the ledger types for \EUTXOma.
 %
 %
 \begin{ruledfigure}{t}
@@ -78,8 +78,8 @@ The formal definition of the \EUTXOma\ model integrates token bundles and forge 
     \eutxotx &=&(\inputs: \Set{\Input},\\
                & &\ \outputs: \List{\Output},\\
                & &\ \i{validityInterval}: \Interval{\Tick},\\
-               & &\ \forge: \Quantities,\\
-               & &\ \forgeScripts: \Set{\Script},\\
+               & &\ \mint: \Quantities,\\
+               & &\ \mintScripts: \Set{\Script},\\
                & &\ \sigs: \Set{\Signature})\\
     \\
     \Ledger &=&\!\List{\eutxotx}\\
@@ -105,8 +105,8 @@ The formal definition of the \EUTXOma\ model integrates token bundles and forge 
      \s{TxInfo}\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
                  & &\ \i{outputInfo}: \List{\s{OutputInfo}},\\
                  & &\ \i{validityInterval}: \Interval{\Tick},\\
-                 & &\ \forge: \Quantities,\\
-                 & &\ \forgeScripts: \Set{\Script},\\
+                 & &\ \mint: \Quantities,\\
+                 & &\ \mintScripts: \Set{\Script},\\
                  & &\ \sigs: \FinSet{\Signature})\\
     \\
     \s{\vlctx}\s{ } &=& (\s{TxInfo}, \N) \\
@@ -171,7 +171,7 @@ The formal definition of the \EUTXOma\ model integrates token bundles and forge 
   \label{rule:value-is-preserved}
   \textbf{Value is preserved}
   \begin{displaymath}
-    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l) = \sum_{o \in t.\outputs} o.\val
+    t.\mint + \sum_{i \in t.\inputs} \getSpent(i, l) = \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
@@ -206,13 +206,13 @@ The formal definition of the \EUTXOma\ model integrates token bundles and forge 
 \item
   \label{rule:forging}
   \textbf{Forging}\\
-  A transaction with a non-zero \forge{} field is only
+  A transaction with a non-zero \mint{} field is only
   valid if either:
   \begin{enumerate}
   \item the ledger $l$ is empty (that is, if the transaction is the initial transaction).
-  \item \label{rule:custom-forge}
-    for every key $h \in \supp(t.\forge)$, there
-    exists $s \in t.\forgeScripts$ with
+  \item \label{rule:custom-mint}
+    for every key $h \in \supp(t.\mint)$, there
+    exists $s \in t.\mintScripts$ with
     $\scriptAddr(s) = h$.
   \end{enumerate}
 \medskip % items jammed together without this
@@ -220,7 +220,7 @@ The formal definition of the \EUTXOma\ model integrates token bundles and forge 
   \label{rule:all-mpss-run}
   \textbf{All forging policy scripts validate}
   \begin{displaymath}
-    \textrm{For all } s \in t.\forgeScripts,\ \applyMPScript{s}(\toData(\mkMpsContext(t, \scriptAddr(s), l))) = \true
+    \textrm{For all } s \in t.\mintScripts,\ \applyMPScript{s}(\toData(\mkMpsContext(t, \scriptAddr(s), l))) = \true
   \end{displaymath}
 
 \end{enumerate}

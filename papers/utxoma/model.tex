@@ -83,7 +83,7 @@ Finitely-supported functions are easily implemented as finite maps, with a faile
     \utxotx &=&(\inputs: \Set{\Input},\\
                & &\ \outputs: \List{\Output},\\
                & &\ \validityInterval: \Interval{\Tick},\\
-               & &\ \forge: \Quantities\\
+               & &\ \mint: \Quantities\\
                & &\ \scripts: \Set{\FPScript},\\
                & &\ \sigs: \Set{\Signature})\\
     \\
@@ -116,13 +116,13 @@ We call this script the \emph{forging policy script}.
 
 \paragraph{Forging.}
 
-Each transaction gets a $\forge$ field, which simply modifies the required balance of the transaction by the $\Quantities$ inside it: thus a positive $\forge$ field indicates the creation of new tokens.
-In contrast to outputs, $\Quantities$ in forge fields can
+Each transaction gets a $\mint$ field, which simply modifies the required balance of the transaction by the $\Quantities$ inside it: thus a positive $\mint$ field indicates the creation of new tokens.
+In contrast to outputs, $\Quantities$ in mint fields can
 also be negative, which effectively burns existing tokens.\footnote{
-The restriction on outputs is enforced by Rule~\ref{rule:all-outputs-are-non-negative}.  We simply do not impose such a restriction on the $\forge$ field: this lets us define rules in a simpler way, with cleaner notation. }
+The restriction on outputs is enforced by Rule~\ref{rule:all-outputs-are-non-negative}.  We simply do not impose such a restriction on the $\mint$ field: this lets us define rules in a simpler way, with cleaner notation. }
 
 Additionally, transactions get a $\scripts$ field holding a set of forging policy scripts: \(\Set{\FPScript}\).
-This provides the forging policy scripts that are required as part of validation when tokens are minted or destroyed (see Rule~\ref{rule:forging} in Figure~\ref{fig:validity}). The forging scripts of the assets being forged are
+This provides the forging policy scripts that are required as part of validation when tokens are minted or destroyed (see Rule~\ref{rule:forging} in Figure~\ref{fig:validity}). The forging scripts of the assets being minted are
 executed and the transaction is only considered valid if the execution of the script returns $\true$.
 A forging policy script is executed in a context that provides access to the main components of the forging transaction, the UTXOs it spends, and the policy ID.
 The passing of the context provides a crucial piece of the puzzle regarding self-identification: it includes the script's own $\Policy$, which avoids the problem of trying to include the hash of a script inside itself.
@@ -206,7 +206,7 @@ the fields of a transaction.
   \label{rule:value-is-preserved}
   \textbf{Value is preserved}
   \begin{displaymath}
-    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l) = \sum_{o \in t.\outputs} o.\val
+    t.\mint + \sum_{i \in t.\inputs} \getSpent(i, l) = \sum_{o \in t.\outputs} o.\val
   \end{displaymath}
 
 \item
@@ -236,12 +236,12 @@ the fields of a transaction.
 \item
   \label{rule:forging}
   \textbf{Forging}\\
-  A transaction with a non-zero \forge{} field is only
+  A transaction with a non-zero \mint{} field is only
   valid if either:
   \begin{enumerate}
   \item the ledger $l$ is empty (that is, if it is the initial transaction).
-  \item \label{rule:custom-forge}
-    for every key $h \in \supp(t.\forge)$, there
+  \item \label{rule:custom-mint}
+    for every key $h \in \supp(t.\mint)$, there
     exists $s \in t.\scripts$ with
     $h = \scriptAddr(s)$.
   \end{enumerate}
@@ -268,7 +268,7 @@ The new \textbf{Forging} rule (Rule~\ref{rule:forging}) implements the support f
 The arguments that a script is applied to are the ones discussed earlier.
 
 When forging policy scripts are run, they are provided with the appropriate transaction data, which allows them to enforce conditions on it.
-In particular, they can inspect the $\forge$ field on the transaction, and so a forging policy script can identify how much of its own currency was forged, which is typically a key consideration in whether to allow the transaction.
+In particular, they can inspect the $\mint$ field on the transaction, and so a forging policy script can identify how much of its own currency was minted, which is typically a key consideration in whether to allow the transaction.
 
 We also need to be careful to ensure that transactions in our new system preserve value correctly.
 There are two aspects to consider:
@@ -278,5 +278,5 @@ There are two aspects to consider:
   However, since \Quantities\ is a monoid (see Section~\ref{sec:model}), Rule~\ref{rule:value-is-preserved} is (almost) identical to the one in the original UTXO model, simply with a different monoid.
   Concretely, this amounts to preserving the quantities of each of the individual token classes in the transaction.
 \item
-  We allow forging of new tokens by including the forge field into the balance in Rule~\ref{rule:value-is-preserved}.
+  We allow forging of new tokens by including the mint field into the balance in Rule~\ref{rule:value-is-preserved}.
 \end{itemize}

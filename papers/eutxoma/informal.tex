@@ -13,7 +13,7 @@ A transaction $\tx$ is a quadruple \((I, O, r, S)\) comprising a set of \emph{in
 The sum of the inputs must be equal to the sum of the outputs; in other words, transactions preserve value.
 % True, but not crucial IMHO and we need to save space. -= chak
 %\footnote{
-%  Real transactions will likely have other fields that need to be balanced, such as fees or new tokens that are minted or forged.
+%  Real transactions will likely have other fields that need to be balanced, such as fees or new tokens that are minted.
 %  We will omit these for now for simplicity, but in general they also need to observe preservation of value.
 %}
 Transactions are identified by a collision-resistant cryptographic hash $h$ computed from the transaction.\footnote{%
@@ -56,14 +56,14 @@ In contrast to fungible tokens, only a single instance of a non-fungible token m
 
 \subsection{Forging custom tokens}
 
-To enable the introduction of new quantities of new tokens on the ledger (\emph{minting}) or the removal of existing tokens (\emph{burning}), we add a \emph{forge field} to each transaction.
-The use of the forge field needs to be tightly controlled, so that the minting and burning of tokens is guaranteed to proceed according to the token's \emph{forging policy}.
+To enable the introduction of new quantities of new tokens on the ledger (\emph{minting}) or the removal of existing tokens (\emph{burning}), we add a \emph{mint field} to each transaction.
+The use of the mint field needs to be tightly controlled, so that the minting and burning of tokens is guaranteed to proceed according to the token's \emph{forging policy}.
 We implement forging policies by means of scripts that are much like the validator scripts used to lock outputs in \EUTXO.
 
-Overall, a transaction in \EUTXOma\ is thus a sextuple \((I, O, r, \forge, \fpss, S)\), where $\forge$, just like $\val$ in an output, is a token bundle and $\fpss$ is a set of \emph{forging policy scripts}.
-Unlike the value attached to transaction outputs, $\forge$ is allowed to contain negative quantities of tokens. Positive quantities represent minted tokens and negative quantities represent burned tokens.
-In either case, any asset group $\phi$ that occurs in $\forge$ (i.e., \(\forge = \{\ldots, \phi \mapsto \mathit{toks}, \ldots\}\)) must also have its forging policy script in the transaction's $\fpss$ field.
-Each script $\pi$ in $\fpss$ is executed to check whether $\pi(\sigma) = \true$, that is whether the transaction, including its $\forge$ field, is admissible.
+Overall, a transaction in \EUTXOma\ is thus a sextuple \((I, O, r, \mint, \fpss, S)\), where $\mint$, just like $\val$ in an output, is a token bundle and $\fpss$ is a set of \emph{forging policy scripts}.
+Unlike the value attached to transaction outputs, $\mint$ is allowed to contain negative quantities of tokens. Positive quantities represent minted tokens and negative quantities represent burned tokens.
+In either case, any asset group $\phi$ that occurs in $\mint$ (i.e., \(\mint = \{\ldots, \phi \mapsto \mathit{toks}, \ldots\}\)) must also have its forging policy script in the transaction's $\fpss$ field.
+Each script $\pi$ in $\fpss$ is executed to check whether $\pi(\sigma) = \true$, that is whether the transaction, including its $\mint$ field, is admissible.
 \ifootnote{%
   In fact we have a slightly different $\sigma$ here, which we elaborate on in Appendix~\ref{app:model}.%
 }

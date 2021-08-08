@@ -50,7 +50,7 @@ This solves both problems. The uniqueness of the non-fungible token ensures that
 Custom tokens are convenient to control ownership and access to smart contracts. In particular, we can turn \emph{roles} in a contract into tokens by forging a set of non-fungible tokens, one for each role in the contract. In order to take an action (for example, to make a specific state transition in a state machine) as that role, a user must present the corresponding \emph{role token}.
 
 For example, in a typical financial futures contract we have two roles: the buyer (long), and the seller (short).
-In a tokenised future contract, we forge tokens which provide the right to act as the long or short position; e.g., in order to settle the future and take delivery of the underlying asset, an agent needs to provide the long token as part of that transaction.
+In a tokenised future contract, we mint tokens which provide the right to act as the long or short position; e.g., in order to settle the future and take delivery of the underlying asset, an agent needs to provide the long token as part of that transaction.
 
 \paragraph{Trading role tokens.}
 %
@@ -92,7 +92,7 @@ A naive implementation is as follows:
 %
 \begin{itemize}
 \item
-  Contributors lock their contributions with a validator $\nu$ and a datum $\delta$, where $\delta$ contains their public key and $\nu$ requires that an appropriate part of the forged tranche be sent to the public key address corresponding to $\delta$.
+  Contributors lock their contributions with a validator $\nu$ and a datum $\delta$, where $\delta$ contains their public key and $\nu$ requires that an appropriate part of the minted tranche be sent to the public key address corresponding to $\delta$.
 \item
   The forging policy $\phi$ requires that the sum of the inputs exceeds a pre-determined  threshold $T$, and allows forging of $n$ units of the token, which must be allocated to the input payers in proportion to their contribution.
 \end{itemize}
@@ -100,7 +100,7 @@ A naive implementation is as follows:
 Unfortunately, this is not \emph{fair}, in that participants can be omitted by the party who actually creates the forging transaction, as long as the other participants between them reach the threshold.
 
 We can fix this by issuing (fungible) \emph{participation tokens}, representing the right to participate in the ICO.
-First, we forge $l$ participation tokens, and then we distribute them to the participants (in return for whatever form of payment we require).
+First, we mint $l$ participation tokens, and then we distribute them to the participants (in return for whatever form of payment we require).
 Finally, in order to issue the main tranche of tokens, we require (in addition to the previous conditions) that some appropriate fraction of the issued participation tokens are spent in that transaction.
 That means we cannot omit (too many of) the holders of the participation tokens --- and the forging policy ensures that all participants are compensated appropriately.
 As a bonus, this makes the right to participate in the ICO itself tradeable as a tokenised role. In other words, participation tokens make roles into \emph{first-class} assets.

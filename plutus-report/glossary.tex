@@ -2,7 +2,7 @@
 \newglossaryentry{ada}{
   name=ada,
   description={
-    The primary currency on the \gls{cardano} blockchain. Unlike other \glspl{currency}, ada cannot be forged.
+    The primary currency on the \gls{cardano} blockchain. Unlike other \glspl{currency}, ada cannot be minted.
   }
 }
 \newglossaryentry{cardano}
@@ -72,14 +72,14 @@
   name=currency,
   plural=currencies,
   description={
-    A class of \gls{token} whose \gls{forging} is controlled by a particular \gls{mps}.
+    A class of \gls{token} whose \gls{minting} is controlled by a particular \gls{mps}.
   }
 }
 \newglossaryentry{currency-id}{
   name=currency id,
   description={
     An identifier for a \gls{currency}.
-    This is the hash of the \gls{mps} that controls the \gls{forging} of the \gls{currency}.
+    This is the hash of the \gls{mps} that controls the \gls{minting} of the \gls{currency}.
   }
 }
 \newglossaryentry{data}{
@@ -106,12 +106,12 @@
     See \cref{sec:eutxo}.
   }
 }
-\newglossaryentry{forging}{
-  name=forging,
+\newglossaryentry{minting}{
+  name=minting,
   description={
-    A transaction which forges \glspl{token} creates new \glspl{token}, providing that the
+    A transaction which mints \glspl{token} creates new \glspl{token}, providing that the
     corresponding \gls{mps} is satisfied.
-    The amount forged can be negative, in which case the \glspl{token} will be destroyed instead of created.
+    The amount minted can be negative, in which case the \glspl{token} will be destroyed instead of created.
     See \cref{sec:multicurrency}.
   }
 }
@@ -131,7 +131,7 @@
   }
 }
 \newacronym[description={
-  A \gls{script} which must be satisfied in order for a transaction to forge \glspl{token} of the corresponding \gls{currency}.
+  A \gls{script} which must be satisfied in order for a transaction to mint \glspl{token} of the corresponding \gls{currency}.
   See \cref{sec:multicurrency}.
 }]{mps}{MPS}{Minting Policy Script}
 \newglossaryentry{multicurrency}

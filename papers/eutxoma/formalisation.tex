@@ -37,10 +37,10 @@ transaction graph to their \textit{origin}.
 We call such a path through the transaction graph a \emph{trace}, and
 define the \emph{provenance} of an asset at some particular output
 to be a trace leading from the current transaction to an origin which
-forges a value containing the traced tokens.
+mints a value containing the traced tokens.
 
 In the case of fungible tokens, there may be multiple possible traces:
-since such tokens are interchangeable, if two tokens of some asset are forged separately, and then
+since such tokens are interchangeable, if two tokens of some asset are minted separately, and then
 later mingled in the same output, then we cannot say which one came from which forging.
 
 Let $\nft = (p , a)$ denote a particular $\Asset\ a$ controlled by a $\Policy\ p$,
@@ -48,8 +48,8 @@ and $v^\nft = v(p)(a)$ the quantity of $\nft$ tokens present in value $v$.
 $\Trace(l,o,\nft,n)$ is the type of sequences of transactions
 $t_0,\dots, t_i, t_{i +1},\dots, t_k$ drawn from a ledger $l$ such that:
 \begin{itemize}
-\item the origin transaction $t_0$ forges at least $n$ $\nft$
-  tokens: $t_0.\forge^\nft \ge n$
+\item the origin transaction $t_0$ mints at least $n$ $\nft$
+  tokens: $t_0.\mint^\nft \ge n$
 \item every pair $(t_i,t_{i + 1})$ has an input/output connection in
   the ledger that transfers at least $n$ $\nft$ tokens:
   $\exists o' \in t_{i + 1}.\inputs.\outputref. (t_i.\outputs[o'.\idx].\val^\nft \ge n)$
@@ -61,7 +61,7 @@ set of traces $\dots \Trace(l,o,\nft,n_i)\dots$, such that $\sum n_i \ge o.\val^
 To construct an output's provenance, with respect to
 a particular policy and asset, we aggregate all possible
 traces containing a token of this asset from the transaction's inputs as well
-as from the value that is currently being forged.
+as from the value that is currently being minted.
 Thus our tracing procedure will construct a sound over-approximation of the actual provenance.
 
 \begin{displaymath}
@@ -73,7 +73,7 @@ Thus our tracing procedure will construct a sound over-approximation of the actu
 \subsection{Forging policies are enforced}
 
 One particular meta-theoretical property we want to check is
-that each token is created properly: there is an origin transaction which forges
+that each token is created properly: there is an origin transaction which mints
 it and is checked against the currency's forging policy.
 
 \begin{proposition}[Non-empty Provenance]
@@ -92,7 +92,7 @@ its computed provenance will be inhabited by at least one trace.
 %
 However, this is not enough to establish what we want: due to
 fungibility, we could identify a single origin as the provenance for
-two tokens, even if the origin only forges a single token!
+two tokens, even if the origin only mints a single token!
 
 To remedy this, we complement (non-empty) token provenance with a
 proof of \textit{global preservation}; a generalisation of the
@@ -102,13 +102,13 @@ Rule~\ref{rule:value-is-preserved} in \S\ref{app:model}.
 \begin{proposition}[Global Preservation]
 Given a valid ledger $l$:
 \begin{displaymath}
-\sum_{t \in l} t.\forge = \sum_{o \in \unspent(l)} o.\val
+\sum_{t \in l} t.\mint = \sum_{o \in \unspent(l)} o.\val
 \end{displaymath}
 \end{proposition}
 
 The combination of non-empty token provenance and global preservation
 assures us that each token is created properly and there is globally
-no more currency than is forged.
+no more currency than is minted.
 
 To prove these properties we require transactions to be unique
 throughout the ledger, which is not implied by the validity rules of
@@ -147,10 +147,10 @@ non-fungible token can pick out a \emph{unique} path through the
 transaction graph.
 
 First, we define a token $\nft$ to be \textit{non-fungible} whenever
-it has been forged at most once across all transactions of an existing
+it has been minted at most once across all transactions of an existing
 valid ledger $l$.
 \ifootnote{%
-  This really is a property of a particular ledger: a ``non-fungible'' token can become fungible in a longer ledger if other tokens of its asset are forged.
+  This really is a property of a particular ledger: a ``non-fungible'' token can become fungible in a longer ledger if other tokens of its asset are minted.
   Whether or not this is possible will depend on external reasoning about the forging policy.%
 }
 Then we can prove that non-fungible tokens have a singular provenance;
@@ -166,7 +166,7 @@ token $\nft$:
   {%
     o \in \{ t.\outputs \ | \ t \in l \}
   & o.\val^\nft > 0
-  & \sum_{t \in l} t.\forge^\nft \leq 1
+  & \sum_{t \in l} t.\mint^\nft \leq 1
   }
 \end{displaymath}
 \end{proposition}
@@ -178,7 +178,7 @@ to extend the previously established bisimulation between CEMs and
 state machines in ledgers, so that it relates CEMs with support for
 initial states to \textit{threaded} state machines in ledgers.  That
 is, in addition to creating an appropriate validator as
-in~\cite{eutxo-1-paper}, we also create a forging policy that forges
+in~\cite{eutxo-1-paper}, we also create a forging policy that mints
 a unique \textit{thread token} which is then required for the
 machine to progress (and is destroyed when it terminates).  Crucially,
 the forging policy also checks that the machine is starting in an
@@ -216,20 +216,20 @@ run at once and the machine cannot be started in an intermediate state.
 State machines whose execution must start from an initial state are also
 referred to as \emph{rooted} state transition systems~\cite{TLSS}.
 
-To enforce non-fungibility of the forged token, we require
+To enforce non-fungibility of the minted token, we require
 that the forging transaction spends a specific output, fixed for a
 particular CEM instance $\mathcal{C}$ and supplied along with its definition as a
 field \s{origin}.  Therefore, since no output can be spent twice, we
-guarantee that the token cannot be forged again in the future.
+guarantee that the token cannot be minted again in the future.
 
-The CEM's forging policy checks that we only forge a single thread
+The CEM's forging policy checks that we only mint a single thread
 token, spend the supplied origin, and that the state propagated in the
 outputs is initial:
 
 \begin{displaymath}
 \polC(\mi{txInfo}, c) = \left\{
   \begin{array}{lll}
-  \true  & \mi{if} \ \mi{txInfo}.\forge^\nft = 1 \\
+  \true  & \mi{if} \ \mi{txInfo}.\mint^\nft = 1 \\
          & \mi{and} \ \s{origin} \in \mi{txInfo}.\outputrefs \\
          & \mi{and} \ \initial(\mi{txInfo}.\mi{outputs}^\nft) \\
   \false & \mi{otherwise}
@@ -239,7 +239,7 @@ outputs is initial:
 %
 where $\nft = \{\hash{\valC} \mapsto \{ \hash{\polC} \mapsto 1 \}\}$
 is the thread token and $\mi{txInfo}.outputs^\nft$ looks up the output
-which carries the newly-forged thread token and is locked by the same
+which carries the newly-minted thread token and is locked by the same
 machine's validator, returning the datum decoded as a value of the
 state type $\s{S}$.
 
@@ -272,7 +272,7 @@ there is a unique ledger trace that begins by forging that token
 \begin{proposition}[Initiality]
 Given a valid ledger $l$ and an unspent output carrying the thread
 token $\nft$, we can always trace it back to a single origin, which
-forges the token and abides by the forging policy:
+mints the token and abides by the forging policy:
 \end{proposition}
 %
 \begin{displaymath}
@@ -393,7 +393,7 @@ where $tr.source, tr.destination$ are the states associated with the endpoints o
 \begin{proof}
   It is straightforward to show this holds, as a corollary of
   \textsc{Initiality}. For the base case, knowing that the origin of the
-  trace abides by the forging policy ensures that it forges the thread
+  trace abides by the forging policy ensures that it mints the thread
   token and outputs an initial state (\s{root}). In the inductive
   step, knowing that the validator runs successfully guarantees that
   there is a corresponding CEM step (\s{snoc}).

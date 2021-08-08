@@ -157,15 +157,15 @@ The other extension that we make to the ledger is to enable \emph{\gls{multicurr
 \Gls{multicurrency} is a key part of the \gls{plutus-platform} not only because custom \glspl{currency} are an important use case for blockchain systems, but because we use lightweight custom \glspl{token} as integral parts of our application designs.
 
 The key design innovation is that \glspl{currency} are identified with the hash of the \gls{mps} that controls them.
-This means that to be allowed to forge \glspl{token} of a particular \gls{currency}, you must present the corresponding \gls{mps} with the transaction and it must pass.
+This means that to be allowed to mint \glspl{token} of a particular \gls{currency}, you must present the corresponding \gls{mps} with the transaction and it must pass.
 
 This design allows our system to be both \emph{local} and \emph{lightweight}:
 \begin{itemize}
 \item
-  We do not require any kind of central registration of \glspl{currency}: any hash can be used as a \gls{currency-id}, you just cannot forge any unless you can produce a \gls{script} with that hash.
+  We do not require any kind of central registration of \glspl{currency}: any hash can be used as a \gls{currency-id}, you just cannot mint any unless you can produce a \gls{script} with that hash.
   This ensures we do not violate \cref{req:ledger-locality}.
 \item
-  \Gls{forging} \glspl{token} is cheap: all that is required is to provide and run the script at the time of forging.
+  \Gls{minting} \glspl{token} is cheap: all that is required is to provide and run the script at the time of minting.
 \item
   Transacting with custom \glspl{currency} is cheap: they are natively supported and work just like the native token.
 \end{itemize}
@@ -185,7 +185,7 @@ type Value = Map CurrencyID (Map TokenName Quantity)
 \end{verbatim}
 \end{quote}
 
-The \gls{currency-id} indicates the \emph{controller} of the currency, specifically it is the hash of the \gls{mps} that controls when tokens of that currency may be forged or destroyed (see \cref{sec:forging}).
+The \gls{currency-id} indicates the \emph{controller} of the currency, specifically it is the hash of the \gls{mps} that controls when tokens of that currency may be minted or burned (see \cref{sec:minting}).
 The \gls{token-name} separates different \emph{classes} of \gls{token}s within the currency. Only \glspl{token} of the same currency and \gls{token-name} are \gls{fungible} with each other.
 Hence one could use a currency to track items in a game: different kinds of items would have different \glspl{token-name}, and an asset bundle could consist of e.g. 3 swords, 7 hats, and a cheesecake.
 
@@ -193,17 +193,17 @@ Operations on \gls{value} are defined as if it were a finitely-supported functio
 
 The ledger rules do not need to change much in order to support this generalized \gls{value}: the only change is that we need to use the appropriate sum operation on \gls{value} in e.g. the balancing rules.
 
-\subsubsection{\Glsentrytext{forging}}
-\label{sec:forging}
-\Gls{value} may also be created and destroyed, we call this \emph{\gls{forging}}.
+\subsubsection{\Glsentrytext{minting}}
+\label{sec:minting}
+\Gls{value} may also be created and destroyed, we call this \emph{\gls{minting}}.
 To this end transactions are given two additional fields:
 \begin{enumerate}
-\item \code{forge} which contains \gls{value}
-\item \code{forgeScripts} which contains \glspl{mps} for all the \glspl{currency} forged in \code{forge}
+\item \code{mint} which contains \gls{value}
+\item \code{mintScripts} which contains \glspl{mps} for all the \glspl{currency} minted in \code{mint}
 \end{enumerate}
 
 \subsubsection{\glsentrylong{mps}s}
-The \glspl{script} which control the forging of \glspl{token} are called \glsfirstplural{mps}.
+The \glspl{script} which control the minting of \glspl{token} are called \glsfirstplural{mps}.
 Since these are able to see the \gls{context}, and hence the whole transaction being validated, they can enforce a wide range of properties on the transaction.
 
 \subsubsection{\glsentrylong{nft}s}
@@ -227,5 +227,5 @@ Two approaches are:
 
 In addition to the conditions in \cref{sec:utxo-valid} and \cref{sec:eutxo-1-valid}, the following condition must hold:
 \begin{itemize}
-\item Forging must be authorized: for each \gls{currency-id} of which a non-zero amount is forged in \code{forge}, the corresponding \gls{mps} must be run with the \gls{context} and return successfully.
+\item Minting must be authorized: for each \gls{currency-id} of which a non-zero amount is minted in \code{mint}, the corresponding \gls{mps} must be run with the \gls{context} and return successfully.
 \end{itemize}
