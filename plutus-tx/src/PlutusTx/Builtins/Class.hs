@@ -16,6 +16,7 @@ import           Data.ByteString            (ByteString)
 import           PlutusTx.Builtins.Internal
 
 import           Data.String                (IsString (..))
+import           Data.Text                  (Text, pack, singleton)
 
 import qualified GHC.Magic                  as Magic
 
@@ -82,13 +83,9 @@ instance FromBuiltin BuiltinByteString ByteString where
 instance ToBuiltin ByteString BuiltinByteString where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinByteString
-
-instance FromBuiltin BuiltinChar Char where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = id
 instance ToBuiltin Char BuiltinChar where
     {-# INLINABLE toBuiltin #-}
-    toBuiltin = id
+    toBuiltin = singleton
 
 {- Note [noinline hack]
 For some functions we have two conflicting desires:
@@ -113,14 +110,11 @@ instance IsString BuiltinString where
     -- the application of 'stringToBuiltinString'
     {-# INLINE fromString #-}
     -- See Note [noinline hack]
-    fromString = Magic.noinline stringToBuiltinString
+    fromString str = Magic.noinline $ stringToBuiltinString (pack str)
 
 {-# INLINABLE stringToBuiltinString #-}
-stringToBuiltinString :: String -> BuiltinString
-stringToBuiltinString = go
-    where
-        go []     = emptyString
-        go (x:xs) = charToString x `appendString` go xs
+stringToBuiltinString :: Text -> BuiltinString
+stringToBuiltinString = BuiltinString
 
 instance FromBuiltin BuiltinString BuiltinString where
     {-# INLINABLE fromBuiltin #-}
@@ -135,10 +129,10 @@ instance IsString BuiltinByteString where
     -- the application of 'stringToBuiltinByteString'
     {-# INLINE fromString #-}
     -- See Note [noinline hack]
-    fromString = Magic.noinline stringToBuiltinByteString
+    fromString str = Magic.noinline $ stringToBuiltinByteString (pack str)
 
 {-# INLINABLE stringToBuiltinByteString #-}
-stringToBuiltinByteString :: String -> BuiltinByteString
+stringToBuiltinByteString :: Text -> BuiltinByteString
 stringToBuiltinByteString = encodeUtf8 . stringToBuiltinString
 
 

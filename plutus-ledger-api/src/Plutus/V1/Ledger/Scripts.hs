@@ -400,7 +400,7 @@ runStakeValidatorScript
     => Context
     -> StakeValidator
     -> Redeemer
-    -> m (PLC.ExBudget, [Haskell.String])
+    -> m (PLC.ExBudget, [Text])
 runStakeValidatorScript context wps red = do
     evaluateScript (applyStakeValidatorScript context wps red)
 

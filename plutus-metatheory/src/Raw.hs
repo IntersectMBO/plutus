@@ -71,8 +71,7 @@ convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 convC :: Some (ValueOf DefaultUni) -> RConstant
 convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
 convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
-convC (Some (ValueOf DefaultUniString     s)) = RConStr (T.pack s)
-convC (Some (ValueOf DefaultUniChar       c)) = RConChar c
+convC (Some (ValueOf DefaultUniText       s)) = RConStr s
 convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
 convC (Some (ValueOf uni                  _)) = error $ "convC: " ++ show uni ++ " is not supported"

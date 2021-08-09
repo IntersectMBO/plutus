@@ -19,7 +19,7 @@ import qualified Data.ByteString.Hash      as Hash
 import           Data.Coerce               (coerce)
 import           Data.Hashable             (Hashable)
 import           Data.Maybe                (fromMaybe)
-import           Data.Text                 as Text (Text, empty, singleton)
+import           Data.Text                 as Text (Text, empty)
 import           Data.Text.Encoding        as Text (decodeUtf8, encodeUtf8)
 import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow)
 import           GHC.Generics              (Generic)
@@ -202,7 +202,7 @@ decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
 STRING
 -}
 
-type BuiltinChar = Char
+type BuiltinChar = Text
 newtype BuiltinString = BuiltinString Text
     deriving newtype (Show, Eq, Ord)
 
@@ -216,7 +216,7 @@ emptyString = BuiltinString Text.empty
 
 {-# NOINLINE charToString #-}
 charToString :: BuiltinChar -> BuiltinString
-charToString c = BuiltinString $ Text.singleton c
+charToString = BuiltinString
 
 {-# NOINLINE equalsString #-}
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool

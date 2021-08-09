@@ -40,8 +40,7 @@ convP (Program _ _ t) = conv t
 convC :: Some (ValueOf DefaultUni) -> UConstant
 convC (Some (ValueOf DefaultUniInteger    i)) = UConInt i
 convC (Some (ValueOf DefaultUniByteString b)) = UConBS b
-convC (Some (ValueOf DefaultUniString     s)) = UConStr (T.pack s)
-convC (Some (ValueOf DefaultUniChar       c)) = UConChar c
+convC (Some (ValueOf DefaultUniText       s)) = UConStr s
 convC (Some (ValueOf DefaultUniUnit       u)) = UConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = UConBool b
 convC (Some (ValueOf uni                  _)) = error $ "convC: " ++ show uni ++ " is not supported"

@@ -64,7 +64,7 @@ primitives = testNested "Primitives" [
   , goldenPir "traceComplex" traceComplex
   , goldenPir "stringLiteral" stringLiteral
   , goldenPir "stringConvert" stringConvert
-  , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: Text), liftProgram ("hello" :: Text)]
+  -- , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: Builtins.BuiltinString), liftProgram ("hello" :: Builtins.BuiltinString)]
   , goldenPir "encodeUtf8" stringEncode
   , goldenUEval "constructData1" [ constructData1 ]
   -- It's interesting to look at one of these to make sure all the specialisation is working out nicely and for
@@ -79,7 +79,7 @@ primitives = testNested "Primitives" [
   ]
 
 text :: CompiledCode Text
-text = plc (Proxy @"text") "test"
+text = plc (Proxy @"text") "text"
 
 int :: CompiledCode Integer
 int = plc (Proxy @"int") (1::Integer)
