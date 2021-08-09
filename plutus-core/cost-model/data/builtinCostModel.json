@@ -6,8 +6,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 100,
-                "intercept": 11501
+                "slope": 469,
+                "intercept": 333658
             },
             "type": "min_size"
         }
@@ -19,8 +19,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 100,
-                "intercept": 11501
+                "slope": 469,
+                "intercept": 333658
             },
             "type": "min_size"
         }
@@ -32,8 +32,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 82258,
-                "intercept": 3944346,
+                "slope": 82683,
+                "intercept": 4043233,
                 "orientation": "x"
             },
             "type": "linear_cost"
@@ -59,8 +59,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 13197,
-                "intercept": 0
+                "slope": 12030,
+                "intercept": 189205
             },
             "type": "added_sizes"
         }
@@ -72,8 +72,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 247,
-                "intercept": 0
+                "slope": 246,
+                "intercept": 290146
             },
             "type": "min_size"
         }
@@ -89,8 +89,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 150970,
-                "model_split_const_slope": 519
+                "model_split_const_intercept": 477590,
+                "model_split_const_slope": 506
             },
             "type": "split_const_multi"
         }
@@ -102,8 +102,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 891,
-                "intercept": 0
+                "slope": 1461,
+                "intercept": 257952
             },
             "type": "min_size"
         }
@@ -115,8 +115,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 891,
-                "intercept": 0
+                "slope": 1461,
+                "intercept": 257952
             },
             "type": "min_size"
         }
@@ -128,8 +128,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 247,
-                "intercept": 0
+                "slope": 246,
+                "intercept": 290146
             },
             "type": "min_size"
         }
@@ -141,8 +141,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 450,
-                "intercept": 0
+                "slope": 3055,
+                "intercept": 164315
             },
             "type": "min_size"
         }
@@ -153,7 +153,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3612479,
+            "arguments": 3974022,
             "type": "constant_cost"
         }
     },
@@ -168,8 +168,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 150970,
-                "model_split_const_slope": 519
+                "model_split_const_intercept": 477590,
+                "model_split_const_slope": 506
             },
             "type": "split_const_multi"
         }
@@ -184,8 +184,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 1000,
-                "intercept": 37885
+                "slope": 0,
+                "intercept": 439353
             },
             "type": "max_size"
         }
@@ -200,8 +200,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 605,
-                "intercept": 195193
+                "slope": 591,
+                "intercept": 605616
             },
             "type": "added_sizes"
         }
@@ -216,8 +216,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 1000,
-                "intercept": 37885
+                "slope": 0,
+                "intercept": 439353
             },
             "type": "max_size"
         }
@@ -233,8 +233,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 150970,
-                "model_split_const_slope": 519
+                "model_split_const_intercept": 477590,
+                "model_split_const_slope": 506
             },
             "type": "split_const_multi"
         }
@@ -247,7 +247,7 @@
         "cpu": {
             "arguments": {
                 "slope": 235,
-                "intercept": 78803
+                "intercept": 323288
             },
             "type": "min_size"
         }
@@ -258,7 +258,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3188043,
+            "arguments": 3506353,
             "type": "constant_cost"
         }
     },
@@ -269,8 +269,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 29258,
-                "intercept": 1233304,
+                "slope": 30096,
+                "intercept": 722144,
                 "orientation": "x"
             },
             "type": "linear_cost"
@@ -282,7 +282,7 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3642928,
+            "arguments": 3968767,
             "type": "constant_cost"
         }
     },
@@ -293,8 +293,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 29258,
-                "intercept": 1233304,
+                "slope": 30096,
+                "intercept": 722144,
                 "orientation": "x"
             },
             "type": "linear_cost"
@@ -311,8 +311,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": 150970,
-                "model_split_const_slope": 519
+                "model_split_const_intercept": 477590,
+                "model_split_const_slope": 506
             },
             "type": "split_const_multi"
         }
