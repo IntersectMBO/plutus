@@ -305,6 +305,7 @@ stmInstanceLoop def instanceId = do
         [] -> do
             let ContractResponse{err} = resp
             ask >>= liftIO . STM.atomically . InstanceState.setActivity (Done err)
+            Contract.putStopInstance @t instanceId
         _ -> do
             response <- respondToRequestsSTM @t instanceId currentState
             let rsp' = Right <$> response
@@ -313,6 +314,7 @@ stmInstanceLoop def instanceId = do
             case event of
                 Left () -> do
                     ask >>= liftIO . STM.atomically . InstanceState.setActivity Stopped
+                    Contract.putStopInstance @t instanceId
                 Right event' -> do
                     (newState :: Contract.State t) <- Contract.updateContract @t instanceId (caID def) currentState event'
                     Contract.putState @t def instanceId newState
