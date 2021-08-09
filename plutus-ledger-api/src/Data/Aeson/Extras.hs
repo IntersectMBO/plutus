@@ -6,6 +6,7 @@ module Data.Aeson.Extras(
     , encodeSerialise
     , decodeSerialise
     , tryDecode
+    , JSONViaSerialise (..)
     ) where
 
 import qualified Codec.CBOR.Write       as Write
@@ -38,3 +39,13 @@ decodeSerialise = decodeByteString >=> go where
         case first show $ deserialiseOrFail $ BSL.fromStrict bs of
             Left e  -> fail e
             Right v -> pure v
+
+-- | Newtype for deriving 'ToJSON' and 'FromJSON' for types that have a 'Serialise'
+-- instance by just encoding the serialized bytes as a JSON string.
+newtype JSONViaSerialise a = JSONViaSerialise a
+
+instance Serialise a => Aeson.ToJSON (JSONViaSerialise a) where
+    toJSON (JSONViaSerialise a) = Aeson.String $ encodeSerialise a
+
+instance Serialise a => Aeson.FromJSON (JSONViaSerialise a) where
+    parseJSON v = JSONViaSerialise <$> decodeSerialise v

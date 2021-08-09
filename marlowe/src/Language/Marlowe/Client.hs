@@ -505,7 +505,8 @@ mkMarloweStateMachineTransition
 mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue}
     (interval@(minSlot, maxSlot), inputs) = do
     let positiveBalances = validateBalances marloweState ||
-            P.traceError "Invalid contract state. There exists an account with non positive balance"
+            -- Avoid creating a too-big string literal
+            P.traceError ("Invalid contract state. " `P.appendString` "There exists an account with non positive balance")
 
     {-  We do not check that a transaction contains exact input payments.
         We only require an evidence from a party, e.g. a signature for PubKey party,

@@ -2,6 +2,8 @@ module UntypedPlutusCore
     ( module Export
     , applyProgram
     , parseScoped
+    , PLC.DefaultUni
+    , PLC.DefaultFun
     ) where
 
 import           UntypedPlutusCore.Check.Uniques      as Uniques
