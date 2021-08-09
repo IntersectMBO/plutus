@@ -432,15 +432,15 @@ instance (Dumpable tyname) => Dumpable (PIR.TyVarDecl tyname a) where
 -- (need this to verify Scott encoding)
 newtype Constructor tyname name uni fun a = Constructor (PIR.VarDecl tyname name uni fun a)
 
-instance (Dumpable name) => Dumpable (Constructor tyname name uni fun a) where
-  dump (Constructor (PIR.VarDecl _ name ty)) = apps "Constructor" [dump name, dump (arity ty)]
+instance (Dumpable tyname, Dumpable name, PLC.Everywhere uni Dumpable, PLC.Closed uni, forall b. Dumpable (uni b)) => Dumpable (Constructor tyname name uni fun a) where
+  dump (Constructor vd@(PIR.VarDecl _ name ty)) = apps "Constructor" [dump vd, dump (arity ty)]
     where
       arity :: PIR.Type tyname uni a -> Int
       arity (PIR.TyFun _ _a b) = 1 + arity b
       arity _                  = 0
 
 instance (Dumpable name, Dumpable tyname, forall b. Dumpable (uni b), PLC.Closed uni, PLC.Everywhere uni Dumpable) => Dumpable (PIR.Datatype tyname name uni fun a) where
-  dump (PIR.Datatype _ tvdecl tvdecls name constructors) = apps "Datatype" [dump tvdecl, dump tvdecls, dump name, dump constructors]
+  dump (PIR.Datatype _ tvdecl tvdecls name constructors) = apps "Datatype" [dump tvdecl, dump tvdecls, dump name, dump (List.map Constructor constructors)]
 instance Dumpable (PLC.TyName) where dump (PLC.TyName name) = apps "TyName" [dump name]
 
 
