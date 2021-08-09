@@ -379,7 +379,7 @@ main = do
                                                        , LessThanEqualsInteger
                                                        ])
                       <> (benchTwoByteStrings <$> [AppendByteString])
-                      <> (benchBytestringOperations <$> [TakeByteString, DropByteString, ConsByteString])
+                      <> (benchBytestringOperations <$> [ConsByteString])
                       <> [benchIndexBytestring gen]
                       <> [benchSliceByteString gen]
                       <> (benchByteStringNoArgOperations <$> [LengthOfByteString, Sha2_256, Sha3_256])

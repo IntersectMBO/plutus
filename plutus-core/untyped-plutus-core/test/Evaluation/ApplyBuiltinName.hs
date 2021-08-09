@@ -76,8 +76,6 @@ test_applyDefaultBuiltin =
         , test_applyBuiltinFunction GreaterThanEqInteger
         , test_applyBuiltinFunction EqInteger
         , test_applyBuiltinFunction AppendByteString
-        , test_applyBuiltinFunction TakeByteString
-        , test_applyBuiltinFunction DropByteString
         , test_applyBuiltinFunction EqByteString
         , test_applyBuiltinFunction SHA2
         , test_applyBuiltinFunction SHA3

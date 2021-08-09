@@ -157,14 +157,6 @@ appendByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteStri
 consByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
 consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegral n) b
 
-{-# NOINLINE takeByteString #-}
-takeByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-takeByteString n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) b
-
-{-# NOINLINE dropByteString #-}
-dropByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-dropByteString n (BuiltinByteString b) = BuiltinByteString $ BS.drop (fromIntegral n) b
-
 {-# NOINLINE sliceByteString #-}
 sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
 sliceByteString from to (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral $ to - from + 1) (BS.drop (fromIntegral from) b)

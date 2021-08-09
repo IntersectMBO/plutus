@@ -56,8 +56,6 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramGreaterThanInteger       = "greaterThanIntegerModel"
   , paramGreaterThanEqualsInteger = "greaterThanEqualsIntegerModel"
   , paramAppendByteString         = "appendByteStringModel"
-  , paramTakeByteString           = "takeByteStringModel"
-  , paramDropByteString           = "dropByteStringModel"
   , paramSha2_256                 = "sha2_256Model"
   , paramSha3_256                 = "sha3_256Model"
   , paramVerifySignature          = "verifySignatureModel"
@@ -101,8 +99,6 @@ createBuiltinCostModel =
     paramGreaterThanEqualsInteger <- getParams greaterThanEqualsInteger paramGreaterThanEqualsInteger
     paramEqualsInteger            <- getParams equalsInteger            paramEqualsInteger
     paramAppendByteString         <- getParams appendByteString         paramAppendByteString
-    paramTakeByteString           <- getParams takeByteString           paramTakeByteString
-    paramDropByteString           <- getParams dropByteString           paramDropByteString
     paramSha2_256                 <- getParams sha2_256                 paramSha2_256
     paramSha3_256                 <- getParams sha3_256                 paramSha3_256
     paramVerifySignature          <- getParams verifySignature          paramVerifySignature

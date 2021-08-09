@@ -70,8 +70,6 @@ data BuiltinCostModelBase f =
     , paramGreaterThanEqualsInteger :: f ModelTwoArguments
     , paramEqualsInteger            :: f ModelTwoArguments
     , paramAppendByteString         :: f ModelTwoArguments
-    , paramTakeByteString           :: f ModelTwoArguments
-    , paramDropByteString           :: f ModelTwoArguments
     , paramSha2_256                 :: f ModelOneArgument
     , paramSha3_256                 :: f ModelOneArgument
     , paramVerifySignature          :: f ModelThreeArguments
