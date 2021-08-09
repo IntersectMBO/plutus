@@ -618,7 +618,10 @@ handleContractStore = \case
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
     Contract.PutStartInstance{} -> pure ()
-    Contract.PutStopInstance{} -> pure ()
+    Contract.PutStopInstance instanceId -> do
+        instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
+        liftIO $ STM.atomically $ do
+            STM.modifyTVar instancesTVar (set (at instanceId) Nothing)
 
 render :: forall a. Pretty a => a -> Text
 render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty

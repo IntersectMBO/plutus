@@ -53,7 +53,7 @@ import           Plutus.Contracts.PingPong                (PingPongState (..))
 import           Plutus.PAB.Core                          as Core
 import           Plutus.PAB.Core.ContractInstance         (ContractInstanceMsg)
 import           Plutus.PAB.Core.ContractInstance.STM     (BlockchainEnv (..))
-import           Plutus.PAB.Effects.Contract              (ContractEffect, serialisableState)
+import           Plutus.PAB.Effects.Contract              (ContractEffect, getActiveContracts, serialisableState)
 import           Plutus.PAB.Effects.Contract.Builtin      (Builtin)
 import qualified Plutus.PAB.Effects.Contract.Builtin      as Builtin
 import           Plutus.PAB.Effects.Contract.ContractTest (TestContracts (..))
@@ -147,6 +147,8 @@ stopContractInstanceTest = do
         _ <- Simulator.waitUntilFinished p1
         st <- Simulator.instanceActivity p1
         assertEqual "Instance should be 'Stopped'" st Simulator.Stopped
+        contracts <- getActiveContracts @(Builtin TestContracts)
+        assertEqual "Active contracts should be empty" 0 (Map.size contracts)
 
 slotChangeTest :: IO ()
 slotChangeTest = runScenario $ do
