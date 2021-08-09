@@ -119,6 +119,8 @@ typedBuiltins
 --     . insertBuiltin ModInteger
     . insertBuiltin LessThanInteger
     . insertBuiltin LessThanEqualsInteger
+    . insertBuiltin GreaterThanInteger
+    . insertBuiltin GreaterThanEqualsInteger
     . insertBuiltin EqualsInteger
     . insertBuiltin Concatenate
     . insertBuiltin TakeByteString
