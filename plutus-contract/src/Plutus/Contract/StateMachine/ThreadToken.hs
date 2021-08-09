@@ -45,7 +45,7 @@ checkPolicy (TxOutRef refHash refIdx) (vHash, mintingPolarity) ctx@V.ScriptConte
     let
         ownSymbol = V.ownCurrencySymbol ctx
 
-        minted = V.txInfoForge txinfo
+        minted = V.txInfoMint txinfo
         expected = if mintingPolarity == Burn then -1 else 1
 
         -- True if the pending transaction mints the amount of
