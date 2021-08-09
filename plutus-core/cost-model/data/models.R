@@ -227,6 +227,8 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
+    greaterThanIntegerModel <- lessThanIntegerModel
+
     lessThanEqualsIntegerModel <- {
         fname <- "LessThanEqualsInteger"
         filtered <- data %>%
@@ -238,6 +240,8 @@ modelFun <- function(path) {
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
+
+    greaterThanEqualsIntegerModel <- lessThanEqualsIntegerModel
 
     equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
         fname <- "EqualsByteString"
@@ -330,7 +334,9 @@ modelFun <- function(path) {
         remainderIntegerModel         = remainderIntegerModel,
         modIntegerModel               = modIntegerModel,
         lessThanIntegerModel          = lessThanIntegerModel,
+        greaterThanIntegerModel       = greaterThanIntegerModel,
         lessThanEqualsIntegerModel    = lessThanEqualsIntegerModel,
+        greaterThanEqualsIntegerModel = greaterThanEqualsIntegerModel,
         concatenateModel              = concatenateModel,
         takeByteStringModel           = takeByteStringModel,
         dropByteStringModel           = dropByteStringModel,

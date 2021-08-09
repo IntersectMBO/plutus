@@ -53,6 +53,8 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramEqualsInteger            = "equalsIntegerModel"
   , paramLessThanInteger          = "lessThanIntegerModel"
   , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
+  , paramGreaterThanInteger       = "greaterThanIntegerModel"
+  , paramGreaterThanEqualsInteger = "greaterThanEqualsIntegerModel"
   , paramConcatenate              = "concatenateModel"
   , paramTakeByteString           = "takeByteStringModel"
   , paramDropByteString           = "dropByteStringModel"
@@ -94,7 +96,9 @@ createBuiltinCostModel =
     paramRemainderInteger         <- getParams remainderInteger         paramRemainderInteger
     paramModInteger               <- getParams modInteger               paramModInteger
     paramLessThanInteger          <- getParams lessThanInteger          paramLessThanInteger
+    paramGreaterThanInteger       <- getParams greaterThanInteger       paramGreaterThanInteger
     paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger    paramLessThanEqualsInteger
+    paramGreaterThanEqualsInteger <- getParams greaterThanEqualsInteger paramGreaterThanEqualsInteger
     paramEqualsInteger            <- getParams equalsInteger            paramEqualsInteger
     paramConcatenate              <- getParams concatenate              paramConcatenate
     paramTakeByteString           <- getParams takeByteString           paramTakeByteString
@@ -253,10 +257,16 @@ lessThanInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
+greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+greaterThanInteger = lessThanInteger
+
 lessThanEqualsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqualsInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+
+greaterThanEqualsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+greaterThanEqualsInteger = lessThanEqualsInteger
 
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do

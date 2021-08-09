@@ -12,6 +12,19 @@
             "type": "min_size"
         }
     },
+    "greaterThanInteger": {
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        },
+        "cpu": {
+            "arguments": {
+                "slope": 100,
+                "intercept": 11501
+            },
+            "type": "min_size"
+        }
+    },
     "sha3_256": {
         "memory": {
             "arguments": 4,
@@ -80,6 +93,19 @@
                 "model_split_const_slope": 519
             },
             "type": "split_const_multi"
+        }
+    },
+    "greaterThanEqualsInteger": {
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        },
+        "cpu": {
+            "arguments": {
+                "slope": 891,
+                "intercept": 0
+            },
+            "type": "min_size"
         }
     },
     "lessThanEqualsInteger": {
