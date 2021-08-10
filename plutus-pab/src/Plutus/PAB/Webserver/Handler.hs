@@ -59,7 +59,7 @@ healthcheck = pure ()
 getContractReport :: forall t env. Contract.PABContract t => PABAction t env (ContractReport (Contract.ContractDef t))
 getContractReport = do
     contracts <- Contract.getDefinitions @t
-    activeContractIDs <- fmap fst . Map.toList <$> Contract.getActiveContracts @t
+    activeContractIDs <- fmap fst . Map.toList <$> Contract.getAllContracts @t
     crAvailableContracts <-
         traverse
             (\t -> ContractSignatureResponse t <$> Contract.exportSchema @t t)

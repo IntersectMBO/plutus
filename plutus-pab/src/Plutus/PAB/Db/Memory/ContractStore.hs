@@ -70,5 +70,8 @@ handleContractStore = \case
     Contract.GetActiveContracts -> do
         instancesTVar <- unInMemInstances <$> ask @(InMemInstances t)
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
+    Contract.GetAllContracts -> do -- FIXME: Should InMem support this?
+        instancesTVar <- unInMemInstances <$> ask @(InMemInstances t)
+        fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
     Contract.PutStartInstance{} -> pure ()
     Contract.PutStopInstance{} -> pure ()

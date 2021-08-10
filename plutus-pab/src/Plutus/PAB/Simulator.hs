@@ -168,9 +168,10 @@ data SimulatorState t =
         , _agentStates :: TVar (Map Wallet (AgentState t))
         , _chainIndex  :: TVar ChainIndex.ChainIndexState
         , _instances   :: TVar (Map ContractInstanceId (SimulatorContractInstanceState t))
+        , _inactive    :: TVar (Map ContractInstanceId (SimulatorContractInstanceState t))
         }
 
-makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances")] ''SimulatorState
+makeLensesFor [("_logMessages", "logMessages"), ("_instances", "instances"), ("_inactive", "inactive")] ''SimulatorState
 
 initialState :: forall t. IO (SimulatorState t)
 initialState = do
@@ -183,6 +184,7 @@ initialState = do
             <$> STM.newTQueue
             <*> STM.newTVar _chainState
             <*> STM.newTVar initialWallets
+            <*> STM.newTVar mempty
             <*> STM.newTVar mempty
             <*> STM.newTVar mempty
 
@@ -211,8 +213,9 @@ mkSimulatorHandlers ::
 mkSimulatorHandlers feeCfg slotCfg handleContractEffect =
     EffectHandlers
         { initialiseEnvironment =
-            (,,)
+            (,,,)
                 <$> liftIO (STM.atomically Instances.emptyInstancesState)
+                <*> liftIO (STM.atomically Instances.emptyInstancesState)
                 <*> liftIO (STM.atomically Instances.emptyBlockchainEnv)
                 <*> liftIO (initialState @t)
         , handleContractStoreEffect =
@@ -617,11 +620,19 @@ handleContractStore = \case
     Contract.GetActiveContracts -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
         fmap _contractDef <$> liftIO (STM.readTVarIO instancesTVar)
+    Contract.GetAllContracts -> do
+        instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
+        inactiveTVar <- view inactive <$> (Core.askUserEnv @t @(SimulatorState t))
+        let combine i a = fmap _contractDef i <> fmap _contractDef a
+        combine <$> liftIO (STM.readTVarIO instancesTVar) <*> liftIO (STM.readTVarIO inactiveTVar)
     Contract.PutStartInstance{} -> pure ()
     Contract.PutStopInstance instanceId -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
+        inactiveTVar <- view inactive <$> (Core.askUserEnv @t @(SimulatorState t))
         liftIO $ STM.atomically $ do
+            o <- view (at instanceId) <$> STM.readTVar instancesTVar
             STM.modifyTVar instancesTVar (set (at instanceId) Nothing)
+            STM.modifyTVar inactiveTVar (set (at instanceId) o)
 
 render :: forall a. Pretty a => a -> Text
 render = Render.renderStrict . layoutPretty defaultLayoutOptions . pretty

@@ -184,7 +184,7 @@ runPAB ::
     -> IO (Either PABError a)
 runPAB endpointTimeout effectHandlers action = runM $ runError $ do
     let EffectHandlers{initialiseEnvironment, onStartup, onShutdown, handleLogMessages, handleContractStoreEffect, handleContractEffect, handleContractDefinitionEffect} = effectHandlers
-    (instancesState, blockchainEnv, appEnv) <- initialiseEnvironment
+    (instancesState, _, blockchainEnv, appEnv) <- initialiseEnvironment
     let env = PABEnvironment{instancesState, blockchainEnv, appEnv, effectHandlers, endpointTimeout}
 
     runReader env $ interpret (handleTimeEffect @t @env) $ handleLogMessages $ handleContractDefinitionEffect $ handleContractEffect $ handleContractStoreEffect $ do
@@ -360,7 +360,7 @@ data EffectHandlers t env =
             ( Member (Error PABError) effs
             , LastMember IO effs
             )
-            => Eff effs (InstancesState, BlockchainEnv, env)
+            => Eff effs (InstancesState, InstancesState, BlockchainEnv, env)
 
         -- | Handle log messages
         , handleLogMessages :: forall effs.

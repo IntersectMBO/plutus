@@ -159,3 +159,8 @@ handleContractStore = \case
           ci <- all_ (_contractInstances db)
           guard_ ( ci ^. contractInstanceActive )
           pure ci
+  GetAllContracts ->
+    fmap mkContracts
+      $ selectList
+      $ select
+      $ all_ (_contractInstances db)
