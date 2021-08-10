@@ -11,6 +11,8 @@ import (
 	#flakes: [string]: types.#flake
 	#hosts:          string
 	#variant:        string
+	#clientPort:     uint
+	#serverPort:     uint
 	#rateLimit: {
 		average: uint
 		burst:   uint
@@ -26,8 +28,8 @@ import (
 		network: {
 			mode: "host"
 			port: {
-				"\(#variant)-playground-client": { static: 8081 }
-				"\(#variant)-playground-server": { static: 4003 }
+				"\(#variant)-playground-client": { static: #clientPort }
+				"\(#variant)-playground-server": { static: #serverPort }
 			}
 		}
 		// Keep count at 1 for now with higher CPU / RAM resources

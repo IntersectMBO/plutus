@@ -1,11 +1,11 @@
-{ writeShellScriptBin, pkg, variant, symlinkJoin, lib, cacert }:
+{ writeShellScriptBin, pkg, variant, symlinkJoin, lib, cacert, port }:
 
 let
   deps = [ pkg ];
   entrypoint = writeShellScriptBin "entrypoint" ''
     export PATH=${lib.makeBinPath deps}
     export SYSTEM_CERTIFICATE_PATH=${cacert}/etc/ssl/certs/ca-bundle.crt
-    ${variant}-playground-server webserver -p 4003
+    ${variant}-playground-server webserver -p ${toString port}
   '';
 in symlinkJoin {
   name = "entrypoint";
