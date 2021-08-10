@@ -151,8 +151,9 @@ convertTypeBuiltin TyListG       = SomeTypeIn DefaultUniProtoList
 
 -- Calling it 'TypeStringG' rather than @TyStringG@ to emphasize that it creates a 'TypeG' rather
 -- than a 'TyBuiltinG'.
-pattern TypeStringG :: TypeG n
-pattern TypeStringG = TyAppG (TyBuiltinG TyListG) (TyBuiltinG TyCharG) (Type ())
+-- TODO for James.
+-- pattern TypeStringG :: TypeG n
+-- pattern TypeStringG = TyAppG (TyBuiltinG TyListG) (TyBuiltinG TyCharG) (Type ())
 
 -- |Convert well-kinded generated types to Plutus types.
 --
@@ -282,7 +283,6 @@ instance Check (Kind ()) TypeBuiltinG where
   check (Type _)                        TyByteStringG = true
   check (Type _)                        TyIntegerG    = true
   check (Type _)                        TyBoolG       = true
-  check (Type _)                        TyCharG       = true
   check (Type _)                        TyUnitG       = true
   check (KindArrow _ (Type _) (Type _)) TyListG       = true
   check _                               _             = false
@@ -363,7 +363,7 @@ instance Check (TypeG n) TermConstantG where
   check (TyBuiltinG TyIntegerG   ) (TmIntegerG    _) = true
   check (TyBuiltinG TyBoolG      ) (TmBoolG       _) = true
   check (TyBuiltinG TyUnitG      ) (TmUnitG       _) = true
-  check TypeStringG                (TmStringG     _) = true
+  -- check TypeStringG                (TmStringG     _) = true
   check _                          _                 = false
 
 
@@ -384,10 +384,10 @@ defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuilt
                    ,[EqualsByteString,LessThanByteString,GreaterThanByteString])
                   ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
                    ,[IfThenElse])
-                  ,(TyFunG TypeStringG (TyFunG TypeStringG TypeStringG)
-                   ,[Append])
-                  ,(TyFunG TypeStringG (TyBuiltinG TyUnitG)
-                   ,[Trace])
+                  -- ,(TyFunG TypeStringG (TyFunG TypeStringG TypeStringG)
+                  --  ,[Append])
+                  -- ,(TyFunG TypeStringG (TyBuiltinG TyUnitG)
+                  --  ,[Trace])
                   ]
 
 instance Ord tyname => Check (TypeG tyname) DefaultFun where
