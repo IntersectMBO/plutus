@@ -193,7 +193,7 @@ let
     latex = pkgs.callPackage ../lib/latex.nix { };
     filterNpm = pkgs.callPackage ../lib/filter-npm.nix { };
     npmlock2nix = pkgs.callPackage sources.npmlock2nix { };
-    buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS;inherit (pkgs) nodejs; };
+    buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS; inherit (pkgs) nodejs; };
     buildNodeModules = pkgs.callPackage ../lib/node_modules.nix ({
       inherit npmlock2nix;
     } // pkgs.lib.optionalAttrs (stdenv.isDarwin) {
