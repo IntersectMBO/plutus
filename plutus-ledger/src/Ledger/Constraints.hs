@@ -34,6 +34,7 @@ module Ledger.Constraints(
     , otherData
     , ownPubKeyHash
     , mkTx
+    , pubKey
     -- ** Combining multiple typed scripts into one transaction
     , SomeLookupsAndConstraints(..)
     , mkSomeTx
@@ -41,7 +42,7 @@ module Ledger.Constraints(
 
 import           Ledger.Constraints.OffChain      (MkTxError (..), ScriptLookups (..), SomeLookupsAndConstraints (..),
                                                    UnbalancedTx, mintingPolicy, mkSomeTx, mkTx, otherData, otherScript,
-                                                   ownPubKeyHash, typedValidatorLookups, unspentOutputs)
+                                                   ownPubKeyHash, pubKey, typedValidatorLookups, unspentOutputs)
 import           Ledger.Constraints.OnChain       (checkScriptContext)
 import           Ledger.Constraints.TxConstraints
 
