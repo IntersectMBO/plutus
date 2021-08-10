@@ -33,7 +33,6 @@ data RConstant = RConInt Integer
                | RConBS BS.ByteString
                | RConStr T.Text
                | RConBool Bool
-               | RConChar Char
                | RConUnit
                deriving Show
 
@@ -69,12 +68,12 @@ convT (TyBuiltin _ b)               = RTyCon b
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 
 convC :: Some (ValueOf DefaultUni) -> RConstant
-convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
-convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
-convC (Some (ValueOf DefaultUniText       s)) = RConStr s
-convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
-convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
-convC (Some (ValueOf uni                  _)) = error $ "convC: " ++ show uni ++ " is not supported"
+convC (Some (ValueOf DefaultUniInteger    i))   = RConInt i
+convC (Some (ValueOf DefaultUniByteString b))   = RConBS b
+convC (Some (ValueOf DefaultUniString       s)) = RConStr s
+convC (Some (ValueOf DefaultUniUnit       u))   = RConUnit
+convC (Some (ValueOf DefaultUniBool       b))   = RConBool b
+convC (Some (ValueOf uni                  _))   = error $ "convC: " ++ show uni ++ " is not supported"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
@@ -114,8 +113,7 @@ unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 unconvC :: RConstant -> Some (ValueOf DefaultUni)
 unconvC (RConInt i)  = Some (ValueOf DefaultUniInteger    i)
 unconvC (RConBS b)   = Some (ValueOf DefaultUniByteString b)
-unconvC (RConStr s)  = Some (ValueOf DefaultUniString     $ T.unpack s)
-unconvC (RConChar c) = Some (ValueOf DefaultUniChar       c)
+unconvC (RConStr s)  = Some (ValueOf DefaultUniString     s)
 unconvC RConUnit     = Some (ValueOf DefaultUniUnit       ())
 unconvC (RConBool b) = Some (ValueOf DefaultUniBool       b)
 

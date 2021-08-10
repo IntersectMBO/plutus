@@ -188,10 +188,8 @@ builtinNames = [
     , 'Builtins.error
 
     , ''Builtins.BuiltinString
-    , ''Text
     , 'Builtins.appendString
     , 'Builtins.emptyString
-    , 'Builtins.charToString
     , 'Builtins.equalsString
     , 'Builtins.encodeUtf8
     -- This one is special
@@ -353,7 +351,6 @@ defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinBool $ PLC.toTypeAst $ Proxy @Bool
     defineBuiltinType ''Builtins.BuiltinUnit $ PLC.toTypeAst $ Proxy @()
     defineBuiltinType ''Builtins.BuiltinString $ PLC.toTypeAst $ Proxy @Text
-    defineBuiltinType ''Text $ PLC.toTypeAst $ Proxy @Text
     defineBuiltinType ''Builtins.BuiltinData $ PLC.toTypeAst $ Proxy @PLC.Data
     defineBuiltinType ''Builtins.BuiltinPair $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
     defineBuiltinType ''Builtins.BuiltinList $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)

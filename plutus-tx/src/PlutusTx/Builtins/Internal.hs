@@ -202,7 +202,6 @@ decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
 STRING
 -}
 
-type BuiltinChar = Text
 newtype BuiltinString = BuiltinString Text
     deriving newtype (Show, Eq, Ord)
 
@@ -213,10 +212,6 @@ appendString (BuiltinString s1) (BuiltinString s2) = BuiltinString (s1 <> s2)
 {-# NOINLINE emptyString #-}
 emptyString :: BuiltinString
 emptyString = BuiltinString Text.empty
-
-{-# NOINLINE charToString #-}
-charToString :: BuiltinChar -> BuiltinString
-charToString = BuiltinString
 
 {-# NOINLINE equalsString #-}
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool

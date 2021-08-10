@@ -74,7 +74,7 @@ feature and have meta-constructors as built-in functions.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni (Esc Integer)
     DefaultUniByteString :: DefaultUni (Esc BS.ByteString)
-    DefaultUniText       :: DefaultUni (Esc Text.Text)
+    DefaultUniString       :: DefaultUni (Esc Text.Text)
     DefaultUniUnit       :: DefaultUni (Esc ())
     DefaultUniBool       :: DefaultUni (Esc Bool)
     DefaultUniProtoList  :: DefaultUni (Esc [])
@@ -99,7 +99,7 @@ noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
 instance ToKind DefaultUni where
     toKind DefaultUniInteger        = kindOf DefaultUniInteger
     toKind DefaultUniByteString     = kindOf DefaultUniByteString
-    toKind DefaultUniText           = kindOf DefaultUniText
+    toKind DefaultUniString         = kindOf DefaultUniString
     toKind DefaultUniUnit           = kindOf DefaultUniUnit
     toKind DefaultUniBool           = kindOf DefaultUniBool
     toKind DefaultUniProtoList      = kindOf DefaultUniProtoList
@@ -119,14 +119,13 @@ instance GShow DefaultUni where gshowsPrec = showsPrec
 instance Show (DefaultUni a) where
     show DefaultUniInteger             = "integer"
     show DefaultUniByteString          = "bytestring"
-    show DefaultUniText                = "text"
+    show DefaultUniString              = "string"
     show DefaultUniUnit                = "unit"
     show DefaultUniBool                = "bool"
     show DefaultUniProtoList           = "list"
     show DefaultUniProtoPair           = "pair"
     show (uniF `DefaultUniApply` uniB) = case uniF of
         DefaultUniProtoList -> case uniB of
-            DefaultUniText -> "string"
             _              -> concat ["list (", show uniB, ")"]
         DefaultUniProtoPair -> concat ["pair (", show uniB, ")"]
         DefaultUniProtoPair `DefaultUniApply` uniA -> concat ["pair (", show uniA, ") (", show uniB, ")"]
@@ -137,7 +136,7 @@ instance Show (DefaultUni a) where
 instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
     parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
     parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
-    parse "text"       = Just . SomeTypeIn $ Kinded DefaultUniText
+    parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
     parse "integer"    = Just . SomeTypeIn $ Kinded DefaultUniInteger
     parse "unit"       = Just . SomeTypeIn $ Kinded DefaultUniUnit
     parse text         = asum
@@ -164,7 +163,7 @@ instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
 instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
-instance DefaultUni `Contains` Text.Text          where knownUni = DefaultUniText
+instance DefaultUni `Contains` Text.Text     where knownUni = DefaultUniString
 instance DefaultUni `Contains` ()            where knownUni = DefaultUniUnit
 instance DefaultUni `Contains` Bool          where knownUni = DefaultUniBool
 instance DefaultUni `Contains` []            where knownUni = DefaultUniProtoList
@@ -197,7 +196,7 @@ instance Closed DefaultUni where
     -- See Note [Stable encoding of tags].
     encodeUni DefaultUniInteger           = [0]
     encodeUni DefaultUniByteString        = [1]
-    encodeUni DefaultUniText              = [2]
+    encodeUni DefaultUniString            = [2]
     encodeUni DefaultUniUnit              = [3]
     encodeUni DefaultUniBool              = [4]
     encodeUni DefaultUniProtoList         = [5]
@@ -210,7 +209,7 @@ instance Closed DefaultUni where
     withDecodedUni k = peelUniTag >>= \case
         0 -> k DefaultUniInteger
         1 -> k DefaultUniByteString
-        2 -> k DefaultUniText
+        2 -> k DefaultUniString
         3 -> k DefaultUniUnit
         4 -> k DefaultUniBool
         5 -> k DefaultUniProtoList
@@ -228,7 +227,7 @@ instance Closed DefaultUni where
         => proxy constr -> DefaultUni (Esc a) -> (constr a => r) -> r
     bring _ DefaultUniInteger    r = r
     bring _ DefaultUniByteString r = r
-    bring _ DefaultUniText       r = r
+    bring _ DefaultUniString     r = r
     bring _ DefaultUniUnit       r = r
     bring _ DefaultUniBool       r = r
     bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =

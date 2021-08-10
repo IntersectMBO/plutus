@@ -36,9 +36,9 @@ import           Test.Tasty.Golden
 integer :: uni `Includes` Integer => Type TyName uni ()
 integer = mkTyBuiltin @_ @Integer ()
 
--- (con text)
-text :: uni `Includes` Text => Type TyName uni ()
-text = mkTyBuiltin @_ @Text ()
+-- (con string)
+string :: uni `Includes` Text => Type TyName uni ()
+string = mkTyBuiltin @_ @Text ()
 
 evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
@@ -168,7 +168,7 @@ ite = Builtin () IfThenElse
 
 -- { (builtin ifThenElse) t }
 iteAt :: Type TyName DefaultUni () -> Term TyName Name DefaultUni DefaultFun ()
-iteAt ty = TyInst () ite ty
+iteAt = TyInst () ite
 
 -- [ (builtin ifThenElse) (11<=22) ] : IllTypedFails (ifThenElse isn't
 -- instantiated: type expected, term supplied.)
@@ -203,15 +203,15 @@ iteAtIntegerWrongCondType = mkIterApp () iteAtInteger [stringResultTrue, stringR
 iteAtIntegerFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerFullyApplied = mkIterApp () iteAtIntegerWithCond [stringResultTrue, stringResultFalse]
 
--- { (builtin ifThenElse) (con text) } : WellTypedRuns
+-- { (builtin ifThenElse) (con string) } : WellTypedRuns
 iteAtString :: Term TyName Name DefaultUni DefaultFun ()
-iteAtString = iteAt text
+iteAtString = iteAt string
 
--- [ { (builtin ifThenElse) (con text) } (11<=22) ] : WellTypedRuns
+-- [ { (builtin ifThenElse) (con string) } (11<=22) ] : WellTypedRuns
 iteAtStringWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringWithCond = Apply () iteAtString lteExpr
 
--- [ { (builtin ifThenElse)  (con text) } (11<=22) "11 <= 22" "¬(11<=22)" ] : WellTypedRuns
+-- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ] : WellTypedRuns
 iteAtStringFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringFullyApplied = mkIterApp () iteAtStringWithCond [stringResultTrue, stringResultFalse]
 
@@ -275,7 +275,7 @@ iteAtIntegerAtInteger = TyInst () iteAtInteger integer
 -- { [ { (builtin ifThenElse) integer } (11<=22)] integer } : IllTypedFails
 -- (term expected, type supplied).
 iteTypeTermType :: Term TyName Name DefaultUni DefaultFun ()
-iteTypeTermType = TyInst () iteAtIntegerWithCond text
+iteTypeTermType = TyInst () iteAtIntegerWithCond string
 
 
 -- Various attempts to instantiate the MultiplyInteger builtin. This is not
@@ -289,17 +289,17 @@ mul = Builtin () MultiplyInteger
 mulOK :: Term TyName Name DefaultUni DefaultFun ()
 mulOK = Apply () (Apply () mul eleven) twentytwo
 
--- [ [ { (builtin multiplyInteger) text } 11 ] 22 ]: IllTypedFails
+-- [ [ { (builtin multiplyInteger) string } 11 ] 22 ]: IllTypedFails
 mulInstError1 :: Term TyName Name DefaultUni DefaultFun ()
-mulInstError1 = Apply () (Apply () (TyInst () mul text) eleven) twentytwo
+mulInstError1 = Apply () (Apply () (TyInst () mul string) eleven) twentytwo
 
--- [ [ { (builtin multiplyInteger) 11 ] text } 22 ]: IllTypedFails
+-- [ [ { (builtin multiplyInteger) 11 ] string } 22 ]: IllTypedFails
 mulInstError2 :: Term TyName Name DefaultUni DefaultFun ()
-mulInstError2 = Apply () (TyInst () (Apply () mul eleven) text) twentytwo
+mulInstError2 = Apply () (TyInst () (Apply () mul eleven) string) twentytwo
 
--- { [ [ (builtin multiplyInteger) 11 ] 22 ] text } : IllTypedFails
+-- { [ [ (builtin multiplyInteger) 11 ] 22 ] string } : IllTypedFails
 mulInstError3 :: Term TyName Name DefaultUni DefaultFun ()
-mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) text
+mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) string
 
 takeTooMuch :: Term TyName Name DefaultUni DefaultFun ()
 takeTooMuch = mkIterApp () (Builtin () TakeByteString)

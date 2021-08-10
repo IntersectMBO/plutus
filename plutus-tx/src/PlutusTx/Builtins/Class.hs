@@ -16,7 +16,7 @@ import           Data.ByteString            (ByteString)
 import           PlutusTx.Builtins.Internal
 
 import           Data.String                (IsString (..))
-import           Data.Text                  (Text, pack, singleton)
+import           Data.Text                  (Text, pack)
 
 import qualified GHC.Magic                  as Magic
 
@@ -83,9 +83,6 @@ instance FromBuiltin BuiltinByteString ByteString where
 instance ToBuiltin ByteString BuiltinByteString where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinByteString
-instance ToBuiltin Char BuiltinChar where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = singleton
 
 {- Note [noinline hack]
 For some functions we have two conflicting desires:

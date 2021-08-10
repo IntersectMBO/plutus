@@ -102,7 +102,7 @@ instance (Enumerable Text.Text) where
 
 data TermConstantG = TmIntegerG Integer
                    | TmByteStringG ByteString
-                   | TmTextG Text.Text
+                   | TmStringG Text.Text
                    | TmBoolG Bool
                    | TmUnitG ()
                    deriving (Show, Eq)
@@ -147,7 +147,6 @@ convertTypeBuiltin TyByteStringG = SomeTypeIn DefaultUniByteString
 convertTypeBuiltin TyIntegerG    = SomeTypeIn DefaultUniInteger
 convertTypeBuiltin TyBoolG       = SomeTypeIn DefaultUniBool
 convertTypeBuiltin TyUnitG       = SomeTypeIn DefaultUniUnit
-convertTypeBuiltin TyCharG       = SomeTypeIn DefaultUniText
 convertTypeBuiltin TyListG       = SomeTypeIn DefaultUniProtoList
 
 -- Calling it 'TypeStringG' rather than @TyStringG@ to emphasize that it creates a 'TypeG' rather
@@ -218,10 +217,9 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
 convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
 convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
-convertTermConstant (TmTextG s)       = Some $ ValueOf DefaultUniText s
+convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
 convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
 convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
--- convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniText c
 
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
@@ -365,7 +363,7 @@ instance Check (TypeG n) TermConstantG where
   check (TyBuiltinG TyIntegerG   ) (TmIntegerG    _) = true
   check (TyBuiltinG TyBoolG      ) (TmBoolG       _) = true
   check (TyBuiltinG TyUnitG      ) (TmUnitG       _) = true
-  check TypeStringG                (TmTextG     _)   = true
+  check TypeStringG                (TmStringG     _) = true
   check _                          _                 = false
 
 
