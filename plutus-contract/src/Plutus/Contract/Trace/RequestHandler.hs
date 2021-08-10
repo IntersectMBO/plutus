@@ -22,6 +22,7 @@ module Plutus.Contract.Trace.RequestHandler(
     , handleCurrentSlot
     , handleTimeNotifications
     , handleCurrentTime
+    , handleTimeToSlotConversions
     , handleUnbalancedTransactions
     , handlePendingTransactions
     , handleUtxoQueries
@@ -39,7 +40,6 @@ import qualified Control.Monad.Freer.Error      as Eff
 import           Control.Monad.Freer.NonDet     (NonDet)
 import qualified Control.Monad.Freer.NonDet     as NonDet
 import           Control.Monad.Freer.Reader     (Reader, ask)
-import           Data.Default                   (Default (def))
 import           Data.Foldable                  (traverse_)
 import qualified Data.Map                       as Map
 import           Data.Monoid                    (Alt (..), Ap (..))
@@ -49,7 +49,8 @@ import qualified Ledger.AddressMap              as AM
 import           Plutus.Contract.Resumable      (Request (..), Response (..))
 
 import           Control.Monad.Freer.Extras.Log (LogMessage, LogMsg, LogObserve, logDebug, logWarn, surroundDebug)
-import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, PubKey, Slot, Tx)
+import           Ledger                         (Address, OnChainTx (Valid), POSIXTime, POSIXTimeRange, PubKey, Slot,
+                                                 SlotRange, Tx)
 import           Ledger.AddressMap              (AddressMap (..))
 import           Ledger.Constraints.OffChain    (UnbalancedTx)
 import qualified Ledger.TimeSlot                as TimeSlot
@@ -149,10 +150,11 @@ handleTimeNotifications =
     RequestHandler $ \targetTime_ ->
         surroundDebug @Text "handleTimeNotifications" $ do
             currentSlot <- Wallet.Effects.getClientSlot
-            let targetSlot_ = TimeSlot.posixTimeToEnclosingSlot def targetTime_
+            slotConfig <- Wallet.Effects.getClientSlotConfig
+            let targetSlot_ = TimeSlot.posixTimeToEnclosingSlot slotConfig targetTime_
             logDebug $ SlotNoticationTargetVsCurrent targetSlot_ currentSlot
             guard (currentSlot >= targetSlot_)
-            pure $ TimeSlot.slotToEndPOSIXTime def currentSlot
+            pure $ TimeSlot.slotToEndPOSIXTime slotConfig currentSlot
 
 handleCurrentSlot ::
     forall effs a.
@@ -174,7 +176,20 @@ handleCurrentTime ::
 handleCurrentTime =
     RequestHandler $ \_ ->
         surroundDebug @Text "handleCurrentTime" $ do
-            TimeSlot.slotToEndPOSIXTime def <$> Wallet.Effects.getClientSlot
+            slotConfig <- Wallet.Effects.getClientSlotConfig
+            TimeSlot.slotToEndPOSIXTime slotConfig <$> Wallet.Effects.getClientSlot
+
+handleTimeToSlotConversions ::
+    forall effs.
+    ( Member NodeClientEffect effs
+    , Member (LogObserve (LogMessage Text)) effs
+    )
+    => RequestHandler effs POSIXTimeRange SlotRange
+handleTimeToSlotConversions =
+    RequestHandler $ \poxisTimeRange ->
+        surroundDebug @Text "handleTimeToSlotConversions" $ do
+            slotConfig <- Wallet.Effects.getClientSlotConfig
+            pure $ TimeSlot.posixTimeRangeToContainedSlotRange slotConfig poxisTimeRange
 
 handleUnbalancedTransactions ::
     forall effs.
