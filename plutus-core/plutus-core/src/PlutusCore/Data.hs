@@ -21,12 +21,13 @@ import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
 import           Prelude
 
--- | A generic "data" type.
---
--- The main constructor 'Constr' represents a datatype value in sum-of-products
--- form: @Constr i args@ represents a use of the @i@th constructor along with its arguments.
---
--- The other constructors are various primitives.
+{- | A generic "data" type.
+
+The main constructor 'Constr' represents a datatype value in sum-of-products
+form: @Constr i args@ represents a use of the @i@th constructor (indexed from 0) along with its arguments.
+
+The other constructors are various primitives.
+-}
 data Data =
       Constr Integer [Data]
     | Map [(Data, Data)]
@@ -158,6 +159,7 @@ decodeConstr = CBOR.decodeTag64 >>= \case
   decodeConstrExtended = do
     lenOrIndef <- CBOR.decodeListLenOrIndef
     i <- CBOR.decodeWord64
+    unless (i >= 0) $ fail ("Invalid negative constructor tag: " ++ show i)
     xs <- case lenOrIndef of
       Nothing -> decodeSequenceLenIndef (flip (:)) [] reverse       decodeData
       Just n  -> decodeSequenceLenN     (flip (:)) [] reverse (n-1) decodeData
