@@ -67,6 +67,7 @@ library
       nofib/src
   build-depends:
       base >=4.7 && <5
+    , text -any
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
