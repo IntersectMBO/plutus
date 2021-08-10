@@ -850,14 +850,14 @@
       "locked": {
         "lastModified": 1628777569,
         "narHash": "sha256-nsEWqwcNC612QB8qB3WIzZ5/Q+LK1fDCBjoMJvkFeS4=",
-        "owner": "shlevy",
+        "owner": "input-output-hk",
         "repo": "plutus",
         "rev": "9ed85d6cc8e817270220f263a11e738135eb0ad3",
         "type": "github"
       },
       "original": {
-        "owner": "shlevy",
-        "ref": "marlowe-webghc",
+        "owner": "input-output-hk",
+        "ref": "bitte",
         "repo": "plutus",
         "type": "github"
       }
