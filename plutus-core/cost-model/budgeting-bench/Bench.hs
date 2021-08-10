@@ -4,6 +4,7 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
+import           Nops
 import           PlutusCore                               as PLC
 import qualified PlutusCore.DataFilePaths                 as DFP
 import           PlutusCore.Evaluation.Machine.ExMemory
@@ -23,6 +24,7 @@ import           System.Directory
 import           System.Random                            (StdGen, getStdGen, randomR)
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
+type PlainTermN = UPLC.Term Name DefaultUni NopBuiltins ()
 
 -- TODO.  I'm not totally sure what's going on here.  `env` is supposed to
 -- produce data that will be supplied to the things being benchmarked.  Here
@@ -37,6 +39,15 @@ runTermBench name term = env
         pure budget
         )
     $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter defaultCekParameters) term
+
+runNopTermBench :: String -> PlainTermN -> Benchmark
+runNopTermBench name term = env
+    (do
+        (_result, budget) <-
+          pure $ (unsafeEvaluateCek noEmitter nopCekParameters) term
+        pure budget
+        )
+    $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter nopCekParameters) term
 
 
 ---------------- Constructing PLC terms for benchmarking ----------------
@@ -58,6 +69,25 @@ mkApp3
     :: (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
     =>  DefaultFun -> a -> b -> c -> PlainTerm
 mkApp3 name x y z =
+    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
+
+-- Create a term applying a builtin to one argument
+mkApp1n :: (DefaultUni `Includes` a) => NopBuiltins -> a -> PlainTermN
+mkApp1n name x =
+    erase $ mkIterApp () (builtin () name) [mkConstant () x]
+
+-- Create a term applying a builtin to two arguments
+mkApp2n
+    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
+    =>  NopBuiltins -> a -> b -> PlainTermN
+mkApp2n name x y =
+    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y]
+
+-- Create a term applying a builtin to three arguments
+mkApp3n
+    :: (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
+    =>  NopBuiltins -> a -> b -> c -> PlainTermN
+mkApp3n name x y z =
     erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
 
 
@@ -278,7 +308,7 @@ benchNop1 gen =
     let name = Nop1
         mem = 1
         (x,_) = randNwords mem gen
-    in bgroup (show name) $ [runTermBench (show $ memoryUsage x) $ mkApp1 name x]
+    in bgroup (show name) $ [runNopTermBench (show $ memoryUsage x) $ mkApp1n name x]
 
 benchNop2 :: StdGen -> Benchmark
 benchNop2 gen =
@@ -286,7 +316,7 @@ benchNop2 gen =
         mem = 1
         (x,gen1) = randNwords mem gen
         (y,_)    = randNwords mem gen1
-    in bgroup (show name) [bgroup (show $ memoryUsage x) [runTermBench (show $ memoryUsage y) $ mkApp2 name x y]]
+    in bgroup (show name) [bgroup (show $ memoryUsage x) [runNopTermBench (show $ memoryUsage y) $ mkApp2n name x y]]
 
 benchNop3 :: StdGen -> Benchmark
 benchNop3 gen =
@@ -295,7 +325,7 @@ benchNop3 gen =
         (x,gen1) = randNwords mem gen
         (y,gen2) = randNwords mem gen1
         (z,_)    = randNwords mem gen2
-    in bgroup (show name) [bgroup (show $ memoryUsage x) [bgroup (show $ memoryUsage y) $ [runTermBench (show $ memoryUsage z) $ mkApp3 name x y z]]]
+    in bgroup (show name) [bgroup (show $ memoryUsage x) [bgroup (show $ memoryUsage y) $ [runNopTermBench (show $ memoryUsage z) $ mkApp3n name x y z]]]
 
 
 ---------------- Miscellaneous ----------------
