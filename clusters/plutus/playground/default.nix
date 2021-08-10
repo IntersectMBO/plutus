@@ -75,6 +75,7 @@ in {
 
             modules = [
               (bitte + /profiles/client.nix)
+              ./marlowe-run.nix
               self.inputs.ops-lib.nixosModules.zfs-runtime
               "${self.inputs.nixpkgs}/nixos/modules/profiles/headless.nix"
               "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"

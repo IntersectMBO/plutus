@@ -132,4 +132,8 @@ in {
   marlowe-playground-server-entrypoint = final.callPackage ./pkgs/plutus-playground-server.nix { variant = "marlowe"; pkg = final.marlowe-playground-server; };
   marlowe-playground-client = inputs.plutus.packages.x86_64-linux.marlowe-playground-client;
   marlowe-playground-client-entrypoint = final.callPackage ./pkgs/plutus-playground-client-entrypoint.nix { root = final.marlowe-playground-client; };
+
+  marlowe-pab = inputs.plutus.packages.x86_64-linux.marlowe-pab;
+  marlowe-run-client = inputs.plutus.packages.x86_64-linux.marlowe-run-client;
+  marlowe-run-entrypoint = final.callPackage ./pkgs/pab.nix { pabExe = "${final.marlowe-pab}/bin/marlowe-pab"; staticPkg = final.marlowe-run-client; };
 }

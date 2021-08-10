@@ -31,6 +31,7 @@ Namespace: [Name=_]: {
 			"plutus-playground-client":  =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#plutus-playground-client-entrypoint"
 			"marlowe-playground-server": =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#marlowe-playground-server-entrypoint"
 			"marlowe-playground-client": =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#marlowe-playground-client-entrypoint"
+			marloweRun:                  =~flakePath | *"github:input-output-hk/plutus-ops?rev=\(#opsRev)#marlowe-run-entrypoint"
 		}
 
 		#rateLimit: {
@@ -61,6 +62,9 @@ Namespace: [Name=_]: {
 			"marlowe-playground": jobDef.#PlutusPlaygroundJob & {
 				#domain:      "marlowe-playground.\(fqdn)"
 				#variant:     "marlowe"
+			}
+			"marlowe-run": jobDef.#MarloweRunJob & {
+				#domain:      "marlowe-run.\(fqdn)"
 			}
 		}
 	}

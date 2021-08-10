@@ -11,6 +11,7 @@ import (
 	#memory: uint
 	#extraEnv: [string]: string
 	#envTemplate: *null | string
+	#volumeMount: [string]: types.#stanza.volume_mount
 
 	driver: "exec"
 
@@ -42,4 +43,5 @@ import (
 			env: true
 		}
 	}
+	volume_mount: #volumeMount
 }

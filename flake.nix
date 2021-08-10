@@ -35,7 +35,7 @@
       };
 
       # simpleFlake ignores devShell if we don't specify this.
-      packages = { checkFmt, checkCue, web-ghc-server-entrypoint, plutus-playground-server-entrypoint, plutus-playground-client-entrypoint, marlowe-playground-server-entrypoint, marlowe-playground-client-entrypoint }@pkgs: pkgs;
+      packages = { checkFmt, checkCue, web-ghc-server-entrypoint, plutus-playground-server-entrypoint, plutus-playground-client-entrypoint, marlowe-playground-server-entrypoint, marlowe-playground-client-entrypoint, marlowe-run-entrypoint }@pkgs: pkgs;
 
       devShell = { bitteShell, cue }:
         (bitteShell {
