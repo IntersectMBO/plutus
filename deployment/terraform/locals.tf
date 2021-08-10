@@ -28,26 +28,28 @@ locals {
 
   # Anyone who wants ssh access to a machine needs ssh access to the bastion hosts
   bastion_ssh_keys_ks = {
-    alpha      = ["pablo", "tobias", "shlevy", "ci-deployer"]
-    pablo      = ["pablo"]
-    production = ["tobias", "shlevy", "ci-deployer"]
-    playground = ["tobias", "shlevy"]
-    testing    = ["pablo", "tobias", "shlevy", "bozhidar", "dimitar"]
-    hernan     = ["hernan"]
-    tobias     = ["tobias", "ci-deployer"]
-    staging    = ["pablo", "shlevy", "ci-deployer"]
+    alpha       = ["pablo", "tobias", "shlevy", "ci-deployer"]
+    pablo       = ["pablo"]
+    production  = ["tobias", "shlevy", "ci-deployer"]
+    playground  = ["tobias", "shlevy"]
+    testing     = ["pablo", "tobias", "shlevy", "bozhidar", "dimitar"]
+    hernan      = ["hernan"]
+    tobias      = ["tobias", "ci-deployer"]
+    staging     = ["pablo", "shlevy", "ci-deployer"]
+    bitte_match = ["shlevy", "ci-deployer"]
   }
   bastion_ssh_keys = [for k in local.bastion_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
   # root users are able to deploy to the machines using morph
   root_ssh_keys_ks = {
-    alpha      = ["pablo", "tobias", "shlevy", "ci-deployer"]
-    pablo      = ["pablo"]
-    production = ["tobias", "shlevy", "ci-deployer"]
-    testing    = ["pablo", "tobias", "shlevy", "bozhidar", "dimitar"]
-    hernan     = ["hernan"]
-    tobias     = ["tobias", "ci-deployer"]
-    staging    = ["pablo", "shlevy", "ci-deployer"]
+    alpha       = ["pablo", "tobias", "shlevy", "ci-deployer"]
+    pablo       = ["pablo"]
+    production  = ["tobias", "shlevy", "ci-deployer"]
+    testing     = ["pablo", "tobias", "shlevy", "bozhidar", "dimitar"]
+    hernan      = ["hernan"]
+    tobias      = ["tobias", "ci-deployer"]
+    staging     = ["pablo", "shlevy", "ci-deployer"]
+    bitte_match = ["shlevy", "ci-deployer"]
   }
   root_ssh_keys = [for k in local.root_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
