@@ -3,16 +3,13 @@
     (nonrec)
     (termbind
       (strict)
-      (vardecl chooseUnit (all a (type) (fun (con unit) (fun a a))))
-      (builtin chooseUnit)
-    )
-    (termbind
-      (strict) (vardecl trace (fun (con string) (con unit))) (builtin trace)
-    )
-    (termbind
-      (strict)
       (vardecl trace (all a (type) (fun (con string) (fun a a))))
-      (abs a (type) (lam s (con string) [ { chooseUnit a } [ trace s ] ]))
+      (builtin trace)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl trace (all a (type) (fun (con string) (fun a a))))
+      trace
     )
     (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))

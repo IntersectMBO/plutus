@@ -3471,13 +3471,10 @@
                                               [
                                                 [
                                                   {
-                                                    (builtin chooseUnit)
+                                                    (builtin trace)
                                                     [[Either SignedMessageCheckError] [[Tuple2 a] [[TxConstraints i] o]]]
                                                   }
-                                                  [
-                                                    (builtin trace)
-                                                    (con string "Li")
-                                                  ]
+                                                  (con string "Li")
                                                 ]
                                                 [
                                                   {

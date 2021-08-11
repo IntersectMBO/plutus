@@ -1,1 +1,1 @@
-(fun (con string) (con unit))
+(all a (type) (fun (con string) (fun a a)))

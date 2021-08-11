@@ -384,10 +384,12 @@ defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuilt
                    ,[EqualsByteString,LessThanByteString,GreaterThanByteString])
                   ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
                    ,[IfThenElse])
-                  -- ,(TyFunG TypeStringG (TyFunG TypeStringG TypeStringG)
-                  --  ,[Append])
-                  -- ,(TyFunG TypeStringG (TyBuiltinG TyUnitG)
-                  --  ,[Trace])
+                  {-
+                  ,(TyFunG TypeStringG (TyFunG TypeStringG TypeStringG)
+                   ,[Append])
+                  ,(TyForallG (Type ()) (TyFunG TypeStringG (TyFunG (TyVarG FZ) (TyVarG FZ)))
+                   ,[Trace])
+                  -}
                   ]
 
 instance Ord tyname => Check (TypeG tyname) DefaultFun where

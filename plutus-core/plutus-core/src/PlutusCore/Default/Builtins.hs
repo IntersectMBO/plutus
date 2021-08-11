@@ -227,10 +227,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (decodeUtf8 :: BS.ByteString -> Text)
             mempty  -- TODO: budget.
-    toBuiltinMeaning Trace =
-        makeBuiltinMeaning
-            (emit :: Text -> Emitter ())
-            mempty  -- TODO: budget.
+    toBuiltinMeaning Trace = makeBuiltinMeaning emitPlc mempty where
+        emitPlc :: SomeConstantOf uni Text '[] -> Opaque term a -> Emitter (Opaque term a)
+        emitPlc (SomeConstantOfRes _ s) t = emit s >> pure t
     toBuiltinMeaning FstPair = makeBuiltinMeaning fstPlc mempty where
         fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
         fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =

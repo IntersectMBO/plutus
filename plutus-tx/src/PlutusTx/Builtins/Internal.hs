@@ -218,8 +218,8 @@ equalsString :: BuiltinString -> BuiltinString -> BuiltinBool
 equalsString (BuiltinString s1) (BuiltinString s2) = coerce $ ((==) @Text) s1 s2
 
 {-# NOINLINE trace #-}
-trace :: BuiltinString -> BuiltinUnit
-trace _ = unitval
+trace :: BuiltinString -> a -> a
+trace _ x = x
 
 {-# NOINLINE encodeUtf8 #-}
 encodeUtf8 :: BuiltinString -> BuiltinByteString

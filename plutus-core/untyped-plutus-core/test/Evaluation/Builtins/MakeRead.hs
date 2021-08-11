@@ -79,11 +79,11 @@ test_textRoundtrip =
 test_collectText :: TestTree
 test_collectText = testProperty "collectText" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
-    let step arg rest = mkIterApp () sequ
-            [ apply () (builtin () Trace) $ mkConstant @Text @DefaultUni () arg
+    let step arg rest = mkIterApp () (tyInst () (builtin () Trace) unit)
+            [ mkConstant @Text @DefaultUni () arg
             , rest
             ]
-        term = foldr step unitval strs
+        term = foldr step unitval (reverse strs)
     strs' <- case typecheckEvaluateCek TPLC.defaultCekParameters term of
         Left _                             -> failure
         Right (EvaluationFailure, _)       -> failure
