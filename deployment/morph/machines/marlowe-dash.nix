@@ -12,7 +12,7 @@
   services.pab = {
     enable = true;
     pab-setup = pkgs.plutus-pab.pab-exes.plutus-pab-setup;
-    pab-package = pkgs.plutus-pab.pab-exes.plutus-pab-examples;
+    pab-executable = "${pkgs.marlowe-pab}/bin/marlowe-pab";
     staticContent = pkgs.marlowe-dashboard.client;
     dbFile = "/var/lib/pab/pab-core.db";
     defaultWallet = 1;

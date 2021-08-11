@@ -122,7 +122,7 @@
             ps.playground-common
           ]);
 
-          plutus-pab-examples = topLevel.plutus-pab.pab-exes.plutus-pab-examples;
+          marlowe-pab = topLevel.marlowe-pab;
           marlowe-run-client = topLevel.marlowe-dashboard.client;
 
           marlowe-website = topLevel.marlowe-web;
