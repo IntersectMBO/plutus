@@ -4,7 +4,6 @@
 , fixPurty
 , fixPngOptimization
 , src
-, terraform
 , plutus-playground
 , marlowe-playground
 , marlowe-dashboard

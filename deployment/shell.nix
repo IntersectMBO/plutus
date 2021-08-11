@@ -3,7 +3,8 @@
 }:
 let
   inherit (pkgs) writeShellScriptBin lib mkShell stdenv writeText;
-  inherit (pkgs) awscli terraform morph jq;
+  inherit (pkgs) awscli morph jq;
+  terraform = pkgs.terraform_0_12;
   inherit (pkgs.gitAndTools) hub;
 
   # All environments and the region they are in

@@ -100,7 +100,6 @@ rec {
     inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
     inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
-    inherit (pkgs) terraform;
     inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab;
     src = ./.;
   };
