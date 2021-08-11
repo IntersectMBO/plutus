@@ -18,11 +18,12 @@ import           System.Environment     (getProgName)
 import           System.Exit            (ExitCode (..), exitWith)
 
 
-{- | A modified version of Criterion's `defaultMainWith` function. We want to be
-   able to run different benchmarks with different time limits, but that's
-   doesn't work with the original version because the relevant function appends
-   output to a CSV file but writes a header into the file every time it's
-   called.  This adds an option to stop it doing that. -}
+{- | A modified version of Criterion's 'defaultMainWith' function. We want to be
+   able to run different benchmarks with different time limits, but that doesn't
+   work with the original version because the relevant function appends output
+   to a CSV file but writes a header into the file every time it's called.  This
+   adds an option to stop it doing that so we only get one header (at the top,
+   where it belongs). -}
 
 criterionMainWith :: Bool ->  Config -> [Benchmark] -> IO ()
 criterionMainWith writeHeader defCfg bs =
