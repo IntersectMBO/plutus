@@ -3,6 +3,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -35,6 +36,7 @@ import           Control.Arrow                                    ((>>>))
 import           Control.Concurrent                               (forkIO)
 import           Control.Concurrent.STM                           (STM)
 import qualified Control.Concurrent.STM                           as STM
+import           Control.Lens                                     (preview)
 import           Control.Monad                                    (forM_, void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error)
@@ -182,16 +184,27 @@ processTxStatusChangeRequestsSTM =
 
 processUtxoSpentRequestsSTM ::
     forall effs.
-    ( Member (Reader BlockchainEnv) effs
+    ( Member (Reader InstanceState) effs
     )
     => RequestHandler effs (Request PABReq) (Response (STM PABResp))
-processUtxoSpentRequestsSTM =
-    maybeToHandler (extract Contract.Effects._AwaitUtxoSpentReq)
-    >>> RequestHandler handler
-    where
-        handler txOutRef = do
+processUtxoSpentRequestsSTM = RequestHandler $ \req -> do
+    case traverse (preview Contract.Effects._AwaitUtxoSpentReq) req of
+        Just request@Request{rqID, itID} -> do
             env <- ask
-            pure (AwaitUtxoSpentResp . _ <$> InstanceState.waitForUtxoSpent txOutRef)
+            pure $ Response rqID itID (AwaitUtxoSpentResp <$> InstanceState.waitForUtxoSpent request env)
+        _ -> empty
+
+processUtxoProducedRequestsSTM ::
+    forall effs.
+    ( Member (Reader InstanceState) effs
+    )
+    => RequestHandler effs (Request PABReq) (Response (STM PABResp))
+processUtxoProducedRequestsSTM = RequestHandler $ \req -> do
+    case traverse (preview Contract.Effects._AwaitUtxoProducedReq) req of
+        Just request@Request{rqID, itID} -> do
+            env <- ask
+            pure $ Response rqID itID (AwaitUtxoProducedResp <$> InstanceState.waitForUtxoProduced request env)
+        _ -> empty
 
 processEndpointRequestsSTM ::
     forall effs.
@@ -243,7 +256,8 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> wrapHandler (processTxStatusChangeRequestsSTM @effs)
         <> processEndpointRequestsSTM @effs
         <> wrapHandler (processAwaitTimeRequestsSTM @effs)
-        <> wrapHandler (processUtxoSpentRequestsSTM @effs)
+        <> processUtxoSpentRequestsSTM @effs
+        <> processUtxoProducedRequestsSTM @effs
 
 -- | Start the thread for the contract instance
 startSTMInstanceThread' ::
@@ -267,7 +281,6 @@ startSTMInstanceThread' stmState runAppBackend def instanceID =  do
         $ runReader state
         $ stmInstanceLoop @t @m @(Reader InstanceState ': Reader ContractInstanceId ': appBackend) def instanceID
     pure state
-    -- TODO: Separate chain index queries (non-blocking) from waiting for updates (blocking)
 
 -- | Start the thread for the contract instance
 startSTMInstanceThread ::
@@ -352,6 +365,8 @@ updateState ContractResponse{newState = State{observableState}, hooks} = do
                 UtxoAtReq addr -> InstanceState.addAddress addr state
                 AddressChangeReq AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
                 ExposeEndpointReq endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
+                AwaitUtxoSpentReq txOutRef -> InstanceState.addUtxoSpentReq (r { rqRequest = txOutRef }) state
+                AwaitUtxoProducedReq addr  -> InstanceState.addUtxoProducedReq (r { rqRequest = addr }) state
                 _ -> pure ()
         InstanceState.setObservableState observableState state
 

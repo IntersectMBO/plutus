@@ -24,6 +24,10 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , OpenTxOutSpentRequest(..)
     , clearEndpoints
     , addEndpoint
+    , addUtxoSpentReq
+    , waitForUtxoSpent
+    , addUtxoProducedReq
+    , waitForUtxoProduced
     , addAddress
     , addTransaction
     , setActivity
@@ -44,13 +48,15 @@ module Plutus.PAB.Core.ContractInstance.STM(
     , instanceState
     , instanceIDs
     , runningInstances
+    , instancesClientEnv
+    , InstanceClientEnv(..)
     ) where
 
 import           Control.Applicative              (Alternative (..))
 import           Control.Concurrent.STM           (STM, TMVar, TVar)
 import qualified Control.Concurrent.STM           as STM
 import           Control.Lens                     (view)
-import           Control.Monad                    (guard)
+import           Control.Monad                    (guard, (<=<))
 import           Data.Aeson                       (Value)
 import           Data.Default                     (def)
 import           Data.Foldable                    (fold)
@@ -218,6 +224,34 @@ emptyInstanceState =
         <*> STM.newTVar mempty
         <*> STM.newTVar mempty
 
+-- | Events that the contract instances are waiting for, indexed by keys that are
+--   readily available in the node client (ie. that can be produced from just a
+--   block without any additional information)
+data InstanceClientEnv = InstanceClientEnv
+  { ceUtxoSpentRequests    :: Map TxOutRef [OpenTxOutSpentRequest]
+  , ceUtxoProducedRequests :: Map Address [OpenTxOutProducedRequest] -- TODO: ViewAddress
+  }
+
+instance Semigroup InstanceClientEnv where
+    l <> r =
+        InstanceClientEnv
+            { ceUtxoProducedRequests = Map.unionWith (<>) (ceUtxoProducedRequests l) (ceUtxoProducedRequests r)
+            , ceUtxoSpentRequests = Map.unionWith (<>) (ceUtxoSpentRequests l) (ceUtxoSpentRequests r)
+            }
+
+instance Monoid InstanceClientEnv where
+    mappend = (<>)
+    mempty = InstanceClientEnv mempty mempty
+
+instancesClientEnv :: InstancesState -> STM InstanceClientEnv
+instancesClientEnv = fmap fold . traverse instanceClientEnv <=< STM.readTVar . getInstancesState
+
+instanceClientEnv :: InstanceState -> STM InstanceClientEnv
+instanceClientEnv InstanceState{issTxOutRefs, issAddressRefs} =
+  InstanceClientEnv
+    <$> (Map.fromList . fmap ((\r@OpenTxOutSpentRequest{osrOutRef} -> (osrOutRef, [r])) . snd) . Map.toList <$> STM.readTVar issTxOutRefs)
+    <*> (Map.fromList . fmap ((\r@OpenTxOutProducedRequest{otxAddress} -> (otxAddress, [r])) . snd) . Map.toList  <$> STM.readTVar issAddressRefs)
+
 -- | Add an address to the set of addresses that the instance is watching
 addAddress :: Address -> InstanceState -> STM ()
 addAddress addr InstanceState{issAddresses} = STM.modifyTVar issAddresses (Set.insert addr)
@@ -233,13 +267,44 @@ setActivity a InstanceState{issStatus} = STM.writeTVar issStatus a
 
 -- | Empty the list of open enpoints that can be called on the instance
 clearEndpoints :: InstanceState -> STM ()
-clearEndpoints InstanceState{issEndpoints} = STM.writeTVar issEndpoints Map.empty
+clearEndpoints InstanceState{issEndpoints, issTxOutRefs, issAddressRefs} = do
+    STM.writeTVar issEndpoints Map.empty
+    STM.writeTVar issTxOutRefs Map.empty
+    STM.writeTVar issAddressRefs Map.empty
 
 -- | Add an active endpoint to the instance's list of active endpoints.
 addEndpoint :: Request ActiveEndpoint -> InstanceState -> STM ()
 addEndpoint Request{rqID, itID, rqRequest} InstanceState{issEndpoints} = do
     endpoint <- OpenEndpoint rqRequest <$> STM.newEmptyTMVar
     STM.modifyTVar issEndpoints (Map.insert (rqID, itID) endpoint)
+
+-- | Add a new 'OpenTxOutSpentRequest' to the instance's list of
+--   utxo spent requests
+addUtxoSpentReq :: Request TxOutRef -> InstanceState -> STM ()
+addUtxoSpentReq Request{rqID, itID, rqRequest} InstanceState{issTxOutRefs} = do
+    request <- OpenTxOutSpentRequest rqRequest <$> STM.newEmptyTMVar
+    STM.modifyTVar issTxOutRefs (Map.insert (rqID, itID) request)
+
+waitForUtxoSpent :: Request TxOutRef -> InstanceState -> STM OnChainTx
+waitForUtxoSpent Request{rqID, itID} InstanceState{issTxOutRefs} = do
+    theMap <- STM.readTVar issTxOutRefs
+    case Map.lookup (rqID, itID) theMap of
+        Nothing                                   -> empty
+        Just OpenTxOutSpentRequest{osrSpendingTx} -> STM.readTMVar osrSpendingTx
+
+-- | Add a new 'OpenTxOutProducedRequest' to the instance's list of
+--   utxo produced requests
+addUtxoProducedReq :: Request Address -> InstanceState -> STM ()
+addUtxoProducedReq Request{rqID, itID, rqRequest} InstanceState{issAddressRefs} = do
+    request <- OpenTxOutProducedRequest rqRequest <$> STM.newEmptyTMVar
+    STM.modifyTVar issAddressRefs (Map.insert (rqID, itID) request)
+
+waitForUtxoProduced :: Request Address -> InstanceState -> STM (NonEmpty OnChainTx)
+waitForUtxoProduced Request{rqID, itID} InstanceState{issAddressRefs} = do
+    theMap <- STM.readTVar issAddressRefs
+    case Map.lookup (rqID, itID) theMap of
+        Nothing                                         -> empty
+        Just OpenTxOutProducedRequest{otxProducingTxns} -> STM.readTMVar otxProducingTxns
 
 -- | Write a new value into the contract instance's observable state.
 setObservableState :: Value -> InstanceState -> STM ()
@@ -292,7 +357,7 @@ callEndpointOnInstance' notAvailable (InstancesState m) endpointDescription valu
                 _    -> pure $ Just $ MoreThanOneEndpointAvailable instanceID endpointDescription
 
 -- | State of all contract instances that are currently running
-newtype InstancesState = InstancesState (TVar (Map ContractInstanceId InstanceState))
+newtype InstancesState = InstancesState { getInstancesState :: TVar (Map ContractInstanceId InstanceState) }
 
 -- | Initialise the 'InstancesState' with an empty value
 emptyInstancesState :: STM InstancesState
