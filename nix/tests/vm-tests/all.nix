@@ -2,6 +2,7 @@
 , lib
 , docs
 , plutus-pab
+, marlowe-pab
 , plutus-playground
 , marlowe-playground
 , marlowe-dashboard
@@ -35,7 +36,7 @@ makeTest {
       services.pab = {
         enable = true;
         pab-setup = plutus-pab.pab-exes.plutus-pab-setup;
-        pab-package = plutus-pab.pab-exes.plutus-pab-examples;
+        pab-executable = "${marlowe-pab}/bin/marlowe-pab";
         staticContent = marlowe-dashboard.client;
         dbFile = "/var/lib/pab/pab-core.db";
         defaultWallet = 1;
