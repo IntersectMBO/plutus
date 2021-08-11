@@ -49,7 +49,8 @@ data Sex = Male | Female
 
 {-# INLINABLE sumList #-}
 sumList :: [Integer] -> Integer
-sumList = foldr (+) 0
+sumList []    = 0
+sumList (h:t) = h + sumList t
 
 {-# INLINABLE numSolutions #-}
 numSolutions :: Solution -> Integer

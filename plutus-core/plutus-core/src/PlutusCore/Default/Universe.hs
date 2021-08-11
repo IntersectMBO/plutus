@@ -125,10 +125,9 @@ instance Show (DefaultUni a) where
     show DefaultUniProtoList           = "list"
     show DefaultUniProtoPair           = "pair"
     show (uniF `DefaultUniApply` uniB) = case uniF of
-        DefaultUniProtoList -> case uniB of
-            _              -> concat ["list (", show uniB, ")"]
-        DefaultUniProtoPair -> concat ["pair (", show uniB, ")"]
-        DefaultUniProtoPair `DefaultUniApply` uniA -> concat ["pair (", show uniA, ") (", show uniB, ")"]
+        DefaultUniProtoList                          -> concat ["list (", show uniB, ")"]
+        DefaultUniProtoPair                          -> concat ["pair (", show uniB, ")"]
+        DefaultUniProtoPair `DefaultUniApply` uniA   -> concat ["pair (", show uniA, ") (", show uniB, ")"]
         uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
     show DefaultUniData = "data"
 

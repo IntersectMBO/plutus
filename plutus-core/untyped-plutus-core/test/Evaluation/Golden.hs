@@ -189,7 +189,7 @@ iteAtIntegerWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerWithCond = Apply () iteAtInteger lteExpr
 
 -- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" ] :
--- IllTypedFails.  This is ill-typed because the first term argument is a text
+-- IllTypedFails.  This is ill-typed because the first term argument is a string
 -- and a boolean is expected. Even though it's not saturated, it won't execute succefully,
 -- because the builtin application machinery unlifts an argument the moment it gets it,
 -- without waiting for full saturation.
@@ -197,7 +197,7 @@ iteAtIntegerWrongCondType :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerWrongCondType = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse]
 
 -- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ] :
--- IllTypedRuns.  We're instantiating at `integer` but returning a text: at
+-- IllTypedRuns.  We're instantiating at `integer` but returning a string: at
 -- execution time we only check that type instantiations and term arguments are
 -- correctly interleaved, not that instantiations are correct.
 iteAtIntegerFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
