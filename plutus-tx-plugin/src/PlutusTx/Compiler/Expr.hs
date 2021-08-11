@@ -429,6 +429,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName -> do
                 let text = TE.decodeUtf8 bs
                 pure $ PIR.Constant () $ PLC.someValue text
+        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type ty `GHC.App` _ `GHC.App` _
+            | GHC.getName cls == GHC.isStringClassName ->
+                throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
 
         -- See Note [Literals]
         GHC.Lit lit -> compileLiteral lit

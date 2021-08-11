@@ -98,6 +98,11 @@ that function is compiled later into the body of another function.
 
 We do therefore need to handle 'noinline' in the plugin, as it itself does not have
 an unfolding.
+
+Another annoying quirk: even if you have 'noinline'd a function call, if the body is
+a single variable, it will still inline! This is the case for the obvious definition
+of 'stringToBuiltinString' (since the newtype constructor vanishes), so we have to add
+some obfuscation to the body to prevent it inlining.
 -}
 
 -- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
@@ -107,18 +112,24 @@ instance IsString BuiltinString where
     -- the application of 'stringToBuiltinString'
     {-# INLINE fromString #-}
     -- See Note [noinline hack]
-    fromString str = Magic.noinline $ stringToBuiltinString (pack str)
+    fromString = Magic.noinline stringToBuiltinString
 
 {-# INLINABLE stringToBuiltinString #-}
-stringToBuiltinString :: Text -> BuiltinString
-stringToBuiltinString = BuiltinString
+stringToBuiltinString :: String -> BuiltinString
+-- To explain why the obfuscatedId is here
+-- See Note [noinline hack]
+stringToBuiltinString str = obfuscatedId (BuiltinString $ pack str)
 
-instance FromBuiltin BuiltinString BuiltinString where
+{-# NOINLINE obfuscatedId #-}
+obfuscatedId :: a -> a
+obfuscatedId a = a
+
+instance FromBuiltin BuiltinString Text where
     {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = id
-instance ToBuiltin BuiltinString BuiltinString where
+    fromBuiltin (BuiltinString t) = t
+instance ToBuiltin Text BuiltinString where
     {-# INLINABLE toBuiltin #-}
-    toBuiltin = id
+    toBuiltin = BuiltinString
 
 {- Same noinline hack as with `String` type. -}
 instance IsString BuiltinByteString where
@@ -126,12 +137,11 @@ instance IsString BuiltinByteString where
     -- the application of 'stringToBuiltinByteString'
     {-# INLINE fromString #-}
     -- See Note [noinline hack]
-    fromString str = Magic.noinline $ stringToBuiltinByteString (pack str)
+    fromString = Magic.noinline stringToBuiltinByteString
 
 {-# INLINABLE stringToBuiltinByteString #-}
-stringToBuiltinByteString :: Text -> BuiltinByteString
-stringToBuiltinByteString = encodeUtf8 . stringToBuiltinString
-
+stringToBuiltinByteString :: String -> BuiltinByteString
+stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
 
 {- Note [From/ToBuiltin instances for polymorphic builtin types]
 For various technical reasons
