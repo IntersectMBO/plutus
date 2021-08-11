@@ -2184,10 +2184,8 @@
                                         Unit_match
                                         [
                                           [
-                                            { (builtin chooseUnit) Unit }
-                                            [
-                                              (builtin trace) (con string "Lg")
-                                            ]
+                                            { (builtin trace) Unit }
+                                            (con string "Lg")
                                           ]
                                           Unit
                                         ]

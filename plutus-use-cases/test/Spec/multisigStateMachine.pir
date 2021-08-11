@@ -3831,19 +3831,14 @@
                                                                       [
                                                                         {
                                                                           (builtin
-                                                                            chooseUnit
+                                                                            trace
                                                                           )
                                                                           Bool
                                                                         }
-                                                                        [
-                                                                          (builtin
-                                                                            trace
-                                                                          )
-                                                                          (con
-                                                                            string
-                                                                              "L0"
-                                                                          )
-                                                                        ]
+                                                                        (con
+                                                                          string
+                                                                            "L0"
+                                                                        )
                                                                       ]
                                                                       False
                                                                     ]
@@ -5031,8 +5026,8 @@
                                       Unit_match
                                       [
                                         [
-                                          { (builtin chooseUnit) Unit }
-                                          [ (builtin trace) (con string "Lf") ]
+                                          { (builtin trace) Unit }
+                                          (con string "Lf")
                                         ]
                                         Unit
                                       ]
@@ -5258,14 +5253,8 @@
                                                   (type)
                                                   [
                                                     [
-                                                      {
-                                                        (builtin chooseUnit)
-                                                        Bool
-                                                      }
-                                                      [
-                                                        (builtin trace)
-                                                        (con string "L1")
-                                                      ]
+                                                      { (builtin trace) Bool }
+                                                      (con string "L1")
                                                     ]
                                                     False
                                                   ]
@@ -8794,19 +8783,13 @@
                                                                 [
                                                                   {
                                                                     (builtin
-                                                                      chooseUnit
+                                                                      trace
                                                                     )
                                                                     Bool
                                                                   }
-                                                                  [
-                                                                    (builtin
-                                                                      trace
-                                                                    )
-                                                                    (con
-                                                                      string
-                                                                        "L4"
-                                                                    )
-                                                                  ]
+                                                                  (con
+                                                                    string "L4"
+                                                                  )
                                                                 ]
                                                                 False
                                                               ]
@@ -8830,18 +8813,12 @@
                                                             [
                                                               [
                                                                 {
-                                                                  (builtin
-                                                                    chooseUnit
+                                                                  (builtin trace
                                                                   )
                                                                   Bool
                                                                 }
-                                                                [
-                                                                  (builtin trace
-                                                                  )
-                                                                  (con
-                                                                    string "Lc"
-                                                                  )
-                                                                ]
+                                                                (con string "Lc"
+                                                                )
                                                               ]
                                                               False
                                                             ]
@@ -9031,19 +9008,14 @@
                                                                                   [
                                                                                     {
                                                                                       (builtin
-                                                                                        chooseUnit
+                                                                                        trace
                                                                                       )
                                                                                       Bool
                                                                                     }
-                                                                                    [
-                                                                                      (builtin
-                                                                                        trace
-                                                                                      )
-                                                                                      (con
-                                                                                        string
-                                                                                          "L2"
-                                                                                      )
-                                                                                    ]
+                                                                                    (con
+                                                                                      string
+                                                                                        "L2"
+                                                                                    )
                                                                                   ]
                                                                                   False
                                                                                 ]
@@ -9177,19 +9149,13 @@
                                                                 [
                                                                   {
                                                                     (builtin
-                                                                      chooseUnit
+                                                                      trace
                                                                     )
                                                                     Bool
                                                                   }
-                                                                  [
-                                                                    (builtin
-                                                                      trace
-                                                                    )
-                                                                    (con
-                                                                      string
-                                                                        "L9"
-                                                                    )
-                                                                  ]
+                                                                  (con
+                                                                    string "L9"
+                                                                  )
                                                                 ]
                                                                 False
                                                               ]
@@ -9488,19 +9454,14 @@
                                                                                     [
                                                                                       {
                                                                                         (builtin
-                                                                                          chooseUnit
+                                                                                          trace
                                                                                         )
                                                                                         Bool
                                                                                       }
-                                                                                      [
-                                                                                        (builtin
-                                                                                          trace
-                                                                                        )
-                                                                                        (con
-                                                                                          string
-                                                                                            "Lb"
-                                                                                        )
-                                                                                      ]
+                                                                                      (con
+                                                                                        string
+                                                                                          "Lb"
+                                                                                      )
                                                                                     ]
                                                                                     False
                                                                                   ]
@@ -9560,13 +9521,9 @@
                                                       [
                                                         [
                                                           {
-                                                            (builtin chooseUnit)
-                                                            Bool
+                                                            (builtin trace) Bool
                                                           }
-                                                          [
-                                                            (builtin trace)
-                                                            (con string "La")
-                                                          ]
+                                                          (con string "La")
                                                         ]
                                                         False
                                                       ]
@@ -9606,14 +9563,8 @@
                                                   (type)
                                                   [
                                                     [
-                                                      {
-                                                        (builtin chooseUnit)
-                                                        Bool
-                                                      }
-                                                      [
-                                                        (builtin trace)
-                                                        (con string "L6")
-                                                      ]
+                                                      { (builtin trace) Bool }
+                                                      (con string "L6")
                                                     ]
                                                     False
                                                   ]
@@ -9755,13 +9706,8 @@
                                                 (type)
                                                 [
                                                   [
-                                                    {
-                                                      (builtin chooseUnit) Bool
-                                                    }
-                                                    [
-                                                      (builtin trace)
-                                                      (con string "L5")
-                                                    ]
+                                                    { (builtin trace) Bool }
+                                                    (con string "L5")
                                                   ]
                                                   False
                                                 ]
@@ -9781,11 +9727,8 @@
                                             (vardecl j Bool)
                                             [
                                               [
-                                                { (builtin chooseUnit) Bool }
-                                                [
-                                                  (builtin trace)
-                                                  (con string "L7")
-                                                ]
+                                                { (builtin trace) Bool }
+                                                (con string "L7")
                                               ]
                                               False
                                             ]
@@ -9918,11 +9861,8 @@
                                               (type)
                                               [
                                                 [
-                                                  { (builtin chooseUnit) Bool }
-                                                  [
-                                                    (builtin trace)
-                                                    (con string "L8")
-                                                  ]
+                                                  { (builtin trace) Bool }
+                                                  (con string "L8")
                                                 ]
                                                 False
                                               ]
@@ -10008,11 +9948,8 @@
                                           (type)
                                           [
                                             [
-                                              { (builtin chooseUnit) Bool }
-                                              [
-                                                (builtin trace)
-                                                (con string "L3")
-                                              ]
+                                              { (builtin trace) Bool }
+                                              (con string "L3")
                                             ]
                                             False
                                           ]
@@ -10069,11 +10006,8 @@
                                             (vardecl j Bool)
                                             [
                                               [
-                                                { (builtin chooseUnit) Bool }
-                                                [
-                                                  (builtin trace)
-                                                  (con string "Ld")
-                                                ]
+                                                { (builtin trace) Bool }
+                                                (con string "Ld")
                                               ]
                                               False
                                             ]
@@ -10385,8 +10319,8 @@
                                       Unit_match
                                       [
                                         [
-                                          { (builtin chooseUnit) Unit }
-                                          [ (builtin trace) (con string "Lg") ]
+                                          { (builtin trace) Unit }
+                                          (con string "Lg")
                                         ]
                                         Unit
                                       ]
@@ -10795,18 +10729,12 @@
                                                             [
                                                               [
                                                                 {
-                                                                  (builtin
-                                                                    chooseUnit
+                                                                  (builtin trace
                                                                   )
                                                                   Unit
                                                                 }
-                                                                [
-                                                                  (builtin trace
-                                                                  )
-                                                                  (con
-                                                                    string "S0"
-                                                                  )
-                                                                ]
+                                                                (con string "S0"
+                                                                )
                                                               ]
                                                               Unit
                                                             ]
@@ -10978,19 +10906,14 @@
                                                                                         [
                                                                                           {
                                                                                             (builtin
-                                                                                              chooseUnit
+                                                                                              trace
                                                                                             )
                                                                                             Bool
                                                                                           }
-                                                                                          [
-                                                                                            (builtin
-                                                                                              trace
-                                                                                            )
-                                                                                            (con
-                                                                                              string
-                                                                                                "S4"
-                                                                                            )
-                                                                                          ]
+                                                                                          (con
+                                                                                            string
+                                                                                              "S4"
+                                                                                          )
                                                                                         ]
                                                                                         False
                                                                                       ]
@@ -11031,19 +10954,14 @@
                                                                                                 [
                                                                                                   {
                                                                                                     (builtin
-                                                                                                      chooseUnit
+                                                                                                      trace
                                                                                                     )
                                                                                                     Bool
                                                                                                   }
-                                                                                                  [
-                                                                                                    (builtin
-                                                                                                      trace
-                                                                                                    )
-                                                                                                    (con
-                                                                                                      string
-                                                                                                        "S3"
-                                                                                                    )
-                                                                                                  ]
+                                                                                                  (con
+                                                                                                    string
+                                                                                                      "S3"
+                                                                                                  )
                                                                                                 ]
                                                                                                 False
                                                                                               ]
@@ -11205,19 +11123,14 @@
                                                                                   [
                                                                                     {
                                                                                       (builtin
-                                                                                        chooseUnit
+                                                                                        trace
                                                                                       )
                                                                                       Bool
                                                                                     }
-                                                                                    [
-                                                                                      (builtin
-                                                                                        trace
-                                                                                      )
-                                                                                      (con
-                                                                                        string
-                                                                                          "S5"
-                                                                                      )
-                                                                                    ]
+                                                                                    (con
+                                                                                      string
+                                                                                        "S5"
+                                                                                    )
                                                                                   ]
                                                                                   False
                                                                                 ]
@@ -11243,14 +11156,8 @@
                                                     (type)
                                                     [
                                                       [
-                                                        {
-                                                          (builtin chooseUnit)
-                                                          Bool
-                                                        }
-                                                        [
-                                                          (builtin trace)
-                                                          (con string "S6")
-                                                        ]
+                                                        { (builtin trace) Bool }
+                                                        (con string "S6")
                                                       ]
                                                       False
                                                     ]
@@ -11361,19 +11268,14 @@
                                                                           [
                                                                             {
                                                                               (builtin
-                                                                                chooseUnit
+                                                                                trace
                                                                               )
                                                                               Bool
                                                                             }
-                                                                            [
-                                                                              (builtin
-                                                                                trace
-                                                                              )
-                                                                              (con
-                                                                                string
-                                                                                  "S2"
-                                                                              )
-                                                                            ]
+                                                                            (con
+                                                                              string
+                                                                                "S2"
+                                                                            )
                                                                           ]
                                                                           False
                                                                         ]
@@ -11430,18 +11332,12 @@
                                                             [
                                                               [
                                                                 {
-                                                                  (builtin
-                                                                    chooseUnit
+                                                                  (builtin trace
                                                                   )
                                                                   Bool
                                                                 }
-                                                                [
-                                                                  (builtin trace
-                                                                  )
-                                                                  (con
-                                                                    string "S1"
-                                                                  )
-                                                                ]
+                                                                (con string "S1"
+                                                                )
                                                               ]
                                                               False
                                                             ]

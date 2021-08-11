@@ -214,7 +214,7 @@ equalsString x y = fromBuiltin (BI.equalsString x y)
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
 trace :: BuiltinString -> a -> a
-trace s = BI.chooseUnit (BI.trace s)
+trace = BI.trace
 
 {-# INLINABLE encodeUtf8 #-}
 -- | Convert a String into a ByteString.
