@@ -157,8 +157,6 @@ processMockBlock instancesState BlockchainEnv{beAddressMap, beTxChanges, beCurre
     instEnv <- S.instancesClientEnv instancesState
     updateInstances (indexBlock transactions) instEnv
 
-  -- TODO: Update instancesClientEnv
-
 processTx :: Slot -> (AddressMap, ChainIndex) -> OnChainTx -> (AddressMap, ChainIndex)
 processTx currentSlot (addressMap, chainIndex) tx = (addressMap', chainIndex') where
   tid = eitherTx txId txId tx
@@ -166,3 +164,5 @@ processTx currentSlot (addressMap, chainIndex) tx = (addressMap', chainIndex') w
   chainIndex' =
     let itm = ChainIndexItem{ciSlot = currentSlot, ciTx = tx, ciTxId = tid } in
     Index.insert addressMap' itm chainIndex
+  -- TODO: updateInstances
+  -- We need to switch to using 'ChainIndexTx' everyhwere first, though.
