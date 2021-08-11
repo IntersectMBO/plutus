@@ -35,7 +35,7 @@ common lang
                       DeriveFunctor DeriveFoldable
                       DeriveTraversable
   ghc-options:
-    -Wall -Wnoncanonical-monad-instances
+    -Wall -Wnoncanonical-monad-instances -Wunused-packages
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
 

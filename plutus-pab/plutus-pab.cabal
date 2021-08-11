@@ -42,6 +42,7 @@ common lang
     ghc-options:
         -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
         -Wincomplete-record-updates -Wredundant-constraints -Widentities
+        -Wunused-packages
         -fobject-code -fno-ignore-interface-pragmas
         -fno-omit-interface-pragmas
 

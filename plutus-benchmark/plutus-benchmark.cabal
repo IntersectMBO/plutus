@@ -45,7 +45,7 @@ common lang
     -fno-omit-interface-pragmas
     -fno-worker-wrapper
   ghc-options:
-     -Wall -Wnoncanonical-monad-instances
+     -Wall -Wnoncanonical-monad-instances -Wunused-packages
      -Wincomplete-uni-patterns -Wincomplete-record-updates
      -Wredundant-constraints -Widentities
      -Wnoncanonical-monoid-instances

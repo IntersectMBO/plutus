@@ -61,7 +61,7 @@ library
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses
-    ghc-options: -Wall -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -- See Plutus Tx readme
@@ -119,7 +119,7 @@ test-suite plutus-use-cases-test
         Spec.TokenAccount
         Spec.Vesting
     default-language: Haskell2010
-    ghc-options: -Wall -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -rtsopts
                  -- See Plutus Tx readme
@@ -183,7 +183,7 @@ executable plutus-use-cases-scripts
         Spec.Stablecoin
         Spec.TokenAccount
         Spec.Vesting
-    ghc-options: -Wall -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -rtsopts
                  -- See Plutus Tx readme
