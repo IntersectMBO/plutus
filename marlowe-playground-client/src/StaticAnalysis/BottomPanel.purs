@@ -10,7 +10,6 @@ import Data.Lens (view, (^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Tuple.Nested ((/\))
@@ -22,6 +21,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _valueParameterDescription)
+import Marlowe.Extended.OrderedMap as OrderedMap
 import Marlowe.Semantics (ChoiceId(..), Input(..), Slot(..), SlotInterval(..), TransactionInput(..))
 import Marlowe.Symbolic.Types.Response as R
 import Marlowe.Template (IntegerTemplateType(..))
@@ -243,7 +243,7 @@ analysisResultPane metadata actionGen state =
   where
   slotParameterDisplayInfo =
     { lookupFormat: const Nothing
-    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , lookupDefinition: (flip OrderedMap.lookup) metadata.slotParameterDescriptions
     , typeName: SlotContent
     , title: "Timeout template parameters"
     , prefix: "Slot for"
@@ -257,11 +257,11 @@ analysisResultPane metadata actionGen state =
     , prefix: "Constant for"
     }
 
-  extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
+  extractValueParameterNuberFormat valueParameter = case OrderedMap.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
 
-  lookupDescription k m = view _valueParameterDescription <$> Map.lookup k m
+  lookupDescription k m = view _valueParameterDescription <$> OrderedMap.lookup k m
 
 displayTransactionList :: forall p action. Array TransactionInput -> HTML p action
 displayTransactionList transactionList =

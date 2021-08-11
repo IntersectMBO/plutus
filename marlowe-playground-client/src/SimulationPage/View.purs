@@ -31,6 +31,7 @@ import Halogen.Monaco (monacoComponent)
 import Hint.State (hint)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
+import Marlowe.Extended.OrderedMap as OrderedMap
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payee(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Marlowe.Template (IntegerTemplateType(..))
@@ -239,7 +240,7 @@ startSimulationWidget metadata { initialSlot, templateContent } =
   where
   slotParameterDisplayInfo =
     { lookupFormat: const Nothing
-    , lookupDefinition: (flip Map.lookup) metadata.slotParameterDescriptions
+    , lookupDefinition: (flip OrderedMap.lookup) metadata.slotParameterDescriptions
     , typeName: SlotContent
     , title: "Timeout template parameters"
     , prefix: "Slot for"
@@ -253,12 +254,12 @@ startSimulationWidget metadata { initialSlot, templateContent } =
     , prefix: "Constant for"
     }
 
-  extractValueParameterNuberFormat valueParameter = case Map.lookup valueParameter metadata.valueParameterInfo of
+  extractValueParameterNuberFormat valueParameter = case OrderedMap.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
 
   lookupDescription k m =
-    ( case Map.lookup k m of
+    ( case OrderedMap.lookup k m of
         Just { valueParameterDescription: description }
           | trim description /= "" -> Just description
         _ -> Nothing
