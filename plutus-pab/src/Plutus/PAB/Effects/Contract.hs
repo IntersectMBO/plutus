@@ -196,7 +196,7 @@ getDefinition ::
     ( Member (ContractStore t) effs)
     => ContractInstanceId
     -> Eff effs (Maybe (ContractActivationArgs (ContractDef t)))
-getDefinition i = Map.lookup i <$> (getActiveContracts @t)
+getDefinition i = Map.lookup i <$> getAllContracts @t
 
 -- | Storing and retrieving definitions of contracts.
 --   (Not all 't's support this)

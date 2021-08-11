@@ -70,6 +70,7 @@ module Plutus.PAB.Simulator(
     ) where
 
 import qualified Cardano.Wallet.Mock                            as MockWallet
+import           Control.Applicative                            ((<|>))
 import           Control.Concurrent                             (forkIO)
 import           Control.Concurrent.STM                         (STM, TQueue, TVar)
 import qualified Control.Concurrent.STM                         as STM
@@ -613,8 +614,10 @@ handleContractStore = \case
             STM.modifyTVar instancesTVar (set (at instanceId) (Just instState))
     Contract.GetState instanceId -> do
         instancesTVar <- view instances <$> (Core.askUserEnv @t @(SimulatorState t))
-        result <- preview (at instanceId . _Just . contractState) <$> liftIO (STM.readTVarIO instancesTVar)
-        case result of
+        inactiveTVar <- view inactive <$> (Core.askUserEnv @t @(SimulatorState t))
+        activeResult <- preview (at instanceId . _Just . contractState) <$> liftIO (STM.readTVarIO instancesTVar)
+        inactiveResult <- preview (at instanceId . _Just . contractState) <$> liftIO (STM.readTVarIO inactiveTVar)
+        case activeResult <|> inactiveResult of
             Just s  -> pure s
             Nothing -> throwError (ContractInstanceNotFound instanceId)
     Contract.GetActiveContracts -> do
