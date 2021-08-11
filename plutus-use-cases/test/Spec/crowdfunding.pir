@@ -436,7 +436,8 @@
         (termbind
           (strict)
           (vardecl
-            greaterThanEqInteger (fun (con integer) (fun (con integer) Bool))
+            greaterThanEqualsInteger
+            (fun (con integer) (fun (con integer) Bool))
           )
           (lam
             x
@@ -484,7 +485,7 @@
         (termbind
           (strict)
           (vardecl
-            lessThanEqInteger (fun (con integer) (fun (con integer) Bool))
+            lessThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
           )
           (lam
             x
@@ -553,11 +554,11 @@
                       ]
                       lessThanInteger
                     ]
-                    lessThanEqInteger
+                    lessThanEqualsInteger
                   ]
                   greaterThanInteger
                 ]
-                greaterThanEqInteger
+                greaterThanEqualsInteger
               ]
               fOrdInteger_cmax
             ]

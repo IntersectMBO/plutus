@@ -129,9 +129,9 @@ prop_lessThanByteString :: Property
 prop_lessThanByteString =
     testPredictTwo lessThanByteString (getConst . paramLessThanByteString)
 
-prop_greaterThanByteString :: Property
-prop_greaterThanByteString =
-    testPredictTwo greaterThanByteString (getConst . paramGreaterThanByteString)
+prop_lessThanEqualsByteString :: Property
+prop_lessThanEqualsByteString =
+    testPredictTwo lessThanEqualsByteString (getConst . paramLessThanEqualsByteString)
 
 -- prop_ifThenElse :: Property
 -- prop_ifThenElse =

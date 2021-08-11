@@ -2277,11 +2277,6 @@
                     )
                     (termbind
                       (strict)
-                      (vardecl fToDataVoid_ctoBuiltinData (fun Void (con data)))
-                      (lam v Void [ { absurd (con data) } v ])
-                    )
-                    (termbind
-                      (strict)
                       (vardecl fEqTxOutRef_c (fun TxOutRef (fun TxOutRef Bool)))
                       (lam
                         l
@@ -4429,7 +4424,7 @@
                     (termbind
                       (strict)
                       (vardecl
-                        greaterThanEqInteger
+                        greaterThanEqualsInteger
                         (fun (con integer) (fun (con integer) Bool))
                       )
                       (lam
@@ -4515,7 +4510,7 @@
                     (termbind
                       (strict)
                       (vardecl
-                        lessThanEqInteger
+                        lessThanEqualsInteger
                         (fun (con integer) (fun (con integer) Bool))
                       )
                       (lam
@@ -4552,11 +4547,11 @@
                                   ]
                                   lessThanInteger
                                 ]
-                                lessThanEqInteger
+                                lessThanEqualsInteger
                               ]
                               greaterThanInteger
                             ]
-                            greaterThanEqInteger
+                            greaterThanEqualsInteger
                           ]
                           fOrdInteger_cmax
                         ]
@@ -8502,7 +8497,7 @@
                                                             [
                                                               [
                                                                 checkBinRel
-                                                                lessThanEqInteger
+                                                                lessThanEqualsInteger
                                                               ]
                                                               vl
                                                             ]
@@ -8548,7 +8543,7 @@
                                                         [
                                                           [
                                                             checkBinRel
-                                                            lessThanEqInteger
+                                                            lessThanEqualsInteger
                                                           ]
                                                           vl
                                                         ]
@@ -8588,7 +8583,7 @@
                                                       [
                                                         [
                                                           checkBinRel
-                                                          lessThanEqInteger
+                                                          lessThanEqualsInteger
                                                         ]
                                                         vl
                                                       ]
@@ -9885,7 +9880,10 @@
                                                                                                   }
                                                                                                   Void
                                                                                                 }
-                                                                                                fToDataVoid_ctoBuiltinData
+                                                                                                {
+                                                                                                  absurd
+                                                                                                  (con data)
+                                                                                                }
                                                                                               ]
                                                                                               newConstraints
                                                                                             ]

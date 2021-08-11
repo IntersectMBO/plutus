@@ -64,7 +64,7 @@ erase-arity-lem appendByteString refl refl = refl
 erase-arity-lem takeByteString refl refl = refl
 erase-arity-lem dropByteString refl refl = refl
 erase-arity-lem lessThanByteString refl refl = refl
-erase-arity-lem greaterThanByteString refl refl = refl
+erase-arity-lem lessThanEqualsByteString refl refl = refl
 erase-arity-lem sha2-256 refl refl = refl
 erase-arity-lem sha3-256 refl refl = refl
 erase-arity-lem verifySignature refl refl = refl
@@ -146,7 +146,7 @@ erase-BUILTIN appendByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A
 erase-BUILTIN takeByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN dropByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN lessThanByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
-erase-BUILTIN greaterThanByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
+erase-BUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN sha2-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN sha3-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN verifySignature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) ,, _ ,, A.V-con (bytestring b'')) with verifySig b b' b''

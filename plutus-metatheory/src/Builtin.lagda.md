@@ -28,7 +28,7 @@ data Builtin : Set where
   takeByteString           : Builtin
   dropByteString           : Builtin
   lessThanByteString       : Builtin
-  greaterThanByteString    : Builtin
+  lessThanEqualsByteString : Builtin
   sha2-256                 : Builtin
   sha3-256                 : Builtin
   verifySignature          : Builtin
@@ -52,7 +52,7 @@ data Builtin : Set where
                                           | TakeByteString
                                           | DropByteString
                                           | LessThanByteString
-                                          | GreaterThanByteString
+                                          | LessThanEqualsByteString
                                           | Sha2_256
                                           | Sha3_256
                                           | VerifySignature

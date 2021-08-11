@@ -95,7 +95,7 @@
             "type": "min_size"
         }
     },
-    "greaterThanByteString": {
+    "lessThanEqualsByteString": {
         "memory": {
             "arguments": 1,
             "type": "constant_cost"

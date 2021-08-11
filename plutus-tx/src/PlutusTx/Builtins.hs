@@ -15,7 +15,9 @@ module PlutusTx.Builtins (
                                 , emptyByteString
                                 , equalsByteString
                                 , lessThanByteString
+                                , lessThanEqualsByteString
                                 , greaterThanByteString
+                                , greaterThanEqualsByteString
                                 , sha2_256
                                 , sha3_256
                                 , blake2b_256
@@ -30,9 +32,9 @@ module PlutusTx.Builtins (
                                 , quotientInteger
                                 , remainderInteger
                                 , greaterThanInteger
-                                , greaterThanEqInteger
+                                , greaterThanEqualsInteger
                                 , lessThanInteger
-                                , lessThanEqInteger
+                                , lessThanEqualsInteger
                                 , equalsInteger
                                 -- * Error
                                 , error
@@ -145,10 +147,20 @@ equalsByteString x y = fromBuiltin (BI.equalsByteString x y)
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> Bool
 lessThanByteString x y = fromBuiltin (BI.lessThanByteString x y)
 
+{-# INLINABLE lessThanEqualsByteString #-}
+-- | Check if one 'ByteString' is less than or equal to another.
+lessThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> Bool
+lessThanEqualsByteString x y = fromBuiltin (BI.lessThanEqualsByteString x y)
+
 {-# INLINABLE greaterThanByteString #-}
 -- | Check if one 'ByteString' is greater than another.
 greaterThanByteString :: BuiltinByteString -> BuiltinByteString -> Bool
-greaterThanByteString x y = fromBuiltin (BI.greaterThanByteString x y)
+greaterThanByteString x y = BI.ifThenElse (BI.lessThanEqualsByteString x y) False True
+
+{-# INLINABLE greaterThanEqualsByteString #-}
+-- | Check if one 'ByteString' is greater than another.
+greaterThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> Bool
+greaterThanEqualsByteString x y = BI.ifThenElse (BI.lessThanByteString x y) False True
 
 {-# INLINABLE decodeUtf8 #-}
 -- | Converts a ByteString to a String.
@@ -193,22 +205,22 @@ remainderInteger x y = fromBuiltin (BI.remainderInteger (toBuiltin x) (toBuiltin
 {-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqInteger x y ) False True
+greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y ) False True
 
-{-# INLINABLE greaterThanEqInteger #-}
+{-# INLINABLE greaterThanEqualsInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
-greaterThanEqInteger :: Integer -> Integer -> Bool
-greaterThanEqInteger x y = BI.ifThenElse (BI.lessThanInteger x y) False True
+greaterThanEqualsInteger :: Integer -> Integer -> Bool
+greaterThanEqualsInteger x y = BI.ifThenElse (BI.lessThanInteger x y) False True
 
 {-# INLINABLE lessThanInteger #-}
 -- | Check whether one 'Integer' is less than another.
 lessThanInteger :: Integer -> Integer -> Bool
 lessThanInteger x y = fromBuiltin (BI.lessThanInteger (toBuiltin x) (toBuiltin y))
 
-{-# INLINABLE lessThanEqInteger #-}
+{-# INLINABLE lessThanEqualsInteger #-}
 -- | Check whether one 'Integer' is less than or equal to another.
-lessThanEqInteger :: Integer -> Integer -> Bool
-lessThanEqInteger x y = fromBuiltin (BI.lessThanEqInteger (toBuiltin x) (toBuiltin y))
+lessThanEqualsInteger :: Integer -> Integer -> Bool
+lessThanEqualsInteger x y = fromBuiltin (BI.lessThanEqualsInteger (toBuiltin x) (toBuiltin y))
 
 {-# INLINABLE equalsInteger #-}
 -- | Check if two 'Integer's are equal.

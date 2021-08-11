@@ -170,7 +170,7 @@ builtinNames = [
     , 'Builtins.blake2b_256
     , 'Builtins.equalsByteString
     , 'Builtins.lessThanByteString
-    , 'Builtins.greaterThanByteString
+    , 'Builtins.lessThanEqualsByteString
     , 'Builtins.emptyByteString
     , 'Builtins.decodeUtf8
     , 'Builtins.stringToBuiltinByteString
@@ -186,7 +186,7 @@ builtinNames = [
     , 'Builtins.quotientInteger
     , 'Builtins.remainderInteger
     , 'Builtins.lessThanInteger
-    , 'Builtins.lessThanEqInteger
+    , 'Builtins.lessThanEqualsInteger
     , 'Builtins.equalsInteger
 
     , 'Builtins.error
@@ -291,7 +291,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.sha3_256 $ mkBuiltin PLC.Sha3_256
     defineBuiltinTerm 'Builtins.equalsByteString $ mkBuiltin PLC.EqualsByteString
     defineBuiltinTerm 'Builtins.lessThanByteString $ mkBuiltin PLC.LessThanByteString
-    defineBuiltinTerm 'Builtins.greaterThanByteString $ mkBuiltin PLC.GreaterThanByteString
+    defineBuiltinTerm 'Builtins.lessThanEqualsByteString $ mkBuiltin PLC.LessThanEqualsByteString
     defineBuiltinTerm 'Builtins.emptyByteString $ PIR.mkConstant () BS.empty
     defineBuiltinTerm 'Builtins.decodeUtf8 $ mkBuiltin PLC.DecodeUtf8
 
@@ -307,7 +307,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.quotientInteger $ mkBuiltin PLC.QuotientInteger
     defineBuiltinTerm 'Builtins.remainderInteger $ mkBuiltin PLC.RemainderInteger
     defineBuiltinTerm 'Builtins.lessThanInteger $ mkBuiltin PLC.LessThanInteger
-    defineBuiltinTerm 'Builtins.lessThanEqInteger $ mkBuiltin PLC.LessThanEqualsInteger
+    defineBuiltinTerm 'Builtins.lessThanEqualsInteger $ mkBuiltin PLC.LessThanEqualsInteger
     defineBuiltinTerm 'Builtins.equalsInteger $ mkBuiltin PLC.EqualsInteger
 
     -- Error

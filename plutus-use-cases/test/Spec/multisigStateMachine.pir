@@ -2339,7 +2339,7 @@
                     (termbind
                       (strict)
                       (vardecl
-                        lessThanEqInteger
+                        lessThanEqualsInteger
                         (fun (con integer) (fun (con integer) Bool))
                       )
                       (lam
@@ -3475,7 +3475,7 @@
                                                                     [
                                                                       [
                                                                         checkBinRel
-                                                                        lessThanEqInteger
+                                                                        lessThanEqualsInteger
                                                                       ]
                                                                       amt
                                                                     ]
@@ -3590,11 +3590,6 @@
                       (strict)
                       (vardecl absurd (all a (type) (fun Void a)))
                       (abs a (type) (lam a Void { [ Void_match a ] a }))
-                    )
-                    (termbind
-                      (strict)
-                      (vardecl fToDataVoid_ctoBuiltinData (fun Void (con data)))
-                      (lam v Void [ { absurd (con data) } v ])
                     )
                     (termbind
                       (strict)
@@ -5453,7 +5448,7 @@
                     (termbind
                       (strict)
                       (vardecl
-                        greaterThanEqInteger
+                        greaterThanEqualsInteger
                         (fun (con integer) (fun (con integer) Bool))
                       )
                       (lam
@@ -5551,11 +5546,11 @@
                                   ]
                                   lessThanInteger
                                 ]
-                                lessThanEqInteger
+                                lessThanEqualsInteger
                               ]
                               greaterThanInteger
                             ]
-                            greaterThanEqInteger
+                            greaterThanEqualsInteger
                           ]
                           fOrdInteger_cmax
                         ]
@@ -9501,7 +9496,7 @@
                                                             [
                                                               [
                                                                 checkBinRel
-                                                                lessThanEqInteger
+                                                                lessThanEqualsInteger
                                                               ]
                                                               vl
                                                             ]
@@ -9547,7 +9542,7 @@
                                                         [
                                                           [
                                                             checkBinRel
-                                                            lessThanEqInteger
+                                                            lessThanEqualsInteger
                                                           ]
                                                           vl
                                                         ]
@@ -9587,7 +9582,7 @@
                                                       [
                                                         [
                                                           checkBinRel
-                                                          lessThanEqInteger
+                                                          lessThanEqualsInteger
                                                         ]
                                                         vl
                                                       ]
@@ -10884,7 +10879,10 @@
                                                                                                   }
                                                                                                   Void
                                                                                                 }
-                                                                                                fToDataVoid_ctoBuiltinData
+                                                                                                {
+                                                                                                  absurd
+                                                                                                  (con data)
+                                                                                                }
                                                                                               ]
                                                                                               newConstraints
                                                                                             ]

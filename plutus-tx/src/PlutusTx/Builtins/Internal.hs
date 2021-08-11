@@ -128,9 +128,9 @@ remainderInteger = coerce (rem @Integer)
 lessThanInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
 lessThanInteger = coerce ((<) @Integer)
 
-{-# NOINLINE lessThanEqInteger #-}
-lessThanEqInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
-lessThanEqInteger = coerce ((<=) @Integer)
+{-# NOINLINE lessThanEqualsInteger #-}
+lessThanEqualsInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
+lessThanEqualsInteger = coerce ((<=) @Integer)
 
 {-# NOINLINE equalsInteger #-}
 equalsInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
@@ -206,9 +206,9 @@ equalsByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((==) 
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
 lessThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((<) @ByteString) b1 b2
 
-{-# NOINLINE greaterThanByteString #-}
-greaterThanByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-greaterThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((>) @ByteString) b1 b2
+{-# NOINLINE lessThanEqualsByteString #-}
+lessThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
+lessThanEqualsByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((<=) @ByteString) b1 b2
 
 {-# NOINLINE decodeUtf8 #-}
 decodeUtf8 :: BuiltinByteString -> BuiltinString

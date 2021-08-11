@@ -112,7 +112,7 @@ ISIG appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con byte
 ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
 ISIG dropByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
 ISIG lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-ISIG greaterThanByteString =
+ISIG lessThanEqualsByteString =
   ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
 ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
 ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring

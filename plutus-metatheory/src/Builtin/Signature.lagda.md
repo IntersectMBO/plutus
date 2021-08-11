@@ -120,7 +120,7 @@ SIG lessThanByteString =
   con bytestring ∷ con bytestring ∷ []
   ,,
   con bool
-SIG greaterThanByteString =
+SIG lessThanEqualsByteString =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ []

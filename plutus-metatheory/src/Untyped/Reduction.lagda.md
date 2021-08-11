@@ -73,7 +73,7 @@ arity appendByteString = [] :< Term :< Term
 arity takeByteString = [] :< Term :< Term
 arity dropByteString = [] :< Term :< Term
 arity lessThanByteString = [] :< Term :< Term
-arity greaterThanByteString = [] :< Term :< Term
+arity lessThanEqualsByteString = [] :< Term :< Term
 arity sha2-256 = [] :< Term
 arity sha3-256 = [] :< Term
 arity verifySignature = [] :< Term :< Term :< Term
@@ -190,7 +190,7 @@ IBUILTIN dropByteString
 IBUILTIN lessThanByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bool (B< b b')))
-IBUILTIN greaterThanByteString
+IBUILTIN lessThanEqualsByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bool (B> b b')))
 IBUILTIN sha2-256
@@ -354,8 +354,8 @@ ival takeByteString = V-F (V-builtin takeByteString refl (skipTerm base) _ _)
 ival dropByteString = V-F (V-builtin dropByteString refl (skipTerm base) _ _)
 ival lessThanByteString =
   V-F (V-builtin lessThanByteString refl (skipTerm base) _ _)
-ival greaterThanByteString =
-  V-F (V-builtin greaterThanByteString refl (skipTerm base) _ _)
+ival lessThanEqualsByteString =
+  V-F (V-builtin lessThanEqualsByteString refl (skipTerm base) _ _)
 ival sha2-256 = V-F (V-builtin sha2-256 refl base _ _)
 ival sha3-256 = V-F (V-builtin sha3-256 refl base _ _)
 ival verifySignature =

@@ -61,7 +61,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramVerifySignature          = "verifySignatureModel"
   , paramEqualsByteString         = "equalsByteStringModel"
   , paramLessThanByteString       = "lessThanByteStringModel"
-  , paramGreaterThanByteString    = "greaterThanByteStringModel"
+  , paramLessThanEqualsByteString = "lessThanEqualsByteStringModel"
   , paramIfThenElse               = "ifThenElseModel"
   , paramBlake2b                  = "blake2bModel"
   }
@@ -104,7 +104,7 @@ createBuiltinCostModel =
     paramVerifySignature          <- getParams verifySignature          paramVerifySignature
     paramEqualsByteString         <- getParams equalsByteString         paramEqualsByteString
     paramLessThanByteString       <- getParams lessThanByteString       paramLessThanByteString
-    paramGreaterThanByteString    <- getParams greaterThanByteString    paramGreaterThanByteString
+    paramLessThanEqualsByteString <- getParams lessThanEqualsByteString paramLessThanEqualsByteString
     paramIfThenElse               <- getParams ifThenElse               paramIfThenElse
     paramBlake2b                  <- getParams blake2b                  paramBlake2b
 
@@ -268,8 +268,8 @@ lessThanByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
-greaterThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanByteString = lessThanByteString
+lessThanEqualsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+lessThanEqualsByteString = lessThanByteString
 
 appendByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 appendByteString cpuModelR = do

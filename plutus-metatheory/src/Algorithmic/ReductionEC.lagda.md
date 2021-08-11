@@ -110,7 +110,7 @@ arity appendByteString = Term ∷ Term ∷ []
 arity takeByteString = Term ∷ Term ∷ []
 arity dropByteString = Term ∷ Term ∷ []
 arity lessThanByteString = Term ∷ Term ∷ []
-arity greaterThanByteString = Term ∷ Term ∷ []
+arity lessThanEqualsByteString = Term ∷ Term ∷ []
 arity sha2-256 = Term ∷ []
 arity sha3-256 = Term ∷ []
 arity verifySignature = Term ∷ Term ∷ Term ∷ []
@@ -416,7 +416,7 @@ BUILTIN dropByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(st
   con (bytestring (drop i b))
 BUILTIN lessThanByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (B< b b'))
-BUILTIN greaterThanByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN lessThanEqualsByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) = 
   con (bool (B> b b'))
 BUILTIN sha2-256 (step .(start (Term ∷ [])) base (V-con (bytestring b))) =
   con (bytestring (SHA2-256 b))
@@ -647,7 +647,7 @@ ival appendByteString = V-I⇒ appendByteString (start _) base
 ival takeByteString = V-I⇒ takeByteString (start _) base 
 ival dropByteString = V-I⇒ dropByteString (start _) base 
 ival lessThanByteString = V-I⇒ lessThanByteString (start _) base 
-ival greaterThanByteString = V-I⇒ greaterThanByteString (start _) base 
+ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString (start _) base 
 ival sha2-256 = V-I⇒ sha2-256 (start _) base 
 ival sha3-256 = V-I⇒ sha3-256 (start _) base 
 ival verifySignature = V-I⇒ verifySignature (start _) base 
@@ -848,12 +848,12 @@ bappTermLem lessThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q�
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 
-bappTermLem greaterThanByteString _ _ base = _ ,, _ ,, refl
-bappTermLem greaterThanByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+bappTermLem lessThanEqualsByteString _ _ base = _ ,, _ ,, refl
+bappTermLem lessThanEqualsByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem greaterThanByteString {as = .[]} (.(ibuiltin greaterThanByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+bappTermLem lessThanEqualsByteString {as = .[]} (.(ibuiltin lessThanEqualsByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
   | refl ,, refl = _ ,, _ ,, refl
-bappTermLem greaterThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTermLem lessThanEqualsByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTermLem sha2-256 {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
@@ -997,7 +997,7 @@ bappTypeLem lessThanByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p
 bappTypeLem lessThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem greaterThanByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
+bappTypeLem lessThanEqualsByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem greaterThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
