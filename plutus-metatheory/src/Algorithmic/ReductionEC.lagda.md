@@ -105,8 +105,6 @@ arity remainderInteger = Term ∷ Term ∷ []
 arity modInteger = Term ∷ Term ∷ []
 arity lessThanInteger = Term ∷ Term ∷ []
 arity lessThanEqualsInteger = Term ∷ Term ∷ []
-arity greaterThanInteger = Term ∷ Term ∷ []
-arity greaterThanEqualsInteger = Term ∷ Term ∷ []
 arity equalsInteger = Term ∷ Term ∷ []
 arity appendByteString = Term ∷ Term ∷ []
 arity takeByteString = Term ∷ Term ∷ []
@@ -406,14 +404,6 @@ BUILTIN lessThanEqualsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (st
   with i ≤? j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
-BUILTIN greaterThanInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
-  with i I>? j
-... | no ¬p = con (bool false)
-... | yes p = con (bool true)
-BUILTIN greaterThanEqualsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
-  with i I≥? j
-... | no ¬p = con (bool false)
-... | yes p = con (bool true)
 BUILTIN equalsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (integer j)))
   with i ≟ j
 ... | no ¬p = con (bool false)
@@ -652,8 +642,6 @@ ival remainderInteger = V-I⇒ remainderInteger (start _) base
 ival modInteger = V-I⇒ modInteger (start _) base 
 ival lessThanInteger = V-I⇒ lessThanInteger (start _) base 
 ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger (start _) base 
-ival greaterThanInteger = V-I⇒ greaterThanInteger (start _) base 
-ival greaterThanEqualsInteger = V-I⇒ greaterThanEqualsInteger (start _) base 
 ival equalsInteger = V-I⇒ equalsInteger (start _) base 
 ival appendByteString = V-I⇒ appendByteString (start _) base
 ival takeByteString = V-I⇒ takeByteString (start _) base 
@@ -818,22 +806,6 @@ bappTermLem lessThanEqualsInteger {as = .[]} (.(ibuiltin lessThanEqualsInteger) 
 bappTermLem lessThanEqualsInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem greaterThanInteger _ _ base = _ ,, _ ,, refl
-bappTermLem greaterThanInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem greaterThanInteger {as = .[]} (.(ibuiltin greaterThanInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem greaterThanInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTermLem greaterThanEqualsInteger _ _ base = _ ,, _ ,, refl
-bappTermLem greaterThanEqualsInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem greaterThanEqualsInteger {as = .[]} (.(ibuiltin greaterThanEqualsInteger) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem greaterThanEqualsInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
 bappTermLem equalsInteger _ _ base = _ ,, _ ,, refl
 bappTermLem equalsInteger {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -993,18 +965,6 @@ bappTypeLem lessThanEqualsInteger {as = as} .(_ · _) .(bubble p) (step {az = az
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem lessThanEqualsInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem greaterThanInteger {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem greaterThanInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem greaterThanEqualsInteger {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem greaterThanEqualsInteger {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem equalsInteger {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)

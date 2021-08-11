@@ -23,8 +23,6 @@ data Builtin : Set where
   modInteger               : Builtin
   lessThanInteger          : Builtin
   lessThanEqualsInteger    : Builtin
-  greaterThanInteger       : Builtin
-  greaterThanEqualsInteger : Builtin
   equalsInteger            : Builtin
   appendByteString         : Builtin
   takeByteString           : Builtin
@@ -49,8 +47,6 @@ data Builtin : Set where
                                           | ModInteger
                                           | LessThanInteger
                                           | LessThanEqualsInteger
-                                          | GreaterThanInteger
-                                          | GreaterThanEqualsInteger
                                           | EqualsInteger
                                           | AppendByteString
                                           | TakeByteString
@@ -114,8 +110,6 @@ postulate
 
 -- no binding needed for lessthan
 -- no binding needed for lessthaneq
--- no binding needed for greaterthan
--- no binding needed for greaterthaneq
 -- no binding needed for equals
 
 {-# COMPILE GHC concat = BS.append #-}

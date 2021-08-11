@@ -160,10 +160,6 @@ BUILTIN modInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i')))
   (inj₁ (V-con (integer (mod i i'))))
 BUILTIN lessThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN greaterThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I>? i')
-  (inj₁ (V-con (bool true)))
-  (inj₁ (V-con (bool false)))
-BUILTIN greaterThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
 BUILTIN takeByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (take i b)))
@@ -272,22 +268,6 @@ bappTermLem lessThanEqualsInteger {as = as} .(bubble p) (app {az = az} p q x)
 bappTermLem lessThanEqualsInteger {as = .[]} (bubble (start .(Term ∷ Term ∷ []))) (app {az = _} (start .(Term ∷ Term ∷ [])) base x)
   | refl ,, refl = _ ,, _ ,, refl
 bappTermLem lessThanEqualsInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTermLem greaterThanInteger _ base = _ ,, _ ,, refl
-bappTermLem greaterThanInteger {as = as} .(bubble p) (app {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem greaterThanInteger {as = .[]} (bubble (start .(Term ∷ Term ∷ []))) (app {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem greaterThanInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTermLem greaterThanEqualsInteger _ base = _ ,, _ ,, refl
-bappTermLem greaterThanEqualsInteger {as = as} .(bubble p) (app {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem greaterThanEqualsInteger {as = .[]} (bubble (start .(Term ∷ Term ∷ []))) (app {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem greaterThanEqualsInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTermLem equalsInteger _ base = _ ,, _ ,, refl
@@ -451,18 +431,6 @@ bappTypeLem lessThanEqualsInteger {as = as} .(bubble p) (app {az = az} p q x)
 bappTypeLem lessThanEqualsInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem greaterThanInteger {as = as} .(bubble p) (app {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, () 
-bappTypeLem greaterThanInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem greaterThanEqualsInteger {as = as} .(bubble p) (app {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, () 
-bappTypeLem greaterThanEqualsInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
 bappTypeLem equalsInteger {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, () 
@@ -594,8 +562,6 @@ ival remainderInteger = V-I⇒ remainderInteger _ base
 ival modInteger = V-I⇒ modInteger _ base
 ival lessThanInteger = V-I⇒ lessThanInteger _ base
 ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger _ base
-ival greaterThanInteger = V-I⇒ greaterThanInteger _ base
-ival greaterThanEqualsInteger = V-I⇒ greaterThanEqualsInteger _ base
 ival equalsInteger = V-I⇒ equalsInteger _ base
 ival appendByteString = V-I⇒ appendByteString _ base
 ival takeByteString = V-I⇒ takeByteString _ base
