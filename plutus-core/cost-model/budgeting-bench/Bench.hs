@@ -36,7 +36,6 @@ type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
 -- we've got a term and we evaluate it to get back the budget consumed, but then
 -- we throw that away and evaluate the term again.  This may have the effect of
 -- avoiding warmup, which could be a good thing.  Let's look into that.
--- benchWith :: Int -> String -> PlainTerm fun -> Benchmark
 benchWith
     :: (Ix fun, NFData fun, Pretty fun, Typeable fun)
     => MachineParameters CekMachineCosts CekValue DefaultUni fun
