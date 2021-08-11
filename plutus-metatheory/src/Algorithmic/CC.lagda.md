@@ -573,11 +573,6 @@ lemV .((_ · _) · _) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(Type �
 lemV (((ibuiltin ifThenElse ·⋆ A) · b) · t) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(arity ifThenElse))))) (step .(bubble (bubble (start (arity ifThenElse)))) (step .(bubble (start (arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base) vb) vt)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step* refl (step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· t)) (-· b))) (step** (lemV b vb (extEC (extEC E (-· t)) (_ ·-))) (step* (cong (stepV vb) (dissect-lemma (extEC E (-· t)) (_ ·-))) (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E _)) (step* (cong (stepV vt) (dissect-lemma E _)) base))))))))))
 lemV M (V-I⇒ ifThenElse {as' = as'} (bubble (bubble (bubble (bubble {as = as} p)))) q) E with <>>-cancel-both' as _ ([] <>< arity ifThenElse) _ p refl
 ... | X ,, () ,, Y'
-lemV .(ibuiltin charToString) (V-I⇒ charToString (start .(Term ∷ [])) base) E =
-  step* refl base
-lemV M (V-I⇒ charToString {as' = as'} (bubble {as = as} p) q) E with
-  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
-... | _ ,, () ,, _
 lemV .(ibuiltin append)
      (V-I⇒ append (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
@@ -645,8 +640,6 @@ lemV M (V-IΠ equalsByteString {as' = as'} (bubble p) q) E with <>>-cancel-both'
 lemV .(ibuiltin ifThenElse) (V-IΠ ifThenElse (start .(Type ∷ Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
 lemV M (V-IΠ ifThenElse {as' = as'} (bubble (bubble (bubble p))) q) E with <>>-cancel-both' _ (((([] ∷ _) ∷ _) ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
-lemV M (V-IΠ charToString {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
-... | X ,, Y ,, () 
 lemV M (V-IΠ append {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
 lemV M (V-IΠ trace {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl

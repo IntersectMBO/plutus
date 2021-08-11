@@ -25,6 +25,8 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
 
+import           Data.Text                               (Text)
+
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
 readMakeHetero
@@ -60,25 +62,25 @@ builtinRoundtrip genX = property $ do
         EvaluationFailure    -> fail "EvaluationFailure"
         EvaluationSuccess x' -> x === x'
 
-test_stringRoundtrip :: TestTree
-test_stringRoundtrip =
-    testProperty "stringRoundtrip" . builtinRoundtrip $
-        Gen.string (Range.linear 0 20) Gen.unicode
+test_textRoundtrip :: TestTree
+test_textRoundtrip =
+    testProperty "textRoundtrip" . builtinRoundtrip $
+        Gen.text (Range.linear 0 20) Gen.unicode
 
--- | Generate a bunch of 'String's, put each of them into a 'Term', apply a builtin over
+-- | Generate a bunch of 'text's, put each of them into a 'Term', apply a builtin over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
 -- the contents of an external 'IORef' and assemble all the resulting terms together in a single
 -- term where all characters are passed to lambdas and ignored, so that only 'unitval' is returned
 -- in the end.
 -- After evaluation of the CEK machine finishes, read the 'IORef' and check that you got the exact
--- same sequence of 'String's that was originally generated.
+-- same sequence of 'text's that was originally generated.
 -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only
 -- handle pure things and 'unsafePerformIO' is the way to pretend an effectful thing is pure.
-test_collectStrings :: TestTree
-test_collectStrings = testProperty "collectStrings" . property $ do
-    strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 20) Gen.unicode
+test_collectText :: TestTree
+test_collectText = testProperty "collectText" . property $ do
+    strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
     let step arg rest = mkIterApp () sequ
-            [ apply () (builtin () Trace) $ mkConstant @String @DefaultUni () arg
+            [ apply () (builtin () Trace) $ mkConstant @Text @DefaultUni () arg
             , rest
             ]
         term = foldr step unitval strs
@@ -94,12 +96,12 @@ test_noticeEvaluationFailure =
         isEvaluationFailure $ do
             _ <- readMake True
             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
-            readMake 'a'
+            readMake ("a"::Text)
 
 test_makeRead :: TestTree
 test_makeRead =
     testGroup "makeRead"
-        [ test_stringRoundtrip
-        , test_collectStrings
+        [ test_textRoundtrip
+        , test_collectText
         , test_noticeEvaluationFailure
         ]

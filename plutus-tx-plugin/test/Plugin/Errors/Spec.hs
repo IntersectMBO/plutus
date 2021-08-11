@@ -86,7 +86,5 @@ instance IsString AType where
 instance Eq AType where
     AType == AType = True
 
--- Unfortunately, this actually succeeds, since the match gets turned into an equality and we can actually inline it.
--- I'm leaving it here since I'd really prefer it were an error for consistency, but I'm not sure how to do that nicely.
 literalCaseOther :: CompiledCode (AType -> AType)
 literalCaseOther = plc (Proxy @"literalCaseOther") (\x -> case x of { "abc" -> ""; x -> x})

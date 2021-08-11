@@ -72,7 +72,6 @@ erase-arity-lem sha3-256 refl refl = refl
 erase-arity-lem verifySignature refl refl = refl
 erase-arity-lem equalsByteString refl refl = refl
 erase-arity-lem ifThenElse refl refl = refl
-erase-arity-lem charToString refl refl = refl
 erase-arity-lem append refl refl = refl
 erase-arity-lem trace refl refl = refl
 
@@ -164,7 +163,6 @@ erase-BUILTIN verifySignature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A
 erase-BUILTIN equalsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.false)) ,, t ,, tv) ,, u ,, uv) = refl
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.true)) ,, t ,, tv) ,, u ,, uv) = refl
-erase-BUILTIN charToString σ (tt ,, _ ,, A.V-con (char c)) = refl
 erase-BUILTIN append σ ((tt ,, _ ,, A.V-con (string s)) ,, _ ,, A.V-con (string s')) = refl
 erase-BUILTIN trace σ (tt ,, _ ,, A.V-con (string b)) = refl
 

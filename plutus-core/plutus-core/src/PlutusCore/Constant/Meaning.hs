@@ -37,6 +37,7 @@ import qualified Data.ByteString                         as BS
 import qualified Data.Kind                               as GHC
 import           Data.Proxy
 import           Data.Some.GADT
+import           Data.Text                               (Text)
 import           Data.Type.Bool
 import           Data.Type.Equality
 import           GHC.TypeLits
@@ -214,7 +215,7 @@ type instance ToBinds (x ': xs) = Merge (ToBinds x) (ToBinds xs)
 
 type instance ToBinds Integer       = '[]
 type instance ToBinds BS.ByteString = '[]
-type instance ToBinds Char          = '[]
+type instance ToBinds Text          = '[]
 type instance ToBinds ()            = '[]
 type instance ToBinds Bool          = '[]
 type instance ToBinds Int           = '[]

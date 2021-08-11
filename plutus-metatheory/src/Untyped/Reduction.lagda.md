@@ -81,7 +81,6 @@ arity sha3-256 = [] :< Term
 arity verifySignature = [] :< Term :< Term :< Term
 arity equalsByteString = [] :< Term :< Term
 arity ifThenElse = [] :< Type :< Term :< Term :< Term
-arity charToString = [] :< Term
 arity append = [] :< Term :< Term
 arity trace = [] :< Term
 
@@ -226,9 +225,6 @@ IBUILTIN ifThenElse
 IBUILTIN ifThenElse
   (((tt , (t , V-con (bool false))) , (t' , v')) , (t'' , v''))
   = _ , inl v''
-IBUILTIN charToString
-  (tt , (t , V-con (char c)))
-  = _ , inl (V-con (string (primStringFromList Data.List.[ c ])))
 IBUILTIN append
   ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
   = _ , inl (V-con (string (primStringAppend s s')))
@@ -383,7 +379,6 @@ ival verifySignature =
 ival equalsByteString = V-F (V-builtin equalsByteString refl (skipTerm base) _ _)
 ival ifThenElse =
   V-builtin⋆ ifThenElse refl (skipTerm (skipTerm (skipTerm base))) _ _
-ival charToString = V-F (V-builtin charToString refl base _ _)
 ival append = V-F (V-builtin append refl (skipTerm base) _ _)
 ival trace = V-F (V-builtin trace refl base _ _)
 

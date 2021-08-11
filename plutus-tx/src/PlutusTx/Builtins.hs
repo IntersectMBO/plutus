@@ -54,7 +54,6 @@ module PlutusTx.Builtins (
                                 , BuiltinString
                                 , appendString
                                 , emptyString
-                                , charToString
                                 , equalsString
                                 , encodeUtf8
                                 -- * Lists
@@ -72,8 +71,6 @@ import           PlutusTx.Builtins.Class
 import           PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
 import qualified PlutusTx.Builtins.Internal as BI
 
-import           Prelude                    hiding (String, error)
-
 {-# INLINABLE concatenate #-}
 -- | Concatenates two 'ByteString's.
 concatenate :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
@@ -82,12 +79,12 @@ concatenate = BI.concatenate
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-takeByteString n bs = BI.takeByteString (toBuiltin n) bs
+takeByteString n = BI.takeByteString (toBuiltin n)
 
 {-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = BI.dropByteString (toBuiltin n) bs
+dropByteString n = BI.dropByteString (toBuiltin n)
 
 {-# INLINABLE emptyByteString #-}
 -- | An empty 'ByteString'.
@@ -209,11 +206,6 @@ appendString = BI.appendString
 emptyString :: BuiltinString
 emptyString = BI.emptyString
 
-{-# INLINABLE charToString #-}
--- | Turn a 'Char' into a 'String'.
-charToString :: Char -> BuiltinString
-charToString c = BI.charToString (toBuiltin c)
-
 {-# INLINABLE equalsString #-}
 -- | Check if two strings are equal
 equalsString :: BuiltinString -> BuiltinString -> Bool
@@ -230,7 +222,7 @@ encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (\_ -> nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
 
 {-# INLINABLE chooseData #-}
 -- | Given five values for the five different constructors of 'BuiltinData', selects

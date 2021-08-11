@@ -15,15 +15,16 @@ import           Control.DeepSeq           (NFData)
 import qualified Crypto
 import qualified Data.ByteArray            as BA
 import           Data.ByteString           as BS
-import           Data.ByteString.Char8     as Char8
 import qualified Data.ByteString.Hash      as Hash
-import           Data.Coerce
+import           Data.Coerce               (coerce)
 import           Data.Hashable             (Hashable)
 import           Data.Maybe                (fromMaybe)
+import           Data.Text                 as Text (Text, empty)
+import           Data.Text.Encoding        as Text (decodeUtf8, encodeUtf8)
 import           Data.Text.Prettyprint.Doc (Pretty (..), viaShow)
 import           GHC.Generics              (Generic)
 import qualified PlutusCore.Data           as PLC
-import           PlutusTx.Utils
+import           PlutusTx.Utils            (mustBeReplaced)
 import           Prelude                   as Haskell
 
 {- Note [Builtin name definitions]
@@ -162,7 +163,7 @@ dropByteString n (BuiltinByteString b) = BuiltinByteString $ BS.drop (fromIntegr
 
 {-# NOINLINE emptyByteString #-}
 emptyByteString :: BuiltinByteString
-emptyByteString = BuiltinByteString $ BS.empty
+emptyByteString = BuiltinByteString BS.empty
 
 {-# NOINLINE sha2_256 #-}
 sha2_256 :: BuiltinByteString -> BuiltinByteString
@@ -195,31 +196,26 @@ greaterThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ (
 
 {-# NOINLINE decodeUtf8 #-}
 decodeUtf8 :: BuiltinByteString -> BuiltinString
-decodeUtf8 (BuiltinByteString b) = BuiltinString $ Char8.unpack b
+decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
 
 {-
 STRING
 -}
 
-type BuiltinChar = Char
-newtype BuiltinString = BuiltinString String
+newtype BuiltinString = BuiltinString Text
     deriving newtype (Show, Eq, Ord)
 
 {-# NOINLINE appendString #-}
 appendString :: BuiltinString -> BuiltinString -> BuiltinString
-appendString (BuiltinString s1) (BuiltinString s2) = BuiltinString (s1 ++ s2)
+appendString (BuiltinString s1) (BuiltinString s2) = BuiltinString (s1 <> s2)
 
 {-# NOINLINE emptyString #-}
 emptyString :: BuiltinString
-emptyString = BuiltinString ""
-
-{-# NOINLINE charToString #-}
-charToString :: BuiltinChar -> BuiltinString
-charToString c = BuiltinString $ [c]
+emptyString = BuiltinString Text.empty
 
 {-# NOINLINE equalsString #-}
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool
-equalsString (BuiltinString s1) (BuiltinString s2) = coerce $ ((==) @String) s1 s2
+equalsString (BuiltinString s1) (BuiltinString s2) = coerce $ ((==) @Text) s1 s2
 
 {-# NOINLINE trace #-}
 trace :: BuiltinString -> BuiltinUnit
@@ -227,7 +223,7 @@ trace _ = unitval
 
 {-# NOINLINE encodeUtf8 #-}
 encodeUtf8 :: BuiltinString -> BuiltinByteString
-encodeUtf8 (BuiltinString s) = BuiltinByteString $ Char8.pack s
+encodeUtf8 (BuiltinString s) = BuiltinByteString $ Text.encodeUtf8 s
 
 {-
 PAIR

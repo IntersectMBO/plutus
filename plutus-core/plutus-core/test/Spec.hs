@@ -150,13 +150,10 @@ genConstantForTest = Gen.frequency
     , (3,  someValue <$> Gen.bool)
     , (5,  someValue <$> Gen.integral (Range.linear (-k1) k1)) -- Smallish Integers
     , (5,  someValue <$> Gen.integral (Range.linear (-k2) k2)) -- Big Integers, generally not Ints
-    , (10, someValue <$> Gen.ascii)                            -- Character: 'c', '\n', '\SYN' etc.
-    , (3,  someValue <$> Gen.latin1)                           -- Character: ascii and '\128'..'\255'
-    , (3,  someValue <$> Gen.unicode)   -- Unicode character: typically '\857811' etc. Almost never generates anything readable.
-    , (10, someValue <$> Gen.string (Range.linear 0 100) Gen.ascii)    -- eg "\SOc_\t\GS'v\DC4FP@-pN`\na\SI\r"
-    , (3,  someValue <$> Gen.string (Range.linear 0 100) Gen.latin1)   -- eg "\246'X\b<\195]\171Y"
+    , (10, someValue <$> Gen.text (Range.linear 0 100) Gen.ascii)    -- eg "\SOc_\t\GS'v\DC4FP@-pN`\na\SI\r"
+    , (3,  someValue <$> Gen.text (Range.linear 0 100) Gen.latin1)   -- eg "\246'X\b<\195]\171Y"
     , (3,  someValue <$> Gen.utf8   (Range.linear 0 100) Gen.unicode)  -- eg "\243\190\180\141"
-    , (3,  someValue <$> Gen.string (Range.linear 0 100) Gen.unicode)  -- eg "\1108177\609033\384623"
+    , (3,  someValue <$> Gen.text (Range.linear 0 100) Gen.unicode)  -- eg "\1108177\609033\384623"
     , (10, someValue <$> Gen.bytes  (Range.linear 0 100))              -- Bytestring
     ]
     where k1 = 1000000 :: Integer

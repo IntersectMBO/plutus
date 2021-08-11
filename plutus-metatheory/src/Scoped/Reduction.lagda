@@ -60,7 +60,6 @@ ISIG sha3-256 = 0 , S Z
 ISIG verifySignature = 0 , S (S (S Z))
 ISIG equalsByteString = 0 , S (S Z)
 ISIG ifThenElse = 1 , S (S (S (T Z))) -- this may be in the wrong order
-ISIG charToString = 0 , S Z
 ISIG append = 0 , S (S Z)
 ISIG trace = 0 , S Z
 
@@ -144,8 +143,6 @@ IBUILTIN verifySignature (((_ , t , V-con (bytestring k)) , t' , V-con (bytestri
 IBUILTIN equalsByteString  ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b'))
 IBUILTIN ifThenElse (((_ , _ , V-con (bool true))  , t , _) , f , _) = t
 IBUILTIN ifThenElse (((_ , _ , V-con (bool false)) , t , _) , f , _) = f
-IBUILTIN charToString (_ , t , V-con (char c)) =
-  con (string (primStringFromList (c ∷ [])))
 IBUILTIN append ((_ , t , V-con (string s)) , t' , V-con (string s')) =
   con (string (primStringAppend s s'))
 IBUILTIN trace (_ , t , V-con (string s)) = con (Debug.trace s unit)
@@ -314,7 +311,6 @@ ival sha3-256 = V-builtin sha2-256 _ refl refl base _
 ival verifySignature = V-builtin verifySignature _ refl refl (skipS (skipS base)) _
 ival equalsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
 ival ifThenElse = V-builtin ifThenElse _ refl refl (skipS (skipS base)) _
-ival charToString = V-builtin charToString _ refl refl base _
 ival append = V-builtin append _ refl refl (skipS base) _
 ival trace = V-builtin trace _ refl refl base _
 

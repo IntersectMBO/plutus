@@ -26,10 +26,11 @@ import           PlutusCore.Pretty
 import           Control.DeepSeq
 import           Crypto
 import qualified Data.ByteString                                as BS
-import qualified Data.ByteString.Char8                          as BSC
 import qualified Data.ByteString.Hash                           as Hash
 import           Data.Char
 import           Data.Ix
+import           Data.Text                                      (Text)
+import           Data.Text.Encoding                             (decodeUtf8, encodeUtf8)
 import           Data.Word                                      (Word8)
 import           Flat
 import           Flat.Decoder
@@ -61,7 +62,6 @@ data DefaultFun
     | LessThanByteString
     | GreaterThanByteString
     | IfThenElse
-    | CharToString
     | Append
     | EqualsString
     | EncodeUtf8
@@ -211,29 +211,25 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
        makeBuiltinMeaning
             (\b x y -> if b then x else y)
             (runCostingFunThreeArguments . paramIfThenElse)
-    toBuiltinMeaning CharToString =
-        makeBuiltinMeaning
-            (pure :: Char -> String)
-            mempty  -- TODO: budget.
     toBuiltinMeaning Append =
         makeBuiltinMeaning
-            ((++) :: String -> String -> String)
+            ((<>) :: Text -> Text -> Text)
             mempty  -- TODO: budget.
     toBuiltinMeaning EqualsString =
         makeBuiltinMeaning
-            ((==) @String)
+            ((==) @Text)
             mempty  -- TODO: budget.
     toBuiltinMeaning EncodeUtf8 =
         makeBuiltinMeaning
-            (BSC.pack :: String -> BS.ByteString)
+            (encodeUtf8 :: Text -> BS.ByteString)
             mempty  -- TODO: budget.
     toBuiltinMeaning DecodeUtf8 =
         makeBuiltinMeaning
-            (BSC.unpack :: BS.ByteString -> String)
+            (decodeUtf8 :: BS.ByteString -> Text)
             mempty  -- TODO: budget.
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (emit :: String -> Emitter ())
+            (emit :: Text -> Emitter ())
             mempty  -- TODO: budget.
     toBuiltinMeaning FstPair = makeBuiltinMeaning fstPlc mempty where
         fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
@@ -402,7 +398,6 @@ instance Flat DefaultFun where
               LessThanByteString       -> 19
               GreaterThanByteString    -> 20
               IfThenElse               -> 21
-              CharToString             -> 22
               Append                   -> 23
               Trace                    -> 24
               -- 25 unused
@@ -459,7 +454,6 @@ instance Flat DefaultFun where
               go 19 = pure LessThanByteString
               go 20 = pure GreaterThanByteString
               go 21 = pure IfThenElse
-              go 22 = pure CharToString
               go 23 = pure Append
               go 24 = pure Trace
               -- 25-27 unused

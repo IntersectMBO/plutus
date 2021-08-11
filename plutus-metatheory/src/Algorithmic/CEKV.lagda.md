@@ -181,7 +181,6 @@ BUILTIN verifySignature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con
 BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (equals b b')))
 BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₁ vf
 BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₁ vt
-BUILTIN charToString (app _ base (V-con (char c))) = inj₁ (V-con (string (primStringFromList Data.List.[ c ])))
 BUILTIN append (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
 BUILTIN trace (app _ base (V-con (string s))) =
   inj₁ (V-con (Debug.trace s unit))
@@ -380,8 +379,6 @@ bappTermLem ifThenElse {as = as} .(bubble (bubble (bubble p))) (app⋆ .(bubble 
 ... | refl ,, refl ,, ()
 bappTermLem ifThenElse {as = as} .(bubble (bubble (bubble p))) (app⋆ .(bubble (bubble p)) (app⋆ .(bubble p) (app⋆ {az = az} p q q₃) q₂) q₁) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem charToString {az = az} {as} p q with <>>-cancel-both az ([] ∷ Term) as p
-bappTermLem charToString {az = .[]} {.[]} .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem append _ base = _ ,, _ ,, refl
 bappTermLem append {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -542,9 +539,6 @@ bappTypeLem ifThenElse {as = as} .(bubble (bubble (bubble p))) (app⋆ .(bubble 
 ... | refl ,, refl ,, ()
 bappTypeLem ifThenElse {as = as} .(bubble (bubble (bubble p))) (app⋆ .(bubble (bubble p)) (app⋆ .(bubble p) (app⋆ {az = az} p q q₃) q₂) q₁) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Type) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem charToString {az = az} {as} p q
-  with <>>-cancel-both' az ([] ∷ Type) ([] ∷ Term) as p refl
-... | refl ,, refl ,, ()
 bappTypeLem append {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, () 
@@ -613,7 +607,6 @@ ival sha3-256 = V-I⇒ sha3-256 _ base
 ival verifySignature = V-I⇒ verifySignature _ base
 ival equalsByteString = V-I⇒ equalsByteString _ base
 ival ifThenElse = V-IΠ ifThenElse _ base
-ival charToString = V-I⇒ charToString _ base
 ival append = V-I⇒ append _ base
 ival trace = V-I⇒ trace _ base
 

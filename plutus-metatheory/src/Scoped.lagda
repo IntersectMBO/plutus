@@ -12,7 +12,6 @@ open import Data.String hiding (_<_)
 open import Data.Unit
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.Bool using (Bool)
-open import Data.Char using (Char)
 open import Data.Product using (_×_;_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.Sum using (_⊎_;inj₁)
@@ -50,7 +49,6 @@ arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 arity ifThenElse = 3
-arity charToString = 1
 arity append = 2
 arity trace = 1
 
@@ -213,7 +211,6 @@ data TermCon : Set where
   bytestring : (b : ByteString) → TermCon
   string     : (s : String) → TermCon
   bool       : (b : Bool) → TermCon
-  char       : (c : Char) → TermCon
   unit       : TermCon
 
 Tel : ∀{n} → Weirdℕ n → ℕ → Set
@@ -247,7 +244,6 @@ deBruijnifyC (integer i)    = integer i
 deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string s)     = string s
 deBruijnifyC (bool b)       = bool b
-deBruijnifyC (char c)       = char c
 deBruijnifyC unit           = unit
 
 postulate
@@ -348,7 +344,6 @@ unDeBruijnifyC (integer i)    = integer i
 unDeBruijnifyC (bytestring b) = bytestring b
 unDeBruijnifyC (string s)     = string s
 unDeBruijnifyC (bool b)       = bool b
-unDeBruijnifyC (char c)       = char c
 unDeBruijnifyC unit           = unit
 \end{code}
 
