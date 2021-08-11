@@ -282,7 +282,7 @@ benchVerifySignature =
    subtract the costs of those from the time recorded for the real builtins.
    Experiments show that the time taken to evaluate these doesn't depend on the
    types or the sizes of the arguments, so we just use functions which consume a
-   number of integer arguments and return a cosntant integer. -}
+   number of integer arguments and return a constant integer. -}
 
 -- There seems to be quite a lot of variation in repeated runs of these benchmarks.
 
