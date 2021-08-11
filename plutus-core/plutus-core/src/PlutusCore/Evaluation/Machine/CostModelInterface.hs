@@ -3,6 +3,7 @@
 
 module PlutusCore.Evaluation.Machine.CostModelInterface
     ( CostModelParams
+    , CekMachineCosts
     , extractCostModelParams
     , applyCostModelParams
     )
@@ -10,7 +11,7 @@ where
 
 import           PlutusCore.Evaluation.Machine.BuiltinCostModel           ()
 import           PlutusCore.Evaluation.Machine.MachineParameters          (CostModel (..))
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (cekMachineCostsPrefix)
+import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts, cekMachineCostsPrefix)
 
 import           Data.Aeson
 import           Data.Aeson.Flatten

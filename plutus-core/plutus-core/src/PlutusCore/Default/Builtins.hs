@@ -96,11 +96,6 @@ data DefaultFun
     | MkNilPairData
     | MkCons
     | Blake2b_256
-    -- ## ANY NEW BUILTINS SHOULD BE ADDED BEFORE THIS LINE ##
-    -- TODO. These are only used for costing calibration and shouldn't be included in the defaults.
-    | Nop1
-    | Nop2
-    | Nop3
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
 instance Pretty DefaultFun where
@@ -240,21 +235,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (emit :: String -> Emitter ())
             mempty  -- TODO: budget.
-    toBuiltinMeaning Nop1 =
-        makeBuiltinMeaning
-            @(Integer -> ())
-            mempty
-            mempty
-    toBuiltinMeaning Nop2 =
-        makeBuiltinMeaning
-            @(Integer -> Integer -> ())
-            mempty
-            mempty
-    toBuiltinMeaning Nop3 =
-        makeBuiltinMeaning
-            @(Integer -> Integer -> Integer -> ())
-            mempty
-            mempty
     toBuiltinMeaning FstPair = makeBuiltinMeaning fstPlc mempty where
         fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
         fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
@@ -425,9 +405,9 @@ instance Flat DefaultFun where
               CharToString             -> 22
               Append                   -> 23
               Trace                    -> 24
-              Nop1                     -> 25
-              Nop2                     -> 26
-              Nop3                     -> 27
+              -- 25 unused
+              -- 26 unused
+              -- 27 unused
               EqualsString             -> 28
               EncodeUtf8               -> 29
               DecodeUtf8               -> 30
@@ -482,9 +462,7 @@ instance Flat DefaultFun where
               go 22 = pure CharToString
               go 23 = pure Append
               go 24 = pure Trace
-              go 25 = pure Nop1
-              go 26 = pure Nop2
-              go 27 = pure Nop3
+              -- 25-27 unused
               go 28 = pure EqualsString
               go 29 = pure EncodeUtf8
               go 30 = pure DecodeUtf8
