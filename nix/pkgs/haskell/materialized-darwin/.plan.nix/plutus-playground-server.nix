@@ -49,7 +49,6 @@
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."file-embed" or (errorHandler.buildDepError "file-embed"))
-          (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."freer-extras" or (errorHandler.buildDepError "freer-extras"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
@@ -64,7 +63,6 @@
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-          (hsPkgs."process" or (errorHandler.buildDepError "process"))
           (hsPkgs."regex-compat" or (errorHandler.buildDepError "regex-compat"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
@@ -75,7 +73,6 @@
           (hsPkgs."servant-client-core" or (errorHandler.buildDepError "servant-client-core"))
           (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
-          (hsPkgs."temporary" or (errorHandler.buildDepError "temporary"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
@@ -114,7 +111,6 @@
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."insert-ordered-containers" or (errorHandler.buildDepError "insert-ordered-containers"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
@@ -123,7 +119,6 @@
             (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
@@ -168,7 +163,6 @@
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-playground-server" or (errorHandler.buildDepError "plutus-playground-server"))
             (hsPkgs."plutus-playground-server".components.sublibs.plutus-playground-usecases or (errorHandler.buildDepError "plutus-playground-server:plutus-playground-usecases"))
-            (hsPkgs."prometheus" or (errorHandler.buildDepError "prometheus"))
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
             (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
             (hsPkgs."servant-foreign" or (errorHandler.buildDepError "servant-foreign"))
@@ -178,15 +172,12 @@
             (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."wai" or (errorHandler.buildDepError "wai"))
-            (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
-            (hsPkgs."wai-extra" or (errorHandler.buildDepError "wai-extra"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
             (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
-            (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [

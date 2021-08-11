@@ -139,10 +139,8 @@ library
         template-haskell -any,
         text -any,
         transformers -any,
-        transformers-base -any,
         unordered-containers -any,
         uuid -any,
-        warp -any,
         IntervalMap -any,
         QuickCheck -any,
 

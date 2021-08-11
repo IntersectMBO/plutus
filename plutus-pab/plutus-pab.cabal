@@ -42,7 +42,6 @@ common lang
     ghc-options:
         -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
         -Wincomplete-record-updates -Wredundant-constraints -Widentities
-        -Wunused-packages
         -fobject-code -fno-ignore-interface-pragmas
         -fno-omit-interface-pragmas
 
@@ -54,6 +53,8 @@ library
     import:             lang
     build-tool-depends:
         cardano-node:cardano-node -any, cardano-cli:cardano-cli -any
+    ghc-options:
+        -Wunused-packages
 
     exposed-modules:
         Cardano.Api.NetworkId.Extra
@@ -150,8 +151,6 @@ library
         contra-tracer -any,
         cryptonite -any,
         cborg -any,
-        directory -any,
-        errors -any,
         freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
@@ -177,7 +176,6 @@ library
         plutus-ledger-api -any,
         purescript-bridge -any,
         prettyprinter >=1.1.0.1,
-        process -any,
         quickcheck-instances -any,
         random -any,
         row-types -any,
@@ -186,7 +184,6 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
-        swagger2 -any,
         tagged -any,
         typed-protocols -any,
         typed-protocols-examples -any,
@@ -483,9 +480,7 @@ executable tx-inject
         plutus-pab,
         containers -any,
         clock -any,
-        deepseq -any,
         http-client -any,
-        http-conduit -any,
         lens -any,
         mwc-random -any,
         optparse-applicative -any,
@@ -499,8 +494,7 @@ executable tx-inject
         stm -any,
         text -any,
         time-units -any,
-        yaml -any,
-        data-default -any
+        yaml -any
 
 executable sync-client
     import: lang
@@ -513,10 +507,6 @@ executable sync-client
         cardano-slotting -any,
         either -any,
         optparse-applicative -any,
-        ouroboros-consensus-byron -any,
-        ouroboros-consensus-cardano -any,
-        ouroboros-consensus-shelley -any,
-        ouroboros-network -any,
         plutus-ledger,
         plutus-pab,
         text

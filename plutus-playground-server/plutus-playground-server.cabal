@@ -66,7 +66,6 @@ library
         data-default -any,
         exceptions -any,
         file-embed -any,
-        filepath -any,
         freer-extras -any,
         http-client -any,
         http-client-tls -any,
@@ -81,7 +80,6 @@ library
         plutus-contract -any,
         plutus-ledger -any,
         plutus-tx -any,
-        process -any,
         regex-compat -any,
         recursion-schemes -any,
         plutus-contract -any,
@@ -92,7 +90,6 @@ library
         servant-client-core -any,
         servant-purescript -any,
         servant-server -any,
-        temporary -any,
         template-haskell -any,
         text -any,
         time -any,
@@ -135,7 +132,6 @@ library plutus-playground-usecases
         lens -any,
         bytestring -any,
         containers -any,
-        insert-ordered-containers -any,
         mtl -any,
         playground-common -any,
         plutus-contract -any,
@@ -144,7 +140,6 @@ library plutus-playground-usecases
         recursion-schemes -any,
         row-types -any,
         text -any,
-        time-units -any,
         transformers -any
 
     if !(impl(ghcjs) || os(ghcjs))
@@ -178,7 +173,6 @@ executable plutus-playground-server
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wno-missing-import-lists -Wredundant-constraints -O0
-                 -Wunused-packages
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
@@ -202,7 +196,6 @@ executable plutus-playground-server
         plutus-tx -any,
         plutus-playground-server -any,
         plutus-playground-usecases -any,
-        prometheus >=2,
         purescript-bridge -any,
         servant -any,
         servant-foreign -any,
@@ -212,15 +205,12 @@ executable plutus-playground-server
         time-units -any,
         transformers -any,
         wai -any,
-        wai-cors -any,
-        wai-extra -any,
         plutus-contract -any,
         plutus-ledger -any,
         recursion-schemes -any,
         row-types -any,
         warp -any,
-        web-ghc -any,
-        yaml -any
+        web-ghc -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -238,7 +228,6 @@ test-suite plutus-playground-server-test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wno-missing-import-lists -Wredundant-constraints
-                 -Wunused-packages
                  -fprint-potential-instances
     build-depends:
         aeson -any,

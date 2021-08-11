@@ -48,10 +48,7 @@ library
         containers -any,
         data-default -any,
         deriving-compat -any,
-        directory -any,
         exceptions -any,
-        filepath -any,
-        file-embed -any,
         hashable -any,
         http-client -any,
         http-client-tls -any,
@@ -73,13 +70,11 @@ library
         plutus-tx -any,
         purescript-bridge -any,
         recursion-schemes < 5.2,
-        safe-exceptions -any,
         servant >= 0.16,
         servant-client -any,
         servant-purescript -any,
         servant-server -any,
         servant-websockets -any,
-        temporary -any,
         template-haskell -any,
         text -any,
         time -any,
@@ -88,7 +83,6 @@ library
         transformers -any,
         unordered-containers -any,
         wai -any,
-        wl-pprint-text -any,
         freer-simple -any,
         uuid -any,
         streaming -any,
@@ -109,7 +103,7 @@ test-suite playground-common-test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wmissing-import-lists -Wredundant-constraints
-                 -fprint-potential-instances  -Wunused-packages
+                 -fprint-potential-instances
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -123,5 +117,4 @@ test-suite playground-common-test
         plutus-ledger -any,
         plutus-contract -any,
         recursion-schemes < 5.2,
-        text -any,
-        wl-pprint-text -any
+        text -any

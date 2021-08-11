@@ -62,14 +62,13 @@ executable fake-pab-server
         PSGenerator
     hs-source-dirs: app
     default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wunused-packages
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
     build-depends:
         aeson -any,
         base -any,
         bytestring -any,
         http-client -any,
-        http-client-tls -any,
         http-types -any,
         lens -any,
         fake-pab -any,
@@ -80,7 +79,6 @@ executable fake-pab-server
         playground-common -any,
         plutus-ledger-api -any,
         postgresql-simple -any,
-        prometheus >=2,
         purescript-bridge -any,
         resource-pool -any,
         optparse-applicative -any,
@@ -89,10 +87,7 @@ executable fake-pab-server
         servant-server -any,
         text -any,
         utf8-string -any,
-        uuid -any,
         wai -any,
-        wai-cors -any,
-        wai-extra -any,
         warp -any
 
 test-suite fake-pab-test
