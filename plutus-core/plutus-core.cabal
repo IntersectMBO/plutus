@@ -476,7 +476,9 @@ benchmark cost-model-budgeting-bench
     import: lang
     type: exitcode-stdio-1.0
     main-is: Bench.hs
-    other-modules: Nops
+    other-modules:
+        CriterionExtensions
+        Nops
     hs-source-dirs: cost-model/budgeting-bench
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
@@ -486,9 +488,12 @@ benchmark cost-model-budgeting-bench
         base -any,
         bytestring -any,
         criterion -any,
+        criterion-measurement -any,
         deepseq -any,
         directory -any,
         hedgehog -any,
+        mtl -any,
+        optparse-applicative -any,
         random -any
 
 
