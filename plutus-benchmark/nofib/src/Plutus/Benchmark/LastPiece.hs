@@ -15,7 +15,6 @@
 module Plutus.Benchmark.LastPiece where
 
 import           Data.Char          (isSpace)
-import           Data.Text          (Text, singleton)
 import           PlutusCore.Default
 import qualified PlutusCore.Pretty  as PLC
 import           PlutusTx           as PlutusTx
@@ -30,7 +29,7 @@ type Offset  = (Integer, Integer)
 type Square  = (Integer, Integer)
      -- (1,1) is bottom LH corner
 
-type PieceId = Text
+type PieceId = Tx.BuiltinString
 
 type Board = [(Square, PieceId)]  -- Was Map.Map Square PieceId
 
@@ -190,7 +189,7 @@ fromJust (Just x) = x
 
 {-# INLINABLE initialBoard #-}
 initialBoard :: Board
-initialBoard = fromJust (fit emptyBoard (1,1) (singleton 'a') [(1,0),(1,1)])
+initialBoard = fromJust (fit emptyBoard (1,1) "a" [(1,0),(1,1)])
 
 {-# INLINABLE initialPieces #-}
 initialPieces :: [Piece]
@@ -200,46 +199,46 @@ initialPieces = [bPiece, cPiece, dPiece, ePiece, fPiece,
 
 {-# INLINABLE nPiece #-}
 nPiece :: Piece
-nPiece = P (singleton 'n') [ [(0,1),(1,1),(2,1),(2,2)],
+nPiece = P "n" [ [(0,1),(1,1),(2,1),(2,2)],
                  [(1,0),(1,-1),(1,-2),(2,-2)] ]
                []
 
 {-# INLINABLE mPiece #-}
 mPiece :: Piece
-mPiece = P (singleton 'm') [ [(0,1),(1,0),(2,0),(3,0)] ]
+mPiece = P "m" [ [(0,1),(1,0),(2,0),(3,0)] ]
                [ [(0,1),(0,2),(0,3),(1,3)],
                  [(1,0),(2,0),(3,0),(3,-1)] ]
 
 {-# INLINABLE lPiece #-}
 lPiece :: Piece
-lPiece = P (singleton 'l') [ [(0,1),(0,2),(0,3),(1,2)],
+lPiece = P "l" [ [(0,1),(0,2),(0,3),(1,2)],
                  [(1,0),(2,0),(3,0),(2,-1)] ]
                [ [(1,-1),(1,0),(1,1),(1,2)],
                  [(1,0),(2,0),(3,0),(1,1)] ]
 
 {-# INLINABLE kPiece #-}
 kPiece :: Piece
-kPiece = P (singleton 'k') [ [(0,1),(1,0),(2,0),(2,-1)] ]
+kPiece = P "k" [ [(0,1),(1,0),(2,0),(2,-1)] ]
                [ [(1,0),(1,1),(1,2),(2,2)] ]
 
 
 {-# INLINABLE jPiece #-}
 jPiece :: Piece
-jPiece = P (singleton 'j') [ [(0,1),(0,2),(0,3),(1,1)],
+jPiece = P "j" [ [(0,1),(0,2),(0,3),(1,1)],
                  [(1,0),(2,0),(3,0),(1,-1)],
                  [(1,-2),(1,-1),(1,0),(1,1)] ]
                [ [(1,0),(2,0),(3,0),(2,2)] ]
 
 {-# INLINABLE iPiece #-}
 iPiece :: Piece
-iPiece = P (singleton 'i') [ [(1,0),(2,0),(2,1),(3,1)],
+iPiece = P "i" [ [(1,0),(2,0),(2,1),(3,1)],
                  [(0,1),(0,2),(1,0),(1,-1)],
                  [(1,0),(1,1),(2,1),(3,1)] ]
                [ [(0,1),(1,0),(1,-1),(1,-2)] ]
 
 {-# INLINABLE hPiece #-}
 hPiece :: Piece
-hPiece = P (singleton 'h') [ [(0,1),(1,1),(1,2),(2,2)],
+hPiece = P "h" [ [(0,1),(1,1),(1,2),(2,2)],
                  [(1,0),(1,-1),(2,-1),(2,-2)],
                  [(1,0),(1,1),(2,1),(2,2)] ]
                [ [(0,1),(1,0),(1,-1),(2,-1)] ]
@@ -247,7 +246,7 @@ hPiece = P (singleton 'h') [ [(0,1),(1,1),(1,2),(2,2)],
 
 {-# INLINABLE gPiece #-}
 gPiece :: Piece
-gPiece = P (singleton 'g') [ ]
+gPiece = P "g" [ ]
                [ [(0,1),(1,1),(1,2),(1,3)],
                  [(1,0),(1,-1),(2,-1),(3,-1)],
                  [(0,1),(0,2),(1,2),(1,3)],
@@ -255,7 +254,7 @@ gPiece = P (singleton 'g') [ ]
 
 {-# INLINABLE fPiece #-}
 fPiece :: Piece
-fPiece = P (singleton 'f') [ [(0,1),(1,1),(2,1),(3,1)],
+fPiece = P "f" [ [(0,1),(1,1),(2,1),(3,1)],
                  [(1,0),(1,-1),(1,-2),(1,-3)],
                  [(1,0),(2,0),(3,0),(3,1)] ]
                [ [(0,1),(0,2),(0,3),(1,0)] ]
@@ -263,21 +262,21 @@ fPiece = P (singleton 'f') [ [(0,1),(1,1),(2,1),(3,1)],
 
 {-# INLINABLE ePiece #-}
 ePiece :: Piece
-ePiece = P (singleton 'e') [ [(0,1),(1,1),(1,2)],
+ePiece = P "e" [ [(0,1),(1,1),(1,2)],
                  [(1,0),(1,-1),(2,-1)] ]
                [ [(0,1),(1,1),(1,2)],
                  [(1,0),(1,-1),(2,-1)] ]
 
 {-# INLINABLE dPiece #-}
 dPiece :: Piece
-dPiece = P (singleton 'd') [ [(0,1),(1,1),(2,1)],
+dPiece = P "d" [ [(0,1),(1,1),(2,1)],
                  [(1,0),(1,-1),(1,-2)] ]
                [ [(1,0),(2,0),(2,1)] ]
 
 
 {-# INLINABLE cPiece #-}
 cPiece :: Piece
-cPiece = P (singleton 'c') [ ]
+cPiece = P "c" [ ]
                [ [(0,1),(0,2),(1,1)],
                  [(1,0),(1,-1),(2,0)],
                  [(1,-1),(1,0),(1,1)],
@@ -285,7 +284,7 @@ cPiece = P (singleton 'c') [ ]
 
 {-# INLINABLE bPiece #-}
 bPiece :: Piece
-bPiece = P (singleton 'b')  [ [(0,1),(0,2),(1,2)],
+bPiece = P "b"  [ [(0,1),(0,2),(1,2)],
                   [(1,0),(2,0),(2,-1)],
                   [(0,1),(1,0),(2,0)] ]
                 [ [(1,0),(1,1),(1,2)] ]
