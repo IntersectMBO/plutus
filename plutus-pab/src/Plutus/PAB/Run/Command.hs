@@ -11,6 +11,7 @@
 module Plutus.PAB.Run.Command
     ( ConfigCommand(..)
     , NoConfigCommand(..)
+    , allServices
     ) where
 
 import qualified Data.Aeson   as JSON
@@ -34,6 +35,18 @@ data ConfigCommand =
           }
     deriving stock (Show, Eq, Generic)
     deriving anyclass JSON.ToJSON
+
+
+-- | A single command to the PAB that spins up all the necessary services.
+allServices :: ConfigCommand
+allServices =
+  ForkCommands
+    [ StartMockNode
+    , ChainIndex
+    , MockWallet
+    , PABWebserver
+    ]
+
 
 data NoConfigCommand =
     PSGenerator -- ^ Generate purescript bridge code
