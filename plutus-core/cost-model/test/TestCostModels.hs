@@ -85,17 +85,9 @@ prop_lessThanInteger :: Property
 prop_lessThanInteger =
     testPredictTwo lessThanInteger (getConst . paramLessThanInteger)
 
-prop_greaterThanInteger :: Property
-prop_greaterThanInteger =
-    testPredictTwo greaterThanInteger (getConst . paramGreaterThanInteger)
-
 prop_lessThanEqualsInteger :: Property
 prop_lessThanEqualsInteger =
     testPredictTwo lessThanEqualsInteger (getConst . paramLessThanEqualsInteger)
-
-prop_greaterThanEqualsInteger :: Property
-prop_greaterThanEqualsInteger =
-    testPredictTwo greaterThanEqualsInteger (getConst . paramGreaterThanEqualsInteger)
 
 prop_equalsInteger :: Property
 prop_equalsInteger =
