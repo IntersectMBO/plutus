@@ -33,11 +33,12 @@ import Humanize (getTimezoneOffset)
 import MainFrame.Lenses (_currentSlot, _dashboardState, _subState, _toast, _tzOffset, _webSocketStatus, _welcomeState)
 import MainFrame.Types (Action(..), ChildSlots, Msg, Query(..), State, WebSocketStatus(..))
 import MainFrame.View (render)
+import Marlowe.Client (LastResult(..), MarloweError(..))
 import Marlowe.PAB (PlutusAppId)
 import Plutus.PAB.Webserver.Types (CombinedWSStreamToClient(..), InstanceStatusToClient(..))
 import Toast.State (defaultState, handleAction) as Toast
 import Toast.Types (Action, State) as Toast
-import Toast.Types (decodedAjaxErrorToast, decodingErrorToast)
+import Toast.Types (decodedAjaxErrorToast, decodingErrorToast, errorToast, successToast)
 import WalletData.Lenses (_assets, _companionAppId, _marloweAppId, _previousCompanionAppState, _wallet, _walletInfo)
 import WebSocket.Support as WS
 import Welcome.Lenses (_walletLibrary)
@@ -144,10 +145,12 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               let
                 marloweAppId = view (_walletDetails <<< _marloweAppId) dashboardState
               -- if this is the wallet's MarloweApp...
-              if (plutusAppId == marloweAppId) then
-                -- TODO: in the future the Marlowe app's state will change when there is an error, and we can
-                -- use this to show feedback to the user
-                pure unit
+              if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
+                Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
+                Right lastResult -> case lastResult of
+                  OK -> addToast $ successToast "all okay"
+                  SomeError marloweError -> addToast $ errorToast "something went wrong" Nothing
+                  Unknown -> pure unit
               -- otherwise this should be one of the wallet's WalletFollowerApps
               else case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError

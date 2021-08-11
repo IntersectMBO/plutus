@@ -1290,6 +1290,12 @@ instance encodeMarloweData :: Encode MarloweData where
 instance decodeMarloweData :: Decode MarloweData where
   decode a = genericDecode defaultOptions a
 
+_marloweContract :: Lens' MarloweData Contract
+_marloweContract = _Newtype <<< prop (SProxy :: SProxy "marloweContract")
+
+_marloweState :: Lens' MarloweData State
+_marloweState = _Newtype <<< prop (SProxy :: SProxy "marloweState")
+
 newtype MarloweParams
   = MarloweParams
   { rolePayoutValidatorHash :: ValidatorHash
@@ -1297,6 +1303,8 @@ newtype MarloweParams
   }
 
 derive instance eqMarloweParams :: Eq MarloweParams
+
+derive instance ordMarloweParams :: Ord MarloweParams
 
 derive instance newtypeMarloweParams :: Newtype MarloweParams _
 
@@ -1307,6 +1315,12 @@ instance encodeMarloweParams :: Encode MarloweParams where
 
 instance decodeMarloweParams :: Decode MarloweParams where
   decode a = genericDecode defaultOptions a
+
+_rolePayoutValidatorHash :: Lens' MarloweParams ValidatorHash
+_rolePayoutValidatorHash = _Newtype <<< prop (SProxy :: SProxy "rolePayoutValidatorHash")
+
+_rolesCurrency :: Lens' MarloweParams CurrencySymbol
+_rolesCurrency = _Newtype <<< prop (SProxy :: SProxy "rolesCurrency")
 
 type ValidatorHash
   = String

@@ -55,12 +55,12 @@ import Foreign (MultipleErrors)
 import Foreign.Generic (decodeJSON)
 import Halogen (HalogenM, liftAff)
 import MainFrame.Types (Msg)
-import Marlowe.PAB (ContractHistory, MarloweData, MarloweParams, PlutusAppId(..))
-import Marlowe.Semantics (Assets(..), Contract, TokenName, TransactionInput(..), asset, emptyState)
+import Marlowe.Client (ContractHistory(..))
+import Marlowe.PAB (PlutusAppId(..))
+import Marlowe.Semantics (Assets(..), Contract, MarloweData(..), MarloweParams(..), TokenName, TransactionInput(..), _rolePayoutValidatorHash, asset, emptyState)
 import MarloweContract (MarloweContract(..))
 import Plutus.PAB.Webserver.Types (ContractInstanceClientState)
 import Plutus.V1.Ledger.Crypto (PubKeyHash) as Back
-import Plutus.V1.Ledger.Value (CurrencySymbol(..))
 import Plutus.V1.Ledger.Value (TokenName) as Back
 import PlutusTx.AssocMap (Map) as Back
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
@@ -168,11 +168,11 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
               -- simpler, but it turned out to lead to a complication (see note [PendingContracts] in Dashboard.State).
               -- I'm not going to change it now though, because this LocalStorage stuff is temporary anyway, and will
               -- be removed when the PAB is working fully.
-              mUuid = parseUUID marloweParams.rolePayoutValidatorHash
+              mUuid = parseUUID $ view _rolePayoutValidatorHash marloweParams
 
               followAppId = PlutusAppId $ fromMaybe uuid mUuid
 
-              observableState = { chParams: Just (marloweParams /\ marloweData), chHistory: transactionInputs }
+              observableState = ContractHistory { chParams: Just (marloweParams /\ marloweData), chHistory: transactionInputs }
             pure $ Right $ followAppId /\ observableState
           Nothing -> pure $ Left $ Left $ AjaxError { request: defaultRequest, description: NotFound }
   -- create a MarloweFollower app and return its PlutusAppId, but don't call its "follow" endpoint
@@ -210,11 +210,11 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
             uuid <- liftEffect genUUID
             let
               -- See note [MarloweParams] above.
-              mUuid = parseUUID marloweParams.rolePayoutValidatorHash
+              mUuid = parseUUID $ view _rolePayoutValidatorHash marloweParams
 
               correctedFollowerAppId = PlutusAppId $ fromMaybe uuid mUuid
 
-              observableState = { chParams: Just (marloweParams /\ marloweData), chHistory: transactionInputs }
+              observableState = ContractHistory { chParams: Just (marloweParams /\ marloweData), chHistory: transactionInputs }
             pure $ Right $ correctedFollowerAppId /\ observableState
           Nothing -> pure $ Left $ Left $ AjaxError { request: defaultRequest, description: NotFound }
   -- "create" a Marlowe contract on the blockchain
@@ -239,14 +239,16 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
         uuid <- liftEffect genUUID
         let
           marloweParams =
-            { rolePayoutValidatorHash: toString uuid
-            , rolesCurrency: CurrencySymbol { unCurrencySymbol: toString uuid }
-            }
+            MarloweParams
+              { rolePayoutValidatorHash: toString uuid
+              , rolesCurrency: toString uuid
+              }
 
           marloweData =
-            { marloweContract: contract
-            , marloweState: emptyState zero
-            }
+            MarloweData
+              { marloweContract: contract
+              , marloweState: emptyState zero
+              }
         void $ insertContract marloweParams (marloweData /\ mempty)
         void $ insertWalletRoleContracts (view (_walletInfo <<< _pubKey) walletDetails) marloweParams marloweData
         let
@@ -386,12 +388,18 @@ instance monadMarloweAppM :: ManageMarlowe AppM where
           roleContractsToHistory marloweParams marloweData =
             let
               -- See note [MarloweParams] above.
-              mUuid = parseUUID marloweParams.rolePayoutValidatorHash
+              mUuid = parseUUID $ view _rolePayoutValidatorHash marloweParams
 
               mTransactionInputs = map snd $ lookup marloweParams allContracts
             in
               case mUuid, mTransactionInputs of
-                Just uuid, Just transactionInputs -> Just $ PlutusAppId uuid /\ { chParams: Just $ marloweParams /\ marloweData, chHistory: transactionInputs }
+                Just uuid, Just transactionInputs ->
+                  let
+                    plutusAppId = PlutusAppId uuid
+
+                    contractHistory = ContractHistory { chParams: Just $ marloweParams /\ marloweData, chHistory: transactionInputs }
+                  in
+                    Just $ plutusAppId /\ contractHistory
                 _, _ -> Nothing
         pure $ Right $ fromFoldable $ values $ mapMaybeWithKey roleContractsToHistory roleContracts
   subscribeToPlutusApp dataProvider plutusAppId = Websocket.subscribeToContract $ toBack plutusAppId
