@@ -15,13 +15,15 @@ let
       (import ./overlays/nixpkgs-overrides.nix)
       # fix r-modules
       (import ./overlays/r.nix)
+      # stdenv.lib is still needed by the pinned version of easy purescipt
+      (final: prev: { stdenv = prev.stdenv // { inherit (final) lib; }; })
     ];
 
   iohkNixMain = import sources.iohk-nix { };
 
   extraOverlays =
     # Haskell.nix (https://github.com/input-output-hk/haskell.nix)
-    haskellNix.overlays
+    haskellNix.nixpkgsArgs.overlays
     # our own overlays:
     # needed for cardano-api wich uses a patched libsodium
     ++ iohkNixMain.overlays.crypto
@@ -34,7 +36,7 @@ let
     # which breaks flake's pure evaluation.
     localSystem = { inherit system; };
     overlays = extraOverlays ++ overlays;
-    config = haskellNix.config // config;
+    config = haskellNix.nixpkgsArgs.config // config;
   };
 
   plutus = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };

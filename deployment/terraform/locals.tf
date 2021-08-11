@@ -29,11 +29,12 @@ locals {
   bastion_ssh_keys_ks = {
     alpha      = ["pablo", "shlevy", "ci-deployer"]
     pablo      = ["pablo"]
-    production = ["pablo", "shelvy", "ci-deployer"]
-    playground = ["pablo", "shelvy"]
-    testing    = ["pablo", "shelvy", "bozhidar", "dimitar"]
+    production = ["pablo", "shlevy", "ci-deployer"]
+    playground = ["pablo", "shlevy"]
+    testing    = ["pablo", "shlevy", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     staging    = ["pablo", "shlevy", "ci-deployer"]
+    bitte_match = ["shlevy", "ci-deployer"]
   }
   bastion_ssh_keys = [for k in local.bastion_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
@@ -41,10 +42,11 @@ locals {
   root_ssh_keys_ks = {
     alpha      = ["pablo", "shlevy", "ci-deployer"]
     pablo      = ["pablo"]
-    production = ["pablo", "shelvy", "ci-deployer"]
-    testing    = ["pablo", "shelvy", "bozhidar", "dimitar"]
+    production = ["pablo", "shlevy", "ci-deployer"]
+    testing    = ["pablo", "shlevy", "bozhidar", "dimitar"]
     hernan     = ["hernan"]
     staging    = ["pablo", "shlevy", "ci-deployer"]
+    bitte_match = ["shlevy", "ci-deployer"]
   }
   root_ssh_keys = [for k in local.root_ssh_keys_ks[var.env] : local.ssh_keys[k]]
 
