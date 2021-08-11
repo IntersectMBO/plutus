@@ -67,7 +67,7 @@ rec {
       inherit haskell plutus-pab;
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit webCommon webCommonMarlowe;
-    }) client server-setup-invoker marlowe-invoker generated-purescript generate-purescript;
+    }) client server-setup-invoker marlowe-invoker generated-purescript generate-purescript start-backend;
   };
 
   marlowe-dashboard-fake-pab = pkgs.recurseIntoAttrs rec {
