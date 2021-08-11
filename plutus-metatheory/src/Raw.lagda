@@ -7,7 +7,6 @@ open import Data.String using (String;_++_)
 open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
 open import Data.Integer.Show
-open import Data.Char using (Char)
 open import Data.Unit using (⊤)
 
 open import Builtin.Constant.Type
@@ -42,7 +41,6 @@ data RawTermCon : Set where
   bytestring : ByteString → RawTermCon
   string     : String → RawTermCon
   bool       : Bool → RawTermCon
-  char       : Char → RawTermCon
   unit       : RawTermCon
 
 data RawTm : Set where
@@ -66,7 +64,6 @@ decRTyCon : (C C' : TyCon) → Bool
 decRTyCon integer integer = true
 decRTyCon bytestring bytestring = true
 decRTyCon string     string     = true
-decRTyCon char       char       = true
 decRTyCon unit       unit       = true
 decRTyCon bool       bool       = true
 decRTyCon _          _          = false
@@ -86,7 +83,6 @@ decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
 ... | yes p = true
 ... | no ¬p = false
 decTermCon unit unit = true
--- TODO: char?
 decTermCon _ _ = false
 
 decBuiltin : (b b' : Builtin) → Bool
@@ -239,7 +235,7 @@ decRTm (unwrap t) (unwrap t') | true = true
 decRTm (unwrap t) (unwrap t') | false = false
 decRTm _ _ = false
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConChar | RConUnit) #-}
+{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConUnit) #-}
 {-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 {-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
