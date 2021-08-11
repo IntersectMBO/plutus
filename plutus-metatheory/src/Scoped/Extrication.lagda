@@ -109,7 +109,6 @@ lemma⋆ sha3-256 = refl
 lemma⋆ verifySignature = refl
 lemma⋆ equalsByteString = refl
 lemma⋆ ifThenElse = refl
-lemma⋆ charToString = refl
 lemma⋆ append = refl
 lemma⋆ trace = refl
 
@@ -136,7 +135,6 @@ lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
-lemma charToString = refl
 lemma append = refl
 lemma trace = refl
 

@@ -110,7 +110,6 @@ nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
 nfTypeSIG≡₁ equalsByteString = refl
 nfTypeSIG≡₁ ifThenElse = refl
-nfTypeSIG≡₁ charToString = refl
 nfTypeSIG≡₁ append = refl
 nfTypeSIG≡₁ trace = refl
 
@@ -164,7 +163,6 @@ nfTypeSIG≡₂ sha3-256 = refl
 nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ equalsByteString = refl
 nfTypeSIG≡₂ ifThenElse = refl
-nfTypeSIG≡₂ charToString = refl
 nfTypeSIG≡₂ append = refl
 nfTypeSIG≡₂ trace = refl
 
@@ -191,7 +189,6 @@ nfTypeSIG≡₃ sha3-256 = refl
 nfTypeSIG≡₃ verifySignature = refl
 nfTypeSIG≡₃ equalsByteString = refl
 nfTypeSIG≡₃ ifThenElse = refl
-nfTypeSIG≡₃ charToString = refl
 nfTypeSIG≡₃ append = refl
 nfTypeSIG≡₃ trace = refl
 
@@ -236,7 +233,6 @@ lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList equalsByteString = refl
 lemList ifThenElse = refl
-lemList charToString = refl
 lemList append = refl
 lemList trace = refl
 

@@ -168,12 +168,6 @@ SIG ifThenElse =
   ` Z ∷ ` Z ∷ con bool ∷ []
   ,,
   ` Z
-SIG charToString =
-  ∅
-  ,,
-  con char ∷ []
-  ,,
-  con string
 SIG append =
   ∅
   ,,

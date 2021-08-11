@@ -36,7 +36,6 @@ data Builtin : Set where
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
-  charToString             : Builtin
   append                   : Builtin
   trace                    : Builtin
 
@@ -63,7 +62,6 @@ data Builtin : Set where
                                           | VerifySignature
                                           | EqualsByteString
                                           | IfThenElse
-                                          | CharToString
                                           | Append
                                           | Trace
                                           ) #-}
@@ -135,7 +133,6 @@ postulate
 -- no binding needed for equalsByteString
 {-# COMPILE GHC empty = BS.empty #-}
 
--- no binding needed for charToStr
 -- no binding needed for appendStr
 -- no binding needed for traceStr
 

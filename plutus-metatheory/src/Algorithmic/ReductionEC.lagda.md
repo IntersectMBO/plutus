@@ -118,7 +118,6 @@ arity sha3-256 = Term ∷ []
 arity verifySignature = Term ∷ Term ∷ Term ∷ []
 arity equalsByteString = Term ∷ Term ∷ []
 arity ifThenElse = Type ∷ Term ∷ Term ∷ Term ∷ []
-arity charToString = Term ∷ []
 arity append = Term ∷ Term ∷ []
 arity trace = Term ∷ []
 
@@ -440,8 +439,6 @@ BUILTIN equalsByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(
   con (bool (equals b b'))
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool true))) t) f) = deval t
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool false))) t) f) = deval f
-BUILTIN charToString (step .(start (Term ∷ [])) base (V-con (char c))) =
-  con (string (primStringFromList List.[ c ]))
 BUILTIN append (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) = 
   con (string (primStringAppend s s'))
 BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
@@ -668,7 +665,6 @@ ival sha3-256 = V-I⇒ sha3-256 (start _) base
 ival verifySignature = V-I⇒ verifySignature (start _) base 
 ival equalsByteString = V-I⇒ equalsByteString (start _) base 
 ival ifThenElse = V-IΠ ifThenElse (start _) base 
-ival charToString = V-I⇒ charToString (start _) base 
 ival append = V-I⇒ append (start _) base 
 ival trace = V-I⇒ trace (start _) base 
 
@@ -927,8 +923,6 @@ bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubb
 ... | refl ,, refl ,, ()
 bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₃ x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem charToString {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
-bappTermLem charToString {az = .[]} {.[]} .(ibuiltin charToString) .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem append _ _ base = _ ,, _ ,, refl
 bappTermLem append {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -1088,9 +1082,6 @@ bappTypeLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubb
 bappTypeLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step {az = az} p q x₂) q₂ x₁) q₁ x)  with <>>-cancel-both' az (((([] ∷ Term) ∷ Type) ∷ Type) ∷ Type) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₃ x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Type) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem charToString {az = az} {as} M p q
-  with <>>-cancel-both' az ([] ∷ Type) ([] ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem append {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl

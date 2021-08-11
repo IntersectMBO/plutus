@@ -109,7 +109,6 @@ decBuiltin sha2-256 sha2-256 = true
 decBuiltin sha3-256 sha3-256 = true
 decBuiltin verifySignature verifySignature = true
 decBuiltin equalsByteString equalsByteString = true
-decBuiltin chatToString charToString = true
 decBuiltin append append = true
 decBuiltin trace trace = true
 decBuiltin _ _ = false
