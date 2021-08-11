@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
@@ -10,28 +11,37 @@
 
 module Spec.Marlowe.Util where
 
+import           Control.Monad                                     (when)
 import           Data.Aeson                                        as Aeson (decode)
-import           Data.Aeson.Types                                  hiding (Success)
-import           Data.ByteString.Lazy.UTF8                         as BLU hiding (length)
+import           Data.Aeson.Types                                  (FromJSON, Value (Array, Number, Object, String))
+import           Data.ByteString.Lazy.UTF8                         as BLU (fromString)
 import           Data.Foldable                                     (forM_)
-import           Data.HashMap.Strict                               as HashMap
-import           Data.List                                         as List
+import           Data.HashMap.Strict                               as HashMap ((!))
+import           Data.List                                         as List (length, notElem)
 import           Data.List.Extra                                   (replace)
-import           Data.Map                                          as Map hiding (null)
+import           Data.Map                                          as Map (Map, lookup, map, toList, (!))
 import           Data.Maybe                                        (fromJust)
-import           Data.Scientific
+import           Data.Scientific                                   (toRealFloat)
 import           Data.Text                                         (unpack)
-import           Data.Time
-import           Data.Vector                                       as Vector hiding (dropWhile, forM_, takeWhile, (++))
+import           Data.Time                                         (Day, defaultTimeLocale, parseTimeM)
+import           Data.Vector                                       as Vector (map, toList)
 import           GHC.Generics                                      (Generic)
-import           Language.Marlowe.ACTUS.Analysis
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms
-import           Language.Marlowe.ACTUS.Definitions.Schedule
-import           Test.Tasty.HUnit
+import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (DataObserved, EventType,
+                                                                    ValueObserved (ValueObserved, timestamp, value),
+                                                                    ValuesObserved (ValuesObserved, identifier, values))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (BDC, CR, CT, Calendar, ContractTerms (..),
+                                                                    Cycle (..),
+                                                                    DCC (DCC_A_360, DCC_A_365, DCC_A_AISDA, DCC_E30_360),
+                                                                    EOMC, FEB, IPCB, PPEF, PRF, PYTP, Period, SCEF,
+                                                                    ScheduleConfig (ScheduleConfig, bdc, calendar, eomc),
+                                                                    Stub (..), setDefaultContractTermValues)
+import           Language.Marlowe.ACTUS.Definitions.Schedule       (CashFlow (CashFlow, amount, cashEvent, cashPaymentDay))
+import           Test.Tasty.HUnit                                  (assertBool)
+
 
 data TestResult = TestResult{
-  eventDate             :: String
+    eventDate           :: String
   , eventType           :: String
   , payoff              :: Double
   , currency            :: String
@@ -55,29 +65,24 @@ data TestCase = TestCase{
 
 assertTestResultsFromFile :: [String] -> FilePath -> IO ()
 assertTestResultsFromFile excludedTestCases fileName = do
-  pamTests <- readFile fileName
-  let byteStringTests = BLU.fromString pamTests
+  testCases <- readFile fileName
+  let byteStringTests = BLU.fromString testCases
   let Just decodedTests = Aeson.decode byteStringTests :: Maybe (Map String TestCase)
   forM_ (Map.toList decodedTests) $ \(_, decodedTestCase@TestCase{ identifier = identifier, results = results, dataObserved = dataObserved }) ->
-    do
-      if not $ List.elem identifier excludedTestCases then
-        let cashFlows = genProjectedCashflows (parseObservedValues dataObserved) (setDefaultContractTermValues $ testToContractTerms $ decodedTestCase)
-        in
-          assertTestResults cashFlows results identifier
-      else
-        return ()
+    when (List.notElem identifier excludedTestCases) $
+      let testcase = testToContractTerms decodedTestCase
+          contract = setDefaultContractTermValues testcase
+          observed = parseObservedValues dataObserved
+          cashFlows = genProjectedCashflows observed contract
+       in assertTestResults cashFlows results identifier
 
 termsToString :: Map String Value -> Map String String
-termsToString terms =
-  Map.map (\(term) ->
-          case term of
-            String t ->
-              unpack t
-            Number t ->
-              show (toRealFloat t :: Double)) terms
+termsToString = Map.map (\case
+  String t -> unpack t
+  Number t -> show (toRealFloat t :: Double))
 
 parseObservedValues :: Map String Value -> DataObserved
-parseObservedValues dataObserved =
+parseObservedValues =
   Map.map(\(Object valuesObserved) ->
     let String identifier = valuesObserved HashMap.! "identifier"
         Array values = valuesObserved HashMap.! "data"
@@ -91,15 +96,14 @@ parseObservedValues dataObserved =
             in
               ValueObserved{
                 timestamp = fromJust $ parseMaybeDate $ Just $ unpack timestamp
-              , value = (read (unpack value)) :: Double
+              , value = read (unpack value) :: Double
               }
           ) values
       }
-  ) dataObserved
+  )
 
 assertTestResults :: [CashFlow] -> [TestResult] -> String -> IO ()
 assertTestResults [] [] _ = return ()
-
 assertTestResults (cashFlow: restCash) (testResult: restTest) identifier = do
   assertTestResult cashFlow testResult identifier
   assertTestResults restCash restTest identifier
@@ -157,7 +161,7 @@ testToContractTerms TestCase{terms = terms} =
      , ct_SCIED         = readMaybe $ Map.lookup "scalingIndexAtStatusDate" terms' :: Maybe Double
      , ct_SCANX         = parseMaybeDate $ Map.lookup "cycleAnchorDateOfScalingIndex" terms'
      , ct_SCCL          = parseMaybeCycle $ Map.lookup "cycleOfScalingIndex" terms'
-     , ct_SCEF          = readMaybe (maybeReplace "O" "0" (maybeConcatPrefix "SCEF_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
+     , ct_SCEF          = readMaybe (maybeReplace "O" "0" (maybeConcatPrefix "SE_" (Map.lookup "scalingEffect" terms'))) :: Maybe SCEF
      , ct_SCCDD         = readMaybe $ Map.lookup "scalingIndexAtContractDealDate" terms' :: Maybe Double
      , ct_SCMO          = Map.lookup "marketObjectCodeOfScalingIndex" terms'
      , ct_OPCL          = parseMaybeCycle $ Map.lookup "cycleOfOptionality" terms'
@@ -176,21 +180,16 @@ testToContractTerms TestCase{terms = terms} =
      , ct_RRLC          = readMaybe $ Map.lookup "lifeCap" terms' :: Maybe Double
      , ct_RRLF          = readMaybe $ Map.lookup "lifeFloor" terms' :: Maybe Double
      , ct_RRMO          = Map.lookup "marketObjectCodeOfRateReset" terms'
-     , enableSettlement          = False
+     , enableSettlement = False
      , constraints      = Nothing
      , collateralAmount = 0
      }
 
 readMaybe :: (Read a) => Maybe String -> Maybe a
-readMaybe term = fmap (read) term
+readMaybe = fmap read
 
 parseMaybeDate :: Maybe String -> Maybe Day
-parseMaybeDate date =
-  case date of
-    Just d ->
-      parseDate d
-    Nothing ->
-      Nothing
+parseMaybeDate = maybe Nothing parseDate
 
 parseDate :: String -> Maybe Day
 parseDate date =
@@ -211,33 +210,20 @@ parseMaybeCycle stringCycle =
       Nothing
 
 parseStub :: String -> Stub
-parseStub stub =
-  case stub of
-    "0" ->
-      LongStub
-    "1" ->
-      ShortStub
+parseStub "0" = LongStub
+parseStub "1" = ShortStub
 
 maybeDCCFromString :: Maybe String -> Maybe DCC
-maybeDCCFromString stringDCC =
-  case stringDCC of
-    Just dcc ->
-      case dcc of
-        "AA" ->
-          Just DCC_A_AISDA
-        "A360" ->
-          Just DCC_A_360
-        "A365" ->
-          Just DCC_A_365
-        "30E360" ->
-          Just DCC_E30_360
-        _ ->
-          Nothing
-    Nothing ->
-      Nothing
+maybeDCCFromString dcc =
+  let parseDCC "AA"     = Just DCC_A_AISDA
+      parseDCC "A360"   = Just DCC_A_360
+      parseDCC "A365"   = Just DCC_A_365
+      parseDCC "30E360" = Just DCC_E30_360
+      parseDCC _        = Nothing
+  in dcc >>= parseDCC
 
 maybeConcatPrefix :: String -> Maybe String -> Maybe String
-maybeConcatPrefix prefix term = fmap (prefix ++) term
+maybeConcatPrefix prefix = fmap (prefix ++)
 
 maybeReplace :: String -> String -> Maybe String -> Maybe String
-maybeReplace from to string = fmap (replace from to) string
+maybeReplace from to = fmap (replace from to)
