@@ -148,6 +148,7 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
               if (plutusAppId == marloweAppId) then case runExcept $ decodeJSON $ unwrap rawJson of
                 Left decodingError -> addToast $ decodingErrorToast "Failed to parse contract update." decodingError
                 Right lastResult -> case lastResult of
+                  -- FIXME: unpack these updates properly and respond appropriately in each case
                   OK -> addToast $ successToast "all okay"
                   SomeError marloweError -> addToast $ errorToast "something went wrong" Nothing
                   Unknown -> pure unit
