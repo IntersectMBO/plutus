@@ -172,8 +172,9 @@ data Assertion = NpvAssertionAgainstZeroRiskBond
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-
-
+{-| ACTUS contract terms and attributes are defined in
+    https://github.com/actusfrf/actus-dictionary/blob/master/actus-dictionary-terms.json
+-}
 data ContractTerms = ContractTerms
   { -- General
     contractId       :: String
