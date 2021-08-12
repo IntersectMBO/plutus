@@ -3593,6 +3593,11 @@
                     )
                     (termbind
                       (strict)
+                      (vardecl fToDataVoid_ctoBuiltinData (fun Void (con data)))
+                      (lam v Void [ { absurd (con data) } v ])
+                    )
+                    (termbind
+                      (strict)
                       (vardecl fEqTxOutRef_c (fun TxOutRef (fun TxOutRef Bool)))
                       (lam
                         l
@@ -10879,10 +10884,7 @@
                                                                                                   }
                                                                                                   Void
                                                                                                 }
-                                                                                                {
-                                                                                                  absurd
-                                                                                                  (con data)
-                                                                                                }
+                                                                                                fToDataVoid_ctoBuiltinData
                                                                                               ]
                                                                                               newConstraints
                                                                                             ]
