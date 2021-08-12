@@ -22,6 +22,7 @@ module PlutusIR.Compiler (
     coDoSimplifierUnwrapCancel,
     coDoSimplifierBeta,
     coDoSimplifierInline,
+    coProfile,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -166,7 +167,7 @@ compileToReadable =
     >=> through check
 
 -- | The 2nd half of the PIR compiler pipeline.
--- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language construsts to PLC.
+-- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
 -- Note: the result *does* have globally unique names.
 compileReadableToPlc :: (Compiling m e uni fun a, b ~ Provenance a) => Term TyName Name uni fun b -> m (PLCTerm uni fun a)
 compileReadableToPlc =

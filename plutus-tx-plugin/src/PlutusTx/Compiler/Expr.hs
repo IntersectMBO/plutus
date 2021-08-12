@@ -11,6 +11,7 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
+import qualified PlutusTx.Builtins             as Builtins
 import           PlutusTx.Compiler.Binders
 import           PlutusTx.Compiler.Builtins
 import           PlutusTx.Compiler.Error
@@ -20,8 +21,6 @@ import           PlutusTx.Compiler.Type
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
 import           PlutusTx.PIRTypes
-
-import qualified PlutusTx.Builtins             as Builtins
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import qualified PlutusTx.Builtins.Class       as Builtins
 
@@ -405,7 +404,13 @@ hoistExpr var t =
                     (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
                     mempty
 
-                t' <- compileExpr t
+                CompileContext {ccOpts=profileOpts} <- ask
+                t' <-
+                    if coProfile profileOpts==All then do
+                        t'' <- compileExpr t
+                        return $ Builtins.trace "entering x" (\() -> Builtins.trace "exiting x" t'') ()
+                    else compileExpr t
+                    -- TODO add Some option
 
                 -- See Note [Non-strict let-bindings]
                 let strict = PIR.isPure (const PIR.NonStrict) t'
@@ -540,7 +545,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         l `GHC.App` arg -> PIR.Apply () <$> compileExpr l <*> compileExpr arg
         -- if we're biding a type variable it's a type abstraction
         GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
-        -- othewise it's a normal lambda
+        -- otherwise it's a normal lambda
         GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
 
         GHC.Let (GHC.NonRec b arg) body -> do
