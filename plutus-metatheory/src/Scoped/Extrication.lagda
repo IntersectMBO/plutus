@@ -106,7 +106,7 @@ lemma⋆ sha3-256 = refl
 lemma⋆ verifySignature = refl
 lemma⋆ equalsByteString = refl
 lemma⋆ ifThenElse = refl
-lemma⋆ append = refl
+lemma⋆ appendString = refl
 lemma⋆ trace = refl
 
 lemma : ∀ b → Data.List.length (proj₁ (proj₂ (SIG b))) ≡ arity b
@@ -130,7 +130,7 @@ lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
-lemma append = refl
+lemma appendString = refl
 lemma trace = refl
 
 ≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n

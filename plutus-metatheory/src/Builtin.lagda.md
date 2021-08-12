@@ -34,7 +34,7 @@ data Builtin : Set where
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
-  append                   : Builtin
+  appendString             : Builtin
   trace                    : Builtin
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
@@ -58,7 +58,7 @@ data Builtin : Set where
                                           | VerifySignature
                                           | EqualsByteString
                                           | IfThenElse
-                                          | Append
+                                          | AppendString
                                           | Trace
                                           ) #-}
 ```

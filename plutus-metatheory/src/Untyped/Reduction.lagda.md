@@ -79,7 +79,7 @@ arity sha3-256 = [] :< Term
 arity verifySignature = [] :< Term :< Term :< Term
 arity equalsByteString = [] :< Term :< Term
 arity ifThenElse = [] :< Type :< Term :< Term :< Term
-arity append = [] :< Term :< Term
+arity appendString = [] :< Term :< Term
 arity trace = [] :< Term
 
 data _≤L_ : Bwd Label → Bwd Label → Set where
@@ -213,7 +213,7 @@ IBUILTIN ifThenElse
 IBUILTIN ifThenElse
   (((tt , (t , V-con (bool false))) , (t' , v')) , (t'' , v''))
   = _ , inl v''
-IBUILTIN append
+IBUILTIN appendString
   ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
   = _ , inl (V-con (string (primStringAppend s s')))
 IBUILTIN trace
@@ -363,7 +363,7 @@ ival verifySignature =
 ival equalsByteString = V-F (V-builtin equalsByteString refl (skipTerm base) _ _)
 ival ifThenElse =
   V-builtin⋆ ifThenElse refl (skipTerm (skipTerm (skipTerm base))) _ _
-ival append = V-F (V-builtin append refl (skipTerm base) _ _)
+ival appendString = V-F (V-builtin appendString refl (skipTerm base) _ _)
 ival trace = V-F (V-builtin trace refl base _ _)
 
 progress : (t : 0 ⊢) → Progress t

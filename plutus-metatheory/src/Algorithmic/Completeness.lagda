@@ -107,7 +107,7 @@ nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
 nfTypeSIG≡₁ equalsByteString = refl
 nfTypeSIG≡₁ ifThenElse = refl
-nfTypeSIG≡₁ append = refl
+nfTypeSIG≡₁ appendString = refl
 nfTypeSIG≡₁ trace = refl
 
 lemσ : ∀{Γ Δ Δ'}
@@ -158,7 +158,7 @@ nfTypeSIG≡₂ sha3-256 = refl
 nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ equalsByteString = refl
 nfTypeSIG≡₂ ifThenElse = refl
-nfTypeSIG≡₂ append = refl
+nfTypeSIG≡₂ appendString = refl
 nfTypeSIG≡₂ trace = refl
 
 nfTypeSIG≡₃ : (bn : Builtin) → length (proj₁ (proj₂ (SSig.SIG bn))) ≡ length (proj₁ (proj₂ (NSig.SIG bn)))
@@ -182,7 +182,7 @@ nfTypeSIG≡₃ sha3-256 = refl
 nfTypeSIG≡₃ verifySignature = refl
 nfTypeSIG≡₃ equalsByteString = refl
 nfTypeSIG≡₃ ifThenElse = refl
-nfTypeSIG≡₃ append = refl
+nfTypeSIG≡₃ appendString = refl
 nfTypeSIG≡₃ trace = refl
 
 open import Builtin.Constant.Type
@@ -224,7 +224,7 @@ lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList equalsByteString = refl
 lemList ifThenElse = refl
-lemList append = refl
+lemList appendString = refl
 lemList trace = refl
 
 postulate itype-lem : ∀ {Φ} b → Norm.itype {Φ} b ≡ nf (Syn.itype b)

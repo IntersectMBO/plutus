@@ -47,7 +47,7 @@ arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 arity ifThenElse = 3
-arity append = 2
+arity appendString = 2
 arity trace = 1
 
 arity⋆ : Builtin → ℕ

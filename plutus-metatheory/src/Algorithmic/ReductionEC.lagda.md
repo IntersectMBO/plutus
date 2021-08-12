@@ -116,7 +116,7 @@ arity sha3-256 = Term ∷ []
 arity verifySignature = Term ∷ Term ∷ Term ∷ []
 arity equalsByteString = Term ∷ Term ∷ []
 arity ifThenElse = Type ∷ Term ∷ Term ∷ Term ∷ []
-arity append = Term ∷ Term ∷ []
+arity appendString = Term ∷ Term ∷ []
 arity trace = Term ∷ []
 
 data Bwd (A : Set) : Set where
@@ -429,7 +429,7 @@ BUILTIN equalsByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(
   con (bool (equals b b'))
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool true))) t) f) = deval t
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool false))) t) f) = deval f
-BUILTIN append (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) =
+BUILTIN appendString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
 BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
 
@@ -653,7 +653,7 @@ ival sha3-256 = V-I⇒ sha3-256 (start _) base
 ival verifySignature = V-I⇒ verifySignature (start _) base 
 ival equalsByteString = V-I⇒ equalsByteString (start _) base 
 ival ifThenElse = V-IΠ ifThenElse (start _) base 
-ival append = V-I⇒ append (start _) base 
+ival appendString = V-I⇒ appendString (start _) base 
 ival trace = V-I⇒ trace (start _) base 
 
 lemma∷1 : ∀{A}(as as' : List A) → [] <>> as ∈ as' → as ≡ as'
@@ -895,12 +895,12 @@ bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubb
 ... | refl ,, refl ,, ()
 bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₃ x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem append _ _ base = _ ,, _ ,, refl
-bappTermLem append {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+bappTermLem appendString _ _ base = _ ,, _ ,, refl
+bappTermLem appendString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem append {as = .[]} (.(ibuiltin append) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+bappTermLem appendString {as = .[]} (.(ibuiltin appendString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
   | refl ,, refl = _ ,, _ ,, refl
-bappTermLem append {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTermLem appendString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTermLem trace {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
@@ -1043,10 +1043,10 @@ bappTypeLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubb
 ... | refl ,, refl ,, ()
 bappTypeLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₃ x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Type) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem append {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
+bappTypeLem appendString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem append {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTypeLem appendString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem trace {az = az} {as} M p q

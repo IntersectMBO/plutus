@@ -70,7 +70,7 @@ erase-arity-lem sha3-256 refl refl = refl
 erase-arity-lem verifySignature refl refl = refl
 erase-arity-lem equalsByteString refl refl = refl
 erase-arity-lem ifThenElse refl refl = refl
-erase-arity-lem append refl refl = refl
+erase-arity-lem appendString refl refl = refl
 erase-arity-lem trace refl refl = refl
 
 eraseITel : ∀ b {Φ}(Δ : Ctx Φ)(σ : SubNf Φ ∅)
@@ -155,7 +155,7 @@ erase-BUILTIN verifySignature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A
 erase-BUILTIN equalsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.false)) ,, t ,, tv) ,, u ,, uv) = refl
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.true)) ,, t ,, tv) ,, u ,, uv) = refl
-erase-BUILTIN append σ ((tt ,, _ ,, A.V-con (string s)) ,, _ ,, A.V-con (string s')) = refl
+erase-BUILTIN appendString σ ((tt ,, _ ,, A.V-con (string s)) ,, _ ,, A.V-con (string s')) = refl
 erase-BUILTIN trace σ (tt ,, _ ,, A.V-con (string b)) = refl
 
 erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (ISIG b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (ISIG b))) ≡ C') →

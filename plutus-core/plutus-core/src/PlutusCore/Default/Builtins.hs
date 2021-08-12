@@ -62,7 +62,7 @@ data DefaultFun
     | LessThanByteString
     | LessThanEqualsByteString
     | IfThenElse
-    | Append
+    | AppendString
     | EqualsString
     | EncodeUtf8
     | DecodeUtf8
@@ -212,7 +212,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
        makeBuiltinMeaning
             (\b x y -> if b then x else y)
             (runCostingFunThreeArguments . paramIfThenElse)
-    toBuiltinMeaning Append =
+    toBuiltinMeaning AppendString =
         makeBuiltinMeaning
             ((<>) :: Text -> Text -> Text)
             mempty  -- TODO: budget.
@@ -396,7 +396,7 @@ instance Flat DefaultFun where
               LessThanByteString       -> 19
               LessThanEqualsByteString -> 20
               IfThenElse               -> 21
-              Append                   -> 23
+              AppendString             -> 23
               Trace                    -> 24
               -- 25 unused
               -- 26 unused
@@ -453,7 +453,7 @@ instance Flat DefaultFun where
               go 19 = pure LessThanByteString
               go 20 = pure LessThanEqualsByteString
               go 21 = pure IfThenElse
-              go 23 = pure Append
+              go 23 = pure AppendString
               go 24 = pure Trace
               -- 25-27 unused
               go 28 = pure EqualsString

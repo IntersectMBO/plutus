@@ -156,7 +156,7 @@ SIG ifThenElse =
   ` Z ∷ ` Z ∷ con bool ∷ []
   ,,
   ` Z
-SIG append =
+SIG appendString =
   ∅
   ,,
   con string ∷ con string ∷ []

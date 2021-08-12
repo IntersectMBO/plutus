@@ -538,11 +538,11 @@ lemV .((_ · _) · _) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(Type �
 lemV (((ibuiltin ifThenElse ·⋆ A) · b) · t) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(arity ifThenElse))))) (step .(bubble (bubble (start (arity ifThenElse)))) (step .(bubble (start (arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base) vb) vt)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step* refl (step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· t)) (-· b))) (step** (lemV b vb (extEC (extEC E (-· t)) (_ ·-))) (step* (cong (stepV vb) (dissect-lemma (extEC E (-· t)) (_ ·-))) (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E _)) (step* (cong (stepV vt) (dissect-lemma E _)) base))))))))))
 lemV M (V-I⇒ ifThenElse {as' = as'} (bubble (bubble (bubble (bubble {as = as} p)))) q) E with <>>-cancel-both' as _ ([] <>< arity ifThenElse) _ p refl
 ... | X ,, () ,, Y'
-lemV .(ibuiltin append)
-     (V-I⇒ append (start .(Term ∷ Term ∷ [])) base)
+lemV .(ibuiltin appendString)
+     (V-I⇒ appendString (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
-lemV .(ibuiltin append · _)
-     (V-I⇒ append (bubble (start .(Term ∷ Term ∷ [])))
+lemV .(ibuiltin appendString · _)
+     (V-I⇒ appendString (bubble (start .(Term ∷ Term ∷ [])))
      (step .(start (Term ∷ Term ∷ [])) base v))
      E = step*
   refl
@@ -552,7 +552,7 @@ lemV .(ibuiltin append · _)
            (step**
              (lemV (deval v) v (extEC E (_ ·-)))
              (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ append {as' = as'} (bubble (bubble {as = as} p)) q) E
+lemV M (V-I⇒ appendString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
 lemV .(ibuiltin trace) (V-I⇒ trace (start .(Term ∷ [])) base) E =
@@ -601,7 +601,7 @@ lemV M (V-IΠ equalsByteString {as' = as'} (bubble p) q) E with <>>-cancel-both'
 lemV .(ibuiltin ifThenElse) (V-IΠ ifThenElse (start .(Type ∷ Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
 lemV M (V-IΠ ifThenElse {as' = as'} (bubble (bubble (bubble p))) q) E with <>>-cancel-both' _ (((([] ∷ _) ∷ _) ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
-lemV M (V-IΠ append {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
+lemV M (V-IΠ appendString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
 lemV M (V-IΠ trace {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
