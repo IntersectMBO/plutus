@@ -101,23 +101,11 @@ Balances Carried Forward:
     Ada:      Lovelace:  100000000
 
 ==== Slot #1, Tx #0 ====
-<<<<<<< HEAD
-TxId:       673f11f6f32afcae1223d229fe4f27d7460430490ee37c3960d610910be70fff
-||||||| parent of afc157c3c (fixup a hash)
-TxId:       2264a6a297a68fd084cddeb3df4b09e13543c2f950e0b2c1942b86032054da30
-=======
-TxId:       55979d3d8513821b1480256fde291f8a51fcd3d0e52104c79a4641280d049764
->>>>>>> afc157c3c (fixup a hash)
+TxId:       e23e115853c2150f95e3bfdbe48344fa0560b45e7d1e33a4a208622e3ad643d8
 Fee:        Ada:      Lovelace:  10
 Mint:       -
 Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
-<<<<<<< HEAD
-              Signature: 58401057699538b17df022092ce0e7d32d370f2f...
-||||||| parent of afc157c3c (fixup a hash)
-              Signature: 5840100a5b7f96f9e6adfb10b61ff1f537c936f8...
-=======
-              Signature: 58408732279d8a5cdd485559bec9bb4c212c814d...
->>>>>>> afc157c3c (fixup a hash)
+              Signature: 5840f13a334a41c4240ef2ee45d81cf27c5b09c3...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 35dedd2982a03cf39e7dce03c839994ffdec2ec6... (Wallet 1)
@@ -187,40 +175,18 @@ Balances Carried Forward:
     Ada:      Lovelace:  8
 
 ==== Slot #2, Tx #0 ====
-<<<<<<< HEAD
-TxId:       d31b3b3d3b1ec3a06cc385228a496e253f4d44e5b4111cb10bb25a21eaf19b30
+TxId:       c1709bc6bb54a7874f4aea6987f181f4509b8ecc10613a416a399a7719aa4d2b
 Fee:        Ada:      Lovelace:  12641
 Mint:       9fd2a8ae3d98f40c569ab9660f7f3e3277399af77d8dfb8b4fbfb782:  guess:    1
-||||||| parent of afc157c3c (fixup a hash)
-TxId:       6931ea12da288f901ff14fd4a38083cc7896ddcda728ade3fa85d1dbf120f37a
-Fee:        Ada:      Lovelace:  12562
-Mint:       79b1eac6a256073ee633c0396c1899bae4bb7e4edbf00d58dedb2793:  guess:    1
-=======
-TxId:       643e31d9d48312b6d3becfa66ba233dc544b3776c1b7f7705af856d1aa6fb298
-Fee:        Ada:      Lovelace:  12562
-Mint:       79b1eac6a256073ee633c0396c1899bae4bb7e4edbf00d58dedb2793:  guess:    1
->>>>>>> afc157c3c (fixup a hash)
 Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
-<<<<<<< HEAD
-              Signature: 584083d889ae9688bcbfc7e6cfc14e61890355ef...
-||||||| parent of afc157c3c (fixup a hash)
-              Signature: 58409e976dfdc90b071ddaa46fb61efb8acc8886...
-=======
-              Signature: 5840f2782e35ab71ea847f71dfbe78a712ad712c...
->>>>>>> afc157c3c (fixup a hash)
+              Signature: 584011f863a3aaaeec8ace91bfbe2ea5e7540ff7...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 35dedd2982a03cf39e7dce03c839994ffdec2ec6... (Wallet 1)
   Value:
     Ada:      Lovelace:  99999982
   Source:
-<<<<<<< HEAD
-    Tx:     673f11f6f32afcae1223d229fe4f27d7460430490ee37c3960d610910be70fff
-||||||| parent of afc157c3c (fixup a hash)
-    Tx:     2264a6a297a68fd084cddeb3df4b09e13543c2f950e0b2c1942b86032054da30
-=======
-    Tx:     55979d3d8513821b1480256fde291f8a51fcd3d0e52104c79a4641280d049764
->>>>>>> afc157c3c (fixup a hash)
+    Tx:     e23e115853c2150f95e3bfdbe48344fa0560b45e7d1e33a4a208622e3ad643d8
     Output #0
 
 
@@ -229,13 +195,7 @@ Inputs:
   Value:
     Ada:      Lovelace:  8
   Source:
-<<<<<<< HEAD
-    Tx:     673f11f6f32afcae1223d229fe4f27d7460430490ee37c3960d610910be70fff
-||||||| parent of afc157c3c (fixup a hash)
-    Tx:     2264a6a297a68fd084cddeb3df4b09e13543c2f950e0b2c1942b86032054da30
-=======
-    Tx:     55979d3d8513821b1480256fde291f8a51fcd3d0e52104c79a4641280d049764
->>>>>>> afc157c3c (fixup a hash)
+    Tx:     e23e115853c2150f95e3bfdbe48344fa0560b45e7d1e33a4a208622e3ad643d8
     Output #1
     Script: 591dc10100003323322333222333222323233223...
 
@@ -306,23 +266,11 @@ Balances Carried Forward:
     Ada:      Lovelace:  8
 
 ==== Slot #3, Tx #0 ====
-<<<<<<< HEAD
-TxId:       2efaec6ffbce1b45735f6ccc97e665e5c386b725f35c98dc5a34f7e7db532fb7
-||||||| parent of afc157c3c (fixup a hash)
-TxId:       bba61dec9bde49a0a6f66a27b526790400e330bea764d26c4cc66b077c5df793
-=======
-TxId:       5f6b7248891fbc5784a367ed1d9f9e84cea98c972f385f5bc2057ae27ba79f23
->>>>>>> afc157c3c (fixup a hash)
+TxId:       6bbaec8bb79b429e5e5e34a9d1b35b1e48670ca849e4dec0a86697ef4285aa2e
 Fee:        Ada:      Lovelace:  10
 Mint:       -
 Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
-<<<<<<< HEAD
-              Signature: 5840c5db863c393ebe09ca20e6a2d13275b13ea1...
-||||||| parent of afc157c3c (fixup a hash)
-              Signature: 5840a12908be76c482d7d091a257d182bf54f88d...
-=======
-              Signature: 58400a796d23e203c521e64cc2977eb479b1ddfe...
->>>>>>> afc157c3c (fixup a hash)
+              Signature: 5840efa917b8fa8dae29062958b27c2471a6a79e...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 35dedd2982a03cf39e7dce03c839994ffdec2ec6... (Wallet 1)
@@ -330,13 +278,7 @@ Inputs:
     Ada:      Lovelace:  99987341
     9fd2a8ae3d98f40c569ab9660f7f3e3277399af77d8dfb8b4fbfb782:  -
   Source:
-<<<<<<< HEAD
-    Tx:     d31b3b3d3b1ec3a06cc385228a496e253f4d44e5b4111cb10bb25a21eaf19b30
-||||||| parent of afc157c3c (fixup a hash)
-    Tx:     6931ea12da288f901ff14fd4a38083cc7896ddcda728ade3fa85d1dbf120f37a
-=======
-    Tx:     643e31d9d48312b6d3becfa66ba233dc544b3776c1b7f7705af856d1aa6fb298
->>>>>>> afc157c3c (fixup a hash)
+    Tx:     c1709bc6bb54a7874f4aea6987f181f4509b8ecc10613a416a399a7719aa4d2b
     Output #0
 
 
@@ -346,13 +288,7 @@ Inputs:
     9fd2a8ae3d98f40c569ab9660f7f3e3277399af77d8dfb8b4fbfb782:  guess:    1
     Ada:      -
   Source:
-<<<<<<< HEAD
-    Tx:     d31b3b3d3b1ec3a06cc385228a496e253f4d44e5b4111cb10bb25a21eaf19b30
-||||||| parent of afc157c3c (fixup a hash)
-    Tx:     6931ea12da288f901ff14fd4a38083cc7896ddcda728ade3fa85d1dbf120f37a
-=======
-    Tx:     643e31d9d48312b6d3becfa66ba233dc544b3776c1b7f7705af856d1aa6fb298
->>>>>>> afc157c3c (fixup a hash)
+    Tx:     c1709bc6bb54a7874f4aea6987f181f4509b8ecc10613a416a399a7719aa4d2b
     Output #1
 
 
@@ -418,27 +354,11 @@ Balances Carried Forward:
     Ada:      Lovelace:  8
 
 ==== Slot #4, Tx #0 ====
-<<<<<<< HEAD
-TxId:       9f846e5758caef3bea353407617dd1148495e8de871584b30af30c4f8ed43f41
+TxId:       76312850f26c2f91cf578723a20798979e7e4be3582883ba0a2c6dcdee098802
 Fee:        Ada:      Lovelace:  12641
 Mint:       9fd2a8ae3d98f40c569ab9660f7f3e3277399af77d8dfb8b4fbfb782:  guess:    0
-||||||| parent of afc157c3c (fixup a hash)
-TxId:       11c96742066a4e435de86d699cdead57993d5df26dfc25e60cf85cd7ba435d2f
-Fee:        Ada:      Lovelace:  12562
-Mint:       79b1eac6a256073ee633c0396c1899bae4bb7e4edbf00d58dedb2793:  guess:    0
-=======
-TxId:       a9e7cd51bd4229773d961cf280e6d84748938838ef7a023c1cd87efee7c54119
-Fee:        Ada:      Lovelace:  12562
-Mint:       79b1eac6a256073ee633c0396c1899bae4bb7e4edbf00d58dedb2793:  guess:    0
->>>>>>> afc157c3c (fixup a hash)
 Signatures  PubKey: 3d4017c3e843895a92b70aa74d1b7ebc9c982ccf...
-<<<<<<< HEAD
-              Signature: 5840347cd64ecb3899948d2c5d74a1f8db512145...
-||||||| parent of afc157c3c (fixup a hash)
-              Signature: 5840d0ec85161f728b2762fb5de03bdbbe685893...
-=======
-              Signature: 58408da75e8f217925ad31ddf4d2e74ae7576eb5...
->>>>>>> afc157c3c (fixup a hash)
+              Signature: 5840c2c116a2a26f6e4ca94384d217fc67f36a3e...
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 977efb35ab621d39dbeb7274ec7795a34708ff4d... (Wallet 2)
@@ -450,56 +370,22 @@ Inputs:
 
 
   ---- Input 1 ----
-<<<<<<< HEAD
   Destination:  PubKeyHash: 977efb35ab621d39dbeb7274ec7795a34708ff4d... (Wallet 2)
   Value:
     9fd2a8ae3d98f40c569ab9660f7f3e3277399af77d8dfb8b4fbfb782:  guess:    1
   Source:
-    Tx:     2efaec6ffbce1b45735f6ccc97e665e5c386b725f35c98dc5a34f7e7db532fb7
+    Tx:     6bbaec8bb79b429e5e5e34a9d1b35b1e48670ca849e4dec0a86697ef4285aa2e
     Output #1
 
 
   ---- Input 2 ----
   Destination:  Script: f31d4725f37e6dc02c494c3f565c4a61827a4261068e7e0618f7ab69
-||||||| parent of afc157c3c (fixup a hash)
-  Destination:  Script: 9a1cd5dcf849c45f0c1fce4938b52e83b2d2657f4faec0827baa6e94
   Value:
     Ada:      Lovelace:  8
   Source:
-    Tx:     6931ea12da288f901ff14fd4a38083cc7896ddcda728ade3fa85d1dbf120f37a
-    Output #2
-    Script: 591d750100003323322333222333222323233223...
-
-  ---- Input 2 ----
-  Destination:  PubKeyHash: 977efb35ab621d39dbeb7274ec7795a34708ff4d... (Wallet 2)
-=======
-  Destination:  PubKeyHash: 977efb35ab621d39dbeb7274ec7795a34708ff4d... (Wallet 2)
->>>>>>> afc157c3c (fixup a hash)
-  Value:
-    Ada:      Lovelace:  8
-  Source:
-<<<<<<< HEAD
-    Tx:     d31b3b3d3b1ec3a06cc385228a496e253f4d44e5b4111cb10bb25a21eaf19b30
+    Tx:     c1709bc6bb54a7874f4aea6987f181f4509b8ecc10613a416a399a7719aa4d2b
     Output #2
     Script: 591dc10100003323322333222333222323233223...
-||||||| parent of afc157c3c (fixup a hash)
-    Tx:     bba61dec9bde49a0a6f66a27b526790400e330bea764d26c4cc66b077c5df793
-    Output #1
-
-=======
-    Tx:     5f6b7248891fbc5784a367ed1d9f9e84cea98c972f385f5bc2057ae27ba79f23
-    Output #1
-
->>>>>>> afc157c3c (fixup a hash)
-
-  ---- Input 2 ----
-  Destination:  Script: 9a1cd5dcf849c45f0c1fce4938b52e83b2d2657f4faec0827baa6e94
-  Value:
-    Ada:      Lovelace:  8
-  Source:
-    Tx:     643e31d9d48312b6d3becfa66ba233dc544b3776c1b7f7705af856d1aa6fb298
-    Output #2
-    Script: 591d750100003323322333222333222323233223...
 
 
 Outputs:
