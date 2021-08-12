@@ -107,8 +107,6 @@ ISIG remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 ISIG modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG greaterThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG greaterThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
 ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
@@ -137,7 +135,7 @@ Compute the type for a builtin:
 
 ```
 itype : Builtin → Φ ⊢⋆ *
-itype b = let Φ ,, Γ ,, C = ISIG b in sub (λ()) (isig2type Φ Γ C) 
+itype b = let Φ ,, Γ ,, C = ISIG b in sub (λ()) (isig2type Φ Γ C)
 ```
 
 Two lemmas concerning renaming and substituting types of builtins:
@@ -188,7 +186,7 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
   unwrap : Γ ⊢ μ A B
            ----------------------------------
          → Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
-    
+
   conv : A ≡β B
        → Γ ⊢ A
          -----

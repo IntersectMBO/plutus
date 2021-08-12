@@ -90,18 +90,6 @@ SIG lessThanEqualsInteger =
   con integer ∷ con integer ∷ []
   ,,
   con bool
-SIG greaterThanInteger =
-  ∅
-  ,,
-  con integer ∷ con integer ∷ []
-  ,,
-  con bool
-SIG greaterThanEqualsInteger =
-  ∅
-  ,,
-  con integer ∷ con integer ∷ []
-  ,,
-  con bool
 SIG equalsInteger =
   ∅
   ,,

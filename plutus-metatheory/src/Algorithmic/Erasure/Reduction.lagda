@@ -59,8 +59,6 @@ erase-arity-lem remainderInteger refl refl = refl
 erase-arity-lem modInteger refl refl = refl
 erase-arity-lem lessThanInteger refl refl = refl
 erase-arity-lem lessThanEqualsInteger refl refl = refl
-erase-arity-lem greaterThanInteger refl refl = refl
-erase-arity-lem greaterThanEqualsInteger refl refl = refl
 erase-arity-lem equalsInteger refl refl = refl
 erase-arity-lem appendByteString refl refl = refl
 erase-arity-lem takeByteString refl refl = refl
@@ -139,12 +137,6 @@ erase-BUILTIN lessThanInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-c
 ... | yes p = refl
 ... | no ¬p = refl
 erase-BUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (integer i')) with i ≤? i'
-... | yes p = refl
-... | no ¬p = refl
-erase-BUILTIN greaterThanInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (integer i')) with i Util.I>? i'
-... | yes p = refl
-... | no ¬p = refl
-erase-BUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (integer i')) with i Util.I≥? i'
 ... | yes p = refl
 ... | no ¬p = refl
 erase-BUILTIN equalsInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (integer i')) with i ≟ i'

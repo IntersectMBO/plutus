@@ -139,8 +139,6 @@ ISIG remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 ISIG modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
 ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG greaterThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG greaterThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
 ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
@@ -160,7 +158,7 @@ isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
 isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
 
 itype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
-itype b = let Φ ,, Γ ,, C = ISIG b in subNf (λ()) (isig2type Φ Γ C) 
+itype b = let Φ ,, Γ ,, C = ISIG b in subNf (λ()) (isig2type Φ Γ C)
 
 postulate itype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype b ≡ renNf ρ (itype b)
 postulate itype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ subNf ρ (itype b)
@@ -273,5 +271,5 @@ Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
         (exte (idEnv ∅)))
        [ A ]Nf)
       ≡ subNf (subNf-cons σ A) (B ⇒ <C'2type p C)
-⇒lem {B = B} p σ C = sym (subNf-cons-[]Nf (B ⇒ <C'2type p C)) 
+⇒lem {B = B} p σ C = sym (subNf-cons-[]Nf (B ⇒ <C'2type p C))
 \end{code}
