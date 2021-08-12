@@ -109,8 +109,6 @@ ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
-ISIG dropByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
 ISIG lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
 ISIG lessThanEqualsByteString =
   ∅ ,, ∅ , con bytestring , con bytestring ,, con bool

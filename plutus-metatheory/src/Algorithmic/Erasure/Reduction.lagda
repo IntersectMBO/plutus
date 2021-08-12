@@ -61,8 +61,6 @@ erase-arity-lem lessThanInteger refl refl = refl
 erase-arity-lem lessThanEqualsInteger refl refl = refl
 erase-arity-lem equalsInteger refl refl = refl
 erase-arity-lem appendByteString refl refl = refl
-erase-arity-lem takeByteString refl refl = refl
-erase-arity-lem dropByteString refl refl = refl
 erase-arity-lem lessThanByteString refl refl = refl
 erase-arity-lem lessThanEqualsByteString refl refl = refl
 erase-arity-lem sha2-256 refl refl = refl
@@ -143,8 +141,6 @@ erase-BUILTIN equalsInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con
 ... | yes p = refl
 ... | no ¬p = refl
 erase-BUILTIN appendByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
-erase-BUILTIN takeByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
-erase-BUILTIN dropByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN lessThanByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN sha2-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl

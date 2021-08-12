@@ -25,8 +25,6 @@ data Builtin : Set where
   lessThanEqualsInteger    : Builtin
   equalsInteger            : Builtin
   appendByteString         : Builtin
-  takeByteString           : Builtin
-  dropByteString           : Builtin
   lessThanByteString       : Builtin
   lessThanEqualsByteString : Builtin
   sha2-256                 : Builtin
@@ -49,8 +47,6 @@ data Builtin : Set where
                                           | LessThanEqualsInteger
                                           | EqualsInteger
                                           | AppendByteString
-                                          | TakeByteString
-                                          | DropByteString
                                           | LessThanByteString
                                           | LessThanEqualsByteString
                                           | Sha2_256

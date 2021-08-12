@@ -102,18 +102,6 @@ SIG appendByteString =
   con bytestring ∷ con bytestring ∷ []
   ,,
   con bytestring
-SIG takeByteString =
-  ∅
-  ,,
-  con integer ∷ con bytestring ∷ []
-  ,,
-  con bytestring
-SIG dropByteString =
-  ∅
-  ,,
-  con integer ∷ con bytestring ∷ []
-  ,,
-  con bytestring
 SIG lessThanByteString =
   ∅
   ,,

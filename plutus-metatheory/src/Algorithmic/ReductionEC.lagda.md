@@ -107,8 +107,6 @@ arity lessThanInteger = Term ∷ Term ∷ []
 arity lessThanEqualsInteger = Term ∷ Term ∷ []
 arity equalsInteger = Term ∷ Term ∷ []
 arity appendByteString = Term ∷ Term ∷ []
-arity takeByteString = Term ∷ Term ∷ []
-arity dropByteString = Term ∷ Term ∷ []
 arity lessThanByteString = Term ∷ Term ∷ []
 arity lessThanEqualsByteString = Term ∷ Term ∷ []
 arity sha2-256 = Term ∷ []
@@ -410,10 +408,6 @@ BUILTIN equalsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(sta
 ... | yes p = con (bool true)
 BUILTIN appendByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bytestring (concat b b'))
-BUILTIN takeByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (bytestring b))) =
-  con (bytestring (take i b))
-BUILTIN dropByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (bytestring b))) =
-  con (bytestring (drop i b))
 BUILTIN lessThanByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (B< b b'))
 BUILTIN lessThanEqualsByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) = 
@@ -644,8 +638,6 @@ ival lessThanInteger = V-I⇒ lessThanInteger (start _) base
 ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger (start _) base 
 ival equalsInteger = V-I⇒ equalsInteger (start _) base 
 ival appendByteString = V-I⇒ appendByteString (start _) base
-ival takeByteString = V-I⇒ takeByteString (start _) base 
-ival dropByteString = V-I⇒ dropByteString (start _) base 
 ival lessThanByteString = V-I⇒ lessThanByteString (start _) base 
 ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString (start _) base 
 ival sha2-256 = V-I⇒ sha2-256 (start _) base 
@@ -822,23 +814,6 @@ bappTermLem appendByteString {as = .[]} (.(ibuiltin appendByteString) · M') (bu
 bappTermLem appendByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem takeByteString _ _ base = _ ,, _ ,, refl
-bappTermLem takeByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem takeByteString {as = .[]} (.(ibuiltin takeByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem takeByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-
-bappTermLem dropByteString _ _ base = _ ,, _ ,, refl
-bappTermLem dropByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem dropByteString {as = .[]} (.(ibuiltin dropByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem dropByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
 bappTermLem lessThanByteString _ _ base = _ ,, _ ,, refl
 bappTermLem lessThanByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -977,18 +952,6 @@ bappTypeLem appendByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem appendByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem takeByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem takeByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem dropByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem dropByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem lessThanByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)

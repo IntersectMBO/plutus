@@ -430,40 +430,6 @@ lemV .(ibuiltin appendByteString · _)
 lemV M (V-I⇒ appendByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-lemV .(ibuiltin takeByteString)
-     (V-I⇒ takeByteString (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin takeByteString · _)
-     (V-I⇒ takeByteString (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ takeByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin dropByteString)
-     (V-I⇒ dropByteString (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin dropByteString · _)
-     (V-I⇒ dropByteString (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ dropByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
 lemV .(ibuiltin lessThanByteString)
      (V-I⇒ lessThanByteString (start .(Term ∷ Term ∷ [])) base)
      E = step* refl base
@@ -581,10 +547,6 @@ lemV M (V-IΠ lessThanEqualsInteger {as' = as'} (bubble p) q) E with <>>-cancel-
 lemV M (V-IΠ equalsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
 lemV M (V-IΠ appendByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ takeByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ dropByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
 lemV M (V-IΠ lessThanByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()

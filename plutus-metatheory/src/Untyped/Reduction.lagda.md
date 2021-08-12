@@ -70,8 +70,6 @@ arity lessThanInteger = [] :< Term :< Term
 arity lessThanEqualsInteger = [] :< Term :< Term
 arity equalsInteger = [] :< Term :< Term
 arity appendByteString = [] :< Term :< Term
-arity takeByteString = [] :< Term :< Term
-arity dropByteString = [] :< Term :< Term
 arity lessThanByteString = [] :< Term :< Term
 arity lessThanEqualsByteString = [] :< Term :< Term
 arity sha2-256 = [] :< Term
@@ -181,12 +179,6 @@ IBUILTIN equalsInteger
 IBUILTIN appendByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bytestring (concat b b')))
-IBUILTIN takeByteString
-  ((tt , (t , V-con (integer i))) , (t' , V-con (bytestring b)))
-  = _ , inl (V-con (bytestring (take i b)))
-IBUILTIN dropByteString
-  ((tt , (t , V-con (integer i))) , (t' , V-con (bytestring b)))
-  = _ , inl (V-con (bytestring (drop i b)))
 IBUILTIN lessThanByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bool (B< b b')))
@@ -350,8 +342,6 @@ ival lessThanEqualsInteger =
   V-F (V-builtin lessThanEqualsInteger refl (skipTerm base) _ _)
 ival equalsInteger = V-F (V-builtin equalsInteger refl (skipTerm base) _ _)
 ival appendByteString = V-F (V-builtin appendByteString refl (skipTerm base) _ _)
-ival takeByteString = V-F (V-builtin takeByteString refl (skipTerm base) _ _)
-ival dropByteString = V-F (V-builtin dropByteString refl (skipTerm base) _ _)
 ival lessThanByteString =
   V-F (V-builtin lessThanByteString refl (skipTerm base) _ _)
 ival lessThanEqualsByteString =
