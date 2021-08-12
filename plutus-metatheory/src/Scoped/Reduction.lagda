@@ -49,16 +49,14 @@ ISIG lessThanInteger = 0 , S (S Z)
 ISIG lessThanEqualsInteger = 0 , S (S Z)
 ISIG equalsInteger = 0 , S (S Z)
 ISIG appendByteString = 0 , S (S Z)
-ISIG takeByteString = 0 , S (S Z)
-ISIG dropByteString = 0 , S (S Z)
 ISIG lessThanByteString = 0 , S (S Z)
-ISIG greaterThanByteString = 0 , S (S Z)
+ISIG lessThanEqualsByteString = 0 , S (S Z)
 ISIG sha2-256 = 0 , S Z
 ISIG sha3-256 = 0 , S Z
 ISIG verifySignature = 0 , S (S (S Z))
 ISIG equalsByteString = 0 , S (S Z)
 ISIG ifThenElse = 1 , S (S (S (T Z))) -- this may be in the wrong order
-ISIG append = 0 , S (S Z)
+ISIG appendString = 0 , S (S Z)
 ISIG trace = 0 , S Z
 
 open import Data.Unit
@@ -131,15 +129,13 @@ IBUILTIN lessThanInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i'))
 IBUILTIN lessThanEqualsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.≤? i') (con (bool true)) (con (bool false))
 IBUILTIN equalsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.≟ i') (con (bool true)) (con (bool false))
 IBUILTIN appendByteString ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b'))
-IBUILTIN takeByteString ((_ , t , V-con (integer i)) , t' , V-con (bytestring b)) = con (bytestring (take i b))
-IBUILTIN dropByteString ((_ , t , V-con (integer i)) , t' , V-con (bytestring b)) = con (bytestring (drop i b))
 IBUILTIN sha2-256 (_ , t , V-con (bytestring b)) = con (bytestring (SHA2-256 b))
 IBUILTIN sha3-256 (_ , t , V-con (bytestring b)) = con (bytestring (SHA3-256 b))
 IBUILTIN verifySignature (((_ , t , V-con (bytestring k)) , t' , V-con (bytestring d)) , t'' , V-con (bytestring c)) = VERIFYSIG (verifySig k d c)
 IBUILTIN equalsByteString  ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b'))
 IBUILTIN ifThenElse (((_ , _ , V-con (bool true))  , t , _) , f , _) = t
 IBUILTIN ifThenElse (((_ , _ , V-con (bool false)) , t , _) , f , _) = f
-IBUILTIN append ((_ , t , V-con (string s)) , t' , V-con (string s')) =
+IBUILTIN appendString ((_ , t , V-con (string s)) , t' , V-con (string s')) =
   con (string (primStringAppend s s'))
 IBUILTIN trace (_ , t , V-con (string s)) = con (Debug.trace s unit)
 IBUILTIN _ _ = error missing
@@ -296,16 +292,14 @@ ival lessThanInteger = V-builtin lessThanInteger _ refl refl (skipS base) _
 ival lessThanEqualsInteger = V-builtin lessThanEqualsInteger _ refl refl (skipS base) _
 ival equalsInteger = V-builtin equalsInteger _ refl refl (skipS base) _
 ival appendByteString = V-builtin appendByteString _ refl refl (skipS base) _
-ival takeByteString = V-builtin takeByteString _ refl refl (skipS base) _
-ival dropByteString = V-builtin dropByteString _ refl refl (skipS base) _
 ival lessThanByteString = V-builtin equalsByteString _ refl refl (skipS base) _
-ival greaterThanByteString = V-builtin equalsByteString _ refl refl (skipS base) _
+ival lessThanEqualsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
 ival sha2-256 = V-builtin sha2-256 _ refl refl base _
 ival sha3-256 = V-builtin sha2-256 _ refl refl base _
 ival verifySignature = V-builtin verifySignature _ refl refl (skipS (skipS base)) _
 ival equalsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
 ival ifThenElse = V-builtin ifThenElse _ refl refl (skipS (skipS base)) _
-ival append = V-builtin append _ refl refl (skipS base) _
+ival appendString = V-builtin appendString _ refl refl (skipS base) _
 ival trace = V-builtin trace _ refl refl base _
 
 progress : (t : ScopedTm Z) → Progress t

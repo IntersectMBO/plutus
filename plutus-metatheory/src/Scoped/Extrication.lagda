@@ -97,16 +97,14 @@ lemma⋆ lessThanInteger = refl
 lemma⋆ lessThanEqualsInteger = refl
 lemma⋆ equalsInteger = refl
 lemma⋆ appendByteString = refl
-lemma⋆ takeByteString = refl
-lemma⋆ dropByteString = refl
 lemma⋆ lessThanByteString = refl
-lemma⋆ greaterThanByteString = refl
+lemma⋆ lessThanEqualsByteString = refl
 lemma⋆ sha2-256 = refl
 lemma⋆ sha3-256 = refl
 lemma⋆ verifySignature = refl
 lemma⋆ equalsByteString = refl
 lemma⋆ ifThenElse = refl
-lemma⋆ append = refl
+lemma⋆ appendString = refl
 lemma⋆ trace = refl
 
 lemma : ∀ b → Data.List.length (proj₁ (proj₂ (SIG b))) ≡ arity b
@@ -121,16 +119,14 @@ lemma lessThanInteger = refl
 lemma lessThanEqualsInteger = refl
 lemma equalsInteger = refl
 lemma appendByteString = refl
-lemma takeByteString = refl
-lemma dropByteString = refl
 lemma lessThanByteString = refl
-lemma greaterThanByteString = refl
+lemma lessThanEqualsByteString = refl
 lemma sha2-256 = refl
 lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
-lemma append = refl
+lemma appendString = refl
 lemma trace = refl
 
 ≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n

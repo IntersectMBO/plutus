@@ -107,16 +107,14 @@ arity lessThanInteger = Term ∷ Term ∷ []
 arity lessThanEqualsInteger = Term ∷ Term ∷ []
 arity equalsInteger = Term ∷ Term ∷ []
 arity appendByteString = Term ∷ Term ∷ []
-arity takeByteString = Term ∷ Term ∷ []
-arity dropByteString = Term ∷ Term ∷ []
 arity lessThanByteString = Term ∷ Term ∷ []
-arity greaterThanByteString = Term ∷ Term ∷ []
+arity lessThanEqualsByteString = Term ∷ Term ∷ []
 arity sha2-256 = Term ∷ []
 arity sha3-256 = Term ∷ []
 arity verifySignature = Term ∷ Term ∷ Term ∷ []
 arity equalsByteString = Term ∷ Term ∷ []
 arity ifThenElse = Type ∷ Term ∷ Term ∷ Term ∷ []
-arity append = Term ∷ Term ∷ []
+arity appendString = Term ∷ Term ∷ []
 arity trace = Term ∷ []
 
 data Bwd (A : Set) : Set where
@@ -410,13 +408,9 @@ BUILTIN equalsInteger (step .(bubble (start (Term ∷ Term ∷ []))) (step .(sta
 ... | yes p = con (bool true)
 BUILTIN appendByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bytestring (concat b b'))
-BUILTIN takeByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (bytestring b))) =
-  con (bytestring (take i b))
-BUILTIN dropByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (integer i))) (V-con (bytestring b))) =
-  con (bytestring (drop i b))
 BUILTIN lessThanByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (B< b b'))
-BUILTIN greaterThanByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN lessThanEqualsByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (bytestring b))) (V-con (bytestring b'))) = 
   con (bool (B> b b'))
 BUILTIN sha2-256 (step .(start (Term ∷ [])) base (V-con (bytestring b))) =
   con (bytestring (SHA2-256 b))
@@ -429,7 +423,7 @@ BUILTIN equalsByteString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(
   con (bool (equals b b'))
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool true))) t) f) = deval t
 BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) (V-con (bool false))) t) f) = deval f
-BUILTIN append (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) =
+BUILTIN appendString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
 BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
 
@@ -644,16 +638,14 @@ ival lessThanInteger = V-I⇒ lessThanInteger (start _) base
 ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger (start _) base 
 ival equalsInteger = V-I⇒ equalsInteger (start _) base 
 ival appendByteString = V-I⇒ appendByteString (start _) base
-ival takeByteString = V-I⇒ takeByteString (start _) base 
-ival dropByteString = V-I⇒ dropByteString (start _) base 
 ival lessThanByteString = V-I⇒ lessThanByteString (start _) base 
-ival greaterThanByteString = V-I⇒ greaterThanByteString (start _) base 
+ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString (start _) base 
 ival sha2-256 = V-I⇒ sha2-256 (start _) base 
 ival sha3-256 = V-I⇒ sha3-256 (start _) base 
 ival verifySignature = V-I⇒ verifySignature (start _) base 
 ival equalsByteString = V-I⇒ equalsByteString (start _) base 
 ival ifThenElse = V-IΠ ifThenElse (start _) base 
-ival append = V-I⇒ append (start _) base 
+ival appendString = V-I⇒ appendString (start _) base 
 ival trace = V-I⇒ trace (start _) base 
 
 lemma∷1 : ∀{A}(as as' : List A) → [] <>> as ∈ as' → as ≡ as'
@@ -822,23 +814,6 @@ bappTermLem appendByteString {as = .[]} (.(ibuiltin appendByteString) · M') (bu
 bappTermLem appendByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem takeByteString _ _ base = _ ,, _ ,, refl
-bappTermLem takeByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem takeByteString {as = .[]} (.(ibuiltin takeByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem takeByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-
-bappTermLem dropByteString _ _ base = _ ,, _ ,, refl
-bappTermLem dropByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem dropByteString {as = .[]} (.(ibuiltin dropByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
-  | refl ,, refl = _ ,, _ ,, refl
-bappTermLem dropByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
 bappTermLem lessThanByteString _ _ base = _ ,, _ ,, refl
 bappTermLem lessThanByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -848,12 +823,12 @@ bappTermLem lessThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q�
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 
-bappTermLem greaterThanByteString _ _ base = _ ,, _ ,, refl
-bappTermLem greaterThanByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+bappTermLem lessThanEqualsByteString _ _ base = _ ,, _ ,, refl
+bappTermLem lessThanEqualsByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem greaterThanByteString {as = .[]} (.(ibuiltin greaterThanByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+bappTermLem lessThanEqualsByteString {as = .[]} (.(ibuiltin lessThanEqualsByteString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
   | refl ,, refl = _ ,, _ ,, refl
-bappTermLem greaterThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTermLem lessThanEqualsByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTermLem sha2-256 {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
@@ -895,12 +870,12 @@ bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubb
 ... | refl ,, refl ,, ()
 bappTermLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₃ x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Term) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem append _ _ base = _ ,, _ ,, refl
-bappTermLem append {as = as} (M · M') .(bubble p) (step {az = az} p q x)
+bappTermLem appendString _ _ base = _ ,, _ ,, refl
+bappTermLem appendString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem append {as = .[]} (.(ibuiltin append) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
+bappTermLem appendString {as = .[]} (.(ibuiltin appendString) · M') (bubble (start .(Term ∷ Term ∷ []))) (step {az = _} (start .(Term ∷ Term ∷ [])) base x)
   | refl ,, refl = _ ,, _ ,, refl
-bappTermLem append {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTermLem appendString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTermLem trace {az = az} {as} M p q with <>>-cancel-both az ([] ∷ Term) as p
@@ -979,28 +954,16 @@ bappTypeLem appendByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q
 bappTypeLem appendByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem takeByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem takeByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem dropByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
-  with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
-bappTypeLem dropByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
-  with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
-... | refl ,, refl ,, ()
 bappTypeLem lessThanByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem lessThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem greaterThanByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
+bappTypeLem lessThanEqualsByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem greaterThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTypeLem lessThanEqualsByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem sha2-256 {az = az} {as} M p q
@@ -1043,10 +1006,10 @@ bappTypeLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubb
 ... | refl ,, refl ,, ()
 bappTypeLem ifThenElse {as = as} M .(bubble (bubble (bubble p))) (step⋆ .(bubble (bubble p)) (step⋆ .(bubble p) (step⋆ {az = az} p q q₃ x₂) q₂ x₁) q₁ x) with <>>-cancel-both' az (((([] ∷ Type) ∷ Type) ∷ Type) ∷ Type) (((([] ∷ Type) ∷ Term) ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem append {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
+bappTypeLem appendString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem append {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTypeLem appendString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem trace {az = az} {as} M p q

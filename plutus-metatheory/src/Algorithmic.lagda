@@ -141,15 +141,13 @@ ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
 ISIG appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
-ISIG dropByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
 ISIG lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-ISIG greaterThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
+ISIG lessThanEqualsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
 ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
 ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
 ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
 ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
-ISIG append = ∅ ,, ∅ , con string , con string ,, con string
+ISIG appendString = ∅ ,, ∅ , con string , con string ,, con string
 ISIG trace = ∅ ,, ∅ , con string ,, con unit
 
 isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *

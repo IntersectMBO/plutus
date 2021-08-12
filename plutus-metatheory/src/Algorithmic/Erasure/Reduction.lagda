@@ -61,16 +61,14 @@ erase-arity-lem lessThanInteger refl refl = refl
 erase-arity-lem lessThanEqualsInteger refl refl = refl
 erase-arity-lem equalsInteger refl refl = refl
 erase-arity-lem appendByteString refl refl = refl
-erase-arity-lem takeByteString refl refl = refl
-erase-arity-lem dropByteString refl refl = refl
 erase-arity-lem lessThanByteString refl refl = refl
-erase-arity-lem greaterThanByteString refl refl = refl
+erase-arity-lem lessThanEqualsByteString refl refl = refl
 erase-arity-lem sha2-256 refl refl = refl
 erase-arity-lem sha3-256 refl refl = refl
 erase-arity-lem verifySignature refl refl = refl
 erase-arity-lem equalsByteString refl refl = refl
 erase-arity-lem ifThenElse refl refl = refl
-erase-arity-lem append refl refl = refl
+erase-arity-lem appendString refl refl = refl
 erase-arity-lem trace refl refl = refl
 
 eraseITel : ∀ b {Φ}(Δ : Ctx Φ)(σ : SubNf Φ ∅)
@@ -143,10 +141,8 @@ erase-BUILTIN equalsInteger σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con
 ... | yes p = refl
 ... | no ¬p = refl
 erase-BUILTIN appendByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
-erase-BUILTIN takeByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
-erase-BUILTIN dropByteString σ ((tt ,, _ ,, A.V-con (integer i)) ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN lessThanByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
-erase-BUILTIN greaterThanByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
+erase-BUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN sha2-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN sha3-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN verifySignature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) ,, _ ,, A.V-con (bytestring b'')) with verifySig b b' b''
@@ -155,7 +151,7 @@ erase-BUILTIN verifySignature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A
 erase-BUILTIN equalsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.false)) ,, t ,, tv) ,, u ,, uv) = refl
 erase-BUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, A.V-con (bool B.true)) ,, t ,, tv) ,, u ,, uv) = refl
-erase-BUILTIN append σ ((tt ,, _ ,, A.V-con (string s)) ,, _ ,, A.V-con (string s')) = refl
+erase-BUILTIN appendString σ ((tt ,, _ ,, A.V-con (string s)) ,, _ ,, A.V-con (string s')) = refl
 erase-BUILTIN trace σ (tt ,, _ ,, A.V-con (string b)) = refl
 
 erase-BUILTIN' : ∀ b {Φ'}{Γ' : Ctx Φ'}(p : proj₁ (ISIG b) ≡ Φ')(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ')(σ : SubNf Φ' ∅)(vs : A.ITel b Γ' σ){C' : Φ' ⊢Nf⋆ *}(r : subst (_⊢Nf⋆ *) p (proj₂ (proj₂ (ISIG b))) ≡ C') →

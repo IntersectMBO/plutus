@@ -38,16 +38,14 @@ arity lessThanInteger = 2
 arity lessThanEqualsInteger = 2
 arity equalsInteger = 2
 arity appendByteString = 2
-arity takeByteString = 2
-arity dropByteString = 2
 arity lessThanByteString = 2
-arity greaterThanByteString = 2
+arity lessThanEqualsByteString = 2
 arity sha2-256 = 1
 arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 arity ifThenElse = 3
-arity append = 2
+arity appendString = 2
 arity trace = 1
 
 arity⋆ : Builtin → ℕ

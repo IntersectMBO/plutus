@@ -25,16 +25,14 @@ data Builtin : Set where
   lessThanEqualsInteger    : Builtin
   equalsInteger            : Builtin
   appendByteString         : Builtin
-  takeByteString           : Builtin
-  dropByteString           : Builtin
   lessThanByteString       : Builtin
-  greaterThanByteString    : Builtin
+  lessThanEqualsByteString : Builtin
   sha2-256                 : Builtin
   sha3-256                 : Builtin
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
-  append                   : Builtin
+  appendString             : Builtin
   trace                    : Builtin
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
@@ -49,16 +47,14 @@ data Builtin : Set where
                                           | LessThanEqualsInteger
                                           | EqualsInteger
                                           | AppendByteString
-                                          | TakeByteString
-                                          | DropByteString
                                           | LessThanByteString
-                                          | GreaterThanByteString
+                                          | LessThanEqualsByteString
                                           | Sha2_256
                                           | Sha3_256
                                           | VerifySignature
                                           | EqualsByteString
                                           | IfThenElse
-                                          | Append
+                                          | AppendString
                                           | Trace
                                           ) #-}
 ```

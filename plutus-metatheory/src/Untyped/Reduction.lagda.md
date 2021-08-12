@@ -70,16 +70,14 @@ arity lessThanInteger = [] :< Term :< Term
 arity lessThanEqualsInteger = [] :< Term :< Term
 arity equalsInteger = [] :< Term :< Term
 arity appendByteString = [] :< Term :< Term
-arity takeByteString = [] :< Term :< Term
-arity dropByteString = [] :< Term :< Term
 arity lessThanByteString = [] :< Term :< Term
-arity greaterThanByteString = [] :< Term :< Term
+arity lessThanEqualsByteString = [] :< Term :< Term
 arity sha2-256 = [] :< Term
 arity sha3-256 = [] :< Term
 arity verifySignature = [] :< Term :< Term :< Term
 arity equalsByteString = [] :< Term :< Term
 arity ifThenElse = [] :< Type :< Term :< Term :< Term
-arity append = [] :< Term :< Term
+arity appendString = [] :< Term :< Term
 arity trace = [] :< Term
 
 data _≤L_ : Bwd Label → Bwd Label → Set where
@@ -181,16 +179,10 @@ IBUILTIN equalsInteger
 IBUILTIN appendByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bytestring (concat b b')))
-IBUILTIN takeByteString
-  ((tt , (t , V-con (integer i))) , (t' , V-con (bytestring b)))
-  = _ , inl (V-con (bytestring (take i b)))
-IBUILTIN dropByteString
-  ((tt , (t , V-con (integer i))) , (t' , V-con (bytestring b)))
-  = _ , inl (V-con (bytestring (drop i b)))
 IBUILTIN lessThanByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bool (B< b b')))
-IBUILTIN greaterThanByteString
+IBUILTIN lessThanEqualsByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bool (B> b b')))
 IBUILTIN sha2-256
@@ -213,7 +205,7 @@ IBUILTIN ifThenElse
 IBUILTIN ifThenElse
   (((tt , (t , V-con (bool false))) , (t' , v')) , (t'' , v''))
   = _ , inl v''
-IBUILTIN append
+IBUILTIN appendString
   ((tt , (t , V-con (string s))) , (t' , V-con (string s')))
   = _ , inl (V-con (string (primStringAppend s s')))
 IBUILTIN trace
@@ -350,12 +342,10 @@ ival lessThanEqualsInteger =
   V-F (V-builtin lessThanEqualsInteger refl (skipTerm base) _ _)
 ival equalsInteger = V-F (V-builtin equalsInteger refl (skipTerm base) _ _)
 ival appendByteString = V-F (V-builtin appendByteString refl (skipTerm base) _ _)
-ival takeByteString = V-F (V-builtin takeByteString refl (skipTerm base) _ _)
-ival dropByteString = V-F (V-builtin dropByteString refl (skipTerm base) _ _)
 ival lessThanByteString =
   V-F (V-builtin lessThanByteString refl (skipTerm base) _ _)
-ival greaterThanByteString =
-  V-F (V-builtin greaterThanByteString refl (skipTerm base) _ _)
+ival lessThanEqualsByteString =
+  V-F (V-builtin lessThanEqualsByteString refl (skipTerm base) _ _)
 ival sha2-256 = V-F (V-builtin sha2-256 refl base _ _)
 ival sha3-256 = V-F (V-builtin sha3-256 refl base _ _)
 ival verifySignature =
@@ -363,7 +353,7 @@ ival verifySignature =
 ival equalsByteString = V-F (V-builtin equalsByteString refl (skipTerm base) _ _)
 ival ifThenElse =
   V-builtin⋆ ifThenElse refl (skipTerm (skipTerm (skipTerm base))) _ _
-ival append = V-F (V-builtin append refl (skipTerm base) _ _)
+ival appendString = V-F (V-builtin appendString refl (skipTerm base) _ _)
 ival trace = V-F (V-builtin trace refl base _ _)
 
 progress : (t : 0 ⊢) → Progress t

@@ -97,13 +97,11 @@ decBuiltin lessThanInteger lessThanInteger = true
 decBuiltin lessThanEqualsInteger lessThanEqualsInteger = true
 decBuiltin equalsInteger equalsInteger = true
 decBuiltin appendByteString appendByteString = true
-decBuiltin takeByteString takeByteString = true
-decBuiltin dropByteString dropByteString = true
 decBuiltin sha2-256 sha2-256 = true
 decBuiltin sha3-256 sha3-256 = true
 decBuiltin verifySignature verifySignature = true
 decBuiltin equalsByteString equalsByteString = true
-decBuiltin append append = true
+decBuiltin appendString appendString = true
 decBuiltin trace trace = true
 decBuiltin _ _ = false
 

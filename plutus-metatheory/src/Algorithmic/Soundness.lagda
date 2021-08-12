@@ -144,16 +144,14 @@ lemList' lessThanInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' lessThanEqualsInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsInteger = refl≡β _ ,, refl≡β _ ,, _
 lemList' appendByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' takeByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' dropByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' lessThanByteString = refl≡β _ ,, refl≡β _ ,, _
-lemList' greaterThanByteString = refl≡β _ ,, refl≡β _ ,, _
+lemList' lessThanEqualsByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' sha2-256 = refl≡β _ ,, _
 lemList' sha3-256 = refl≡β _ ,, _
 lemList' verifySignature = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
 lemList' ifThenElse = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
-lemList' append = refl≡β _ ,, refl≡β _ ,, _
+lemList' appendString = refl≡β _ ,, refl≡β _ ,, _
 lemList' trace = refl≡β _ ,, _
 
 lemsub : ∀{Γ Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)

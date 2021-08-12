@@ -54,14 +54,12 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramLessThanInteger          = "lessThanIntegerModel"
   , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
   , paramAppendByteString         = "appendByteStringModel"
-  , paramTakeByteString           = "takeByteStringModel"
-  , paramDropByteString           = "dropByteStringModel"
   , paramSha2_256                 = "sha2_256Model"
   , paramSha3_256                 = "sha3_256Model"
   , paramVerifySignature          = "verifySignatureModel"
   , paramEqualsByteString         = "equalsByteStringModel"
   , paramLessThanByteString       = "lessThanByteStringModel"
-  , paramGreaterThanByteString    = "greaterThanByteStringModel"
+  , paramLessThanEqualsByteString = "lessThanEqualsByteStringModel"
   , paramIfThenElse               = "ifThenElseModel"
   , paramBlake2b                  = "blake2bModel"
   }
@@ -97,14 +95,12 @@ createBuiltinCostModel =
     paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger    paramLessThanEqualsInteger
     paramEqualsInteger            <- getParams equalsInteger            paramEqualsInteger
     paramAppendByteString         <- getParams appendByteString         paramAppendByteString
-    paramTakeByteString           <- getParams takeByteString           paramTakeByteString
-    paramDropByteString           <- getParams dropByteString           paramDropByteString
     paramSha2_256                 <- getParams sha2_256                 paramSha2_256
     paramSha3_256                 <- getParams sha3_256                 paramSha3_256
     paramVerifySignature          <- getParams verifySignature          paramVerifySignature
     paramEqualsByteString         <- getParams equalsByteString         paramEqualsByteString
     paramLessThanByteString       <- getParams lessThanByteString       paramLessThanByteString
-    paramGreaterThanByteString    <- getParams greaterThanByteString    paramGreaterThanByteString
+    paramLessThanEqualsByteString <- getParams lessThanEqualsByteString paramLessThanEqualsByteString
     paramIfThenElse               <- getParams ifThenElse               paramIfThenElse
     paramBlake2b                  <- getParams blake2b                  paramBlake2b
 
@@ -268,8 +264,8 @@ lessThanByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
-greaterThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanByteString = lessThanByteString
+lessThanEqualsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+lessThanEqualsByteString = lessThanByteString
 
 appendByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 appendByteString cpuModelR = do

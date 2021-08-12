@@ -128,9 +128,9 @@ remainderInteger = coerce (rem @Integer)
 lessThanInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
 lessThanInteger = coerce ((<) @Integer)
 
-{-# NOINLINE lessThanEqInteger #-}
-lessThanEqInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
-lessThanEqInteger = coerce ((<=) @Integer)
+{-# NOINLINE lessThanEqualsInteger #-}
+lessThanEqualsInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
+lessThanEqualsInteger = coerce ((<=) @Integer)
 
 {-# NOINLINE equalsInteger #-}
 equalsInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinBool
@@ -156,14 +156,6 @@ appendByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteStri
 {-# NOINLINE consByteString #-}
 consByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
 consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegral n) b
-
-{-# NOINLINE takeByteString #-}
-takeByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-takeByteString n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) b
-
-{-# NOINLINE dropByteString #-}
-dropByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-dropByteString n (BuiltinByteString b) = BuiltinByteString $ BS.drop (fromIntegral n) b
 
 {-# NOINLINE sliceByteString #-}
 sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
@@ -206,9 +198,9 @@ equalsByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((==) 
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
 lessThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((<) @ByteString) b1 b2
 
-{-# NOINLINE greaterThanByteString #-}
-greaterThanByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
-greaterThanByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((>) @ByteString) b1 b2
+{-# NOINLINE lessThanEqualsByteString #-}
+lessThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
+lessThanEqualsByteString (BuiltinByteString b1) (BuiltinByteString b2) = coerce $ ((<=) @ByteString) b1 b2
 
 {-# NOINLINE decodeUtf8 #-}
 decodeUtf8 :: BuiltinByteString -> BuiltinString

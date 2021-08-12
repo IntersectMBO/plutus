@@ -7923,7 +7923,7 @@
                           (termbind
                             (strict)
                             (vardecl
-                              greaterThanEqInteger
+                              greaterThanEqualsInteger
                               (fun (con integer) (fun (con integer) Bool))
                             )
                             (lam
@@ -8011,7 +8011,7 @@
                           (termbind
                             (strict)
                             (vardecl
-                              lessThanEqInteger
+                              lessThanEqualsInteger
                               (fun (con integer) (fun (con integer) Bool))
                             )
                             (lam
@@ -8053,11 +8053,11 @@
                                         ]
                                         lessThanInteger
                                       ]
-                                      lessThanEqInteger
+                                      lessThanEqualsInteger
                                     ]
                                     greaterThanInteger
                                   ]
-                                  greaterThanEqInteger
+                                  greaterThanEqualsInteger
                                 ]
                                 fOrdInteger_cmax
                               ]
@@ -12128,7 +12128,7 @@
                                                                       [
                                                                         [
                                                                           checkBinRel
-                                                                          lessThanEqInteger
+                                                                          lessThanEqualsInteger
                                                                         ]
                                                                         vl
                                                                       ]
@@ -12187,7 +12187,7 @@
                                                                   [
                                                                     [
                                                                       checkBinRel
-                                                                      lessThanEqInteger
+                                                                      lessThanEqualsInteger
                                                                     ]
                                                                     vl
                                                                   ]
@@ -12295,7 +12295,7 @@
                                                               [
                                                                 [
                                                                   checkBinRel
-                                                                  lessThanEqInteger
+                                                                  lessThanEqualsInteger
                                                                 ]
                                                                 vl
                                                               ]

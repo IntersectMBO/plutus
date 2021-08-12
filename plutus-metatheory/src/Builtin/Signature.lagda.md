@@ -102,25 +102,13 @@ SIG appendByteString =
   con bytestring ∷ con bytestring ∷ []
   ,,
   con bytestring
-SIG takeByteString =
-  ∅
-  ,,
-  con integer ∷ con bytestring ∷ []
-  ,,
-  con bytestring
-SIG dropByteString =
-  ∅
-  ,,
-  con integer ∷ con bytestring ∷ []
-  ,,
-  con bytestring
 SIG lessThanByteString =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ []
   ,,
   con bool
-SIG greaterThanByteString =
+SIG lessThanEqualsByteString =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ []
@@ -156,7 +144,7 @@ SIG ifThenElse =
   ` Z ∷ ` Z ∷ con bool ∷ []
   ,,
   ` Z
-SIG append =
+SIG appendString =
   ∅
   ,,
   con string ∷ con string ∷ []
