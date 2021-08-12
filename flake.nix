@@ -10,7 +10,7 @@
     bitte-ci.url = "github:input-output-hk/bitte-ci";
     bitte-ci-frontend.follows = "bitte-ci/bitte-ci-frontend";
     ops-lib.url = "github:input-output-hk/ops-lib/zfs-image?dir=zfs";
-    plutus.url = "github:shlevy/plutus/bitte-from-master";
+    plutus.url = "github:shlevy/plutus/marlowe-webghc";
   };
 
   outputs = { self, nixpkgs, utils, bitte, ... }@inputs:
