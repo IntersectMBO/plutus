@@ -28,6 +28,7 @@ library
     exposed-modules:
         Interpreter
         Webghc.Server
+        Webghc.Client
     hs-source-dirs:   src
     default-language: Haskell2010
     ghc-options: -Wall -Wcompat
@@ -38,6 +39,7 @@ library
         aeson -any,
         servant,
         servant-server,
+        servant-client,
         exceptions,
         newtype-generics,
         regex-compat,
