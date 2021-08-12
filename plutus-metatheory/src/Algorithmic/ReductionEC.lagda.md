@@ -1000,7 +1000,7 @@ bappTypeLem lessThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q�
 bappTypeLem lessThanEqualsByteString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem greaterThanByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
+bappTypeLem lessThanEqualsByteString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁ x)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem sha2-256 {az = az} {as} M p q
