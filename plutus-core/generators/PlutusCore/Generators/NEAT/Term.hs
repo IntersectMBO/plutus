@@ -374,8 +374,6 @@ defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuilt
                    ,[LessThanInteger,LessThanEqualsInteger,EqualsInteger])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
                    ,[AppendByteString])
-                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
-                   ,[TakeByteString,DropByteString])
                   ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)))
                    ,[SliceByteString])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)

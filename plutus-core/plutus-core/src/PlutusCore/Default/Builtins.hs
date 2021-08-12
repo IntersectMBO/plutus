@@ -52,8 +52,6 @@ data DefaultFun
     | EqualsInteger
     | AppendByteString
     | ConsByteString
-    | TakeByteString
-    | DropByteString
     | SliceByteString
     | LengthOfByteString
     | IndexByteString
@@ -169,14 +167,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\n xs -> BS.cons (fromIntegral @Integer n) xs)
             mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramConsByteString)
-    toBuiltinMeaning TakeByteString =
-        makeBuiltinMeaning
-            BS.take
-            (runCostingFunTwoArguments . paramTakeByteString)
-    toBuiltinMeaning DropByteString =
-        makeBuiltinMeaning
-            BS.drop
-            (runCostingFunTwoArguments . paramDropByteString)
     toBuiltinMeaning SliceByteString =
         makeBuiltinMeaning
             (\from to xs -> BS.take (to - from + 1) (BS.drop from xs))
@@ -395,8 +385,8 @@ instance Flat DefaultFun where
               LessThanEqualsInteger    -> 6
               EqualsInteger            -> 9
               AppendByteString         -> 10
-              TakeByteString           -> 11
-              DropByteString           -> 12
+              -- 11 unused
+              -- 12 unused
               Sha2_256                 -> 13
               Sha3_256                 -> 14
               VerifySignature          -> 15
@@ -453,8 +443,7 @@ instance Flat DefaultFun where
               go 6  = pure LessThanEqualsInteger
               go 9  = pure EqualsInteger
               go 10 = pure AppendByteString
-              go 11 = pure TakeByteString
-              go 12 = pure DropByteString
+              -- 11-12 unused
               go 13 = pure Sha2_256
               go 14 = pure Sha3_256
               go 15 = pure VerifySignature

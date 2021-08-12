@@ -97,14 +97,6 @@ prop_appendByteString :: Property
 prop_appendByteString =
     testPredictTwo appendByteString (getConst . paramAppendByteString)
 
-prop_takeByteString :: Property
-prop_takeByteString =
-    testPredictTwo takeByteString (getConst . paramTakeByteString)
-
-prop_dropByteString :: Property
-prop_dropByteString =
-    testPredictTwo dropByteString (getConst . paramDropByteString)
-
 prop_sha2_256 :: Property
 prop_sha2_256 =
     testPredictOne sha2_256 (getConst . paramSha2_256)
