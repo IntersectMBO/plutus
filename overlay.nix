@@ -120,7 +120,6 @@ in {
   restic-backup = final.callPackage ./pkgs/backup { };
 
   web-ghc-server = inputs.plutus.packages.x86_64-linux.web-ghc-server;
-  ghcWithPlutus = inputs.plutus.packages.x86_64-linux.ghcWithPlutus;
   web-ghc-server-entrypoint = final.callPackage ./pkgs/web-ghc-server.nix {};
 
   plutus-playground-server = inputs.plutus.packages.x86_64-linux.plutus-playground-server;

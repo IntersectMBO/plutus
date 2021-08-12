@@ -1,7 +1,7 @@
-{ writeShellScriptBin, pkg, variant, symlinkJoin, lib, ghcWithPlutus, cacert }:
+{ writeShellScriptBin, pkg, variant, symlinkJoin, lib, cacert }:
 
 let
-  deps = [ pkg ] ++ lib.optional (variant == "marlowe") ghcWithPlutus;
+  deps = [ pkg ];
   entrypoint = writeShellScriptBin "entrypoint" ''
     export PATH=${lib.makeBinPath deps}
     export SYSTEM_CERTIFICATE_PATH=${cacert}/etc/ssl/certs/ca-bundle.crt

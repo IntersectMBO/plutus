@@ -60,9 +60,7 @@ import (
 			#namespace: namespace
 			#fqdn: #fqdn
 			#memory: 4000
-      #variant: "unused"
 			#domain: "test"
-      #envTemplate: "none"
 		}
 	}
 }

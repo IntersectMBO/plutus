@@ -9,9 +9,8 @@ import (
 
 	#namespace: string
 	#memory: uint
-	#variant: string
 	#extraEnv: [string]: string
-	#envTemplate: *"foo" | string
+	#envTemplate: *null | string
 
 	driver: "exec"
 
@@ -35,9 +34,12 @@ import (
 		PATH: "/bin"
 	}
 	env: baseEnv & #extraEnv
-	template: "secrets/env.txt": {
-		data: #envTemplate
-		change_mode: "restart"
-		env: true
+	if #envTemplate != null {
+		template:
+		"secrets/env.txt": {
+			data: #envTemplate
+			change_mode: "restart"
+			env: true
+		}
 	}
 }

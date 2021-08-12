@@ -82,7 +82,6 @@ import (
 			#memory: 32
 			#variant: ref.variant
 			#domain: ref.domain
-      #envTemplate: "none=none"
 		}
 
 		task: "server": tasks.#SimpleTask & {
