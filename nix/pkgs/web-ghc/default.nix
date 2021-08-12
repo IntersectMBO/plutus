@@ -4,9 +4,11 @@ let
 
   runtimeGhc = haskell.project.ghcWithPackages (ps: [
     ps.playground-common
-    ps.plutus-playground-server
-    ps.plutus-use-cases
     ps.marlowe
+    ps.plutus-core
+    ps.plutus-tx
+    ps.plutus-contract
+    ps.plutus-ledger
   ]);
 in
 runCommand "web-ghc" { buildInputs = [ makeWrapper ]; } ''
