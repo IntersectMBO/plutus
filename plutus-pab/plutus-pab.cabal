@@ -71,7 +71,6 @@ library
         Cardano.Node.API
         Cardano.Node.Client
         Cardano.Node.Mock
-        Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
         Cardano.Protocol.Socket.Mock.Client
@@ -476,30 +475,28 @@ executable tx-inject
     import:           lang
     main-is:          Main.hs
     hs-source-dirs:   tx-inject
+    other-modules:
+        TxInject.RandomTx
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
         containers -any,
         clock -any,
-        deepseq -any,
-        http-client -any,
-        http-conduit -any,
         lens -any,
         mwc-random -any,
         optparse-applicative -any,
         plutus-contract -any,
         plutus-ledger -any,
-        plutus-tx -any,
         pretty-simple -any,
         rate-limit -any,
-        servant-client -any,
         signal -any,
         stm -any,
         text -any,
         time-units -any,
         yaml -any,
-        data-default -any
+        hedgehog -any,
+        primitive -any
 
 executable sync-client
     import: lang
