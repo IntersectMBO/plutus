@@ -30,7 +30,7 @@ import qualified Data.ByteString.Hash                           as Hash
 import           Data.Char
 import           Data.Ix
 import           Data.Text                                      (Text)
-import           Data.Text.Encoding                             (decodeUtf8, encodeUtf8)
+import           Data.Text.Encoding                             (decodeUtf8', encodeUtf8)
 import           Data.Word                                      (Word8)
 import           Flat                                           hiding (from, to)
 import           Flat.Decoder
@@ -237,7 +237,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             mempty  -- TODO: budget.
     toBuiltinMeaning DecodeUtf8 =
         makeBuiltinMeaning
-            (decodeUtf8 :: BS.ByteString -> Text)
+            (\bs -> case decodeUtf8' bs of { Right t -> EvaluationSuccess t ; Left _ -> EvaluationFailure })
             mempty  -- TODO: budget.
     toBuiltinMeaning Trace = makeBuiltinMeaning emitPlc mempty where
         emitPlc :: SomeConstantOf uni Text '[] -> Opaque term a -> Emitter (Opaque term a)
