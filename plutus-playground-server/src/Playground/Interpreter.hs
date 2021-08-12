@@ -18,7 +18,6 @@ import qualified Data.Aeson                   as JSON
 import           Data.Bifunctor               (first)
 import qualified Data.ByteString.Char8        as BS8
 import qualified Data.ByteString.Lazy.Char8   as BSL
-import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
@@ -30,8 +29,9 @@ import           Language.Haskell.TH.Syntax   (liftString)
 import           Playground.Types             (CompilationResult (CompilationResult),
                                                Evaluation (program, sourceCode, wallets), EvaluationResult,
                                                PlaygroundError (InterpreterError, JsonDecodingError, OtherError, decodingError, expected, input))
-import           Servant.Client               (ClientEnv, ClientM, client, runClientM)
+import           Servant.Client               (ClientEnv)
 import qualified Text.Regex                   as Regex
+import           Webghc.Client                (runscript)
 import           Webghc.Server                (CompileRequest (CompileRequest))
 import qualified Webghc.Server                as Webghc
 
@@ -83,24 +83,6 @@ mkCompileScript script =
         "main = printSchemas (schemas, registeredKnownCurrencies)"
       ]
 
-runghc :: CompileRequest -> ClientM (Either InterpreterError (InterpreterResult String))
-runghc = client (Proxy @Webghc.FrontendAPI)
-
-runscript ::
-  ( MonadMask m,
-    MonadIO m,
-    MonadError InterpreterError m
-  ) =>
-  ClientEnv ->
-  Text ->
-  m (InterpreterResult String)
-runscript clientEnv code = do
-  res <- liftIO $ flip runClientM clientEnv $ runghc $ CompileRequest {code, implicitPrelude = False}
-  case res of
-    Left e          -> throwError (CompilationErrors [RawError (Text.pack (show e))])
-    Right (Left e)  -> throwError e
-    Right (Right r) -> pure r
-
 checkCode :: MonadError InterpreterError m => SourceCode -> m ()
 checkCode source = do
   avoidUnsafe source
@@ -137,7 +119,10 @@ compile ::
 compile clientEnv source = do
   -- There are a couple of custom rules required for compilation
   checkCode source
-  result <- runscript clientEnv $ mkCompileScript (Newtype.unpack source)
+  result <- runscript clientEnv $ CompileRequest {
+    code = mkCompileScript (Newtype.unpack source),
+    implicitPrelude = False
+    }
   getCompilationResult result
 
 evaluationToExpr :: (MonadError PlaygroundError m, MonadIO m) => Evaluation -> m Text
@@ -174,7 +159,10 @@ evaluateSimulation ::
   m (InterpreterResult EvaluationResult)
 evaluateSimulation clientEnv evaluation = do
   expr <- evaluationToExpr evaluation
-  result <- mapError InterpreterError $ runscript clientEnv expr
+  result <- mapError InterpreterError $ runscript clientEnv $ CompileRequest {
+    code = expr,
+    implicitPrelude = False
+    }
   decodeEvaluation result
 
 mkRunScript :: SourceCode -> Text -> Text
