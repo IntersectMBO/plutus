@@ -230,11 +230,12 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
                 Left err    -> throwing _SMContractError err
                 Right state -> pure $ Just (state, utxo)
 
+-- | The outcome of 'waitForUpdateTimeout'
 data WaitingResult t i s
-    = Timeout t
-    | ContractEnded Tx.Tx i
-    | Transition Tx.Tx i s
-    | InitialState Tx.Tx s
+    = Timeout t -- ^ The timeout happened before any change of the on-chain state was detected
+    | ContractEnded Tx.Tx i -- ^ The state machine instance ended
+    | Transition Tx.Tx i s -- ^ The state machine instance transitioned to a new state
+    | InitialState Tx.Tx s -- ^ The state machine instance was initialised
   deriving stock (Show,Generic,Functor)
   deriving anyclass (ToJSON, FromJSON)
 
