@@ -130,21 +130,21 @@ data PABReq =
 
 instance Pretty PABReq where
   pretty = \case
-    AwaitSlotReq s              -> "Await slot:" <+> pretty s
-    AwaitTimeReq s              -> "Await time:" <+> pretty s
-    AwaitUtxoSpentReq utxo      -> "Await utxo spent:" <+> pretty utxo
-    AwaitUtxoProducedReq a      -> "Await utxo produced:" <+> pretty a
-    CurrentSlotReq              -> "Current slot"
-    CurrentTimeReq              -> "Current time"
-    AwaitTxStatusChangeReq txid -> "Await tx status change:" <+> pretty txid
-    OwnContractInstanceIdReq    -> "Own contract instance ID"
-    OwnPublicKeyReq             -> "Own public key"
-    UtxoAtReq addr              -> "Utxo at:" <+> pretty addr
-    ChainIndexQueryReq q        -> "Chain index query:" <+> pretty q
-    AddressChangeReq req        -> "Address change:" <+> pretty req
-    BalanceTxReq utx            -> "Balance tx:" <+> pretty utx
-    WriteBalancedTxReq tx       -> "Write balanced tx:" <+> pretty tx
-    ExposeEndpointReq ep        -> "Expose endpoint:" <+> pretty ep
+    AwaitSlotReq s                          -> "Await slot:" <+> pretty s
+    AwaitTimeReq s                          -> "Await time:" <+> pretty s
+    AwaitUtxoSpentReq utxo                  -> "Await utxo spent:" <+> pretty utxo
+    AwaitUtxoProducedReq a                  -> "Await utxo produced:" <+> pretty a
+    CurrentSlotReq                          -> "Current slot"
+    CurrentTimeReq                          -> "Current time"
+    AwaitTxStatusChangeReq txid             -> "Await tx status change:" <+> pretty txid
+    OwnContractInstanceIdReq                -> "Own contract instance ID"
+    OwnPublicKeyReq                         -> "Own public key"
+    UtxoAtReq addr                          -> "Utxo at:" <+> pretty addr
+    ChainIndexQueryReq q                    -> "Chain index query:" <+> pretty q
+    AddressChangeReq req                    -> "Address change:" <+> pretty req
+    BalanceTxReq utx                        -> "Balance tx:" <+> pretty utx
+    WriteBalancedTxReq tx                   -> "Write balanced tx:" <+> pretty tx
+    ExposeEndpointReq ep                    -> "Expose endpoint:" <+> pretty ep
     PosixTimeRangeToContainedSlotRangeReq r -> "Posix time range to contained slot range:" <+> pretty r
 
 -- | Responses that 'Contract's receive
@@ -170,21 +170,21 @@ data PABResp =
 
 instance Pretty PABResp where
   pretty = \case
-    AwaitSlotResp s                     -> "Slot:" <+> pretty s
-    AwaitTimeResp s                     -> "Time:" <+> pretty s
-    AwaitUtxoSpentResp utxo             -> "Utxo spent:" <+> pretty utxo
-    AwaitUtxoProducedResp addr          -> "Utxo produced:" <+> pretty addr
-    CurrentSlotResp s                   -> "Current slot:" <+> pretty s
-    CurrentTimeResp s                   -> "Current time:" <+> pretty s
-    AwaitTxStatusChangeResp txid status -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
-    OwnContractInstanceIdResp i         -> "Own contract instance ID:" <+> pretty i
-    OwnPublicKeyResp k                  -> "Own public key:" <+> pretty k
-    UtxoAtResp rsp                      -> "Utxo at:" <+> pretty rsp
-    ChainIndexQueryResp rsp             -> pretty rsp
-    AddressChangeResp rsp               -> "Address change:" <+> pretty rsp
-    BalanceTxResp r                     -> "Balance tx:" <+> pretty r
-    WriteBalancedTxResp r               -> "Write balanced tx:" <+> pretty r
-    ExposeEndpointResp desc rsp         -> "Call endpoint" <+> pretty desc <+> "with" <+> pretty rsp
+    AwaitSlotResp s                          -> "Slot:" <+> pretty s
+    AwaitTimeResp s                          -> "Time:" <+> pretty s
+    AwaitUtxoSpentResp utxo                  -> "Utxo spent:" <+> pretty utxo
+    AwaitUtxoProducedResp addr               -> "Utxo produced:" <+> pretty addr
+    CurrentSlotResp s                        -> "Current slot:" <+> pretty s
+    CurrentTimeResp s                        -> "Current time:" <+> pretty s
+    AwaitTxStatusChangeResp txid status      -> "Status of" <+> pretty txid <+> "changed to" <+> pretty status
+    OwnContractInstanceIdResp i              -> "Own contract instance ID:" <+> pretty i
+    OwnPublicKeyResp k                       -> "Own public key:" <+> pretty k
+    UtxoAtResp rsp                           -> "Utxo at:" <+> pretty rsp
+    ChainIndexQueryResp rsp                  -> pretty rsp
+    AddressChangeResp rsp                    -> "Address change:" <+> pretty rsp
+    BalanceTxResp r                          -> "Balance tx:" <+> pretty r
+    WriteBalancedTxResp r                    -> "Write balanced tx:" <+> pretty r
+    ExposeEndpointResp desc rsp              -> "Call endpoint" <+> pretty desc <+> "with" <+> pretty rsp
     PosixTimeRangeToContainedSlotRangeResp r -> "Slot range:" <+> pretty r
 
 matches :: PABReq -> PABResp -> Bool

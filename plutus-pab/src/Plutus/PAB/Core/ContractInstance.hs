@@ -29,6 +29,7 @@ module Plutus.PAB.Core.ContractInstance(
     , AppBackendConstraints
     -- * Calling endpoints
     , callEndpointOnInstance
+    -- * Indexed block
     ) where
 
 import           Control.Applicative                              (Alternative (..))

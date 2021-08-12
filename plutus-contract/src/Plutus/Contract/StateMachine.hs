@@ -20,7 +20,7 @@ module Plutus.Contract.StateMachine(
     , SM.StateMachine(..)
     , SM.StateMachineInstance(..)
     , SM.State(..)
-    , OnChainState
+    , OnChainState(..)
     , WaitingResult(..)
     , InvalidTransition(..)
     , TransitionResult(..)
@@ -44,6 +44,7 @@ module Plutus.Contract.StateMachine(
     , waitForUpdate
     , waitForUpdateUntilSlot
     , waitForUpdateUntilTime
+    , waitForUpdateTimeout
     -- * Lower-level API
     , StateMachineTransition(..)
     , mkStep
@@ -58,11 +59,13 @@ import           Data.Default                                 (Default (def))
 import           Data.Either                                  (rights)
 import           Data.Map                                     (Map)
 import qualified Data.Map                                     as Map
+import           Data.Maybe                                   (listToMaybe, mapMaybe)
+import qualified Data.Set                                     as Set
 import           Data.Text                                    (Text)
 import qualified Data.Text                                    as Text
 import           Data.Void                                    (Void, absurd)
 import           GHC.Generics                                 (Generic)
-import           Ledger                                       (POSIXTime, Slot, Value, scriptCurrencySymbol)
+import           Ledger                                       (POSIXTime, Slot, TxOutRef, Value, scriptCurrencySymbol)
 import qualified Ledger
 import           Ledger.Constraints                           (ScriptLookups, TxConstraints (..), mintingPolicy,
                                                                mustMintValueWithRedeemer, mustPayToTheScript,
@@ -102,7 +105,23 @@ import           PlutusTx.Monoid                              (inv)
 -- makes the transition to the next state using the given input and taking care
 -- of all payments.
 
-type OnChainState s i = (Typed.TypedScriptTxOut (SM.StateMachine s i), Typed.TypedScriptTxOutRef (SM.StateMachine s i))
+-- | Typed representation of the on-chain state of a state machine insante
+data OnChainState s i =
+    OnChainState
+        { ocsTxOut    :: Typed.TypedScriptTxOut (SM.StateMachine s i) -- ^ Typed transaction output
+        , ocsTxOutRef :: Typed.TypedScriptTxOutRef (SM.StateMachine s i) -- ^ Typed UTXO
+        , ocsTx       :: Tx.Tx -- ^ Transaction that produced the output
+        }
+
+getInput ::
+    forall i.
+    (PlutusTx.FromData i)
+    => TxOutRef
+    -> Tx.Tx
+    -> Maybe i
+getInput outRef tx = do
+    (_validator, Ledger.Redeemer r, _) <- listToMaybe $ mapMaybe Tx.inScripts $ filter ((\Tx.TxIn{Tx.txInRef} -> outRef == txInRef)) $ Set.toList $ Tx.txInputs tx
+    PlutusTx.fromBuiltinData r
 
 getStates
     :: forall s i
@@ -112,9 +131,9 @@ getStates
     -> [OnChainState s i]
 getStates (SM.StateMachineInstance _ si) refMap =
     let lkp (ref, out) = do
-            tref <- Typed.typeScriptTxOutRef (\r -> Map.lookup r refMap) si ref
-            tout <- Typed.typeScriptTxOut si out
-            pure (tout, tref)
+            ocsTxOutRef <- Typed.typeScriptTxOutRef (\r -> Map.lookup r refMap) si ref
+            ocsTxOut <- Typed.typeScriptTxOut si out
+            pure OnChainState{ocsTxOut, ocsTxOutRef, ocsTx = Tx.txOutTxTx out}
     in rights $ fmap lkp $ Map.toList refMap
 
 -- | An invalid transition
@@ -133,6 +152,7 @@ data TransitionResult s i =
 
 data SMContractError =
     ChooserError Text
+    | UnableToExtractTransition
     | SMCContractError ContractError
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -170,7 +190,7 @@ threadTokenChooser ::
     -> [OnChainState state input]
     -> Either SMContractError (OnChainState state input)
 threadTokenChooser val states =
-    let hasToken (TypedScriptTxOut{tyTxOutTxOut=Tx.TxOut{Tx.txOutValue}},_) = val `Value.leq` txOutValue in
+    let hasToken OnChainState{ocsTxOut=TypedScriptTxOut{tyTxOutTxOut=Tx.TxOut{Tx.txOutValue}}} = val `Value.leq` txOutValue in
     case filter hasToken states of
         [x] -> Right x
         xs ->
@@ -210,10 +230,11 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
                 Left err    -> throwing _SMContractError err
                 Right state -> pure $ Just (state, utxo)
 
-data WaitingResult t a
+data WaitingResult t i s
     = Timeout t
-    | ContractEnded
-    | WaitingResult a
+    | ContractEnded Tx.Tx i
+    | Transition Tx.Tx i s
+    | InitialState Tx.Tx s
   deriving stock (Show,Generic,Functor)
   deriving anyclass (ToJSON, FromJSON)
 
@@ -227,11 +248,12 @@ waitForUpdateUntilSlot ::
     , AsContractError e
     , PlutusTx.FromData state
     , PlutusTx.ToData state
+    , PlutusTx.FromData i
     )
     => StateMachineClient state i
     -> Slot
-    -> Contract w schema e (WaitingResult Slot state)
-waitForUpdateUntilSlot client timeoutSlot = waitForUpdateTimeout client (isSlot timeoutSlot) >>= fmap (fmap (tyTxOutData . fst)) . awaitPromise
+    -> Contract w schema e (WaitingResult Slot i state)
+waitForUpdateUntilSlot client timeoutSlot = waitForUpdateTimeout client (isSlot timeoutSlot) >>= fmap (fmap (tyTxOutData . ocsTxOut)) . awaitPromise
 
 -- | Same as 'waitForUpdateUntilSlot', but works with 'POSIXTime' instead.
 waitForUpdateUntilTime ::
@@ -239,10 +261,11 @@ waitForUpdateUntilTime ::
     , AsContractError e
     , PlutusTx.FromData state
     , PlutusTx.ToData state
+    , PlutusTx.FromData i
     )
     => StateMachineClient state i
     -> POSIXTime
-    -> Contract w schema e (WaitingResult Slot state)
+    -> Contract w schema e (WaitingResult Slot i state)
 waitForUpdateUntilTime sm timeoutTime = waitForUpdateUntilSlot sm (TimeSlot.posixTimeToEnclosingSlot def timeoutTime)
 
 -- | Wait until the on-chain state of the state machine instance has changed,
@@ -256,13 +279,15 @@ waitForUpdate ::
     , AsContractError e
     , PlutusTx.FromData state
     , PlutusTx.ToData state
+    , PlutusTx.FromData i
     )
     => StateMachineClient state i
     -> Contract w schema e (Maybe (OnChainState state i))
 waitForUpdate client = waitForUpdateTimeout client never >>= awaitPromise >>= \case
-    Timeout t       -> absurd t
-    ContractEnded   -> pure Nothing
-    WaitingResult r -> pure (Just r)
+    Timeout t        -> absurd t
+    ContractEnded{}  -> pure Nothing
+    InitialState _ r -> pure (Just r)
+    Transition _ _ r -> pure (Just r)
 
 -- | Wait until the on-chain state of the state machine changes, or a timeout.
 waitForUpdateTimeout ::
@@ -271,10 +296,11 @@ waitForUpdateTimeout ::
     , AsContractError e
     , PlutusTx.FromData state
     , PlutusTx.ToData state
+    , PlutusTx.FromData i
     )
     => StateMachineClient state i -- ^ The state machine client
     -> Promise w schema e t -- ^ The timeout
-    -> Contract w schema e (Promise w schema e (WaitingResult t (OnChainState state i)))
+    -> Contract w schema e (Promise w schema e (WaitingResult t i (OnChainState state i)))
 waitForUpdateTimeout client@StateMachineClient{scInstance, scChooser} timeout = do
     currentState <- getOnChainState client
     let success = case currentState of
@@ -283,17 +309,21 @@ waitForUpdateTimeout client@StateMachineClient{scInstance, scChooser} timeout = 
                         -- at the address. Any output that appears needs to be checked
                         -- with scChooser
                         let addr = Scripts.validatorAddress $ typedValidator scInstance in
-                        promiseBind (getStates @state @i scInstance . foldMap Ledger.toOutRefMap <$> utxoIsProduced addr) $ \produced ->
+                        promiseBind (utxoIsProduced addr) $ \txns -> do
+                            let produced = getStates @state @i scInstance $ foldMap Ledger.toOutRefMap txns
                             case scChooser produced of
-                                Left _             -> error "waitForUpdate: scChooser produced: error"
-                                Right onChainState -> pure $ WaitingResult onChainState
-                    Just ((_, Typed.TypedScriptTxOutRef{Typed.tyTxOutRefRef}), _) ->
-                        promiseBind (getStates @state @i scInstance . Ledger.toOutRefMap <$> utxoIsSpent tyTxOutRefRef) $ \newStates ->
-                            case newStates of
-                                [] -> pure ContractEnded
-                                xs -> case scChooser xs of
-                                    Left _  -> error "waitForUpdate: scChooser newStates: error"
-                                    Right s -> pure (WaitingResult s)
+                                Left e             -> throwing _SMContractError e
+                                Right onChainState -> pure $ InitialState (ocsTx onChainState) onChainState
+                    Just (OnChainState{ocsTxOutRef=Typed.TypedScriptTxOutRef{Typed.tyTxOutRefRef}, ocsTx}, _) ->
+                        promiseBind (utxoIsSpent tyTxOutRefRef) $ \txn -> do
+                            let newStates = getStates @state @i scInstance (Ledger.toOutRefMap txn)
+                                inp       = getInput tyTxOutRefRef (Ledger.eitherTx id id txn)
+                            case (newStates, inp) of
+                                ([], Just i) -> pure (ContractEnded ocsTx i)
+                                (xs, Just i) -> case scChooser xs of
+                                    Left e         -> throwing _SMContractError e
+                                    Right newState -> pure (Transition ocsTx i newState)
+                                _ -> throwing_ _UnableToExtractTransition
     pure $ select success (Timeout <$> timeout)
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
@@ -466,13 +496,13 @@ mkStep client@StateMachineClient{scInstance} input = do
     case maybeState of
         Nothing -> pure $ Left $ InvalidTransition Nothing input
         Just (onChainState, utxo) -> do
-            let (TypedScriptTxOut{tyTxOutData=currentState, tyTxOutTxOut}, txOutRef) = onChainState
+            let OnChainState{ocsTxOut=TypedScriptTxOut{tyTxOutData=currentState, tyTxOutTxOut}, ocsTxOutRef} = onChainState
                 oldState = State
                     { stateData = currentState
                       -- Hide the thread token value from the client code
                     , stateValue = Ledger.txOutValue tyTxOutTxOut <> inv (SM.threadTokenValueOrZero scInstance)
                     }
-                inputConstraints = [InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }]
+                inputConstraints = [InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef ocsTxOutRef }]
 
             case smTransition oldState input of
                 Just (newConstraints, newState)  ->

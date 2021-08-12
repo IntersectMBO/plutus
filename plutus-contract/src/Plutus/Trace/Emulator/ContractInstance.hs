@@ -25,6 +25,9 @@ module Plutus.Trace.Emulator.ContractInstance(
     , ContractInstanceState(..)
     , emptyInstanceState
     , addEventInstanceState
+    -- * Indexed block
+    , IndexedBlock(..)
+    , indexBlock
     -- * Internals
     , getHooks
     , addResponse
@@ -42,12 +45,13 @@ import           Control.Monad.Freer.State            (State, evalState, get, ge
 import qualified Data.Aeson                           as JSON
 import           Data.Foldable                        (traverse_)
 import           Data.List.NonEmpty                   (NonEmpty (..))
+import           Data.Map                             (Map)
 import qualified Data.Map                             as Map
 import           Data.Maybe                           (listToMaybe, mapMaybe)
 import qualified Data.Set                             as Set
 import qualified Data.Text                            as T
 import           Ledger.Blockchain                    (OnChainTx (..), consumableInputs, outputsProduced)
-import           Ledger.Tx                            (TxIn (..), TxOut (..), txId)
+import           Ledger.Tx                            (Address, TxIn (..), TxOut (..), TxOutRef, txId)
 import           Plutus.Contract                      (Contract (..))
 import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), TxValidity (..),
                                                        matches)
@@ -258,8 +262,10 @@ processNewTransactions ::
     -> Eff effs ()
 processNewTransactions txns = do
     updateTxStatus @w @s @e txns
-    updateTxOutSpent @w @s @e txns
-    updateTxOutProduced @w @s @e txns
+
+    let blck = indexBlock txns
+    updateTxOutSpent @w @s @e blck
+    updateTxOutProduced @w @s @e blck
 
 -- | Update the contract instance with transaction status information from the
 --   new block.
@@ -295,16 +301,13 @@ updateTxOutProduced ::
     , Member (LogMsg ContractInstanceMsg) effs
     , Monoid w
     )
-    => [OnChainTx]
+    => IndexedBlock
     -> Eff effs ()
-updateTxOutProduced []        = pure ()
-updateTxOutProduced (t:txns) = do
-    let txOutputs tx = fmap (\TxOut{txOutAddress} -> (txOutAddress, tx :| [])) (outputsProduced tx)
-        addrMap = Map.fromListWith (<>) ((t:txns) >>= txOutputs)
+updateTxOutProduced IndexedBlock{ibUtxoProduced} = do
     -- Check whether the contract instance is waiting for address changes
     hks <- mapMaybe (traverse (preview E._AwaitUtxoProducedReq)) <$> getHooks @w @s @e
     let mpReq Request{rqID, itID, rqRequest=addr} =
-            case Map.lookup addr addrMap of
+            case Map.lookup addr ibUtxoProduced of
                 Nothing      -> Nothing
                 Just newTxns -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=E.AwaitUtxoProducedResp newTxns}
         utxoResp = listToMaybe $ mapMaybe mpReq hks
@@ -319,15 +322,13 @@ updateTxOutSpent ::
     , Member (LogMsg ContractInstanceMsg) effs
     , Monoid w
     )
-    => [OnChainTx]
+    => IndexedBlock
     -> Eff effs ()
-updateTxOutSpent txns = do
-    let txInputs tx = fmap (\TxIn{txInRef} -> (txInRef, tx)) (Set.toList $ consumableInputs tx)
-        addrMap = Map.fromList (txns >>= txInputs)
+updateTxOutSpent IndexedBlock{ibUtxoSpent} = do
     -- Check whether the contract instance is waiting for address changes
     hks <- mapMaybe (traverse (preview E._AwaitUtxoSpentReq)) <$> getHooks @w @s @e
     let mpReq Request{rqID, itID, rqRequest=addr} =
-            case Map.lookup addr addrMap of
+            case Map.lookup addr ibUtxoSpent of
                 Nothing      -> Nothing
                 Just newTxns -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=E.AwaitUtxoSpentResp newTxns}
         utxoResp = listToMaybe $ mapMaybe mpReq hks
@@ -438,3 +439,30 @@ logNewMessages :: forall w s e effs.
 logNewMessages = do
     newContractLogs <- gets @(ContractInstanceStateInternal w s e ()) (view (resumableResult . lastLogs) . cisiSuspState)
     traverse_ (send . LMessage . fmap ContractLog) newContractLogs
+
+-- | A block of transactions, indexed by tx outputs spent and by
+--   addresses on which new outputs are produced
+data IndexedBlock =
+  IndexedBlock
+    { ibUtxoSpent    :: Map TxOutRef OnChainTx
+    , ibUtxoProduced :: Map Address (NonEmpty OnChainTx)
+    }
+
+instance Semigroup IndexedBlock where
+  l <> r =
+    IndexedBlock
+      { ibUtxoSpent = ibUtxoSpent l <> ibUtxoSpent r
+      , ibUtxoProduced = Map.unionWith (<>) (ibUtxoProduced l) (ibUtxoProduced r)
+      }
+
+instance Monoid IndexedBlock where
+  mappend = (<>)
+  mempty = IndexedBlock mempty mempty
+
+indexBlock :: [OnChainTx] -> IndexedBlock
+indexBlock = foldMap indexTx where
+  indexTx otx =
+    IndexedBlock
+      { ibUtxoSpent = Map.fromSet (const otx) $ Set.map txInRef $ consumableInputs otx
+      , ibUtxoProduced = Map.fromListWith (<>) $ outputsProduced otx >>= (\TxOut{txOutAddress} -> [(txOutAddress, otx :| [])])
+      }

@@ -14,36 +14,33 @@ module Plutus.PAB.Core.ContractInstance.BlockchainEnv(
   , fromCardanoTxId
   ) where
 
-import           Cardano.Api                          (BlockInMode (..), NetworkId)
-import qualified Cardano.Api                          as C
-import           Cardano.Node.Types                   (NodeMode (..))
-import           Cardano.Protocol.Socket.Client       (ChainSyncEvent (..))
-import qualified Cardano.Protocol.Socket.Client       as Client
-import qualified Cardano.Protocol.Socket.Mock.Client  as MockClient
-import           Data.List.NonEmpty                   (NonEmpty (..))
-import qualified Data.Map                             as Map
-import qualified Data.Set                             as Set
-import           Ledger                               (Address, Block, OnChainTx, Slot, TxId (..), TxIn (txInRef),
-                                                       TxOut (..), TxOutRef, consumableInputs, eitherTx,
-                                                       outputsProduced, txId)
-import           Ledger.AddressMap                    (AddressMap)
-import qualified Ledger.AddressMap                    as AddressMap
-import           Plutus.Contract.Effects              (TxStatus (..), TxValidity (..), increaseDepth)
-import           Plutus.PAB.Core.ContractInstance.STM (BlockchainEnv (..), InstanceClientEnv (..), InstancesState,
-                                                       OpenTxOutProducedRequest (..), OpenTxOutSpentRequest (..),
-                                                       emptyBlockchainEnv)
-import qualified Plutus.PAB.Core.ContractInstance.STM as S
-import           Plutus.V1.Ledger.Api                 (toBuiltin)
+import           Cardano.Api                            (BlockInMode (..), NetworkId)
+import qualified Cardano.Api                            as C
+import           Cardano.Node.Types                     (NodeMode (..))
+import           Cardano.Protocol.Socket.Client         (ChainSyncEvent (..))
+import qualified Cardano.Protocol.Socket.Client         as Client
+import qualified Cardano.Protocol.Socket.Mock.Client    as MockClient
+import qualified Data.Map                               as Map
+import           Ledger                                 (Block, OnChainTx, Slot, TxId (..), eitherTx, txId)
+import           Ledger.AddressMap                      (AddressMap)
+import qualified Ledger.AddressMap                      as AddressMap
+import           Plutus.Contract.Effects                (TxStatus (..), TxValidity (..), increaseDepth)
+import           Plutus.PAB.Core.ContractInstance.STM   (BlockchainEnv (..), InstanceClientEnv (..), InstancesState,
+                                                         OpenTxOutProducedRequest (..), OpenTxOutSpentRequest (..),
+                                                         emptyBlockchainEnv)
+import qualified Plutus.PAB.Core.ContractInstance.STM   as S
+import           Plutus.Trace.Emulator.ContractInstance (IndexedBlock (..), indexBlock)
+import           Plutus.V1.Ledger.Api                   (toBuiltin)
 
-import           Control.Concurrent.STM               (STM)
-import qualified Control.Concurrent.STM               as STM
+import           Control.Concurrent.STM                 (STM)
+import qualified Control.Concurrent.STM                 as STM
 import           Control.Lens
-import           Control.Monad                        (foldM, forM_, unless, void, when)
-import           Data.Foldable                        (foldl')
-import           Data.Map                             (Map)
-import           Ledger.TimeSlot                      (SlotConfig)
-import           Wallet.Emulator.ChainIndex.Index     (ChainIndex, ChainIndexItem (..))
-import qualified Wallet.Emulator.ChainIndex.Index     as Index
+import           Control.Monad                          (foldM, forM_, unless, void, when)
+import           Data.Foldable                          (foldl')
+import           Data.Map                               (Map)
+import           Ledger.TimeSlot                        (SlotConfig)
+import           Wallet.Emulator.ChainIndex.Index       (ChainIndex, ChainIndexItem (..))
+import qualified Wallet.Emulator.ChainIndex.Index       as Index
 
 -- | Connect to the node and write node updates to the blockchain
 --   env.
@@ -65,31 +62,6 @@ startNodeClient socket mode slotConfig networkId instancesState = do
           void $ Client.runChainSync socket slotConfig networkId resumePoints
             (\block slot -> STM.atomically $ processChainSyncEvent env block slot)
     pure env
-
-data IndexedBlock =
-  IndexedBlock
-    { ibUtxoSpent    :: Map TxOutRef OnChainTx
-    , ibUtxoProduced :: Map Address (NonEmpty OnChainTx)
-    }
-
-instance Semigroup IndexedBlock where
-  l <> r =
-    IndexedBlock
-      { ibUtxoSpent = ibUtxoSpent l <> ibUtxoSpent r
-      , ibUtxoProduced = Map.unionWith (<>) (ibUtxoProduced l) (ibUtxoProduced r)
-      }
-
-instance Monoid IndexedBlock where
-  mappend = (<>)
-  mempty = IndexedBlock mempty mempty
-
-indexBlock :: [OnChainTx] -> IndexedBlock
-indexBlock = foldMap indexTx where
-  indexTx otx =
-    IndexedBlock
-      { ibUtxoSpent = Map.fromSet (const otx) $ Set.map txInRef $ consumableInputs otx
-      , ibUtxoProduced = Map.fromListWith (<>) $ outputsProduced otx >>= (\TxOut{txOutAddress} -> [(txOutAddress, otx :| [])])
-      }
 
 updateInstances :: IndexedBlock -> InstanceClientEnv -> STM ()
 updateInstances IndexedBlock{ibUtxoSpent, ibUtxoProduced} InstanceClientEnv{ceUtxoSpentRequests, ceUtxoProducedRequests} = do

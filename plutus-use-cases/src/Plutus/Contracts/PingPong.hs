@@ -124,7 +124,7 @@ run ::
     -> Promise w PingPongSchema PingPongError ()
     -> Contract w PingPongSchema PingPongError ()
 run expectedState action = do
-    let extractState = tyTxOutData . fst
+    let extractState = tyTxOutData . SM.ocsTxOut
         go Nothing = throwError StoppedUnexpectedly
         go (Just currentState)
             | extractState currentState == expectedState = awaitPromise action
@@ -158,7 +158,7 @@ combined = forever (selectList [initialise, ping, pong, runStop, wait]) where
         newState <- runWaitForUpdate
         case newState of
             Nothing -> logWarn @Haskell.String "runWaitForUpdate: Nothing"
-            Just (TypedScriptTxOut{tyTxOutData=s}, _) -> do
+            Just SM.OnChainState{SM.ocsTxOut=TypedScriptTxOut{tyTxOutData=s}} -> do
                 logInfo $ "new state: " <> Haskell.show s
                 tell (Last $ Just s)
 
