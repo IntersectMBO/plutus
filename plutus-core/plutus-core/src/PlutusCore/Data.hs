@@ -10,13 +10,13 @@ module PlutusCore.Data (Data (..)) where
 
 import           Codec.CBOR.Decoding       (Decoder)
 import qualified Codec.CBOR.Decoding       as CBOR
+import           Codec.CBOR.Encoding       (Encoding)
+import qualified Codec.CBOR.Encoding       as CBOR
 import qualified Codec.CBOR.Magic          as CBOR
-import qualified Codec.CBOR.Term           as CBOR
 import           Codec.Serialise           (Serialise (decode, encode))
 import           Codec.Serialise.Decoding  (decodeSequenceLenIndef, decodeSequenceLenN)
 import           Control.DeepSeq           (NFData)
 import           Control.Monad.Except
-import           Data.Bifunctor            (bimap)
 import           Data.Bits                 (shiftR)
 import qualified Data.ByteString           as BS
 import qualified Data.ByteString.Lazy      as BSL
@@ -57,7 +57,7 @@ more structured representation, which is a lot easier.
 
 instance Serialise Data where
     -- See Note [Encoding via Term]
-    encode = CBOR.encodeTerm . toTerm
+    encode = encodeData
     decode = decodeData
 
 {- Note [CBOR alternative tags]
@@ -106,30 +106,31 @@ like it), so we can reuse our trick. Again, we need to write some manual encoder
 -}
 
 -- | Turn Data into a CBOR Term.
-toTerm :: Data -> CBOR.Term
-toTerm = \case
+encodeData :: Data -> Encoding
+encodeData = \case
     -- See Note [CBOR alternative tags]
-    Constr i ds | 0 <= i && i < 7   -> CBOR.TTagged (fromIntegral (121 + i)) (CBOR.TList $ fmap toTerm ds)
-    Constr i ds | 7 <= i && i < 128 -> CBOR.TTagged (fromIntegral (1280 + (i - 7))) (CBOR.TList $ fmap toTerm ds)
-    Constr i ds | otherwise         -> CBOR.TTagged 102 (CBOR.TList $ CBOR.TInteger i : fmap toTerm ds)
-    Map es                          -> CBOR.TMap (fmap (bimap toTerm toTerm) es)
-    List ds                         -> CBOR.TList $ fmap toTerm ds
-    I i                             -> integerToTerm i
-    B b                             -> bsToTerm b
+    Constr i ds | 0 <= i && i < 7   -> CBOR.encodeTag (fromIntegral (121 + i)) <> encode ds
+    Constr i ds | 7 <= i && i < 128 -> CBOR.encodeTag (fromIntegral (1280 + (i - 7))) <> encode ds
+    Constr i ds | otherwise         -> CBOR.encodeTag 102 <> CBOR.encodeListLen 2 <> encode i <> encode ds
+    Map es                          -> CBOR.encodeMapLen (fromIntegral $ length es)
+                                      <> mconcat [ encode t <> encode t' | (t, t') <-es ]
+    List ds                         -> encode ds
+    I i                             -> encodeInteger i
+    B b                             -> encodeBs b
 
 -- Logic for choosing encoding borrowed from Codec.CBOR.Write
 -- | Given an integer, create a 'CBOR.Term' that encodes it, following our size restrictions.
-integerToTerm :: Integer -> CBOR.Term
+encodeInteger :: Integer -> Encoding
 -- If it fits in a Word64, then it's less than 64 bytes for sure, and we can just send it off
 -- as a normal integer for cborg to deal with
-integerToTerm i | i >= 0 , i <= fromIntegral (maxBound :: Word64) = CBOR.TInteger i
-                | i <  0 , i >= -1 - fromIntegral (maxBound :: Word64) = CBOR.TInteger i
+encodeInteger i | i >= 0 , i <= fromIntegral (maxBound :: Word64) = encodeInteger i
+                | i <  0 , i >= -1 - fromIntegral (maxBound :: Word64) = encodeInteger i
 -- Otherwise, it would be encoded as a bignum anyway, so we manually do the bignum
 -- encoding with a bytestring inside, and since we use bsToTerm, that bytestring will
 -- get chunked up if it's too big.
 -- See Note [Evading the 64-byte limit]
-integerToTerm i | i >= 0 = CBOR.TTagged 2 $ bsToTerm (integerToBytes i)
-integerToTerm i | otherwise = CBOR.TTagged 3 $ bsToTerm (integerToBytes (-1 -i))
+encodeInteger i | i >= 0 = CBOR.encodeTag 2 <> encodeBs (integerToBytes i)
+encodeInteger i | otherwise = CBOR.encodeTag 3 <> encodeBs (integerToBytes (-1 -i))
 
 -- Taken exactly from Codec.CBOR.Write
 integerToBytes :: Integer -> BS.ByteString
@@ -144,13 +145,12 @@ integerToBytes n0
     narrow = fromIntegral
 
 -- | Given an bytestring, create a 'CBOR.Term' that encodes it, following our size restrictions.
-bsToTerm :: BS.ByteString -> CBOR.Term
-bsToTerm b | BS.length b <= 64 = CBOR.TBytes b
--- BSL.fromChunks preserves the chunks exactly as they are given (checked the source),
--- and encoding a TBytesI encodes it with exactly the chunks in the lazy bytestring (checked the source),
--- so this successfully results in our chunks being used on the wire.
+encodeBs :: BS.ByteString -> Encoding
+encodeBs b | BS.length b <= 64 = CBOR.encodeBytes b
+-- It's a bit tricky to get cborg to emit an indefinite-length bytestring with chunks that we control,
+-- so we encode it manually
 -- See Note [Evading the 64-byte limit]
-bsToTerm b                     = CBOR.TBytesI (BSL.fromChunks (to64ByteChunks b))
+encodeBs b                     = CBOR.encodeBytesIndef <> foldMap encode (to64ByteChunks b) <> CBOR.encodeBreak
 
 -- | Turns a 'BS.ByteString' into a list of <=64 byte chunks.
 to64ByteChunks :: BS.ByteString -> [BS.ByteString]
@@ -167,7 +167,7 @@ the indefinite kinds, but see Note [Avoiding the 64-byte limit] for some cases w
 -}
 
 -- | Turn a CBOR Term into Data if possible.
-decodeData :: forall s. Decoder s Data
+decodeData :: Decoder s Data
 decodeData = CBOR.peekTokenType >>= \case
   -- These integers are at most 64 *bits*, so certainly less than 64 *bytes*
   CBOR.TypeUInt         -> I <$> CBOR.decodeInteger
