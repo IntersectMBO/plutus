@@ -68,9 +68,10 @@ The tags aren't *quite* accepted yet, but they're clearly going to accept so we 
 start using them.
 
 The scheme is:
-- Alternatives 0-6 -> tags 121-127
-- Alternatives 7-127 -> tags 1280-1400
-- Any alternatives, including those that don't fit in the above -> tag 102 followed by an integer for the actual alternative.
+- Alternatives 0-6 -> tags 121-127, followed by the arguments in a list
+- Alternatives 7-127 -> tags 1280-1400, followed by the arguments in a list
+- Any alternatives, including those that don't fit in the above -> tag 102 followed by a list containing
+an unsigned integer for the actual alternative, and then the arguments in a (nested!) list.
 -}
 
 {- Note [The 64-byte limit]
@@ -111,9 +112,8 @@ encodeData = \case
     -- See Note [CBOR alternative tags]
     Constr i ds | 0 <= i && i < 7   -> CBOR.encodeTag (fromIntegral (121 + i)) <> encode ds
     Constr i ds | 7 <= i && i < 128 -> CBOR.encodeTag (fromIntegral (1280 + (i - 7))) <> encode ds
-    Constr i ds | otherwise         -> CBOR.encodeTag 102 <> CBOR.encodeListLen 2 <> encode i <> encode ds
-    Map es                          -> CBOR.encodeMapLen (fromIntegral $ length es)
-                                      <> mconcat [ encode t <> encode t' | (t, t') <-es ]
+    Constr i ds | otherwise         -> CBOR.encodeTag 102 <> CBOR.encodeListLen 2 <> CBOR.encodeWord64 (fromIntegral i) <> encode ds
+    Map es                          -> CBOR.encodeMapLen (fromIntegral $ length es) <> mconcat [ encode t <> encode t' | (t, t') <-es ]
     List ds                         -> encode ds
     I i                             -> encodeInteger i
     B b                             -> encodeBs b
@@ -123,8 +123,8 @@ encodeData = \case
 encodeInteger :: Integer -> Encoding
 -- If it fits in a Word64, then it's less than 64 bytes for sure, and we can just send it off
 -- as a normal integer for cborg to deal with
-encodeInteger i | i >= 0 , i <= fromIntegral (maxBound :: Word64) = encodeInteger i
-                | i <  0 , i >= -1 - fromIntegral (maxBound :: Word64) = encodeInteger i
+encodeInteger i | i >= 0 , i <= fromIntegral (maxBound :: Word64) = CBOR.encodeInteger i
+                | i <  0 , i >= -1 - fromIntegral (maxBound :: Word64) = CBOR.encodeInteger i
 -- Otherwise, it would be encoded as a bignum anyway, so we manually do the bignum
 -- encoding with a bytestring inside, and since we use bsToTerm, that bytestring will
 -- get chunked up if it's too big.
@@ -253,10 +253,7 @@ decodeConstr = CBOR.decodeTag64 >>= \case
   t -> fail ("Unrecognized tag " ++ show t)
   where
   decodeConstrExtended = do
-    lenOrIndef <- CBOR.decodeListLenOrIndef
+    CBOR.decodeListLenOf 2
     i <- CBOR.decodeWord64
     unless (i >= 0) $ fail ("Invalid negative constructor tag: " ++ show i)
-    xs <- case lenOrIndef of
-      Nothing -> decodeSequenceLenIndef (flip (:)) [] reverse       decodeData
-      Just n  -> decodeSequenceLenN     (flip (:)) [] reverse (n-1) decodeData
-    pure $ Constr (fromIntegral i) xs
+    Constr (fromIntegral i) <$> decodeListOf decodeData
