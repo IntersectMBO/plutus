@@ -312,7 +312,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.error func
 
     -- Strings and chars
-    defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.Append
+    defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.AppendString
     defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: Text)
     defineBuiltinTerm 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
     defineBuiltinTerm 'Builtins.trace $ mkBuiltin PLC.Trace
