@@ -25,7 +25,6 @@ import           Cardano.BM.Configuration              (Configuration)
 import qualified Cardano.BM.Configuration.Model        as CM
 import           Cardano.BM.Data.Trace                 (Trace)
 import qualified Cardano.ChainIndex.Server             as ChainIndex
-import qualified Cardano.Metadata.Server               as Metadata
 import qualified Cardano.Node.Server                   as NodeServer
 import           Cardano.Node.Types                    (MockServerConfig (..), NodeMode (..))
 import qualified Cardano.Wallet.Server                 as WalletServer
@@ -67,8 +66,8 @@ import qualified Plutus.PAB.Monitoring.Monitoring      as LM
 import           Plutus.PAB.Run.Command
 import           Plutus.PAB.Run.PSGenerator            (HasPSTypes (..))
 import qualified Plutus.PAB.Run.PSGenerator            as PSGenerator
-import           Plutus.PAB.Types                      (Config (..), chainIndexConfig, metadataServerConfig,
-                                                        nodeServerConfig, walletServerConfig)
+import           Plutus.PAB.Types                      (Config (..), chainIndexConfig, nodeServerConfig,
+                                                        walletServerConfig)
 import qualified Plutus.PAB.Webserver.Server           as PABServer
 import           Plutus.PAB.Webserver.Types            (ContractActivationArgs (..))
 import qualified Servant
@@ -145,13 +144,6 @@ runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServer
                 $ LM.PABMsg
                 $ LM.SCoreMsg LM.ConnectingToAlonzoNode
             pure () -- TODO: Log message that we're connecting to the real Alonzo node
-
--- Run mock metadata server
-runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {metadataServerConfig}, ccaAvailability} Metadata =
-    liftIO $ Metadata.main
-        (toMetaDataLog ccaTrace)
-        metadataServerConfig
-        ccaAvailability
 
 -- Run PAB webserver
 runConfigCommand contractHandler ConfigCommandArgs{ccaTrace, ccaPABConfig=config@Config{pabWebserverConfig, dbConfig}, ccaAvailability, ccaStorageBackend} PABWebserver =
@@ -285,9 +277,6 @@ toChainIndexLog = LM.convertLog $ LM.PABMsg . LM.SChainIndexServerMsg
 
 toWalletLog :: Trace m (LM.AppMsg (Builtin a)) -> Trace m WalletMsg
 toWalletLog = LM.convertLog $ LM.PABMsg . LM.SWalletMsg
-
-toMetaDataLog :: Trace m (LM.AppMsg (Builtin a)) -> Trace m LM.MetadataLogMessage
-toMetaDataLog = LM.convertLog $ LM.PABMsg . LM.SMetaDataLogMsg
 
 toMockNodeServerLog :: Trace m (LM.AppMsg (Builtin a)) -> Trace m LM.MockServerLogMsg
 toMockNodeServerLog = LM.convertLog $ LM.PABMsg . LM.SMockserverLogMsg
