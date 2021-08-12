@@ -33,10 +33,12 @@ import qualified PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import qualified PlutusTx.Prelude          as PlutusTx
 
+import qualified Data.Swagger.Schema       as Swagger
+
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Newtype, ToJSON, FromJSON, NFData)
+    deriving anyclass (Newtype, ToJSON, FromJSON, Swagger.ToSchema, NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
@@ -52,7 +54,7 @@ instance FromJSONKey PubKey where
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, NFData)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Swagger.ToSchema, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
@@ -69,7 +71,7 @@ makeLift ''PrivateKey
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, NFData, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, Swagger.ToSchema, NFData, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving (Show, Pretty) via LedgerBytes
 
 instance ToJSON Signature where

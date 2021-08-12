@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -21,6 +22,10 @@ import           GHC.Generics                   (Generic)
 import qualified Plutus.Contract.Resumable      as Contract
 import qualified Plutus.Contract.State          as Contract
 
+import qualified Data.Swagger.Schema            as Swagger
+import           Orphans                        ()
+
+
 -- TODO: Replace with type synonym for @ContractResponse Value Value Value h@
 data PartiallyDecodedResponse v =
     PartiallyDecodedResponse
@@ -31,7 +36,8 @@ data PartiallyDecodedResponse v =
         , observableState :: Value
         }
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
+
 
 fromResp :: Contract.ContractResponse Value Value s v -> PartiallyDecodedResponse v
 fromResp Contract.ContractResponse{Contract.hooks, Contract.logs, Contract.err, Contract.lastLogs, Contract.newState = Contract.State{Contract.observableState}} =

@@ -79,6 +79,8 @@ import           Plutus.V1.Ledger.Crypto          (PubKeyHash)
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
+import qualified Data.Swagger.Schema              as Swagger
+
 data ScriptLookups a =
     ScriptLookups
         { slMPS            :: Map MintingPolicyHash MintingPolicy
@@ -162,7 +164,7 @@ data UnbalancedTx =
         , unBalancedTxUtxoIndex           :: Map TxOutRef TxOut
         }
     deriving stock (Eq, Generic, Show)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
 
 makeLensesFor
     [ ("unBalancedTxTx", "tx")

@@ -99,6 +99,9 @@ import           Wallet.API                       (WalletAPIError)
 import           Wallet.Types                     (AddressChangeRequest, AddressChangeResponse, ContractInstanceId,
                                                    EndpointDescription, EndpointValue)
 
+import qualified Data.Swagger.Schema              as Swagger
+import           Orphans                          ()
+
 -- | Requests that 'Contract's can make
 data PABReq =
     AwaitSlotReq Slot
@@ -116,6 +119,10 @@ data PABReq =
     | ExposeEndpointReq ActiveEndpoint
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+instance Swagger.ToSchema PABReq where
+    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
+
 
 instance Pretty PABReq where
   pretty = \case
@@ -211,6 +218,9 @@ data ChainIndexQuery =
   | GetTip
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+instance Swagger.ToSchema ChainIndexQuery where
+    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
 
 instance Pretty ChainIndexQuery where
     pretty = \case
@@ -391,7 +401,7 @@ data ActiveEndpoint = ActiveEndpoint
   , aeMetadata    :: Maybe JSON.Value -- ^ Data that should be shown to the user
   }
   deriving (Eq, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+  deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
 
 instance Pretty ActiveEndpoint where
   pretty ActiveEndpoint{aeDescription, aeMetadata} =

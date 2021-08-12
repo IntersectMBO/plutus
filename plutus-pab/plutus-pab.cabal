@@ -131,6 +131,7 @@ library
         , plutus-ledger
         , plutus-tx
         , plutus-tx-plugin
+        , orphans
 
     build-depends:
         QuickCheck -any,
@@ -184,6 +185,7 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
+        servant-swagger,
         swagger2 -any,
         tagged -any,
         typed-protocols -any,

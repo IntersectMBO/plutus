@@ -36,6 +36,8 @@ import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubK
 import           Wallet.Rollup.Types          (AnnotatedTx)
 import           Wallet.Types                 (EndpointDescription)
 
+import qualified Data.Swagger.Schema          as Swagger
+
 data KnownCurrency =
     KnownCurrency
         { hash         :: ValidatorHash
@@ -178,6 +180,8 @@ data FunctionSchema a =
              , Foldable
              , Traversable
              )
+
+deriving instance Swagger.ToSchema a => Swagger.ToSchema (FunctionSchema a)
 
 ------------------------------------------------------------
 data PlaygroundError

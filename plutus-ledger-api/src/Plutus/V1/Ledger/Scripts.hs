@@ -85,9 +85,15 @@ import           PlutusTx.Prelude
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
+import qualified Data.Swagger                             as Swagger
+import qualified Data.Swagger.Schema                      as Swagger
+
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
+
+instance Swagger.ToSchema Script where
+    declareNamedSchema _ = Haskell.pure $ Swagger.NamedSchema (Just "Plutus Script") Haskell.mempty
 
 {-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
@@ -217,7 +223,7 @@ unMintingPolicyScript = getMintingPolicy
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise, Swagger.ToSchema)
   deriving anyclass (ToJSON, FromJSON, NFData)
   deriving Pretty via (PrettyShow Validator)
 
@@ -237,6 +243,11 @@ newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving (ToJSON, FromJSON, Serialise, NFData) via PLC.Data
   deriving Pretty via PLC.Data
 
+instance Swagger.ToSchema Datum where
+    declareNamedSchema _ = Haskell.pure $ Swagger.NamedSchema (Just "Datum") Haskell.mempty
+
+
+
 instance BA.ByteArrayAccess Datum where
     length =
         BA.length . BSL.toStrict . serialise
@@ -249,6 +260,9 @@ newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq)
   deriving (ToJSON, FromJSON, Serialise, NFData, Pretty) via PLC.Data
 
+instance Swagger.ToSchema Redeemer where
+    declareNamedSchema _ = Haskell.pure $ Swagger.NamedSchema (Just "Redeemer") Haskell.mempty
+
 instance BA.ByteArrayAccess Redeemer where
     length =
         BA.length . BSL.toStrict . serialise
@@ -259,7 +273,7 @@ instance BA.ByteArrayAccess Redeemer where
 newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, NFData)
+  deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema, NFData)
   deriving Pretty via (PrettyShow MintingPolicy)
 
 instance Haskell.Show MintingPolicy where
@@ -277,7 +291,7 @@ newtype ValidatorHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
@@ -285,7 +299,7 @@ newtype DatumHash =
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema, ToJSONKey, FromJSONKey, NFData)
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
@@ -300,7 +314,7 @@ newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData, Swagger.ToSchema)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 -- | Information about the state of the blockchain and about the transaction

@@ -39,14 +39,16 @@ module PlutusTx.AssocMap (
     , mapThese
     ) where
 
-import           Control.DeepSeq  (NFData)
-import           GHC.Generics     (Generic)
+import           Control.DeepSeq     (NFData)
+import           GHC.Generics        (Generic)
 import           PlutusTx.IsData
-import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude hiding (filter, mapMaybe, null, toList)
-import qualified PlutusTx.Prelude as P
+import           PlutusTx.Lift       (makeLift)
+import           PlutusTx.Prelude    hiding (filter, mapMaybe, null, toList)
+import qualified PlutusTx.Prelude    as P
 import           PlutusTx.These
-import qualified Prelude          as Haskell
+import qualified Prelude             as Haskell
+
+import           Data.Swagger.Schema as Swagger
 
 {- HLINT ignore "Use newtype instead of data" -}
 
@@ -54,6 +56,7 @@ import qualified Prelude          as Haskell
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving newtype (Eq, Ord, ToData, FromData, UnsafeFromData, NFData)
+    deriving anyclass (Swagger.ToSchema)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}

@@ -78,6 +78,8 @@ import qualified Plutus.V1.Ledger.Value           as V
 import           PlutusTx                         (toBuiltinData)
 import qualified PlutusTx.Numeric                 as P
 
+import qualified Data.Swagger.Schema              as Swagger
+
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.
 type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m, MonadWriter [ScriptValidationEvent] m)
@@ -85,7 +87,7 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m,
 -- | The UTxOs of a blockchain indexed by their references.
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
     deriving stock (Show, Generic)
-    deriving newtype (Eq, Semigroup, Monoid, Serialise)
+    deriving newtype (Eq, Semigroup, Swagger.ToSchema, Monoid, Serialise)
     deriving anyclass (FromJSON, ToJSON, NFData)
 
 -- | Create an index of all UTxOs on the chain.

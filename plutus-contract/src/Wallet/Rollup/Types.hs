@@ -17,13 +17,15 @@ import           GHC.Generics
 import           Ledger
 import           Ledger.Credential         (Credential (..))
 
+import qualified Data.Swagger.Schema       as Swagger
+
 data TxKey =
     TxKey
         { _txKeyTxId        :: TxId
         , _txKeyTxOutRefIdx :: Integer
         }
     deriving (Show, Eq, Ord, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
 
 instance Pretty TxKey where
     pretty = viaShow
@@ -34,7 +36,7 @@ data SequenceId =
         , txIndex   :: Int
         }
     deriving (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
 
 makeLensesFor
      [ ("slotIndex", "slotIndexL")
@@ -49,7 +51,7 @@ data DereferencedInput
           }
     | InputNotFound TxKey
     deriving (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
 
 isFound :: DereferencedInput -> Bool
 isFound DereferencedInput {} = True
@@ -59,7 +61,7 @@ data BeneficialOwner
     = OwnedByPubKey PubKeyHash
     | OwnedByScript ValidatorHash
     deriving (Eq, Show, Ord, Generic)
-    deriving anyclass (FromJSON, ToJSON, FromJSONKey, ToJSONKey)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema, FromJSONKey, ToJSONKey)
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
 toBeneficialOwner TxOut {txOutAddress=Address{addressCredential}} =
@@ -77,7 +79,7 @@ data AnnotatedTx =
         , valid              :: Bool
         }
     deriving (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
 
 makeLenses 'AnnotatedTx
 

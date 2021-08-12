@@ -20,11 +20,13 @@ import           Plutus.V1.Ledger.Orphans  ()
 import qualified PlutusTx                  as PlutusTx
 import qualified PlutusTx.Prelude          as PlutusTx
 
+import qualified Data.Swagger.Schema       as Swagger
+
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
+    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Swagger.ToSchema, Serialise)
     deriving (Show, Pretty) via LedgerBytes
 
 PlutusTx.makeLift ''TxId

@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE PackageImports  #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -11,10 +12,12 @@ module Ledger (
 ) where
 
 import           "cryptonite" Crypto.Hash
-import qualified Data.ByteArray           as BA
-import qualified Data.ByteString.Char8    as BS
-import           Data.Set                 (Set)
-import qualified Data.Set                 as Set
+import qualified Data.ByteArray                 as BA
+import qualified Data.ByteString.Char8          as BS
+import           Data.Set                       (Set)
+import qualified Data.Set                       as Set
+import qualified "swagger2" Data.Swagger.Schema as Swagger
+import           GHC.Generics                   (Generic)
 
 import           Types
 import           Witness
@@ -36,7 +39,8 @@ data Tx
     , mintTX    :: Value
     , feeTX     :: Value
     }
-    deriving (Show)
+    deriving (Show, Generic)
+    deriving (Swagger.ToSchema)
 
 data TxStripped
   = TxStripped

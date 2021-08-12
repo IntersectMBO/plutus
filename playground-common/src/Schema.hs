@@ -69,6 +69,8 @@ import           Wallet.Types           (ContractInstanceId)
 
 import           Text.Show.Deriving     (deriveShow1)
 
+import qualified Data.Swagger.Schema    as Swagger
+
 {- HLINT ignore "Avoid restricted function" -}
 
 data FormSchema
@@ -92,6 +94,10 @@ data FormSchema
     | FormSchemaUnsupported String
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+
+instance Swagger.ToSchema FormSchema where
+    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
 
 ------------------------------------------------------------
 type FormArgument = Fix FormArgumentF

@@ -30,8 +30,7 @@ type WSAPI =
 -- | PAB client API for contracts of type @t@. An example of @t@ are
 --   * "Builtin" contracts that run in the same process as the PAB (ie. the PAB is compiled & distributed with these contracts)
 type API t walletId -- see note [WalletID type in wallet API]
-    = "api" :>
-    ("healthcheck" :> Get '[JSON] () -- Is the server alive?
+    = "api" :> ("healthcheck" :> Get '[JSON] () -- Is the server alive?
     :<|> ("fullreport" :> Get '[JSON] (FullReport t)) -- Details of the contracts: the signatures and their states.
     :<|> "contract" :> ("activate" :> ReqBody '[JSON] (ContractActivationArgs t) :> Post '[JSON] ContractInstanceId -- Start a new instance.
             :<|> "instance" :>

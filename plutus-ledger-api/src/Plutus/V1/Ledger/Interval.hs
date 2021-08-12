@@ -51,6 +51,8 @@ import qualified PlutusTx
 import           PlutusTx.Lift             (makeLift)
 import           PlutusTx.Prelude
 
+import qualified Data.Swagger.Schema       as Swagger
+
 -- | An interval of @a@s.
 --
 --   The interval may be either closed or open at either end, meaning
@@ -59,7 +61,7 @@ import           PlutusTx.Prelude
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema, Serialise, Hashable, NFData)
 
 instance Functor Interval where
   fmap f (Interval from to) = Interval (f <$> from) (f <$> to)
@@ -68,6 +70,9 @@ instance Functor Interval where
 data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+
+instance Swagger.ToSchema a => Swagger.ToSchema (Extended a) where
+    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
 
 instance Functor Extended where
   fmap _ NegInf     = NegInf
@@ -85,7 +90,7 @@ type Closure = Bool
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema, Serialise, Hashable, NFData)
 
 instance Functor UpperBound where
   fmap f (UpperBound e c) = UpperBound (f <$> e) c
@@ -99,7 +104,7 @@ instance Pretty a => Pretty (UpperBound a) where
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema, Serialise, Hashable, NFData)
 
 instance Functor LowerBound where
   fmap f (LowerBound e c) = LowerBound (f <$> e) c

@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
@@ -25,6 +27,9 @@ import           GHC.Generics              (Generic)
 import qualified PlutusCore.Data           as PLC
 import           PlutusTx.Utils
 import           Prelude                   as Haskell
+
+import qualified Data.Swagger              as Swagger
+import qualified Data.Swagger.Schema       as Swagger
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.
@@ -152,6 +157,9 @@ newtype BuiltinByteString = BuiltinByteString ByteString
   deriving stock (Generic)
   deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
   deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
+
+instance Swagger.ToSchema BuiltinByteString where
+    declareNamedSchema _ = pure $ Swagger.NamedSchema (Just "Bytes") mempty
 
 instance Pretty BuiltinByteString where
     pretty = viaShow

@@ -62,12 +62,23 @@ import           Plutus.Trace.Emulator.Types                      (ContractInsta
 import qualified Plutus.Trace.Emulator.Types                      as Emulator
 import           Schema                                           (FormSchema)
 
+import           Data.Proxy                                       (Proxy (..))
+import qualified Data.Swagger                                     as Swagger
+import qualified Data.Swagger.Schema                              as Swagger
+
+
+
 -- | Contracts that are built into the PAB (ie. compiled with it) and receive
 --   an initial value of type 'a'.
 --
 -- We have a dummy constructor so that we can convert this datatype in
 -- Purescript with '(equal <*> (genericShow <*> mkSumType)) (Proxy @(Builtin A))'.
 data Builtin a = Builtin deriving (Eq, Generic)
+
+instance Swagger.ToSchema t => Swagger.ToSchema (Builtin t) where
+    declareNamedSchema _ = Swagger.declareNamedSchema (Proxy :: Proxy t)
+
+
 
 type ContractConstraints w schema error =
     ( Monoid w

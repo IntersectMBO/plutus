@@ -21,6 +21,8 @@ import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
 import           Prelude
 
+import qualified Data.Swagger.Schema       as Swagger
+
 -- | A generic "data" type.
 --
 -- The main constructor 'Constr' represents a datatype value in sum-of-products
@@ -34,7 +36,7 @@ data Data =
     | I Integer
     | B BS.ByteString
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (NFData)
+    deriving anyclass (NFData, Swagger.ToSchema)
 
 instance Pretty Data where
     pretty = \case

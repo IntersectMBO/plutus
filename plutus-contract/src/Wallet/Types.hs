@@ -50,6 +50,7 @@ import           Ledger.Constraints.OffChain      (MkTxError)
 import           Plutus.Contract.Checkpoint       (AsCheckpointError (..), CheckpointError)
 import           Wallet.Emulator.Error            (WalletAPIError)
 
+import qualified Data.Swagger.Schema              as Swagger
 
 -- | An error
 newtype MatchingError = WrongVariantError { unWrongVariantError :: Text }
@@ -111,7 +112,7 @@ instance AsCheckpointError ContractError where
 newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
     deriving (Eq, Ord, Show, Generic)
     deriving newtype (FromJSONKey, ToJSONKey)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
     deriving Pretty via (PrettyShow UUID)
 
 -- | A pure list of all 'ContractInstanceId' values. To be used in testing.
@@ -124,7 +125,7 @@ randomID = ContractInstanceId <$> UUID.nextRandom
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)
     deriving newtype (IsString, Pretty)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
@@ -201,7 +202,7 @@ data AddressChangeRequest =
         , acreqAddress       :: Address -- ^ The address
         }
         deriving stock (Eq, Generic, Show, Ord)
-        deriving anyclass (ToJSON, FromJSON)
+        deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema)
 
 instance Pretty AddressChangeRequest where
     pretty AddressChangeRequest{acreqSlotRangeFrom, acreqSlotRangeTo, acreqAddress} =

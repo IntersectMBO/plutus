@@ -91,7 +91,8 @@ library
         aeson -any,
         hashable -any,
         memory -any,
-        serialise -any
+        serialise -any,
+        swagger2
 
 test-suite plutus-tx-test
     import: lang

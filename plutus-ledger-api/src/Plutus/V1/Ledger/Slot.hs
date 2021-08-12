@@ -35,13 +35,15 @@ import           PlutusTx.Prelude
 
 import           Plutus.V1.Ledger.Interval
 
+import qualified Data.Swagger              as Swagger
+
 {- HLINT ignore "Redundant if" -}
 
 -- | The slot number. This is a good proxy for time, since on the Cardano blockchain
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
+    deriving anyclass (FromJSON, FromJSONKey, ToJSON, Swagger.ToSchema, ToJSONKey, NFData)
     deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
 

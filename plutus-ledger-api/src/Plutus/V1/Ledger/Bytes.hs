@@ -34,6 +34,8 @@ import qualified PlutusTx                         as PlutusTx
 import           PlutusTx.Lift
 import qualified PlutusTx.Prelude                 as P
 
+import qualified Data.Swagger.Schema              as Swagger
+
 fromHex :: BS.ByteString -> Either String LedgerBytes
 fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
     where
@@ -70,7 +72,7 @@ fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, NFData)
+    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, Swagger.ToSchema, NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
 
 bytes :: LedgerBytes -> BS.ByteString

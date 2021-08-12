@@ -92,7 +92,8 @@ library
         freer-simple -any,
         uuid -any,
         streaming -any,
-        foldl -any
+        foldl -any,
+        swagger2
 
 test-suite playground-common-test
     type: exitcode-stdio-1.0

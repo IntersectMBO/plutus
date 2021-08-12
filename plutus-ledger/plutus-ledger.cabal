@@ -123,7 +123,8 @@ library
         cardano-crypto-class -any,
         deepseq -any,
         freer-simple -any,
-        semigroups -any
+        semigroups -any,
+        swagger2
 
     ghc-options: -fprint-potential-instances
 

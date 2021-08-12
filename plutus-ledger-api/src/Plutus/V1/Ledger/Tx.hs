@@ -91,6 +91,9 @@ import           Plutus.V1.Ledger.TxId
 import           Plutus.V1.Ledger.Value
 import qualified Plutus.V1.Ledger.Value    as V
 
+import qualified Data.Swagger              as Swagger
+import qualified Data.Swagger.Schema       as Swagger
+
 {- Note [Serialisation and hashing]
 
 We use cryptonite for generating hashes, which requires us to serialise values
@@ -137,7 +140,7 @@ data Tx = Tx {
     txData        :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
-      deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
+      deriving anyclass (ToJSON, FromJSON, Swagger.ToSchema, Serialise, NFData)
 
 instance Semigroup Tx where
     tx1 <> tx2 = Tx {
@@ -252,11 +255,15 @@ data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
+instance Swagger.ToSchema ScriptTag where
+    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
+
+
 -- | A redeemer pointer is a pair of a script type tag t and an index i, picking out the ith
 -- script of type t in the transaction.
 data RedeemerPtr = RedeemerPtr ScriptTag Integer
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, Swagger.ToSchema, FromJSONKey, NFData)
 
 type Redeemers = Map RedeemerPtr Redeemer
 
@@ -268,7 +275,7 @@ data TxOutRef = TxOutRef {
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, Swagger.ToSchema, FromJSONKey, NFData)
 
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
@@ -287,13 +294,17 @@ data TxInType =
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
+instance Swagger.ToSchema TxInType where
+    declareNamedSchema = Swagger.genericDeclareNamedSchemaUnrestricted Swagger.defaultSchemaOptions
+
+
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
     txInRef  :: !TxOutRef,
     txInType :: Maybe TxInType
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
+    deriving anyclass (Serialise, ToJSON, Swagger.ToSchema, FromJSON, NFData)
 
 instance Pretty TxIn where
     pretty TxIn{txInRef,txInType} =
@@ -347,7 +358,7 @@ data TxOut = TxOut {
     txOutDatumHash :: Maybe DatumHash
     }
     deriving stock (Show, Eq, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
+    deriving anyclass (Serialise, ToJSON, Swagger.ToSchema, FromJSON, NFData)
 
 instance Pretty TxOut where
     pretty TxOut{txOutAddress, txOutValue} =
