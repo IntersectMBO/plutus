@@ -13,6 +13,7 @@
 
   services.marlowe-playground = {
     enable = true;
+    webghcURL = "http://${tfinfo.environment}.${tfinfo.plutusTld}";
     port = 4001;
     frontendURL = "https://${tfinfo.environment}.${tfinfo.marloweTld}";
     playground-server-package = pkgs.marlowe-playground.server;
