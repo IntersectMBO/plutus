@@ -75,7 +75,7 @@ test_applyDefaultBuiltin =
         , test_applyBuiltinFunction GreaterThanInteger
         , test_applyBuiltinFunction GreaterThanEqInteger
         , test_applyBuiltinFunction EqInteger
-        , test_applyBuiltinFunction Concatenate
+        , test_applyBuiltinFunction AppendByteString
         , test_applyBuiltinFunction TakeByteString
         , test_applyBuiltinFunction DropByteString
         , test_applyBuiltinFunction EqByteString

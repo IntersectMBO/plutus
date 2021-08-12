@@ -55,7 +55,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
   , paramGreaterThanInteger       = "greaterThanIntegerModel"
   , paramGreaterThanEqualsInteger = "greaterThanEqualsIntegerModel"
-  , paramConcatenate              = "concatenateModel"
+  , paramAppendByteString         = "appendByteStringModel"
   , paramTakeByteString           = "takeByteStringModel"
   , paramDropByteString           = "dropByteStringModel"
   , paramSha2_256                 = "sha2_256Model"
@@ -100,7 +100,7 @@ createBuiltinCostModel =
     paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger    paramLessThanEqualsInteger
     paramGreaterThanEqualsInteger <- getParams greaterThanEqualsInteger paramGreaterThanEqualsInteger
     paramEqualsInteger            <- getParams equalsInteger            paramEqualsInteger
-    paramConcatenate              <- getParams concatenate              paramConcatenate
+    paramAppendByteString         <- getParams appendByteString         paramAppendByteString
     paramTakeByteString           <- getParams takeByteString           paramTakeByteString
     paramDropByteString           <- getParams dropByteString           paramDropByteString
     paramSha2_256                 <- getParams sha2_256                 paramSha2_256
@@ -281,8 +281,8 @@ lessThanByteString cpuModelR = do
 greaterThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanByteString = lessThanByteString
 
-concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-concatenate cpuModelR = do
+appendByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+appendByteString cpuModelR = do
   cpuModel <- readModelAddedSizes cpuModelR
   -- The buffer gets reallocated
   let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1

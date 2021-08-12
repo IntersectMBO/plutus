@@ -32,7 +32,7 @@ import           Data.Ix
 import           Data.Text                                      (Text)
 import           Data.Text.Encoding                             (decodeUtf8, encodeUtf8)
 import           Data.Word                                      (Word8)
-import           Flat
+import           Flat                                           hiding (from, to)
 import           Flat.Decoder
 import           Flat.Encoder                                   as Flat
 
@@ -52,9 +52,13 @@ data DefaultFun
     | GreaterThanInteger
     | GreaterThanEqualsInteger
     | EqualsInteger
-    | Concatenate
+    | AppendByteString
+    | ConsByteString
     | TakeByteString
     | DropByteString
+    | SliceByteString
+    | LengthOfByteString
+    | IndexByteString
     | Sha2_256
     | Sha3_256
     | VerifySignature
@@ -167,10 +171,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((==) @Integer)
             (runCostingFunTwoArguments . paramEqualsInteger)
-    toBuiltinMeaning Concatenate =
+    toBuiltinMeaning AppendByteString =
         makeBuiltinMeaning
             BS.append
-            (runCostingFunTwoArguments . paramConcatenate)
+            (runCostingFunTwoArguments . paramAppendByteString)
+    toBuiltinMeaning ConsByteString =
+        makeBuiltinMeaning
+            (\n xs -> BS.cons (fromIntegral @Integer n) xs)
+            mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramConsByteString)
     toBuiltinMeaning TakeByteString =
         makeBuiltinMeaning
             BS.take
@@ -179,6 +187,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             BS.drop
             (runCostingFunTwoArguments . paramDropByteString)
+    toBuiltinMeaning SliceByteString =
+        makeBuiltinMeaning
+            (\from to xs -> BS.take (to - from + 1) (BS.drop from xs))
+            mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramSliceByteString)
+    toBuiltinMeaning LengthOfByteString =
+        makeBuiltinMeaning
+            BS.length
+            mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramLengthOfByteString)
+    toBuiltinMeaning IndexByteString =
+        makeBuiltinMeaning
+            (\xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
+            -- TODO: fix the mess above with `indexMaybe` from `bytestring >= 0.11.0.0`.
+            mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramIndexByteString)
     toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
             Hash.sha2
@@ -385,7 +406,7 @@ instance Flat DefaultFun where
               GreaterThanInteger       -> 7
               GreaterThanEqualsInteger -> 8
               EqualsInteger            -> 9
-              Concatenate              -> 10
+              AppendByteString         -> 10
               TakeByteString           -> 11
               DropByteString           -> 12
               Sha2_256                 -> 13
@@ -429,6 +450,10 @@ instance Flat DefaultFun where
               MkCons                   -> 52
               ChooseList               -> 53
               Blake2b_256              -> 54
+              LengthOfByteString       -> 55
+              IndexByteString          -> 56
+              ConsByteString           -> 57
+              SliceByteString          -> 58
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -441,7 +466,7 @@ instance Flat DefaultFun where
               go 7  = pure GreaterThanInteger
               go 8  = pure GreaterThanEqualsInteger
               go 9  = pure EqualsInteger
-              go 10 = pure Concatenate
+              go 10 = pure AppendByteString
               go 11 = pure TakeByteString
               go 12 = pure DropByteString
               go 13 = pure Sha2_256
@@ -483,6 +508,10 @@ instance Flat DefaultFun where
               go 52 = pure MkCons
               go 53 = pure ChooseList
               go 54 = pure Blake2b_256
+              go 55 = pure LengthOfByteString
+              go 56 = pure IndexByteString
+              go 57 = pure ConsByteString
+              go 58 = pure SliceByteString
               go _  = fail "Failed to decode BuiltinName"
 
     size _ n = n + builtinTagWidth

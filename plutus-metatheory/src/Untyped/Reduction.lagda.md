@@ -71,7 +71,7 @@ arity lessThanEqualsInteger = [] :< Term :< Term
 arity greaterThanInteger = [] :< Term :< Term
 arity greaterThanEqualsInteger = [] :< Term :< Term
 arity equalsInteger = [] :< Term :< Term
-arity concatenate = [] :< Term :< Term
+arity appendByteString = [] :< Term :< Term
 arity takeByteString = [] :< Term :< Term
 arity dropByteString = [] :< Term :< Term
 arity lessThanByteString = [] :< Term :< Term
@@ -190,7 +190,7 @@ IBUILTIN equalsInteger
   with i ≟ i'
 ... | no ¬p = _ , inl (V-con (bool false))
 ... | yes p = _ , inl (V-con (bool true))
-IBUILTIN concatenate
+IBUILTIN appendByteString
   ((tt , (t , V-con (bytestring b))) , (t' , V-con (bytestring b')))
   = _ , inl (V-con (bytestring (concat b b')))
 IBUILTIN takeByteString
@@ -365,7 +365,7 @@ ival greaterThanInteger =
 ival greaterThanEqualsInteger =
   V-F (V-builtin greaterThanEqualsInteger refl (skipTerm base) _ _)
 ival equalsInteger = V-F (V-builtin equalsInteger refl (skipTerm base) _ _)
-ival concatenate = V-F (V-builtin concatenate refl (skipTerm base) _ _)
+ival appendByteString = V-F (V-builtin appendByteString refl (skipTerm base) _ _)
 ival takeByteString = V-F (V-builtin takeByteString refl (skipTerm base) _ _)
 ival dropByteString = V-F (V-builtin dropByteString refl (skipTerm base) _ _)
 ival lessThanByteString =

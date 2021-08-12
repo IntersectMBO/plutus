@@ -149,9 +149,13 @@ newtype BuiltinByteString = BuiltinByteString ByteString
 instance Pretty BuiltinByteString where
     pretty = viaShow
 
-{-# NOINLINE concatenate #-}
-concatenate :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
-concatenate (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteString $ BS.append b1 b2
+{-# NOINLINE appendByteString #-}
+appendByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+appendByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteString $ BS.append b1 b2
+
+{-# NOINLINE consByteString #-}
+consByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
+consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegral n) b
 
 {-# NOINLINE takeByteString #-}
 takeByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
@@ -160,6 +164,18 @@ takeByteString n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegr
 {-# NOINLINE dropByteString #-}
 dropByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
 dropByteString n (BuiltinByteString b) = BuiltinByteString $ BS.drop (fromIntegral n) b
+
+{-# NOINLINE sliceByteString #-}
+sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
+sliceByteString from to (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral $ to - from + 1) (BS.drop (fromIntegral from) b)
+
+{-# NOINLINE lengthOfByteString #-}
+lengthOfByteString :: BuiltinByteString -> BuiltinInteger
+lengthOfByteString (BuiltinByteString b) = toInteger $ BS.length b
+
+{-# NOINLINE indexByteString #-}
+indexByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinInteger
+indexByteString (BuiltinByteString b) i = toInteger $ BS.index b (fromInteger i)
 
 {-# NOINLINE emptyByteString #-}
 emptyByteString :: BuiltinByteString

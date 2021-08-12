@@ -22,7 +22,7 @@ class Semigroup a where
 
 instance Semigroup Builtins.BuiltinByteString where
     {-# INLINABLE (<>) #-}
-    (<>) = Builtins.concatenate
+    (<>) = Builtins.appendByteString
 
 instance Semigroup Builtins.BuiltinString where
     {-# INLINABLE (<>) #-}

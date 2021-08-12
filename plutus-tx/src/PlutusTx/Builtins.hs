@@ -5,9 +5,13 @@
 module PlutusTx.Builtins (
                                 -- * Bytestring builtins
                                 BuiltinByteString
-                                , concatenate
+                                , appendByteString
+                                , consByteString
                                 , takeByteString
                                 , dropByteString
+                                , sliceByteString
+                                , lengthOfByteString
+                                , indexByteString
                                 , emptyByteString
                                 , equalsByteString
                                 , lessThanByteString
@@ -71,10 +75,20 @@ import           PlutusTx.Builtins.Class
 import           PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
 import qualified PlutusTx.Builtins.Internal as BI
 
-{-# INLINABLE concatenate #-}
+{-# INLINABLE appendByteString #-}
 -- | Concatenates two 'ByteString's.
-concatenate :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
-concatenate = BI.concatenate
+appendByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+appendByteString = BI.appendByteString
+
+{-# INLINABLE consByteString #-}
+-- | Adds a byte to the front of a 'ByteString'.
+consByteString :: Integer -> BuiltinByteString -> BuiltinByteString
+consByteString n bs = BI.consByteString (toBuiltin n) bs
+
+{-# INLINABLE sliceByteString #-}
+-- | Returns the substring of a 'ByteString'.
+sliceByteString :: Integer -> Integer -> BuiltinByteString -> BuiltinByteString
+sliceByteString from to bs = BI.sliceByteString (toBuiltin from) (toBuiltin to) bs
 
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
@@ -85,6 +99,16 @@ takeByteString n = BI.takeByteString (toBuiltin n)
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
 dropByteString n = BI.dropByteString (toBuiltin n)
+
+{-# INLINABLE lengthOfByteString #-}
+-- | Returns the length of a 'ByteString'.
+lengthOfByteString :: BuiltinByteString -> Integer
+lengthOfByteString = BI.lengthOfByteString
+
+{-# INLINABLE indexByteString #-}
+-- | Returns the byte of a 'ByteString' at index.
+indexByteString :: BuiltinByteString -> Integer -> Integer
+indexByteString b n = BI.indexByteString b (toBuiltin n)
 
 {-# INLINABLE emptyByteString #-}
 -- | An empty 'ByteString'.

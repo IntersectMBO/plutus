@@ -165,7 +165,7 @@ BUILTIN greaterThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integ
   (inj₁ (V-con (bool false)))
 BUILTIN greaterThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN concatenate (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
+BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
 BUILTIN takeByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (take i b)))
 BUILTIN dropByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (drop i b)))
 BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B< b b')))
@@ -298,12 +298,12 @@ bappTermLem equalsInteger {as = .[]} (bubble (start .(Term ∷ Term ∷ []))) (a
 bappTermLem equalsInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem concatenate _ base = _ ,, _ ,, refl
-bappTermLem concatenate {as = as} .(bubble p) (app {az = az} p q x)
+bappTermLem appendByteString _ base = _ ,, _ ,, refl
+bappTermLem appendByteString {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
-bappTermLem concatenate {as = .[]} (bubble (start .(Term ∷ Term ∷ []))) (app {az = _} (start .(Term ∷ Term ∷ [])) base x)
+bappTermLem appendByteString {as = .[]} (bubble (start .(Term ∷ Term ∷ []))) (app {az = _} (start .(Term ∷ Term ∷ [])) base x)
   | refl ,, refl = _ ,, _ ,, refl
-bappTermLem concatenate {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
+bappTermLem appendByteString {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Term) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTermLem takeByteString _ base = _ ,, _ ,, refl
@@ -469,10 +469,10 @@ bappTypeLem equalsInteger {as = as} .(bubble p) (app {az = az} p q x)
 bappTypeLem equalsInteger {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem concatenate {as = as} .(bubble p) (app {az = az} p q x)
+bappTypeLem appendByteString {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, () 
-bappTypeLem concatenate {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
+bappTypeLem appendByteString {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
   with <>>-cancel-both' az (([] ∷ Type) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem takeByteString {as = as} .(bubble p) (app {az = az} p q x)
@@ -597,7 +597,7 @@ ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger _ base
 ival greaterThanInteger = V-I⇒ greaterThanInteger _ base
 ival greaterThanEqualsInteger = V-I⇒ greaterThanEqualsInteger _ base
 ival equalsInteger = V-I⇒ equalsInteger _ base
-ival concatenate = V-I⇒ concatenate _ base
+ival appendByteString = V-I⇒ appendByteString _ base
 ival takeByteString = V-I⇒ takeByteString _ base
 ival dropByteString = V-I⇒ dropByteString _ base
 ival lessThanByteString = V-I⇒ lessThanByteString _ base

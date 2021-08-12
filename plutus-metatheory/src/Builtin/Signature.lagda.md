@@ -108,7 +108,7 @@ SIG equalsInteger =
   con integer ∷ con integer  ∷ []
   ,,
   con bool
-SIG concatenate =
+SIG appendByteString =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ []

@@ -190,7 +190,7 @@
             "type": "max_size"
         }
     },
-    "concatenate": {
+    "appendByteString": {
         "memory": {
             "arguments": {
                 "slope": 1,

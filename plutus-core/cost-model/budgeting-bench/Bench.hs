@@ -98,7 +98,7 @@ createTwoTermBuiltinBench name xs ys =
     bgroup (show name) $ [bgroup (show xmem) [mkBM yMem x y | (y, yMem) <- ys] | (x,xmem) <- xs]
         where mkBM yMem x y = benchDefault (show yMem) $ mkApp2 name x y
 
-{- | Given a builtin function f of type a * a -> _ together with lists xs::a and
+{- | Given a builtin function f of type a * b -> _ together with lists xs::a and
    ys::a (along with their memory sizes), create a collection of benchmarks
    which run f on all pairs in 'zip xs ys'.  This can be used when the
    worst-case execution time of a two-argument builtin is known to occur when it
@@ -110,10 +110,10 @@ createTwoTermBuiltinBench name xs ys =
    same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
-    :: (DefaultUni `Includes` a)
+    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
     => DefaultFun
     -> [(a, ExMemory)]
-    -> [(a, ExMemory)]
+    -> [(b, ExMemory)]
     -> Benchmark
 createTwoTermBuiltinBenchElementwise name xs ys =
     bgroup (show name) $ zipWith (\(x, xmem) (y,ymem) -> bgroup (show xmem) [mkBM ymem x y]) xs ys
@@ -221,8 +221,8 @@ makeSizedBytestring seed e = let x = genSample seed (HH.bytes (HH.Range.singleto
 byteStringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
 byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStringSizes
 
-benchHashOperations :: DefaultFun -> Benchmark
-benchHashOperations name =
+benchByteStringNoArgOperations :: DefaultFun -> Benchmark
+benchByteStringNoArgOperations name =
     bgroup (show name) $
         byteStringsToBench seedA <&> (\(x, xmem) -> benchDefault (show xmem) $ mkApp1 name x)
 
@@ -233,6 +233,20 @@ benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench se
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name (byteStringsToBench seedA)
                                ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
+
+benchIndexBytestring :: StdGen -> Benchmark
+benchIndexBytestring gen = createTwoTermBuiltinBenchElementwise IndexByteString (byteStringsToBench seedA) numbers
+    where
+        numbers = map (\s -> let x = fst $ randomR (0, s - 1) gen in (x, memoryUsage x)) byteStringSizes
+
+benchSliceByteString :: StdGen -> Benchmark
+benchSliceByteString gen = bgroup (show SliceByteString) $
+    zipWith (\(b, bmem) (from, to) -> bgroup (show bmem) [mkBM b from to]) (byteStringsToBench seedA) indices
+    where
+        numbers = map (\s -> fst $ randomR (1, s - 1) gen) byteStringSizes
+        indices = map (\to -> let from = fst $ randomR (0, to) gen in (from, to)) numbers
+        mkBM b from to = bgroup (show $ memoryUsage from) $
+            [benchDefault (show $ memoryUsage to) $ mkApp3 SliceByteString from to b]
 
 powersOfTwo :: [Integer]
 powersOfTwo = integerPower 2 <$> [1..16]
@@ -364,9 +378,11 @@ main = do
                                                        , LessThanInteger
                                                        , LessThanEqualsInteger
                                                        ])
-                      <> (benchTwoByteStrings <$> [Concatenate])
-                      <> (benchBytestringOperations <$> [DropByteString, TakeByteString])
-                      <> (benchHashOperations <$> [Sha2_256, Sha3_256])
+                      <> (benchTwoByteStrings <$> [AppendByteString])
+                      <> (benchBytestringOperations <$> [TakeByteString, DropByteString, ConsByteString])
+                      <> [benchIndexBytestring gen]
+                      <> [benchSliceByteString gen]
+                      <> (benchByteStringNoArgOperations <$> [LengthOfByteString, Sha2_256, Sha3_256])
                       <> (benchSameTwoByteStrings <$> [ EqualsByteString
                                                       , LessThanByteString
                                                       ])
