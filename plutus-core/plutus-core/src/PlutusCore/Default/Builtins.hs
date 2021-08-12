@@ -40,6 +40,7 @@ import           Flat.Encoder                                   as Flat
 -- TODO: should we have the commonest builtins at the front to have more compact encoding?
 -- | Default built-in functions.
 data DefaultFun
+    -- Integers
     = AddInteger
     | SubtractInteger
     | MultiplyInteger
@@ -47,32 +48,48 @@ data DefaultFun
     | QuotientInteger
     | RemainderInteger
     | ModInteger
+    | EqualsInteger
     | LessThanInteger
     | LessThanEqualsInteger
-    | EqualsInteger
+    -- Bytestrings
     | AppendByteString
     | ConsByteString
     | SliceByteString
     | LengthOfByteString
     | IndexByteString
-    | Sha2_256
-    | Sha3_256
-    | VerifySignature
     | EqualsByteString
     | LessThanByteString
     | LessThanEqualsByteString
-    | IfThenElse
+    -- Cryptography and hashes
+    | Sha2_256
+    | Sha3_256
+    | Blake2b_256
+    | VerifySignature
+    -- Strings
     | AppendString
     | EqualsString
     | EncodeUtf8
     | DecodeUtf8
+    -- Bool
+    | IfThenElse
+    -- Unit
+    | ChooseUnit
+    -- Tracing
     | Trace
+    -- Pairs
     | FstPair
     | SndPair
-    | NullList
+    -- Lists
+    | ChooseList
+    | MkCons
     | HeadList
     | TailList
-    | ChooseList
+    | NullList
+    -- Data
+    -- It is convenient to have a "choosing" function for a data type that has more than two
+    -- constructors to get pattern matching over it and we may end up having multiple such data
+    -- types, hence we include the name of the data type as a suffix.
+    | ChooseData
     | ConstrData
     | MapData
     | ListData
@@ -84,18 +101,12 @@ data DefaultFun
     | UnIData
     | UnBData
     | EqualsData
-    -- It is convenient to have a "choosing" function for a data type that has more than two
-    -- constructors to get pattern matching over it and we may end up having multiple such data
-    -- types, hence we include the name of the data type as a suffix.
-    | ChooseData
-    | ChooseUnit
+    -- Misc csontructors
     -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
     -- constructors are often problematic (See note [Representable built-in functions over polymorphic built-in types])
     | MkPairData
     | MkNilData
     | MkNilPairData
-    | MkCons
-    | Blake2b_256
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
 instance Pretty DefaultFun where
@@ -380,113 +391,116 @@ instance Flat DefaultFun where
               SubtractInteger          -> 1
               MultiplyInteger          -> 2
               DivideInteger            -> 3
-              RemainderInteger         -> 4
-              LessThanInteger          -> 5
-              LessThanEqualsInteger    -> 6
-              EqualsInteger            -> 9
+              QuotientInteger          -> 4
+              RemainderInteger         -> 5
+              ModInteger               -> 6
+              EqualsInteger            -> 7
+              LessThanInteger          -> 8
+              LessThanEqualsInteger    -> 9
+
               AppendByteString         -> 10
-              -- 11 unused
-              -- 12 unused
-              Sha2_256                 -> 13
-              Sha3_256                 -> 14
-              VerifySignature          -> 15
-              EqualsByteString         -> 16
-              QuotientInteger          -> 17
-              ModInteger               -> 18
-              LessThanByteString       -> 19
-              LessThanEqualsByteString -> 20
-              IfThenElse               -> 21
-              AppendString             -> 23
-              Trace                    -> 24
-              -- 25 unused
-              -- 26 unused
-              -- 27 unused
-              EqualsString             -> 28
-              EncodeUtf8               -> 29
-              DecodeUtf8               -> 30
-              FstPair                  -> 31
-              SndPair                  -> 32
-              NullList                 -> 33
-              HeadList                 -> 34
-              TailList                 -> 35
-              ConstrData               -> 36
-              MapData                  -> 37
-              ListData                 -> 38
-              IData                    -> 39
-              BData                    -> 40
-              UnConstrData             -> 41
-              UnMapData                -> 42
-              UnListData               -> 43
-              UnIData                  -> 44
-              UnBData                  -> 45
-              EqualsData               -> 46
-              ChooseData               -> 47
-              ChooseUnit               -> 48
-              MkPairData               -> 49
-              MkNilData                -> 50
-              MkNilPairData            -> 51
-              MkCons                   -> 52
-              ChooseList               -> 53
-              Blake2b_256              -> 54
-              LengthOfByteString       -> 55
-              IndexByteString          -> 56
-              ConsByteString           -> 57
-              SliceByteString          -> 58
+              ConsByteString           -> 11
+              SliceByteString          -> 12
+              LengthOfByteString       -> 13
+              IndexByteString          -> 14
+              EqualsByteString         -> 15
+              LessThanByteString       -> 16
+              LessThanEqualsByteString -> 17
+
+              Sha2_256                 -> 18
+              Sha3_256                 -> 19
+              Blake2b_256              -> 20
+              VerifySignature          -> 21
+
+              AppendString             -> 22
+              EqualsString             -> 23
+              EncodeUtf8               -> 24
+              DecodeUtf8               -> 25
+
+              IfThenElse               -> 26
+
+              ChooseUnit               -> 27
+
+              Trace                    -> 28
+
+              FstPair                  -> 29
+              SndPair                  -> 30
+
+              ChooseList               -> 31
+              MkCons                   -> 32
+              HeadList                 -> 33
+              TailList                 -> 34
+              NullList                 -> 35
+
+              ChooseData               -> 36
+              ConstrData               -> 37
+              MapData                  -> 38
+              ListData                 -> 39
+              IData                    -> 40
+              BData                    -> 41
+              UnConstrData             -> 42
+              UnMapData                -> 43
+              UnListData               -> 44
+              UnIData                  -> 45
+              UnBData                  -> 46
+              EqualsData               -> 47
+
+              MkPairData               -> 48
+              MkNilData                -> 49
+              MkNilPairData            -> 50
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
               go 2  = pure MultiplyInteger
               go 3  = pure DivideInteger
-              go 4  = pure RemainderInteger
-              go 5  = pure LessThanInteger
-              go 6  = pure LessThanEqualsInteger
-              go 9  = pure EqualsInteger
+              go 4  = pure QuotientInteger
+              go 5  = pure RemainderInteger
+              go 6  = pure ModInteger
+              go 7  = pure EqualsInteger
+              go 8  = pure LessThanInteger
+              go 9  = pure LessThanEqualsInteger
               go 10 = pure AppendByteString
-              -- 11-12 unused
-              go 13 = pure Sha2_256
-              go 14 = pure Sha3_256
-              go 15 = pure VerifySignature
-              go 16 = pure EqualsByteString
-              go 17 = pure QuotientInteger
-              go 18 = pure ModInteger
-              go 19 = pure LessThanByteString
-              go 20 = pure LessThanEqualsByteString
-              go 21 = pure IfThenElse
-              go 23 = pure AppendString
-              go 24 = pure Trace
-              -- 25-27 unused
-              go 28 = pure EqualsString
-              go 29 = pure EncodeUtf8
-              go 30 = pure DecodeUtf8
-              go 31 = pure FstPair
-              go 32 = pure SndPair
-              go 33 = pure NullList
-              go 34 = pure HeadList
-              go 35 = pure TailList
-              go 36 = pure ConstrData
-              go 37 = pure MapData
-              go 38 = pure ListData
-              go 39 = pure IData
-              go 40 = pure BData
-              go 41 = pure UnConstrData
-              go 42 = pure UnMapData
-              go 43 = pure UnListData
-              go 44 = pure UnIData
-              go 45 = pure UnBData
-              go 46 = pure EqualsData
-              go 47 = pure ChooseData
-              go 48 = pure ChooseUnit
-              go 49 = pure MkPairData
-              go 50 = pure MkNilData
-              go 51 = pure MkNilPairData
-              go 52 = pure MkCons
-              go 53 = pure ChooseList
-              go 54 = pure Blake2b_256
-              go 55 = pure LengthOfByteString
-              go 56 = pure IndexByteString
-              go 57 = pure ConsByteString
-              go 58 = pure SliceByteString
-              go _  = fail "Failed to decode BuiltinName"
+              go 11 = pure ConsByteString
+              go 12 = pure SliceByteString
+              go 13 = pure LengthOfByteString
+              go 14 = pure IndexByteString
+              go 15 = pure EqualsByteString
+              go 16 = pure LessThanByteString
+              go 17 = pure LessThanEqualsByteString
+              go 18 = pure Sha2_256
+              go 19 = pure Sha3_256
+              go 20 = pure Blake2b_256
+              go 21 = pure VerifySignature
+              go 22 = pure AppendString
+              go 23 = pure EqualsString
+              go 24 = pure EncodeUtf8
+              go 25 = pure DecodeUtf8
+              go 26 = pure IfThenElse
+              go 27 = pure ChooseUnit
+              go 28 = pure Trace
+              go 29 = pure FstPair
+              go 30 = pure SndPair
+              go 31 = pure ChooseList
+              go 32 = pure MkCons
+              go 33 = pure HeadList
+              go 34 = pure TailList
+              go 35 = pure NullList
+              go 36 = pure ChooseData
+              go 37 = pure ConstrData
+              go 38 = pure MapData
+              go 39 = pure ListData
+              go 40 = pure IData
+              go 41 = pure BData
+              go 42 = pure UnConstrData
+              go 43 = pure UnMapData
+              go 44 = pure UnListData
+              go 45 = pure UnIData
+              go 46 = pure UnBData
+              go 47 = pure EqualsData
+              go 48 = pure MkPairData
+              go 49 = pure MkNilData
+              go 50 = pure MkNilPairData
+              go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
