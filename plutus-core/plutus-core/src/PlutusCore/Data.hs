@@ -253,7 +253,13 @@ decodeConstr = CBOR.decodeTag64 >>= \case
   t -> fail ("Unrecognized tag " ++ show t)
   where
   decodeConstrExtended = do
-    CBOR.decodeListLenOf 2
+    len <- CBOR.decodeListLenOrIndef
     i <- CBOR.decodeWord64
     unless (i >= 0) $ fail ("Invalid negative constructor tag: " ++ show i)
-    Constr (fromIntegral i) <$> decodeListOf decodeData
+    args <- decodeListOf decodeData
+    case len of
+      Nothing -> do
+        done <- CBOR.decodeBreakOr
+        unless done $ fail "Expected exactly two elements"
+      Just n -> unless (n == 2) $ fail "Expected exactly two elements"
+    pure $ Constr (fromIntegral i) args
