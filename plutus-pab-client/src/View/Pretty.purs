@@ -144,6 +144,14 @@ instance prettyPABResp :: Pretty PABResp where
       , nbsp
       , pretty slotRange
       ]
+  pretty (AwaitUtxoSpentResp _) =
+    span_
+      [ text "AwaitUtxoSpentResp"
+      ]
+  pretty (AwaitUtxoProducedResp _) =
+    span_
+      [ text "AwaitUtxoProducedResp"
+      ]
 
 instance prettyContractPABRequest :: Pretty PABReq where
   pretty (AwaitSlotReq slot) =
@@ -221,6 +229,14 @@ instance prettyContractPABRequest :: Pretty PABReq where
       [ text "PosixTimeRangeToContainedSlotRangeReq:"
       , nbsp
       , pretty timeRange
+      ]
+  pretty (AwaitUtxoSpentReq _) =
+    span_
+      [ text "AwaitUtxoSpentReq"
+      ]
+  pretty (AwaitUtxoProducedReq _) =
+    span_
+      [ text "AwaitUtxoProducedReq"
       ]
 
 instance prettyBalanceTxResponse :: Pretty BalanceTxResponse where
