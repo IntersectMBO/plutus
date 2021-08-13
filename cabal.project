@@ -96,25 +96,28 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-crypto.git
-  tag: ce8f1934e4b6252084710975bd9bbc0a4648ece4
+  tag: f73079303f663e028288f9f4a9e08bcca39a923e
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base
-  tag: a715c7f420770b70bbe95ca51d3dec83866cb1bd
+  tag: 8c732560b201b5da8e3bdf175c6eda73a32d64bc
   subdir:
+    base-deriving-via
     binary
     binary/test
+    measures
     slotting
     cardano-crypto-class
     cardano-crypto-praos
     cardano-crypto-tests
     strict-containers
+    orphans-deriving-via
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-prelude
-  tag: fd773f7a58412131512b9f694ab95653ac430852
+  tag: bb4ed71ba8e587f672d06edf9d2e376f4b055555
   subdir:
     cardano-prelude
     cardano-prelude-test
@@ -122,7 +125,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: e338f2cf8e1078fbda9555dd2b169c6737ef6774
+  tag: e9cda57df7ea6969edbc3bfc4e117668277d09c8
   subdir:
     monoidal-synchronisation
     typed-protocols
@@ -141,7 +144,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/iohk-monitoring-framework
-  tag: 34abfb7f4f5610cabb45396e0496472446a0b2ca
+  tag: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
   subdir:
     iohk-monitoring
     tracer-transformers
@@ -155,7 +158,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: 09433fe537a4ab57df19e70be309c48d832f6576
+  tag: 30eca73a2f5c13f1fbed9a98a59540ac3d0c8afe
   subdir:
     byron/chain/executable-spec
     byron/crypto
@@ -178,7 +181,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-node.git
-  tag: f72c6272eb58a43cd1d2ef4f4381f3822b3c60c6
+  tag: 708de685d49ec6af4b2d8b3cbfa0eca0e9e43edf
   subdir:
     cardano-api
     cardano-node
@@ -188,7 +191,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/Win32-network
-  tag: 94153b676617f8f33abe8d8182c37377d2784bd1
+  tag: 3825d3abf75f83f406c1f7161883c438dac7277d
 
 source-repository-package
   type: git
