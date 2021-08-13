@@ -73,7 +73,6 @@ contractDirs2 =
     , "prism"
     , "token-account"
     , "uniswap"
-    , "marlowe" </> "zerocoupon"
     ]
 
 type Term          = UPLC.Term    PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
