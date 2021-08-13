@@ -172,3 +172,4 @@ instance ExMemoryUsage [a] where
 -- solution here in future.
 instance ExMemoryUsage Data where
   memoryUsage _ = 1
+-- Try the generic one and see how much it slows things down?
