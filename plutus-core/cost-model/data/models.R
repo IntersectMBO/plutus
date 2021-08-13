@@ -269,7 +269,7 @@ modelFun <- function(path) {
     ## }
 
     lengthOfByteStringModel <- 0
-    indexCyteStringModel    <- 0
+    indexByteStringModel    <- 0
     
     equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
         fname <- "EqualsByteString"
@@ -369,7 +369,6 @@ modelFun <- function(path) {
     unIDataModel      <- 0
     unBDataModel      <- 0
     equalsDataModel   <- 0
-
 
     list(
         addIntegerModel               = addIntegerModel,
