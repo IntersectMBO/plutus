@@ -255,8 +255,7 @@ modelFun <- function(path) {
     ## }
     ## TODO: is this symmetrical in the arguments?  The data suggests so, but check the implementation.
 
-    consByteStringModel     <- 0
-
+    consByteStringModel  <- 0
 
     sliceByteStringModel <- 0
     ## {
