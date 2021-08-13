@@ -210,7 +210,6 @@ instance showView :: Show View where
   show = genericShow
 
 ------------------------------------------------------------
-
 _getPubKeyHash :: forall s r a. Newtype s { getPubKeyHash :: a | r } => Lens' s a
 _getPubKeyHash = _Newtype <<< prop (SProxy :: SProxy "getPubKeyHash")
 
