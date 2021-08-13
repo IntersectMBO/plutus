@@ -191,8 +191,8 @@ matches :: PABReq -> PABResp -> Bool
 matches a b = case (a, b) of
   (AwaitSlotReq{}, AwaitSlotResp{})                        -> True
   (AwaitTimeReq{}, AwaitTimeResp{})                        -> True
-  (AwaitUtxoSpentReq{}, AwaitUtxoSpentResp{})            -> True
-  (AwaitUtxoProducedReq{}, AwaitUtxoProducedResp{})      -> True
+  (AwaitUtxoSpentReq{}, AwaitUtxoSpentResp{})              -> True
+  (AwaitUtxoProducedReq{}, AwaitUtxoProducedResp{})        -> True
   (CurrentSlotReq, CurrentSlotResp{})                      -> True
   (CurrentTimeReq, CurrentTimeResp{})                      -> True
   (AwaitTxStatusChangeReq i, AwaitTxStatusChangeResp i' _) -> i == i'

@@ -456,7 +456,6 @@ instance Semigroup IndexedBlock where
       }
 
 instance Monoid IndexedBlock where
-  mappend = (<>)
   mempty = IndexedBlock mempty mempty
 
 indexBlock :: [OnChainTx] -> IndexedBlock

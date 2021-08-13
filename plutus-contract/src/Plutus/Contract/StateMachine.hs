@@ -290,7 +290,8 @@ waitForUpdate client = waitForUpdateTimeout client never >>= awaitPromise >>= \c
     InitialState _ r -> pure (Just r)
     Transition _ _ r -> pure (Just r)
 
--- | Wait until the on-chain state of the state machine changes, or a timeout.
+-- | Construct a 'Promise' that waits for an update to the state machine's
+--   on-chain state, or a user-defined timeout (whichever happens first).
 waitForUpdateTimeout ::
     forall state i t w schema e.
     ( AsSMContractError e
