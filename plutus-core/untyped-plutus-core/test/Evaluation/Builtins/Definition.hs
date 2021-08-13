@@ -376,8 +376,10 @@ test_String = testCase "String" $ do
     -- 65 is ASCII A
     evals @ByteString "Ahello world" ConsByteString [cons @Integer 65, cons @ByteString "hello world"]
 
-    -- TODO: SliceByteString
-    -- evals @ByteString "h" SliceByteString [cons @Integer 0, cons @Integer 1, cons @ByteString "hello world"]
+    evals @ByteString "h" SliceByteString [cons @Integer 0, cons @Integer 1, cons @ByteString "hello world"]
+    evals @ByteString "he" SliceByteString [cons @Integer 0, cons @Integer 2, cons @ByteString "hello world"]
+    evals @ByteString "e" SliceByteString [cons @Integer 1, cons @Integer 2, cons @ByteString "hello world"]
+    evals @ByteString "llo" SliceByteString [cons @Integer 2, cons @Integer 5, cons @ByteString "hello world"]
 
     evals @Integer 11 LengthOfByteString [cons @ByteString "hello world"]
     evals @Integer 0 LengthOfByteString [cons @ByteString ""]

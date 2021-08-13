@@ -95,12 +95,12 @@ sliceByteString from to bs = BI.sliceByteString (toBuiltin from) (toBuiltin to) 
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-takeByteString n bs = BI.sliceByteString 0 (toBuiltin n - 1) bs
+takeByteString n bs = BI.sliceByteString 0 (toBuiltin n) bs
 
 {-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = BI.sliceByteString (toBuiltin n) (BI.lengthOfByteString bs - 1) bs
+dropByteString n bs = BI.sliceByteString (toBuiltin n) (BI.lengthOfByteString bs) bs
 
 {-# INLINABLE lengthOfByteString #-}
 -- | Returns the length of a 'ByteString'.
