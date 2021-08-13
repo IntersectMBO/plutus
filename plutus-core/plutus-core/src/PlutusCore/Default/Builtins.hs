@@ -180,7 +180,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramConsByteString)
     toBuiltinMeaning SliceByteString =
         makeBuiltinMeaning
-            (\from to xs -> BS.take (to - from + 1) (BS.drop from xs))
+            (\start n xs -> BS.take n (BS.drop start xs))
             mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramSliceByteString)
     toBuiltinMeaning LengthOfByteString =
         makeBuiltinMeaning
