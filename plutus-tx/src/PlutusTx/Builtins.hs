@@ -88,7 +88,7 @@ consByteString :: Integer -> BuiltinByteString -> BuiltinByteString
 consByteString n bs = BI.consByteString (toBuiltin n) bs
 
 {-# INLINABLE sliceByteString #-}
--- | Returns the substring of a 'ByteString'.
+-- | Returns the substring of a 'ByteString' from index 'from' to index 'to'.
 sliceByteString :: Integer -> Integer -> BuiltinByteString -> BuiltinByteString
 sliceByteString from to bs = BI.sliceByteString (toBuiltin from) (toBuiltin to) bs
 
