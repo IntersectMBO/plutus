@@ -52,6 +52,8 @@ module PlutusTx.Prelude (
     -- * Tuples
     fst,
     snd,
+    curry,
+    uncurry,
     -- * Maybe
     module Maybe,
     -- * Either
@@ -117,9 +119,10 @@ import           PlutusTx.Trace       as Trace
 import           PlutusTx.Traversable as Traversable
 import           Prelude              hiding (Applicative (..), Enum (..), Eq (..), Foldable (..), Functor (..),
                                        Monoid (..), Num (..), Ord (..), Rational, Semigroup (..), Traversable (..), all,
-                                       and, any, concat, concatMap, const, divMod, either, elem, error, filter, fst,
-                                       head, id, length, map, mapM_, max, maybe, min, not, notElem, null, or, quotRem,
-                                       reverse, round, sequence, snd, take, zip, (!!), ($), (&&), (++), (<$>), (||))
+                                       and, any, concat, concatMap, const, curry, divMod, either, elem, error, filter,
+                                       fst, head, id, length, map, mapM_, max, maybe, min, not, notElem, null, or,
+                                       quotRem, reverse, round, sequence, snd, take, uncurry, zip, (!!), ($), (&&),
+                                       (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}
@@ -188,6 +191,14 @@ fst (a, _) = a
 -- | Plutus Tx version of 'Data.Tuple.snd'
 snd :: (a, b) -> b
 snd (_, b) = b
+
+{-# INLINABLE curry #-}
+curry :: ((a, b) -> c) -> a -> b -> c
+curry f a b = f (a, b)
+
+{-# INLINABLE uncurry #-}
+uncurry :: (a -> b -> c) -> (a, b) -> c
+uncurry f (a, b) = f a b
 
 infixr 0 $
 -- Normal $ is levity-polymorphic, which we can't handle.

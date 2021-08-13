@@ -5,6 +5,8 @@ module Main(main) where
 import qualified Codec.CBOR.FlatTerm as FlatTerm
 import           Codec.Serialise     (deserialiseOrFail, serialise)
 import qualified Codec.Serialise     as Serialise
+import qualified Data.ByteString     as BS
+import           Data.Either         (isLeft)
 import           Hedgehog            (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
@@ -92,6 +94,8 @@ isqrtRoundTrip = property $ do
 serdeTests :: TestTree
 serdeTests = testGroup "Data serialisation"
     [ testProperty "data round-trip" dataRoundTrip
+    , testProperty "no big bytestrings" noBigByteStrings
+    , testProperty "no big integers" noBigIntegers
     ]
 
 dataRoundTrip :: Property
@@ -106,20 +110,51 @@ dataRoundTrip = property $ do
     annotateShow $ FlatTerm.validFlatTerm ft
     assert (res == Right dt)
 
+sixtyFourByteInteger :: Integer
+sixtyFourByteInteger = 2^((64 :: Integer) *8)
+
 genData :: MonadGen m => m Data
 genData =
     let st = Gen.subterm genData id
         positiveInteger = Gen.integral (Range.linear 0 100000)
+        reasonableInteger = Gen.integral (Range.linear (-100000) 100000)
+        -- over 64 bytes
+        reallyBigInteger = Gen.integral (Range.linear sixtyFourByteInteger (sixtyFourByteInteger * 2))
+        reallyBigNInteger = Gen.integral (Range.linear (-(sixtyFourByteInteger * 2)) (-sixtyFourByteInteger))
+        -- includes > 64bytes
+        someBytes = Gen.bytes (Range.linear 0 256)
         constructorArgList = Gen.list (Range.linear 0 50) st
         kvMapList = Gen.list (Range.linear 0 50) ((,) <$> st <*> st)
     in
     Gen.recursive Gen.choice
-        [ I <$> Gen.integral (Range.linear (-100000) 100000)
-        , B <$> Gen.bytes (Range.linear 0 64) ]
+        [ I <$> reasonableInteger
+        , I <$> reallyBigInteger
+        , I <$> reallyBigNInteger
+        , B <$> someBytes ]
         [ Constr <$> positiveInteger <*> constructorArgList
         , List <$> constructorArgList
         , Map <$> kvMapList
         ]
+
+noBigByteStrings :: Property
+noBigByteStrings = property $ do
+    -- Our serializer for Data is too clever to make big bytestrings, so we serialize a bytestring directly
+    -- and try to decode it as Data
+    dt :: BS.ByteString <- forAll $ Gen.bytes (Range.linear 65 256)
+    annotateShow dt
+    let res :: Either Serialise.DeserialiseFailure Data = deserialiseOrFail (serialise dt)
+    annotateShow res
+    assert (isLeft res)
+
+noBigIntegers :: Property
+noBigIntegers = property $ do
+    -- Our serializer for Data is too clever to make big integers, so we serialize a bytestring directly
+    -- and try to decode it as Data
+    dt :: Integer <- forAll $ Gen.integral (Range.linear sixtyFourByteInteger (sixtyFourByteInteger * 2))
+    annotateShow dt
+    let res :: Either Serialise.DeserialiseFailure Data = deserialiseOrFail (serialise dt)
+    annotateShow res
+    assert (isLeft res)
 
 ratioTests :: TestTree
 ratioTests = testGroup "Ratio"

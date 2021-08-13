@@ -41,7 +41,7 @@ library
     ghc-options:
         -O2 -Wall
         -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities
+        -Wredundant-constraints -Widentities -Wunused-packages
 
 test-suite prettyprinter-configurable-test
     type: exitcode-stdio-1.0
@@ -69,7 +69,7 @@ test-suite prettyprinter-configurable-test
         -threaded -rtsopts -with-rtsopts=-N
         -Wall
         -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities
+        -Wredundant-constraints -Widentities -Wunused-packages
 
 test-suite prettyprinter-configurable-doctest
     type: exitcode-stdio-1.0
@@ -84,4 +84,4 @@ test-suite prettyprinter-configurable-doctest
         -threaded -rtsopts -with-rtsopts=-N
         -Wall
         -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities
+        -Wredundant-constraints -Widentities -Wunused-packages
