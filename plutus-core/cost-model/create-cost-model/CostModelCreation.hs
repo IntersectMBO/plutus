@@ -118,67 +118,68 @@ createBuiltinCostModel =
     let getParams x y = x (getConst $ y models)
 
     -- Integers
-    paramAddInteger               <- getParams addInteger paramAddInteger
-    paramSubtractInteger          <- getParams subtractInteger paramSubtractInteger
-    paramMultiplyInteger          <- getParams multiplyInteger paramMultiplyInteger
-    paramDivideInteger            <- getParams divideInteger paramDivideInteger
-    paramQuotientInteger          <- getParams quotientInteger paramQuotientInteger
-    paramRemainderInteger         <- getParams remainderInteger paramRemainderInteger
-    paramModInteger               <- getParams modInteger paramModInteger
-    paramEqualsInteger            <- getParams equalsInteger paramEqualsInteger
-    paramLessThanInteger          <- getParams lessThanInteger paramLessThanInteger
-    paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger paramLessThanEqualsInteger
+    paramAddInteger               <- getParams addInteger                paramAddInteger
+    paramSubtractInteger          <- getParams subtractInteger           paramSubtractInteger
+    paramMultiplyInteger          <- getParams multiplyInteger           paramMultiplyInteger
+    paramDivideInteger            <- getParams divideInteger             paramDivideInteger
+    paramQuotientInteger          <- getParams quotientInteger           paramQuotientInteger
+    paramRemainderInteger         <- getParams remainderInteger          paramRemainderInteger
+    paramModInteger               <- getParams modInteger                paramModInteger
+    paramEqualsInteger            <- getParams equalsInteger             paramEqualsInteger
+    paramLessThanInteger          <- getParams lessThanInteger           paramLessThanInteger
+    paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger     paramLessThanEqualsInteger
     -- Bytestrings
-    paramAppendByteString         <- getParams appendByteString paramAppendByteString
-    paramConsByteString           <- getParams consByteString paramConsByteString
-    paramSliceByteString          <- getParams sliceByteString paramSliceByteString
-    paramLengthOfByteString       <- getParams lengthOfByteString paramLengthOfByteString
-    paramIndexByteString          <- getParams indexByteString paramIndexByteString
-    paramEqualsByteString         <- getParams equalsByteString paramEqualsByteString
-    paramLessThanByteString       <- getParams lessThanByteString paramLessThanByteString
-    paramLessThanEqualsByteString <- getParams lessThanEqualsByteString paramLessThanEqualsByteString
+    paramAppendByteString         <- getParams appendByteString          paramAppendByteString
+    paramConsByteString           <- getParams consByteString            paramConsByteString
+    paramSliceByteString          <- getParams sliceByteString           paramSliceByteString
+    paramLengthOfByteString       <- getParams lengthOfByteString        paramLengthOfByteString
+    paramIndexByteString          <- getParams indexByteString           paramIndexByteString
+    paramEqualsByteString         <- getParams equalsByteString          paramEqualsByteString
+    paramLessThanByteString       <- getParams lessThanByteString        paramLessThanByteString
+    paramLessThanEqualsByteString <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
     -- Cryptography and hashes
-    paramSha2_256                 <- getParams sha2_256 paramSha2_256
-    paramSha3_256                 <- getParams sha3_256 paramSha3_256
-    paramBlake2b                  <- getParams blake2b paramBlake2b
-    paramVerifySignature          <- getParams verifySignature paramVerifySignature
+    paramSha2_256                 <- getParams sha2_256         paramSha2_256
+    paramSha3_256                 <- getParams sha3_256         paramSha3_256
+    paramBlake2b                  <- getParams blake2b          paramBlake2b
+    paramVerifySignature          <- getParams verifySignature  paramVerifySignature
     -- Strings
-    paramAppendString             <- getParams appendString paramAppendString
-    paramEqualsString             <- getParams equalsString paramEqualsString
-    paramEncodeUtf8               <- getParams encodeUtf8 paramEncodeUtf8
-    paramDecodeUtf8               <- getParams decodeUtf8 paramDecodeUtf8
+    paramAppendString             <- getParams appendString  paramAppendString
+    paramEqualsString             <- getParams equalsString  paramEqualsString
+    paramEncodeUtf8               <- getParams encodeUtf8    paramEncodeUtf8
+    paramDecodeUtf8               <- getParams decodeUtf8    paramDecodeUtf8
+
     -- Bool
-    paramIfThenElse               <- getParams ifThenElse paramIfThenElse
+    paramIfThenElse               <- getParams ifThenElse  paramIfThenElse
     -- Unit
-    paramChooseUnit               <- getParams chooseUnit paramChooseUnit
+    paramChooseUnit               <- getParams chooseUnit  paramChooseUnit
     -- Tracing
-    paramTrace                    <- getParams trace paramTrace
+    paramTrace                    <- getParams trace  paramTrace
     -- Pairs
-    paramFstPair                  <- getParams fstPair paramFstPair
-    paramSndPair                  <- getParams sndPair paramSndPair
+    paramFstPair                  <- getParams fstPair  paramFstPair
+    paramSndPair                  <- getParams sndPair  paramSndPair
     -- Lists
-    paramChooseList               <- getParams chooseList paramChooseList
-    paramMkCons                   <- getParams mkCons paramMkCons
-    paramHeadList                 <- getParams headList paramHeadList
-    paramTailList                 <- getParams tailList paramTailList
-    paramNullList                 <- getParams nullList paramNullList
+    paramChooseList               <- getParams chooseList  paramChooseList
+    paramMkCons                   <- getParams mkCons      paramMkCons
+    paramHeadList                 <- getParams headList    paramHeadList
+    paramTailList                 <- getParams tailList    paramTailList
+    paramNullList                 <- getParams nullList    paramNullList
     -- Data
-    paramChooseData               <- getParams chooseData paramChooseData
-    paramConstrData               <- getParams constrData paramConstrData
-    paramMapData                  <- getParams mapData paramMapData
-    paramListData                 <- getParams listData paramListData
-    paramIData                    <- getParams iData paramIData
-    paramBData                    <- getParams bData paramBData
-    paramUnConstrData             <- getParams unConstrData paramUnConstrData
-    paramUnMapData                <- getParams unMapData paramUnMapData
-    paramUnListData               <- getParams unListData paramUnListData
-    paramUnIData                  <- getParams unIData paramUnIData
-    paramUnBData                  <- getParams unBData paramUnBData
-    paramEqualsData               <- getParams equalsData paramEqualsData
+    paramChooseData               <- getParams chooseData     paramChooseData
+    paramConstrData               <- getParams constrData     paramConstrData
+    paramMapData                  <- getParams mapData        paramMapData
+    paramListData                 <- getParams listData       paramListData
+    paramIData                    <- getParams iData          paramIData
+    paramBData                    <- getParams bData          paramBData
+    paramUnConstrData             <- getParams unConstrData   paramUnConstrData
+    paramUnMapData                <- getParams unMapData      paramUnMapData
+    paramUnListData               <- getParams unListData     paramUnListData
+    paramUnIData                  <- getParams unIData        paramUnIData
+    paramUnBData                  <- getParams unBData        paramUnBData
+    paramEqualsData               <- getParams equalsData     paramEqualsData
     -- Misc constructors
-    paramMkPairData               <- getParams mkPairData paramMkPairData
-    paramMkNilData                <- getParams mkNilData paramMkNilData
-    paramMkNilPairData            <- getParams mkNilPairData paramMkNilPairData
+    paramMkPairData               <- getParams mkPairData     paramMkPairData
+    paramMkNilData                <- getParams mkNilData      paramMkNilData
+    paramMkNilPairData            <- getParams mkNilPairData  paramMkNilPairData
 
     pure $ BuiltinCostModelBase {..}
 
@@ -347,6 +348,11 @@ appendByteString cpuModelR = do
   let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
   pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
 
+
+-- ## TODO: replace all these pure defs with plausible cost functions and stick some values in.
+-- For the existing examples we're reading from the R code, but we can bypass that
+
+
 consByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 consByteString _ = pure def
 
@@ -378,7 +384,7 @@ lessThanEqualsByteString = lessThanByteString
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha2_256 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")  -- <---------- Eh?  Yeah, I suppose so.
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
