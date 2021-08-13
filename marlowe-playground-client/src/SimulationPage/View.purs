@@ -32,9 +32,10 @@ import Hint.State (hint)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
 import Marlowe.Extended.OrderedMap as OrderedMap
+import Marlowe.Extended.OrderedSet (OrderedSet)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payee(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
-import Marlowe.Template (IntegerTemplateType(..))
+import Marlowe.Template (IntegerTemplateType(..), orderContentUsingMetadata)
 import Material.Icons as Icon
 import Monaco as Monaco
 import Popper (Placement(..))
@@ -208,6 +209,7 @@ type TemplateFormDisplayInfo a action
     , typeName :: IntegerTemplateType -- Identifier for the type of template we are displaying
     , title :: String -- Title of the section of the template type
     , prefix :: String -- Prefix for the explanation of the template
+    , orderedMetadataSet :: OrderedSet String -- Ordered set of parameters with metadata (in custom metadata order)
     }
 
 startSimulationWidget ::
@@ -225,8 +227,8 @@ startSimulationWidget metadata { initialSlot, templateContent } =
             ]
         , div_
             [ ul [ class_ (ClassName "templates") ]
-                ( integerTemplateParameters SetIntegerTemplateParam slotParameterDisplayInfo (unwrap templateContent).slotContent
-                    <> integerTemplateParameters SetIntegerTemplateParam valueParameterDisplayInfo (unwrap templateContent).valueContent
+                ( integerTemplateParameters metadata SetIntegerTemplateParam slotParameterDisplayInfo (unwrap templateContent).slotContent
+                    <> integerTemplateParameters metadata SetIntegerTemplateParam valueParameterDisplayInfo (unwrap templateContent).valueContent
                 )
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
@@ -240,18 +242,20 @@ startSimulationWidget metadata { initialSlot, templateContent } =
   where
   slotParameterDisplayInfo =
     { lookupFormat: const Nothing
-    , lookupDefinition: (flip OrderedMap.lookup) metadata.slotParameterDescriptions
+    , lookupDefinition: (flip Map.lookup) (Map.fromFoldableWithIndex metadata.slotParameterDescriptions) -- Convert to normal Map for efficiency
     , typeName: SlotContent
     , title: "Timeout template parameters"
     , prefix: "Slot for"
+    , orderedMetadataSet: OrderedMap.keys metadata.slotParameterDescriptions
     }
 
   valueParameterDisplayInfo =
     { lookupFormat: extractValueParameterNuberFormat
-    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , lookupDefinition: (flip lookupDescription) (Map.fromFoldableWithIndex metadata.valueParameterInfo) -- Convert to normal Map for efficiency
     , typeName: ValueContent
     , title: "Value template parameters"
     , prefix: "Constant for"
+    , orderedMetadataSet: OrderedMap.keys metadata.valueParameterInfo
     }
 
   extractValueParameterNuberFormat valueParameter = case OrderedMap.lookup valueParameter metadata.valueParameterInfo of
@@ -259,7 +263,7 @@ startSimulationWidget metadata { initialSlot, templateContent } =
     _ -> Nothing
 
   lookupDescription k m =
-    ( case OrderedMap.lookup k m of
+    ( case Map.lookup k m of
         Just { valueParameterDescription: description }
           | trim description /= "" -> Just description
         _ -> Nothing
@@ -268,11 +272,12 @@ startSimulationWidget metadata { initialSlot, templateContent } =
 integerTemplateParameters ::
   forall a action m.
   MonadAff m =>
+  MetaData ->
   (IntegerTemplateType -> String -> BigInteger -> action) ->
   TemplateFormDisplayInfo a action ->
   Map String BigInteger ->
   Array (ComponentHTML action ChildSlots m)
-integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, title, prefix } content =
+integerTemplateParameters metadata actionGen { lookupFormat, lookupDefinition, typeName, title, prefix, orderedMetadataSet } content =
   let
     parameterHint key =
       maybe []
@@ -309,9 +314,11 @@ integerTemplateParameters actionGen { lookupFormat, lookupDefinition, typeName, 
                         )
                       )
                   )
-                  (Map.toUnfoldable content)
+                  (OrderedMap.toUnfoldable orderedContent)
               )
     ]
+  where
+  orderedContent = orderContentUsingMetadata content orderedMetadataSet
 
 ------------------------------------------------------------
 simulationStateWidget ::

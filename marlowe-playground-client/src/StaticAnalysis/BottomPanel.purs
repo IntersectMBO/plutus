@@ -6,12 +6,14 @@ module StaticAnalysis.BottomPanel
 
 import Prelude hiding (div)
 import Data.BigInteger (BigInteger)
-import Data.Lens (view, (^.))
+import Data.Lens ((^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.String (trim)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
@@ -20,7 +22,7 @@ import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h3, li_, ol, spa
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import MainFrame.Types (ChildSlots)
-import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _valueParameterDescription)
+import Marlowe.Extended.Metadata (MetaData, NumberFormat(..))
 import Marlowe.Extended.OrderedMap as OrderedMap
 import Marlowe.Semantics (ChoiceId(..), Input(..), Slot(..), SlotInterval(..), TransactionInput(..))
 import Marlowe.Symbolic.Types.Response as R
@@ -73,8 +75,8 @@ analysisResultPane metadata actionGen state =
         explanation
           [ text ""
           , ul [ class_ (ClassName "templates") ]
-              ( integerTemplateParameters actionGen slotParameterDisplayInfo (unwrap templateContent).slotContent
-                  <> integerTemplateParameters actionGen valueParameterDisplayInfo (unwrap templateContent).valueContent
+              ( integerTemplateParameters metadata actionGen slotParameterDisplayInfo (unwrap templateContent).slotContent
+                  <> integerTemplateParameters metadata actionGen valueParameterDisplayInfo (unwrap templateContent).valueContent
               )
           ]
       WarningAnalysis staticSubResult -> case staticSubResult of
@@ -243,25 +245,32 @@ analysisResultPane metadata actionGen state =
   where
   slotParameterDisplayInfo =
     { lookupFormat: const Nothing
-    , lookupDefinition: (flip OrderedMap.lookup) metadata.slotParameterDescriptions
+    , lookupDefinition: (flip Map.lookup) (Map.fromFoldableWithIndex metadata.slotParameterDescriptions) -- Convert to normal Map for efficiency
     , typeName: SlotContent
     , title: "Timeout template parameters"
     , prefix: "Slot for"
+    , orderedMetadataSet: OrderedMap.keys metadata.slotParameterDescriptions
     }
 
   valueParameterDisplayInfo =
     { lookupFormat: extractValueParameterNuberFormat
-    , lookupDefinition: (flip lookupDescription) metadata.valueParameterInfo
+    , lookupDefinition: (flip lookupDescription) (Map.fromFoldableWithIndex metadata.valueParameterInfo) -- Convert to normal Map for efficiency
     , typeName: ValueContent
     , title: "Value template parameters"
     , prefix: "Constant for"
+    , orderedMetadataSet: OrderedMap.keys metadata.valueParameterInfo
     }
 
   extractValueParameterNuberFormat valueParameter = case OrderedMap.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
 
-  lookupDescription k m = view _valueParameterDescription <$> OrderedMap.lookup k m
+  lookupDescription k m =
+    ( case Map.lookup k m of
+        Just { valueParameterDescription: description }
+          | trim description /= "" -> Just description
+        _ -> Nothing
+    )
 
 displayTransactionList :: forall p action. Array TransactionInput -> HTML p action
 displayTransactionList transactionList =

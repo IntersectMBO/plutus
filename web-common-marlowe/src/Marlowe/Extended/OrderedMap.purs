@@ -1,10 +1,10 @@
-module Marlowe.Extended.OrderedMap (OrderedMap, alter, delete, fromFoldable, insert, isEmpty, keys, lookup, singleton, toUnfoldable, unionWith) where
+module Marlowe.Extended.OrderedMap (OrderedMap, alter, delete, fromFoldable, fromFoldableWithIndex, insert, isEmpty, keys, lookup, singleton, toUnfoldable, unionWith) where
 
 import Prelude
 import Data.Array as Array
 import Data.Bifunctor (rmap)
 import Data.Foldable (class Foldable, foldMap)
-import Data.FoldableWithIndex (class FoldableWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Set as Set
@@ -57,6 +57,9 @@ singleton k v = OrderedMap (Array.singleton (k /\ v))
 
 fromFoldable :: forall f k v. Ord k => Foldable f => f (k /\ v) -> OrderedMap k v
 fromFoldable = foldMap (uncurry singleton)
+
+fromFoldableWithIndex :: forall f k v. Ord k => FoldableWithIndex k f => f v -> OrderedMap k v
+fromFoldableWithIndex = foldlWithIndex (\k m v -> insert k v m) mempty
 
 keys :: forall k v. Ord k => OrderedMap k v -> OrderedSet k
 keys (OrderedMap om) = OrderedSet.fromFoldable (map fst om)

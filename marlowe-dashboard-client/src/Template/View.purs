@@ -25,6 +25,7 @@ import Marlowe.Extended.OrderedMap as OrderedMap
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, TokenName)
+import Marlowe.Template (orderContentUsingMetadata)
 import Material.Icons (Icon(..)) as Icon
 import Material.Icons (Icon, icon, icon_)
 import Popper (Placement(..))
@@ -371,10 +372,10 @@ parameterInputs metaData slotContentInputs valueContentInputs =
     [ ul
         [ classNames [ "mb-4" ] ]
         $ valueInput
-        <$> Map.toUnfoldable valueContentInputs
+        <$> OrderedMap.toUnfoldable (orderContentUsingMetadata valueContentInputs (OrderedMap.keys metaData.valueParameterInfo))
     , ul_
         $ slotInput
-        <$> Map.toUnfoldable slotContentInputs
+        <$> OrderedMap.toUnfoldable (orderContentUsingMetadata slotContentInputs (OrderedMap.keys metaData.slotParameterDescriptions))
     ]
   where
   valueInput (key /\ inputField) =

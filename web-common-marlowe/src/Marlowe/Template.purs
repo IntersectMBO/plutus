@@ -7,11 +7,15 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, maybe)
 import Data.Newtype (class Newtype)
 import Data.Set (Set)
+import Data.Set as Set
 import Data.Symbol (SProxy(..))
 import Data.Traversable (foldMap)
+import Marlowe.Extended.OrderedMap (OrderedMap)
+import Marlowe.Extended.OrderedMap as OrderedMap
+import Marlowe.Extended.OrderedSet (OrderedSet)
 
 newtype Placeholders
   = Placeholders
@@ -83,3 +87,12 @@ class Template a b where
 
 class Fillable a b where
   fillTemplate :: b -> a -> a
+
+orderContentUsingMetadata :: forall a. Map String a -> OrderedSet String -> OrderedMap String a
+orderContentUsingMetadata content orderedMetadataSet = orderedTaggedContent <> OrderedMap.fromFoldableWithIndex untaggedContent
+  where
+  orderedTaggedContent = foldMap (\x -> maybe mempty (\y -> OrderedMap.singleton x y) (Map.lookup x content)) orderedMetadataSet
+
+  metadataSet = Set.fromFoldable orderedMetadataSet -- For efficiency
+
+  untaggedContent = Map.filterKeys (\x -> not $ Set.member x metadataSet) content
