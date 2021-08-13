@@ -105,7 +105,7 @@ import           PlutusTx.Monoid                              (inv)
 -- makes the transition to the next state using the given input and taking care
 -- of all payments.
 
--- | Typed representation of the on-chain state of a state machine insante
+-- | Typed representation of the on-chain state of a state machine instance
 data OnChainState s i =
     OnChainState
         { ocsTxOut    :: Typed.TypedScriptTxOut (SM.StateMachine s i) -- ^ Typed transaction output
