@@ -152,6 +152,23 @@ deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCh
 deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
 
+
+-- Needed to help derive various instances for BuiltinCostModelBase
+type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
+    ( constraint (f ModelOneArgument)
+    , constraint (f ModelTwoArguments)
+    , constraint (f ModelThreeArguments)
+    , constraint (f ModelFourArguments)
+    , constraint (f ModelFiveArguments)
+    , constraint (f ModelSixArguments))
+
+-- HLS doesn't like the AllBF from Barbies.
+deriving instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
+
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
 
 data CostingFun model = CostingFun
@@ -449,21 +466,3 @@ runCostingFunSixArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 mem5 mem6 =
     ExBudget (ExCPU    $ runSixArgumentModel cpu mem1 mem2 mem3 mem4 mem5 mem6)
              (ExMemory $ runSixArgumentModel mem mem1 mem2 mem3 mem4 mem5 mem6)
 
-
-
--- Not sure what this is for...
-
-type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
-    ( constraint (f ModelOneArgument)
-    , constraint (f ModelTwoArguments)
-    , constraint (f ModelThreeArguments)
-    , constraint (f ModelFourArguments)
-    , constraint (f ModelFiveArguments)
-    , constraint (f ModelSixArguments))
-
--- HLS doesn't like the AllBF from Barbies.
-deriving instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
