@@ -7,8 +7,6 @@ module PlutusTx.Builtins (
                                 BuiltinByteString
                                 , appendByteString
                                 , consByteString
-                                , takeByteString
-                                , dropByteString
                                 , sliceByteString
                                 , lengthOfByteString
                                 , indexByteString
@@ -91,16 +89,6 @@ consByteString n bs = BI.consByteString (toBuiltin n) bs
 -- | Returns the substring of a 'ByteString' from index 'start' of length 'n'.
 sliceByteString :: Integer -> Integer -> BuiltinByteString -> BuiltinByteString
 sliceByteString start n bs = BI.sliceByteString (toBuiltin start) (toBuiltin n) bs
-
-{-# INLINABLE takeByteString #-}
--- | Returns the n length prefix of a 'ByteString'.
-takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-takeByteString n bs = BI.sliceByteString 0 (toBuiltin n) bs
-
-{-# INLINABLE dropByteString #-}
--- | Returns the suffix of a 'ByteString' after n elements.
-dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = BI.sliceByteString (toBuiltin n) (BI.lengthOfByteString bs - n) bs
 
 {-# INLINABLE lengthOfByteString #-}
 -- | Returns the length of a 'ByteString'.
