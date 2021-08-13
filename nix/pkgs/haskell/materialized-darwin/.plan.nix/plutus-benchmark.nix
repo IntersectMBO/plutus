@@ -27,6 +27,7 @@
       dataDir = ".";
       dataFiles = [
         "templates/*.tpl"
+        "validation/data/auction/*.flat"
         "validation/data/crowdfunding/*.flat"
         "validation/data/currency/*.flat"
         "validation/data/escrow/*.flat"
@@ -40,8 +41,6 @@
         "validation/data/token-account/*.flat"
         "validation/data/uniswap/*.flat"
         "validation/data/vesting/*.flat"
-        "validation/data/marlowe/trustfund/*.flat"
-        "validation/data/marlowe/zerocoupon/*.flat"
         ];
       extraSrcFiles = [];
       extraTmpFiles = [];
