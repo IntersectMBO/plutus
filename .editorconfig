@@ -10,4 +10,4 @@ insert_final_newline = true
 
 [*.hs]
 indent_size = 4
-max_line_length = 80
+max_line_length = 120
