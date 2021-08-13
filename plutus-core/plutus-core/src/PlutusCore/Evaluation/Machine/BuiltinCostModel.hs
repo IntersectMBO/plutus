@@ -24,9 +24,15 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
+    , ModelFourArguments(..)
+    , ModelFiveArguments(..)
+    , ModelSixArguments(..)
     , runCostingFunOneArgument
     , runCostingFunTwoArguments
     , runCostingFunThreeArguments
+    , runCostingFunFourArguments
+    , runCostingFunFiveArguments
+    , runCostingFunSixArguments
     , Hashable
     )
 where
@@ -75,7 +81,9 @@ data Support
 
 data BuiltinCostModelBase f =
     BuiltinCostModelBase
-    { paramAddInteger               :: f ModelTwoArguments
+    {
+      -- Integer
+      paramAddInteger               :: f ModelTwoArguments
     , paramSubtractInteger          :: f ModelTwoArguments
     , paramMultiplyInteger          :: f ModelTwoArguments
     , paramDivideInteger            :: f ModelTwoArguments
@@ -85,33 +93,43 @@ data BuiltinCostModelBase f =
     , paramEqualsInteger            :: f ModelTwoArguments
     , paramLessThanInteger          :: f ModelTwoArguments
     , paramLessThanEqualsInteger    :: f ModelTwoArguments
+    -- Bytestrings
     , paramAppendByteString         :: f ModelTwoArguments
     , paramConsByteString           :: f ModelTwoArguments
-    , paramSliceByteString          :: f ModelTwoArguments
+    , paramSliceByteString          :: f ModelThreeArguments
     , paramLengthOfByteString       :: f ModelOneArgument
+    , paramIndexByteString          :: f ModelTwoArguments
     , paramEqualsByteString         :: f ModelTwoArguments
     , paramLessThanByteString       :: f ModelTwoArguments
     , paramLessThanEqualsByteString :: f ModelTwoArguments
+    -- Cryptography and hashes
     , paramSha2_256                 :: f ModelOneArgument
     , paramSha3_256                 :: f ModelOneArgument
     , paramBlake2b                  :: f ModelOneArgument
     , paramVerifySignature          :: f ModelThreeArguments
+    -- Strings
     , paramAppendString             :: f ModelTwoArguments
     , paramEqualsString             :: f ModelTwoArguments
     , paramEncodeUtf8               :: f ModelOneArgument
     , paramDecodeUtf8               :: f ModelOneArgument
+    -- Bool
     , paramIfThenElse               :: f ModelThreeArguments
+    -- Unit
     , paramChooseUnit               :: f ModelTwoArguments
+    -- Tracing
     , paramTrace                    :: f ModelTwoArguments
+    -- Pairs
     , paramFstPair                  :: f ModelOneArgument
     , paramSndPair                  :: f ModelOneArgument
+    -- Lists
     , paramChooseList               :: f ModelThreeArguments
     , paramMkCons                   :: f ModelTwoArguments
     , paramHeadList                 :: f ModelOneArgument
     , paramTailList                 :: f ModelOneArgument
     , paramNullList                 :: f ModelOneArgument
+    -- Data
     , paramChooseData               :: f ModelSixArguments
-    , paramConstrData               :: f ModelOneArgument
+    , paramConstrData               :: f ModelTwoArguments
     , paramMapData                  :: f ModelOneArgument
     , paramListData                 :: f ModelOneArgument
     , paramIData                    :: f ModelOneArgument
@@ -122,6 +140,7 @@ data BuiltinCostModelBase f =
     , paramUnIData                  :: f ModelOneArgument
     , paramUnBData                  :: f ModelOneArgument
     , paramEqualsData               :: f ModelTwoArguments
+    -- Misc constructors
     , paramMkPairData               :: f ModelTwoArguments
     , paramMkNilData                :: f ModelOneArgument
     , paramMkNilPairData            :: f ModelOneArgument
@@ -132,17 +151,6 @@ deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCh
              (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)
 deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
-
-type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
-    (constraint (f ModelOneArgument), constraint (f ModelTwoArguments),
-     constraint (f ModelThreeArguments), constraint (f ModelSixArguments))
-
--- HLS doesn't like the AllBF from Barbies.
-deriving instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
 
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
 
@@ -166,12 +174,19 @@ data ModelOneArgument =
 instance Default ModelOneArgument where
     def = ModelOneArgumentConstantCost 0
 
-runCostingFunOneArgument :: CostingFun ModelOneArgument -> ExMemory -> ExBudget
+runCostingFunOneArgument
+    :: CostingFun ModelOneArgument
+    -> ExMemory
+    -> ExBudget
 runCostingFunOneArgument
     (CostingFun cpu mem) mem1 =
-        ExBudget (ExCPU $ runOneArgumentModel cpu mem1) (ExMemory $ runOneArgumentModel mem mem1)
+        ExBudget (ExCPU    $ runOneArgumentModel cpu mem1)
+                 (ExMemory $ runOneArgumentModel mem mem1)
 
-runOneArgumentModel :: ModelOneArgument -> ExMemory -> CostingInteger
+runOneArgumentModel
+    :: ModelOneArgument
+    -> ExMemory
+    -> CostingInteger
 runOneArgumentModel (ModelOneArgumentConstantCost c) _ = c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope _)) (ExMemory s) =
     s * slope + intercept
@@ -259,11 +274,20 @@ data ModelTwoArguments =
 instance Default ModelTwoArguments where
     def = ModelTwoArgumentsConstantCost 0
 
-runCostingFunTwoArguments :: CostingFun ModelTwoArguments -> ExMemory -> ExMemory -> ExBudget
+runCostingFunTwoArguments
+    :: CostingFun ModelTwoArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExBudget
 runCostingFunTwoArguments (CostingFun cpu mem) mem1 mem2 =
-    ExBudget (ExCPU (runTwoArgumentModel cpu mem1 mem2)) (ExMemory (runTwoArgumentModel mem mem1 mem2))
+    ExBudget (ExCPU    $ runTwoArgumentModel cpu mem1 mem2)
+             (ExMemory $ runTwoArgumentModel mem mem1 mem2)
 
-runTwoArgumentModel :: ModelTwoArguments -> ExMemory -> ExMemory -> CostingInteger
+runTwoArgumentModel
+    :: ModelTwoArguments
+    -> ExMemory
+    -> ExMemory
+    -> CostingInteger
 runTwoArgumentModel
     (ModelTwoArgumentsConstantCost c) _ _ = c
 runTwoArgumentModel
@@ -304,14 +328,90 @@ data ModelThreeArguments =
 instance Default ModelThreeArguments where
     def = ModelThreeArgumentsConstantCost 0
 
-runThreeArgumentModel :: ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> CostingInteger
+runThreeArgumentModel
+    :: ModelThreeArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> CostingInteger
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) _ _ _ = c
 runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) (ExMemory size3) =
     (size1 + size2 + size3) * slope + intercept
 
-runCostingFunThreeArguments :: CostingFun ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> ExBudget
+runCostingFunThreeArguments
+    :: CostingFun ModelThreeArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExBudget
 runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =
-    ExBudget (ExCPU $ runThreeArgumentModel cpu mem1 mem2 mem3) (ExMemory $ runThreeArgumentModel mem mem1 mem2 mem3)
+    ExBudget (ExCPU    $ runThreeArgumentModel cpu mem1 mem2 mem3)
+             (ExMemory $ runThreeArgumentModel mem mem1 mem2 mem3)
+
+
+---------------- Four-argument costing functions ----------------
+
+data ModelFourArguments =
+      ModelFourArgumentsConstantCost CostingInteger
+    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelFourArguments", CamelToSnake)] ModelFourArguments
+
+instance Default ModelFourArguments where
+    def = ModelFourArgumentsConstantCost 0
+
+runFourArgumentModel
+    :: ModelFourArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> CostingInteger
+runFourArgumentModel (ModelFourArgumentsConstantCost c) _ _ _ _ = c
+
+runCostingFunFourArguments
+    :: CostingFun ModelFourArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExBudget
+runCostingFunFourArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 =
+    ExBudget (ExCPU    $ runFourArgumentModel cpu mem1 mem2 mem3 mem4)
+             (ExMemory $ runFourArgumentModel mem mem1 mem2 mem3 mem4)
+
+---------------- Five-argument costing functions ----------------
+
+data ModelFiveArguments =
+      ModelFiveArgumentsConstantCost CostingInteger
+    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelFiveArguments", CamelToSnake)] ModelFiveArguments
+
+instance Default ModelFiveArguments where
+    def = ModelFiveArgumentsConstantCost 0
+
+runFiveArgumentModel
+    :: ModelFiveArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> CostingInteger
+runFiveArgumentModel (ModelFiveArgumentsConstantCost c) _ _ _ _ _ = c
+
+runCostingFunFiveArguments
+    :: CostingFun ModelFiveArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExBudget
+runCostingFunFiveArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 mem5 =
+    ExBudget (ExCPU    $ runFiveArgumentModel cpu mem1 mem2 mem3 mem4 mem5)
+             (ExMemory $ runFiveArgumentModel mem mem1 mem2 mem3 mem4 mem5)
 
 
 ---------------- Six-argument costing functions ----------------
@@ -325,5 +425,45 @@ data ModelSixArguments =
 instance Default ModelSixArguments where
     def = ModelSixArgumentsConstantCost 0
 
-runSixArgumentModel :: ModelSixArguments -> ExMemory -> ExMemory -> ExMemory -> ExMemory -> ExMemory -> ExMemory -> CostingInteger
+runSixArgumentModel
+    :: ModelSixArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> CostingInteger
 runSixArgumentModel (ModelSixArgumentsConstantCost c) _ _ _ _ _ _ = c
+
+runCostingFunSixArguments
+    :: CostingFun ModelSixArguments
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExMemory
+    -> ExBudget
+runCostingFunSixArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 mem5 mem6 =
+    ExBudget (ExCPU    $ runSixArgumentModel cpu mem1 mem2 mem3 mem4 mem5 mem6)
+             (ExMemory $ runSixArgumentModel mem mem1 mem2 mem3 mem4 mem5 mem6)
+
+
+
+-- Not sure what this is for...
+
+type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
+    ( constraint (f ModelOneArgument)
+    , constraint (f ModelTwoArguments)
+    , constraint (f ModelThreeArguments)
+    , constraint (f ModelFourArguments)
+    , constraint (f ModelFiveArguments)
+    , constraint (f ModelSixArguments))
+
+-- HLS doesn't like the AllBF from Barbies.
+deriving instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
+deriving instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
