@@ -190,6 +190,16 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/input-output-hk/optparse-applicative
+  tag: 3876479d01d681ee529d1b26784335cbe0baf7cd
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/criterion
+  tag: fb2e7be532db96255d203f86360230cae37130f3
+
+source-repository-package
+  type: git
   location: https://github.com/input-output-hk/Win32-network
   tag: 3825d3abf75f83f406c1f7161883c438dac7277d
 

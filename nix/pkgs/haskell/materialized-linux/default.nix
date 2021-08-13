@@ -173,9 +173,6 @@
         "protolude".revision = (((hackage."protolude")."0.3.0").revisions).default;
         "protolude".flags.dev = false;
         "process".revision = (((hackage."process")."1.6.9.0").revisions).default;
-        "criterion".revision = (((hackage."criterion")."1.5.9.0").revisions).default;
-        "criterion".flags.embed-data-files = false;
-        "criterion".flags.fast = false;
         "newtype-generics".revision = (((hackage."newtype-generics")."0.6").revisions).default;
         "half".revision = (((hackage."half")."0.3.1").revisions).default;
         "auto-update".revision = (((hackage."auto-update")."0.1.6").revisions).default;
@@ -190,8 +187,6 @@
         "quickcheck-text".revision = (((hackage."quickcheck-text")."0.1.2.1").revisions).default;
         "unix-compat".revision = (((hackage."unix-compat")."0.5.3").revisions).default;
         "unix-compat".flags.old-time = false;
-        "optparse-applicative".revision = (((hackage."optparse-applicative")."0.16.1.0").revisions).default;
-        "optparse-applicative".flags.process = true;
         "time-manager".revision = (((hackage."time-manager")."0.0.0").revisions).default;
         "hspec-discover".revision = (((hackage."hspec-discover")."2.8.2").revisions).default;
         "cborg".revision = (((hackage."cborg")."0.2.5.0").revisions).default;
@@ -786,8 +781,10 @@
         io-classes = ./.plan.nix/io-classes.nix;
         ouroboros-consensus-byron = ./.plan.nix/ouroboros-consensus-byron.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
+        optparse-applicative = ./.plan.nix/optparse-applicative.nix;
         orphans-deriving-via = ./.plan.nix/orphans-deriving-via.nix;
         shelley-spec-non-integral = ./.plan.nix/shelley-spec-non-integral.nix;
+        criterion = ./.plan.nix/criterion.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
         cardano-ledger-alonzo = ./.plan.nix/cardano-ledger-alonzo.nix;
         small-steps-test = ./.plan.nix/small-steps-test.nix;
@@ -973,11 +970,20 @@
             flags = { "asserts" = lib.mkOverride 900 false; };
             };
           "contra-tracer" = { flags = {}; };
+          "optparse-applicative" = {
+            flags = { "process" = lib.mkOverride 900 true; };
+            };
           "orphans-deriving-via" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
           "shelley-spec-non-integral" = {
             flags = { "development" = lib.mkOverride 900 false; };
+            };
+          "criterion" = {
+            flags = {
+              "embed-data-files" = lib.mkOverride 900 false;
+              "fast" = lib.mkOverride 900 false;
+              };
             };
           "plutus-ledger" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };

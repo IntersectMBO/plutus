@@ -56,6 +56,8 @@ let
       "https://github.com/input-output-hk/cardano-node.git"."708de685d49ec6af4b2d8b3cbfa0eca0e9e43edf" = "0147jsz1rywma71vq5yqswr3gwv9vrndf73b989dwxcn4zn92iwv";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
       "https://github.com/input-output-hk/hedgehog-extras"."edf6945007177a638fbeb8802397f3a6f4e47c14" = "0wc7qzkc7j4ns2rz562h6qrx2f8xyq7yjcb7zidnj7f6j0pcd0i9";
+      "https://github.com/input-output-hk/optparse-applicative"."3876479d01d681ee529d1b26784335cbe0baf7cd" = "00gavws6jvl930rq09gs5rdwmyc4n42avk7p9s7pjv52d205v967";
+      "https://github.com/input-output-hk/criterion"."fb2e7be532db96255d203f86360230cae37130f3" = "14r9zkfa8zslky3969gaq27gi7yi9rlqv0h1iq7zam9l15z53vhr";
     };
     modules = [
       {
