@@ -324,22 +324,27 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
+
     ##### Bool #####
 
     ifThenElseModel <- 0
+
 
     ##### Unit #####
 
     chooseUnitModel <- 0
     
+
     ##### Tracing #####
 
     traceModel <- 0
+
 
     ##### Pairs #####
 
     fstPairModel <- 0
     sndPairModel <- 0
+
 
     ##### Lists #####
 
