@@ -50,7 +50,8 @@ getScriptDirectory = do
    still works. -}
 contractDirs :: [FilePath]
 contractDirs =
-    [ "crowdfunding"
+    [ "auction"
+    , "crowdfunding"
     , "currency"
     , "escrow"
     , "future"
@@ -63,8 +64,6 @@ contractDirs =
     , "token-account"
     , "uniswap"
     , "vesting"
-    , "marlowe" </> "trustfund"  -- The Marlowe examples aren't included in plutus-use-cases-scripts
-    , "marlowe" </> "zerocoupon"
     ]
 
 -- | A small subset of the contracts for quick benchmarking
@@ -76,7 +75,6 @@ contractDirs2 =
     , "uniswap"
     , "marlowe" </> "zerocoupon"
     ]
-
 
 type Term          = UPLC.Term    PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
 type Program       = UPLC.Program PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
