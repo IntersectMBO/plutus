@@ -25,6 +25,9 @@ module Plutus.Trace.Emulator.ContractInstance(
     , ContractInstanceState(..)
     , emptyInstanceState
     , addEventInstanceState
+    -- * Indexed block
+    , IndexedBlock(..)
+    , indexBlock
     -- * Internals
     , getHooks
     , addResponse
@@ -41,11 +44,14 @@ import           Control.Monad.Freer.Reader           (Reader, ask, runReader)
 import           Control.Monad.Freer.State            (State, evalState, get, gets, modify, put)
 import qualified Data.Aeson                           as JSON
 import           Data.Foldable                        (traverse_)
+import           Data.List.NonEmpty                   (NonEmpty (..))
+import           Data.Map                             (Map)
 import qualified Data.Map                             as Map
 import           Data.Maybe                           (listToMaybe, mapMaybe)
+import qualified Data.Set                             as Set
 import qualified Data.Text                            as T
-import           Ledger.Blockchain                    (OnChainTx (..))
-import           Ledger.Tx                            (txId)
+import           Ledger.Blockchain                    (OnChainTx (..), consumableInputs, outputsProduced)
+import           Ledger.Tx                            (Address, TxIn (..), TxOut (..), TxOutRef, txId)
 import           Plutus.Contract                      (Contract (..))
 import           Plutus.Contract.Effects              (PABReq, PABResp (AwaitTxStatusChangeResp), TxValidity (..),
                                                        matches)
@@ -245,7 +251,7 @@ decodeEvent vl =
 getHooks :: forall w s e effs. Member (State (ContractInstanceStateInternal w s e ())) effs => Eff effs [Request PABReq]
 getHooks = gets @(ContractInstanceStateInternal w s e ()) (State.unRequests . view requests . view resumableResult . cisiSuspState)
 
--- | Update the contract instance with tx status information from the new block.
+-- | Update the contract instance with information from the new block.
 processNewTransactions ::
     forall w s e effs.
     ( Member (State (ContractInstanceStateInternal w s e ())) effs
@@ -255,6 +261,23 @@ processNewTransactions ::
     => [OnChainTx]
     -> Eff effs ()
 processNewTransactions txns = do
+    updateTxStatus @w @s @e txns
+
+    let blck = indexBlock txns
+    updateTxOutSpent @w @s @e blck
+    updateTxOutProduced @w @s @e blck
+
+-- | Update the contract instance with transaction status information from the
+--   new block.
+updateTxStatus ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => [OnChainTx]
+    -> Eff effs ()
+updateTxStatus txns = do
     -- Check whether the contract instance is waiting for a status change of any
     -- of the new transactions. If that is the case, call 'addResponse' to send the
     -- response.
@@ -269,6 +292,48 @@ processNewTransactions txns = do
         txStatusHk = listToMaybe $ mapMaybe mpReq hks
     traverse_ (addResponse @w @s @e) txStatusHk
     logResponse @w @s @e False txStatusHk
+
+-- | Update the contract instance with transaction output information from the
+--   new block.
+updateTxOutProduced ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => IndexedBlock
+    -> Eff effs ()
+updateTxOutProduced IndexedBlock{ibUtxoProduced} = do
+    -- Check whether the contract instance is waiting for address changes
+    hks <- mapMaybe (traverse (preview E._AwaitUtxoProducedReq)) <$> getHooks @w @s @e
+    let mpReq Request{rqID, itID, rqRequest=addr} =
+            case Map.lookup addr ibUtxoProduced of
+                Nothing      -> Nothing
+                Just newTxns -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=E.AwaitUtxoProducedResp newTxns}
+        utxoResp = listToMaybe $ mapMaybe mpReq hks
+    traverse_ (addResponse @w @s @e) utxoResp
+    logResponse @w @s @e False utxoResp
+
+-- | Update the contract instance with transaction input information from the
+--   new block.
+updateTxOutSpent ::
+    forall w s e effs.
+    ( Member (State (ContractInstanceStateInternal w s e ())) effs
+    , Member (LogMsg ContractInstanceMsg) effs
+    , Monoid w
+    )
+    => IndexedBlock
+    -> Eff effs ()
+updateTxOutSpent IndexedBlock{ibUtxoSpent} = do
+    -- Check whether the contract instance is waiting for address changes
+    hks <- mapMaybe (traverse (preview E._AwaitUtxoSpentReq)) <$> getHooks @w @s @e
+    let mpReq Request{rqID, itID, rqRequest=addr} =
+            case Map.lookup addr ibUtxoSpent of
+                Nothing      -> Nothing
+                Just newTxns -> Just Response{rspRqID=rqID, rspItID=itID, rspResponse=E.AwaitUtxoSpentResp newTxns}
+        utxoResp = listToMaybe $ mapMaybe mpReq hks
+    traverse_ (addResponse @w @s @e) utxoResp
+    logResponse @w @s @e False utxoResp
 
 -- | Add a 'Response' to the contract instance state
 addResponse
@@ -374,3 +439,29 @@ logNewMessages :: forall w s e effs.
 logNewMessages = do
     newContractLogs <- gets @(ContractInstanceStateInternal w s e ()) (view (resumableResult . lastLogs) . cisiSuspState)
     traverse_ (send . LMessage . fmap ContractLog) newContractLogs
+
+-- | A block of transactions, indexed by tx outputs spent and by
+--   addresses on which new outputs are produced
+data IndexedBlock =
+  IndexedBlock
+    { ibUtxoSpent    :: Map TxOutRef OnChainTx
+    , ibUtxoProduced :: Map Address (NonEmpty OnChainTx)
+    }
+
+instance Semigroup IndexedBlock where
+  l <> r =
+    IndexedBlock
+      { ibUtxoSpent = ibUtxoSpent l <> ibUtxoSpent r
+      , ibUtxoProduced = Map.unionWith (<>) (ibUtxoProduced l) (ibUtxoProduced r)
+      }
+
+instance Monoid IndexedBlock where
+  mempty = IndexedBlock mempty mempty
+
+indexBlock :: [OnChainTx] -> IndexedBlock
+indexBlock = foldMap indexTx where
+  indexTx otx =
+    IndexedBlock
+      { ibUtxoSpent = Map.fromSet (const otx) $ Set.map txInRef $ consumableInputs otx
+      , ibUtxoProduced = Map.fromListWith (<>) $ outputsProduced otx >>= (\TxOut{txOutAddress} -> [(txOutAddress, otx :| [])])
+      }

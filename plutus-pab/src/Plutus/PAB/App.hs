@@ -108,7 +108,7 @@ appEffectHandlers storageBackend config trace BuiltinHandler{contractHandler} =
             env <- liftIO $ mkEnv trace config
             let Config{nodeServerConfig=MockServerConfig{mscSocketPath, mscSlotConfig, mscNodeMode, mscNetworkId=NetworkIdWrapper networkId}} = config
             instancesState <- liftIO $ STM.atomically Instances.emptyInstancesState
-            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscNodeMode mscSlotConfig networkId
+            blockchainEnv <- liftIO $ BlockchainEnv.startNodeClient mscSocketPath mscNodeMode mscSlotConfig networkId instancesState
             pure (instancesState, blockchainEnv, env)
 
         , handleLogMessages =
