@@ -244,15 +244,14 @@ modelFun <- function(path) {
 
     ##### Bytestrings #####
 
-    appendByteStringModel <- 0
-    ## {
-    ##     fname <- "AppendByteString"
-    ##     filtered <- data %>%
-    ##         filter.and.check.nonempty(fname) %>%
-    ##         discard.overhead (two.args.overhead)
-    ##     m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
-    ##     adjustModel(m,fname)
-    ## }
+    appendByteStringModel <- {
+        fname <- "AppendByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead (two.args.overhead)
+        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
+        adjustModel(m,fname)
+    }
     ## TODO: is this symmetrical in the arguments?  The data suggests so, but check the implementation.
 
     consByteStringModel  <- 0

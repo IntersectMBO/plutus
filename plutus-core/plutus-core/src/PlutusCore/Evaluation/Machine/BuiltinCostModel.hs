@@ -82,7 +82,7 @@ data Support
 data BuiltinCostModelBase f =
     BuiltinCostModelBase
     {
-      -- Integer
+      -- Integers
       paramAddInteger               :: f ModelTwoArguments
     , paramSubtractInteger          :: f ModelTwoArguments
     , paramMultiplyInteger          :: f ModelTwoArguments

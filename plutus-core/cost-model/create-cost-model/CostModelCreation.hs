@@ -372,6 +372,7 @@ lessThanByteString cpuModelR = do
 lessThanEqualsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqualsByteString = lessThanByteString
 
+
 ---------------- Cryptography and hashes ----------------
 
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
@@ -412,6 +413,7 @@ encodeUtf8 _ = pure def
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 decodeUtf8 _ = pure def
 
+
 ---------------- Bool ----------------
 
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
@@ -439,7 +441,6 @@ sndPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sndPair _ = pure def
 
 
-
 ---------------- Lists ----------------
 
 chooseList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
@@ -456,7 +457,6 @@ tailList _ = pure def
 
 nullList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 nullList _ = pure def
-
 
 
 ---------------- Data ----------------
