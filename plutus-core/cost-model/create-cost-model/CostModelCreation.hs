@@ -403,15 +403,20 @@ verifySignature cpuModelR = do
 
 appendString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 appendString _ = pure def
+-- We expect this to be linear in x+y (x and y are sizes)
 
 equalsString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsString _ = pure def
+-- Like equalsByteString: only expensive on diagonal
 
 encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 encodeUtf8 _ = pure def
+-- Complicated: one character can be encoded as many bytes and I think we only know the
+-- number of characters.  This will need benchmarking with complicate Unicode strings.
 
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 decodeUtf8 _ = pure def
+-- Complicated again.
 
 
 ---------------- Bool ----------------
@@ -424,87 +429,109 @@ ifThenElse _ = pure def
 
 chooseUnit :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 chooseUnit _ = pure def
-
+-- \() a -> a;  probably cheap
 
 ---------------- Tracing ----------------
 
 trace :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 trace _ = pure def
-
+-- No idea: possibly expensive because of IO.
 
 ---------------- Pairs ----------------
 
 fstPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 fstPair _ = pure def
+-- (x,_) -> x; but with lots of Some's etc.
 
 sndPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sndPair _ = pure def
+-- (_,y) -> y; but with lots of Some's etc.
 
 
 ---------------- Lists ----------------
 
 chooseList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 chooseList _ = pure def
+-- xs a b -> a if xs == [], b otherwise
 
 mkCons :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 mkCons _ = pure def
+-- x xs -> x:xs, but with a dynamic type check
 
 headList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 headList _ = pure def
+-- x:_ -> x, [] -> failure.  Successful case has fromConstant $ someValueOf etc.
 
 tailList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 tailList _ = pure def
+-- Like headList
 
 nullList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 nullList _ = pure def
-
+-- x -> [], same type as x
 
 ---------------- Data ----------------
 
 chooseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelSixArguments)
 chooseData _ = pure def
+-- chooseData d p q r s t u  returns one of the last six elements according to what d is.
+-- Probably cheap
 
 constrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 constrData _ = pure def
+-- Just applying Constr
 
 mapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 mapData _ = pure def
+-- Just applying Map
 
 listData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 listData _ = pure def
+-- Just applying List
 
 iData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 iData _ = pure def
+-- Just applying I
 
 bData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 bData _ = pure def
+-- Just applying B
 
 unConstrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unConstrData _ = pure def
+-- Constr i ds -> (i,ds);  _ -> fail
 
 unMapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unMapData _ = pure def
+-- Map es -> es;  _ -> fail
 
 unListData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unListData _ = pure def
+-- List ds -> ds;  _ -> fail
 
 unIData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unIData _ = pure def
+-- I i -> i;  _ -> fail
 
 unBData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unBData _ = pure def
+-- B b -> b;  _ -> fail
 
 equalsData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsData _ = pure def
-
+-- == : possibly like equalsInteger.  Will it be cheap if the arguments are
+-- different sizes? Possibly not.  Do we even know what size is?
 
 ---------------- Misc constructors ----------------
 
 mkPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 mkPairData _ = pure def
+-- a b -> (a,b)
 
 mkNilData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 mkNilData _ = pure def
+-- () -> []
 
 mkNilPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 mkNilPairData _ = pure def
+-- () -> []
