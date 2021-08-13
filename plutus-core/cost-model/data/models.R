@@ -386,7 +386,7 @@ modelFun <- function(path) {
         consByteStringModel           = consByteStringModel,
         sliceByteStringModel          = sliceByteStringModel,
         lengthOfByteStringModel       = lengthOfByteStringModel,
-        indexCyteStringModel          = indexCyteStringModel,
+        indexByteStringModel          = indexByteStringModel,
         equalsByteStringModel         = equalsByteStringModel,
         lessThanByteStringModel       = lessThanByteStringModel,
         lessThanEqualsByteStringModel = lessThanEqualsByteStringModel,

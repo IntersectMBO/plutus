@@ -193,6 +193,13 @@ readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
 
+
+memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
+memoryUsageAsCostingInteger x = coerce $ memoryUsage x
+
+
+---------------- Integers ----------------
+
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger cpuModelR = do
   cpuModel <- readModelMaxSize cpuModelR
@@ -225,9 +232,6 @@ divideInteger cpuModelR = do
   let memModel = ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
   pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) memModel
 
-modInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-modInteger = divideInteger
-
 quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 quotientInteger cpuModelR = do
   cpuModel <- readModelSplitConst cpuModelR
@@ -238,6 +242,9 @@ quotientInteger cpuModelR = do
 
 remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 remainderInteger = quotientInteger
+
+modInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+modInteger = divideInteger
 
 equalsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsInteger cpuModelR = do
@@ -254,6 +261,28 @@ lessThanEqualsInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
+
+---------------- Bytestrings ----------------
+
+appendByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+appendByteString cpuModelR = do
+  cpuModel <- readModelAddedSizes cpuModelR
+  -- The buffer gets reallocated
+  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
+
+consByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+consByteString = pure def
+
+sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeeArguments)
+sliceByteString = pure def
+
+lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+lengthOfByteString = pure def
+
+indexByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+indexByteString = pure def
+
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
@@ -267,29 +296,7 @@ lessThanByteString cpuModelR = do
 lessThanEqualsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqualsByteString = lessThanByteString
 
-appendByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-appendByteString cpuModelR = do
-  cpuModel <- readModelAddedSizes cpuModelR
-  -- The buffer gets reallocated
-  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
-  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
-
-takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-takeByteString cpuModelR = do
-  cpuModel <- readModelConstantCost cpuModelR
-  -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 20
-  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
-
-dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-dropByteString cpuModelR = do
-  cpuModel <- readModelConstantCost cpuModelR
-  -- The buffer gets reused.
-  let memModel = ModelTwoArgumentsConstantCost 2
-  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
-
-memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
-memoryUsageAsCostingInteger x = coerce $ memoryUsage x
+---------------- Cryptography and hashes ----------------
 
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha2_256 cpuModelR = do
@@ -314,5 +321,100 @@ verifySignature cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
   pure $ CostingFun (ModelThreeArgumentsConstantCost cpuModel) (ModelThreeArgumentsConstantCost 1)
 
+
+---------------- Bool ----------------
+
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 ifThenElse _ = pure def
+
+
+---------------- Unit ----------------
+
+chooseUnit :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+chooseUnit = pure def
+
+
+---------------- Tracing ----------------
+
+trace :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+trace = pure def
+
+
+---------------- Pairs ----------------
+
+fstPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+fstPair = pure def
+
+sndPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+sndPair = pure def
+
+
+
+---------------- Lists ----------------
+
+chooseList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+chooseList = pure def
+
+mkCons :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+mkCons = pure def
+
+headList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+headList = pure def
+
+tailList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+tailList = pure def
+
+nullList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+nullList = pure def
+
+
+
+---------------- Data ----------------
+
+chooseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelSixArguments)
+chooseData = pure def
+
+constrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+constrData = pure def
+
+mapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+mapData = pure def
+
+listData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+listData = pure def
+
+iData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+iData = pure def
+
+bData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bData = pure def
+
+unConstrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+unConstrData = pure def
+
+unMapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+unMapData = pure def
+
+unListData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+unListData = pure def
+
+unIData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+unIData = pure def
+
+unBData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+unBData = pure def
+
+equalsData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+equalsData = pure def
+
+
+---------------- Misc constructors ----------------
+
+mkPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+mkPairData = pure def
+
+mkNilData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+mkNilData = pure def
+
+mkNilPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+mkNilPairData = pure def
