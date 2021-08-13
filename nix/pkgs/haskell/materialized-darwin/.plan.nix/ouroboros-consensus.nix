@@ -289,7 +289,7 @@
           "Ouroboros/Consensus/Storage/VolatileDB/Impl/Types"
           "Ouroboros/Consensus/Storage/VolatileDB/Impl/Util"
           "Data/SOP/Strict"
-          ];
+          ] ++ (pkgs.lib).optional (system.isWindows) "Ouroboros/Consensus/Storage/Seek";
         hsSourceDirs = [ "src" ] ++ (if system.isWindows
           then [ "src-win32" ]
           else [ "src-unix" ]);

@@ -55,13 +55,16 @@
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."unliftio" or (errorHandler.buildDepError "unliftio"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
+          (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
           ] ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"));
         buildable = true;
         modules = [
+          "Hedgehog/Extras"
           "Hedgehog/Extras/Aeson"
           "Hedgehog/Extras/Internal/Cli"
           "Hedgehog/Extras/Internal/Plan"
           "Hedgehog/Extras/Internal/Test/Integration"
+          "Hedgehog/Extras/Stock"
           "Hedgehog/Extras/Stock/Aeson"
           "Hedgehog/Extras/Stock/CallStack"
           "Hedgehog/Extras/Stock/IO/File"
@@ -73,6 +76,7 @@
           "Hedgehog/Extras/Stock/OS"
           "Hedgehog/Extras/Stock/String"
           "Hedgehog/Extras/Stock/Time"
+          "Hedgehog/Extras/Test"
           "Hedgehog/Extras/Test/Base"
           "Hedgehog/Extras/Test/Concurrent"
           "Hedgehog/Extras/Test/File"
