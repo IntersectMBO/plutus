@@ -92,7 +92,7 @@ compileLiteral
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
     (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.mkConstant () i
-    GHC.LitString _       -> throwPlain $ UnsupportedError "(Non-overloaded) literal string"
+    GHC.LitString _       -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
     GHC.LitChar _         -> throwPlain $ UnsupportedError "Literal char"
     GHC.LitFloat _        -> throwPlain $ UnsupportedError "Literal float"
     GHC.LitDouble _       -> throwPlain $ UnsupportedError "Literal double"
@@ -405,19 +405,31 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 Just tc -> case stringExprContent (strip content) of
                     Just bs ->
                         if | GHC.getName tc == bsTyName     -> pure $ PIR.Constant () $ PLC.someValue bs
-                           | GHC.getName tc == stringTyName -> pure $ PIR.Constant () $ PLC.someValue $ TE.decodeUtf8 bs
+                           | GHC.getName tc == stringTyName -> case TE.decodeUtf8' bs of
+                                 Right t -> pure $ PIR.Constant () $ PLC.someValue t
+                                 Left err -> throwPlain $ CompilationError $ "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
                            | otherwise -> throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
-                    Nothing -> throwSd UnsupportedError $ "Use of fromString with inscrutable content:" GHC.<+> GHC.ppr content
+                    Nothing -> throwSd CompilationError $ "Use of fromString with inscrutable content:" GHC.<+> GHC.ppr content
                 Nothing -> throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
         -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
         (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbbsName ->
                 pure $ PIR.Constant () $ PLC.someValue bs
         -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
         (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName ->
-                pure $ PIR.Constant () $ PLC.someValue $ TE.decodeUtf8 bs
+                case TE.decodeUtf8' bs of
+                    Right t -> pure $ PIR.Constant () $ PLC.someValue t
+                    Left err -> throwPlain $ CompilationError $ "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
 
         -- See Note [Literals]
         GHC.Lit lit -> compileLiteral lit
+        -- These are all wrappers around string and char literals, but keeping them allows us to give better errors
+        -- unpackCString# is just a wrapper around a literal
+        GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
+        -- See Note [unpackFoldrCString#]
+        GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
+            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
+        -- C# is just a wrapper around a literal
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
 
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
