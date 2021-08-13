@@ -44,9 +44,7 @@ app trace slotCfg clientHandler stateVar =
     hoistServer
         (Proxy @API)
         (liftIO . processChainEffects trace slotCfg clientHandler stateVar)
-        (healthcheck :<|>
-         (genRandomTx :<|>
-          consumeEventHistory stateVar))
+        (healthcheck :<|> consumeEventHistory stateVar)
 
 data Ctx = Ctx { serverHandler :: Server.ServerHandler
                , txSendHandle  :: Client.TxSendHandle
@@ -56,7 +54,6 @@ data Ctx = Ctx { serverHandler :: Server.ServerHandler
 
 main :: Trace IO MockServerLogMsg -> MockServerConfig -> Availability -> IO ()
 main trace MockServerConfig { mscBaseUrl
-                            , mscRandomTxInterval
                             , mscKeptBlocks
                             , mscSlotConfig
                             , mscInitialTxWallets
@@ -81,17 +78,12 @@ main trace MockServerConfig { mscBaseUrl
                   }
 
     runSlotCoordinator ctx
-    maybe (logInfo NoRandomTxGeneration) (runRandomTxGeneration ctx mscSlotConfig) mscRandomTxInterval
 
     logInfo $ StartingMockServer $ baseUrlPort mscBaseUrl
     liftIO $ Warp.runSettings warpSettings $ app trace mscSlotConfig clientHandler serverState
 
         where
             warpSettings = Warp.defaultSettings & Warp.setPort (baseUrlPort mscBaseUrl) & Warp.setBeforeMainLoop (available availability)
-
-            runRandomTxGeneration Ctx { txSendHandle , serverState , mockTrace } slotCfg randomTxInterval = do
-                    logInfo StartingRandomTx
-                    void $ liftIO $ forkIO $ transactionGenerator mockTrace slotCfg randomTxInterval txSendHandle serverState
 
             runSlotCoordinator (Ctx serverHandler _ _ _)  = do
                 let SlotConfig{scSlotZeroTime, scSlotLength} = mscSlotConfig
