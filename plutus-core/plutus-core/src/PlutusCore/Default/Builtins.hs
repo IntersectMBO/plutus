@@ -101,7 +101,7 @@ data DefaultFun
     | UnIData
     | UnBData
     | EqualsData
-    -- Misc csontructors
+    -- Misc constructors
     -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
     -- constructors are often problematic (See note [Representable built-in functions over polymorphic built-in types])
     | MkPairData
@@ -127,6 +127,7 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
+    -- Integers
     toBuiltinMeaning
         :: forall term. HasConstantIn uni term
         => DefaultFun -> BuiltinMeaning term BuiltinCostModel
@@ -158,6 +159,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (nonZeroArg mod)
             (runCostingFunTwoArguments . paramModInteger)
+    toBuiltinMeaning EqualsInteger =
+        makeBuiltinMeaning
+            ((==) @Integer)
+            (runCostingFunTwoArguments . paramEqualsInteger)
     toBuiltinMeaning LessThanInteger =
         makeBuiltinMeaning
             ((<) @Integer)
@@ -166,10 +171,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((<=) @Integer)
             (runCostingFunTwoArguments . paramLessThanEqualsInteger)
-    toBuiltinMeaning EqualsInteger =
-        makeBuiltinMeaning
-            ((==) @Integer)
-            (runCostingFunTwoArguments . paramEqualsInteger)
+    -- Bytestrings
     toBuiltinMeaning AppendByteString =
         makeBuiltinMeaning
             BS.append
@@ -177,11 +179,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning ConsByteString =
         makeBuiltinMeaning
             (\n xs -> BS.cons (fromIntegral @Integer n) xs)
-            mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramConsByteString)
     toBuiltinMeaning SliceByteString =
         makeBuiltinMeaning
             (\from to xs -> BS.take (to - from + 1) (BS.drop from xs))
             mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramSliceByteString)
+            mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramConsByteString)
     toBuiltinMeaning LengthOfByteString =
         makeBuiltinMeaning
             BS.length
@@ -191,6 +193,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (\xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
             -- TODO: fix the mess above with `indexMaybe` from `bytestring >= 0.11.0.0`.
             mempty -- TODO: budget. To be replace with: (runCostingFunOneArgument . paramIndexByteString)
+    toBuiltinMeaning EqualsByteString =
+        makeBuiltinMeaning
+            ((==) @BS.ByteString)
+            (runCostingFunTwoArguments . paramEqualsByteString)
+    toBuiltinMeaning LessThanByteString =
+        makeBuiltinMeaning
+            ((<) @BS.ByteString)
+            (runCostingFunTwoArguments . paramLessThanByteString)
+    toBuiltinMeaning LessThanEqualsByteString =
+        makeBuiltinMeaning
+            ((<=) @BS.ByteString)
+            (runCostingFunTwoArguments . paramLessThanEqualsByteString)
+    -- Cryptography and hashes
     toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
             Hash.sha2
@@ -207,22 +222,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (verifySignature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifySignature)
-    toBuiltinMeaning EqualsByteString =
-        makeBuiltinMeaning
-            ((==) @BS.ByteString)
-            (runCostingFunTwoArguments . paramEqualsByteString)
-    toBuiltinMeaning LessThanByteString =
-        makeBuiltinMeaning
-            ((<) @BS.ByteString)
-            (runCostingFunTwoArguments . paramLessThanByteString)
-    toBuiltinMeaning LessThanEqualsByteString =
-        makeBuiltinMeaning
-            ((<=) @BS.ByteString)
-            (runCostingFunTwoArguments . paramLessThanEqualsByteString)
-    toBuiltinMeaning IfThenElse =
-       makeBuiltinMeaning
-            (\b x y -> if b then x else y)
-            (runCostingFunThreeArguments . paramIfThenElse)
+    -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
             ((<>) :: Text -> Text -> Text)
@@ -239,9 +239,21 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\bs -> case decodeUtf8' bs of { Right t -> EvaluationSuccess t ; Left _ -> EvaluationFailure })
             mempty  -- TODO: budget.
+    -- Bool
+    toBuiltinMeaning IfThenElse =
+       makeBuiltinMeaning
+            (\b x y -> if b then x else y)
+            (runCostingFunThreeArguments . paramIfThenElse)
+    -- Unit
+    toBuiltinMeaning ChooseUnit =
+        makeBuiltinMeaning
+            (\() a -> a)
+            mempty
+    -- Tracing
     toBuiltinMeaning Trace = makeBuiltinMeaning emitPlc mempty where
         emitPlc :: SomeConstantOf uni Text '[] -> Opaque term a -> Emitter (Opaque term a)
         emitPlc (SomeConstantOfRes _ s) t = emit s >> pure t
+    -- Pairs
     toBuiltinMeaning FstPair = makeBuiltinMeaning fstPlc mempty where
         fstPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term a
         fstPlc (SomeConstantOfArg uniA (SomeConstantOfArg _ (SomeConstantOfRes _ (x, _)))) =
@@ -250,9 +262,31 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         sndPlc :: SomeConstantOf uni (,) '[a, b] -> Opaque term b
         sndPlc (SomeConstantOfArg _ (SomeConstantOfArg uniB (SomeConstantOfRes _ (_, y)))) =
             Opaque . fromConstant . Some $ ValueOf uniB y
-    toBuiltinMeaning NullList = makeBuiltinMeaning nullPlc mempty where
-        nullPlc :: SomeConstantOf uni [] '[a] -> Bool
-        nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
+    -- Lists
+    toBuiltinMeaning ChooseList = makeBuiltinMeaning choosePlc mempty where
+        choosePlc :: SomeConstantOf uni [] '[a] -> Opaque term b -> Opaque term b -> Opaque term b
+        choosePlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) a b = case xs of
+            []    -> a
+            _ : _ -> b
+    toBuiltinMeaning MkCons = makeBuiltinMeaning consPlc mempty where
+        consPlc
+            :: SomeConstant uni a
+            -> SomeConstantOf uni [] '[a]
+            -> EvaluationResult (SomeConstantOf uni [] '[a])
+        consPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
+                -- Checking that the type of the constant is the same as the type of the elements
+                -- of the unlifted list. Note that there's no way we could enforce this statically
+                -- since in UPLC one can create an ill-typed program that attempts to prepend
+                -- a value of the wrong type to a list.
+                case uniA `geq` uniA' of
+                    -- Should this rather be an 'UnliftingError'? For that we need
+                    -- https://github.com/input-output-hk/plutus/pull/3035
+                    Nothing   -> EvaluationFailure
+                    Just Refl ->
+                        EvaluationSuccess . SomeConstantOfArg uniA $
+                            SomeConstantOfRes uniListA $ x : xs
     toBuiltinMeaning HeadList = makeBuiltinMeaning headPlc mempty where
         headPlc :: SomeConstantOf uni [] '[a] -> EvaluationResult (Opaque term a)
         headPlc (SomeConstantOfArg uniA (SomeConstantOfRes _ xs)) = case xs of
@@ -263,11 +297,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         tailPlc (SomeConstantOfArg uniA (SomeConstantOfRes uniListA xs)) = case xs of
             _ : xs' -> EvaluationSuccess . SomeConstantOfArg uniA $ SomeConstantOfRes uniListA xs'
             _       -> EvaluationFailure
-    toBuiltinMeaning ChooseList = makeBuiltinMeaning choosePlc mempty where
-        choosePlc :: SomeConstantOf uni [] '[a] -> Opaque term b -> Opaque term b -> Opaque term b
-        choosePlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) a b = case xs of
-            []    -> a
-            _ : _ -> b
+    toBuiltinMeaning NullList = makeBuiltinMeaning nullPlc mempty where
+        nullPlc :: SomeConstantOf uni [] '[a] -> Bool
+        nullPlc (SomeConstantOfArg _ (SomeConstantOfRes _ xs)) = null xs
+    -- Data
+    toBuiltinMeaning ChooseData =
+        makeBuiltinMeaning
+            (\d xConstr xMap xList xI xB -> case d of
+                Constr {} -> xConstr
+                Map    {} -> xMap
+                List   {} -> xList
+                I      {} -> xI
+                B      {} -> xB)
+            mempty
     toBuiltinMeaning ConstrData =
         makeBuiltinMeaning
             Constr
@@ -322,19 +364,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((==) @Data)
             mempty
-    toBuiltinMeaning ChooseData =
-        makeBuiltinMeaning
-            (\d xConstr xMap xList xI xB -> case d of
-                Constr {} -> xConstr
-                Map    {} -> xMap
-                List   {} -> xList
-                I      {} -> xI
-                B      {} -> xB)
-            mempty
-    toBuiltinMeaning ChooseUnit =
-        makeBuiltinMeaning
-            (\() a -> a)
-            mempty
+    -- Misc constructors
     toBuiltinMeaning MkPairData =
         makeBuiltinMeaning
             ((,) :: Data -> Data -> (Data, Data))
@@ -351,25 +381,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             @(() -> [(Data,Data)])
             (\() -> [])
             mempty
-    toBuiltinMeaning MkCons = makeBuiltinMeaning consPlc mempty where
-        consPlc
-            :: SomeConstant uni a
-            -> SomeConstantOf uni [] '[a]
-            -> EvaluationResult (SomeConstantOf uni [] '[a])
-        consPlc
-            (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
-                -- Checking that the type of the constant is the same as the type of the elements
-                -- of the unlifted list. Note that there's no way we could enforce this statically
-                -- since in UPLC one can create an ill-typed program that attempts to prepend
-                -- a value of the wrong type to a list.
-                case uniA `geq` uniA' of
-                    -- Should this rather be an 'UnliftingError'? For that we need
-                    -- https://github.com/input-output-hk/plutus/pull/3035
-                    Nothing   -> EvaluationFailure
-                    Just Refl ->
-                        EvaluationSuccess . SomeConstantOfArg uniA $
-                            SomeConstantOfRes uniListA $ x : xs
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
 -- out of space for tags (expanding the space would change the binary format for people who're
