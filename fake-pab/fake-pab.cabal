@@ -1,11 +1,11 @@
 cabal-version: >=1.10
-name: fake-pab 
+name: fake-pab
 version: 0.1.0.0
 license: Apache-2.0
 license-files:
   LICENSE
   NOTICE
-author: Pablo Lamela 
+author: Pablo Lamela
 category: Web
 build-type: Simple
 extra-source-files:
@@ -55,7 +55,7 @@ library
         utf8-string -any,
         uuid -any
 
-executable fake-pab-server 
+executable fake-pab-server
     main-is: Main.hs
     other-modules:
         Webserver
@@ -69,7 +69,6 @@ executable fake-pab-server
         base -any,
         bytestring -any,
         http-client -any,
-        http-client-tls -any,
         http-types -any,
         lens -any,
         fake-pab -any,
@@ -80,7 +79,6 @@ executable fake-pab-server
         playground-common -any,
         plutus-ledger-api -any,
         postgresql-simple -any,
-        prometheus >=2,
         purescript-bridge -any,
         resource-pool -any,
         optparse-applicative -any,
@@ -89,10 +87,7 @@ executable fake-pab-server
         servant-server -any,
         text -any,
         utf8-string -any,
-        uuid -any,
         wai -any,
-        wai-cors -any,
-        wai-extra -any,
         warp -any
 
 test-suite fake-pab-test
