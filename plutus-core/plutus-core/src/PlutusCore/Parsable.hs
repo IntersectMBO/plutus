@@ -107,6 +107,7 @@ deriving via AsRead Bool    instance Parsable Bool
 deriving via AsRead Char    instance Parsable Char
 deriving via AsRead Integer instance Parsable Integer
 deriving via AsRead ()      instance Parsable ()
+deriving via AsRead T.Text instance Parsable T.Text
 
 instance Parsable (a, b) where
     parse = error "Parsing for tuples is not implemented"

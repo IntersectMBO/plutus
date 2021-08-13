@@ -70,7 +70,6 @@ extricateC (integer i)    = integer i
 extricateC (bytestring b) = bytestring b
 extricateC (string s)     = string s
 extricateC (bool b)       = bool b
-extricateC (char c)       = char c
 extricateC unit           = unit
 
 open import Data.Product as P
@@ -96,21 +95,16 @@ lemma⋆ remainderInteger = refl
 lemma⋆ modInteger = refl
 lemma⋆ lessThanInteger = refl
 lemma⋆ lessThanEqualsInteger = refl
-lemma⋆ greaterThanInteger = refl
-lemma⋆ greaterThanEqualsInteger = refl
 lemma⋆ equalsInteger = refl
-lemma⋆ concatenate = refl
-lemma⋆ takeByteString = refl
-lemma⋆ dropByteString = refl
+lemma⋆ appendByteString = refl
 lemma⋆ lessThanByteString = refl
-lemma⋆ greaterThanByteString = refl
+lemma⋆ lessThanEqualsByteString = refl
 lemma⋆ sha2-256 = refl
 lemma⋆ sha3-256 = refl
 lemma⋆ verifySignature = refl
 lemma⋆ equalsByteString = refl
 lemma⋆ ifThenElse = refl
-lemma⋆ charToString = refl
-lemma⋆ append = refl
+lemma⋆ appendString = refl
 lemma⋆ trace = refl
 
 lemma : ∀ b → Data.List.length (proj₁ (proj₂ (SIG b))) ≡ arity b
@@ -123,21 +117,16 @@ lemma remainderInteger = refl
 lemma modInteger = refl
 lemma lessThanInteger = refl
 lemma lessThanEqualsInteger = refl
-lemma greaterThanInteger = refl
-lemma greaterThanEqualsInteger = refl
 lemma equalsInteger = refl
-lemma concatenate = refl
-lemma takeByteString = refl
-lemma dropByteString = refl
+lemma appendByteString = refl
 lemma lessThanByteString = refl
-lemma greaterThanByteString = refl
+lemma lessThanEqualsByteString = refl
 lemma sha2-256 = refl
 lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
-lemma charToString = refl
-lemma append = refl
+lemma appendString = refl
 lemma trace = refl
 
 ≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n

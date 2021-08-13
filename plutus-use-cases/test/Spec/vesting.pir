@@ -2184,10 +2184,8 @@
                                         Unit_match
                                         [
                                           [
-                                            { (builtin chooseUnit) Unit }
-                                            [
-                                              (builtin trace) (con string "Lg")
-                                            ]
+                                            { (builtin trace) Unit }
+                                            (con string "Lg")
                                           ]
                                           Unit
                                         ]
@@ -2677,7 +2675,7 @@
                       (termbind
                         (strict)
                         (vardecl
-                          greaterThanEqInteger
+                          greaterThanEqualsInteger
                           (fun (con integer) (fun (con integer) Bool))
                         )
                         (lam
@@ -2727,7 +2725,7 @@
                       (termbind
                         (strict)
                         (vardecl
-                          lessThanEqInteger
+                          lessThanEqualsInteger
                           (fun (con integer) (fun (con integer) Bool))
                         )
                         (lam
@@ -2802,11 +2800,11 @@
                                     ]
                                     lessThanInteger
                                   ]
-                                  lessThanEqInteger
+                                  lessThanEqualsInteger
                                 ]
                                 greaterThanInteger
                               ]
-                              greaterThanEqInteger
+                              greaterThanEqualsInteger
                             ]
                             fOrdInteger_cmax
                           ]
@@ -5420,7 +5418,7 @@
                                                                                     [
                                                                                       [
                                                                                         checkBinRel
-                                                                                        greaterThanEqInteger
+                                                                                        greaterThanEqualsInteger
                                                                                       ]
                                                                                       [
                                                                                         [

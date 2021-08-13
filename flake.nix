@@ -110,19 +110,10 @@
 
           plutus-playground-client = topLevel.plutus-playground.client;
           plutus-playground-server = topLevel.plutus-playground.server;
-          web-ghc-server = plutus.haskell.project.hsPkgs.web-ghc.components.exes.web-ghc-server;
 
-          # must be in $PATH of web-ghc-server and marlowe-playground-server
-          ghcWithPlutus = plutus.haskell.project.ghcWithPackages (ps: [
-            ps.plutus-core
-            ps.plutus-tx
-            ps.plutus-contract
-            ps.marlowe
-            ps.plutus-ledger
-            ps.playground-common
-          ]);
+          web-ghc-server = topLevel.web-ghc;
 
-          plutus-pab-examples = topLevel.plutus-pab.pab-exes.plutus-pab-examples;
+          marlowe-pab = topLevel.marlowe-pab;
           marlowe-run-client = topLevel.marlowe-dashboard.client;
 
           marlowe-website = topLevel.marlowe-web;

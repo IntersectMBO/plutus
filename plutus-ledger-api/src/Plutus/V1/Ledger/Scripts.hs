@@ -71,6 +71,7 @@ import qualified Data.ByteArray                           as BA
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Hashable                            (Hashable)
 import           Data.String
+import           Data.Text                                (Text)
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import qualified Flat
@@ -170,7 +171,7 @@ fromPlc (UPLC.Program a v t) =
     in Script $ UPLC.Program a v nameless
 
 data ScriptError =
-    EvaluationError [Haskell.String] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
+    EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     | MalformedScript Haskell.String -- ^ Script is wrong in some way
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
@@ -190,7 +191,7 @@ mkTermToEvaluate (Script (UPLC.Program a v t)) =
     in PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram
 
 -- | Evaluate a script, returning the trace log.
-evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Haskell.String])
+evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Text])
 evaluateScript s = do
     p <- case mkTermToEvaluate s of
         Right p -> return p
@@ -377,7 +378,7 @@ runScript
     -> Validator
     -> Datum
     -> Redeemer
-    -> m (PLC.ExBudget, [Haskell.String])
+    -> m (PLC.ExBudget, [Text])
 runScript context validator datum redeemer = do
     evaluateScript (applyValidator context validator datum redeemer)
 
@@ -396,7 +397,7 @@ runMintingPolicyScript
     => Context
     -> MintingPolicy
     -> Redeemer
-    -> m (PLC.ExBudget, [Haskell.String])
+    -> m (PLC.ExBudget, [Text])
 runMintingPolicyScript context mps red = do
     evaluateScript (applyMintingPolicyScript context mps red)
 
@@ -415,7 +416,7 @@ runStakeValidatorScript
     => Context
     -> StakeValidator
     -> Redeemer
-    -> m (PLC.ExBudget, [Haskell.String])
+    -> m (PLC.ExBudget, [Text])
 runStakeValidatorScript context wps red = do
     evaluateScript (applyStakeValidatorScript context wps red)
 

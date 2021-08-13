@@ -71,6 +71,7 @@
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
+          (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           ];
@@ -124,6 +125,7 @@
             (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
             (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
             (hsPkgs."time" or (errorHandler.buildDepError "time"))
+            (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             ];
           buildable = true;
           modules = [

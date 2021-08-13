@@ -12,7 +12,6 @@ open import Data.String hiding (_<_)
 open import Data.Unit
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.Bool using (Bool)
-open import Data.Char using (Char)
 open import Data.Product using (_×_;_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.Sum using (_⊎_;inj₁)
@@ -37,21 +36,16 @@ arity remainderInteger = 2
 arity modInteger = 2
 arity lessThanInteger = 2
 arity lessThanEqualsInteger = 2
-arity greaterThanInteger = 2
-arity greaterThanEqualsInteger = 2
 arity equalsInteger = 2
-arity concatenate = 2
-arity takeByteString = 2
-arity dropByteString = 2
+arity appendByteString = 2
 arity lessThanByteString = 2
-arity greaterThanByteString = 2
+arity lessThanEqualsByteString = 2
 arity sha2-256 = 1
 arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 arity ifThenElse = 3
-arity charToString = 1
-arity append = 2
+arity appendString = 2
 arity trace = 1
 
 arity⋆ : Builtin → ℕ
@@ -213,7 +207,6 @@ data TermCon : Set where
   bytestring : (b : ByteString) → TermCon
   string     : (s : String) → TermCon
   bool       : (b : Bool) → TermCon
-  char       : (c : Char) → TermCon
   unit       : TermCon
 
 Tel : ∀{n} → Weirdℕ n → ℕ → Set
@@ -247,7 +240,6 @@ deBruijnifyC (integer i)    = integer i
 deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string s)     = string s
 deBruijnifyC (bool b)       = bool b
-deBruijnifyC (char c)       = char c
 deBruijnifyC unit           = unit
 
 postulate
@@ -348,7 +340,6 @@ unDeBruijnifyC (integer i)    = integer i
 unDeBruijnifyC (bytestring b) = bytestring b
 unDeBruijnifyC (string s)     = string s
 unDeBruijnifyC (bool b)       = bool b
-unDeBruijnifyC (char c)       = char c
 unDeBruijnifyC unit           = unit
 \end{code}
 

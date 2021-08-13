@@ -189,38 +189,27 @@ meqTyCon : (c c' : TyCon) → Either (¬ (c ≡ c')) (c ≡ c')
 meqTyCon integer    integer    = inj₂ refl
 meqTyCon bytestring bytestring = inj₂ refl
 meqTyCon string     string     = inj₂ refl
-meqTyCon char       char       = inj₂ refl
 meqTyCon bool       bool       = inj₂ refl
 meqTyCon unit       unit       = inj₂ refl
 meqTyCon integer    bytestring = inj₁ λ()
 meqTyCon integer    string     = inj₁ λ()
-meqTyCon integer    char       = inj₁ λ()
 meqTyCon integer    unit       = inj₁ λ()
 meqTyCon integer    bool       = inj₁ λ()
 meqTyCon bytestring integer    = inj₁ λ()
 meqTyCon bytestring string     = inj₁ λ()
-meqTyCon bytestring char       = inj₁ λ()
 meqTyCon bytestring unit       = inj₁ λ()
 meqTyCon bytestring bool       = inj₁ λ()
 meqTyCon string     integer    = inj₁ λ()
 meqTyCon string     bytestring = inj₁ λ()
-meqTyCon string     char       = inj₁ λ()
 meqTyCon string     unit       = inj₁ λ()
 meqTyCon string     bool       = inj₁ λ()
-meqTyCon char       integer    = inj₁ λ()
-meqTyCon char       bytestring = inj₁ λ()
-meqTyCon char       string     = inj₁ λ()
-meqTyCon char       unit       = inj₁ λ()
-meqTyCon char       bool       = inj₁ λ()
 meqTyCon unit       integer    = inj₁ λ()
 meqTyCon unit       bytestring = inj₁ λ()
 meqTyCon unit       string     = inj₁ λ()
-meqTyCon unit       char       = inj₁ λ()
 meqTyCon unit       bool       = inj₁ λ()
 meqTyCon bool       integer    = inj₁ λ()
 meqTyCon bool       bytestring = inj₁ λ()
 meqTyCon bool       string     = inj₁ λ()
-meqTyCon bool       char       = inj₁ λ()
 meqTyCon bool       unit       = inj₁ λ()
 
 meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
@@ -299,7 +288,6 @@ inferTypeCon (integer i)    = integer ,, A.integer i
 inferTypeCon (bytestring b) = bytestring ,, A.bytestring b
 inferTypeCon (string s)     = string ,, A.string s
 inferTypeCon (bool b)       = bool ,, A.bool b
-inferTypeCon (char c)       = char ,, A.char c
 inferTypeCon unit           = unit ,, A.unit
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)

@@ -85,33 +85,17 @@ prop_lessThanInteger :: Property
 prop_lessThanInteger =
     testPredictTwo lessThanInteger (getConst . paramLessThanInteger)
 
-prop_greaterThanInteger :: Property
-prop_greaterThanInteger =
-    testPredictTwo greaterThanInteger (getConst . paramGreaterThanInteger)
-
 prop_lessThanEqualsInteger :: Property
 prop_lessThanEqualsInteger =
     testPredictTwo lessThanEqualsInteger (getConst . paramLessThanEqualsInteger)
-
-prop_greaterThanEqualsInteger :: Property
-prop_greaterThanEqualsInteger =
-    testPredictTwo greaterThanEqualsInteger (getConst . paramGreaterThanEqualsInteger)
 
 prop_equalsInteger :: Property
 prop_equalsInteger =
     testPredictTwo equalsInteger (getConst . paramEqualsInteger)
 
-prop_concatenate :: Property
-prop_concatenate =
-    testPredictTwo concatenate (getConst . paramConcatenate)
-
-prop_takeByteString :: Property
-prop_takeByteString =
-    testPredictTwo takeByteString (getConst . paramTakeByteString)
-
-prop_dropByteString :: Property
-prop_dropByteString =
-    testPredictTwo dropByteString (getConst . paramDropByteString)
+prop_appendByteString :: Property
+prop_appendByteString =
+    testPredictTwo appendByteString (getConst . paramAppendByteString)
 
 prop_sha2_256 :: Property
 prop_sha2_256 =
@@ -137,9 +121,9 @@ prop_lessThanByteString :: Property
 prop_lessThanByteString =
     testPredictTwo lessThanByteString (getConst . paramLessThanByteString)
 
-prop_greaterThanByteString :: Property
-prop_greaterThanByteString =
-    testPredictTwo greaterThanByteString (getConst . paramGreaterThanByteString)
+prop_lessThanEqualsByteString :: Property
+prop_lessThanEqualsByteString =
+    testPredictTwo lessThanEqualsByteString (getConst . paramLessThanEqualsByteString)
 
 -- prop_ifThenElse :: Property
 -- prop_ifThenElse =

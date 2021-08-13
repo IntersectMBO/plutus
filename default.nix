@@ -41,6 +41,8 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
+  inherit (haskell.packages.marlowe.components.exes) marlowe-pab;
+
   webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
   webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { inherit (plutus.lib) gitignore-nix; };
@@ -67,7 +69,7 @@ rec {
       inherit haskell plutus-pab;
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit webCommon webCommonMarlowe;
-    }) client server-setup-invoker marlowe-invoker generated-purescript generate-purescript;
+    }) client server-setup-invoker marlowe-invoker generated-purescript generate-purescript start-backend;
   };
 
   marlowe-dashboard-fake-pab = pkgs.recurseIntoAttrs rec {
@@ -100,7 +102,7 @@ rec {
     inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
     inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
-    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab;
+    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-pab;
     src = ./.;
   };
 
@@ -108,7 +110,7 @@ rec {
 
   deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
     plutus = {
-      inherit plutus-pab marlowe-dashboard marlowe-playground plutus-playground web-ghc docs marlowe-web;
+      inherit plutus-pab marlowe-dashboard marlowe-playground plutus-playground web-ghc docs marlowe-web marlowe-pab;
     };
   });
 

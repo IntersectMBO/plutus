@@ -25,8 +25,8 @@ import qualified UntypedPlutusCore                        as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Data.Bifunctor
-import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as BSL
+import           Data.Text                                (Text)
 import           Data.Text.Encoding                       (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -36,8 +36,8 @@ integer :: uni `Includes` Integer => Type TyName uni ()
 integer = mkTyBuiltin @_ @Integer ()
 
 -- (con string)
-string :: uni `Includes` String => Type TyName uni ()
-string = mkTyBuiltin @_ @String ()
+string :: uni `Includes` Text => Type TyName uni ()
+string = mkTyBuiltin @_ @Text ()
 
 evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
@@ -149,10 +149,10 @@ twentytwo :: Term TyName Name DefaultUni DefaultFun ()
 twentytwo = mkConstant @Integer () 22
 
 stringResultTrue :: Term TyName Name DefaultUni DefaultFun ()
-stringResultTrue = mkConstant @String () "11 <= 22"
+stringResultTrue = mkConstant @Text () "11 <= 22"
 
 stringResultFalse :: Term TyName Name DefaultUni DefaultFun ()
-stringResultFalse = mkConstant @String () "¬(11 <= 22)"
+stringResultFalse = mkConstant @Text () "¬(11 <= 22)"
 
 -- 11 <= 22
 lteExpr :: Term TyName Name DefaultUni DefaultFun ()
@@ -167,7 +167,7 @@ ite = Builtin () IfThenElse
 
 -- { (builtin ifThenElse) t }
 iteAt :: Type TyName DefaultUni () -> Term TyName Name DefaultUni DefaultFun ()
-iteAt ty = TyInst () ite ty
+iteAt = TyInst () ite
 
 -- [ (builtin ifThenElse) (11<=22) ] : IllTypedFails (ifThenElse isn't
 -- instantiated: type expected, term supplied.)
@@ -300,11 +300,6 @@ mulInstError2 = Apply () (TyInst () (Apply () mul eleven) string) twentytwo
 mulInstError3 :: Term TyName Name DefaultUni DefaultFun ()
 mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) string
 
-takeTooMuch :: Term TyName Name DefaultUni DefaultFun ()
-takeTooMuch = mkIterApp () (Builtin () TakeByteString)
-    [ mkConstant () $ (2 :: Integer) ^ (150 :: Integer)
-    , mkConstant () ("whatever" :: BS.ByteString)
-    ]
 
 -- Running the tests
 
@@ -378,7 +373,6 @@ namesAndTests =
    , ("mulInstError1", mulInstError1)
    , ("mulInstError2", mulInstError2)
    , ("mulInstError3", mulInstError3)
-   , ("takeTooMuch", takeTooMuch)
    ]
 
 test_golden :: TestTree

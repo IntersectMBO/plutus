@@ -117,7 +117,6 @@ renTermCon-erase ρ⋆ ρ (AB.integer i)    = refl
 renTermCon-erase ρ⋆ ρ (AB.bytestring b) = refl
 renTermCon-erase ρ⋆ ρ (AB.string s)     = refl
 renTermCon-erase ρ⋆ ρ (AB.bool b)       = refl
-renTermCon-erase ρ⋆ ρ (AB.char c)       = refl
 renTermCon-erase ρ⋆ ρ AB.unit           = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
@@ -212,7 +211,6 @@ subTermCon-erase σ⋆ σ (AB.integer i)    = refl
 subTermCon-erase σ⋆ σ (AB.bytestring b) = refl
 subTermCon-erase σ⋆ σ (AB.string s)     = refl
 subTermCon-erase σ⋆ σ (AB.bool b)       = refl
-subTermCon-erase σ⋆ σ (AB.char c)       = refl
 subTermCon-erase σ⋆ σ AB.unit           = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)

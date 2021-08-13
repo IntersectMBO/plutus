@@ -12,19 +12,6 @@
             "type": "min_size"
         }
     },
-    "greaterThanInteger": {
-        "memory": {
-            "arguments": 1,
-            "type": "constant_cost"
-        },
-        "cpu": {
-            "arguments": {
-                "slope": 469,
-                "intercept": 333658
-            },
-            "type": "min_size"
-        }
-    },
     "sha3_256": {
         "memory": {
             "arguments": 4,
@@ -95,19 +82,6 @@
             "type": "split_const_multi"
         }
     },
-    "greaterThanEqualsInteger": {
-        "memory": {
-            "arguments": 1,
-            "type": "constant_cost"
-        },
-        "cpu": {
-            "arguments": {
-                "slope": 1461,
-                "intercept": 257952
-            },
-            "type": "min_size"
-        }
-    },
     "lessThanEqualsInteger": {
         "memory": {
             "arguments": 1,
@@ -121,7 +95,7 @@
             "type": "min_size"
         }
     },
-    "greaterThanByteString": {
+    "lessThanEqualsByteString": {
         "memory": {
             "arguments": 1,
             "type": "constant_cost"
@@ -190,7 +164,7 @@
             "type": "max_size"
         }
     },
-    "concatenate": {
+    "appendByteString": {
         "memory": {
             "arguments": {
                 "slope": 1,

@@ -76,6 +76,7 @@ library
         transformers -any,
         unordered-containers,
         wai-cors -any,
+        web-ghc -any,
         uuid -any,
         validation -any
 
@@ -127,7 +128,8 @@ executable marlowe-playground-server
         wai -any,
         warp -any,
         web-ghc -any,
-        time -any
+        time -any,
+        time-units -any
 
 executable flow-chart-generator
     main-is: FlowChartGenerator.hs

@@ -66,18 +66,14 @@ data BuiltinCostModelBase f =
     , paramModInteger               :: f ModelTwoArguments
     , paramLessThanInteger          :: f ModelTwoArguments
     , paramLessThanEqualsInteger    :: f ModelTwoArguments
-    , paramGreaterThanInteger       :: f ModelTwoArguments
-    , paramGreaterThanEqualsInteger :: f ModelTwoArguments
     , paramEqualsInteger            :: f ModelTwoArguments
-    , paramConcatenate              :: f ModelTwoArguments
-    , paramTakeByteString           :: f ModelTwoArguments
-    , paramDropByteString           :: f ModelTwoArguments
+    , paramAppendByteString         :: f ModelTwoArguments
     , paramSha2_256                 :: f ModelOneArgument
     , paramSha3_256                 :: f ModelOneArgument
     , paramVerifySignature          :: f ModelThreeArguments
     , paramEqualsByteString         :: f ModelTwoArguments
     , paramLessThanByteString       :: f ModelTwoArguments
-    , paramGreaterThanByteString    :: f ModelTwoArguments
+    , paramLessThanEqualsByteString :: f ModelTwoArguments
     , paramIfThenElse               :: f ModelThreeArguments
     , paramBlake2b                  :: f ModelOneArgument
     }

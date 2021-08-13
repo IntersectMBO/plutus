@@ -99,7 +99,7 @@ data EndDate = Fixed Integer | Never
 -- | Check whether a given time is past the end date.
 pastEnd :: CompiledCode (EndDate -> Integer -> Bool)
 pastEnd = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
-    Fixed n -> n `lessThanEqInteger` current
+    Fixed n -> n `lessThanEqualsInteger` current
     Never   -> False
   ||])
 -- BLOCK7

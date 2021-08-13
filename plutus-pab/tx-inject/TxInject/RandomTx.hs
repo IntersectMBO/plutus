@@ -6,63 +6,32 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Cardano.Node.RandomTx(
+module TxInject.RandomTx(
     -- $randomTx
-    GenRandomTx(..)
-    , generateTx
-    , genRandomTx
-    , runGenRandomTx
+    generateTx
     ) where
 
-import           Control.Lens                   (view)
-import           Control.Monad.Freer            (Eff, LastMember, Member)
-import qualified Control.Monad.Freer            as Eff
-import           Control.Monad.Freer.State      (State)
-import qualified Control.Monad.Freer.State      as Eff
-import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Control.Monad.Primitive        (PrimMonad, PrimState)
-import           Data.List.NonEmpty             (NonEmpty (..))
-import qualified Data.Map                       as Map
-import           Data.Maybe                     (fromMaybe)
-import qualified Data.Set                       as Set
-import qualified Hedgehog.Gen                   as Gen
-import           System.Random.MWC              as MWC
+import           Control.Monad.Primitive (PrimMonad, PrimState)
+import           Data.List.NonEmpty      (NonEmpty (..))
+import qualified Data.Map                as Map
+import           Data.Maybe              (fromMaybe)
+import qualified Data.Set                as Set
+import qualified Hedgehog.Gen            as Gen
+import           System.Random.MWC       as MWC
 
-import           Cardano.Chain                  (MockNodeServerChainState, currentSlot, index)
-import           Cardano.Node.Types             (GenRandomTx (..), MockServerLogMsg (..), genRandomTx)
-import           Control.Monad.Freer.Extras.Log
-import qualified Ledger.Ada                     as Ada
-import qualified Ledger.Address                 as Address
-import           Ledger.Crypto                  (PrivateKey, PubKey)
-import qualified Ledger.Crypto                  as Crypto
-import qualified Ledger.Generators              as Generators
-import           Ledger.Index                   (UtxoIndex (..), runValidation, validateTransaction)
-import           Ledger.Slot                    (Slot (..))
-import           Ledger.Tx                      (Tx, TxOut (..))
-import qualified Ledger.Tx                      as Tx
+import qualified Ledger.Ada              as Ada
+import qualified Ledger.Address          as Address
+import           Ledger.Crypto           (PrivateKey, PubKey)
+import qualified Ledger.Crypto           as Crypto
+import qualified Ledger.Generators       as Generators
+import           Ledger.Index            (UtxoIndex (..), runValidation, validateTransaction)
+import           Ledger.Slot             (Slot (..))
+import           Ledger.Tx               (Tx, TxOut (..))
+import qualified Ledger.Tx               as Tx
 
 -- $randomTx
 -- Generate a random, valid transaction that moves some ada
 -- around between the emulator wallets.
-
-runGenRandomTx ::
-       ( Member (State MockNodeServerChainState) effs
-       , Member (LogMsg MockServerLogMsg) effs
-       , LastMember m effs
-       , MonadIO m
-       )
-    => Eff (GenRandomTx ': effs) a
-    -> Eff effs a
-runGenRandomTx =
-    Eff.interpret $ \case
-      GenRandomTx -> do
-        chainState <- Eff.get
-        logDebug CreatingRandomTransaction
-        Eff.sendM $
-          liftIO $ do
-            gen <- MWC.createSystemRandom
-            generateTx gen (view currentSlot chainState)
-                           (view index chainState)
 
 {- | This function will generate a random transaction, given a `GenIO` and a
      `ChainState`.
