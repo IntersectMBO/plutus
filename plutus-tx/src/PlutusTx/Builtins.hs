@@ -100,7 +100,7 @@ takeByteString n bs = BI.sliceByteString 0 (toBuiltin n) bs
 {-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = BI.sliceByteString (toBuiltin n) (BI.lengthOfByteString bs) bs
+dropByteString n bs = BI.sliceByteString (toBuiltin n) (BI.lengthOfByteString bs - n) bs
 
 {-# INLINABLE lengthOfByteString #-}
 -- | Returns the length of a 'ByteString'.
