@@ -47,21 +47,53 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramSubtractInteger          = "subtractIntegerModel"
   , paramMultiplyInteger          = "multiplyIntegerModel"
   , paramDivideInteger            = "divideIntegerModel"
-  , paramModInteger               = "modIntegerModel"
   , paramQuotientInteger          = "quotientIntegerModel"
   , paramRemainderInteger         = "remainderIntegerModel"
+  , paramModInteger               = "modIntegerModel"
   , paramEqualsInteger            = "equalsIntegerModel"
   , paramLessThanInteger          = "lessThanIntegerModel"
   , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
-  , paramAppendByteString         = "appendByteStringModel"
-  , paramSha2_256                 = "sha2_256Model"
-  , paramSha3_256                 = "sha3_256Model"
-  , paramVerifySignature          = "verifySignatureModel"
-  , paramEqualsByteString         = "equalsByteStringModel"
-  , paramLessThanByteString       = "lessThanByteStringModel"
-  , paramLessThanEqualsByteString = "lessThanEqualsByteStringModel"
-  , paramIfThenElse               = "ifThenElseModel"
-  , paramBlake2b                  = "blake2bModel"
+  , paramAppendByteString         =  "appendByteStringModel"
+  , paramConsByteString           =  "consByteStringModel"
+  , paramSliceByteString          =  "sliceByteStringModel"
+  , paramLengthOfByteString       =  "lengthOfByteStringModel"
+  , paramIndexByteString          =  "indexByteStringModel"
+  , paramEqualsByteString         =  "equalsByteStringModel"
+  , paramLessThanByteString       =  "lessThanByteStringModel"
+  , paramLessThanEqualsByteString =  "lessThanEqualsByteStringModel"
+  , paramSha2_256                 =  "sha2_256Model"
+  , paramSha3_256                 =  "sha3_256Model"
+  , paramBlake2b                  =  "blake2bModel"
+  , paramVerifySignature          =  "verifySignatureModel"
+  , paramAppendString             =  "appendStringModel"
+  , paramEqualsString             =  "equalsStringModel"
+  , paramEncodeUtf8               =  "encodeUtf8Model"
+  , paramDecodeUtf8               =  "decodeUtf8Model"
+  , paramIfThenElse               =  "ifThenElseModel"
+  , paramChooseUnit               =  "chooseUnitModel"
+  , paramTrace                    =  "traceModel"
+  , paramFstPair                  =  "fstPairModel"
+  , paramSndPair                  =  "sndPairModel"
+  , paramChooseList               =  "chooseListModel"
+  , paramMkCons                   =  "mkConsModel"
+  , paramHeadList                 =  "headListModel"
+  , paramTailList                 =  "tailListModel"
+  , paramNullList                 =  "nullListModel"
+  , paramChooseData               =  "chooseDataModel"
+  , paramConstrData               =  "constrDataModel"
+  , paramMapData                  =  "mapDataModel"
+  , paramListData                 =  "listDataModel"
+  , paramIData                    =  "iDataModel"
+  , paramBData                    =  "bDataModel"
+  , paramUnConstrData             =  "unConstrDataModel"
+  , paramUnMapData                =  "unMapDataModel"
+  , paramUnListData               =  "unListDataModel"
+  , paramUnIData                  =  "unIDataModel"
+  , paramUnBData                  =  "unBDataModel"
+  , paramEqualsData               =  "equalsDataModel"
+  , paramMkPairData               =  "mkPairDataModel"
+  , paramMkNilData                =  "mkNilDataModel"
+  , paramMkNilPairData            =  "mkNilPairDataModel"
   }
 
 -- Loads the models from R
@@ -84,25 +116,69 @@ createBuiltinCostModel =
     models <- costModelsR
     -- TODO: refactor with barbies
     let getParams x y = x (getConst $ y models)
-    paramAddInteger               <- getParams addInteger               paramAddInteger
-    paramSubtractInteger          <- getParams subtractInteger          paramSubtractInteger
-    paramMultiplyInteger          <- getParams multiplyInteger          paramMultiplyInteger
-    paramDivideInteger            <- getParams divideInteger            paramDivideInteger
-    paramQuotientInteger          <- getParams quotientInteger          paramQuotientInteger
-    paramRemainderInteger         <- getParams remainderInteger         paramRemainderInteger
-    paramModInteger               <- getParams modInteger               paramModInteger
-    paramLessThanInteger          <- getParams lessThanInteger          paramLessThanInteger
-    paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger    paramLessThanEqualsInteger
-    paramEqualsInteger            <- getParams equalsInteger            paramEqualsInteger
-    paramAppendByteString         <- getParams appendByteString         paramAppendByteString
-    paramSha2_256                 <- getParams sha2_256                 paramSha2_256
-    paramSha3_256                 <- getParams sha3_256                 paramSha3_256
-    paramVerifySignature          <- getParams verifySignature          paramVerifySignature
-    paramEqualsByteString         <- getParams equalsByteString         paramEqualsByteString
-    paramLessThanByteString       <- getParams lessThanByteString       paramLessThanByteString
+
+    -- Integers
+    paramAddInteger               <- getParams addInteger paramAddInteger
+    paramSubtractInteger          <- getParams subtractInteger paramSubtractInteger
+    paramMultiplyInteger          <- getParams multiplyInteger paramMultiplyInteger
+    paramDivideInteger            <- getParams divideInteger paramDivideInteger
+    paramQuotientInteger          <- getParams quotientInteger paramQuotientInteger
+    paramRemainderInteger         <- getParams remainderInteger paramRemainderInteger
+    paramModInteger               <- getParams modInteger paramModInteger
+    paramEqualsInteger            <- getParams equalsInteger paramEqualsInteger
+    paramLessThanInteger          <- getParams lessThanInteger paramLessThanInteger
+    paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger paramLessThanEqualsInteger
+    -- Bytestrings
+    paramAppendByteString         <- getParams appendByteString paramAppendByteString
+    paramConsByteString           <- getParams consByteString paramConsByteString
+    paramSliceByteString          <- getParams sliceByteString paramSliceByteString
+    paramLengthOfByteString       <- getParams lengthOfByteString paramLengthOfByteString
+    paramIndexByteString          <- getParams indexByteString paramIndexByteString
+    paramEqualsByteString         <- getParams equalsByteString paramEqualsByteString
+    paramLessThanByteString       <- getParams lessThanByteString paramLessThanByteString
     paramLessThanEqualsByteString <- getParams lessThanEqualsByteString paramLessThanEqualsByteString
-    paramIfThenElse               <- getParams ifThenElse               paramIfThenElse
-    paramBlake2b                  <- getParams blake2b                  paramBlake2b
+    -- Cryptography and hashes
+    paramSha2_256                 <- getParams sha2_256 paramSha2_256
+    paramSha3_256                 <- getParams sha3_256 paramSha3_256
+    paramBlake2b                  <- getParams blake2b paramBlake2b
+    paramVerifySignature          <- getParams verifySignature paramVerifySignature
+    -- Strings
+    paramAppendString             <- getParams appendString paramAppendString
+    paramEqualsString             <- getParams equalsString paramEqualsString
+    paramEncodeUtf8               <- getParams encodeUtf8 paramEncodeUtf8
+    paramDecodeUtf8               <- getParams decodeUtf8 paramDecodeUtf8
+    -- Bool
+    paramIfThenElse               <- getParams ifThenElse paramIfThenElse
+    -- Unit
+    paramChooseUnit               <- getParams chooseUnit paramChooseUnit
+    -- Tracing
+    paramTrace                    <- getParams trace paramTrace
+    -- Pairs
+    paramFstPair                  <- getParams fstPair paramFstPair
+    paramSndPair                  <- getParams sndPair paramSndPair
+    -- Lists
+    paramChooseList               <- getParams chooseList paramChooseList
+    paramMkCons                   <- getParams mkCons paramMkCons
+    paramHeadList                 <- getParams headList paramHeadList
+    paramTailList                 <- getParams tailList paramTailList
+    paramNullList                 <- getParams nullList paramNullList
+    -- Data
+    paramChooseData               <- getParams chooseData paramChooseData
+    paramConstrData               <- getParams constrData paramConstrData
+    paramMapData                  <- getParams mapData paramMapData
+    paramListData                 <- getParams listData paramListData
+    paramIData                    <- getParams iData paramIData
+    paramBData                    <- getParams bData paramBData
+    paramUnConstrData             <- getParams unConstrData paramUnConstrData
+    paramUnMapData                <- getParams unMapData paramUnMapData
+    paramUnListData               <- getParams unListData paramUnListData
+    paramUnIData                  <- getParams unIData paramUnIData
+    paramUnBData                  <- getParams unBData paramUnBData
+    paramEqualsData               <- getParams equalsData paramEqualsData
+    -- Misc constructors
+    paramMkPairData               <- getParams mkPairData paramMkPairData
+    paramMkNilData                <- getParams mkNilData paramMkNilData
+    paramMkNilPairData            <- getParams mkNilPairData paramMkNilPairData
 
     pure $ BuiltinCostModelBase {..}
 
@@ -272,16 +348,16 @@ appendByteString cpuModelR = do
   pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
 
 consByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-consByteString = pure def
+consByteString _ = pure def
 
-sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeeArguments)
-sliceByteString = pure def
+sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+sliceByteString _ = pure def
 
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-lengthOfByteString = pure def
+lengthOfByteString _ = pure def
 
 indexByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-indexByteString = pure def
+indexByteString _ = pure def
 
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
@@ -322,6 +398,20 @@ verifySignature cpuModelR = do
   pure $ CostingFun (ModelThreeArgumentsConstantCost cpuModel) (ModelThreeArgumentsConstantCost 1)
 
 
+---------------- Strings ----------------
+
+appendString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+appendString _ = pure def
+
+equalsString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+equalsString _ = pure def
+
+encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+encodeUtf8 _ = pure def
+
+decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+decodeUtf8 _ = pure def
+
 ---------------- Bool ----------------
 
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
@@ -331,90 +421,90 @@ ifThenElse _ = pure def
 ---------------- Unit ----------------
 
 chooseUnit :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-chooseUnit = pure def
+chooseUnit _ = pure def
 
 
 ---------------- Tracing ----------------
 
 trace :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-trace = pure def
+trace _ = pure def
 
 
 ---------------- Pairs ----------------
 
 fstPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-fstPair = pure def
+fstPair _ = pure def
 
 sndPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sndPair = pure def
+sndPair _ = pure def
 
 
 
 ---------------- Lists ----------------
 
 chooseList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-chooseList = pure def
+chooseList _ = pure def
 
 mkCons :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-mkCons = pure def
+mkCons _ = pure def
 
 headList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-headList = pure def
+headList _ = pure def
 
 tailList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-tailList = pure def
+tailList _ = pure def
 
 nullList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-nullList = pure def
+nullList _ = pure def
 
 
 
 ---------------- Data ----------------
 
 chooseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelSixArguments)
-chooseData = pure def
+chooseData _ = pure def
 
 constrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-constrData = pure def
+constrData _ = pure def
 
 mapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mapData = pure def
+mapData _ = pure def
 
 listData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-listData = pure def
+listData _ = pure def
 
 iData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-iData = pure def
+iData _ = pure def
 
 bData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-bData = pure def
+bData _ = pure def
 
 unConstrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unConstrData = pure def
+unConstrData _ = pure def
 
 unMapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unMapData = pure def
+unMapData _ = pure def
 
 unListData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unListData = pure def
+unListData _ = pure def
 
 unIData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unIData = pure def
+unIData _ = pure def
 
 unBData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-unBData = pure def
+unBData _ = pure def
 
 equalsData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-equalsData = pure def
+equalsData _ = pure def
 
 
 ---------------- Misc constructors ----------------
 
 mkPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-mkPairData = pure def
+mkPairData _ = pure def
 
 mkNilData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mkNilData = pure def
+mkNilData _ = pure def
 
 mkNilPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mkNilPairData = pure def
+mkNilPairData _ = pure def

@@ -31,9 +31,9 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 -- | The default cost model for built-in functions.
-defaultBuiltinCostModel :: BuiltinCostModel
-defaultBuiltinCostModel =
-  $$(readJSONFromFile DFP.builtinCostModelFile)
+--defaultBuiltinCostModel :: BuiltinCostModel
+--defaultBuiltinCostModel =
+--  $$(readJSONFromFile DFP.builtinCostModelFile)
 
 {- Note [Modifying the cost model]
    When the Haskell representation of the cost model is changed, for example by
@@ -54,9 +54,9 @@ defaultBuiltinCostModel =
    format.
  -}
 
--- import           Data.Default
--- defaultBuiltinCostModel :: BuiltinCostModel
--- defaultBuiltinCostModel = def
+import           Data.Default
+defaultBuiltinCostModel :: BuiltinCostModel
+defaultBuiltinCostModel = def
 
 -- | Default costs for CEK machine instructions.
 defaultCekMachineCosts :: CekMachineCosts
