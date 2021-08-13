@@ -61,6 +61,21 @@
           ];
         hsSourceDirs = [ "src" ];
         };
+      exes = {
+        "plutus-chain-index" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
+            (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
+            ];
+          buildable = true;
+          modules = [ "CommandLine" "Config" "Logging" ];
+          hsSourceDirs = [ "app" ];
+          mainPath = [ "Main.hs" ];
+          };
+        };
       tests = {
         "plutus-chain-index-test" = {
           depends = [

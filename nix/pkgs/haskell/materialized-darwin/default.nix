@@ -1420,6 +1420,7 @@
           "typed-protocols-examples".components.library.planned = lib.mkOverride 900 true;
           "srcloc".components.library.planned = lib.mkOverride 900 true;
           "case-insensitive".components.library.planned = lib.mkOverride 900 true;
+          "plutus-chain-index".components.exes."plutus-chain-index".planned = lib.mkOverride 900 true;
           "data-fix".components.library.planned = lib.mkOverride 900 true;
           "dependent-sum-template".components.library.planned = lib.mkOverride 900 true;
           "sop-core".components.library.planned = lib.mkOverride 900 true;
