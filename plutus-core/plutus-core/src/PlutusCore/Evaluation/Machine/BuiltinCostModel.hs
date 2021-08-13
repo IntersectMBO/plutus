@@ -333,6 +333,7 @@ runTwoArgumentModel
     (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationY)) (ExMemory _) (ExMemory size2) =
         size2 * slope + intercept
 
+
 ---------------- Three-argument costing functions ----------------
 
 data ModelThreeArguments =
@@ -396,6 +397,7 @@ runCostingFunFourArguments
 runCostingFunFourArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 =
     ExBudget (ExCPU    $ runFourArgumentModel cpu mem1 mem2 mem3 mem4)
              (ExMemory $ runFourArgumentModel mem mem1 mem2 mem3 mem4)
+
 
 ---------------- Five-argument costing functions ----------------
 
