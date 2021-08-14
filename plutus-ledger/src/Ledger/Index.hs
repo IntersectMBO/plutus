@@ -55,6 +55,7 @@ import           Data.Default                     (Default (def))
 import           Data.Foldable                    (asum, fold, foldl', traverse_)
 import qualified Data.Map                         as Map
 import qualified Data.Set                         as Set
+import           Data.Text                        (Text)
 import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))
 import           GHC.Generics                     (Generic)
@@ -383,7 +384,7 @@ mkTxInfo tx = do
     let ptx = TxInfo
             { txInfoInputs = txins
             , txInfoOutputs = txOutputs tx
-            , txInfoForge = txMint tx
+            , txInfoMint = txMint tx
             , txInfoFee = txFee tx
             , txInfoDCert = [] -- DCerts not supported in emulator
             , txInfoWdrl = [] -- Withdrawals not supported in emulator
@@ -408,7 +409,7 @@ data ScriptType = ValidatorScript Validator Datum | MintingPolicyScript MintingP
 data ScriptValidationEvent =
     ScriptValidationEvent
         { sveScript   :: Script -- ^ The script applied to all arguments
-        , sveResult   :: Either ScriptError (Api.ExBudget, [String]) -- ^ Result of running the script: an error or the 'ExBudget' and trace logs
+        , sveResult   :: Either ScriptError (Api.ExBudget, [Text]) -- ^ Result of running the script: an error or the 'ExBudget' and trace logs
         , sveRedeemer :: Redeemer
         , sveType     :: ScriptType -- ^ What type of script it was
         }
@@ -420,7 +421,7 @@ validatorScriptValidationEvent
     -> Validator
     -> Datum
     -> Redeemer
-    -> Either ScriptError (Api.ExBudget, [String])
+    -> Either ScriptError (Api.ExBudget, [Text])
     -> ScriptValidationEvent
 validatorScriptValidationEvent ctx validator datum redeemer result =
     ScriptValidationEvent
@@ -434,7 +435,7 @@ mpsValidationEvent
     :: Context
     -> MintingPolicy
     -> Redeemer
-    -> Either ScriptError (Api.ExBudget, [String])
+    -> Either ScriptError (Api.ExBudget, [Text])
     -> ScriptValidationEvent
 mpsValidationEvent ctx mps red result =
     ScriptValidationEvent

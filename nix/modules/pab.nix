@@ -2,7 +2,7 @@
 let
   inherit (lib) types mkOption mkIf;
   pabExec = pkgs.writeShellScriptBin "pab-exec" ''
-    ${cfg.pab-package}/bin/plutus-pab-examples --config=${pabYaml} $*
+    ${cfg.pab-executable} --config=${pabYaml} $*
   '';
   cfg = config.services.pab;
 
@@ -28,7 +28,6 @@ let
     nodeServerConfig = {
       mscBaseUrl = "http://localhost:${builtins.toString cfg.nodePort}";
       mscSocketPath = "/tmp/node-server.sock";
-      mscRandomTxInterval = 20000000;
       mscSlotConfig = {
         scSlotZeroTime = cfg.slotZeroTime;
         scSlotLength = cfg.slotLength;
@@ -46,6 +45,7 @@ let
         { getWallet = 2; }
         { getWallet = 3; }
       ];
+      mscNodeMode = "MockNode";
     };
 
     chainIndexConfig = {
@@ -90,10 +90,10 @@ in
       '';
     };
 
-    pab-package = mkOption {
-      type = types.package;
+    pab-executable = mkOption {
+      type = types.path;
       description = ''
-        The pab package to execute.
+        The pab executable to run.
       '';
     };
 
@@ -219,7 +219,7 @@ in
           rm -rf ${cfg.dbFile}
 
           echo "[pab-init-cmd]: Creating new DB '${cfg.dbFile}'"
-          ${cfg.pab-package}/bin/plutus-pab-examples --config=${pabYaml} migrate;
+          ${cfg.pab-executable} --config=${pabYaml} migrate;
         '';
       in
       {
@@ -243,7 +243,7 @@ in
         Restart = "always";
         DynamicUser = true;
         StateDirectory = [ "pab" ];
-        ExecStart = "${cfg.pab-package}/bin/plutus-pab-examples --config=${pabYaml} all-servers";
+        ExecStart = "${cfg.pab-executable} --config=${pabYaml} all-servers";
 
         # Sane defaults for security
         ProtectKernelTunables = true;

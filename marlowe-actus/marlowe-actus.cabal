@@ -33,7 +33,6 @@ library
     base -any,
     bytestring,
     containers -any,
-    deriving-aeson -any,
     mtl,
     newtype-generics,
     template-haskell -any,
@@ -42,12 +41,8 @@ library
     plutus-ledger,
     text,
     vector,
-    sbv >= 8.4,
-    wl-pprint -any,
-    freer-simple -any,
     marlowe -any,
     time -any,
-    loch-th -any,
     sort -any,
     validation -any,
     QuickCheck
@@ -85,7 +80,7 @@ library
   other-modules:
     Language.Marlowe.ACTUS.Ops
   ghc-options:
-    -Wall -Wnoncanonical-monad-instances
+    -Wall -Wnoncanonical-monad-instances -Wunused-packages
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
 
@@ -183,7 +178,6 @@ executable marlowe-actus-test-kit
       base -any,
       bytestring,
       containers -any,
-      deriving-aeson -any,
       mtl,
       newtype-generics,
       template-haskell -any,
@@ -192,14 +186,9 @@ executable marlowe-actus-test-kit
       plutus-ledger,
       text,
       vector,
-      sbv >= 8.4,
-      wl-pprint -any,
-      freer-simple -any,
       marlowe -any,
       time -any,
-      loch-th -any,
       sort -any,
-      inline-r -any,
       validation -any,
       servant >= 0.16,
       servant-client -any,
@@ -220,20 +209,16 @@ test-suite marlowe-actus-test
         containers -any,
         hedgehog -any,
         lens -any,
-        memory -any,
         bytestring -any,
-        freer-simple -any,
         tasty -any,
         tasty-hunit -any,
         text -any,
-        serialise,
         cborg,
         plutus-ledger -any,
         plutus-contract -any,
         marlowe,
         marlowe-actus,
         plutus-tx -any,
-        QuickCheck,
         template-haskell -any,
         marlowe -any,
         time -any,

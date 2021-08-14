@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -24,6 +25,7 @@ import           PlutusIR.MkPir
 import qualified Data.ByteString     as BS
 import qualified Data.Kind           as GHC
 import           Data.Proxy
+import qualified Data.Text           as Text
 
 import           GHC.TypeLits        (ErrorMessage (..), TypeError)
 
@@ -86,17 +88,23 @@ instance uni `PLC.Includes` BS.ByteString => Typeable uni BS.ByteString where
 instance uni `PLC.Includes` BS.ByteString => Lift uni BS.ByteString where
     lift = liftBuiltin
 
-instance uni `PLC.Includes` Char => Typeable uni Char where
-    typeRep = typeRepBuiltin
-
-instance uni `PLC.Includes` Char => Lift uni Char where
-    lift = liftBuiltin
-
 instance uni `PLC.Includes` Data => Typeable uni BuiltinData where
     typeRep _ = typeRepBuiltin (Proxy @Data)
 
 instance uni `PLC.Includes` Data => Lift uni BuiltinData where
     lift d = liftBuiltin (builtinDataToData d)
+
+instance uni `PLC.Includes` BS.ByteString => Typeable uni BuiltinByteString where
+    typeRep _proxyPByteString = typeRepBuiltin (Proxy @BS.ByteString)
+
+instance uni `PLC.Includes` BS.ByteString => Lift uni BuiltinByteString where
+    lift b = liftBuiltin $ fromBuiltin b
+
+instance uni `PLC.Includes` Text.Text => Typeable uni BuiltinString where
+    typeRep _proxyPByteString = typeRepBuiltin (Proxy @Text.Text)
+
+instance uni `PLC.Includes` Text.Text => Lift uni BuiltinString where
+    lift b = liftBuiltin $ fromBuiltin b
 
 -- Standard types
 -- These need to be in a separate file for TH staging reasons

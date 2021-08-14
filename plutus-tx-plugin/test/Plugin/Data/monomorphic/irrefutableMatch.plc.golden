@@ -25,14 +25,16 @@
                 (lam
                   default_arg1
                   (con integer)
-                  (abs dead (type) (error (con integer)))
+                  (abs dead (type) { (abs e (type) (error e)) (con integer) })
                 )
               )
             ]
             (lam a (con integer) (abs dead (type) a))
           ]
           (lam
-            default_arg0 (con integer) (abs dead (type) (error (con integer)))
+            default_arg0
+            (con integer)
+            (abs dead (type) { (abs e (type) (error e)) (con integer) })
           )
         ]
         (all dead (type) dead)

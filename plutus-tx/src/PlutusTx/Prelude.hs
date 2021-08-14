@@ -35,7 +35,6 @@ module PlutusTx.Prelude (
     BuiltinString,
     appendString,
     emptyString,
-    charToString,
     equalsString,
     encodeUtf8,
     -- * Error
@@ -53,6 +52,8 @@ module PlutusTx.Prelude (
     -- * Tuples
     fst,
     snd,
+    curry,
+    uncurry,
     -- * Maybe
     module Maybe,
     -- * Either
@@ -62,11 +63,16 @@ module PlutusTx.Prelude (
     dropWhile,
     zipWith,
     -- * ByteStrings
-    ByteString,
+    BuiltinByteString,
+    appendByteString,
+    consByteString,
     takeByteString,
     dropByteString,
-    concatenate,
+    sliceByteString,
+    lengthOfByteString,
+    indexByteString,
     emptyByteString,
+    decodeUtf8,
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
@@ -80,16 +86,19 @@ module PlutusTx.Prelude (
     quotRem,
     -- * Data
     BuiltinData,
+    fromBuiltin,
+    toBuiltin
     ) where
 
 import           Data.String          (IsString (..))
 import           PlutusCore.Data      (Data (..))
 import           PlutusTx.Applicative as Applicative
 import           PlutusTx.Bool        as Bool
-import           PlutusTx.Builtins    (BuiltinData, BuiltinString, ByteString, appendString, charToString, concatenate,
-                                       dropByteString, emptyByteString, emptyString, encodeUtf8, equalsByteString,
-                                       equalsString, error, greaterThanByteString, lessThanByteString, sha2_256,
-                                       sha3_256, takeByteString, verifySignature)
+import           PlutusTx.Builtins    (BuiltinByteString, BuiltinData, BuiltinString, appendByteString, appendString,
+                                       consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
+                                       equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString,
+                                       indexByteString, lengthOfByteString, lessThanByteString, sha2_256, sha3_256,
+                                       sliceByteString, toBuiltin, trace, verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either
 import           PlutusTx.Enum        as Enum
@@ -107,13 +116,12 @@ import           PlutusTx.Ratio       as Ratio
 import           PlutusTx.Semigroup   as Semigroup
 import           PlutusTx.Trace       as Trace
 import           PlutusTx.Traversable as Traversable
-import           Prelude              as Prelude hiding (Applicative (..), Enum (..), Eq (..), Foldable (..),
-                                                  Functor (..), Monoid (..), Num (..), Ord (..), Rational,
-                                                  Semigroup (..), Traversable (..), all, and, any, concat, concatMap,
-                                                  const, divMod, either, elem, error, filter, fst, head, id, length,
-                                                  map, mapM_, max, maybe, min, not, notElem, null, or, quotRem, reverse,
-                                                  round, sequence, snd, take, zip, (!!), ($), (&&), (++), (<$>), (||))
-import           Prelude              as Prelude (maximum, minimum)
+import           Prelude              hiding (Applicative (..), Enum (..), Eq (..), Foldable (..), Functor (..),
+                                       Monoid (..), Num (..), Ord (..), Rational, Semigroup (..), Traversable (..), all,
+                                       and, any, concat, concatMap, const, curry, divMod, either, elem, error, filter,
+                                       fst, head, id, length, map, mapM_, max, maybe, min, not, notElem, null, or,
+                                       quotRem, reverse, round, sequence, snd, take, uncurry, zip, (!!), ($), (&&),
+                                       (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}
@@ -183,9 +191,27 @@ fst (a, _) = a
 snd :: (a, b) -> b
 snd (_, b) = b
 
+{-# INLINABLE curry #-}
+curry :: ((a, b) -> c) -> a -> b -> c
+curry f a b = f (a, b)
+
+{-# INLINABLE uncurry #-}
+uncurry :: (a -> b -> c) -> (a, b) -> c
+uncurry f (a, b) = f a b
+
 infixr 0 $
 -- Normal $ is levity-polymorphic, which we can't handle.
 {-# INLINABLE ($) #-}
 -- | Plutus Tx version of 'Data.Function.($)'.
 ($) :: (a -> b) -> a -> b
 f $ a = f a
+
+{-# INLINABLE takeByteString #-}
+-- | Returns the n length prefix of a 'ByteString'.
+takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
+takeByteString n bs = Builtins.sliceByteString 0 (toBuiltin n) bs
+
+{-# INLINABLE dropByteString #-}
+-- | Returns the suffix of a 'ByteString' after n elements.
+dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
+dropByteString n bs = Builtins.sliceByteString (toBuiltin n) (Builtins.lengthOfByteString bs - n) bs

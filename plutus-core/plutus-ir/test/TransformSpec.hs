@@ -145,7 +145,7 @@ deadCode =
 retainedSize :: TestNested
 retainedSize =
     testNested "retainedSize"
-    $ map (goldenPir f $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir renameAndAnnotate $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "typeLet"
     , "termLet"
     , "strictLet"
@@ -164,7 +164,11 @@ retainedSize =
     , "recBindingComplex"
     ] where
         displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
-        f = PLC.AttachPrettyConfig displayAnnsConfig . RetainedSize.annotateWithRetainedSize
+        renameAndAnnotate
+            = PLC.AttachPrettyConfig displayAnnsConfig
+            . RetainedSize.annotateWithRetainedSize
+            . runQuote
+            . PLC.rename
 
 rename :: TestNested
 rename =

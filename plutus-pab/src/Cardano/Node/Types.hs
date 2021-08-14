@@ -23,8 +23,6 @@ module Cardano.Node.Types
 
      -- * Effects
     , NodeServerEffects
-    , GenRandomTx (..)
-    , genRandomTx
 
      -- *  State types
     , AppState (..)
@@ -37,42 +35,41 @@ module Cardano.Node.Types
 
     -- * Config types
     , MockServerConfig (..)
-    , MockServerMode (..)
+    , NodeMode (..)
 
     -- * newtype wrappers
     , NodeUrl (..)
     )
         where
 
-import           Control.Lens                        (makeLenses, view)
-import           Control.Monad.Freer.TH              (makeEffect)
-import           Control.Monad.IO.Class              (MonadIO (..))
-import           Data.Aeson                          (FromJSON, ToJSON)
-import qualified Data.Map                            as Map
-import           Data.Text.Prettyprint.Doc           (Pretty (..), pretty, viaShow, (<+>))
-import           Data.Time.Clock                     (UTCTime)
-import qualified Data.Time.Format.ISO8601            as F
-import           Data.Time.Units                     (Millisecond, Second)
-import           Data.Time.Units.Extra               ()
-import           GHC.Generics                        (Generic)
-import           Ledger                              (Tx, txId)
-import           Servant.Client                      (BaseUrl)
-
 import           Cardano.BM.Data.Tracer              (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras       (Tagged (..), mkObjectStr)
 import           Cardano.Chain                       (MockNodeServerChainState, fromEmulatorChainState)
 import qualified Cardano.Protocol.Socket.Mock.Client as Client
+import           Control.Lens                        (makeLenses, view)
 import           Control.Monad.Freer.Extras.Log      (LogMessage, LogMsg (..))
 import           Control.Monad.Freer.Reader          (Reader)
 import           Control.Monad.Freer.State           (State)
+import           Control.Monad.IO.Class              (MonadIO (..))
+import           Data.Aeson                          (FromJSON, ToJSON)
+import           Data.Default                        (Default, def)
+import qualified Data.Map                            as Map
+import           Data.Text.Prettyprint.Doc           (Pretty (..), pretty, viaShow, (<+>))
+import           Data.Time.Clock                     (UTCTime)
+import qualified Data.Time.Format.ISO8601            as F
+import           Data.Time.Units                     (Millisecond)
+import           Data.Time.Units.Extra               ()
+import           GHC.Generics                        (Generic)
+import           Ledger                              (Tx, txId)
 import           Ledger.TimeSlot                     (SlotConfig)
 import qualified Plutus.Contract.Trace               as Trace
+import           Servant.Client                      (BaseUrl (..), Scheme (..))
 import           Wallet.Emulator                     (Wallet)
 import qualified Wallet.Emulator                     as EM
 import           Wallet.Emulator.Chain               (ChainControlEffect, ChainEffect, ChainEvent)
 import qualified Wallet.Emulator.MultiAgent          as MultiAgent
 
-import           Cardano.Api.NetworkId.Extra         (NetworkIdWrapper (..))
+import           Cardano.Api.NetworkId.Extra         (NetworkIdWrapper (..), testnetNetworkId)
 import           Ledger.Fee                          (FeeConfig)
 import           Plutus.PAB.Arbitrary                ()
 
@@ -99,21 +96,18 @@ We use this approach for the "proper" pab executable.
 newtype NodeUrl = NodeUrl BaseUrl
     deriving (Show, Eq) via BaseUrl
 
--- | The mock node server can be replaced with a cardano node, in which case
---   we don't want to start it.
-data MockServerMode =
-      WithMockServer
-    | WithoutMockServer
-    deriving (Show, Eq, Generic)
-    deriving anyclass ToJSON
+-- | Which node we're connecting to
+data NodeMode =
+    MockNode -- ^ Connect to the PAB mock node.
+    | AlonzoNode -- ^ Connect to an Alonzo node
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 -- | Mock Node server configuration
 data MockServerConfig =
     MockServerConfig
         { mscBaseUrl          :: BaseUrl
         -- ^ base url of the service
-        , mscRandomTxInterval :: Maybe Second
-        -- ^ Time between two randomly generated transactions
         , mscInitialTxWallets :: [Wallet]
         -- ^ The wallets that receive money from the initial transaction.
         , mscSocketPath       :: FilePath
@@ -127,8 +121,33 @@ data MockServerConfig =
         -- multiply size-dependent scripts fee.
         , mscNetworkId        :: NetworkIdWrapper
         -- ^ NetworkId that's used with the CardanoAPI.
+        , mscNodeMode         :: NodeMode
+        -- ^ Whether to connect to an Alonzo node or a mock node
         }
-    deriving (Show, Eq, Generic, FromJSON)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (FromJSON)
+
+
+defaultMockServerConfig :: MockServerConfig
+defaultMockServerConfig =
+    MockServerConfig
+      -- See Note [pab-ports] in 'test/full/Plutus/PAB/CliSpec.hs'.
+      { mscBaseUrl = BaseUrl Http "localhost" 9082 ""
+      , mscInitialTxWallets =
+          [ EM.Wallet 1
+          , EM.Wallet 2
+          , EM.Wallet 3
+          ]
+      , mscSocketPath = "./node-server.sock"
+      , mscKeptBlocks = 100
+      , mscSlotConfig = def
+      , mscFeeConfig  = def
+      , mscNetworkId = testnetNetworkId
+      , mscNodeMode  = MockNode
+      }
+
+instance Default MockServerConfig where
+  def = defaultMockServerConfig
 
 -- Logging ------------------------------------------------------------------------------------------------------------
 
@@ -214,9 +233,7 @@ initialChainState =
 -- Effects -------------------------------------------------------------------------------------------------------------
 
 type NodeServerEffects m
-     = '[ GenRandomTx
-        , LogMsg MockServerLogMsg
-        , ChainControlEffect
+     = '[ ChainControlEffect
         , ChainEffect
         , State MockNodeServerChainState
         , LogMsg MockServerLogMsg
@@ -224,8 +241,3 @@ type NodeServerEffects m
         , State AppState
         , LogMsg MockServerLogMsg
         , m]
-
-data GenRandomTx r where
-    GenRandomTx :: GenRandomTx Tx
-
-makeEffect ''GenRandomTx

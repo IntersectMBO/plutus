@@ -29,17 +29,17 @@ import           Crypto.Error            (throwCryptoError)
 import qualified Data.ByteArray          as BA
 import qualified Data.ByteString         as BS
 import           Data.Either.Extras      (unsafeFromEither)
-import           Plutus.V1.Ledger.Bytes  (LedgerBytes (..))
+import           Plutus.V1.Ledger.Api
 import qualified Plutus.V1.Ledger.Bytes  as KB
 import           Plutus.V1.Ledger.Crypto as Export
-import           Plutus.V1.Ledger.TxId
 
 -- | Compute the hash of a public key.
 pubKeyHash :: PubKey -> PubKeyHash
 pubKeyHash (PubKey (LedgerBytes bs)) =
     PubKeyHash
+      $ toBuiltin
       $ Crypto.hashToBytes
-      $ Crypto.hashWith @Crypto.Blake2b_224 id bs
+      $ Crypto.hashWith @Crypto.Blake2b_224 id (fromBuiltin bs)
 
 -- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
 signedBy :: Signature -> PubKey -> TxId -> Bool
@@ -59,7 +59,7 @@ sign  msg (PrivateKey privKey) =
         pk = ED25519.toPublic <$> k
         salt :: BS.ByteString
         salt = "" -- TODO: do we need better salt?
-        convert = Signature . BS.pack . BA.unpack
+        convert = Signature . toBuiltin . BS.pack . BA.unpack
     in throwCryptoError $ fmap convert (ED25519.sign <$> k <*> pure salt <*> pk <*> pure msg)
 
 fromHex :: BS.ByteString -> Either String PrivateKey

@@ -3,6 +3,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -24,9 +25,11 @@ module Plutus.PAB.Core.ContractInstance(
     , updateState
     -- * STM instances
     , startSTMInstanceThread
+    , startContractInstanceThread'
     , AppBackendConstraints
     -- * Calling endpoints
     , callEndpointOnInstance
+    -- * Indexed block
     ) where
 
 import           Control.Applicative                              (Alternative (..))
@@ -34,6 +37,7 @@ import           Control.Arrow                                    ((>>>))
 import           Control.Concurrent                               (forkIO)
 import           Control.Concurrent.STM                           (STM)
 import qualified Control.Concurrent.STM                           as STM
+import           Control.Lens                                     (preview)
 import           Control.Monad                                    (forM_, void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error)
@@ -94,10 +98,29 @@ activateContractSTM' ::
     -> (Eff appBackend ~> IO)
     -> ContractActivationArgs (ContractDef t)
     -> Eff effs ContractInstanceId
-activateContractSTM' ContractInstanceState{contractState,stmState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID, caWallet} = do
-  logDebug @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
+activateContractSTM' c@ContractInstanceState{contractState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID} = do
+  logInfo @(ContractInstanceMsg t) $ InitialisingContract caID activeContractInstanceId
   Contract.putStartInstance @t a activeContractInstanceId
   Contract.putState @t a activeContractInstanceId contractState
+  startContractInstanceThread' c activeContractInstanceId runAppBackend a
+
+-- | Spin up the STM Instance thread for the provided contract and add it to
+-- the STM instance state.
+startContractInstanceThread' ::
+    forall t m appBackend effs.
+    ( Member (LogMsg (ContractInstanceMsg t)) effs
+    , Member (Reader InstancesState) effs
+    , Contract.PABContract t
+    , AppBackendConstraints t m appBackend
+    , LastMember m (Reader ContractInstanceId ': appBackend)
+    , LastMember m effs
+    )
+    => ContractInstanceState t
+    -> ContractInstanceId
+    -> (Eff appBackend ~> IO)
+    -> ContractActivationArgs (ContractDef t)
+    -> Eff effs ContractInstanceId
+startContractInstanceThread' ContractInstanceState{stmState} activeContractInstanceId runAppBackend a@ContractActivationArgs{caID, caWallet} = do
   s <- startSTMInstanceThread' @t @m stmState runAppBackend a activeContractInstanceId
   ask >>= void . liftIO . STM.atomically . InstanceState.insertInstance activeContractInstanceId s
   logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance caID caWallet activeContractInstanceId
@@ -160,6 +183,30 @@ processTxStatusChangeRequestsSTM =
             env <- ask
             pure (AwaitTxStatusChangeResp txId <$> InstanceState.waitForTxStatusChange Unknown txId env)
 
+processUtxoSpentRequestsSTM ::
+    forall effs.
+    ( Member (Reader InstanceState) effs
+    )
+    => RequestHandler effs (Request PABReq) (Response (STM PABResp))
+processUtxoSpentRequestsSTM = RequestHandler $ \req -> do
+    case traverse (preview Contract.Effects._AwaitUtxoSpentReq) req of
+        Just request@Request{rqID, itID} -> do
+            env <- ask
+            pure $ Response rqID itID (AwaitUtxoSpentResp <$> InstanceState.waitForUtxoSpent request env)
+        _ -> empty
+
+processUtxoProducedRequestsSTM ::
+    forall effs.
+    ( Member (Reader InstanceState) effs
+    )
+    => RequestHandler effs (Request PABReq) (Response (STM PABResp))
+processUtxoProducedRequestsSTM = RequestHandler $ \req -> do
+    case traverse (preview Contract.Effects._AwaitUtxoProducedReq) req of
+        Just request@Request{rqID, itID} -> do
+            env <- ask
+            pure $ Response rqID itID (AwaitUtxoProducedResp <$> InstanceState.waitForUtxoProduced request env)
+        _ -> empty
+
 processEndpointRequestsSTM ::
     forall effs.
     ( Member (Reader InstanceState) effs
@@ -168,6 +215,15 @@ processEndpointRequestsSTM ::
 processEndpointRequestsSTM =
     maybeToHandler (traverse (extract Contract.Effects._ExposeEndpointReq))
     >>> (RequestHandler $ \q@Request{rqID, itID, rqRequest} -> fmap (Response rqID itID) (fmap (ExposeEndpointResp (aeDescription rqRequest)) . InstanceState.awaitEndpointResponse q <$> ask))
+
+processAwaitTimeRequestsSTM ::
+    forall effs.
+    ( Member (Reader BlockchainEnv) effs
+    )
+    => RequestHandler effs PABReq (STM PABResp)
+processAwaitTimeRequestsSTM =
+    maybeToHandler (extract Contract.Effects._AwaitTimeReq)
+    >>> (RequestHandler $ \time -> fmap AwaitTimeResp . InstanceState.awaitTime time <$> ask)
 
 -- | 'RequestHandler' that uses TVars to wait for events
 stmRequestHandler ::
@@ -193,12 +249,16 @@ stmRequestHandler = fmap sequence (wrapHandler (fmap pure nonBlockingRequests) <
         <> RequestHandler.handleOwnInstanceIdQueries @effs
         <> RequestHandler.handleAddressChangedAtQueries @effs
         <> RequestHandler.handleCurrentSlotQueries @effs
+        <> RequestHandler.handleCurrentTimeQueries @effs
 
     -- requests that wait for changes to happen
     blockingRequests =
         wrapHandler (processAwaitSlotRequestsSTM @effs)
         <> wrapHandler (processTxStatusChangeRequestsSTM @effs)
         <> processEndpointRequestsSTM @effs
+        <> wrapHandler (processAwaitTimeRequestsSTM @effs)
+        <> processUtxoSpentRequestsSTM @effs
+        <> processUtxoProducedRequestsSTM @effs
 
 -- | Start the thread for the contract instance
 startSTMInstanceThread' ::
@@ -222,7 +282,6 @@ startSTMInstanceThread' stmState runAppBackend def instanceID =  do
         $ runReader state
         $ stmInstanceLoop @t @m @(Reader InstanceState ': Reader ContractInstanceId ': appBackend) def instanceID
     pure state
-    -- TODO: Separate chain index queries (non-blocking) from waiting for updates (blocking)
 
 -- | Start the thread for the contract instance
 startSTMInstanceThread ::
@@ -295,7 +354,7 @@ updateState ::
     , MonadIO m
     , Member (Reader InstanceState) effs
     )
-    => ContractResponse Value Value Value PABReq
+    => ContractResponse Value Value PABResp PABReq
     -> Eff effs ()
 updateState ContractResponse{newState = State{observableState}, hooks} = do
     state <- ask
@@ -307,6 +366,8 @@ updateState ContractResponse{newState = State{observableState}, hooks} = do
                 UtxoAtReq addr -> InstanceState.addAddress addr state
                 AddressChangeReq AddressChangeRequest{acreqAddress} -> InstanceState.addAddress acreqAddress state
                 ExposeEndpointReq endpoint -> InstanceState.addEndpoint (r { rqRequest = endpoint}) state
+                AwaitUtxoSpentReq txOutRef -> InstanceState.addUtxoSpentReq (r { rqRequest = txOutRef }) state
+                AwaitUtxoProducedReq addr  -> InstanceState.addUtxoProducedReq (r { rqRequest = addr }) state
                 _ -> pure ()
         InstanceState.setObservableState observableState state
 

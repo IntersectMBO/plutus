@@ -17,13 +17,14 @@ module Ledger.Scripts (
     , redeemerHash
     , validatorHash
     , mintingPolicyHash
+    , stakeValidatorHash
     ) where
 
 import           Cardano.Api              (AsType, HasTextEnvelope (textEnvelopeType), HasTypeProxy (proxyToAsType),
                                            SerialiseAsCBOR, TextEnvelopeType (TextEnvelopeType))
 import           Cardano.Binary           (FromCBOR (fromCBOR), ToCBOR (toCBOR))
 import qualified Cardano.Crypto.Hash      as Crypto
-import           Codec.Serialise          (decode, encode, serialise)
+import           Codec.Serialise          (Serialise, decode, encode, serialise)
 import qualified Data.ByteArray           as BA
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.Text                as Text
@@ -84,21 +85,20 @@ redeemerHash :: Redeemer -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash vl =
-    ValidatorHash
-        $ Crypto.hashToBytes
-        $ Crypto.hashWith @Crypto.Blake2b_224 id
-        $ Crypto.hashToBytes
-        $ Crypto.hashWith @Crypto.Blake2b_224 id
-        $ BSL.toStrict
-        $ serialise vl
+validatorHash = ValidatorHash . scriptHash
 
 mintingPolicyHash :: MintingPolicy -> MintingPolicyHash
-mintingPolicyHash vl =
-    MintingPolicyHash
-        $ Crypto.hashToBytes
-        $ Crypto.hashWith @Crypto.Blake2b_224 id
-        $ Crypto.hashToBytes
-        $ Crypto.hashWith @Crypto.Blake2b_224 id
-        $ BSL.toStrict
-        $ serialise vl
+mintingPolicyHash = MintingPolicyHash . scriptHash
+
+stakeValidatorHash :: StakeValidator -> StakeValidatorHash
+stakeValidatorHash = StakeValidatorHash . scriptHash
+
+scriptHash :: Serialise a => a -> Builtins.BuiltinByteString
+scriptHash =
+    toBuiltin
+    . Crypto.hashToBytes
+    . Crypto.hashWith @Crypto.Blake2b_224 id
+    . Crypto.hashToBytes
+    . Crypto.hashWith @Crypto.Blake2b_224 id
+    . BSL.toStrict
+    . serialise

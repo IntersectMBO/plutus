@@ -53,6 +53,8 @@ library
     import:             lang
     build-tool-depends:
         cardano-node:cardano-node -any, cardano-cli:cardano-cli -any
+    ghc-options:
+        -Wunused-packages
 
     exposed-modules:
         Cardano.Api.NetworkId.Extra
@@ -71,7 +73,6 @@ library
         Cardano.Node.API
         Cardano.Node.Client
         Cardano.Node.Mock
-        Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
         Cardano.Protocol.Socket.Mock.Client
@@ -117,6 +118,7 @@ library
         Plutus.PAB.Timeout
         Plutus.PAB.Types
         Plutus.PAB.Webserver.API
+        Plutus.PAB.Webserver.Client
         Plutus.PAB.Webserver.Handler
         Plutus.PAB.Webserver.Server
         Plutus.PAB.Webserver.Types
@@ -148,8 +150,6 @@ library
         contra-tracer -any,
         cryptonite -any,
         cborg -any,
-        directory -any,
-        errors -any,
         freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
@@ -175,7 +175,6 @@ library
         plutus-ledger-api -any,
         purescript-bridge -any,
         prettyprinter >=1.1.0.1,
-        process -any,
         quickcheck-instances -any,
         random -any,
         row-types -any,
@@ -184,7 +183,6 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
-        swagger2 -any,
         tagged -any,
         typed-protocols -any,
         typed-protocols-examples -any,
@@ -267,10 +265,10 @@ executable plutus-pab-examples
     main-is:          Main.hs
     hs-source-dirs:   examples
     other-modules:
-        ContractExample
         ContractExample.AtomicSwap
         ContractExample.PayToWallet
         ContractExample.WaitForTx
+        ContractExample
     default-language: Haskell2010
     ghc-options:
         -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
@@ -421,9 +419,13 @@ test-suite plutus-pab-test-full
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
     other-modules:
+        ContractExample
+        ContractExample.WaitForTx
         ContractExample.AtomicSwap
         ContractExample.PayToWallet
         Plutus.PAB.CoreSpec
+        Plutus.PAB.CliSpec
+        Plutus.PAB.Effects.Contract.BuiltinSpec
         Plutus.PAB.Effects.Contract.ContractTest
         Plutus.PAB.Simulator.Test
 
@@ -458,36 +460,41 @@ test-suite plutus-pab-test-full
         prettyprinter -any,
         row-types -any,
         plutus-tx -any,
-        playground-common -any
+        playground-common -any,
+        yaml -any,
+        iohk-monitoring -any,
+        servant-server -any,
+        purescript-bridge -any,
+        async -any,
+        servant-client -any,
+        uuid -any,
 
 executable tx-inject
     import:           lang
     main-is:          Main.hs
     hs-source-dirs:   tx-inject
+    other-modules:
+        TxInject.RandomTx
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
         containers -any,
         clock -any,
-        deepseq -any,
-        http-client -any,
-        http-conduit -any,
         lens -any,
         mwc-random -any,
         optparse-applicative -any,
         plutus-contract -any,
         plutus-ledger -any,
-        plutus-tx -any,
         pretty-simple -any,
         rate-limit -any,
-        servant-client -any,
         signal -any,
         stm -any,
         text -any,
         time-units -any,
         yaml -any,
-        data-default -any
+        hedgehog -any,
+        primitive -any
 
 executable sync-client
     import: lang
@@ -500,10 +507,6 @@ executable sync-client
         cardano-slotting -any,
         either -any,
         optparse-applicative -any,
-        ouroboros-consensus-byron -any,
-        ouroboros-consensus-cardano -any,
-        ouroboros-consensus-shelley -any,
-        ouroboros-network -any,
         plutus-ledger,
         plutus-pab,
         text

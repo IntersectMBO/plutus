@@ -6,6 +6,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
 
+
 module Plugin.Basic.Spec where
 
 import           Common

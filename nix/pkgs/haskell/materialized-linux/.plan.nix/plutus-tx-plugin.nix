@@ -57,7 +57,6 @@
           "PlutusTx/Compiler/Kind"
           "PlutusTx/Compiler/Laziness"
           "PlutusTx/Compiler/Names"
-          "PlutusTx/Compiler/Primitives"
           "PlutusTx/Compiler/Type"
           "PlutusTx/Compiler/Types"
           "PlutusTx/Compiler/Utils"
@@ -86,6 +85,7 @@
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))

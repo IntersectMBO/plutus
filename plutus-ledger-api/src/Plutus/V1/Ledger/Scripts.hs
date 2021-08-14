@@ -28,8 +28,10 @@ module Plutus.V1.Ledger.Scripts(
     evaluateScript,
     runScript,
     runMintingPolicyScript,
+    runStakeValidatorScript,
     applyValidator,
     applyMintingPolicyScript,
+    applyStakeValidatorScript,
     mkTermToEvaluate,
     applyArguments,
     -- * Script wrappers
@@ -41,12 +43,16 @@ module Plutus.V1.Ledger.Scripts(
     mkMintingPolicyScript,
     MintingPolicy (..),
     unMintingPolicyScript,
+    mkStakeValidatorScript,
+    StakeValidator (..),
+    unStakeValidatorScript,
     Context(..),
     -- * Hashes
     DatumHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
     MintingPolicyHash (..),
+    StakeValidatorHash (..),
     -- * Example scripts
     unitRedeemer,
     unitDatum,
@@ -65,6 +71,7 @@ import qualified Data.ByteArray                           as BA
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Hashable                            (Hashable)
 import           Data.String
+import           Data.Text                                (Text)
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import qualified Flat
@@ -88,8 +95,11 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
+  -- See Note [Using Flat inside CBOR instance of Script]
+  -- Important to go via 'WithSizeLimits' to ensure we enforce the size limits for constants
+  deriving Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ())))
 
-{-| Note [Using Flat inside CBOR instance of Script]
+{- Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
 choice to use Flat was made to have a more efficient (most wins are in uncompressed
 size) data serialisation format and use less space on-chain.
@@ -103,13 +113,17 @@ Because Flat is not self-describing and it gets used in the encoding of Programs
 data structures that include scripts (for example, transactions) no-longer benefit
 for CBOR's ability to self-describe it's format.
 -}
-instance Serialise Script where
-  encode = encode . Flat.flat . unScript
+
+-- | Newtype for to provide 'Serialise' instances for types with a 'Flat' instance that
+-- just encodes the flat-serialized value as a CBOR bytestring
+newtype SerialiseViaFlat a = SerialiseViaFlat a
+instance Flat.Flat a => Serialise (SerialiseViaFlat a) where
+  encode (SerialiseViaFlat a) = encode $ Flat.flat a
   decode = do
     bs <- decodeBytes
     case Flat.unflat bs of
-      Left  err    -> Haskell.fail (Haskell.show err)
-      Right script -> return $ Script script
+      Left  err -> Haskell.fail (Haskell.show err)
+      Right v   -> return (SerialiseViaFlat v)
 
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
@@ -130,19 +144,11 @@ in `Script`, but that led to a lot of deserializing and reserializing in `applyP
 Here we have to serialize when we do `Eq` or `Ord` operations, but this happens comparatively
 infrequently (I believe).
 -}
-instance Eq Script where
-    {-# INLINABLE (==) #-}
-    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
-
 instance Haskell.Eq Script where
-    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
-
-instance Ord Script where
-    {-# INLINABLE compare #-}
-    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
+    a == b = Builtins.toBuiltin (BSL.toStrict (serialise a)) == Builtins.toBuiltin (BSL.toStrict (serialise b))
 
 instance Haskell.Ord Script where
-    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
+    a `compare` b = Builtins.toBuiltin (BSL.toStrict (serialise a)) `compare` Builtins.toBuiltin (BSL.toStrict (serialise b))
 
 instance Haskell.Show Script where
     showsPrec _ _ = Haskell.showString "<Script>"
@@ -165,7 +171,7 @@ fromPlc (UPLC.Program a v t) =
     in Script $ UPLC.Program a v nameless
 
 data ScriptError =
-    EvaluationError [Haskell.String] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
+    EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     | MalformedScript Haskell.String -- ^ Script is wrong in some way
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
@@ -185,7 +191,7 @@ mkTermToEvaluate (Script (UPLC.Program a v t)) =
     in PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram
 
 -- | Evaluate a script, returning the trace log.
-evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Haskell.String])
+evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Text])
 evaluateScript s = do
     p <- case mkTermToEvaluate s of
         Right p -> return p
@@ -198,17 +204,26 @@ evaluateScript s = do
             UserEvaluationError evalError -> EvaluationError logOut (PLC.show evalError)  -- TODO fix this error channel fuckery
     Haskell.pure (budget, logOut)
 
+{- Note [JSON instances for Script]
+The JSON instances for Script are partially hand-written rather than going via the Serialise
+instance directly. The reason for this is to *avoid* the size checks that are in place in the
+Serialise instance. These are only useful for deserialisation checks on-chain, whereas the
+JSON instances are used for e.g. transmitting validation events, which often include scripts
+with the data arguments applied (which can be very big!).
+-}
+
 instance ToJSON Script where
-    toJSON = JSON.String . JSON.encodeSerialise
+    -- See note [JSON instances for Script]
+    toJSON (Script p) = JSON.String $ JSON.encodeSerialise (SerialiseViaFlat p)
 
 instance FromJSON Script where
-    parseJSON = JSON.decodeSerialise
+    -- See note [JSON instances for Script]
+    parseJSON v = do
+        (SerialiseViaFlat p) <- JSON.decodeSerialise v
+        return $ Script p
 
-instance ToJSON PLC.Data where
-    toJSON = JSON.String . JSON.encodeSerialise
-
-instance FromJSON PLC.Data where
-    parseJSON = JSON.decodeSerialise
+deriving via (JSON.JSONViaSerialise PLC.Data) instance ToJSON (PLC.Data)
+deriving via (JSON.JSONViaSerialise PLC.Data) instance FromJSON (PLC.Data)
 
 mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
@@ -222,10 +237,16 @@ mkMintingPolicyScript = MintingPolicy . fromCompiledCode
 unMintingPolicyScript :: MintingPolicy -> Script
 unMintingPolicyScript = getMintingPolicy
 
+mkStakeValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> ()) -> StakeValidator
+mkStakeValidatorScript = StakeValidator . fromCompiledCode
+
+unStakeValidatorScript :: StakeValidator -> Script
+unStakeValidatorScript = getStakeValidator
+
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, NFData)
   deriving Pretty via (PrettyShow Validator)
 
@@ -266,7 +287,7 @@ instance BA.ByteArrayAccess Redeemer where
 -- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for minting constraints.
 newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, NFData)
   deriving Pretty via (PrettyShow MintingPolicy)
 
@@ -279,9 +300,25 @@ instance BA.ByteArrayAccess MintingPolicy where
     withByteArray =
         BA.withByteArray . BSL.toStrict . serialise
 
+-- | 'StakeValidator' is a wrapper around 'Script's which are used as validators for withdrawals and stake address certificates.
+newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
+  deriving stock (Generic)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
+  deriving anyclass (ToJSON, FromJSON, NFData)
+  deriving Pretty via (PrettyShow MintingPolicy)
+
+instance Haskell.Show StakeValidator where
+    show = const "StakeValidator { <script> }"
+
+instance BA.ByteArrayAccess StakeValidator where
+    length =
+        BA.length . BSL.toStrict . serialise
+    withByteArray =
+        BA.withByteArray . BSL.toStrict . serialise
+
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
-    ValidatorHash Builtins.ByteString
+    ValidatorHash Builtins.BuiltinByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
@@ -289,7 +326,7 @@ newtype ValidatorHash =
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
-    DatumHash Builtins.ByteString
+    DatumHash Builtins.BuiltinByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
@@ -297,7 +334,7 @@ newtype DatumHash =
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
-    RedeemerHash Builtins.ByteString
+    RedeemerHash Builtins.BuiltinByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
@@ -305,7 +342,15 @@ newtype RedeemerHash =
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MintingPolicyHash =
-    MintingPolicyHash Builtins.ByteString
+    MintingPolicyHash Builtins.BuiltinByteString
+    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving stock (Generic)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+
+-- | Script runtime representation of a @Digest SHA256@.
+newtype StakeValidatorHash =
+    StakeValidatorHash Builtins.BuiltinByteString
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, ToData, FromData, UnsafeFromData)
@@ -333,7 +378,7 @@ runScript
     -> Validator
     -> Datum
     -> Redeemer
-    -> m (PLC.ExBudget, [Haskell.String])
+    -> m (PLC.ExBudget, [Text])
 runScript context validator datum redeemer = do
     evaluateScript (applyValidator context validator datum redeemer)
 
@@ -352,9 +397,28 @@ runMintingPolicyScript
     => Context
     -> MintingPolicy
     -> Redeemer
-    -> m (PLC.ExBudget, [Haskell.String])
+    -> m (PLC.ExBudget, [Text])
 runMintingPolicyScript context mps red = do
     evaluateScript (applyMintingPolicyScript context mps red)
+
+-- | Apply 'StakeValidator' to its 'Context' and 'Redeemer'.
+applyStakeValidatorScript
+    :: Context
+    -> StakeValidator
+    -> Redeemer
+    -> Script
+applyStakeValidatorScript (Context (BuiltinData valData)) (StakeValidator validator) (Redeemer (BuiltinData red)) =
+    applyArguments validator [red, valData]
+
+-- | Evaluate a 'StakeValidator' with its 'Context' and 'Redeemer', returning the log.
+runStakeValidatorScript
+    :: (MonadError ScriptError m)
+    => Context
+    -> StakeValidator
+    -> Redeemer
+    -> m (PLC.ExBudget, [Text])
+runStakeValidatorScript context wps red = do
+    evaluateScript (applyStakeValidatorScript context wps red)
 
 -- | @()@ as a datum.
 unitDatum :: Datum
@@ -366,9 +430,11 @@ unitRedeemer = Redeemer $ toBuiltinData ()
 
 makeLift ''ValidatorHash
 
-makeLift ''DatumHash
-
 makeLift ''MintingPolicyHash
+
+makeLift ''StakeValidatorHash
+
+makeLift ''DatumHash
 
 makeLift ''RedeemerHash
 

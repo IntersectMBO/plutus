@@ -17,7 +17,7 @@ import           Cardano.Api                                 (BlockInMode (..), 
                                                               ChainTip (..), ConsensusModeParams (..),
                                                               LocalChainSyncClient (..), LocalNodeClientProtocols (..),
                                                               LocalNodeClientProtocolsInMode, LocalNodeConnectInfo (..),
-                                                              connectToLocalNode)
+                                                              NetworkId, connectToLocalNode)
 import           Ledger.TimeSlot                             (SlotConfig, currentSlot)
 import           Ouroboros.Network.IOManager
 import qualified Ouroboros.Network.Protocol.ChainSync.Client as ChainSync
@@ -54,18 +54,20 @@ getCurrentSlot = cshCurrentSlot
 runChainSync'
   :: FilePath
   -> SlotConfig
+  -> NetworkId
   -> [ChainPoint]
   -> IO (ChainSyncHandle ChainSyncEvent)
-runChainSync' socketPath slotConfig resumePoints =
-  runChainSync socketPath slotConfig resumePoints (\_ _ -> pure ())
+runChainSync' socketPath slotConfig networkId resumePoints =
+  runChainSync socketPath slotConfig networkId resumePoints (\_ _ -> pure ())
 
 runChainSync
   :: FilePath
   -> SlotConfig
+  -> NetworkId
   -> [ChainPoint]
   -> ChainSyncCallback
   -> IO (ChainSyncHandle ChainSyncEvent)
-runChainSync socketPath slotConfig resumePoints chainSyncEventHandler = do
+runChainSync socketPath slotConfig networkId resumePoints chainSyncEventHandler = do
     let handle = ChainSyncHandle {
           cshCurrentSlot = currentSlot slotConfig,
           cshHandler = chainSyncEventHandler }
@@ -75,7 +77,7 @@ runChainSync socketPath slotConfig resumePoints chainSyncEventHandler = do
     where
       localNodeConnectInfo = LocalNodeConnectInfo {
         localConsensusModeParams = CardanoModeParams epochSlots,
-        localNodeNetworkId = cfgNetworkId,
+        localNodeNetworkId = networkId,
         localNodeSocketPath = socketPath }
       localNodeClientProtocols :: LocalNodeClientProtocolsInMode CardanoMode
       localNodeClientProtocols = LocalNodeClientProtocols {

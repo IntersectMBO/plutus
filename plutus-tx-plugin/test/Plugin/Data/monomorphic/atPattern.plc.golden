@@ -12,34 +12,45 @@
     (termbind
       (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam
-        x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ])
-      )
+      (builtin addInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
     )
     (lam
       t
       [[Tuple2 (con integer)] (con integer)]
-      [
-        { [ { { Tuple2_match (con integer) } (con integer) } t ] (con integer) }
-        (lam
-          ds
-          (con integer)
+      (let
+        (nonrec)
+        (termbind
+          (nonstrict) (vardecl wild [[Tuple2 (con integer)] (con integer)]) t
+        )
+        [
+          {
+            [ { { Tuple2_match (con integer) } (con integer) } t ] (con integer)
+          }
           (lam
             ds
             (con integer)
-            [
-              [ addInteger ds ]
+            (lam
+              ds
+              (con integer)
               [
-                {
-                  [ { { Tuple2_match (con integer) } (con integer) } t ]
-                  (con integer)
-                }
-                (lam a (con integer) (lam b (con integer) a))
+                [ addInteger ds ]
+                [
+                  {
+                    [ { { Tuple2_match (con integer) } (con integer) } wild ]
+                    (con integer)
+                  }
+                  (lam a (con integer) (lam b (con integer) a))
+                ]
               ]
-            ]
+            )
           )
-        )
-      ]
+        ]
+      )
     )
   )
 )

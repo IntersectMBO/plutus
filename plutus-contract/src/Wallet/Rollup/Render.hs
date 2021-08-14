@@ -49,7 +49,7 @@ import qualified Ledger.Value                          as Value
 import           Plutus.V1.Ledger.Crypto               (PubKey, PubKeyHash, Signature)
 import qualified PlutusTx
 import qualified PlutusTx.AssocMap                     as AssocMap
-import qualified PlutusTx.Builtins                     as Builtins
+import qualified PlutusTx.Prelude                      as PlutusTx
 import           Wallet.Emulator.Folds                 (EmulatorEventFold)
 import qualified Wallet.Emulator.Folds                 as Folds
 import           Wallet.Emulator.Types                 (Wallet (Wallet))
@@ -148,8 +148,8 @@ instance Render TokenName where
     render (TokenName "") = pure "Lovelace"
     render t              = pure $ pretty $ Value.toString t
 
-instance Render Builtins.ByteString where
-    render = pure . pretty . JSON.encodeByteString
+instance Render PlutusTx.BuiltinByteString where
+    render = pure . pretty . JSON.encodeByteString . PlutusTx.fromBuiltin
 
 deriving via RenderPretty PlutusTx.Data instance
          Render PlutusTx.Data

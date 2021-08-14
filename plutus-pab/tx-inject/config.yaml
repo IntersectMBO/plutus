@@ -35,6 +35,7 @@ nodeServerConfig:
     - getWallet: 8
     - getWallet: 9
     - getWallet: 10
+  mscNodeMode: MockNode
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:9083

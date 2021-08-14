@@ -18,19 +18,19 @@ import Effect.Console as Console
 import Halogen (HalogenM, liftEffect, raise)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_getEndpointDescription)
-import Plutus.PAB.Webserver (SPParams_, getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
-import Plutus.PAB.Webserver.Types (ContractSignatureResponse, FullReport, CombinedWSStreamToServer)
+import Plutus.PAB.Webserver (SPParams_, getApiContractInstanceByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractInstanceByContractinstanceidEndpointByEndpointname)
+import Plutus.PAB.Webserver.Types (ContractSignatureResponse, FullReport, CombinedWSStreamToServer, ContractActivationArgs)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Wallet.Types (EndpointDescription, ContractInstanceId, NotificationError)
+import Wallet.Types (EndpointDescription, ContractInstanceId)
 import ContractExample (ExampleContracts)
 
 class
   Monad m <= MonadApp m where
   getFullReport :: m (WebData (FullReport ExampleContracts))
   getContractSignature :: ContractInstanceId -> m (WebData (ContractSignatureResponse ExampleContracts))
-  invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData (Maybe NotificationError))
-  activateContract :: ExampleContracts -> m Unit
+  invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData Unit)
+  activateContract :: ContractActivationArgs ExampleContracts -> m Unit
   sendWebSocketMessage :: CombinedWSStreamToServer -> m Unit
   log :: String -> m Unit
 
@@ -71,10 +71,10 @@ runHalogenApp = unwrap
 
 instance monadAppHalogenApp :: (MonadAff m, MonadAsk (SPSettings_ SPParams_) m) => MonadApp (HalogenApp m) where
   getFullReport = runAjax getApiFullreport
-  getContractSignature csContract = runAjax $ getApiContractByContractinstanceidSchema $ view _contractInstanceIdString csContract
+  getContractSignature csContract = runAjax $ getApiContractInstanceByContractinstanceidSchema $ view _contractInstanceIdString csContract
   invokeEndpoint payload contractInstanceId endpointDescription =
     runAjax
-      $ postApiContractByContractinstanceidEndpointByEndpointname
+      $ postApiContractInstanceByContractinstanceidEndpointByEndpointname
           payload
           (view _contractInstanceIdString contractInstanceId)
           (view _getEndpointDescription endpointDescription)

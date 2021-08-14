@@ -235,6 +235,7 @@ mkSimulatorHandlers feeCfg slotCfg handleContractEffect =
                 $ runPABAction
                 $ handleDelayEffect
                 $ interpret (Core.handleUserEnvReader @t @(SimulatorState t))
+                $ interpret (Core.handleInstancesStateReader @t @(SimulatorState t))
                 $ interpret (Core.handleBlockchainEnvReader @t @(SimulatorState t))
                 $ advanceClock @t slotCfg
             Core.waitUntilSlot 1
@@ -340,6 +341,7 @@ makeBlock ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
     , Member (Reader BlockchainEnv) effs
+    , Member (Reader Instances.InstancesState) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
     )
@@ -432,6 +434,7 @@ handleChainControl ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
     , Member (Reader BlockchainEnv) effs
+    , Member (Reader Instances.InstancesState) effs
     , Member (LogMsg Chain.ChainEvent) effs
     , Member (LogMsg ChainIndex.ChainIndexEvent) effs
     )
@@ -441,10 +444,11 @@ handleChainControl ::
 handleChainControl slotCfg = \case
     Chain.ProcessBlock -> do
         blockchainEnv <- ask @BlockchainEnv
+        instancesState <- ask @Instances.InstancesState
         (txns, slot) <- runChainEffects @t @_ slotCfg ((,) <$> Chain.processBlock <*> Chain.getCurrentSlot)
         runChainIndexEffects @t (ChainIndex.chainIndexNotify $ BlockValidated txns)
 
-        void $ liftIO $ STM.atomically $ BlockchainEnv.processBlock blockchainEnv txns slot
+        void $ liftIO $ STM.atomically $ BlockchainEnv.processMockBlock instancesState blockchainEnv txns slot
 
         pure txns
     Chain.ModifySlot f -> do
@@ -585,6 +589,7 @@ advanceClock ::
     ( LastMember IO effs
     , Member (Reader (SimulatorState t)) effs
     , Member (Reader BlockchainEnv) effs
+    , Member (Reader Instances.InstancesState) effs
     , Member DelayEffect effs
     , Member TimeEffect effs
     )

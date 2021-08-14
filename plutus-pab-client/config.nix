@@ -28,7 +28,6 @@
   nodeServerConfig:
     mscBaseUrl: http://localhost:${ nodeserver-port }
     mscSocketPath: /tmp/node-server.sock
-    mscRandomTxInterval: 20000000
     mscSlotConfig:
       scSlotZeroTime: 1596059091000 # POSIX time of 2020-07-29T21:44:51Z (Wednesday, July 29, 2020 21:44:51) - Shelley launch time
       scSlotLength: 1000 # In milliseconds
@@ -42,6 +41,7 @@
       - getWallet: 1
       - getWallet: 2
       - getWallet: 3
+    mscNodeMode: MockNode
 
   chainIndexConfig:
     ciBaseUrl: http://localhost:${ chain-index-port }

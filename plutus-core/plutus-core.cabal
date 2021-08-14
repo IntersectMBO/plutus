@@ -117,6 +117,7 @@ library
         PlutusIR.Compiler.Names
         PlutusIR.Core
         PlutusIR.Core.Instance
+        PlutusIR.Core.Instance.Flat
         PlutusIR.Core.Instance.Pretty
         PlutusIR.Core.Instance.Scoping
         PlutusIR.Core.Plated
@@ -275,6 +276,7 @@ library
         dlist -any,
         dom-lt -any,
         exceptions -any,
+        extra -any,
         filepath -any,
         flat -any,
         ghc-prim -any,
@@ -408,6 +410,7 @@ test-suite untyped-plutus-core-test
         base >=4.9 && <5,
         bytestring -any,
         hedgehog -any,
+        flat -any,
         mtl -any,
         plutus-core -any,
         prettyprinter -any,
@@ -458,6 +461,18 @@ executable uplc
         text -any,
         transformers -any
 
+executable pir
+    import: lang
+    main-is: pir/Main.hs
+    hs-source-dirs: executables
+    build-depends:
+        plutus-core -any,
+        base <5,
+        bytestring -any,
+        flat -any,
+        lens -any,
+        optparse-applicative -any,
+        transformers -any
 
 -- This runs the microbenchmarks used to generate the cost models for built-in functions,
 -- saving the results in cost-model/data/benching.csv.  It will take several hours.
@@ -465,6 +480,9 @@ benchmark cost-model-budgeting-bench
     import: lang
     type: exitcode-stdio-1.0
     main-is: Bench.hs
+    other-modules:
+        CriterionExtensions
+        Nops
     hs-source-dirs: cost-model/budgeting-bench
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
@@ -474,8 +492,12 @@ benchmark cost-model-budgeting-bench
         base -any,
         bytestring -any,
         criterion -any,
+        criterion-measurement -any,
+        deepseq -any,
         directory -any,
         hedgehog -any,
+        mtl -any,
+        optparse-applicative -any,
         random -any
 
 

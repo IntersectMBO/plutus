@@ -26,12 +26,6 @@ newtype Size = Size
       deriving newtype (Pretty)
       deriving (Semigroup, Monoid) via Sum Integer
 
--- touch :: Traversal' a ()
--- touch = const pure  -- A.k.a. @pure pure@.
-
--- sizeOf :: Getting (Endo (Endo Int)) s a -> s -> Size
--- sizeOf l = Size . fromIntegral . lengthOf l
-
 -- | Count the number of AST nodes in a kind.
 --
 -- >>> kindSize $ Type ()

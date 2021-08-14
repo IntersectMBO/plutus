@@ -29,7 +29,7 @@ mappend = (<>)
 mconcat :: Monoid a => [a] -> a
 mconcat = foldr mappend mempty
 
-instance Monoid Builtins.ByteString where
+instance Monoid Builtins.BuiltinByteString where
     {-# INLINABLE mempty #-}
     mempty = Builtins.emptyByteString
 

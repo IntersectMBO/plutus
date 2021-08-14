@@ -63,7 +63,7 @@ class PABContract contract where
     type State contract
 
     -- | Extract the serialisable state from the contract instance state.
-    serialisableState :: Proxy contract -> State contract -> ContractResponse Value Value Value PABReq
+    serialisableState :: Proxy contract -> State contract -> ContractResponse Value Value PABResp PABReq
 
 -- | The open requests of the contract instance.
 requests :: forall contract. PABContract contract => State contract -> [Request PABReq]

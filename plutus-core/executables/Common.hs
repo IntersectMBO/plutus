@@ -77,7 +77,7 @@ class Executable a where
     -> m ()
 
   -- | Convert names to de Bruijn indices and then serialise
-  serialiseDbProgramFlat :: Flat b => a b -> IO BSL.ByteString
+  serialiseDbProgramFlat :: (Flat b, PP.Pretty b) => a b -> IO BSL.ByteString
 
   -- | Read and deserialise a Flat-encoded UPLC AST
   loadASTfromFlat :: AstNameType -> Input -> IO (a ())
@@ -139,6 +139,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.termSize term)
   putStrLn ""
   putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
+  putStrLn $ printf "Time spent executing builtins:  %4.2f%%\n" (100*(getCPU builtinCosts)/totalTime)
   case model of
     Default ->
         do

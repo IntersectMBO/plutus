@@ -26,6 +26,8 @@ import qualified Data.IntMap.Strict             as IntMap
 import           Data.Tree
 
 {- Note [Retained size analysis]
+WARNING: everything in this module assumes global uniqueness of variables.
+
 For calculating the size that each binding retains we use a classic graph algorithm for dominance.
 The @algebraic-graphs@ library does not provide one out of the box, so we convert an algebraic graph
 to a @fgl@-based representation and use the @dom-lt@ library for calculating the dominator tree
@@ -36,7 +38,7 @@ convenient to use).
 The procedure for computing the retained size of each binding is two-staged:
 
 1. First we compute how much size each let-binding in a term retains directly.
-   For example, a 'TermBind' directly retains the body of the binding.
+   For example, a 'TermBind' directly retains only the type signature and the body of the binding.
 2. Then we compute the dominator tree for the dependency graph of the term and annotate it with the
    retained size of each binding by adding up the directly retained size of the binding computed at
    stage one and the size retained by all the dependencies of the binding
@@ -99,6 +101,7 @@ instance Pretty RetainedSize where
     pretty NotARetainer   = mempty
 
 -- See Note [Handling the root].
+-- | The 'Int' index of the root.
 rootInt :: Int
 rootInt = -1
 
@@ -107,14 +110,15 @@ nodeToInt :: Node -> Int
 nodeToInt (Variable (PLC.Unique i)) = i
 nodeToInt Root                      = rootInt
 
-newtype SizeInfo = SizeInfo (IntMap Size)
+-- | A mapping from the index of a binding to what it directly retains.
+newtype DirectionRetentionMap = DirectionRetentionMap (IntMap Size)
 
-lookupSize :: Int -> SizeInfo -> Size
-lookupSize i (SizeInfo ss) = ss IntMap.! i
+lookupSize :: Int -> DirectionRetentionMap -> Size
+lookupSize i (DirectionRetentionMap ss) = ss IntMap.! i
 
 -- | Annotate the dominator tree with the retained size of each entry. The retained size is computed
 -- as the size directly retained by the binding plus the size of all its dependencies.
-annotateWithSizes :: SizeInfo -> Tree Int -> Tree (Int, Size)
+annotateWithSizes :: DirectionRetentionMap -> Tree Int -> Tree (Int, Size)
 annotateWithSizes sizeInfo = go where
     go (Node i ts) = Node (i, sizeI) rs where
         rs = map go ts
@@ -125,7 +129,7 @@ toDomTree :: C.Graph Node -> Tree Int
 toDomTree = domTree . (,) rootInt . adjacencyIntMap . fmap nodeToInt
 
 -- | Compute the retention map of a graph.
-depsRetentionMap :: SizeInfo -> C.Graph Node -> IntMap Size
+depsRetentionMap :: DirectionRetentionMap -> C.Graph Node -> IntMap Size
 depsRetentionMap sizeInfo = IntMap.fromList . flatten . annotateWithSizes sizeInfo . toDomTree
 
 -- | Construct a 'UniqueMap' having size information for each individual part of a 'Binding'.
@@ -136,7 +140,6 @@ bindingSize (TermBind _ _ var term) =
     insertByNameIndex var (varDeclSize var <> termSize term) mempty
 bindingSize (TypeBind _ tyVar ty) =
     insertByNameIndex tyVar (tyVarDeclSize tyVar <> typeSize ty) mempty
--- TODO: explain.
 bindingSize (DatatypeBind _ (Datatype _ dataDecl params matchName constrs))
     = insertByNameIndex dataDecl (tyVarDeclSize dataDecl)
     . flip (foldr $ \param -> insertByNameIndex param $ tyVarDeclSize param) params
@@ -153,24 +156,25 @@ bindingSizes (Let _ _ binds term) = foldMap bindingSize binds <> bindingSizes te
 bindingSizes term                 = term ^. termSubterms . to bindingSizes
 
 -- | Same as 'bindingSizes' but is wrapped in a newtype and has a bogus entry for the root.
-toSizeInfo
+toDirectionRetentionMap
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Term tyname name uni fun ann -> SizeInfo
-toSizeInfo term = SizeInfo . IntMap.insert rootInt rootSize . unUniqueMap $ bindingSizes term where
-    -- See Note [Handling the root].
-    rootSize = Size (- 10 ^ (10::Int))
+    => Term tyname name uni fun ann -> DirectionRetentionMap
+toDirectionRetentionMap term =
+    DirectionRetentionMap . IntMap.insert rootInt rootSize . unUniqueMap $ bindingSizes term where
+        -- See Note [Handling the root].
+        rootSize = Size (- 10 ^ (10::Int))
 
--- | Check if a 'Node' appears in 'SizeInfo'.
-hasSizeIn :: SizeInfo -> Node -> Bool
-hasSizeIn _             Root                      = True
-hasSizeIn (SizeInfo ss) (Variable (PLC.Unique i)) = i `IntMap.member` ss
+-- | Check if a 'Node' appears in 'DirectionRetentionMap'.
+hasSizeIn :: DirectionRetentionMap -> Node -> Bool
+hasSizeIn _             Root                                   = True
+hasSizeIn (DirectionRetentionMap ss) (Variable (PLC.Unique i)) = i `IntMap.member` ss
 
 -- | Compute the retention map of a term.
 termRetentionMap
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, ToBuiltinMeaning uni fun)
     => Term tyname name uni fun ann -> IntMap Size
 termRetentionMap term = depsRetentionMap sizeInfo deps where
-    sizeInfo = toSizeInfo term
+    sizeInfo = toDirectionRetentionMap term
     deps = C.induce (hasSizeIn sizeInfo) $ fst $ runTermDeps term
 
 -- | Apply a function to the annotation of each part of every 'Binding' in a term.

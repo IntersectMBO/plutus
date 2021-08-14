@@ -29,7 +29,9 @@ names to avoid clashes.
 -}
 
 {- Note [Using unit versus force/delay]
-We have force/delay in PIR, so we can use that for non-strict bindings, which is quite nice.
+We don't have force/delay in PIR, but we can use trivial type-abstractions and instantiations,
+which will erase to force and delay in UPLC. Not quite as nice, but it doesn't require an extension
+to the language.
 
 However, we retain the *option* to use unit-lambdas instead, since we rely on this pass to
 handle recursive, non-function bindings and give them function types. `delayed x` is not a
@@ -59,7 +61,8 @@ strictifyBinding
     => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
 strictifyBinding = \case
     TermBind x NonStrict (VarDecl x' name ty) rhs -> do
-        let ann = x
+        -- The annotation to use for new synthetic nodes
+        let ann = x'
 
         a <- freshTyName "dead"
         -- See Note [Compiling non-strict bindings]
@@ -73,7 +76,8 @@ strictifyBindingWithUnit
     => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
 strictifyBindingWithUnit = \case
     TermBind x NonStrict (VarDecl x' name ty) rhs -> do
-        let ann = x
+        -- The annotation to use for new synthetic nodes
+        let ann = x'
 
         argName <- liftQuote $ freshName "arg"
         -- TODO: These are created at every use site, we should bind them globally

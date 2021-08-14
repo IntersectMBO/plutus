@@ -3,7 +3,8 @@
   # on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
 , rootsOnly ? false
-, checkMaterialization ? true
+  # We explicitly pass true here in the GitHub action but don't want to slow down hydra
+, checkMaterialization ? false
 }:
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;

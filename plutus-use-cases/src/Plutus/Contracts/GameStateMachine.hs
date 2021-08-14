@@ -55,14 +55,14 @@ import           Plutus.Contract
 
 import qualified Prelude                      as Haskell
 
-newtype HashedString = HashedString ByteString
+newtype HashedString = HashedString BuiltinByteString
     deriving newtype (Eq, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''HashedString
 
-newtype ClearString = ClearString ByteString
+newtype ClearString = ClearString BuiltinByteString
     deriving newtype (Eq, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -203,8 +203,8 @@ client = SM.mkStateMachineClient $ SM.StateMachineInstance machine typedValidato
 guess :: Promise () GameStateMachineSchema GameError ()
 guess = endpoint @"guess" $ \GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} -> do
 
-    let guessedSecret = ClearString (C.pack guessArgsOldSecret)
-        newSecret     = HashedString (sha2_256 (C.pack guessArgsNewSecret))
+    let guessedSecret = ClearString (toBuiltin (C.pack guessArgsOldSecret))
+        newSecret     = HashedString (sha2_256 (toBuiltin (C.pack guessArgsNewSecret)))
 
     void
         $ SM.runStep client
@@ -212,7 +212,7 @@ guess = endpoint @"guess" $ \GuessArgs{guessArgsOldSecret,guessArgsNewSecret, gu
 
 lock :: Promise () GameStateMachineSchema GameError ()
 lock = endpoint @"lock" $ \LockArgs{lockArgsSecret, lockArgsValue} -> do
-    let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
+    let secret = HashedString (sha2_256 (toBuiltin (C.pack lockArgsSecret)))
         sym = Scripts.forwardingMintingPolicyHash typedValidator
     _ <- SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
     void $ SM.runStep client MintToken

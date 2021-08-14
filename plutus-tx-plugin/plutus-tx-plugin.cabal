@@ -44,7 +44,6 @@ library
         PlutusTx.Compiler.Kind
         PlutusTx.Compiler.Laziness
         PlutusTx.Compiler.Names
-        PlutusTx.Compiler.Primitives
         PlutusTx.Compiler.Type
         PlutusTx.Compiler.Types
         PlutusTx.Compiler.Utils
@@ -105,8 +104,10 @@ test-suite plutus-tx-tests
         tasty -any,
         tasty-hunit -any,
         tasty-hedgehog -any,
+        text -any,
         hedgehog -any,
         lens -any,
         ghc-prim -any,
-    -- this makes the plugin give better errors
-    ghc-options: -g
+    -- NOTE: -g makes the plugin give better errors
+    -- NOTE: we disable the simplifier as it simplifies away some tests
+    ghc-options: -g -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0

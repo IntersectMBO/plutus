@@ -17,9 +17,8 @@
       (vardecl error (all a (type) (fun (con unit) a)))
       (abs a (type) (lam thunk (con unit) (error a)))
     )
-    (termbind
-      (nonstrict) (vardecl joinError Unit) [ { error Unit } (con unit ()) ]
-    )
+    (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
+    (termbind (nonstrict) (vardecl joinError Unit) [ { error Unit } unitval ])
     (termbind
       (strict)
       (vardecl joinError (fun Bool (fun Bool Unit)))

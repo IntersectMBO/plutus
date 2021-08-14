@@ -56,7 +56,6 @@ eraseTC (AC.integer i)    = integer i
 eraseTC (AC.bytestring b) = bytestring b
 eraseTC (AC.string s)     = string s
 eraseTC (AC.bool b)       = bool b
-eraseTC (AC.char c)       = char c
 eraseTC AC.unit           = unit
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
@@ -121,7 +120,6 @@ sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
 sameTC (DC.string s)     = refl
 sameTC (DC.bool b)       = refl
-sameTC (DC.char c)       = refl
 sameTC DC.unit           = refl
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
@@ -317,7 +315,6 @@ same'TC (AC.integer i)    = refl
 same'TC (AC.bytestring b) = refl
 same'TC (AC.string s)     = refl
 same'TC (AC.bool b)       = refl
-same'TC (AC.char c)       = refl
 same'TC AC.unit           = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)

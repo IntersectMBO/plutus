@@ -16,6 +16,7 @@ import           Data.ByteString            (ByteString)
 import           PlutusTx.Builtins.Internal
 
 import           Data.String                (IsString (..))
+import           Data.Text                  (Text, pack)
 
 import qualified GHC.Magic                  as Magic
 
@@ -78,17 +79,10 @@ instance ToBuiltin () BuiltinUnit where
 
 instance FromBuiltin BuiltinByteString ByteString where
     {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = id
+    fromBuiltin (BuiltinByteString b) = b
 instance ToBuiltin ByteString BuiltinByteString where
     {-# INLINABLE toBuiltin #-}
-    toBuiltin = id
-
-instance FromBuiltin BuiltinChar Char where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = id
-instance ToBuiltin Char BuiltinChar where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = id
+    toBuiltin = BuiltinByteString
 
 {- Note [noinline hack]
 For some functions we have two conflicting desires:
@@ -104,6 +98,11 @@ that function is compiled later into the body of another function.
 
 We do therefore need to handle 'noinline' in the plugin, as it itself does not have
 an unfolding.
+
+Another annoying quirk: even if you have 'noinline'd a function call, if the body is
+a single variable, it will still inline! This is the case for the obvious definition
+of 'stringToBuiltinString' (since the newtype constructor vanishes), so we have to add
+some obfuscation to the body to prevent it inlining.
 -}
 
 -- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
@@ -117,17 +116,32 @@ instance IsString BuiltinString where
 
 {-# INLINABLE stringToBuiltinString #-}
 stringToBuiltinString :: String -> BuiltinString
-stringToBuiltinString = go
-    where
-        go []     = emptyString
-        go (x:xs) = charToString x `appendString` go xs
+-- To explain why the obfuscatedId is here
+-- See Note [noinline hack]
+stringToBuiltinString str = obfuscatedId (BuiltinString $ pack str)
 
-instance FromBuiltin BuiltinString BuiltinString where
+{-# NOINLINE obfuscatedId #-}
+obfuscatedId :: a -> a
+obfuscatedId a = a
+
+instance FromBuiltin BuiltinString Text where
     {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = id
-instance ToBuiltin BuiltinString BuiltinString where
+    fromBuiltin (BuiltinString t) = t
+instance ToBuiltin Text BuiltinString where
     {-# INLINABLE toBuiltin #-}
-    toBuiltin = id
+    toBuiltin = BuiltinString
+
+{- Same noinline hack as with `String` type. -}
+instance IsString BuiltinByteString where
+    -- Try and make sure the dictionary selector goes away, it's simpler to match on
+    -- the application of 'stringToBuiltinByteString'
+    {-# INLINE fromString #-}
+    -- See Note [noinline hack]
+    fromString = Magic.noinline stringToBuiltinByteString
+
+{-# INLINABLE stringToBuiltinByteString #-}
+stringToBuiltinByteString :: String -> BuiltinByteString
+stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
 
 {- Note [From/ToBuiltin instances for polymorphic builtin types]
 For various technical reasons
@@ -161,7 +175,7 @@ instance FromBuiltin arep a => FromBuiltin (BuiltinList arep) [a] where
           go :: BuiltinList arep -> [a]
           -- Note that we are using builtin chooseList here so this is *strict* application! So we need to do
           -- the manual laziness ourselves.
-          go l = chooseList l (\_ -> []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
+          go l = chooseList l (const []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
 
 instance ToBuiltin [BuiltinData] (BuiltinList BuiltinData) where
     {-# INLINABLE toBuiltin #-}

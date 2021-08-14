@@ -119,12 +119,8 @@ typedBuiltins
 --     . insertBuiltin ModInteger
     . insertBuiltin LessThanInteger
     . insertBuiltin LessThanEqualsInteger
-    . insertBuiltin GreaterThanInteger
-    . insertBuiltin GreaterThanEqualsInteger
     . insertBuiltin EqualsInteger
-    . insertBuiltin Concatenate
-    . insertBuiltin TakeByteString
-    . insertBuiltin DropByteString
+    . insertBuiltin AppendByteString
     . insertBuiltin Sha2_256
     . insertBuiltin Sha3_256
 --     . insertBuiltin VerifySignature

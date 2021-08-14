@@ -11,18 +11,16 @@
 module Plutus.PAB.Run.Command
     ( ConfigCommand(..)
     , NoConfigCommand(..)
-    , MockServerMode(..)
     ) where
 
-import           Cardano.Node.Types (MockServerMode (..))
-import qualified Data.Aeson         as JSON
-import           GHC.Generics       (Generic)
-import           Wallet.Types       (ContractInstanceId)
+import qualified Data.Aeson   as JSON
+import           GHC.Generics (Generic)
+import           Wallet.Types (ContractInstanceId)
 
 -- | A command for which a config.yaml file is required
 data ConfigCommand =
     Migrate
-    | MockNode MockServerMode -- ^ Run the mock node service without starting the server
+    | StartMockNode -- ^ Run the mock node service
     | MockWallet -- ^ Run the mock wallet service
     | ChainIndex -- ^ Run the chain index service
     | Metadata -- ^ Run the mock meta-data service

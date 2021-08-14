@@ -11,11 +11,11 @@ module API.Lenses
   ) where
 
 import Prelude
-import API.Contract (class ContractActivationId)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
+import MarloweContract (MarloweContract)
 import Plutus.Contract.Effects (ActiveEndpoint, _ActiveEndpoint)
 import Plutus.Contract.Resumable (Request, _Request)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse, _PartiallyDecodedResponse)
@@ -23,17 +23,16 @@ import Plutus.PAB.Webserver.Types (ContractInstanceClientState, _ContractInstanc
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Types (ContractInstanceId, EndpointDescription, _EndpointDescription)
 
-_cicContract :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) ContractInstanceId
+_cicContract :: Lens' (ContractInstanceClientState MarloweContract) ContractInstanceId
 _cicContract = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicContract")
 
-_cicCurrentState :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) (PartiallyDecodedResponse ActiveEndpoint)
+_cicCurrentState :: Lens' (ContractInstanceClientState MarloweContract) (PartiallyDecodedResponse ActiveEndpoint)
 _cicCurrentState = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicCurrentState")
 
--- TODO: fix Haskell typo ("cicDefintion" instead of "cicDefinition")
-_cicDefinition :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) a
-_cicDefinition = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicDefintion")
+_cicDefinition :: Lens' (ContractInstanceClientState MarloweContract) MarloweContract
+_cicDefinition = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicDefinition")
 
-_cicWallet :: forall a. ContractActivationId a => Lens' (ContractInstanceClientState a) Wallet
+_cicWallet :: Lens' (ContractInstanceClientState MarloweContract) Wallet
 _cicWallet = _ContractInstanceClientState <<< prop (SProxy :: SProxy "cicWallet")
 
 ----------

@@ -355,7 +355,7 @@ deriveShow1 ''FormArgumentF
 instance ToSchema (Digest SHA256) where
     toSchema = FormSchemaHex
 
-instance ToSchema P.ByteString where
+instance ToSchema P.BuiltinByteString where
     toSchema = toSchema @String
 
 instance (ToSchema k, ToSchema v) =>

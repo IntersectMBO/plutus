@@ -18,10 +18,10 @@ import           Language.PureScript.Bridge                (BridgePart, Language
 import           Language.PureScript.Bridge.Builder        (BridgeData)
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (Address, DatumHash, MintingPolicy, OnChainTx, PubKey,
-                                                            PubKeyHash, RedeemerPtr, ScriptTag, Signature, Tx, TxId,
-                                                            TxIn, TxInType, TxOut, TxOutRef, TxOutTx, UtxoIndex,
-                                                            ValidationPhase, Validator)
+import           Ledger                                    (Address, BlockId, DatumHash, MintingPolicy, OnChainTx,
+                                                            PubKey, PubKeyHash, RedeemerPtr, ScriptTag, Signature,
+                                                            StakeValidator, Tx, TxId, TxIn, TxInType, TxOut, TxOutRef,
+                                                            TxOutTx, UtxoIndex, ValidationPhase, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError, UnbalancedTx)
 import           Ledger.Credential                         (Credential, StakingCredential)
@@ -32,14 +32,16 @@ import           Ledger.Interval                           (Extended, Interval, 
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
 import           Ledger.Time                               (POSIXTime)
-import           Ledger.TimeSlot                           (SlotConfig)
+import           Ledger.TimeSlot                           (SlotConfig, SlotConversionError)
 import           Ledger.Typed.Tx                           (ConnectionError, WrongOutTypeError)
 import           Ledger.Value                              (AssetClass, CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
+import           Plutus.ChainIndex.Tx                      (ChainIndexTx)
+import           Plutus.ChainIndex.Types                   (Page, PageSize, Tip)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
-import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, Depth, PABReq, PABResp,
-                                                            TxStatus, TxValidity, UtxoAtAddress,
-                                                            WriteBalancedTxResponse)
+import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, ChainIndexQuery,
+                                                            ChainIndexResponse, Depth, PABReq, PABResp, TxStatus,
+                                                            TxValidity, UtxoAtAddress, WriteBalancedTxResponse)
 import           Plutus.Contract.Resumable                 (IterationID, Request, RequestID, Response)
 import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
                                                             ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
@@ -142,6 +144,12 @@ byteStringBridge = do
     typeModule ^== "Data.ByteString.Lazy.Internal" <|> typeModule ^== "Data.ByteString.Internal"
     pure psString
 
+bultinByteStringBridge :: BridgePart
+bultinByteStringBridge = do
+    typeName ^== "BuiltinByteString"
+    typeModule ^== "PlutusTx.Builtins.Internal"
+    pure psString
+
 scientificBridge :: BridgePart
 scientificBridge = do
     typeName ^== "Scientific"
@@ -169,7 +177,7 @@ exBudgetBridge = do
 
 miscBridge :: BridgePart
 miscBridge =
-    byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
+    bultinByteStringBridge <|> byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge <|> satIntBridge <|> exBudgetBridge
 
 ------------------------------------------------------------
 
@@ -209,6 +217,12 @@ datumBridge = do
     typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
+redeemerHashBridge :: BridgePart
+redeemerHashBridge = do
+    typeName ^== "RedeemerHash"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
+    pure psString
+
 redeemerBridge :: BridgePart
 redeemerBridge = do
     typeName ^== "Redeemer"
@@ -227,6 +241,12 @@ mpsHashBridge = do
     typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
+stakeValidatorHashBridge :: BridgePart
+stakeValidatorHashBridge = do
+    typeName ^== "StakeValidatorHash"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
+    pure psString
+
 ledgerBytesBridge :: BridgePart
 ledgerBytesBridge = do
     typeName ^== "LedgerBytes"
@@ -235,7 +255,14 @@ ledgerBytesBridge = do
 
 ledgerBridge :: BridgePart
 ledgerBridge =
-    scriptBridge <|> redeemerBridge <|> datumBridge <|> validatorHashBridge <|> mpsHashBridge <|> ledgerBytesBridge
+        scriptBridge
+    <|> redeemerHashBridge
+    <|> redeemerBridge
+    <|> datumBridge
+    <|> validatorHashBridge
+    <|> mpsHashBridge
+    <|> stakeValidatorHashBridge
+    <|> ledgerBytesBridge
 
 ------------------------------------------------------------
 headersBridge :: BridgePart
@@ -263,6 +290,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @POSIXTime)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Ada)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConfig)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @SlotConversionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxIn)
@@ -283,6 +311,7 @@ ledgerTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @AssetClass)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @MintingPolicy)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @StakeValidator)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerPtr)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @ScriptTag)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
@@ -293,6 +322,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ValidationPhase)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @BlockId)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @DatumHash)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKeyHash)
@@ -330,6 +360,12 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptType)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABReq)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PABResp)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexQuery)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainIndexTx)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Page A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tip)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PageSize)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))

@@ -27,12 +27,12 @@ import           Cardano.BM.Data.Trace                 (Trace)
 import qualified Cardano.ChainIndex.Server             as ChainIndex
 import qualified Cardano.Metadata.Server               as Metadata
 import qualified Cardano.Node.Server                   as NodeServer
-import           Cardano.Node.Types                    (MockServerConfig (..))
+import           Cardano.Node.Types                    (MockServerConfig (..), NodeMode (..))
 import qualified Cardano.Wallet.Server                 as WalletServer
 import           Cardano.Wallet.Types
 import           Control.Concurrent                    (takeMVar)
 import           Control.Concurrent.Async              (Async, async, waitAny)
-import           Control.Concurrent.Availability       (Availability, starting)
+import           Control.Concurrent.Availability       (Availability, available, starting)
 import qualified Control.Concurrent.STM                as STM
 import           Control.Monad                         (forM, forM_, void)
 import           Control.Monad.Freer                   (Eff, LastMember, Member, interpret, runM)
@@ -130,12 +130,21 @@ runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServer
         ccaAvailability
 
 -- Run mock node server
-runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServerConfig},ccaAvailability} (MockNode withoutMockServer) =
-    liftIO $ NodeServer.main
-        (toMockNodeServerLog ccaTrace)
-        nodeServerConfig
-        withoutMockServer
-        ccaAvailability
+runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {nodeServerConfig},ccaAvailability} StartMockNode =
+    case mscNodeMode nodeServerConfig of
+        MockNode -> do
+            liftIO $ NodeServer.main
+                (toMockNodeServerLog ccaTrace)
+                nodeServerConfig
+                ccaAvailability
+        AlonzoNode -> do
+            available ccaAvailability
+            runM
+                $ interpret (LM.handleLogMsgTrace ccaTrace)
+                $ logInfo @(LM.AppMsg (Builtin a))
+                $ LM.PABMsg
+                $ LM.SCoreMsg LM.ConnectingToAlonzoNode
+            pure () -- TODO: Log message that we're connecting to the real Alonzo node
 
 -- Run mock metadata server
 runConfigCommand _ ConfigCommandArgs{ccaTrace, ccaPABConfig = Config {metadataServerConfig}, ccaAvailability} Metadata =
@@ -165,15 +174,17 @@ runConfigCommand contractHandler ConfigCommandArgs{ccaTrace, ccaPABConfig=config
         result <- App.runApp ccaStorageBackend (toPABMsg ccaTrace) contractHandler config
           $ do
               env <- ask @(Core.PABEnvironment (Builtin a) (App.AppEnv a))
+
               -- But first, spin up all the previous contracts
+              logInfo @(LM.PABMultiAgentMsg (Builtin a)) LM.RestoringPABState
               case previousContracts of
-                -- TODO: Log this error a bit better? Or handle it earlier?
                 Left err -> throwError err
                 Right ts -> do
                     forM_ ts $ \(s, cid, args) -> do
                       action <- buildPABAction @a @(App.AppEnv a) s cid args
-                      liftIO $ Core.runPAB' env action
+                      liftIO . async $ Core.runPAB' env action
                       pure ()
+                    logInfo @(LM.PABMultiAgentMsg (Builtin a)) LM.PABStateRestored
 
               -- then, actually start the server.
               let walletClientEnv = App.walletClientEnv (Core.appEnv env)

@@ -12,12 +12,12 @@
     (termbind
       (strict)
       (vardecl trace (all a (type) (fun (con string) (fun a a))))
-      (abs
-        a
-        (type)
-        (lam s (con string) [ { (builtin chooseUnit) a } [ (builtin trace) s ] ]
-        )
-      )
+      (builtin trace)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl trace (all a (type) (fun (con string) (fun a a))))
+      trace
     )
     (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
@@ -27,6 +27,7 @@
       (vardecl error (all a (type) (fun (con unit) a)))
       (abs a (type) (lam thunk (con unit) (error a)))
     )
+    (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
     (termbind
       (strict)
       (vardecl traceError (all a (type) (fun (con string) a)))
@@ -39,17 +40,8 @@
           [
             { error a }
             [
-              {
-                [
-                  Unit_match
-                  [
-                    [ { (builtin chooseUnit) Unit } [ (builtin trace) str ] ]
-                    Unit
-                  ]
-                ]
-                (con unit)
-              }
-              (con unit ())
+              { [ Unit_match [ [ { trace Unit } str ] Unit ] ] (con unit) }
+              unitval
             ]
           ]
         )

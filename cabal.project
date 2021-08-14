@@ -72,11 +72,17 @@ package ouroboros-consensus-cardano
 package cardano-api
   optimization: False
 
--- Drops an instance breaking our code. Should be released to Hackage eventually.
+-- Turn off the tests for a while
+package plutus-metatheory
+  tests: False
+
+-- https://github.com/Quid2/flat/pull/22 fixes a potential exception
+-- when decoding invalid (e.g. malicious) text literals.
 source-repository-package
   type: git
-  location: https://github.com/Quid2/flat.git
-  tag: 95e5d7488451e43062ca84d5376b3adcc465f1cd
+  -- location: https://github.com/Quid2/flat.git
+  location: https://github.com/michaelpj/flat.git
+  tag: ee59880f47ab835dbd73bea0847dab7869fc20d8
 
 -- Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 source-repository-package
@@ -151,7 +157,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-ledger-specs
-  tag: 6b0fca7a73c317f3af7c14dd4dc38178cc78a6c8
+  tag: 09433fe537a4ab57df19e70be309c48d832f6576
   subdir:
     byron/chain/executable-spec
     byron/crypto

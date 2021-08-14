@@ -16,9 +16,6 @@ import qualified PlutusTx.Prelude           as P
 instance IsString Party where
     fromString s = Role (fromString s)
 
-instance IsString ValueId where
-    fromString = ValueId . fromString
-
 
 ada :: Token
 ada = Token adaSymbol adaToken

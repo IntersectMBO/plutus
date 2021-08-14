@@ -4,8 +4,6 @@ module PlutusTx.Ord (Ord(..), Ordering(..)) where
 import qualified PlutusTx.Builtins as Builtins
 import           PlutusTx.Eq
 
-import           PlutusCore.Data
-
 import           Prelude           hiding (Eq (..), Ord (..))
 
 {- HLINT ignore -}
@@ -51,15 +49,21 @@ instance Ord Integer where
     {-# INLINABLE (<) #-}
     (<) = Builtins.lessThanInteger
     {-# INLINABLE (<=) #-}
-    (<=) = Builtins.lessThanEqInteger
+    (<=) = Builtins.lessThanEqualsInteger
     {-# INLINABLE (>) #-}
     (>) = Builtins.greaterThanInteger
     {-# INLINABLE (>=) #-}
-    (>=) = Builtins.greaterThanEqInteger
+    (>=) = Builtins.greaterThanEqualsInteger
 
-instance Ord Builtins.ByteString where
-    {-# INLINABLE compare #-}
-    compare l r = if Builtins.lessThanByteString l r then LT else if Builtins.equalsByteString l r then EQ else GT
+instance Ord Builtins.BuiltinByteString where
+    {-# INLINABLE (<) #-}
+    (<) = Builtins.lessThanByteString
+    {-# INLINABLE (<=) #-}
+    (<=) = Builtins.lessThanEqualsByteString
+    {-# INLINABLE (>) #-}
+    (>) = Builtins.greaterThanByteString
+    {-# INLINABLE (>=) #-}
+    (>=) = Builtins.greaterThanEqualsByteString
 
 instance Ord a => Ord [a] where
     {-# INLINABLE compare #-}
@@ -99,19 +103,3 @@ instance Ord () where
 instance (Ord a, Ord b) => Ord (a, b) where
     {-# INLINABLE compare #-}
     compare (a, b) (a', b') = compare a a' <> compare b b'
-
-instance Ord Data where
-    {-# INLINABLE compare #-}
-    compare (Constr i args) (Constr i' args') = compare i i' <> compare args args'
-    compare Constr{} _                        = LT
-    compare _ Constr {}                       = GT
-    compare (Map entries) (Map entries')      = compare entries entries'
-    compare Map{} _                           = LT
-    compare _ Map{}                           = GT
-    compare (List ds) (List ds')              = compare ds ds'
-    compare List{} _                          = LT
-    compare _ List{}                          = GT
-    compare (I i) (I i')                      = compare i i'
-    compare I{} _                             = LT
-    compare _ I{}                             = GT
-    compare (B b) (B b')                      = compare b b'

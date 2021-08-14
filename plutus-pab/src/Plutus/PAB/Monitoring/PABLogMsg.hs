@@ -22,7 +22,6 @@ module Plutus.PAB.Monitoring.PABLogMsg(
     ) where
 
 import           Data.Aeson                       (FromJSON, ToJSON, Value)
-import qualified Data.Aeson                       as JSON
 import           Data.Text                        (Text)
 import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, viaShow, (<+>))
 import           GHC.Generics                     (Generic)
@@ -35,7 +34,7 @@ import           Cardano.Node.Types               (MockServerLogMsg)
 import           Cardano.Wallet.Types             (WalletMsg)
 import           Data.Aeson.Text                  (encodeToLazyText)
 import qualified Data.Text                        as T
-import           Plutus.Contract.Effects          (PABReq)
+import           Plutus.Contract.Effects          (PABReq, PABResp)
 import           Plutus.Contract.Resumable        (Response)
 import           Plutus.Contract.State            (ContractResponse)
 import           Plutus.PAB.Core.ContractInstance (ContractInstanceMsg (..))
@@ -52,7 +51,7 @@ data AppMsg t =
     | PABMsg (PABLogMsg t)
     | AvailableContract Text
     | ContractInstances (ContractDef t) [ContractInstanceId]
-    | ContractHistoryItem ContractInstanceId (Response JSON.Value)
+    | ContractHistoryItem ContractInstanceId (Response PABResp)
     deriving stock (Generic)
 
 deriving stock instance (Show (ContractDef t)) => Show (AppMsg t)
@@ -140,6 +139,8 @@ data PABMultiAgentMsg t =
     | ContractInstanceLog (ContractInstanceMsg t)
     | UserLog T.Text
     | SqlLog String
+    | PABStateRestored
+    | RestoringPABState
     | StartingPABBackendServer Int
     | StartingMetadataServer Int
     | WalletBalancingMsg Wallet TxBalanceMsg
@@ -152,6 +153,8 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         ContractInstanceLog m      -> toObject v m
         UserLog t                  -> toObject v t
         SqlLog s                   -> toObject v s
+        RestoringPABState          -> mkObjectStr "Restoring PAB state ..." ()
+        PABStateRestored           -> mkObjectStr "PAB state restored." ()
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
         StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
         WalletBalancingMsg w m     -> mkObjectStr "balancing" (Tagged @"wallet" w, Tagged @"message" m)
@@ -167,6 +170,8 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         ContractInstanceLog m -> pretty m
         UserLog m             -> pretty m
         SqlLog m              -> pretty m
+        RestoringPABState     -> "Restoring PAB state ..."
+        PABStateRestored      -> "PAB state restored."
         StartingPABBackendServer port ->
             "Starting PAB backend server on port:" <+> pretty port
         StartingMetadataServer port ->
@@ -175,7 +180,8 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
 
 data CoreMsg t =
     FindingContract ContractInstanceId
-    | FoundContract (Maybe (ContractResponse Value Value Value PABReq))
+    | FoundContract (Maybe (ContractResponse Value Value PABResp PABReq))
+    | ConnectingToAlonzoNode
     deriving stock Generic
 
 deriving stock instance (Show (ContractDef t)) => Show (CoreMsg t)
@@ -184,8 +190,9 @@ deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (CoreMsg t)
 
 instance Pretty (ContractDef t) => Pretty (CoreMsg t) where
     pretty = \case
-        FindingContract i -> "Finding contract" <+> pretty i
-        FoundContract c   -> "Found contract" <+> viaShow c
+        FindingContract i      -> "Finding contract" <+> pretty i
+        FoundContract c        -> "Found contract" <+> viaShow c
+        ConnectingToAlonzoNode -> "Connecting to Alonzo node"
 
 instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (CoreMsg t) where
     toObject v = \case
@@ -196,6 +203,7 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (Co
                 case v of
                     MaximalVerbosity -> Left (Tagged @"contract" state)
                     _                -> Right ()
+        ConnectingToAlonzoNode -> mkObjectStr "Connecting to Alonzo node" ()
 
 newtype RequestSize = RequestSize Int
     deriving stock (Show)

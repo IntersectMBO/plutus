@@ -28,9 +28,11 @@ import           Data.Data                                 (Proxy (Proxy))
 import           Data.Row
 import           Language.PureScript.Bridge                (equal, genericShow, mkSumType)
 import           Language.PureScript.Bridge.TypeParameters (A)
+import           Ledger                                    (TxId)
 import           Playground.Types                          (FunctionSchema)
 import qualified Plutus.Contracts.Currency                 as Contracts.Currency
 import qualified Plutus.Contracts.GameStateMachine         as Contracts.GameStateMachine
+import qualified Plutus.Contracts.PingPong                 as Contracts.PingPong
 import qualified Plutus.Contracts.Prism.Mirror             as Contracts.Prism
 import qualified Plutus.Contracts.Prism.Unlock             as Contracts.Prism
 import           Plutus.Contracts.Uniswap                  (Uniswap)
@@ -54,7 +56,8 @@ data ExampleContracts = UniswapInit
                       | PrismMirror
                       | PrismUnlockExchange
                       | PrismUnlockSto
-                      | WaitForTx
+                      | PingPong
+                      | WaitForTx TxId
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -80,7 +83,7 @@ instance HasDefinitions ExampleContracts where
                      , PrismMirror
                      , PrismUnlockExchange
                      , PrismUnlockSto
-                     , WaitForTx
+                     , PingPong
                      ]
     getContract = getExampleContracts
     getSchema = getExampleContractsSchema
@@ -97,7 +100,8 @@ getExampleContractsSchema = \case
     PrismMirror         -> Builtin.endpointsToSchemas @Contracts.Prism.MirrorSchema
     PrismUnlockExchange -> Builtin.endpointsToSchemas @Contracts.Prism.UnlockExchangeSchema
     PrismUnlockSto      -> Builtin.endpointsToSchemas @Contracts.Prism.STOSubscriberSchema
-    WaitForTx           -> Builtin.endpointsToSchemas @Contracts.WaitForTx.WaitForTxSchema
+    PingPong            -> Builtin.endpointsToSchemas @Contracts.PingPong.PingPongSchema
+    WaitForTx{}         -> Builtin.endpointsToSchemas @Empty
 
 getExampleContracts :: ExampleContracts -> SomeBuiltin
 getExampleContracts = \case
@@ -111,7 +115,8 @@ getExampleContracts = \case
     PrismMirror         -> SomeBuiltin (Contracts.Prism.mirror @Contracts.Prism.MirrorSchema @())
     PrismUnlockExchange -> SomeBuiltin (Contracts.Prism.unlockExchange @() @Contracts.Prism.UnlockExchangeSchema)
     PrismUnlockSto      -> SomeBuiltin (Contracts.Prism.subscribeSTO @() @Contracts.Prism.STOSubscriberSchema)
-    WaitForTx           -> SomeBuiltin Contracts.WaitForTx.waitForTx
+    PingPong            -> SomeBuiltin Contracts.PingPong.simplePingPong
+    WaitForTx txi       -> SomeBuiltin (Contracts.WaitForTx.waitForTx txi)
 
 handlers :: SimulatorEffectHandlers (Builtin ExampleContracts)
 handlers =

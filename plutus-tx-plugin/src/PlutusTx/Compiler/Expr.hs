@@ -15,7 +15,6 @@ import           PlutusTx.Compiler.Builtins
 import           PlutusTx.Compiler.Error
 import           PlutusTx.Compiler.Laziness
 import           PlutusTx.Compiler.Names
-import           PlutusTx.Compiler.Primitives
 import           PlutusTx.Compiler.Type
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
@@ -110,7 +109,7 @@ compileLiteral = \case
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in compileExpr listExpr
-    GHC.LitChar c      -> pure $ PIR.embed $ PLC.mkConstant () c
+    GHC.LitChar c      -> pure $ PIR.embed $ PLC.mkConstant () (T.singleton c)
     GHC.LitFloat _     -> throwPlain $ UnsupportedError "Literal float"
     GHC.LitDouble _    -> throwPlain $ UnsupportedError "Literal double"
     GHC.LitLabel {}    -> throwPlain $ UnsupportedError "Literal label"
@@ -404,21 +403,35 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
-        (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
+        (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
         _                  -> throwPlain $ CompilationError "No info for String builtin"
+
+    (bsTyName, sbbsName) <- case (Map.lookup ''Builtins.BuiltinByteString nameInfo, Map.lookup 'Builtins.stringToBuiltinByteString nameInfo) of
+        (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
+        _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
     let top = NE.head stack
     case e of
         -- See Note [String literals]
+        -- 'fromString' invocation at the builtin ByteString type
+        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc) `GHC.App` _ `GHC.App` (strip -> stringExprContent -> Just bs)
+            | GHC.getName cls == GHC.isStringClassName, GHC.getName tc == bsTyName -> do
+                pure $ PIR.Constant () $ PLC.someValue bs
+        -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
+        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbbsName -> do
+                pure $ PIR.Constant () $ PLC.someValue bs
         -- 'fromString' invocation at the builtin String type
         (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc) `GHC.App` _ `GHC.App` (strip -> stringExprContent -> Just bs)
             | GHC.getName cls == GHC.isStringClassName, GHC.getName tc == stringTyName -> do
-                let str = T.unpack $ TE.decodeUtf8 bs
-                pure $ PIR.Constant () $ PLC.someValue str
+                let text = TE.decodeUtf8 bs
+                pure $ PIR.Constant () $ PLC.someValue text
         -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
         (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName -> do
-                let str = T.unpack $ TE.decodeUtf8 bs
-                pure $ PIR.Constant () $ PLC.someValue str
+                let text = TE.decodeUtf8 bs
+                pure $ PIR.Constant () $ PLC.someValue text
+        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type ty `GHC.App` _ `GHC.App` _
+            | GHC.getName cls == GHC.isStringClassName ->
+                throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
 
         -- See Note [Literals]
         GHC.Lit lit -> compileLiteral lit
@@ -457,7 +470,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar () var
 
         -- Special kinds of id
-        GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> compilePrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
 
         -- See Note [Unfoldings]

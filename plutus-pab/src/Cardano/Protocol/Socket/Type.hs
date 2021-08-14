@@ -16,11 +16,13 @@ import           Control.Monad.Class.MonadST                        (MonadST)
 import           Control.Monad.Class.MonadTimer
 import           Crypto.Hash                                        (SHA256, hash)
 import           Data.Aeson                                         (FromJSON, ToJSON)
+import qualified Data.Aeson.Extras                                  as JSON
 import qualified Data.ByteArray                                     as BA
 import qualified Data.ByteString                                    as BS
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Map                                           ((!))
-import           Data.Text.Prettyprint.Doc                          (Pretty)
+import qualified Data.Text                                          as Text
+import           Data.Text.Prettyprint.Doc.Extras
 import           Data.Time.Units.Extra                              ()
 import           Data.Void                                          (Void)
 
@@ -51,7 +53,6 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmiss
 import           Ouroboros.Network.Util.ShowProxy
 
 import           Ledger                                             (Block, OnChainTx (..), Tx (..), TxId (..))
-import           Ledger.Bytes                                       (LedgerBytes (..))
 
 -- | Tip of the block chain type (used by node protocols).
 type Tip = Block
@@ -61,7 +62,10 @@ newtype BlockId = BlockId { getBlockId :: BS.ByteString }
   deriving (Eq, Ord, Generic)
   deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise, NoThunks)
-  deriving (Pretty, Show) via LedgerBytes
+  deriving Pretty via (PrettyShow BlockId)
+
+instance Show BlockId where
+    show = Text.unpack . JSON.encodeByteString . getBlockId
 
 -- | A hash of the block's contents.
 blockId :: Block -> BlockId

@@ -53,17 +53,13 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramEqualsInteger            = "equalsIntegerModel"
   , paramLessThanInteger          = "lessThanIntegerModel"
   , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
-  , paramGreaterThanInteger       = "greaterThanIntegerModel"
-  , paramGreaterThanEqualsInteger = "greaterThanEqualsIntegerModel"
-  , paramConcatenate              = "concatenateModel"
-  , paramTakeByteString           = "takeByteStringModel"
-  , paramDropByteString           = "dropByteStringModel"
+  , paramAppendByteString         = "appendByteStringModel"
   , paramSha2_256                 = "sha2_256Model"
   , paramSha3_256                 = "sha3_256Model"
   , paramVerifySignature          = "verifySignatureModel"
   , paramEqualsByteString         = "equalsByteStringModel"
   , paramLessThanByteString       = "lessThanByteStringModel"
-  , paramGreaterThanByteString    = "greaterThanByteStringModel"
+  , paramLessThanEqualsByteString = "lessThanEqualsByteStringModel"
   , paramIfThenElse               = "ifThenElseModel"
   , paramBlake2b                  = "blake2bModel"
   }
@@ -96,19 +92,15 @@ createBuiltinCostModel =
     paramRemainderInteger         <- getParams remainderInteger         paramRemainderInteger
     paramModInteger               <- getParams modInteger               paramModInteger
     paramLessThanInteger          <- getParams lessThanInteger          paramLessThanInteger
-    paramGreaterThanInteger       <- getParams greaterThanInteger       paramGreaterThanInteger
     paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger    paramLessThanEqualsInteger
-    paramGreaterThanEqualsInteger <- getParams greaterThanEqualsInteger paramGreaterThanEqualsInteger
     paramEqualsInteger            <- getParams equalsInteger            paramEqualsInteger
-    paramConcatenate              <- getParams concatenate              paramConcatenate
-    paramTakeByteString           <- getParams takeByteString           paramTakeByteString
-    paramDropByteString           <- getParams dropByteString           paramDropByteString
+    paramAppendByteString         <- getParams appendByteString         paramAppendByteString
     paramSha2_256                 <- getParams sha2_256                 paramSha2_256
     paramSha3_256                 <- getParams sha3_256                 paramSha3_256
     paramVerifySignature          <- getParams verifySignature          paramVerifySignature
     paramEqualsByteString         <- getParams equalsByteString         paramEqualsByteString
     paramLessThanByteString       <- getParams lessThanByteString       paramLessThanByteString
-    paramGreaterThanByteString    <- getParams greaterThanByteString    paramGreaterThanByteString
+    paramLessThanEqualsByteString <- getParams lessThanEqualsByteString paramLessThanEqualsByteString
     paramIfThenElse               <- getParams ifThenElse               paramIfThenElse
     paramBlake2b                  <- getParams blake2b                  paramBlake2b
 
@@ -257,16 +249,10 @@ lessThanInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
-greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanInteger = lessThanInteger
-
 lessThanEqualsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqualsInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
-
-greaterThanEqualsInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanEqualsInteger = lessThanEqualsInteger
 
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
@@ -278,11 +264,11 @@ lessThanByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
-greaterThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanByteString = lessThanByteString
+lessThanEqualsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+lessThanEqualsByteString = lessThanByteString
 
-concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-concatenate cpuModelR = do
+appendByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+appendByteString cpuModelR = do
   cpuModel <- readModelAddedSizes cpuModelR
   -- The buffer gets reallocated
   let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1

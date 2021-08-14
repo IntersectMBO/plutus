@@ -160,7 +160,7 @@ vestingTest =
     vestFundsEval = mkEvaluation [vestFunds w2, AddBlocks 1]
     vestAndPartialRetrieveEval =
         mkEvaluation
-            [vestFunds w2, AddBlocks 20, retrieveFunds w1 50_000_000, AddBlocks 1]
+            [vestFunds w2, AddBlocks 20, retrieveFunds w1 50_000_000, AddBlocks 2]
     vestAndFullRetrieveEval =
         mkEvaluation
             [vestFunds w2, AddBlocks 40, retrieveFunds w1 80_000_000, AddBlocks 5]

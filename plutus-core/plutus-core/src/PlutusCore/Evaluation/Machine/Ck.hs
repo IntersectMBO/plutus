@@ -44,6 +44,7 @@ import           Data.DList                              (DList)
 import qualified Data.DList                              as DList
 import           Data.Proxy
 import           Data.STRef
+import           Data.Text                               (Text)
 import           Universe
 
 infix 4 |>, <|
@@ -83,7 +84,7 @@ data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
     -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
     -- as we store logs as "latest go last".
-    , ckEnvMayEmitRef :: Maybe (STRef s (DList String))
+    , ckEnvMayEmitRef :: Maybe (STRef s (DList Text))
     }
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
@@ -145,7 +146,7 @@ runCkM
     :: BuiltinsRuntime fun (CkValue uni fun)
     -> Bool
     -> (forall s. CkM uni fun s a)
-    -> (Either (CkEvaluationException uni fun) a, [String])
+    -> (Either (CkEvaluationException uni fun) a, [Text])
 runCkM runtime emitting a = runST $ do
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
     errOrRes <- runExceptT . runReaderT a $ CkEnv runtime mayLogsRef
@@ -275,7 +276,7 @@ instantiateEvaluate
     -> Type TyName uni ()
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
-instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- No kind check - too expensive at run time.
+instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> substTyInTerm tn ty body -- No kind check - too expensive at run time.
 instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
     let term' = TyInst () term ty
     case sch of
@@ -326,7 +327,7 @@ runCk
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Bool
     -> Term TyName Name uni fun ()
-    -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [String])
+    -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
 runCk runtime emitting term = runCkM runtime emitting $ [] |> term
 
 -- | Evaluate a term using the CK machine with logging enabled.
@@ -334,7 +335,7 @@ evaluateCk
     :: Ix fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
-    -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [String])
+    -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
 evaluateCk runtime = runCk runtime True
 
 -- | Evaluate a term using the CK machine with logging disabled.
@@ -353,7 +354,7 @@ unsafeEvaluateCk
        )
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
-    -> (EvaluationResult (Term TyName Name uni fun ()), [String])
+    -> (EvaluationResult (Term TyName Name uni fun ()), [Text])
 unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runtime
 
 -- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.

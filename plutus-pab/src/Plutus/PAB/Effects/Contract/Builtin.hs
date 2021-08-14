@@ -35,31 +35,29 @@ module Plutus.PAB.Effects.Contract.Builtin(
     , HasDefinitions(..)
     ) where
 
+
+import           Control.Monad                                    (when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                        (Error, throwError)
 import           Control.Monad.Freer.Extras.Log                   (LogMsg (..), logDebug)
-import           Data.Aeson                                       (FromJSON, Result (..), ToJSON, Value, fromJSON)
+import           Data.Aeson                                       (FromJSON, ToJSON, Value)
 import qualified Data.Aeson                                       as JSON
-import           Data.Bifunctor                                   (Bifunctor (first))
 import           Data.Foldable                                    (foldlM, traverse_)
 import           Data.Row
-
-import           Plutus.Contract.Effects                          (PABReq, PABResp)
-import           Plutus.Contract.Types                            (ResumableResult (..), SuspendedContract (..))
-import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
-import           Plutus.PAB.Monitoring.PABLogMsg                  (PABMultiAgentMsg (..))
-import           Plutus.PAB.Types                                 (PABError (..))
-
-import qualified Data.Text                                        as Text
 import           GHC.Generics                                     (Generic)
 import           Playground.Schema                                (endpointsToSchemas)
 import           Playground.Types                                 (FunctionSchema)
 import           Plutus.Contract                                  (ContractInstanceId, EmptySchema, IsContract (..))
-import           Plutus.Contract.Resumable                        (Response, responses, rspResponse)
+import           Plutus.Contract.Effects                          (PABReq, PABResp)
+import           Plutus.Contract.Resumable                        (Response, responses)
 import           Plutus.Contract.Schema                           (Input, Output)
 import           Plutus.Contract.State                            (ContractResponse (..), State (..))
 import qualified Plutus.Contract.State                            as ContractState
+import           Plutus.Contract.Types                            (ResumableResult (..), SuspendedContract (..))
 import           Plutus.PAB.Core.ContractInstance.RequestHandlers (ContractInstanceMsg (ContractLog, ProcessFirstInboxMessage))
+import           Plutus.PAB.Effects.Contract                      (ContractEffect (..), PABContract (..))
+import           Plutus.PAB.Monitoring.PABLogMsg                  (PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                                 (PABError (..))
 import           Plutus.Trace.Emulator.Types                      (ContractInstanceStateInternal (..))
 import qualified Plutus.Trace.Emulator.Types                      as Emulator
 import           Schema                                           (FormSchema)
@@ -128,10 +126,9 @@ handleBuiltin = BuiltinHandler $ \case
     UpdateContract i _ state p -> case state of SomeBuiltinState s w -> updateBuiltin i s w p
     ExportSchema a             -> pure $ getSchema a
 
-getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value Value PABReq
+getResponse :: forall a. SomeBuiltinState a -> ContractResponse Value Value PABResp PABReq
 getResponse (SomeBuiltinState s w) =
-    first JSON.toJSON
-    $ ContractState.mapE JSON.toJSON
+    ContractState.mapE JSON.toJSON
     $ ContractState.mapW JSON.toJSON
     $ ContractState.mkResponse w
     $ Emulator.instContractState
@@ -145,19 +142,15 @@ fromResponse :: forall a effs.
   )
   => ContractInstanceId
   -> SomeBuiltin
-  -> ContractResponse Value Value Value PABReq
+  -> ContractResponse Value Value PABResp PABReq
   -> Eff effs (SomeBuiltinState a)
 fromResponse cid (SomeBuiltin contract) ContractResponse{newState=State{record}} = do
-  initialState <- initBuiltin @effs @a cid contract
-
+  initialState <- initBuiltinSilently @effs @a cid contract
   let runUpdate (SomeBuiltinState oldS oldW) n = do
-        case fromJSON (rspResponse (snd <$> n)) of
-          Error e      -> throwError . OtherError $ "Couldn't decode JSON response when reconstruting state: " <> Text.pack e
-          Success resp -> updateBuiltin @effs @a cid oldS oldW (resp <$ n)
-
+          updateBuiltinSilently @effs @a cid oldS oldW (snd <$> n)
   foldlM runUpdate initialState (responses record)
 
-initBuiltin ::
+initBuiltin, initBuiltinSilently ::
     forall effs a contract w schema error b.
     ( ContractConstraints w schema error
     , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
@@ -166,12 +159,25 @@ initBuiltin ::
     => ContractInstanceId
     -> contract w schema error b
     -> Eff effs (SomeBuiltinState a)
-initBuiltin i con = do
+initBuiltin = initBuiltin' False
+initBuiltinSilently = initBuiltin' True
+
+initBuiltin' ::
+    forall effs a contract w schema error b.
+    ( ContractConstraints w schema error
+    , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
+    , IsContract contract
+    )
+    => Bool -- ^ If True, log new messages, otherwise stay silent.
+    -> ContractInstanceId
+    -> contract w schema error b
+    -> Eff effs (SomeBuiltinState a)
+initBuiltin' silent i con = do
     let initialState = Emulator.emptyInstanceState (toContract con)
-    logNewMessages @a i initialState
+    when (not silent) $ logNewMessages @a i initialState
     pure $ SomeBuiltinState initialState mempty
 
-updateBuiltin ::
+updateBuiltin, updateBuiltinSilently ::
     forall effs a w schema error b.
     ( ContractConstraints w schema error
     , Member (Error PABError) effs
@@ -182,12 +188,27 @@ updateBuiltin ::
     -> w
     -> Response PABResp
     -> Eff effs (SomeBuiltinState a)
-updateBuiltin i oldState oldW resp = do
+updateBuiltin = updateBuiltin' False
+updateBuiltinSilently = updateBuiltin' True
+
+updateBuiltin' ::
+    forall effs a w schema error b.
+    ( ContractConstraints w schema error
+    , Member (Error PABError) effs
+    , Member (LogMsg (PABMultiAgentMsg (Builtin a))) effs
+    )
+    => Bool
+    -> ContractInstanceId
+    -> Emulator.ContractInstanceStateInternal w schema error b
+    -> w
+    -> Response PABResp
+    -> Eff effs (SomeBuiltinState a)
+updateBuiltin' silent i oldState oldW resp = do
     let newState = Emulator.addEventInstanceState resp oldState
     case newState of
         Just k -> do
             logDebug @(PABMultiAgentMsg (Builtin a)) (ContractInstanceLog $ ProcessFirstInboxMessage i resp)
-            logNewMessages @a i k
+            when (not silent) $ logNewMessages @a i k
             let newW = oldW <> (_lastState $ _resumableResult $ Emulator.cisiSuspState oldState)
             pure (SomeBuiltinState k newW)
         _      -> throwError $ ContractCommandError 0 "failed to update contract"

@@ -23,14 +23,14 @@ import           Data.Aeson                 (FromJSON, ToJSON, Value)
 import           Data.Text.Prettyprint.Doc  (Pretty, pretty, (<+>))
 import           GHC.Generics               (Generic)
 import           Ledger.Tx                  (Tx, txId)
-import           Plutus.Contract.Effects    (PABReq)
+import           Plutus.Contract.Effects    (PABReq, PABResp)
 import           Plutus.Contract.State      (ContractResponse)
 import           Plutus.PAB.Webserver.Types (ContractActivationArgs)
 import           Wallet.Types               (ContractInstanceId)
 
 -- | A structure which ties together all possible event types into one parent.
 data PABEvent t =
-    UpdateContractInstanceState !(ContractActivationArgs t) !ContractInstanceId !(ContractResponse Value Value Value PABReq) -- ^ Update the state of a contract instance
+    UpdateContractInstanceState !(ContractActivationArgs t) !ContractInstanceId !(ContractResponse Value Value PABResp PABReq) -- ^ Update the state of a contract instance
     | SubmitTx !Tx -- ^ Send a transaction to the node
     | ActivateContract !(ContractActivationArgs t) !ContractInstanceId
     | StopContract !ContractInstanceId

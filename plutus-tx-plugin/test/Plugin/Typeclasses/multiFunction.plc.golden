@@ -67,23 +67,26 @@
     )
     (termbind
       (strict)
-      (vardecl greaterThanInteger (fun (con integer) (fun (con integer) Bool)))
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
+      )
+      (builtin lessThanInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
         (con integer)
         (lam
           y
           (con integer)
-          [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin greaterThanInteger) x ] y ]
-              ]
-              True
-            ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ] False ]
         )
       )
     )
@@ -121,7 +124,7 @@
             [
               [ bad_name [ [ [ { likesAnimal p } dPersonLike ] p ] Cat ] ]
               [
-                [ greaterThanInteger [ [ { age p } dPersonLike ] p ] ]
+                [ lessThanInteger [ [ { age p } dPersonLike ] p ] ]
                 (con integer 30)
               ]
             ]

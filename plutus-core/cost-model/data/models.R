@@ -227,8 +227,6 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    greaterThanIntegerModel <- lessThanIntegerModel
-
     lessThanEqualsIntegerModel <- {
         fname <- "LessThanEqualsInteger"
         filtered <- data %>%
@@ -240,8 +238,6 @@ modelFun <- function(path) {
         m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
-
-    greaterThanEqualsIntegerModel <- lessThanEqualsIntegerModel
 
     equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
         fname <- "EqualsByteString"
@@ -321,6 +317,9 @@ modelFun <- function(path) {
 
     ifThenElseModel <- 0
 
+    blake2bModel <- sha2_256Model
+    ## TODO: Fix this and add other missing models
+
     list(
         addIntegerModel               = addIntegerModel,
         equalsIntegerModel            = equalsIntegerModel,
@@ -331,9 +330,7 @@ modelFun <- function(path) {
         remainderIntegerModel         = remainderIntegerModel,
         modIntegerModel               = modIntegerModel,
         lessThanIntegerModel          = lessThanIntegerModel,
-        greaterThanIntegerModel       = greaterThanIntegerModel,
         lessThanEqualsIntegerModel    = lessThanEqualsIntegerModel,
-        greaterThanEqualsIntegerModel = greaterThanEqualsIntegerModel,
         concatenateModel              = concatenateModel,
         takeByteStringModel           = takeByteStringModel,
         dropByteStringModel           = dropByteStringModel,
@@ -343,7 +340,8 @@ modelFun <- function(path) {
         lessThanByteStringModel       = lessThanByteStringModel,
         greaterThanByteStringModel    = greaterThanByteStringModel,
         verifySignatureModel          = verifySignatureModel,
-        ifThenElseModel               = ifThenElseModel
+        ifThenElseModel               = ifThenElseModel,
+        blake2bModel                  = blake2bModel
     )
 
 }

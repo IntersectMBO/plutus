@@ -108,8 +108,7 @@ data TxInfo = TxInfo
     { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
-    -- TODO: rename to txInfoMint, but this requires changes in cardano-ledger-specs
-    , txInfoForge       :: Value -- ^ The 'Value' minted by this transaction.
+    , txInfoMint        :: Value -- ^ The 'Value' minted by this transaction.
     , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
     , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
     , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.
@@ -120,13 +119,13 @@ data TxInfo = TxInfo
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
 instance Pretty TxInfo where
-    pretty TxInfo{txInfoInputs, txInfoOutputs, txInfoFee, txInfoForge, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoData, txInfoId} =
+    pretty TxInfo{txInfoInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoData, txInfoId} =
         vsep
             [ "TxId:" <+> pretty txInfoId
             , "Inputs:" <+> pretty txInfoInputs
             , "Outputs:" <+> pretty txInfoOutputs
             , "Fee:" <+> pretty txInfoFee
-            , "Value minted:" <+> pretty txInfoForge
+            , "Value minted:" <+> pretty txInfoMint
             , "DCerts:" <+> pretty txInfoDCert
             , "Wdrl:" <+> pretty txInfoWdrl
             , "Valid range:" <+> pretty txInfoValidRange

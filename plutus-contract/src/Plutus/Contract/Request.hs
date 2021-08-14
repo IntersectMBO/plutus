@@ -34,6 +34,10 @@ module Plutus.Contract.Request(
     , fundsAtAddressCondition
     , watchAddressUntilSlot
     , watchAddressUntilTime
+    , awaitUtxoSpent
+    , utxoIsSpent
+    , awaitUtxoProduced
+    , utxoIsProduced
     -- ** Tx confirmation
     , TxStatus(..)
     , awaitTxStatusChange
@@ -73,6 +77,7 @@ import qualified Control.Monad.Freer.Error   as E
 import           Data.Aeson                  (FromJSON, ToJSON)
 import qualified Data.Aeson                  as JSON
 import qualified Data.Aeson.Types            as JSON
+import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Proxy                  (Proxy (..))
 import           Data.Row
 import qualified Data.Text                   as Text
@@ -81,7 +86,7 @@ import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
 import           Ledger                      (Address, DiffMilliSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx,
-                                              TxId, TxOut (..), TxOutTx (..), Value, fromMilliSeconds, txId)
+                                              TxId, TxOut (..), TxOutRef, TxOutTx (..), Value, fromMilliSeconds, txId)
 import           Ledger.AddressMap           (UtxoMap)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
@@ -242,6 +247,46 @@ watchAddressUntilTime ::
     -> POSIXTime
     -> Contract w s e UtxoMap
 watchAddressUntilTime a time = awaitTime time >> utxoAt a
+
+{-| Wait until the UTXO has been spent, returning the transaction that spends it.
+-}
+awaitUtxoSpent ::
+  forall w s e.
+  ( AsContractError e
+  )
+  => TxOutRef
+  -> Contract w s e OnChainTx
+awaitUtxoSpent utxo = pabReq (AwaitUtxoSpentReq utxo) E._AwaitUtxoSpentResp
+
+{-| Wait until the UTXO has been spent, returning the transaction that spends it.
+-}
+utxoIsSpent ::
+  forall w s e.
+  ( AsContractError e
+  )
+  => TxOutRef
+  -> Promise w s e OnChainTx
+utxoIsSpent = Promise . awaitUtxoSpent
+
+{-| Wait until one or more unspent outputs are produced at an address.
+-}
+awaitUtxoProduced ::
+  forall w s e .
+  ( AsContractError e
+  )
+  => Address
+  -> Contract w s e (NonEmpty OnChainTx)
+awaitUtxoProduced address = pabReq (AwaitUtxoProducedReq address) E._AwaitUtxoProducedResp
+
+{-| Wait until one or more unspent outputs are produced at an address.
+-}
+utxoIsProduced ::
+  forall w s e .
+  ( AsContractError e
+  )
+  => Address
+  -> Promise w s e (NonEmpty OnChainTx)
+utxoIsProduced = Promise . awaitUtxoProduced
 
 {-| Get the transactions that modified an address in a specific slot.
 -}

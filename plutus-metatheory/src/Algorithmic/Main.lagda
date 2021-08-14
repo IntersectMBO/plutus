@@ -65,7 +65,7 @@ constr2 = con (bytestring 16 str2 (subst (λ x → x Data.Nat.≤ 16) (sym lemma
 
 {-
 append12 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
-append12 = builtin concatenate (λ { Z → size⋆ 16 ; (S ())}) (constr1 ,, constr2 ,, tt)
+append12 = builtin appendByteString (λ { Z → size⋆ 16 ; (S ())}) (constr1 ,, constr2 ,, tt)
 -}
 
 con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
