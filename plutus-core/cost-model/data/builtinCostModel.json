@@ -192,12 +192,18 @@
     },
     "appendString": {
         "memory": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 1,
+                "intercept": 0
+            },
+            "type": "added_sizes"
         },
         "cpu": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 1000,
+                "intercept": 150000
+            },
+            "type": "added_sizes"
         }
     },
     "consByteString": {
@@ -218,12 +224,18 @@
     },
     "encodeUtf8": {
         "memory": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 8,
+                "intercept": 0
+            },
+            "type": "linear_cost"
         },
         "cpu": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 1000,
+                "intercept": 150000
+            },
+            "type": "linear_cost"
         }
     },
     "nullList": {
@@ -267,11 +279,11 @@
     },
     "indexByteString": {
         "memory": {
-            "arguments": 0,
+            "arguments": 1,
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 0,
+            "arguments": 140000,
             "type": "constant_cost"
         }
     },
@@ -307,12 +319,18 @@
     },
     "sliceByteString": {
         "memory": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 1,
+                "intercept": 0
+            },
+            "type": "linear_in_z"
         },
         "cpu": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 5000,
+                "intercept": 150000
+            },
+            "type": "linear_in_z"
         }
     },
     "unMapData": {
@@ -445,12 +463,16 @@
     },
     "equalsString": {
         "memory": {
-            "arguments": 0,
+            "arguments": 1,
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "model_linear_or_constant_constant": 1000,
+                "model_linear_on_diagonal_intercept": 150000,
+                "model_linear_on_diagonal_slope": 1000
+            },
+            "type": "linear_on_diagonal"
         }
     },
     "chooseData": {
@@ -487,10 +509,11 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 235,
-                "intercept": 323288
+                "model_linear_or_constant_constant": 150000,
+                "model_linear_on_diagonal_intercept": 323288,
+                "model_linear_on_diagonal_slope": 235
             },
-            "type": "min_size"
+            "type": "linear_on_diagonal"
         }
     },
     "verifySignature": {
@@ -515,12 +538,18 @@
     },
     "decodeUtf8": {
         "memory": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 8,
+                "intercept": 0
+            },
+            "type": "linear_cost"
         },
         "cpu": {
-            "arguments": 0,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 1000,
+                "intercept": 150000
+            },
+            "type": "linear_cost"
         }
     },
     "sha2_256": {

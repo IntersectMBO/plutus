@@ -300,7 +300,7 @@ multiplyInteger cpuModelR = do
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 divideInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
-  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $  -- ## Get this number from R
+  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $  -- ### Get this number from R
                  ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
@@ -310,7 +310,7 @@ divideInteger cpuModelR = do
 quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 quotientInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
-  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $ -- ## Get this number from R
+  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $ -- ### Get this number from R
                  ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
@@ -362,22 +362,40 @@ consByteString _ = do
 
 -- ### TODO: get model from R ###
 sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-sliceByteString _ = pure def
+sliceByteString _ = do
+  let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 150000 5000
+  let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 0 1
+  pure $ CostingFun cpuModel memModel
+-- This will be a bit tricky.  We're looking at sliceByteString p l s, which
+-- gets the substring of length l starting at p.  Probably the best we can do is
+-- to make it linear in the size of s.  We'll have to run some experiments to
+-- see which p and l give the worst case and then run benchmarks with
+-- bytestrings of various sizes and the worst case p and l for each.  For the
+-- size, the real size of the result will be bounded above by l, but the costing
+-- function only knows about the _size_ of l, so let's just make it the size of
+-- s.  That could be a big overstimate, but memory doesn't seem to be too much
+-- of a problem.
+
 
 -- ### TODO: get model from R ###
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 lengthOfByteString _ = do
-      let cpuModel = ModelOneArgumentConstantCost 140000 -- FIXME
-      let memModel = ModelOneArgumentConstantCost 4  -- One word
+      let cpuModel = ModelOneArgumentConstantCost 140000 -- ### Get this from R
+      let memModel = ModelOneArgumentConstantCost 4  -- One word. Probably need some heap overhead.
       pure $ CostingFun cpuModel memModel
 
 indexByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-indexByteString _ = pure def
+indexByteString _ = do
+      let cpuModel = ModelTwoArgumentsConstantCost 140000 -- ### Get this from R
+      let memModel = ModelTwoArgumentsConstantCost 1  -- One byte. Probably need some heap overhead.
+      pure $ CostingFun cpuModel memModel
 
 equalsByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 equalsByteString cpuModelR = do
-  cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+  cpuModelOnDiagonal <- readModelLinear cpuModelR
+  let cpuModel = ModelTwoArgumentsLinearOnDiagonal $ ModelConstantOrLinear 150000
+                 (modelLinearSizeIntercept cpuModelOnDiagonal) (modelLinearSizeSlope cpuModelOnDiagonal)
+  pure $ CostingFun cpuModel boolMemModel
 
 lessThanByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanByteString cpuModelR = do
@@ -418,23 +436,33 @@ verifySignature cpuModelR = do
 
 -- ### TODO: get model from R ###
 appendString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-appendString _ = pure def
--- We expect this to be linear in x+y (x and y are sizes)
+appendString _ = do
+  let cpuModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 150000 1000
+  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+  pure $ CostingFun cpuModel memModel
 
 -- ### TODO: get model from R ###
 equalsString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-equalsString _ = pure def
--- Like equalsByteString: only expensive on diagonal
+equalsString _ = do
+  let cpuModel = ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear 1000 150000 1000)
+  let memModel = boolMemModel
+  pure $ CostingFun cpuModel memModel
 
 -- ### TODO: get model from R ###
 encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-encodeUtf8 _ = pure def
+encodeUtf8 _ = do
+  let cpuModel = ModelOneArgumentLinearCost $ ModelLinearSize 150000 1000
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 8
+  pure $ CostingFun cpuModel memModel
 -- Complicated: one character can be encoded as many bytes and I think we only know the
 -- number of characters.  This will need benchmarking with complicated Unicode strings.
 
 -- ### TODO: get model from R ###
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-decodeUtf8 _ = pure def
+decodeUtf8 _ = do
+  let cpuModel = ModelOneArgumentLinearCost $ ModelLinearSize 150000 1000
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 8
+  pure $ CostingFun cpuModel memModel
 -- Complicated again.
 
 

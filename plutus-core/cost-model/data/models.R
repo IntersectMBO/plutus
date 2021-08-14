@@ -279,7 +279,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
+        m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 

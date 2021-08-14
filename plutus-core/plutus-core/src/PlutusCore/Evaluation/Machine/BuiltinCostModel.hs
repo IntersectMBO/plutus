@@ -15,6 +15,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , CostingFun(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
+    , ModelConstantOrLinear(..)
     , ModelLinearSize(..)
     , ModelMultipliedSizes(..)
     , ModelMinSize(..)
@@ -263,13 +264,13 @@ data ModelSplitConst = ModelSplitConst
         '[FieldLabelModifier (StripPrefix "ModelSplitConst", CamelToSnake)] ModelSplitConst
 
 -- | if p then s*x else c; p depends on usage
-data ModelLinearOrConstant = ModelLinearOrConstant
+data ModelConstantOrLinear = ModelConstantOrLinear
     { modelLinearOrConstantConstant  :: CostingInteger
     , modelLinearOnDiagonalIntercept :: CostingInteger
     , modelLinearOnDiagonalSlope     :: CostingInteger
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "ModelLinearOnDiagonal", CamelToSnake)] ModelLinearOrConstant
+        '[FieldLabelModifier (StripPrefix "ModelLinearOnDiagonal", CamelToSnake)] ModelConstantOrLinear
 
 
 ---------------- Two-argument costing functions ----------------
@@ -283,7 +284,7 @@ data ModelTwoArguments =
   | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
   | ModelTwoArgumentsMinSize            ModelMinSize
   | ModelTwoArgumentsMaxSize            ModelMaxSize
-  | ModelTwoArgumentsLinearOnDiagonal   ModelLinearOrConstant
+  | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
   | ModelTwoArgumentsConstAboveDiagonal CostingInteger ModelTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal CostingInteger ModelTwoArguments
     deriving (Show, Eq, Generic, Lift, NFData)
@@ -331,7 +332,7 @@ runTwoArgumentModel
     (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) (ExMemory _) (ExMemory size2) =
         size2 * slope + intercept
 runTwoArgumentModel  -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
-    (ModelTwoArgumentsLinearOnDiagonal (ModelLinearOrConstant c intercept slope)) (ExMemory xSize) (ExMemory ySize) =
+    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) (ExMemory xSize) (ExMemory ySize) =
         if xSize == ySize
         then xSize * slope + intercept
         else c
