@@ -380,13 +380,13 @@ sliceByteString _ = do
 -- ### TODO: get model from R ###
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 lengthOfByteString _ = do
-      let cpuModel = ModelOneArgumentConstantCost 140000 -- ### Get this from R
+      let cpuModel = ModelOneArgumentConstantCost 150000 -- ### Get this from R
       let memModel = ModelOneArgumentConstantCost 4  -- One word. Probably need some heap overhead.
       pure $ CostingFun cpuModel memModel
 
 indexByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 indexByteString _ = do
-      let cpuModel = ModelTwoArgumentsConstantCost 140000 -- ### Get this from R
+      let cpuModel = ModelTwoArgumentsConstantCost 150000 -- ### Get this from R
       let memModel = ModelTwoArgumentsConstantCost 1  -- One byte. Probably need some heap overhead.
       pure $ CostingFun cpuModel memModel
 
@@ -417,13 +417,13 @@ sha2_256 cpuModelR = do
 sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha3_256 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "x")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 blake2b :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 blake2b cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b "x")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
@@ -477,7 +477,7 @@ ifThenElse _ =
 -- ### TODO: get model from R ###
 chooseUnit :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 chooseUnit _ =
-    pure $ CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwoArgumentsConstantCost 1)
+    pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
 -- \() a -> a;  probably cheap
 
 ---------------- Tracing ----------------
@@ -492,13 +492,13 @@ trace _ = pure def
 -- ### TODO: get model from R ###
 fstPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 fstPair _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- (x,_) -> x; but with lots of Some's etc.
 
 -- ### TODO: get model from R ###
 sndPair :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sndPair _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- (_,y) -> y; but with lots of Some's etc.
 
 
@@ -507,31 +507,31 @@ sndPair _ =
 -- ### TODO: get model from R ###
 chooseList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 chooseList _ =
-    pure $ CostingFun (ModelThreeArgumentsConstantCost 1) (ModelThreeArgumentsConstantCost 1)
+    pure $ CostingFun (ModelThreeArgumentsConstantCost 150000) (ModelThreeArgumentsConstantCost 32)
 -- xs a b -> a if xs == [], b otherwise
 
 -- ### TODO: get model from R ###
 mkCons :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 mkCons _ =
-    pure $ CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwoArgumentsConstantCost 1)
+    pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
 -- x xs -> x:xs, but with a dynamic type check
 
 -- ### TODO: get model from R ###
 headList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 headList _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- x:_ -> x, [] -> failure.  Successful case has fromConstant $ someValueOf etc.
 
 -- ### TODO: get model from R ###
 tailList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 tailList _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- Like headList
 
 -- ### TODO: get model from R ###
 nullList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 nullList _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 
 -- x -> [], same type as x
 
@@ -540,94 +540,105 @@ nullList _ =
 -- ### TODO: get model from R ###
 chooseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelSixArguments)
 chooseData _ =
-      pure $ CostingFun (ModelSixArgumentsConstantCost 1) (ModelSixArgumentsConstantCost 1)
+      pure $ CostingFun (ModelSixArgumentsConstantCost 150000) (ModelSixArgumentsConstantCost 32)
 -- chooseData d p q r s t u  returns one of the last six elements according to what d is.
 -- Probably cheap
 
 -- ### TODO: get model from R ###
 constrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 constrData _ =
-  pure $ CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwoArgumentsConstantCost 1)
+  pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
 -- Just applying Constr
 
 -- ### TODO: get model from R ###
 mapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 mapData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- Just applying Map
 
 -- ### TODO: get model from R ###
 listData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 listData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- Just applying List
 
 -- ### TODO: get model from R ###
 iData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 iData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- Just applying I
 
 -- ### TODO: get model from R ###
 bData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 bData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- Just applying B
 
 -- ### TODO: get model from R ###
 unConstrData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unConstrData _ =
-  pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+  pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- Constr i ds -> (i,ds);  _ -> fail
 
 -- ### TODO: get model from R ###
 unMapData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unMapData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- Map es -> es;  _ -> fail
 
 -- ### TODO: get model from R ###
 unListData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unListData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- List ds -> ds;  _ -> fail
 
 -- ### TODO: get model from R ###
 unIData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unIData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- I i -> i;  _ -> fail
 
 -- ### TODO: get model from R ###
 unBData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 unBData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- B b -> b;  _ -> fail
 
 equalsData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-equalsData _ = pure def
--- == : possibly like equalsInteger.  Will it be cheap if the arguments are
--- different sizes? Possibly not.  Do we even know what size is?  AARGH: The
--- size of data is 1!  That's bad, but adding the size to data will maybe
--- require a size on every subobject.  This only matters for == though, since
--- nothing else had to go deep into the object.
+equalsData _ = do
+  let cpuModel = ModelTwoArgumentsMinSize $ ModelMinSize 150000 10000
+  let memModel = ModelTwoArgumentsConstantCost 1
+  pure $ CostingFun cpuModel memModel
+-- == : Will this be cheap if the arguments are different sizes? Possibly not.
+-- Unfortunately the size of data is currently 1!  The generic instance will
+-- probably be expensive because it has to traverse the entire object, which is
+-- bad.  We could also get Data objects to carry their sizes with them, but
+-- doing that would presumably require a size on every subobject.  This only
+-- matters for == though, since nothing else has to go deep into the object
+-- (inside a builtin).
+
+-- ### Laziness may save us here.  Using Debug.Trace.trace it _appears_ that
+-- equalsData is only called in scripts that use equalsData, and not in ones
+-- that use eg unConstrData.  Not sure about chooseData: the only scripts which
+-- use it also use equalsData. Also, even if there are multiple calls to
+-- equalsData, I'm only seeing one use of memoryUsage on Data.
 
 ---------------- Misc constructors ----------------
 
 -- ### TODO: get model from R ###
 mkPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 mkPairData _ =
-    pure $ CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwoArgumentsConstantCost 1)
+    pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
 -- a b -> (a,b)
 
 -- ### TODO: get model from R ###
 mkNilData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 mkNilData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- () -> [] :: [Data]
 
 -- ### TODO: get model from R ###
 mkNilPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 mkNilPairData _ =
-    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+    pure $ CostingFun (ModelOneArgumentConstantCost 150000) (ModelOneArgumentConstantCost 32)
 -- () -> [] :: [(Data,Data)]

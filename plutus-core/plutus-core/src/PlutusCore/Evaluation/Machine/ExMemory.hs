@@ -25,6 +25,7 @@ import qualified Data.ByteString            as BS
 import           Data.Proxy
 import           Data.SatInt
 import qualified Data.Text                  as T
+import qualified Debug.Trace
 import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
@@ -171,5 +172,5 @@ instance ExMemoryUsage [a] where
 -- TODO; The generic instance will traverse the structure every time, which is bad. We need some sensible
 -- solution here in future.
 instance ExMemoryUsage Data where
-  memoryUsage _ = 1
+  memoryUsage _ = Debug.Trace.trace "memoryUsage Data" $ 1
 -- Try the generic one and see how much it slows things down?
