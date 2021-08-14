@@ -15,12 +15,10 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , CostingFun(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
-    , ModelOrientation(..)
     , ModelLinearSize(..)
     , ModelMultipliedSizes(..)
     , ModelMinSize(..)
     , ModelMaxSize(..)
-    , ModelSplitConst(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -205,7 +203,7 @@ runOneArgumentModel
     -> ExMemory
     -> CostingInteger
 runOneArgumentModel (ModelOneArgumentConstantCost c) _ = c
-runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope _)) (ExMemory s) =
+runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) (ExMemory s) =
     s * slope + intercept
 
 -- | s * (x + y) + I
@@ -225,17 +223,9 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelSubtractedSizes", CamelToSnake)] ModelSubtractedSizes
 
-data ModelOrientation =
-    ModelOrientationX
-    | ModelOrientationY
-    deriving (Show, Eq, Generic, Lift, NFData)
-    deriving (FromJSON, ToJSON) via CustomJSON
-        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelOrientation", CamelToSnake)] ModelOrientation
-
 data ModelLinearSize = ModelLinearSize
-    { modelLinearSizeIntercept   :: CostingInteger
-    , modelLinearSizeSlope       :: CostingInteger
-    , modelLinearSizeOrientation :: ModelOrientation -- ^ x or y?
+    { modelLinearSizeIntercept :: CostingInteger
+    , modelLinearSizeSlope     :: CostingInteger
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelLinearSize", CamelToSnake)] ModelLinearSize
@@ -272,18 +262,30 @@ data ModelSplitConst = ModelSplitConst
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "ModelSplitConst", CamelToSnake)] ModelSplitConst
 
+-- | if p then s*x else c; p depends on usage
+data ModelLinearOrConstant = ModelLinearOrConstant
+    { modelLinearOrConstantConstant  :: CostingInteger
+    , modelLinearOnDiagonalIntercept :: CostingInteger
+    , modelLinearOnDiagonalSlope     :: CostingInteger
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "ModelLinearOnDiagonal", CamelToSnake)] ModelLinearOrConstant
+
 
 ---------------- Two-argument costing functions ----------------
 
 data ModelTwoArguments =
-      ModelTwoArgumentsConstantCost    CostingInteger
-    | ModelTwoArgumentsAddedSizes      ModelAddedSizes
-    | ModelTwoArgumentsSubtractedSizes ModelSubtractedSizes
-    | ModelTwoArgumentsMultipliedSizes ModelMultipliedSizes
-    | ModelTwoArgumentsMinSize         ModelMinSize
-    | ModelTwoArgumentsMaxSize         ModelMaxSize
-    | ModelTwoArgumentsSplitConstMulti ModelSplitConst
-    | ModelTwoArgumentsLinearSize      ModelLinearSize
+    ModelTwoArgumentsConstantCost       CostingInteger
+  | ModelTwoArgumentsLinearInX          ModelLinearSize
+  | ModelTwoArgumentsLinearInY          ModelLinearSize
+  | ModelTwoArgumentsAddedSizes         ModelAddedSizes
+  | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
+  | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
+  | ModelTwoArgumentsMinSize            ModelMinSize
+  | ModelTwoArgumentsMaxSize            ModelMaxSize
+  | ModelTwoArgumentsLinearOnDiagonal   ModelLinearOrConstant
+  | ModelTwoArgumentsConstAboveDiagonal CostingInteger ModelTwoArguments
+  | ModelTwoArgumentsConstBelowDiagonal CostingInteger ModelTwoArguments
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
@@ -323,22 +325,34 @@ runTwoArgumentModel
     (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) (ExMemory size1) (ExMemory size2) =
         (max size1 size2) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsSplitConstMulti (ModelSplitConst intercept slope)) (ExMemory size1) (ExMemory size2) =
-        x * slope + intercept
-        where x = if size1 > size2 then size1 * size2 else 0
-runTwoArgumentModel
-    (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationX)) (ExMemory size1) (ExMemory _) =
+    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) (ExMemory size1) (ExMemory _) =
         size1 * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationY)) (ExMemory _) (ExMemory size2) =
+    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) (ExMemory _) (ExMemory size2) =
         size2 * slope + intercept
+runTwoArgumentModel  -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
+    (ModelTwoArgumentsLinearOnDiagonal (ModelLinearOrConstant c intercept slope)) (ExMemory xSize) (ExMemory ySize) =
+        if xSize == ySize
+        then xSize * slope + intercept
+        else c
+runTwoArgumentModel -- Below the diagonal, return the constant. Above the diagonal, run the other model.
+    (ModelTwoArgumentsConstBelowDiagonal c m) xMem yMem =
+        if xMem > yMem
+        then c
+        else runTwoArgumentModel m xMem yMem
+runTwoArgumentModel -- Above the diagonal, return the constant. Below the diagonal, run the other model.
+    (ModelTwoArgumentsConstAboveDiagonal c m) xMem yMem =
+        if xMem < yMem
+        then c
+        else runTwoArgumentModel m xMem yMem
 
 
 ---------------- Three-argument costing functions ----------------
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost CostingInteger
-  | ModelThreeArgumentsAddedSizes ModelAddedSizes
+  | ModelThreeArgumentsAddedSizes   ModelAddedSizes
+  | ModelThreeArgumentsLinearInZ    ModelLinearSize
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelThreeArguments", CamelToSnake)] ModelThreeArguments
@@ -355,6 +369,8 @@ runThreeArgumentModel
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) _ _ _ = c
 runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) (ExMemory size3) =
     (size1 + size2 + size3) * slope + intercept
+runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) _ _ (ExMemory size3) =
+    size3 * slope + intercept
 
 runCostingFunThreeArguments
     :: CostingFun ModelThreeArguments

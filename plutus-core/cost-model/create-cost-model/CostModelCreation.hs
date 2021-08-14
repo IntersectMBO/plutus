@@ -153,10 +153,10 @@ createBuiltinCostModel =
     -- Unit
     paramChooseUnit               <- getParams chooseUnit  paramChooseUnit
     -- Tracing
-    paramTrace                    <- getParams trace  paramTrace
+    paramTrace                    <- getParams trace       paramTrace
     -- Pairs
-    paramFstPair                  <- getParams fstPair  paramFstPair
-    paramSndPair                  <- getParams sndPair  paramSndPair
+    paramFstPair                  <- getParams fstPair     paramFstPair
+    paramSndPair                  <- getParams sndPair     paramSndPair
     -- Lists
     paramChooseList               <- getParams chooseList  paramChooseList
     paramMkCons                   <- getParams mkCons      paramMkCons
@@ -255,17 +255,13 @@ uncurry3 f ~(a,b,c) = f a b c
 
 -- Currently unused.  Note that something with this cost model could get expensive quickly.
 readModelMultipliedSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelMultipliedSizes
-readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsafeReadModelFromR "x_mem * y_mem" model
-
--- Maybe this is too precise.  Even without the `ifelse` we'd still get an upper bound.
-readModelSplitConst :: MonadR m => (SomeSEXP (Region m)) -> m ModelSplitConst
-readModelSplitConst model = (pure . uncurry ModelSplitConst) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, I(x_mem * y_mem), 0)" model
+readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsafeReadModelFromR "I(x_mem * y_mem)" model
 
 readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
 readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(Intercept)" model
 
 readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope ModelOrientationX) =<< unsafeReadModelFromR "x_mem" model
+readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "x_mem" model
 
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
@@ -303,19 +299,23 @@ multiplyInteger cpuModelR = do
 
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 divideInteger cpuModelR = do
-  cpuModel <- readModelSplitConst cpuModelR
+  cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
+  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $  -- ## Get this number from R
+                 ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
   let memModel = ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-  pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) memModel
+  pure $ CostingFun cpuModel memModel
 
 quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 quotientInteger cpuModelR = do
-  cpuModel <- readModelSplitConst cpuModelR
-  -- Maximum size is the divisor size.
-  -- y
-  let memModel = ModelTwoArgumentsLinearSize $ ModelLinearSize 0 1 ModelOrientationY
-  pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) memModel
+  cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
+  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $ -- ## Get this number from R
+                 ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
+  -- GMP requires division (mpn_divrem) to have x - y space.
+  -- x - y
+  let memModel = ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
+  pure $ CostingFun cpuModel memModel
 
 remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 remainderInteger = quotientInteger
@@ -367,9 +367,9 @@ sliceByteString _ = pure def
 -- ### TODO: get model from R ###
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 lengthOfByteString _ = do
-      let cpuModel = ModelLinearSize 100000 5000 ModelOrientationX  -- WHAT DOES THIS DO?
-      let memModel = ModelOneArgumentConstantCost 4  -- We really want the size of the length here.
-      pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
+      let cpuModel = ModelOneArgumentConstantCost 140000 -- FIXME
+      let memModel = ModelOneArgumentConstantCost 4  -- One word
+      pure $ CostingFun cpuModel memModel
 
 indexByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 indexByteString _ = pure def
@@ -430,7 +430,7 @@ equalsString _ = pure def
 encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 encodeUtf8 _ = pure def
 -- Complicated: one character can be encoded as many bytes and I think we only know the
--- number of characters.  This will need benchmarking with complicate Unicode strings.
+-- number of characters.  This will need benchmarking with complicated Unicode strings.
 
 -- ### TODO: get model from R ###
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
@@ -441,8 +441,8 @@ decodeUtf8 _ = pure def
 ---------------- Bool ----------------
 
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-ifThenElse _ = pure def
-
+ifThenElse _ =
+    pure $ CostingFun (ModelThreeArgumentsConstantCost 1) (ModelThreeArgumentsConstantCost 1)
 
 ---------------- Unit ----------------
 
@@ -450,7 +450,6 @@ ifThenElse _ = pure def
 chooseUnit :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 chooseUnit _ =
     pure $ CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwoArgumentsConstantCost 1)
-
 -- \() a -> a;  probably cheap
 
 ---------------- Tracing ----------------
@@ -589,15 +588,18 @@ equalsData _ = pure def
 
 -- ### TODO: get model from R ###
 mkPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-mkPairData _ = pure def
+mkPairData _ =
+    pure $ CostingFun (ModelTwoArgumentsConstantCost 1) (ModelTwoArgumentsConstantCost 1)
 -- a b -> (a,b)
 
 -- ### TODO: get model from R ###
 mkNilData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mkNilData _ = pure def
--- () -> []
+mkNilData _ =
+    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+-- () -> [] :: [Data]
 
 -- ### TODO: get model from R ###
 mkNilPairData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-mkNilPairData _ = pure def
--- () -> []
+mkNilPairData _ =
+    pure $ CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 1)
+-- () -> [] :: [(Data,Data)]

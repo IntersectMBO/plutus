@@ -187,19 +187,23 @@ modelFun <- function(path) {
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
+
+    ## This is very compilcated.  It's constant above the diagonal but quadratic
+    ## below it.  For now we fit a crude model to the below-diagonal part and
+    ## an arbitrary value above the diagonal (see CreateCostModel.hs).  Later
+    ## we should find the actual mean value above the diagonal and try to
+    ## fit a better model below it.
     divideIntegerModel <- {
         fname <- "DivideInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)    %>%
             filter(x_mem != 0) %>% filter(y_mem != 0) %>%
+            filter (x_mem > y_mem) %>%
             discard.upper.outliers(fname)   %>%
             discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ ifelse(x_mem > y_mem, I(x_mem * y_mem), 0) , filtered)
+        m <- lm(Mean ~ I(x_mem * y_mem), filtered)
         adjustModel(m,fname)
     }
-    ## This one does seem to underestimate the cost by a factor of two.
-    ## TODO: fix this.  It's hard to see what's going on, but an estimate of
-    ## twice the cost of multiplication looks safe. Get some more data to check that.
 
     quotientIntegerModel  <- divideIntegerModel
     remainderIntegerModel <- divideIntegerModel
@@ -312,7 +316,7 @@ modelFun <- function(path) {
 
     blake2bModel <- sha2_256Model    ## TODO: Fix this
 
-
+    ## This appears to be kind of random, even up to size 120000
     verifySignatureModel <- {
         fname <- "VerifySignature"
         filtered <- data %>%
