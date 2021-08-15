@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -165,20 +166,25 @@ instance ExMemoryUsage Bool where
 
 -- TODO: The generic instance will traverse the list every time, which is bad. We need some sensible
 -- solution here in future.
-instance ExMemoryUsage [a] where
-  memoryUsage _ = 1
+-- FIXME: Let's just go for a naive traversal for now.
+instance ExMemoryUsage a => ExMemoryUsage [a] where
+  memoryUsage = sizeList
+    where sizeList =
+              \case
+               []   -> 0
+               x:xs -> memoryUsage x + sizeList xs
 
 -- TODO; The generic instance will traverse the structure every time, which is bad. We need some sensible
 -- solution here in future.
 instance ExMemoryUsage Data where
-  memoryUsage x = trace "memoryUsage" $ sizeData x
-      where sizeData y =
-                case y of
-                  Constr _ l -> 1 + sizeDataList l
-                  Map l      -> 1 + sizeDataPairs l
-                  List l     -> 1 + sizeDataList l
-                  I _        -> 1
-                  B _        -> 1
+  memoryUsage = sizeData
+      where sizeData =
+                \case
+                 Constr _ l -> 1 + sizeDataList l
+                 Map l      -> 1 + sizeDataPairs l
+                 List l     -> 1 + sizeDataList l
+                 I _        -> 1
+                 B _        -> 1
             sizeDataList []     = 0
             sizeDataList (d:ds) = sizeData d + sizeDataList ds
             sizeDataPairs []           = 0
