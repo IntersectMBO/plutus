@@ -1,5 +1,6 @@
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 module Main(main) where
 
 import qualified Codec.CBOR.FlatTerm as FlatTerm
@@ -12,10 +13,12 @@ import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
 import           PlutusCore.Data     (Data (..))
 import           PlutusTx.Numeric    (negate)
+import           PlutusTx.Prelude    (dropByteString, takeByteString)
 import           PlutusTx.Ratio      (Rational, denominator, numerator, recip, (%))
 import           PlutusTx.Sqrt       (Sqrt (..), isqrt, rsqrt)
 import           Prelude             hiding (Rational, negate, recip)
 import           Test.Tasty
+import           Test.Tasty.HUnit    (testCase, (@?=))
 import           Test.Tasty.Hedgehog (testProperty)
 
 main :: IO ()
@@ -26,6 +29,7 @@ tests = testGroup "plutus-tx" [
     serdeTests
     , sqrtTests
     , ratioTests
+    , bytestringTests
     ]
 
 sqrtTests :: TestTree
@@ -201,3 +205,25 @@ reciprocalOrdering3 = property $ do
   x <- genNegativeRational
   y <- genPositiveRational
   assert (recip x < recip y)
+
+bytestringTests :: TestTree
+bytestringTests = testGroup "ByteString"
+  [ takeByteStringTests
+  , dropByteStringTests
+  ]
+
+takeByteStringTests :: TestTree
+takeByteStringTests = testGroup "takeByteString"
+  [ testCase "take 0" $ takeByteString 0 "hello" @?= ""
+  , testCase "take 1" $ takeByteString 1 "hello" @?= "h"
+  , testCase "take 3" $ takeByteString 3 "hello" @?= "hel"
+  , testCase "take 10" $ takeByteString 10 "hello" @?= "hello"
+  ]
+
+dropByteStringTests :: TestTree
+dropByteStringTests = testGroup "dropByteString"
+  [ testCase "drop 0" $ dropByteString 0 "hello" @?= "hello"
+  , testCase "drop 1" $ dropByteString 1 "hello" @?= "ello"
+  , testCase "drop 3" $ dropByteString 3 "hello" @?= "lo"
+  , testCase "drop 10" $ dropByteString 10 "hello" @?= ""
+  ]

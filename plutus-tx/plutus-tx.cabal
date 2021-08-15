@@ -107,5 +107,6 @@ test-suite plutus-tx-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
+        tasty-hunit -any,
         serialise -any,
         cborg -any

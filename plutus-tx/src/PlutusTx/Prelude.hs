@@ -95,11 +95,10 @@ import           PlutusCore.Data      (Data (..))
 import           PlutusTx.Applicative as Applicative
 import           PlutusTx.Bool        as Bool
 import           PlutusTx.Builtins    (BuiltinByteString, BuiltinData, BuiltinString, appendByteString, appendString,
-                                       consByteString, decodeUtf8, dropByteString, emptyByteString, emptyString,
-                                       encodeUtf8, equalsByteString, equalsString, error, fromBuiltin,
-                                       greaterThanByteString, indexByteString, lengthOfByteString, lessThanByteString,
-                                       sha2_256, sha3_256, sliceByteString, takeByteString, toBuiltin, trace,
-                                       verifySignature)
+                                       consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
+                                       equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString,
+                                       indexByteString, lengthOfByteString, lessThanByteString, sha2_256, sha3_256,
+                                       sliceByteString, toBuiltin, trace, verifySignature)
 import qualified PlutusTx.Builtins    as Builtins
 import           PlutusTx.Either      as Either
 import           PlutusTx.Enum        as Enum
@@ -206,3 +205,13 @@ infixr 0 $
 -- | Plutus Tx version of 'Data.Function.($)'.
 ($) :: (a -> b) -> a -> b
 f $ a = f a
+
+{-# INLINABLE takeByteString #-}
+-- | Returns the n length prefix of a 'ByteString'.
+takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
+takeByteString n bs = Builtins.sliceByteString 0 (toBuiltin n) bs
+
+{-# INLINABLE dropByteString #-}
+-- | Returns the suffix of a 'ByteString' after n elements.
+dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
+dropByteString n bs = Builtins.sliceByteString (toBuiltin n) (Builtins.lengthOfByteString bs - n) bs

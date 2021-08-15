@@ -159,7 +159,7 @@ consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegr
 
 {-# NOINLINE sliceByteString #-}
 sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-sliceByteString from to (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral $ to - from + 1) (BS.drop (fromIntegral from) b)
+sliceByteString start n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) b)
 
 {-# NOINLINE lengthOfByteString #-}
 lengthOfByteString :: BuiltinByteString -> BuiltinInteger

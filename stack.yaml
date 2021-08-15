@@ -72,19 +72,20 @@ extra-deps:
 - Unique-0.4.7.8
 - moo-1.2
 - gray-code-0.3.1
+- libsystemd-journal-1.4.5@sha256:dc68296f5d874b48ba187dbd0af4de8182ba57cb6ebaa46c05ac61c1b3c6c396,1238
 
 # cabal.project is the source of truth for these pins, they are explained there
 # and need to be kept in sync.
-- git: https://github.com/Quid2/flat.git
-  commit: 95e5d7488451e43062ca84d5376b3adcc465f1cd
+- git: https://github.com/michaelpj/flat.git
+  commit: ee59880f47ab835dbd73bea0847dab7869fc20d8
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
 - git: https://github.com/shmish111/servant-purescript.git
   commit: a76104490499aa72d40c2790d10e9383e0dbde63
 - git: https://github.com/input-output-hk/cardano-crypto.git
-  commit: ce8f1934e4b6252084710975bd9bbc0a4648ece4
+  commit: 07397f0e50da97eaa0575d93bee7ac4b2b2576ec
 - git: https://github.com/input-output-hk/ouroboros-network
-  commit: e338f2cf8e1078fbda9555dd2b169c6737ef6774
+  commit: f149c1c1e4e4bb5bab51fa055e9e3a7084ddc30e
   subdirs:
     - monoidal-synchronisation
     - typed-protocols
@@ -105,17 +106,20 @@ extra-deps:
     - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: a715c7f420770b70bbe95ca51d3dec83866cb1bd
+  commit: cb0f19c85e5bb5299839ad4ed66af6fa61322cc4
   subdirs:
+    - base-deriving-via
     - binary
     - binary/test
+    - measures
+    - orphans-deriving-via
     - slotting
     - cardano-crypto-class
-    - cardano-crypto-tests
     - cardano-crypto-praos
+    - cardano-crypto-tests
     - strict-containers
 - git: https://github.com/input-output-hk/cardano-ledger-specs
-  commit: b8f1ebb46a91f1c634e616feb89ae34de5937e17
+  commit: 12a0ef69d64a55e737fbf4e846bd8ed9fb30a956
   subdirs:
     - byron/chain/executable-spec
     - byron/crypto
@@ -132,20 +136,29 @@ extra-deps:
     - cardano-ledger-core
     - alonzo/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: 34abfb7f4f5610cabb45396e0496472446a0b2ca
+  commit: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
   subdirs:
-    - contra-tracer
     - iohk-monitoring
     - tracer-transformers
+    - contra-tracer
+    - plugins/backend-aggregation
     - plugins/backend-ekg
+    - plugins/backend-monitoring
+    - plugins/backend-trace-forwarder
+    - plugins/scribe-systemd
 - git: https://github.com/input-output-hk/cardano-node.git
-  commit: f3ef4ed72894499160f2330b91572a159005c148
+  commit: 3a56ac245c83d3345f81123ec3bb496bb23477a3
   subdirs:
     - cardano-api
+    - cardano-node
+    - cardano-cli
+    - cardano-config
+- git: https://github.com/input-output-hk/optparse-applicative
+  commit: 7497a29cb998721a9068d5725d49461f2bba0e7a
 - git: https://github.com/input-output-hk/Win32-network
-  commit: 94153b676617f8f33abe8d8182c37377d2784bd1
+  commit: 3825d3abf75f83f406c1f7161883c438dac7277d
 - git: https://github.com/input-output-hk/hedgehog-extras
-  commit: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
+  commit: edf6945007177a638fbeb8802397f3a6f4e47c14
 - git: https://github.com/input-output-hk/goblins
   commit: cde90a2b27f79187ca8310b6549331e59595e7ba
 

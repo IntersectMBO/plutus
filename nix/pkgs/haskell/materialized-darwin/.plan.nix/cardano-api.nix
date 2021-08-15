@@ -11,7 +11,7 @@
     flags = {};
     package = {
       specVersion = "3.0";
-      identifier = { name = "cardano-api"; version = "1.27.0"; };
+      identifier = { name = "cardano-api"; version = "1.28.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "operations@iohk.io";
@@ -98,6 +98,8 @@
           "Cardano/Api/Hash"
           "Cardano/Api/HasTypeProxy"
           "Cardano/Api/IPC"
+          "Cardano/Api/IPC/Monad"
+          "Cardano/Api/Json"
           "Cardano/Api/Key"
           "Cardano/Api/KeysByron"
           "Cardano/Api/KeysPraos"

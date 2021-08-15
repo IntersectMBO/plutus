@@ -11,7 +11,7 @@
     flags = { unexpected_thunks = false; };
     package = {
       specVersion = "3.0";
-      identifier = { name = "cardano-cli"; version = "1.27.0"; };
+      identifier = { name = "cardano-cli"; version = "1.28.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "operations@iohk.io";
@@ -63,7 +63,7 @@
           (hsPkgs."formatting" or (errorHandler.buildDepError "formatting"))
           (hsPkgs."iproute" or (errorHandler.buildDepError "iproute"))
           (hsPkgs."network" or (errorHandler.buildDepError "network"))
-          (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+          (hsPkgs."optparse-applicative-fork" or (errorHandler.buildDepError "optparse-applicative-fork"))
           (hsPkgs."ouroboros-consensus" or (errorHandler.buildDepError "ouroboros-consensus"))
           (hsPkgs."ouroboros-consensus-byron" or (errorHandler.buildDepError "ouroboros-consensus-byron"))
           (hsPkgs."ouroboros-consensus-cardano" or (errorHandler.buildDepError "ouroboros-consensus-cardano"))
@@ -71,6 +71,7 @@
           (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
           (hsPkgs."parsec" or (errorHandler.buildDepError "parsec"))
           (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
           (hsPkgs."split" or (errorHandler.buildDepError "split"))
@@ -90,6 +91,7 @@
           "Paths_cardano_cli"
           "Cardano/CLI/Helpers"
           "Cardano/CLI/Parsers"
+          "Cardano/CLI/Render"
           "Cardano/CLI/Run"
           "Cardano/CLI/Run/Friendly"
           "Cardano/CLI/Types"
@@ -123,7 +125,6 @@
           "Cardano/CLI/Shelley/Run/TextView"
           "Cardano/CLI/Shelley/Run/Transaction"
           "Cardano/CLI/Shelley/Script"
-          "Cardano/CLI/Mary/RenderValue"
           "Cardano/CLI/Mary/ValueParser"
           "Cardano/CLI/TopHandler"
           ];
@@ -136,7 +137,7 @@
             (hsPkgs."cardano-cli" or (errorHandler.buildDepError "cardano-cli"))
             (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
             (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."optparse-applicative-fork" or (errorHandler.buildDepError "optparse-applicative-fork"))
             (hsPkgs."transformers-except" or (errorHandler.buildDepError "transformers-except"))
             ] ++ (pkgs.lib).optional (!system.isWindows) (hsPkgs."unix" or (errorHandler.buildDepError "unix"));
           buildable = true;

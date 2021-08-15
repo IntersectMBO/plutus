@@ -232,7 +232,7 @@ auctionSeller value time = do
 -- | Get the current state of the contract and log it.
 currentState :: StateMachineClient AuctionState AuctionInput -> Contract AuctionOutput BuyerSchema AuctionError (Maybe HighestBid)
 currentState client = mapError StateMachineContractError (SM.getOnChainState client) >>= \case
-    Just ((TypedScriptTxOut{tyTxOutData=Ongoing s}, _), _) -> do
+    Just (SM.OnChainState{SM.ocsTxOut=TypedScriptTxOut{tyTxOutData=Ongoing s}}, _) -> do
         tell $ auctionStateOut $ Ongoing s
         pure (Just s)
     _ -> do
@@ -327,5 +327,6 @@ auctionBuyer slotCfg currency params = do
 
         -- If the state can't be found we wait for it to appear.
         Nothing -> SM.waitForUpdateUntilTime client (apEndTime params) >>= \case
-            WaitingResult (Ongoing s) -> loop s
-            _                         -> logWarn CurrentStateNotFound
+            Transition _ _ (Ongoing s) -> loop s
+            InitialState _ (Ongoing s) -> loop s
+            _                          -> logWarn CurrentStateNotFound

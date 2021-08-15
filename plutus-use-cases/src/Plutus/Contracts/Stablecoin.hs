@@ -95,8 +95,8 @@ import           Ledger.Typed.Tx              (TypedScriptTxOut (..))
 import           Ledger.Value                 (AssetClass, TokenName, Value)
 import qualified Ledger.Value                 as Value
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine (AsSMContractError, SMContractError, State (..), StateMachine,
-                                               StateMachineClient (..), Void)
+import           Plutus.Contract.StateMachine (AsSMContractError, OnChainState (..), SMContractError, State (..),
+                                               StateMachine, StateMachineClient (..), Void)
 import qualified Plutus.Contract.StateMachine as StateMachine
 import qualified PlutusTx
 import           PlutusTx.Prelude
@@ -415,7 +415,7 @@ checkTransition theClient sc i@Input{inpConversionRate} = do
         case checkHashOffChain inpConversionRate of
             Right Observation{obsValue} -> do
                 case currentState of
-                    Just ((TypedScriptTxOut{tyTxOutData}, _), _) -> do
+                    Just (OnChainState{ocsTxOut=TypedScriptTxOut{tyTxOutData}}, _) -> do
                         case checkValidState sc tyTxOutData obsValue of
                             Right _ -> logInfo @Haskell.String "Current state OK"
                             Left w  -> logInfo $ "Current state is invalid: " <> Haskell.show w <> ". The transition may still be allowed."
