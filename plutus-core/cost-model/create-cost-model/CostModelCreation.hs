@@ -614,19 +614,12 @@ equalsData _ = do
   let cpuModel = ModelTwoArgumentsMinSize $ ModelMinSize 150000 10000
   let memModel = ModelTwoArgumentsConstantCost 1
   pure $ CostingFun cpuModel memModel
--- == : Will this be cheap if the arguments are different sizes? Possibly not.
--- Unfortunately the size of data is currently 1!  The generic instance will
--- probably be expensive because it has to traverse the entire object, which is
--- bad.  We could also get Data objects to carry their sizes with them, but
--- doing that would presumably require a size on every subobject.  This only
--- matters for == though, since nothing else has to go deep into the object
--- (inside a builtin).
+  {- The size function for 'Data' counts the total number of nodes, and so is
+     potentially expensive.  Luckily laziness in the costing functions ensures
+     that it's only called if really necessary, so it'll be called here but not
+     in 'unBData' etc.  Doing the full traversal seems to increase validation times
+     by one or two percent, but we can't really avoid it here. -}
 
--- ### Laziness may save us here.  Using Debug.Trace.trace it _appears_ that
--- equalsData is only called in scripts that use equalsData, and not in ones
--- that use eg unConstrData.  Not sure about chooseData: the only scripts which
--- use it also use equalsData. Also, even if there are multiple calls to
--- equalsData, I'm only seeing one use of memoryUsage on Data.
 
 ---------------- Misc constructors ----------------
 
