@@ -3,11 +3,11 @@
     "cardano-repo-tool": {
       "flake": false,
       "locked": {
-        "lastModified": 1617222828,
-        "narHash": "sha256-DGIPO80BoXM0t5mY2IlvflyN/XFwzkSjBsCnCJsRszs=",
+        "lastModified": 1624584417,
+        "narHash": "sha256-YSepT97PagR/1jTYV/Yer8a2GjFe9+tTwaTCHxuK50M=",
         "owner": "input-output-hk",
         "repo": "cardano-repo-tool",
-        "rev": "71b1333552989093a89e6b04c5397f0b7bb9d0d0",
+        "rev": "30e826ed8f00e3e154453b122a6f3d779b2f73ec",
         "type": "github"
       },
       "original": {
