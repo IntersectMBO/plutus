@@ -186,7 +186,13 @@ data ModelOneArgument =
     | ModelOneArgumentLinearCost ModelLinearSize
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelOneArgument", CamelToSnake)] ModelOneArgument
+        '[ TagSingleConstructors
+         , SumTaggedObject "type" "arguments"
+         , ConstructorTagModifier (StripPrefix "ModelOneArgument", CamelToSnake)]
+        ModelOneArgument
+        -- Without TagSingleConstructors the format can change unexpectedly if
+        -- you add/remove constructors because you don't get the tags if there's
+        -- only one constructor but you do if there's more than one.
 instance Default ModelOneArgument where
     def = ModelOneArgumentConstantCost 0
 
@@ -265,12 +271,12 @@ data ModelSplitConst = ModelSplitConst
 
 -- | if p then s*x else c; p depends on usage
 data ModelConstantOrLinear = ModelConstantOrLinear
-    { modelLinearOrConstantConstant  :: CostingInteger
-    , modelLinearOnDiagonalIntercept :: CostingInteger
-    , modelLinearOnDiagonalSlope     :: CostingInteger
+    { modelConstantOrLinearConstant  :: CostingInteger
+    , modelConstantOrLinearIntercept :: CostingInteger
+    , modelConstantOrLinearSlope     :: CostingInteger
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "ModelLinearOnDiagonal", CamelToSnake)] ModelConstantOrLinear
+        '[FieldLabelModifier (StripPrefix "ModelConstantOrLinear", CamelToSnake)] ModelConstantOrLinear
 
 
 ---------------- Two-argument costing functions ----------------
@@ -289,7 +295,10 @@ data ModelTwoArguments =
   | ModelTwoArgumentsConstBelowDiagonal CostingInteger ModelTwoArguments
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
+        '[ TagSingleConstructors
+         , SumTaggedObject "type" "arguments"
+         , ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)]
+        ModelTwoArguments
 
 instance Default ModelTwoArguments where
     def = ModelTwoArgumentsConstantCost 0
@@ -356,7 +365,10 @@ data ModelThreeArguments =
   | ModelThreeArgumentsLinearInZ    ModelLinearSize
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelThreeArguments", CamelToSnake)] ModelThreeArguments
+        '[ TagSingleConstructors
+         , SumTaggedObject "type" "arguments"
+         , ConstructorTagModifier (StripPrefix "ModelThreeArguments", CamelToSnake)]
+        ModelThreeArguments
 
 instance Default ModelThreeArguments where
     def = ModelThreeArgumentsConstantCost 0
@@ -390,7 +402,10 @@ data ModelFourArguments =
       ModelFourArgumentsConstantCost CostingInteger
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelFourArguments", CamelToSnake)] ModelFourArguments
+        '[ TagSingleConstructors
+         , SumTaggedObject "type" "arguments"
+         , ConstructorTagModifier (StripPrefix "ModelFourArguments", CamelToSnake)]
+        ModelFourArguments
 
 instance Default ModelFourArguments where
     def = ModelFourArgumentsConstantCost 0
@@ -422,7 +437,10 @@ data ModelFiveArguments =
       ModelFiveArgumentsConstantCost CostingInteger
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelFiveArguments", CamelToSnake)] ModelFiveArguments
+        '[ TagSingleConstructors
+         , SumTaggedObject "type" "arguments"
+         , ConstructorTagModifier (StripPrefix "ModelFiveArguments", CamelToSnake)]
+        ModelFiveArguments
 
 instance Default ModelFiveArguments where
     def = ModelFiveArgumentsConstantCost 0
@@ -456,7 +474,10 @@ data ModelSixArguments =
       ModelSixArgumentsConstantCost CostingInteger
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelSixArguments", CamelToSnake)] ModelSixArguments
+        '[ TagSingleConstructors
+         , SumTaggedObject "type" "arguments"
+         , ConstructorTagModifier (StripPrefix "ModelSixArguments", CamelToSnake)]
+        ModelSixArguments
 
 instance Default ModelSixArguments where
     def = ModelSixArgumentsConstantCost 0
