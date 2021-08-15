@@ -75,8 +75,8 @@ feeClass = ClassName "fee"
 notFoundClass :: ClassName
 notFoundClass = ClassName "not-found"
 
-forgeClass :: ClassName
-forgeClass = ClassName "forge"
+mintClass :: ClassName
+mintClass = ClassName "mint"
 
 amountClass :: ClassName
 amountClass = ClassName "amount"
@@ -136,7 +136,7 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
                         ]
                     ]
                 ]
-            , forgeView (view (_tx <<< _txMint) annotatedTx)
+            , mintView (view (_tx <<< _txMint) annotatedTx)
             ]
         , col3_
             [ h2_ [ text "Outputs" ]
@@ -186,11 +186,11 @@ feeView txFee =
         ]
     ]
 
-forgeView :: forall p i. Value -> HTML p i
-forgeView (Value { getValue: (AssocMap.Map []) }) = empty
+mintView :: forall p i. Value -> HTML p i
+mintView (Value { getValue: (AssocMap.Map []) }) = empty
 
-forgeView txForge =
-  div [ classes [ card, entryClass, forgeClass ] ]
+mintView txForge =
+  div [ classes [ card, entryClass, mintClass ] ]
     [ cardHeader_ [ text "Forge" ]
     , cardBody_
         [ valueView txForge
