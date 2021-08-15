@@ -104,6 +104,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
         , txWithdrawals = C.TxWithdrawalsNone
         , txCertificates = C.TxCertificatesNone
         , txUpdateProposal = C.TxUpdateProposalNone
+        , txScriptValidity = C.BuildTxWith C.TxScriptValidityNone
         }
 
 fromCardanoTxIn :: C.TxIn -> P.TxOutRef
@@ -396,7 +397,7 @@ instance Pretty FromCardanoError where
 
 data ToCardanoError
     = EvaluationError Api.EvaluationError
-    | TxBodyError (C.TxBodyError C.AlonzoEra)
+    | TxBodyError C.TxBodyError
     | DeserialisationError
     | InvalidValidityRange
     | ValueNotPureAda

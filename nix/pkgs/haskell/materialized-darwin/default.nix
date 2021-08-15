@@ -739,6 +739,7 @@
         marlowe-symbolic = ./.plan.nix/marlowe-symbolic.nix;
         plutus-metatheory = ./.plan.nix/plutus-metatheory.nix;
         marlowe-playground-server = ./.plan.nix/marlowe-playground-server.nix;
+        measures = ./.plan.nix/measures.nix;
         lobemo-scribe-systemd = ./.plan.nix/lobemo-scribe-systemd.nix;
         quickcheck-dynamic = ./.plan.nix/quickcheck-dynamic.nix;
         cardano-config = ./.plan.nix/cardano-config.nix;
@@ -761,6 +762,7 @@
         plutus-tx = ./.plan.nix/plutus-tx.nix;
         hedgehog-extras = ./.plan.nix/hedgehog-extras.nix;
         fake-pab = ./.plan.nix/fake-pab.nix;
+        base-deriving-via = ./.plan.nix/base-deriving-via.nix;
         plutus-contract = ./.plan.nix/plutus-contract.nix;
         iohk-monitoring = ./.plan.nix/iohk-monitoring.nix;
         io-sim = ./.plan.nix/io-sim.nix;
@@ -773,12 +775,14 @@
         cardano-binary = ./.plan.nix/cardano-binary.nix;
         cardano-prelude = ./.plan.nix/cardano-prelude.nix;
         plutus-doc = ./.plan.nix/plutus-doc.nix;
+        optparse-applicative-fork = ./.plan.nix/optparse-applicative-fork.nix;
         ouroboros-network-framework = ./.plan.nix/ouroboros-network-framework.nix;
         lobemo-backend-aggregation = ./.plan.nix/lobemo-backend-aggregation.nix;
         plutus-ledger-api = ./.plan.nix/plutus-ledger-api.nix;
         io-classes = ./.plan.nix/io-classes.nix;
         ouroboros-consensus-byron = ./.plan.nix/ouroboros-consensus-byron.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
+        orphans-deriving-via = ./.plan.nix/orphans-deriving-via.nix;
         shelley-spec-non-integral = ./.plan.nix/shelley-spec-non-integral.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
         cardano-ledger-alonzo = ./.plan.nix/cardano-ledger-alonzo.nix;
@@ -855,6 +859,9 @@
           "marlowe-symbolic" = { flags = {}; };
           "plutus-metatheory" = { flags = {}; };
           "marlowe-playground-server" = { flags = {}; };
+          "measures" = {
+            flags = { "development" = lib.mkOverride 900 false; };
+            };
           "lobemo-scribe-systemd" = { flags = {}; };
           "quickcheck-dynamic" = { flags = {}; };
           "cardano-config" = {
@@ -908,6 +915,9 @@
           "plutus-tx" = { flags = {}; };
           "hedgehog-extras" = { flags = {}; };
           "fake-pab" = { flags = {}; };
+          "base-deriving-via" = {
+            flags = { "development" = lib.mkOverride 900 false; };
+            };
           "plutus-contract" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
@@ -946,6 +956,9 @@
           "plutus-doc" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
+          "optparse-applicative-fork" = {
+            flags = { "process" = lib.mkOverride 900 true; };
+            };
           "ouroboros-network-framework" = { flags = {}; };
           "lobemo-backend-aggregation" = { flags = {}; };
           "plutus-ledger-api" = { flags = {}; };
@@ -959,6 +972,9 @@
             flags = { "asserts" = lib.mkOverride 900 false; };
             };
           "contra-tracer" = { flags = {}; };
+          "orphans-deriving-via" = {
+            flags = { "development" = lib.mkOverride 900 false; };
+            };
           "shelley-spec-non-integral" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
@@ -1049,6 +1065,7 @@
           "web-ghc".components.tests."web-ghc-test".planned = lib.mkOverride 900 true;
           "old-time".components.library.planned = lib.mkOverride 900 true;
           "plutus-chain-index".components.tests."plutus-chain-index-test".planned = lib.mkOverride 900 true;
+          "base-deriving-via".components.library.planned = lib.mkOverride 900 true;
           "beam-migrate".components.library.planned = lib.mkOverride 900 true;
           "plutus-core".components.tests."plutus-ir-test".planned = lib.mkOverride 900 true;
           "dependent-sum".components.library.planned = lib.mkOverride 900 true;
@@ -1222,6 +1239,7 @@
           "cborg".components.library.planned = lib.mkOverride 900 true;
           "time-manager".components.library.planned = lib.mkOverride 900 true;
           "hspec-discover".components.library.planned = lib.mkOverride 900 true;
+          "orphans-deriving-via".components.library.planned = lib.mkOverride 900 true;
           "optparse-applicative".components.library.planned = lib.mkOverride 900 true;
           "string-conversions".components.library.planned = lib.mkOverride 900 true;
           "quickcheck-text".components.library.planned = lib.mkOverride 900 true;
@@ -1546,6 +1564,7 @@
           "hedgehog".components.library.planned = lib.mkOverride 900 true;
           "system-filepath".components.setup.planned = lib.mkOverride 900 true;
           "test-framework-quickcheck2".components.library.planned = lib.mkOverride 900 true;
+          "measures".components.library.planned = lib.mkOverride 900 true;
           "foundation".components.library.planned = lib.mkOverride 900 true;
           "asn1-encoding".components.library.planned = lib.mkOverride 900 true;
           "servant-subscriber".components.exes."subscriber-psGenerator".planned = lib.mkOverride 900 true;
@@ -1580,6 +1599,7 @@
           "data-default".components.library.planned = lib.mkOverride 900 true;
           "libyaml".components.library.planned = lib.mkOverride 900 true;
           "cabal-doctest".components.library.planned = lib.mkOverride 900 true;
+          "optparse-applicative-fork".components.library.planned = lib.mkOverride 900 true;
           "nonempty-vector".components.library.planned = lib.mkOverride 900 true;
           "resourcet".components.library.planned = lib.mkOverride 900 true;
           "microlens-mtl".components.library.planned = lib.mkOverride 900 true;
