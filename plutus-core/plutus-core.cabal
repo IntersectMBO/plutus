@@ -517,7 +517,6 @@ benchmark update-cost-model
         base -any,
         bytestring -any,
         cassava -any,
-        data-default -any,
         exceptions -any,
         extra -any,
         inline-r -any,

@@ -395,6 +395,10 @@ modelFun <- function(path) {
         sha3_256Model                 = sha3_256Model,
         blake2bModel                  = blake2bModel,
         verifySignatureModel          = verifySignatureModel,
+        ## appendStringModel
+        ## equalStringModel
+        ## encodeUtf8Model
+        ## decodeUtf8Model
         ifThenElseModel               = ifThenElseModel,
         chooseUnitModel               = chooseUnitModel,
         traceModel                    = traceModel,

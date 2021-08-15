@@ -18,7 +18,6 @@ import qualified Data.ByteString.Hash                           as PlutusHash
 import qualified Data.ByteString.Lazy                           as BSL
 import           Data.Coerce
 import           Data.Csv
-import           Data.Default
 import           Data.Either.Extra
 import           Data.Functor.Compose
 import           Data.Text                                      as T
@@ -360,9 +359,9 @@ appendByteString cpuModelR = do
 -- ### TODO: get model from R ###
 consByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 consByteString _ = do
-      let cpuModel = ModelAddedSizes 10000 1000  -- 10000 + 1000*(x+y)
+      let cpuModel = ModelTwoArgumentsConstantCost 150000 -- ### Get this from R
       let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
-      pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
+      pure $ CostingFun cpuModel memModel
 
 -- ### TODO: get model from R ###
 sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
