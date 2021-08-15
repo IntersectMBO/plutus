@@ -471,16 +471,22 @@
         },
         "cpu": {
             "arguments": {
-                "model_linear_or_constant_constant": 1000,
-                "model_linear_on_diagonal_intercept": 150000,
-                "model_linear_on_diagonal_slope": 1000
+                "model_constant_or_linear_slope": 1000,
+                "model_constant_or_linear_constant": 1000,
+                "model_constant_or_linear_intercept": 150000
             },
             "type": "linear_on_diagonal"
         }
     },
     "chooseData": {
-        "memory": 32,
-        "cpu": 150000
+        "memory": {
+            "arguments": 32,
+            "type": "constant_cost"
+        },
+        "cpu": {
+            "arguments": 150000,
+            "type": "constant_cost"
+        }
     },
     "modInteger": {
         "memory": {
@@ -512,9 +518,9 @@
         },
         "cpu": {
             "arguments": {
-                "model_linear_or_constant_constant": 150000,
-                "model_linear_on_diagonal_intercept": 112536,
-                "model_linear_on_diagonal_slope": 247
+                "model_constant_or_linear_slope": 247,
+                "model_constant_or_linear_constant": 150000,
+                "model_constant_or_linear_intercept": 112536
             },
             "type": "linear_on_diagonal"
         }
