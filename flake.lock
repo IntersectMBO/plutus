@@ -153,11 +153,11 @@
     "npmlock2nix": {
       "flake": false,
       "locked": {
-        "lastModified": 1624882916,
-        "narHash": "sha256-Bfumd24xNLAX1UjnqNHN1hZg1qpwubAvIRFDneruO+I=",
+        "lastModified": 1628944002,
+        "narHash": "sha256-eRTG5eWjFN6i0CIPbt5XSeYjvIJ3nsmuS/5ggCVAMXg=",
         "owner": "tweag",
         "repo": "npmlock2nix",
-        "rev": "9d71a0fc7a7450e740dba1bcdaed1eb9faa57bc2",
+        "rev": "bf6515b9614645429e1f1846ce07c31f5879e45f",
         "type": "github"
       },
       "original": {
