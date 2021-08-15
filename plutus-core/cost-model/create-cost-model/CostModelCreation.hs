@@ -491,8 +491,7 @@ chooseUnit _ =
 
 -- ### TODO: get model from R ###
 trace :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-trace _ = pure def
--- No idea: possibly expensive because of IO.
+trace _ = pure $ CostingFun (ModelTwoArgumentsConstantCost 150000) (ModelTwoArgumentsConstantCost 32)
 
 ---------------- Pairs ----------------
 
