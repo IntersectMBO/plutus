@@ -531,8 +531,11 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3350865,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 1,
+                "intercept": 3345831
+            },
+            "type": "linear_in_z"
         }
     },
     "chooseUnit": {

@@ -322,7 +322,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (three.args.overhead)
-        m <- lm(Mean ~ 1, data=filtered)
+        m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
