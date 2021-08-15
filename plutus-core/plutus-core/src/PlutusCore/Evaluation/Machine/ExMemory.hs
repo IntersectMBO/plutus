@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -163,12 +164,40 @@ instance ExMemoryUsage Char where
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
--- TODO: The generic instance will traverse the list every time, which is bad. We need some sensible
--- solution here in future.
-instance ExMemoryUsage [a] where
-  memoryUsage _ = 1
+-- TODO: The generic instance will traverse the list every time, which is
+-- bad. We need some sensible solution here in future.
+-- FIXME: Let's just go for a naive traversal for now.
+instance ExMemoryUsage a => ExMemoryUsage [a] where
+    memoryUsage = sizeList
+        where sizeList =
+                  \case
+                   []   -> 0
+                   x:xs -> memoryUsage x + sizeList xs
 
--- TODO; The generic instance will traverse the structure every time, which is bad. We need some sensible
--- solution here in future.
+{- Another naive traversal for size.  This only accounts for the number of nodes
+ in the Data object, not the sizes of their contents.  I think that's the right
+ thing to do, but it means that when we're benchmarking the Data operations
+ (especially equalsData) we should do it on objects with simple contents like
+ small integers to avoid also measuring costs for eg large bytestrings.  At
+ execution time this should be OK because the apppropriate costing functions (eg
+ for comparing bytestrings) *will* be run then, and we just have to account for
+ the overhead of processing the tree.  It's also important here that arguments
+ to costing functions are lazily evaluated, because we don't want traverse a
+ Data object when we're doing something like unBData which just looks at the top
+ constructor.
+-}
+
 instance ExMemoryUsage Data where
-  memoryUsage _ = 1
+    memoryUsage = sizeData
+        where sizeData =
+                \case
+                 Constr _ l -> 1 + sizeDataList l
+                 Map l      -> 1 + sizeDataPairs l
+                 List l     -> 1 + sizeDataList l
+                 I _        -> 1
+                 B _        -> 1
+              sizeDataList []     = 0
+              sizeDataList (d:ds) = sizeData d + sizeDataList ds
+              sizeDataPairs []           = 0
+              sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
+

@@ -161,6 +161,8 @@ modelFun <- function(path) {
 
     ## filtered leaks from one model to the next, so make sure you don't mistype!
 
+    ##### Integers #####
+    
     addIntegerModel <- {
         fname <- "AddInteger"
         filtered <- data %>%
@@ -185,19 +187,23 @@ modelFun <- function(path) {
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
+
+    ## This is very compilcated.  It's constant above the diagonal but quadratic
+    ## below it.  For now we fit a crude model to the below-diagonal part and
+    ## an arbitrary value above the diagonal (see CreateCostModel.hs).  Later
+    ## we should find the actual mean value above the diagonal and try to
+    ## fit a better model below it.
     divideIntegerModel <- {
         fname <- "DivideInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)    %>%
             filter(x_mem != 0) %>% filter(y_mem != 0) %>%
+            filter (x_mem > y_mem) %>%
             discard.upper.outliers(fname)   %>%
             discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ ifelse(x_mem > y_mem, I(x_mem * y_mem), 0) , filtered)
+        m <- lm(Mean ~ I(x_mem * y_mem), filtered)
         adjustModel(m,fname)
     }
-    ## This one does seem to underestimate the cost by a factor of two.
-    ## TODO: fix this.  It's hard to see what's going on, but an estimate of
-    ## twice the cost of multiplication looks safe. Get some more data to check that.
 
     quotientIntegerModel  <- divideIntegerModel
     remainderIntegerModel <- divideIntegerModel
@@ -239,13 +245,41 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
+
+    ##### Bytestrings #####
+
+    appendByteStringModel <- {
+        fname <- "AppendByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead (two.args.overhead)
+        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
+        adjustModel(m,fname)
+    }
+    ## TODO: is this symmetrical in the arguments?  The data suggests so, but check the implementation.
+
+    consByteStringModel  <- 0
+
+    sliceByteStringModel <- 0
+    ## {
+    ##     fname <- "SliceByteString"
+    ##     filtered <- data %>%
+    ##         filter.and.check.nonempty(fname) %>%
+    ##         discard.overhead (two.args.overhead)
+    ##     m <- lm(Mean ~ 1, data=filtered)   ## FIX THIS!!!
+    ##     adjustModel(m,fname)
+    ## }
+
+    lengthOfByteStringModel <- 0
+    indexByteStringModel    <- 0
+    
     equalsByteStringModel <- {  # We're not discarding outliers because the input sizes in Bench.hs grow exponentially.
         fname <- "EqualsByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
+        m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
@@ -258,35 +292,9 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    greaterThanByteStringModel <- lessThanByteStringModel
+    lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
 
-    concatenateModel <- {
-        fname <- "Concatenate"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
-        adjustModel(m,fname)
-    }
-    ## TODO: is this symmetrical in the arguments?  The data suggests so, but check the implementation.
-
-    takeByteStringModel <- {
-        fname <- "TakeByteString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ 1, data=filtered)
-        adjustModel(m,fname)
-    }
-
-    dropByteStringModel <- {
-        fname <- "DropByteString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead (two.args.overhead)
-        m <- lm(Mean ~ 1, data=filtered)
-        adjustModel(m,fname)
-    }
+    ## Cryptography and hashes
 
     sha2_256Model <- {
         fname <- "Sha2_256"
@@ -306,42 +314,113 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
+    blake2bModel <- sha2_256Model    ## TODO: Fix this
+
+    ## This appears to be kind of random, even up to size 120000
     verifySignatureModel <- {
         fname <- "VerifySignature"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (three.args.overhead)
-        m <- lm(Mean ~ 1, data=filtered)
+        m <- lm(Mean ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
+
+    ##### Bool #####
+
     ifThenElseModel <- 0
 
-    blake2bModel <- sha2_256Model
-    ## TODO: Fix this and add other missing models
+
+    ##### Unit #####
+
+    chooseUnitModel <- 0
+    
+
+    ##### Tracing #####
+
+    traceModel <- 0
+
+
+    ##### Pairs #####
+
+    fstPairModel <- 0
+    sndPairModel <- 0
+
+
+    ##### Lists #####
+
+    chooseListModel <- 0
+    mkConsModel     <- 0
+    headListModel   <- 0
+    tailListModel   <- 0
+    nullListModel   <- 0
+
+
+    ##### Data #####
+    
+    chooseDataModel   <- 0
+    constrDataModel   <- 0
+    mapDataModel      <- 0
+    listDataModel     <- 0
+    iDataModel        <- 0
+    bDataModel        <- 0
+    unConstrDataModel <- 0
+    unMapDataModel    <- 0
+    unListDataModel   <- 0
+    unIDataModel      <- 0
+    unBDataModel      <- 0
+    equalsDataModel   <- 0
 
     list(
         addIntegerModel               = addIntegerModel,
-        equalsIntegerModel            = equalsIntegerModel,
         subtractIntegerModel          = subtractIntegerModel,
         multiplyIntegerModel          = multiplyIntegerModel,
         divideIntegerModel            = divideIntegerModel,
         quotientIntegerModel          = quotientIntegerModel,
         remainderIntegerModel         = remainderIntegerModel,
         modIntegerModel               = modIntegerModel,
+        equalsIntegerModel            = equalsIntegerModel,
         lessThanIntegerModel          = lessThanIntegerModel,
         lessThanEqualsIntegerModel    = lessThanEqualsIntegerModel,
-        concatenateModel              = concatenateModel,
-        takeByteStringModel           = takeByteStringModel,
-        dropByteStringModel           = dropByteStringModel,
-        sha2_256Model                 = sha2_256Model,
-        sha3_256Model                 = sha3_256Model,
+        appendByteStringModel         = appendByteStringModel,
+        consByteStringModel           = consByteStringModel,
+        sliceByteStringModel          = sliceByteStringModel,
+        lengthOfByteStringModel       = lengthOfByteStringModel,
+        indexByteStringModel          = indexByteStringModel,
         equalsByteStringModel         = equalsByteStringModel,
         lessThanByteStringModel       = lessThanByteStringModel,
-        greaterThanByteStringModel    = greaterThanByteStringModel,
+        lessThanEqualsByteStringModel = lessThanEqualsByteStringModel,
+        sha2_256Model                 = sha2_256Model,
+        sha3_256Model                 = sha3_256Model,
+        blake2bModel                  = blake2bModel,
         verifySignatureModel          = verifySignatureModel,
+        ## appendStringModel
+        ## equalStringModel
+        ## encodeUtf8Model
+        ## decodeUtf8Model
         ifThenElseModel               = ifThenElseModel,
-        blake2bModel                  = blake2bModel
+        chooseUnitModel               = chooseUnitModel,
+        traceModel                    = traceModel,
+        fstPairModel                  = fstPairModel,
+        sndPairModel                  = sndPairModel,
+        chooseListModel               = chooseListModel,
+        mkConsModel                   = mkConsModel,
+        headListModel                 = headListModel,
+        tailListModel                 = tailListModel,
+        nullListModel                 = nullListModel,
+        chooseDataModel               = chooseDataModel,
+        constrDataModel               = constrDataModel,
+        mapDataModel                  = mapDataModel,
+        listDataModel                 = listDataModel,
+        iDataModel                    = iDataModel,
+        bDataModel                    = bDataModel,
+        unConstrDataModel             = unConstrDataModel,
+        unMapDataModel                = unMapDataModel,
+        unListDataModel               = unListDataModel,
+        unIDataModel                  = unIDataModel,
+        unBDataModel                  = unBDataModel,
+        equalsDataModel               = equalsDataModel
     )
 
 }
