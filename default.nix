@@ -36,10 +36,8 @@ rec {
   inherit (plutus) web-ghc;
 
   inherit (haskell.packages.plutus-pab.components.exes)
-    plutus-game
-    plutus-currency
-    plutus-atomic-swap
-    plutus-pay-to-wallet;
+    plutus-pab-examples
+    plutus-uniswap;
 
   inherit (haskell.packages.marlowe.components.exes) marlowe-pab;
 
