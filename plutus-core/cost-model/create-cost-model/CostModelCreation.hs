@@ -359,7 +359,7 @@ appendByteString cpuModelR = do
 -- ### TODO: get model from R ###
 consByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 consByteString _ = do
-      let cpuModel = ModelTwoArgumentsConstantCost 150000 -- ### Get this from R
+      let cpuModel = ModelTwoArgumentsLinearInY $ ModelLinearSize 150000 1000 -- ### Get this from R
       let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
       pure $ CostingFun cpuModel memModel
 

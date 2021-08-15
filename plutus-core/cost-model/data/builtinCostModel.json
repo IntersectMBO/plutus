@@ -217,9 +217,9 @@
         "cpu": {
             "arguments": {
                 "slope": 1000,
-                "intercept": 10000
+                "intercept": 150000
             },
-            "type": "added_sizes"
+            "type": "linear_in_y"
         }
     },
     "encodeUtf8": {
@@ -592,11 +592,11 @@
     },
     "trace": {
         "memory": {
-            "arguments": 0,
+            "arguments": 32,
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 0,
+            "arguments": 150000,
             "type": "constant_cost"
         }
     },

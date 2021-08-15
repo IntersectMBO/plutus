@@ -226,7 +226,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
             ((<>) :: Text -> Text -> Text)
-            (runCostingFunTwoArguments . paramAppendByteString)
+            (runCostingFunTwoArguments . paramAppendString)
     toBuiltinMeaning EqualsString =
         makeBuiltinMeaning
             ((==) @Text)
