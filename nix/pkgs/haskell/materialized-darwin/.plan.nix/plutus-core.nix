@@ -540,7 +540,6 @@
             (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
-            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
             (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
