@@ -50,7 +50,7 @@
     };
     hackage-nix = {
       # We pin this revision to avoid unhelpful daily churn from the auto-update process.
-      url = "github:input-output-hk/hackage.nix?rev=afafb0104f1f5029155fcbb15bc1ce1bcd98ea6b";
+      url = "github:input-output-hk/hackage.nix?rev=23545a41ef50c4328e3f95b9a63db59f3ada3518";
 
       flake = false;
     };
