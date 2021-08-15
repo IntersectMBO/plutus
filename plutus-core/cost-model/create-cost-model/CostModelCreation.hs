@@ -300,8 +300,10 @@ multiplyInteger cpuModelR = do
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 divideInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
-  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $  -- ### Get this number from R
-                 ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
+  let cpuModel = ModelTwoArgumentsConstAboveDiagonal
+                 (ModelConstantOrTwoArguments 148000 $  -- ### Get this number from R
+                  ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
+                 )
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
   let memModel = ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
@@ -310,8 +312,10 @@ divideInteger cpuModelR = do
 quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 quotientInteger cpuModelR = do
   cpuModelBelowDiag <- readModelMultipliedSizes cpuModelR
-  let cpuModel = ModelTwoArgumentsConstAboveDiagonal 148000 $ -- ### Get this number from R
-                 ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
+  let cpuModel = ModelTwoArgumentsConstAboveDiagonal
+                 (ModelConstantOrTwoArguments 148000 $ -- ### Get this number from R
+                  ModelTwoArgumentsMultipliedSizes cpuModelBelowDiag
+                 )
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
   let memModel = ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1

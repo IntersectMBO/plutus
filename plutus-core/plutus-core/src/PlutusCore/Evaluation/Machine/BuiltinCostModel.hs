@@ -16,6 +16,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)
+    , ModelConstantOrTwoArguments(..)
     , ModelLinearSize(..)
     , ModelMultipliedSizes(..)
     , ModelMinSize(..)
@@ -52,6 +53,11 @@ import           Language.Haskell.TH.Syntax             hiding (Name, newName)
 type BuiltinCostModel = BuiltinCostModelBase CostingFun
 
 -- See  Note [Budgeting units] in ExBudgeting.hs
+
+-- If the types here change there may be difficulties compiling this file
+-- because it doesn't match builtinCostModel.json (which is parsed during
+-- compilation).  In that case, manually change the JSON to match or do what it
+-- says in Note [Modifying the cost model] in ExBudgetingDefaults.hs.
 
 -- | The main model which contains all data required to predict the cost of
 -- builtin functions. See Note [Creation of the Cost Model] for how this is
@@ -213,6 +219,9 @@ runOneArgumentModel (ModelOneArgumentConstantCost c) _ = c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) (ExMemory s) =
     s * slope + intercept
 
+
+---------------- Two-argument costing functions ----------------
+
 -- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
     { modelAddedSizesIntercept :: CostingInteger
@@ -261,14 +270,6 @@ data ModelMaxSize = ModelMaxSize
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMaxSize", CamelToSnake)] ModelMaxSize
 
--- | (if (x > y) then s * (x + y) else 0) + I
-data ModelSplitConst = ModelSplitConst
-    { modelSplitConstIntercept :: CostingInteger
-    , modelSplitConstSlope     :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
-    deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "ModelSplitConst", CamelToSnake)] ModelSplitConst
-
 -- | if p then s*x else c; p depends on usage
 data ModelConstantOrLinear = ModelConstantOrLinear
     { modelConstantOrLinearConstant  :: CostingInteger
@@ -276,10 +277,16 @@ data ModelConstantOrLinear = ModelConstantOrLinear
     , modelConstantOrLinearSlope     :: CostingInteger
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "ModelConstantOrLinear", CamelToSnake)] ModelConstantOrLinear
+        '[FieldLabelModifier (StripPrefix "modelConstantOrLinear", CamelToSnake)] ModelConstantOrLinear
 
+-- | if p then s*x else c; p depends on usage
+data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
+    { modelConstantOrTwoArgumentsConstant :: CostingInteger
+    , modelConstantOrTwoArgumentsModel    :: ModelTwoArguments
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelConstantOrTwoArguments", CamelToSnake)] ModelConstantOrTwoArguments
 
----------------- Two-argument costing functions ----------------
 
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost       CostingInteger
@@ -291,8 +298,8 @@ data ModelTwoArguments =
   | ModelTwoArgumentsMinSize            ModelMinSize
   | ModelTwoArgumentsMaxSize            ModelMaxSize
   | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
-  | ModelTwoArgumentsConstAboveDiagonal CostingInteger ModelTwoArguments
-  | ModelTwoArgumentsConstBelowDiagonal CostingInteger ModelTwoArguments
+  | ModelTwoArgumentsConstAboveDiagonal ModelConstantOrTwoArguments
+  | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[ TagSingleConstructors
@@ -346,12 +353,12 @@ runTwoArgumentModel  -- Off the diagonal, return the constant.  On the diagonal,
         then xSize * slope + intercept
         else c
 runTwoArgumentModel -- Below the diagonal, return the constant. Above the diagonal, run the other model.
-    (ModelTwoArgumentsConstBelowDiagonal c m) xMem yMem =
+    (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) xMem yMem =
         if xMem > yMem
         then c
         else runTwoArgumentModel m xMem yMem
 runTwoArgumentModel -- Above the diagonal, return the constant. Below the diagonal, run the other model.
-    (ModelTwoArgumentsConstAboveDiagonal c m) xMem yMem =
+    (ModelTwoArgumentsConstAboveDiagonal (ModelConstantOrTwoArguments c m)) xMem yMem =
         if xMem < yMem
         then c
         else runTwoArgumentModel m xMem yMem
