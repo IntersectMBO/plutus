@@ -28,7 +28,7 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Algorithmic.RenamingSubstitution
 open import Builtin
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Utils using (decIf;just;nothing)
 
@@ -57,7 +57,7 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
    → Value (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
    → Value (μ A B)
 
-  V-con : {tcn : TyCon}
+  V-con : {tcn : TyCon _}
     → (cn : TermCon {∅} (con tcn))
     → Value (con tcn)
 
@@ -184,7 +184,8 @@ BUILTIN charToString (app _ base (V-con (char c))) = inj₁ (V-con (string (prim
 BUILTIN append (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
 BUILTIN trace (app _ base (V-con (string s))) =
   inj₁ (V-con (Debug.trace s unit))
-
+BUILTIN _ {A} _ = inj₂ A
+  
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
   → ∀{A}
   → BAPP b p A
@@ -200,8 +201,12 @@ BUILTIN' b {az = az} p q
 
 open import Data.Product using (∃)
 
-bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b)
-  → BAPP b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
+postulate
+  bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b)
+    → BAPP b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
+
+-- commented out pending a change to builtins
+{-
 bappTermLem addInteger _ base = _ ,, _ ,, refl
 bappTermLem addInteger {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -391,9 +396,13 @@ bappTermLem append {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
 ... | refl ,, refl ,, ()
 bappTermLem trace {az = az} {as} p q with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem trace {az = .[]} {.[]} .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
+-}
 
-bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
-  → BAPP b p A → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
+postulate
+  bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
+    → BAPP b p A → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B
+-- commenting out pending a change in the builtins
+{-
 bappTypeLem addInteger {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both' az (([] ∷ Term) ∷ Type) (([] ∷ Term) ∷ Term) as p refl
 ... | refl ,, refl ,, () 
@@ -553,7 +562,7 @@ bappTypeLem append {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
 bappTypeLem trace {az = az} {as} p q
   with <>>-cancel-both' az ([] ∷ Type) ([] ∷ Term) as p refl
 ... | refl ,, refl ,, ()
-
+-}
 V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
        → (p : as <>> a ∷ as' ∈ arity b)
        → BAPP b p A
@@ -615,6 +624,32 @@ ival ifThenElse = V-IΠ ifThenElse _ base
 ival charToString = V-I⇒ charToString _ base
 ival append = V-I⇒ append _ base
 ival trace = V-I⇒ trace _ base
+ival equalsString = V-I⇒ equalsString (start _) base
+ival encodeUtf8 = V-I⇒ encodeUtf8 (start _) base
+ival decodeUtf8 = V-I⇒ decodeUtf8 (start _) base
+ival fstPair = V-IΠ fstPair (start _) base
+ival sndPair = V-IΠ sndPair (start _) base
+ival nullList = V-IΠ nullList (start _) base
+ival headList = V-IΠ headList (start _) base
+ival tailList = V-IΠ tailList (start _) base
+ival chooseList = V-IΠ chooseList (start _) base
+ival constrData = V-I⇒ constrData (start _) base
+ival mapData = V-I⇒ mapData (start _) base
+ival listData = V-I⇒ listData (start _) base
+ival iData = V-I⇒ iData (start _) base
+ival bData = V-I⇒ bData (start _) base
+ival unconstrData = V-I⇒ unconstrData (start _) base
+ival unMapData = V-I⇒ unMapData (start _) base
+ival unListData = V-I⇒ unListData (start _) base
+ival unIData = V-I⇒ unIData (start _) base
+ival unBData = V-I⇒ unBData (start _) base
+ival equalsData = V-I⇒ equalsData (start _) base
+ival chooseData = V-IΠ chooseData (start _) base
+ival chooseUnit = V-IΠ chooseUnit (start _) base
+ival mkPairData = V-I⇒ mkPairData (start _) base
+ival mkNilData = V-I⇒ mkNilData (start _) base
+ival mkNilPairData = V-I⇒ mkNilPairData (start _) base
+ival mkConsData = V-I⇒ mkConsData (start _) base
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ
