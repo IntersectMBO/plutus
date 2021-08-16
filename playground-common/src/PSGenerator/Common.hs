@@ -40,6 +40,7 @@ import           Plutus.ChainIndex.Emulator.Handlers       (ChainIndexError, Cha
 import           Plutus.ChainIndex.Tx                      (ChainIndexTx, ChainIndexTxOutputs)
 import           Plutus.ChainIndex.Types                   (Page, PageSize, Tip)
 import           Plutus.ChainIndex.UtxoState               (InsertUtxoFailed, InsertUtxoPosition, RollbackFailed)
+import           Plutus.Contract.CardanoAPI                (FromCardanoError)
 import           Plutus.Contract.Checkpoint                (CheckpointError)
 import           Plutus.Contract.Effects                   (ActiveEndpoint, BalanceTxResponse, ChainIndexQuery,
                                                             ChainIndexResponse, Depth, PABReq, PABResp, TxStatus,
@@ -371,6 +372,7 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoPosition)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @InsertUtxoFailed)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @RollbackFailed)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @FromCardanoError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Page A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tip)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PageSize)
