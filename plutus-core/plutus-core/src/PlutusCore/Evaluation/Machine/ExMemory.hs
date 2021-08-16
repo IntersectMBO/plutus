@@ -192,12 +192,12 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
 instance ExMemoryUsage Data where
     memoryUsage = sizeData
         where sizeData =
-                \case
-                 Constr _ l -> nodeMem + sizeDataList l
-                 Map l      -> nodeMem + sizeDataPairs l
-                 List l     -> nodeMem + sizeDataList l
-                 I n        -> memoryUsage n
-                 B b        -> memoryUsage b
+                nodeMem + \case
+                        Constr _ l -> sizeDataList l
+                        Map l      -> sizeDataPairs l
+                        List l     -> sizeDataList l
+                        I n        -> memoryUsage n
+                        B b        -> memoryUsage b
               nodeMem = 4
               sizeDataList []     = 0
               sizeDataList (d:ds) = sizeData d + sizeDataList ds
