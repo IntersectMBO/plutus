@@ -22,6 +22,7 @@ module Plutus.Trace.Emulator(
     , ContractInstanceTag
     , ContractConstraints
     -- * Constructing Traces
+    , Assert.assert
     , RunContract.activateContract
     , RunContract.activateContractWallet
     , RunContract.walletInstanceTag
@@ -100,6 +101,8 @@ import           Wallet.Emulator.Wallet                  (Entity, balances)
 import qualified Wallet.Emulator.Wallet                  as Wallet
 
 import qualified Ledger.CardanoWallet                    as CW
+import           Plutus.Trace.Effects.Assert             (Assert, handleAssert)
+import qualified Plutus.Trace.Effects.Assert             as Assert
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, handleDeterministicIds)
 import           Plutus.Trace.Effects.EmulatedWalletAPI  (EmulatedWalletAPI, handleEmulatedWalletAPI)
 import qualified Plutus.Trace.Effects.EmulatedWalletAPI  as EmulatedWalletAPI
@@ -136,6 +139,7 @@ makeEffect ''PrintEffect
 type EmulatorTrace a =
         Eff
             '[ RunContract
+            , Assert
             , Waiting
             , EmulatorControl
             , EmulatedWalletAPI
@@ -163,6 +167,7 @@ handleEmulatorTrace slotCfg action = do
             . reinterpret handleEmulatedWalletAPI
             . interpret (handleEmulatorControl @_ @effs slotCfg)
             . interpret (handleWaiting @_ @effs)
+            . interpret (handleAssert @_ @effs)
             . interpret (handleRunContract @_ @effs)
             $ raiseEnd action
     void $ exit @effs @EmulatorMessage

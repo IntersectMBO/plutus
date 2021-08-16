@@ -10,6 +10,7 @@ module Spec.ThreadToken where
 
 import           PlutusTx.Prelude             hiding (Eq)
 import           Prelude                      (Show, String, show)
+import qualified Prelude                      as Haskell
 
 import           Control.Monad                (void)
 import           GHC.Generics                 (Generic)

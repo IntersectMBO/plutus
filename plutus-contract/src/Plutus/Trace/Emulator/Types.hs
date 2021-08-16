@@ -159,6 +159,7 @@ data EmulatorRuntimeError =
     | EmulatorJSONDecodingError String JSON.Value
     | GenericError String
     | EmulatedWalletError WalletAPIError
+    | AssertionError String
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -167,6 +168,7 @@ instance Pretty EmulatorRuntimeError where
         ThreadIdNotFound i            -> "Thread ID not found:" <+> pretty i
         InstanceIdNotFound w          -> "Instance ID not found:" <+> pretty w
         EmulatorJSONDecodingError e v -> "Emulator JSON decoding error:" <+> pretty e <+> parens (viaShow v)
+        AssertionError n              -> "Assertion failed: " <+> (squotes $ pretty n)
         GenericError e                -> pretty e
         EmulatedWalletError e         -> pretty e
 
