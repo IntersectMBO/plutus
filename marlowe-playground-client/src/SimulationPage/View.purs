@@ -31,8 +31,8 @@ import Halogen.Monaco (monacoComponent)
 import Hint.State (hint)
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), getChoiceFormat)
-import Marlowe.Extended.OrderedMap as OrderedMap
-import Marlowe.Extended.OrderedSet (OrderedSet)
+import Data.Map.Ordered.OMap as OMap
+import Data.Set.Ordered.OSet (OSet)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payee(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Marlowe.Template (IntegerTemplateType(..), orderContentUsingMetadata)
@@ -209,7 +209,7 @@ type TemplateFormDisplayInfo a action
     , typeName :: IntegerTemplateType -- Identifier for the type of template we are displaying
     , title :: String -- Title of the section of the template type
     , prefix :: String -- Prefix for the explanation of the template
-    , orderedMetadataSet :: OrderedSet String -- Ordered set of parameters with metadata (in custom metadata order)
+    , orderedMetadataSet :: OSet String -- Ordered set of parameters with metadata (in custom metadata order)
     }
 
 startSimulationWidget ::
@@ -246,7 +246,7 @@ startSimulationWidget metadata { initialSlot, templateContent } =
     , typeName: SlotContent
     , title: "Timeout template parameters"
     , prefix: "Slot for"
-    , orderedMetadataSet: OrderedMap.keys metadata.slotParameterDescriptions
+    , orderedMetadataSet: OMap.keys metadata.slotParameterDescriptions
     }
 
   valueParameterDisplayInfo =
@@ -255,10 +255,10 @@ startSimulationWidget metadata { initialSlot, templateContent } =
     , typeName: ValueContent
     , title: "Value template parameters"
     , prefix: "Constant for"
-    , orderedMetadataSet: OrderedMap.keys metadata.valueParameterInfo
+    , orderedMetadataSet: OMap.keys metadata.valueParameterInfo
     }
 
-  extractValueParameterNuberFormat valueParameter = case OrderedMap.lookup valueParameter metadata.valueParameterInfo of
+  extractValueParameterNuberFormat valueParameter = case OMap.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
 
@@ -314,7 +314,7 @@ integerTemplateParameters metadata actionGen { lookupFormat, lookupDefinition, t
                         )
                       )
                   )
-                  (OrderedMap.toUnfoldable orderedContent)
+                  (OMap.toUnfoldable orderedContent)
               )
     ]
   where

@@ -34,7 +34,7 @@ import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (Contract) as Extended
 import Marlowe.Extended (ContractType(..), resolveRelativeTimes, toCore)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _extendedContract, _metaData, _valueParameterFormat, _valueParameterInfo)
-import Marlowe.Extended.OrderedMap as OrderedMap
+import Data.Map.Ordered.OMap as OMap
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot, TokenName)
@@ -158,7 +158,7 @@ mkSlotContentInputs metaData slotContent =
 mkValueContentInputs :: MetaData -> Map String BigInteger -> Map String (InputField.State ValueError)
 mkValueContentInputs metaData valueContent = Map.mapMaybeWithKey valueToInput valueContent
   where
-  valueToInput key value = case OrderedMap.lookup key $ map (view _valueParameterFormat) (view _valueParameterInfo metaData) of
+  valueToInput key value = case OMap.lookup key $ map (view _valueParameterFormat) (view _valueParameterInfo metaData) of
     Just numberFormat -> Just $ InputField.mkInitialState $ Just numberFormat
     _ -> Just $ InputField.mkInitialState Nothing
 
@@ -175,7 +175,7 @@ instantiateExtendedContract currentSlot state =
 
     valueParameterFormats = map (view _valueParameterFormat) (view (_contractTemplate <<< _metaData <<< _valueParameterInfo) state)
 
-    getBigIntegerValueWithDecimals key valueContentInput = case OrderedMap.lookup key valueParameterFormats of
+    getBigIntegerValueWithDecimals key valueContentInput = case OMap.lookup key valueParameterFormats of
       Just numberFormat -> Just $ getBigIntegerValue numberFormat $ view _value valueContentInput
       _ -> Just $ getBigIntegerValue DefaultFormat $ view _value valueContentInput
 

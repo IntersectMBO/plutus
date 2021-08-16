@@ -35,7 +35,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Extended as EM
 import Marlowe.Extended.Metadata (MetadataHintInfo, _choiceNames, _roles, _slotParameters, _valueParameters)
-import Marlowe.Extended.OrderedSet as OrderedSet
+import Data.Set.Ordered.OSet as OSet
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Holes, Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Value(..), compareLocation, fromTerm, getHoles, getLocation, insertHole)
 import Marlowe.Holes as Holes
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
@@ -177,10 +177,10 @@ addRoleFromPartyTerm (Term (Role role) _) = modifying (_metadataHints <<< _roles
 addRoleFromPartyTerm _ = pure unit
 
 addSlotParameter :: String -> CMS.State State Unit
-addSlotParameter slotParam = modifying (_metadataHints <<< _slotParameters) $ OrderedSet.insert slotParam
+addSlotParameter slotParam = modifying (_metadataHints <<< _slotParameters) $ OSet.insert slotParam
 
 addValueParameter :: String -> CMS.State State Unit
-addValueParameter valueParam = modifying (_metadataHints <<< _valueParameters) $ OrderedSet.insert valueParam
+addValueParameter valueParam = modifying (_metadataHints <<< _valueParameters) $ OSet.insert valueParam
 
 addChoiceName :: String -> CMS.State State Unit
 addChoiceName choiceName = modifying (_metadataHints <<< _choiceNames) $ Set.insert choiceName

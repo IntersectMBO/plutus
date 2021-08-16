@@ -21,7 +21,7 @@ import InputField.Types (State) as InputField
 import InputField.View (renderInput)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
-import Marlowe.Extended.OrderedMap as OrderedMap
+import Data.Map.Ordered.OMap as OMap
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, TokenName)
@@ -287,7 +287,7 @@ slotParameter metaData (key /\ slotContentInput) =
   let
     slotParameterDescriptions = view _slotParameterDescriptions metaData
 
-    description = fromMaybe "no description available" $ OrderedMap.lookup key slotParameterDescriptions
+    description = fromMaybe "no description available" $ OMap.lookup key slotParameterDescriptions
 
     value = view _value slotContentInput
   in
@@ -298,11 +298,11 @@ valueParameter metaData (key /\ valueContentInput) =
   let
     valueParameterFormats = map (view _valueParameterFormat) (view _valueParameterInfo metaData)
 
-    numberFormat = fromMaybe DefaultFormat $ OrderedMap.lookup key valueParameterFormats
+    numberFormat = fromMaybe DefaultFormat $ OMap.lookup key valueParameterFormats
 
     valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
 
-    description = fromMaybe "no description available" $ OrderedMap.lookup key valueParameterDescriptions
+    description = fromMaybe "no description available" $ OMap.lookup key valueParameterDescriptions
 
     value = view _value valueContentInput
 
@@ -372,10 +372,10 @@ parameterInputs metaData slotContentInputs valueContentInputs =
     [ ul
         [ classNames [ "mb-4" ] ]
         $ valueInput
-        <$> OrderedMap.toUnfoldable (orderContentUsingMetadata valueContentInputs (OrderedMap.keys metaData.valueParameterInfo))
+        <$> OMap.toUnfoldable (orderContentUsingMetadata valueContentInputs (OMap.keys metaData.valueParameterInfo))
     , ul_
         $ slotInput
-        <$> OrderedMap.toUnfoldable (orderContentUsingMetadata slotContentInputs (OrderedMap.keys metaData.slotParameterDescriptions))
+        <$> OMap.toUnfoldable (orderContentUsingMetadata slotContentInputs (OMap.keys metaData.slotParameterDescriptions))
     ]
   where
   valueInput (key /\ inputField) =
@@ -384,9 +384,9 @@ parameterInputs metaData slotContentInputs valueContentInputs =
 
       valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
 
-      numberFormat = fromMaybe DefaultFormat $ OrderedMap.lookup key valueParameterFormats
+      numberFormat = fromMaybe DefaultFormat $ OMap.lookup key valueParameterFormats
 
-      description = fromMaybe "no description available" $ OrderedMap.lookup key valueParameterDescriptions
+      description = fromMaybe "no description available" $ OMap.lookup key valueParameterDescriptions
     in
       templateInputItem key description
         [ ValueContentInputAction key <$> renderInput (inputFieldOptions key false numberFormat) inputField ]
@@ -397,7 +397,7 @@ parameterInputs metaData slotContentInputs valueContentInputs =
 
       numberFormat = TimeFormat
 
-      description = fromMaybe "no description available" $ OrderedMap.lookup key slotParameterDescriptions
+      description = fromMaybe "no description available" $ OMap.lookup key slotParameterDescriptions
     in
       templateInputItem key description
         [ SlotContentInputAction key <$> renderInput (inputFieldOptions key true numberFormat) inputField ]

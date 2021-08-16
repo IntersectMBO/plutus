@@ -17,9 +17,9 @@ import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, min, placeholder, required, selected, type_, value)
 import Marlowe.Extended (contractTypeArray, contractTypeInitials, contractTypeName, initialsToContractType)
 import Marlowe.Extended.Metadata (ChoiceInfo, MetaData, MetadataHintInfo, NumberFormat(..), NumberFormatType(..), ValueParameterInfo, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterInfo, _valueParameters, defaultForFormatType, fromString, getFormatType, isDecimalFormat, isDefaultFormat, toString)
-import Marlowe.Extended.OrderedMap (OrderedMap)
-import Marlowe.Extended.OrderedMap as OrderedMap
-import Marlowe.Extended.OrderedSet (OrderedSet)
+import Data.Map.Ordered.OMap (OMap)
+import Data.Map.Ordered.OMap as OMap
+import Data.Set.Ordered.OSet (OSet)
 import MetadataTab.Types (MetadataAction(..))
 
 onlyDescriptionRenderer :: forall a b p. (String -> String -> b) -> (String -> b) -> String -> String -> Boolean -> (b -> a) -> String -> String -> Array (HTML p a)
@@ -212,12 +212,12 @@ metadataList metadataAction metadataMap hintSet metadataRenderer typeNameTitle t
 sortableMetadataList ::
   forall a b c p.
   (b -> a) ->
-  OrderedMap String c ->
-  OrderedSet String ->
+  OMap String c ->
+  OSet String ->
   (String -> c -> Boolean -> (b -> a) -> String -> String -> Array (HTML p a)) ->
   String -> String -> (String -> b) -> Array (HTML p a)
 sortableMetadataList metadataAction metadataMap hintSet metadataRenderer typeNameTitle typeNameSmall setEmptyMetadata =
-  if OrderedMap.isEmpty combinedMap then
+  if OMap.isEmpty combinedMap then
     []
   else
     [ div [ class_ $ ClassName "metadata-group-title" ]
@@ -240,7 +240,7 @@ sortableMetadataList metadataAction metadataMap hintSet metadataRenderer typeNam
                       ]
                 )
             )
-            $ OrderedMap.toUnfoldable combinedMap
+            $ OMap.toUnfoldable combinedMap
         )
   where
   mergeMaps :: forall c2. (Maybe (c2 /\ Boolean)) -> (Maybe (c2 /\ Boolean)) -> (Maybe (c2 /\ Boolean))
@@ -254,9 +254,9 @@ sortableMetadataList metadataAction metadataMap hintSet metadataRenderer typeNam
   -- * Just (_ /\ true) means the entry is both in the contract and in the metadata
   -- If it is nowhere we just don't store it in the map
   combinedMap =
-    OrderedMap.unionWith mergeMaps
+    OMap.unionWith mergeMaps
       (map (\x -> Just (x /\ false)) metadataMap)
-      (foldMap (\x -> OrderedMap.singleton x Nothing) hintSet)
+      (foldMap (\x -> OMap.singleton x Nothing) hintSet)
 
 metadataView :: forall a p. MetadataHintInfo -> MetaData -> (MetadataAction -> a) -> HTML p a
 metadataView metadataHints metadata metadataAction =
@@ -323,8 +323,8 @@ metadataView metadataHints metadata metadataAction =
 
   generateSortableMetadataList ::
     forall c.
-    Lens' MetaData (OrderedMap String c) ->
-    Lens' MetadataHintInfo (OrderedSet String) ->
+    Lens' MetaData (OMap String c) ->
+    Lens' MetadataHintInfo (OSet String) ->
     (String -> c -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)) ->
     String ->
     String ->

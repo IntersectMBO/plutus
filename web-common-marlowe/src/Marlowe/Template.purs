@@ -13,9 +13,9 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.Symbol (SProxy(..))
 import Data.Traversable (foldMap)
-import Marlowe.Extended.OrderedMap (OrderedMap)
-import Marlowe.Extended.OrderedMap as OrderedMap
-import Marlowe.Extended.OrderedSet (OrderedSet)
+import Data.Map.Ordered.OMap (OMap)
+import Data.Map.Ordered.OMap as OMap
+import Data.Set.Ordered.OSet (OSet)
 
 newtype Placeholders
   = Placeholders
@@ -88,10 +88,10 @@ class Template a b where
 class Fillable a b where
   fillTemplate :: b -> a -> a
 
-orderContentUsingMetadata :: forall a. Map String a -> OrderedSet String -> OrderedMap String a
-orderContentUsingMetadata content orderedMetadataSet = orderedTaggedContent <> OrderedMap.fromFoldableWithIndex untaggedContent
+orderContentUsingMetadata :: forall a. Map String a -> OSet String -> OMap String a
+orderContentUsingMetadata content orderedMetadataSet = orderedTaggedContent <> OMap.fromFoldableWithIndex untaggedContent
   where
-  orderedTaggedContent = foldMap (\x -> maybe mempty (\y -> OrderedMap.singleton x y) (Map.lookup x content)) orderedMetadataSet
+  orderedTaggedContent = foldMap (\x -> maybe mempty (\y -> OMap.singleton x y) (Map.lookup x content)) orderedMetadataSet
 
   metadataSet = Set.fromFoldable orderedMetadataSet -- For efficiency
 

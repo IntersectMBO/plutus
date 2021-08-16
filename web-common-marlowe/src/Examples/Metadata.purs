@@ -5,7 +5,7 @@ import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import Marlowe.Extended (ContractType(..))
 import Marlowe.Extended.Metadata (NumberFormat(..), MetaData, emptyContractMetadata, lovelaceFormat, oracleRatioFormat)
-import Marlowe.Extended.OrderedMap as OrderedMap
+import Data.Map.Ordered.OMap as OMap
 
 example :: MetaData
 example = emptyContractMetadata
@@ -47,7 +47,7 @@ escrow =
           ]
       )
   , slotParameterDescriptions:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Buyer's deposit timeout" /\ "Deadline by which the *Buyer* must deposit the selling *Price* in the contract."
           , "Buyer's dispute timeout" /\ "Deadline by which, if the *Buyer* has not opened a dispute, the *Seller* will be paid."
           , "Seller's response timeout" /\ "Deadline by which, if the *Seller* has not responded to the dispute, the *Buyer* will be refunded."
@@ -55,7 +55,7 @@ escrow =
           ]
       )
   , valueParameterInfo:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Price"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "Amount of Lovelace to be paid by the *Buyer* for the item."
@@ -96,7 +96,7 @@ escrowWithCollateral =
           ]
       )
   , slotParameterDescriptions:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Collateral deposit by seller timeout" /\ "The deadline by which the *Seller* must deposit the *Collateral amount* in the contract."
           , "Deposit of collateral by buyer timeout" /\ "The deadline by which the *Buyer* must deposit the *Collateral amount* in the contract."
           , "Deposit of price by buyer timeout" /\ "The deadline by which the *Buyer* must deposit the *Price* in the contract."
@@ -105,7 +105,7 @@ escrowWithCollateral =
           ]
       )
   , valueParameterInfo:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Collateral amount"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "The amount of Lovelace to be deposited by both parties at the start of the contract to serve as an incentive for collaboration."
@@ -131,13 +131,13 @@ zeroCouponBond =
           ]
       )
   , slotParameterDescriptions:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Initial exchange deadline" /\ "The *Investor* must deposit the discounted price of the bond before this deadline or the offer will expire."
           , "Maturity exchange deadline" /\ "The *Issuer* must deposit the full price of the bond before this deadline or it will default."
           ]
       )
   , valueParameterInfo:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Discounted price"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "The price in Lovelace of the Zero Coupon Bond at the start date."
@@ -165,7 +165,7 @@ couponBondGuaranteed =
       )
   , slotParameterDescriptions: mempty
   , valueParameterInfo:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Interest instalment"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "Amount of Lovelace that will be paid by the *Issuer* every 30 slots for 3 iterations."
@@ -191,13 +191,13 @@ swap =
           ]
       )
   , slotParameterDescriptions:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Timeout for Ada deposit" /\ "Deadline by which Ada must be deposited."
           , "Timeout for dollar deposit" /\ "Deadline by which dollar tokens must be deposited (must be after the deadline for Ada deposit)."
           ]
       )
   , valueParameterInfo:
-      ( OrderedMap.fromFoldable
+      ( OMap.fromFoldable
           [ "Amount of Ada"
               /\ { valueParameterFormat: DecimalFormat 0 "₳"
                 , valueParameterDescription: "Amount of Ada to be exchanged for dollars."

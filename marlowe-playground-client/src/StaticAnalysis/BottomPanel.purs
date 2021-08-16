@@ -23,7 +23,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..))
-import Marlowe.Extended.OrderedMap as OrderedMap
+import Data.Map.Ordered.OMap as OMap
 import Marlowe.Semantics (ChoiceId(..), Input(..), Slot(..), SlotInterval(..), TransactionInput(..))
 import Marlowe.Symbolic.Types.Response as R
 import Marlowe.Template (IntegerTemplateType(..))
@@ -249,7 +249,7 @@ analysisResultPane metadata actionGen state =
     , typeName: SlotContent
     , title: "Timeout template parameters"
     , prefix: "Slot for"
-    , orderedMetadataSet: OrderedMap.keys metadata.slotParameterDescriptions
+    , orderedMetadataSet: OMap.keys metadata.slotParameterDescriptions
     }
 
   valueParameterDisplayInfo =
@@ -258,10 +258,10 @@ analysisResultPane metadata actionGen state =
     , typeName: ValueContent
     , title: "Value template parameters"
     , prefix: "Constant for"
-    , orderedMetadataSet: OrderedMap.keys metadata.valueParameterInfo
+    , orderedMetadataSet: OMap.keys metadata.valueParameterInfo
     }
 
-  extractValueParameterNuberFormat valueParameter = case OrderedMap.lookup valueParameter metadata.valueParameterInfo of
+  extractValueParameterNuberFormat valueParameter = case OMap.lookup valueParameter metadata.valueParameterInfo of
     Just { valueParameterFormat: DecimalFormat numDecimals currencyLabel } -> Just (currencyLabel /\ numDecimals)
     _ -> Nothing
 
