@@ -172,7 +172,7 @@ class ExBudgetBuiltin fun exBudgetCat where
 instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
 
-data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
+data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
     deriving anyclass (PrettyBy config, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
