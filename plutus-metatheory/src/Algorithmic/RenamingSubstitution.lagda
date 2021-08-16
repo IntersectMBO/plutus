@@ -64,7 +64,6 @@ renTermCon ρ⋆ (integer i)    = integer i
 renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
 renTermCon ρ⋆ (bool b)       = bool b
-renTermCon ρ⋆ (char c)       = char c
 renTermCon ρ⋆ unit           = unit
 \end{code}
 
@@ -152,7 +151,6 @@ subTermCon σ⋆ (integer i)    = integer i
 subTermCon σ⋆ (bytestring b) = bytestring b
 subTermCon σ⋆ (string s)     = string s
 subTermCon σ⋆ (bool b)       = bool b
-subTermCon σ⋆ (char c)       = char c
 subTermCon σ⋆ unit           = unit
 \end{code}
 

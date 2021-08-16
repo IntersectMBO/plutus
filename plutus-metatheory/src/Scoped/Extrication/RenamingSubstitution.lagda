@@ -83,7 +83,6 @@ ren-extricateTyConNf⋆ :  ∀{Γ Δ}
 ren-extricateTyConNf⋆ ρ⋆ AC.integer = refl
 ren-extricateTyConNf⋆ ρ⋆ AC.bytestring = refl
 ren-extricateTyConNf⋆ ρ⋆ AC.string = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.char = refl
 ren-extricateTyConNf⋆ ρ⋆ AC.unit = refl
 ren-extricateTyConNf⋆ ρ⋆ AC.bool = refl
 ren-extricateTyConNf⋆ ρ⋆ (AC.list A) = cong SC.list (ren-extricateNf⋆ ρ⋆ A)

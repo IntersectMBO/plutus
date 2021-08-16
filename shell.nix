@@ -38,7 +38,7 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
+        excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
       png-optimization = {
@@ -51,17 +51,25 @@ let
     };
   };
 
+  nixFlakesAlias = pkgs.runCommand "nix-flakes-alias" { } ''
+    mkdir -p $out/bin
+    ln -sv ${pkgs.nixFlakes}/bin/nix $out/bin/nix-flakes
+  '';
+
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
     cacert
+    editorconfig-core-c
     ghcid
+    jq
     morph
-    niv
+    nixFlakesAlias
     nixpkgs-fmt
     nodejs
     shellcheck
     sqlite-interactive
     stack
+    yq
     z3
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
@@ -76,6 +84,8 @@ let
     haskell-language-server
     hie-bios
     hlint
+    marlowe-dashboard.generate-purescript
+    marlowe-dashboard.start-backend
     marlowe-playground.generate-purescript
     marlowe-playground.start-backend
     plutus-playground.generate-purescript
@@ -91,7 +101,6 @@ let
     stylish-haskell
     updateMaterialized
     updateClientDeps
-    updateMetadataSamples
     docs.build-and-serve-docs
   ]);
 
@@ -112,5 +121,12 @@ haskell.project.shellFor {
   # affinity APIs!
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
+  ''
+  # It's handy to have an environment variable for the project root (assuming people
+  # normally start the shell from there.
+  # We also use it in a deployment hack.
+  # We have a local passwords store that we use for deployments etc.
+  + ''
+    export ACTUS_TEST_DATA_DIR=${packages.actus-tests}/tests/
   '';
 }

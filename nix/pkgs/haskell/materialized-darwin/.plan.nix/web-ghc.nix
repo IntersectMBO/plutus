@@ -37,6 +37,7 @@
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
           (hsPkgs."regex-compat" or (errorHandler.buildDepError "regex-compat"))
@@ -48,7 +49,7 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           ];
         buildable = true;
-        modules = [ "Interpreter" "Webghc/Server" ];
+        modules = [ "Interpreter" "Webghc/Server" "Webghc/Client" ];
         hsSourceDirs = [ "src" ];
         };
       exes = {

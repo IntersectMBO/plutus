@@ -107,7 +107,6 @@ renNe : Ren Φ Ψ
 renNfTyCon ρ Nf.integer    = Nf.integer
 renNfTyCon ρ Nf.bytestring = Nf.bytestring
 renNfTyCon ρ Nf.string     = Nf.string
-renNfTyCon ρ Nf.char       = Nf.char
 renNfTyCon ρ Nf.unit       = Nf.unit
 renNfTyCon ρ Nf.bool       = Nf.bool
 renNfTyCon ρ (Nf.list A)   = Nf.list (renNf ρ A)
@@ -142,7 +141,6 @@ embNfTyCon : ∀{Φ} → Nf.TyCon Φ → Syn.TyCon Φ
 embNfTyCon Nf.integer = Syn.integer
 embNfTyCon Nf.bytestring = Syn.bytestring
 embNfTyCon Nf.string = Syn.string
-embNfTyCon Nf.char = Syn.char
 embNfTyCon Nf.unit = Syn.unit
 embNfTyCon Nf.bool = Syn.bool
 embNfTyCon (Nf.list A) = Syn.list (embNf A)
@@ -175,7 +173,6 @@ renTyCon-embNf : (ρ : Ren Φ Ψ)
 renTyCon-embNf ρ Nf.integer = refl
 renTyCon-embNf ρ Nf.bytestring = refl
 renTyCon-embNf ρ Nf.string = refl
-renTyCon-embNf ρ Nf.char = refl
 renTyCon-embNf ρ Nf.unit = refl
 renTyCon-embNf ρ Nf.bool = refl
 renTyCon-embNf ρ (Nf.list A) = cong Syn.list (ren-embNf ρ A)

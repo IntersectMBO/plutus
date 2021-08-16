@@ -130,7 +130,6 @@ evalTyCon : ∀{Φ Ψ} → Syn.TyCon Ψ → Env Ψ Φ → Nf.TyCon Φ
 evalTyCon Syn.integer    η = Nf.integer
 evalTyCon Syn.bytestring η = Nf.bytestring
 evalTyCon Syn.string     η = Nf.string
-evalTyCon Syn.char       η = Nf.char
 evalTyCon Syn.unit       η = Nf.unit
 evalTyCon Syn.bool       η = Nf.bool
 evalTyCon (Syn.list A)   η = Nf.list (eval A η)

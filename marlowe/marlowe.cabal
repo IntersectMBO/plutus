@@ -39,15 +39,14 @@ common lang
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
 
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin -any
-
   if flag(defer-plugin-errors)
     ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
 library
   import: lang
   hs-source-dirs: src
+  ghc-options:
+    -Wunused-packages
   build-depends:
     aeson -any,
     base -any,
@@ -71,6 +70,8 @@ library
     wl-pprint -any,
     freer-simple -any,
     semigroups -any
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any
   exposed-modules:
     Language.Marlowe
     Language.Marlowe.Extended
@@ -97,7 +98,6 @@ test-suite marlowe-test
         data-default  -any,
         hint -any,
         lens -any,
-        memory -any,
         bytestring -any,
         freer-simple -any,
         tasty -any,
@@ -109,43 +109,9 @@ test-suite marlowe-test
         plutus-ledger -any,
         plutus-contract -any,
         marlowe,
-        sbv >= 8.4,
         plutus-tx -any,
         QuickCheck,
-        template-haskell -any,
         streaming -any
-
--- | The Marlowe app, an executable that can be run in the PAB
-executable marlowe-app
-  import: lang
-  main-is: Main.hs
-  hs-source-dirs: app
-  build-depends:
-    base >= 4.9 && < 5,
-    plutus-pab -any,
-    plutus-contract -any,
-    marlowe
-
--- | The Marlowe Companion app, an executable that can be run in the PAB
-executable marlowe-companion-app
-  import: lang
-  main-is: Main.hs
-  hs-source-dirs: companion
-  build-depends:
-    base >= 4.9 && < 5,
-    plutus-pab -any,
-    plutus-contract -any,
-    marlowe
-
-executable marlowe-follow-app
-  import: lang
-  main-is: Main.hs
-  hs-source-dirs: follow
-  build-depends:
-    base >= 4.9 && < 5,
-    plutus-pab -any,
-    plutus-contract -any,
-    marlowe
 
 -- | The PAB Specialised to the marlowe contract(s)
 executable marlowe-pab
@@ -154,16 +120,21 @@ executable marlowe-pab
   hs-source-dirs: pab
   ghc-options:
     -threaded
+  other-modules:
+    MarloweContract
   build-depends:
     base >= 4.9 && < 5,
-    plutus-pab -any,
-    plutus-contract -any,
-    marlowe,
     aeson -any,
+    containers -any,
+    data-default -any,
     freer-simple -any,
     prettyprinter -any,
     freer-extras -any,
+    plutus-contract -any,
     plutus-ledger -any,
+    plutus-pab -any,
     plutus-tx -any,
-    containers -any,
-    data-default -any
+    purescript-bridge -any,
+    marlowe -any,
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any

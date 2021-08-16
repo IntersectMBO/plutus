@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -11,11 +12,9 @@ module PlutusCore.Evaluation.Machine.ExMemory
 ( CostingInteger
 , ExMemory(..)
 , ExCPU(..)
-, GenericExMemoryUsage(..)
 , ExMemoryUsage(..)
 ) where
 
-import           PlutusCore.Core
 import           PlutusCore.Data
 import           PlutusCore.Name
 import           PlutusCore.Pretty
@@ -27,7 +26,6 @@ import qualified Data.ByteString            as BS
 import           Data.Proxy
 import           Data.SatInt
 import qualified Data.Text                  as T
-import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
 import           GHC.Prim
@@ -69,8 +67,9 @@ their cost around to something that looks below the budget.
 
 So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithmetic.
 
-'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know why that would be, apart from maybe
-just the overflow checks), but the wrapping behaviour of 'Int64' is unacceptable..
+'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know
+why that would be, apart from maybe just the overflow checks), but the wrapping behaviour
+of 'Int64' is unacceptable..
 
 One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
 with platform-dependent size), rather than an 'Int64' since the primops that we
@@ -121,53 +120,11 @@ instance Pretty ExCPU where
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
 
--- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
-class GExMemoryUsage f where
-  gmemoryUsage' :: f a -> ExMemory
-
-gmemoryUsage :: (Generic a, GExMemoryUsage (Rep a)) => a -> ExMemory
-gmemoryUsage x = gmemoryUsage' (from x)
-
-instance GExMemoryUsage U1 where
-  gmemoryUsage' _ = 1 -- No constructor
-
-instance GExMemoryUsage V1 where
-  gmemoryUsage' _ = 1 -- Empty datatype
-
-instance ExMemoryUsage a => GExMemoryUsage (K1 i a) where
-  gmemoryUsage' (K1 x) = memoryUsage x
-
-instance GExMemoryUsage f => GExMemoryUsage (M1 i c f) where
-  gmemoryUsage' (M1 x) = gmemoryUsage' x
-
-instance (GExMemoryUsage f, GExMemoryUsage g) => GExMemoryUsage (f :*: g) where
-  gmemoryUsage' (x1 :*: x2) = gmemoryUsage' x1 + gmemoryUsage' x2
-
-instance (GExMemoryUsage f, GExMemoryUsage g) => GExMemoryUsage (f :+: g) where
-  gmemoryUsage' (L1 x) = gmemoryUsage' x
-  gmemoryUsage' (R1 x) = gmemoryUsage' x
-
-newtype GenericExMemoryUsage a = GenericExMemoryUsage { getGenericExMemoryUsage :: a }
-instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUsage a) where
-  memoryUsage (GenericExMemoryUsage x) = gmemoryUsage x
-
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
-deriving via (GenericExMemoryUsage (Either a b)) instance
-    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (Either a b)
-deriving via (GenericExMemoryUsage (a, b)) instance
-    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b)
-
-deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
-deriving via (GenericExMemoryUsage (Type tyname uni ann)) instance
-    (ExMemoryUsage tyname, ExMemoryUsage ann) => ExMemoryUsage (Type tyname uni ann)
-deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
-deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
-    ( ExMemoryUsage tyname, ExMemoryUsage name, ExMemoryUsage ann
-    , Closed uni, uni `Everywhere` ExMemoryUsage, ExMemoryUsage fun
-    ) => ExMemoryUsage (Term tyname name uni fun ann)
-deriving newtype instance ExMemoryUsage TyName
+instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
+    memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
 instance ExMemoryUsage SatInt where
     memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
 deriving newtype instance ExMemoryUsage ExMemory
@@ -208,12 +165,42 @@ instance ExMemoryUsage Char where
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
--- TODO: The generic instance will traverse the list every time, which is bad. We need some sensible
--- solution here in future.
-instance ExMemoryUsage [a] where
-  memoryUsage _ = 1
+-- Memory usage for lists: let's just go for a naive traversal for now.
+instance ExMemoryUsage a => ExMemoryUsage [a] where
+    memoryUsage = sizeList
+        where sizeList =
+                  \case
+                   []   -> 0
+                   x:xs -> memoryUsage x + sizeList xs
 
--- TODO; The generic instance will traverse the structure every time, which is bad. We need some sensible
--- solution here in future.
+{- Another naive traversal for size.  This accounts for the number of nodes in a
+   Data object, and also the sizes of the contents of the nodes.  This is not
+   ideal, but it seems to be the best we can do.  At present this only comes
+   into play for 'equalsData', which is implemented using the derived
+   implementation of '==' (fortunately the costing functions are lazy, so this
+   won't be called for things like 'unBData' which have constant costing
+   functions because they only have to look at the top node).  The problem is
+   that when we call 'equalsData' the comparison will take place entirely in Haskell,
+   so the costing functions for the contents of 'I' and 'B' nodes won't be called.
+   Thus if we just counted the number of nodes the sizes of 'I 2' and
+   'B <huge bytestring>' would be the same but they'd take different amounts of
+   time to compare.  It's not clear how to trade off the costs of processing a
+   units per node, but we may wish to revise this after experimentationnode and
+   processing the contents of nodes: the implementation below compromises by charging
+   four units per node, but we may wish to revise this after experimentation.
+-}
 instance ExMemoryUsage Data where
-  memoryUsage _ = 1
+    memoryUsage = sizeData
+        where sizeData d =
+                  nodeMem +
+                     case d of
+                       Constr _ l -> sizeDataList l
+                       Map l      -> sizeDataPairs l
+                       List l     -> sizeDataList l
+                       I n        -> memoryUsage n
+                       B b        -> memoryUsage b
+              nodeMem = 4
+              sizeDataList []     = 0
+              sizeDataList (d:ds) = sizeData d + sizeDataList ds
+              sizeDataPairs []           = 0
+              sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps

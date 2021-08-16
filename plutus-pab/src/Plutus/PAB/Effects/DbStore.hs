@@ -1,18 +1,15 @@
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE ImpredicativeTypes   #-}
-{-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE TypeOperators      #-}
 {-# options_ghc -Wno-missing-signatures #-}
 
 {-
@@ -32,49 +29,35 @@ track changes over time.
 -}
 
 module Plutus.PAB.Effects.DbStore where
-
-import           Cardano.BM.Trace                        (Trace, logDebug)
-import           Control.Monad.Freer                     (Eff, LastMember, Member, type (~>))
-import           Control.Monad.Freer.Reader              (Reader, ask)
-import           Control.Monad.Freer.TH                  (makeEffect)
-import           Data.Text                               (Text)
+import           Cardano.BM.Trace                (Trace, logDebug)
+import           Control.Exception               (try)
+import           Control.Monad.Freer             (Eff, LastMember, Member, type (~>))
+import           Control.Monad.Freer.Error       (Error, throwError)
+import           Control.Monad.Freer.Reader      (Reader, ask)
+import           Control.Monad.Freer.TH          (makeEffect)
+import           Data.Text                       (Text)
+import qualified Data.Text                       as Text
 import           Database.Beam
 import           Database.Beam.Backend.SQL
 import           Database.Beam.Migrate
 import           Database.Beam.Schema.Tables
-import           Database.Beam.Sqlite
-import           Database.SQLite.Simple                  (Connection)
-import           Plutus.PAB.Effects.Contract.ContractExe (ContractExe)
-import           Plutus.PAB.Monitoring.PABLogMsg         (PABLogMsg (..), PABMultiAgentMsg (..))
-
-data ContractT f
-    = Contract
-    { _contractPath :: Columnar f Text
-    }
-    deriving (Generic, Beamable)
-
-Contract (LensFor contractPath) = tableLenses
-
-type Contract   = ContractT Identity
-type ContractId = PrimaryKey ContractT Identity
-
-instance Table ContractT where
-  data PrimaryKey ContractT f = ContractId (Columnar f Text) deriving (Generic, Beamable)
-  primaryKey = ContractId . _contractPath
-
+import           Database.Beam.Sqlite            (Sqlite, SqliteM, runBeamSqliteDebug)
+import qualified Database.SQLite.Simple          as Sqlite
+import           Plutus.PAB.Monitoring.PABLogMsg (PABLogMsg (..), PABMultiAgentMsg (..))
+import           Plutus.PAB.Types                (PABError (MigrationNotDoneError, OtherError))
 
 data ContractInstanceT f
   = ContractInstance
-    { _contractInstanceId           :: Columnar f Text
-    , _contractInstanceContractPath :: PrimaryKey ContractT f
-    , _contractInstanceWallet       :: Columnar f Text -- Note: Sqlite doesn't have a integer type large enough.
-    , _contractInstanceState        :: Columnar f (Maybe Text)
-    , _contractInstanceActive       :: Columnar f Bool
+    { _contractInstanceId         :: Columnar f Text
+    , _contractInstanceContractId :: Columnar f Text
+    , _contractInstanceWallet     :: Columnar f Text -- Note: Sqlite doesn't have a integer type large enough.
+    , _contractInstanceState      :: Columnar f (Maybe Text)
+    , _contractInstanceActive     :: Columnar f Bool
     } deriving (Generic, Beamable)
 
 ContractInstance
   (LensFor contractInstanceId)
-  (ContractId (LensFor contractInstanceContractPath))
+  (LensFor contractInstanceContractId)
   (LensFor contractInstanceWallet)
   (LensFor contractInstanceState)
   (LensFor contractInstanceActive)
@@ -89,8 +72,7 @@ instance Table ContractInstanceT where
   primaryKey = ContractInstanceId . _contractInstanceId
 
 data Db f = Db
-    { _contracts         :: f (TableEntity ContractT)
-    , _contractInstances :: f (TableEntity ContractInstanceT)
+    { _contractInstances :: f (TableEntity ContractInstanceT)
     }
     deriving (Generic, Database be)
 
@@ -136,37 +118,54 @@ data DbStoreEffect r where
     -> DbStoreEffect (Maybe (table Identity))
 
 handleDbStore ::
-  forall effs.
-  ( Member (Reader Connection) effs
+  forall a effs.
+  ( Member (Reader Sqlite.Connection) effs
+  , Member (Error PABError) effs
   , LastMember IO effs
   )
-  => Trace IO (PABLogMsg ContractExe)
+  => Trace IO (PABLogMsg a)
   -> DbStoreEffect
   ~> Eff effs
 handleDbStore trace eff = do
-  connection <- ask @Connection
-  let traceSql = logDebug trace . SMultiAgent . SqlLog
-
   case eff of
     AddRow table record ->
-      liftIO
-        $ runBeamSqliteDebug traceSql connection
-        $ runInsert
-        $ insert table (insertValues [record])
+        runBeamPABEff trace $ runInsert $ insert table (insertValues [record])
 
-    SelectList q ->
-      liftIO
-        $ runBeamSqliteDebug traceSql connection
-        $ runSelectReturningList q
+    SelectList q -> runBeamPABEff trace $ runSelectReturningList q
 
-    SelectOne q ->
-      liftIO
-        $ runBeamSqliteDebug traceSql connection
-        $ runSelectReturningOne q
+    SelectOne q -> runBeamPABEff trace $ runSelectReturningOne q
 
-    UpdateRow q ->
-      liftIO
-        $ runBeamSqliteDebug traceSql connection
-        $ runUpdate q
+    UpdateRow q -> runBeamPABEff trace $ runUpdate q
+
+-- | Same as 'Database.Beam.Sqlite.runBeamSqliteDebug', but exceptions are
+-- handled and converted to the 'PABError' datatype.
+--
+-- This is done in order to catch an error that occurs in the case where the
+-- 'migrate' was not executed before running the PAB webserver.
+runBeamPABEff ::
+  forall a b effs.
+  ( Member (Reader Sqlite.Connection) effs
+  , Member (Error PABError) effs
+  , LastMember IO effs
+  )
+  => Trace IO (PABLogMsg a)
+  -> SqliteM b
+  -> Eff effs b
+runBeamPABEff trace action = do
+    connection <- ask @Sqlite.Connection
+    let traceSql = logDebug trace . SMultiAgent . SqlLog
+    resultEither <- liftIO $ try $ runBeamSqliteDebug traceSql connection action
+    case resultEither of
+        -- 'Database.SQLite.Simple.ErrorError' corresponds to an SQL error or
+        -- missing database. When this exception is raised, we suppose it's
+        -- because the 'migrate' command was not executed before running the
+        -- PAB webserver. We throw back a 'PABError'.
+        Left e@(Sqlite.SQLError Sqlite.ErrorError _ _) -> do
+            throwError $ MigrationNotDoneError $ Text.pack $ show e
+        -- We handle and rethrow errors other than
+        -- 'Database.SQLite.Simple.ErrorError'.
+        Left e -> do
+            throwError $ OtherError $ Text.pack $ show e
+        Right v -> return v
 
 makeEffect ''DbStoreEffect

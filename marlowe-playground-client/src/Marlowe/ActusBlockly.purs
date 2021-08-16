@@ -33,7 +33,7 @@ import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.JSON (parseJSON)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), CR(..), PRF(..), ContractTerms(..), CT(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PPEF(..), PYTP(..), Period(..), SCEF(..), ScheduleConfig(..), Stub(..), IPCB(..))
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), CR(..), PRF(..), ContractTerms(..), CT(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PPEF(..), PYTP(..), Period(..), SCEF(..), Calendar(..), ScheduleConfig(..), Stub(..), IPCB(..))
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
@@ -820,6 +820,7 @@ blocklyCycleToCycle (CycleValue _ value period) =
               PeriodMonthType -> P_M
               PeriodQuarterType -> P_Q
         , stub: ShortStub
+        , includeEndDay: true
         }
 
 blocklyCycleToCycle (ActusError msg) = Either.Left msg
@@ -932,8 +933,7 @@ actusContractToTerms raw = do
         , ct_PRF: Just PRF_PF
         , scfg:
             ScheduleConfig
-              { calendar: []
-              , includeEndDay: true
+              { calendar: Just CLDR_NC
               , eomc: Just EOMC_EOM
               , bdc: Just BDC_NULL
               }
@@ -972,7 +972,10 @@ actusContractToTerms raw = do
         , ct_FEAC: Nothing
         , ct_FEB: Just FEB_N
         , ct_FER: Just 0.0
-        , ct_CURS: false
+        , ct_CURS: Nothing
+        , ct_SCMO: Nothing
+        , ct_RRMO: Nothing
+        , enableSettlement: false
         , constraints: constraint <$> assertionCtx
         -- Any collateral-related code is commented out, until implemented properly
         -- , collateralAmount: fromMaybe (BigInteger.fromInt 0) collateral

@@ -43,7 +43,7 @@ import           Control.DeepSeq  (NFData)
 import           GHC.Generics     (Generic)
 import           PlutusTx.IsData
 import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude hiding (all, filter, mapMaybe, null, toList)
+import           PlutusTx.Prelude hiding (filter, mapMaybe, null, toList)
 import qualified PlutusTx.Prelude as P
 import           PlutusTx.These
 import qualified Prelude          as Haskell
@@ -53,31 +53,19 @@ import qualified Prelude          as Haskell
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
-    deriving newtype (Eq, Ord, IsData, NFData)
+    deriving newtype (Eq, Ord, ToData, FromData, UnsafeFromData, NFData)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
-    fmap f (Map mp) =
-        let
-            go []          = []
-            go ((c, i):xs) = (c, f i) : go xs
-        in Map (go mp)
+    fmap f (Map mp) = Map (fmap (fmap f) mp)
 
 instance Foldable (Map k) where
     {-# INLINABLE foldMap #-}
-    foldMap f (Map mp) =
-        let
-            go []          = mempty
-            go ((_, i):xs) = f i <> go xs
-        in go mp
+    foldMap f (Map mp) = foldMap (foldMap f) mp
 
 instance Traversable (Map k) where
     {-# INLINABLE traverse #-}
-    traverse f (Map mp) =
-        let
-            go []          = pure []
-            go ((c, i):xs) = (\i' xs' -> (c, i') : xs') <$> f i <*> go xs
-        in Map <$> go mp
+    traverse f (Map mp) = Map <$> traverse (traverse f) mp
 
 -- This is the "better" instance for Maps that various people
 -- have suggested, which merges conflicting entries with
@@ -113,7 +101,7 @@ member :: forall k v . (Eq k) => k -> Map k v -> Bool
 member k m = isJust (lookup k m)
 
 {-# INLINABLE insert #-}
-insert :: forall k v . Eq k => k -> v -> Map k v -> Map k v
+insert :: forall k v . (Eq k) => k -> v -> Map k v -> Map k v
 insert k v m = unionWith (\_ b -> b) m (fromList [(k, v)])
 
 {-# INLINABLE delete #-}
@@ -146,37 +134,16 @@ union (Map ls) (Map rs) =
         rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
 
         rs'' :: [(k, These v r)]
-        rs'' = P.fmap (\(c, b) -> (c, That b)) rs'
+        rs'' = P.fmap (P.fmap That) rs'
 
     in Map (ls' ++ rs'')
 
 {-# INLINABLE unionWith #-}
 -- | Combine two 'Map's with the given combination function.
 unionWith :: forall k a . (Eq k) => (a -> a -> a) -> Map k a -> Map k a -> Map k a
-unionWith merge (Map ls) (Map rs) =
-    let
-        f :: a -> Maybe a -> a
-        f a b' = case b' of
-            Nothing -> a
-            Just b  -> merge a b
+unionWith merge ls rs = these id id merge <$> union ls rs
 
-        ls' :: [(k, a)]
-        ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
-
-        rs' :: [(k, a)]
-        rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
-
-    in Map (ls' ++ rs')
-
-{-# INLINABLE all #-}
--- | See 'Data.Map.all'
-all :: (v -> Bool) -> Map k v -> Bool
-all p (Map mps) =
-    let go xs = case xs of
-            []              -> True
-            (_ :: k, x):xs' -> p x && go xs'
-    in go mps
-
+{-# INLINABLE mapThese #-}
 -- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
 mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
 mapThese f mps = (Map mpl, Map mpr)  where

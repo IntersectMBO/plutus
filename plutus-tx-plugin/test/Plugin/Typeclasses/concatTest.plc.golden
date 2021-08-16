@@ -59,13 +59,10 @@
             )
           )
         )
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
         (let
           (rec)
           (termbind
-            (nonstrict)
+            (strict)
             (vardecl
               fFoldableNil_cfoldMap
               (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
@@ -92,11 +89,11 @@
                       (lam
                         ds
                         [List a]
-                        [
+                        {
                           [
                             [
-                              { [ { Nil_match a } ds ] (fun Unit m) }
-                              (lam thunk Unit [ { mempty m } dMonoid ])
+                              { [ { Nil_match a } ds ] (all dead (type) m) }
+                              (abs dead (type) [ { mempty m } dMonoid ])
                             ]
                             (lam
                               x
@@ -104,9 +101,9 @@
                               (lam
                                 xs
                                 [List a]
-                                (lam
-                                  thunk
-                                  Unit
+                                (abs
+                                  dead
+                                  (type)
                                   [
                                     [ dSemigroup [ ds x ] ]
                                     [
@@ -124,8 +121,8 @@
                               )
                             )
                           ]
-                          Unit
-                        ]
+                          (all dead (type) dead)
+                        }
                       )
                     )
                   )
@@ -135,6 +132,14 @@
           )
           (let
             (nonrec)
+            (termbind
+              (nonstrict)
+              (vardecl
+                fFoldableNil
+                [(lam t (fun (type) (type)) (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [t a] m)))))) List]
+              )
+              fFoldableNil_cfoldMap
+            )
             (termbind
               (strict)
               (vardecl
@@ -296,7 +301,7 @@
               )
             )
             [
-              [ { { concat List } (con integer) } fFoldableNil_cfoldMap ]
+              [ { { concat List } (con integer) } fFoldableNil ]
               [
                 { build [List (con integer)] }
                 (abs

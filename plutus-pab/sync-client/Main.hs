@@ -1,25 +1,30 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import           Control.Concurrent                       (threadDelay)
-import           Control.Monad                            (forever)
+import           Control.Concurrent             (threadDelay)
+import           Control.Monad                  (forever)
+import           Data.Either.Combinators        (maybeToRight)
+import           Data.List                      (elemIndex)
+import           Data.Proxy                     (Proxy (Proxy))
+import           Data.Text                      (pack)
+import           Data.Text.Encoding             (encodeUtf8)
 import           Options.Applicative
+import           Text.Read                      (readEither)
 
-import           Cardano.Api                              (Block (..), BlockHeader (..), BlockInMode (..), CardanoMode)
-import           Cardano.Protocol.Socket.Client           (runChainSync)
-import           Cardano.Slotting.Slot                    (SlotNo (..))
-import           Ledger                                   (Slot)
-import           Ledger.TimeSlot                          (SlotConfig (..))
-import           Ouroboros.Consensus.Byron.Ledger.Block   (ByronHash (..))
-import           Ouroboros.Consensus.Cardano.Block        (CardanoBlock, HardForkBlock (..))
-import           Ouroboros.Consensus.Shelley.Ledger.Block (ShelleyBlock (..))
-import           Ouroboros.Consensus.Shelley.Protocol     (StandardCrypto)
-import           Ouroboros.Network.Block                  (blockHash, blockSlot)
+import           Cardano.Api                    (Block (..), BlockHeader (..), BlockInMode (..), ChainPoint (..),
+                                                 HasTypeProxy (..), deserialiseFromRawBytesHex,
+                                                 serialiseToRawBytesHexText)
+import           Cardano.Protocol.Socket.Client (ChainSyncEvent (..), runChainSync)
+import           Cardano.Protocol.Socket.Type   (cfgNetworkId)
+import           Cardano.Slotting.Slot          (SlotNo (..))
+import           Ledger                         (Slot)
+import           Ledger.TimeSlot                (SlotConfig (..))
 
 -- | We only need to know the location of the socket.
 --   We can get the protocol versions from Cardano.Protocol.Socket.Type
 data Configuration = Configuration
-  { cSocketPath :: String
+  { cSocketPath :: !String
+  , cResumeHash :: !ChainPoint
   } deriving (Show)
 
 -- | This is the slot configuration for the shelley network, taken from the PAB
@@ -27,52 +32,51 @@ data Configuration = Configuration
 slotConfig :: SlotConfig
 slotConfig =
   SlotConfig
-    { scZeroSlotTime = 1591566291000
-    , scSlotLength   = 1
+    { scSlotZeroTime = 1591566291000
+    , scSlotLength   = 1000
     }
 
 -- | A simple callback that reads the incoming data, from the node.
 processBlock
-  :: BlockInMode CardanoMode
+  :: ChainSyncEvent
   -> Slot
   -> IO ()
-processBlock (BlockInMode (Block (BlockHeader (SlotNo slot) hsh _) _) _) _ =
-  putStrLn $ "Received block " <> show hsh
+processBlock (RollForward (BlockInMode (Block (BlockHeader (SlotNo slot) hsh _) _) _)) _ =
+  putStrLn $ "Received block " <> show (serialiseToRawBytesHexText hsh)
           <> " for slot "      <> show slot
+processBlock (Resume (ChainPoint (SlotNo slot) hsh)) _ =
+  putStrLn $ "Resuming from slot " <> show slot
+          <> " at hash " <> show (serialiseToRawBytesHexText hsh)
+processBlock (Resume ChainPointAtGenesis) _ =
+  putStrLn "Resuming from genesis block"
+processBlock (RollBackward (ChainPoint (SlotNo slot) hsh)) _ =
+  putStrLn $ "Rolling backward to slot " <> show slot
+          <> " at hash " <> show (serialiseToRawBytesHexText hsh)
+processBlock (RollBackward ChainPointAtGenesis) _ =
+  putStrLn $ "Rolling backward to genesis"
 
-getBlockHash
-  :: CardanoBlock StandardCrypto
-  -> String
-getBlockHash = \case
-  BlockByron blk ->
-    show $ unByronHash $ blockHash blk
-  BlockShelley (ShelleyBlock _ headerHash) ->
-    show headerHash
-  BlockAllegra (ShelleyBlock _ headerHash) ->
-    show headerHash
-  BlockMary (ShelleyBlock _ headerHash) ->
-    show headerHash
-  BlockAlonzo (ShelleyBlock _ headerHash) ->
-    show headerHash
-
-getBlockSlotNo
-  :: CardanoBlock StandardCrypto
-  -> String
-getBlockSlotNo = \case
-  BlockByron blk ->
-    show $ unSlotNo $ blockSlot blk
-  BlockShelley (ShelleyBlock _ headerHash) ->
-    show headerHash
-  BlockAllegra (ShelleyBlock _ headerHash) ->
-    show headerHash
-  BlockMary (ShelleyBlock _ headerHash) ->
-    show headerHash
-  BlockAlonzo (ShelleyBlock _ headerHash) ->
-    show headerHash
+hashParser :: ReadM ChainPoint
+hashParser = eitherReader $
+  \chainPoint -> do
+    idx <- maybeToRight ("Failed to parse chain point specification. The format" <>
+                         "should be HASH,SLOT") $
+                        elemIndex ',' chainPoint
+    let (hash, slot') = splitAt idx chainPoint
+    slot <- readEither (drop 1 slot')
+    hsh  <- maybeToRight ("Failed to parse hash " <> hash) $
+                         deserialiseFromRawBytesHex
+                           (proxyToAsType Proxy)
+                           (encodeUtf8 $ pack hash)
+    pure $ ChainPoint (SlotNo slot) hsh
 
 cfgParser :: Parser Configuration
 cfgParser = Configuration
   <$> argument str (metavar "SOCKET")
+  <*> option hashParser
+      (  short 'r'
+      <> metavar "HASH,SLOT"
+      <> help "Specify the hash and the slot where we want to start synchronisation"
+      <> value ChainPointAtGenesis )
 
 main :: IO ()
 main = do
@@ -83,6 +87,10 @@ main = do
   putStrLn "Runtime configuration:"
   putStrLn "----------------------"
   print    cfg
-  _ <- runChainSync (cSocketPath cfg) slotConfig processBlock
+  _ <- runChainSync (cSocketPath cfg)
+                    slotConfig
+                    cfgNetworkId
+                    [(cResumeHash cfg)]
+                    processBlock
   _ <- forever $ threadDelay 1000000
   pure ()

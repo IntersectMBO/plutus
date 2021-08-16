@@ -10,6 +10,8 @@ module Contract.Lenses
   , _participants
   , _userParties
   , _namedActions
+  , _expandPayments
+  , _resultingPayments
   ) where
 
 import Contract.Types (PreviousStep, State, Tab)
@@ -19,11 +21,12 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Set (Set)
 import Data.Symbol (SProxy(..))
+import Data.Tuple (Tuple)
 import Marlowe.Execution.Types (NamedAction)
 import Marlowe.Execution.Types (State) as Execution
 import Marlowe.Extended.Metadata (MetaData)
 import Marlowe.PAB (MarloweParams)
-import Marlowe.Semantics (Party, TransactionInput)
+import Marlowe.Semantics (Party, Payment, TransactionInput)
 import WalletData.Types (WalletNickname)
 
 _nickname :: Lens' State String
@@ -56,5 +59,11 @@ _participants = prop (SProxy :: SProxy "participants")
 _userParties :: Lens' State (Set Party)
 _userParties = prop (SProxy :: SProxy "userParties")
 
-_namedActions :: Lens' State (Array NamedAction)
+_namedActions :: Lens' State (Array (Tuple Party (Array NamedAction)))
 _namedActions = prop (SProxy :: SProxy "namedActions")
+
+_expandPayments :: Lens' PreviousStep Boolean
+_expandPayments = prop (SProxy :: SProxy "expandPayments")
+
+_resultingPayments :: Lens' PreviousStep (Array Payment)
+_resultingPayments = prop (SProxy :: SProxy "resultingPayments")

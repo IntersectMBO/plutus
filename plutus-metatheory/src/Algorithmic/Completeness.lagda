@@ -28,7 +28,7 @@ nfTyVar : ∀{Φ Γ}
   → nfCtx Γ Norm.∋ nf A
 nfTyVar Syn.Z             = Norm.Z
 nfTyVar (Syn.S α)         = Norm.S (nfTyVar α)
-nfTyVar (Syn.T {A = A} α) = Norm.conv∋ refl (ren-nf S A) (Norm.T (nfTyVar α)) 
+nfTyVar (Syn.T {A = A} α) = Norm.conv∋ refl (ren-nf S A) (Norm.T (nfTyVar α))
 
 open import Type.BetaNormal.Equality
 
@@ -76,7 +76,6 @@ nfTypeTC (STermCon.integer i)    = NTermCon.integer i
 nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s
 nfTypeTC (STermCon.bool b)       = NTermCon.bool b
-nfTypeTC (STermCon.char c)       = NTermCon.char c
 nfTypeTC STermCon.unit           = NTermCon.unit
 
 open import Data.Product renaming (_,_ to _,,_)
@@ -102,22 +101,11 @@ lemσ σ C _ refl q = trans
       (sub-eval (embNf (nf C)) idCR (embNf ∘ nf ∘ σ))
       (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness C))))
     (sym (sub-eval C idCR σ)))
-    
+
 -- this should be a lemma in NBE/RenSubst
 -- subNf (nf ∘ σ) (nf C) ≡ nf (sub σ C)
 
 open import Builtin.Constant.Type  Ctx⋆ (_⊢Nf⋆ *)
-
---lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon _)
---  → con tcn ≡ substEq (_⊢Nf⋆ *) p (con {!tcn!})
--- lemcon refl tcn = refl
-
-
---substTC : ∀{Φ Φ' : Ctx⋆}(p : Φ ≡ Φ')(tcn : TyCon _)
---  → NTermCon.TermCon {Φ = Φ} (con tcn)
---  → NTermCon.TermCon {Φ = Φ'}(con tcn)
---substTC refl tcn t = t
-
 nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As
@@ -136,7 +124,7 @@ nfType (Syn.Λ {B = B} t) =
 nfType (Syn._·⋆_ {B = B} t A) = Norm.conv⊢
   refl
   (lem[] A B)
-  (Norm._·⋆_ (Norm.conv⊢ refl (lemΠ B) (nfType t)) (nf A)) 
+  (Norm._·⋆_ (Norm.conv⊢ refl (lemΠ B) (nfType t)) (nf A))
 nfType (Syn.wrap A B t) = Norm.wrap
   (nf A)
   (nf B)

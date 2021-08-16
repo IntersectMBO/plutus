@@ -35,10 +35,14 @@ data Icon
   | Done
   | DoneWithCircle
   | ErrorOutline
+  | ExpandMore
+  | ExpandLess
   | Help
   | HelpOutline
   | History
   | Home
+  | Info
+  | Language
   | Menu
   | Next
   | NewContact
@@ -46,8 +50,10 @@ data Icon
   | Play
   | Previous
   | Refresh
+  | ReadMore
   | Roles
   | Running
+  | South
   | TaskAlt
   | Terms
   | Timer
@@ -84,6 +90,10 @@ content DoneWithCircle = "check_circle_outline"
 
 content ErrorOutline = "error_outline"
 
+content ExpandMore = "expand_more"
+
+content ExpandLess = "expand_less"
+
 content Help = "help"
 
 content HelpOutline = "help_outline"
@@ -91,6 +101,10 @@ content HelpOutline = "help_outline"
 content History = "history"
 
 content Home = "home"
+
+content Info = "info"
+
+content Language = "language"
 
 content Menu = "short_text"
 
@@ -106,9 +120,13 @@ content Previous = "chevron_left"
 
 content Refresh = "refresh"
 
+content ReadMore = "read_more"
+
 content Roles = "person_pin_circle"
 
 content Running = "directions_run"
+
+content South = "south"
 
 content TaskAlt = "task_alt"
 
@@ -118,6 +136,9 @@ content Timer = "timer"
 
 content Tutorials = "school"
 
+-- This helper function allow us to add `with-icon-{iconClass}` class name
+-- which allow Icons in buttons to look correctly. Whenever a new icon is added
+-- here, we should update the `icons.css` file accordingly.
 iconClass :: Icon -> String
 iconClass Add = "add"
 
@@ -149,6 +170,10 @@ iconClass DoneWithCircle = "check-circle-outline"
 
 iconClass ErrorOutline = "error-outline"
 
+iconClass ExpandMore = "expand-more"
+
+iconClass ExpandLess = "expand-less"
+
 iconClass Help = "help"
 
 iconClass HelpOutline = "help-outline"
@@ -156,6 +181,10 @@ iconClass HelpOutline = "help-outline"
 iconClass History = "history"
 
 iconClass Home = "home"
+
+iconClass Info = "info"
+
+iconClass Language = "language"
 
 iconClass Menu = "menu"
 
@@ -171,9 +200,13 @@ iconClass Previous = "previous"
 
 iconClass Refresh = "refresh"
 
+iconClass ReadMore = "read-more"
+
 iconClass Roles = "roles"
 
 iconClass Running = "running"
+
+iconClass South = "south"
 
 iconClass TaskAlt = "task-alt"
 

@@ -12,7 +12,6 @@
 module Plutus.PAB.Types where
 
 import qualified Cardano.ChainIndex.Types  as ChainIndex
-import qualified Cardano.Metadata.Types    as Metadata
 import           Cardano.Node.Types        (MockServerConfig (..))
 import qualified Cardano.Wallet.Types      as Wallet
 import           Control.Lens.TH           (makePrisms)
@@ -21,7 +20,7 @@ import           Data.Default              (Default, def)
 import           Data.Map.Strict           (Map)
 import qualified Data.Map.Strict           as Map
 import           Data.Text                 (Text)
-import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow, (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty, line, pretty, viaShow, (<+>))
 import           Data.Time.Units           (Second)
 import           Data.UUID                 (UUID)
 import qualified Data.UUID.Extras          as UUID
@@ -43,7 +42,6 @@ data PABError
     | WalletClientError ClientError
     | NodeClientError ClientError
     | RandomTxClientError ClientError
-    | MetadataError Metadata.MetadataError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
     | ContractCommandError Int Text -- ?
@@ -54,6 +52,8 @@ data PABError
     | WalletNotFound Wallet
     | MissingConfigFileOption
     | ContractStateNotFound ContractInstanceId
+    | AesonDecodingError Text Text
+    | MigrationNotDoneError Text
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -66,7 +66,6 @@ instance Pretty PABError where
         WalletClientError e        -> "Wallet client error:" <+> viaShow e
         NodeClientError e          -> "Node client error:" <+> viaShow e
         RandomTxClientError e      -> "Random tx client error:" <+> viaShow e
-        MetadataError e            -> "Metadata error:" <+> viaShow e
         ChainIndexError e          -> "Chain index error:" <+> viaShow e
         WalletError e              -> "Wallet error:" <+> pretty e
         ContractCommandError i t   -> "Contract command error:" <+> pretty i <+> pretty t
@@ -75,8 +74,13 @@ instance Pretty PABError where
         EndpointCallError n        -> "Endpoint call failed:" <+> pretty n
         InstanceAlreadyStopped i   -> "Instance already stopped:" <+> pretty i
         WalletNotFound w           -> "Wallet not found:" <+> pretty w
-        MissingConfigFileOption    -> "The --config-file option is required"
+        MissingConfigFileOption    -> "The --config option is required"
         ContractStateNotFound i    -> "State for contract instance not found:" <+> pretty i
+        AesonDecodingError msg o   -> "Error while Aeson decoding: " <+> pretty msg <+> pretty o
+        MigrationNotDoneError msg  -> pretty msg
+                                   <> line
+                                   <> "Did you forget to run the 'migrate' command ?"
+                                   <+> "(ex. 'plutus-pab-migrate' or 'plutus-pab-examples --config <CONFIG_FILE> migrate')"
 
 data DbConfig =
     DbConfig
@@ -88,18 +92,42 @@ data DbConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
+-- | Default database config uses an in-memory sqlite database that is shared
+-- between all threads in the process.
+defaultDbConfig :: DbConfig
+defaultDbConfig
+  = DbConfig
+      { dbConfigFile = "file::memory:?cache=shared"
+      , dbConfigPoolSize = 20
+      }
+
+instance Default DbConfig where
+  def = defaultDbConfig
+
 data Config =
     Config
         { dbConfig                :: DbConfig
         , walletServerConfig      :: Wallet.WalletConfig
         , nodeServerConfig        :: MockServerConfig
-        , metadataServerConfig    :: Metadata.MetadataConfig
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , requestProcessingConfig :: RequestProcessingConfig
-        , endpointTimeout         :: Maybe Second
         }
     deriving (Show, Eq, Generic, FromJSON)
+
+defaultConfig :: Config
+defaultConfig =
+  Config
+    { dbConfig = def
+    , walletServerConfig = def
+    , nodeServerConfig = def
+    , pabWebserverConfig = def
+    , chainIndexConfig = def
+    , requestProcessingConfig = def
+    }
+
+instance Default Config where
+  def = defaultConfig
 
 newtype RequestProcessingConfig =
     RequestProcessingConfig
@@ -108,11 +136,21 @@ newtype RequestProcessingConfig =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON)
 
+defaultRequestProcessingConfig :: RequestProcessingConfig
+defaultRequestProcessingConfig =
+  RequestProcessingConfig
+    { requestProcessingInterval = 1
+    }
+
+instance Default RequestProcessingConfig where
+  def = defaultRequestProcessingConfig
+
 data WebserverConfig =
     WebserverConfig
         { baseUrl              :: BaseUrl
         , staticDir            :: Maybe FilePath
         , permissiveCorsPolicy :: Bool -- ^ If true; use a very permissive CORS policy (any website can interact.)
+        , endpointTimeout      :: Maybe Second
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -121,9 +159,11 @@ data WebserverConfig =
 defaultWebServerConfig :: WebserverConfig
 defaultWebServerConfig =
   WebserverConfig
-    { baseUrl              = BaseUrl Http "localhost" 8080 "/"
+    -- See Note [pab-ports] in test/full/Plutus/PAB/CliSpec.hs.
+    { baseUrl              = BaseUrl Http "localhost" 9080 ""
     , staticDir            = Nothing
     , permissiveCorsPolicy = False
+    , endpointTimeout      = Nothing
     }
 
 instance Default WebserverConfig where

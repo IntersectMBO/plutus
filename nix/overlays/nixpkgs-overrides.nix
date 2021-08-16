@@ -1,16 +1,24 @@
 self: super: {
-  morph = super.morph.overrideAttrs (old: {
-    # See https://github.com/DBCDK/morph/pull/141
-    # Note that this patch does refelct the original content
-    # of the PR above since it was broken.
-    patches = [ ../pkgs/morph/sshopts.patch ];
+  # nixpkgs-fmt 1.2.0 breaks indentation of code examples in comments
+  nixpkgs-fmt = self.rustPlatform.buildRustPackage rec {
+    pname = "nixpkgs-fmt";
+    version = "1.1.0";
+
     src = self.fetchFromGitHub {
-      owner = "DBCDK";
-      repo = "morph";
-      rev = "c048d6339f18613a1544bc62ff852cb4c6de1042";
-      sha256 = "0yb8prji2nqjsj1aiiqnbqaajbi5l17rg8k78ry7pl3a8sqa3h1x";
+      owner = "nix-community";
+      repo = pname;
+      rev = "v${version}";
+      sha256 = "1fb2mm1y2qb3imc48g2ad3rdbjlj326cggrc4hvdc0fb41vxinpp";
     };
-  });
+
+    cargoSha256 = "1lsw6dwkjdwdqcx7gjsg2ndi4r79m8qyxgx7yz3al0iscwm7i645";
+    meta = with self.lib; {
+      description = "Nix code formatter for nixpkgs";
+      homepage = "https://nix-community.github.io/nixpkgs-fmt";
+      license = licenses.asl20;
+      maintainers = with maintainers; [ zimbatm ];
+    };
+  };
 
   python3 = super.python3.override {
     packageOverrides = python-self: python-super: {

@@ -38,10 +38,10 @@ import           PlutusTx.Prelude     hiding (Applicative (..))
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
-newtype MyDatum = MyDatum Integer deriving newtype PlutusTx.IsData
+newtype MyDatum = MyDatum Integer deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 PlutusTx.makeLift ''MyDatum
 
-newtype MyRedeemer = MyRedeemer Integer deriving newtype PlutusTx.IsData
+newtype MyRedeemer = MyRedeemer Integer deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 PlutusTx.makeLift ''MyRedeemer
 
 -- | This method is the spending validator (which gets lifted to
@@ -71,19 +71,17 @@ type Schema =
         .\/ Endpoint "redeem" Integer
 
 contract :: AsContractError e => Contract () Schema e ()
-contract = publish `select` redeem
+contract = selectList [publish, redeem]
 
 -- | The "publish" contract endpoint.
-publish :: AsContractError e => Contract () Schema e ()
-publish = do
-    (i, lockedFunds) <- endpoint @"publish"
+publish :: AsContractError e => Promise () Schema e ()
+publish = endpoint @"publish" $ \(i, lockedFunds) -> do
     let tx = Constraints.mustPayToTheScript (MyDatum i) lockedFunds
     void $ submitTxConstraints starterInstance tx
 
 -- | The "redeem" contract endpoint.
-redeem :: AsContractError e => Contract () Schema e ()
-redeem = do
-    myRedeemerValue <- endpoint @"redeem"
+redeem :: AsContractError e => Promise () Schema e ()
+redeem = endpoint @"redeem" $ \myRedeemerValue -> do
     unspentOutputs <- utxoAt contractAddress
     let redeemer = MyRedeemer myRedeemerValue
         tx       = collectFromScript unspentOutputs redeemer

@@ -50,6 +50,7 @@ data TxConstraint =
     | MustPayToPubKey PubKeyHash Value
     | MustPayToOtherScript ValidatorHash Datum Value
     | MustHashDatum DatumHash Datum
+    | MustSatisfyAnyOf [TxConstraint]
     deriving stock (Haskell.Show, Generic, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -77,6 +78,8 @@ instance Pretty TxConstraint where
             hang 2 $ vsep ["must pay to script:", pretty vlh, pretty dv, pretty vl]
         MustHashDatum dvh dv ->
             hang 2 $ vsep ["must hash datum:", pretty dvh, pretty dv]
+        MustSatisfyAnyOf xs ->
+            hang 2 $ vsep ["must satisfy any of:", prettyList xs]
 
 data InputConstraint a =
     InputConstraint
@@ -179,7 +182,7 @@ mustIncludeDatum = singleton . MustIncludeDatum
 
 {-# INLINABLE mustPayToTheScript #-}
 -- | Lock the value with a script
-mustPayToTheScript :: forall i o. PlutusTx.IsData o => o -> Value -> TxConstraints i o
+mustPayToTheScript :: forall i o. PlutusTx.ToData o => o -> Value -> TxConstraints i o
 mustPayToTheScript dt vl =
     TxConstraints
         { txConstraints = [MustIncludeDatum (Datum $ PlutusTx.toBuiltinData dt)]
@@ -244,6 +247,10 @@ mustSpendScriptOutput txOutref = singleton . MustSpendScriptOutput txOutref
 mustHashDatum :: DatumHash -> Datum -> TxConstraints i o
 mustHashDatum dvh = singleton . MustHashDatum dvh
 
+{-# INLINABLE mustSatisfyAnyOf #-}
+mustSatisfyAnyOf :: forall i o. [TxConstraints i o] -> TxConstraints i o
+mustSatisfyAnyOf = singleton . MustSatisfyAnyOf . concatMap txConstraints
+
 {-# INLINABLE isSatisfiable #-}
 -- | Are the constraints satisfiable?
 isSatisfiable :: forall i o. TxConstraints i o -> Bool
@@ -304,6 +311,7 @@ modifiesUtxoSet TxConstraints{txConstraints, txOwnOutputs, txOwnInputs} =
             MustMintValue{}             -> True
             MustPayToPubKey _ vl        -> not (isZero vl)
             MustPayToOtherScript _ _ vl -> not (isZero vl)
+            MustSatisfyAnyOf xs         -> any requiresInputOutput xs
             _                           -> False
     in any requiresInputOutput txConstraints
         || not (null txOwnOutputs)

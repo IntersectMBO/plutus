@@ -26,7 +26,6 @@ renTyCon⋆ : ∀{m n} → Ren⋆ m n → TyCon m → TyCon n
 renTyCon⋆ ρ integer = integer
 renTyCon⋆ ρ bytestring = bytestring
 renTyCon⋆ ρ string = string
-renTyCon⋆ ρ char = char
 renTyCon⋆ ρ unit = unit
 renTyCon⋆ ρ bool = bool
 renTyCon⋆ ρ (list A) = list (ren⋆ ρ A)
@@ -90,7 +89,6 @@ subTyCon⋆ : ∀{m n} → Sub⋆ m n → TyCon m → TyCon n
 subTyCon⋆ σ integer = integer
 subTyCon⋆ σ bytestring = bytestring
 subTyCon⋆ σ string = string
-subTyCon⋆ σ char = char
 subTyCon⋆ σ unit = unit
 subTyCon⋆ σ bool = bool
 subTyCon⋆ σ (list A) = list (sub⋆ σ A)
@@ -178,7 +176,6 @@ renTyCon⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
 renTyCon⋆-cong p integer = refl
 renTyCon⋆-cong p bytestring = refl
 renTyCon⋆-cong p string = refl
-renTyCon⋆-cong p char = refl
 renTyCon⋆-cong p unit = refl
 renTyCon⋆-cong p bool = refl
 renTyCon⋆-cong p (list A) = cong list (ren⋆-cong p A)
@@ -210,7 +207,6 @@ subTyCon⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
 subTyCon⋆-cong p integer = refl
 subTyCon⋆-cong p bytestring = refl
 subTyCon⋆-cong p string = refl
-subTyCon⋆-cong p char = refl
 subTyCon⋆-cong p unit = refl
 subTyCon⋆-cong p bool = refl
 subTyCon⋆-cong p (list A) = cong list (sub⋆-cong p A)

@@ -17,32 +17,29 @@
       (vardecl error (all a (type) (fun (con unit) a)))
       (abs a (type) (lam thunk (con unit) (error a)))
     )
+    (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
     (termbind
       (strict)
       (vardecl error (all a (type) (fun Unit a)))
       (abs
         a
         (type)
-        (lam
-          x
-          Unit
-          [ { error a } [ { [ Unit_match x ] (con unit) } (con unit ()) ] ]
-        )
+        (lam x Unit [ { error a } [ { [ Unit_match x ] (con unit) } unitval ] ])
       )
     )
     (lam
       ds
       MyEnum
-      [
+      {
         [
           [
-            { [ MyEnum_match ds ] (fun Unit (con integer)) }
-            (lam thunk Unit (con integer 1))
+            { [ MyEnum_match ds ] (all dead (type) (con integer)) }
+            (abs dead (type) (con integer 1))
           ]
-          (lam thunk Unit [ { error (con integer) } Unit ])
+          (abs dead (type) [ { error (con integer) } Unit ])
         ]
-        Unit
-      ]
+        (all dead (type) dead)
+      }
     )
   )
 )

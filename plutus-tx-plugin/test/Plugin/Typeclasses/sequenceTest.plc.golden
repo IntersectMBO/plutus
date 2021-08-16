@@ -9,9 +9,6 @@
         (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
       )
     )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
     (termbind
       (strict)
       (vardecl
@@ -30,37 +27,43 @@
             (lam
               ds
               [Maybe a]
-              [
+              {
                 [
                   [
-                    { [ { Maybe_match (fun a b) } ds ] (fun Unit [Maybe b]) }
+                    {
+                      [ { Maybe_match (fun a b) } ds ]
+                      (all dead (type) [Maybe b])
+                    }
                     (lam
                       ipv
                       (fun a b)
-                      (lam
-                        thunk
-                        Unit
-                        [
+                      (abs
+                        dead
+                        (type)
+                        {
                           [
                             [
-                              { [ { Maybe_match a } ds ] (fun Unit [Maybe b]) }
+                              {
+                                [ { Maybe_match a } ds ]
+                                (all dead (type) [Maybe b])
+                              }
                               (lam
                                 ipv
                                 a
-                                (lam thunk Unit [ { Just b } [ ipv ipv ] ])
+                                (abs dead (type) [ { Just b } [ ipv ipv ] ])
                               )
                             ]
-                            (lam thunk Unit { Nothing b })
+                            (abs dead (type) { Nothing b })
                           ]
-                          Unit
-                        ]
+                          (all dead (type) dead)
+                        }
                       )
                     )
                   ]
-                  (lam thunk Unit { Nothing b })
+                  (abs dead (type) { Nothing b })
                 ]
-                Unit
-              ]
+                (all dead (type) dead)
+              }
             )
           )
         )
@@ -84,16 +87,16 @@
             (lam
               ds
               [Maybe a]
-              [
+              {
                 [
                   [
-                    { [ { Maybe_match a } ds ] (fun Unit [Maybe b]) }
-                    (lam a a (lam thunk Unit [ { Just b } [ f a ] ]))
+                    { [ { Maybe_match a } ds ] (all dead (type) [Maybe b]) }
+                    (lam a a (abs dead (type) [ { Just b } [ f a ] ]))
                   ]
-                  (lam thunk Unit { Nothing b })
+                  (abs dead (type) { Nothing b })
                 ]
-                Unit
-              ]
+                (all dead (type) dead)
+              }
             )
           )
         )
@@ -179,7 +182,7 @@
         (let
           (rec)
           (termbind
-            (nonstrict)
+            (strict)
             (vardecl
               fFoldableNil_cfoldMap
               (all m (type) (all a (type) (fun [Monoid m] (fun (fun a m) (fun [List a] m)))))
@@ -206,11 +209,11 @@
                       (lam
                         ds
                         [List a]
-                        [
+                        {
                           [
                             [
-                              { [ { Nil_match a } ds ] (fun Unit m) }
-                              (lam thunk Unit [ { mempty m } dMonoid ])
+                              { [ { Nil_match a } ds ] (all dead (type) m) }
+                              (abs dead (type) [ { mempty m } dMonoid ])
                             ]
                             (lam
                               x
@@ -218,9 +221,9 @@
                               (lam
                                 xs
                                 [List a]
-                                (lam
-                                  thunk
-                                  Unit
+                                (abs
+                                  dead
+                                  (type)
                                   [
                                     [ dSemigroup [ ds x ] ]
                                     [
@@ -238,8 +241,8 @@
                               )
                             )
                           ]
-                          Unit
-                        ]
+                          (all dead (type) dead)
+                        }
                       )
                     )
                   )
@@ -250,7 +253,7 @@
           (let
             (rec)
             (termbind
-              (nonstrict)
+              (strict)
               (vardecl
                 fFunctorNil_cfmap
                 (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
@@ -267,11 +270,11 @@
                     (lam
                       l
                       [List a]
-                      [
+                      {
                         [
                           [
-                            { [ { Nil_match a } l ] (fun Unit [List b]) }
-                            (lam thunk Unit { Nil b })
+                            { [ { Nil_match a } l ] (all dead (type) [List b]) }
+                            (abs dead (type) { Nil b })
                           ]
                           (lam
                             x
@@ -279,9 +282,9 @@
                             (lam
                               xs
                               [List a]
-                              (lam
-                                thunk
-                                Unit
+                              (abs
+                                dead
+                                (type)
                                 [
                                   [ { Cons b } [ f x ] ]
                                   [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
@@ -290,8 +293,8 @@
                             )
                           )
                         ]
-                        Unit
-                      ]
+                        (all dead (type) dead)
+                      }
                     )
                   )
                 )
@@ -404,7 +407,7 @@
               (let
                 (rec)
                 (termbind
-                  (nonstrict)
+                  (strict)
                   (vardecl
                     fTraversableNil_ctraverse
                     (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [List a] [f [List b]]))))))
@@ -427,16 +430,16 @@
                             (lam
                               ds
                               [List a]
-                              [
+                              {
                                 [
                                   [
                                     {
                                       [ { Nil_match a } ds ]
-                                      (fun Unit [f [List b]])
+                                      (all dead (type) [f [List b]])
                                     }
-                                    (lam
-                                      thunk
-                                      Unit
+                                    (abs
+                                      dead
+                                      (type)
                                       [
                                         { [ { pure f } dApplicative ] [List b] }
                                         { Nil b }
@@ -449,9 +452,9 @@
                                     (lam
                                       xs
                                       [List a]
-                                      (lam
-                                        thunk
-                                        Unit
+                                      (abs
+                                        dead
+                                        (type)
                                         [
                                           [
                                             {
@@ -502,8 +505,8 @@
                                     )
                                   )
                                 ]
-                                Unit
-                              ]
+                                (all dead (type) dead)
+                              }
                             )
                           )
                         )
@@ -630,10 +633,18 @@
                       )
                     )
                   )
+                  (termbind
+                    (nonstrict)
+                    (vardecl
+                      sequence
+                      (all t (fun (type) (type)) (all f (fun (type) (type)) (all a (type) (fun [Traversable t] (fun [Applicative f] (fun [t [f a]] [f [t a]]))))))
+                    )
+                    sequenceA
+                  )
                   [
                     [
                       [
-                        { { { sequenceA List } Maybe } (con integer) }
+                        { { { sequence List } Maybe } (con integer) }
                         fTraversableNil
                       ]
                       fApplicativeMaybe

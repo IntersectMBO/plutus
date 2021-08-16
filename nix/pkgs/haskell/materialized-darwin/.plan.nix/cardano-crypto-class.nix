@@ -67,11 +67,11 @@
           "Cardano/Crypto/DSIGN/NeverUsed"
           "Cardano/Crypto/Hash/Blake2b"
           "Cardano/Crypto/Hash/Class"
-          "Cardano/Crypto/Hash/MD5"
           "Cardano/Crypto/Hash/NeverUsed"
           "Cardano/Crypto/Hash/SHA256"
           "Cardano/Crypto/Hash/SHA3_256"
           "Cardano/Crypto/Hash/Short"
+          "Cardano/Crypto/Hash/Keccak256"
           "Cardano/Crypto/KES/Class"
           "Cardano/Crypto/KES/Mock"
           "Cardano/Crypto/KES/NeverUsed"
@@ -88,7 +88,6 @@
           "Cardano/Crypto/Libsodium"
           "Cardano/Crypto/Libsodium/C"
           "Cardano/Crypto/Libsodium/Constants"
-          "Cardano/Crypto/Libsodium/DSIGN"
           "Cardano/Crypto/Libsodium/Hash"
           "Cardano/Crypto/Libsodium/Init"
           "Cardano/Crypto/Libsodium/Memory"
@@ -114,4 +113,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/7; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "4";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "4";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/cardano-crypto-class; echo source root reset to \$sourceRoot";
+    }

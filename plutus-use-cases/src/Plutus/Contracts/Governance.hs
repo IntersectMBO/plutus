@@ -34,6 +34,7 @@ module Plutus.Contracts.Governance (
 import           Control.Lens                 (makeClassyPrisms, review)
 import           Control.Monad
 import           Data.Aeson                   (FromJSON, ToJSON)
+import           Data.ByteString              (ByteString)
 import           Data.Semigroup               (Sum (..))
 import           Data.String                  (fromString)
 import           Data.Text                    (Text)
@@ -59,7 +60,7 @@ import qualified Prelude                      as Haskell
 
 -- | The paramaters for the proposal contract.
 data Proposal = Proposal
-    { newLaw         :: ByteString
+    { newLaw         :: BuiltinByteString
     -- ^ The new contents of the law
     , tokenName      :: TokenName
     -- ^ The name of the voting tokens. Only voting token owners are allowed to propose changes.
@@ -77,7 +78,7 @@ data Voting = Voting
     deriving anyclass (ToJSON, FromJSON)
 
 data GovState = GovState
-    { law    :: ByteString
+    { law    :: BuiltinByteString
     , mph    :: MintingPolicyHash
     , voting :: Maybe Voting
     }
@@ -192,18 +193,16 @@ contract ::
     -> Contract () Schema e ()
 contract params = forever $ mapError (review _GovError) endpoints where
     theClient = client params
-    endpoints = initLaw `select` addVote
+    endpoints = selectList [initLaw, addVote]
 
-    addVote = do
-        (tokenName, vote) <- endpoint @"add-vote"
-        SM.runStep theClient (AddVote tokenName vote)
+    addVote = endpoint @"add-vote" $ \(tokenName, vote) ->
+        void $ SM.runStep theClient (AddVote tokenName vote)
 
-    initLaw = do
-        bsLaw <- endpoint @"new-law"
+    initLaw = endpoint @"new-law" $ \bsLaw -> do
         let mph = Scripts.forwardingMintingPolicyHash (typedValidator params)
-        void $ SM.runInitialise theClient (GovState bsLaw mph Nothing) mempty
+        void $ SM.runInitialise theClient (GovState (toBuiltin bsLaw) mph Nothing) mempty
         let tokens = Haskell.zipWith (const (mkTokenName (baseTokenName params))) (initialHolders params) [1..]
-        SM.runStep theClient $ MintTokens tokens
+        void $ SM.runStep theClient $ MintTokens tokens
 
 -- | The contract for proposing changes to a law.
 proposalContract ::

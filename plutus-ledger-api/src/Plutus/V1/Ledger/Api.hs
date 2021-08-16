@@ -34,6 +34,10 @@ module Plutus.V1.Ledger.Api (
     , ScriptContext(..)
     , ScriptPurpose(..)
     -- ** Supporting types used in the context types
+    -- *** ByteStrings
+    , BuiltinByteString
+    , toBuiltin
+    , fromBuiltin
     -- *** Bytes
     , LedgerBytes (..)
     , fromBytes
@@ -79,22 +83,24 @@ module Plutus.V1.Ledger.Api (
     , mkValidatorScript
     , unValidatorScript
     , ValidatorHash (..)
-    , validatorHash
     , MintingPolicy (..)
     , mkMintingPolicyScript
     , unMintingPolicyScript
     , MintingPolicyHash (..)
-    , mintingPolicyHash
+    , StakeValidator (..)
+    , mkStakeValidatorScript
+    , unStakeValidatorScript
+    , StakeValidatorHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
-    , redeemerHash
     , Datum (..)
     , DatumHash (..)
-    , datumHash
     -- * Data
     , PLC.Data (..)
     , BuiltinData (..)
-    , IsData (..)
+    , ToData (..)
+    , FromData (..)
+    , UnsafeFromData (..)
     , toData
     , fromData
     , dataToBuiltinData
@@ -113,7 +119,6 @@ import           Data.Either
 import           Data.Maybe                                       (isJust)
 import           Data.SatInt
 import           Data.Text                                        (Text)
-import qualified Data.Text                                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Tuple
 import           Plutus.V1.Ledger.Ada
@@ -137,9 +142,11 @@ import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
 import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Pretty
-import           PlutusTx                                         (IsData (..), fromData, toData)
+import           PlutusTx                                         (FromData (..), ToData (..), UnsafeFromData (..),
+                                                                   fromData, toData)
 import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
                                                                    dataToBuiltinData)
+import           PlutusTx.Prelude                                 (BuiltinByteString, fromBuiltin, toBuiltin)
 import qualified UntypedPlutusCore                                as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
 
@@ -234,10 +241,10 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
             UPLC.runCek
                 (toMachineParameters model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
-                (verbose == Verbose)
+                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
 
-    tell $ Prelude.map Text.pack logs
+    tell logs
     liftEither $ first CekError $ void res
 
 -- | Evaluates a script, returning the minimum budget that the script would need
@@ -258,9 +265,9 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
             UPLC.runCek
                 (toMachineParameters model)
                 UPLC.counting
-                (verbose == Verbose)
+                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
 
-    tell $ Prelude.map Text.pack logs
+    tell logs
     liftEither $ first CekError $ void res
     pure final

@@ -3,12 +3,13 @@
 {- This module contains templates for Marlowe constructs required by ACTUS logic -}
 module Language.Marlowe.ACTUS.Generator
     (
-    genStaticContract
+      genStaticContract
     , genFsContract
     )
 where
 
 import qualified Data.List                                                as L (foldl', zip6)
+import           Data.Map                                                 as M (empty)
 import           Data.Maybe                                               (fromMaybe, isNothing, maybeToList)
 import           Data.Monoid
 import           Data.String                                              (IsString (fromString))
@@ -24,7 +25,7 @@ import           Language.Marlowe                                         (Actio
 import           Language.Marlowe.ACTUS.Analysis                          (genProjectedCashflows, genZeroRiskAssertions)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (AssertionContext (..), Assertions (..),
-                                                                           ContractTerms (collateralAmount, constraints, ct_CURS, ct_SD),
+                                                                           ContractTerms (collateralAmount, constraints, ct_SD, enableSettlement),
                                                                            TermValidationError (..),
                                                                            setDefaultContractTermValues)
 import           Language.Marlowe.ACTUS.Definitions.Schedule              (CashFlow (..))
@@ -122,19 +123,18 @@ inquiryFs ev ct timePosfix date oracle context continue =
             riskFactorInquiry "o_rf_CURS" .
                 riskFactorInquiry "pp_payoff"
         riskFactorsInquiryEv _ =
-            if ct_CURS ct then riskFactorInquiry "o_rf_CURS"
+            if enableSettlement ct then riskFactorInquiry "o_rf_CURS"
             else Let (ValueId (fromString ("o_rf_CURS" ++ timePosfix))) (constnt 1.0)
     in
         riskFactorsInquiryEv ev continue
 
 genStaticContract :: ContractTerms -> Validation [TermValidationError] Contract
-genStaticContract terms =
-    case validateTerms terms of
-        Failure errs -> Failure errs
-        Success _ ->
+genStaticContract terms = genContract . setDefaultContractTermValues <$> validateTerms terms
+    where
+        genContract :: ContractTerms -> Contract
+        genContract t =
             let
-                t = setDefaultContractTermValues terms
-                cfs = genProjectedCashflows t
+                cfs = genProjectedCashflows M.empty t
                 gen CashFlow {..}
                     | amount == 0.0 = id
                     | amount > 0.0
@@ -162,15 +162,14 @@ genStaticContract terms =
                 --         cont
             -- Any collateral-related code is commented out, until implemented properly
             -- in Success . withCollateral $ foldr gen Close cfs
-            in Success $ L.foldl' (flip gen) Close $ reverse cfs
+            in L.foldl' (flip gen) Close $ reverse cfs
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract
-genFsContract terms =
-    case validateTerms terms of
-        Failure errs -> Failure errs
-        Success _ ->
+genFsContract terms = genContract . setDefaultContractTermValues <$> validateTerms terms
+    where
+        genContract :: ContractTerms -> Contract
+        genContract terms' =
             let
-                terms' = setDefaultContractTermValues terms
                 postProcess cont =
                     let ctr = constraints terms'
                         toAssert = genZeroRiskAssertions terms' <$> (assertions =<< maybeToList ctr)
@@ -178,7 +177,7 @@ genFsContract terms =
                     in compose toAssert cont
 
                 payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
-                schedCfs = genProjectedCashflows terms'
+                schedCfs = genProjectedCashflows M.empty terms'
                 schedEvents = cashEvent <$> schedCfs
                 schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
                 previousDates = ct_SD terms' : (cashCalculationDay <$> schedCfs)
@@ -213,4 +212,4 @@ genFsContract terms =
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
                 withCollateral cont = receiveCollateral "counterparty" (collateralAmount terms') (dayToSlotNumber $ ct_SD terms') cont
-            in Success . withCollateral $ inititializeStateFs terms' scheduleAcc
+            in withCollateral $ inititializeStateFs terms' scheduleAcc

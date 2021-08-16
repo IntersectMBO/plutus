@@ -11,6 +11,16 @@
     )
     (termbind
       (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
+      (builtin equalsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
+    )
+    (termbind
+      (strict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -18,21 +28,9 @@
         (lam
           y
           (con integer)
-          [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin equalsInteger) x ] y ]
-              ]
-              True
-            ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
         )
       )
-    )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (lam
       ds
@@ -47,32 +45,35 @@
             (vardecl fail (fun (all a (type) a) Bool))
             (lam ds (all a (type) a) False)
           )
-          [
+          {
             [
               [
-                { [ Bool_match [ [ equalsInteger ds ] ds ] ] (fun Unit Bool) }
-                (lam
-                  thunk
-                  Unit
-                  [
+                {
+                  [ Bool_match [ [ equalsInteger ds ] ds ] ]
+                  (all dead (type) Bool)
+                }
+                (abs
+                  dead
+                  (type)
+                  {
                     [
                       [
                         {
                           [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                          (fun Unit Bool)
+                          (all dead (type) Bool)
                         }
-                        (lam thunk Unit True)
+                        (abs dead (type) True)
                       ]
-                      (lam thunk Unit [ fail (abs e (type) (error e)) ])
+                      (abs dead (type) [ fail (abs e (type) (error e)) ])
                     ]
-                    Unit
-                  ]
+                    (all dead (type) dead)
+                  }
                 )
               ]
-              (lam thunk Unit [ fail (abs e (type) (error e)) ])
+              (abs dead (type) [ fail (abs e (type) (error e)) ])
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )

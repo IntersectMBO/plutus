@@ -11,10 +11,11 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Identity
+import           Data.Text                    (Text)
 
--- | A class for emitting 'String's in a monadic context (basically, for logging).
+-- | A class for emitting 'Text's in a monadic context (basically, for logging).
 class Monad m => MonadEmitter m where
-    emit :: String -> m ()
+    emit :: Text -> m ()
 
 -- | A concrete type implementing 'MonadEmitter'. Useful in signatures of built-in functions that
 -- do logging. We don't use any concrete first-order encoding and instead pack a @MonadEmitter m@
@@ -37,19 +38,19 @@ instance MonadEmitter Emitter where
 
 -- | A newtype wrapper for providing a 'MonadEmitter' instance by directly providing the function.
 newtype WithEmitterT m a = WithEmitterT
-    { unWithEmitterT :: (String -> m ()) -> m a
+    { unWithEmitterT :: (Text -> m ()) -> m a
     } deriving
         ( Functor, Applicative, Monad
         , MonadError e, MonadState s
         )
       via
-        ReaderT (String -> m ()) m
+        ReaderT (Text -> m ()) m
 
 instance Monad m => MonadEmitter (WithEmitterT m) where
     emit s = WithEmitterT $ \e -> e s
 
 instance MonadTrans WithEmitterT where
-    lift a = WithEmitterT $ \_ -> a
+    lift a = WithEmitterT $ const a
 
 -- | A newtype wrapper for via-deriving a vacuous 'MonadEmitter' instance for a monad.
 newtype NoEmitterT m a = NoEmitterT

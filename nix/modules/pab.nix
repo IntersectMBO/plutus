@@ -2,7 +2,7 @@
 let
   inherit (lib) types mkOption mkIf;
   pabExec = pkgs.writeShellScriptBin "pab-exec" ''
-    ${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} $*
+    ${cfg.pab-executable} --config=${pabYaml} $*
   '';
   cfg = config.services.pab;
 
@@ -28,9 +28,8 @@ let
     nodeServerConfig = {
       mscBaseUrl = "http://localhost:${builtins.toString cfg.nodePort}";
       mscSocketPath = "/tmp/node-server.sock";
-      mscRandomTxInterval = 20000000;
       mscSlotConfig = {
-        scZeroSlotTime = cfg.zeroSlotTime;
+        scSlotZeroTime = cfg.slotZeroTime;
         scSlotLength = cfg.slotLength;
       };
       mscFeeConfig = {
@@ -41,15 +40,12 @@ let
       };
       mscNetworkId = ""; # Empty string for Mainnet. Put a network magic number in the string to use the Testnet.
       mscKeptBlocks = 100000;
-      mscBlockReaper = {
-        brcInterval = 6000000;
-        brcBlocksToKeep = 100000;
-      };
       mscInitialTxWallets = [
         { getWallet = 1; }
         { getWallet = 2; }
         { getWallet = 3; }
       ];
+      mscNodeMode = "MockNode";
     };
 
     chainIndexConfig = {
@@ -68,9 +64,6 @@ let
       };
     };
 
-    metadataServerConfig = {
-      mdBaseUrl = "http://localhost:${builtins.toString cfg.metadataPort}";
-    };
   };
 
   pabYaml = pkgs.writeText "pab.yaml" (builtins.toJSON pabConfig);
@@ -87,10 +80,17 @@ in
       '';
     };
 
-    pab-package = mkOption {
+    pab-setup = mkOption {
       type = types.package;
       description = ''
-        The pab package to execute.
+        The pab setup script to execute.
+      '';
+    };
+
+    pab-executable = mkOption {
+      type = types.path;
+      description = ''
+        The pab executable to run.
       '';
     };
 
@@ -157,23 +157,7 @@ in
       '';
     };
 
-    metadataPort = mkOption {
-      type = types.port;
-      default = 8085;
-      description = ''
-        Port of the pab 'metadata' component.
-      '';
-    };
-
-    contracts = mkOption {
-      type = types.listOf (types.path);
-      default = [ ];
-      description = ''
-        List of paths to contracts that should be installed.
-      '';
-    };
-
-    zeroSlotTime = mkOption {
+    slotZeroTime = mkOption {
       type = types.int;
       default = 1596059091000; # POSIX time of 2020-07-29T21:44:51Z (Wednesday, July 29, 2020 21:44:51) - Shelley launch time
       description = ''
@@ -224,7 +208,7 @@ in
           rm -rf ${cfg.dbFile}
 
           echo "[pab-init-cmd]: Creating new DB '${cfg.dbFile}'"
-          ${cfg.pab-package}/bin/plutus-pab migrate ${cfg.dbFile}
+          ${cfg.pab-executable} --config=${pabYaml} migrate;
         '';
       in
       {
@@ -248,7 +232,7 @@ in
         Restart = "always";
         DynamicUser = true;
         StateDirectory = [ "pab" ];
-        ExecStart = "${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} all-servers";
+        ExecStart = "${cfg.pab-executable} --config=${pabYaml} all-servers";
 
         # Sane defaults for security
         ProtectKernelTunables = true;
@@ -259,11 +243,6 @@ in
       };
       postStart = ''
         mkdir -p /var/lib/pab
-
-        #
-        # After pab has started we can install all contracts that have been configured via `plutus-pab contracts install <contract path>`
-        #
-        ${lib.concatMapStringsSep "\n" (p: "${cfg.pab-package}/bin/plutus-pab --config=${pabYaml} contracts install --path ${p}") cfg.contracts}
       '';
     };
   };

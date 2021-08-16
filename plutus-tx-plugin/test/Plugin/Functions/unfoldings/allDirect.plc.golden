@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -21,26 +18,29 @@
         (lam
           ds
           Bool
-          [
+          {
             [
-              [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False) ]
-              (lam
-                thunk
-                Unit
-                [
+              [
+                { [ Bool_match ds ] (all dead (type) Bool) }
+                (abs dead (type) False)
+              ]
+              (abs
+                dead
+                (type)
+                {
                   [
                     [
-                      { [ Bool_match ds ] (fun Unit Bool) }
-                      (lam thunk Unit False)
+                      { [ Bool_match ds ] (all dead (type) Bool) }
+                      (abs dead (type) False)
                     ]
-                    (lam thunk Unit True)
+                    (abs dead (type) True)
                   ]
-                  Unit
-                ]
+                  (all dead (type) dead)
+                }
               )
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )
@@ -70,7 +70,7 @@
       (let
         (rec)
         (termbind
-          (nonstrict)
+          (strict)
           (vardecl
             allDirect (all a (type) (fun (fun a Bool) (fun [List a] Bool)))
           )
@@ -83,11 +83,11 @@
               (lam
                 l
                 [List a]
-                [
+                {
                   [
                     [
-                      { [ { Nil_match a } l ] (fun Unit Bool) }
-                      (lam thunk Unit True)
+                      { [ { Nil_match a } l ] (all dead (type) Bool) }
+                      (abs dead (type) True)
                     ]
                     (lam
                       h
@@ -95,16 +95,16 @@
                       (lam
                         t
                         [List a]
-                        (lam
-                          thunk
-                          Unit
+                        (abs
+                          dead
+                          (type)
                           [ [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ] ]
                         )
                       )
                     )
                   ]
-                  Unit
-                ]
+                  (all dead (type) dead)
+                }
               )
             )
           )
@@ -130,7 +130,21 @@
           (termbind
             (strict)
             (vardecl
-              greaterThanInteger (fun (con integer) (fun (con integer) Bool))
+              ifThenElse (all a (type) (fun (con bool) (fun a (fun a a))))
+            )
+            (builtin ifThenElse)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
+            )
+            (builtin lessThanInteger)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              lessThanInteger (fun (con integer) (fun (con integer) Bool))
             )
             (lam
               x
@@ -139,13 +153,7 @@
                 y
                 (con integer)
                 [
-                  [
-                    [
-                      { (builtin ifThenElse) Bool }
-                      [ [ (builtin greaterThanInteger) x ] y ]
-                    ]
-                    True
-                  ]
+                  [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ]
                   False
                 ]
               )
@@ -154,9 +162,7 @@
           [
             [
               { allDirect (con integer) }
-              (lam
-                ds (con integer) [ [ greaterThanInteger ds ] (con integer 5) ]
-              )
+              (lam ds (con integer) [ [ lessThanInteger ds ] (con integer 5) ])
             ]
             [
               { build (con integer) }

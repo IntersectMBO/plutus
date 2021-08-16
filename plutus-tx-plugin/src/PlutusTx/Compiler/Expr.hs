@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
@@ -15,7 +16,6 @@ import           PlutusTx.Compiler.Builtins
 import           PlutusTx.Compiler.Error
 import           PlutusTx.Compiler.Laziness
 import           PlutusTx.Compiler.Names
-import           PlutusTx.Compiler.Primitives
 import           PlutusTx.Compiler.Type
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
@@ -67,6 +67,9 @@ GHC's literals and primitives are a bit of a pain, since they not only have a Li
 containing the actual data, but are wrapped in special functions (often ending in the magic #).
 
 This is a pain to recognize.
+
+Fortunately, in practice the only kind of literals we need to deal with directly are integer literals.
+String literals are handled specially, see Note [String literals].
 -}
 
 {- Note [unpackFoldrCString#]
@@ -83,39 +86,19 @@ So we use a horrible hack and match on `build . unpackFoldrCString#` to "undo" t
 rule.
 -}
 
-{- Note [Addr#]
-String literals usually have type `Addr#`. This is not very nice for us, since we certainly don't have
-those.
-
-However, they should only appear wrapped by an `unpackCString#` or similar. Except if the string literal
-gets lifted out by GHC! This is no problem for our compiler, we will just compile the literal as a binding
-and put in a reference... except that the binding would need to be of type `Addr#`.
-
-So we use another horrible hack and pretend that `Addr#` is `String`, since we treat `unpackCString#` as doing nothing.
--}
-
 compileLiteral
     :: CompilingDefault uni fun m
     => GHC.Literal -> m (PIRTerm uni fun)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
     (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.mkConstant () i
-    GHC.LitString bs      ->
-        -- Convert the bytestring into a core expression representing the list
-        -- of characters, then compile that!
-        -- Note that we do *not* convert this into a PLC string, but rather a list of characters,
-        -- since that is what other Haskell code will expect.
-        let
-            str = T.unpack $ TE.decodeUtf8 bs
-            charExprs = fmap GHC.mkCharExpr str
-            listExpr = GHC.mkListExpr GHC.charTy charExprs
-        in compileExpr listExpr
-    GHC.LitChar c      -> pure $ PIR.embed $ PLC.mkConstant () c
-    GHC.LitFloat _     -> throwPlain $ UnsupportedError "Literal float"
-    GHC.LitDouble _    -> throwPlain $ UnsupportedError "Literal double"
-    GHC.LitLabel {}    -> throwPlain $ UnsupportedError "Literal label"
-    GHC.LitNullAddr    -> throwPlain $ UnsupportedError "Literal null"
-    GHC.LitRubbish     -> throwPlain $ UnsupportedError "Literal rubbish"
+    GHC.LitString _       -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
+    GHC.LitChar _         -> throwPlain $ UnsupportedError "Literal char"
+    GHC.LitFloat _        -> throwPlain $ UnsupportedError "Literal float"
+    GHC.LitDouble _       -> throwPlain $ UnsupportedError "Literal double"
+    GHC.LitLabel {}       -> throwPlain $ UnsupportedError "Literal label"
+    GHC.LitNullAddr       -> throwPlain $ UnsupportedError "Literal null"
+    GHC.LitRubbish        -> throwPlain $ UnsupportedError "Literal rubbish"
 
 -- TODO: this is annoyingly duplicated with the code 'compileExpr', but I failed to unify them since they
 -- do different things to the inner expression. This one assumes it's a literal, the other one keeps compiling
@@ -327,8 +310,8 @@ is transparently equal to '[Char]', it is *not* opaque.
 So we can't just replace GHC's 'String' with PLC's 'String' wholesale. Otherwise things will
 behave quite weirdly with things that expect 'String' to be a list. (We want to be type-preserving!)
 
-However, we can get from GHC's 'String' to our 'String' using 'IsString'. This is fine:
-we turn string literals into lists of characters, and then we fold over the list adding them
+However, we can get from GHC's 'String' to our 'String' using 'IsString'. This is fine in theory:
+we can turn string literals into lists of characters, and then fold over the list adding them
 into a big string. But it's bad for two reasons:
 - We have to actually do the fold.
 - The string literal is there in the generated code as a list of characters, which is pretty big.
@@ -404,24 +387,42 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
-        (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
+        (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
         _                  -> throwPlain $ CompilationError "No info for String builtin"
+
+    (bsTyName, sbbsName) <- case (Map.lookup ''Builtins.BuiltinByteString nameInfo, Map.lookup 'Builtins.stringToBuiltinByteString nameInfo) of
+        (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
+        _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
     let top = NE.head stack
     case e of
         -- See Note [String literals]
-        -- 'fromString' invocation at the builtin String type
-        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc) `GHC.App` _ `GHC.App` (strip -> stringExprContent -> Just bs)
-            | GHC.getName cls == GHC.isStringClassName, GHC.getName tc == stringTyName -> do
-                let str = T.unpack $ TE.decodeUtf8 bs
-                pure $ PIR.Constant () $ PLC.someValue str
+        -- IsString has only one method, so it's enough to know that it's an IsString method to know we're looking at fromString
+        -- We can safely commit to this match as soon as we've seen fromString - we won't accept any applications of fromString that aren't creating literals
+        -- of our builtin types.
+        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type ty `GHC.App` _ `GHC.App` content | GHC.getName cls == GHC.isStringClassName ->
+            case GHC.tyConAppTyCon_maybe ty of
+                Just tc -> case stringExprContent (strip content) of
+                    Just bs ->
+                        if | GHC.getName tc == bsTyName     -> pure $ PIR.Constant () $ PLC.someValue bs
+                           | GHC.getName tc == stringTyName -> case TE.decodeUtf8' bs of
+                                 Right t -> pure $ PIR.Constant () $ PLC.someValue t
+                                 Left err -> throwPlain $ CompilationError $ "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
+                           | otherwise -> throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
+                    Nothing -> throwSd CompilationError $ "Use of fromString with inscrutable content:" GHC.<+> GHC.ppr content
+                Nothing -> throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
+        -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
+        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbbsName ->
+                pure $ PIR.Constant () $ PLC.someValue bs
         -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
-        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName -> do
-                let str = T.unpack $ TE.decodeUtf8 bs
-                pure $ PIR.Constant () $ PLC.someValue str
+        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName ->
+                case TE.decodeUtf8' bs of
+                    Right t -> pure $ PIR.Constant () $ PLC.someValue t
+                    Left err -> throwPlain $ CompilationError $ "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
 
         -- See Note [Literals]
         GHC.Lit lit -> compileLiteral lit
+        -- These are all wrappers around string and char literals, but keeping them allows us to give better errors
         -- unpackCString# is just a wrapper around a literal
         GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
         -- See Note [unpackFoldrCString#]
@@ -457,7 +458,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar () var
 
         -- Special kinds of id
-        GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> compilePrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
 
         -- See Note [Unfoldings]

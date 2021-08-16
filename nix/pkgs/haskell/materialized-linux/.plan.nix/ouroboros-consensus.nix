@@ -34,6 +34,7 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."base-deriving-via" or (errorHandler.buildDepError "base-deriving-via"))
           (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
@@ -51,6 +52,7 @@
           (hsPkgs."filelock" or (errorHandler.buildDepError "filelock"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
+          (hsPkgs."measures" or (errorHandler.buildDepError "measures"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."psqueues" or (errorHandler.buildDepError "psqueues"))
@@ -287,10 +289,21 @@
           "Ouroboros/Consensus/Storage/VolatileDB/Impl/Types"
           "Ouroboros/Consensus/Storage/VolatileDB/Impl/Util"
           "Data/SOP/Strict"
-          ];
+          ] ++ (pkgs.lib).optional (system.isWindows) "Ouroboros/Consensus/Storage/Seek";
         hsSourceDirs = [ "src" ] ++ (if system.isWindows
           then [ "src-win32" ]
           else [ "src-unix" ]);
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/19; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "6";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "6";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/ouroboros-consensus; echo source root reset to \$sourceRoot";
+    }

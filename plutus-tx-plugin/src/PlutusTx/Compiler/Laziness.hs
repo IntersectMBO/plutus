@@ -5,16 +5,12 @@
 -- | Simulating laziness.
 module PlutusTx.Compiler.Laziness where
 
-import {-# SOURCE #-}           PlutusTx.Compiler.Expr
-import                          PlutusTx.Compiler.Type
-import                          PlutusTx.Compiler.Types
-import                          PlutusTx.PIRTypes
+import           PlutusTx.Compiler.Types
+import           PlutusTx.PIRTypes
 
-import                qualified PlutusIR                as PIR
+import qualified PlutusIR                as PIR
 
-import                          PlutusCore.Quote
-
-import                qualified GhcPlugins              as GHC
+import           PlutusCore.Quote
 
 {- Note [Object- vs meta-language combinators]
 Many of the things we define as *meta*-langugage combinators (i.e. operations on terms) could be defined
@@ -29,10 +25,10 @@ a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
 delay :: Compiling uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
-delay body = PIR.LamAbs () <$> liftQuote (freshName "thunk") <*> compileType GHC.unitTy <*> pure body
+delay body = PIR.TyAbs () <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type ()) <*> pure body
 
 delayType :: Compiling uni fun m => PIRType uni -> m (PIRType uni)
-delayType orig = PIR.TyFun () <$> compileType GHC.unitTy <*> pure orig
+delayType orig = PIR.TyForall () <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type ()) <*> pure orig
 
 delayVar :: Compiling uni fun m => PIRVar uni fun -> m (PIRVar uni fun)
 delayVar (PIR.VarDecl () n ty) = do
@@ -42,7 +38,10 @@ delayVar (PIR.VarDecl () n ty) = do
 force
     :: CompilingDefault uni fun m
     => PIRTerm uni fun -> m (PIRTerm uni fun)
-force thunk = PIR.Apply () thunk <$> compileExpr (GHC.Var GHC.unitDataConId)
+force thunk = do
+    a <- liftQuote (freshTyName "dead")
+    let fakeTy = PIR.TyForall () a (PIR.Type ()) (PIR.TyVar () a)
+    pure $ PIR.TyInst () thunk fakeTy
 
 maybeDelay :: Compiling uni fun m => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeDelay yes t = if yes then delay t else pure t

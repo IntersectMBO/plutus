@@ -166,8 +166,6 @@ instantiateExtendedContract currentSlot state =
   let
     extendedContract = view (_contractTemplate <<< _extendedContract) state
 
-    relativeContract = resolveRelativeTimes currentSlot extendedContract
-
     slotContentInputs = view _slotContentInputs state
 
     valueContentInputs = view _valueContentInputs state
@@ -183,8 +181,12 @@ instantiateExtendedContract currentSlot state =
     valueContent = mapMaybeWithKey getBigIntegerValueWithDecimals valueContentInputs
 
     templateContent = TemplateContent { slotContent, valueContent }
+
+    filledContract = fillTemplate templateContent extendedContract
+
+    absoluteFilledContract = resolveRelativeTimes currentSlot filledContract
   in
-    toCore $ fillTemplate templateContent relativeContract
+    toCore absoluteFilledContract
 
 ------------------------------------------------------------
 toContractNicknameInput ::

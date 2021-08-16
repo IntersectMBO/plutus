@@ -28,7 +28,7 @@ import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, T
 import           Data.Aeson.Types          (prependFailure, typeMismatch)
 import           Data.Hashable             (Hashable)
 import           Data.Scientific           (floatingOrInteger, scientific)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Interval
 import qualified PlutusTx
@@ -41,7 +41,7 @@ import qualified Prelude                   as Haskell
 newtype DiffMilliSeconds = DiffMilliSeconds Integer
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
-  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.IsData)
+  deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Haskell.Enum, Eq, Ord, Haskell.Real, Haskell.Integral, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
 
 makeLift ''DiffMilliSeconds
 
@@ -49,7 +49,7 @@ makeLift ''DiffMilliSeconds
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (FromJSONKey, ToJSONKey, NFData)
-  deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.IsData)
+  deriving newtype (AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Eq, Ord, Enum, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
   deriving newtype (Haskell.Num, Haskell.Enum, Haskell.Real, Haskell.Integral, Serialise, Hashable)
 
 -- | Custom `FromJSON` instance which allows to parse a JSON number to a
@@ -72,9 +72,6 @@ makeLift ''POSIXTime
 
 instance Pretty POSIXTime where
   pretty (POSIXTime i) = "POSIXTime" <+> pretty i
-
-instance Pretty (Interval POSIXTime) where
-  pretty (Interval l h) = pretty l <+> comma <+> pretty h
 
 -- | An 'Interval' of 'POSIXTime's.
 type POSIXTimeRange = Interval POSIXTime

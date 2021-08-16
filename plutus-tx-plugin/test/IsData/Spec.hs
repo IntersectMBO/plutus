@@ -40,7 +40,7 @@ instance P.Eq NestedRecord where
     {-# INLINABLE (==) #-}
     (NestedRecord i1) == (NestedRecord i2) = i1 P.== i2
 
-data WrappedBS = WrappedBS { unWrap :: Builtins.ByteString }
+data WrappedBS = WrappedBS { unWrap :: Builtins.BuiltinByteString }
 IsData.unstableMakeIsData ''WrappedBS
 
 instance P.Eq WrappedBS where
@@ -54,10 +54,14 @@ unsafeDeconstructData :: CompiledCode (Builtins.BuiltinData -> Maybe (Integer, I
 unsafeDeconstructData = plc (Proxy @"deconstructData4") (\(d :: Builtins.BuiltinData) -> IsData.unsafeFromBuiltinData d)
 
 {-# INLINABLE isDataRoundtrip #-}
-isDataRoundtrip :: (IsData.IsData a, P.Eq a) => a -> Bool
-isDataRoundtrip a = case IsData.fromBuiltinData (IsData.toBuiltinData a) of
-    Just a' -> a P.== a'
-    Nothing -> False
+isDataRoundtrip :: (IsData.FromData a, IsData.UnsafeFromData a, IsData.ToData a, P.Eq a) => a -> Bool
+isDataRoundtrip a =
+    let d = IsData.toBuiltinData a
+        safeRoundtrip = case IsData.fromBuiltinData d of
+            Just a' -> a P.== a'
+            Nothing -> False
+        unsafeRoundtrip = IsData.unsafeFromBuiltinData d P.== a
+    in safeRoundtrip && unsafeRoundtrip
 
 tests :: TestNested
 tests = testNested "IsData" [

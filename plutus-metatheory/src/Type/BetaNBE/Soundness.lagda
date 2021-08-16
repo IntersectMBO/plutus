@@ -187,7 +187,6 @@ evalSRTyCon : ∀{Φ Ψ}(c : Syn.TyCon Φ){σ : Sub Φ Ψ}{η : Env Φ Ψ}
 evalSRTyCon Syn.integer p = refl≡β _
 evalSRTyCon Syn.bytestring p = refl≡β _
 evalSRTyCon Syn.string p = refl≡β _
-evalSRTyCon Syn.char p = refl≡β _
 evalSRTyCon Syn.unit p = refl≡β _
 evalSRTyCon Syn.bool p = refl≡β _
 evalSRTyCon (Syn.list A) p = list≡β (evalSR A p)

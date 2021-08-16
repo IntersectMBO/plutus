@@ -28,7 +28,6 @@ renNfTyCon-cong : {f g : Ren Φ Ψ}
 renNfTyCon-cong p integer    = refl
 renNfTyCon-cong p bytestring = refl
 renNfTyCon-cong p string     = refl
-renNfTyCon-cong p char       = refl
 renNfTyCon-cong p unit       = refl
 renNfTyCon-cong p bool       = refl
 renNfTyCon-cong p (list A)   = cong list (renNf-cong p A) 
@@ -64,7 +63,6 @@ renNfTyCon-id : (c : TyCon Φ)
 renNfTyCon-id integer    = refl
 renNfTyCon-id bytestring = refl
 renNfTyCon-id string     = refl
-renNfTyCon-id char       = refl
 renNfTyCon-id unit       = refl
 renNfTyCon-id bool       = refl
 renNfTyCon-id (list A)   = cong list (renNf-id A) 
@@ -101,7 +99,6 @@ renNfTyCon-comp : {g : Ren Φ Ψ}
 renNfTyCon-comp integer    = refl
 renNfTyCon-comp bytestring = refl
 renNfTyCon-comp string     = refl
-renNfTyCon-comp char       = refl
 renNfTyCon-comp unit       = refl
 renNfTyCon-comp bool       = refl
 renNfTyCon-comp (list A)   = cong list (renNf-comp A) 

@@ -77,7 +77,6 @@ renTermCon _ (integer i)    = integer i
 renTermCon _ (bytestring b) = bytestring b
 renTermCon _ (string s)     = string s
 renTermCon _ (bool b)       = bool b
-renTermCon _ (char c)       = char c
 renTermCon _ unit           = unit
 
 ```
@@ -170,7 +169,6 @@ subTermCon _ (integer i)    = integer i
 subTermCon _ (bytestring b) = bytestring b
 subTermCon _ (string s)     = string s
 subTermCon _ (bool b)       = bool b
-subTermCon _ (char c)       = char c
 subTermCon _ unit           = unit
 
 ```

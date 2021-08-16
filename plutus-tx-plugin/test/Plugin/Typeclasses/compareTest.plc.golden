@@ -1,8 +1,22 @@
 (program
   (let
     (nonrec)
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    (termbind
+      (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
+      (builtin equalsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        lessThanEqualsInteger (fun (con integer) (fun (con integer) (con bool)))
+      )
+      (builtin lessThanEqualsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
     )
     (datatypebind
       (datatype
@@ -23,7 +37,7 @@
     (termbind
       (strict)
       (vardecl
-        fOrdData_ccompare (fun (con integer) (fun (con integer) Ordering))
+        fOrdInteger_ccompare (fun (con integer) (fun (con integer) Ordering))
       )
       (lam
         x
@@ -31,31 +45,25 @@
         (lam
           y
           (con integer)
-          [
+          {
             [
               [
                 {
                   [
                     Bool_match
                     [
-                      [
-                        [
-                          { (builtin ifThenElse) Bool }
-                          [ [ (builtin equalsInteger) x ] y ]
-                        ]
-                        True
-                      ]
+                      [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ]
                       False
                     ]
                   ]
-                  (fun Unit Ordering)
+                  (all dead (type) Ordering)
                 }
-                (lam thunk Unit EQ)
+                (abs dead (type) EQ)
               ]
-              (lam
-                thunk
-                Unit
-                [
+              (abs
+                dead
+                (type)
+                {
                   [
                     [
                       {
@@ -64,26 +72,26 @@
                           [
                             [
                               [
-                                { (builtin ifThenElse) Bool }
-                                [ [ (builtin lessThanEqualsInteger) x ] y ]
+                                { ifThenElse Bool }
+                                [ [ lessThanEqualsInteger x ] y ]
                               ]
                               True
                             ]
                             False
                           ]
                         ]
-                        (fun Unit Ordering)
+                        (all dead (type) Ordering)
                       }
-                      (lam thunk Unit LT)
+                      (abs dead (type) LT)
                     ]
-                    (lam thunk Unit GT)
+                    (abs dead (type) GT)
                   ]
-                  Unit
-                ]
+                  (all dead (type) dead)
+                }
               )
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )
@@ -98,7 +106,7 @@
         (lam
           y
           (con integer)
-          [
+          {
             [
               [
                 {
@@ -107,22 +115,21 @@
                     [
                       [
                         [
-                          { (builtin ifThenElse) Bool }
-                          [ [ (builtin lessThanEqualsInteger) x ] y ]
+                          { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ]
                         ]
                         True
                       ]
                       False
                     ]
                   ]
-                  (fun Unit (con integer))
+                  (all dead (type) (con integer))
                 }
-                (lam thunk Unit y)
+                (abs dead (type) y)
               ]
-              (lam thunk Unit x)
+              (abs dead (type) x)
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )
@@ -137,7 +144,7 @@
         (lam
           y
           (con integer)
-          [
+          {
             [
               [
                 {
@@ -146,22 +153,21 @@
                     [
                       [
                         [
-                          { (builtin ifThenElse) Bool }
-                          [ [ (builtin lessThanEqualsInteger) x ] y ]
+                          { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ]
                         ]
                         True
                       ]
                       False
                     ]
                   ]
-                  (fun Unit (con integer))
+                  (all dead (type) (con integer))
                 }
-                (lam thunk Unit x)
+                (abs dead (type) x)
               ]
-              (lam thunk Unit y)
+              (abs dead (type) y)
             ]
-            Unit
-          ]
+            (all dead (type) dead)
+          }
         )
       )
     )
@@ -174,22 +180,21 @@
         (lam
           y
           (con integer)
-          [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin equalsInteger) x ] y ]
-              ]
-              True
-            ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
         )
       )
     )
     (termbind
       (strict)
-      (vardecl greaterThanEqInteger (fun (con integer) (fun (con integer) Bool))
+      (vardecl
+        lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
+      )
+      (builtin lessThanInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        greaterThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
       )
       (lam
         x
@@ -197,16 +202,7 @@
         (lam
           y
           (con integer)
-          [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin greaterThanEqualsInteger) x ] y ]
-              ]
-              True
-            ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] False ] True ]
         )
       )
     )
@@ -220,21 +216,17 @@
           y
           (con integer)
           [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin greaterThanInteger) x ] y ]
-              ]
-              True
-            ]
-            False
+            [ [ { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ] ] False ]
+            True
           ]
         )
       )
     )
     (termbind
       (strict)
-      (vardecl lessThanEqInteger (fun (con integer) (fun (con integer) Bool)))
+      (vardecl
+        lessThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
+      )
       (lam
         x
         (con integer)
@@ -242,13 +234,7 @@
           y
           (con integer)
           [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin lessThanEqualsInteger) x ] y ]
-              ]
-              True
-            ]
+            [ [ { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ] ] True ]
             False
           ]
         )
@@ -263,16 +249,7 @@
         (lam
           y
           (con integer)
-          [
-            [
-              [
-                { (builtin ifThenElse) Bool }
-                [ [ (builtin lessThanInteger) x ] y ]
-              ]
-              True
-            ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ] False ]
         )
       )
     )
@@ -298,15 +275,15 @@
                 [
                   [
                     [ { CConsOrd (con integer) } equalsInteger ]
-                    fOrdData_ccompare
+                    fOrdInteger_ccompare
                   ]
                   lessThanInteger
                 ]
-                lessThanEqInteger
+                lessThanEqualsInteger
               ]
               greaterThanInteger
             ]
-            greaterThanEqInteger
+            greaterThanEqualsInteger
           ]
           fOrdInteger_cmax
         ]
@@ -368,22 +345,22 @@
             (lam
               b
               a
-              [
+              {
                 [
                   [
                     [
                       {
                         [ Ordering_match [ [ [ { compare a } dOrd ] a ] b ] ]
-                        (fun Unit Ordering)
+                        (all dead (type) Ordering)
                       }
-                      (lam thunk Unit EQ)
+                      (abs dead (type) EQ)
                     ]
-                    (lam thunk Unit LT)
+                    (abs dead (type) LT)
                   ]
-                  (lam thunk Unit GT)
+                  (abs dead (type) GT)
                 ]
-                Unit
-              ]
+                (all dead (type) dead)
+              }
             )
           )
         )

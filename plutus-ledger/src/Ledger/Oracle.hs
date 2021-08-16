@@ -38,12 +38,12 @@ import           PlutusTx.Prelude
 
 import           Ledger.Constraints        (TxConstraints)
 import qualified Ledger.Constraints        as Constraints
+import           Ledger.Crypto             (PrivateKey, PubKey (..), Signature (..))
+import qualified Ledger.Crypto             as Crypto
+import           Ledger.Scripts            (Datum (..), DatumHash (..))
+import qualified Ledger.Scripts            as Scripts
 import           Plutus.V1.Ledger.Bytes
 import           Plutus.V1.Ledger.Contexts (ScriptContext)
-import           Plutus.V1.Ledger.Crypto   (PrivateKey, PubKey (..), Signature (..))
-import qualified Plutus.V1.Ledger.Crypto   as Crypto
-import           Plutus.V1.Ledger.Scripts  (Datum (..), DatumHash (..))
-import qualified Plutus.V1.Ledger.Scripts  as Scripts
 import           Plutus.V1.Ledger.Time     (POSIXTime)
 
 import qualified Prelude                   as Haskell
@@ -126,13 +126,13 @@ checkSignature datumHash pubKey signature_ =
 --   that the hash is correct. In off-chain code, where we check the hash
 --   straightforwardly, 'checkHashOffChain' can be used instead of this.
 checkHashConstraints ::
-    ( IsData a )
+    ( FromData a )
     => SignedMessage a
     -- ^ The signed message
     -> Either SignedMessageCheckError (a, TxConstraints i o)
 checkHashConstraints SignedMessage{osmMessageHash, osmDatum=Datum dt} =
     maybe
-        (trace "DecodingError" $ Left DecodingError)
+        (trace "Li" {-"DecodingError"-} $ Left DecodingError)
         (\a -> pure (a, Constraints.mustHashDatum osmMessageHash (Datum dt)))
         (fromBuiltinData dt)
 
@@ -141,7 +141,7 @@ checkHashConstraints SignedMessage{osmMessageHash, osmDatum=Datum dt} =
 --   message, producing a 'TxConstraint' value that ensures the hashes match
 --   up.
 verifySignedMessageConstraints ::
-    ( IsData a)
+    ( FromData a)
     => PubKey
     -> SignedMessage a
     -> Either SignedMessageCheckError (a, TxConstraints i o)
@@ -155,7 +155,7 @@ verifySignedMessageConstraints pk s@SignedMessage{osmSignature, osmMessageHash} 
 --   'verifySignedMessageConstraints' for a version that does not require a
 --   'ScriptContext' value.
 verifySignedMessageOnChain ::
-    ( IsData a)
+    ( FromData a)
     => ScriptContext
     -> PubKey
     -> SignedMessage a
@@ -170,7 +170,7 @@ verifySignedMessageOnChain ptx pk s@SignedMessage{osmSignature, osmMessageHash} 
 -- | The off-chain version of 'checkHashConstraints', using the hash function
 --   directly instead of obtaining the hash from a 'ScriptContext' value
 checkHashOffChain ::
-    ( IsData a )
+    ( FromData a )
     => SignedMessage a
     -> Either SignedMessageCheckError a
 checkHashOffChain SignedMessage{osmMessageHash, osmDatum=dt} = do
@@ -181,7 +181,7 @@ checkHashOffChain SignedMessage{osmMessageHash, osmDatum=dt} = do
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
 --   message.
 verifySignedMessageOffChain ::
-    ( IsData a)
+    ( FromData a)
     => PubKey
     -> SignedMessage a
     -> Either SignedMessageCheckError a
@@ -191,7 +191,7 @@ verifySignedMessageOffChain pk s@SignedMessage{osmSignature, osmMessageHash} =
 
 -- | Encode a message of type @a@ as a @Data@ value and sign the
 --   hash of the datum.
-signMessage :: IsData a => a -> PrivateKey -> SignedMessage a
+signMessage :: ToData a => a -> PrivateKey -> SignedMessage a
 signMessage msg pk =
   let dt = Datum (toBuiltinData msg)
       DatumHash msgHash = Scripts.datumHash dt
@@ -203,7 +203,7 @@ signMessage msg pk =
         }
 
 -- | Encode an observation of a value of type @a@ that was made at the given time
-signObservation :: IsData a => POSIXTime -> a -> PrivateKey -> SignedMessage (Observation a)
+signObservation :: ToData a => POSIXTime -> a -> PrivateKey -> SignedMessage (Observation a)
 signObservation time vl = signMessage Observation{obsValue=vl, obsTime=time}
 
 makeLift ''SignedMessage

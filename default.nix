@@ -5,20 +5,18 @@
 # developing Plutus.
 #
 ########################################################################
-
 { system ? builtins.currentSystem
 , crossSystem ? null
 , config ? { allowUnfreePredicate = (import ./nix/lib/unfree.nix).unfreePredicate; }
 , sourcesOverride ? { }
 , sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
-, isInFlake ? false
-, haskellNix ? import sources."haskell.nix" {
+, haskellNix ? import sources.haskell-nix {
     sourcesOverride = {
-      hackage = sources."hackage.nix";
-      stackage = sources."stackage.nix";
+      hackage = sources.hackage-nix;
+      stackage = sources.stackage-nix;
     };
   }
-, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix isInFlake checkMaterialization enableHaskellProfiling; }
+, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix checkMaterialization enableHaskellProfiling; }
   # An explicit git rev to use, passed when we are in Hydra
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
   # false, generally, since it does more work, but we set it to true in the CI
@@ -38,15 +36,10 @@ rec {
   inherit (plutus) web-ghc;
 
   inherit (haskell.packages.plutus-pab.components.exes)
-    plutus-game
-    plutus-currency
-    plutus-atomic-swap
-    plutus-pay-to-wallet;
+    plutus-pab-examples
+    plutus-uniswap;
 
-  inherit (haskell.packages.marlowe.components.exes)
-    marlowe-app
-    marlowe-companion-app
-    marlowe-follow-app;
+  inherit (haskell.packages.marlowe.components.exes) marlowe-pab;
 
   webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
@@ -71,15 +64,15 @@ rec {
 
   marlowe-dashboard = pkgs.recurseIntoAttrs rec {
     inherit (pkgs.callPackage ./marlowe-dashboard-client {
-      inherit plutus-pab marlowe-app marlowe-companion-app marlowe-follow-app;
+      inherit haskell plutus-pab;
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit webCommon webCommonMarlowe;
-    }) client server-invoker generated-purescript generate-purescript contractsJSON install-marlowe-contracts;
+    }) client server-setup-invoker marlowe-invoker generated-purescript generate-purescript start-backend;
   };
 
   marlowe-dashboard-fake-pab = pkgs.recurseIntoAttrs rec {
     inherit (pkgs.callPackage ./fake-pab {
-      inherit plutus-pab marlowe-app marlowe-companion-app marlowe-follow-app;
+      inherit marlowe-dashboard;
       inherit (plutus.lib) buildPursPackage buildNodeModules filterNpm gitignore-nix;
       inherit haskell webCommon webCommonMarlowe;
     }) client fake-pab-exe fake-pab-generated-purescript;
@@ -99,13 +92,15 @@ rec {
     inherit haskell webCommon webCommonPlutus;
   });
 
+  plutus-use-cases = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-use-cases {
+    inherit haskell;
+  });
+
   tests = import ./nix/tests/default.nix {
     inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
     inherit (plutus) fixStylishHaskell fixPurty fixPngOptimization;
-    inherit (pkgs) terraform;
-    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab
-      marlowe-app marlowe-companion-app marlowe-follow-app;
+    inherit plutus-playground marlowe-playground marlowe-dashboard web-ghc plutus-pab marlowe-pab;
     src = ./.;
   };
 
@@ -113,12 +108,15 @@ rec {
 
   deployment = pkgs.recurseIntoAttrs (pkgs.callPackage ./deployment/morph {
     plutus = {
-      inherit plutus-pab marlowe-app marlowe-companion-app marlowe-follow-app
-        marlowe-dashboard marlowe-playground plutus-playground web-ghc docs marlowe-web;
+      inherit plutus-pab marlowe-dashboard marlowe-playground plutus-playground web-ghc docs marlowe-web marlowe-pab;
     };
   });
 
   # This builds a vscode devcontainer that can be used with the plutus-starter project (or probably the plutus project itself).
   devcontainer = import ./nix/devcontainer/plutus-devcontainer.nix { inherit pkgs plutus; };
+
+  # Test data needed by marlowe-actus provided via niv
+  inherit (sources) actus-tests;
+
   build-and-push-devcontainer-script = import ./nix/devcontainer/deploy/default.nix { inherit pkgs plutus; };
 }

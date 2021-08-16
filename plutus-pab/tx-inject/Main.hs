@@ -34,7 +34,6 @@ import           System.Random.MWC                   (GenIO, createSystemRandom)
 import           System.Signal                       (installHandler, sigINT)
 import           Text.Pretty.Simple                  (pPrint)
 
-import           Cardano.Node.RandomTx               (generateTx)
 import           Cardano.Node.Types                  (MockServerConfig (..))
 import           Cardano.Protocol.Socket.Mock.Client (TxSendHandle (..), queueTx, runTxSender)
 import qualified Ledger.Ada                          as Ada
@@ -43,6 +42,7 @@ import           Ledger.Index                        (UtxoIndex (..), insertBloc
 import           Ledger.Slot                         (Slot (..))
 import           Ledger.Tx                           (Tx (..))
 import           Plutus.PAB.Types                    (Config (..))
+import           TxInject.RandomTx                   (generateTx)
 import           Wallet.Emulator                     (chainState, txPool, walletPubKey)
 import           Wallet.Emulator.MultiAgent          (emulatorStateInitialDist)
 

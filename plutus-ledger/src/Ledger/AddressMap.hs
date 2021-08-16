@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE Rank2Types         #-}
 {-# LANGUAGE TypeFamilies       #-}
 -- | 'AddressMap's and functions for working on them.
@@ -32,7 +33,6 @@ import           Codec.Serialise.Class    (Serialise)
 import           Control.Lens             (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, (&), (.~), (^.))
 import           Control.Monad            (join)
 import           Data.Aeson               (FromJSON (..), ToJSON (..))
-import qualified Data.Aeson               as JSON
 import qualified Data.Aeson.Extras        as JSON
 import           Data.Foldable            (fold)
 import           Data.Map                 (Map)
@@ -42,8 +42,9 @@ import qualified Data.Set                 as Set
 import           GHC.Generics             (Generic)
 
 import           Ledger.Blockchain
+import           Ledger.Tx                (txId)
 import           Plutus.V1.Ledger.Address (Address (..))
-import           Plutus.V1.Ledger.Tx      (Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), txId)
+import           Plutus.V1.Ledger.Tx      (Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..))
 import           Plutus.V1.Ledger.Value   (Value)
 
 type UtxoMap = Map TxOutRef TxOutTx
@@ -52,6 +53,7 @@ type UtxoMap = Map TxOutRef TxOutTx
 newtype AddressMap = AddressMap { getAddressMap :: Map Address UtxoMap }
     deriving stock (Show, Eq, Generic)
     deriving newtype (Serialise)
+    deriving (ToJSON, FromJSON) via (JSON.JSONViaSerialise AddressMap)
 
 -- | An address map with a single unspent transaction output.
 singleton :: (Address, TxOutRef, Tx, TxOut) -> AddressMap
@@ -71,12 +73,6 @@ filterRefs flt =
 -- have required `ToJSONKey` and `FromJSONKey` instances for `Address` and
 -- `TxOutRef` which ultimately would have introduced more boilerplate code
 -- than what we have here.
-
-instance ToJSON AddressMap where
-    toJSON = JSON.String . JSON.encodeSerialise
-
-instance FromJSON AddressMap where
-    parseJSON = JSON.decodeSerialise
 
 instance Semigroup AddressMap where
     (AddressMap l) <> (AddressMap r) = AddressMap (Map.unionWith add l r) where

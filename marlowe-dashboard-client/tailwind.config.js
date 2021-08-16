@@ -13,7 +13,7 @@ module.exports = {
       current: "currentColor",
       black: "#283346",
       lightgray: "#eeeeee",
-      gray: "#dfdfdf",
+      gray: "#f2f2f2",
       green: "#00a551",
       lightgreen: "#00e872",
       darkgray: "#b7b7b7",
@@ -48,6 +48,13 @@ module.exports = {
       lg: "25px",
       full: "9999px",
     },
+    dropShadow: {
+      DEFAULT: [
+        "0 5px 5px rgba(0, 0, 0, 0.15)",
+        "5px 5px 5px rgba(0, 0, 0, 0.06)",
+      ],
+      lg: ["0 10px 5px rgba(0, 0, 0, 0.2)", "5px 10px 5px rgba(0, 0, 0, 0.04)"],
+    },
     boxShadow: {
       none: "none",
       sm: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
@@ -64,11 +71,12 @@ module.exports = {
         "to-bottom": "to-bottom 250ms ease-out 1",
       },
       transitionProperty: {
-        width: "width"
+        width: "width",
       },
-      backgroundImage: theme => ({
+      backgroundImage: (theme) => ({
         "background-shape": "url('/static/images/background-shape.svg')",
-        "get-started-thumbnail": "url('/static/images/get-started-thumbnail.jpg')",
+        "get-started-thumbnail":
+          "url('/static/images/get-started-thumbnail.jpg')",
         "link-highlight": "url('/static/images/link-highlight.svg')",
       }),
       keyframes: {
@@ -99,19 +107,19 @@ module.exports = {
       },
       spacing: {
         "2+2px": "calc(0.5rem + 2px)",
-        "4.5": "1.125rem",
-        "22": "5.5rem",
-        "160": "40rem",
-        "256": "64rem",
+        4.5: "1.125rem",
+        22: "5.5rem",
+        160: "40rem",
+        256: "64rem",
         "16:9": "56.25%", // this is used for video containers to maintain a 16:9 aspect ratio
-        "sidebar": "350px",
+        sidebar: "350px",
       },
       width: {
         sm: "375px",
         md: "640px",
         lg: "768px",
         "welcome-box": "400px",
-        "sidebar": "350px",
+        sidebar: "350px",
         "contracts-grid-md": "632px", // 2 cards of 300px + 1 gap of 32px
         "contracts-grid-lg": "964px", // 3 cards of 300px + 2 gaps of 32px
         "contract-card": "264px",
@@ -122,7 +130,7 @@ module.exports = {
       height: {
         "welcome-box": "227px",
         "dashboard-card-actions": "200px",
-        "contract-card": "467px",
+        "contract-card": "415px",
         "90pc": "90%",
       },
       borderWidth: {
@@ -166,6 +174,7 @@ module.exports = {
     divideColor: false,
     divideStyle: false,
     divideOpacity: false,
+    dropShadow: true,
     accessibility: false,
     appearance: false,
     backgroundAttachment: false,
@@ -196,7 +205,7 @@ module.exports = {
     alignSelf: true,
     justifyItems: false,
     justifyContent: true,
-    justifySelf: false,
+    justifySelf: true,
     flex: true,
     flexGrow: true,
     flexShrink: true,
@@ -232,6 +241,7 @@ module.exports = {
     ringColor: true,
     ringOpacity: false,
     fill: false,
+    filter: true,
     stroke: false,
     strokeWidth: false,
     tableLayout: false,
@@ -244,7 +254,7 @@ module.exports = {
     fontSmoothing: false,
     fontVariantNumeric: false,
     letterSpacing: false,
-    userSelect: false,
+    userSelect: true,
     verticalAlign: false,
     visibility: true,
     whitespace: true,

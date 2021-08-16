@@ -80,10 +80,20 @@
           "Cardano/Ledger/SafeHash"
           "Cardano/Ledger/Serialization"
           "Cardano/Ledger/Slot"
-          "Cardano/Ledger/Tx"
           "Cardano/Ledger/Val"
           ];
         hsSourceDirs = [ "src" ];
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/46; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "8";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "8";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/cardano-ledger-core; echo source root reset to \$sourceRoot";
+    }

@@ -43,17 +43,18 @@ import           Ledger.Value                (Value)
 import           Plutus.ChainIndex.Tx        (ChainIndexTx (..))
 import           Plutus.ChainIndex.Types     (BlockId (..), Tip (..))
 import           Plutus.ChainIndex.UtxoState (TxUtxoBalance (..), fromTx)
+import qualified PlutusTx.Prelude            as PlutusTx
 
 -- | Generate a random tx id
 genRandomTxId :: MonadGen m => m TxId
-genRandomTxId = TxId <$> Gen.bytes (Range.singleton 32)
+genRandomTxId = TxId . PlutusTx.toBuiltin <$> Gen.bytes (Range.singleton 32)
 
 -- | Generate one of a known set of tx IDs
 genKnownTxId :: MonadGen m => m TxId
 genKnownTxId = Gen.element (txIdFromInt <$> [(1::Int)..50])
 
 txIdFromInt :: Int -> TxId
-txIdFromInt = TxId . BSL.toStrict . serialise
+txIdFromInt = TxId . PlutusTx.toBuiltin . BSL.toStrict . serialise
 
 -- | Generate a tx id, using a known tx id in 80% of cases and a random one
 --   in 20%.
@@ -151,6 +152,7 @@ genTx = do
         <*> pure Interval.always
 
         -- TODO: generate datums, scripts, etc.
+        <*> pure mempty
         <*> pure mempty
         <*> pure mempty
         <*> pure mempty

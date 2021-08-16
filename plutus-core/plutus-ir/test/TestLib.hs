@@ -24,6 +24,7 @@ import           Control.Monad.Reader as Reader
 import qualified PlutusCore           as PLC
 import           PlutusCore.Name
 import           PlutusCore.Pretty
+import qualified PlutusCore.Pretty    as PLC
 import           PlutusCore.Quote
 import           PlutusIR             as PIR
 import           PlutusIR.Compiler    as PIR
@@ -58,7 +59,7 @@ asIfThrown
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
 compileAndMaybeTypecheck
-    :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a)
+    :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a, PLC.Pretty fun, PLC.Closed uni, PLC.GShow uni, uni `PLC.Everywhere` PLC.PrettyConst)
     => Bool
     -> Term TyName Name uni fun a
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))
@@ -92,7 +93,7 @@ goldenPirM op parser name = withGoldenFileM name parseOrError
     where parseOrError = either (return . T.pack . show) (fmap display . op)
                          . parse parser name
 
-ppThrow :: PrettyBy PrettyConfigPlc a => ExceptT SomeException IO a -> IO T.Text
+ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text

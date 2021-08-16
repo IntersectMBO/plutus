@@ -56,6 +56,7 @@
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."generic-random" or (errorHandler.buildDepError "generic-random"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog-quickcheck" or (errorHandler.buildDepError "hedgehog-quickcheck"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."iproute" or (errorHandler.buildDepError "iproute"))
@@ -82,7 +83,6 @@
           "Test/Shelley/Spec/Ledger/Address/CompactAddr"
           "Test/Shelley/Spec/Ledger/ByronTranslation"
           "Test/Shelley/Spec/Ledger/Examples/Federation"
-          "Test/Shelley/Spec/Ledger/Rules/ClassifyTraces"
           "Test/Shelley/Spec/Ledger/Rules/TestDeleg"
           "Test/Shelley/Spec/Ledger/Rules/TestPool"
           "Test/Shelley/Spec/Ledger/Rules/TestPoolreap"
@@ -107,6 +107,7 @@
           "Test/Shelley/Spec/Ledger/Generator/ScriptClass"
           "Test/Shelley/Spec/Ledger/Generator/ShelleyEraGen"
           "Test/Shelley/Spec/Ledger/Orphans"
+          "Test/Shelley/Spec/Ledger/Rules/ClassifyTraces"
           "Test/Shelley/Spec/Ledger/Serialisation/CDDLUtils"
           "Test/Shelley/Spec/Ledger/Serialisation/Generators"
           "Test/Shelley/Spec/Ledger/Serialisation/EraIndepGenerators"
@@ -247,4 +248,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/44; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "8";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "8";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/shelley/chain-and-ledger/shelley-spec-ledger-test; echo source root reset to \$sourceRoot";
+    }

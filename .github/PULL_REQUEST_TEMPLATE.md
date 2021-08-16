@@ -5,6 +5,7 @@ This is just a checklist, all the normative suggestions are covered in more deta
 -->
 Pre-submit checklist:
 - Branch
+    - [ ] Tests are provided (if possible)
     - [ ] Commit sequence broadly makes sense
     - [ ] Key commits have useful messages
     - [ ] Relevant tickets are mentioned in commit messages
@@ -13,9 +14,3 @@ Pre-submit checklist:
     - [ ] Self-reviewed the diff
     - [ ] Useful pull request description
     - [ ] Reviewer requested
-
-Pre-merge checklist:
-- [ ] Someone approved it
-- [ ] Commits have useful messages
-- [ ] Review clarifications made it into the code
-- [ ] History is moderately tidy; or going to squash-merge

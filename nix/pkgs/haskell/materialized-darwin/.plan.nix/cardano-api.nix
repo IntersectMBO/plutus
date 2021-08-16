@@ -11,7 +11,7 @@
     flags = {};
     package = {
       specVersion = "3.0";
-      identifier = { name = "cardano-api"; version = "1.27.0"; };
+      identifier = { name = "cardano-api"; version = "1.28.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "operations@iohk.io";
@@ -37,6 +37,7 @@
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
           (hsPkgs."attoparsec" or (errorHandler.buildDepError "attoparsec"))
+          (hsPkgs."array" or (errorHandler.buildDepError "array"))
           (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
           (hsPkgs."base58-bytestring" or (errorHandler.buildDepError "base58-bytestring"))
           (hsPkgs."bech32" or (errorHandler.buildDepError "bech32"))
@@ -70,6 +71,7 @@
           (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
           (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
           (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
           (hsPkgs."shelley-spec-ledger" or (errorHandler.buildDepError "shelley-spec-ledger"))
           (hsPkgs."small-steps" or (errorHandler.buildDepError "small-steps"))
@@ -96,6 +98,8 @@
           "Cardano/Api/Hash"
           "Cardano/Api/HasTypeProxy"
           "Cardano/Api/IPC"
+          "Cardano/Api/IPC/Monad"
+          "Cardano/Api/Json"
           "Cardano/Api/Key"
           "Cardano/Api/KeysByron"
           "Cardano/Api/KeysPraos"
@@ -225,4 +229,15 @@
           };
         };
       };
-    } // rec { src = (pkgs.lib).mkDefault .././.source-repository-packages/48; }
+    } // {
+    src = (pkgs.lib).mkDefault (pkgs.fetchgit {
+      url = "9";
+      rev = "minimal";
+      sha256 = "";
+      }) // {
+      url = "9";
+      rev = "minimal";
+      sha256 = "";
+      };
+    postUnpack = "sourceRoot+=/cardano-api; echo source root reset to \$sourceRoot";
+    }

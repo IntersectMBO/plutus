@@ -284,7 +284,6 @@ idextTyCon : ∀{Φ Ψ}{η η' : Env Φ Ψ}
 idextTyCon p Syn.integer    = refl
 idextTyCon p Syn.bytestring = refl
 idextTyCon p Syn.string     = refl
-idextTyCon p Syn.char       = refl
 idextTyCon p Syn.unit       = refl
 idextTyCon p Syn.bool       = refl
 idextTyCon p (Syn.list A)   = cong Nf.list (idext p A)
@@ -309,7 +308,6 @@ renValTyCon-eval :
 renValTyCon-eval Syn.integer    p ρ = refl
 renValTyCon-eval Syn.bytestring p ρ = refl
 renValTyCon-eval Syn.string     p ρ = refl
-renValTyCon-eval Syn.char       p ρ = refl
 renValTyCon-eval Syn.unit       p ρ = refl
 renValTyCon-eval Syn.bool       p ρ = refl
 renValTyCon-eval (Syn.list A)   p ρ = cong Nf.list (renVal-eval A p ρ)
@@ -399,7 +397,6 @@ renTyCon-eval :
 renTyCon-eval Syn.integer    p ρ = refl
 renTyCon-eval Syn.bytestring p ρ = refl
 renTyCon-eval Syn.string     p ρ = refl
-renTyCon-eval Syn.char       p ρ = refl
 renTyCon-eval Syn.unit       p ρ = refl
 renTyCon-eval Syn.bool       p ρ = refl
 renTyCon-eval (Syn.list A)   p ρ = cong Nf.list (ren-eval A p ρ)
@@ -461,7 +458,6 @@ subTyCon-eval :
 subTyCon-eval Syn.integer    p ρ = refl
 subTyCon-eval Syn.bytestring p ρ = refl
 subTyCon-eval Syn.string     p ρ = refl
-subTyCon-eval Syn.char       p ρ = refl
 subTyCon-eval Syn.unit       p ρ = refl
 subTyCon-eval Syn.bool       p ρ = refl
 subTyCon-eval (Syn.list A)   p ρ = cong Nf.list (sub-eval A p ρ)

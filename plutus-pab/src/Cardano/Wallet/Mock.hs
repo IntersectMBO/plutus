@@ -21,7 +21,6 @@ module Cardano.Wallet.Mock
 import           Cardano.BM.Data.Trace               (Trace)
 import qualified Cardano.ChainIndex.Client           as ChainIndexClient
 import qualified Cardano.Node.Client                 as NodeClient
-import qualified Cardano.Protocol.Socket.Client      as Client
 import qualified Cardano.Protocol.Socket.Mock.Client as MockClient
 import           Cardano.Wallet.Types                (MultiWalletEffect (..), WalletEffects, WalletInfo (..),
                                                       WalletMsg (..), Wallets)
@@ -50,16 +49,17 @@ import           Data.Function                       ((&))
 import qualified Data.Map                            as Map
 import           Data.Text.Encoding                  (encodeUtf8)
 import           Data.Text.Prettyprint.Doc           (pretty)
-import           Ledger                              (Block)
 import qualified Ledger.Ada                          as Ada
 import           Ledger.Address                      (pubKeyAddress)
 import           Ledger.Crypto                       (PrivateKey (..), PubKeyHash (..), privateKey2, pubKeyHash,
                                                       toPublicKey)
 import           Ledger.Fee                          (FeeConfig)
+import           Ledger.TimeSlot                     (SlotConfig)
 import           Ledger.Tx                           (Tx)
 import           Plutus.PAB.Arbitrary                ()
 import qualified Plutus.PAB.Monitoring.Monitoring    as LM
 import qualified Plutus.V1.Ledger.Bytes              as KB
+import qualified PlutusTx.Prelude                    as PlutusTx
 import           Servant                             (ServerError (..), err400, err401, err404)
 import           Servant.Client                      (ClientEnv)
 import           Servant.Server                      (err500)
@@ -111,14 +111,14 @@ walletPubKey :: Wallet -> PubKeyHash
 walletPubKey (Wallet i) =
     -- public key hashes are 28 bytes long, so we need to drop the first 4
     -- (SCP-2208)
-    PubKeyHash $ BS.drop 4 $ integer2ByteString32 i
+    PubKeyHash $ PlutusTx.toBuiltin $ BS.drop 4 $ integer2ByteString32 i
 
 -- | Get the 'Wallet' whose identifier is the integer representation of the
 --   pubkey hash.
 pubKeyHashWallet :: PubKeyHash -> Wallet
 pubKeyHashWallet (PubKeyHash kb) =
 --   TODO (jm): this is terrible and we need to change it - see SCP-2208
-    Wallet $ byteString2Integer kb
+    Wallet $ byteString2Integer $ PlutusTx.fromBuiltin kb
 
 -- | Handle multiple wallets using existing @Wallet.handleWallet@ handler
 handleMultiWallet :: forall m effs.
@@ -169,13 +169,14 @@ processWalletEffects ::
     (MonadIO m, MonadError ServerError m)
     => Trace IO WalletMsg -- ^ trace for logging
     -> MockClient.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle Block -- ^ node client
+    -> NodeClient.ChainSyncHandle -- ^ node client
     -> ClientEnv          -- ^ chain index client
     -> MVar Wallets   -- ^ wallets state
     -> FeeConfig
+    -> SlotConfig
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> m a
-processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg action = do
+processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState feeCfg slotCfg action = do
     oldState <- liftIO $ takeMVar mVarState
     result <- liftIO $ runWalletEffects trace
                                         txSendHandle
@@ -183,6 +184,7 @@ processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState 
                                         chainIndexEnv
                                         oldState
                                         feeCfg
+                                        slotCfg
                                         action
     case result of
         Left e -> do
@@ -196,16 +198,17 @@ processWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv mVarState 
 runWalletEffects ::
     Trace IO WalletMsg -- ^ trace for logging
     -> MockClient.TxSendHandle -- ^ node client
-    -> Client.ChainSyncHandle Block -- ^ node client
+    -> NodeClient.ChainSyncHandle -- ^ node client
     -> ClientEnv -- ^ chain index client
     -> Wallets -- ^ current state
     -> FeeConfig
+    -> SlotConfig
     -> Eff (WalletEffects IO) a -- ^ wallet effect
     -> IO (Either ServerError (a, Wallets))
-runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets feeCfg action =
+runWalletEffects trace txSendHandle chainSyncHandle chainIndexEnv wallets feeCfg slotCfg action =
     reinterpret (handleMultiWallet feeCfg) action
     & interpret (LM.handleLogMsgTrace trace)
-    & reinterpret2 NodeClient.handleNodeClientClient
+    & reinterpret2 (NodeClient.handleNodeClientClient slotCfg)
     & runReader chainSyncHandle
     & runReader txSendHandle
     & reinterpret ChainIndexClient.handleChainIndexClient

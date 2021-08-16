@@ -37,9 +37,6 @@ module.exports = {
             "/runghc": {
                 target: "http://localhost:8080"
             },
-            "/marlowe-analysis": {
-                target: "http://localhost:8080"
-            }
         }
     },
     entry: "./entry.js",

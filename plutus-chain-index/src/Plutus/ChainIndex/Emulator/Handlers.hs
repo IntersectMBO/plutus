@@ -29,11 +29,11 @@ import           Data.Maybe                           (catMaybes, fromMaybe)
 import qualified Data.Set                             as Set
 import           Ledger                               (TxId, TxOutRef (..))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap, txMap,
-                                                       validatorMap)
+import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap,
+                                                       stakeValidatorMap, txMap, validatorMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, citxOutputs)
-import           Plutus.ChainIndex.Types              (Tip, pageOf)
+import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
 import           Plutus.ChainIndex.UtxoState          (InsertUtxoPosition, InsertUtxoSuccess (..), RollbackResult (..),
                                                        UtxoIndex, isUnspentOutput, tip)
 import qualified Plutus.ChainIndex.UtxoState          as UtxoState
@@ -70,6 +70,7 @@ handleQuery = \case
     DatumFromHash h -> gets (view $ diskState . dataMap . at h)
     ValidatorFromHash h -> gets (view $ diskState . validatorMap . at h)
     MintingPolicyFromHash h -> gets (view $ diskState . mintingPolicyMap . at h)
+    StakeValidatorFromHash h -> gets (view $ diskState . stakeValidatorMap . at h)
     TxOutFromRef TxOutRef{txOutRefId, txOutRefIdx} ->
         gets @ChainIndexEmulatorState
             (preview $ diskState
@@ -82,18 +83,20 @@ handleQuery = \case
     UtxoSetMembership r -> do
         utxoState <- gets (measure . view utxoIndex)
         case tip utxoState of
-            Nothing -> throwError QueryFailedNoTip
-            Just tp -> pure (tp, isUnspentOutput r utxoState)
+            TipAtGenesis -> throwError QueryFailedNoTip
+            tp           -> pure (tp, isUnspentOutput r utxoState)
     UtxoSetAtAddress cred -> do
         state <- get
         let outRefs = view (diskState . addressMap . at cred) state
             utxoState = view (utxoIndex . to measure) state
             page = pageOf def $ Set.filter (\r -> isUnspentOutput r utxoState) (fromMaybe mempty outRefs)
         case tip utxoState of
-            Nothing -> throwError QueryFailedNoTip
-            Just tp -> pure (tp, page)
+            TipAtGenesis -> do
+                logWarn TipIsGenesis
+                pure (TipAtGenesis, pageOf def Set.empty)
+            tp           -> pure (tp, page)
     GetTip ->
-        gets (tip . measure . view utxoIndex) >>= maybe (throwError QueryFailedNoTip) pure
+        gets (tip . measure . view utxoIndex)
 
 handleControl ::
     forall effs.
@@ -148,3 +151,4 @@ data ChainIndexLog =
     | RollbackSuccess Tip
     | Err ChainIndexError
     | TxNotFound TxId
+    | TipIsGenesis

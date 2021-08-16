@@ -42,15 +42,12 @@ extra-deps:
 - dependent-map-0.4.0.0
 - dependent-sum-0.7.1.0
 - dependent-sum-template-0.1.0.3
-- eventful-memory-0.2.0
 - barbies-2.0.2.0
 - nothunks-0.1.2
 - indexed-traversable-instances-0.1
 - base16-bytestring-1.0.1.0
 # A revision was added to keep the bounds down, we don't actually want this!
 # we work around the newer persistent-template by adding flags below
-- eventful-sql-common-0.2.0@rev:0
-- eventful-sqlite-0.2.0
 - monoidal-containers-0.6.0.1
 - recursion-schemes-5.1.3
 - row-types-0.4.0.0
@@ -72,20 +69,25 @@ extra-deps:
 - beam-core-0.9.0.0@sha256:e5b1cb4d5b8a8a166f3373e8718672a3884feb9a5a133404b047b0af76538023,5282
 - beam-migrate-0.5.0.0@sha256:d3f7e333ec9e96122ccec6be0d38a88f766dfc248323be73fd0b3cee245ea421,4923
 - beam-sqlite-0.5.0.0@sha256:d785bf40101235a72b80652ce27be9c8048de5f7c171ccb23e1e62b8f1ce6e7c,3496
+- Unique-0.4.7.8
+- moo-1.2
+- gray-code-0.3.1
+- libsystemd-journal-1.4.5@sha256:dc68296f5d874b48ba187dbd0af4de8182ba57cb6ebaa46c05ac61c1b3c6c396,1238
 
 # cabal.project is the source of truth for these pins, they are explained there
 # and need to be kept in sync.
-- git: https://github.com/Quid2/flat.git
-  commit: 95e5d7488451e43062ca84d5376b3adcc465f1cd
+- git: https://github.com/michaelpj/flat.git
+  commit: ee59880f47ab835dbd73bea0847dab7869fc20d8
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
 - git: https://github.com/shmish111/servant-purescript.git
   commit: a76104490499aa72d40c2790d10e9383e0dbde63
 - git: https://github.com/input-output-hk/cardano-crypto.git
-  commit: ce8f1934e4b6252084710975bd9bbc0a4648ece4
+  commit: 07397f0e50da97eaa0575d93bee7ac4b2b2576ec
 - git: https://github.com/input-output-hk/ouroboros-network
-  commit: e50613562d6d4a0f933741fcf590b0f69a1eda67
+  commit: f149c1c1e4e4bb5bab51fa055e9e3a7084ddc30e
   subdirs:
+    - monoidal-synchronisation
     - typed-protocols
     - typed-protocols-examples
     - ouroboros-network
@@ -96,7 +98,7 @@ extra-deps:
     - ouroboros-consensus-cardano
     - ouroboros-consensus-shelley
     - io-sim
-    - io-sim-classes
+    - io-classes
     - network-mux
 - git: https://github.com/input-output-hk/cardano-prelude
   commit: fd773f7a58412131512b9f694ab95653ac430852
@@ -104,17 +106,20 @@ extra-deps:
     - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: a715c7f420770b70bbe95ca51d3dec83866cb1bd
+  commit: cb0f19c85e5bb5299839ad4ed66af6fa61322cc4
   subdirs:
+    - base-deriving-via
     - binary
     - binary/test
+    - measures
+    - orphans-deriving-via
     - slotting
     - cardano-crypto-class
-    - cardano-crypto-tests
     - cardano-crypto-praos
+    - cardano-crypto-tests
     - strict-containers
 - git: https://github.com/input-output-hk/cardano-ledger-specs
-  commit: a3ef848542961079b7cd53d599e5385198a3035c
+  commit: 12a0ef69d64a55e737fbf4e846bd8ed9fb30a956
   subdirs:
     - byron/chain/executable-spec
     - byron/crypto
@@ -131,29 +136,35 @@ extra-deps:
     - cardano-ledger-core
     - alonzo/impl
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: 34abfb7f4f5610cabb45396e0496472446a0b2ca
+  commit: 808724ff8a19a33d0ed06f9ef59fbd900b08553c
   subdirs:
-    - contra-tracer
     - iohk-monitoring
     - tracer-transformers
+    - contra-tracer
+    - plugins/backend-aggregation
     - plugins/backend-ekg
+    - plugins/backend-monitoring
+    - plugins/backend-trace-forwarder
+    - plugins/scribe-systemd
 - git: https://github.com/input-output-hk/cardano-node.git
-  commit: b3cabae6b3bf30a0b1b4e78bc4b67282dabad0a6
+  commit: 3a56ac245c83d3345f81123ec3bb496bb23477a3
   subdirs:
     - cardano-api
+    - cardano-node
+    - cardano-cli
+    - cardano-config
+- git: https://github.com/input-output-hk/optparse-applicative
+  commit: 7497a29cb998721a9068d5725d49461f2bba0e7a
 - git: https://github.com/input-output-hk/Win32-network
-  commit: 94153b676617f8f33abe8d8182c37377d2784bd1
+  commit: 3825d3abf75f83f406c1f7161883c438dac7277d
 - git: https://github.com/input-output-hk/hedgehog-extras
-  commit: 8bcd3c9dc22cc44f9fcfe161f4638a384fc7a187
+  commit: edf6945007177a638fbeb8802397f3a6f4e47c14
+- git: https://github.com/input-output-hk/goblins
+  commit: cde90a2b27f79187ca8310b6549331e59595e7ba
 
 allow-newer: true
 
 extra-package-dbs: []
-
-ghc-options:
-  # Newer versions of persistent-template require some extra language extensions. Fortunately
-  # we can hack around this here rather than having to fork eventful & co (for now)
-  eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses"
 
 nix:
   shell-file: shell.nix

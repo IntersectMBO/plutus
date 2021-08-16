@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
 -- The '-fno-worker-wrapper' GHC option prevents the error:
@@ -13,21 +14,26 @@
 
 module Ledger.TimeSlot(
   SlotConfig(..)
+, SlotConversionError(..)
 , slotRangeToPOSIXTimeRange
 , slotToPOSIXTimeRange
 , slotToBeginPOSIXTime
 , slotToEndPOSIXTime
-, posixTimeRangeToSlotRange
+, posixTimeRangeToContainedSlotRange
 , posixTimeToEnclosingSlot
 , currentSlot
 ) where
 
+import           Codec.Serialise           (Serialise)
+import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Default              (Default (def))
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import qualified Data.Time.Clock           as Time
 import qualified Data.Time.Clock.POSIX     as Time
 import           GHC.Generics              (Generic)
-import           Plutus.V1.Ledger.Interval (Interval (Interval, ivFrom, ivTo), interval)
+import           Plutus.V1.Ledger.Interval (Extended (..), Interval (Interval), LowerBound (..), UpperBound (..),
+                                            interval, member)
 import           Plutus.V1.Ledger.Slot     (Slot (Slot), SlotRange)
 import           Plutus.V1.Ledger.Time     (POSIXTime (POSIXTime, getPOSIXTime), POSIXTimeRange)
 import           PlutusTx.Lift             (makeLift)
@@ -40,15 +46,39 @@ import qualified Prelude                   as Haskell
 data SlotConfig =
     SlotConfig
         { scSlotLength   :: Integer -- ^ Length (number of milliseconds) of one slot
-        , scZeroSlotTime :: POSIXTime -- ^ Beginning of the first slot (in milliseconds)
+        , scSlotZeroTime :: POSIXTime -- ^ Beginning of slot 0 (in milliseconds)
         }
-    deriving (Show, Eq, Generic, ToJSON, FromJSON)
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 makeLift ''SlotConfig
 
 instance Default SlotConfig where
-  {-# INLINABLE def #-}
-  def = SlotConfig{ scSlotLength = 1000, scZeroSlotTime = POSIXTime beginningOfTime }
+    {-# INLINABLE def #-}
+    def = SlotConfig{ scSlotLength = 1000, scSlotZeroTime = POSIXTime beginningOfTime }
+
+instance Pretty SlotConfig where
+    pretty SlotConfig {scSlotLength, scSlotZeroTime} =
+            "Slot 0 starts at"
+        <+> pretty scSlotZeroTime
+        <+> "and one slot has length of"
+        <+> pretty scSlotLength
+        <+> "ms"
+
+data SlotConversionError =
+    SlotOutOfRange
+        { requestedSlot :: Slot
+        , horizon       :: (Slot, POSIXTime)
+        }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty SlotConversionError where
+    pretty SlotOutOfRange { requestedSlot, horizon } =
+            "Slot out of range:"
+        <+> pretty requestedSlot
+        <+> "Horizon:"
+        <+> pretty horizon
 
 {-# INLINABLE beginningOfTime #-}
 -- | 'beginningOfTime' corresponds to the Shelley launch date
@@ -62,10 +92,10 @@ beginningOfTime = 1596059091000
 -- resulting 'POSIXTimeRange' refers to the starting time of the lower bound of
 -- the 'SlotRange' and the ending time of the upper bound of the 'SlotRange'.
 slotRangeToPOSIXTimeRange :: SlotConfig -> SlotRange -> POSIXTimeRange
-slotRangeToPOSIXTimeRange sc sr =
-  let lbound = fmap (slotToBeginPOSIXTime sc) $ ivFrom sr
-      ubound = fmap (slotToEndPOSIXTime sc) $ ivTo sr
-   in Interval lbound ubound
+slotRangeToPOSIXTimeRange sc (Interval (LowerBound start startIncl) (UpperBound end endIncl)) =
+  let lbound = fmap (if startIncl then slotToBeginPOSIXTime sc else slotToEndPOSIXTime sc) start
+      ubound = fmap (if endIncl   then slotToEndPOSIXTime sc   else slotToBeginPOSIXTime sc) end
+   in Interval (LowerBound lbound startIncl) (UpperBound ubound endIncl)
 
 {-# INLINABLE slotToPOSIXTimeRange #-}
 -- | Convert a 'Slot' to a 'POSIXTimeRange' given a 'SlotConfig'. Each 'Slot'
@@ -77,9 +107,9 @@ slotToPOSIXTimeRange sc slot =
 {-# INLINABLE slotToBeginPOSIXTime #-}
 -- | Get the starting 'POSIXTime' of a 'Slot' given a 'SlotConfig'.
 slotToBeginPOSIXTime :: SlotConfig -> Slot -> POSIXTime
-slotToBeginPOSIXTime SlotConfig{scSlotLength, scZeroSlotTime} (Slot n) =
+slotToBeginPOSIXTime SlotConfig{scSlotLength, scSlotZeroTime} (Slot n) =
   let msAfterBegin = n * scSlotLength
-   in POSIXTime $ getPOSIXTime scZeroSlotTime + msAfterBegin
+   in POSIXTime $ getPOSIXTime scSlotZeroTime + msAfterBegin
 
 {-# INLINABLE slotToEndPOSIXTime #-}
 -- | Get the ending 'POSIXTime' of a 'Slot' given a 'SlotConfig'.
@@ -87,17 +117,21 @@ slotToEndPOSIXTime :: SlotConfig -> Slot -> POSIXTime
 slotToEndPOSIXTime sc@SlotConfig{scSlotLength} slot =
   slotToBeginPOSIXTime sc slot + POSIXTime (scSlotLength - 1)
 
-{-# INLINABLE posixTimeRangeToSlotRange #-}
+{-# INLINABLE posixTimeRangeToContainedSlotRange #-}
 -- | Convert a 'POSIXTimeRange' to 'SlotRange' given a 'SlotConfig'. This gives
--- the smallest slot range that entirely contains the given time range.
-posixTimeRangeToSlotRange :: SlotConfig -> POSIXTimeRange -> SlotRange
-posixTimeRangeToSlotRange sc = fmap (posixTimeToEnclosingSlot sc)
+-- the biggest slot range that is entirely contained by the given time range.
+posixTimeRangeToContainedSlotRange :: SlotConfig -> POSIXTimeRange -> SlotRange
+posixTimeRangeToContainedSlotRange sc ptr = case fmap (posixTimeToEnclosingSlot sc) ptr of
+  Interval (LowerBound start startIncl) (UpperBound end endIncl) ->
+    Interval
+      (LowerBound start (case start of Finite s -> slotToBeginPOSIXTime sc s `member` ptr; _ -> startIncl))
+      (UpperBound end (case end of Finite e -> slotToEndPOSIXTime sc e `member` ptr; _ -> endIncl))
 
 {-# INLINABLE posixTimeToEnclosingSlot #-}
 -- | Convert a 'POSIXTime' to 'Slot' given a 'SlotConfig'.
 posixTimeToEnclosingSlot :: SlotConfig -> POSIXTime -> Slot
-posixTimeToEnclosingSlot SlotConfig{scSlotLength, scZeroSlotTime} (POSIXTime t) =
-  let timePassed = t - getPOSIXTime scZeroSlotTime
+posixTimeToEnclosingSlot SlotConfig{scSlotLength, scSlotZeroTime} (POSIXTime t) =
+  let timePassed = t - getPOSIXTime scSlotZeroTime
       slotsPassed = divide timePassed scSlotLength
   in Slot slotsPassed
 

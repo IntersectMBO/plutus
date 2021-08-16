@@ -17,9 +17,11 @@ module Plutus.Contract.Request(
     -- * PAB requests
     -- ** Waiting
     awaitSlot
+    , isSlot
     , currentSlot
     , waitNSlots
     , awaitTime
+    , isTime
     , currentTime
     , waitNMilliSeconds
     -- ** Querying the UTXO set
@@ -32,8 +34,15 @@ module Plutus.Contract.Request(
     , fundsAtAddressCondition
     , watchAddressUntilSlot
     , watchAddressUntilTime
+    , awaitUtxoSpent
+    , utxoIsSpent
+    , awaitUtxoProduced
+    , utxoIsProduced
     -- ** Tx confirmation
+    , TxStatus(..)
+    , awaitTxStatusChange
     , awaitTxConfirmed
+    , isTxConfirmed
     -- ** Contract instances
     , ownInstanceId
     -- ** Exposing endpoints
@@ -41,6 +50,7 @@ module Plutus.Contract.Request(
     , EndpointDescription(..)
     , Endpoint
     , endpoint
+    , handleEndpoint
     , endpointWithMeta
     , endpointDescription
     , endpointReq
@@ -56,6 +66,7 @@ module Plutus.Contract.Request(
     , submitTxConstraintsSpending
     , submitTxConstraintsWith
     , submitTxConfirmed
+    , mkTxConstraints
     -- * Etc.
     , ContractRow
     , pabReq
@@ -63,11 +74,11 @@ module Plutus.Contract.Request(
 
 import           Control.Applicative
 import           Control.Lens                (Prism', preview, review, view)
-import           Control.Monad               (void)
 import qualified Control.Monad.Freer.Error   as E
 import           Data.Aeson                  (FromJSON, ToJSON)
 import qualified Data.Aeson                  as JSON
 import qualified Data.Aeson.Types            as JSON
+import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Proxy                  (Proxy (..))
 import           Data.Row
 import qualified Data.Text                   as Text
@@ -76,7 +87,7 @@ import           Data.Void                   (Void)
 import           GHC.Natural                 (Natural)
 import           GHC.TypeLits                (Symbol, symbolVal)
 import           Ledger                      (Address, DiffMilliSeconds, OnChainTx (..), POSIXTime, PubKey, Slot, Tx,
-                                              TxId, TxOut (..), TxOutTx (..), Value, fromMilliSeconds, txId)
+                                              TxId, TxOut (..), TxOutRef, TxOutTx (..), Value, fromMilliSeconds, txId)
 import           Ledger.AddressMap           (UtxoMap)
 import           Ledger.Constraints          (TxConstraints)
 import           Ledger.Constraints.OffChain (ScriptLookups, UnbalancedTx)
@@ -86,7 +97,8 @@ import qualified Ledger.Value                as V
 import           Plutus.Contract.Util        (loopM)
 import qualified PlutusTx
 
-import           Plutus.Contract.Effects     (ActiveEndpoint (..), PABReq (..), PABResp (..), UtxoAtAddress (..))
+import           Plutus.Contract.Effects     (ActiveEndpoint (..), PABReq (..), PABResp (..), TxStatus (..),
+                                              UtxoAtAddress (..))
 import qualified Plutus.Contract.Effects     as E
 import           Plutus.Contract.Schema      (Input, Output)
 import           Wallet.Types                (AddressChangeRequest (..), AddressChangeResponse (..), ContractInstanceId,
@@ -128,6 +140,15 @@ awaitSlot ::
     -> Contract w s e Slot
 awaitSlot s = pabReq (AwaitSlotReq s) E._AwaitSlotResp
 
+-- | Wait until the slot
+isSlot ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => Slot
+    -> Promise w s e Slot
+isSlot = Promise . awaitSlot
+
 -- | Get the current slot number
 currentSlot ::
     forall w s e.
@@ -159,6 +180,16 @@ awaitTime ::
     => POSIXTime
     -> Contract w s e POSIXTime
 awaitTime s = pabReq (AwaitTimeReq s) E._AwaitTimeResp
+
+-- | Wait until the slot where the given time falls into and return latest time
+-- we know has passed.
+isTime ::
+    forall w s e.
+    ( AsContractError e
+    )
+    => POSIXTime
+    -> Promise w s e POSIXTime
+isTime = Promise . awaitTime
 
 -- | Get the latest time of the current slot.
 --
@@ -218,6 +249,46 @@ watchAddressUntilTime ::
     -> Contract w s e UtxoMap
 watchAddressUntilTime a time = awaitTime time >> utxoAt a
 
+{-| Wait until the UTXO has been spent, returning the transaction that spends it.
+-}
+awaitUtxoSpent ::
+  forall w s e.
+  ( AsContractError e
+  )
+  => TxOutRef
+  -> Contract w s e OnChainTx
+awaitUtxoSpent utxo = pabReq (AwaitUtxoSpentReq utxo) E._AwaitUtxoSpentResp
+
+{-| Wait until the UTXO has been spent, returning the transaction that spends it.
+-}
+utxoIsSpent ::
+  forall w s e.
+  ( AsContractError e
+  )
+  => TxOutRef
+  -> Promise w s e OnChainTx
+utxoIsSpent = Promise . awaitUtxoSpent
+
+{-| Wait until one or more unspent outputs are produced at an address.
+-}
+awaitUtxoProduced ::
+  forall w s e .
+  ( AsContractError e
+  )
+  => Address
+  -> Contract w s e (NonEmpty OnChainTx)
+awaitUtxoProduced address = pabReq (AwaitUtxoProducedReq address) E._AwaitUtxoProducedResp
+
+{-| Wait until one or more unspent outputs are produced at an address.
+-}
+utxoIsProduced ::
+  forall w s e .
+  ( AsContractError e
+  )
+  => Address
+  -> Promise w s e (NonEmpty OnChainTx)
+utxoIsProduced = Promise . awaitUtxoProduced
+
 {-| Get the transactions that modified an address in a specific slot.
 -}
 addressChangeRequest ::
@@ -225,10 +296,10 @@ addressChangeRequest ::
     ( AsContractError e
     )
     => AddressChangeRequest
-    -> Contract w s e AddressChangeResponse
-addressChangeRequest r = do
-  _ <- awaitSlot (targetSlot r)
-  pabReq (AddressChangeReq r) E._AddressChangeResp
+    -> Promise w s e AddressChangeResponse
+addressChangeRequest r = isSlot (targetSlot r) `promiseBind` \_ -> do
+  resp <- pabReq (AddressChangeReq r) E._AddressChangeResp
+  pure resp
 
 -- | Call 'addresssChangeRequest' for the address in each slot, until at least one
 --   transaction is returned that modifies the address.
@@ -244,7 +315,7 @@ nextTransactionsAt addr = do
         go sl = do
             let request = AddressChangeRequest{acreqSlotRangeFrom = sl, acreqSlotRangeTo = sl, acreqAddress=addr}
             _ <- awaitSlot (targetSlot request)
-            txns <- acrTxns <$> addressChangeRequest request
+            txns <- acrTxns <$> awaitPromise (addressChangeRequest request)
             if null txns
                 then pure $ Right (succ sl)
                 else pure $ Left txns
@@ -292,11 +363,26 @@ fundsAtAddressGeq
 fundsAtAddressGeq addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
 
+-- | Wait for the status of a transaction to change
+awaitTxStatusChange :: forall w s e. AsContractError e => TxId -> Contract w s e TxStatus
+awaitTxStatusChange i = pabReq (AwaitTxStatusChangeReq i) (E._AwaitTxStatusChangeResp' i)
+
 -- TODO: Configurable level of confirmation (for example, as soon as the tx is
 --       included in a block, or only when it can't be rolled back anymore)
 -- | Wait until a transaction is confirmed (added to the ledger).
+--   If the transaction is never added to the ledger then 'awaitTxConfirmed' never
+--   returns
 awaitTxConfirmed :: forall w s e. (AsContractError e) => TxId -> Contract w s e ()
-awaitTxConfirmed i = void $ pabReq (AwaitTxConfirmedReq i) E._AwaitTxConfirmedResp
+awaitTxConfirmed i = go where
+  go = do
+    newStatus <- awaitTxStatusChange i
+    case newStatus of
+      Unknown -> go
+      _       -> pure ()
+
+-- | Wait until a transaction is confirmed (added to the ledger).
+isTxConfirmed :: forall w s e. (AsContractError e) => TxId -> Promise w s e ()
+isTxConfirmed = Promise . awaitTxConfirmed
 
 -- | Get the 'ContractInstanceId' of this instance.
 ownInstanceId :: forall w s e. (AsContractError e) => Contract w s e ContractInstanceId
@@ -324,38 +410,58 @@ endpointDesc :: forall (l :: Symbol). KnownSymbol l => EndpointDescription
 endpointDesc = EndpointDescription $ symbolVal (Proxy @l)
 
 endpointResp :: forall l a s. (HasEndpoint l a s, ToJSON a) => a -> PABResp
-endpointResp =  ExposeEndpointResp (endpointDesc @l) . EndpointValue . JSON.toJSON
+endpointResp = ExposeEndpointResp (endpointDesc @l) . EndpointValue . JSON.toJSON
 
 -- | Expose an endpoint, return the data that was entered
 endpoint
-  :: forall l a w s e.
+  :: forall l a w s e b.
      ( HasEndpoint l a s
      , AsContractError e
      , FromJSON a
      )
-  => Contract w s e a
-endpoint = pabReq (ExposeEndpointReq $ endpointReq @l @a @s) E._ExposeEndpointResp >>= decode . snd
+  => (a -> Contract w s e b) -> Promise w s e b
+endpoint f = Promise $ do
+    (_, endpointValue) <- pabReq (ExposeEndpointReq $ endpointReq @l @a @s) E._ExposeEndpointResp
+    a <- decode endpointValue
+    f a
 
 decode :: forall a w s e. (FromJSON a, AsContractError e) => EndpointValue JSON.Value -> Contract w s e a
 decode EndpointValue{unEndpointValue} =
     either (throwError . review _OtherError . Text.pack) pure
     $ JSON.parseEither JSON.parseJSON unEndpointValue
 
--- | Expose an endpoint with some metadata. Return the data that was entered.
-endpointWithMeta
-  :: forall l a w s e b.
+handleEndpoint
+  :: forall l a w s e1 e2 b.
      ( HasEndpoint l a s
-     , AsContractError e
-     , ToJSON b
+     , AsContractError e1
      , FromJSON a
      )
-  => b
-  -> Contract w s e a
-endpointWithMeta b = pabReq (ExposeEndpointReq s) E._ExposeEndpointResp >>= decode . snd
+  => (Either e1 a -> Contract w s e2 b) -> Promise w s e2 b
+handleEndpoint f = Promise $ do
+  a <- runError $ do
+      (_, endpointValue) <- pabReq (ExposeEndpointReq $ endpointReq @l @a @s) E._ExposeEndpointResp
+      decode endpointValue
+  f a
+
+-- | Expose an endpoint with some metadata. Return the data that was entered.
+endpointWithMeta
+  :: forall l a w s e meta b.
+     ( HasEndpoint l a s
+     , AsContractError e
+     , ToJSON meta
+     , FromJSON a
+     )
+  => meta
+  -> (a -> Contract w s e b)
+  -> Promise w s e b
+endpointWithMeta meta f = Promise $ do
+    (_, endpointValue) <- pabReq (ExposeEndpointReq s) E._ExposeEndpointResp
+    a <- decode endpointValue
+    f a
     where
         s = ActiveEndpoint
                 { aeDescription = endpointDesc @l
-                , aeMetadata    = Just $ JSON.toJSON b
+                , aeMetadata    = Just $ JSON.toJSON meta
                 }
 
 endpointDescription :: forall l. KnownSymbol l => Proxy l -> EndpointDescription
@@ -413,8 +519,9 @@ submitTx = submitTxConstraintsWith @Void mempty
 --   contract's own public key to solve the constraints.
 submitTxConstraints
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => TypedValidator a
@@ -426,8 +533,9 @@ submitTxConstraints inst = submitTxConstraintsWith (Constraints.typedValidatorLo
 --   to resolve any input constraints (see 'Ledger.Constraints.TxConstraints.InputConstraint')
 submitTxConstraintsSpending
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => TypedValidator a
@@ -438,23 +546,34 @@ submitTxConstraintsSpending inst utxo =
   let lookups = Constraints.typedValidatorLookups inst <> Constraints.unspentOutputs utxo
   in submitTxConstraintsWith lookups
 
+-- | Build a transaction that satisfies the constraints
+mkTxConstraints :: forall a w s e.
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
+  , AsContractError e
+  )
+  => ScriptLookups a
+  -> TxConstraints (RedeemerType a) (DatumType a)
+  -> Contract w s e UnbalancedTx
+mkTxConstraints sl constraints =
+  either (throwError . review _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
+
 -- | Build a transaction that satisfies the constraints, then submit it to the
 --   network. Using the given constraints.
 submitTxConstraintsWith
   :: forall a w s e.
-  ( PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a)
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
   , AsContractError e
   )
   => ScriptLookups a
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract w s e Tx
-submitTxConstraintsWith sl constraints = do
-  tx <- either (throwError . review _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
-  submitUnbalancedTx tx
+submitTxConstraintsWith sl constraints = mkTxConstraints sl constraints >>= submitUnbalancedTx
 
 -- | A version of 'submitTx' that waits until the transaction has been
 --   confirmed on the ledger before returning.
 submitTxConfirmed :: forall w s e. (AsContractError e) => UnbalancedTx -> Contract w s e ()
 submitTxConfirmed t = submitUnbalancedTx t >>= awaitTxConfirmed . txId
-

@@ -28,7 +28,6 @@ import Data.Lens.Traversal (traversed)
 import Data.List (filter, fromFoldable) as List
 import Data.Map (Map, alter, delete, filter, filterKeys, findMin, insert, lookup, mapMaybe, mapMaybeWithKey, toUnfoldable, values)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Time.Duration (Minutes(..))
 import Data.Traversable (for)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
@@ -59,10 +58,10 @@ import WalletData.Types (CardSection(..), WalletDetails, WalletLibrary)
 
 -- see note [dummyState] in MainFrame.State
 dummyState :: State
-dummyState = mkInitialState mempty defaultWalletDetails mempty mempty (Slot zero) (Minutes zero)
+dummyState = mkInitialState mempty defaultWalletDetails mempty mempty (Slot zero)
 
-mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> Slot -> Minutes -> State
-mkInitialState walletLibrary walletDetails contracts contractNicknames currentSlot timezoneOffset =
+mkInitialState :: WalletLibrary -> WalletDetails -> Map PlutusAppId ContractHistory -> Map PlutusAppId String -> Slot -> State
+mkInitialState walletLibrary walletDetails contracts contractNicknames currentSlot =
   let
     mkInitialContractState followerAppId contractHistory =
       let
@@ -78,7 +77,6 @@ mkInitialState walletLibrary walletDetails contracts contractNicknames currentSl
     , contracts: mapMaybeWithKey mkInitialContractState contracts
     , contractFilter: Running
     , selectedContractFollowerAppId: Nothing
-    , timezoneOffset
     , templateState: Template.dummyState
     }
 
@@ -202,6 +200,13 @@ handleAction input (UpdateFollowerApps companionAppState) = do
         -- waste any more time than I already have on trying to do something nicer).
         { dataProvider } <- ask
         case dataProvider of
+          MarlowePAB -> do
+            ajaxFollowerApp <- case mPendingContract of
+              Just { key: followerAppId } -> followContractWithPendingFollowerApp walletDetails marloweParams followerAppId
+              Nothing -> followContract walletDetails marloweParams
+            case ajaxFollowerApp of
+              Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
+              Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp dataProvider followerAppId
           LocalStorage -> do
             ajaxFollowerApp <- followContract walletDetails marloweParams
             case ajaxFollowerApp of
@@ -213,13 +218,6 @@ handleAction input (UpdateFollowerApps companionAppState) = do
                     $ delete key
                     <<< alter (map $ set _nickname value.nickname) followerAppId
                   insertIntoContractNicknames followerAppId value.nickname
-          PAB _ -> do
-            ajaxFollowerApp <- case mPendingContract of
-              Just { key: followerAppId } -> followContractWithPendingFollowerApp walletDetails marloweParams followerAppId
-              Nothing -> followContract walletDetails marloweParams
-            case ajaxFollowerApp of
-              Left decodedAjaxError -> addToast $ decodedAjaxErrorToast "Failed to load new contract." decodedAjaxError
-              Right (followerAppId /\ contractHistory) -> subscribeToPlutusApp dataProvider followerAppId
 
 -- this handler updates the state of an individual contract
 handleAction input@{ currentSlot } (UpdateContract followerAppId contractHistory@{ chParams, chHistory }) =
@@ -339,10 +337,10 @@ handleAction input (SetContactForRole tokenName walletNickname) = do
   -- cards - we just want to switch instantly back to this card
   assign _card $ Just ContractTemplateCard
 
-handleAction input@{ currentSlot } (ContractAction followerAppId contractAction) = do
+handleAction input@{ currentSlot, tzOffset } (ContractAction followerAppId contractAction) = do
   walletDetails <- use _walletDetails
   let
-    contractInput = { currentSlot, walletDetails, followerAppId }
+    contractInput = { currentSlot, walletDetails, followerAppId, tzOffset }
   case contractAction of
     Contract.AskConfirmation action -> handleAction input $ OpenCard $ ContractActionConfirmationCard followerAppId action
     Contract.ConfirmAction action -> do

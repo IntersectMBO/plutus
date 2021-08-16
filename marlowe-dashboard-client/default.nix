@@ -1,5 +1,26 @@
-{ pkgs, gitignore-nix, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm, plutus-pab, marlowe-app, marlowe-companion-app, marlowe-follow-app }:
+{ pkgs, gitignore-nix, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm, plutus-pab }:
 let
+  marlowe-invoker = haskell.packages.marlowe.components.exes.marlowe-pab;
+
+  generated-purescript = pkgs.runCommand "marlowe-pab-purescript" { } ''
+    mkdir $out
+    ${plutus-pab.server-setup-invoker}/bin/plutus-pab-setup psgenerator $out
+    ln -s ${./plutus-pab.yaml} plutus-pab.yaml
+    ${marlowe-invoker}/bin/marlowe-pab --config plutus-pab.yaml psapigenerator $out
+  '';
+
+  generate-purescript = pkgs.writeShellScriptBin "marlowe-pab-generate-purs" ''
+    generatedDir=./generated
+    rm -rf $generatedDir
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-setup-invoker)/bin/plutus-pab-setup psgenerator $generatedDir
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config plutus-pab.yaml psapigenerator $generatedDir
+  '';
+
+  start-backend = pkgs.writeShellScriptBin "marlowe-pab-server" ''
+    echo "marlowe-pab-server: for development use only"
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-dashboard.marlowe-invoker)/bin/marlowe-pab --config plutus-pab.yaml all-servers
+  '';
+
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
   nodeModules = buildNodeModules {
@@ -8,12 +29,6 @@ let
     packageLockJson = ./package-lock.json;
     githubSourceHashMap = { };
   };
-
-  contractsJSON = pkgs.writeTextDir "contracts.json" (builtins.toJSON {
-    marlowe = "${marlowe-app}/bin/marlowe-app";
-    walletCompanion = "${marlowe-companion-app}/bin/marlowe-companion-app";
-    walletFollower = "${marlowe-follow-app}/bin/marlowe-follow-app";
-  });
 
   client = buildPursPackage {
     inherit pkgs nodeModules;
@@ -25,20 +40,13 @@ let
     extraSrcs = {
       web-common = webCommon;
       web-common-marlowe = webCommonMarlowe;
-      generated = plutus-pab.generated-purescript;
-      contracts = contractsJSON;
+      generated = generated-purescript;
     };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
-
-  install-marlowe-contracts = pkgs.writeShellScriptBin "install-marlowe-contracts" ''
-    ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-app}/bin/marlowe-app
-    ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-companion-app}/bin/marlowe-companion-app
-    ${plutus-pab.server-invoker}/bin/plutus-pab contracts install --path ${marlowe-follow-app}/bin/marlowe-follow-app
-  '';
 in
 {
-  inherit (plutus-pab) server-invoker generated-purescript generate-purescript start-backend;
-  inherit client contractsJSON install-marlowe-contracts;
+  inherit (plutus-pab) server-setup-invoker;
+  inherit client marlowe-invoker generate-purescript generated-purescript start-backend;
 }

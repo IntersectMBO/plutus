@@ -57,7 +57,6 @@ eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b 
-eraseTC (char c)       = char c
 eraseTC unit           = unit
 
 open import Data.Product renaming (_,_ to _,,_)

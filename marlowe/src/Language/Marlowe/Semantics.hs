@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DerivingVia                #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -50,8 +51,9 @@ import qualified Data.Aeson.Extras        as JSON
 import           Data.Aeson.Types         hiding (Error, Value)
 import qualified Data.Foldable            as F
 import           Data.Scientific          (Scientific, floatingOrInteger)
+import           Data.String              (IsString (..))
 import           Data.Text                (pack)
-import           Data.Text.Encoding       (decodeUtf8, encodeUtf8)
+import           Data.Text.Encoding       as Text (decodeUtf8, encodeUtf8)
 import           Deriving.Aeson
 import           Language.Marlowe.Pretty  (Pretty (..))
 import           Ledger                   (PubKeyHash (..), Slot (..), ValidatorHash)
@@ -86,6 +88,7 @@ import           Text.PrettyPrint.Leijen  (comma, hang, lbrace, line, rbrace, sp
 {-# INLINABLE applyInput #-}
 {-# INLINABLE convertReduceWarnings #-}
 {-# INLINABLE applyAllInputs #-}
+{-# INLINABLE isClose #-}
 {-# INLINABLE computeTransaction #-}
 {-# INLINABLE contractLifespanUpperBound #-}
 {-# INLINABLE totalBalance #-}
@@ -105,7 +108,7 @@ instance Haskell.Show Party where
 type AccountId = Party
 type Timeout = Slot
 type Money = Val.Value
-type ChoiceName = ByteString
+type ChoiceName = BuiltinByteString
 type ChosenNum = Integer
 type SlotInterval = (Slot, Slot)
 type Accounts = Map (AccountId, Token) Integer
@@ -114,7 +117,7 @@ type Accounts = Map (AccountId, Token) Integer
 {-| Choices – of integers – are identified by ChoiceId
     which combines a name for the choice with the Party who had made the choice.
 -}
-data ChoiceId = ChoiceId ByteString Party
+data ChoiceId = ChoiceId BuiltinByteString Party
   deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
   deriving anyclass (Pretty)
 
@@ -133,10 +136,10 @@ instance Haskell.Show Token where
 {-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
 -}
-newtype ValueId = ValueId ByteString
-  deriving stock (Haskell.Show,Haskell.Eq,Haskell.Ord,Generic)
+newtype ValueId = ValueId BuiltinByteString
+  deriving (IsString, Haskell.Show) via TokenName
+  deriving stock (Haskell.Eq,Haskell.Ord,Generic)
   deriving anyclass (Newtype)
-
 
 {-| Values include some quantities that change with time,
     including “the slot interval”, “the current balance of an account (in Lovelace)”,
@@ -337,7 +340,7 @@ data ReduceStepResult = Reduced ReduceWarning ReduceEffect State Contract
 
 
 -- | Result of 'reduceContractUntilQuiescent'
-data ReduceResult = ContractQuiescent [ReduceWarning] [Payment] State Contract
+data ReduceResult = ContractQuiescent Bool [ReduceWarning] [Payment] State Contract
                   | RRAmbiguousSlotIntervalError
   deriving stock (Haskell.Show)
 
@@ -355,7 +358,7 @@ data ApplyResult = Applied ApplyWarning State Contract
 
 
 -- | Result of 'applyAllInputs'
-data ApplyAllResult = ApplyAllSuccess [TransactionWarning] [Payment] State Contract
+data ApplyAllResult = ApplyAllSuccess Bool [TransactionWarning] [Payment] State Contract
                     | ApplyAllNoMatchError
                     | ApplyAllAmbiguousSlotIntervalError
   deriving stock (Haskell.Show)
@@ -621,8 +624,8 @@ reduceContractStep env state contract = case contract of
 reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
 reduceContractUntilQuiescent env state contract = let
     reductionLoop
-      :: Environment -> State -> Contract -> [ReduceWarning] -> [Payment] -> ReduceResult
-    reductionLoop env state contract warnings payments =
+      :: Bool -> Environment -> State -> Contract -> [ReduceWarning] -> [Payment] -> ReduceResult
+    reductionLoop reduced env state contract warnings payments =
         case reduceContractStep env state contract of
             Reduced warning effect newState cont -> let
                 newWarnings = if warning == ReduceNoWarning then warnings
@@ -630,12 +633,12 @@ reduceContractUntilQuiescent env state contract = let
                 newPayments  = case effect of
                     ReduceWithPayment payment -> payment : payments
                     ReduceNoPayment           -> payments
-                in reductionLoop env newState cont newWarnings newPayments
+                in reductionLoop True env newState cont newWarnings newPayments
             AmbiguousSlotIntervalReductionError -> RRAmbiguousSlotIntervalError
             -- this is the last invocation of reductionLoop, so we can reverse lists
-            NotReduced -> ContractQuiescent (reverse warnings) (reverse payments) state contract
+            NotReduced -> ContractQuiescent reduced (reverse warnings) (reverse payments) state contract
 
-    in reductionLoop env state contract [] []
+    in reductionLoop False env state contract [] []
 
 
 -- | Apply a single Input to the contract (assumes the contract is reduced)
@@ -689,18 +692,20 @@ convertReduceWarnings = foldr (\warn acc -> case warn of
 applyAllInputs :: Environment -> State -> Contract -> [Input] -> ApplyAllResult
 applyAllInputs env state contract inputs = let
     applyAllLoop
-        :: Environment
+        :: Bool
+        -> Environment
         -> State
         -> Contract
         -> [Input]
         -> [TransactionWarning]
         -> [Payment]
         -> ApplyAllResult
-    applyAllLoop env state contract inputs warnings payments =
+    applyAllLoop contractChanged env state contract inputs warnings payments =
         case reduceContractUntilQuiescent env state contract of
             RRAmbiguousSlotIntervalError -> ApplyAllAmbiguousSlotIntervalError
-            ContractQuiescent reduceWarns pays curState cont -> case inputs of
+            ContractQuiescent reduced reduceWarns pays curState cont -> case inputs of
                 [] -> ApplyAllSuccess
+                    (contractChanged || reduced)
                     (warnings ++ convertReduceWarnings reduceWarns)
                     (payments ++ pays)
                     curState
@@ -708,6 +713,7 @@ applyAllInputs env state contract inputs = let
                 (input : rest) -> case applyInput env curState input cont of
                     Applied applyWarn newState cont ->
                         applyAllLoop
+                            True
                             env
                             newState
                             cont
@@ -717,7 +723,7 @@ applyAllInputs env state contract inputs = let
                                 ++ convertApplyWarning applyWarn)
                             (payments ++ pays)
                     ApplyNoMatchError -> ApplyAllNoMatchError
-    in applyAllLoop env state contract inputs [] []
+    in applyAllLoop False env state contract inputs [] []
   where
     convertApplyWarning :: ApplyWarning -> [TransactionWarning]
     convertApplyWarning warn =
@@ -726,6 +732,9 @@ applyAllInputs env state contract inputs = let
             ApplyNonPositiveDeposit party accId tok amount ->
                 [TransactionNonPositiveDeposit party accId tok amount]
 
+isClose :: Contract -> Bool
+isClose Close = True
+isClose _     = False
 
 -- | Try to compute outputs of a transaction given its inputs, a contract, and it's @State@
 computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
@@ -733,8 +742,8 @@ computeTransaction tx state contract = let
     inputs = txInputs tx
     in case fixInterval (txInterval tx) state of
         IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
-            ApplyAllSuccess warnings payments newState cont ->
-                    if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
+            ApplyAllSuccess reduced warnings payments newState cont ->
+                    if not reduced && (not (isClose contract) || (Map.null $ accounts state))
                     then Error TEUselessTransaction
                     else TransactionOutput { txOutWarnings = warnings
                                            , txOutPayments = payments
@@ -808,44 +817,44 @@ instance ToJSON State where
 
 instance FromJSON Party where
   parseJSON = withObject "Party" (\v ->
-        (PK . PubKeyHash <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
-    <|> (Role . Val.TokenName . encodeUtf8 <$> (v .: "role_token"))
+        (PK . PubKeyHash . toBuiltin <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
+    <|> (Role . Val.tokenName . Text.encodeUtf8 <$> (v .: "role_token"))
                                  )
 instance ToJSON Party where
     toJSON (PK pkh) = object
-        [ "pk_hash" .= (JSON.String $ JSON.encodeByteString $ getPubKeyHash pkh) ]
+        [ "pk_hash" .= (JSON.String $ JSON.encodeByteString $ fromBuiltin $ getPubKeyHash pkh) ]
     toJSON (Role (Val.TokenName name)) = object
-        [ "role_token" .= (JSON.String $ decodeUtf8 name) ]
+        [ "role_token" .= (JSON.String $ Text.decodeUtf8 $ fromBuiltin name) ]
 
 
 instance FromJSON ChoiceId where
   parseJSON = withObject "ChoiceId" (\v ->
-       ChoiceId <$> (encodeUtf8 <$> (v .: "choice_name"))
+       ChoiceId <$> (toBuiltin . Text.encodeUtf8 <$> (v .: "choice_name"))
                 <*> (v .: "choice_owner")
                                     )
 
 instance ToJSON ChoiceId where
-  toJSON (ChoiceId name party) = object [ "choice_name" .= (JSON.String $ decodeUtf8 name)
+  toJSON (ChoiceId name party) = object [ "choice_name" .= (JSON.String $ Text.decodeUtf8 $ fromBuiltin name)
                                         , "choice_owner" .= party
                                         ]
 
 
 instance FromJSON Token where
   parseJSON = withObject "Token" (\v ->
-       Token <$> (CurrencySymbol <$> (JSON.decodeByteString =<< (v .: "currency_symbol")))
-             <*> (Val.TokenName . encodeUtf8 <$> (v .: "token_name"))
+       Token <$> (Val.currencySymbol <$> (JSON.decodeByteString =<< (v .: "currency_symbol")))
+             <*> (Val.tokenName . Text.encodeUtf8 <$> (v .: "token_name"))
                                  )
 
 instance ToJSON Token where
   toJSON (Token currSym tokName) = object
-      [ "currency_symbol" .= (JSON.String $ JSON.encodeByteString $ unCurrencySymbol currSym)
-      , "token_name" .= (JSON.String $ decodeUtf8 $ unTokenName tokName)
+      [ "currency_symbol" .= (JSON.String $ JSON.encodeByteString $ fromBuiltin $ unCurrencySymbol currSym)
+      , "token_name" .= (JSON.String $ Text.decodeUtf8 $ fromBuiltin $ unTokenName tokName)
       ]
 
 instance FromJSON ValueId where
-    parseJSON = withText "ValueId" $ return . ValueId . encodeUtf8
+    parseJSON = withText "ValueId" $ return . ValueId . toBuiltin . Text.encodeUtf8
 instance ToJSON ValueId where
-    toJSON (ValueId x) = JSON.String (decodeUtf8 x)
+    toJSON (ValueId x) = JSON.String (Text.decodeUtf8 $ fromBuiltin x)
 
 
 instance FromJSON (Value Observation) where

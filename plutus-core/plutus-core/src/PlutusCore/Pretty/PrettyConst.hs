@@ -96,7 +96,7 @@ displayConst = render . prettyConst
 
 -- This instance for String quotes control characters (which is what we want)
 -- but also Unicode characters (\8704 and so on).
-deriving via PrettyAny Char    instance NonDefaultPrettyBy ConstConfig Char
+deriving via PrettyAny T.Text  instance NonDefaultPrettyBy ConstConfig T.Text
 deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
 deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
 deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer

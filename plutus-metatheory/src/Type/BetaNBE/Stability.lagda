@@ -26,7 +26,6 @@ stabilityTyCon : (c : TyCon Φ) → evalTyCon (embNfTyCon c) (idEnv _) ≡ c
 stabilityTyCon integer    = refl
 stabilityTyCon bytestring = refl
 stabilityTyCon string     = refl
-stabilityTyCon char       = refl
 stabilityTyCon unit       = refl
 stabilityTyCon bool       = refl
 stabilityTyCon (list A)   = cong list (stability A)

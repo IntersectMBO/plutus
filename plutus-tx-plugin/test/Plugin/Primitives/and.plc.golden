@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -18,13 +15,15 @@
       (lam
         ds
         Bool
-        [
+        {
           [
-            [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit ds) ]
-            (lam thunk Unit False)
+            [
+              { [ Bool_match ds ] (all dead (type) Bool) } (abs dead (type) ds)
+            ]
+            (abs dead (type) False)
           ]
-          Unit
-        ]
+          (all dead (type) dead)
+        }
       )
     )
   )

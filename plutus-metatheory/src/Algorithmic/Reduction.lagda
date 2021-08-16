@@ -205,20 +205,12 @@ IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integ
 IBUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i ≤? j
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
-IBUILTIN greaterThanInteger σ  ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i I>? j
-... | no ¬p = _ ,, inj₁ (V-con (bool false))
-... | yes p = _ ,, inj₁ (V-con (bool true))
-IBUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i I≥? j
-... | no ¬p = _ ,, inj₁ (V-con (bool false))
-... | yes p = _ ,, inj₁ (V-con (bool true))
 IBUILTIN equalsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j))  with i ≟ j
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
-IBUILTIN concatenate σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bytestring (concat b b')))
-IBUILTIN takeByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (take i b)))
-IBUILTIN dropByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (drop i b)))
+IBUILTIN appendByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bytestring (concat b b')))
 IBUILTIN lessThanByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B< b b')))
-IBUILTIN greaterThanByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B> b b')))
+IBUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (B> b b')))
 IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA2-256 b)))
 IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA3-256 b)))
 IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) with verifySig k d c
@@ -229,9 +221,7 @@ IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
   _ ,, inj₁ (proj₂ f)
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
   _ ,, inj₁ (proj₂ t)
-IBUILTIN charToString σ (tt ,, _ ,, V-con (char c)) =
-  _ ,, inj₁ (V-con (string (primStringFromList List.[ c ])))
-IBUILTIN append σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
+IBUILTIN appendString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
   _ ,, inj₁ (V-con (string (primStringAppend s s')))
 IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
 IBUILTIN b σ t = _ ,, inj₂ E-error
@@ -423,21 +413,16 @@ ival remainderInteger = V-I⇒ remainderInteger refl refl refl (λ()) (≤Cto≤
 ival modInteger = V-I⇒ modInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin modInteger)
 ival lessThanInteger = V-I⇒ lessThanInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanInteger)
 ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsInteger)
-ival greaterThanInteger = V-I⇒ greaterThanInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin greaterThanInteger)
-ival greaterThanEqualsInteger = V-I⇒ greaterThanEqualsInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin greaterThanEqualsInteger)
 ival equalsInteger = V-I⇒ equalsInteger refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsInteger)
-ival concatenate = V-I⇒ concatenate refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin concatenate)
-ival takeByteString = V-I⇒ takeByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin takeByteString)
-ival dropByteString = V-I⇒ dropByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin dropByteString)
 ival lessThanByteString = V-I⇒ lessThanByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanByteString)
-ival greaterThanByteString = V-I⇒ greaterThanByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin greaterThanByteString)
+ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanEqualsByteString)
 ival sha2-256 = V-I⇒ sha2-256 refl refl refl (λ()) base tt (ibuiltin sha2-256)
 ival sha3-256 = V-I⇒ sha3-256 refl refl refl (λ()) base tt (ibuiltin sha3-256)
 ival verifySignature = V-I⇒ verifySignature refl refl refl (λ()) (≤Cto≤C' (skip (skip base))) tt (ibuiltin verifySignature)
 ival equalsByteString = V-I⇒ equalsByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsByteString)
+ival appendByteString = V-I⇒ appendByteString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin appendByteString)
+ival appendString = V-I⇒ appendString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin appendString)
 ival ifThenElse = V-IΠ ifThenElse refl refl refl (λ()) (≤Cto≤C' (skip (skip (skip base)))) tt (ibuiltin ifThenElse)
-ival charToString = V-I⇒ charToString refl refl refl (λ()) base tt (ibuiltin charToString)
-ival append = V-I⇒ append refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin append)
 ival trace = V-I⇒ trace refl refl refl (λ()) base tt (ibuiltin trace)
 ival equalsString = V-I⇒ equalsString refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsString)
 ival encodeUtf8 = V-I⇒ encodeUtf8 refl refl refl (λ()) base tt (ibuiltin encodeUtf8)

@@ -55,7 +55,6 @@ renTyCon : Ren Φ Ψ
 renTyCon ρ integer    = integer
 renTyCon ρ bytestring = bytestring
 renTyCon ρ string     = string
-renTyCon ρ char       = char
 renTyCon ρ unit       = unit
 renTyCon ρ bool       = bool
 renTyCon ρ (list A)   = list (ren ρ A)
@@ -124,7 +123,6 @@ renTyCon-cong : (∀ {J}(α : Φ ∋⋆ J) → ρ α ≡ ρ' α)
 renTyCon-cong p integer    = refl
 renTyCon-cong p bytestring = refl
 renTyCon-cong p string     = refl
-renTyCon-cong p char       = refl
 renTyCon-cong p unit       = refl
 renTyCon-cong p bool       = refl
 renTyCon-cong p (list A)   = cong list (ren-cong p A)
@@ -153,7 +151,6 @@ renTyCon-id : (c : TyCon Φ)
 renTyCon-id integer    = refl
 renTyCon-id bytestring = refl
 renTyCon-id string     = refl
-renTyCon-id char       = refl
 renTyCon-id unit       = refl
 renTyCon-id bool       = refl
 renTyCon-id (list A)   = cong list (ren-id A)
@@ -193,7 +190,6 @@ renTyCon-comp : (c : TyCon Φ)
 renTyCon-comp integer    = refl
 renTyCon-comp bytestring = refl
 renTyCon-comp string     = refl
-renTyCon-comp char       = refl
 renTyCon-comp unit       = refl
 renTyCon-comp bool       = refl
 renTyCon-comp (list A)   = cong list (ren-comp A)
@@ -248,7 +244,6 @@ subTyCon : Sub Φ Ψ
 subTyCon σ integer    = integer
 subTyCon σ bytestring = bytestring
 subTyCon σ string     = string
-subTyCon σ char       = char
 subTyCon σ unit       = unit
 subTyCon σ bool       = bool
 subTyCon σ (list A)   = list (sub σ A)
@@ -323,7 +318,6 @@ subTyCon-cong : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
 subTyCon-cong p integer    = refl
 subTyCon-cong p bytestring = refl
 subTyCon-cong p string     = refl
-subTyCon-cong p char       = refl
 subTyCon-cong p unit       = refl
 subTyCon-cong p bool       = refl
 subTyCon-cong p (list A)   = cong list (sub-cong p A)
@@ -353,7 +347,6 @@ subTyCon-id : (c : TyCon Φ)
 subTyCon-id integer    = refl
 subTyCon-id bytestring = refl
 subTyCon-id string     = refl
-subTyCon-id char       = refl
 subTyCon-id unit       = refl
 subTyCon-id bool       = refl
 subTyCon-id (list A)   = cong  list (sub-id A)
@@ -393,7 +386,6 @@ subTyCon-renTyCon : (c : TyCon Φ)
 subTyCon-renTyCon integer    = refl
 subTyCon-renTyCon bytestring = refl
 subTyCon-renTyCon string     = refl
-subTyCon-renTyCon char       = refl
 subTyCon-renTyCon unit       = refl
 subTyCon-renTyCon bool       = refl
 subTyCon-renTyCon (list A)   = cong list (sub-ren A)
@@ -433,7 +425,6 @@ renTyCon-subTyCon : (c : TyCon Φ)
 renTyCon-subTyCon integer    = refl
 renTyCon-subTyCon bytestring = refl
 renTyCon-subTyCon string     = refl
-renTyCon-subTyCon char       = refl
 renTyCon-subTyCon unit       = refl
 renTyCon-subTyCon bool       = refl
 renTyCon-subTyCon (list A)   = cong list (ren-sub A)
@@ -473,7 +464,6 @@ subTyCon-comp : (c : TyCon Φ)
 subTyCon-comp integer    = refl
 subTyCon-comp bytestring = refl
 subTyCon-comp string     = refl
-subTyCon-comp char       = refl
 subTyCon-comp unit       = refl
 subTyCon-comp bool       = refl
 subTyCon-comp (list A)   = cong list (sub-comp A)

@@ -180,8 +180,8 @@ delay n = void $ Trace.waitNSlots $ fromIntegral n
 
 finalPredicate :: ModelState PrismModel -> TracePredicate
 finalPredicate _ =
-    assertNotDone @() @C.STOSubscriberSchema     C.subscribeSTO      (Trace.walletInstanceTag user)              "User stopped"               .&&.
-    assertNotDone @() @C.MirrorSchema            C.mirror            (Trace.walletInstanceTag mirror)            "Mirror stopped"
+    assertNotDone @_ @() @C.STOSubscriberSchema     C.subscribeSTO      (Trace.walletInstanceTag user)              "User stopped"               .&&.
+    assertNotDone @_ @() @C.MirrorSchema            C.mirror            (Trace.walletInstanceTag mirror)            "Mirror stopped"
 
 prop_Prism :: Actions PrismModel -> Property
 prop_Prism = propRunActions @PrismModel spec finalPredicate

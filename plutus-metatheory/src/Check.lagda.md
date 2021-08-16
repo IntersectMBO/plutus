@@ -140,7 +140,6 @@ inferKindCon : ∀ Φ (c : S.TyCon (len⋆ Φ)) → Either TypeError (T.TyCon Φ
 inferKindCon Φ S.integer = inj₂ T.integer
 inferKindCon Φ S.bytestring = inj₂ T.bytestring
 inferKindCon Φ S.string = inj₂ T.string
-inferKindCon Φ S.char = inj₂ T.char
 inferKindCon Φ S.unit = inj₂ T.unit
 inferKindCon Φ S.bool = inj₂ T.bool
 inferKindCon Φ (S.list A) = do
@@ -204,7 +203,6 @@ meqTyVar (S α) (S α') = do
 meqTyVar Z     (S α') = inj₁ λ()
 meqTyVar (S α) Z      = inj₁ λ()
 
-
 meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
 meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
 meqTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Either (¬ (c ≡ c')) (c ≡ c')
@@ -212,38 +210,27 @@ meqTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Either (¬ (c ≡ c')) (c ≡ c')
 meqTyCon T.integer    T.integer      = inj₂ refl
 meqTyCon T.bytestring T.bytestring   = inj₂ refl
 meqTyCon T.string     T.string       = inj₂ refl
-meqTyCon T.char       T.char         = inj₂ refl
 meqTyCon T.bool       T.bool         = inj₂ refl
 meqTyCon T.unit       T.unit         = inj₂ refl
 meqTyCon T.integer    T.bytestring   = inj₁ λ()
 meqTyCon T.integer    T.string       = inj₁ λ()
-meqTyCon T.integer    T.char         = inj₁ λ()
 meqTyCon T.integer    T.unit         = inj₁ λ()
 meqTyCon T.integer    T.bool         = inj₁ λ()
 meqTyCon T.bytestring T.integer      = inj₁ λ()
 meqTyCon T.bytestring T.string       = inj₁ λ()
-meqTyCon T.bytestring T.char         = inj₁ λ()
 meqTyCon T.bytestring T.unit         = inj₁ λ()
 meqTyCon T.bytestring T.bool         = inj₁ λ()
 meqTyCon T.string     T.integer      = inj₁ λ()
 meqTyCon T.string     T.bytestring   = inj₁ λ()
-meqTyCon T.string     T.char         = inj₁ λ()
 meqTyCon T.string     T.unit         = inj₁ λ()
 meqTyCon T.string     T.bool         = inj₁ λ()
-meqTyCon T.char       T.integer      = inj₁ λ()
-meqTyCon T.char       T.bytestring   = inj₁ λ()
-meqTyCon T.char       T.string       = inj₁ λ()
-meqTyCon T.char       T.unit         = inj₁ λ()
-meqTyCon T.char       T.bool         = inj₁ λ()
 meqTyCon T.unit       T.integer      = inj₁ λ()
 meqTyCon T.unit       T.bytestring   = inj₁ λ()
 meqTyCon T.unit       T.string       = inj₁ λ()
-meqTyCon T.unit       T.char         = inj₁ λ()
 meqTyCon T.unit       T.bool         = inj₁ λ()
 meqTyCon T.bool       T.integer      = inj₁ λ()
 meqTyCon T.bool       T.bytestring   = inj₁ λ()
 meqTyCon T.bool       T.string       = inj₁ λ()
-meqTyCon T.bool       T.char         = inj₁ λ()
 meqTyCon T.bool       T.unit         = inj₁ λ()
 meqTyCon (T.pair A B) T.integer      = inj₁ λ()
 meqTyCon T.Data       T.integer      = inj₁ λ()
@@ -253,9 +240,6 @@ meqTyCon T.Data       T.bytestring   = inj₁ λ()
 meqTyCon (T.list A)   T.string       = inj₁ λ()
 meqTyCon (T.pair A B) T.string       = inj₁ λ()
 meqTyCon T.Data       T.string       = inj₁ λ()
-meqTyCon (T.list A)   T.char         = inj₁ λ()
-meqTyCon (T.pair A B) T.char         = inj₁ λ()
-meqTyCon T.Data       T.char         = inj₁ λ()
 meqTyCon (T.list A)   T.unit         = inj₁ λ()
 meqTyCon (T.pair A B) T.unit         = inj₁ λ()
 meqTyCon T.Data       T.unit         = inj₁ λ()
@@ -266,7 +250,6 @@ meqTyCon (T.list A)   T.integer      = inj₁ λ()
 meqTyCon T.integer    (T.list A)     = inj₁ λ()
 meqTyCon T.bytestring (T.list A)     = inj₁ λ()
 meqTyCon T.string     (T.list A)     = inj₁ λ()
-meqTyCon T.char       (T.list A)     = inj₁ λ()
 meqTyCon T.unit       (T.list A)     = inj₁ λ()
 meqTyCon T.bool       (T.list A)     = inj₁ λ()
 meqTyCon (T.list A)   (T.list A')    = do
@@ -277,7 +260,6 @@ meqTyCon T.Data       (T.list A)     = inj₁ λ()
 meqTyCon T.integer    (T.pair A' B') = inj₁ λ()
 meqTyCon T.bytestring (T.pair A' B') = inj₁ λ()
 meqTyCon T.string     (T.pair A' B') = inj₁ λ()
-meqTyCon T.char       (T.pair A' B') = inj₁ λ()
 meqTyCon T.unit       (T.pair A' B') = inj₁ λ()
 meqTyCon T.bool       (T.pair A' B') = inj₁ λ()
 meqTyCon (T.list A)   (T.pair A' B') = inj₁ λ()
@@ -289,7 +271,6 @@ meqTyCon T.Data       (T.pair A' B') = inj₁ λ()
 meqTyCon T.integer    T.Data = inj₁ λ()
 meqTyCon T.bytestring T.Data = inj₁ λ()
 meqTyCon T.string     T.Data = inj₁ λ()
-meqTyCon T.char       T.Data = inj₁ λ()
 meqTyCon T.unit       T.Data = inj₁ λ()
 meqTyCon T.bool       T.Data = inj₁ λ()
 meqTyCon (T.list A)   T.Data = inj₁ λ()
@@ -368,7 +349,6 @@ inferTypeCon (integer i)    = T.integer ,, A.integer i
 inferTypeCon (bytestring b) = T.bytestring ,, A.bytestring b
 inferTypeCon (string s)     = T.string ,, A.string s
 inferTypeCon (bool b)       = T.bool ,, A.bool b
-inferTypeCon (char c)       = T.char ,, A.char c
 inferTypeCon unit           = T.unit ,, A.unit
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)

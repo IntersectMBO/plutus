@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE StrictData           #-}
@@ -84,7 +83,7 @@ data ContractInstanceClientState t =
         { cicContract     :: ContractInstanceId
         , cicCurrentState :: PartiallyDecodedResponse ActiveEndpoint
         , cicWallet       :: Wallet
-        , cicDefintion    :: t
+        , cicDefinition   :: t
         }
         deriving stock (Eq, Show, Generic)
         deriving anyclass (ToJSON, FromJSON)

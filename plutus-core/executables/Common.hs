@@ -139,6 +139,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.termSize term)
   putStrLn ""
   putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
+  putStrLn $ printf "Time spent executing builtins:  %4.2f%%\n" (100*(getCPU builtinCosts)/totalTime)
   case model of
     Default ->
         do

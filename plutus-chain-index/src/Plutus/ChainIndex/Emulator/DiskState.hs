@@ -13,6 +13,7 @@ module Plutus.ChainIndex.Emulator.DiskState(
     , dataMap
     , validatorMap
     , mintingPolicyMap
+    , stakeValidatorMap
     , txMap
     , addressMap
     , fromTx
@@ -28,7 +29,8 @@ import qualified Data.Set               as Set
 import           GHC.Generics           (Generic)
 import           Ledger                 (Address (..), TxOut (..), TxOutRef)
 import           Ledger.Credential      (Credential)
-import           Ledger.Scripts         (Datum, DatumHash, MintingPolicy, MintingPolicyHash, Validator, ValidatorHash)
+import           Ledger.Scripts         (Datum, DatumHash, MintingPolicy, MintingPolicyHash, StakeValidator,
+                                         StakeValidatorHash, Validator, ValidatorHash)
 import           Ledger.TxId            (TxId)
 import           Plutus.ChainIndex.Tx   (ChainIndexTx (..), txOutRefs)
 
@@ -62,11 +64,12 @@ txCredentialMap =
 --   other structures for the disk-backed storage)
 data DiskState =
     DiskState
-        { _DataMap          :: Map DatumHash Datum
-        , _ValidatorMap     :: Map ValidatorHash Validator
-        , _MintingPolicyMap :: Map MintingPolicyHash MintingPolicy
-        , _TxMap            :: Map TxId ChainIndexTx
-        , _AddressMap       :: CredentialMap
+        { _DataMap           :: Map DatumHash Datum
+        , _ValidatorMap      :: Map ValidatorHash Validator
+        , _MintingPolicyMap  :: Map MintingPolicyHash MintingPolicy
+        , _StakeValidatorMap :: Map StakeValidatorHash StakeValidator
+        , _TxMap             :: Map TxId ChainIndexTx
+        , _AddressMap        :: CredentialMap
         }
         deriving stock (Eq, Show, Generic)
         deriving (Semigroup, Monoid) via (GenericSemigroupMonoid DiskState)
@@ -75,11 +78,12 @@ makeLenses ''DiskState
 
 -- | The data we store on disk for a given 'ChainIndexTx'
 fromTx :: ChainIndexTx -> DiskState
-fromTx tx@ChainIndexTx{_citxData, _citxValidators, _citxMintingPolicies, _citxTxId} =
+fromTx tx@ChainIndexTx{_citxData, _citxValidators, _citxMintingPolicies, _citxStakeValidators, _citxTxId} =
     DiskState
         { _DataMap = _citxData
         , _ValidatorMap = _citxValidators
         , _MintingPolicyMap = _citxMintingPolicies
+        , _StakeValidatorMap = _citxStakeValidators
         , _TxMap = Map.singleton _citxTxId tx
         , _AddressMap = txCredentialMap tx
         }

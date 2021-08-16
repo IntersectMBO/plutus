@@ -109,28 +109,33 @@ machineAddress = validatorAddress . typedValidator
 
 {-# INLINABLE mkValidator #-}
 -- | Turn a state machine into a validator script.
-mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
+mkValidator :: forall s i. (PlutusTx.ToData s) => StateMachine s i -> ValidatorType (StateMachine s i)
 mkValidator (StateMachine step isFinal check threadToken) currentState input ptx =
-    let vl = maybe (error ()) (txOutValue . txInInfoResolved) (findOwnInput ptx)
+    let vl = maybe (traceError "S0" {-"Can't find validation input"-}) (txOutValue . txInInfoResolved) (findOwnInput ptx)
         checkOk =
-            traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
-            && traceIfFalse "Thread token not found" (TT.checkThreadToken threadToken (ownHash ptx) vl 1)
-        oldState = State{stateData=currentState, stateValue=vl}
+            traceIfFalse "S1" {-"State transition invalid - checks failed"-} (check currentState input ptx)
+            && traceIfFalse "S2" {-"Thread token not found"-} (TT.checkThreadToken threadToken (ownHash ptx) vl 1)
+        oldState = State
+            { stateData = currentState
+              -- The thread token value is hidden from the client code
+            , stateValue = vl <> inv (threadTokenValueInner threadToken (ownHash ptx))
+            }
         stateAndOutputsOk = case step oldState input of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})
                 | isFinal newData ->
-                    traceIfFalse "Non-zero value allocated in final state" (isZero newValue)
-                    && traceIfFalse "State transition invalid - constraints not satisfied by ScriptContext" (checkScriptContext newConstraints ptx)
+                    traceIfFalse "S3" {-"Non-zero value allocated in final state"-} (isZero newValue)
+                    && traceIfFalse "S4" {-"State transition invalid - constraints not satisfied by ScriptContext"-} (checkScriptContext newConstraints ptx)
                 | otherwise ->
                     let txc =
                             newConstraints
                                 { txOwnOutputs=
                                     [ OutputConstraint
                                         { ocDatum = newData
+                                          -- Check that the thread token value is still there
                                         , ocValue = newValue <> threadTokenValueInner threadToken (ownHash ptx)
                                         }
                                     ]
                                 }
-                    in traceIfFalse "State transition invalid - constraints not satisfied by ScriptContext" (checkScriptContext @_ @s txc ptx)
-            Nothing -> trace "State transition invalid - input is not a valid transition at the current state" False
+                    in traceIfFalse "S5" {-"State transition invalid - constraints not satisfied by ScriptContext"-} (checkScriptContext @_ @s txc ptx)
+            Nothing -> trace "S6" {-"State transition invalid - input is not a valid transition at the current state"-} False
     in checkOk && stateAndOutputsOk

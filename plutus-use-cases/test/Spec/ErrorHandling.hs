@@ -4,6 +4,7 @@
 module Spec.ErrorHandling(tests) where
 
 import           Control.Monad                  (void)
+import           Data.Default                   (Default (def))
 import           Plutus.Contract.Test
 
 import           Plutus.Contracts.ErrorHandling
@@ -14,19 +15,20 @@ import           Test.Tasty
 tests :: TestTree
 tests = testGroup "error handling"
     [ checkPredicate "throw an error"
-        (assertContractError @() contract (Trace.walletInstanceTag w1) (\case { Error1 _ -> True; _ -> False}) "should throw error")
+        (assertContractError @_ @() (contract def) (Trace.walletInstanceTag w1) (\case { Error1 _ -> True; _ -> False}) "should throw error")
         $ do
-            hdl <- Trace.activateContractWallet @() @_ @MyError w1 contract
+            slotCfg <- Trace.getSlotConfig
+            hdl <- Trace.activateContractWallet @_ @() @_ @MyError w1 (contract slotCfg)
             Trace.callEndpoint @"throwError" hdl ()
-            void $ Trace.nextSlot
+            void Trace.nextSlot
 
     , checkPredicate "catch an error"
-        (assertDone @() @_ @MyError contract (Trace.walletInstanceTag w1) (const True) "should be done")
+        (assertDone @_ @() @_ @MyError (contract def) (Trace.walletInstanceTag w1) (const True) "should be done")
         $ do
-            hdl <- Trace.activateContractWallet @() @_ @MyError w1 contract
+            slotCfg <- Trace.getSlotConfig
+            hdl <- Trace.activateContractWallet @_ @() @_ @MyError w1 (contract slotCfg)
             Trace.callEndpoint @"catchError" hdl ()
-            void $ Trace.nextSlot
-
+            void Trace.nextSlot
     ]
 
 w1 :: Wallet

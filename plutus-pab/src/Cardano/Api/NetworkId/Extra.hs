@@ -11,6 +11,10 @@ import qualified Data.Text.Read as Text
 newtype NetworkIdWrapper = NetworkIdWrapper { unNetworkIdWrapper :: NetworkId }
     deriving (Show, Eq)
 
+-- | A network ID for use in testing.
+testnetNetworkId :: NetworkIdWrapper
+testnetNetworkId = NetworkIdWrapper $ Testnet $ NetworkMagic 1
+
 -- | Custom 'FromJSON' instance for 'NetworkId' needed for allowing a user to
 -- specify it in the 'Cardano.Node.Types.MockServerConfig'.
 --
