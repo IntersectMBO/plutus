@@ -14,8 +14,7 @@ let
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
     inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
-
-    actus-tests = pkgs.fetchFromGitHub { inherit (sources.actus-tests) owner repo rev sha256; };
+    inherit (sources) actus-tests;
 
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
