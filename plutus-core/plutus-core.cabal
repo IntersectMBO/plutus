@@ -449,7 +449,6 @@ executable uplc
         aeson -any,
         base <5,
         bytestring -any,
-        containers -any,
         deepseq -any,
         flat -any,
         monoidal-containers -any,
