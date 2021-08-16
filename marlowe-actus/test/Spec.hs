@@ -1,4 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
+
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 module Main(main) where
 
 import           Data.Aeson                as Aeson (decode)
@@ -13,8 +17,8 @@ main = do
   p <- getEnv "ACTUS_TEST_DATA_DIR"
 
   pamTests <- testCasesFromFile ["pam25"] $ p ++ "actus-tests-pam.json" -- pam25: dates include hours, minutes, second
-  lamTests <- testCasesFromFile []        $ p ++ "actus-tests-lam.json"
-  namTests <- testCasesFromFile []        $ p ++ "actus-tests-nam.json"
+  -- lamTests <- testCasesFromFile []        $ p ++ "actus-tests-lam.json"
+  -- namTests <- testCasesFromFile []        $ p ++ "actus-tests-nam.json"
 
   defaultMain $ testGroup "ACTUS Contracts"
     [
