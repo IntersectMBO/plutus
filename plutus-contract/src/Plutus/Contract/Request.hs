@@ -66,6 +66,7 @@ module Plutus.Contract.Request(
     , submitTxConstraintsSpending
     , submitTxConstraintsWith
     , submitTxConfirmed
+    , mkTxConstraints
     -- * Etc.
     , ContractRow
     , pabReq
@@ -545,6 +546,19 @@ submitTxConstraintsSpending inst utxo =
   let lookups = Constraints.typedValidatorLookups inst <> Constraints.unspentOutputs utxo
   in submitTxConstraintsWith lookups
 
+-- | Build a transaction that satisfies the constraints
+mkTxConstraints :: forall a w s e.
+  ( PlutusTx.ToData (RedeemerType a)
+  , PlutusTx.FromData (DatumType a)
+  , PlutusTx.ToData (DatumType a)
+  , AsContractError e
+  )
+  => ScriptLookups a
+  -> TxConstraints (RedeemerType a) (DatumType a)
+  -> Contract w s e UnbalancedTx
+mkTxConstraints sl constraints =
+  either (throwError . review _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
+
 -- | Build a transaction that satisfies the constraints, then submit it to the
 --   network. Using the given constraints.
 submitTxConstraintsWith
@@ -557,9 +571,7 @@ submitTxConstraintsWith
   => ScriptLookups a
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract w s e Tx
-submitTxConstraintsWith sl constraints = do
-  tx <- either (throwError . review _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
-  submitUnbalancedTx tx
+submitTxConstraintsWith sl constraints = mkTxConstraints sl constraints >>= submitUnbalancedTx
 
 -- | A version of 'submitTx' that waits until the transaction has been
 --   confirmed on the ledger before returning.
