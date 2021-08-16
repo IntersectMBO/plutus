@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "actus-tests": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1622458452,
+        "narHash": "sha256-/Rwv1d2rOfAl3EFaUi6gj4df3xbL0e8Vc5AezqspnBg=",
+        "owner": "actusfrf",
+        "repo": "actus-tests",
+        "rev": "acfaab81a2eac8334dda0ac01edff89f3271e4df",
+        "type": "github"
+      },
+      "original": {
+        "owner": "actusfrf",
+        "repo": "actus-tests",
+        "type": "github"
+      }
+    },
     "cardano-repo-tool": {
       "flake": false,
       "locked": {
@@ -184,6 +200,7 @@
     },
     "root": {
       "inputs": {
+        "actus-tests": "actus-tests",
         "cardano-repo-tool": "cardano-repo-tool",
         "easy-purescript-nix": "easy-purescript-nix",
         "flake-utils": "flake-utils",
