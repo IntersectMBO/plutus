@@ -53,12 +53,15 @@ import           Plutus.PAB.Monitoring.Config        (defaultConfig)
 import qualified Plutus.PAB.Monitoring.Monitoring    as LM
 import           Plutus.PAB.Monitoring.PABLogMsg     (AppMsg (..))
 import           Plutus.PAB.Monitoring.Util          (PrettyObject (..), convertLog)
+import           Plutus.PAB.Run                      (runWithOpts)
 import           Plutus.PAB.Run.Cli                  (ConfigCommandArgs (..), runConfigCommand)
-import           Plutus.PAB.Run.Command              (ConfigCommand (..))
+import           Plutus.PAB.Run.Command              (ConfigCommand (..), allServices)
+import           Plutus.PAB.Run.CommandParser        (AppOpts (..))
 import           Plutus.PAB.Run.PSGenerator          (HasPSTypes (..))
 import           Plutus.PAB.Types                    (Config (..))
 import qualified Plutus.PAB.Types                    as PAB.Types
 import           Plutus.PAB.Webserver.API            (API)
+import           Plutus.PAB.Webserver.Client         (InstanceClient (..), PabClient (..), pabClient)
 import           Plutus.PAB.Webserver.Types          (ContractActivationArgs (..))
 import           Prettyprinter                       (Pretty)
 import           Servant                             ((:<|>) (..))
@@ -99,9 +102,9 @@ defaultPabConfig
   = def
       -- Note: We rely on a large timeout here to wait for endpoints to be
       -- available (i.e. transactions to be completed).
-      -- TODO: Note that this timeout is very high. If it exceeds 900, Hydra
-      -- assumes the CI is unresponsive (not unreasonably...)
-      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 500 }
+      -- TODO: Note: If it exceeds 900, Hydra assumes the CI is unresponsive
+      -- (not unreasonably...)
+      { pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 60 }
       , nodeServerConfig = def { Node.Types.mscSocketPath = "/tmp/node-server.sock" }
       }
 
@@ -130,39 +133,27 @@ bumpConfig x dbName conf@Config{ pabWebserverConfig   = p@PAB.Types.WebserverCon
 
 startPab :: Config -> IO ()
 startPab pabConfig = do
-  logConfig <- defaultConfig
-
-  CM.setMinSeverity logConfig Info
-
-  (trace :: Trace IO (PrettyObject (AppMsg (Builtin a))), switchboard) <- setupTrace_ logConfig "pab"
-
-  -- Ensure the db is set up
-  App.migrate (convertLog (PrettyObject . PABMsg) trace) (dbConfig pabConfig)
-
-  -- Spin up the servers
-  let cmd = ForkCommands
-              [ StartMockNode
-              , ChainIndex
-              , MockWallet
-              , PABWebserver
-              ]
-
-  let mkArgs availability = ConfigCommandArgs
-                { ccaTrace = convertLog PrettyObject trace
-                , ccaLoggingConfig = logConfig
-                , ccaPABConfig = pabConfig
-                , ccaAvailability = availability
-                , ccaStorageBackend = BeamSqliteBackend
-                }
-
-  args <- mkArgs <$> newToken
-
   let handler = Builtin.handleBuiltin @TestingContracts
+      opts = AppOpts
+              { minLogLevel = Nothing
+              , logConfigPath = Nothing
+              , configPath = Nothing
+              , runEkgServer = False
+              , storageBackend = BeamSqliteBackend
+              , cmd = allServices
+              }
 
-  async . void $ runConfigCommand handler args cmd
+  let mc = Just pabConfig
+  -- First, migrate.
+  void . async $ runWithOpts handler mc (opts {cmd = Migrate})
+  sleep 1
 
-  -- Wait for them to be started
-  threadDelay $ 10 * 1000000
+  -- Then, spin up the services.
+  void . async $ runWithOpts handler mc opts
+  sleep 5
+
+sleep :: Int -> IO ()
+sleep n = threadDelay $ n * 1_000_000
 
 getClientEnv :: Config -> IO ClientEnv
 getClientEnv pabConfig = do
@@ -181,14 +172,13 @@ startPingPongContract pabConfig = do
                 , caWallet = Wallet 1
                 }
 
-  let _ :<|> _ :<|> activateContract :<|> instance' :<|> _ = client (Proxy @(API TestingContracts Integer))
+  let PabClient{activateContract} = pabClient @TestingContracts @Integer
 
   eci <- runClientM (activateContract ca) apiClientEnv
 
   case eci of
     Left e   -> error $ "Error starting contract: " <> show e
     Right ci -> pure ci
-
 
 -- | Tag whether or not we expect the calls to succeed.
 data EndpointCall = Succeed String
@@ -201,17 +191,16 @@ runPabInstanceEndpoints :: Config -> ContractInstanceId -> [EndpointCall] -> IO 
 runPabInstanceEndpoints pabConfig instanceId endpoints = do
   apiClientEnv <- getClientEnv pabConfig
 
-  let _ :<|> _ :<|> activateContract :<|> instance' :<|> _ = client (Proxy @(API TestingContracts Integer))
-  let _ :<|> _ :<|> endpoint :<|> _ = instance' . Text.pack . show . unContractInstanceId $ instanceId
+  let PabClient{activateContract, instanceClient} = pabClient @TestingContracts @Integer
+      callEndpoint = callInstanceEndpoint . instanceClient . Text.pack .show . unContractInstanceId $ instanceId
 
   forM_ endpoints $ \e -> do
-    x <- runClientM (endpoint (ep e) (toJSON ())) apiClientEnv
+    x <- runClientM (callEndpoint (ep e) (toJSON ())) apiClientEnv
     case e of
       Succeed _ -> do
           assertEqual "Got the wrong thing back from the API" (Right ()) x
       Fail _ -> do
           assertBool "Endpoint call succeeded (it should've failed.)" (isLeft x)
-
 
 {- Note [pab-ports]
 
@@ -224,7 +213,6 @@ overlap with the numbers that are used if they are all running at the same
 time.
 
 -}
-
 
 restoreContractStateTests :: TestTree
 restoreContractStateTests =
