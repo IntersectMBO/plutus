@@ -2,6 +2,7 @@ module MetadataTab.View (metadataView) where
 
 import Prelude hiding (div, min)
 import Data.Array (concat, concatMap)
+import Data.Foldable (foldMap)
 import Data.Int as Int
 import Data.Lens (Lens', (^.))
 import Data.List (List)
@@ -16,6 +17,9 @@ import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), class_, classes, min, placeholder, required, selected, type_, value)
 import Marlowe.Extended (contractTypeArray, contractTypeInitials, contractTypeName, initialsToContractType)
 import Marlowe.Extended.Metadata (ChoiceInfo, MetaData, MetadataHintInfo, NumberFormat(..), NumberFormatType(..), ValueParameterInfo, _choiceInfo, _choiceNames, _roleDescriptions, _roles, _slotParameterDescriptions, _slotParameters, _valueParameterInfo, _valueParameters, defaultForFormatType, fromString, getFormatType, isDecimalFormat, isDefaultFormat, toString)
+import Data.Map.Ordered.OMap (OMap)
+import Data.Map.Ordered.OMap as OMap
+import Data.Set.Ordered.OSet (OSet)
 import MetadataTab.Types (MetadataAction(..))
 
 onlyDescriptionRenderer :: forall a b p. (String -> String -> b) -> (String -> b) -> String -> String -> Boolean -> (b -> a) -> String -> String -> Array (HTML p a)
@@ -205,6 +209,55 @@ metadataList metadataAction metadataMap hintSet metadataRenderer typeNameTitle t
       (map (\x -> Just (x /\ false)) metadataMap)
       (Map.fromFoldable (map (\x -> x /\ Nothing) ((toUnfoldable hintSet) :: List String)))
 
+sortableMetadataList ::
+  forall a b c p.
+  (b -> a) ->
+  OMap String c ->
+  OSet String ->
+  (String -> c -> Boolean -> (b -> a) -> String -> String -> Array (HTML p a)) ->
+  String -> String -> (String -> b) -> Array (HTML p a)
+sortableMetadataList metadataAction metadataMap hintSet metadataRenderer typeNameTitle typeNameSmall setEmptyMetadata =
+  if OMap.isEmpty combinedMap then
+    []
+  else
+    [ div [ class_ $ ClassName "metadata-group-title" ]
+        [ h6_ [ em_ [ text $ typeNameTitle <> " descriptions" ] ] ]
+    ]
+      <> ( concatMap
+            ( \(key /\ val) ->
+                ( case val of
+                    Just (info /\ needed) -> metadataRenderer key info needed metadataAction typeNameTitle typeNameSmall
+                    Nothing ->
+                      [ div [ classes [ ClassName "metadata-error", ClassName "metadata-prop-not-defined" ] ]
+                          [ text $ typeNameTitle <> " " <> show key <> " meta-data not defined" ]
+                      , div [ class_ $ ClassName "metadata-prop-create" ]
+                          [ button
+                              [ classes [ minusBtn, ClassName "align-top", btn ]
+                              , onClick $ const $ Just $ metadataAction (setEmptyMetadata key)
+                              ]
+                              [ text "+" ]
+                          ]
+                      ]
+                )
+            )
+            $ OMap.toUnfoldable combinedMap
+        )
+  where
+  mergeMaps :: forall c2. (Maybe (c2 /\ Boolean)) -> (Maybe (c2 /\ Boolean)) -> (Maybe (c2 /\ Boolean))
+  mergeMaps (Just (x /\ _)) _ = Just (x /\ true)
+
+  mergeMaps _ _ = Nothing
+
+  -- The value of the Map has the following meaning:
+  -- * Nothing means the entry is in the contract but not in the metadata
+  -- * Just (_ /\ false) means the entry is in the metadata but not in the contract
+  -- * Just (_ /\ true) means the entry is both in the contract and in the metadata
+  -- If it is nowhere we just don't store it in the map
+  combinedMap =
+    OMap.unionWith mergeMaps
+      (map (\x -> Just (x /\ false)) metadataMap)
+      (foldMap (\x -> OMap.singleton x Nothing) hintSet)
+
 metadataView :: forall a p. MetadataHintInfo -> MetaData -> (MetadataAction -> a) -> HTML p a
 metadataView metadataHints metadata metadataAction =
   div [ classes [ ClassName "metadata-form" ] ]
@@ -252,8 +305,8 @@ metadataView metadataHints metadata metadataAction =
           ]
         , generateMetadataList _roleDescriptions _roles (onlyDescriptionRenderer SetRoleDescription DeleteRoleDescription) "Role" "role" (\x -> SetRoleDescription x mempty)
         , generateMetadataList _choiceInfo _choiceNames choiceMetadataRenderer "Choice" "choice" (\x -> SetChoiceDescription x mempty)
-        , generateMetadataList _slotParameterDescriptions _slotParameters (onlyDescriptionRenderer SetSlotParameterDescription DeleteSlotParameterDescription) "Slot parameter" "slot parameter" (\x -> SetSlotParameterDescription x mempty)
-        , generateMetadataList _valueParameterInfo _valueParameters valueParameterMetadataRenderer "Value parameter" "value parameter" (\x -> SetValueParameterDescription x mempty)
+        , generateSortableMetadataList _slotParameterDescriptions _slotParameters (onlyDescriptionRenderer SetSlotParameterDescription DeleteSlotParameterDescription) "Slot parameter" "slot parameter" (\x -> SetSlotParameterDescription x mempty)
+        , generateSortableMetadataList _valueParameterInfo _valueParameters valueParameterMetadataRenderer "Value parameter" "value parameter" (\x -> SetValueParameterDescription x mempty)
         ]
     )
   where
@@ -267,3 +320,14 @@ metadataView metadataHints metadata metadataAction =
     (String -> MetadataAction) ->
     Array (HTML p a)
   generateMetadataList mapLens setLens = metadataList metadataAction (metadata ^. mapLens) (metadataHints ^. setLens)
+
+  generateSortableMetadataList ::
+    forall c.
+    Lens' MetaData (OMap String c) ->
+    Lens' MetadataHintInfo (OSet String) ->
+    (String -> c -> Boolean -> (MetadataAction -> a) -> String -> String -> Array (HTML p a)) ->
+    String ->
+    String ->
+    (String -> MetadataAction) ->
+    Array (HTML p a)
+  generateSortableMetadataList mapLens setLens = sortableMetadataList metadataAction (metadata ^. mapLens) (metadataHints ^. setLens)

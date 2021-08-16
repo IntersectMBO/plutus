@@ -11,8 +11,8 @@ import Control.Monad.Reader (class MonadAsk)
 import Data.Array (mapMaybe) as Array
 import Data.BigInteger (BigInteger)
 import Data.Lens (Lens', assign, set, use, view)
-import Data.Map (Map, isEmpty, keys, lookup, mapMaybeWithKey, member)
-import Data.Map (fromFoldable, mapMaybe) as Map
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Set (toUnfoldable) as Set
 import Data.Traversable (for)
@@ -34,6 +34,7 @@ import MainFrame.Types (ChildSlots, Msg)
 import Marlowe.Extended (Contract) as Extended
 import Marlowe.Extended (ContractType(..), resolveRelativeTimes, toCore)
 import Marlowe.Extended.Metadata (MetaData, NumberFormat(..), _extendedContract, _metaData, _valueParameterFormat, _valueParameterInfo)
+import Data.Map.Ordered.OMap as OMap
 import Marlowe.HasParties (getParties)
 import Marlowe.Semantics (Contract) as Semantic
 import Marlowe.Semantics (Party(..), Slot, TokenName)
@@ -120,7 +121,7 @@ setInputValidators ::
 setInputValidators input lens action validator = do
   inputFields <- use lens
   let
-    (inputFieldKeys :: Array String) = Set.toUnfoldable $ keys inputFields
+    (inputFieldKeys :: Array String) = Set.toUnfoldable $ Map.keys inputFields
   void
     $ for inputFieldKeys \key ->
         handleAction input $ action key $ InputField.SetValidator validator
@@ -148,16 +149,16 @@ mkSlotContentInputs metaData slotContent =
       let
         inputFieldInitialState = InputField.mkInitialState $ Just DefaultFormat
       in
-        case lookup key defaultSlotContent of
+        case Map.lookup key defaultSlotContent of
           Just value -> Just $ set _value (formatBigIntegerValue TimeFormat value) inputFieldInitialState
           Nothing -> Just inputFieldInitialState
   in
-    mapMaybeWithKey mkSlotContentInput slotContent
+    Map.mapMaybeWithKey mkSlotContentInput slotContent
 
 mkValueContentInputs :: MetaData -> Map String BigInteger -> Map String (InputField.State ValueError)
-mkValueContentInputs metaData valueContent = mapMaybeWithKey valueToInput valueContent
+mkValueContentInputs metaData valueContent = Map.mapMaybeWithKey valueToInput valueContent
   where
-  valueToInput key value = case lookup key $ map (view _valueParameterFormat) (view _valueParameterInfo metaData) of
+  valueToInput key value = case OMap.lookup key $ map (view _valueParameterFormat) (view _valueParameterInfo metaData) of
     Just numberFormat -> Just $ InputField.mkInitialState $ Just numberFormat
     _ -> Just $ InputField.mkInitialState Nothing
 
@@ -174,11 +175,11 @@ instantiateExtendedContract currentSlot state =
 
     valueParameterFormats = map (view _valueParameterFormat) (view (_contractTemplate <<< _metaData <<< _valueParameterInfo) state)
 
-    getBigIntegerValueWithDecimals key valueContentInput = case lookup key valueParameterFormats of
+    getBigIntegerValueWithDecimals key valueContentInput = case OMap.lookup key valueParameterFormats of
       Just numberFormat -> Just $ getBigIntegerValue numberFormat $ view _value valueContentInput
       _ -> Just $ getBigIntegerValue DefaultFormat $ view _value valueContentInput
 
-    valueContent = mapMaybeWithKey getBigIntegerValueWithDecimals valueContentInputs
+    valueContent = Map.mapMaybeWithKey getBigIntegerValueWithDecimals valueContentInputs
 
     templateContent = TemplateContent { slotContent, valueContent }
 
@@ -230,7 +231,7 @@ roleError :: WalletLibrary -> String -> Maybe RoleError
 roleError _ "" = Just EmptyNickname
 
 roleError walletLibrary walletNickname =
-  if member walletNickname walletLibrary then
+  if Map.member walletNickname walletLibrary then
     Nothing
   else
     Just NonExistentNickname
@@ -259,6 +260,6 @@ templateSetupIsValid state =
     valueContentInputs = view _valueContentInputs state
   in
     (isNothing $ validate contractNicknameInput)
-      && (isEmpty $ Map.mapMaybe validate roleWalletInputs)
-      && (isEmpty $ Map.mapMaybe validate slotContentInputs)
-      && (isEmpty $ Map.mapMaybe validate valueContentInputs)
+      && (Map.isEmpty $ Map.mapMaybe validate roleWalletInputs)
+      && (Map.isEmpty $ Map.mapMaybe validate slotContentInputs)
+      && (Map.isEmpty $ Map.mapMaybe validate valueContentInputs)

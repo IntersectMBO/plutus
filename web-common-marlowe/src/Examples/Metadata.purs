@@ -1,9 +1,11 @@
 module Examples.Metadata where
 
-import Data.Map (fromFoldable, empty)
+import Prelude
+import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import Marlowe.Extended (ContractType(..))
 import Marlowe.Extended.Metadata (NumberFormat(..), MetaData, emptyContractMetadata, lovelaceFormat, oracleRatioFormat)
+import Data.Map.Ordered.OMap as OMap
 
 example :: MetaData
 example = emptyContractMetadata
@@ -14,7 +16,7 @@ escrow =
   , contractName: "Simple escrow"
   , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller*. If there is a disagreement, an *Arbiter* will decide whether the money is refunded or paid to the *Seller*."
   , choiceInfo:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Confirm problem"
               /\ { choiceFormat: DefaultFormat
                 , choiceDescription: "Acknowledge there was a problem and a refund must be granted."
@@ -38,14 +40,14 @@ escrow =
           ]
       )
   , roleDescriptions:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Arbiter" /\ "The party that will choose who gets the money in the event of a disagreement between the *Buyer* and the *Seller* about the outcome."
           , "Buyer" /\ "The party that wants to buy the item. Payment is made to the *Seller* if they acknowledge receiving the item."
           , "Seller" /\ "The party that wants to sell the item. They receive the payment if the exchange is uneventful."
           ]
       )
   , slotParameterDescriptions:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Buyer's deposit timeout" /\ "Deadline by which the *Buyer* must deposit the selling *Price* in the contract."
           , "Buyer's dispute timeout" /\ "Deadline by which, if the *Buyer* has not opened a dispute, the *Seller* will be paid."
           , "Seller's response timeout" /\ "Deadline by which, if the *Seller* has not responded to the dispute, the *Buyer* will be refunded."
@@ -53,7 +55,7 @@ escrow =
           ]
       )
   , valueParameterInfo:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Price"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "Amount of Lovelace to be paid by the *Buyer* for the item."
@@ -68,7 +70,7 @@ escrowWithCollateral =
   , contractName: "Escrow with collateral"
   , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller* using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
   , choiceInfo:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Confirm problem"
               /\ { choiceFormat: DefaultFormat
                 , choiceDescription: "Acknowledge that there was a problem and a refund must be granted."
@@ -88,13 +90,13 @@ escrowWithCollateral =
           ]
       )
   , roleDescriptions:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Buyer" /\ "The party that pays for the item on sale."
           , "Seller" /\ "The party that sells the item and gets the money if the exchange is successful."
           ]
       )
   , slotParameterDescriptions:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Collateral deposit by seller timeout" /\ "The deadline by which the *Seller* must deposit the *Collateral amount* in the contract."
           , "Deposit of collateral by buyer timeout" /\ "The deadline by which the *Buyer* must deposit the *Collateral amount* in the contract."
           , "Deposit of price by buyer timeout" /\ "The deadline by which the *Buyer* must deposit the *Price* in the contract."
@@ -103,7 +105,7 @@ escrowWithCollateral =
           ]
       )
   , valueParameterInfo:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Collateral amount"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "The amount of Lovelace to be deposited by both parties at the start of the contract to serve as an incentive for collaboration."
@@ -121,21 +123,21 @@ zeroCouponBond =
   { contractType: ZeroCouponBond
   , contractName: "Zero Coupon Bond"
   , contractDescription: "A simple loan. The *Investor* pays the *Issuer* the *Discounted price* at the start, and is repaid the full *Notional price* at the end."
-  , choiceInfo: empty
+  , choiceInfo: Map.empty
   , roleDescriptions:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Investor" /\ "The party that buys the bond at a discounted price, i.e. makes the loan."
           , "Issuer" /\ "The party that issues the bond, i.e. receives the loan."
           ]
       )
   , slotParameterDescriptions:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Initial exchange deadline" /\ "The *Investor* must deposit the discounted price of the bond before this deadline or the offer will expire."
           , "Maturity exchange deadline" /\ "The *Issuer* must deposit the full price of the bond before this deadline or it will default."
           ]
       )
   , valueParameterInfo:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Discounted price"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "The price in Lovelace of the Zero Coupon Bond at the start date."
@@ -153,17 +155,17 @@ couponBondGuaranteed =
   { contractType: CouponBondGuaranteed
   , contractName: "Coupon Bond Guaranteed"
   , contractDescription: "Debt agreement between an *Investor* and an *Issuer*. *Investor* will advance the *Principal* amount at the beginning of the contract, and the *Issuer* will pay back *Interest instalment* every 30 slots and the *Principal* amount by the end of 3 instalments. The debt is backed by a collateral provided by the *Guarantor* which will be refunded as long as the *Issuer* pays back on time."
-  , choiceInfo: empty
+  , choiceInfo: Map.empty
   , roleDescriptions:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Guarantor" /\ "Provides a collateral in case the *Issuer* defaults."
           , "Investor" /\ "Provides the money that the *Issuer* borrows."
           , "Issuer" /\ "Borrows the money provided by the *Investor* and returns it together with three *Interest instalment*s."
           ]
       )
-  , slotParameterDescriptions: empty
+  , slotParameterDescriptions: mempty
   , valueParameterInfo:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Interest instalment"
               /\ { valueParameterFormat: lovelaceFormat
                 , valueParameterDescription: "Amount of Lovelace that will be paid by the *Issuer* every 30 slots for 3 iterations."
@@ -181,21 +183,21 @@ swap =
   { contractType: Swap
   , contractName: "Swap of Ada and dollar tokens"
   , contractDescription: "Takes Ada from one party and dollar tokens from another party, and it swaps them atomically."
-  , choiceInfo: empty
+  , choiceInfo: Map.empty
   , roleDescriptions:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Ada provider" /\ "The party that provides the Ada."
           , "Dollar provider" /\ "The party that provides the dollar tokens."
           ]
       )
   , slotParameterDescriptions:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Timeout for Ada deposit" /\ "Deadline by which Ada must be deposited."
           , "Timeout for dollar deposit" /\ "Deadline by which dollar tokens must be deposited (must be after the deadline for Ada deposit)."
           ]
       )
   , valueParameterInfo:
-      ( fromFoldable
+      ( OMap.fromFoldable
           [ "Amount of Ada"
               /\ { valueParameterFormat: DecimalFormat 0 "₳"
                 , valueParameterDescription: "Amount of Ada to be exchanged for dollars."
@@ -214,7 +216,7 @@ contractForDifferences =
   , contractName: "Contract for Differences"
   , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots is redistributed depending on the change in a given trade price reported by *Oracle*. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
   , choiceInfo:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Price at beginning"
               /\ { choiceFormat: lovelaceFormat
                 , choiceDescription: "Trade price at the beginning of the contract."
@@ -226,14 +228,14 @@ contractForDifferences =
           ]
       )
   , roleDescriptions:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Counterparty" /\ "Party that gets the difference in trade price if it increases."
           , "Oracle" /\ "Party that provides the trade price in real time."
           , "Party" /\ "Party that gets the difference in trade price if it decreases."
           ]
       )
-  , slotParameterDescriptions: empty
-  , valueParameterInfo: empty
+  , slotParameterDescriptions: mempty
+  , valueParameterInfo: mempty
   }
 
 contractForDifferencesWithOracle :: MetaData
@@ -242,7 +244,7 @@ contractForDifferencesWithOracle =
   , contractName: "Contract for Differences with Oracle"
   , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots these assets are redistributed depending on the change in price of 100 Ada worth of dollars between the start and the end of the contract. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
   , choiceInfo:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "dir-adausd"
               /\ { choiceFormat: oracleRatioFormat "ADA/USD"
                 , choiceDescription: "Exchange rate ADA/USD at the beginning of the contract."
@@ -254,12 +256,12 @@ contractForDifferencesWithOracle =
           ]
       )
   , roleDescriptions:
-      ( fromFoldable
+      ( Map.fromFoldable
           [ "Counterparty" /\ "Party that gets the difference in trade price if it increases."
           , "Party" /\ "Party that gets the difference in trade price if it decreases."
           , "kraken" /\ "Oracle party that provides the exchange rate for ADA/USD."
           ]
       )
-  , slotParameterDescriptions: empty
-  , valueParameterInfo: empty
+  , slotParameterDescriptions: mempty
+  , valueParameterInfo: mempty
   }
