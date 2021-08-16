@@ -446,8 +446,10 @@ executable uplc
         Parsers
     build-depends:
         plutus-core -any,
+        aeson -any,
         base <5,
         bytestring -any,
+        containers -any,
         deepseq -any,
         flat -any,
         monoidal-containers -any,
