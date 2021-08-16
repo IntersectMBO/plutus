@@ -160,9 +160,9 @@ elemBy eq y (x:xs) =  x `eq` y || elemBy eq y xs
 {-# INLINABLE nubBy #-}
 -- | Plutus Tx version of 'Data.List.nubBy'.
 nubBy :: (a -> a -> Bool) -> [a] -> [a]
-nubBy eq l              = nubBy' l []
+nubBy eq l = nubBy' l []
   where
-    nubBy' [] xs        = xs
+    nubBy' [] _         = []
     nubBy' (y:ys) xs
        | elemBy eq y xs = nubBy' ys xs
-       | otherwise      = nubBy' ys (y:xs)
+       | otherwise      = y : nubBy' ys (y:xs)

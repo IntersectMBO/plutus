@@ -12,6 +12,7 @@ import           Hedgehog            (MonadGen, Property, PropertyT, annotateSho
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
 import           PlutusCore.Data     (Data (..))
+import           PlutusTx.List       (nub, nubBy)
 import           PlutusTx.Numeric    (negate)
 import           PlutusTx.Prelude    (dropByteString, takeByteString)
 import           PlutusTx.Ratio      (Rational, denominator, numerator, recip, (%))
@@ -30,6 +31,7 @@ tests = testGroup "plutus-tx" [
     , sqrtTests
     , ratioTests
     , bytestringTests
+    , listTests
     ]
 
 sqrtTests :: TestTree
@@ -226,4 +228,24 @@ dropByteStringTests = testGroup "dropByteString"
   , testCase "drop 1" $ dropByteString 1 "hello" @?= "ello"
   , testCase "drop 3" $ dropByteString 3 "hello" @?= "lo"
   , testCase "drop 10" $ dropByteString 10 "hello" @?= ""
+  ]
+
+listTests :: TestTree
+listTests = testGroup "List"
+  [ nubByTests
+  , nubTests
+  ]
+
+nubByTests :: TestTree
+nubByTests = testGroup "nubBy"
+  [ testCase "equal up to mod 3" $ nubBy (\x y -> mod x 3 == mod y 3) [1 :: Integer,2,4,5,6] @?= [1,2,6]
+  ]
+
+nubTests :: TestTree
+nubTests = testGroup "nub"
+  [ testCase "[] == []" $ nub [] @?= ([] :: [Integer])
+  , testCase "[1, 2, 2] == [1, 2]" $ nub [1 :: Integer, 2, 2] @?= [1, 2]
+  , testCase "[2, 1, 1] == [2, 1]" $ nub [2 :: Integer, 1, 1] @?= [2, 1]
+  , testCase "[1, 1, 1] == [1]" $ nub [1 :: Integer, 1, 1] @?= [1]
+  , testCase "[1, 2, 3, 4, 5] == [1, 2, 3, 4, 5]" $ nub [1 :: Integer, 2, 3, 4, 5] @?= [1, 2, 3, 4, 5]
   ]
