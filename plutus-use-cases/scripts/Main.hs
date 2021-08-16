@@ -290,5 +290,3 @@ getScript UnappliedValidators ScriptValidationEvent{sveType} =
 filenameSuffix :: ValidatorMode -> String
 filenameSuffix FullyAppliedValidators = ""
 filenameSuffix UnappliedValidators    = "-unapplied"
-
--- ApiAccountPublicKey
