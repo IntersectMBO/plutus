@@ -125,6 +125,8 @@ types
 import Algorithmic
 import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
+import Algorithmic.ReductionEC
+
 import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Completeness

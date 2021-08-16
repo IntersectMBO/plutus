@@ -84,6 +84,32 @@ arity ifThenElse = [] :< Type :< Term :< Term :< Term
 arity charToString = [] :< Term
 arity append = [] :< Term :< Term
 arity trace = [] :< Term
+arity equalsString = [] :< Term :< Term
+arity encodeUtf8 = [] :< Term
+arity decodeUtf8 = [] :< Term
+arity fstPair = [] :< Type :< Type :< Term
+arity sndPair = [] :< Type :< Type :< Term
+arity nullList = [] :< Type :< Term
+arity headList = [] :< Type :< Term
+arity tailList = [] :< Type :< Term
+arity chooseList = [] :< Type :< Type :< Term :< Term :< Term
+arity constrData = [] :< Term :< Term
+arity mapData = [] :< Term
+arity listData = [] :< Term
+arity iData = [] :< Term
+arity bData = [] :< Term
+arity unconstrData = [] :< Term
+arity unMapData = [] :< Term
+arity unListData = [] :< Term
+arity unIData = [] :< Term
+arity unBData = [] :< Term
+arity equalsData = [] :< Term :< Term
+arity chooseData = [] :< Type :< Term :< Term :< Term :< Term :< Term :< Term
+arity chooseUnit = [] :< Type :< Term :< Term
+arity mkPairData = [] :< Term :< Term
+arity mkNilData = [] :< Term
+arity mkNilPairData = [] :< Term
+arity mkConsData = [] :< Term :< Term
 
 data _≤L_ : Bwd Label → Bwd Label → Set where
   base     : ls ≤L ls
@@ -386,6 +412,32 @@ ival ifThenElse =
 ival charToString = V-F (V-builtin charToString refl base _ _)
 ival append = V-F (V-builtin append refl (skipTerm base) _ _)
 ival trace = V-F (V-builtin trace refl base _ _)
+ival equalsString = V-F (V-builtin equalsString refl (skipTerm base) _ _)
+ival encodeUtf8 = V-F (V-builtin encodeUtf8 refl base _ _)
+ival decodeUtf8 = V-F (V-builtin decodeUtf8 refl base _ _)
+ival fstPair = V-F (V-builtin fstPair refl base _ _)
+ival sndPair = V-F (V-builtin sndPair refl base _ _)
+ival nullList = V-F (V-builtin nullList refl base _ _)
+ival headList = V-F (V-builtin headList refl base _ _)
+ival tailList = V-F (V-builtin tailList refl base _ _)
+ival chooseList = V-builtin⋆ chooseList refl (skipType (skipTerm (skipTerm (skipTerm base)))) _ _
+ival constrData = V-F (V-builtin constrData refl (skipTerm base) _ _)
+ival mapData = V-F (V-builtin mapData refl base _ _)
+ival listData = V-F (V-builtin listData refl base _ _)
+ival iData = V-F (V-builtin iData refl base _ _)
+ival bData = V-F (V-builtin bData refl base _ _)
+ival unconstrData = V-F (V-builtin unconstrData refl base _ _)
+ival unMapData = V-F (V-builtin unMapData refl base _ _)
+ival unListData = V-F (V-builtin unListData refl base _ _)
+ival unIData = V-F (V-builtin unIData refl base _ _)
+ival unBData = V-F (V-builtin unBData refl base _ _)
+ival equalsData = V-F (V-builtin equalsData refl (skipTerm base) _ _)
+ival chooseData = V-F (V-builtin chooseData refl (skipTerm (skipTerm (skipTerm (skipTerm (skipTerm base))))) _ _)
+ival chooseUnit = V-F (V-builtin chooseUnit refl (skipTerm base) _ _)
+ival mkPairData = V-F (V-builtin mkPairData refl (skipTerm base) _ _)
+ival mkNilData = V-F (V-builtin mkNilData refl base _ _)
+ival mkNilPairData = V-F (V-builtin mkNilPairData refl base _ _)
+ival mkConsData = V-F (V-builtin mkConsData refl (skipTerm base) _ _)
 
 progress : (t : 0 ⊢) → Progress t
 progress (` ())

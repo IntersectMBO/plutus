@@ -15,7 +15,6 @@ open import Algorithmic.Evaluation
 open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term
-open import Builtin.Signature
 
 open import Function
 open import Agda.Builtin.Nat

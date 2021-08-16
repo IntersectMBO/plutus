@@ -53,12 +53,44 @@ arity ifThenElse = 3
 arity charToString = 1
 arity append = 2
 arity trace = 1
-arity _ = 0 -- TODO: add support for remaining builtins
+arity equalsString = 2
+arity encodeUtf8 = 1
+arity decodeUtf8 = 1
+arity fstPair = 1
+arity sndPair = 1
+arity nullList = 1
+arity headList = 1
+arity tailList = 1
+arity chooseList = 3
+arity constrData = 2
+arity mapData = 1
+arity listData = 1
+arity iData = 1
+arity bData = 1
+arity unconstrData = 1
+arity unMapData = 1
+arity unListData = 1
+arity unIData = 1
+arity unBData = 1
+arity equalsData = 2
+arity chooseData = 6
+arity chooseUnit = 2
+arity mkPairData = 2
+arity mkNilData = 1
+arity mkNilPairData = 1
+arity mkConsData = 2
 
 arity⋆ : Builtin → ℕ
 arity⋆ ifThenElse = 1
+arity⋆ fstPair = 2
+arity⋆ sndPair = 2
+arity⋆ nullList = 1
+arity⋆ headList = 1
+arity⋆ tailList = 1
+arity⋆ chooseList = 2
+arity⋆ chooseData = 1
+arity⋆ chooseUnit = 1
 arity⋆ _ = 0
-
 open import Type
 
 data ScopedTy (n : ℕ) : Set

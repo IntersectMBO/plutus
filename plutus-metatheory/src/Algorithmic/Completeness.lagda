@@ -106,16 +106,17 @@ lemσ σ C _ refl q = trans
 -- this should be a lemma in NBE/RenSubst
 -- subNf (nf ∘ σ) (nf C) ≡ nf (sub σ C)
 
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type  Ctx⋆ (_⊢Nf⋆ *)
 
-lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon)
-  → con tcn ≡ substEq (_⊢Nf⋆ *) p (con tcn)
-lemcon refl tcn = refl
+--lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon _)
+--  → con tcn ≡ substEq (_⊢Nf⋆ *) p (con {!tcn!})
+-- lemcon refl tcn = refl
 
-substTC : ∀{Φ Φ' : Ctx⋆}(p : Φ ≡ Φ')(tcn : TyCon)
-  → NTermCon.TermCon {Φ = Φ} (con tcn)
-  → NTermCon.TermCon {Φ = Φ'}(con tcn)
-substTC refl tcn t = t
+
+--substTC : ∀{Φ Φ' : Ctx⋆}(p : Φ ≡ Φ')(tcn : TyCon _)
+--  → NTermCon.TermCon {Φ = Φ} (con tcn)
+--  → NTermCon.TermCon {Φ = Φ'}(con tcn)
+--substTC refl tcn t = t
 
 nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []

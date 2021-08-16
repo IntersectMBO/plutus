@@ -38,7 +38,8 @@ open import Utils
 open import Untyped
 open import Scoped.CK
 open import Algorithmic
-open import Algorithmic.ReductionEC
+open import Algorithmic.ReductionEC hiding (Term;Type)
+open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV
 open import Algorithmic.Erasure
