@@ -133,11 +133,6 @@
           "Cardano/ChainIndex/Client"
           "Cardano/ChainIndex/Server"
           "Cardano/ChainIndex/Types"
-          "Cardano/Metadata/API"
-          "Cardano/Metadata/Client"
-          "Cardano/Metadata/Mock"
-          "Cardano/Metadata/Server"
-          "Cardano/Metadata/Types"
           "Cardano/Node/API"
           "Cardano/Node/Client"
           "Cardano/Node/Mock"
@@ -413,8 +408,6 @@
           buildable = true;
           modules = [
             "Cardano/Api/NetworkId/ExtraSpec"
-            "Cardano/Metadata/ServerSpec"
-            "Cardano/Metadata/TypesSpec"
             "Cardano/Wallet/ServerSpec"
             ];
           hsSourceDirs = [ "test/light" ];

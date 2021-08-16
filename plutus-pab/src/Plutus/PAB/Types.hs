@@ -12,7 +12,6 @@
 module Plutus.PAB.Types where
 
 import qualified Cardano.ChainIndex.Types  as ChainIndex
-import qualified Cardano.Metadata.Types    as Metadata
 import           Cardano.Node.Types        (MockServerConfig (..))
 import qualified Cardano.Wallet.Types      as Wallet
 import           Control.Lens.TH           (makePrisms)
@@ -43,7 +42,6 @@ data PABError
     | WalletClientError ClientError
     | NodeClientError ClientError
     | RandomTxClientError ClientError
-    | MetadataError Metadata.MetadataError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
     | ContractCommandError Int Text -- ?
@@ -68,7 +66,6 @@ instance Pretty PABError where
         WalletClientError e        -> "Wallet client error:" <+> viaShow e
         NodeClientError e          -> "Node client error:" <+> viaShow e
         RandomTxClientError e      -> "Random tx client error:" <+> viaShow e
-        MetadataError e            -> "Metadata error:" <+> viaShow e
         ChainIndexError e          -> "Chain index error:" <+> viaShow e
         WalletError e              -> "Wallet error:" <+> pretty e
         ContractCommandError i t   -> "Contract command error:" <+> pretty i <+> pretty t
@@ -112,7 +109,6 @@ data Config =
         { dbConfig                :: DbConfig
         , walletServerConfig      :: Wallet.WalletConfig
         , nodeServerConfig        :: MockServerConfig
-        , metadataServerConfig    :: Metadata.MetadataConfig
         , pabWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , requestProcessingConfig :: RequestProcessingConfig
@@ -125,7 +121,6 @@ defaultConfig =
     { dbConfig = def
     , walletServerConfig = def
     , nodeServerConfig = def
-    , metadataServerConfig = def
     , pabWebserverConfig = def
     , chainIndexConfig = def
     , requestProcessingConfig = def

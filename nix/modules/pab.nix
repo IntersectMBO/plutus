@@ -64,9 +64,6 @@ let
       };
     };
 
-    metadataServerConfig = {
-      mdBaseUrl = "http://localhost:${builtins.toString cfg.metadataPort}";
-    };
   };
 
   pabYaml = pkgs.writeText "pab.yaml" (builtins.toJSON pabConfig);
@@ -157,14 +154,6 @@ in
       default = 8084;
       description = ''
         Port of the pab 'signing process' component.
-      '';
-    };
-
-    metadataPort = mkOption {
-      type = types.port;
-      default = 8085;
-      description = ''
-        Port of the pab 'metadata' component.
       '';
     };
 

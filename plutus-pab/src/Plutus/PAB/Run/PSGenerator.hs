@@ -18,19 +18,15 @@ module Plutus.PAB.Run.PSGenerator
     , pabTypes
     ) where
 
-import           Cardano.Metadata.Types                     (AnnotatedSignature, HashFunction, Property, PropertyKey,
-                                                             Subject, SubjectProperties)
 import           Cardano.Wallet.Types                       (WalletInfo)
 import           Control.Applicative                        ((<|>))
-import           Control.Lens                               (set, view, (&))
+import           Control.Lens                               (set, (&))
 import           Control.Monad.Freer.Extras.Log             (LogLevel, LogMessage)
 import           Data.Proxy                                 (Proxy (Proxy))
 import qualified Data.Text                                  as Text
 import           Data.Typeable                              (Typeable)
-import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, equal, genericShow,
-                                                             haskType, mkSumType, order, typeModule, typeName,
-                                                             writePSTypesWith, (^==))
+import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
+                                                             equal, genericShow, mkSumType, order, writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
@@ -66,20 +62,7 @@ pabBridge =
     PSGenerator.Common.ledgerBridge <|>
     PSGenerator.Common.servantBridge <|>
     PSGenerator.Common.miscBridge <|>
-    metadataBridge <|>
     defaultBridge
-
--- Some of the metadata types have a datakind type parameter that
--- PureScript won't support, so we must drop it.
-metadataBridge :: BridgePart
-metadataBridge = do
-  (typeName ^== "Property")
-    <|> (typeName ^== "SubjectProperties")
-    <|> (typeName ^== "AnnotatedSignature")
-  typeModule ^== "Cardano.Metadata.Types"
-  moduleName <- view (haskType . typeModule)
-  name <- view (haskType . typeName)
-  pure $ TypeInfo "plutus-pab" moduleName name []
 
 data PabBridge
 
@@ -112,14 +95,6 @@ pabTypes =
     -- Logging types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @LogLevel)
-
-    -- Metadata types
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @Subject)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(SubjectProperties A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Property A))
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @PropertyKey)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @HashFunction)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))
 
     -- Web API types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractActivationArgs A))

@@ -12,7 +12,6 @@
 module Plutus.PAB.Monitoring.PABLogMsg(
     PABLogMsg(..),
     ChainIndexServerMsg,
-    MetadataLogMessage,
     WalletMsg,
     MockServerLogMsg,
     AppMsg(..),
@@ -29,7 +28,6 @@ import           GHC.Generics                     (Generic)
 import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
 import           Cardano.BM.Data.Tracer.Extras    (StructuredLog, Tagged (..), mkObjectStr)
 import           Cardano.ChainIndex.Types         (ChainIndexServerMsg)
-import           Cardano.Metadata.Types           (MetadataLogMessage)
 import           Cardano.Node.Types               (MockServerLogMsg)
 import           Cardano.Wallet.Types             (WalletMsg)
 import           Data.Aeson.Text                  (encodeToLazyText)
@@ -71,7 +69,6 @@ data PABLogMsg t =
     SCoreMsg (CoreMsg t)
     | SChainIndexServerMsg ChainIndexServerMsg
     | SWalletMsg WalletMsg
-    | SMetaDataLogMsg MetadataLogMessage
     | SMockserverLogMsg MockServerLogMsg
     | SMultiAgent (PABMultiAgentMsg t)
     deriving stock (Generic)
@@ -85,7 +82,6 @@ instance Pretty (ContractDef t) => Pretty (PABLogMsg t) where
         SCoreMsg m             -> pretty m
         SChainIndexServerMsg m -> pretty m
         SWalletMsg m           -> pretty m
-        SMetaDataLogMsg m      -> pretty m
         SMockserverLogMsg m    -> pretty m
         SMultiAgent m          -> pretty m
 
@@ -128,35 +124,30 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         SCoreMsg m             -> toObject v m
         SChainIndexServerMsg m -> toObject v m
         SWalletMsg m           -> toObject v m
-        SMetaDataLogMsg m      -> toObject v m
         SMockserverLogMsg m    -> toObject v m
         SMultiAgent m          -> toObject v m
 
 -- | FIXME: Redundant?
 data PABMultiAgentMsg t =
     EmulatorMsg EmulatorEvent
-    | MetadataLog MetadataLogMessage
     | ContractInstanceLog (ContractInstanceMsg t)
     | UserLog T.Text
     | SqlLog String
     | PABStateRestored
     | RestoringPABState
     | StartingPABBackendServer Int
-    | StartingMetadataServer Int
     | WalletBalancingMsg Wallet TxBalanceMsg
     deriving stock Generic
 
 instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PABMultiAgentMsg t) where
     toObject v = \case
         EmulatorMsg e              -> mkObjectStr "emulator message" (Tagged @"payload" e)
-        MetadataLog m              -> toObject v m
         ContractInstanceLog m      -> toObject v m
         UserLog t                  -> toObject v t
         SqlLog s                   -> toObject v s
         RestoringPABState          -> mkObjectStr "Restoring PAB state ..." ()
         PABStateRestored           -> mkObjectStr "PAB state restored." ()
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
-        StartingMetadataServer i   -> mkObjectStr "starting backend server" (Tagged @"port" i)
         WalletBalancingMsg w m     -> mkObjectStr "balancing" (Tagged @"wallet" w, Tagged @"message" m)
 
 deriving stock instance (Show (ContractDef t)) => Show (PABMultiAgentMsg t)
@@ -166,7 +157,6 @@ deriving anyclass instance (FromJSON (ContractDef t)) => FromJSON (PABMultiAgent
 instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
     pretty = \case
         EmulatorMsg m         -> pretty m
-        MetadataLog m         -> pretty m
         ContractInstanceLog m -> pretty m
         UserLog m             -> pretty m
         SqlLog m              -> pretty m
@@ -174,8 +164,6 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         PABStateRestored      -> "PAB state restored."
         StartingPABBackendServer port ->
             "Starting PAB backend server on port:" <+> pretty port
-        StartingMetadataServer port ->
-            "Starting metadata server on port:" <+> pretty port
         WalletBalancingMsg w m -> pretty w <> colon <+> pretty m
 
 data CoreMsg t =
