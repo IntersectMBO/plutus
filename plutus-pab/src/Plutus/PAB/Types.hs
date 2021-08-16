@@ -160,7 +160,7 @@ defaultWebServerConfig :: WebserverConfig
 defaultWebServerConfig =
   WebserverConfig
     -- See Note [pab-ports] in test/full/Plutus/PAB/CliSpec.hs.
-    { baseUrl              = BaseUrl Http "localhost" 9080 ""
+    { baseUrl              = BaseUrl Http "127.0.0.1" 9080 ""
     , staticDir            = Nothing
     , permissiveCorsPolicy = False
     , endpointTimeout      = Nothing

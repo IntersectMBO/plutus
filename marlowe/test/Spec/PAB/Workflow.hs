@@ -152,15 +152,15 @@ marloweCompanionFollowerContractExample = do
 
   followerId <- runApi $ activateContract $ ContractActivationArgs { caID = MarloweFollower, caWallet = wallet }
 
-  -- sleep 2
+  sleep 2
 
-  -- mp <- runWs companionContractId $ waitForState extractMarloweParams
+  mp <- runWs companionContractId $ waitForState extractMarloweParams
 
-  -- runWs followerId $ waitForEndpoint "follow"
+  runWs followerId $ waitForEndpoint "follow"
 
-  -- runApi $ callEndpointOnInstance followerId "follow" mp
+  runApi $ callEndpointOnInstance followerId "follow" mp
 
-  -- _ <- runWs followerId $ waitForState extractFollowState
+  _ <- runWs followerId $ waitForState extractFollowState
 
   -- We're happy if the above call completes.
 
