@@ -229,7 +229,10 @@ dissect-lemma (unwrap E) F
 
 open import Builtin
 
-lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) -→s (E ◅ V)
+postulate
+  lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) -→s (E ◅ V)
+
+{-
 lemV .(ƛ M)        (V-ƛ M)      E = step* refl base
 lemV .(Λ M)        (V-Λ M)      E = step* refl base
 lemV .(wrap _ _ _) (V-wrap V)   E = step*
@@ -651,7 +654,117 @@ lemV M (V-IΠ append {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] �
 ... | X ,, Y ,, ()
 lemV M (V-IΠ trace {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
 ... | X ,, Y ,, ()
+lemV .(ibuiltin equalsString) (V-I⇒ equalsString (start .(arity equalsString)) base) E = step* refl base
+lemV M (V-I⇒ equalsString (bubble {as = az} p) x) E
+  with <>>-cancel-both' az _ ([] <>< arity equalsString) _ p refl
+lemV .(ibuiltin equalsString · _) (V-I⇒ equalsString (bubble {as = _} (start .(arity equalsString))) (step .(start (arity equalsString)) base v)) E | refl ,, refl ,, refl = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· _))) (step** (lemV _ v (extEC E _)) (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
+lemV M (V-I⇒ encodeUtf8 {as = as} p x) E
+  with <>>-cancel-both' as _ ([] <>< arity encodeUtf8) _ p refl
+lemV M (V-I⇒ encodeUtf8 (start _) base) E | refl ,, refl ,, refl =
+  step* refl base
+lemV M (V-I⇒ decodeUtf8 {as = as} p x) E
+  with <>>-cancel-both' as _ ([] <>< arity decodeUtf8) _ p refl
+lemV M (V-I⇒ decodeUtf8 (start _) base) E | refl ,, refl ,, refl =
+  step* refl base
+lemV M (V-I⇒ fstPair (bubble (bubble {as = as} p)) x) E
+  with <>>-cancel-both' as _ ([] <>< arity fstPair) _ p refl
+lemV M (V-I⇒ fstPair (bubble (bubble (start .(arity fstPair)))) x) E | refl ,, refl ,, refl with BApp2BAPP x
+lemV (ibuiltin fstPair ·⋆ A ·⋆ B) (V-I⇒ fstPair (bubble (bubble (start .(arity fstPair)))) (step⋆ .(bubble (start (arity fstPair))) (step⋆ .(start (arity fstPair)) base))) E | refl ,, refl ,, refl | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ [])) base refl refl) refl refl = step*
+  refl
+  (step* refl
+         (step* refl
+                (step* (cong (stepV _) (dissect-lemma (extEC E (-·⋆ B))(-·⋆ A)))
+            (step* (cong (stepV _) (dissect-lemma E (-·⋆ _)))
+                   base))))
+lemV M (V-I⇒ sndPair (bubble (bubble {as = as} p)) x) E
+  with <>>-cancel-both' as _ ([] <>< arity sndPair) _ p refl
+lemV M (V-I⇒ sndPair (bubble (bubble (start .(arity sndPair)))) x) E | refl ,, refl ,, refl with BApp2BAPP x
+lemV (ibuiltin sndPair ·⋆ A ·⋆ B) (V-I⇒ sndPair (bubble (bubble (start .(arity sndPair)))) (step⋆ .(bubble (start (arity sndPair))) (step⋆ .(start (arity sndPair)) base))) E | refl ,, refl ,, refl | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ [])) base refl refl) refl refl = step*
+  refl
+  (step* refl
+         (step* refl
+                (step* (cong (stepV _) (dissect-lemma (extEC E (-·⋆ B))(-·⋆ A)))
+            (step* (cong (stepV _) (dissect-lemma E (-·⋆ _)))
+                   base))))
+lemV M (V-I⇒ nullList (bubble {as = as} p) x) E
+  with <>>-cancel-both' as _ ([] <>< arity nullList) _ p refl
+lemV M (V-I⇒ nullList (bubble (start .(arity nullList))) x) E | refl ,, refl ,, refl with BApp2BAPP x
+lemV (ibuiltin nullList ·⋆ A) (V-I⇒ nullList (bubble (start .(arity nullList))) (step⋆ .(start (arity nullList)) base)) E | refl ,, refl ,, refl | step⋆ .(start (Type ∷ Term ∷ [])) base refl refl = step*
+  refl
+  (step* refl (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
+lemV M (V-I⇒ headList (bubble {as = as} p) x) E
+  with <>>-cancel-both' as _ ([] <>< arity headList) _ p refl
+lemV M (V-I⇒ headList (bubble (start .(arity headList))) x) E | refl ,, refl ,, refl with BApp2BAPP x
+lemV (ibuiltin headList ·⋆ A) (V-I⇒ headList (bubble (start .(arity headList))) (step⋆ .(start (arity headList)) base)) E | refl ,, refl ,, refl | step⋆ .(start (Type ∷ Term ∷ [])) base refl refl = step*
+  refl
+  (step* refl (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
+lemV M (V-I⇒ tailList (bubble {as = as} p) x) E
+  with <>>-cancel-both' as _ ([] <>< arity tailList) _ p refl
+lemV M (V-I⇒ tailList (bubble (start .(arity tailList))) x) E | refl ,, refl ,, refl with BApp2BAPP x
+lemV (ibuiltin tailList ·⋆ A) (V-I⇒ tailList (bubble (start .(arity tailList))) (step⋆ .(start (arity tailList)) base)) E | refl ,, refl ,, refl | step⋆ .(start (Type ∷ Term ∷ [])) base refl refl = step*
+  refl
+  (step* refl (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
+lemV M (V-I⇒ chooseList (bubble (bubble (start .(arity chooseList)))) x) E with BApp2BAPP x
+lemV (ibuiltin chooseList ·⋆ A ·⋆ B) (V-I⇒ chooseList (bubble (bubble (start .(arity chooseList)))) (step⋆ .(bubble (start (arity chooseList))) (step⋆ .(start (arity chooseList)) base))) E | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) refl refl = step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC E (-·⋆ B)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma E (-·⋆ B))) base))))
+lemV M (V-I⇒ chooseList (bubble (bubble (bubble (start .(arity chooseList))))) x) E with BApp2BAPP x
+lemV ((ibuiltin chooseList ·⋆ A ·⋆ B) · M) (V-I⇒ chooseList (bubble (bubble (bubble (start .(arity chooseList))))) (step .(bubble (bubble (start (arity chooseList)))) (step⋆ .(bubble (start (arity chooseList))) (step⋆ .(start (arity chooseList)) base)) x₂)) E | step .(bubble (bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) refl refl) x₁ = step* refl (step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· M)) (-·⋆ B)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· M)) (-·⋆ B))) (step* (cong (stepV _) (dissect-lemma E (-· M))) (step** (lemV M x₂ (extEC E (_ ·-))) (step* (cong (stepV x₂) (dissect-lemma E (_ ·-))) base))))))))
+lemV M (V-I⇒ chooseList (bubble (bubble (bubble (bubble {as = as} p)))) x) E
+  with <>>-cancel-both' as _ ([] <>< arity chooseList) _ p refl
+lemV .((_ · _) · _) (V-I⇒ chooseList (bubble (bubble (bubble (bubble {as = _} (start .(arity chooseList)))))) (step .(bubble (bubble (bubble (start (arity chooseList))))) (step .(bubble (bubble (start (arity chooseList)))) x x₂) x₁)) E | refl ,, refl ,, refl with BApp2BAPP x
+lemV (((ibuiltin chooseList ·⋆ A ·⋆ B) · M) · N) (V-I⇒ chooseList (bubble (bubble (bubble (bubble {_} {_} {.[]} (start .(arity chooseList)))))) (step .(bubble (bubble (bubble (start (arity chooseList))))) (step .(bubble (bubble (start (arity chooseList)))) (step⋆ .(bubble (start (arity chooseList))) (step⋆ .(start (arity chooseList)) base)) x₂) x₁)) E | refl ,, refl ,, refl | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) refl refl = step* refl (step* refl (step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC (extEC (extEC E (-· N)) (-· M)) (-·⋆ B)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· N)) (-· M)) (-·⋆ B))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· N)) (-· M))) (step** (lemV M x₂ (extEC (extEC E (-· N)) (_ ·-))) (step* (cong (stepV x₂) (dissect-lemma (extEC E (-· N)) (_ ·-))) (step* (cong (stepV _) (dissect-lemma E (-· N))) (step** (lemV N x₁ (extEC E (_ ·-))) (step* (cong (stepV x₁) (dissect-lemma E (_ ·-))) base))))))))))))
+lemV M (V-I⇒ constrData p x) E = {!!}
+lemV M (V-I⇒ mapData p x) E = {!!}
+lemV M (V-I⇒ listData p x) E = {!!}
+lemV M (V-I⇒ iData p x) E = {!!}
+lemV M (V-I⇒ bData p x) E = {!!}
+lemV M (V-I⇒ unconstrData p x) E = {!!}
+lemV M (V-I⇒ unMapData p x) E = {!!}
+lemV M (V-I⇒ unListData p x) E = {!!}
+lemV M (V-I⇒ unIData p x) E = {!!}
+lemV M (V-I⇒ unBData p x) E = {!!}
+lemV M (V-I⇒ equalsData p x) E = {!!}
+lemV M (V-I⇒ chooseData p x) E = {!!}
+lemV M (V-I⇒ chooseUnit p x) E = {!!}
+lemV M (V-I⇒ mkPairData p x) E = {!!}
+lemV M (V-I⇒ mkNilData p x) E = {!!}
+lemV M (V-I⇒ mkNilPairData p x) E = {!!}
+lemV M (V-I⇒ mkConsData p x) E = {!!}
 
+lemV M (V-IΠ fstPair {as = []} p x) E = {!!}
+lemV M (V-IΠ sndPair {as = []} p x) E = {!!}
+lemV M (V-IΠ nullList {as = []} p x) E = {!!}
+lemV M (V-IΠ headList {as = []} p x) E = {!!}
+lemV M (V-IΠ tailList {as = []} p x) E = {!!}
+lemV M (V-IΠ chooseList {as = []} p x) E = {!!}
+lemV M (V-IΠ chooseData {as = []} p x) E = {!!}
+lemV M (V-IΠ chooseUnit {as = []} p x) E = {!!}
+lemV M (V-IΠ equalsString {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ encodeUtf8 {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ decodeUtf8 {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ fstPair {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ sndPair {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ nullList {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ headList {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ tailList {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ chooseList {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ constrData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ mapData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ listData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ iData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ bData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ unconstrData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ unMapData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ unListData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ unIData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ unBData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ equalsData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ chooseData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ chooseUnit {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ mkPairData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ mkNilData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ mkNilPairData {as = as ∷ x} (bubble p) x₁) E = {!!}
+lemV M (V-IΠ mkConsData {as = as ∷ x} (bubble p) x₁) E = {!!}
+-}
 lem62 : ∀{A B C}(L : ∅ ⊢ C)(E : EC A B)(E' : EC B C)
       → (E ▻ (E' [ L ]ᴱ)) -→s (compEC' E E' ▻ L)
 lem62 L E []          = base
