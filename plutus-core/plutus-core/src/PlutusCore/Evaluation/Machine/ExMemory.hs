@@ -67,8 +67,9 @@ their cost around to something that looks below the budget.
 
 So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithmetic.
 
-'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know why that would be, apart from maybe
-just the overflow checks), but the wrapping behaviour of 'Int64' is unacceptable..
+'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know
+why that would be, apart from maybe just the overflow checks), but the wrapping behaviour
+of 'Int64' is unacceptable..
 
 One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
 with platform-dependent size), rather than an 'Int64' since the primops that we
@@ -164,9 +165,7 @@ instance ExMemoryUsage Char where
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
--- TODO: The generic instance will traverse the list every time, which is
--- bad. We need some sensible solution here in future.
--- FIXME: Let's just go for a naive traversal for now.
+-- Memory usage for lists: let's just go for a naive traversal for now.
 instance ExMemoryUsage a => ExMemoryUsage [a] where
     memoryUsage = sizeList
         where sizeList =
@@ -174,30 +173,34 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
                    []   -> 0
                    x:xs -> memoryUsage x + sizeList xs
 
-{- Another naive traversal for size.  This only accounts for the number of nodes
- in the Data object, not the sizes of their contents.  I think that's the right
- thing to do, but it means that when we're benchmarking the Data operations
- (especially equalsData) we should do it on objects with simple contents like
- small integers to avoid also measuring costs for eg large bytestrings.  At
- execution time this should be OK because the apppropriate costing functions (eg
- for comparing bytestrings) *will* be run then, and we just have to account for
- the overhead of processing the tree.  It's also important here that arguments
- to costing functions are lazily evaluated, because we don't want traverse a
- Data object when we're doing something like unBData which just looks at the top
- constructor.
+{- Another naive traversal for size.  This accounts for the number of nodes in a
+   Data object, and also the sizes of the contents of the nodes.  This is not
+   ideal, but it seems to be the best we can do.  At present this only comes
+   into play for 'equalsData', which is implemented using the derived
+   implementation of '==' (fortunately the costing functions are lazy, so this
+   won't be called for things like 'unBData' which have constant costing
+   functions because they only have to look at the top node).  The problem is
+   that when we call 'equalsData' the comparison will take place entirely in Haskell,
+   so the costing functions for the contents of 'I' and 'B' nodes won't be called.
+   Thus if we just counted the number of nodes the sizes of 'I 2' and
+   'B <huge bytestring>' would be the same but they'd take different amounts of
+   time to compare.  It's not clear how to trade off the costs of processing a
+   units per node, but we may wish to revise this after experimentationnode and
+   processing the contents of nodes: the implementation below compromises by charging
+   four units per node, but we may wish to revise this after experimentation.
 -}
-
 instance ExMemoryUsage Data where
     memoryUsage = sizeData
-        where sizeData =
-                \case
-                 Constr _ l -> 1 + sizeDataList l
-                 Map l      -> 1 + sizeDataPairs l
-                 List l     -> 1 + sizeDataList l
-                 I _        -> 1
-                 B _        -> 1
+        where sizeData d =
+                  nodeMem +
+                     case d of
+                       Constr _ l -> sizeDataList l
+                       Map l      -> sizeDataPairs l
+                       List l     -> sizeDataList l
+                       I n        -> memoryUsage n
+                       B b        -> memoryUsage b
+              nodeMem = 4
               sizeDataList []     = 0
               sizeDataList (d:ds) = sizeData d + sizeDataList ds
               sizeDataPairs []           = 0
               sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
-
