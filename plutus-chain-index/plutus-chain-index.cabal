@@ -35,6 +35,7 @@ library
         Plutus.ChainIndex.Effects
         Plutus.ChainIndex.Emulator.DiskState
         Plutus.ChainIndex.Emulator.Handlers
+        Plutus.ChainIndex.Client
         Plutus.ChainIndex.Server
         Plutus.ChainIndex.Tx
         Plutus.ChainIndex.Types
@@ -62,7 +63,10 @@ library
         servant-server -any,
         stm -any,
         mtl -any,
-        warp -any
+        warp -any,
+        servant-client -any,
+        servant-client-core -any,
+        http-types -any
 
 test-suite plutus-chain-index-test
     import: lang

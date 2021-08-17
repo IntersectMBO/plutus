@@ -53,6 +53,9 @@
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+          (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+          (hsPkgs."servant-client-core" or (errorHandler.buildDepError "servant-client-core"))
+          (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
           ];
         buildable = true;
         modules = [
@@ -61,6 +64,7 @@
           "Plutus/ChainIndex/Effects"
           "Plutus/ChainIndex/Emulator/DiskState"
           "Plutus/ChainIndex/Emulator/Handlers"
+          "Plutus/ChainIndex/Client"
           "Plutus/ChainIndex/Server"
           "Plutus/ChainIndex/Tx"
           "Plutus/ChainIndex/Types"
