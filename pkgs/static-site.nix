@@ -1,4 +1,4 @@
-{ writeShellScriptBin, symlinkJoin, lib, writeText, lighttpd, root, port }:
+{ writeShellScriptBin, symlinkJoin, lib, writeText, lighttpd }: { root, port }:
 
 let
   config = writeText "lighttpd.conf" ''
