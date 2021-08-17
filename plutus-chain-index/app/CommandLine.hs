@@ -3,7 +3,7 @@ module CommandLine where
 
 import           Options.Applicative      (CommandFields, Mod, Parser, ParserInfo, argument, command, flag, fullDesc,
                                            header, help, helper, info, long, metavar, option, progDesc, short, str,
-                                           strOption, subparser, value, (<**>))
+                                           subparser, value, (<**>))
 
 import           Cardano.BM.Data.Severity
 
@@ -13,8 +13,6 @@ data Command =
       { outputFile :: !FilePath
       }
   | StartChainIndex -- ^ Start the chain index and connect it to a cardano node
-      { cardanoNodeSocket :: !FilePath
-      }
     deriving (Show)
 
 data AppConfig = AppConfig
@@ -32,13 +30,6 @@ optParser =
     <*> debuggingOutputParser
     <*> configParser
     <*> commandParser
-
-nodeSocketParser :: Parser FilePath
-nodeSocketParser =
-  strOption ( long "node-socket"
-           <> metavar "SOCKET"
-           <> short 's'
-           <> help "Path to the socket created by the cardano node" )
 
 loggingConfigParser :: Parser (Maybe FilePath)
 loggingConfigParser =
@@ -95,8 +86,5 @@ startChainIndexParser :: Mod CommandFields Command
 startChainIndexParser =
   command "start-index" $
   flip info (fullDesc <> progDesc "Start the chain index and connect it to a cardano node") $ do
-    socket <- nodeSocketParser
-    pure $ StartChainIndex
-      { cardanoNodeSocket = socket
-      }
+    pure StartChainIndex
 
