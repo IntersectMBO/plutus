@@ -160,6 +160,10 @@ defaultWebServerConfig :: WebserverConfig
 defaultWebServerConfig =
   WebserverConfig
     -- See Note [pab-ports] in test/full/Plutus/PAB/CliSpec.hs.
+    -- Note: The host here is set to 127.0.0.1 instead of localhost
+    -- because of a strange failure during running this on the mac-mini-1
+    -- instance on Hydra. See: https://jira.iohk.io/browse/SCP-2595 for more
+    -- information.
     { baseUrl              = BaseUrl Http "127.0.0.1" 9080 ""
     , staticDir            = Nothing
     , permissiveCorsPolicy = False
