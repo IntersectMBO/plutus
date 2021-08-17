@@ -1,21 +1,14 @@
 (let
-  (rec)
+  (nonrec)
   (termbind
     (strict)
     (vardecl value1 (fun (con integer) (con integer)))
-    (lam
-      x
-      (con integer)
-      (let
-        (rec)
-        (termbind
-          (strict)
-          (vardecl value2 (fun (con integer) (con integer)))
-          (lam y (con integer) [ value1 y ])
-        )
-        x
-      )
-    )
+    (lam x (con integer) x)
+  )
+  (termbind
+    (strict)
+    (vardecl value2 (fun (con integer) (con integer)))
+    (lam y (con integer) [ value1 y ])
   )
   (con integer 3)
 )
