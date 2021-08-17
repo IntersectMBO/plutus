@@ -18,6 +18,10 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
+Flag buildable
+  Description:   Whether this package is buildable
+  Default:       True
+
 common lang
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -125,6 +129,9 @@ library
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
+    if !flag(buildable)
+        buildable:          False
+
 test-suite plutus-ledger-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
@@ -146,3 +153,6 @@ test-suite plutus-ledger-test
         aeson -any,
         plutus-core -any,
         plutus-tx-plugin -any
+
+    if !flag(buildable)
+        buildable:          False
