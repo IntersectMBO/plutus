@@ -33,7 +33,7 @@ randomCekCosts =
                     }
 
 cekVarCostCpuKey :: Text.Text
-cekVarCostCpuKey = "cekVarCost-_exBudgetCPU"  -- This is the result of flatten . toJSON
+cekVarCostCpuKey = "cekVarCost-exBudgetCPU"  -- This is the result of flatten . toJSON
 
 randomCekCostModel :: CekCostModel
 randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel

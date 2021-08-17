@@ -173,7 +173,7 @@ testPredictOne haskellModelFun modelFun = propertyR $ do
       in
         (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
-    predictH x = coerce $ _exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
+    predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
     sizeGen = do
       x <- Gen.integral (Range.exponential 0 5000)
       pure x
@@ -198,7 +198,7 @@ testPredictTwo haskellModelFun modelFun = propertyR $ do
       in
         (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y = coerce $ _exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
+    predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
     sizeGen = do
       y <- Gen.integral (Range.exponential 0 5000)
       x <- Gen.integral (Range.exponential 0 5000)
@@ -225,7 +225,7 @@ testPredictThree haskellModelFun modelFun = propertyR $ do
       in
         (\t -> msToPs (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y z = coerce $ _exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
+    predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = do
       y <- Gen.integral (Range.exponential 0 5000)
       x <- Gen.integral (Range.exponential 0 5000)
