@@ -122,6 +122,8 @@
           marlowe-run-client = topLevel.marlowe-dashboard.client;
 
           marlowe-website = topLevel.marlowe-web;
+
+          plutus-docs = topLevel.docs.site;
         };
       }));
 }
