@@ -37,8 +37,15 @@ toComponents s =
       Just (p,q) -> p : (toComponents q)
 
 {- Compare two strings according to their components.  A difficulty arises
- because, for example, "file1" and "file01" have the same components but aren't
- equal: in cases like that we fall back on the original string ordering. -}
+   because, for example, "file1" and "file01" have the same components but aren't
+   equal: in cases like that we fall back on the original string ordering.  This
+   gives us, eg
+
+   "file" < "file0" < "file00" < "file000" < "file001" < "file01" < "file1" < "file02"
+
+   The standard ordering would be the same except that we'd have "file01" < "file02" < "file1"
+   at the end
+-}
 naturalCompare :: String -> String -> Ordering
 naturalCompare s1 s2 =
     let c1 = toComponents s1
