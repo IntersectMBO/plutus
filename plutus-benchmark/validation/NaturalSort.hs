@@ -4,7 +4,7 @@ module NaturalSort (naturalSort)
 where
 
 import           Data.Char (isDigit)
-import           Data.List (sort)
+import           Data.List (sortBy)
 
 {- | If we have the list of file names ["multisig-sm-1", "multisig-sm-2",
    "multisig-sm-10"] then Haskell's standard 'sort' function will return
@@ -48,5 +48,5 @@ naturalCompare s1 s2 =
        else compare c1 c2
 
 naturalSort :: [String] -> [String]
-naturalSort l = sortBy naturalCompare
+naturalSort = sortBy naturalCompare
 
