@@ -310,13 +310,13 @@ data Ctrex
     [U.Term Name DefaultUni DefaultFun ()]
 
 instance Show TestFail where
-  show (TypeError e)  = show e
-  show (GenError e)   = show e
-  show (Ctrex e)      = show e
-  show (AgdaErrorP e) = show e
-  show (FVErrorP e)   = show e
-  show (CkP e)        = show e
-  show (UCekP e)      = show e
+  show (TypeError e)  = "type error: " ++ show e
+  show (GenError e)   = "generator error: " ++ show e
+  show (Ctrex e)      = "counter example error: " ++ show e
+  show (AgdaErrorP e) = "agda error: " ++ show e
+  show (FVErrorP e)   = "free variable error: " ++ show e
+  show (CkP e)        = "CK error: " ++ show e
+  show (UCekP e)      = "UCEK error: " ++ show e
 
 instance Show Ctrex where
   show (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2) =
