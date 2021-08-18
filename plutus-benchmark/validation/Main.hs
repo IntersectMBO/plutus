@@ -32,17 +32,17 @@ blockchain simulator and dumps the applied validators as flat-encoded
 scripts. Generating these scripts is a very lengthy process involving building a
 lot of code, so the scripts were generated once and copied to the 'data'
 directory here.  Type 'cabal run plutus-use-cases:plutus-use-cases-scripts
-plutus-benchmark/validation/data' in the root directory of the Plutus repository
-to regenerate them, but *be careful*. It's possible that the name of the files
-may change and you could be left with old files that still get benchmarked, so
-it might be a good idea to remove the old ones first (and remember that these
-are all checked in to git).  Also, the compiler output may have changed since he
-scripts were last generated and so the builtins used and so on could be
-different, which may confuse benchmark comparisons.  We might want to have two
-sets of benchmarks: one for a set of fixed scripts that let us benchmark the
-evaluator independently of other factors, and another which is generated anew
-every time to allow us to measure changes in the entire compilation/execution
-pipeline.
+plutus-benchmark/validation/data scripts' in the root directory of the Plutus
+repository to regenerate them, but *be careful*. It's possible that the name of
+the files may change and you could be left with old files that still get
+benchmarked, so it might be a good idea to remove the old ones first (and
+remember that these are all checked in to git).  Also, the compiler output may
+have changed since he scripts were last generated and so the builtins used and
+so on could be different, which may confuse benchmark comparisons.  We might
+want to have two sets of benchmarks: one for a set of fixed scripts that let us
+benchmark the evaluator independently of other factors, and another which is
+generated anew every time to allow us to measure changes in the entire
+compilation/execution pipeline.
 
 NB. Running these benchmarks with `stack bench` will use copies of the scripts
 in `.stack_work` (and accessed via Paths_plutus_benchmark), and if a file in

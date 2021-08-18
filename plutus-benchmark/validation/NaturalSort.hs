@@ -20,9 +20,6 @@ data Component =
     deriving (Eq, Ord, Show)
     -- Numeric < Other
 
-fromComponents :: [Component] -> String
-fromComponents = concatMap (\case Numeric n -> show n; Other s -> s)
-
 getComponent :: String -> Maybe (Component, String)
 getComponent "" = Nothing
 getComponent s@(c:_)
@@ -39,5 +36,17 @@ toComponents s =
       Nothing    -> []
       Just (p,q) -> p : (toComponents q)
 
+{- Compare two strings according to their components.  A difficulty arises
+ because, for example, "file1" and "file01" have the same components but aren't
+ equal: in cases like that we fall back on the original string ordering. -}
+naturalCompare :: String -> String -> Ordering
+naturalCompare s1 s2 =
+    let c1 = toComponents s1
+        c2 = toComponents s2
+    in if c1==c2
+       then compare s1 s2
+       else compare c1 c2
+
 naturalSort :: [String] -> [String]
-naturalSort l = map fromComponents $ sort (map toComponents l)
+naturalSort l = sortBy naturalCompare
+
