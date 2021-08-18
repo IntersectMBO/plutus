@@ -21,7 +21,7 @@ import           Control.DeepSeq                          (force)
 import           Control.Monad.Trans.Except               (runExceptT)
 import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as BSL
-import           Data.List                                (isPrefixOf, sort)
+import           Data.List                                (isPrefixOf)
 import           Flat
 import           System.Directory                         (listDirectory)
 import           System.FilePath

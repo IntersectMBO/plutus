@@ -3,8 +3,8 @@
 module NaturalSort (naturalSort)
 where
 
-import           Data.Char
-import           Data.List
+import           Data.Char (isDigit)
+import           Data.List (sort)
 
 {- | If we have the list of file names ["multisig-sm-1", "multisig-sm-2",
    "multisig-sm-10"] then Haskell's standard 'sort' function will return
@@ -25,7 +25,7 @@ fromComponents = concatMap (\case Numeric n -> show n; Other s -> s)
 
 getComponent :: String -> Maybe (Component, String)
 getComponent "" = Nothing
-getComponent s@(c:cs)
+getComponent s@(c:_)
     | isDigit c =
         case span isDigit s of
           (p,q) -> Just (Numeric (read p), q)
