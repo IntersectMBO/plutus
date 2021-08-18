@@ -131,7 +131,6 @@ library
         , plutus-ledger
         , plutus-tx
         , plutus-tx-plugin
-        , orphans
 
     build-depends:
         QuickCheck -any,
@@ -217,7 +216,8 @@ library
         beam-core -any,
         beam-sqlite -any,
         beam-migrate -any,
-        sqlite-simple -any
+        sqlite-simple -any,
+        orphans -any,
 
 executable plutus-pab-setup
     main-is:          Main.hs
