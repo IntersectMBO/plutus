@@ -21,6 +21,7 @@ import           PlutusTx.Compiler.Type
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
 import           PlutusTx.PIRTypes
+import           PlutusTx.Prelude              (trace)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import qualified PlutusTx.Builtins.Class       as Builtins
 
@@ -408,7 +409,7 @@ hoistExpr var t =
                 t' <-
                     if coProfile profileOpts==All then do
                         t'' <- compileExpr t
-                        return $ Builtins.trace "entering x" (\() -> Builtins.trace "exiting x" t'') ()
+                        return $ trace "entering x" (\() -> trace "exiting x" t'') ()
                     else compileExpr t
                     -- TODO add Some option
 
