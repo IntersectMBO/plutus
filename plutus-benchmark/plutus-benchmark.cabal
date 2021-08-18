@@ -132,6 +132,7 @@ benchmark validation
   hs-source-dirs:
       validation
   other-modules:
+      NaturalSort
       Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5

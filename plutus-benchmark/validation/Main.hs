@@ -10,6 +10,8 @@ import qualified PlutusCore                               as PLC
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
+import           NaturalSort
+
 import           Criterion.Main
 import           Criterion.Main.Options                   (Mode, parseWith)
 import           Criterion.Types                          (Config (..))
@@ -152,7 +154,8 @@ main = do
   options <- execParser $ parserInfo cfg
   scriptDirectory <- getScriptDirectory
   files0 <- listDirectory scriptDirectory  -- Just the filenames, not the full paths
-  let files1 = sort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
+  let files1 = naturalSort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
+               -- naturalSort puts the filenames in a better order than Data.List.Sort
       files = if quick options then files1 `withAnyPrefixFrom` quickPrefixes else files1
       benchmarks = mkBMs scriptDirectory files
   runMode (otherOptions options) benchmarks
