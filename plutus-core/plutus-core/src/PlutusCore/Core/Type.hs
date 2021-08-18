@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeApplications         #-}
@@ -44,6 +45,11 @@ import           Instances.TH.Lift        ()
 import           Language.Haskell.TH.Lift
 import           Universe
 
+import           Data.Function            ((&))
+import qualified Data.Swagger             as Swagger
+import qualified Data.Swagger.Schema      as Swagger
+import qualified GHC.Exts                 as Exts
+
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
 So don't use @deriving Eq@ for things with annotations.
@@ -53,6 +59,8 @@ data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+
+deriving instance Swagger.ToSchema ann => Swagger.ToSchema (Kind ann)
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -80,10 +88,22 @@ data Term tyname name uni fun ann
     | Error ann (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
+deriving instance
+    ( Swagger.ToSchema tyname
+    , Swagger.ToSchema name
+    , Swagger.ToSchema (uni ann)
+    , Swagger.ToSchema fun
+    , Swagger.ToSchema ann
+    , Swagger.ToSchema (Type tyname uni ann)
+    , Swagger.ToSchema (Some (ValueOf uni))
+    ) => Swagger.ToSchema (Term tyname name uni fun ann)
+
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
     deriving (Show, Functor, Generic, NFData, Hashable)
+
+deriving instance Swagger.ToSchema ann => Swagger.ToSchema (Version ann)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)

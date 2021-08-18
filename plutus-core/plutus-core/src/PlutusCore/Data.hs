@@ -14,13 +14,17 @@ import qualified Codec.CBOR.Term           as CBOR
 import           Codec.Serialise           (Serialise (decode, encode))
 import           Codec.Serialise.Decoding  (decodeSequenceLenIndef, decodeSequenceLenN)
 import           Control.DeepSeq           (NFData)
+import           Control.Lens              ((&), (.~), (?~))
 import           Control.Monad.Except
 import           Data.Bifunctor            (bimap)
 import qualified Data.ByteString           as BS
+import           Data.Proxy                (Proxy (..))
 import           Data.Text.Prettyprint.Doc
+import           GHC.Exts                  (IsList (..))
 import           GHC.Generics
 import           Prelude
 
+import qualified Data.Swagger              as Swagger
 import qualified Data.Swagger.Schema       as Swagger
 
 -- | A generic "data" type.
@@ -36,7 +40,26 @@ data Data =
     | I Integer
     | B BS.ByteString
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (NFData, Swagger.ToSchema)
+    deriving anyclass (NFData)
+
+instance Swagger.ToSchema Data where
+  declareNamedSchema _ = do
+    integerSchema <- Swagger.declareSchemaRef (Proxy :: Proxy Integer)
+    constrArgsSchema <- Swagger.declareSchemaRef (Proxy :: Proxy (Integer, [Data]))
+    mapArgsSchema <- Swagger.declareSchemaRef (Proxy :: Proxy [(Data, Data)])
+    listArgsSchema <- Swagger.declareSchemaRef (Proxy :: Proxy [Data])
+    bytestringSchema <- Swagger.declareSchemaRef (Proxy :: Proxy String)
+    return $ Swagger.NamedSchema (Just "Data") $ mempty
+      & Swagger.type_ ?~ Swagger.SwaggerObject
+      & Swagger.properties .~
+          fromList
+          [ ("Constr", constrArgsSchema)
+          , ("Map", mapArgsSchema)
+          , ("List", listArgsSchema)
+          , ("I", integerSchema)
+          , ("B", bytestringSchema)
+          ]
+
 
 instance Pretty Data where
     pretty = \case

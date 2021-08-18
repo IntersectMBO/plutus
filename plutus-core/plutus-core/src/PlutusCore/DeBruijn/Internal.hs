@@ -51,11 +51,13 @@ import           Control.DeepSeq           (NFData)
 import           ErrorCode
 import           GHC.Generics
 
+import qualified Data.Swagger.Schema       as Swagger
+
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural
     deriving stock Generic
     deriving newtype (Show, Num, Eq, Ord, Pretty)
-    deriving anyclass NFData
+    deriving anyclass (NFData, Swagger.ToSchema)
 
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
@@ -65,7 +67,7 @@ data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
 -- | A term name as a de Bruijn index, without the name string.
 newtype DeBruijn = DeBruijn { dbnIndex :: Index }
     deriving (Show, Generic)
-    deriving anyclass NFData
+    deriving anyclass (NFData, Swagger.ToSchema)
 
 -- | A type name as a de Bruijn index.
 newtype NamedTyDeBruijn = NamedTyDeBruijn NamedDeBruijn

@@ -85,15 +85,16 @@ import           PlutusTx.Prelude
 import qualified UntypedPlutusCore                        as UPLC
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
+import           Data.Proxy                               (Proxy (..))
 import qualified Data.Swagger                             as Swagger
-import qualified Data.Swagger.Schema                      as Swagger
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
 
 instance Swagger.ToSchema Script where
-    declareNamedSchema _ = Haskell.pure $ Swagger.NamedSchema (Just "Plutus Script") Haskell.mempty
+    declareNamedSchema _ =
+        Haskell.pure $ Swagger.NamedSchema (Just "Script") (Swagger.toSchema (Proxy :: Proxy String))
 
 {-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
@@ -240,12 +241,8 @@ instance BA.ByteArrayAccess Validator where
 newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData)
-  deriving (ToJSON, FromJSON, Serialise, NFData) via PLC.Data
+  deriving (ToJSON, FromJSON, Swagger.ToSchema, Serialise, NFData) via PLC.Data
   deriving Pretty via PLC.Data
-
-instance Swagger.ToSchema Datum where
-    declareNamedSchema _ = Haskell.pure $ Swagger.NamedSchema (Just "Datum") Haskell.mempty
-
 
 
 instance BA.ByteArrayAccess Datum where
@@ -258,10 +255,7 @@ instance BA.ByteArrayAccess Datum where
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq)
-  deriving (ToJSON, FromJSON, Serialise, NFData, Pretty) via PLC.Data
-
-instance Swagger.ToSchema Redeemer where
-    declareNamedSchema _ = Haskell.pure $ Swagger.NamedSchema (Just "Redeemer") Haskell.mempty
+  deriving (ToJSON, FromJSON, Swagger.ToSchema, Serialise, NFData, Pretty) via PLC.Data
 
 instance BA.ByteArrayAccess Redeemer where
     length =

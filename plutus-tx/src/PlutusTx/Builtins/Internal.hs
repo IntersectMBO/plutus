@@ -29,7 +29,6 @@ import           PlutusTx.Utils
 import           Prelude                   as Haskell
 
 import qualified Data.Swagger              as Swagger
-import qualified Data.Swagger.Schema       as Swagger
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.

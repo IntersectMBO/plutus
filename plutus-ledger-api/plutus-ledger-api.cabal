@@ -77,9 +77,8 @@ library
         tagged -any,
         lens -any,
         scientific -any,
-        swagger2,
-        orphans
-
+        swagger2
+    
 test-suite plutus-ledger-api-test
     import: lang
     type: exitcode-stdio-1.0

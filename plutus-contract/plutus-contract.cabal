@@ -102,8 +102,7 @@ library
         plutus-ledger -any,
         plutus-ledger-api -any,
         plutus-tx -any,
-        freer-extras -any,
-        orphans
+        freer-extras -any
     build-depends:
         cardano-api -any,
         cardano-ledger-core -any,
@@ -146,7 +145,8 @@ library
         warp -any,
         IntervalMap -any,
         QuickCheck -any,
-        swagger2
+        swagger2 -any,
+        orphans -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
