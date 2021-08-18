@@ -135,3 +135,4 @@ def setup(app):
             'enable_auto_toc_tree': False,
             }, True)
     app.add_transform(AutoStructify)
+    app.add_css_file("theme_overrides.css")
