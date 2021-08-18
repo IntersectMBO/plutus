@@ -24,12 +24,23 @@ import           Flat
 import           System.Directory                         (listDirectory)
 import           System.FilePath
 
-{-- | Benchmarks based on validations obtained using
+{- | Benchmarks based on validations obtained using
 plutus-use-cases:plutus-use-cases-scripts, which runs various contracts on the
 blockchain simulator and dumps the applied validators as flat-encoded
 scripts. Generating these scripts is a very lengthy process involving building a
 lot of code, so the scripts were generated once and copied to the 'data'
-directory here.
+directory here.  Type 'cabal run plutus-use-cases:plutus-use-cases-scripts
+plutus-benchmark/validation/data' in the root directory of the Plutus repository
+to regenerate them, but *be careful*. It's possible that the name of the files
+may change and you could be left with old files that still get benchmarked, so
+it might be a good idea to remove the old ones first (and remember that these
+are all checked in to git).  Also, the compiler output may have changed since he
+scripts were last generated and so the builtins used and so on could be
+different, which may confuse benchmark comparisons.  We might want to have two
+sets of benchmarks: one for a set of fixed scripts that let us benchmark the
+evaluator independently of other factors, and another which is generated anew
+every time to allow us to measure changes in the entire compilation/execution
+pipeline.
 
 NB. Running these benchmarks with `stack bench` will use copies of the scripts
 in `.stack_work` (and accessed via Paths_plutus_benchmark), and if a file in
@@ -42,52 +53,25 @@ be able to access the old copy in stack's files.  --}
 {- Note also that this directory (and any subdirectories) must be included in the
    "data-files" section of the cabal file to ensure that Paths_plutus_benchmark
    still works. -}
-
 getScriptDirectory :: IO FilePath
 getScriptDirectory = do
   root <- getDataDir
   return $ root </> "validation" </> "data"
 
-{- | Prefixes of filenames for different traces of contracts (a "trace" being a
-   sequence of validations for a run of the contract in a particular
-   scenario). The files are generated in plutus-use-cases/scripts/Main.hs.  The
-   prefixes make it a bit easier to construct benchmark groups for each
-   trace. It's important that no prefix is a prefix of another (so you can't
-   have "auction" and "auction2").
--}
-tracePrefixes :: [String]
-tracePrefixes =
-    [ "auction_1"
-    , "auction_2"
-    , "crowdfunding-success"
-    , "currency"
-    , "escrow-redeem"
-    , "escrow-reefund"
-    , "future-increase-margin"
-    , "future-pay-out"
-    , "future-settle-early"
-    , "game-sm-success_1"
-    , "game-sm-success_2"
-    , "multisig-sm"
-    , "ping-pong_1"
-    , "ping-pong_2"
-    , "prism"
-    , "pubkey"
-    , "stablecoin_1"
-    , "stablecoin_2"
-    , "token-account"
-    , "uniswap"
-    , "vesting"
-    ]
-
 -- | A small subset of the contracts for quick benchmarking
-tracePrefixes2 :: [String]
-tracePrefixes2 =
+quickPrefixes :: [String]
+quickPrefixes =
     [ "crowdfunding-success"
     , "prism"
     , "token-account"
     , "uniswap"
     ]
+
+-- Given two lists of strings l and ps, return the elements of l which have any
+-- element of ps as a prefix
+withAnyPrefixFrom :: [String] -> [String] -> [String]
+l `withAnyPrefixFrom` ps =
+    concatMap (\p -> filter (isPrefixOf p) l) ps
 
 type Term          = UPLC.Term    PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
 type Program       = UPLC.Program PLC.Name      PLC.DefaultUni PLC.DefaultFun ()
@@ -117,10 +101,9 @@ mkScriptBM :: FilePath -> FilePath -> Benchmark
 mkScriptBM dir file =
     env (loadFlat $ dir </> file) $ \script -> bench (dropExtension file) $ mkCekBM script
 
--- Make a benchmark group including benchmarks for all the files with the given prefix
-mkBMgroup :: FilePath -> [FilePath] -> String -> IO Benchmark
-mkBMgroup dir files prefix = do
-   return $ bgroup prefix $ fmap (mkScriptBM dir) (filter (isPrefixOf prefix) files)
+-- Make benchmarks for the given files in the directory
+mkBMs :: FilePath -> [FilePath] -> [Benchmark]
+mkBMs dir files = map (mkScriptBM dir) files
 
 
 ----------------------- Main -----------------------
@@ -169,7 +152,9 @@ main = do
   options <- execParser $ parserInfo cfg
   scriptDirectory <- getScriptDirectory
   files0 <- listDirectory scriptDirectory  -- Just the filenames, not the full paths
-  let files = sort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
-      prefixes = if quick options then tracePrefixes2 else tracePrefixes
-  benchmarks <- mapM (mkBMgroup scriptDirectory files) prefixes
+  let files1 = sort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
+      files = if quick options then files1 `withAnyPrefixFrom` quickPrefixes else files1
+      benchmarks = mkBMs scriptDirectory files
   runMode (otherOptions options) benchmarks
+
+
