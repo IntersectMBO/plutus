@@ -19,7 +19,7 @@ import           Control.DeepSeq                          (force)
 import           Control.Monad.Trans.Except               (runExceptT)
 import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as BSL
-import           Data.List                                (sort)
+import           Data.List                                (isPrefixOf, sort)
 import           Flat
 import           System.Directory                         (listDirectory)
 import           System.FilePath
@@ -39,37 +39,51 @@ be able to access the old copy in stack's files.  --}
 {- | The name of the directory where the scripts are kept.  This must match the
    location of the files relative to the directory containing the cabal file.
    IF THE DIRECTORY IS MOVED, THIS MUST BE UPDATED. -}
+{- Note also that this directory (and any subdirectories) must be included in the
+   "data-files" section of the cabal file to ensure that Paths_plutus_benchmark
+   still works. -}
+
 getScriptDirectory :: IO FilePath
 getScriptDirectory = do
   root <- getDataDir
   return $ root </> "validation" </> "data"
 
-{- | Subdirectories for different contracts. The hierarchical arrangement makes
-   it easier to group benchmarks. Any changes here should be reflected in the
-   "data-files" section of the cabal file to ensure that Paths_plutus_benchmark
-   still works. -}
-contractDirs :: [FilePath]
-contractDirs =
-    [ "auction"
-    , "crowdfunding"
+{- | Prefixes of filenames for different traces of contracts (a "trace" being a
+   sequence of validations for a run of the contract in a particular
+   scenario). The files are generated in plutus-use-cases/scripts/Main.hs.  The
+   prefixes make it a bit easier to construct benchmark groups for each
+   trace. It's important that no prefix is a prefix of another (so you can't
+   have "auction" and "auction2").
+-}
+tracePrefixes :: [String]
+tracePrefixes =
+    [ "auction_1"
+    , "auction_2"
+    , "crowdfunding-success"
     , "currency"
-    , "escrow"
-    , "future"
-    , "game-sm"
+    , "escrow-redeem"
+    , "escrow-reefund"
+    , "future-increase-margin"
+    , "future-pay-out"
+    , "future-settle-early"
+    , "game-sm-success_1"
+    , "game-sm-success_2"
     , "multisig-sm"
-    , "ping-pong"
+    , "ping-pong_1"
+    , "ping-pong_2"
     , "prism"
     , "pubkey"
-    , "stablecoin"
+    , "stablecoin_1"
+    , "stablecoin_2"
     , "token-account"
     , "uniswap"
     , "vesting"
     ]
 
 -- | A small subset of the contracts for quick benchmarking
-contractDirs2 :: [FilePath]
-contractDirs2 =
-    [ "crowdfunding"
+tracePrefixes2 :: [String]
+tracePrefixes2 =
+    [ "crowdfunding-success"
     , "prism"
     , "token-account"
     , "uniswap"
@@ -103,14 +117,10 @@ mkScriptBM :: FilePath -> FilePath -> Benchmark
 mkScriptBM dir file =
     env (loadFlat $ dir </> file) $ \script -> bench (dropExtension file) $ mkCekBM script
 
--- Make a benchmark group including benchmarks for all the files in a given directory.
-mkContractBMs :: FilePath -> IO Benchmark
-mkContractBMs dirName = do
-  scriptDirectory <- getScriptDirectory
-  let dirPath = scriptDirectory </> dirName
-  files <- listDirectory dirPath
-  let files' = sort $ filter (isExtensionOf ".flat") files  -- Just in case there's anything else in the directory.
-  return $ bgroup dirName $ fmap (mkScriptBM dirPath) files'
+-- Make a benchmark group including benchmarks for all the files with the given prefix
+mkBMgroup :: FilePath -> [FilePath] -> String -> IO Benchmark
+mkBMgroup dir files prefix = do
+   return $ bgroup prefix $ fmap (mkScriptBM dir) (filter (isPrefixOf prefix) files)
 
 
 ----------------------- Main -----------------------
@@ -157,7 +167,9 @@ main :: IO ()
 main = do
   cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
   options <- execParser $ parserInfo cfg
-  benchmarks <- if quick options
-                then mapM mkContractBMs contractDirs2
-                else mapM mkContractBMs contractDirs
+  scriptDirectory <- getScriptDirectory
+  files0 <- listDirectory scriptDirectory  -- Just the filenames, not the full paths
+  let files = sort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
+      prefixes = if quick options then tracePrefixes2 else tracePrefixes
+  benchmarks <- mapM (mkBMgroup scriptDirectory files) prefixes
   runMode (otherOptions options) benchmarks
