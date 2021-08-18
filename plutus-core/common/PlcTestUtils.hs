@@ -24,6 +24,7 @@ module PlcTestUtils (
     goldenUEval,
     goldenTEvalCatch,
     goldenUEvalCatch,
+    goldenUEvalProfile,
     NoMarkRenameT(..),
     noMarkRename,
     NoRenameT(..),
@@ -40,24 +41,25 @@ import           PlutusPrelude
 
 import           Common
 
-import qualified PlutusCore                               as TPLC
+import qualified PlutusCore                                           as TPLC
 import           PlutusCore.Check.Scoping
 import           PlutusCore.DeBruijn
 import           PlutusCore.Default.Universe
-import qualified PlutusCore.Evaluation.Machine.Ck         as TPLC
+import qualified PlutusCore.Evaluation.Machine.Ck                     as TPLC
 import           PlutusCore.Generators
 import           PlutusCore.Generators.AST
 import           PlutusCore.Pretty
-import qualified PlutusCore.Rename.Monad                  as TPLC
+import qualified PlutusCore.Rename.Monad                              as TPLC
 
-import qualified UntypedPlutusCore                        as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import qualified UntypedPlutusCore                                    as UPLC
+import qualified UntypedPlutusCore.Evaluation.Machine.Cek             as UPLC
+import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (logWithTimeEmitter)
 
 import           Control.Exception
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
-import qualified Data.Text.Prettyprint.Doc                as PP
+import qualified Data.Text.Prettyprint.Doc                            as PP
 import           Hedgehog
 import           System.IO.Unsafe
 import           Test.Tasty
@@ -136,6 +138,21 @@ runUPlc values = do
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
     liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit TPLC.defaultCekParameters t
 
+runUPlcProfile :: (Traversable t, ToUPlc a DefaultUni UPLC.DefaultFun) =>
+    t a
+    -> ExceptT
+     SomeException
+     IO
+     (UPLC.EvaluationResult
+        (UPLC.Term UPLC.Name DefaultUni UPLC.DefaultFun ()))
+runUPlcProfile values = do
+    ps <- traverse toUPlc values
+    let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
+    liftEither
+        $ first toException
+            $ TPLC.extractEvaluationResult
+                $ fst $ UPLC.evaluateCek logWithTimeEmitter TPLC.defaultCekParameters t
+
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
 
@@ -189,6 +206,12 @@ goldenUEvalCatch
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenUEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runUPlc values
+
+-- | Similar to @goldenUEval@ but with profiling turned on.
+goldenUEvalProfile
+    :: ToUPlc a DefaultUni TPLC.DefaultFun
+    => String -> [a] -> TestNested
+goldenUEvalProfile name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runUPlcProfile values)
 
 -- See Note [Marking].
 -- | A version of 'RenameT' that fails to take free variables into account.
