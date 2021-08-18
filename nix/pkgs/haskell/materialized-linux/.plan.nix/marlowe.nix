@@ -115,15 +115,26 @@
             (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
+            (hsPkgs."plutus-pab" or (errorHandler.buildDepError "plutus-pab"))
+            (hsPkgs."async" or (errorHandler.buildDepError "async"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
+            (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+            (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
+            (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
+            (hsPkgs."network" or (errorHandler.buildDepError "network"))
             ];
           buildable = true;
           modules = [
             "Spec/Marlowe/Common"
             "Spec/Marlowe/Marlowe"
             "Spec/Marlowe/AutoExecute"
+            "Spec/PAB/Workflow"
+            "MarloweContract"
             ];
-          hsSourceDirs = [ "test" ];
+          hsSourceDirs = [ "test" "pab" ];
           mainPath = [ "Spec.hs" ];
           };
         };

@@ -4,8 +4,8 @@ import Prelude hiding (div)
 import Css as Css
 import Data.Lens (view)
 import Data.List (toUnfoldable) as List
-import Data.Map (Map, lookup, values)
-import Data.Map (toUnfoldable) as Map
+import Data.Map (Map)
+import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple)
 import Data.Tuple.Nested ((/\))
@@ -21,9 +21,11 @@ import InputField.Types (State) as InputField
 import InputField.View (renderInput)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Extended.Metadata (ContractTemplate, MetaData, NumberFormat(..), _contractName, _metaData, _slotParameterDescriptions, _valueParameterDescription, _valueParameterFormat, _valueParameterInfo)
+import Data.Map.Ordered.OMap as OMap
 import Marlowe.Market (contractTemplates)
 import Marlowe.PAB (contractCreationFee)
 import Marlowe.Semantics (Assets, TokenName)
+import Marlowe.Template (orderContentUsingMetadata)
 import Material.Icons (Icon(..)) as Icon
 import Material.Icons (Icon, icon, icon_)
 import Popper (Placement(..))
@@ -285,7 +287,7 @@ slotParameter metaData (key /\ slotContentInput) =
   let
     slotParameterDescriptions = view _slotParameterDescriptions metaData
 
-    description = fromMaybe "no description available" $ lookup key slotParameterDescriptions
+    description = fromMaybe "no description available" $ OMap.lookup key slotParameterDescriptions
 
     value = view _value slotContentInput
   in
@@ -296,11 +298,11 @@ valueParameter metaData (key /\ valueContentInput) =
   let
     valueParameterFormats = map (view _valueParameterFormat) (view _valueParameterInfo metaData)
 
-    numberFormat = fromMaybe DefaultFormat $ lookup key valueParameterFormats
+    numberFormat = fromMaybe DefaultFormat $ OMap.lookup key valueParameterFormats
 
     valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
 
-    description = fromMaybe "no description available" $ lookup key valueParameterDescriptions
+    description = fromMaybe "no description available" $ OMap.lookup key valueParameterDescriptions
 
     value = view _value valueContentInput
 
@@ -339,7 +341,7 @@ roleInputs walletLibrary metaData roleWalletInputs =
   where
   roleInput (tokenName /\ roleWalletInput) =
     let
-      description = fromMaybe "no description available" $ lookup tokenName metaData.roleDescriptions
+      description = fromMaybe "no description available" $ Map.lookup tokenName metaData.roleDescriptions
     in
       templateInputItem tokenName description
         [ div
@@ -361,7 +363,7 @@ roleInputs walletLibrary metaData roleWalletInputs =
     , placeholder: "Choose any nickname"
     , readOnly: false
     , numberFormat: Nothing
-    , valueOptions: List.toUnfoldable $ values $ view _walletNickname <$> walletLibrary
+    , valueOptions: List.toUnfoldable $ Map.values $ view _walletNickname <$> walletLibrary
     }
 
 parameterInputs :: forall m. MonadAff m => MetaData -> Map String (InputField.State SlotError) -> Map String (InputField.State ValueError) -> ComponentHTML Action ChildSlots m
@@ -370,10 +372,10 @@ parameterInputs metaData slotContentInputs valueContentInputs =
     [ ul
         [ classNames [ "mb-4" ] ]
         $ valueInput
-        <$> Map.toUnfoldable valueContentInputs
+        <$> OMap.toUnfoldable (orderContentUsingMetadata valueContentInputs (OMap.keys metaData.valueParameterInfo))
     , ul_
         $ slotInput
-        <$> Map.toUnfoldable slotContentInputs
+        <$> OMap.toUnfoldable (orderContentUsingMetadata slotContentInputs (OMap.keys metaData.slotParameterDescriptions))
     ]
   where
   valueInput (key /\ inputField) =
@@ -382,9 +384,9 @@ parameterInputs metaData slotContentInputs valueContentInputs =
 
       valueParameterDescriptions = map (view _valueParameterDescription) (view _valueParameterInfo metaData)
 
-      numberFormat = fromMaybe DefaultFormat $ lookup key valueParameterFormats
+      numberFormat = fromMaybe DefaultFormat $ OMap.lookup key valueParameterFormats
 
-      description = fromMaybe "no description available" $ lookup key valueParameterDescriptions
+      description = fromMaybe "no description available" $ OMap.lookup key valueParameterDescriptions
     in
       templateInputItem key description
         [ ValueContentInputAction key <$> renderInput (inputFieldOptions key false numberFormat) inputField ]
@@ -395,7 +397,7 @@ parameterInputs metaData slotContentInputs valueContentInputs =
 
       numberFormat = TimeFormat
 
-      description = fromMaybe "no description available" $ lookup key slotParameterDescriptions
+      description = fromMaybe "no description available" $ OMap.lookup key slotParameterDescriptions
     in
       templateInputItem key description
         [ SlotContentInputAction key <$> renderInput (inputFieldOptions key true numberFormat) inputField ]

@@ -33,6 +33,11 @@
       flake = false;
     };
 
+    actus-tests = {
+      url = "github:actusfrf/actus-tests";
+
+      flake = false;
+    };
     cardano-repo-tool = {
       url = "github:input-output-hk/cardano-repo-tool";
 
@@ -117,6 +122,8 @@
           marlowe-run-client = topLevel.marlowe-dashboard.client;
 
           marlowe-website = topLevel.marlowe-web;
+
+          plutus-docs = topLevel.docs.site;
         };
       }));
 }

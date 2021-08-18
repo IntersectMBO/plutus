@@ -171,6 +171,7 @@ myTypes =
     , mkSumType (Proxy @CT.IPCB)
     , mkSumType (Proxy @CT.CR)
     , mkSumType (Proxy @CT.CT)
+    , mkSumType (Proxy @CT.Calendar)
     , mkSumType (Proxy @CT.Assertion)
     , mkSumType (Proxy @CT.Assertions)
     , mkSumType (Proxy @CT.AssertionContext)

@@ -5,6 +5,7 @@ This is just a checklist, all the normative suggestions are covered in more deta
 -->
 Pre-submit checklist:
 - Branch
+    - [ ] Tests are provided (if possible)
     - [ ] Commit sequence broadly makes sense
     - [ ] Key commits have useful messages
     - [ ] Relevant tickets are mentioned in commit messages

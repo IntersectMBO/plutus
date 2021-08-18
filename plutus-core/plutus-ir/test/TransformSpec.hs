@@ -17,6 +17,7 @@ import qualified PlutusIR.Transform.Beta            as Beta
 import qualified PlutusIR.Transform.DeadCode        as DeadCode
 import qualified PlutusIR.Transform.Inline          as Inline
 import qualified PlutusIR.Transform.LetFloat        as LetFloat
+import qualified PlutusIR.Transform.LetMerge        as LetMerge
 import qualified PlutusIR.Transform.NonStrict       as NonStrict
 import           PlutusIR.Transform.Rename          ()
 import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
@@ -53,7 +54,7 @@ nonStrict = testNested "nonStrict"
 letFloat :: TestNested
 letFloat =
     testNested "letFloat"
-    $ map (goldenPir (LetFloat.floatTerm . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (LetMerge.letMerge . LetFloat.floatTerm . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -82,6 +83,7 @@ letFloat =
   ,"strictValueValue"
   ,"even3Eval"
   ,"strictNonValueDeep"
+  ,"regression1"
   ]
 
 instance Semigroup SourcePos where
