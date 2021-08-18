@@ -13,8 +13,9 @@ example = emptyContractMetadata
 escrow :: MetaData
 escrow =
   { contractType: Escrow
-  , contractName: "Simple escrow"
-  , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller*. If there is a disagreement, an *Arbiter* will decide whether the money is refunded or paid to the *Seller*."
+  , contractName: "Purchase"
+  , contractShortDescription: "In this contract a *seller* wants to sell an item (like a bicycle) to a *buyer* for a _price_."
+  , contractLongDescription: "Neither trusts each other, but they both trust a *mediator*. The *buyer* pays the _price_ into the contract account: if both the *buyer* and the *seller* agree that the *buyer* has received the item, then the *seller* receives the _price_; if not, then the *mediator* ensures that the *buyer* gets their money back."
   , choiceInfo:
       ( Map.fromFoldable
           [ "Confirm problem"
@@ -68,7 +69,8 @@ escrowWithCollateral :: MetaData
 escrowWithCollateral =
   { contractType: Escrow
   , contractName: "Escrow with collateral"
-  , contractDescription: "Regulates a money exchange between a *Buyer* and a *Seller* using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
+  , contractShortDescription: "Regulates a money exchange between a *Buyer* and a *Seller* using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
+  , contractLongDescription: "Regulates a money exchange between a *Buyer* and a *Seller* using a collateral from both parties to incentivize collaboration. If there is a disagreement the collateral is burned."
   , choiceInfo:
       ( Map.fromFoldable
           [ "Confirm problem"
@@ -121,8 +123,9 @@ escrowWithCollateral =
 zeroCouponBond :: MetaData
 zeroCouponBond =
   { contractType: ZeroCouponBond
-  , contractName: "Zero Coupon Bond"
-  , contractDescription: "A simple loan. The *Investor* pays the *Issuer* the *Discounted price* at the start, and is repaid the full *Notional price* at the end."
+  , contractName: "Loan"
+  , contractShortDescription: "A simple loan: the *borrower* borrows the amount from the *lender*, and at the _payback deadline_ pays back the _amount_ plus _interest_."
+  , contractLongDescription: "This is a high risk/high reward contract. There is no guarantee that the borrower will pay back the loan. However there is an opportunity for the lender to set a high interest rate at the cost of taking on this risk."
   , choiceInfo: Map.empty
   , roleDescriptions:
       ( Map.fromFoldable
@@ -154,7 +157,8 @@ couponBondGuaranteed :: MetaData
 couponBondGuaranteed =
   { contractType: CouponBondGuaranteed
   , contractName: "Coupon Bond Guaranteed"
-  , contractDescription: "Debt agreement between an *Investor* and an *Issuer*. *Investor* will advance the *Principal* amount at the beginning of the contract, and the *Issuer* will pay back *Interest instalment* every 30 slots and the *Principal* amount by the end of 3 instalments. The debt is backed by a collateral provided by the *Guarantor* which will be refunded as long as the *Issuer* pays back on time."
+  , contractShortDescription: "Debt agreement between an *Investor* and an *Issuer*. *Investor* will advance the *Principal* amount at the beginning of the contract, and the *Issuer* will pay back *Interest instalment* every 30 slots and the *Principal* amount by the end of 3 instalments. The debt is backed by a collateral provided by the *Guarantor* which will be refunded as long as the *Issuer* pays back on time."
+  , contractLongDescription: "Debt agreement between an *Investor* and an *Issuer*. *Investor* will advance the *Principal* amount at the beginning of the contract, and the *Issuer* will pay back *Interest instalment* every 30 slots and the *Principal* amount by the end of 3 instalments. The debt is backed by a collateral provided by the *Guarantor* which will be refunded as long as the *Issuer* pays back on time."
   , choiceInfo: Map.empty
   , roleDescriptions:
       ( Map.fromFoldable
@@ -182,7 +186,8 @@ swap :: MetaData
 swap =
   { contractType: Swap
   , contractName: "Swap of Ada and dollar tokens"
-  , contractDescription: "Takes Ada from one party and dollar tokens from another party, and it swaps them atomically."
+  , contractShortDescription: "Takes Ada from one party and dollar tokens from another party, and it swaps them atomically."
+  , contractLongDescription: "Takes Ada from one party and dollar tokens from another party, and it swaps them atomically."
   , choiceInfo: Map.empty
   , roleDescriptions:
       ( Map.fromFoldable
@@ -214,7 +219,8 @@ contractForDifferences :: MetaData
 contractForDifferences =
   { contractType: ContractForDifferences
   , contractName: "Contract for Differences"
-  , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots is redistributed depending on the change in a given trade price reported by *Oracle*. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
+  , contractShortDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots is redistributed depending on the change in a given trade price reported by *Oracle*. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
+  , contractLongDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots is redistributed depending on the change in a given trade price reported by *Oracle*. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
   , choiceInfo:
       ( Map.fromFoldable
           [ "Price at beginning"
@@ -241,8 +247,9 @@ contractForDifferences =
 contractForDifferencesWithOracle :: MetaData
 contractForDifferencesWithOracle =
   { contractType: ContractForDifferences
-  , contractName: "Contract for Differences with Oracle"
-  , contractDescription: "*Party* and *Counterparty* deposit 100 Ada and after 60 slots these assets are redistributed depending on the change in price of 100 Ada worth of dollars between the start and the end of the contract. If the price increases, the difference goes to *Counterparty*; if it decreases, the difference goes to *Party*, up to a maximum of 100 Ada."
+  , contractName: "CFD with Oracle"
+  , contractShortDescription: "Contract For Differences with Oracle. Two parties deposit Ada in a contract and after some time the Ada is redistributed among them depending on the change in price of an asset."
+  , contractLongDescription: "At the beginning of the contract, *party* and *counterparty* deposit some Ada in the contract. At the end of the contract, all Ada deposited is redistributed depending on the change in price in dollars of an asset (as reported by the *oracle*). The asset in this contract is an amount of Ada. If the price in dollars of the asset increases, the difference goes to *counterparty*; if it decreases, the difference goes to *party*, up to a maximum of the amount deposited at the beginning."
   , choiceInfo:
       ( Map.fromFoldable
           [ "dir-adausd"
