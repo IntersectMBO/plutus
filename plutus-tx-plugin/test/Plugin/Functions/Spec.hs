@@ -1,7 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE UnboxedTuples       #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
 
 module Plugin.Functions.Spec where
@@ -78,6 +80,7 @@ unfoldings = testNested "unfoldings" [
     -- it seems to sometimes float these in, but we should keep an eye on these.
     , goldenPir "polyMap" polyMap
     , goldenPir "applicationFunction" applicationFunction
+    , goldenPir "unboxedTuples" workerWrapper
   ]
 
 andDirect :: Bool -> Bool -> Bool
@@ -126,3 +129,9 @@ myDollar f a = f a
 
 applicationFunction :: CompiledCode (Integer)
 applicationFunction = plc (Proxy @"applicationFunction") ((\x -> Builtins.addInteger 1 x) `myDollar` 1)
+
+unboxedTuple :: (# Integer, Integer #) -> Integer
+unboxedTuple (# i, j #) = i `Builtins.addInteger` j
+
+unboxedTuples :: CompiledCode (Integer -> Integer)
+unboxedTuples = plc (Proxy @"unboxedTuples") (\x -> let a = unboxedTuple (# x, x #) in a)
