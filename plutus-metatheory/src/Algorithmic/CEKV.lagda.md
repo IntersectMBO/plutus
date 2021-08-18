@@ -194,12 +194,8 @@ BUILTIN' b {az = az} p q
 
 open import Data.Product using (∃)
 
-postulate
-  bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b)
+bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b)
     → BAPP b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
-
--- commented out pending a change to builtins
-{-
 bappTermLem addInteger _ base = _ ,, _ ,, refl
 bappTermLem addInteger {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both az (([] ∷ Term) ∷ Term) as p
@@ -354,8 +350,142 @@ bappTermLem appendString {as = as} .(bubble p) (app⋆ {az = az} p q q₁)
 ... | refl ,, refl ,, ()
 bappTermLem trace {az = az} {as} p q with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem trace {az = .[]} {.[]} .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
--}
-
+bappTermLem equalsString (start _) base = _ ,, _ ,, refl
+bappTermLem equalsString {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem equalsString (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem encodeUtf8 {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem encodeUtf8 (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem decodeUtf8 {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem decodeUtf8 (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem fstPair (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ([] <>< arity fstPair) _ p refl
+bappTermLem fstPair
+            (bubble (bubble (start _)))
+            (app⋆ _ (app⋆ _ base refl) refl)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem sndPair (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ([] <>< arity fstPair) _ p refl
+bappTermLem sndPair
+            (bubble (bubble (start _)))
+            (app⋆ _ (app⋆ _ base refl) refl)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem nullList (bubble {as = az} p) q
+  with <>>-cancel-both' az _ ([] <>< arity nullList) _ p refl
+bappTermLem nullList (bubble (start _)) (app⋆ _ base refl)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem headList (bubble {as = az} p) q
+  with <>>-cancel-both' az _ ([] <>< arity nullList) _ p refl
+bappTermLem headList (bubble (start _)) (app⋆ _ base refl)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem tailList (bubble {as = az} p) q
+  with <>>-cancel-both' az _ ([] <>< arity nullList) _ p refl
+bappTermLem tailList (bubble (start _)) (app⋆ _ base refl)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem chooseList
+            (bubble (bubble (start _)))
+            (app⋆ _ (app⋆ _ base refl) refl)
+            = _ ,, _ ,, refl
+bappTermLem chooseList
+            (bubble (bubble (bubble (start _))))
+            (app _ (app⋆ _ (app⋆ _ base refl) refl) x)
+            = _ ,, _ ,, refl
+bappTermLem chooseList (bubble (bubble (bubble (bubble {as = az} p)))) q
+  with <>>-cancel-both' az _ ([] <>< arity chooseList) _ p refl
+bappTermLem chooseList
+            (bubble (bubble (bubble (bubble (start _)))))
+            (app _ (app _ (app⋆ _ (app⋆ _ base refl) refl) _) _)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem constrData (start _) base = _ ,, _ ,, refl
+bappTermLem constrData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem constrData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mapData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem mapData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem listData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem listData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem iData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem iData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem bData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem bData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unConstrData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unConstrData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unMapData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unMapData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unListData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unListData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unIData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unIData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unBData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem unBData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem equalsData (start _) base = _ ,, _ ,, refl
+bappTermLem equalsData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem equalsData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem chooseData (bubble (start _)) (app⋆ _ base refl) =
+  _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (start _)))
+            (app _ (app⋆ _ base refl) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (start _))))
+            (app _ (app _ (app⋆ _ base refl) _) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (bubble (start _)))))
+            (app _ (app _ (app _ (app⋆ _ base refl) _) _) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (bubble (bubble (start _))))))
+            (app _ (app _ (app _ (app _ (app⋆ _ base refl) _) _) _) _)
+            = _ ,, _ ,, refl
+bappTermLem chooseData
+            (bubble (bubble (bubble (bubble (bubble (bubble {as = az} p)))))) q
+  with <>>-cancel-both' az _ ([] <>< arity chooseData) _ p refl
+bappTermLem
+  chooseData
+  (bubble (bubble (bubble (bubble (bubble (bubble (start _)))))))
+  (app _ (app _ (app _ (app _ (app _ (app⋆ _ base refl)_)_)_)_)_)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem chooseUnit (bubble (start _)) (app⋆ _ base refl) =
+  _ ,, _ ,, refl
+bappTermLem chooseUnit (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] ∷ Type) ∷ Term) ∷ Term) _ p refl
+bappTermLem chooseUnit
+            (bubble (bubble (start _)))
+            (app _ (app⋆ _ base refl) x)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkPairData (start _) base = _ ,, _ ,, refl
+bappTermLem mkPairData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem mkPairData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkNilData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem mkNilData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkNilPairData {az = az} {as} p q
+  with <>>-cancel-both az ([] ∷ Term) as p
+bappTermLem mkNilPairData (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkConsData (start _) base = _ ,, _ ,, refl
+bappTermLem mkConsData {as = as} (bubble {as = az} p) q
+  with <>>-cancel-both' az _ (([] ∷ Term) ∷ Term) as p refl
+bappTermLem mkConsData (bubble (start _)) (app _ base _)
+  | refl ,, refl ,, refl = _ ,, _ ,, refl
 postulate
   bappTypeLem : ∀  b {A}{az as}(p : az <>> (Type ∷ as) ∈ arity b)
     → BAPP b p A → ∃ λ K → ∃ λ (B : ∅ ,⋆ K ⊢Nf⋆ *) → A ≡ Π B

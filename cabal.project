@@ -74,7 +74,7 @@ package cardano-api
 
 -- Turn off the tests for a while
 package plutus-metatheory
-  tests: False
+  tests: True
 
 -- https://github.com/Quid2/flat/pull/22 fixes a potential exception
 -- when decoding invalid (e.g. malicious) text literals.
