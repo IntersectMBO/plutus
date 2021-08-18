@@ -88,7 +88,7 @@ checkPolicy c@(OneShotCurrency (refHash, refIdx) _) _ ctx@V.ScriptContext{V.scri
         -- see note [Obtaining the currency symbol]
         ownSymbol = V.ownCurrencySymbol ctx
 
-        minted = V.txInfoForge txinfo
+        minted = V.txInfoMint txinfo
         expected = currencyValue ownSymbol c
 
         -- True if the pending transaction mints the amount of

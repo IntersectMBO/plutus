@@ -6,4 +6,5 @@
   hernan = { region = "us-west-2"; };
   amyas = { region = "eu-west-2"; };
   staging = { region = "eu-west-3"; };
+  bitte_match = { region = "eu-central-1"; };
 }

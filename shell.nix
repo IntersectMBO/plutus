@@ -59,6 +59,7 @@ let
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
     cacert
+    editorconfig-core-c
     ghcid
     jq
     morph
@@ -84,6 +85,7 @@ let
     hie-bios
     hlint
     marlowe-dashboard.generate-purescript
+    marlowe-dashboard.start-backend
     marlowe-playground.generate-purescript
     marlowe-playground.start-backend
     plutus-playground.generate-purescript
@@ -99,7 +101,6 @@ let
     stylish-haskell
     updateMaterialized
     updateClientDeps
-    updateMetadataSamples
     docs.build-and-serve-docs
   ]);
 

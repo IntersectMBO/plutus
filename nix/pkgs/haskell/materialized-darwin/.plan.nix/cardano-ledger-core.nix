@@ -80,7 +80,6 @@
           "Cardano/Ledger/SafeHash"
           "Cardano/Ledger/Serialization"
           "Cardano/Ledger/Slot"
-          "Cardano/Ledger/Tx"
           "Cardano/Ledger/Val"
           ];
         hsSourceDirs = [ "src" ];

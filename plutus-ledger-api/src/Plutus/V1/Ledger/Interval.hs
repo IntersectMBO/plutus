@@ -43,7 +43,7 @@ import           Codec.Serialise.Class     (Serialise)
 import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
 import           GHC.Generics              (Generic)
 import qualified Prelude                   as Haskell
 
@@ -65,6 +65,9 @@ data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
 
 instance Functor Interval where
   fmap f (Interval from to) = Interval (f <$> from) (f <$> to)
+
+instance Pretty a => Pretty (Interval a) where
+    pretty (Interval l h) = pretty l <+> comma <+> pretty h
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf

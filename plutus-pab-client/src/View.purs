@@ -2,8 +2,6 @@ module View (render) where
 
 import Prelude hiding (div)
 import Bootstrap (col12_, col5_, container_, row_)
-import Cardano.Metadata.Types (Property)
-import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
 import Data.Array as Array
 import Data.Foldable (findMap)
@@ -33,7 +31,7 @@ render ::
   Show a =>
   State a ->
   ComponentHTML (HAction a) slots m
-render (State { currentView, chainState, contractSignatures, chainReport, contractStates, webSocketStatus, webSocketMessage, metadata }) =
+render (State { currentView, chainState, contractSignatures, chainReport, contractStates, webSocketStatus, webSocketMessage }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
@@ -49,20 +47,6 @@ render (State { currentView, chainState, contractSignatures, chainReport, contra
         -- $ webDataPane2 (mainPane currentView contractStates chainState contractSignatures) chainReport events
         ]
     ]
-
-nameIfAvailable ::
-  forall k.
-  Map Metadata.Subject (Map k Property) -> String -> String
-nameIfAvailable metadata key =
-  fromMaybe key
-    $ do
-        properties <- Map.lookup (Metadata.Subject key) metadata
-        findMap
-          ( case _ of
-              Metadata.Name name _ -> Just name
-              _ -> Nothing
-          )
-          (Array.fromFoldable (Map.values properties))
 
 mainHeader :: forall p a. HTML p (HAction a)
 mainHeader =

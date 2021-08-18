@@ -20,6 +20,7 @@ import qualified UntypedPlutusCore                               as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Control.Monad.Except
+import           Data.Text                                       (Text)
 
 -- | Type check and evaluate a term.
 typecheckAnd
@@ -38,7 +39,7 @@ typecheckEvaluateCek
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
-    -> m (EvaluationResult (UPLC.Term Name uni fun ()), [String])
+    -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
 typecheckEvaluateCek = typecheckAnd $ unsafeEvaluateCek logEmitter
 
 -- | Type check and evaluate a term, logging disabled.

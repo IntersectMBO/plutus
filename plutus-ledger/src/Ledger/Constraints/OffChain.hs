@@ -29,6 +29,7 @@ module Ledger.Constraints.OffChain(
     , tx
     , requiredSignatories
     , utxoIndex
+    , validityTimeRange
     , emptyUnbalancedTx
     , MkTxError(..)
     , mkTx
@@ -60,14 +61,12 @@ import           PlutusTx                         (FromData (..), ToData (..))
 import           PlutusTx.Lattice
 import qualified PlutusTx.Numeric                 as N
 
-import           Data.Default                     (Default (def))
 import           Ledger.Address                   (Address (..), pubKeyHashAddress)
 import qualified Ledger.Address                   as Address
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Orphans                   ()
 import           Ledger.Scripts                   (Datum (..), DatumHash, MintingPolicy, MintingPolicyHash,
                                                    Redeemer (..), Validator, datumHash, mintingPolicyHash)
-import qualified Ledger.TimeSlot                  as TimeSlot
 import           Ledger.Tx                        (RedeemerPtr (..), ScriptTag (..), Tx, TxOut (..), TxOutRef,
                                                    TxOutTx (..))
 import qualified Ledger.Tx                        as Tx
@@ -76,6 +75,7 @@ import qualified Ledger.Typed.Scripts             as Scripts
 import           Ledger.Typed.Tx                  (ConnectionError)
 import qualified Ledger.Typed.Tx                  as Typed
 import           Plutus.V1.Ledger.Crypto          (PubKeyHash)
+import           Plutus.V1.Ledger.Time            (POSIXTimeRange)
 import           Plutus.V1.Ledger.Value           (Value)
 import qualified Plutus.V1.Ledger.Value           as Value
 
@@ -162,6 +162,7 @@ data UnbalancedTx =
         { unBalancedTxTx                  :: Tx
         , unBalancedTxRequiredSignatories :: Set PubKeyHash
         , unBalancedTxUtxoIndex           :: Map TxOutRef TxOut
+        , unBalancedTxValidityTimeRange   :: POSIXTimeRange
         }
     deriving stock (Eq, Generic, Show)
     deriving anyclass (FromJSON, ToJSON, Swagger.ToSchema)
@@ -170,17 +171,19 @@ makeLensesFor
     [ ("unBalancedTxTx", "tx")
     , ("unBalancedTxRequiredSignatories", "requiredSignatories")
     , ("unBalancedTxUtxoIndex", "utxoIndex")
+    , ("unBalancedTxValidityTimeRange", "validityTimeRange")
     ] ''UnbalancedTx
 
 emptyUnbalancedTx :: UnbalancedTx
-emptyUnbalancedTx = UnbalancedTx mempty mempty mempty
+emptyUnbalancedTx = UnbalancedTx mempty mempty mempty top
 
 instance Pretty UnbalancedTx where
-    pretty (UnbalancedTx utx rs utxo) =
+    pretty (UnbalancedTx utx rs utxo vr) =
         vsep
         [ hang 2 $ vsep ["Tx:", pretty utx]
         , hang 2 $ vsep $ "Requires signatures:" : (pretty <$> Set.toList rs)
         , hang 2 $ vsep $ "Utxo index:" : (pretty <$> Map.toList utxo)
+        , hang 2 $ vsep ["Validity range:", pretty vr]
         ]
 
 {- Note [Balance of value spent]
@@ -413,6 +416,7 @@ data MkTxError =
     | OwnPubKeyMissing
     | TypedValidatorMissing
     | DatumWrongHash DatumHash Datum
+    | CannotSatisfyAny
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -427,6 +431,7 @@ instance Pretty MkTxError where
         OwnPubKeyMissing        -> "Own public key is missing"
         TypedValidatorMissing   -> "Script instance is missing"
         DatumWrongHash h d      -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
+        CannotSatisfyAny        -> "Cannot satisfy any of the required constraints"
 
 lookupTxOutRef
     :: ( MonadReader (ScriptLookups a) m
@@ -478,7 +483,7 @@ processConstraint = \case
         let theHash = datumHash dv in
         unbalancedTx . tx . Tx.datumWitnesses . at theHash .= Just dv
     MustValidateIn timeRange ->
-        unbalancedTx . tx . Tx.validRange %= (TimeSlot.posixTimeRangeToContainedSlotRange def timeRange /\)
+        unbalancedTx . validityTimeRange %= (timeRange /\)
     MustBeSignedBy pk ->
         unbalancedTx . requiredSignatories %= Set.insert pk
     MustSpendAtLeast vl -> valueSpentInputs <>= required vl
@@ -537,3 +542,10 @@ processConstraint = \case
         unless (datumHash dv == dvh)
             (throwError $ DatumWrongHash dvh dv)
         unbalancedTx . tx . Tx.datumWitnesses . at dvh .= Just dv
+    MustSatisfyAnyOf xs -> do
+        s <- get
+        let tryNext [] =
+                throwError CannotSatisfyAny
+            tryNext (h:q) = do
+                processConstraint h `catchError` \_ -> put s >> tryNext q
+        tryNext xs

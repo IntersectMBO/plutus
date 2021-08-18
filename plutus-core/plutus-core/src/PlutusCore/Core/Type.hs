@@ -45,10 +45,7 @@ import           Instances.TH.Lift        ()
 import           Language.Haskell.TH.Lift
 import           Universe
 
-import           Data.Function            ((&))
 import qualified Data.Swagger             as Swagger
-import qualified Data.Swagger.Schema      as Swagger
-import qualified GHC.Exts                 as Exts
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.

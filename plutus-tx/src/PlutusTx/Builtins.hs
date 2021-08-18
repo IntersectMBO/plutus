@@ -5,13 +5,17 @@
 module PlutusTx.Builtins (
                                 -- * Bytestring builtins
                                 BuiltinByteString
-                                , concatenate
-                                , takeByteString
-                                , dropByteString
+                                , appendByteString
+                                , consByteString
+                                , sliceByteString
+                                , lengthOfByteString
+                                , indexByteString
                                 , emptyByteString
                                 , equalsByteString
                                 , lessThanByteString
+                                , lessThanEqualsByteString
                                 , greaterThanByteString
+                                , greaterThanEqualsByteString
                                 , sha2_256
                                 , sha3_256
                                 , blake2b_256
@@ -26,9 +30,9 @@ module PlutusTx.Builtins (
                                 , quotientInteger
                                 , remainderInteger
                                 , greaterThanInteger
-                                , greaterThanEqInteger
+                                , greaterThanEqualsInteger
                                 , lessThanInteger
-                                , lessThanEqInteger
+                                , lessThanEqualsInteger
                                 , equalsInteger
                                 -- * Error
                                 , error
@@ -54,7 +58,6 @@ module PlutusTx.Builtins (
                                 , BuiltinString
                                 , appendString
                                 , emptyString
-                                , charToString
                                 , equalsString
                                 , encodeUtf8
                                 -- * Lists
@@ -72,22 +75,30 @@ import           PlutusTx.Builtins.Class
 import           PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
 import qualified PlutusTx.Builtins.Internal as BI
 
-import           Prelude                    hiding (String, error)
-
-{-# INLINABLE concatenate #-}
+{-# INLINABLE appendByteString #-}
 -- | Concatenates two 'ByteString's.
-concatenate :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
-concatenate = BI.concatenate
+appendByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+appendByteString = BI.appendByteString
 
-{-# INLINABLE takeByteString #-}
--- | Returns the n length prefix of a 'ByteString'.
-takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-takeByteString n bs = BI.takeByteString (toBuiltin n) bs
+{-# INLINABLE consByteString #-}
+-- | Adds a byte to the front of a 'ByteString'.
+consByteString :: Integer -> BuiltinByteString -> BuiltinByteString
+consByteString n bs = BI.consByteString (toBuiltin n) bs
 
-{-# INLINABLE dropByteString #-}
--- | Returns the suffix of a 'ByteString' after n elements.
-dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = BI.dropByteString (toBuiltin n) bs
+{-# INLINABLE sliceByteString #-}
+-- | Returns the substring of a 'ByteString' from index 'start' of length 'n'.
+sliceByteString :: Integer -> Integer -> BuiltinByteString -> BuiltinByteString
+sliceByteString start n bs = BI.sliceByteString (toBuiltin start) (toBuiltin n) bs
+
+{-# INLINABLE lengthOfByteString #-}
+-- | Returns the length of a 'ByteString'.
+lengthOfByteString :: BuiltinByteString -> Integer
+lengthOfByteString = BI.lengthOfByteString
+
+{-# INLINABLE indexByteString #-}
+-- | Returns the byte of a 'ByteString' at index.
+indexByteString :: BuiltinByteString -> Integer -> Integer
+indexByteString b n = BI.indexByteString b (toBuiltin n)
 
 {-# INLINABLE emptyByteString #-}
 -- | An empty 'ByteString'.
@@ -124,10 +135,20 @@ equalsByteString x y = fromBuiltin (BI.equalsByteString x y)
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> Bool
 lessThanByteString x y = fromBuiltin (BI.lessThanByteString x y)
 
+{-# INLINABLE lessThanEqualsByteString #-}
+-- | Check if one 'ByteString' is less than or equal to another.
+lessThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> Bool
+lessThanEqualsByteString x y = fromBuiltin (BI.lessThanEqualsByteString x y)
+
 {-# INLINABLE greaterThanByteString #-}
 -- | Check if one 'ByteString' is greater than another.
 greaterThanByteString :: BuiltinByteString -> BuiltinByteString -> Bool
-greaterThanByteString x y = fromBuiltin (BI.greaterThanByteString x y)
+greaterThanByteString x y = BI.ifThenElse (BI.lessThanEqualsByteString x y) False True
+
+{-# INLINABLE greaterThanEqualsByteString #-}
+-- | Check if one 'ByteString' is greater than another.
+greaterThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> Bool
+greaterThanEqualsByteString x y = BI.ifThenElse (BI.lessThanByteString x y) False True
 
 {-# INLINABLE decodeUtf8 #-}
 -- | Converts a ByteString to a String.
@@ -172,22 +193,22 @@ remainderInteger x y = fromBuiltin (BI.remainderInteger (toBuiltin x) (toBuiltin
 {-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = fromBuiltin (BI.greaterThanInteger (toBuiltin x) (toBuiltin y))
+greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y ) False True
 
-{-# INLINABLE greaterThanEqInteger #-}
+{-# INLINABLE greaterThanEqualsInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
-greaterThanEqInteger :: Integer -> Integer -> Bool
-greaterThanEqInteger x y = fromBuiltin (BI.greaterThanEqInteger (toBuiltin x) (toBuiltin y))
+greaterThanEqualsInteger :: Integer -> Integer -> Bool
+greaterThanEqualsInteger x y = BI.ifThenElse (BI.lessThanInteger x y) False True
 
 {-# INLINABLE lessThanInteger #-}
 -- | Check whether one 'Integer' is less than another.
 lessThanInteger :: Integer -> Integer -> Bool
 lessThanInteger x y = fromBuiltin (BI.lessThanInteger (toBuiltin x) (toBuiltin y))
 
-{-# INLINABLE lessThanEqInteger #-}
+{-# INLINABLE lessThanEqualsInteger #-}
 -- | Check whether one 'Integer' is less than or equal to another.
-lessThanEqInteger :: Integer -> Integer -> Bool
-lessThanEqInteger x y = fromBuiltin (BI.lessThanEqInteger (toBuiltin x) (toBuiltin y))
+lessThanEqualsInteger :: Integer -> Integer -> Bool
+lessThanEqualsInteger x y = fromBuiltin (BI.lessThanEqualsInteger (toBuiltin x) (toBuiltin y))
 
 {-# INLINABLE equalsInteger #-}
 -- | Check if two 'Integer's are equal.
@@ -209,11 +230,6 @@ appendString = BI.appendString
 emptyString :: BuiltinString
 emptyString = BI.emptyString
 
-{-# INLINABLE charToString #-}
--- | Turn a 'Char' into a 'String'.
-charToString :: Char -> BuiltinString
-charToString c = BI.charToString (toBuiltin c)
-
 {-# INLINABLE equalsString #-}
 -- | Check if two strings are equal
 equalsString :: BuiltinString -> BuiltinString -> Bool
@@ -222,7 +238,7 @@ equalsString x y = fromBuiltin (BI.equalsString x y)
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
 trace :: BuiltinString -> a -> a
-trace s = BI.chooseUnit (BI.trace s)
+trace = BI.trace
 
 {-# INLINABLE encodeUtf8 #-}
 -- | Convert a String into a ByteString.
@@ -230,7 +246,7 @@ encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (\_ -> nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
 
 {-# INLINABLE chooseData #-}
 -- | Given five values for the five different constructors of 'BuiltinData', selects

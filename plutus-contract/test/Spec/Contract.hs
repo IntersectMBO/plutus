@@ -20,6 +20,7 @@ import           Control.Monad.Freer                  (Eff)
 import           Control.Monad.Freer.Extras.Log       (LogLevel (..))
 import qualified Control.Monad.Freer.Extras.Log       as Log
 import           Data.Functor.Apply                   ((.>))
+import qualified Data.Map                             as Map
 import           Test.Tasty
 
 import           Ledger                               (Address, PubKey, Slot)
@@ -42,6 +43,7 @@ import           PlutusTx.Lattice
 import           Prelude                              hiding (not)
 import qualified Prelude                              as P
 import qualified Wallet.Emulator                      as EM
+import           Wallet.Emulator.Wallet               (walletAddress)
 
 import           Plutus.Contract.Effects              (ActiveEndpoint (..))
 import qualified Plutus.Contract.Request              as Endpoint
@@ -156,6 +158,24 @@ tests =
                 .&&. walletFundsChange w2 (Ada.lovelaceValueOf 200)
                 .&&. assertNoFailedTransactions)
             (void $ Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200))
+
+        , let theContract :: Contract () Schema ContractError () = void $ awaitUtxoProduced (walletAddress w2)
+          in run 2 "await utxo produced"
+            (assertDone theContract tag (const True) "should receive a notification")
+            (void $ do
+                activateContract w1 theContract tag
+                Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200)
+                Trace.waitNSlots 1
+            )
+
+        , let theContract :: Contract () Schema ContractError () = void (utxoAt (walletAddress w1) >>= awaitUtxoSpent . fst . head . Map.toList)
+          in run 2 "await txout spent"
+            (assertDone theContract tag (const True) "should receive a notification")
+            (void $ do
+                activateContract w1 theContract tag
+                Trace.payToWallet w1 w2 (Ada.lovelaceValueOf 200)
+                Trace.waitNSlots 1
+            )
 
         , let theContract :: Contract () Schema ContractError PubKey = ownPubKey
           in run 1 "own public key"

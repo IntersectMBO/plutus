@@ -9,6 +9,7 @@ module Plutus.ChainIndex.Effects(
     , datumFromHash
     , validatorFromHash
     , mintingPolicyFromHash
+    , stakeValidatorFromHash
     , txOutFromRef
     , txFromTxId
     , utxoSetMembership
@@ -22,8 +23,8 @@ module Plutus.ChainIndex.Effects(
     ) where
 
 import           Control.Monad.Freer.TH  (makeEffect)
-import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, TxId, Validator,
-                                          ValidatorHash)
+import           Ledger                  (Datum, DatumHash, MintingPolicy, MintingPolicyHash, StakeValidator,
+                                          StakeValidatorHash, TxId, Validator, ValidatorHash)
 import           Ledger.Credential       (Credential)
 import           Ledger.Tx               (TxOut, TxOutRef)
 import           Plutus.ChainIndex.Tx    (ChainIndexTx)
@@ -39,6 +40,9 @@ data ChainIndexQueryEffect r where
 
     -- | Get the monetary policy from an MPS hash (if available)
     MintingPolicyFromHash :: MintingPolicyHash -> ChainIndexQueryEffect (Maybe MintingPolicy)
+
+    -- | Get the stake validator from a stake validator hash (if available)
+    StakeValidatorFromHash :: StakeValidatorHash -> ChainIndexQueryEffect (Maybe StakeValidator)
 
     -- | Get the TxOut from a TxOutRef (if available)
     TxOutFromRef :: TxOutRef -> ChainIndexQueryEffect (Maybe TxOut)

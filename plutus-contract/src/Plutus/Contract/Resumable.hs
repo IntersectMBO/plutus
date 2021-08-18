@@ -56,6 +56,7 @@ module Plutus.Contract.Resumable(
     Resumable(..)
     , prompt
     , select
+    , never
     -- * Handling the 'Resumable' effect
     , Request(..)
     , Response(..)
@@ -116,8 +117,10 @@ and 'suspendNonDet'.
 -- | A data type for representing non-deterministic prompts.
 data Resumable i o r where
     RRequest :: o -> Resumable i o i
+
     -- See https://hackage.haskell.org/package/freer-simple-1.2.1.1/docs/src/Control.Monad.Freer.Internal.html#NonDet
     RSelect :: Resumable i o Bool
+    RZero   :: Resumable i o a
 
 prompt :: Member (Resumable i o) effs => o -> Eff effs i
 prompt o = send (RRequest o)
@@ -129,6 +132,12 @@ select ::
     -> Eff effs a
     -> Eff effs a
 select l r = send @(Resumable i o) RSelect >>= \b -> if b then l else r
+
+never ::
+    forall i o effs a.
+    Member (Resumable i o) effs
+    => Eff effs a
+never = send @(Resumable i o) RZero
 
 -- | A value that uniquely identifies requests made during the execution of
 --   'Resumable' programs.
@@ -273,6 +282,7 @@ handleResumable ::
 handleResumable = interpret $ \case
     RRequest o -> yield o id
     RSelect    -> send MPlus
+    RZero      -> send MZero
 
 -- | Status of a suspended 'MultiRequestContinuation'.
 data MultiRequestContStatus i o effs a =

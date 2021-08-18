@@ -20,7 +20,7 @@
       repo = "nixpkgs";
 
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      rev = "7d71001b796340b219d1bfa8552c81995017544a";
+      rev = "2457ddc9522b0861649ee5e952fa2e505c1743b7";
 
       ref = "nixpkgs-unstable";
 
@@ -28,7 +28,7 @@
     };
     haskell-nix = {
       # We pin this revision to avoid mass-rebuilds from the auto-update process.
-      url = "github:input-output-hk/haskell.nix?rev=531c9f4cac0e335db245849df3b5036973826d36";
+      url = "github:input-output-hk/haskell.nix?rev=64c8bc4937fde531bf0c4756df44d37d9a00aa97";
 
       flake = false;
     };
@@ -50,7 +50,7 @@
     };
     hackage-nix = {
       # We pin this revision to avoid unhelpful daily churn from the auto-update process.
-      url = "github:input-output-hk/hackage.nix?rev=afafb0104f1f5029155fcbb15bc1ce1bcd98ea6b";
+      url = "github:input-output-hk/hackage.nix?rev=23545a41ef50c4328e3f95b9a63db59f3ada3518";
 
       flake = false;
     };
@@ -107,19 +107,16 @@
         packages = rec {
           marlowe-playground-client = topLevel.marlowe-playground.client;
           marlowe-playground-server = topLevel.marlowe-playground.server;
+
           plutus-playground-client = topLevel.plutus-playground.client;
           plutus-playground-server = topLevel.plutus-playground.server;
+
+          web-ghc-server = topLevel.web-ghc;
+
+          marlowe-pab = topLevel.marlowe-pab;
+          marlowe-run-client = topLevel.marlowe-dashboard.client;
+
           marlowe-website = topLevel.marlowe-web;
-          web-ghc-server = plutus.haskell.project.hsPkgs.web-ghc.components.exes.web-ghc-server;
-          # must be in $PATH of web-ghc-server and marlowe-playground-server
-          ghcWithPlutus = plutus.haskell.project.ghcWithPackages (ps: [
-            ps.plutus-core
-            ps.plutus-tx
-            ps.plutus-contract
-            ps.marlowe
-            ps.plutus-ledger
-            ps.playground-common
-          ]);
         };
       }));
 }

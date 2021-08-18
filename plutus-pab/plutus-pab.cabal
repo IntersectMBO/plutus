@@ -53,6 +53,8 @@ library
     import:             lang
     build-tool-depends:
         cardano-node:cardano-node -any, cardano-cli:cardano-cli -any
+    ghc-options:
+        -Wunused-packages
 
     exposed-modules:
         Cardano.Api.NetworkId.Extra
@@ -63,15 +65,9 @@ library
         Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
         Cardano.ChainIndex.Types
-        Cardano.Metadata.API
-        Cardano.Metadata.Client
-        Cardano.Metadata.Mock
-        Cardano.Metadata.Server
-        Cardano.Metadata.Types
         Cardano.Node.API
         Cardano.Node.Client
         Cardano.Node.Mock
-        Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
         Cardano.Protocol.Socket.Mock.Client
@@ -117,6 +113,7 @@ library
         Plutus.PAB.Timeout
         Plutus.PAB.Types
         Plutus.PAB.Webserver.API
+        Plutus.PAB.Webserver.Client
         Plutus.PAB.Webserver.Handler
         Plutus.PAB.Webserver.Server
         Plutus.PAB.Webserver.Types
@@ -148,8 +145,6 @@ library
         contra-tracer -any,
         cryptonite -any,
         cborg -any,
-        directory -any,
-        errors -any,
         freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
@@ -175,7 +170,6 @@ library
         plutus-ledger-api -any,
         purescript-bridge -any,
         prettyprinter >=1.1.0.1,
-        process -any,
         quickcheck-instances -any,
         random -any,
         row-types -any,
@@ -379,8 +373,6 @@ test-suite plutus-pab-test-light
     main-is:          Spec.hs
     other-modules:
         Cardano.Api.NetworkId.ExtraSpec
-        Cardano.Metadata.ServerSpec
-        Cardano.Metadata.TypesSpec
         Cardano.Wallet.ServerSpec
 
     build-depends:
@@ -477,30 +469,28 @@ executable tx-inject
     import:           lang
     main-is:          Main.hs
     hs-source-dirs:   tx-inject
+    other-modules:
+        TxInject.RandomTx
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         plutus-pab,
         containers -any,
         clock -any,
-        deepseq -any,
-        http-client -any,
-        http-conduit -any,
         lens -any,
         mwc-random -any,
         optparse-applicative -any,
         plutus-contract -any,
         plutus-ledger -any,
-        plutus-tx -any,
         pretty-simple -any,
         rate-limit -any,
-        servant-client -any,
         signal -any,
         stm -any,
         text -any,
         time-units -any,
         yaml -any,
-        data-default -any
+        hedgehog -any,
+        primitive -any
 
 executable sync-client
     import: lang
@@ -513,10 +503,6 @@ executable sync-client
         cardano-slotting -any,
         either -any,
         optparse-applicative -any,
-        ouroboros-consensus-byron -any,
-        ouroboros-consensus-cardano -any,
-        ouroboros-consensus-shelley -any,
-        ouroboros-network -any,
         plutus-ledger,
         plutus-pab,
         text

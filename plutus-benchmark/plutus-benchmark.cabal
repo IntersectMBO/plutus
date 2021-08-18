@@ -15,6 +15,7 @@ build-type: Simple
 
 data-files:
         templates/*.tpl
+        validation/data/auction/*.flat
         validation/data/crowdfunding/*.flat
         validation/data/currency/*.flat
         validation/data/escrow/*.flat
@@ -28,8 +29,6 @@ data-files:
         validation/data/token-account/*.flat
         validation/data/uniswap/*.flat
         validation/data/vesting/*.flat
-        validation/data/marlowe/trustfund/*.flat
-        validation/data/marlowe/zerocoupon/*.flat
 
 source-repository head
     type: git
@@ -45,7 +44,7 @@ common lang
     -fno-omit-interface-pragmas
     -fno-worker-wrapper
   ghc-options:
-     -Wall -Wnoncanonical-monad-instances
+     -Wall -Wnoncanonical-monad-instances -Wunused-packages
      -Wincomplete-uni-patterns -Wincomplete-record-updates
      -Wredundant-constraints -Widentities
      -Wnoncanonical-monoid-instances

@@ -48,7 +48,7 @@ checkOwnOutputConstraint ctx@ScriptContext{scriptContextTxInfo} OutputConstraint
 
 {-# INLINABLE checkTxConstraint #-}
 checkTxConstraint :: ScriptContext -> TxConstraint -> Bool
-checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
+checkTxConstraint ctx@ScriptContext{scriptContextTxInfo} = \case
     MustIncludeDatum dv ->
         traceIfFalse "L2" -- "Missing datum"
         $ dv `elem` fmap snd (txInfoData scriptContextTxInfo)
@@ -75,7 +75,7 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
         $ isJust (V.findTxInByTxOutRef txOutRef scriptContextTxInfo)
     MustMintValue mps _ tn v ->
         traceIfFalse "L9" -- "Value minted not OK"
-        $ Value.valueOf (txInfoForge scriptContextTxInfo) (Value.mpsSymbol mps) tn == v
+        $ Value.valueOf (txInfoMint scriptContextTxInfo) (Value.mpsSymbol mps) tn == v
     MustPayToPubKey pk vl ->
         traceIfFalse "La" -- "MustPayToPubKey"
         $ vl `leq` V.valuePaidTo scriptContextTxInfo pk
@@ -92,6 +92,9 @@ checkTxConstraint ScriptContext{scriptContextTxInfo} = \case
     MustHashDatum dvh dv ->
         traceIfFalse "Lc" -- "MustHashDatum"
         $ V.findDatum dvh scriptContextTxInfo == Just dv
+    MustSatisfyAnyOf xs ->
+        traceIfFalse "Ld" -- "MustSatisfyAnyOf"
+        $ any (checkTxConstraint ctx) xs
 
 {-# INLINABLE checkScriptContext #-}
 -- | Does the 'ScriptContext' satisfy the constraints?

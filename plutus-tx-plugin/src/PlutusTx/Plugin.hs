@@ -40,7 +40,7 @@ import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Flat                          (flat)
+import           Flat                          (Flat, flat)
 
 import qualified Data.ByteString               as BS
 import qualified Data.ByteString.Unsafe        as BSUnsafe
@@ -53,6 +53,7 @@ import           ErrorCode
 import qualified FamInstEnv                    as GHC
 import           Text.Read                     (readMaybe)
 
+import           System.IO                     (openTempFile)
 import           System.IO.Unsafe              (unsafePerformIO)
 
 data PluginOptions = PluginOptions {
@@ -76,6 +77,7 @@ data PluginCtx = PluginCtx
     { pcOpts       :: PluginOptions
     , pcFamEnvs    :: GHC.FamInstEnvs
     , pcMarkerName :: GHC.Name
+    , pcModuleName :: GHC.ModuleName
     }
 
 {- Note [Making sure unfoldings are present]
@@ -197,6 +199,7 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
             let pctx = PluginCtx { pcOpts = opts
                                  , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
                                  , pcMarkerName = markerName
+                                 , pcModuleName = GHC.moduleName $ GHC.mg_module guts
                                  }
                 -- start looking for plc calls from the top-level binds
             in GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
@@ -308,6 +311,8 @@ compileMarkedExpr locStr codeTy origE = do
     flags <- GHC.getDynFlags
     famEnvs <- asks pcFamEnvs
     opts <- asks pcOpts
+    moduleName <- asks pcModuleName
+    let moduleNameStr = GHC.showSDocForUser flags GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let ctx = CompileContext {
@@ -319,7 +324,7 @@ compileMarkedExpr locStr codeTy origE = do
             ccBlackholed = mempty
             }
 
-    (pirP,uplcP) <- runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler opts origE
+    (pirP,uplcP) <- runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler moduleNameStr opts origE
 
     -- serialize the PIR and PLC outputs into a bytestring.
     bsPir <- makeByteStringLiteral $ flat pirP
@@ -338,10 +343,11 @@ compileMarkedExpr locStr codeTy origE = do
 -- It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr.
 runCompiler
     :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ PLC.DefaultFun, MonadReader (CompileContext uni fun) m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
-    => PluginOptions
+    => String
+    -> PluginOptions
     -> GHC.CoreExpr
     -> m (PIRProgram uni fun, UPLCProgram uni fun)
-runCompiler opts expr = do
+runCompiler moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
@@ -366,22 +372,25 @@ runCompiler opts expr = do
 
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
+    when (poDumpPir opts) . liftIO $ dumpFlat (PIR.Program () pirT) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
     let spirP = PIR.Program () . void $ spirT
-    when (poDumpPir opts) . liftIO . print . PP.pretty $ spirP
+    when (poDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
     when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
+    when (poDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (poDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
     uplcP <- liftExcept $ UPLC.deBruijnProgram $ UPLC.simplifyProgram $ UPLC.eraseProgram plcP
+    when (poDumpPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where
@@ -392,7 +401,11 @@ runCompiler opts expr = do
         -- also wrap the PLC Error annotations into Original provenances, to match our expected 'CompileError'
         liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) plcTcError
 
-
+      dumpFlat :: Flat t => t -> String -> String -> IO ()
+      dumpFlat t desc fileName = do
+        (tPath, tHandle) <- openTempFile "." fileName
+        putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
+        BS.hPut tHandle $ flat t
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
 thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name

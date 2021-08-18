@@ -22,7 +22,6 @@ import           Cardano.BM.Data.Severity            (Severity (..))
 import           Cardano.BM.Data.Trace               (Trace)
 import           Cardano.BM.Setup                    (setupTrace_)
 import qualified Cardano.ChainIndex.Types            as ChainIndex.Types
-import qualified Cardano.Metadata.Types              as Metadata.Types
 import           Cardano.Node.Types                  (NodeMode (..))
 import qualified Cardano.Node.Types                  as Node.Types
 import qualified Cardano.Wallet.Client               as Wallet.Client
@@ -117,7 +116,6 @@ bumpConfig x dbName conf@Config{ pabWebserverConfig   = p@PAB.Types.WebserverCon
                                , walletServerConfig   = w@Wallet.Types.WalletConfig{Wallet.Types.baseUrl=w_u}
                                , nodeServerConfig     = n@Node.Types.MockServerConfig{Node.Types.mscBaseUrl=n_u,Node.Types.mscSocketPath=soc}
                                , chainIndexConfig     = c@ChainIndex.Types.ChainIndexConfig{ChainIndex.Types.ciBaseUrl=c_u}
-                               , metadataServerConfig = m@Metadata.Types.MetadataConfig{Metadata.Types.mdBaseUrl=m_u}
                                , dbConfig             = db@PAB.Types.DbConfig{PAB.Types.dbConfigFile=dbFile}
                                } = newConf
   where
@@ -127,7 +125,6 @@ bumpConfig x dbName conf@Config{ pabWebserverConfig   = p@PAB.Types.WebserverCon
              , walletServerConfig   = w { Wallet.Types.baseUrl       = coerce $ bump $ coerce w_u }
              , nodeServerConfig     = n { Node.Types.mscBaseUrl      = bump n_u, Node.Types.mscSocketPath = soc ++ "." ++ show x }
              , chainIndexConfig     = c { ChainIndex.Types.ciBaseUrl = coerce $ bump $ coerce c_u }
-             , metadataServerConfig = m { Metadata.Types.mdBaseUrl   = bump m_u }
              , dbConfig             = db { PAB.Types.dbConfigFile    = "file::" <> dbName <> "?mode=memory&cache=shared" }
              }
 
@@ -146,7 +143,6 @@ startPab pabConfig = do
   let cmd = ForkCommands
               [ StartMockNode
               , ChainIndex
-              , Metadata
               , MockWallet
               , PABWebserver
               ]

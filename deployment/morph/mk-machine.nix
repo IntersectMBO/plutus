@@ -24,6 +24,7 @@
           inherit pkgs;
           overlays = [
             (self: super: {
+              marlowe-pab = plutus.marlowe-pab;
               plutus-pab = plutus.plutus-pab;
               marlowe-dashboard = plutus.marlowe-dashboard;
               marlowe-playground = plutus.marlowe-playground;

@@ -28,7 +28,7 @@ import           Data.Aeson                (FromJSON (parseJSON), FromJSONKey, T
 import           Data.Aeson.Types          (prependFailure, typeMismatch)
 import           Data.Hashable             (Hashable)
 import           Data.Scientific           (floatingOrInteger, scientific)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import           GHC.Generics              (Generic)
 import           Plutus.V1.Ledger.Interval
 import qualified PlutusTx
@@ -74,9 +74,6 @@ makeLift ''POSIXTime
 
 instance Pretty POSIXTime where
   pretty (POSIXTime i) = "POSIXTime" <+> pretty i
-
-instance Pretty (Interval POSIXTime) where
-  pretty (Interval l h) = pretty l <+> comma <+> pretty h
 
 -- | An 'Interval' of 'POSIXTime's.
 type POSIXTimeRange = Interval POSIXTime

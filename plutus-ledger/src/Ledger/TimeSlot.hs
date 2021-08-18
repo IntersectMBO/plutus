@@ -14,6 +14,7 @@
 
 module Ledger.TimeSlot(
   SlotConfig(..)
+, SlotConversionError(..)
 , slotRangeToPOSIXTimeRange
 , slotToPOSIXTimeRange
 , slotToBeginPOSIXTime
@@ -47,13 +48,14 @@ data SlotConfig =
         { scSlotLength   :: Integer -- ^ Length (number of milliseconds) of one slot
         , scSlotZeroTime :: POSIXTime -- ^ Beginning of slot 0 (in milliseconds)
         }
-    deriving (Show, Eq, Generic, ToJSON, FromJSON, Serialise, NFData)
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 makeLift ''SlotConfig
 
 instance Default SlotConfig where
-  {-# INLINABLE def #-}
-  def = SlotConfig{ scSlotLength = 1000, scSlotZeroTime = POSIXTime beginningOfTime }
+    {-# INLINABLE def #-}
+    def = SlotConfig{ scSlotLength = 1000, scSlotZeroTime = POSIXTime beginningOfTime }
 
 instance Pretty SlotConfig where
     pretty SlotConfig {scSlotLength, scSlotZeroTime} =
@@ -63,6 +65,20 @@ instance Pretty SlotConfig where
         <+> pretty scSlotLength
         <+> "ms"
 
+data SlotConversionError =
+    SlotOutOfRange
+        { requestedSlot :: Slot
+        , horizon       :: (Slot, POSIXTime)
+        }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty SlotConversionError where
+    pretty SlotOutOfRange { requestedSlot, horizon } =
+            "Slot out of range:"
+        <+> pretty requestedSlot
+        <+> "Horizon:"
+        <+> pretty horizon
 
 {-# INLINABLE beginningOfTime #-}
 -- | 'beginningOfTime' corresponds to the Shelley launch date

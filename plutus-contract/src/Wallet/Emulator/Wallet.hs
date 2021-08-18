@@ -43,6 +43,7 @@ import qualified Ledger.Constraints.OffChain    as U
 import           Ledger.Credential              (Credential (..))
 import qualified Ledger.Crypto                  as Crypto
 import           Ledger.Fee                     (FeeConfig (..), calcFees)
+import           Ledger.TimeSlot                (posixTimeRangeToContainedSlotRange)
 import qualified Ledger.Tx                      as Tx
 import qualified Ledger.Value                   as Value
 import           Plutus.Contract.Checkpoint     (CheckpointLogMsg)
@@ -167,9 +168,12 @@ handleWallet feeCfg = \case
         logInfo $ SubmittingTx tx
         W.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
-    BalanceTx utx -> runError $ do
-        logInfo $ BalancingUnbalancedTx utx
+    BalanceTx utx' -> runError $ do
+        logInfo $ BalancingUnbalancedTx utx'
         utxo <- get >>= ownOutputs
+        slotConfig <- W.getClientSlotConfig
+        let validitySlotRange = posixTimeRangeToContainedSlotRange slotConfig (utx' ^. U.validityTimeRange)
+        let utx = utx' & U.tx . validRange .~ validitySlotRange
         utxWithFees <- validateTxAndAddFees feeCfg utxo utx
         -- balance to add fees
         tx' <- handleBalanceTx utxo (utx & U.tx . fee .~ (utxWithFees ^. U.tx . fee))

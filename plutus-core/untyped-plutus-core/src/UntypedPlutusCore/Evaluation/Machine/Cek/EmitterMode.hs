@@ -1,10 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (noEmitter, logEmitter, logWithTimeEmitter) where
 
 import           UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import           Control.Monad.ST.Unsafe
+import           Control.Monad.ST.Unsafe                           (unsafeIOToST)
 import qualified Data.DList                                        as DList
-import           Data.STRef
+import           Data.STRef                                        (modifySTRef, newSTRef, readSTRef)
+import           Data.Text                                         (pack)
 import           Data.Time.Clock                                   (getCurrentTime)
 
 -- | Emitter for when @EmitterOption@ is @NoEmit@.
@@ -24,6 +27,6 @@ logWithTimeEmitter = EmitterMode $ do
     logsRef <- newSTRef DList.empty
     let emitter str = CekCarryingM $ do
             time <- unsafeIOToST getCurrentTime
-            let withTime = "[" ++ show time ++ "]" ++ " " ++ str
+            let withTime = "[" <> pack (show time) <> "]" <> " " <> str
             modifySTRef logsRef (`DList.snoc` withTime)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)

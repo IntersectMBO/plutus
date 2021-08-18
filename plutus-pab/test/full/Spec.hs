@@ -12,7 +12,8 @@ main =
     defaultMain $
     testGroup
         "all tests"
-        [ Plutus.PAB.CoreSpec.tests
+        [
+        Plutus.PAB.CoreSpec.tests
         -- TODO: To be re-instated once we resolve big delays experienced by
         -- running lots of PABs at once.
         -- , Plutus.PAB.CliSpec.tests

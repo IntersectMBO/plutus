@@ -64,7 +64,8 @@ import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.Name
 import           PlutusCore.Pretty
 
-import           Data.Ix
+import           Data.Ix                                                  (Ix)
+import           Data.Text                                                (Text)
 import           Universe
 
 {- Note [CEK runners naming convention]
@@ -109,7 +110,7 @@ evaluateCek
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [String])
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params term =
     case runCek params restrictingEnormous emitMode term of
         (errOrRes, _, logs) -> (errOrRes, logs)
@@ -131,7 +132,7 @@ unsafeEvaluateCek
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts CekValue uni fun
     -> Term Name uni fun ()
-    -> (EvaluationResult (Term Name uni fun ()), [String])
+    -> (EvaluationResult (Term Name uni fun ()), [Text])
 unsafeEvaluateCek emitTime params = first unsafeExtractEvaluationResult . evaluateCek emitTime params
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.

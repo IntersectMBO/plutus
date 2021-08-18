@@ -49,15 +49,21 @@ instance Ord Integer where
     {-# INLINABLE (<) #-}
     (<) = Builtins.lessThanInteger
     {-# INLINABLE (<=) #-}
-    (<=) = Builtins.lessThanEqInteger
+    (<=) = Builtins.lessThanEqualsInteger
     {-# INLINABLE (>) #-}
     (>) = Builtins.greaterThanInteger
     {-# INLINABLE (>=) #-}
-    (>=) = Builtins.greaterThanEqInteger
+    (>=) = Builtins.greaterThanEqualsInteger
 
 instance Ord Builtins.BuiltinByteString where
-    {-# INLINABLE compare #-}
-    compare l r = if Builtins.lessThanByteString l r then LT else if Builtins.equalsByteString l r then EQ else GT
+    {-# INLINABLE (<) #-}
+    (<) = Builtins.lessThanByteString
+    {-# INLINABLE (<=) #-}
+    (<=) = Builtins.lessThanEqualsByteString
+    {-# INLINABLE (>) #-}
+    (>) = Builtins.greaterThanByteString
+    {-# INLINABLE (>=) #-}
+    (>=) = Builtins.greaterThanEqualsByteString
 
 instance Ord a => Ord [a] where
     {-# INLINABLE compare #-}

@@ -23,7 +23,6 @@ data ConfigCommand =
     | StartMockNode -- ^ Run the mock node service
     | MockWallet -- ^ Run the mock wallet service
     | ChainIndex -- ^ Run the chain index service
-    | Metadata -- ^ Run the mock meta-data service
     | ForkCommands [ConfigCommand] -- ^ Fork a list of commands
     | ContractState ContractInstanceId -- ^ Display the contract identified by 'ContractInstanceId'
     | ReportContractHistory ContractInstanceId -- ^ Get the history of the contract identified by 'UUID'

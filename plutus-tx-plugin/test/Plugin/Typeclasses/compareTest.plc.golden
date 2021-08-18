@@ -9,7 +9,7 @@
     (termbind
       (strict)
       (vardecl
-        lessThanEqInteger (fun (con integer) (fun (con integer) (con bool)))
+        lessThanEqualsInteger (fun (con integer) (fun (con integer) (con bool)))
       )
       (builtin lessThanEqualsInteger)
     )
@@ -73,7 +73,7 @@
                             [
                               [
                                 { ifThenElse Bool }
-                                [ [ lessThanEqInteger x ] y ]
+                                [ [ lessThanEqualsInteger x ] y ]
                               ]
                               True
                             ]
@@ -114,7 +114,9 @@
                     Bool_match
                     [
                       [
-                        [ { ifThenElse Bool } [ [ lessThanEqInteger x ] y ] ]
+                        [
+                          { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ]
+                        ]
                         True
                       ]
                       False
@@ -150,7 +152,9 @@
                     Bool_match
                     [
                       [
-                        [ { ifThenElse Bool } [ [ lessThanEqInteger x ] y ] ]
+                        [
+                          { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ]
+                        ]
                         True
                       ]
                       False
@@ -183,13 +187,14 @@
     (termbind
       (strict)
       (vardecl
-        greaterThanEqInteger (fun (con integer) (fun (con integer) (con bool)))
+        lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
       )
-      (builtin greaterThanEqualsInteger)
+      (builtin lessThanInteger)
     )
     (termbind
       (strict)
-      (vardecl greaterThanEqInteger (fun (con integer) (fun (con integer) Bool))
+      (vardecl
+        greaterThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
       )
       (lam
         x
@@ -197,19 +202,9 @@
         (lam
           y
           (con integer)
-          [
-            [ [ { ifThenElse Bool } [ [ greaterThanEqInteger x ] y ] ] True ]
-            False
-          ]
+          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] False ] True ]
         )
       )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        greaterThanInteger (fun (con integer) (fun (con integer) (con bool)))
-      )
-      (builtin greaterThanInteger)
     )
     (termbind
       (strict)
@@ -221,23 +216,8 @@
           y
           (con integer)
           [
-            [ [ { ifThenElse Bool } [ [ greaterThanInteger x ] y ] ] True ]
-            False
-          ]
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl lessThanEqInteger (fun (con integer) (fun (con integer) Bool)))
-      (lam
-        x
-        (con integer)
-        (lam
-          y
-          (con integer)
-          [
-            [ [ { ifThenElse Bool } [ [ lessThanEqInteger x ] y ] ] True ] False
+            [ [ { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ] ] False ]
+            True
           ]
         )
       )
@@ -245,9 +225,20 @@
     (termbind
       (strict)
       (vardecl
-        lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
+        lessThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
       )
-      (builtin lessThanInteger)
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          [
+            [ [ { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ] ] True ]
+            False
+          ]
+        )
+      )
     )
     (termbind
       (strict)
@@ -288,11 +279,11 @@
                   ]
                   lessThanInteger
                 ]
-                lessThanEqInteger
+                lessThanEqualsInteger
               ]
               greaterThanInteger
             ]
-            greaterThanEqInteger
+            greaterThanEqualsInteger
           ]
           fOrdInteger_cmax
         ]

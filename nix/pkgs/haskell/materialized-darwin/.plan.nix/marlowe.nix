@@ -86,11 +86,11 @@
             (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
-          modules = [ "MarloweContracts" ];
+          modules = [ "MarloweContract" ];
           hsSourceDirs = [ "pab" ];
           mainPath = ([
             "Main.hs"
-            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "") ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
+            ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "") ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";
           };
         };
       tests = {
@@ -102,7 +102,6 @@
             (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."hint" or (errorHandler.buildDepError "hint"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
@@ -114,12 +113,10 @@
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
-            (hsPkgs."sbv" or (errorHandler.buildDepError "sbv"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
-            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
-            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+            ];
           buildable = true;
           modules = [
             "Spec/Marlowe/Common"

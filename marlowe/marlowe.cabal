@@ -39,15 +39,14 @@ common lang
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
 
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin -any
-
   if flag(defer-plugin-errors)
     ghc-options: -fplugin-opt PlutusTx.Plugin:defer-errors
 
 library
   import: lang
   hs-source-dirs: src
+  ghc-options:
+    -Wunused-packages
   build-depends:
     aeson -any,
     base -any,
@@ -71,6 +70,8 @@ library
     wl-pprint -any,
     freer-simple -any,
     semigroups -any
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any
   exposed-modules:
     Language.Marlowe
     Language.Marlowe.Extended
@@ -97,7 +98,6 @@ test-suite marlowe-test
         data-default  -any,
         hint -any,
         lens -any,
-        memory -any,
         bytestring -any,
         freer-simple -any,
         tasty -any,
@@ -109,10 +109,8 @@ test-suite marlowe-test
         plutus-ledger -any,
         plutus-contract -any,
         marlowe,
-        sbv >= 8.4,
         plutus-tx -any,
         QuickCheck,
-        template-haskell -any,
         streaming -any
 
 -- | The PAB Specialised to the marlowe contract(s)
@@ -123,7 +121,7 @@ executable marlowe-pab
   ghc-options:
     -threaded
   other-modules:
-    MarloweContracts
+    MarloweContract
   build-depends:
     base >= 4.9 && < 5,
     aeson -any,
@@ -138,3 +136,5 @@ executable marlowe-pab
     plutus-tx -any,
     purescript-bridge -any,
     marlowe -any,
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any

@@ -436,7 +436,8 @@
         (termbind
           (strict)
           (vardecl
-            greaterThanEqInteger (fun (con integer) (fun (con integer) Bool))
+            greaterThanEqualsInteger
+            (fun (con integer) (fun (con integer) Bool))
           )
           (lam
             x
@@ -448,11 +449,11 @@
                 [
                   [
                     { (builtin ifThenElse) Bool }
-                    [ [ (builtin greaterThanEqualsInteger) x ] y ]
+                    [ [ (builtin lessThanInteger) x ] y ]
                   ]
-                  True
+                  False
                 ]
-                False
+                True
               ]
             )
           )
@@ -472,11 +473,11 @@
                 [
                   [
                     { (builtin ifThenElse) Bool }
-                    [ [ (builtin greaterThanInteger) x ] y ]
+                    [ [ (builtin lessThanEqualsInteger) x ] y ]
                   ]
-                  True
+                  False
                 ]
-                False
+                True
               ]
             )
           )
@@ -484,7 +485,7 @@
         (termbind
           (strict)
           (vardecl
-            lessThanEqInteger (fun (con integer) (fun (con integer) Bool))
+            lessThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
           )
           (lam
             x
@@ -553,11 +554,11 @@
                       ]
                       lessThanInteger
                     ]
-                    lessThanEqInteger
+                    lessThanEqualsInteger
                   ]
                   greaterThanInteger
                 ]
-                greaterThanEqInteger
+                greaterThanEqualsInteger
               ]
               fOrdInteger_cmax
             ]

@@ -79,7 +79,7 @@ multiFunction = plc (Proxy @"multiFunction") (
     let
         {-# NOINLINE predicate #-}
         predicate :: (PersonLike p) => p -> Bool
-        predicate p = likesAnimal p Cat P.&& (age p `Builtins.greaterThanInteger` 30)
+        predicate p = likesAnimal p Cat P.&& (age p `Builtins.lessThanInteger` 30)
     in \(p::Person) -> predicate p)
 
 defaultMethods :: CompiledCode (Integer -> Integer)

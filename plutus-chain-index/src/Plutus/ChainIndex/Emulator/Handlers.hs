@@ -29,8 +29,8 @@ import           Data.Maybe                           (catMaybes, fromMaybe)
 import qualified Data.Set                             as Set
 import           Ledger                               (TxId, TxOutRef (..))
 import           Plutus.ChainIndex.Effects            (ChainIndexControlEffect (..), ChainIndexQueryEffect (..))
-import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap, txMap,
-                                                       validatorMap)
+import           Plutus.ChainIndex.Emulator.DiskState (DiskState, addressMap, dataMap, mintingPolicyMap,
+                                                       stakeValidatorMap, txMap, validatorMap)
 import qualified Plutus.ChainIndex.Emulator.DiskState as DiskState
 import           Plutus.ChainIndex.Tx                 (ChainIndexTx, citxOutputs)
 import           Plutus.ChainIndex.Types              (Tip (..), pageOf)
@@ -70,6 +70,7 @@ handleQuery = \case
     DatumFromHash h -> gets (view $ diskState . dataMap . at h)
     ValidatorFromHash h -> gets (view $ diskState . validatorMap . at h)
     MintingPolicyFromHash h -> gets (view $ diskState . mintingPolicyMap . at h)
+    StakeValidatorFromHash h -> gets (view $ diskState . stakeValidatorMap . at h)
     TxOutFromRef TxOutRef{txOutRefId, txOutRefIdx} ->
         gets @ChainIndexEmulatorState
             (preview $ diskState

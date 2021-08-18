@@ -36,7 +36,6 @@ module PlutusCore
     , DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair
-    , pattern DefaultUniString
     , DefaultFun (..)
     -- * AST
     , Term (..)

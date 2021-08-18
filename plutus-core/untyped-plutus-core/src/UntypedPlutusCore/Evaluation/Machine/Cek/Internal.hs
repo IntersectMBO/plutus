@@ -75,6 +75,7 @@ import           Data.Hashable                                            (Hasha
 import qualified Data.Kind                                                as GHC
 import           Data.Proxy
 import           Data.Semigroup                                           (stimes)
+import           Data.Text                                                (Text)
 import           Data.Text.Prettyprint.Doc
 import           Data.Word64Array.Word8
 import           Universe
@@ -281,12 +282,12 @@ defaultSlippage :: Slippage
 defaultSlippage = 200
 
 -- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
-type CekEmitter uni fun s = String -> CekM uni fun s ()
+type CekEmitter uni fun s = Text -> CekM uni fun s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
     _cekEmitterInfoEmit       :: CekEmitter uni fun  s
-    , _cekEmitterInfoGetFinal :: ST s [String]
+    , _cekEmitterInfoGetFinal :: ST s [Text]
     }
 
 -- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
@@ -556,7 +557,7 @@ runCekM
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
-    -> (Either (CekEvaluationException uni fun) a, cost, [String])
+    -> (Either (CekEvaluationException uni fun) a, cost, [Text])
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     exBudgetMode <- getExBudgetInfo
     emitter <- getEmitterMode
@@ -784,7 +785,7 @@ runCek
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [String])
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [Text])
 runCek params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)

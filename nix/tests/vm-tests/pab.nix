@@ -1,4 +1,4 @@
-{ makeTest, plutus-pab, marlowe-dashboard }:
+{ makeTest, plutus-pab, marlowe-dashboard, marlowe-pab }:
 makeTest {
   name = "pab";
   skipLint = true;
@@ -9,7 +9,7 @@ makeTest {
       services.pab = {
         enable = true;
         pab-setup = plutus-pab.pab-exes.plutus-pab-setup;
-        pab-package = plutus-pab.pab-exes.plutus-pab-examples;
+        pab-executable = "${marlowe-pab}/bin/marlowe-pab";
         staticContent = marlowe-dashboard.client;
         dbFile = "/var/lib/pab/pab-core.db";
         defaultWallet = 1;
@@ -18,7 +18,6 @@ makeTest {
         nodePort = 8082;
         chainIndexPort = 8083;
         signingProcessPort = 8084;
-        metadataPort = 8085;
       };
     };
   testScript = ''
