@@ -133,7 +133,7 @@ ISIG mapData = _ ,, ∅ , con (pair (con Data) (con Data)) ,, con Data
 ISIG listData = _ ,, ∅ , con (list (con Data)) ,, con Data
 ISIG iData = _ ,, ∅ , con integer ,, con Data
 ISIG bData = _ ,, ∅ , con bytestring ,, con Data
-ISIG unconstrData =
+ISIG unConstrData =
   _ ,, ∅ , con Data ,, con (pair (con integer) (con (list (con Data))))
 ISIG unMapData = _ ,, ∅ , con Data ,, con (pair (con Data) (con Data))
 ISIG unListData = _ ,, ∅ , con Data ,, con (list (con Data))

@@ -40,8 +40,8 @@ open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removab
 ## Pragmas
 
 ```
-{-# INJECTIVE _⊢_ #-}
 {-# INJECTIVE _⊢Nf⋆_ #-}
+{-# INJECTIVE _⊢_ #-}
 ```
 
 ## Some syntactic lemmas about injectivity
@@ -128,7 +128,7 @@ arity mapData = Term ∷ []
 arity listData = Term ∷ []
 arity iData = Term ∷ []
 arity bData = Term ∷ []
-arity unconstrData = Term ∷ []
+arity unConstrData = Term ∷ []
 arity unMapData = Term ∷ []
 arity unListData = Term ∷ []
 arity unIData = Term ∷ []
@@ -889,9 +889,9 @@ bappTermLem iData _ (start _) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem bData {az = az} {as} M p q
   with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem bData _ (start _) base | refl ,, refl = _ ,, _ ,, refl
-bappTermLem unconstrData {az = az} {as} M p q
+bappTermLem unConstrData {az = az} {as} M p q
   with <>>-cancel-both az ([] ∷ Term) as p
-bappTermLem unconstrData _ (start _) base | refl ,, refl = _ ,, _ ,, refl
+bappTermLem unConstrData _ (start _) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem unMapData {az = az} {as} M p q
   with <>>-cancel-both az ([] ∷ Term) as p
 bappTermLem unMapData _ (start _) base | refl ,, refl = _ ,, _ ,, refl
@@ -1063,7 +1063,7 @@ bappTypeLem sndPair _ (bubble (bubble {as = az} p)) _
 bappTypeLem bData {az = az} _ p q
   with <>>-cancel-both' az _ ([] ∷ Term) _ p refl
 ... | refl ,, refl ,, ()
-bappTypeLem unconstrData {az = az} _ p q
+bappTypeLem unConstrData {az = az} _ p q
   with <>>-cancel-both' az _ ([] ∷ Term) _ p refl
 ... | refl ,, refl ,, ()
 bappTypeLem unMapData {az = az} _ p q
@@ -1191,7 +1191,7 @@ ival mapData = V-I _ (start _) base
 ival listData = V-I _ (start _) base
 ival iData = V-I _ (start _) base
 ival bData = V-I _ (start _) base
-ival unconstrData = V-I _ (start _) base
+ival unConstrData = V-I _ (start _) base
 ival unMapData = V-I _ (start _) base
 ival unListData = V-I _ (start _) base
 ival unIData = V-I _ (start _) base

@@ -25,17 +25,23 @@ data RawKind : Set where
   *   : RawKind
   _⇒_ : RawKind → RawKind → RawKind
 
+{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
 
 data RawTy : Set
 open import Builtin.Constant.Type ⊤ (λ _ → RawTy)
+
+data RawTyCon : Set
+
 data RawTy where
   `   : ℕ → RawTy
   _⇒_ : RawTy → RawTy → RawTy
   Π   : RawKind → RawTy → RawTy
   ƛ   : RawKind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
-  con : TyCon _ → RawTy
+  con : RawTyCon → RawTy
   μ    : RawTy → RawTy → RawTy
+
+{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 
 data RawTermCon : Set where
   integer    : ℤ → RawTermCon
@@ -43,6 +49,21 @@ data RawTermCon : Set where
   string     : String → RawTermCon
   bool       : Bool → RawTermCon
   unit       : RawTermCon
+
+{-# FOREIGN GHC import Raw #-}
+{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConUnit) #-}
+
+data RawTyCon where
+  integer    : RawTyCon
+  bytestring : RawTyCon
+  string     : RawTyCon
+  unit       : RawTyCon
+  bool       : RawTyCon
+  list       : RawTy → RawTyCon
+  pair       : RawTy → RawTy → RawTyCon
+  Data       : RawTyCon
+
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
@@ -56,19 +77,20 @@ data RawTm : Set where
   wrap          : RawTy → RawTy → RawTm → RawTm
   unwrap        : RawTm → RawTm
 
+{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
+
 -- α equivalence
 
 -- we don't have a decicable equality instance for bytestring, so I
 -- converted this to bool for now
 
-decRTyCon : (C C' : TyCon _) → Bool
-decRTyCon integer integer = true
+decRTyCon : (C C' : RawTyCon) → Bool
+decRTyCon integer    integer    = true
 decRTyCon bytestring bytestring = true
 decRTyCon string     string     = true
 decRTyCon unit       unit       = true
 decRTyCon bool       bool       = true
 decRTyCon _          _          = false
-
 
 decTermCon : (C C' : RawTermCon) → Bool
 decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
@@ -231,11 +253,6 @@ decRTm (unwrap t) (unwrap t') with decRTm t t'
 decRTm (unwrap t) (unwrap t') | true = true
 decRTm (unwrap t) (unwrap t') | false = false
 decRTm _ _ = false
-{-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConUnit) #-}
-{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
-{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
-{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
 
 -- We have to different approaches to de Bruijn terms.
 -- one counts type and term binders separately the other counts them together

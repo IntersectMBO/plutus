@@ -1,7 +1,9 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 module Raw where
 
 import           GHC.Natural
@@ -25,7 +27,7 @@ data RType = RTyVar Integer
            | RTyPi RKind RType
            | RTyLambda RKind RType
            | RTyApp RType RType
-           | RTyCon (SomeTypeIn DefaultUni)
+           | RTyCon RTyCon
            | RTyMu RType RType
            deriving Show
 
@@ -35,6 +37,18 @@ data RConstant = RConInt Integer
                | RConBool Bool
                | RConUnit
                deriving Show
+
+-- I don't need this...
+data RTyCon = RTyConInt
+            | RTyConBS
+            | RTyConStr
+            | RTyConBool
+            | RTyConUnit
+            | RTyConList RType
+            | RTyConPair RType RType
+            | RTyConData
+            deriving Show
+
 
 data RTerm = RVar Integer
            | RTLambda RKind RTerm
@@ -64,8 +78,16 @@ convT (TyFun _ _A _B)               = RTyFun (convT _A) (convT _B)
 convT (TyForall _ _ _K _A)          = RTyPi (convK _K) (convT _A)
 convT (TyLam _ _ _K _A)             = RTyLambda (convK _K) (convT _A)
 convT (TyApp _ _A _B)               = RTyApp (convT _A) (convT _B)
-convT (TyBuiltin _ b)               = RTyCon b
+convT (TyBuiltin _ b)               = RTyCon (convTyCon b)
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
+
+convTyCon :: SomeTypeIn DefaultUni -> RTyCon
+convTyCon (SomeTypeIn DefaultUniInteger)    = RTyConInt
+convTyCon (SomeTypeIn DefaultUniByteString) = RTyConBS
+convTyCon (SomeTypeIn DefaultUniString)     = RTyConStr
+convTyCon (SomeTypeIn DefaultUniBool)       = RTyConBool
+convTyCon (SomeTypeIn DefaultUniUnit)       = RTyConUnit
+convTyCon _                                 = error "unsupported builtin"
 
 convC :: Some (ValueOf DefaultUni) -> RConstant
 convC (Some (ValueOf DefaultUniInteger    i))   = RConInt i
@@ -73,7 +95,8 @@ convC (Some (ValueOf DefaultUniByteString b))   = RConBS b
 convC (Some (ValueOf DefaultUniString       s)) = RConStr s
 convC (Some (ValueOf DefaultUniUnit       u))   = RConUnit
 convC (Some (ValueOf DefaultUniBool       b))   = RConBool b
-convC (Some (ValueOf uni                  _))   = error $ "convC: " ++ show uni ++ " is not supported"
+convC (Some (ValueOf uni                  _))   =
+  error $ "convC: " ++ show uni ++ " is not supported"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
@@ -107,8 +130,20 @@ unconvT i (RTyPi k t)       =
 unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
 
 unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
-unconvT i (RTyCon c)        = TyBuiltin () c
+unconvT i (RTyCon c)        = TyBuiltin () (unconvTyCon i c)
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
+
+unconvTyCon :: Int -> RTyCon -> SomeTypeIn DefaultUni
+unconvTyCon i RTyConInt        = SomeTypeIn DefaultUniInteger
+unconvTyCon i RTyConBS         = SomeTypeIn DefaultUniByteString
+unconvTyCon i RTyConStr        = SomeTypeIn DefaultUniString
+unconvTyCon i RTyConBool       = SomeTypeIn DefaultUniBool
+unconvTyCon i RTyConUnit       = SomeTypeIn DefaultUniUnit
+unconvTyCon i (RTyConList a) =
+  error "builtin lists not supported"
+unconvTyCon i (RTyConPair a b) =
+  error "builtin pairs not supported"
+unconvTyCon i RTyConData       = SomeTypeIn DefaultUniData
 
 unconvC :: RConstant -> Some (ValueOf DefaultUni)
 unconvC (RConInt i)  = Some (ValueOf DefaultUniInteger    i)

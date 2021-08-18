@@ -24,7 +24,6 @@ data Builtin : Set where
   lessThanInteger          : Builtin
   lessThanEqualsInteger    : Builtin
   equalsInteger            : Builtin
-  appendByteString         : Builtin
   lessThanByteString       : Builtin
   lessThanEqualsByteString : Builtin
   sha2-256                 : Builtin
@@ -32,6 +31,7 @@ data Builtin : Set where
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
+  appendByteString         : Builtin
   equalsString             : Builtin
   encodeUtf8               : Builtin
   decodeUtf8               : Builtin  
@@ -48,7 +48,7 @@ data Builtin : Set where
   listData                 : Builtin
   iData                    : Builtin
   bData                    : Builtin
-  unconstrData             : Builtin
+  unConstrData             : Builtin
   unMapData                : Builtin
   unListData               : Builtin
   unIData                  : Builtin
@@ -72,7 +72,6 @@ data Builtin : Set where
                                           | LessThanInteger
                                           | LessThanEqualsInteger
                                           | EqualsInteger
-                                          | AppendByteString
                                           | LessThanByteString
                                           | LessThanEqualsByteString
                                           | Sha2_256

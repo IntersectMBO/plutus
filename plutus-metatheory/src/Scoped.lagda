@@ -21,7 +21,6 @@ import Level
 
 open import Builtin
 open import Raw
-import Builtin.Constant.Type ⊤ (λ _ → RawTy) as R
 open import Utils
 \end{code}
 
@@ -61,7 +60,7 @@ arity mapData = 1
 arity listData = 1
 arity iData = 1
 arity bData = 1
-arity unconstrData = 1
+arity unConstrData = 1
 arity unMapData = 1
 arity unListData = 1
 arity unIData = 1
@@ -308,19 +307,19 @@ data ScopeError : Set where
   return (T i)
 
 scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
-scopeCheckTyCon : ∀{n} → R.TyCon _ → Either ScopeError (S.TyCon n)
+scopeCheckTyCon : ∀{n} → RawTyCon → Either ScopeError (S.TyCon n)
 
-scopeCheckTyCon R.integer    = inj₂ S.integer
-scopeCheckTyCon R.bytestring = inj₂ S.bytestring
-scopeCheckTyCon R.string     = inj₂ S.string
-scopeCheckTyCon R.unit       = inj₂ S.unit
-scopeCheckTyCon R.bool       = inj₂ S.bool
-scopeCheckTyCon (R.list A)   = fmap S.list (scopeCheckTy A)
-scopeCheckTyCon (R.pair A B) = do
+scopeCheckTyCon integer    = inj₂ S.integer
+scopeCheckTyCon bytestring = inj₂ S.bytestring
+scopeCheckTyCon string     = inj₂ S.string
+scopeCheckTyCon unit       = inj₂ S.unit
+scopeCheckTyCon bool       = inj₂ S.bool
+scopeCheckTyCon (list A)   = fmap S.list (scopeCheckTy A)
+scopeCheckTyCon (pair A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (S.pair A B)
-scopeCheckTyCon R.Data       = inj₂ S.Data
+scopeCheckTyCon Data       = inj₂ S.Data
 
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
@@ -394,16 +393,16 @@ unDeBruijnifyC unit           = unit
 
 \begin{code}
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
-extricateTyCon : ∀{n} → S.TyCon n → R.TyCon _
+extricateTyCon : ∀{n} → S.TyCon n → RawTyCon
 
-extricateTyCon S.integer    = R.integer
-extricateTyCon S.bytestring = R.bytestring
-extricateTyCon S.string     = R.string
-extricateTyCon S.unit       = R.unit
-extricateTyCon S.bool       = R.bool
-extricateTyCon (S.list A)   = R.list (extricateScopeTy A)
-extricateTyCon (S.pair A B) = R.pair (extricateScopeTy A) (extricateScopeTy B)
-extricateTyCon S.Data       = R.Data
+extricateTyCon S.integer    = integer
+extricateTyCon S.bytestring = bytestring
+extricateTyCon S.string     = string
+extricateTyCon S.unit       = unit
+extricateTyCon S.bool       = bool
+extricateTyCon (S.list A)   = list (extricateScopeTy A)
+extricateTyCon (S.pair A B) = pair (extricateScopeTy A) (extricateScopeTy B)
+extricateTyCon S.Data       = Data
 
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
@@ -412,7 +411,7 @@ extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con c) = con (extricateTyCon c)
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy missing = con R.bool -- TODO
+extricateScopeTy missing = con bool -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)
