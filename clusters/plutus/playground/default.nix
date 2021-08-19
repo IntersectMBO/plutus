@@ -35,6 +35,10 @@ in {
 
   services.nomad.namespaces = { plutus-playground.description = "Playground"; };
 
+  users.extraUsers.root.openssh.authorizedKeys.keys = pkgs.ssh-keys.devOps ++ [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID/fJqgjwPG7b5SRPtCovFmtjmAksUSNg3xHWyqBM4Cs shlevy@shlevy-laptop"
+  ];
+
   cluster = {
     name = "plutus-playground";
 
@@ -50,16 +54,15 @@ in {
     s3CachePubKey = lib.fileContents ../../../encrypted/nix-public-key-file;
     flakePath = ../../..;
 
-    autoscalingGroups = listToAttrs (forEach [
-      {
-        region = "eu-central-1";
-        desiredCapacity = 2;
-      }
-      #{
-      #  region = "us-east-2";
-      #  desiredCapacity = 8;
-      #}
-    ] (args:
+    autoscalingGroups = listToAttrs (forEach [{
+      region = "eu-central-1";
+      desiredCapacity = 2;
+    }
+    #{
+    #  region = "us-east-2";
+    #  desiredCapacity = 8;
+    #}
+      ] (args:
         let
           attrs = ({
             desiredCapacity = 1;
@@ -143,8 +146,7 @@ in {
         modules = [ (bitte + /profiles/monitoring.nix) ];
 
         securityGroupRules = {
-          inherit (securityGroupRules)
-            internet internal ssh http https;
+          inherit (securityGroupRules) internet internal ssh http https;
         };
       };
 
