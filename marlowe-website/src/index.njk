@@ -26,23 +26,24 @@
       <div class="m-3 md:my-5 md:mx-5vw flex justify-center">
         <div class="max-w-screen-widest w-full flex items-center">
 
-          <a href=" #top" class="scale"><img loading="lazy" class="md:w-36 w-32 block lg:mr-16 md:mr-12 md:ml-0 ml-2" src="{% static './static/img/marlowe-logo-light.svg' %}" alt="Marlowe Logo"></a>
+          <a href="#top" class="scale"><img loading="lazy" class="md:w-36 w-32 block lg:mr-16 md:mr-12 md:ml-0 ml-2" src="{% static './static/img/marlowe-logo-light.svg' %}" alt="Marlowe Logo"></a>
           <a href="#" class="float-right absolute right-5"><img loading="lazy" class="w-9 md:hidden block" src="{% static './static/img/mobile-menu-purple.svg' %}" alt="Menu icon"></a>
           <ul class="hidden md:block">
             <li class="inline text-base font-bold mr-7 menu-item">
-              <a class="" href="#run">Marlowe Run</a>
+              <a href="#run">Marlowe Run</a>
             </li>
             <li class="inline text-base font-bold mr-7 menu-item">
-              <a class="" href="#build">For Engineers</a>
+              <a href="#build">For Engineers</a>
             </li>
             <li class="inline text-base font-bold mr-7 menu-item">
-              <a class="" href="#faq">FAQs</a>
+              <a href="#faq">FAQs</a>
             </li>
             <li class="inline text-base font-bold mr-7 menu-item">
-              <a class="" href="#pioneers">Pioneers</a>
+              <a href="#pioneers">Pioneers</a>
             </li>
             <li class="relative inline text-base font-bold mr-7 menu-item new-tab">
-              <a class="" href="#">Docs</a>
+              {# FIXME: add link #}
+              <a href="#">Docs</a>
             </li>
           </ul>
         </div>
@@ -60,6 +61,7 @@
           <img loading="lazy" class="mx-auto lg:pb-0 md:pb-8 pb-8 lg:h-logo-wider h-logo" src="{% static './static/img/marlowe-logo-dark.svg' %}" alt="Marlowe logo">
           <h1 class="md:font-comfortaa-bolder text-3xl md:text-4xl xl:text-5xl flex flex-col font-comfortaa-bold leading-tight lg:pt-8 pb-4">Peer to peer financial agreements are here</h1>
           <h2 class="text-xl lg:text-2xl xl:text-27px pb-8">Try our demo products built on Marlowe, the language made for finance.</h2>
+          {# FIXME: add link#}
           <a href="" class="text-link text-xl lg:text-2xl xl:text-27px white font-semibold mt-5 mb-26">Discover the Marlowe language</a>
         </div>
 
@@ -77,7 +79,7 @@
             <p class="text-lg font-semibold">Run our first collection of smart contract templates with the Marlowe Run app.</p>
           </div>
 
-          <div class="">
+          <div>
 
             <h3 class="text-27px font-semibold pb-4 md:hidden block">Build Marlowe contracts</h3>
             <img loading="lazy" class="lg:w-2/3 w-full mx-auto" src="{% static './static/img/marlowe-build-image.png' %}" alt="Picture of Marlowe code with Blockly blocks floating around it">
@@ -109,7 +111,7 @@
 
         <div class="w-full max-w-screen-widest">
 
-          <div class="">
+          <div>
 
             <img loading="lazy" class="mx-auto lg:pb-0 md:pb-8 pb-8 h-logo lg:h-logo-wider" src="{% static './static/img/marlowe-run-demo-logo-light.svg' %}" alt="Marlowe Run Demo Logo">
             <h2 class="md:text-3xl lg:text-4xl flex flex-col md:font-comfortaa-bolder font-comfortaa-bold leading-tight lg:pt-8 pb-4 text-27px">Financial smart contracts made easy</h2>
@@ -124,7 +126,7 @@
 
         <div class="relative w-full max-w-screen-widest">
 
-          <div class="">
+          <div>
 
             <h3 class="text-lg font-semibold mt-5 pb-4 md:block hidden">Try the first of many smart contract templates, more coming soon.</h3>
             <img loading="lazy" class="w-2/3 mx-auto lg:pb-0 md:pb-8 pb-8 hidden md:block" src="{% static './static/img/run-tabs.png' %}" alt="">
@@ -139,13 +141,14 @@
 
         <div class="relative w-full max-w-screen-widest">
 
-          <div class="">
+          <div>
 
             <h3 class="pt-16 text-xl font-semibold pb-4 md:block hidden">See how it works</h3>
 
             <div class="relative xl:w-3/4 w-full mx-auto">
 
               <div class="absolute md:bottom-5 md:right-5 bottom-3 right-3">
+                {# FIXME: add video #}
                 <a href="#" class="scale"><img loading="lazy" class="w-full" src="{% static './static/img/marlowe-play-btn.svg' %}" alt="Video play button"></a>
               </div>
               <img loading="lazy" class="w-full mx-auto" src="{% static './static/img/run-video-thumbnail.png' %}" alt="Video thumbnail of a woman holding a phone">
@@ -164,7 +167,7 @@
 
           <div class="lg:w-3/4 w-full mx-auto">
 
-            <a href="https://staging.marlowe-dash.iohkdev.io" target="_blank" class="primary-button text-lg relative">
+            <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button text-lg relative" data-marlowe-component="run">
               Try demo
               <img loading="lazy" class="w-32 absolute -right-36 bottom-6 lg:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the try demo button">
             </a>
@@ -186,7 +189,7 @@
 
         <div class="text-center text-white lg:mb-12 mb-8 z-10 w-full max-w-screen-widest">
 
-          <div class="">
+          <div>
 
             <img loading="lazy" class="mx-auto lg:pb-0 md:pb-8 pb-8 lg:h-logo-wider h-logo" src="{% static './static/img/marlowe-build-demo-logo-dark.svg' %}" alt="Marlowe Build Demo logo">
             <h3 class="md:text-3xl lg:text-4xl flex flex-col lg:font-comfortaa-bolder font-comfortaa-bold leading-tight lg:pt-8 pb-4 text-27px">Playground for financial engineers</h3>
@@ -210,7 +213,7 @@
 
               <div class="relative w-full">
 
-                <a href="https://staging.marlowe-dash.iohkdev.io" target="_blank" class="primary-button text-lg">Try it</a>
+                <a href="https://run.marlowe-finance.io" target="_blank" class="primary-button text-lg" data-marlowe-component="run">Try it</a>
                 <img loading="lazy" class="w-32 absolute left-52 bottom-2 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the try it button">
               </div>
 
@@ -229,12 +232,13 @@
 
         <div class="relative w-full max-w-screen-widest text-center md:pb-10 pb-0 z-10">
 
-          <div class="">
+          <div>
 
             <h3 class="pt-16 lg:text-xl text-lg font-semibold pb-4 md:block text-green">See how it works</h3>
             <div class="relative xl:w-3/4 w-full mx-auto">
 
               <div class="absolute md:bottom-5 md:right-5 bottom-3 right-3">
+                {# FIXME: add video #}
                 <a href="#" class="scale"><img loading="lazy" class="w-full" src="{% static './static/img/marlowe-play-btn.svg' %}" alt="Video play button"></a>
               </div>
               <img loading="lazy" class="w-full mx-auto" src="{% static './static/img/marlowe-build-video-thumbnail.png' %}" alt="Video thumbnail of man sitting at a laptop computer">
@@ -270,7 +274,7 @@
 
               <div class="relative w-full">
 
-                <a href="https://staging.marlowe-dash.iohkdev.io" target="_blank" class="primary-button text-lgl">Try it</a>
+                <a href="https://play.marlowe-finance.io" target="_blank" class="primary-button text-lgl" data-marlowe-component="play">Try it</a>
                 <img loading="lazy" class="w-32 absolute left-52 bottom-2 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at try it button">
               </div>
 
@@ -321,26 +325,21 @@
 
         <div class="relative w-full max-w-screen-widest">
 
-          <div class="">
-
+          <div>
             <h2 class="md:text-3xl lg:text-4xl flex flex-col md:font-comfortaa-bolder font-comfortaa-bold leading-tight lg:pt-8 pb-4 text-27px">Marlowe Pioneers</h2>
             <h2 class="text-xl lg:text-2xl xl:text-27px pb-0">Be the first to test and feedback on this groundbreaking new DeFi technology.</h2>
             <div class="relative mx-3 md:mx-5vw flex justify-center md:mt-18 md:mb-5 mt-12">
 
               <div class="w-full mx-auto">
-
-                <a href="https://staging.marlowe-dash.iohkdev.io" target="_blank" class="relative primary-button text-lg">
+                {# FIXME: Add link#}
+                <a href="" target="_blank" class="relative primary-button text-lg">
                   <img loading="lazy" class="w-32 absolute -right-36 bottom-6 xl:block hidden" src="{% static './static/img/arrow-light.svg' %}" alt="Arrow pointing at the register now button">
                   Register now
                 </a>
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
       <img loading=" lazy" class="pink-m-left pink-m-left w-pinkm=" w-pinkm="w-pinkM" hidden="hidden" lg:block="lg:block" src=" {% static './static/img/pink-m-left.svg' %} " alt="xx">
       <img loading="lazy" class="pink-m-right w-pinkM hidden lg:block" src="{% static './static/img/pink-m-right.svg' %}" alt="xx">
@@ -353,16 +352,19 @@
         <div class="m-5 w-full max-w-screen-widest">
           <ul class="inline w-full">
             <li class="relative text-base font-bold md:mr-7 mb-6 md:mb-0 block md:inline">
-              <a class="" href="#run">Privacy</a>
+              {# FIXME: Add link#}
+              <a href="">Privacy</a>
             </li>
             <li class="relative text-base font-bold md:mr-7 mb-6 md:mb-0 block md:inline">
-              <a class="" href="#build">Terms</a>
+              {# FIXME: Add link#}
+
+              <a href="">Terms</a>
             </li>
             <li class="relative text-base font-bold md:mr-7 mb-6 md:mb-0 new-tab block md:inline">
-              <a class="" href="#build">iohk.io</a>
+              <a href="https://iohk.io/">iohk.io</a>
             </li>
             <li class="relative text-base font-bold md:mr-7 md:mb-0 new-tab block md:inline">
-              <a class="" href="#run">cardano.org</a>
+              <a href="https://cardano.org/">cardano.org</a>
             </li>
           </ul>
         </div>
