@@ -56,9 +56,11 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek             as UPLC
 import           UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (logWithTimeEmitter)
 
 import           Control.Exception
+import           Control.Lens.Combinators                             (_2)
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Data.Text                                            (Text)
 import qualified Data.Text.Prettyprint.Doc                            as PP
 import           Hedgehog
 import           System.IO.Unsafe
@@ -138,20 +140,18 @@ runUPlc values = do
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
     liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit TPLC.defaultCekParameters t
 
-runUPlcProfile :: (Traversable t, ToUPlc a DefaultUni UPLC.DefaultFun) =>
-    t a
+runUPlcProfile :: ToUPlc a DefaultUni UPLC.DefaultFun =>
+    [a]
     -> ExceptT
      SomeException
      IO
-     (UPLC.EvaluationResult
-        (UPLC.Term UPLC.Name DefaultUni UPLC.DefaultFun ()))
+     (UPLC.Term UPLC.Name DefaultUni UPLC.DefaultFun (), [Text])
 runUPlcProfile values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-    liftEither
-        $ first toException
-            $ TPLC.extractEvaluationResult
-                $ fst $ UPLC.evaluateCek logWithTimeEmitter TPLC.defaultCekParameters t
+        (result, logOut) = UPLC.evaluateCek logWithTimeEmitter TPLC.defaultCekParameters t
+    res <- either (throwError . SomeException) pure result
+    pure (res, logOut)
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
@@ -211,7 +211,7 @@ goldenUEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runUPlc value
 goldenUEvalProfile
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
-goldenUEvalProfile name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runUPlcProfile values)
+goldenUEvalProfile name values = nestedGoldenVsDocM name $ pretty . view _2 <$> (rethrow $ runUPlcProfile values)
 
 -- See Note [Marking].
 -- | A version of 'RenameT' that fails to take free variables into account.

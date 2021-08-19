@@ -32,29 +32,13 @@ import           Data.Text                  (Text)
 import           GHC.Magic
 
 primitives :: TestNested
-primitives = testNested "Primitives" [
-    goldenPir "string" string
-  , goldenPir "int" int
-  , goldenPir "int2" int2
-  , goldenPir "bool" bool
-  , goldenPir "and" andPlc
-  , goldenUEvalProfile "andApply" [ toUPlc andPlc, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False ]
-  , goldenPir "tuple" tuple
-  , goldenPir "tupleMatch" tupleMatch
+primitives = testNested "Primitives with profiling" [
+  goldenUEvalProfile "andApply" [ toUPlc andPlc, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False ]
   , goldenUEvalProfile "tupleConstDest" [ toUPlc tupleMatch, toUPlc tuple ]
-  , goldenPir "intCompare" intCompare
-  , goldenPir "intEq" intEq
   , goldenUEvalProfile "intEqApply" [ toUPlc intEq, toUPlc int, toUPlc int ]
-  , goldenPir "void" void
-  , goldenPir "intPlus" intPlus
-  , goldenPir "intDiv" intDiv
   , goldenUEvalProfile "intPlusApply" [ toUPlc intPlus, toUPlc int, toUPlc int2 ]
-  , goldenPir "error" errorPlc
-  , goldenPir "ifThenElse" ifThenElse
   , goldenUEvalProfile "ifThenElseApply" [ toUPlc ifThenElse, toUPlc int, toUPlc int2 ]
-  , goldenPir "emptyByteString" emptyByteString
   , goldenUEvalProfile "emptyByteStringApply" [ getPlc emptyByteString, liftProgram Builtins.emptyByteString ]
-  , goldenPir "bytestring" bytestring
   , goldenUEvalProfile "bytestringApply" [ getPlc bytestring, liftProgram ("hello" ::Builtins.BuiltinByteString) ]
   , goldenUEvalProfile "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.BuiltinByteString)]
   , goldenUEvalProfile "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.BuiltinByteString), liftProgram ("hello" :: Builtins.BuiltinByteString)]
@@ -63,20 +47,11 @@ primitives = testNested "Primitives" [
   , goldenUEvalProfile "lengthOfByteString" [ getPlc bsLength, liftProgram ("hello" :: Builtins.BuiltinByteString)]
   , goldenUEvalProfile "indexByteString" [ getPlc bsIndex, liftProgram ("hello" :: Builtins.BuiltinByteString), liftProgram (0 :: Integer)]
   , goldenUEvalProfile "consByteString" [ getPlc bsCons, liftProgram (104 :: Integer), liftProgram ("ello" :: Builtins.BuiltinByteString)]
-  , goldenPir "verify" verify
-  , goldenPir "trace" trace
-  , goldenPir "traceComplex" traceComplex
-  , goldenPir "stringLiteral" stringLiteral
   , goldenUEvalProfile "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: Builtins.BuiltinString), liftProgram ("hello" :: Builtins.BuiltinString)]
-  , goldenPir "encodeUtf8" stringEncode
   , goldenUEvalProfile "constructData1" [ constructData1 ]
-  -- It's interesting to look at one of these to make sure all the specialisation is working out nicely and for
-  -- debugging when it isn't
-  , goldenPir "deconstructorData1" deconstructData1
   -- Check that matchData works (and isn't too strict)
   , goldenUEvalProfile "matchData1" [ toUPlc matchData1, toUPlc constructData1 ]
   , goldenUEvalProfile "deconstructData1" [ toUPlc deconstructData1, toUPlc constructData1 ]
-  , goldenPir "deconstructorData2" deconstructData2
   , goldenUEvalProfile "deconstructData2" [ toUPlc deconstructData2, toUPlc constructData2 ]
   , goldenUEvalProfile "deconstructData3" [ toUPlc deconstructData3, toUPlc constructData3 ]
   ]

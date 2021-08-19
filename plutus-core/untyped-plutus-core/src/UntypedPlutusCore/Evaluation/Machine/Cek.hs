@@ -1,8 +1,10 @@
 -- | The API to the CEK machine.
 
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
+
+{-# LANGUAGE OverloadedStrings #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek
     (
@@ -113,7 +115,7 @@ evaluateCek
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params term =
     case runCek params restrictingEnormous emitMode term of
-        (errOrRes, _, logs) -> (errOrRes, logs)
+         (errOrRes, _, logs) -> (errOrRes, "testing evaluateCek log empty" : logs)
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 evaluateCekNoEmit
