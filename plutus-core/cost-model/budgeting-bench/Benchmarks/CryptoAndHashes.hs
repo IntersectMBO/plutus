@@ -22,11 +22,20 @@ import qualified Hedgehog.Range                         as HH.Range
 byteStringSizes :: [Integer]
 byteStringSizes = integerPower 2 <$> [1..20::Integer]
 
+byteStringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
+byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStringSizes
+
 makeSizedBytestring :: HH.Seed -> Int -> (BS.ByteString, ExMemory)
 makeSizedBytestring seed e = let x = genSample seed (HH.bytes (HH.Range.singleton e)) in (x, memoryUsage x)
 
 seedA :: HH.Seed
 seedA = HH.Seed 42 43
+
+benchByteStringNoArgOperations :: DefaultFun -> Benchmark
+benchByteStringNoArgOperations name =
+    bgroup (show name) $
+        byteStringsToBench seedA <&> (\(x, xmem) -> benchDefault (show xmem) $ mkApp1 name x)
+
 
 
 ---------------- Verify signature ----------------
@@ -53,4 +62,10 @@ benchVerifySignature =
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen = [benchVerifySignature]
+makeBenchmarks _gen = [benchVerifySignature] <> (benchByteStringNoArgOperations <$> [ Sha2_256, Sha3_256, Blake2b_256 ])
+
+{- TODO: check Shas and Blake -}
+
+
+
+

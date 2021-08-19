@@ -69,6 +69,7 @@ makeBenchmarks gen =  (benchTwoByteStrings <$> [ AppendByteString ])
                    <> (benchBytestringOperations <$> [ ConsByteString ])
                    <> [benchIndexBytestring gen]
                    <> [benchSliceByteString gen]
-                   <> (benchByteStringNoArgOperations <$> [ LengthOfByteString, Sha2_256, Sha3_256 ])
+                   <> (benchByteStringNoArgOperations <$> [ LengthOfByteString ])
                    <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanByteString ])
 
+-- TODO: LessThanEqualsByteString

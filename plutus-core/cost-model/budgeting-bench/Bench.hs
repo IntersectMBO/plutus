@@ -37,6 +37,7 @@ import           System.Random              (getStdGen)
    run`) then the current directory will be `plutus-core`.  If you use nix it'll
    be the current shell directory, so you'll need to run it from `plutus-core`
    (NOT `plutus`, where `default.nix` is).  See SCP-2005. -}
+
 {- Experimentation and examination of implementations suggests that the cost
    models for certain builtins can be re-used for others, and we do this in
    models.R.  Specifically, we re-use the cost models for the functions on the
@@ -46,8 +47,8 @@ import           System.Random              (getStdGen)
 
    AddInteger:            SubtractInteger
    DivideInteger:         RemainderInteger, QuotientInteger, ModInteger
-   LessThanByteString:    GreaterThanByteString
 -}
+
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
@@ -65,15 +66,16 @@ main = do
        Benchmarks.Nops.makeBenchmarks gen
 
   criterionMainWith
-       False  (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
-           Benchmarks.Integers.makeBenchmarks gen
-       <>  Benchmarks.Bool.makeBenchmarks gen
-       <>  Benchmarks.ByteStrings.makeBenchmarks gen
+       False
+       (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
+           Benchmarks.Integers.makeBenchmarks        gen
+       <>  Benchmarks.Bool.makeBenchmarks            gen
+       <>  Benchmarks.ByteStrings.makeBenchmarks     gen
        <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
-       <>  Benchmarks.Data.makeBenchmarks gen
-       <>  Benchmarks.Lists.makeBenchmarks gen
-       <>  Benchmarks.Pairs.makeBenchmarks gen
-       <>  Benchmarks.Strings.makeBenchmarks gen
-       <>  Benchmarks.Tracing.makeBenchmarks gen
-       <>  Benchmarks.Unit.makeBenchmarks gen
-       <>  Benchmarks.Misc.makeBenchmarks gen
+       <>  Benchmarks.Data.makeBenchmarks            gen
+       <>  Benchmarks.Lists.makeBenchmarks           gen
+       <>  Benchmarks.Pairs.makeBenchmarks           gen
+       <>  Benchmarks.Strings.makeBenchmarks         gen
+       <>  Benchmarks.Tracing.makeBenchmarks         gen
+       <>  Benchmarks.Unit.makeBenchmarks            gen
+       <>  Benchmarks.Misc.makeBenchmarks            gen
