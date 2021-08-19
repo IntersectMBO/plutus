@@ -23,6 +23,7 @@
 #     as JSON data (see the curl command) meaning the script output has to be escaped
 #     first before we can insert it.
 
+set -x
 set -e
 
 if [ -z "$PR_NUMBER" ] ; then
