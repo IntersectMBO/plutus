@@ -122,7 +122,7 @@ checkSignature datumHash pubKey signature_ =
         else Left $ SignatureMismatch signature_ pubKey datumHash
 
 {-# INLINABLE checkHashConstraints #-}
--- | Extrat the contents of the message and produce a constraint that checks
+-- | Extract the contents of the message and produce a constraint that checks
 --   that the hash is correct. In off-chain code, where we check the hash
 --   straightforwardly, 'checkHashOffChain' can be used instead of this.
 checkHashConstraints ::
