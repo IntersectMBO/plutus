@@ -5,7 +5,22 @@
 module Main (main) where
 
 import           CriterionExtensions                             (criterionMainWith)
-import           Nops
+
+import           Benchmarks.Bool
+import           Benchmarks.ByteStrings
+import           Benchmarks.CryptoAndHashes
+import           Benchmarks.Data
+import           Benchmarks.Integers
+import           Benchmarks.Lists
+import           Benchmarks.Misc
+import           Benchmarks.Nops
+import           Benchmarks.Pairs
+import           Benchmarks.Strings
+import           Benchmarks.Tracing
+import           Benchmarks.Unit
+
+
+
 import           PlutusCore                                      as PLC
 import qualified PlutusCore.DataFilePaths                        as DFP
 import           PlutusCore.Evaluation.Machine.ExMemory
@@ -369,9 +384,9 @@ main = do
                          [benchNop1 gen, benchNop2 gen, benchNop3 gen]
   criterionMainWith False  (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
                       (benchTwoIntegers gen <$> [ AddInteger
-                                                   , MultiplyInteger
-                                                   , DivideInteger
-                                                   ])
+                                                , MultiplyInteger
+                                                , DivideInteger
+                                                ])
                       <> (benchSameTwoIntegers gen <$> [ EqualsInteger
                                                        , LessThanInteger
                                                        , LessThanEqualsInteger

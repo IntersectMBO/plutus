@@ -12,7 +12,7 @@
    function.
 -}
 
-module Nops (NopFuns(..), nopCostParameters) where
+module Benchmarks.Nops (NopFuns(..), nopCostParameters) where
 
 import           PlutusCore
 import           PlutusCore.Constant
