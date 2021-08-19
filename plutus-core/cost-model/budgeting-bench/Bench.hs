@@ -1,350 +1,29 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import           CriterionExtensions                             (criterionMainWith)
+import           CriterionExtensions        (criterionMainWith)
 
-import           Benchmarks.Bool
-import           Benchmarks.ByteStrings
-import           Benchmarks.CryptoAndHashes
-import           Benchmarks.Data
-import           Benchmarks.Integers
-import           Benchmarks.Lists
-import           Benchmarks.Misc
-import           Benchmarks.Nops
-import           Benchmarks.Pairs
-import           Benchmarks.Strings
-import           Benchmarks.Tracing
-import           Benchmarks.Unit
+import qualified Benchmarks.Bool
+import qualified Benchmarks.ByteStrings
+import qualified Benchmarks.CryptoAndHashes
+import qualified Benchmarks.Data
+import qualified Benchmarks.Integers
+import qualified Benchmarks.Lists
+import qualified Benchmarks.Misc
+import qualified Benchmarks.Nops
+import qualified Benchmarks.Pairs
+import qualified Benchmarks.Strings
+import qualified Benchmarks.Tracing
+import qualified Benchmarks.Unit
 
+import qualified PlutusCore.DataFilePaths   as DFP
 
-
-import           PlutusCore                                      as PLC
-import qualified PlutusCore.DataFilePaths                        as DFP
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.MkPlc
-import           PlutusCore.Pretty                               (Pretty)
-import           UntypedPlutusCore                               as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek
-
-import           Control.DeepSeq                                 (NFData)
 import           Criterion.Main
-import           Criterion.Types                                 as C
-import qualified Data.ByteString                                 as BS
-import           Data.Functor
-import           Data.Ix                                         (Ix)
-import           Data.Typeable                                   (Typeable)
-import qualified Hedgehog                                        as HH
-import qualified Hedgehog.Internal.Gen                           as HH
-import qualified Hedgehog.Internal.Tree                          as HH
-import qualified Hedgehog.Range                                  as HH.Range
+import           Criterion.Types            as C
 import           System.Directory
-import           System.Random                                   (StdGen, getStdGen, randomR)
-
-type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
-
--- TODO.  I'm not totally sure what's going on here.  `env` is supposed to
--- produce data that will be supplied to the things being benchmarked.  Here
--- we've got a term and we evaluate it to get back the budget consumed, but then
--- we throw that away and evaluate the term again.  This may have the effect of
--- avoiding warmup, which could be a good thing.  Let's look into that.
-benchWith
-    :: (Ix fun, NFData fun, Pretty fun, Typeable fun)
-    => MachineParameters CekMachineCosts CekValue DefaultUni fun
-    -> String
-    -> PlainTerm fun
-    -> Benchmark
-benchWith params name term = env
-    (do
-        (_result, budget) <-
-          pure $ (unsafeEvaluateCek noEmitter params) term
-        pure budget
-        )
-    $ \_ -> bench name $ nf (unsafeEvaluateCek noEmitter params) term
-
-benchDefault :: String -> PlainTerm DefaultFun -> Benchmark
-benchDefault = benchWith defaultCekParameters
-
----------------- Constructing PLC terms for benchmarking ----------------
-
--- Create a term applying a builtin to one argument
-mkApp1 :: (DefaultUni `Includes` a) => fun -> a -> PlainTerm fun
-mkApp1 name x =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x]
-
--- Create a term applying a builtin to two arguments
-mkApp2
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
-    =>  fun -> a -> b -> PlainTerm fun
-mkApp2 name x y =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y]
-
--- Create a term applying a builtin to three arguments
-mkApp3
-    :: forall fun a b c. (DefaultUni `Includes` a, DefaultUni `Includes` b, DefaultUni `Includes` c)
-    => fun -> a -> b -> c -> PlainTerm fun
-mkApp3 name x y z =
-    erase $ mkIterApp () (builtin () name) [mkConstant () x,  mkConstant () y, mkConstant () z]
-
-
----------------- Creating benchmarks ----------------
-
-{- | The use of bgroups in the functions below will cause Criterion to give the
-   benchmarks names like "AddInteger/ExMemory 11/ExMemory 5": these are saved in
-   the CSV file and the 'benchData' function in 'models.R' subsequently extracts
-   the names and memory figures for use as entries in the data frame used to
-   generate the cost models.  Hence changing the nesting of the bgroups would
-   cause trouble elsewhere.
- -}
-
-{- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
-   ys::[b] (along with their memory sizes), create a collection of benchmarks
-   which run f on all pairs in {(x,y}: x in xs, y in ys}. -}
-createTwoTermBuiltinBench
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
-    => DefaultFun
-    -> [(a, ExMemory)]
-    -> [(b, ExMemory)]
-    -> Benchmark
-createTwoTermBuiltinBench name xs ys =
-    bgroup (show name) $ [bgroup (show xmem) [mkBM yMem x y | (y, yMem) <- ys] | (x,xmem) <- xs]
-        where mkBM yMem x y = benchDefault (show yMem) $ mkApp2 name x y
-
-{- | Given a builtin function f of type a * b -> _ together with lists xs::a and
-   ys::a (along with their memory sizes), create a collection of benchmarks
-   which run f on all pairs in 'zip xs ys'.  This can be used when the
-   worst-case execution time of a two-argument builtin is known to occur when it
-   is given two identical arguments (for example equality testing, where the
-   function has to examine the whole of both inputs in that case; with unequal
-   arguments it will usually be able to return more quickly).  The caller may
-   wish to ensure that the elements of the two lists are physically different to
-   avoid early return if a builtin can spot that its arguments both point to the
-   same heap object.
--}
-createTwoTermBuiltinBenchElementwise
-    :: (DefaultUni `Includes` a, DefaultUni `Includes` b)
-    => DefaultFun
-    -> [(a, ExMemory)]
-    -> [(b, ExMemory)]
-    -> Benchmark
-createTwoTermBuiltinBenchElementwise name xs ys =
-    bgroup (show name) $ zipWith (\(x, xmem) (y,ymem) -> bgroup (show xmem) [mkBM ymem x y]) xs ys
-        where mkBM ymem x y = benchDefault (show ymem) $ mkApp2 name x y
--- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
--- done something wrong.
-
-
----------------- Integer builtins ----------------
-
-{- | In some cases (for example, equality testing) the worst-case behaviour of a
-builtin will be when it has two identical arguments However, there's a danger
-that if the arguments are physically identical (ie, they are (pointers to) the
-same object in the heap) the underlying implementation may notice that and
-return immediately.  The code below attempts to avoid this by producing a
-complerely new copy of an integer.  Experiments with 'realyUnsafePtrEquality#`
-indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
-NOINLINE suffices, but that's perhaps a bit too fragile).
--}
-
-{-# NOINLINE incInteger #-}
-incInteger :: Integer -> Integer
-incInteger n = n+1
-
-{-# NOINLINE decInteger #-}
-decInteger :: Integer -> Integer
-decInteger n = n-1
-
-{-# NOINLINE copyInteger #-}
-copyInteger :: Integer -> Integer
-copyInteger = decInteger . incInteger
-
--- Generate a random n-word (ie, 64n-bit) integer
-{- In principle a random 5-word integer (for example) might only occupy 4 or
-   fewer words, but we're generating uniformly distributed values so the
-   probability of that happening should be at most 1 in 2^64. -}
-randNwords :: Integer -> StdGen -> (Integer, StdGen)
-randNwords n gen = randomR (lb,ub) gen
-    where lb = 2^(64*(n-1))
-          ub = 2^(64*n) - 1
-
--- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random integer
-makeSizedIntegers :: [Integer] -> StdGen -> ([Integer], StdGen)
-makeSizedIntegers [] g = ([], g)
-makeSizedIntegers (n:ns) g =
-    let (m,g1) = randNwords n g
-        (ms,g2) = makeSizedIntegers ns g1
-    in (m:ms,g2)
-
-{- For benchmarking functions with integer arguments we provide a list of random
-   integers with 1,3,5,...,31 words.  Experiments suggest that these give us good
-   models of the behaviour of functions for "reasonable" inputs (which will in
-   fact probably only occupy one word).  We still need to guard against denial
-   of service, and we may need to impose penalties for *really* large inputs. -}
-makeDefaultIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeDefaultIntegerArgs gen = makeSizedIntegers [1, 3..31] gen
-
-benchTwoIntegers :: StdGen -> DefaultFun -> Benchmark
-benchTwoIntegers gen builtinName =
-    createTwoTermBuiltinBench builtinName inputs inputs
-    where
-      (numbers,_) = makeDefaultIntegerArgs gen
-      inputs  = fmap (\e -> (e, memoryUsage e)) numbers
-
-
-{- Some larger inputs for cases where we're using the same number for both
-   arguments.  (A) If we're not examining all NxN pairs then we can eaxmine
-   larger arguments without taking too much time. (B) for things like EqInteger
-   the results are very uniform with the smaller numbers, leading to occasional
-   models with negative slopes.  Using larger numbers may help to avoid this. -}
-makeBiggerIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeBiggerIntegerArgs gen = makeSizedIntegers [1, 3..101] gen
-
-benchSameTwoIntegers :: StdGen -> DefaultFun -> Benchmark
-benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise builtinName inputs inputs'
-    where
-      (numbers,_) = makeBiggerIntegerArgs gen
-      inputs  = fmap (\e -> (e, memoryUsage e)) numbers
-      inputs' = fmap (\e -> (e, memoryUsage e)) $ map copyInteger $ numbers
-
-
----------------- Bytestring builtins ----------------
-
-integerPower :: Integer -> Integer -> Integer
-integerPower = (^) -- Just to avoid some type ascriptions later
-
-seedA :: HH.Seed
-seedA = HH.Seed 42 43
-
-seedB :: HH.Seed
-seedB = HH.Seed 44 45
-
--- TODO: we're using Hedgehog for some things and System.Random for others.  We
--- should rationalise this.  Pehaps Hedgehog is more future-proof since it can
--- produce random instances of a wide variety of types.
-genSample :: HH.Seed -> HH.Gen a -> a
-genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") HH.treeValue $ HH.evalGen (HH.Size 1) seed gen
-
-byteStringSizes :: [Integer]
-byteStringSizes = integerPower 2 <$> [1..20::Integer]
-
-makeSizedBytestring :: HH.Seed -> Int -> (BS.ByteString, ExMemory)
-makeSizedBytestring seed e = let x = genSample seed (HH.bytes (HH.Range.singleton e)) in (x, memoryUsage x)
-
-byteStringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
-byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStringSizes
-
-benchByteStringNoArgOperations :: DefaultFun -> Benchmark
-benchByteStringNoArgOperations name =
-    bgroup (show name) $
-        byteStringsToBench seedA <&> (\(x, xmem) -> benchDefault (show xmem) $ mkApp1 name x)
-
-benchTwoByteStrings :: DefaultFun -> Benchmark
-benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
-
--- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
-benchSameTwoByteStrings :: DefaultFun -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name (byteStringsToBench seedA)
-                               ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
-
-benchIndexBytestring :: StdGen -> Benchmark
-benchIndexBytestring gen = createTwoTermBuiltinBenchElementwise IndexByteString (byteStringsToBench seedA) numbers
-    where
-        numbers = map (\s -> let x = fst $ randomR (0, s - 1) gen in (x, memoryUsage x)) byteStringSizes
-
-benchSliceByteString :: StdGen -> Benchmark
-benchSliceByteString gen = bgroup (show SliceByteString) $
-    zipWith (\(b, bmem) (from, to) -> bgroup (show bmem) [mkBM b from to]) (byteStringsToBench seedA) indices
-    where
-        numbers = map (\s -> fst $ randomR (1, s - 1) gen) byteStringSizes
-        indices = map (\to -> let from = fst $ randomR (0, to) gen in (from, to)) numbers
-        mkBM b from to = bgroup (show $ memoryUsage from) $
-            [benchDefault (show $ memoryUsage to) $ mkApp3 SliceByteString from to b]
-
-powersOfTwo :: [Integer]
-powersOfTwo = integerPower 2 <$> [1..16]
-
--- Make some really big numbers for benchmarking
-threeToThePower :: Integer -> (Integer, ExMemory)
-threeToThePower e =
-    let x = integerPower 3 e
-    in  (x, memoryUsage x)
-
-benchBytestringOperations :: DefaultFun -> Benchmark -- TODO the numbers are a bit too big here
-benchBytestringOperations name = createTwoTermBuiltinBench name numbers (byteStringsToBench seedA)
-    where
-        numbers = threeToThePower <$> powersOfTwo
-
-
----------------- Verify signature ----------------
-
--- for VerifySignature, for speed purposes, it shouldn't matter if the sig / pubkey are correct
-sig :: BS.ByteString
-sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
-
-pubKey :: BS.ByteString
-pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
-
--- The sizes of the signature and the key are fixed (64 and 32 bytes) so we don't include
--- them in the benchmark name.  However, in models.R we still have to remove the overhead
--- for a three-argument function.
-benchVerifySignature :: Benchmark
-benchVerifySignature =
-    bgroup (show name) $
-        bs <&> (\(x, xmem) ->
-            benchDefault (show xmem) $ mkApp3 name pubKey x sig
-        )
-    where
-        name = VerifySignature
-        bs = (makeSizedBytestring seedA . fromInteger) <$> byteStringSizes
-
-
----------------- Calibration ----------------
-
-{- We want the benchmark results to reflect only the time taken to evaluate a
-   builtin, not the startup costs of the CEK machine or the overhead incurred
-   while collecting the arguments (applyEvaluate/ forceEvaluate etc).  We
-   benchmark the no-op builtins Nop1, Nop2, and Nop3 and in the R code we
-   subtract the costs of those from the time recorded for the real builtins.
-   Experiments show that the time taken to evaluate these doesn't depend on the
-   types or the sizes of the arguments, so we just use functions which consume a
-   number of integer arguments and return a constant integer. -}
-
--- There seems to be quite a lot of variation in repeated runs of these benchmarks.
-
-benchNop1 :: StdGen -> Benchmark
-benchNop1 gen =
-    let name = Nop1
-        mem = 1
-        (x,_) = randNwords mem gen
-    in bgroup (show name) [benchWith nopCostParameters (show $ memoryUsage x) $ mkApp1 name x]
-
-benchNop2 :: StdGen -> Benchmark
-benchNop2 gen =
-    let name = Nop2
-        mem = 1
-        (x,gen1) = randNwords mem gen
-        (y,_)    = randNwords mem gen1
-    in bgroup (show name)
-           [bgroup (show $ memoryUsage x)
-            [benchWith nopCostParameters (show $ memoryUsage y) $ mkApp2 name x y]
-           ]
-
-benchNop3 :: StdGen -> Benchmark
-benchNop3 gen =
-    let name = Nop3
-        mem = 1
-        (x,gen1) = randNwords mem gen
-        (y,gen2) = randNwords mem gen1
-        (z,_)    = randNwords mem gen2
-    in bgroup (show name)
-           [bgroup (show $ memoryUsage x)
-            [bgroup (show $ memoryUsage y)
-             [benchWith nopCostParameters (show $ memoryUsage z) $ mkApp3 name x y z]
-            ]
-           ]
+import           System.Random              (getStdGen)
 
 
 ---------------- Miscellaneous ----------------
@@ -380,23 +59,21 @@ main = do
   -- to get accurate results.  Criterion doesn't expose the functions that would
   -- let us run benchmarks with different time limits and put all the results in
   -- the same file, so we have to use two different CSV files.
-  criterionMainWith True (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
-                         [benchNop1 gen, benchNop2 gen, benchNop3 gen]
-  criterionMainWith False  (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
-                      (benchTwoIntegers gen <$> [ AddInteger
-                                                , MultiplyInteger
-                                                , DivideInteger
-                                                ])
-                      <> (benchSameTwoIntegers gen <$> [ EqualsInteger
-                                                       , LessThanInteger
-                                                       , LessThanEqualsInteger
-                                                       ])
-                      <> (benchTwoByteStrings <$> [AppendByteString])
-                      <> (benchBytestringOperations <$> [ConsByteString])
-                      <> [benchIndexBytestring gen]
-                      <> [benchSliceByteString gen]
-                      <> (benchByteStringNoArgOperations <$> [LengthOfByteString, Sha2_256, Sha3_256])
-                      <> (benchSameTwoByteStrings <$> [ EqualsByteString
-                                                      , LessThanByteString
-                                                      ])
-                      <> [benchVerifySignature]
+  criterionMainWith
+       True
+       (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
+       Benchmarks.Nops.makeBenchmarks gen
+
+  criterionMainWith
+       False  (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
+           Benchmarks.Integers.makeBenchmarks gen
+       <>  Benchmarks.Bool.makeBenchmarks gen
+       <>  Benchmarks.ByteStrings.makeBenchmarks gen
+       <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
+       <>  Benchmarks.Data.makeBenchmarks gen
+       <>  Benchmarks.Lists.makeBenchmarks gen
+       <>  Benchmarks.Pairs.makeBenchmarks gen
+       <>  Benchmarks.Strings.makeBenchmarks gen
+       <>  Benchmarks.Tracing.makeBenchmarks gen
+       <>  Benchmarks.Unit.makeBenchmarks gen
+       <>  Benchmarks.Misc.makeBenchmarks gen

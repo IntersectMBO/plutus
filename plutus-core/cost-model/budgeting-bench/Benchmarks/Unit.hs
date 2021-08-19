@@ -1,3 +1,11 @@
-module Benchmarks.Unit where
+module Benchmarks.Unit (makeBenchmarks) where
 
 import           Benchmarks.Common
+
+import           Criterion.Main
+import           System.Random     (StdGen)
+
+makeBenchmarks :: StdGen -> [Benchmark]
+makeBenchmarks _gen = []
+
+

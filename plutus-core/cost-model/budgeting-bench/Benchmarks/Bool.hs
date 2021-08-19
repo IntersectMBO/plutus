@@ -1,3 +1,9 @@
-module Benchmarks.Bool where
+module Benchmarks.Bool (makeBenchmarks) where
 
 import           Benchmarks.Common
+
+import           Criterion.Main
+import           System.Random     (StdGen)
+
+makeBenchmarks :: StdGen -> [Benchmark]
+makeBenchmarks _gen = []
