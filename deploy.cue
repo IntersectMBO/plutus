@@ -7,7 +7,7 @@ import (
 )
 
 let fqdn = "plutus.aws.iohkdev.io"
-let opsRev = "b45f0b0e5d22f9d25c84a03dd4bb539e3355dcff"
+let opsRev = "12f94a94d2943916d0db6494c312e34e8b5fb92f"
 
 Namespace: [Name=_]: {
 	vars: {
