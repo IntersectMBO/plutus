@@ -31,7 +31,7 @@ import qualified Cardano.Wallet.Mock                     as Mock
 import           Control.Concurrent.Async                (Async, async, waitAnyCancel)
 import           Control.Concurrent.STM                  (STM)
 import qualified Control.Concurrent.STM                  as STM
-import           Control.Concurrent.STM.Extra            (STMStream, foldM, singleton, unfold)
+import           Control.Concurrent.STM.Extras.Stream    (STMStream, foldM, singleton, unfold)
 import           Control.Exception                       (SomeException, handle)
 import           Control.Monad                           (forever, void)
 import           Control.Monad.Freer.Error               (throwError)

@@ -148,7 +148,8 @@
           "Cardano/Wallet/Server"
           "Cardano/Wallet/Types"
           "Control/Concurrent/Availability"
-          "Control/Concurrent/STM/Extra"
+          "Control/Concurrent/STM/Extras"
+          "Control/Concurrent/STM/Extras/Stream"
           "Control/Monad/Freer/Delay"
           "Plutus/PAB/App"
           "Plutus/PAB/Arbitrary"
@@ -412,7 +413,7 @@
           modules = [
             "Cardano/Api/NetworkId/ExtraSpec"
             "Cardano/Wallet/ServerSpec"
-            "Control/Concurrent/STM/ExtraSpec"
+            "Control/Concurrent/STM/ExtrasSpec"
             ];
           hsSourceDirs = [ "test/light" ];
           mainPath = [ "Spec.hs" ];

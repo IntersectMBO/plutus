@@ -18,7 +18,7 @@ module Plutus.PAB.CoreSpec
     , assertEqual
     ) where
 
-import           Control.Concurrent.STM.Extra             (readN, readOne)
+import           Control.Concurrent.STM.Extras.Stream     (readN, readOne)
 import           Control.Lens                             ((&), (+~), (^.))
 import           Control.Monad                            (unless, void)
 import           Control.Monad.Freer                      (Eff, Member, Members)

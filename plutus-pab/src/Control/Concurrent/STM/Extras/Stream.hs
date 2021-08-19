@@ -9,7 +9,7 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module Control.Concurrent.STM.Extra
+module Control.Concurrent.STM.Extras.Stream
   ( STMStream
   , readOne
   , readN
