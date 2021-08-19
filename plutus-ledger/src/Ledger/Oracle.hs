@@ -100,7 +100,7 @@ data SignedMessageCheckError =
     | DecodingError
     -- ^ The datum had the wrong shape
     | DatumNotEqualToExpected
-    -- ^ The datum that correponds to the hash is wrong
+    -- ^ The datum that corresponds to the hash is wrong
     deriving (Generic, Haskell.Show)
 
 {-# INLINABLE checkSignature #-}
