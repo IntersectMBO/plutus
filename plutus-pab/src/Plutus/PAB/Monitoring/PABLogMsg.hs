@@ -133,7 +133,7 @@ data PABMultiAgentMsg t =
     | ContractInstanceLog (ContractInstanceMsg t)
     | UserLog T.Text
     | SqlLog String
-    | PABStateRestored
+    | PABStateRestored Int
     | RestoringPABState
     | StartingPABBackendServer Int
     | WalletBalancingMsg Wallet TxBalanceMsg
@@ -146,7 +146,10 @@ instance (StructuredLog (ContractDef t), ToJSON (ContractDef t)) => ToObject (PA
         UserLog t                  -> toObject v t
         SqlLog s                   -> toObject v s
         RestoringPABState          -> mkObjectStr "Restoring PAB state ..." ()
-        PABStateRestored           -> mkObjectStr "PAB state restored." ()
+        PABStateRestored n         -> mkObjectStr ( "PAB state restored with "
+                                                 <> T.pack (show n)
+                                                 <> " contract instance(s)."
+                                                  ) ()
         StartingPABBackendServer i -> mkObjectStr "starting backend server" (Tagged @"port" i)
         WalletBalancingMsg w m     -> mkObjectStr "balancing" (Tagged @"wallet" w, Tagged @"message" m)
 
@@ -161,7 +164,11 @@ instance Pretty (ContractDef t) => Pretty (PABMultiAgentMsg t) where
         UserLog m             -> pretty m
         SqlLog m              -> pretty m
         RestoringPABState     -> "Restoring PAB state ..."
-        PABStateRestored      -> "PAB state restored."
+        PABStateRestored 0    -> "No constract instance were restored in the PAB state."
+        PABStateRestored 1    -> "PAB state restored with 1 contract instance."
+        PABStateRestored n    -> "PAB state restored with"
+                              <+> pretty n
+                              <+> "contract instances."
         StartingPABBackendServer port ->
             "Starting PAB backend server on port:" <+> pretty port
         WalletBalancingMsg w m -> pretty w <> colon <+> pretty m
