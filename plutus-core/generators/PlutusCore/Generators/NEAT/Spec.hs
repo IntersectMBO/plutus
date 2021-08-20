@@ -77,12 +77,10 @@ tests genOpts@GenOptions{} =
       genOpts {genDepth = 14}
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
-
   , bigTest "type preservation - CK"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
-
   , bigTest "typed CK vs untyped CEK produce the same output"
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
@@ -387,13 +385,13 @@ instance Show Ctrex where
   show (CtrexTermEvaluationMismatch tyG tmG tms) =
     printf tpl (show tmG) (show tyG) ++ results tms
     where
-      tpl = "Counterexample found: %s :: %s\n"
+      tpl = "TypedTermEvaluationMismatch\n" ++ "Counterexample found: %s :: %s\n"
       results (t:ts) = "evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
       results []     = ""
   show (CtrexUntypedTermEvaluationMismatch tyG tmG tms) =
     printf tpl (show tmG) (show tyG) ++ results tms
     where
-      tpl = "Counterexample found: %s :: %s\n"
+      tpl = "UntypedTermEvaluationMismatch\n" ++ "Counterexample found: %s :: %s\n"
       results (t:ts) = "evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
       results []     = ""
   show (CtrexTypePreservationFail tyG tmG tm1 tm2) =

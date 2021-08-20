@@ -237,6 +237,9 @@ IBUILTIN appendString
 IBUILTIN trace
   (tt , (t , v))
   = _ , inl (V-con unit)
+IBUILTIN iData
+  (tt , (t , V-con (integer i)))
+  = _ , inl (V-con (Data (iDATA i)))
 IBUILTIN _ _ = error , inr E-error
 
 IBUILTIN' : (b : Builtin) → ∀{ls} → ls ≡ arity b → ITel b ls → Σ (0 ⊢) λ t → Value t ⊎ Error t

@@ -224,6 +224,8 @@ IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
 IBUILTIN appendString σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
   _ ,, inj₁ (V-con (string (primStringAppend s s')))
 IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
+IBUILTIN iData σ (tt ,, _ ,, V-con (integer i)) =
+  _ ,, inj₁ (V-con (Data (iDATA i)))
 IBUILTIN b σ t = _ ,, inj₂ E-error
 
 IBUILTIN' : (b : Builtin)

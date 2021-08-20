@@ -78,7 +78,7 @@ renTermCon _ (bytestring b) = bytestring b
 renTermCon _ (string s)     = string s
 renTermCon _ (bool b)       = bool b
 renTermCon _ unit           = unit
-
+renTermCon _ (Data d)       = Data d
 ```
 
 Renaming for terms
@@ -170,6 +170,7 @@ subTermCon _ (bytestring b) = bytestring b
 subTermCon _ (string s)     = string s
 subTermCon _ (bool b)       = bool b
 subTermCon _ unit           = unit
+subTermCon _ (Data d)       = Data d
 
 ```
 

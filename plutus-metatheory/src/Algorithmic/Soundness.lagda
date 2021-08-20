@@ -79,6 +79,7 @@ embTC (NTermCon.bytestring b) = STermCon.bytestring b
 embTC (NTermCon.string s)     = STermCon.string s
 embTC (NTermCon.bool b)       = STermCon.bool b
 embTC NTermCon.unit           = STermCon.unit
+embTC (NTermCon.Data d)       = STermCon.Data d
 \end{code}
 
 \begin{code}

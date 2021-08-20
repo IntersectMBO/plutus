@@ -26,6 +26,7 @@ open import Raw
 open import Utils
 open import Scoped using (ScopeError;deBError)
 open import Builtin
+open import Utils
 ```
 
 ## Term constants
@@ -40,6 +41,7 @@ data TermCon : Set where
   string     : String → TermCon
   bool       : Bool → TermCon
   unit       : TermCon
+  Data       : DATA → TermCon
 ```
 
 ## Well-scoped Syntax
@@ -75,6 +77,7 @@ uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " +++ s +++ ")"
 uglyTermCon (bool false) = "(bool " +++ "false" +++ ")"
 uglyTermCon (bool true) = "(bool " +++ "true" +++ ")"
+uglyTermCon (Data d) = "(DATA)"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
@@ -116,7 +119,7 @@ data Untyped : Set where
 
 {-# FOREIGN GHC import Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
-{-# COMPILE GHC TermCon = data UConstant (UConInt | UConBS | UConStr | UConBool | UConUnit) #-}
+{-# COMPILE GHC TermCon = data UConstant (UConInt | UConBS | UConStr | UConBool | UConUnit | UConData) #-}
 ```
 
 ## Scope checking

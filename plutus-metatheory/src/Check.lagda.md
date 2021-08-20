@@ -350,6 +350,7 @@ inferTypeCon (bytestring b) = T.bytestring ,, A.bytestring b
 inferTypeCon (string s)     = T.string ,, A.string s
 inferTypeCon (bool b)       = T.bool ,, A.bool b
 inferTypeCon unit           = T.unit ,, A.unit
+inferTypeCon (Data d)       = T.Data ,, A.Data d
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)

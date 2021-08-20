@@ -10,6 +10,7 @@ open import Data.Integer.Show
 open import Data.Unit using (⊤)
 
 open import Builtin
+open import Utils
 
 open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
 open import Relation.Nullary.Decidable
@@ -49,9 +50,10 @@ data RawTermCon : Set where
   string     : String → RawTermCon
   bool       : Bool → RawTermCon
   unit       : RawTermCon
-
+  Data       : DATA → RawTermCon
+  
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConUnit) #-}
+{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConUnit | RConData) #-}
 
 data RawTyCon where
   integer    : RawTyCon

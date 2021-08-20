@@ -83,6 +83,7 @@ extricateC (bytestring b) = bytestring b
 extricateC (string s)     = string s
 extricateC (bool b)       = bool b
 extricateC unit           = unit
+extricateC (Data d)       = Data d
 
 open import Data.Product as P
 open import Function hiding (_∋_)

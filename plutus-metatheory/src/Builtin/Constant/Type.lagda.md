@@ -48,6 +48,7 @@ data TyCon (Φ : Con) : Set where
   pair       : Ty Φ → Ty Φ → TyCon Φ
   Data       : TyCon Φ
 
+
 --{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}
 --{-# FOREIGN GHC import PlutusCore                                      #-}
 --{-# FOREIGN GHC type TypeBuiltin = SomeTypeIn DefaultUni               #-}

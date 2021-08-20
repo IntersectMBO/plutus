@@ -65,6 +65,7 @@ renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
 renTermCon ρ⋆ (bool b)       = bool b
 renTermCon ρ⋆ unit           = unit
+renTermCon ρ⋆ (Data d)       = Data d
 \end{code}
 
 \begin{code}
@@ -152,6 +153,7 @@ subTermCon σ⋆ (bytestring b) = bytestring b
 subTermCon σ⋆ (string s)     = string s
 subTermCon σ⋆ (bool b)       = bool b
 subTermCon σ⋆ unit           = unit
+subTermCon σ⋆ (Data d)       = Data d
 \end{code}
 
 \begin{code}

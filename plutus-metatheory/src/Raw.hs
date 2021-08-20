@@ -11,6 +11,7 @@ import           GHC.Natural
 import           Data.ByteString     as BS
 import qualified Data.Text           as T
 import           PlutusCore
+import           PlutusCore.Data
 import           PlutusCore.DeBruijn
 import           PlutusCore.Default
 import           PlutusCore.Parser
@@ -36,6 +37,7 @@ data RConstant = RConInt Integer
                | RConStr T.Text
                | RConBool Bool
                | RConUnit
+               | RConData Data
                deriving Show
 
 -- I don't need this...
@@ -87,15 +89,18 @@ convTyCon (SomeTypeIn DefaultUniByteString) = RTyConBS
 convTyCon (SomeTypeIn DefaultUniString)     = RTyConStr
 convTyCon (SomeTypeIn DefaultUniBool)       = RTyConBool
 convTyCon (SomeTypeIn DefaultUniUnit)       = RTyConUnit
+convTyCon (SomeTypeIn DefaultUniData)       = RTyConData
 convTyCon _                                 = error "unsupported builtin"
 
 convC :: Some (ValueOf DefaultUni) -> RConstant
-convC (Some (ValueOf DefaultUniInteger    i))   = RConInt i
-convC (Some (ValueOf DefaultUniByteString b))   = RConBS b
-convC (Some (ValueOf DefaultUniString       s)) = RConStr s
-convC (Some (ValueOf DefaultUniUnit       u))   = RConUnit
-convC (Some (ValueOf DefaultUniBool       b))   = RConBool b
-convC (Some (ValueOf uni                  _))   =
+convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
+convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
+convC (Some (ValueOf DefaultUniString     s)) = RConStr s
+convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
+convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
+convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
+convC (Some (ValueOf DefaultUniData       d)) = RConData d
+convC (Some (ValueOf uni                  _)) =
   error $ "convC: " ++ show uni ++ " is not supported"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm

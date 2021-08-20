@@ -177,6 +177,8 @@ BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))
 BUILTIN appendString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
 BUILTIN trace (app _ base (V-con (string s))) =
   inj₁ (V-con (Debug.trace s unit))
+BUILTIN iData (app _ base (V-con (integer i))) =
+  inj₁ (V-con (Data (iDATA i)))
 BUILTIN _ {A} _ = inj₂ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)

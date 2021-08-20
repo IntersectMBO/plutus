@@ -164,6 +164,7 @@ IBUILTIN ifThenElse (((_ , _ , V-con (bool false)) , t , _) , f , _) = f
 IBUILTIN appendString ((_ , t , V-con (string s)) , t' , V-con (string s')) =
   con (string (primStringAppend s s'))
 IBUILTIN trace (_ , t , V-con (string s)) = con (Debug.trace s unit)
+IBUILTIN iData (_ , t , V-con (integer i)) = con (Data (iDATA i))
 IBUILTIN _ _ = error missing
 
 IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : proj₁ (ISIG b) ≡ n') → subst Weirdℕ p (proj₂ (ISIG b)) ≡ w' → ITel b w' w → ScopedTm w

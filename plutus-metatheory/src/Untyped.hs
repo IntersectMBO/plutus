@@ -2,6 +2,7 @@
 
 module Untyped where
 
+import           PlutusCore.Data
 import           PlutusCore.Default
 import           UntypedPlutusCore
 
@@ -28,6 +29,7 @@ data UConstant = UConInt Integer
                | UConStr T.Text
                | UConBool Bool
                | UConUnit
+               | UConData Data
                deriving Show
 
 unIndex :: Index -> Integer
@@ -42,6 +44,7 @@ convC (Some (ValueOf DefaultUniByteString b))   = UConBS b
 convC (Some (ValueOf DefaultUniString       s)) = UConStr s
 convC (Some (ValueOf DefaultUniUnit       u))   = UConUnit
 convC (Some (ValueOf DefaultUniBool       b))   = UConBool b
+convC (Some (ValueOf DefaultUniData       d))   = UConData d
 convC (Some (ValueOf uni                  _))   = error $ "convC: " ++ show uni ++ " is not supported"
 
 conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
@@ -60,6 +63,7 @@ uconvC (UConBS b)   = Some (ValueOf DefaultUniByteString b)
 uconvC (UConStr s)  = Some (ValueOf DefaultUniString     s)
 uconvC UConUnit     = Some (ValueOf DefaultUniUnit       ())
 uconvC (UConBool b) = Some (ValueOf DefaultUniBool       b)
+uconvC (UConData d) = Some (ValueOf DefaultUniData       d)
 
 tmnames = ['a' .. 'z']
 

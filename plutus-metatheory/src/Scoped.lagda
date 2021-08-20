@@ -242,7 +242,8 @@ data TermCon : Set where
   string     : (s : String) → TermCon
   bool       : (b : Bool) → TermCon
   unit       : TermCon
-
+  Data       : DATA → TermCon
+  
 Tel : ∀{n} → Weirdℕ n → ℕ → Set
 
 data ScopedTm {n}(w : Weirdℕ n) : Set where
@@ -275,6 +276,7 @@ deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string s)     = string s
 deBruijnifyC (bool b)       = bool b
 deBruijnifyC unit           = unit
+deBruijnifyC (Data d)       = Data d
 
 postulate
   FreeVariableError : Set
@@ -389,6 +391,7 @@ unDeBruijnifyC (bytestring b) = bytestring b
 unDeBruijnifyC (string s)     = string s
 unDeBruijnifyC (bool b)       = bool b
 unDeBruijnifyC unit           = unit
+unDeBruijnifyC (Data d)       = Data d
 \end{code}
 
 \begin{code}

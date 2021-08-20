@@ -450,6 +450,7 @@ BUILTIN ifThenElse (step .(bubble (bubble (bubble (start (Type ∷ Term ∷ Term
 BUILTIN appendString (step .(bubble (start (Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ [])) base (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
 BUILTIN trace (step .(start (Term ∷ [])) base (V-con (string s))) = con unit
+BUILTIN iData (step .(<>>'2<>> [] (Term ∷ []) (Term ∷ []) (lemma<>1 [] (Term ∷ []))) base (V-con (integer i))) = con (Data (iDATA i))
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)

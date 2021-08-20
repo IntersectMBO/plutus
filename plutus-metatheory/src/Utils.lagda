@@ -175,4 +175,10 @@ data RuntimeError : Set where
   runtimeTypeError : RuntimeError
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
+
+data DATA : Set where
+  iDATA : I.ℤ → DATA
+
+{-# FOREIGN GHC import PlutusCore.Data #-}
+{-# COMPILE GHC DATA = data Data (I)   #-}
 \end{code}
