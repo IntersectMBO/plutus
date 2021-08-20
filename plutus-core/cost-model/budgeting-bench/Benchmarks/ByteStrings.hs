@@ -15,16 +15,16 @@ import qualified Hedgehog.Internal.Gen                  as HH
 import qualified Hedgehog.Range                         as HH.Range
 
 
----------------- Bytestring builtins ----------------
+---------------- ByteString builtins ----------------
 
 byteStringSizes :: [Integer]
 byteStringSizes = integerPower 2 <$> [1..20::Integer]
 
-makeSizedBytestring :: HH.Seed -> Int -> (BS.ByteString, ExMemory)
-makeSizedBytestring seed e = let x = genSample seed (HH.bytes (HH.Range.singleton e)) in (x, memoryUsage x)
+makeSizedByteString :: HH.Seed -> Int -> (BS.ByteString, ExMemory)
+makeSizedByteString seed e = let x = genSample seed (HH.bytes (HH.Range.singleton e)) in (x, memoryUsage x)
 
 byteStringsToBench :: HH.Seed -> [(BS.ByteString, ExMemory)]
-byteStringsToBench seed = (makeSizedBytestring seed . fromInteger) <$> byteStringSizes
+byteStringsToBench seed = (makeSizedByteString seed . fromInteger) <$> byteStringSizes
 
 seedA :: HH.Seed
 seedA = HH.Seed 42 43
@@ -40,13 +40,13 @@ benchByteStringNoArgOperations name =
     bgroup (show name) $
         byteStringsToBench seedA <&> (\(x, xmem) -> benchDefault (show xmem) $ mkApp1 name x)
 
--- Copy the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
+-- Copy the byteString here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name (byteStringsToBench seedA)
                                ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
 
-benchIndexBytestring :: StdGen -> Benchmark
-benchIndexBytestring gen = createTwoTermBuiltinBenchElementwise IndexByteString (byteStringsToBench seedA) numbers
+benchIndexByteString :: StdGen -> Benchmark
+benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString (byteStringsToBench seedA) numbers
     where
         numbers = map (\s -> let x = fst $ randomR (0, s - 1) gen in (x, memoryUsage x)) byteStringSizes
 
@@ -59,15 +59,15 @@ benchSliceByteString gen = bgroup (show SliceByteString) $
         mkBM b from to = bgroup (show $ memoryUsage from) $
             [benchDefault (show $ memoryUsage to) $ mkApp3 SliceByteString from to b]
 
-benchBytestringOperations :: DefaultFun -> Benchmark -- TODO the numbers are a bit too big here
-benchBytestringOperations name = createTwoTermBuiltinBench name numbers (byteStringsToBench seedA)
+benchByteStringOperations :: DefaultFun -> Benchmark -- TODO the numbers are a bit too big here
+benchByteStringOperations name = createTwoTermBuiltinBench name numbers (byteStringsToBench seedA)
     where
         numbers = threeToThePower <$> powersOfTwo
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =  (benchTwoByteStrings <$> [ AppendByteString ])
-                   <> (benchBytestringOperations <$> [ ConsByteString ])
-                   <> [benchIndexBytestring gen]
+                   <> (benchByteStringOperations <$> [ ConsByteString ])
+                   <> [benchIndexByteString gen]
                    <> [benchSliceByteString gen]
                    <> (benchByteStringNoArgOperations <$> [ LengthOfByteString ])
                    <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanByteString ])

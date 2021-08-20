@@ -1,9 +1,11 @@
+{-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Benchmarks.Common
 where
 
 import           PlutusCore                                      as PLC
+import           PlutusCore.Data
 import           PlutusCore.Evaluation.Machine.ExMemory
 import           PlutusCore.Evaluation.Machine.MachineParameters
 import           PlutusCore.MkPlc
@@ -13,15 +15,47 @@ import           UntypedPlutusCore.Evaluation.Machine.Cek
 
 import           Control.DeepSeq                                 (NFData)
 import           Criterion.Main
+import qualified Data.ByteString                                 as BS
 import           Data.Ix                                         (Ix)
 import           Data.Typeable                                   (Typeable)
 import           System.Random                                   (StdGen, randomR)
+
 
 import qualified Hedgehog                                        as HH
 import qualified Hedgehog.Internal.Gen                           as HH
 import qualified Hedgehog.Internal.Tree                          as HH
 
 type PlainTerm fun = UPLC.Term Name DefaultUni fun ()
+
+
+---------------- Cloning objects ----------------
+-- TODO: look at GHC.Compact
+
+{-# NOINLINE incInteger #-}
+incInteger :: Integer -> Integer
+incInteger n = n+1
+
+{-# NOINLINE decInteger #-}
+decInteger :: Integer -> Integer
+decInteger n = n-1
+
+{-# NOINLINE copyInteger #-}
+copyInteger :: Integer -> Integer
+copyInteger = decInteger . incInteger
+
+{-# NOINLINE copyByteString #-}
+copyByteString :: BS.ByteString -> BS.ByteString
+copyByteString = BS.copy
+
+{-# NOINLINE copyData #-}
+copyData :: Data -> Data
+copyData =
+    \case
+     Constr n l -> Constr (copyInteger n) (map copyData l)
+     Map l      -> Map $ map (\(a,b) -> (copyData a, copyData b)) l
+     List l     -> List (map copyData l)
+     I n        -> I $ copyInteger n
+     B b        -> B $ copyByteString b
 
 
 ---------------- Creating benchmarks ----------------
@@ -93,6 +127,18 @@ mkApp6 name x y z t u v =
 integerPower :: Integer -> Integer -> Integer
 integerPower = (^) -- Just to avoid some type ascriptions later
 
+{- | Given a builtin function f of type a -> _ together with a lists xs::[a]
+   (along with their memory sizes), create a collection of benchmarks which run
+   f on all elements of xs. -}
+createOneTermBuiltinBench
+    :: (DefaultUni `Includes` a)
+    => DefaultFun
+    -> [(a, ExMemory)]
+    -> Benchmark
+createOneTermBuiltinBench name xs =
+    bgroup (show name) $ [mkBM xmem x | (x,xmem) <- xs]
+        where mkBM xMem x = benchDefault (show xMem) $ mkApp1 name x
+
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b] (along with their memory sizes), create a collection of benchmarks
    which run f on all pairs in {(x,y}: x in xs, y in ys}. -}
@@ -144,7 +190,6 @@ randNwords n gen = randomR (lb,ub) gen
 -- produce random instances of a wide variety of types.
 genSample :: HH.Seed -> HH.Gen a -> a
 genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") HH.treeValue $ HH.evalGen (HH.Size 1) seed gen
-
 
 powersOfTwo :: [Integer]
 powersOfTwo = integerPower 2 <$> [1..16]

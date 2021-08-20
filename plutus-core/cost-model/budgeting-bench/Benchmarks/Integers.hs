@@ -20,18 +20,6 @@ indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
 NOINLINE suffices, but that's perhaps a bit too fragile).
 -}
 
-{-# NOINLINE incInteger #-}
-incInteger :: Integer -> Integer
-incInteger n = n+1
-
-{-# NOINLINE decInteger #-}
-decInteger :: Integer -> Integer
-decInteger n = n-1
-
-{-# NOINLINE copyInteger #-}
-copyInteger :: Integer -> Integer
-copyInteger = decInteger . incInteger
-
 -- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random integer
 makeSizedIntegers :: [Integer] -> StdGen -> ([Integer], StdGen)
 makeSizedIntegers [] g = ([], g)
@@ -71,11 +59,14 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
       inputs  = fmap (\e -> (e, memoryUsage e)) numbers
       inputs' = fmap (\e -> (e, memoryUsage e)) $ map copyInteger $ numbers
 
-
-
-
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
-    (benchTwoIntegers gen <$> [ AddInteger, MultiplyInteger, DivideInteger])
-    <> (benchSameTwoIntegers gen <$> [ EqualsInteger, LessThanInteger, LessThanEqualsInteger])
+    (benchTwoIntegers gen <$>
+                          [ AddInteger
+                          , MultiplyInteger
+                          , DivideInteger])
+    <> (benchSameTwoIntegers gen <$>
+                                 [ EqualsInteger
+                                 , LessThanInteger
+                                 , LessThanEqualsInteger])
 

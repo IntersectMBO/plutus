@@ -60,22 +60,23 @@ main = do
   -- to get accurate results.  Criterion doesn't expose the functions that would
   -- let us run benchmarks with different time limits and put all the results in
   -- the same file, so we have to use two different CSV files.
-  criterionMainWith
+{-  criterionMainWith
        True
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
        Benchmarks.Nops.makeBenchmarks gen
-
+-}
   criterionMainWith
        False
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
-           Benchmarks.Integers.makeBenchmarks        gen
-       <>  Benchmarks.Bool.makeBenchmarks            gen
-       <>  Benchmarks.ByteStrings.makeBenchmarks     gen
-       <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
-       <>  Benchmarks.Data.makeBenchmarks            gen
-       <>  Benchmarks.Lists.makeBenchmarks           gen
-       <>  Benchmarks.Pairs.makeBenchmarks           gen
-       <>  Benchmarks.Strings.makeBenchmarks         gen
-       <>  Benchmarks.Tracing.makeBenchmarks         gen
-       <>  Benchmarks.Unit.makeBenchmarks            gen
-       <>  Benchmarks.Misc.makeBenchmarks            gen
+       Benchmarks.Strings.makeBenchmarks         gen
+       --     Benchmarks.Integers.makeBenchmarks        gen
+       -- <>  Benchmarks.Bool.makeBenchmarks            gen
+       -- <>  Benchmarks.ByteStrings.makeBenchmarks     gen
+       -- <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
+       -- <>  Benchmarks.Data.makeBenchmarks            gen
+       -- <>  Benchmarks.Lists.makeBenchmarks           gen
+       -- <>  Benchmarks.Pairs.makeBenchmarks           gen
+       -- <>  Benchmarks.Strings.makeBenchmarks         gen
+       -- <>  Benchmarks.Tracing.makeBenchmarks         gen
+       -- <>  Benchmarks.Unit.makeBenchmarks            gen
+       -- <>  Benchmarks.Misc.makeBenchmarks            gen
