@@ -24,6 +24,8 @@
 #     first before we can insert it.
 
 set -e
+echo "[ci-plutus-benchmark]: Dumping environment"
+env
 
 if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
