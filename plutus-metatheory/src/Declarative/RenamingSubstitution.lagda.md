@@ -17,7 +17,7 @@ open import Data.Unit
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
 
-open import Utils
+open import Utils hiding (TermCon)
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality

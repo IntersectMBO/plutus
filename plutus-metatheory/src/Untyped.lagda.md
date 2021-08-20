@@ -29,21 +29,6 @@ open import Builtin
 open import Utils
 ```
 
-## Term constants
-
-Defined separetely here rather than using generic version used in the
-typed syntax.
-
-```
-data TermCon : Set where
-  integer    : ℤ → TermCon
-  bytestring : ByteString → TermCon
-  string     : String → TermCon
-  bool       : Bool → TermCon
-  unit       : TermCon
-  Data       : DATA → TermCon
-```
-
 ## Well-scoped Syntax
 
 ```
@@ -119,7 +104,6 @@ data Untyped : Set where
 
 {-# FOREIGN GHC import Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
-{-# COMPILE GHC TermCon = data UConstant (UConInt | UConBS | UConStr | UConBool | UConUnit | UConData) #-}
 ```
 
 ## Scope checking

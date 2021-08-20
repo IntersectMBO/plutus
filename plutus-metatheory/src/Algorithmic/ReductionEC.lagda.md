@@ -19,7 +19,7 @@ open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero;ℕ;_+_)
 open import Data.Unit using (tt)
 
-open import Utils
+open import Utils hiding (TermCon)
 open import Type
 import Type.RenamingSubstitution as T
 open import Algorithmic
@@ -32,7 +32,6 @@ open import Type.BetaNormal.Equality
 open import Builtin
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl;≡-to-≅;≅-to-≡) renaming (sym to hsym; trans to htrans; cong to hcong)
@@ -723,7 +722,7 @@ lemma∷1 as .as (start .as) = refl
 -- these two proofs are defined by pattern matching on the builtin,
 -- they are very long and very ugly.  They could probably be made
 -- shorter by giving cases for particular types/arities, and adding a
--- lemma that knocks off a more general class of impossible _<>>_∈_
+-- lemma that knocks off a more general class of imposible _<>>_∈_
 -- inhabitants.
 
 bappTermLem : ∀  b {A}{az as}(M : ∅ ⊢ A)(p : az <>> (Term ∷ as) ∈ arity b)

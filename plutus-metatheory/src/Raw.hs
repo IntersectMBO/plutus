@@ -28,14 +28,6 @@ data RType = RTyVar Integer
            | RTyMu RType RType
            deriving Show
 
-data RConstant = RConInt Integer
-               | RConBS BS.ByteString
-               | RConStr T.Text
-               | RConBool Bool
-               | RConUnit
-               | RConData Data
-               deriving Show
-
 -- I don't need this...
 data RTyCon = RTyConInt
             | RTyConBS
@@ -53,7 +45,7 @@ data RTerm = RVar Integer
            | RTApp RTerm RType
            | RLambda RType RTerm
            | RApp RTerm RTerm
-           | RCon RConstant
+           | RCon (Some (ValueOf DefaultUni))
            | RError RType
            | RBuiltin DefaultFun
            | RWrap RType RType RTerm
@@ -84,17 +76,6 @@ convTyCon (SomeTypeIn DefaultUniUnit)       = RTyConUnit
 convTyCon (SomeTypeIn DefaultUniData)       = RTyConData
 convTyCon _                                 = error "unsupported builtin"
 
-convC :: Some (ValueOf DefaultUni) -> RConstant
-convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
-convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
-convC (Some (ValueOf DefaultUniString     s)) = RConStr s
-convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
-convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
-convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
-convC (Some (ValueOf DefaultUniData       d)) = RConData d
-convC (Some (ValueOf uni                  _)) =
-  error $ "convC: " ++ show uni ++ " is not supported"
-
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
 conv (TyAbs _ _ _K t)    = RTLambda (() <$ _K) (conv t)
@@ -102,7 +83,7 @@ conv (TyInst _ t _A)     = RTApp (conv t) (convT _A)
 conv (LamAbs _ _ _A t)   = RLambda (convT _A) (conv t)
 conv (Apply _ t u)       = RApp (conv t) (conv u)
 conv (Builtin _ b)       = RBuiltin b
-conv (Constant _ c)      = RCon (convC c)
+conv (Constant _ c)      = RCon c
 conv (Unwrap _ t)        = RUnWrap (conv t)
 conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)        = RError (convT _A)
@@ -138,14 +119,6 @@ unconvTyCon i (RTyConPair a b) =
   error "builtin pairs not supported"
 unconvTyCon i RTyConData       = SomeTypeIn DefaultUniData
 
-unconvC :: RConstant -> Some (ValueOf DefaultUni)
-unconvC (RConInt i)  = Some (ValueOf DefaultUniInteger    i)
-unconvC (RConBS b)   = Some (ValueOf DefaultUniByteString b)
-unconvC (RConStr s)  = Some (ValueOf DefaultUniString     s)
-unconvC RConUnit     = Some (ValueOf DefaultUniUnit       ())
-unconvC (RConBool b) = Some (ValueOf DefaultUniBool       b)
-unconvC (RConData d) = Some (ValueOf DefaultUniData       d)
-
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
 tynames = ['A' .. 'Z']
@@ -157,7 +130,7 @@ unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) k (unconv (i+1
 unconv i (RTApp t ty)      = TyInst () (unconv i t) (unconvT i ty)
 unconv i (RLambda ty tm)   = LamAbs () (varTm i) (unconvT (i+1) ty) (unconv (i+1) tm)
 unconv i (RApp t u)        = Apply () (unconv i t) (unconv i u)
-unconv i (RCon c)          = Constant () (unconvC c)
+unconv i (RCon c)          = Constant () c
 unconv i (RError ty)       = Error () (unconvT i ty)
 unconv i (RBuiltin b)      = Builtin () b
 unconv i (RWrap tyA tyB t) = IWrap () (unconvT i tyA) (unconvT i tyB) (unconv i t)

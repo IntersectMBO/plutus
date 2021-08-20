@@ -12,7 +12,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Unit
 open import Data.Sum
 
-open import Utils
+open import Utils hiding (TermCon)
 open import Type
 open import Type.BetaNormal
 import Type.RenamingSubstitution as ⋆
@@ -21,7 +21,6 @@ open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Utils
 \end{code}
 
 ## Fixity declarations

@@ -235,14 +235,6 @@ unshifter w (builtin b) = builtin b
 unshifter w (wrap pat arg t) =
   wrap (unshifterTy w pat) (unshifterTy w arg) (unshifter w t)
 unshifter w (unwrap t) = unwrap (unshifter w t)
-
-data TermCon : Set where
-  integer    : (i : ℤ) → TermCon
-  bytestring : (b : ByteString) → TermCon
-  string     : (s : String) → TermCon
-  bool       : (b : Bool) → TermCon
-  unit       : TermCon
-  Data       : DATA → TermCon
   
 Tel : ∀{n} → Weirdℕ n → ℕ → Set
 
@@ -263,14 +255,6 @@ Tel w n = Vec (ScopedTm w) n
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
 -- should just use ordinary kind for everything
-
-deBruijnifyC : RawTermCon → TermCon
-deBruijnifyC (integer i)    = integer i
-deBruijnifyC (bytestring b) = bytestring b
-deBruijnifyC (string s)     = string s
-deBruijnifyC (bool b)       = bool b
-deBruijnifyC unit           = unit
-deBruijnifyC (Data d)       = Data d
 
 postulate
   FreeVariableError : Set
@@ -349,7 +333,7 @@ scopeCheckTm (t · u) = do
   t ← scopeCheckTm t
   u ← scopeCheckTm u
   return (t · u)
-scopeCheckTm (con c) = return (con (deBruijnifyC c))
+scopeCheckTm (con c) = return (con c)
 scopeCheckTm (builtin b) = return (ibuiltin b)
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
 scopeCheckTm (wrap A B t) = do
@@ -367,16 +351,6 @@ wftoℕ Z = zero
 wftoℕ (S i) = ℕ.suc (wftoℕ i)
 wftoℕ (T i) = ℕ.suc (wftoℕ i)
 -}
-\end{code}
-
-\begin{code}
-unDeBruijnifyC : TermCon → RawTermCon
-unDeBruijnifyC (integer i)    = integer i
-unDeBruijnifyC (bytestring b) = bytestring b
-unDeBruijnifyC (string s)     = string s
-unDeBruijnifyC (bool b)       = bool b
-unDeBruijnifyC unit           = unit
-unDeBruijnifyC (Data d)       = Data d
 \end{code}
 
 \begin{code}
@@ -407,7 +381,7 @@ extricateScope (Λ K t) = Λ K (extricateScope t)
 extricateScope (t ·⋆ A) = extricateScope t ·⋆ extricateScopeTy A
 extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
-extricateScope (con c) = con (unDeBruijnifyC c)
+extricateScope (con c) = con c
 extricateScope (error A) = error (extricateScopeTy A)
 extricateScope (ibuiltin bn) = builtin bn
 extricateScope (wrap pat arg t) =

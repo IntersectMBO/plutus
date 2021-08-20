@@ -19,8 +19,6 @@ open import Data.Bool using (true;false)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 import Debug.Trace as Debug
-open import Utils
-
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE using (nf)
@@ -28,9 +26,10 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Algorithmic.RenamingSubstitution
 open import Builtin
+open import Utils hiding (TermCon)
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Utils using (decIf;just;nothing)
+
 
 open import Algorithmic.ReductionEC using (Arg;Term;Type;_<>>_∈_;start;bubble;arity;saturated;_<><_;<>>2<>>';lemma<>2;unique<>>;Bwd;[];_∷_;<>>-cancel-both;<>>-cancel-both')
 

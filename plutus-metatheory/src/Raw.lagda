@@ -37,16 +37,7 @@ data RawTy where
 
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 
-data RawTermCon : Set where
-  integer    : ℤ → RawTermCon
-  bytestring : ByteString → RawTermCon
-  string     : String → RawTermCon
-  bool       : Bool → RawTermCon
-  unit       : RawTermCon
-  Data       : DATA → RawTermCon
-  
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConUnit | RConData) #-}
 
 data RawTyCon where
   integer    : RawTyCon
@@ -66,7 +57,7 @@ data RawTm : Set where
   _·⋆_          : RawTm → RawTy → RawTm
   ƛ             : RawTy → RawTm → RawTm
   _·_           : RawTm → RawTm → RawTm
-  con           : RawTermCon → RawTm
+  con           : TermCon → RawTm
   error         : RawTy → RawTm
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
@@ -87,7 +78,7 @@ decRTyCon unit       unit       = true
 decRTyCon bool       bool       = true
 decRTyCon _          _          = false
 
-decTermCon : (C C' : RawTermCon) → Bool
+decTermCon : (C C' : TermCon) → Bool
 decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
 ... | yes p = true
 ... | no ¬p = false

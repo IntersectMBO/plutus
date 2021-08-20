@@ -115,7 +115,6 @@ data Builtin : Set where
 
 ```
 postulate
-  ByteString : Set
   length     : ByteString → ℕ
 
   div            : Int → Int → Int
@@ -144,7 +143,6 @@ postulate
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Crypto.Hash (SHA256, SHA3_256, hash) #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition

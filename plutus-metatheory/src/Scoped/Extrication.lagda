@@ -78,7 +78,7 @@ extricateVar Z = Z
 extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
 
-extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
+extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Utils.TermCon
 extricateC (integer i)    = integer i
 extricateC (bytestring b) = bytestring b
 extricateC (string s)     = string s

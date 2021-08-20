@@ -22,7 +22,7 @@ open import Data.Nat using (zero)
 open import Data.Unit using (tt)
 import Debug.Trace as Debug
 
-open import Utils
+open import Utils hiding (TermCon)
 open import Type
 import Type.RenamingSubstitution as T
 open import Algorithmic.RenamingSubstitution
@@ -34,7 +34,6 @@ open import Type.BetaNormal.Equality
 open import Builtin
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 open import Algorithmic

@@ -23,7 +23,7 @@ open import Data.List hiding (_++_)
 import Debug.Trace as D
 
 open import Type
-open import Builtin hiding (ByteString)
+open import Builtin
 open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE
@@ -34,7 +34,7 @@ import Scoped as S
 import Scoped.Reduction as S
 open import Raw
 open import Scoped
-open import Utils
+open import Utils hiding (ByteString)
 open import Untyped
 open import Scoped.CK
 open import Algorithmic

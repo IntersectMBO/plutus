@@ -14,7 +14,7 @@ open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
 open import Builtin
-open import Utils
+open import Utils hiding (TermCon)
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 

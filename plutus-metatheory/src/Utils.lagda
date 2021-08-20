@@ -207,3 +207,33 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 \end{code}
+## Term constants
+
+Defined separetely here rather than using generic version used in the
+typed syntax.
+
+\begin{code}
+open import Data.Integer
+open import Data.String
+open import Data.Bool
+postulate ByteString : Set
+{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# COMPILE GHC ByteString = type BS.ByteString #-}
+
+data TermCon : Set where
+  integer    : ℤ → TermCon
+  bytestring : ByteString → TermCon
+  string     : String → TermCon
+  bool       : Bool → TermCon
+  unit       : TermCon
+  Data       : DATA → TermCon
+
+{-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
+{-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}
+{-# FOREIGN GHC pattern TmByteString b = Some (ValueOf DefaultUniByteString b) #-}
+{-# FOREIGN GHC pattern TmString     s = Some (ValueOf DefaultUniString s) #-}
+{-# FOREIGN GHC pattern TmUnit         = Some (ValueOf DefaultUniUnit ()) #-}
+{-# FOREIGN GHC pattern TmBool       b = Some (ValueOf DefaultUniBool b) #-}
+{-# FOREIGN GHC pattern TmData       d = Some (ValueOf DefaultUniData d) #-}
+{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData) #-}
+\end{code}

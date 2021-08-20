@@ -1,6 +1,6 @@
 ```
 open import Builtin.Constant.Type
-open import Utils
+open import Utils hiding (TermCon)
 ```
 
 ```
