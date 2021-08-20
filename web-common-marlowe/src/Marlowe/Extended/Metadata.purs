@@ -148,7 +148,8 @@ updateChoiceInfo f = Map.alter updateChoiceInfoEntry
 type MetaData
   = { contractType :: ContractType
     , contractName :: String
-    , contractDescription :: String
+    , contractShortDescription :: String
+    , contractLongDescription :: String
     , roleDescriptions :: Map S.TokenName String
     , slotParameterDescriptions :: OMap String String
     , valueParameterInfo :: OMap String ValueParameterInfo
@@ -161,8 +162,11 @@ _contractName = prop (SProxy :: SProxy "contractName")
 _contractType :: Lens' MetaData ContractType
 _contractType = prop (SProxy :: SProxy "contractType")
 
-_contractDescription :: Lens' MetaData String
-_contractDescription = prop (SProxy :: SProxy "contractDescription")
+_contractShortDescription :: Lens' MetaData String
+_contractShortDescription = prop (SProxy :: SProxy "contractShortDescription")
+
+_contractLongDescription :: Lens' MetaData String
+_contractLongDescription = prop (SProxy :: SProxy "contractLongDescription")
 
 _roleDescriptions :: Lens' MetaData (Map S.TokenName String)
 _roleDescriptions = prop (SProxy :: SProxy "roleDescriptions")
@@ -180,7 +184,8 @@ emptyContractMetadata :: MetaData
 emptyContractMetadata =
   { contractType: Other
   , contractName: ""
-  , contractDescription: ""
+  , contractShortDescription: ""
+  , contractLongDescription: ""
   , roleDescriptions: mempty
   , slotParameterDescriptions: mempty
   , valueParameterInfo: mempty

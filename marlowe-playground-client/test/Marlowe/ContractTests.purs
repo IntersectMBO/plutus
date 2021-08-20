@@ -87,7 +87,7 @@ buyer :: Party
 buyer = Role "Buyer"
 
 arbiter :: Party
-arbiter = Role "Arbiter"
+arbiter = Role "Mediator"
 
 ada :: Token
 ada = Token "" ""
@@ -99,10 +99,10 @@ filledEscrow =
         ( TemplateContent
             { slotContent:
                 Map.fromFoldable
-                  [ "Buyer's deposit timeout" /\ BigInteger.fromInt 10
-                  , "Buyer's dispute timeout" /\ BigInteger.fromInt 50
-                  , "Seller's response timeout" /\ BigInteger.fromInt 100
-                  , "Timeout for arbitrage" /\ BigInteger.fromInt 1000
+                  [ "Payment deadline" /\ BigInteger.fromInt 10
+                  , "Complaint response deadline" /\ BigInteger.fromInt 50
+                  , "Complaint deadline" /\ BigInteger.fromInt 100
+                  , "Mediation deadline" /\ BigInteger.fromInt 1000
                   ]
             , valueContent:
                 Map.fromFoldable
@@ -134,11 +134,15 @@ filledZeroCouponBond =
   toTerm
     ( fillTemplate
         ( TemplateContent
-            { slotContent: mempty
+            { slotContent:
+                Map.fromFoldable
+                  [ "Interest" /\ BigInteger.fromInt 100
+                  , "Amount" /\ BigInteger.fromInt 200
+                  ]
             , valueContent:
                 Map.fromFoldable
-                  [ "Discounted price" /\ BigInteger.fromInt 100
-                  , "Notional price" /\ BigInteger.fromInt 200
+                  [ "Interest" /\ BigInteger.fromInt 100
+                  , "Amount" /\ BigInteger.fromInt 200
                   ]
             }
         )
@@ -180,12 +184,51 @@ filledSwap =
 filledContractForDifferences :: Term T.Contract
 filledContractForDifferences =
   toTerm
-    ContractForDifferences.extendedContract
+    ( fillTemplate
+        ( TemplateContent
+            { slotContent:
+                Map.fromFoldable
+                  [ "Party deposit deadline" /\ BigInteger.fromInt 10
+                  , "Counterparty deposit deadline" /\ BigInteger.fromInt 20
+                  , "First window beginning" /\ BigInteger.fromInt 30
+                  , "First window deadline" /\ BigInteger.fromInt 40
+                  , "Second window beginning" /\ BigInteger.fromInt 100
+                  , "Second window deadline" /\ BigInteger.fromInt 110
+                  ]
+            , valueContent:
+                Map.fromFoldable
+                  [ "Amount paid by party" /\ BigInteger.fromInt 100000000
+                  , "Amount paid by counterparty" /\ BigInteger.fromInt 100000000
+                  ]
+            }
+        )
+        ContractForDifferences.extendedContract
+    )
 
 filledContractForDifferencesWithOracle :: Term T.Contract
 filledContractForDifferencesWithOracle =
   toTerm
-    ContractForDifferencesWithOracle.extendedContract
+    ( fillTemplate
+        ( TemplateContent
+            { slotContent:
+                Map.fromFoldable
+                  [ "Party deposit deadline" /\ BigInteger.fromInt 10
+                  , "Counterparty deposit deadline" /\ BigInteger.fromInt 20
+                  , "First window beginning" /\ BigInteger.fromInt 30
+                  , "First window deadline" /\ BigInteger.fromInt 40
+                  , "Second window beginning" /\ BigInteger.fromInt 100
+                  , "Second window deadline" /\ BigInteger.fromInt 110
+                  ]
+            , valueContent:
+                Map.fromFoldable
+                  [ "Amount paid by party" /\ BigInteger.fromInt 100000000
+                  , "Amount paid by counterparty" /\ BigInteger.fromInt 100000000
+                  , "Amount of Ada to use as asset" /\ BigInteger.fromInt 100000000
+                  ]
+            }
+        )
+        ContractForDifferencesWithOracle.extendedContract
+    )
 
 -- TODO:  We should combine this test with the ones defined in Marlowe.Holes.SemanticTest
 --       so that we can have a single definition of contracts and flows, and then test what we care in each one. In semantic
