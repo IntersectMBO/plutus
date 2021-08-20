@@ -718,6 +718,7 @@
         flat = ./.plan.nix/flat.nix;
         marlowe = ./.plan.nix/marlowe.nix;
         plutus-use-cases = ./.plan.nix/plutus-use-cases.nix;
+        plutus-ghc-stub = ./.plan.nix/plutus-ghc-stub.nix;
         cardano-cli = ./.plan.nix/cardano-cli.nix;
         purescript-bridge = ./.plan.nix/purescript-bridge.nix;
         plutus-playground-server = ./.plan.nix/plutus-playground-server.nix;
@@ -819,6 +820,7 @@
           "plutus-use-cases" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
+          "plutus-ghc-stub" = { flags = {}; };
           "cardano-cli" = {
             flags = { "unexpected_thunks" = lib.mkOverride 900 false; };
             };
@@ -855,7 +857,9 @@
           "lobemo-backend-monitoring" = { flags = {}; };
           "marlowe-dashboard-server" = { flags = {}; };
           "tracer-transformers" = { flags = {}; };
-          "plutus-tx-plugin" = { flags = {}; };
+          "plutus-tx-plugin" = {
+            flags = { "use-ghc-stub" = lib.mkOverride 900 false; };
+            };
           "marlowe-symbolic" = { flags = {}; };
           "plutus-metatheory" = { flags = {}; };
           "marlowe-playground-server" = { flags = {}; };
@@ -1406,6 +1410,7 @@
           "inline-c".components.library.planned = lib.mkOverride 900 true;
           "mwc-random".components.library.planned = lib.mkOverride 900 true;
           "tasty-smallcheck".components.library.planned = lib.mkOverride 900 true;
+          "plutus-ghc-stub".components.library.planned = lib.mkOverride 900 true;
           "fingertree".components.library.planned = lib.mkOverride 900 true;
           "test-framework".components.library.planned = lib.mkOverride 900 true;
           "microlens-th".components.library.planned = lib.mkOverride 900 true;

@@ -27,6 +27,7 @@ packages: doc
           quickcheck-dynamic
           web-ghc
           word-array
+          stubs/plutus-ghc-stub
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
