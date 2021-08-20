@@ -33,10 +33,10 @@ echo "[ci-plutus-benchmark]: Processing benchmark comparison for PR $PR_NUMBER"
 PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
-cabal update
+nix-shell --run "cabal update && cabal clean"
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-nix-shell --pure --run "cabal bench plutus-benchmark:validation 2>&1 | tee bench-PR.log"
+nix-shell --run "cabal bench plutus-benchmark:validation 2>&1 | tee bench-PR.log"
 
 echo "[ci-plutus-benchmark]: fetching origin ..."
 git fetch origin
@@ -46,7 +46,7 @@ git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-nix-shell --pure --run "cabal bench plutus-benchmark:validation 2>&1 | tee bench-base.log"
+nix-shell --run "cabal bench plutus-benchmark:validation 2>&1 | tee bench-base.log"
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
