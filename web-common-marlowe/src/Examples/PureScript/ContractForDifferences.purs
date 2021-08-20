@@ -1,11 +1,15 @@
 module Examples.PureScript.ContractForDifferences
   ( contractTemplate
   , metaData
+  , defaultSlotContent
   , extendedContract
   ) where
 
 import Prelude
 import Data.BigInteger (BigInteger, fromInt)
+import Data.Map as Map
+import Data.Map (Map)
+import Data.Tuple.Nested ((/\))
 import Examples.Metadata as Metadata
 import Marlowe.Extended (Action(..), Case(..), Contract(..), Observation(..), Payee(..), Timeout(..), Value(..))
 import Marlowe.Extended.Metadata (MetaData, ContractTemplate)
@@ -16,6 +20,17 @@ contractTemplate = { metaData, extendedContract }
 
 metaData :: MetaData
 metaData = Metadata.contractForDifferences
+
+defaultSlotContent :: Map String BigInteger
+defaultSlotContent =
+  Map.fromFoldable
+    [ "Party deposit deadline" /\ fromInt 300
+    , "Counterparty deposit deadline" /\ fromInt 600
+    , "First window beginning" /\ fromInt 900
+    , "First window deadline" /\ fromInt 1200
+    , "Second window beginning" /\ fromInt 1500
+    , "Second window deadline" /\ fromInt 1800
+    ]
 
 ada :: Token
 ada = Token "" ""

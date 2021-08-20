@@ -34,8 +34,8 @@ defaultSlotContent :: Map String BigInteger
 defaultSlotContent =
   Map.fromFoldable
     [ "Payment deadline" /\ fromInt 600
-    , "Complaint response deadline" /\ fromInt 1800
-    , "Complaint deadline" /\ fromInt 2400
+    , "Complaint deadline" /\ fromInt 1800
+    , "Complaint response deadline" /\ fromInt 2400
     , "Mediation deadline" /\ fromInt 3600
     ]
 

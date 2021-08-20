@@ -144,7 +144,7 @@ contractOverview contractTemplate =
             [ contractIcon contractTemplate.metaData.contractType
             , text $ contractTemplate.metaData.contractName <> " overview"
             ]
-        , p_ $ markdownToHTML contractTemplate.metaData.contractShortDescription
+        , p [ classNames [ "mb-4" ] ] $ markdownToHTML contractTemplate.metaData.contractShortDescription
         , p_ $ markdownToHTML contractTemplate.metaData.contractLongDescription
         ]
     , div
