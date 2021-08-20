@@ -29,26 +29,20 @@ counterparty = Role "Counterparty"
 oracle :: Party
 oracle = Role "Oracle"
 
-partyDepositAmount :: BigInteger
-partyDepositAmount = (fromInt 100000000)
-
-counterpartyDepositAmount :: BigInteger
-counterpartyDepositAmount = (fromInt 100000000)
-
 partyDeposit :: Value
-partyDeposit = Constant partyDepositAmount
+partyDeposit = ConstantParam "Amount paid by party"
 
 counterpartyDeposit :: Value
-counterpartyDeposit = Constant counterpartyDepositAmount
+counterpartyDeposit = ConstantParam "Amount paid by counterparty"
 
 bothDeposits :: Value
-bothDeposits = Constant (partyDepositAmount + counterpartyDepositAmount)
+bothDeposits = AddValue partyDeposit counterpartyDeposit
 
 priceBeginning :: ChoiceId
-priceBeginning = ChoiceId "Price at beginning" oracle
+priceBeginning = ChoiceId "Price in first window" oracle
 
 priceEnd :: ChoiceId
-priceEnd = ChoiceId "Price at end" oracle
+priceEnd = ChoiceId "Price in second window" oracle
 
 decreaseInPrice :: ValueId
 decreaseInPrice = ValueId "Decrease in price"
@@ -85,11 +79,12 @@ transferUpToDeposit from payerDeposit to amount = Pay from (Account to) ada (Con
 
 extendedContract :: Contract
 extendedContract =
-  initialDeposit party partyDeposit (Slot $ fromInt 300) Close
-    $ initialDeposit counterparty counterpartyDeposit (Slot $ fromInt 600) Close
-    $ oracleInput priceBeginning (Slot $ fromInt 900) Close
-    $ wait (Slot $ fromInt 1500)
-    $ oracleInput priceEnd (Slot $ fromInt 1800) Close
+  initialDeposit party partyDeposit (SlotParam "Party deposit deadline") Close
+    $ initialDeposit counterparty counterpartyDeposit (SlotParam "Counterparty deposit deadline") Close
+    $ wait (SlotParam "First window beginning")
+    $ oracleInput priceBeginning (SlotParam "First window deadline") Close
+    $ wait (SlotParam "Second window beginning")
+    $ oracleInput priceEnd (SlotParam "Second window deadline") Close
     $ gtLtEq (ChoiceValue priceBeginning) (ChoiceValue priceEnd)
         ( recordDifference decreaseInPrice priceBeginning priceEnd
             $ transferUpToDeposit counterparty counterpartyDeposit party (UseValue decreaseInPrice)

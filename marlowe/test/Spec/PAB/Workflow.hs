@@ -168,9 +168,9 @@ marloweCompanionFollowerContractExample = do
 
 createArgs :: PubKeyHash -> PubKeyHash -> (AssocMap.Map Val.TokenName PubKeyHash, Marlowe.Contract)
 createArgs investor issuer = (tokenNames, zcb) where
-    tokenNames = AssocMap.fromList [("Investor", investor), ("Issuer", issuer)]
-    issuerAcc = Role "Issuer"
-    investorAcc = Role "Investor"
+    tokenNames = AssocMap.fromList [("Lender", investor), ("Borrower", issuer)]
+    issuerAcc = Role "Borrower"
+    investorAcc = Role "Lender"
     zcb = When
             [ Case
                 (Deposit issuerAcc issuerAcc ada (Constant 850))

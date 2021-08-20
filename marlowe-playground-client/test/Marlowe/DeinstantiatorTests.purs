@@ -28,10 +28,10 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Buyer's deposit timeout" /\ fromInt 600
-                          , "Buyer's dispute timeout" /\ fromInt 1800
-                          , "Seller's response timeout" /\ fromInt 2400
-                          , "Timeout for arbitrage" /\ fromInt 3600
+                          [ "Payment deadline" /\ fromInt 600
+                          , "Complaint response deadline" /\ fromInt 1800
+                          , "Complaint deadline" /\ fromInt 2400
+                          , "Mediation deadline" /\ fromInt 3600
                           ]
                     , valueContent:
                         Map.fromFoldable
@@ -56,7 +56,7 @@ all =
                           , "Deposit of collateral by buyer timeout" /\ fromInt 1200
                           , "Deposit of price by buyer timeout" /\ fromInt 1800
                           , "Dispute by buyer timeout" /\ fromInt 3000
-                          , "Seller's response timeout" /\ fromInt 3600
+                          , "Complaint deadline" /\ fromInt 3600
                           ]
                     , valueContent:
                         Map.fromFoldable
@@ -78,13 +78,13 @@ all =
                 ( TemplateContent
                     { slotContent:
                         Map.fromFoldable
-                          [ "Initial exchange deadline" /\ fromInt 600
-                          , "Maturity exchange deadline" /\ fromInt 1500
+                          [ "Loan deadline" /\ fromInt 600
+                          , "Payback deadline" /\ fromInt 1500
                           ]
                     , valueContent:
                         Map.fromFoldable
-                          [ "Discounted price" /\ fromInt 50
-                          , "Notional price" /\ fromInt 100
+                          [ "Interest" /\ fromInt 50
+                          , "Amount" /\ fromInt 100
                           ]
                     }
                 )

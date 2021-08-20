@@ -33,8 +33,8 @@ fixedTimeoutContract =
 defaultSlotContent :: Map String BigInteger
 defaultSlotContent =
   Map.fromFoldable
-    [ "Initial exchange deadline" /\ fromInt 600
-    , "Maturity exchange deadline" /\ fromInt 1500
+    [ "Loan deadline" /\ fromInt 600
+    , "Payback deadline" /\ fromInt 1500
     ]
 
 metaData :: MetaData
@@ -44,22 +44,22 @@ ada :: Token
 ada = Token "" ""
 
 discountedPrice :: Value
-discountedPrice = ConstantParam "Discounted price"
+discountedPrice = ConstantParam "Interest"
 
 notionalPrice :: Value
-notionalPrice = ConstantParam "Notional price"
+notionalPrice = AddValue (ConstantParam "Amount") discountedPrice
 
 investor :: Party
-investor = Role "Investor"
+investor = Role "Lender"
 
 issuer :: Party
-issuer = Role "Issuer"
+issuer = Role "Borrower"
 
 initialExchange :: Timeout
-initialExchange = SlotParam "Initial exchange deadline"
+initialExchange = SlotParam "Loan deadline"
 
 maturityExchangeTimeout :: Timeout
-maturityExchangeTimeout = SlotParam "Maturity exchange deadline"
+maturityExchangeTimeout = SlotParam "Payback deadline"
 
 transfer :: Timeout -> Party -> Party -> Value -> Contract -> Contract
 transfer timeout from to amount continuation =
